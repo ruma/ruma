@@ -1,8 +1,7 @@
 //! [GET /_matrix/media/r0/preview_url](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-media-r0-preview-url)
 
-use std::time::SystemTime;
-
 use ruma_api::ruma_api;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use serde::Serialize;
 use serde_json::value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue};
 
@@ -23,8 +22,7 @@ ruma_api! {
 
         /// Preferred point in time (in milliseconds) to return a preview for.
         #[ruma_api(query)]
-        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-        pub ts: SystemTime,
+        pub ts: MilliSecondsSinceUnixEpoch,
     }
 
     #[derive(Default)]
@@ -42,7 +40,7 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given url and timestamp.
-    pub fn new(url: &'a str, ts: SystemTime) -> Self {
+    pub fn new(url: &'a str, ts: MilliSecondsSinceUnixEpoch) -> Self {
         Self { url, ts }
     }
 }

@@ -1,7 +1,6 @@
-use std::time::{Duration, UNIX_EPOCH};
-
-use js_int::UInt;
+use js_int::{uint, UInt};
 use matches::assert_matches;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     room::{
         aliases::AliasesEventContent,
@@ -41,7 +40,7 @@ fn serialize_aliases_with_prev_content() {
             "#somewhere:localhost"
         )])),
         event_id: event_id!("$h29iv0s8:example.com"),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         prev_content: Some(AnyStateEventContent::RoomAliases(AliasesEventContent::new(vec![
             room_alias_id!("#inner:localhost"),
         ]))),
@@ -64,7 +63,7 @@ fn serialize_aliases_without_prev_content() {
             "#somewhere:localhost"
         )])),
         event_id: event_id!("$h29iv0s8:example.com"),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         prev_content: None,
         room_id: room_id!("!roomid:room.com"),
         sender: user_id!("@carl:example.com"),
@@ -124,7 +123,7 @@ fn deserialize_aliases_with_prev_content() {
             unsigned,
         } if content.aliases == vec![room_alias_id!("#somewhere:localhost")]
             && event_id == event_id!("$h29iv0s8:example.com")
-            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && prev_content.aliases == vec![room_alias_id!("#inner:localhost")]
             && room_id == room_id!("!roomid:room.com")
             && sender == user_id!("@carl:example.com")
@@ -151,7 +150,7 @@ fn deserialize_aliases_sync_with_room_id() {
             unsigned,
         } if content.aliases == vec![room_alias_id!("#somewhere:localhost")]
             && event_id == event_id!("$h29iv0s8:example.com")
-            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && prev_content.aliases == vec![room_alias_id!("#inner:localhost")]
             && sender == user_id!("@carl:example.com")
             && state_key.is_empty()
@@ -210,7 +209,7 @@ fn deserialize_avatar_without_prev_content() {
             state_key,
             unsigned
         } if event_id == event_id!("$h29iv0s8:example.com")
-            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && room_id == room_id!("!roomid:room.com")
             && sender == user_id!("@carl:example.com")
             && state_key.is_empty()
@@ -287,7 +286,7 @@ fn deserialize_member_event_with_top_level_membership_field() {
                 ..
             }
         )) if event_id == event_id!("$h29iv0s8:example.com")
-            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && sender == user_id!("@example:localhost")
             && content.displayname == Some("example".into())
     );
@@ -318,7 +317,7 @@ fn deserialize_full_event_convert_to_sync() {
             unsigned,
         }) if content.aliases == vec![room_alias_id!("#somewhere:localhost")]
             && event_id == "$h29iv0s8:example.com"
-            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && prev_content.aliases == vec![room_alias_id!("#inner:localhost")]
             && sender == "@carl:example.com"
             && state_key.is_empty()

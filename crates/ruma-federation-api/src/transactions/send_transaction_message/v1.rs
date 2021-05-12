@@ -1,8 +1,9 @@
 //! [PUT /_matrix/federation/v1/send/{txnId}](https://matrix.org/docs/spec/server_server/r0.1.3#put-matrix-federation-v1-send-txnid)
 
-use std::{collections::BTreeMap, time::SystemTime};
+use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::pdu::Pdu;
 use ruma_identifiers::{EventId, ServerName};
 use ruma_serde::Raw;
@@ -29,8 +30,7 @@ ruma_api! {
 
         /// POSIX timestamp in milliseconds on the originating homeserver when this transaction
         /// started.
-        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-        pub origin_server_ts: SystemTime,
+        pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
         /// List of persistent updates to rooms.
         ///
@@ -60,7 +60,7 @@ impl<'a> Request<'a> {
     pub fn new(
         transaction_id: &'a str,
         origin: &'a ServerName,
-        origin_server_ts: SystemTime,
+        origin_server_ts: MilliSecondsSinceUnixEpoch,
     ) -> Self {
         Self { transaction_id, origin, origin_server_ts, pdus: &[], edus: &[] }
     }

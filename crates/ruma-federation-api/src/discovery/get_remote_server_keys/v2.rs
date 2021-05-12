@@ -1,8 +1,7 @@
 //! [GET /_matrix/key/v2/query/{serverName}/{keyId}](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-key-v2-query-servername-keyid)
 
-use std::time::SystemTime;
-
 use ruma_api::ruma_api;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_identifiers::ServerName;
 
 use crate::discovery::ServerSigningKeys;
@@ -29,8 +28,8 @@ ruma_api! {
         ///
         /// If not supplied, the current time as determined by the receiving server is used.
         #[ruma_api(query)]
-        #[serde(default = "SystemTime::now", with = "ruma_serde::time::ms_since_unix_epoch")]
-        pub minimum_valid_until_ts: SystemTime,
+        #[serde(default = "MilliSecondsSinceUnixEpoch::now")]
+        pub minimum_valid_until_ts: MilliSecondsSinceUnixEpoch,
     }
 
     response: {
@@ -41,7 +40,10 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given server name and `minimum_valid_until` timestamp.
-    pub fn new(server_name: &'a ServerName, minimum_valid_until_ts: SystemTime) -> Self {
+    pub fn new(
+        server_name: &'a ServerName,
+        minimum_valid_until_ts: MilliSecondsSinceUnixEpoch,
+    ) -> Self {
         Self { server_name, minimum_valid_until_ts }
     }
 }

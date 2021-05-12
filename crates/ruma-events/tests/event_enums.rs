@@ -1,8 +1,7 @@
-use std::time::{Duration, UNIX_EPOCH};
-
 use assign::assign;
-use js_int::UInt;
+use js_int::{uint, UInt};
 use matches::assert_matches;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_identifiers::{event_id, mxc_uri, room_id, user_id};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -60,7 +59,7 @@ fn deserialize_message_event() {
             unsigned,
         }) if sdp == "Hello" && call_id == "foofoo" && version == UInt::new(1).unwrap()
             && event_id == event_id!("$h29iv0s8:example.com")
-            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && room_id == room_id!("!roomid:room.com")
             && sender == user_id!("@carl:example.com")
             && unsigned.is_empty()
@@ -88,7 +87,7 @@ fn serialize_message_event() {
             mxc_uri!("mxc://matrix.org/arsrns98rsRSR"),
         ),
         event_id: event_id!("$h29iv0s8:example.com"),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         room_id: room_id!("!roomid:room.com"),
         sender: user_id!("@carl:example.com"),
         unsigned: Unsigned::default(),

@@ -1,8 +1,9 @@
 //! [GET /_matrix/client/r0/admin/whois/{userId}](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-admin-whois-userid)
 
-use std::{collections::BTreeMap, time::SystemTime};
+use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
@@ -73,8 +74,7 @@ pub struct ConnectionInfo {
     pub ip: Option<String>,
 
     /// Time when that the session was last active.
-    #[serde(with = "ruma_serde::time::opt_ms_since_unix_epoch")]
-    pub last_seen: Option<SystemTime>,
+    pub last_seen: Option<MilliSecondsSinceUnixEpoch>,
 
     /// User agent string last seen in the session.
     pub user_agent: Option<String>,

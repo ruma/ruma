@@ -1,10 +1,11 @@
 //! [POST /_matrix/push/v1/notify](https://matrix.org/docs/spec/push_gateway/r0.1.1#post-matrix-push-v1-notify)
 
-use std::time::SystemTime;
-
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_common::push::{PusherData, Tweak};
+use ruma_common::{
+    push::{PusherData, Tweak},
+    SecondsSinceUnixEpoch,
+};
 use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
 use ruma_serde::{Outgoing, StringEnum};
@@ -192,11 +193,8 @@ pub struct Device {
     pub pushkey: String,
 
     /// The unix timestamp (in seconds) when the pushkey was last updated.
-    #[serde(
-        with = "ruma_serde::time::opt_s_since_unix_epoch",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub pushkey_ts: Option<SystemTime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pushkey_ts: Option<SecondsSinceUnixEpoch>,
 
     /// A dictionary of additional pusher-specific data. For 'http' pushers,
     /// this is the data dictionary passed in at pusher creation minus the `url`
@@ -292,9 +290,8 @@ mod tweak_serde {
 
 #[cfg(test)]
 mod tests {
-    use std::time::{Duration, SystemTime};
-
     use js_int::uint;
+    use ruma_common::SecondsSinceUnixEpoch;
     use ruma_events::EventType;
     use ruma_identifiers::{event_id, room_alias_id, room_id, user_id};
     use serde_json::{
@@ -339,7 +336,7 @@ mod tests {
         let count = NotificationCounts { unread: uint!(2), ..NotificationCounts::default() };
 
         let device = Device {
-            pushkey_ts: Some(SystemTime::UNIX_EPOCH + Duration::from_secs(123)),
+            pushkey_ts: Some(SecondsSinceUnixEpoch(uint!(123))),
             tweaks: vec![
                 Tweak::Highlight(true),
                 Tweak::Sound("silence".into()),

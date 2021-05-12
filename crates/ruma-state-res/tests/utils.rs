@@ -2,13 +2,13 @@
 
 use std::{
     collections::{BTreeMap, BTreeSet},
-    convert::TryFrom,
+    convert::{TryFrom, TryInto},
     sync::{Arc, Once},
-    time::{Duration, UNIX_EPOCH},
 };
 
 use js_int::uint;
 use maplit::btreemap;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     pdu::{EventHash, Pdu, RoomV3Pdu},
     room::{
@@ -77,9 +77,9 @@ pub fn do_check(
 
     // resolve the current state and add it to the state_at_event map then continue
     // on in "time"
-    for node in
-        StateResolution::lexicographical_topological_sort(&graph, |id| (0, UNIX_EPOCH, id.clone()))
-    {
+    for node in StateResolution::lexicographical_topological_sort(&graph, |id| {
+        (0, MilliSecondsSinceUnixEpoch(uint!(0)), id.clone())
+    }) {
         let fake_event = fake_event_map.get(&node).unwrap();
         let event_id = fake_event.event_id().clone();
 
@@ -340,7 +340,7 @@ pub fn to_init_pdu_event(
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
             room_id: room_id(),
             sender,
-            origin_server_ts: UNIX_EPOCH + Duration::from_secs(ts),
+            origin_server_ts: MilliSecondsSinceUnixEpoch(ts.try_into().unwrap()),
             state_key,
             kind: ev_type,
             content,
@@ -385,7 +385,7 @@ where
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
             room_id: room_id(),
             sender,
-            origin_server_ts: UNIX_EPOCH + Duration::from_secs(ts),
+            origin_server_ts: MilliSecondsSinceUnixEpoch(ts.try_into().unwrap()),
             state_key,
             kind: ev_type,
             content,
@@ -497,10 +497,11 @@ pub fn INITIAL_EDGES() -> Vec<EventId> {
 }
 
 pub mod event {
-    use std::{collections::BTreeMap, time::SystemTime};
+    use std::collections::BTreeMap;
 
     use js_int::UInt;
     use ruma_events::{
+        exports::ruma_common::MilliSecondsSinceUnixEpoch,
         pdu::{EventHash, Pdu},
         room::member::{MemberEventContent, MembershipState},
         EventType,
@@ -532,7 +533,7 @@ pub mod event {
         fn content(&self) -> serde_json::Value {
             self.content()
         }
-        fn origin_server_ts(&self) -> SystemTime {
+        fn origin_server_ts(&self) -> MilliSecondsSinceUnixEpoch {
             *self.origin_server_ts()
         }
 
@@ -623,7 +624,7 @@ pub mod event {
                 Pdu::RoomV3Pdu(ev) => serde_json::from_value(ev.content.clone()),
             }
         }
-        pub fn origin_server_ts(&self) -> &SystemTime {
+        pub fn origin_server_ts(&self) -> &MilliSecondsSinceUnixEpoch {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => &ev.origin_server_ts,
                 Pdu::RoomV3Pdu(ev) => &ev.origin_server_ts,

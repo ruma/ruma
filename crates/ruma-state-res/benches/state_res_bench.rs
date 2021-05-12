@@ -6,15 +6,15 @@
 // `cargo bench --bench <name of the bench> -- --save-baseline <name>`.
 use std::{
     collections::{BTreeMap, BTreeSet},
-    convert::TryFrom,
+    convert::{TryFrom, TryInto},
     sync::Arc,
-    time::{Duration, UNIX_EPOCH},
 };
 
 use criterion::{criterion_group, criterion_main, Criterion};
 use event::StateEvent;
 use js_int::uint;
 use maplit::btreemap;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     pdu::{EventHash, Pdu, RoomV3Pdu},
     room::{
@@ -40,7 +40,7 @@ fn lexico_topo_sort(c: &mut Criterion) {
         };
         b.iter(|| {
             let _ = StateResolution::lexicographical_topological_sort(&graph, |id| {
-                (0, UNIX_EPOCH, id.clone())
+                (0, MilliSecondsSinceUnixEpoch(uint!(0)), id.clone())
             });
         })
     });
@@ -376,7 +376,7 @@ where
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
             room_id: room_id(),
             sender,
-            origin_server_ts: UNIX_EPOCH + Duration::from_secs(ts),
+            origin_server_ts: MilliSecondsSinceUnixEpoch(ts.try_into().unwrap()),
             state_key,
             kind: ev_type,
             content,
@@ -522,9 +522,10 @@ fn BAN_STATE_SET() -> BTreeMap<EventId, Arc<StateEvent>> {
 }
 
 pub mod event {
-    use std::{collections::BTreeMap, time::SystemTime};
+    use std::collections::BTreeMap;
 
     use js_int::UInt;
+    use ruma_common::MilliSecondsSinceUnixEpoch;
     use ruma_events::{
         pdu::{EventHash, Pdu},
         room::member::MembershipState,
@@ -559,7 +560,7 @@ pub mod event {
             self.content()
         }
 
-        fn origin_server_ts(&self) -> SystemTime {
+        fn origin_server_ts(&self) -> MilliSecondsSinceUnixEpoch {
             *self.origin_server_ts()
         }
 
@@ -656,7 +657,7 @@ pub mod event {
             }
         }
 
-        pub fn origin_server_ts(&self) -> &SystemTime {
+        pub fn origin_server_ts(&self) -> &MilliSecondsSinceUnixEpoch {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => &ev.origin_server_ts,
                 Pdu::RoomV3Pdu(ev) => &ev.origin_server_ts,

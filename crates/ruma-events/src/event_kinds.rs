@@ -1,5 +1,4 @@
-use std::time::SystemTime;
-
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events_macros::Event;
 use ruma_identifiers::{EventId, RoomId, UserId};
 
@@ -56,7 +55,7 @@ pub struct MessageEvent<C: MessageEventContent> {
     pub sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
-    pub origin_server_ts: SystemTime,
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
     pub room_id: RoomId,
@@ -82,7 +81,7 @@ pub struct SyncMessageEvent<C: MessageEventContent> {
     pub sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
-    pub origin_server_ts: SystemTime,
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: Unsigned,
@@ -105,7 +104,7 @@ pub struct RedactedMessageEvent<C: RedactedMessageEventContent> {
     pub sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
-    pub origin_server_ts: SystemTime,
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
     pub room_id: RoomId,
@@ -132,7 +131,7 @@ pub struct RedactedSyncMessageEvent<C: RedactedMessageEventContent> {
     pub sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
-    pub origin_server_ts: SystemTime,
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: RedactedSyncUnsigned,
@@ -155,7 +154,7 @@ pub struct StateEvent<C: StateEventContent> {
     pub sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
-    pub origin_server_ts: SystemTime,
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
     pub room_id: RoomId,
@@ -190,7 +189,7 @@ pub struct SyncStateEvent<C: StateEventContent> {
     pub sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
-    pub origin_server_ts: SystemTime,
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
@@ -255,7 +254,7 @@ pub struct RedactedStateEvent<C: RedactedStateEventContent> {
     pub sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
-    pub origin_server_ts: SystemTime,
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
     pub room_id: RoomId,
@@ -288,7 +287,7 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
     pub sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
-    pub origin_server_ts: SystemTime,
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///

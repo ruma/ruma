@@ -1,7 +1,7 @@
-use std::time::{Duration, UNIX_EPOCH};
-
 use assign::assign;
+use js_int::uint;
 use matches::assert_matches;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_events::{
     key::verification::VerificationMethod, room::message::KeyVerificationRequestEventContent,
@@ -44,7 +44,7 @@ fn serialization() {
             file: None,
         })),
         event_id: event_id!("$143273582443PhrSn:example.org"),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(10_000),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
         room_id: room_id!("!testroomid:example.org"),
         sender: user_id!("@user:example.org"),
         unsigned: Unsigned::default(),

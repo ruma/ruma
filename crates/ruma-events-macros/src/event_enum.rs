@@ -937,10 +937,11 @@ fn field_return_type(
     var: &EventKindVariation,
     ruma_events: &TokenStream,
 ) -> TokenStream {
+    let ruma_common = quote! { #ruma_events::exports::ruma_common };
     let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
 
     match name {
-        "origin_server_ts" => quote! { ::std::time::SystemTime },
+        "origin_server_ts" => quote! { #ruma_common::MilliSecondsSinceUnixEpoch },
         "room_id" => quote! { #ruma_identifiers::RoomId },
         "event_id" => quote! { #ruma_identifiers::EventId },
         "sender" => quote! { #ruma_identifiers::UserId },

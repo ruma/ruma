@@ -39,8 +39,8 @@ impl CanonicalAliasEventContent {
 
 #[cfg(test)]
 mod tests {
-    use std::time::{Duration, UNIX_EPOCH};
-
+    use js_int::uint;
+    use ruma_common::MilliSecondsSinceUnixEpoch;
     use ruma_identifiers::{event_id, room_alias_id, room_id, user_id};
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
@@ -56,7 +56,7 @@ mod tests {
                 alt_aliases: Vec::new(),
             },
             event_id: event_id!("$h29iv0s8:example.com"),
-            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+            origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
             prev_content: None,
             room_id: room_id!("!dummy:example.com"),
             sender: user_id!("@carl:example.com"),

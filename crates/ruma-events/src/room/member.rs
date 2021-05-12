@@ -254,10 +254,10 @@ impl StrippedStateEvent<MemberEventContent> {
 
 #[cfg(test)]
 mod tests {
-    use std::time::{Duration, UNIX_EPOCH};
-
+    use js_int::uint;
     use maplit::btreemap;
     use matches::assert_matches;
+    use ruma_common::MilliSecondsSinceUnixEpoch;
     use ruma_identifiers::{server_name, server_signing_key_id};
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json};
@@ -300,7 +300,7 @@ mod tests {
                 unsigned,
                 prev_content: None,
             } if event_id == "$h29iv0s8:example.com"
-                && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+                && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
                 && room_id == "!n8f893n9:example.com"
                 && sender == "@carl:example.com"
                 && state_key == "example.com"
@@ -352,7 +352,7 @@ mod tests {
                     third_party_invite: None,
                 }),
             } if event_id == "$h29iv0s8:example.com"
-                && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+                && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
                 && room_id == "!n8f893n9:example.com"
                 && sender == "@carl:example.com"
                 && state_key == "example.com"
@@ -423,7 +423,7 @@ mod tests {
                 }
                 && token == "abc123"
                 && event_id == "$143273582443PhrSn:example.org"
-                && origin_server_ts == UNIX_EPOCH + Duration::from_millis(233)
+                && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(233))
                 && room_id == "!jEsUZKDJdhlrceRyVU:example.org"
                 && sender == "@alice:example.org"
                 && state_key == "@alice:example.org"
@@ -493,7 +493,7 @@ mod tests {
                     }),
                 }),
             } if event_id == "$143273582443PhrSn:example.org"
-                && origin_server_ts == UNIX_EPOCH + Duration::from_millis(233)
+                && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(233))
                 && room_id == "!jEsUZKDJdhlrceRyVU:example.org"
                 && sender == "@alice:example.org"
                 && state_key == "@alice:example.org"
@@ -569,7 +569,7 @@ mod tests {
                     }),
                 }),
             } if event_id == "$143273582443PhrSn:example.org"
-                && origin_server_ts == UNIX_EPOCH + Duration::from_millis(233)
+                && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(233))
                 && room_id == "!jEsUZKDJdhlrceRyVU:example.org"
                 && sender == "@alice:example.org"
                 && state_key == "@alice:example.org"

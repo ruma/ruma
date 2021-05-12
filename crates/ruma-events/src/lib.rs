@@ -143,7 +143,7 @@ extern crate self as ruma_events;
 /// It is not considered part of ruma-events' public API.
 #[doc(hidden)]
 pub mod exports {
-    pub use js_int;
+    pub use ruma_common;
     pub use ruma_identifiers;
     pub use serde;
     pub use serde_json;

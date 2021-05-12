@@ -1,6 +1,6 @@
-use std::time::UNIX_EPOCH;
-
+use js_int::uint;
 use matches::assert_matches;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_identifiers::{event_id, room_alias_id, room_id, user_id};
 use serde_json::{from_value as from_json_value, json, Value as JsonValue};
 
@@ -201,7 +201,7 @@ fn message_event_serialization() {
     let event = MessageEvent {
         content: MessageEventContent::text_plain("test"),
         event_id: event_id!("$1234:example.com"),
-        origin_server_ts: UNIX_EPOCH,
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(0)),
         room_id: room_id!("!roomid:example.com"),
         sender: user_id!("@test:example.com"),
         unsigned: Unsigned::default(),

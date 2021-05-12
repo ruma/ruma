@@ -1,6 +1,6 @@
-use std::time::{Duration, UNIX_EPOCH};
-
+use js_int::uint;
 use matches::assert_matches;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     custom::RedactedCustomEventContent,
     room::{
@@ -27,7 +27,7 @@ fn sync_unsigned() -> RedactedSyncUnsigned {
         content: RedactionEventContent { reason: Some("redacted because".into()) },
         redacts: event_id!("$h29iv0s8:example.com"),
         event_id: event_id!("$h29iv0s8:example.com"),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         sender: user_id!("@carl:example.com"),
         unsigned: Unsigned::default(),
     }));
@@ -42,7 +42,7 @@ fn full_unsigned() -> RedactedUnsigned {
         room_id: room_id!("!roomid:room.com"),
         redacts: event_id!("$h29iv0s8:example.com"),
         event_id: event_id!("$h29iv0s8:example.com"),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         sender: user_id!("@carl:example.com"),
         unsigned: Unsigned::default(),
     }));
@@ -55,7 +55,7 @@ fn redacted_message_event_serialize() {
     let redacted = RedactedSyncMessageEvent {
         content: RedactedMessageEventContent,
         event_id: event_id!("$h29iv0s8:example.com"),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         sender: user_id!("@carl:example.com"),
         unsigned: RedactedSyncUnsigned::default(),
     };
@@ -77,7 +77,7 @@ fn redacted_aliases_event_serialize_no_content() {
         content: RedactedAliasesEventContent { aliases: None },
         event_id: event_id!("$h29iv0s8:example.com"),
         state_key: "".into(),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         sender: user_id!("@carl:example.com"),
         unsigned: RedactedSyncUnsigned::default(),
     };
@@ -100,7 +100,7 @@ fn redacted_aliases_event_serialize_with_content() {
         content: RedactedAliasesEventContent { aliases: Some(vec![]) },
         event_id: event_id!("$h29iv0s8:example.com"),
         state_key: "".to_owned(),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         sender: user_id!("@carl:example.com"),
         unsigned: RedactedSyncUnsigned::default(),
     };
@@ -189,7 +189,7 @@ fn redacted_deserialize_any_room_sync() {
         content: RedactionEventContent { reason: Some("redacted because".into()) },
         redacts: event_id!("$h29iv0s8:example.com"),
         event_id: event_id!("$h29iv0s8:example.com"),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         room_id: room_id!("!roomid:room.com"),
         sender: user_id!("@carl:example.com"),
         unsigned: Unsigned::default(),
@@ -301,7 +301,7 @@ fn redacted_custom_event_deserialize() {
         event_id: event_id!("$h29iv0s8:example.com"),
         sender: user_id!("@carl:example.com"),
         state_key: "hello there".into(),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         unsigned: unsigned.clone(),
     };
 
@@ -337,7 +337,7 @@ fn redact_method_properly_redacts() {
         content: RedactionEventContent { reason: Some("redacted because".into()) },
         redacts: event_id!("$143273582443PhrSn:example.com"),
         event_id: event_id!("$h29iv0s8:example.com"),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         room_id: room_id!("!roomid:room.com"),
         sender: user_id!("@carl:example.com"),
         unsigned: Unsigned::default(),
@@ -358,6 +358,6 @@ fn redact_method_properly_redacts() {
             && unsigned.redacted_because.is_some()
             && room_id == room_id!("!roomid:room.com")
             && sender == user_id!("@user:example.com")
-            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
     );
 }

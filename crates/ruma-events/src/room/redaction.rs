@@ -1,7 +1,6 @@
 //! Types for the *m.room.redaction* event.
 
-use std::time::SystemTime;
-
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events_macros::{Event, EventContent};
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
@@ -27,7 +26,7 @@ pub struct RedactionEvent {
     pub sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
-    pub origin_server_ts: SystemTime,
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
     pub room_id: RoomId,
@@ -52,7 +51,7 @@ pub struct SyncRedactionEvent {
     pub sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
-    pub origin_server_ts: SystemTime,
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: Unsigned,

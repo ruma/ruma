@@ -27,11 +27,9 @@ impl PinnedEventsEventContent {
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        convert::TryFrom,
-        time::{Duration, UNIX_EPOCH},
-    };
+    use std::convert::{TryFrom, TryInto};
 
+    use ruma_common::MilliSecondsSinceUnixEpoch;
     use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
     use ruma_serde::Raw;
 
@@ -49,7 +47,7 @@ mod tests {
         let event = StateEvent {
             content: content.clone(),
             event_id: EventId::new(server_name),
-            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1_432_804_485_886_u64),
+            origin_server_ts: MilliSecondsSinceUnixEpoch(1_432_804_485_886_u64.try_into().unwrap()),
             prev_content: None,
             room_id: RoomId::new(server_name),
             sender: UserId::new(server_name),

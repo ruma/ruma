@@ -15,8 +15,10 @@ pub struct RoomEventContent(pub PolicyRuleEventContent);
 
 #[cfg(test)]
 mod tests {
-    use std::time::{Duration, UNIX_EPOCH};
+    use std::convert::TryInto;
 
+    use js_int::int;
+    use ruma_common::MilliSecondsSinceUnixEpoch;
     use ruma_identifiers::{event_id, room_id, user_id};
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
@@ -32,12 +34,12 @@ mod tests {
         let room_event = RoomEvent {
             event_id: event_id!("$143273582443PhrSn:example.org"),
             sender: user_id!("@example:example.org"),
-            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1_432_735_824_653),
+            origin_server_ts: MilliSecondsSinceUnixEpoch(1_432_735_824_653_u64.try_into().unwrap()),
             room_id: room_id!("!jEsUZKDJdhlrceRyVU:example.org"),
             state_key: "rule:#*:example.org".into(),
             prev_content: None,
             unsigned: Unsigned {
-                age: Some(1234.into()),
+                age: Some(int!(1234)),
                 transaction_id: None,
                 #[cfg(feature = "unstable-pre-spec")]
                 relations: None,

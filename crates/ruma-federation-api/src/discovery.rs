@@ -1,7 +1,8 @@
 //! Server discovery endpoints.
 
-use std::{collections::BTreeMap, time::SystemTime};
+use std::collections::BTreeMap;
 
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_identifiers::{ServerNameBox, ServerSigningKeyId};
 use serde::{Deserialize, Serialize};
 
@@ -31,8 +32,7 @@ impl VerifyKey {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct OldVerifyKey {
     /// Timestamp when this key expired.
-    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-    pub expired_ts: SystemTime,
+    pub expired_ts: MilliSecondsSinceUnixEpoch,
 
     /// The Unpadded Base64 encoded key.
     pub key: String,
@@ -40,7 +40,7 @@ pub struct OldVerifyKey {
 
 impl OldVerifyKey {
     /// Creates a new `OldVerifyKey` with the given expiry time and key.
-    pub fn new(expired_ts: SystemTime, key: String) -> Self {
+    pub fn new(expired_ts: MilliSecondsSinceUnixEpoch, key: String) -> Self {
         Self { expired_ts, key }
     }
 }
@@ -65,15 +65,14 @@ pub struct ServerSigningKeys {
 
     /// Timestamp when the keys should be refreshed. This field MUST be ignored in room
     /// versions 1, 2, 3, and 4.
-    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-    pub valid_until_ts: SystemTime,
+    pub valid_until_ts: MilliSecondsSinceUnixEpoch,
 }
 
 impl ServerSigningKeys {
     /// Creates a new `ServerSigningKeys` with the given server name and validity timestamp.
     ///
     /// All other fields will be empty.
-    pub fn new(server_name: ServerNameBox, valid_until_ts: SystemTime) -> Self {
+    pub fn new(server_name: ServerNameBox, valid_until_ts: MilliSecondsSinceUnixEpoch) -> Self {
         Self {
             server_name,
             verify_keys: BTreeMap::new(),

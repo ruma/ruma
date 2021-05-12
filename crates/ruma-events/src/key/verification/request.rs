@@ -1,7 +1,6 @@
 //! Types for the *m.key.verification.request* event.
 
-use std::time::SystemTime;
-
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events_macros::EventContent;
 use ruma_identifiers::DeviceIdBox;
 use serde::{Deserialize, Serialize};
@@ -27,6 +26,5 @@ pub struct RequestToDeviceEventContent {
     ///
     /// If the request is in the future by more than 5 minutes or more than 10 minutes in
     /// the past, the message should be ignored by the receiver.
-    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-    pub timestamp: SystemTime,
+    pub timestamp: MilliSecondsSinceUnixEpoch,
 }

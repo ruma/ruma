@@ -1,7 +1,7 @@
-use std::time::{Duration, UNIX_EPOCH};
-
+use js_int::uint;
 use maplit::btreemap;
 use matches::assert_matches;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     custom::CustomEventContent, AnyMessageEvent, AnyStateEvent, AnyStateEventContent,
     AnySyncMessageEvent, AnySyncRoomEvent, MessageEvent, StateEvent, SyncMessageEvent,
@@ -53,7 +53,7 @@ fn serialize_custom_message_event() {
             event_type: "m.room.message".into(),
         },
         event_id: event_id!("$h29iv0s8:example.com"),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(10),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10)),
         room_id: room_id!("!room:room.com"),
         sender: user_id!("@carl:example.com"),
         unsigned: Unsigned::default(),
@@ -93,7 +93,7 @@ fn serialize_custom_state_event() {
             event_type: "m.made.up".into(),
         },
         event_id: event_id!("$h29iv0s8:example.com"),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(10),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10)),
         prev_content: None,
         room_id: room_id!("!roomid:room.com"),
         sender: user_id!("@carl:example.com"),
@@ -147,7 +147,7 @@ fn deserialize_custom_state_event() {
             unsigned,
         }) if data == expected_content && event_type == "m.reaction"
             && event_id == event_id!("$h29iv0s8:example.com")
-            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(10)
+            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(10))
             && sender == user_id!("@carl:example.com")
             && room_id == room_id!("!room:room.com")
             && state_key.is_empty()
@@ -183,7 +183,7 @@ fn deserialize_custom_state_sync_event() {
             unsigned,
         } if data == expected_content && event_type == "m.reaction"
             && event_id == event_id!("$h29iv0s8:example.com")
-            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(10)
+            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(10))
             && sender == user_id!("@carl:example.com")
             && state_key.is_empty()
             && !unsigned.is_empty()
@@ -221,7 +221,7 @@ fn deserialize_custom_message_sync_event() {
             unsigned,
         })) if data == expected_content && event_type == "m.ruma_custom"
             && event_id == event_id!("$h29iv0s8:example.com")
-            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(10)
+            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(10))
             && sender == user_id!("@carl:example.com")
             && !unsigned.is_empty()
     );

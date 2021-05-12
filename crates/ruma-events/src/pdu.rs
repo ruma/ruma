@@ -8,9 +8,10 @@
 //! The stubbed versions of each PDU type remove the `event_id` field (if any)
 //! and the `room_id` field for use in PDU templates.
 
-use std::{collections::BTreeMap, time::SystemTime};
+use std::collections::BTreeMap;
 
 use js_int::UInt;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomId, ServerNameBox, ServerSigningKeyId, UserId};
 use serde::{Deserialize, Serialize};
@@ -46,8 +47,7 @@ pub struct RoomV1Pdu {
 
     /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver
     /// of when this event was created.
-    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-    pub origin_server_ts: SystemTime,
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     // TODO: Encode event type as content enum variant, like event enums do
     /// The event's type.
@@ -106,8 +106,7 @@ pub struct RoomV3Pdu {
 
     /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver
     /// of when this event was created.
-    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-    pub origin_server_ts: SystemTime,
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     // TODO: Encode event type as content enum variant, like event enums do
     /// The event's type.

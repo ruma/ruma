@@ -1,10 +1,8 @@
 //! [GET /_matrix/client/r0/notifications](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-notifications)
 
-use std::time::SystemTime;
-
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_common::push::Action;
+use ruma_common::{push::Action, MilliSecondsSinceUnixEpoch};
 use ruma_events::AnySyncRoomEvent;
 use ruma_identifiers::RoomId;
 use ruma_serde::Raw;
@@ -89,8 +87,7 @@ pub struct Notification {
     pub room_id: RoomId,
 
     /// The time at which the event notification was sent.
-    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-    pub ts: SystemTime,
+    pub ts: MilliSecondsSinceUnixEpoch,
 }
 
 impl Notification {
@@ -101,7 +98,7 @@ impl Notification {
         event: Raw<AnySyncRoomEvent>,
         read: bool,
         room_id: RoomId,
-        ts: SystemTime,
+        ts: MilliSecondsSinceUnixEpoch,
     ) -> Self {
         Self { actions, event, profile_tag: None, read, room_id, ts }
     }

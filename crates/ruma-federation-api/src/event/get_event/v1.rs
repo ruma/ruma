@@ -1,8 +1,7 @@
 //! [GET /_matrix/federation/v1/event/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-federation-v1-event-eventid)
 
-use std::time::SystemTime;
-
 use ruma_api::ruma_api;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::pdu::Pdu;
 use ruma_identifiers::{EventId, ServerNameBox};
 use ruma_serde::Raw;
@@ -28,8 +27,7 @@ ruma_api! {
         pub origin: ServerNameBox,
 
         /// Time on originating homeserver when this transaction started.
-        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-        pub origin_server_ts: SystemTime,
+        pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
         /// The event.
         #[serde(rename = "pdus", with = "ruma_serde::single_element_seq")]
@@ -46,7 +44,11 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given server name, timestamp, and event.
-    pub fn new(origin: ServerNameBox, origin_server_ts: SystemTime, pdu: Raw<Pdu>) -> Self {
+    pub fn new(
+        origin: ServerNameBox,
+        origin_server_ts: MilliSecondsSinceUnixEpoch,
+        pdu: Raw<Pdu>,
+    ) -> Self {
         Self { origin, origin_server_ts, pdu }
     }
 }

@@ -2,10 +2,10 @@ use std::{
     cmp::Reverse,
     collections::{BTreeMap, BTreeSet, BinaryHeap},
     sync::Arc,
-    time::SystemTime,
 };
 
 use maplit::btreeset;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     room::{
         member::{MemberEventContent, MembershipState},
@@ -288,7 +288,7 @@ impl StateResolution {
         key_fn: F,
     ) -> Vec<EventId>
     where
-        F: Fn(&EventId) -> (i64, SystemTime, EventId),
+        F: Fn(&EventId) -> (i64, MilliSecondsSinceUnixEpoch, EventId),
     {
         info!("starting lexicographical topological sort");
         // NOTE: an event that has no incoming edges happened most recently,

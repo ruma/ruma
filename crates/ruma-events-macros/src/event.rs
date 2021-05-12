@@ -63,7 +63,6 @@ fn expand_serialize_event(
     fields: &[Field],
     ruma_events: &TokenStream,
 ) -> TokenStream {
-    let js_int = quote! { #ruma_events::exports::js_int };
     let serde = quote! { #ruma_events::exports::serde };
 
     let ident = &input.ident;
@@ -83,17 +82,6 @@ fn expand_serialize_event(
                     if let Some(content) = self.prev_content.as_ref() {
                         state.serialize_field("prev_content", content)?;
                     }
-                }
-            } else if name == "origin_server_ts" {
-                quote! {
-                    let time_since_epoch =
-                        self.origin_server_ts.duration_since(::std::time::UNIX_EPOCH).unwrap();
-
-                    let timestamp = <#js_int::UInt as ::std::convert::TryFrom<_>>::try_from(
-                        time_since_epoch.as_millis(),
-                    ).map_err(S::Error::custom)?;
-
-                    state.serialize_field("origin_server_ts", &timestamp)?;
                 }
             } else if name == "unsigned" {
                 quote! {
@@ -136,7 +124,6 @@ fn expand_deserialize_event(
     fields: &[Field],
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
-    let js_int = quote! { #ruma_events::exports::js_int };
     let serde = quote! { #ruma_events::exports::serde };
     let serde_json = quote! { #ruma_events::exports::serde_json };
 
@@ -171,8 +158,6 @@ fn expand_deserialize_event(
                 } else {
                     quote! { #content_type }
                 }
-            } else if name == "origin_server_ts" {
-                quote! { #js_int::UInt }
             } else {
                 quote! { #ty }
             }
@@ -235,15 +220,6 @@ fn expand_deserialize_event(
                             None
                         };
                     }
-                }
-            } else if name == "origin_server_ts" {
-                quote! {
-                    let origin_server_ts = origin_server_ts
-                        .map(|time| {
-                            let t = time.into();
-                            ::std::time::UNIX_EPOCH + ::std::time::Duration::from_millis(t)
-                        })
-                        .ok_or_else(|| #serde::de::Error::missing_field("origin_server_ts"))?;
                 }
             } else if name == "unsigned" {
                 quote! { let unsigned = unsigned.unwrap_or_default(); }

@@ -1,9 +1,8 @@
 //! [PUT /_matrix/federation/v1/send_leave/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v1-send-leave-roomid-eventid)
 
-use std::time::SystemTime;
-
 use js_int::UInt;
 use ruma_api::ruma_api;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{room::member::MemberEventContent, EventType};
 use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
 use ruma_serde::Raw;
@@ -38,8 +37,7 @@ ruma_api! {
 
         /// A timestamp added by the leaving homeserver.
         #[ruma_api(query)]
-        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-        pub origin_server_ts: SystemTime,
+        pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
         /// The value `m.room.member`.
         #[ruma_api(query)]
@@ -87,7 +85,7 @@ impl<'a> Request<'a> {
         event_id: &'a EventId,
         sender: &'a UserId,
         origin: &'a ServerName,
-        origin_server_ts: SystemTime,
+        origin_server_ts: MilliSecondsSinceUnixEpoch,
         event_type: EventType,
         state_key: &'a str,
         content: Raw<MemberEventContent>,

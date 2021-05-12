@@ -1,10 +1,8 @@
 #![cfg(not(feature = "unstable-pre-spec"))]
 
-use std::{
-    collections::BTreeMap,
-    time::{Duration, SystemTime},
-};
+use std::{collections::BTreeMap, convert::TryInto};
 
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     pdu::{EventHash, Pdu, RoomV1Pdu, RoomV3Pdu},
     EventType,
@@ -30,7 +28,7 @@ fn serialize_pdu_as_v1() {
         event_id: event_id!("$somejoinevent:matrix.org"),
         sender: user_id!("@sender:example.com"),
         origin: "matrix.org".into(),
-        origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(1_592_050_773_658_u64.try_into().unwrap()),
         kind: EventType::RoomPowerLevels,
         content: json!({"testing": 123}),
         state_key: Some("state".into()),
@@ -96,7 +94,7 @@ fn serialize_pdu_as_v3() {
         room_id: room_id!("!n8f893n9:example.com"),
         sender: user_id!("@sender:example.com"),
         origin: "matrix.org".into(),
-        origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(1_592_050_773_658_u64.try_into().unwrap()),
         kind: EventType::RoomPowerLevels,
         content: json!({"testing": 123}),
         state_key: Some("state".into()),

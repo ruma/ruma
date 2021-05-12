@@ -1,9 +1,7 @@
 //! [GET /_matrix/client/r0/account/3pid](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-account-3pid)
 
-use std::time::SystemTime;
-
 use ruma_api::ruma_api;
-use ruma_common::thirdparty::Medium;
+use ruma_common::{thirdparty::Medium, MilliSecondsSinceUnixEpoch};
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
@@ -58,12 +56,10 @@ pub struct ThirdPartyIdentifier {
     pub medium: Medium,
 
     /// The time when the identifier was validated by the identity server.
-    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-    pub validated_at: SystemTime,
+    pub validated_at: MilliSecondsSinceUnixEpoch,
 
     /// The time when the homeserver associated the third party identifier with the user.
-    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-    pub added_at: SystemTime,
+    pub added_at: MilliSecondsSinceUnixEpoch,
 }
 
 /// Initial set of fields of `ThirdPartyIdentifier`.
@@ -79,10 +75,10 @@ pub struct ThirdPartyIdentifierInit {
     pub medium: Medium,
 
     /// The time when the identifier was validated by the identity server.
-    pub validated_at: SystemTime,
+    pub validated_at: MilliSecondsSinceUnixEpoch,
 
     /// The time when the homeserver associated the third party identifier with the user.
-    pub added_at: SystemTime,
+    pub added_at: MilliSecondsSinceUnixEpoch,
 }
 
 impl From<ThirdPartyIdentifierInit> for ThirdPartyIdentifier {
@@ -94,8 +90,9 @@ impl From<ThirdPartyIdentifierInit> for ThirdPartyIdentifier {
 
 #[cfg(test)]
 mod tests {
-    use std::time::{Duration, UNIX_EPOCH};
+    use std::convert::TryInto;
 
+    use ruma_common::MilliSecondsSinceUnixEpoch;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{Medium, ThirdPartyIdentifier};
@@ -105,8 +102,8 @@ mod tests {
         let third_party_id = ThirdPartyIdentifier {
             address: "monkey@banana.island".into(),
             medium: Medium::Email,
-            validated_at: UNIX_EPOCH + Duration::from_millis(1_535_176_800_000),
-            added_at: UNIX_EPOCH + Duration::from_millis(1_535_336_848_756),
+            validated_at: MilliSecondsSinceUnixEpoch(1_535_176_800_000_u64.try_into().unwrap()),
+            added_at: MilliSecondsSinceUnixEpoch(1_535_336_848_756_u64.try_into().unwrap()),
         };
 
         let third_party_id_serialized = json!({

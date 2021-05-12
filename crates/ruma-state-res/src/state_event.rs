@@ -1,6 +1,7 @@
-use std::{collections::BTreeMap, time::SystemTime};
+use std::collections::BTreeMap;
 
 use js_int::UInt;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{pdu::EventHash, EventType};
 use ruma_identifiers::{EventId, RoomId, ServerName, ServerSigningKeyId, UserId};
 use serde_json::value::Value as JsonValue;
@@ -17,7 +18,7 @@ pub trait Event {
     fn sender(&self) -> &UserId;
 
     /// The time of creation on the originating server.
-    fn origin_server_ts(&self) -> SystemTime;
+    fn origin_server_ts(&self) -> MilliSecondsSinceUnixEpoch;
 
     /// The kind of event.
     fn kind(&self) -> EventType;

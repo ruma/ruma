@@ -1,8 +1,7 @@
-use std::time::{Duration, UNIX_EPOCH};
-
 use assign::assign;
 use js_int::{uint, UInt};
 use matches::assert_matches;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     call::{answer::AnswerEventContent, SessionDescription, SessionDescriptionType},
     room::{ImageInfo, ThumbnailInfo},
@@ -34,7 +33,7 @@ fn message_serialize_sticker() {
             mxc_uri!("mxc://matrix.org/rnsldl8srs98IRrs"),
         )),
         event_id: event_id!("$h29iv0s8:example.com"),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         room_id: room_id!("!roomid:room.com"),
         sender: user_id!("@carl:example.com"),
         unsigned: Unsigned::default(),
@@ -139,7 +138,7 @@ fn deserialize_message_call_answer() {
             unsigned,
         } if sdp == "Hello" && call_id == "foofoo" && version == UInt::new(1).unwrap()
             && event_id == event_id!("$h29iv0s8:example.com")
-            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && room_id == room_id!("!roomid:room.com")
             && sender == user_id!("@carl:example.com")
             && unsigned.is_empty()
@@ -203,7 +202,7 @@ fn deserialize_message_sticker() {
             unsigned
         } if event_id == event_id!("$h29iv0s8:example.com")
             && body == "Hello"
-            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && room_id == room_id!("!roomid:room.com")
             && sender == user_id!("@carl:example.com")
             && height == UInt::new(423)
@@ -279,7 +278,7 @@ fn deserialize_message_then_convert_to_full() {
             && call_id == "foofoo"
             && version == uint!(1)
             && event_id == "$h29iv0s8:example.com"
-            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && room_id == "!roomid:room.com"
             && sender == "@carl:example.com"
             && unsigned.is_empty()

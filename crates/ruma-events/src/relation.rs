@@ -1,8 +1,9 @@
 //! Types describing event relations after MSC 2674, 2675, 2676, 2677.
 
-use std::{fmt::Debug, time::SystemTime};
+use std::fmt::Debug;
 
 use js_int::UInt;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use serde::{Deserialize, Serialize};
 
 /// Summary of all reactions with the given key to an event.
@@ -13,12 +14,8 @@ pub struct BundledReaction {
     pub key: String,
 
     /// Time of the bundled reaction being compiled on the server.
-    #[serde(
-        with = "ruma_serde::time::opt_ms_since_unix_epoch",
-        default,
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub origin_server_ts: Option<SystemTime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
 
     /// Number of reactions.
     pub count: UInt,
@@ -26,7 +23,11 @@ pub struct BundledReaction {
 
 impl BundledReaction {
     /// Creates a new `BundledReaction`.
-    pub fn new(key: String, origin_server_ts: Option<SystemTime>, count: UInt) -> Self {
+    pub fn new(
+        key: String,
+        origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
+        count: UInt,
+    ) -> Self {
         Self { key, origin_server_ts, count }
     }
 }

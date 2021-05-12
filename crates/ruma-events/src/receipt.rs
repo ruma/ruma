@@ -3,10 +3,9 @@
 use std::{
     collections::BTreeMap,
     ops::{Deref, DerefMut},
-    time::SystemTime,
 };
 
-use ruma_common::receipt::ReceiptType;
+use ruma_common::{receipt::ReceiptType, MilliSecondsSinceUnixEpoch};
 use ruma_events_macros::EphemeralRoomEventContent;
 use ruma_identifiers::{EventId, UserId};
 use serde::{Deserialize, Serialize};
@@ -50,10 +49,6 @@ pub type UserReceipts = BTreeMap<UserId, Receipt>;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Receipt {
     /// The time when the receipt was sent.
-    #[serde(
-        with = "ruma_serde::time::opt_ms_since_unix_epoch",
-        default,
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub ts: Option<SystemTime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ts: Option<MilliSecondsSinceUnixEpoch>,
 }

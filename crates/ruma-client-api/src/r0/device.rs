@@ -1,7 +1,6 @@
 //! Endpoints for managing devices.
 
-use std::time::SystemTime;
-
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_identifiers::DeviceIdBox;
 use serde::{Deserialize, Serialize};
 
@@ -25,12 +24,8 @@ pub struct Device {
     pub last_seen_ip: Option<String>,
 
     /// Unix timestamp that the session was last active.
-    #[serde(
-        with = "ruma_serde::time::opt_ms_since_unix_epoch",
-        default,
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub last_seen_ts: Option<SystemTime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_seen_ts: Option<MilliSecondsSinceUnixEpoch>,
 }
 
 impl Device {

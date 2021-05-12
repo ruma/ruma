@@ -1,6 +1,8 @@
-use std::{sync::Arc, time::UNIX_EPOCH};
+use std::sync::Arc;
 
+use js_int::uint;
 use maplit::btreemap;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{room::join_rules::JoinRule, EventType};
 use ruma_identifiers::{EventId, RoomVersionId};
 use ruma_state_res::{EventMap, StateMap, StateResolution};
@@ -276,8 +278,9 @@ fn test_lexicographical_sort() {
         event_id("p") => vec![event_id("o")],
     };
 
-    let res =
-        StateResolution::lexicographical_topological_sort(&graph, |id| (0, UNIX_EPOCH, id.clone()));
+    let res = StateResolution::lexicographical_topological_sort(&graph, |id| {
+        (0, MilliSecondsSinceUnixEpoch(uint!(0)), id.clone())
+    });
 
     assert_eq!(
         vec!["o", "l", "n", "m", "p"],

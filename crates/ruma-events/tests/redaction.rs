@@ -1,6 +1,6 @@
-use std::time::{Duration, UNIX_EPOCH};
-
+use js_int::uint;
 use matches::assert_matches;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     room::redaction::{RedactionEvent, RedactionEventContent},
     AnyMessageEvent, Unsigned,
@@ -31,7 +31,7 @@ fn serialize_redaction() {
         content: RedactionEventContent { reason: Some("being a turd".into()) },
         redacts: event_id!("$nomore:example.com"),
         event_id: event_id!("$h29iv0s8:example.com"),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         room_id: room_id!("!roomid:room.com"),
         sender: user_id!("@carl:example.com"),
         unsigned: Unsigned::default(),
@@ -63,7 +63,7 @@ fn deserialize_redaction() {
         }) if reas == "being a turd"
             && event_id == event_id!("$h29iv0s8:example.com")
             && redacts == event_id!("$nomore:example.com")
-            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && room_id == room_id!("!roomid:room.com")
             && sender == user_id!("@carl:example.com")
             && unsigned.is_empty()

@@ -1,8 +1,9 @@
 //! [POST /_matrix/key/v2/query](https://matrix.org/docs/spec/server_server/r0.1.4#post-matrix-key-v2-query)
 
-use std::{collections::BTreeMap, time::SystemTime};
+use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_identifiers::{ServerNameBox, ServerSigningKeyId};
 use serde::{Deserialize, Serialize};
 
@@ -38,8 +39,7 @@ ruma_api! {
         /// If not supplied, the current time as determined by the notary server
         /// is used.
         #[ruma_api(query)]
-        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-        pub minimum_valid_until_ts: SystemTime,
+        pub minimum_valid_until_ts: MilliSecondsSinceUnixEpoch,
     }
 
     response: {
@@ -52,7 +52,7 @@ impl Request {
     /// Creates a new `Request` with the given query criteria and `minimum_valid_until` timestamp.
     pub fn new(
         server_keys: BTreeMap<ServerNameBox, BTreeMap<ServerSigningKeyId, QueryCriteria>>,
-        minimum_valid_until_ts: SystemTime,
+        minimum_valid_until_ts: MilliSecondsSinceUnixEpoch,
     ) -> Self {
         Self { server_keys, minimum_valid_until_ts }
     }
@@ -75,12 +75,8 @@ pub struct QueryCriteria {
     ///
     /// If not supplied, the current time as determined by the notary server is
     /// used.
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        with = "ruma_serde::time::opt_ms_since_unix_epoch"
-    )]
-    pub minimum_valid_until_ts: Option<SystemTime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub minimum_valid_until_ts: Option<MilliSecondsSinceUnixEpoch>,
 }
 
 impl QueryCriteria {

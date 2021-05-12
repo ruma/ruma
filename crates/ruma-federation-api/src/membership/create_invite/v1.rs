@@ -1,8 +1,7 @@
 //! [PUT /_matrix/federation/v1/invite/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v1-invite-roomid-eventid)
 
-use std::time::SystemTime;
-
 use ruma_api::ruma_api;
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{pdu::Pdu, room::member::MemberEventContent, AnyStrippedStateEvent, EventType};
 use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
 use ruma_serde::Raw;
@@ -34,8 +33,7 @@ ruma_api! {
         pub origin: &'a ServerName,
 
         /// A timestamp added by the inviting homeserver.
-        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-        pub origin_server_ts: SystemTime,
+        pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
         /// The value `m.room.member`.
         #[serde(rename = "type")]
@@ -98,7 +96,7 @@ pub struct RequestInit<'a> {
     pub origin: &'a ServerName,
 
     /// A timestamp added by the inviting homeserver.
-    pub origin_server_ts: SystemTime,
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The user ID of the invited member.
     pub state_key: &'a UserId,
