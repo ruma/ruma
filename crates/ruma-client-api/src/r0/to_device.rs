@@ -32,6 +32,12 @@ impl Display for DeviceIdOrAllDevices {
     }
 }
 
+impl From<DeviceIdBox> for DeviceIdOrAllDevices {
+    fn from(d: DeviceIdBox) -> Self {
+        DeviceIdOrAllDevices::DeviceId(d)
+    }
+}
+
 impl TryFrom<&str> for DeviceIdOrAllDevices {
     type Error = &'static str;
     fn try_from(device_id_or_all_devices: &str) -> Result<Self, Self::Error> {
