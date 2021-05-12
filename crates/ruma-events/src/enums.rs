@@ -115,6 +115,9 @@ event_enum! {
         "m.key.verification.accept",
         "m.key.verification.key",
         "m.key.verification.mac",
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        "m.key.verification.done",
         "m.room.encrypted",
     ]
 }
