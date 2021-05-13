@@ -23,7 +23,7 @@ fn ban_vs_power_level() {
             alice(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bob(): 50}}),
+            json!({ "users": { alice(): 100, bob(): 50 } }),
         ),
         to_init_pdu_event(
             "MA",
@@ -44,7 +44,7 @@ fn ban_vs_power_level() {
             bob(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bob(): 50}}),
+            json!({ "users": { alice(): 100, bob(): 50 } }),
         ),
     ];
 
@@ -67,7 +67,7 @@ fn topic_basic() {
             alice(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bob(): 50}}),
+            json!({ "users": { alice(): 100, bob(): 50 } }),
         ),
         to_init_pdu_event("T2", alice(), EventType::RoomTopic, Some(""), json!({})),
         to_init_pdu_event(
@@ -75,14 +75,14 @@ fn topic_basic() {
             alice(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bob(): 0}}),
+            json!({ "users": { alice(): 100, bob(): 0 } }),
         ),
         to_init_pdu_event(
             "PB",
             bob(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bob(): 50}}),
+            json!({ "users": { alice(): 100, bob(): 50 } }),
         ),
         to_init_pdu_event("T3", bob(), EventType::RoomTopic, Some(""), json!({})),
     ];
@@ -107,7 +107,7 @@ fn topic_reset() {
             alice(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bob(): 50}}),
+            json!({ "users": { alice(): 100, bob(): 50 } }),
         ),
         to_init_pdu_event("T2", bob(), EventType::RoomTopic, Some(""), json!({})),
         to_init_pdu_event(
@@ -166,21 +166,21 @@ fn offtopic_power_level() {
             alice(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bob(): 50}}),
+            json!({ "users": { alice(): 100, bob(): 50 } }),
         ),
         to_init_pdu_event(
             "PB",
             bob(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bob(): 50, charlie(): 50}}),
+            json!({ "users": { alice(): 100, bob(): 50, charlie(): 50 } }),
         ),
         to_init_pdu_event(
             "PC",
             charlie(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bob(): 50, charlie(): 0}}),
+            json!({ "users": { alice(): 100, bob(): 50, charlie(): 0 } }),
         ),
     ];
 
@@ -203,7 +203,7 @@ fn topic_setting() {
             alice(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bob(): 50}}),
+            json!({ "users": { alice(): 100, bob(): 50 } }),
         ),
         to_init_pdu_event("T2", alice(), EventType::RoomTopic, Some(""), json!({})),
         to_init_pdu_event(
@@ -211,14 +211,14 @@ fn topic_setting() {
             alice(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bob(): 0}}),
+            json!({ "users": { alice(): 100, bob(): 0 } }),
         ),
         to_init_pdu_event(
             "PB",
             bob(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bob(): 50}}),
+            json!({ "users": { alice(): 100, bob(): 50 } }),
         ),
         to_init_pdu_event("T3", bob(), EventType::RoomTopic, Some(""), json!({})),
         to_init_pdu_event("MZ1", zara(), EventType::RoomTopic, Some(""), json!({})),

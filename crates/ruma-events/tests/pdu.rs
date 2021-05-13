@@ -88,7 +88,7 @@ fn serialize_pdu_as_v3() {
     signatures.insert(server_name!("example.com"), inner_signature);
 
     let mut unsigned = BTreeMap::new();
-    unsigned.insert("somekey".into(), json!({"a": 456}));
+    unsigned.insert("somekey".into(), json!({ "a": 456 }));
 
     let v3_pdu = RoomV3Pdu {
         room_id: room_id!("!n8f893n9:example.com"),

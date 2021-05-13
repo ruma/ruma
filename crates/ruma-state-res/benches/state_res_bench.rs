@@ -420,7 +420,7 @@ fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
             alice(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice().to_string(): 100}}),
+            json!({ "users": { alice().to_string(): 100 } }),
             &["CREATE", "IMA"],
             &["IMA"],
         ),
@@ -484,7 +484,7 @@ fn BAN_STATE_SET() -> BTreeMap<EventId, Arc<StateEvent>> {
             alice(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bob(): 50}}),
+            json!({ "users": { alice(): 100, bob(): 50 } }),
             &["CREATE", "IMA", "IPOWER"], // auth_events
             &["START"],                   // prev_events
         ),
@@ -493,7 +493,7 @@ fn BAN_STATE_SET() -> BTreeMap<EventId, Arc<StateEvent>> {
             alice(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bob(): 50}}),
+            json!({ "users": { alice(): 100, bob(): 50 } }),
             &["CREATE", "IMA", "IPOWER"],
             &["END"],
         ),

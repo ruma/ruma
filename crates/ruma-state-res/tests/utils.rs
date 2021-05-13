@@ -433,7 +433,7 @@ pub fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
             alice(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice().to_string(): 100}}),
+            json!({ "users": { alice().to_string(): 100 } }),
             &["CREATE", "IMA"],
             &["IMA"],
         ),

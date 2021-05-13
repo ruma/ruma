@@ -146,7 +146,7 @@ mod tests {
 
     #[test]
     fn too_long_array() {
-        let json = json!([200, {"origin": "", "auth_chain": [], "state": []}, 200]);
+        let json = json!([200, { "origin": "", "auth_chain": [], "state": [] }, 200]);
         assert_matches!(
             deserialize(json).unwrap(),
             RoomState { origin, auth_chain, state }
