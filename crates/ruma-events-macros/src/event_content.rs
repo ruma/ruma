@@ -7,11 +7,15 @@ use syn::{
     DeriveInput, Ident, LitStr, Token,
 };
 
+use crate::event_parse::EventKind;
+
 mod kw {
     // This `content` field is kept when the event is redacted.
     syn::custom_keyword!(skip_redaction);
     // Do not emit any redacted event code.
     syn::custom_keyword!(custom_redacted);
+    // The kind of event content this is.
+    syn::custom_keyword!(kind);
 }
 
 /// Parses attributes for `*EventContent` derives.
@@ -20,6 +24,8 @@ mod kw {
 enum EventMeta {
     /// Variant holds the "m.whatever" event type.
     Type(LitStr),
+
+    Kind(EventKind),
 
     /// Fields marked with `#[ruma_event(skip_redaction)]` are kept when the event is
     /// redacted.
@@ -38,6 +44,14 @@ impl EventMeta {
             None
         }
     }
+
+    fn get_event_kind(&self) -> Option<&EventKind> {
+        if let Self::Kind(lit) = self {
+            Some(lit)
+        } else {
+            None
+        }
+    }
 }
 
 impl Parse for EventMeta {
@@ -47,6 +61,10 @@ impl Parse for EventMeta {
             let _: Token![type] = input.parse()?;
             let _: Token![=] = input.parse()?;
             input.parse().map(EventMeta::Type)
+        } else if lookahead.peek(kw::kind) {
+            let _: kw::kind = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            EventKind::parse(input).map(EventMeta::Kind)
         } else if lookahead.peek(kw::skip_redaction) {
             let _: kw::skip_redaction = input.parse()?;
             Ok(EventMeta::SkipRedacted)
@@ -69,6 +87,10 @@ impl MetaAttrs {
     fn get_event_type(&self) -> Option<&LitStr> {
         self.0.iter().find_map(|a| a.get_event_type())
     }
+
+    fn get_event_kinds(&self) -> Vec<&EventKind> {
+        self.0.iter().filter_map(|a| a.get_event_kind()).collect()
+    }
 }
 
 impl Parse for MetaAttrs {
@@ -81,7 +103,6 @@ impl Parse for MetaAttrs {
 /// Create an `EventContent` implementation for a struct.
 pub fn expand_event_content(
     input: &DeriveInput,
-    emit_redacted: bool,
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
@@ -99,13 +120,16 @@ pub fn expand_event_content(
 
     let event_type = content_attr.iter().find_map(|a| a.get_event_type()).ok_or_else(|| {
         let msg = "no event type attribute found, \
-            add `#[ruma_event(type = \"any.room.event\")]` \
+            add `#[ruma_event(type = \"any.room.event\", kind = Kind)]` \
             below the event content derive";
 
         syn::Error::new(Span::call_site(), msg)
     })?;
 
-    let redacted = if emit_redacted && needs_redacted(&content_attr) {
+    let content_derives =
+        content_attr.iter().flat_map(|args| args.get_event_kinds()).collect::<Vec<_>>();
+
+    let redacted = if needs_redacted(&content_attr) {
         let doc = format!("The payload for a redacted `{}`", ident);
         let redacted_ident = format_ident!("Redacted{}", ident);
         let kept_redacted_fields = if let syn::Data::Struct(syn::DataStruct {
@@ -182,6 +206,21 @@ pub fn expand_event_content(
         let redacted_event_content =
             generate_event_content_impl(&redacted_ident, event_type, ruma_events);
 
+        let redacted_event_content_derive = content_derives
+            .iter()
+            .map(|kind| match kind {
+                EventKind::Message => quote! {
+                    #[automatically_derived]
+                    impl #ruma_events::RedactedMessageEventContent for #redacted_ident {}
+                },
+                EventKind::State => quote! {
+                    #[automatically_derived]
+                    impl #ruma_events::RedactedStateEventContent for #redacted_ident {}
+                },
+                _ => TokenStream::new(),
+            })
+            .collect::<TokenStream>();
+
         quote! {
             // this is the non redacted event content's impl
             #[automatically_derived]
@@ -220,106 +259,68 @@ pub fn expand_event_content(
                     #has_deserialize_fields
                 }
             }
+
+            #redacted_event_content_derive
         }
     } else {
         TokenStream::new()
     };
+
+    let event_content_derive =
+        generate_event_content_derives(&content_derives, ident, ruma_events)?;
 
     let event_content = generate_event_content_impl(ident, event_type, ruma_events);
 
     Ok(quote! {
         #event_content
 
+        #event_content_derive
+
         #redacted
     })
 }
 
-/// Create a `EphemeralRoomEventContent` implementation for a struct
-pub fn expand_ephemeral_room_event_content(
-    input: &DeriveInput,
+fn generate_event_content_derives(
+    content_attr: &[&EventKind],
+    ident: &Ident,
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
-    let ident = input.ident.clone();
-    let event_content_impl = expand_event_content(input, false, ruma_events)?;
-
-    Ok(quote! {
-        #event_content_impl
-
-        #[automatically_derived]
-        impl #ruma_events::EphemeralRoomEventContent for #ident {}
-    })
-}
-
-/// Create a `RoomEventContent` implementation for a struct.
-pub fn expand_room_event_content(
-    input: &DeriveInput,
-    ruma_events: &TokenStream,
-) -> syn::Result<TokenStream> {
-    let ident = input.ident.clone();
-    let event_content_impl = expand_event_content(input, true, ruma_events)?;
-
-    Ok(quote! {
-        #event_content_impl
-
-        #[automatically_derived]
-        impl #ruma_events::RoomEventContent for #ident {}
-    })
-}
-
-/// Create a `MessageEventContent` implementation for a struct
-pub fn expand_message_event_content(
-    input: &DeriveInput,
-    ruma_events: &TokenStream,
-) -> syn::Result<TokenStream> {
-    let ident = input.ident.clone();
-    let room_ev_content = expand_room_event_content(input, ruma_events)?;
-
-    let redacted_marker_trait = if needs_redacted_from_input(input) {
-        let ident = format_ident!("Redacted{}", &ident);
-        quote! {
-            #[automatically_derived]
-            impl #ruma_events::RedactedMessageEventContent for #ident {}
-        }
-    } else {
-        TokenStream::new()
-    };
-
-    Ok(quote! {
-        #room_ev_content
-
-        #[automatically_derived]
-        impl #ruma_events::MessageEventContent for #ident {}
-
-        #redacted_marker_trait
-    })
-}
-
-/// Create a `StateEventContent` implementation for a struct
-pub fn expand_state_event_content(
-    input: &DeriveInput,
-    ruma_events: &TokenStream,
-) -> syn::Result<TokenStream> {
-    let ident = input.ident.clone();
-    let room_ev_content = expand_room_event_content(input, ruma_events)?;
-
-    let redacted_marker_trait = if needs_redacted_from_input(input) {
-        let ident = format_ident!("Redacted{}", input.ident);
-        quote! {
-            #[automatically_derived]
-            impl #ruma_events::RedactedStateEventContent for #ident {}
-        }
-    } else {
-        TokenStream::new()
-    };
-
-    Ok(quote! {
-        #room_ev_content
-
-        #[automatically_derived]
-        impl #ruma_events::StateEventContent for #ident {}
-
-        #redacted_marker_trait
-    })
+    let msg = "valid event kinds are GlobalAccountData, RoomAccountData, \
+    EphemeralRoom, Message, State, ToDevice";
+    content_attr
+        .iter()
+        .map(|kind| {
+            Ok(match kind {
+                EventKind::GlobalAccountData => quote! {
+                    // TODO: will this be it's own trait at some point?
+                },
+                EventKind::RoomAccountData => quote! {
+                    // TODO: will this be it's own trait at some point?
+                },
+                EventKind::Ephemeral => quote! {
+                    #[automatically_derived]
+                    impl #ruma_events::EphemeralRoomEventContent for #ident {}
+                },
+                EventKind::Message => quote! {
+                    #[automatically_derived]
+                    impl #ruma_events::RoomEventContent for #ident {}
+                    #[automatically_derived]
+                    impl #ruma_events::MessageEventContent for #ident {}
+                },
+                EventKind::State => quote! {
+                    #[automatically_derived]
+                    impl #ruma_events::RoomEventContent for #ident {}
+                    #[automatically_derived]
+                    impl #ruma_events::StateEventContent for #ident {}
+                },
+                EventKind::ToDevice => quote! {
+                    // TODO: will this be it's own trait at some point?
+                },
+                EventKind::Redaction => return Err(syn::Error::new(ident.span(), msg)),
+                EventKind::Presence => return Err(syn::Error::new(ident.span(), msg)),
+            })
+        })
+        .collect()
 }
 
 fn generate_event_content_impl(
@@ -358,8 +359,4 @@ fn needs_redacted(input: &[MetaAttrs]) -> bool {
     // redacted struct also. If no `custom_redacted` attrs are found the content
     // needs a redacted struct generated.
     !input.iter().any(|a| a.is_custom())
-}
-
-fn needs_redacted_from_input(input: &DeriveInput) -> bool {
-    !input.attrs.iter().flat_map(|a| a.parse_args::<MetaAttrs>().ok()).any(|a| a.is_custom())
 }

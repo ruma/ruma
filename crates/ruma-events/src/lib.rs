@@ -36,7 +36,7 @@
 //! would work.
 //!
 //! ```rust
-//! use ruma_events::{macros::MessageEventContent, SyncMessageEvent};
+//! use ruma_events::{macros::EventContent, SyncMessageEvent};
 //! use ruma_identifiers::EventId;
 //! use serde::{Deserialize, Serialize};
 //!
@@ -58,8 +58,8 @@
 //! }
 //!
 //! /// The payload for our reaction event.
-//! #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
-//! #[ruma_event(type = "m.reaction")]
+//! #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+//! #[ruma_event(type = "m.reaction", kind = Message)]
 //! pub struct ReactionEventContent {
 //!     #[serde(rename = "m.relates_to")]
 //!     pub relates_to: RelatesTo,
@@ -151,9 +151,7 @@ pub mod exports {
 
 /// Re-export of all the derives needed to create your own event types.
 pub mod macros {
-    pub use ruma_events_macros::{
-        EphemeralRoomEventContent, Event, MessageEventContent, StateEventContent,
-    };
+    pub use ruma_events_macros::{Event, EventContent};
 }
 
 pub mod call;
