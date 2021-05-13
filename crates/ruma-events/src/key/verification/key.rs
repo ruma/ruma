@@ -1,8 +1,6 @@
 //! Types for the *m.key.verification.key* event.
 
 use ruma_events_macros::EventContent;
-#[cfg(feature = "unstable-pre-spec")]
-use ruma_events_macros::MessageEventContent;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "unstable-pre-spec")]
@@ -29,8 +27,8 @@ pub struct KeyToDeviceEventContent {
 }
 
 /// The payload for in-room `KeyEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
-#[ruma_event(type = "m.key.verification.key")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.key.verification.key", kind = Message)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub struct KeyEventContent {

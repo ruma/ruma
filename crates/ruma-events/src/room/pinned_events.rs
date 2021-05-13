@@ -1,6 +1,6 @@
 //! Types for the *m.room.pinned_events* event.
 
-use ruma_events_macros::StateEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
 
@@ -10,9 +10,9 @@ use crate::StateEvent;
 pub type PinnedEventsEvent = StateEvent<PinnedEventsEventContent>;
 
 /// The payload for `PinnedEventsEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.pinned_events")]
+#[ruma_event(type = "m.room.pinned_events", kind = State)]
 pub struct PinnedEventsEventContent {
     /// An ordered list of event IDs to pin.
     pub pinned: Vec<EventId>,

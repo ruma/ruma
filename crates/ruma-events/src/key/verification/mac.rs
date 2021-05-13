@@ -3,8 +3,6 @@
 use std::collections::BTreeMap;
 
 use ruma_events_macros::EventContent;
-#[cfg(feature = "unstable-pre-spec")]
-use ruma_events_macros::MessageEventContent;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "unstable-pre-spec")]
@@ -37,8 +35,8 @@ pub struct MacToDeviceEventContent {
 }
 
 /// The payload for an in-room `MacEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
-#[ruma_event(type = "m.key.verification.mac")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.key.verification.mac", kind = Message)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub struct MacEventContent {

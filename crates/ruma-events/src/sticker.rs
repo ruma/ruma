@@ -1,6 +1,6 @@
 //! Types for the *m.sticker* event.
 
-use ruma_events_macros::MessageEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::MxcUri;
 use serde::{Deserialize, Serialize};
 
@@ -10,9 +10,9 @@ use crate::{room::ImageInfo, MessageEvent};
 pub type StickerEvent = MessageEvent<StickerEventContent>;
 
 /// The payload for `StickerEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.sticker")]
+#[ruma_event(type = "m.sticker", kind = Message)]
 pub struct StickerEventContent {
     /// A textual representation or associated description of the sticker image. This could
     /// be the alt text of the original image, or a message to accompany and further

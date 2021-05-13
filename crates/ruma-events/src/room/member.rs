@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_events_macros::StateEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::{MxcUri, ServerNameBox, ServerSigningKeyId, UserId};
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
@@ -37,8 +37,8 @@ use crate::{StateEvent, StrippedStateEvent, SyncStateEvent};
 pub type MemberEvent = StateEvent<MemberEventContent>;
 
 /// The payload for `MemberEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
-#[ruma_event(type = "m.room.member")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.room.member", kind = State)]
 pub struct MemberEventContent {
     /// The avatar URL for this user, if any. This is added by the homeserver.
     ///

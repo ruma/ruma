@@ -1,7 +1,7 @@
 //! Types for the *m.call.invite* event.
 
 use js_int::UInt;
-use ruma_events_macros::MessageEventContent;
+use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::SessionDescription;
@@ -11,8 +11,8 @@ use crate::MessageEvent;
 pub type InviteEvent = MessageEvent<InviteEventContent>;
 
 /// The payload for `InviteEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
-#[ruma_event(type = "m.call.invite")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.call.invite", kind = Message)]
 pub struct InviteEventContent {
     /// A unique identifier for the call.
     pub call_id: String,

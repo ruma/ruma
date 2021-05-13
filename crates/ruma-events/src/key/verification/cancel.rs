@@ -1,8 +1,6 @@
 //! Types for the *m.key.verification.cancel* event.
 
 use ruma_events_macros::EventContent;
-#[cfg(feature = "unstable-pre-spec")]
-use ruma_events_macros::MessageEventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
@@ -33,8 +31,8 @@ pub struct CancelToDeviceEventContent {
 }
 
 /// The payload for an in-room `CancelEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
-#[ruma_event(type = "m.key.verification.cancel")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.key.verification.cancel", kind = Message)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub struct CancelEventContent {

@@ -1,8 +1,8 @@
-use ruma_events_macros::StateEventContent;
+use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
-#[ruma_event(type = "m.macro.test")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.macro.test", kind = State)]
 pub struct MacroTest {
     pub url: String,
 }

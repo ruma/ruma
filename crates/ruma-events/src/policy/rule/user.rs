@@ -1,6 +1,6 @@
 //! Types for the *m.policy.rule.user* event.
 
-use ruma_events_macros::StateEventContent;
+use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{policy::rule::PolicyRuleEventContent, StateEvent};
@@ -9,6 +9,6 @@ use crate::{policy::rule::PolicyRuleEventContent, StateEvent};
 pub type UserEvent = StateEvent<UserEventContent>;
 
 /// The payload for `UserEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
-#[ruma_event(type = "m.policy.rule.user")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.policy.rule.user", kind = State)]
 pub struct UserEventContent(pub PolicyRuleEventContent);

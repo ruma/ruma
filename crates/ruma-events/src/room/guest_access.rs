@@ -1,6 +1,6 @@
 //! Types for the *m.room.guest_access* event.
 
-use ruma_events_macros::StateEventContent;
+use ruma_events_macros::EventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
@@ -13,9 +13,9 @@ use crate::StateEvent;
 pub type GuestAccessEvent = StateEvent<GuestAccessEventContent>;
 
 /// The payload for `GuestAccessEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.guest_access")]
+#[ruma_event(type = "m.room.guest_access", kind = State)]
 pub struct GuestAccessEventContent {
     /// A policy for guest user access to a room.
     pub guest_access: GuestAccess,

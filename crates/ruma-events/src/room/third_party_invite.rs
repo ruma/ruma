@@ -1,6 +1,6 @@
 //! Types for the *m.room.third_party_invite* event.
 
-use ruma_events_macros::StateEventContent;
+use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::StateEvent;
@@ -13,8 +13,8 @@ use crate::StateEvent;
 pub type ThirdPartyInviteEvent = StateEvent<ThirdPartyInviteEventContent>;
 
 /// The payload for `ThirdPartyInviteEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
-#[ruma_event(type = "m.room.third_party_invite")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.room.third_party_invite", kind = State)]
 pub struct ThirdPartyInviteEventContent {
     /// A user-readable string which represents the user who has been invited.
     ///

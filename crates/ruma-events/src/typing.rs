@@ -1,6 +1,6 @@
 //! Types for the *m.typing* event.
 
-use ruma_events_macros::EphemeralRoomEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
@@ -10,9 +10,9 @@ use crate::EphemeralRoomEvent;
 pub type TypingEvent = EphemeralRoomEvent<TypingEventContent>;
 
 /// The payload for `TypingEvent`.
-#[derive(Clone, Debug, Default, Deserialize, Serialize, EphemeralRoomEventContent)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.typing")]
+#[ruma_event(type = "m.typing", kind = EphemeralRoom)]
 pub struct TypingEventContent {
     /// The list of user IDs typing in this room, if any.
     pub user_ids: Vec<UserId>,

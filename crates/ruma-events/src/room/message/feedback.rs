@@ -1,6 +1,6 @@
 //! Types for the *m.room.message.feedback* event.
 
-use ruma_events_macros::MessageEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::EventId;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
@@ -14,9 +14,9 @@ use crate::MessageEvent;
 pub type FeedbackEvent = MessageEvent<FeedbackEventContent>;
 
 /// The payload for `FeedbackEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.message.feedback")]
+#[ruma_event(type = "m.room.message.feedback", kind = Message)]
 pub struct FeedbackEventContent {
     /// The event that this feedback is related to.
     pub target_event_id: EventId,

@@ -1,6 +1,6 @@
 //! Types for the *m.room.canonical_alias* event.
 
-use ruma_events_macros::StateEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::RoomAliasId;
 use serde::{Deserialize, Serialize};
 
@@ -10,9 +10,9 @@ use crate::StateEvent;
 pub type CanonicalAliasEvent = StateEvent<CanonicalAliasEventContent>;
 
 /// The payload for `CanonicalAliasEvent`.
-#[derive(Clone, Debug, Default, Deserialize, Serialize, StateEventContent)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.canonical_alias")]
+#[ruma_event(type = "m.room.canonical_alias", kind = State)]
 pub struct CanonicalAliasEventContent {
     /// The canonical alias.
     ///

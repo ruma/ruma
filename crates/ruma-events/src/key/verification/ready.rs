@@ -1,6 +1,6 @@
 //! Types for the *m.key.verification.ready* event.
 
-use ruma_events_macros::{EventContent, MessageEventContent};
+use ruma_events_macros::EventContent;
 use ruma_identifiers::DeviceIdBox;
 use serde::{Deserialize, Serialize};
 
@@ -29,8 +29,8 @@ pub struct ReadyToDeviceEventContent {
 }
 
 /// The payload for an in-room `m.key.verification.ready` event.
-#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
-#[ruma_event(type = "m.key.verification.ready")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.key.verification.ready", kind = Message)]
 pub struct ReadyEventContent {
     /// The device ID which is initiating the request.
     pub from_device: DeviceIdBox,

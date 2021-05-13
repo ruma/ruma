@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use js_int::{int, Int};
 use ruma_common::power_levels::default_power_level;
-use ruma_events_macros::StateEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
@@ -16,8 +16,8 @@ pub use ruma_common::power_levels::NotificationPowerLevels;
 pub type PowerLevelsEvent = StateEvent<PowerLevelsEventContent>;
 
 /// The payload for `PowerLevelsEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
-#[ruma_event(type = "m.room.power_levels")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.room.power_levels", kind = State)]
 pub struct PowerLevelsEventContent {
     /// The level required to ban a user.
     ///

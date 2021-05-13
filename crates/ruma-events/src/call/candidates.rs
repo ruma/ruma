@@ -1,7 +1,7 @@
 //! Types for the *m.call.candidates* event.
 
 use js_int::UInt;
-use ruma_events_macros::MessageEventContent;
+use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::MessageEvent;
@@ -11,8 +11,8 @@ use crate::MessageEvent;
 pub type CandidatesEvent = MessageEvent<CandidatesEventContent>;
 
 /// The payload for `CandidatesEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
-#[ruma_event(type = "m.call.candidates")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.call.candidates", kind = Message)]
 pub struct CandidatesEventContent {
     /// The ID of the call this event relates to.
     pub call_id: String,

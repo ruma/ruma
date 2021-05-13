@@ -1,6 +1,6 @@
 //! Types for the *m.policy.rule.room* event.
 
-use ruma_events_macros::StateEventContent;
+use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{policy::rule::PolicyRuleEventContent, StateEvent};
@@ -9,8 +9,8 @@ use crate::{policy::rule::PolicyRuleEventContent, StateEvent};
 pub type RoomEvent = StateEvent<RoomEventContent>;
 
 /// The payload for `RoomEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
-#[ruma_event(type = "m.policy.rule.room")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.policy.rule.room", kind = State)]
 pub struct RoomEventContent(pub PolicyRuleEventContent);
 
 #[cfg(test)]
