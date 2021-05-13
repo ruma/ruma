@@ -7,7 +7,10 @@
 use std::{
     collections::{BTreeMap, BTreeSet},
     convert::{TryFrom, TryInto},
-    sync::Arc,
+    sync::{
+        atomic::{AtomicU64, Ordering::SeqCst},
+        Arc,
+    },
 };
 
 use criterion::{criterion_group, criterion_main, Criterion};
@@ -27,7 +30,7 @@ use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use ruma_state_res::{Error, Event, EventMap, Result, StateMap, StateResolution};
 use serde_json::{json, Value as JsonValue};
 
-static mut SERVER_TIMESTAMP: u64 = 0;
+static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 
 fn lexico_topo_sort(c: &mut Criterion) {
     c.bench_function("lexicographical topological sort", |b| {
@@ -360,12 +363,7 @@ pub fn to_pdu_event<S>(
 where
     S: AsRef<str>,
 {
-    let ts = unsafe {
-        let ts = SERVER_TIMESTAMP;
-        // increment the "origin_server_ts" value
-        SERVER_TIMESTAMP += 1;
-        ts
-    };
+    let ts = SERVER_TIMESTAMP.fetch_add(1, SeqCst);
     let id = if id.contains('$') { id.to_string() } else { format!("${}:foo", id) };
     let auth_events = auth_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
     let prev_events = prev_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();

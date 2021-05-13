@@ -3,7 +3,10 @@
 use std::{
     collections::{BTreeMap, BTreeSet},
     convert::{TryFrom, TryInto},
-    sync::{Arc, Once},
+    sync::{
+        atomic::{AtomicU64, Ordering::SeqCst},
+        Arc, Once,
+    },
 };
 
 use js_int::uint;
@@ -27,7 +30,7 @@ pub use event::StateEvent;
 
 pub static LOGGER: Once = Once::new();
 
-static mut SERVER_TIMESTAMP: u64 = 0;
+static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 
 pub fn do_check(
     events: &[Arc<StateEvent>],
@@ -326,12 +329,7 @@ pub fn to_init_pdu_event(
     state_key: Option<&str>,
     content: JsonValue,
 ) -> Arc<StateEvent> {
-    let ts = unsafe {
-        let ts = SERVER_TIMESTAMP;
-        // increment the "origin_server_ts" value
-        SERVER_TIMESTAMP += 1;
-        ts
-    };
+    let ts = SERVER_TIMESTAMP.fetch_add(1, SeqCst);
     let id = if id.contains('$') { id.to_string() } else { format!("${}:foo", id) };
 
     let state_key = state_key.map(ToString::to_string);
@@ -369,12 +367,7 @@ pub fn to_pdu_event<S>(
 where
     S: AsRef<str>,
 {
-    let ts = unsafe {
-        let ts = SERVER_TIMESTAMP;
-        // increment the "origin_server_ts" value
-        SERVER_TIMESTAMP += 1;
-        ts
-    };
+    let ts = SERVER_TIMESTAMP.fetch_add(1, SeqCst);
     let id = if id.contains('$') { id.to_string() } else { format!("${}:foo", id) };
     let auth_events = auth_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
     let prev_events = prev_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
