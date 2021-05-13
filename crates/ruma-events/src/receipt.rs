@@ -6,7 +6,7 @@ use std::{
 };
 
 use ruma_common::{receipt::ReceiptType, MilliSecondsSinceUnixEpoch};
-use ruma_events_macros::EphemeralRoomEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::{EventId, UserId};
 use serde::{Deserialize, Serialize};
 
@@ -19,8 +19,8 @@ pub type ReceiptEvent = EphemeralRoomEvent<ReceiptEventContent>;
 ///
 /// A mapping of event ID to a collection of receipts for this event ID. The event ID is the ID of
 /// the event being acknowledged and *not* an ID for the receipt itself.
-#[derive(Clone, Debug, Deserialize, Serialize, EphemeralRoomEventContent)]
-#[ruma_event(type = "m.receipt")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.receipt", kind = EphemeralRoom)]
 pub struct ReceiptEventContent(pub BTreeMap<EventId, Receipts>);
 
 impl Deref for ReceiptEventContent {

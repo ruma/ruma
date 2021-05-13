@@ -1,6 +1,6 @@
 //! Types for the *m.room.join_rules* event.
 
-use ruma_events_macros::StateEventContent;
+use ruma_events_macros::EventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
@@ -10,9 +10,9 @@ use crate::StateEvent;
 pub type JoinRulesEvent = StateEvent<JoinRulesEventContent>;
 
 /// The payload for `JoinRulesEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.join_rules")]
+#[ruma_event(type = "m.room.join_rules", kind = State)]
 pub struct JoinRulesEventContent {
     /// The type of rules used for users wishing to join this room.
     #[ruma_event(skip_redaction)]

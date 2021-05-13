@@ -1,6 +1,6 @@
 //! Types for the *m.key.verification.done* event.
 
-use ruma_events_macros::{EventContent, MessageEventContent};
+use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::Relation;
@@ -21,8 +21,8 @@ pub struct DoneToDeviceEventContent {
 }
 
 /// The payload for a in-room `m.key.verification.done` event.
-#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
-#[ruma_event(type = "m.key.verification.done")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.key.verification.done", kind = Message)]
 pub struct DoneEventContent {
     /// Relation signaling which verification request this event is responding
     /// to.

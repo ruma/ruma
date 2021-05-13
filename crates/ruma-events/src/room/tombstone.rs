@@ -1,6 +1,6 @@
 //! Types for the *m.room.tombstone* event.
 
-use ruma_events_macros::StateEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::RoomId;
 use serde::{Deserialize, Serialize};
 
@@ -11,8 +11,8 @@ use crate::StateEvent;
 pub type TombstoneEvent = StateEvent<TombstoneEventContent>;
 
 /// The payload for `TombstoneEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
-#[ruma_event(type = "m.room.tombstone")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.room.tombstone", kind = State)]
 pub struct TombstoneEventContent {
     /// A server-defined message.
     ///

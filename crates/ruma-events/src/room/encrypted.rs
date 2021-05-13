@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use js_int::UInt;
-use ruma_events_macros::MessageEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::DeviceIdBox;
 use serde::{Deserialize, Serialize};
 
@@ -27,9 +27,9 @@ pub enum EncryptedEventScheme {
 }
 
 /// The content payload for `EncryptedEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.encrypted")]
+#[ruma_event(type = "m.room.encrypted", kind = Message, kind = ToDevice)]
 pub struct EncryptedEventContent {
     /// Encrypted event content
     #[serde(flatten)]

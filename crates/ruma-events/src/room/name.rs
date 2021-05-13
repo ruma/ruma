@@ -1,6 +1,6 @@
 //! Types for the *m.room.name* event.
 
-use ruma_events_macros::StateEventContent;
+use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{InvalidInput, StateEvent};
@@ -9,8 +9,8 @@ use crate::{InvalidInput, StateEvent};
 pub type NameEvent = StateEvent<NameEventContent>;
 
 /// The payload for `NameEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
-#[ruma_event(type = "m.room.name")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.room.name", kind = State)]
 pub struct NameEventContent {
     /// The name of the room. This MUST NOT exceed 255 bytes.
     #[serde(default, deserialize_with = "room_name")]

@@ -1,6 +1,6 @@
 //! Types for the *m.room.history_visibility* event.
 
-use ruma_events_macros::StateEventContent;
+use ruma_events_macros::EventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
@@ -11,9 +11,9 @@ use crate::StateEvent;
 pub type HistoryVisibilityEvent = StateEvent<HistoryVisibilityEventContent>;
 
 /// The payload for `HistoryVisibilityEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.history_visibility")]
+#[ruma_event(type = "m.room.history_visibility", kind = State)]
 pub struct HistoryVisibilityEventContent {
     /// Who can see the room history.
     #[ruma_event(skip_redaction)]

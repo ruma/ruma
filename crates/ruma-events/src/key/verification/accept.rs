@@ -3,8 +3,6 @@
 use std::collections::BTreeMap;
 
 use ruma_events_macros::EventContent;
-#[cfg(feature = "unstable-pre-spec")]
-use ruma_events_macros::MessageEventContent;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
@@ -37,8 +35,8 @@ pub struct AcceptToDeviceEventContent {
 }
 
 /// The payload for a in-room `AcceptEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
-#[ruma_event(type = "m.key.verification.accept")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.key.verification.accept", kind = Message)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub struct AcceptEventContent {

@@ -3,8 +3,6 @@
 use std::{collections::BTreeMap, convert::TryFrom};
 
 use ruma_events_macros::EventContent;
-#[cfg(feature = "unstable-pre-spec")]
-use ruma_events_macros::MessageEventContent;
 use ruma_identifiers::DeviceIdBox;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
@@ -43,8 +41,8 @@ pub struct StartToDeviceEventContent {
 }
 
 /// The payload of an in-room *m.key.verification.start* event.
-#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
-#[ruma_event(type = "m.key.verification.start")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.key.verification.start", kind = Message)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub struct StartEventContent {

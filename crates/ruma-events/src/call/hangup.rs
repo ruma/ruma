@@ -1,7 +1,7 @@
 //! Types for the *m.call.hangup* event.
 
 use js_int::UInt;
-use ruma_events_macros::MessageEventContent;
+use ruma_events_macros::EventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
@@ -12,8 +12,8 @@ use crate::MessageEvent;
 pub type HangupEvent = MessageEvent<HangupEventContent>;
 
 /// The payload for `HangupEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
-#[ruma_event(type = "m.call.hangup")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.call.hangup", kind = Message)]
 pub struct HangupEventContent {
     /// The ID of the call this event relates to.
     pub call_id: String,

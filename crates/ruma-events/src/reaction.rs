@@ -2,7 +2,7 @@
 
 use std::convert::TryFrom;
 
-use ruma_events_macros::MessageEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
 
@@ -15,8 +15,8 @@ use crate::{
 pub type ReactionEvent = MessageEvent<ReactionEventContent>;
 
 /// The payload for a `ReactionEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
-#[ruma_event(type = "m.reaction")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.reaction", kind = Message)]
 pub struct ReactionEventContent {
     /// Information about the related event.
     #[serde(rename = "m.relates_to")]

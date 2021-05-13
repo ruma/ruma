@@ -4,7 +4,7 @@ use std::borrow::Cow;
 
 use indoc::formatdoc;
 use js_int::UInt;
-use ruma_events_macros::MessageEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::MxcUri;
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_identifiers::{DeviceIdBox, UserId};
@@ -32,9 +32,9 @@ type JsonObject = serde_json::Map<String, JsonValue>;
 pub type MessageEvent = crate::MessageEvent<MessageEventContent>;
 
 /// The payload for `MessageEvent`.
-#[derive(Clone, Debug, Serialize, MessageEventContent)]
+#[derive(Clone, Debug, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.message")]
+#[ruma_event(type = "m.room.message", kind = Message)]
 pub struct MessageEventContent {
     /// A key which identifies the type of message being sent.
     ///

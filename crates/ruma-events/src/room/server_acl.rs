@@ -1,6 +1,6 @@
 //! Types for the *m.room.server_acl* event.
 
-use ruma_events_macros::StateEventContent;
+use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::StateEvent;
@@ -9,8 +9,8 @@ use crate::StateEvent;
 pub type ServerAclEvent = StateEvent<ServerAclEventContent>;
 
 /// The payload for `ServerAclEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
-#[ruma_event(type = "m.room.server_acl")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.room.server_acl", kind = State)]
 pub struct ServerAclEventContent {
     /// True to allow server names that are IP address literals. False to deny.
     ///

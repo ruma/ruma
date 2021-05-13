@@ -1,7 +1,7 @@
 //! Types for the *m.room.avatar* event.
 
 use js_int::UInt;
-use ruma_events_macros::StateEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::MxcUri;
 use serde::{Deserialize, Serialize};
 
@@ -14,10 +14,10 @@ use crate::StateEvent;
 pub type AvatarEvent = StateEvent<AvatarEventContent>;
 
 /// The payload for `AvatarEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[cfg_attr(feature = "unstable-pre-spec", derive(Default))]
-#[ruma_event(type = "m.room.avatar")]
+#[ruma_event(type = "m.room.avatar", kind = State)]
 pub struct AvatarEventContent {
     /// Information about the avatar image.
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -1,6 +1,6 @@
 //! Types for the *m.room.create* event.
 
-use ruma_events_macros::StateEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use serde::{Deserialize, Serialize};
 
@@ -11,9 +11,9 @@ use crate::StateEvent;
 pub type CreateEvent = StateEvent<CreateEventContent>;
 
 /// The payload for `CreateEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.create")]
+#[ruma_event(type = "m.room.create", kind = State)]
 pub struct CreateEventContent {
     /// The `user_id` of the room creator. This is set by the homeserver.
     #[ruma_event(skip_redaction)]

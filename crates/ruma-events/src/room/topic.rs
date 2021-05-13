@@ -1,6 +1,6 @@
 //! Types for the *m.room.topic* event.
 
-use ruma_events_macros::StateEventContent;
+use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::StateEvent;
@@ -9,8 +9,8 @@ use crate::StateEvent;
 pub type TopicEvent = StateEvent<TopicEventContent>;
 
 /// The payload for `TopicEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
-#[ruma_event(type = "m.room.topic")]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.room.topic", kind = State)]
 pub struct TopicEventContent {
     /// The topic text.
     pub topic: String,
