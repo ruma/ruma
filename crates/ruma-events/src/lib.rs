@@ -131,7 +131,6 @@ use self::room::redaction::{RedactionEvent, SyncRedactionEvent};
 mod enums;
 mod error;
 mod event_kinds;
-mod event_type;
 
 // Hack to allow both ruma-events itself and external crates (or tests) to use procedural macros
 // that expect `ruma_events` to exist in the prelude.
@@ -194,7 +193,9 @@ pub use self::{
         AnyRoomAccountDataEvent, AnyRoomAccountDataEventContent, AnyRoomEvent, AnyStateEvent,
         AnyStateEventContent, AnyStrippedStateEvent, AnySyncEphemeralRoomEvent,
         AnySyncMessageEvent, AnySyncRoomEvent, AnySyncStateEvent, AnyToDeviceEvent,
-        AnyToDeviceEventContent,
+        AnyToDeviceEventContent, EphemeralRoomEventType, EventType, GlobalAccountDataEventType,
+        MessageEventType, RoomAccountDataEventType, RoomEventType, StateEventType,
+        ToDeviceEventType,
     },
     error::{FromStrError, InvalidInput},
     event_kinds::{
@@ -204,7 +205,6 @@ pub use self::{
         StrippedStateEvent, SyncEphemeralRoomEvent, SyncMessageEvent, SyncStateEvent,
         ToDeviceEvent,
     },
-    event_type::EventType,
 };
 
 /// Extra information about an event that is not incorporated into the event's
@@ -473,5 +473,3 @@ where
 {
     serde_json::from_str(val.get()).map_err(E::custom)
 }
-
-mod test_enums;
