@@ -473,3 +473,5 @@ where
 {
     serde_json::from_str(val.get()).map_err(E::custom)
 }
+
+mod test_enums;

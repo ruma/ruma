@@ -5,7 +5,7 @@ use std::fmt;
 use proc_macro2::Span;
 use quote::format_ident;
 use syn::{
-    bracketed,
+    braced, bracketed,
     parse::{self, Parse, ParseStream},
     Attribute, Ident, LitStr, Token,
 };
@@ -184,6 +184,17 @@ pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation
     }
 }
 
+pub struct EventEnumEntry {
+    pub attrs: Vec<Attribute>,
+    pub ev_type: LitStr,
+}
+
+impl Parse for EventEnumEntry {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        Ok(Self { attrs: input.call(Attribute::parse_outer)?, ev_type: input.parse()? })
+    }
+}
+
 /// The entire `event_enum!` macro structure directly as it appears in the source code.
 pub struct EventEnumInput {
     /// Outer attributes on the field, such as a docstring.
@@ -194,7 +205,7 @@ pub struct EventEnumInput {
 
     /// An array of valid matrix event types.
     ///
-    /// This will generate the variants of the event type "name". There needs to be a corresponding
+    /// This will generate the variants of the event type "kind". There needs to be a corresponding
     /// variant in `ruma_events::EventType` for this event (converted to a valid Rust-style type
     /// name by stripping `m.`, replacing the remaining dots by underscores and then converting
     /// from snake_case to CamelCase).
@@ -204,7 +215,7 @@ pub struct EventEnumInput {
 impl Parse for EventEnumInput {
     fn parse(input: ParseStream<'_>) -> parse::Result<Self> {
         let attrs = input.call(Attribute::parse_outer)?;
-        // "name" field
+        // "kind" field
         let _: kw::kind = input.parse()?;
         let _: Token![:] = input.parse()?;
 
@@ -226,13 +237,36 @@ impl Parse for EventEnumInput {
     }
 }
 
-pub struct EventEnumEntry {
-    pub attrs: Vec<Attribute>,
-    pub ev_type: LitStr,
+/// The entire `event_enum!` macro structure directly as it appears in the source code.
+pub struct EventEnumInputs {
+    pub(crate) enums: Vec<EventEnumInput>,
 }
 
-impl Parse for EventEnumEntry {
-    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        Ok(Self { attrs: input.call(Attribute::parse_outer)?, ev_type: input.parse()? })
+impl Parse for EventEnumInputs {
+    fn parse(input: ParseStream<'_>) -> parse::Result<Self> {
+        let mut enums = vec![];
+        loop {
+            let attrs = input.call(Attribute::parse_outer)?;
+
+            if input.parse::<Token![enum]>().is_err() {
+                break;
+            };
+
+            let name = input.parse::<EventKind>()?;
+            let content;
+            braced!(content in input);
+
+            // "events" field
+            let _: kw::events = content.parse()?;
+            let _: Token![:] = content.parse()?;
+
+            // an array of event names `["m.room.whatever", ...]`
+            let items;
+            bracketed!(items in content);
+            let events = items.parse_terminated::<_, Token![,]>(EventEnumEntry::parse)?;
+            let events = events.into_iter().collect();
+            enums.push(EventEnumInput { attrs, name, events });
+        }
+        Ok(EventEnumInputs { enums })
     }
 }

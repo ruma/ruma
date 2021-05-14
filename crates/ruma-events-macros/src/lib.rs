@@ -8,6 +8,7 @@
 
 #![warn(missing_docs)]
 
+use event_parse::EventEnumInputs;
 use proc_macro::TokenStream;
 use proc_macro2 as pm2;
 use proc_macro_crate::{crate_name, FoundCrate};
@@ -16,13 +17,14 @@ use syn::{parse_macro_input, DeriveInput, Ident};
 
 use self::{
     event::expand_event, event_content::expand_event_content, event_enum::expand_event_enum,
-    event_parse::EventEnumInput,
+    event_parse::EventEnumInput, event_type::expand_event_type_enum,
 };
 
 mod event;
 mod event_content;
 mod event_enum;
 mod event_parse;
+mod event_type;
 /// Generates an enum to represent the various Matrix event types.
 ///
 /// This macro also implements the necessary traits for the type to serialize and deserialize
@@ -49,6 +51,26 @@ mod event_parse;
 pub fn event_enum(input: TokenStream) -> TokenStream {
     let event_enum_input = syn::parse_macro_input!(input as EventEnumInput);
     expand_event_enum(event_enum_input).unwrap_or_else(syn::Error::into_compile_error).into()
+}
+
+#[proc_macro]
+pub fn test_event_enum(input: TokenStream) -> TokenStream {
+    let event_enum_input = syn::parse_macro_input!(input as EventEnumInputs);
+    let event_types = expand_event_type_enum(&event_enum_input);
+    event_types
+        .and_then(|types| {
+            event_enum_input
+                .enums
+                .into_iter()
+                .map(expand_event_enum)
+                .collect::<syn::Result<pm2::TokenStream>>()
+                .map(|mut enums| {
+                    enums.extend(types);
+                    enums
+                })
+        })
+        .unwrap_or_else(syn::Error::into_compile_error)
+        .into()
 }
 
 /// Generates an implementation of `ruma_events::EventContent`.

@@ -969,13 +969,13 @@ fn field_return_type(
     }
 }
 
-struct EventEnumVariant {
+pub(crate) struct EventEnumVariant {
     pub attrs: Vec<Attribute>,
     pub ident: Ident,
 }
 
 impl EventEnumVariant {
-    fn to_tokens<T>(&self, prefix: Option<T>, with_attrs: bool) -> TokenStream
+    pub(crate) fn to_tokens<T>(&self, prefix: Option<T>, with_attrs: bool) -> TokenStream
     where
         T: ToTokens,
     {
@@ -993,21 +993,21 @@ impl EventEnumVariant {
         tokens
     }
 
-    fn decl(&self) -> TokenStream {
+    pub(crate) fn decl(&self) -> TokenStream {
         self.to_tokens::<TokenStream>(None, true)
     }
 
-    fn match_arm(&self, prefix: impl ToTokens) -> TokenStream {
+    pub(crate) fn match_arm(&self, prefix: impl ToTokens) -> TokenStream {
         self.to_tokens(Some(prefix), true)
     }
 
-    fn ctor(&self, prefix: impl ToTokens) -> TokenStream {
+    pub(crate) fn ctor(&self, prefix: impl ToTokens) -> TokenStream {
         self.to_tokens(Some(prefix), false)
     }
 }
 
 impl EventEnumEntry {
-    fn to_variant(&self) -> syn::Result<EventEnumVariant> {
+    pub(crate) fn to_variant(&self) -> syn::Result<EventEnumVariant> {
         let attrs = self.attrs.clone();
         let ident = to_camel_case(&self.ev_type)?;
         Ok(EventEnumVariant { attrs, ident })
