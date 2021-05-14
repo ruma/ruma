@@ -5,7 +5,7 @@ use std::fmt;
 use proc_macro2::Span;
 use quote::format_ident;
 use syn::{
-    braced, bracketed,
+    braced,
     parse::{self, Parse, ParseStream},
     Attribute, Ident, LitStr, Token,
 };
@@ -140,8 +140,8 @@ impl Parse for EventKind {
             "State" => EventKind::State,
             "ToDevice" => EventKind::ToDevice,
             id => {
-                return Err(syn::Error::new(
-                    input.span(),
+                return Err(syn::Error::new_spanned(
+                    ident,
                     format!(
                         "valid event kinds are GlobalAccountData, RoomAccountData, EphemeralRoom, \
                         Message, State, ToDevice found `{}`",
@@ -223,22 +223,12 @@ impl Parse for EventEnumInput {
         while !input.is_empty() {
             let attrs = input.call(Attribute::parse_outer)?;
 
-            if input.parse::<Token![enum]>().is_err() {
-                break;
-            };
+            let _: Token![enum] = input.parse()?;
+            let name: EventKind = input.parse()?;
 
-            let name = input.parse::<EventKind>()?;
             let content;
             braced!(content in input);
-
-            // "events" field
-            let _: kw::events = content.parse()?;
-            let _: Token![:] = content.parse()?;
-
-            // an array of event names `["m.room.whatever", ...]`
-            let items;
-            bracketed!(items in content);
-            let events = items.parse_terminated::<_, Token![,]>(EventEnumEntry::parse)?;
+            let events = content.parse_terminated::<_, Token![,]>(EventEnumEntry::parse)?;
             let events = events.into_iter().collect();
             enums.push(EventEnumDecl { attrs, name, events });
         }

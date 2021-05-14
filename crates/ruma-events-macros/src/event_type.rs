@@ -4,8 +4,11 @@ use syn::{Ident, LitStr};
 
 use crate::event_parse::{EventEnumEntry, EventEnumInput, EventKind};
 
-pub fn expand_event_type_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
-    let ruma_serde = quote! { ::ruma_serde };
+pub fn expand_event_type_enum(
+    input: EventEnumInput,
+    ruma_events: TokenStream,
+) -> syn::Result<TokenStream> {
+    let ruma_serde = quote! { #ruma_events::exports::ruma_serde };
 
     let mut room: Vec<&Vec<EventEnumEntry>> = vec![];
     let mut state: Vec<&Vec<EventEnumEntry>> = vec![];
@@ -25,7 +28,7 @@ pub fn expand_event_type_enum(input: EventEnumInput) -> syn::Result<TokenStream>
             }
             EventKind::State => {
                 state.push(&event.events);
-                room.push(&event.events)
+                room.push(&event.events);
             }
             EventKind::ToDevice => to_device.push(&event.events),
             EventKind::Redaction => {}
@@ -101,19 +104,12 @@ pub fn expand_event_type_enum(input: EventEnumInput) -> syn::Result<TokenStream>
 
     Ok(quote! {
         #all
-
         #room
-
         #state
-
         #message
-
         #ephemeral
-
         #room_account
-
         #global_account
-
         #to_device
     })
 }
@@ -124,7 +120,7 @@ fn generate_enum(
     variants: Vec<TokenStream>,
     ruma_serde: &TokenStream,
 ) -> TokenStream {
-    let str_doc = format!("Creates a str slice from this `{}`.", ident);
+    let str_doc = format!("Creates a string slice from this `{}`.", ident);
     let byte_doc = format!("Creates a byte slice from this `{}`.", ident);
     let enum_doc = format!("The type of `{}` this is.", ident);
     quote! {

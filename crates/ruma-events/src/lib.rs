@@ -144,6 +144,7 @@ extern crate self as ruma_events;
 pub mod exports {
     pub use ruma_common;
     pub use ruma_identifiers;
+    pub use ruma_serde;
     pub use serde;
     pub use serde_json;
 }
