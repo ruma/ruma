@@ -400,7 +400,7 @@ fn expand_content_enum(
     let event_content_impl = quote! {
         #[automatically_derived]
         impl #ruma_events::EventContent for #ident {
-            fn event_type(&self) -> &str {
+            fn event_type(&self) -> &::std::primitive::str {
                 match self {
                     #( #variant_arms(content) => content.event_type(), )*
                     Self::Custom(content) => content.event_type(),
