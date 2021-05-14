@@ -2,9 +2,6 @@ use std::sync::Arc;
 
 use ruma_events::EventType;
 use ruma_state_res::{event_auth::valid_membership_change, StateMap};
-// use ruma_state_res::event_auth:::{
-//     auth_check, auth_types_for_event, can_federate, check_power_levels, check_redaction,
-// };
 
 mod utils;
 use utils::{alice, charlie, event_id, member_content_ban, to_pdu_event, INITIAL_EVENTS};

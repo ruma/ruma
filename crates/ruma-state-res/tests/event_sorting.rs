@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use rand::seq::SliceRandom;
 use ruma_events::EventType;
@@ -15,7 +15,7 @@ fn test_event_sort() {
         .map(|ev| ((ev.kind(), ev.state_key()), ev.clone()))
         .collect::<StateMap<_>>();
 
-    let auth_chain = &[] as &[_];
+    let auth_chain = BTreeSet::new();
 
     let power_events = event_map
         .values()
@@ -30,7 +30,7 @@ fn test_event_sort() {
         &room_id(),
         &power_events,
         &mut events,
-        auth_chain,
+        &auth_chain,
     );
 
     // This is a TODO in conduit
