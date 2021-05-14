@@ -36,7 +36,10 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given auth type and session ID.
-    pub fn new(device_id: Option<&'a DeviceId>, initial_device_display_name: Option<&'a str>) -> Self {
+    pub fn new(
+        device_id: Option<&'a DeviceId>,
+        initial_device_display_name: Option<&'a str>,
+    ) -> Self {
         Self { device_id, initial_device_display_name }
     }
 }
