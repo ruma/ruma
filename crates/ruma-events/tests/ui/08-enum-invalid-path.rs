@@ -1,17 +1,15 @@
 use ruma_events_macros::event_enum;
 
 event_enum! {
-    kind: State,
-    events: [
+    enum State {
         "m.not.a.path",
-    ]
+    }
 }
 
 event_enum! {
-    kind: State,
-    events: [
+    enum State {
         "not.a.path",
-    ]
+    }
 }
 
 fn main() {}

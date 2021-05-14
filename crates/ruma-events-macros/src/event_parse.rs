@@ -5,7 +5,7 @@ use std::fmt;
 use proc_macro2::Span;
 use quote::format_ident;
 use syn::{
-    bracketed,
+    braced,
     parse::{self, Parse, ParseStream},
     Attribute, Ident, LitStr, Token,
 };
@@ -140,8 +140,8 @@ impl Parse for EventKind {
             "State" => EventKind::State,
             "ToDevice" => EventKind::ToDevice,
             id => {
-                return Err(syn::Error::new(
-                    input.span(),
+                return Err(syn::Error::new_spanned(
+                    ident,
                     format!(
                         "valid event kinds are GlobalAccountData, RoomAccountData, EphemeralRoom, \
                         Message, State, ToDevice found `{}`",
@@ -184,48 +184,6 @@ pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation
     }
 }
 
-/// The entire `event_enum!` macro structure directly as it appears in the source code.
-pub struct EventEnumInput {
-    /// Outer attributes on the field, such as a docstring.
-    pub attrs: Vec<Attribute>,
-
-    /// The name of the event.
-    pub name: EventKind,
-
-    /// An array of valid matrix event types.
-    ///
-    /// This will generate the variants of the event type "name". There needs to be a corresponding
-    /// variant in `ruma_events::EventType` for this event (converted to a valid Rust-style type
-    /// name by stripping `m.`, replacing the remaining dots by underscores and then converting
-    /// from snake_case to CamelCase).
-    pub events: Vec<EventEnumEntry>,
-}
-
-impl Parse for EventEnumInput {
-    fn parse(input: ParseStream<'_>) -> parse::Result<Self> {
-        let attrs = input.call(Attribute::parse_outer)?;
-        // "name" field
-        let _: kw::kind = input.parse()?;
-        let _: Token![:] = input.parse()?;
-
-        // the name of our event enum
-        let name: EventKind = input.parse()?;
-        let _: Token![,] = input.parse()?;
-
-        // "events" field
-        let _: kw::events = input.parse()?;
-        let _: Token![:] = input.parse()?;
-
-        // an array of event names `["m.room.whatever", ...]`
-        let content;
-        bracketed!(content in input);
-        let events = content.parse_terminated::<_, Token![,]>(EventEnumEntry::parse)?;
-        let events = events.into_iter().collect();
-
-        Ok(Self { attrs, name, events })
-    }
-}
-
 pub struct EventEnumEntry {
     pub attrs: Vec<Attribute>,
     pub ev_type: LitStr,
@@ -234,5 +192,46 @@ pub struct EventEnumEntry {
 impl Parse for EventEnumEntry {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         Ok(Self { attrs: input.call(Attribute::parse_outer)?, ev_type: input.parse()? })
+    }
+}
+
+/// The entire `event_enum!` macro structure directly as it appears in the source code.
+pub struct EventEnumDecl {
+    /// Outer attributes on the field, such as a docstring.
+    pub attrs: Vec<Attribute>,
+
+    /// The name of the event.
+    pub name: EventKind,
+
+    /// An array of valid matrix event types.
+    ///
+    /// This will generate the variants of the event type "kind". There needs to be a corresponding
+    /// variant in `ruma_events::EventType` for this event (converted to a valid Rust-style type
+    /// name by stripping `m.`, replacing the remaining dots by underscores and then converting
+    /// from snake_case to CamelCase).
+    pub events: Vec<EventEnumEntry>,
+}
+
+/// The entire `event_enum!` macro structure directly as it appears in the source code.
+pub struct EventEnumInput {
+    pub(crate) enums: Vec<EventEnumDecl>,
+}
+
+impl Parse for EventEnumInput {
+    fn parse(input: ParseStream<'_>) -> parse::Result<Self> {
+        let mut enums = vec![];
+        while !input.is_empty() {
+            let attrs = input.call(Attribute::parse_outer)?;
+
+            let _: Token![enum] = input.parse()?;
+            let name: EventKind = input.parse()?;
+
+            let content;
+            braced!(content in input);
+            let events = content.parse_terminated::<_, Token![,]>(EventEnumEntry::parse)?;
+            let events = events.into_iter().collect();
+            enums.push(EventEnumDecl { attrs, name, events });
+        }
+        Ok(EventEnumInput { enums })
     }
 }

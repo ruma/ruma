@@ -8,6 +8,7 @@
 
 #![warn(missing_docs)]
 
+use event_parse::EventEnumInput;
 use proc_macro::TokenStream;
 use proc_macro2 as pm2;
 use proc_macro_crate::{crate_name, FoundCrate};
@@ -16,13 +17,15 @@ use syn::{parse_macro_input, DeriveInput, Ident};
 
 use self::{
     event::expand_event, event_content::expand_event_content, event_enum::expand_event_enum,
-    event_parse::EventEnumInput,
+    event_type::expand_event_type_enum,
 };
 
 mod event;
 mod event_content;
 mod event_enum;
 mod event_parse;
+mod event_type;
+
 /// Generates an enum to represent the various Matrix event types.
 ///
 /// This macro also implements the necessary traits for the type to serialize and deserialize
@@ -35,20 +38,40 @@ mod event_parse;
 /// use ruma_events_macros::event_enum;
 ///
 /// event_enum! {
-///     kind: ToDevice,
-///     events: [
+///     enum ToDevice {
 ///         "m.any.event",
 ///         "m.other.event",
-///     ]
+///     }
+///
+///     enum State {
+///         "m.more.events",
+///         "m.different.event",
+///     }
 /// }
 /// ```
-/// (The argument to `kind` has to be a valid identifier for `<EventKind as Parse>::parse`)
+/// (The enum name has to be a valid identifier for `<EventKind as Parse>::parse`)
 //// TODO: Change above (`<EventKind as Parse>::parse`) to [] after fully qualified syntax is
 //// supported:  https://github.com/rust-lang/rust/issues/74563
 #[proc_macro]
 pub fn event_enum(input: TokenStream) -> TokenStream {
+    let ruma_events = import_ruma_events();
+
     let event_enum_input = syn::parse_macro_input!(input as EventEnumInput);
-    expand_event_enum(event_enum_input).unwrap_or_else(syn::Error::into_compile_error).into()
+    let enums = event_enum_input
+        .enums
+        .iter()
+        .map(expand_event_enum)
+        .collect::<syn::Result<pm2::TokenStream>>();
+    let event_types = expand_event_type_enum(event_enum_input, ruma_events);
+    event_types
+        .and_then(|types| {
+            enums.map(|mut enums| {
+                enums.extend(types);
+                enums
+            })
+        })
+        .unwrap_or_else(syn::Error::into_compile_error)
+        .into()
 }
 
 /// Generates an implementation of `ruma_events::EventContent`.

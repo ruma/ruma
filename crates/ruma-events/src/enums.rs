@@ -6,36 +6,26 @@ use crate::{from_raw_json_value, EventDeHelper};
 
 event_enum! {
     /// Any global account data event.
-    kind: GlobalAccountData,
-    events: [
+    enum GlobalAccountData {
         "m.direct",
         "m.ignored_user_list",
         "m.push_rules",
-    ]
-}
+    }
 
-event_enum! {
     /// Any room account data event.
-    kind: RoomAccountData,
-    events: [
+    enum RoomAccountData {
         "m.fully_read",
         "m.tag",
-    ]
-}
+    }
 
-event_enum! {
     /// Any ephemeral room event.
-    kind: EphemeralRoom,
-    events: [
+    enum EphemeralRoom {
         "m.receipt",
         "m.typing",
-    ]
-}
+    }
 
-event_enum! {
     /// Any message event.
-    kind: Message,
-    events: [
+    enum Message {
         "m.call.answer",
         "m.call.invite",
         "m.call.hangup",
@@ -69,13 +59,11 @@ event_enum! {
         "m.room.message.feedback",
         "m.room.redaction",
         "m.sticker",
-    ]
-}
+    }
 
-event_enum! {
+
     /// Any state event.
-    kind: State,
-    events: [
+    enum State {
         "m.policy.rule.room",
         "m.policy.rule.server",
         "m.policy.rule.user",
@@ -95,13 +83,10 @@ event_enum! {
         "m.room.third_party_invite",
         "m.room.tombstone",
         "m.room.topic",
-    ]
-}
+    }
 
-event_enum! {
     /// Any to-device event.
-    kind: ToDevice,
-    events: [
+    enum ToDevice {
         "m.dummy",
         "m.room_key",
         "m.room_key_request",
@@ -119,7 +104,7 @@ event_enum! {
         #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         "m.key.verification.done",
         "m.room.encrypted",
-    ]
+    }
 }
 
 /// Any room event.
