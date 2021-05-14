@@ -21,7 +21,7 @@ pub type AcceptEvent = MessageEvent<AcceptEventContent>;
 
 /// The payload for a to-device `AcceptEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.key.verification.accept")]
+#[ruma_event(type = "m.key.verification.accept", kind = ToDevice)]
 pub struct AcceptToDeviceEventContent {
     /// An opaque identifier for the verification process.
     ///

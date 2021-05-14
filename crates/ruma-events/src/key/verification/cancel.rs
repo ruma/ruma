@@ -16,7 +16,7 @@ pub type CancelEvent = MessageEvent<CancelEventContent>;
 
 /// The payload for a to-device `CancelEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.key.verification.cancel")]
+#[ruma_event(type = "m.key.verification.cancel", kind = ToDevice)]
 pub struct CancelToDeviceEventContent {
     /// The opaque identifier for the verification process/request.
     pub transaction_id: String,

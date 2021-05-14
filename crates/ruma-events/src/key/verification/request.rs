@@ -9,7 +9,7 @@ use super::VerificationMethod;
 
 /// The payload for `RequestEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.key.verification.request")]
+#[ruma_event(type = "m.key.verification.request", kind = ToDevice)]
 pub struct RequestToDeviceEventContent {
     /// The device ID which is initiating the request.
     pub from_device: DeviceIdBox,

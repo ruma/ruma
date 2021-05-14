@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Typically encrypted as an *m.room.encrypted* event, then sent as a to-device event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.room_key")]
+#[ruma_event(type = "m.room_key", kind = ToDevice)]
 pub struct RoomKeyToDeviceEventContent {
     /// The encryption algorithm the key in this event is to be used with.
     ///

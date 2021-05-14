@@ -17,7 +17,7 @@ pub type MacEvent = MessageEvent<MacEventContent>;
 
 /// The payload for a to-device `MacEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.key.verification.mac")]
+#[ruma_event(type = "m.key.verification.mac", kind = ToDevice)]
 pub struct MacToDeviceEventContent {
     /// An opaque identifier for the verification process.
     ///

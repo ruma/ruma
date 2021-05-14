@@ -12,7 +12,7 @@ pub type DoneEvent = MessageEvent<DoneEventContent>;
 
 /// The payload for a to-device `m.key.verification.done` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.key.verification.done")]
+#[ruma_event(type = "m.key.verification.done", kind = ToDevice)]
 pub struct DoneToDeviceEventContent {
     /// An opaque identifier for the verification process.
     ///
