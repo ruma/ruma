@@ -69,6 +69,14 @@ pub enum StartMethod {
     /// The *m.sas.v1* verification method.
     MSasV1(MSasV1Content),
 
+    /// The *m.reciprocate.v1* verification method.
+    ///
+    /// The spec entry for this method can be found [here][1]
+    ///
+    /// [1]: https://spec.matrix.org/unstable/client-server-api/#mkeyverificationstartmreciprocatev1
+    #[cfg(feature = "unstable-pre-spec")]
+    MReciprocateV1(MReciprocateV1Content),
+
     /// Any unknown start method.
     Custom(CustomContent),
 }
@@ -82,6 +90,27 @@ pub struct CustomContent {
     /// The additional fields that the method contains.
     #[serde(flatten)]
     pub data: BTreeMap<String, JsonValue>,
+}
+
+/// The payload of an *m.key.verification.start* event using the *m.sas.v1* method.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(rename = "m.reciprocate.v1", tag = "method")]
+pub struct MReciprocateV1Content {
+    /// The shared secret from the QR code, encoded using unpadded base64.
+    pub secret: String,
+}
+
+#[cfg(feature = "unstable-pre-spec")]
+impl MReciprocateV1Content {
+    /// Create a new `MReciprocateV1Content` with the given shared secret.
+    ///
+    /// The shared secret needs to come from the scanned QR code, encoded using
+    /// unpadded base64.
+    pub fn new(secret: String) -> Self {
+        Self { secret }
+    }
 }
 
 /// The payload of an *m.key.verification.start* event using the *m.sas.v1* method.
@@ -217,7 +246,7 @@ mod tests {
         StartToDeviceEventContent,
     };
     #[cfg(feature = "unstable-pre-spec")]
-    use super::{Relation, StartEventContent};
+    use super::{MReciprocateV1Content, Relation, StartEventContent};
     use crate::ToDeviceEvent;
 
     #[test]
@@ -341,6 +370,26 @@ mod tests {
             ToDeviceEvent { sender, content: key_verification_start_content };
 
         assert_eq!(to_json_value(&key_verification_start).unwrap(), json_data);
+
+        #[cfg(feature = "unstable-pre-spec")]
+        {
+            let secret = "This is a secret to everybody".to_string();
+
+            let key_verification_start_content = StartToDeviceEventContent {
+                from_device: "123".into(),
+                transaction_id: "456".into(),
+                method: StartMethod::MReciprocateV1(MReciprocateV1Content::new(secret.clone())),
+            };
+
+            let json_data = json!({
+                "from_device": "123",
+                "method": "m.reciprocate.v1",
+                "secret": secret,
+                "transaction_id": "456"
+            });
+
+            assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
+        }
     }
 
     #[test]
@@ -369,6 +418,26 @@ mod tests {
             "hashes": ["sha256"],
             "message_authentication_codes": ["hkdf-hmac-sha256"],
             "short_authentication_string": ["decimal"],
+            "m.relates_to": {
+                "rel_type": "m.reference",
+                "event_id": event_id,
+            }
+        });
+
+        assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
+
+        let secret = "This is a secret to everybody".to_string();
+
+        let key_verification_start_content = StartEventContent {
+            from_device: "123".into(),
+            relation: Relation { event_id: event_id.clone() },
+            method: StartMethod::MReciprocateV1(MReciprocateV1Content::new(secret.clone())),
+        };
+
+        let json_data = json!({
+            "from_device": "123",
+            "method": "m.reciprocate.v1",
+            "secret": secret,
             "m.relates_to": {
                 "rel_type": "m.reference",
                 "event_id": event_id,
@@ -489,6 +558,41 @@ mod tests {
                 && method == "m.sas.custom"
                 && data.get("test").unwrap() == &JsonValue::from("field")
         );
+
+        #[cfg(feature = "unstable-pre-spec")]
+        {
+            let json = json!({
+                "content": {
+                    "from_device": "123",
+                    "method": "m.reciprocate.v1",
+                    "secret": "It's a secret to everybody",
+                    "transaction_id": "456",
+                },
+                "type": "m.key.verification.start",
+                "sender": sender,
+            });
+
+            assert_matches!(
+                from_json_value::<Raw<ToDeviceEvent<StartToDeviceEventContent>>>(json)
+                    .unwrap()
+                    .deserialize()
+                    .unwrap(),
+                ToDeviceEvent {
+                    sender,
+                    content: StartToDeviceEventContent {
+                        from_device,
+                        transaction_id,
+                        method: StartMethod::MReciprocateV1(
+                            MReciprocateV1Content {
+                                secret
+                        }),
+                    }
+                } if from_device == "123"
+                    && sender == user_id!("@example:localhost")
+                    && transaction_id == "456"
+                    && secret == "It's a secret to everybody"
+            );
+        }
     }
 
     #[test]
@@ -532,6 +636,35 @@ mod tests {
                 && key_agreement_protocols == vec![KeyAgreementProtocol::Curve25519]
                 && message_authentication_codes == vec![MessageAuthenticationCode::HkdfHmacSha256]
                 && short_authentication_string == vec![ShortAuthenticationString::Decimal]
+        );
+
+        let json = json!({
+            "from_device": "123",
+            "method": "m.reciprocate.v1",
+            "secret": "It's a secret to everybody",
+            "m.relates_to": {
+                "rel_type": "m.reference",
+                "event_id": id,
+            }
+        });
+
+        assert_matches!(
+            from_json_value::<Raw<StartEventContent>>(json)
+                .unwrap()
+                .deserialize()
+                .unwrap(),
+            StartEventContent {
+                from_device,
+                relation: Relation {
+                    event_id,
+                },
+                method: StartMethod::MReciprocateV1(
+                    MReciprocateV1Content {
+                        secret
+                }),
+            } if from_device == "123"
+                && event_id == id
+                && secret == "It's a secret to everybody"
         );
     }
 
