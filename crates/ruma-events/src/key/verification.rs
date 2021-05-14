@@ -131,6 +131,21 @@ pub enum VerificationMethod {
     #[ruma_enum(rename = "m.sas.v1")]
     MSasV1,
 
+    /// The *m.qr_code.scan.v1* verification method.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[ruma_enum(rename = "m.qr_code.scan.v1")]
+    MQrScanShowV1,
+
+    /// The *m.qr_code.show.v1* verification method.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[ruma_enum(rename = "m.qr_code.show.v1")]
+    MQrCodeShowV1,
+
+    /// The *m.reciprocate.v1* verification method.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[ruma_enum(rename = "m.reciprocate.v1")]
+    MReciprocateV1,
+
     #[doc(hidden)]
     _Custom(String),
 }
