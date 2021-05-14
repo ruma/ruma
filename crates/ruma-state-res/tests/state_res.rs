@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use js_int::uint;
-use maplit::btreemap;
+use maplit::{btreemap, btreeset};
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{room::join_rules::JoinRule, EventType};
 use ruma_identifiers::{EventId, RoomVersionId};
@@ -240,6 +240,13 @@ fn topic_setting() {
 
 #[test]
 fn test_event_map_none() {
+    // This is the only test that does not use `do_check` so we
+    // have to start the logger if this is what we're running.
+    //
+    // to activate logging use `RUST_LOG=debug cargo t one_test_only`
+    let _ = LOGGER
+        .call_once(|| tracer::fmt().with_env_filter(tracer::EnvFilter::from_default_env()).init());
+
     let mut store = TestStore::<StateEvent>(btreemap! {});
 
     // build up the DAG
@@ -271,11 +278,11 @@ fn test_event_map_none() {
 #[test]
 fn test_lexicographical_sort() {
     let graph = btreemap! {
-        event_id("l") => vec![event_id("o")],
-        event_id("m") => vec![event_id("n"), event_id("o")],
-        event_id("n") => vec![event_id("o")],
-        event_id("o") => vec![], // "o" has zero outgoing edges but 4 incoming edges
-        event_id("p") => vec![event_id("o")],
+        event_id("l") => btreeset![event_id("o")],
+        event_id("m") => btreeset![event_id("n"), event_id("o")],
+        event_id("n") => btreeset![event_id("o")],
+        event_id("o") => btreeset![], // "o" has zero outgoing edges but 4 incoming edges
+        event_id("p") => btreeset![event_id("o")],
     };
 
     let res = StateResolution::lexicographical_topological_sort(&graph, |id| {
@@ -296,10 +303,6 @@ fn test_lexicographical_sort() {
 //
 impl TestStore<StateEvent> {
     pub fn set_up(&mut self) -> (StateMap<EventId>, StateMap<EventId>, StateMap<EventId>) {
-        // to activate logging use `RUST_LOG=debug cargo t one_test_only`
-        let _ = LOGGER.call_once(|| {
-            tracer::fmt().with_env_filter(tracer::EnvFilter::from_default_env()).init()
-        });
         let create_event = to_pdu_event::<EventId>(
             "CREATE",
             alice(),

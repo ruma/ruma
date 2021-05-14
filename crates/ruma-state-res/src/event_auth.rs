@@ -304,7 +304,7 @@ pub fn valid_membership_change<E: Event>(
     auth_events: &StateMap<Arc<E>>,
 ) -> Result<bool> {
     let target_membership = serde_json::from_value::<MembershipState>(
-        content.get("membership").expect("we should test before that this field exists").clone(),
+        content.get("membership").expect("we test before that this field exists").clone(),
     )?;
 
     let third_party_invite = content
@@ -493,7 +493,7 @@ pub fn can_send_event<E: Event>(event: &Arc<E>, auth_events: &StateMap<Arc<E>>) 
     let event_type_power_level = get_send_level(&event.kind(), event.state_key(), ple);
     let user_level = get_user_power_level(event.sender(), auth_events);
 
-    debug!("{} ev_type {} usr {}", event.event_id().as_str(), event_type_power_level, user_level);
+    debug!("{} ev_type {} usr {}", event.event_id(), event_type_power_level, user_level);
 
     if user_level < event_type_power_level {
         return false;
@@ -756,7 +756,6 @@ pub fn get_send_level<E: Event>(
     state_key: Option<String>,
     power_lvl: Option<&Arc<E>>,
 ) -> i64 {
-    debug!("{:?} {:?}", e_type, state_key);
     power_lvl
         .and_then(|ple| {
             serde_json::from_value::<PowerLevelsEventContent>(ple.content())
