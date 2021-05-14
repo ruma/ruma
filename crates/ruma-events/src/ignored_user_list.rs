@@ -12,7 +12,7 @@ pub type IgnoredUserListEvent = GlobalAccountDataEvent<IgnoredUserListEventConte
 /// The payload for `IgnoredUserListEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.ignored_user_list")]
+#[ruma_event(type = "m.ignored_user_list", kind = GlobalAccountData)]
 pub struct IgnoredUserListEventContent {
     /// A list of users to ignore.
     #[serde(with = "ruma_serde::vec_as_map_of_empty")]

@@ -366,8 +366,14 @@ where
 /// Marker trait for the content of an ephemeral room event.
 pub trait EphemeralRoomEventContent: EventContent {}
 
-/// Marker trait for the content of a basic event.
-pub trait BasicEventContent: EventContent {}
+/// Marker trait for the content of a global account data event.
+pub trait GlobalAccountDataEventContent: EventContent {}
+
+/// Marker trait for the content of a room account data event.
+pub trait RoomAccountDataEventContent: EventContent {}
+
+/// Marker trait for the content of a to device event.
+pub trait ToDeviceEventContent: EventContent {}
 
 /// Marker trait for the content of a room event.
 pub trait RoomEventContent: EventContent {}

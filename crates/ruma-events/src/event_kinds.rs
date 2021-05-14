@@ -3,20 +3,21 @@ use ruma_events_macros::Event;
 use ruma_identifiers::{EventId, RoomId, UserId};
 
 use crate::{
-    EphemeralRoomEventContent, EventContent, MessageEventContent, RedactedMessageEventContent,
-    RedactedStateEventContent, RedactedSyncUnsigned, RedactedUnsigned, StateEventContent, Unsigned,
+    EphemeralRoomEventContent, EventContent, GlobalAccountDataEventContent, MessageEventContent,
+    RedactedMessageEventContent, RedactedStateEventContent, RedactedSyncUnsigned, RedactedUnsigned,
+    RoomAccountDataEventContent, StateEventContent, Unsigned,
 };
 
 /// A global account data event.
 #[derive(Clone, Debug, Event)]
-pub struct GlobalAccountDataEvent<C: EventContent> {
+pub struct GlobalAccountDataEvent<C: GlobalAccountDataEventContent> {
     /// Data specific to the event type.
     pub content: C,
 }
 
 /// A room account data event.
 #[derive(Clone, Debug, Event)]
-pub struct RoomAccountDataEvent<C: EventContent> {
+pub struct RoomAccountDataEvent<C: RoomAccountDataEventContent> {
     /// Data specific to the event type.
     pub content: C,
 }

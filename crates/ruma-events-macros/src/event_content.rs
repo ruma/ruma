@@ -286,16 +286,18 @@ fn generate_event_content_derives(
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let msg = "valid event kinds are GlobalAccountData, RoomAccountData, \
-    EphemeralRoom, Message, State, ToDevice";
+        EphemeralRoom, Message, State, ToDevice";
     content_attr
         .iter()
         .map(|kind| {
             Ok(match kind {
                 EventKind::GlobalAccountData => quote! {
-                    // TODO: will this be it's own trait at some point?
+                    #[automatically_derived]
+                    impl #ruma_events::GlobalAccountDataEventContent for #ident {}
                 },
                 EventKind::RoomAccountData => quote! {
-                    // TODO: will this be it's own trait at some point?
+                    #[automatically_derived]
+                    impl #ruma_events::RoomAccountDataEventContent for #ident {}
                 },
                 EventKind::Ephemeral => quote! {
                     #[automatically_derived]
@@ -314,10 +316,11 @@ fn generate_event_content_derives(
                     impl #ruma_events::StateEventContent for #ident {}
                 },
                 EventKind::ToDevice => quote! {
-                    // TODO: will this be it's own trait at some point?
+                    #[automatically_derived]
+                    impl #ruma_events::ToDeviceEventContent for #ident {}
                 },
-                EventKind::Redaction => return Err(syn::Error::new(ident.span(), msg)),
-                EventKind::Presence => return Err(syn::Error::new(ident.span(), msg)),
+                EventKind::Redaction => return Err(syn::Error::new_spanned(ident, msg)),
+                EventKind::Presence => return Err(syn::Error::new_spanned(ident, msg)),
             })
         })
         .collect()

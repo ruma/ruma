@@ -17,7 +17,7 @@ pub type Tags = BTreeMap<TagName, TagInfo>;
 /// The payload for `TagEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.tag")]
+#[ruma_event(type = "m.tag", kind = RoomAccountData)]
 pub struct TagEventContent {
     /// A map of tag names to tag info.
     pub tags: Tags,

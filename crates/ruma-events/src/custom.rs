@@ -7,9 +7,10 @@ use serde::Serialize;
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
 use crate::{
-    BasicEventContent, EphemeralRoomEventContent, EventContent, HasDeserializeFields,
+    EphemeralRoomEventContent, EventContent, GlobalAccountDataEventContent, HasDeserializeFields,
     MessageEventContent, RedactedEventContent, RedactedMessageEventContent,
-    RedactedStateEventContent, RoomEventContent, StateEventContent,
+    RedactedStateEventContent, RoomAccountDataEventContent, RoomEventContent, StateEventContent,
+    ToDeviceEventContent,
 };
 
 /// A custom event's type and `content` JSON object.
@@ -46,7 +47,11 @@ impl EventContent for CustomEventContent {
 // they can be used for any event kind.
 impl RoomEventContent for CustomEventContent {}
 
-impl BasicEventContent for CustomEventContent {}
+impl GlobalAccountDataEventContent for CustomEventContent {}
+
+impl RoomAccountDataEventContent for CustomEventContent {}
+
+impl ToDeviceEventContent for CustomEventContent {}
 
 impl EphemeralRoomEventContent for CustomEventContent {}
 
