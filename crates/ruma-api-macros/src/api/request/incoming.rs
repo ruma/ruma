@@ -148,7 +148,7 @@ impl Request {
             let body_lifetimes = if self.has_body_lifetimes() {
                 // duplicate the anonymous lifetime as many times as needed
                 let lifetimes = std::iter::repeat(quote! { '_ }).take(self.lifetimes.body.len());
-                quote! { < #( #lifetimes, )* >}
+                quote! { < #( #lifetimes, )* > }
             } else {
                 TokenStream::new()
             };
