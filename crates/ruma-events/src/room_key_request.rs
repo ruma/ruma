@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 /// The payload for `RoomKeyRequestEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.room_key_request")]
+#[ruma_event(type = "m.room_key_request", kind = ToDevice)]
 pub struct RoomKeyRequestToDeviceEventContent {
     /// Whether this is a new key request or a cancellation of a previous request.
     pub action: Action,

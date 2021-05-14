@@ -3,9 +3,9 @@ use ruma_events_macros::Event;
 use ruma_identifiers::{EventId, RoomId, UserId};
 
 use crate::{
-    EphemeralRoomEventContent, EventContent, GlobalAccountDataEventContent, MessageEventContent,
+    EphemeralRoomEventContent, GlobalAccountDataEventContent, MessageEventContent,
     RedactedMessageEventContent, RedactedStateEventContent, RedactedSyncUnsigned, RedactedUnsigned,
-    RoomAccountDataEventContent, StateEventContent, Unsigned,
+    RoomAccountDataEventContent, StateEventContent, ToDeviceEventContent, Unsigned,
 };
 
 /// A global account data event.
@@ -318,7 +318,7 @@ pub struct RedactedStrippedStateEvent<C: RedactedStateEventContent> {
 
 /// An event sent using send-to-device messaging.
 #[derive(Clone, Debug, Event)]
-pub struct ToDeviceEvent<C: EventContent> {
+pub struct ToDeviceEvent<C: ToDeviceEventContent> {
     /// Data specific to the event type.
     pub content: C,
 

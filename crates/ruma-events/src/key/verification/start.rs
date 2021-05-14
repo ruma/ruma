@@ -23,7 +23,7 @@ pub type StartEvent = MessageEvent<StartEventContent>;
 
 /// The payload of a to-device *m.key.verification.start* event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.key.verification.start")]
+#[ruma_event(type = "m.key.verification.start", kind = ToDevice)]
 pub struct StartToDeviceEventContent {
     /// The device ID which is initiating the process.
     pub from_device: DeviceIdBox,

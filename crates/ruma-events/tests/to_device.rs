@@ -15,7 +15,7 @@ fn serialization() {
     };
 
     assert_eq!(
-        to_json_value(ev).unwrap(),
+        to_json_value(&ev).unwrap(),
         json!({
             "type": "m.room_key",
             "sender": "@example:example.org",

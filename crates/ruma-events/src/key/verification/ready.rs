@@ -12,7 +12,7 @@ pub type ReadyEvent = MessageEvent<ReadyEventContent>;
 
 /// The payload for a to-device `m.key.verification.ready` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.key.verification.ready")]
+#[ruma_event(type = "m.key.verification.ready", kind = ToDevice)]
 pub struct ReadyToDeviceEventContent {
     /// The device ID which is initiating the request.
     pub from_device: DeviceIdBox,

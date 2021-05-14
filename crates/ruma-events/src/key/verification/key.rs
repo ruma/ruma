@@ -15,7 +15,7 @@ pub type KeyEvent = MessageEvent<KeyEventContent>;
 
 /// The payload for a to-device `KeyEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.key.verification.key")]
+#[ruma_event(type = "m.key.verification.key", kind = ToDevice)]
 pub struct KeyToDeviceEventContent {
     /// An opaque identifier for the verification process.
     ///

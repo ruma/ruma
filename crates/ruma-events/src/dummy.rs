@@ -15,5 +15,5 @@ use serde::{Deserialize, Serialize};
 /// session. The keyshare request and *m.dummy* combination should result in the original
 /// sending client receiving keys over the newly established session.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.dummy")]
+#[ruma_event(type = "m.dummy", kind = ToDevice)]
 pub struct DummyToDeviceEventContent {}
