@@ -67,7 +67,7 @@ fn ban_with_auth_chains2() {
     let state_sets = vec![state_set_a, state_set_b];
     let resolved = match StateResolution::resolve::<StateEvent>(
         &room_id(),
-        &RoomVersionId::Version2,
+        &RoomVersionId::Version6,
         &state_sets,
         state_sets
             .iter()

@@ -16,7 +16,7 @@ use std::{
 use criterion::{criterion_group, criterion_main, Criterion};
 use event::StateEvent;
 use js_int::uint;
-use maplit::btreemap;
+use maplit::{btreemap, btreeset};
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     pdu::{EventHash, Pdu, RoomV3Pdu},
@@ -35,11 +35,11 @@ static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 fn lexico_topo_sort(c: &mut Criterion) {
     c.bench_function("lexicographical topological sort", |b| {
         let graph = btreemap! {
-            event_id("l") => vec![event_id("o")],
-            event_id("m") => vec![event_id("n"), event_id("o")],
-            event_id("n") => vec![event_id("o")],
-            event_id("o") => vec![], // "o" has zero outgoing edges but 4 incoming edges
-            event_id("p") => vec![event_id("o")],
+            event_id("l") => btreeset![event_id("o")],
+            event_id("m") => btreeset![event_id("n"), event_id("o")],
+            event_id("n") => btreeset![event_id("o")],
+            event_id("o") => btreeset![], // "o" has zero outgoing edges but 4 incoming edges
+            event_id("p") => btreeset![event_id("o")],
         };
         b.iter(|| {
             let _ = StateResolution::lexicographical_topological_sort(&graph, |id| {
@@ -61,7 +61,7 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
             let state_sets = vec![state_at_bob.clone(), state_at_charlie.clone()];
             let _ = match StateResolution::resolve::<StateEvent>(
                 &room_id(),
-                &RoomVersionId::Version2,
+                &RoomVersionId::Version6,
                 &state_sets,
                 state_sets
                     .iter()
@@ -82,10 +82,9 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
 
 fn resolve_deeper_event_set(c: &mut Criterion) {
     c.bench_function("resolve state of 10 events 3 conflicting", |b| {
-        let init = INITIAL_EVENTS();
+        let mut inner = INITIAL_EVENTS();
         let ban = BAN_STATE_SET();
 
-        let mut inner = init;
         inner.extend(ban);
         let store = TestStore(inner.clone());
 
@@ -119,7 +118,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
             let state_sets = vec![state_set_a.clone(), state_set_b.clone()];
             let _ = match StateResolution::resolve::<StateEvent>(
                 &room_id(),
-                &RoomVersionId::Version2,
+                &RoomVersionId::Version6,
                 &state_sets,
                 state_sets
                     .iter()
@@ -330,25 +329,11 @@ fn room_id() -> RoomId {
 }
 
 fn member_content_ban() -> JsonValue {
-    serde_json::to_value(MemberEventContent {
-        membership: MembershipState::Ban,
-        displayname: None,
-        avatar_url: None,
-        is_direct: None,
-        third_party_invite: None,
-    })
-    .unwrap()
+    serde_json::to_value(MemberEventContent::new(MembershipState::Ban)).unwrap()
 }
 
 fn member_content_join() -> JsonValue {
-    serde_json::to_value(MemberEventContent {
-        membership: MembershipState::Join,
-        displayname: None,
-        avatar_url: None,
-        is_direct: None,
-        third_party_invite: None,
-    })
-    .unwrap()
+    serde_json::to_value(MemberEventContent::new(MembershipState::Join)).unwrap()
 }
 
 pub fn to_pdu_event<S>(
@@ -363,6 +348,8 @@ pub fn to_pdu_event<S>(
 where
     S: AsRef<str>,
 {
+    // We don't care if the addition happens in order just that it is atomic
+    // (each event has its own value)
     let ts = SERVER_TIMESTAMP.fetch_add(1, SeqCst);
     let id = if id.contains('$') { id.to_string() } else { format!("${}:foo", id) };
     let auth_events = auth_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();

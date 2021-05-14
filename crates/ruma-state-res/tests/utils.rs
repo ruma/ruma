@@ -10,7 +10,7 @@ use std::{
 };
 
 use js_int::uint;
-use maplit::btreemap;
+use maplit::{btreemap, btreeset};
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     pdu::{EventHash, Pdu, RoomV3Pdu},
@@ -37,9 +37,8 @@ pub fn do_check(
     edges: Vec<Vec<EventId>>,
     expected_state_ids: Vec<EventId>,
 ) {
-    // to activate logging use `RUST_LOG=debug cargo t`
-    let _ = LOGGER
-        .call_once(|| tracer::fmt().with_env_filter(tracer::EnvFilter::from_default_env()).init());
+    // To activate logging use `RUST_LOG=debug cargo t`
+    // The logger is initialized in the `INITIAL_EVENTS` function.
 
     let init_events = INITIAL_EVENTS();
 
@@ -55,20 +54,20 @@ pub fn do_check(
     // Create the DB of events that led up to this point
     // TODO maybe clean up some of these clones it is just tests but...
     for ev in init_events.values().chain(events) {
-        graph.insert(ev.event_id().clone(), vec![]);
+        graph.insert(ev.event_id().clone(), btreeset![]);
         fake_event_map.insert(ev.event_id().clone(), ev.clone());
     }
 
     for pair in INITIAL_EDGES().windows(2) {
         if let [a, b] = &pair {
-            graph.entry(a.clone()).or_insert(vec![]).push(b.clone());
+            graph.entry(a.clone()).or_insert(btreeset![]).insert(b.clone());
         }
     }
 
     for edge_list in edges {
         for pair in edge_list.windows(2) {
             if let [a, b] = &pair {
-                graph.entry(a.clone()).or_insert(vec![]).push(b.clone());
+                graph.entry(a.clone()).or_insert(btreeset![]).insert(b.clone());
             }
         }
     }
@@ -91,7 +90,7 @@ pub fn do_check(
         let state_before: StateMap<EventId> = if prev_events.is_empty() {
             BTreeMap::new()
         } else if prev_events.len() == 1 {
-            state_at_event.get(&prev_events[0]).unwrap().clone()
+            state_at_event.get(prev_events.iter().next().unwrap()).unwrap().clone()
         } else {
             let state_sets = prev_events
                 .iter()
@@ -161,7 +160,7 @@ pub fn do_check(
             Some(&e.state_key()),
             e.content(),
             &auth_events,
-            prev_events,
+            &prev_events.iter().cloned().collect::<Vec<_>>(),
         );
 
         // We have to update our store, an actual user of this lib would
