@@ -1,11 +1,11 @@
 error: well-known matrix events have to start with `m.` found `not.a.path`
-  --> $DIR/08-enum-invalid-path.rs:13:9
+  --> $DIR/08-enum-invalid-path.rs:14:13
    |
-13 |         "not.a.path",
-   |         ^^^^^^^^^^^^
+14 |             "not.a.path",
+   |             ^^^^^^^^^^^^
 
 error[E0433]: failed to resolve: could not find `not` in `ruma_events`
- --> $DIR/08-enum-invalid-path.rs:6:9
+ --> $DIR/08-enum-invalid-path.rs:6:13
   |
-6 |         "m.not.a.path",
-  |         ^^^^^^^^^^^^^^ could not find `not` in `ruma_events`
+6 |             "m.not.a.path",
+  |             ^^^^^^^^^^^^^^ could not find `not` in `ruma_events`
