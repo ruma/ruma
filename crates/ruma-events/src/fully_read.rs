@@ -14,7 +14,7 @@ pub type FullyReadEvent = RoomAccountDataEvent<FullyReadEventContent>;
 
 /// The payload for `FullyReadEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.fully_read")]
+#[ruma_event(type = "m.fully_read", kind = RoomAccountData)]
 pub struct FullyReadEventContent {
     /// The event the user's read marker is located at in the room.
     pub event_id: EventId,
