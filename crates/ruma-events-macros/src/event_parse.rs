@@ -196,7 +196,7 @@ impl Parse for EventEnumEntry {
 }
 
 /// The entire `event_enum!` macro structure directly as it appears in the source code.
-pub struct EventEnumInput {
+pub struct EventEnumDecl {
     /// Outer attributes on the field, such as a docstring.
     pub attrs: Vec<Attribute>,
 
@@ -212,40 +212,15 @@ pub struct EventEnumInput {
     pub events: Vec<EventEnumEntry>,
 }
 
+/// The entire `event_enum!` macro structure directly as it appears in the source code.
+pub struct EventEnumInput {
+    pub(crate) enums: Vec<EventEnumDecl>,
+}
+
 impl Parse for EventEnumInput {
     fn parse(input: ParseStream<'_>) -> parse::Result<Self> {
-        let attrs = input.call(Attribute::parse_outer)?;
-        // "kind" field
-        let _: kw::kind = input.parse()?;
-        let _: Token![:] = input.parse()?;
-
-        // the name of our event enum
-        let name: EventKind = input.parse()?;
-        let _: Token![,] = input.parse()?;
-
-        // "events" field
-        let _: kw::events = input.parse()?;
-        let _: Token![:] = input.parse()?;
-
-        // an array of event names `["m.room.whatever", ...]`
-        let content;
-        bracketed!(content in input);
-        let events = content.parse_terminated::<_, Token![,]>(EventEnumEntry::parse)?;
-        let events = events.into_iter().collect();
-
-        Ok(Self { attrs, name, events })
-    }
-}
-
-/// The entire `event_enum!` macro structure directly as it appears in the source code.
-pub struct EventEnumInputs {
-    pub(crate) enums: Vec<EventEnumInput>,
-}
-
-impl Parse for EventEnumInputs {
-    fn parse(input: ParseStream<'_>) -> parse::Result<Self> {
         let mut enums = vec![];
-        loop {
+        while !input.is_empty() {
             let attrs = input.call(Attribute::parse_outer)?;
 
             if input.parse::<Token![enum]>().is_err() {
@@ -265,8 +240,8 @@ impl Parse for EventEnumInputs {
             bracketed!(items in content);
             let events = items.parse_terminated::<_, Token![,]>(EventEnumEntry::parse)?;
             let events = events.into_iter().collect();
-            enums.push(EventEnumInput { attrs, name, events });
+            enums.push(EventEnumDecl { attrs, name, events });
         }
-        Ok(EventEnumInputs { enums })
+        Ok(EventEnumInput { enums })
     }
 }

@@ -1,64 +1,101 @@
-use proc_macro2::TokenStream;
-use quote::quote;
+use proc_macro2::{Span, TokenStream};
+use quote::{format_ident, quote};
 use syn::{Ident, LitStr};
 
-use crate::event_parse::{EventEnumEntry, EventEnumInputs, EventKind};
+use crate::event_parse::{EventEnumEntry, EventEnumInput, EventKind};
 
-pub fn expand_event_type_enum(input: &EventEnumInputs) -> syn::Result<TokenStream> {
+pub fn expand_event_type_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
     let ruma_serde = quote! { ::ruma_serde };
 
-    let mut rooms: Vec<&Vec<EventEnumEntry>> = vec![];
+    let mut room: Vec<&Vec<EventEnumEntry>> = vec![];
     let mut state: Vec<&Vec<EventEnumEntry>> = vec![];
-    let mut messages: Vec<&Vec<EventEnumEntry>> = vec![];
+    let mut message: Vec<&Vec<EventEnumEntry>> = vec![];
+    let mut ephemeral: Vec<&Vec<EventEnumEntry>> = vec![];
+    let mut room_account: Vec<&Vec<EventEnumEntry>> = vec![];
+    let mut global_account: Vec<&Vec<EventEnumEntry>> = vec![];
+    let mut to_device: Vec<&Vec<EventEnumEntry>> = vec![];
     for event in &input.enums {
         match event.name {
-            EventKind::GlobalAccountData => {}
-            EventKind::RoomAccountData => {}
-            EventKind::Ephemeral => {}
+            EventKind::GlobalAccountData => global_account.push(&event.events),
+            EventKind::RoomAccountData => room_account.push(&event.events),
+            EventKind::Ephemeral => ephemeral.push(&event.events),
             EventKind::Message => {
-                messages.push(&event.events);
-                rooms.push(&event.events);
+                message.push(&event.events);
+                room.push(&event.events);
             }
             EventKind::State => {
                 state.push(&event.events);
-                rooms.push(&event.events)
+                room.push(&event.events)
             }
-            EventKind::ToDevice => {}
+            EventKind::ToDevice => to_device.push(&event.events),
             EventKind::Redaction => {}
             EventKind::Presence => {}
         }
     }
+    let presence = vec![EventEnumEntry {
+        attrs: vec![],
+        ev_type: LitStr::new("m.presence", Span::call_site()),
+    }];
+    let mut all = input.enums.iter().map(|e| &e.events).collect::<Vec<_>>();
+    all.push(&presence);
+    let (all_event_types, all_str_ev_types) = generate_variants(&all)?;
+    let all =
+        generate_enum(format_ident!("EventType"), all_str_ev_types, all_event_types, &ruma_serde);
 
-    let all = input.enums.iter().map(|e| &e.events).collect::<Vec<_>>();
-    let (all_event_types, all_rename_attr) = generate_variants(&all)?;
-    let all = generate_enum(
-        quote::format_ident!("EventType"),
-        all_rename_attr,
-        all_event_types,
-        &ruma_serde,
-    );
-
-    let (room_event_types, room_rename_attr) = generate_variants(&rooms)?;
+    let (room_event_types, room_str_ev_types) = generate_variants(&room)?;
     let room = generate_enum(
-        quote::format_ident!("RoomEventType"),
-        room_rename_attr,
+        format_ident!("RoomEventType"),
+        room_str_ev_types,
         room_event_types,
         &ruma_serde,
     );
 
-    let (state_event_types, state_rename_attr) = generate_variants(&state)?;
+    let (state_event_types, state_str_ev_types) = generate_variants(&state)?;
     let state = generate_enum(
-        quote::format_ident!("StateEventType"),
-        state_rename_attr,
+        format_ident!("StateEventType"),
+        state_str_ev_types,
         state_event_types,
         &ruma_serde,
     );
 
-    let (message_event_types, message_rename_attr) = generate_variants(&messages)?;
+    let (message_event_types, message_str_ev_types) = generate_variants(&message)?;
     let message = generate_enum(
-        quote::format_ident!("MessageEventType"),
-        message_rename_attr,
+        format_ident!("MessageEventType"),
+        message_str_ev_types,
         message_event_types,
+        &ruma_serde,
+    );
+
+    let (ephemeral_event_types, ephemeral_str_ev_types) = generate_variants(&ephemeral)?;
+    let ephemeral = generate_enum(
+        format_ident!("EphemeralRoomEventType"),
+        ephemeral_str_ev_types,
+        ephemeral_event_types,
+        &ruma_serde,
+    );
+
+    let (room_account_event_types, room_account_str_ev_types) = generate_variants(&room_account)?;
+    let room_account = generate_enum(
+        format_ident!("RoomAccountDataEventType"),
+        room_account_str_ev_types,
+        room_account_event_types,
+        &ruma_serde,
+    );
+
+    let (global_account_event_types, global_account_str_ev_types) =
+        generate_variants(&global_account)?;
+    let global_account = generate_enum(
+        format_ident!("GlobalAccountDataEventType"),
+        global_account_str_ev_types,
+        global_account_event_types,
+        &ruma_serde,
+    );
+
+    let (to_device_event_types, to_device_str_ev_types) = generate_variants(&to_device)?;
+    let to_device = generate_enum(
+        format_ident!("ToDeviceEventType"),
+        to_device_str_ev_types,
+        to_device_event_types,
         &ruma_serde,
     );
 
@@ -70,13 +107,21 @@ pub fn expand_event_type_enum(input: &EventEnumInputs) -> syn::Result<TokenStrea
         #state
 
         #message
+
+        #ephemeral
+
+        #room_account
+
+        #global_account
+
+        #to_device
     })
 }
 
-fn generate_enum<'a>(
+fn generate_enum(
     ident: Ident,
-    attrs: impl Iterator<Item = &'a LitStr> + 'a,
-    variants: impl Iterator<Item = TokenStream> + 'a,
+    ev_type_strings: Vec<&LitStr>,
+    variants: Vec<TokenStream>,
     ruma_serde: &TokenStream,
 ) -> TokenStream {
     let str_doc = format!("Creates a str slice from this `{}`.", ident);
@@ -89,9 +134,9 @@ fn generate_enum<'a>(
         /// documented variant here, use its string representation, obtained through `.as_str()`.
         #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, #ruma_serde::StringEnum)]
         pub enum #ident {
-           #(
-                #[doc = #attrs]
-                #[ruma_enum(rename = #attrs)]
+            #(
+                #[doc = #ev_type_strings]
+                #[ruma_enum(rename = #ev_type_strings)]
                 #variants,
             )*
             #[doc(hidden)]
@@ -114,11 +159,22 @@ fn generate_enum<'a>(
 
 fn generate_variants<'a>(
     input: &'a [&Vec<EventEnumEntry>],
-) -> syn::Result<(impl Iterator<Item = TokenStream> + 'a, impl Iterator<Item = &'a LitStr> + 'a)> {
-    let rename_attr = input.iter().flat_map(|e| *e).map(|e| &e.ev_type);
+) -> syn::Result<(Vec<TokenStream>, Vec<&'a LitStr>)> {
+    let mut deduped: Vec<&EventEnumEntry> = vec![];
+    for item in input.iter().copied().flatten() {
+        if let Some(idx) = deduped.iter().position(|e| e.ev_type == item.ev_type) {
+            // If there is a variant without config attributes use that
+            if deduped[idx].attrs != item.attrs && item.attrs.is_empty() {
+                deduped[idx] = item;
+            }
+        } else {
+            deduped.push(item);
+        }
+    }
+    let event_types = deduped.iter().map(|e| &e.ev_type).collect();
 
-    let event_types =
-        input.iter().flat_map(|e| *e).map(|e| e.to_variant()).collect::<syn::Result<Vec<_>>>()?;
+    let event_types_variants =
+        deduped.iter().map(|e| Ok(e.to_variant()?.decl())).collect::<syn::Result<Vec<_>>>()?;
 
-    Ok((event_types.into_iter().map(|e| e.decl()), rename_attr))
+    Ok((event_types_variants, event_types))
 }
