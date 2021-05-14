@@ -7,115 +7,103 @@ use crate::{from_raw_json_value, EventDeHelper};
 event_enum! {
     /// Any global account data event.
     enum GlobalAccountData {
-        events: [
-            "m.direct",
-            "m.ignored_user_list",
-            "m.push_rules",
-        ]
+        "m.direct",
+        "m.ignored_user_list",
+        "m.push_rules",
     }
 
     /// Any room account data event.
     enum RoomAccountData {
-        events: [
-            "m.fully_read",
-            "m.tag",
-        ]
+        "m.fully_read",
+        "m.tag",
     }
 
     /// Any ephemeral room event.
     enum EphemeralRoom {
-    events: [
         "m.receipt",
         "m.typing",
-        ]
     }
 
     /// Any message event.
     enum Message {
-        events: [
-            "m.call.answer",
-            "m.call.invite",
-            "m.call.hangup",
-            "m.call.candidates",
-            #[cfg(feature = "unstable-pre-spec")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-            "m.key.verification.ready",
-            #[cfg(feature = "unstable-pre-spec")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-            "m.key.verification.start",
-            #[cfg(feature = "unstable-pre-spec")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-            "m.key.verification.cancel",
-            #[cfg(feature = "unstable-pre-spec")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-            "m.key.verification.accept",
-            #[cfg(feature = "unstable-pre-spec")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-            "m.key.verification.key",
-            #[cfg(feature = "unstable-pre-spec")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-            "m.key.verification.mac",
-            #[cfg(feature = "unstable-pre-spec")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-            "m.key.verification.done",
-            #[cfg(feature = "unstable-pre-spec")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-            "m.reaction",
-            "m.room.encrypted",
-            "m.room.message",
-            "m.room.message.feedback",
-            "m.room.redaction",
-            "m.sticker",
-        ]
+        "m.call.answer",
+        "m.call.invite",
+        "m.call.hangup",
+        "m.call.candidates",
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        "m.key.verification.ready",
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        "m.key.verification.start",
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        "m.key.verification.cancel",
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        "m.key.verification.accept",
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        "m.key.verification.key",
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        "m.key.verification.mac",
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        "m.key.verification.done",
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        "m.reaction",
+        "m.room.encrypted",
+        "m.room.message",
+        "m.room.message.feedback",
+        "m.room.redaction",
+        "m.sticker",
     }
 
 
     /// Any state event.
     enum State {
-        events: [
-            "m.policy.rule.room",
-            "m.policy.rule.server",
-            "m.policy.rule.user",
-            "m.room.aliases",
-            "m.room.avatar",
-            "m.room.canonical_alias",
-            "m.room.create",
-            "m.room.encryption",
-            "m.room.guest_access",
-            "m.room.history_visibility",
-            "m.room.join_rules",
-            "m.room.member",
-            "m.room.name",
-            "m.room.pinned_events",
-            "m.room.power_levels",
-            "m.room.server_acl",
-            "m.room.third_party_invite",
-            "m.room.tombstone",
-            "m.room.topic",
-        ]
+        "m.policy.rule.room",
+        "m.policy.rule.server",
+        "m.policy.rule.user",
+        "m.room.aliases",
+        "m.room.avatar",
+        "m.room.canonical_alias",
+        "m.room.create",
+        "m.room.encryption",
+        "m.room.guest_access",
+        "m.room.history_visibility",
+        "m.room.join_rules",
+        "m.room.member",
+        "m.room.name",
+        "m.room.pinned_events",
+        "m.room.power_levels",
+        "m.room.server_acl",
+        "m.room.third_party_invite",
+        "m.room.tombstone",
+        "m.room.topic",
     }
 
     /// Any to-device event.
     enum ToDevice {
-        events: [
-            "m.dummy",
-            "m.room_key",
-            "m.room_key_request",
-            "m.forwarded_room_key",
-            "m.key.verification.request",
-            #[cfg(feature = "unstable-pre-spec")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-            "m.key.verification.ready",
-            "m.key.verification.start",
-            "m.key.verification.cancel",
-            "m.key.verification.accept",
-            "m.key.verification.key",
-            "m.key.verification.mac",
-            #[cfg(feature = "unstable-pre-spec")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-            "m.key.verification.done",
-            "m.room.encrypted",
-        ]
+        "m.dummy",
+        "m.room_key",
+        "m.room_key_request",
+        "m.forwarded_room_key",
+        "m.key.verification.request",
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        "m.key.verification.ready",
+        "m.key.verification.start",
+        "m.key.verification.cancel",
+        "m.key.verification.accept",
+        "m.key.verification.key",
+        "m.key.verification.mac",
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        "m.key.verification.done",
+        "m.room.encrypted",
     }
 }
 
