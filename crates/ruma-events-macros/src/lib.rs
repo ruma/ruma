@@ -35,7 +35,8 @@ mod event_parse;
 ///
 /// # Examples
 ///
-/// ```no_run
+/// ```ignore
+/// # // HACK: This is "ignore" because of cyclical dependency drama.
 /// use ruma_events_macros::event_enum;
 ///
 /// event_enum! {

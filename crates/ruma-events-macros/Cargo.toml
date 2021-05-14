@@ -23,7 +23,3 @@ proc-macro-crate = "1.0.0"
 
 [lib]
 proc-macro = true
-
-[dev-dependencies]
-ruma-events = { path = "../ruma-events" }
-serde = "1.0.125"
