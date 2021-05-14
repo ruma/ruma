@@ -17,8 +17,8 @@ use super::{Client, Error, HttpClient};
 impl<C: HttpClient> Client<C> {
     /// Log in with a username and password.
     ///
-    /// In contrast to [`request`], this method stores the access token returned by the endpoint in
-    /// this client, in addition to returning it.
+    /// In contrast to [`send_request`][Self::send_request], this method stores the access token
+    /// returned by the endpoint in this client, in addition to returning it.
     pub async fn log_in(
         &self,
         user: &str,
@@ -44,8 +44,8 @@ impl<C: HttpClient> Client<C> {
 
     /// Register as a guest.
     ///
-    /// In contrast to [`request`], this method stores the access token returned by the endpoint in
-    /// this client, in addition to returning it.
+    /// In contrast to [`send_request`][Self::send_request], this method stores the access token
+    /// returned by the endpoint in this client, in addition to returning it.
     pub async fn register_guest(
         &self,
     ) -> Result<register::Response, Error<C::Error, ruma_client_api::r0::uiaa::UiaaResponse>> {
@@ -60,8 +60,8 @@ impl<C: HttpClient> Client<C> {
 
     /// Register as a new user on this server.
     ///
-    /// In contrast to [`request`], this method stores the access token returned by the endpoint in
-    /// this client, in addition to returning it.
+    /// In contrast to [`send_request`][Self::send_request], this method stores the access token
+    /// returned by the endpoint in this client, in addition to returning it.
     ///
     /// The username is the local part of the returned user_id. If it is omitted from this request,
     /// the server will generate one.
