@@ -22,7 +22,12 @@ use crate::cow::MyCowStr;
 /// All event structs and enums implement `Serialize` / `Deserialize`, `Raw` should be used
 /// to pass around events in a lossless way.
 ///
-/// ```ignore
+/// ```no_run
+/// # use serde::Deserialize;
+/// # use ruma_serde::Raw;
+/// # #[derive(Deserialize)]
+/// # struct AnyRoomEvent;
+///
 /// let json = r#"{ "type": "imagine a full event", "content": {...} }"#;
 ///
 /// let deser = serde_json::from_str::<Raw<AnyRoomEvent>>(json)

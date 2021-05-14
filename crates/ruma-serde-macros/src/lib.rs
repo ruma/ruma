@@ -31,6 +31,7 @@ mod util;
 /// of the struct, this simple implementation will be generated:
 ///
 /// ```ignore
+/// # // TODO: "ignore" this doctest until it is more extensively documented. (See #541)
 /// impl Outgoing for MyType {
 ///     type Incoming = Self;
 /// }
