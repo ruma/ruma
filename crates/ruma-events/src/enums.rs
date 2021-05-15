@@ -1,10 +1,14 @@
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events_macros::event_enum;
-use ruma_identifiers::{EventId, RoomId, UserId};
+use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use serde::{de, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use crate::{from_raw_json_value, EventDeHelper};
+use crate::{
+    from_raw_json_value,
+    room::redaction::{RedactionEvent, SyncRedactionEvent},
+    EventDeHelper,
+};
 
 event_enum! {
     /// Any global account data event.
@@ -155,6 +159,17 @@ impl AnyRoomEvent {
     room_ev_accessor!(room_id: &RoomId);
     room_ev_accessor!(event_id: &EventId);
     room_ev_accessor!(sender: &UserId);
+
+    /// Redacts `self`, referencing the given event in `unsigned.redacted_because`.
+    ///
+    /// Does nothing for events that are already redacted.
+    pub fn redact(self, redaction: RedactionEvent, version: &RoomVersionId) -> Self {
+        match self {
+            Self::Message(ev) => Self::RedactedMessage(ev.redact(redaction, version)),
+            Self::State(ev) => Self::RedactedState(ev.redact(redaction, version)),
+            Self::RedactedMessage(_) | Self::RedactedState(_) => self,
+        }
+    }
 }
 
 /// Any sync room event (room event without a `room_id`, as returned in `/sync` responses)
@@ -187,6 +202,17 @@ impl AnySyncRoomEvent {
             Self::State(ev) => AnyRoomEvent::State(ev.into_full_event(room_id)),
             Self::RedactedMessage(ev) => AnyRoomEvent::RedactedMessage(ev.into_full_event(room_id)),
             Self::RedactedState(ev) => AnyRoomEvent::RedactedState(ev.into_full_event(room_id)),
+        }
+    }
+
+    /// Redacts `self`, referencing the given event in `unsigned.redacted_because`.
+    ///
+    /// Does nothing for events that are already redacted.
+    pub fn redact(self, redaction: SyncRedactionEvent, version: &RoomVersionId) -> Self {
+        match self {
+            Self::Message(ev) => Self::RedactedMessage(ev.redact(redaction, version)),
+            Self::State(ev) => Self::RedactedState(ev.redact(redaction, version)),
+            Self::RedactedMessage(_) | Self::RedactedState(_) => self,
         }
     }
 }
