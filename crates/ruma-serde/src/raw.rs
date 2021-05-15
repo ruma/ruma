@@ -132,7 +132,7 @@ impl<T> Raw<T>
 where
     T: DeserializeOwned,
 {
-    /// Try to deserialize the JSON into the expected type.
+    /// Try to deserialize the JSON as the expected type.
     pub fn deserialize(&self) -> Result<T, serde_json::Error> {
         serde_json::from_str(self.json.get())
     }
