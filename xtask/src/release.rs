@@ -108,7 +108,7 @@ impl ReleaseTask {
 
         let mut macros = self.macros();
 
-        if self.package.version != self.version {
+        let create_commit = if self.package.version != self.version {
             if let Some(m) = macros.as_mut() {
                 println!("Found macros crate {}.", m.name);
 
@@ -120,17 +120,20 @@ impl ReleaseTask {
 
             self.package.update_version(&self.version)?;
             self.package.update_dependants(&self.metadata)?;
-        }
-
-        let changes = &self.package.changes(!prerelease)?;
-
-        if self.package.version != self.version {
-            self.commit()?;
+            true
         } else if !ask_yes_no(&format!(
             "Package is already version {}. Skip creating a commit and continue?",
             &self.version
         ))? {
             return Ok(());
+        } else {
+            false
+        };
+
+        let changes = &self.package.changes(!prerelease)?;
+
+        if create_commit {
+            self.commit()?;
         }
 
         if let Some(m) = macros {
