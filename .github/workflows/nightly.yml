@@ -20,6 +20,10 @@ jobs:
           toolchain: nightly
           override: true
           components: rustfmt, clippy
+      - name: Install cargo-sort
+        uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-sort
       - name: Run checks
         uses: actions-rs/cargo@v1
         with:
