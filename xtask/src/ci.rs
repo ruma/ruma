@@ -38,8 +38,24 @@ impl CiTask {
     }
 
     fn build_msrv(&self) -> xshell::Result<()> {
-        let _p = pushd("crates/ruma")?;
-        cmd!("rustup run {MSRV} cargo build --features full").run()
+        // Check all crates with all features except
+        // * ruma (all-features would include the other crates)
+        // * ruma-client (due to transitive ring dependency which only supports latest stable)
+        // * ruma-signatures (for the same reason)
+        // * ruma-state-res (initially exempt from MSRV policy)
+        // * xtask (no real reason to enforce an MSRV for it)
+        cmd!(
+            "rustup run {MSRV} cargo check --workspace --all-features
+                --exclude ruma
+                --exclude ruma-client
+                --exclude ruma-signatures
+                --exclude ruma-state-res
+                --exclude xtask"
+        )
+        .run()?;
+
+        // Check ruma crate with default features
+        cmd!("rustup run {MSRV} cargo check -p ruma").run()
     }
 
     fn build_stable(&self) -> xshell::Result<()> {
