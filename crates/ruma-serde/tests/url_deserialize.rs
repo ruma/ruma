@@ -124,36 +124,26 @@ fn deserialize_multiple_lists() {
 
 #[test]
 fn deserialize_with_serde_attributes() {
-    use std::time::{Duration, SystemTime, UNIX_EPOCH};
-
     #[derive(Debug, PartialEq, Deserialize)]
     struct FieldsWithAttributes {
         #[serde(default)]
         xs: Vec<bool>,
         #[serde(default)]
         def: Option<u8>,
-        #[serde(
-            default,
-            deserialize_with = "ruma_serde::time::opt_ms_since_unix_epoch::deserialize"
-        )]
-        time: Option<SystemTime>,
+        #[serde(default, deserialize_with = "ruma_serde::empty_string_as_none")]
+        str: Option<String>,
         #[serde(default)]
         flag: bool,
     }
 
     assert_eq!(
-        urlencoded::from_str("xs=true&xs=false&def=3&time=1&flag=true"),
-        Ok(FieldsWithAttributes {
-            xs: vec![true, false],
-            def: Some(3),
-            time: Some(UNIX_EPOCH + Duration::from_millis(1)),
-            flag: true,
-        })
+        urlencoded::from_str("xs=true&xs=false&def=3&str=&flag=true"),
+        Ok(FieldsWithAttributes { xs: vec![true, false], def: Some(3), str: None, flag: true })
     );
 
     assert_eq!(
         urlencoded::from_str(""),
-        Ok(FieldsWithAttributes { xs: vec![], def: None, time: None, flag: false })
+        Ok(FieldsWithAttributes { xs: vec![], def: None, str: None, flag: false })
     );
 }
 
