@@ -118,7 +118,7 @@
 use std::fmt::Debug;
 
 use js_int::Int;
-use ruma_identifiers::{EventEncryptionAlgorithm, RoomId};
+use ruma_identifiers::EventEncryptionAlgorithm;
 use ruma_serde::Raw;
 use serde::{
     de::{self, IgnoredAny},
@@ -126,7 +126,7 @@ use serde::{
 };
 use serde_json::value::RawValue as RawJsonValue;
 
-use self::room::redaction::{RedactionEvent, SyncRedactionEvent};
+use self::room::redaction::SyncRedactionEvent;
 
 mod enums;
 mod error;
@@ -249,7 +249,7 @@ impl Unsigned {
 pub struct RedactedUnsigned {
     /// The event that redacted this event, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub redacted_because: Option<Box<RedactionEvent>>,
+    pub redacted_because: Option<Box<SyncRedactionEvent>>,
 }
 
 impl RedactedUnsigned {
@@ -261,79 +261,6 @@ impl RedactedUnsigned {
     /// present but contained none of the known fields.
     pub fn is_empty(&self) -> bool {
         self.redacted_because.is_none()
-    }
-}
-
-/// Extra information about a redacted sync event that is not incorporated into the sync event's
-/// hash.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-pub struct RedactedSyncUnsigned {
-    /// The event that redacted this event, if any.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub redacted_because: Option<Box<SyncRedactionEvent>>,
-}
-
-impl From<RedactedUnsigned> for RedactedSyncUnsigned {
-    fn from(redacted: RedactedUnsigned) -> Self {
-        match redacted.redacted_because.map(|b| *b) {
-            Some(RedactionEvent {
-                content,
-                redacts,
-                event_id,
-                sender,
-                origin_server_ts,
-                unsigned,
-                ..
-            }) => Self {
-                redacted_because: Some(Box::new(SyncRedactionEvent {
-                    content,
-                    redacts,
-                    event_id,
-                    sender,
-                    origin_server_ts,
-                    unsigned,
-                })),
-            },
-            _ => Self { redacted_because: None },
-        }
-    }
-}
-
-impl RedactedSyncUnsigned {
-    /// Whether this unsigned data is empty (`redacted_because` is `None`).
-    ///
-    /// This method is used to determine whether to skip serializing the
-    /// `unsignedSync` field in redacted room events. Do not use it to determine whether
-    /// an incoming `unsignedSync` field was present - it could still have been
-    /// present but contained none of the known fields.
-    pub fn is_empty(&self) -> bool {
-        self.redacted_because.is_none()
-    }
-
-    /// Convert a `RedactedSyncUnsigned` into `RedactedUnsigned`, converting the
-    /// underlying sync redaction event to a full redaction event (with room_id).
-    pub fn into_full(self, room_id: RoomId) -> RedactedUnsigned {
-        match self.redacted_because.map(|b| *b) {
-            Some(SyncRedactionEvent {
-                content,
-                redacts,
-                event_id,
-                sender,
-                origin_server_ts,
-                unsigned,
-            }) => RedactedUnsigned {
-                redacted_because: Some(Box::new(RedactionEvent {
-                    content,
-                    redacts,
-                    event_id,
-                    sender,
-                    origin_server_ts,
-                    room_id,
-                    unsigned,
-                })),
-            },
-            _ => RedactedUnsigned { redacted_because: None },
-        }
     }
 }
 

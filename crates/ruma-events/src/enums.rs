@@ -4,11 +4,7 @@ use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use serde::{de, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use crate::{
-    from_raw_json_value,
-    room::redaction::{RedactionEvent, SyncRedactionEvent},
-    EventDeHelper,
-};
+use crate::{from_raw_json_value, room::redaction::SyncRedactionEvent, EventDeHelper};
 
 event_enum! {
     /// Any global account data event.
@@ -163,7 +159,7 @@ impl AnyRoomEvent {
     /// Redacts `self`, referencing the given event in `unsigned.redacted_because`.
     ///
     /// Does nothing for events that are already redacted.
-    pub fn redact(self, redaction: RedactionEvent, version: &RoomVersionId) -> Self {
+    pub fn redact(self, redaction: SyncRedactionEvent, version: &RoomVersionId) -> Self {
         match self {
             Self::Message(ev) => Self::RedactedMessage(ev.redact(redaction, version)),
             Self::State(ev) => Self::RedactedState(ev.redact(redaction, version)),

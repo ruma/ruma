@@ -369,27 +369,14 @@ fn expand_from_into(
 
     let fields: Vec<_> = fields.iter().flat_map(|f| &f.ident).collect();
 
-    let fields_without_unsigned: Vec<_> =
-        fields.iter().filter(|id| id.to_string().as_str() != "unsigned").collect();
-
-    let (into, into_full_event) = if var.is_redacted() {
-        (quote! { unsigned: unsigned.into(), }, quote! { unsigned: unsigned.into_full(room_id), })
-    } else if kind == &EventKind::Ephemeral {
-        (TokenStream::new(), TokenStream::new())
-    } else {
-        (quote! { unsigned, }, quote! { unsigned, })
-    };
-
     if let EventKindVariation::Sync | EventKindVariation::RedactedSync = var {
         let full_struct = kind.to_event_ident(&var.to_full_variation());
         Some(quote! {
             #[automatically_derived]
             impl #impl_generics From<#full_struct #ty_gen> for #ident #ty_gen #where_clause {
                 fn from(event: #full_struct #ty_gen) -> Self {
-                    let #full_struct {
-                        #( #fields, )* ..
-                    } = event;
-                    Self { #( #fields_without_unsigned, )* #into }
+                    let #full_struct { #( #fields, )* .. } = event;
+                    Self { #( #fields, )* }
                 }
             }
 
@@ -402,9 +389,8 @@ fn expand_from_into(
                 ) -> #full_struct #ty_gen {
                     let Self { #( #fields, )* } = self;
                     #full_struct {
-                        #( #fields_without_unsigned, )*
-                        room_id: room_id.clone(),
-                        #into_full_event
+                        #( #fields, )*
+                        room_id,
                     }
                 }
             }
