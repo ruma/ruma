@@ -127,6 +127,11 @@ impl EventKind {
     pub fn to_content_enum(&self) -> Ident {
         Ident::new(&format!("Any{}Content", self), Span::call_site())
     }
+
+    /// `AnyRedacted[kind]EventContent`
+    pub fn to_redacted_content_enum(&self) -> Ident {
+        Ident::new(&format!("AnyRedacted{}Content", self), Span::call_site())
+    }
 }
 
 impl Parse for EventKind {

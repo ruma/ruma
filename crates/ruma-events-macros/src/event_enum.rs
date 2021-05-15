@@ -364,16 +364,18 @@ fn expand_content_enum(
     variants: &[EventEnumVariant],
     ruma_events: &TokenStream,
 ) -> TokenStream {
+    let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
     let serde = quote! { #ruma_events::exports::serde };
     let serde_json = quote! { #ruma_events::exports::serde_json };
 
     let ident = kind.to_content_enum();
+
     let event_type_str = events;
 
     let content: Vec<_> =
-        events.iter().map(|ev| to_event_content_path(kind, ev, ruma_events)).collect();
+        events.iter().map(|ev| to_event_content_path(kind, ev, None, ruma_events)).collect();
 
-    let variant_decls = variants.iter().map(|v| v.decl());
+    let variant_decls = variants.iter().map(|v| v.decl()).collect::<Vec<_>>();
 
     let content_enum = quote! {
         #( #attrs )*
@@ -394,7 +396,7 @@ fn expand_content_enum(
         let attrs = &v.attrs;
         quote! { #(#attrs)* }
     });
-    let variant_arms = variants.iter().map(|v| v.match_arm(quote!(Self)));
+    let variant_arms = variants.iter().map(|v| v.match_arm(quote!(Self))).collect::<Vec<_>>();
     let variant_ctors = variants.iter().map(|v| v.ctor(quote!(Self)));
 
     let event_content_impl = quote! {
@@ -430,12 +432,53 @@ fn expand_content_enum(
 
     let marker_trait_impls = marker_traits(kind, ruma_events);
 
+    let redacted_ident = kind.to_redacted_content_enum();
+    let redaction_variants = variants.iter().map(|v| v.ctor(&redacted_ident));
+    let redacted_content: Vec<_> = events
+        .iter()
+        .map(|ev| to_event_content_path(kind, ev, Some("Redacted"), ruma_events))
+        .collect();
+
+    let redacted_content_enum = if kind.is_state() || kind.is_message() {
+        quote! {
+            #( #attrs )*
+            #[derive(Clone, Debug, #serde::Serialize)]
+            #[serde(untagged)]
+            #[allow(clippy::large_enum_variant)]
+            pub enum #redacted_ident {
+                #(
+                    #[doc = #event_type_str]
+                    #variant_decls(#redacted_content),
+                )*
+                /// Content of a redacted event not defined by the Matrix specification.
+                Custom(#ruma_events::custom::RedactedCustomEventContent),
+            }
+
+            impl #ident {
+                /// Redacts `Self` given a `RoomVersionId`.
+                pub fn redact(
+                    self,
+                    version: &#ruma_identifiers::RoomVersionId,
+                ) -> #redacted_ident {
+                    match self {
+                        #( #variant_arms(content) => #redaction_variants(content.redact(version)), )*
+                        Self::Custom(content) => #redacted_ident::Custom(content.redact(version)),
+                    }
+                }
+            }
+        }
+    } else {
+        TokenStream::new()
+    };
+
     quote! {
         #content_enum
 
         #event_content_impl
 
         #marker_trait_impls
+
+        #redacted_content_enum
     }
 }
 
@@ -859,6 +902,7 @@ fn to_event_path(name: &LitStr, struct_name: &Ident, ruma_events: &TokenStream) 
 fn to_event_content_path(
     kind: &EventKind,
     name: &LitStr,
+    prefix: Option<&str>,
     ruma_events: &TokenStream,
 ) -> TokenStream {
     let span = name.span();
@@ -876,7 +920,13 @@ fn to_event_content_path(
         .collect();
 
     let content_str = match kind {
+        EventKind::ToDevice if prefix.is_some() => {
+            format_ident!("{}{}ToDeviceEventContent", prefix.unwrap(), event)
+        }
         EventKind::ToDevice => format_ident!("{}ToDeviceEventContent", event),
+        _ if prefix.is_some() => {
+            format_ident!("{}{}EventContent", prefix.unwrap(), event)
+        }
         _ => format_ident!("{}EventContent", event),
     };
 
