@@ -345,8 +345,8 @@ fn redact_message_content() {
         "url": "mxc://example.com/AuDi0",
     });
 
-    let content =
-        AnyMessageEventContent::from_parts("m.room.message", to_raw_value(&json).unwrap()).unwrap();
+    let raw_json = to_raw_value(&json).unwrap();
+    let content = AnyMessageEventContent::from_parts("m.room.message", &raw_json).unwrap();
 
     assert_matches!(
         content.redact(&RoomVersionId::Version6),
@@ -362,8 +362,8 @@ fn redact_state_content() {
         "room_version": "4"
     });
 
-    let content =
-        AnyStateEventContent::from_parts("m.room.create", to_raw_value(&json).unwrap()).unwrap();
+    let raw_json = to_raw_value(&json).unwrap();
+    let content = AnyStateEventContent::from_parts("m.room.create", &raw_json).unwrap();
 
     assert_matches!(
         content.redact(&RoomVersionId::Version6),
