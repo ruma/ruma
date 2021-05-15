@@ -957,7 +957,7 @@ fn field_return_type(
         "room_id" => quote! { #ruma_identifiers::RoomId },
         "event_id" => quote! { #ruma_identifiers::EventId },
         "sender" => quote! { #ruma_identifiers::UserId },
-        "state_key" => quote! { str },
+        "state_key" => quote! { ::std::primitive::str },
         "unsigned" if &EventKindVariation::RedactedSync == var => {
             quote! { #ruma_events::RedactedSyncUnsigned }
         }
