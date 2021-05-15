@@ -437,28 +437,43 @@ impl EmoteMessageEventContent {
 
 /// The payload for a file message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.file")]
 pub struct FileMessageEventContent {
-    /// A human-readable description of the file. This is recommended to be the filename of the
-    /// original upload.
+    /// A human-readable description of the file.
+    ///
+    /// This is recommended to be the filename of the original upload.
     pub body: String,
 
     /// The original filename of the uploaded file.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filename: Option<String>,
 
-    /// Metadata about the file referred to in `url`.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub info: Option<Box<FileInfo>>,
-
     /// The URL to the file. Required if the file is unencrypted. The URL (typically
     /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri)) to the file.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<MxcUri>,
 
+    /// Metadata about the file referred to in `url`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub info: Option<Box<FileInfo>>,
+
     /// Required if file is encrypted. Information on the encrypted file.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub file: Option<Box<EncryptedFile>>,
+}
+
+impl FileMessageEventContent {
+    /// Creates a new non-encrypted `FileMessageEventContent` with the given body, url and optional
+    /// extra info.
+    pub fn plain(body: String, url: MxcUri, info: Option<Box<FileInfo>>) -> Self {
+        Self { body, filename: None, url: Some(url), info, file: None }
+    }
+
+    /// Creates a new encrypted `FileMessageEventContent` with the given body and encrypted file.
+    pub fn encrypted(body: String, file: EncryptedFile) -> Self {
+        Self { body, filename: None, url: None, info: None, file: Some(Box::new(file)) }
+    }
 }
 
 /// Metadata about a file.
