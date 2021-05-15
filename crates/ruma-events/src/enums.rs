@@ -179,6 +179,16 @@ impl AnySyncRoomEvent {
     room_ev_accessor!(origin_server_ts: &MilliSecondsSinceUnixEpoch);
     room_ev_accessor!(event_id: &EventId);
     room_ev_accessor!(sender: &UserId);
+
+    /// Converts `self` to an `AnyRoomEvent` by adding the given a room ID.
+    pub fn into_full_event(self, room_id: RoomId) -> AnyRoomEvent {
+        match self {
+            Self::Message(ev) => AnyRoomEvent::Message(ev.into_full_event(room_id)),
+            Self::State(ev) => AnyRoomEvent::State(ev.into_full_event(room_id)),
+            Self::RedactedMessage(ev) => AnyRoomEvent::RedactedMessage(ev.into_full_event(room_id)),
+            Self::RedactedState(ev) => AnyRoomEvent::RedactedState(ev.into_full_event(room_id)),
+        }
+    }
 }
 
 impl<'de> de::Deserialize<'de> for AnyRoomEvent {
