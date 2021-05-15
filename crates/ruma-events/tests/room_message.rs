@@ -37,12 +37,11 @@ macro_rules! json_object {
 #[test]
 fn serialization() {
     let ev = MessageEvent {
-        content: MessageEventContent::new(MessageType::Audio(AudioMessageEventContent {
-            body: "test".into(),
-            info: None,
-            url: Some(mxc_uri!("mxc://example.org/ffed755USFFxlgbQYZGtryd")),
-            file: None,
-        })),
+        content: MessageEventContent::new(MessageType::Audio(AudioMessageEventContent::plain(
+            "test".into(),
+            mxc_uri!("mxc://example.org/ffed755USFFxlgbQYZGtryd"),
+            None,
+        ))),
         event_id: event_id!("$143273582443PhrSn:example.org"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
         room_id: room_id!("!testroomid:example.org"),
@@ -70,12 +69,11 @@ fn serialization() {
 #[test]
 fn content_serialization() {
     let message_event_content =
-        MessageEventContent::new(MessageType::Audio(AudioMessageEventContent {
-            body: "test".into(),
-            info: None,
-            url: Some(mxc_uri!("mxc://example.org/ffed755USFFxlgbQYZGtryd")),
-            file: None,
-        }));
+        MessageEventContent::new(MessageType::Audio(AudioMessageEventContent::plain(
+            "test".into(),
+            mxc_uri!("mxc://example.org/ffed755USFFxlgbQYZGtryd"),
+            None,
+        )));
 
     assert_eq!(
         to_json_value(&message_event_content).unwrap(),
@@ -346,6 +344,7 @@ fn content_deserialization() {
                 info: None,
                 url: Some(url),
                 file: None,
+                ..
             }),
             ..
         } if body == "test" && url.to_string() == "mxc://example.org/ffed755USFFxlgbQYZGtryd"

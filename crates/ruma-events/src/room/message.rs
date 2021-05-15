@@ -343,27 +343,42 @@ impl From<RelatesToJsonRepr> for Relation {
 
 /// The payload for an audio message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.audio")]
 pub struct AudioMessageEventContent {
     /// The textual representation of this message.
     pub body: String,
-
-    /// Metadata for the audio clip referred to in `url`.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub info: Option<Box<AudioInfo>>,
 
     /// The URL to the audio clip. Required if the file is unencrypted. The URL (typically
     /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri)) to the audio clip.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<MxcUri>,
 
+    /// Metadata for the audio clip referred to in `url`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub info: Option<Box<AudioInfo>>,
+
     /// Required if the audio clip is encrypted. Information on the encrypted audio clip.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub file: Option<Box<EncryptedFile>>,
 }
 
+impl AudioMessageEventContent {
+    /// Creates a new non-encrypted `AudioMessageEventContent` with the given body, url and optional
+    /// extra info.
+    pub fn plain(body: String, url: MxcUri, info: Option<Box<AudioInfo>>) -> Self {
+        Self { body, url: Some(url), info, file: None }
+    }
+
+    /// Creates a new encrypted `AudioMessageEventContent` with the given body and encrypted file.
+    pub fn encrypted(body: String, file: EncryptedFile) -> Self {
+        Self { body, url: None, info: None, file: Some(Box::new(file)) }
+    }
+}
+
 /// Metadata about an audio clip.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct AudioInfo {
     /// The duration of the audio in milliseconds.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -378,8 +393,16 @@ pub struct AudioInfo {
     pub size: Option<UInt>,
 }
 
+impl AudioInfo {
+    /// Creates an empty `AudioInfo`.
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
 /// The payload for an emote message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.emote")]
 pub struct EmoteMessageEventContent {
     /// The emote action to perform.
@@ -388,6 +411,28 @@ pub struct EmoteMessageEventContent {
     /// Formatted form of the message `body`.
     #[serde(flatten)]
     pub formatted: Option<FormattedBody>,
+}
+
+impl EmoteMessageEventContent {
+    /// A convenience constructor to create a plain-text emote.
+    pub fn plain(body: impl Into<String>) -> Self {
+        Self { body: body.into(), formatted: None }
+    }
+
+    /// A convenience constructor to create an html emote message.
+    pub fn html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self { formatted: Some(FormattedBody::html(html_body)), ..Self::plain(body) }
+    }
+
+    /// A convenience constructor to create a markdown emote.
+    #[cfg(feature = "markdown")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
+    pub fn markdown(body: impl Into<String>) -> Self {
+        let body = body.into();
+        let mut html_body = String::new();
+        pulldown_cmark::html::push_html(&mut html_body, pulldown_cmark::Parser::new(&body));
+        Self::html(body, html_body)
+    }
 }
 
 /// The payload for a file message.
