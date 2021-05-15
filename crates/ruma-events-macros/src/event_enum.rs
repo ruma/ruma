@@ -412,7 +412,7 @@ fn expand_content_enum(
             fn from_parts(
                 event_type: &::std::primitive::str,
                 input: ::std::boxed::Box<#serde_json::value::RawValue>,
-            ) -> ::std::result::Result<Self, #serde_json::Error> {
+            ) -> #serde_json::Result<Self> {
                 match event_type {
                     #(
                         #variant_attrs #event_type_str => {

@@ -179,7 +179,7 @@ mod tests {
     use super::int_or_string_to_int;
 
     #[test]
-    fn int_or_string() -> Result<(), serde_json::Error> {
+    fn int_or_string() -> serde_json::Result<()> {
         #[derive(Debug, Deserialize)]
         struct Test {
             #[serde(deserialize_with = "int_or_string_to_int")]

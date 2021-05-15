@@ -243,7 +243,7 @@ pub fn expand_event_content(
 
             #[automatically_derived]
             impl #ruma_events::RedactedEventContent for #redacted_ident {
-                fn empty(ev_type: &str) -> Result<Self, #serde_json::Error> {
+                fn empty(ev_type: &str) -> #serde_json::Result<Self> {
                     if ev_type != #event_type {
                         return Err(#serde::de::Error::custom(
                             format!("expected event type `{}`, found `{}`", #event_type, ev_type)
@@ -346,7 +346,7 @@ fn generate_event_content_impl(
             fn from_parts(
                 ev_type: &str,
                 content: Box<#serde_json::value::RawValue>
-            ) -> Result<Self, #serde_json::Error> {
+            ) -> #serde_json::Result<Self> {
                 if ev_type != #event_type {
                     return Err(#serde::de::Error::custom(
                         format!("expected event type `{}`, found `{}`", #event_type, ev_type)

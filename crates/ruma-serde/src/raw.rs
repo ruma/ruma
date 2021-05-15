@@ -133,7 +133,7 @@ where
     T: DeserializeOwned,
 {
     /// Try to deserialize the JSON as the expected type.
-    pub fn deserialize(&self) -> Result<T, serde_json::Error> {
+    pub fn deserialize(&self) -> serde_json::Result<T> {
         serde_json::from_str(self.json.get())
     }
 }

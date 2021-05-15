@@ -63,7 +63,7 @@ impl EventContent for RedactedAliasesEventContent {
         "m.room.aliases"
     }
 
-    fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, serde_json::Error> {
+    fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> serde_json::Result<Self> {
         if event_type != "m.room.aliases" {
             return Err(::serde::de::Error::custom(format!(
                 "expected event type `m.room.aliases`, found `{}`",

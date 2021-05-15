@@ -399,7 +399,7 @@ mod tests {
     };
 
     #[test]
-    fn default_filters_are_empty() -> Result<(), serde_json::Error> {
+    fn default_filters_are_empty() -> serde_json::Result<()> {
         assert_eq!(to_json_value(Filter::default())?, json!({}));
         assert_eq!(to_json_value(FilterDefinition::default())?, json!({}));
         assert_eq!(to_json_value(RoomEventFilter::default())?, json!({}));
@@ -409,7 +409,7 @@ mod tests {
     }
 
     #[test]
-    fn filter_definition_roundtrip() -> Result<(), serde_json::Error> {
+    fn filter_definition_roundtrip() -> serde_json::Result<()> {
         let filter = FilterDefinition::default();
         let filter_str = to_json_value(&filter)?;
 
@@ -420,7 +420,7 @@ mod tests {
     }
 
     #[test]
-    fn room_filter_definition_roundtrip() -> Result<(), serde_json::Error> {
+    fn room_filter_definition_roundtrip() -> serde_json::Result<()> {
         let filter = RoomFilter::default();
         let room_filter = to_json_value(&filter)?;
 
@@ -431,7 +431,7 @@ mod tests {
     }
 
     #[test]
-    fn issue_366() -> Result<(), serde_json::Error> {
+    fn issue_366() -> serde_json::Result<()> {
         let obj = json!({
             "lazy_load_members": true,
             "filter_json": { "contains_url": true, "types": ["m.room.message"] },

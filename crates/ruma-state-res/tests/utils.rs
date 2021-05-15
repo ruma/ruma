@@ -567,14 +567,14 @@ pub mod event {
         pub fn from_id_value(
             id: EventId,
             json: serde_json::Value,
-        ) -> Result<Self, serde_json::Error> {
+        ) -> serde_json::Result<Self> {
             Ok(Self { event_id: id, rest: Pdu::RoomV3Pdu(serde_json::from_value(json)?) })
         }
 
         pub fn from_id_canon_obj(
             id: EventId,
             json: CanonicalJsonObject,
-        ) -> Result<Self, serde_json::Error> {
+        ) -> serde_json::Result<Self> {
             Ok(Self {
                 event_id: id,
                 // TODO: this is unfortunate (from_value(to_value(json)))...
@@ -611,7 +611,7 @@ pub mod event {
         }
         pub fn deserialize_content<C: serde::de::DeserializeOwned>(
             &self,
-        ) -> Result<C, serde_json::Error> {
+        ) -> serde_json::Result<C> {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => serde_json::from_value(ev.content.clone()),
                 Pdu::RoomV3Pdu(ev) => serde_json::from_value(ev.content.clone()),

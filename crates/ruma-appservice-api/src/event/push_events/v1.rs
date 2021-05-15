@@ -60,7 +60,7 @@ impl IncomingRequest {
     pub fn try_into_sync_response(
         self,
         next_batch: impl Into<String>,
-    ) -> Result<ruma_client_api::r0::sync::sync_events::Response, serde_json::Error> {
+    ) -> serde_json::Result<ruma_client_api::r0::sync::sync_events::Response> {
         use ruma_client_api::r0::sync::sync_events;
         use ruma_identifiers::RoomId;
         use serde::Deserialize;
