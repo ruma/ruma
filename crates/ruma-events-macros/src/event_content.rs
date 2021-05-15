@@ -129,7 +129,10 @@ pub fn expand_event_content(
     let content_derives =
         content_attr.iter().flat_map(|args| args.get_event_kinds()).collect::<Vec<_>>();
 
-    let redacted = if needs_redacted(&content_attr) {
+    // We only generate redacted content structs for state and message events
+    let redacted = if needs_redacted(&content_attr)
+        && content_derives.iter().any(|e| e.is_message() || e.is_state())
+    {
         let doc = format!("The payload for a redacted `{}`", ident);
         let redacted_ident = format_ident!("Redacted{}", ident);
         let kept_redacted_fields = if let syn::Data::Struct(syn::DataStruct {

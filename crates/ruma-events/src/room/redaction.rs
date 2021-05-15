@@ -5,10 +5,7 @@ use ruma_events_macros::{Event, EventContent};
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    MessageEventContent, RedactedMessageEventContent, RedactedStateEventContent, RoomEventContent,
-    Unsigned,
-};
+use crate::Unsigned;
 
 /// Redaction event.
 #[derive(Clone, Debug, Event)]
@@ -59,17 +56,9 @@ pub struct SyncRedactionEvent {
 
 /// A redaction of an event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.room.redaction")]
+#[ruma_event(type = "m.room.redaction", kind = Message)]
 pub struct RedactionEventContent {
     /// The reason for the redaction, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
 }
-
-impl RoomEventContent for RedactionEventContent {}
-
-impl MessageEventContent for RedactionEventContent {}
-
-impl RedactedMessageEventContent for RedactedRedactionEventContent {}
-
-impl RedactedStateEventContent for RedactedRedactionEventContent {}

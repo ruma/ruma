@@ -9,13 +9,17 @@ use ruma_events::{
         message::RedactedMessageEventContent,
         redaction::{RedactionEventContent, SyncRedactionEvent},
     },
-    AnyMessageEvent, AnyRedactedMessageEvent, AnyRedactedSyncMessageEvent,
-    AnyRedactedSyncStateEvent, AnyRoomEvent, AnySyncRoomEvent, Redact, RedactedMessageEvent,
-    RedactedSyncMessageEvent, RedactedSyncStateEvent, RedactedUnsigned, Unsigned,
+    AnyMessageEvent, AnyMessageEventContent, AnyRedactedMessageEvent,
+    AnyRedactedMessageEventContent, AnyRedactedStateEventContent, AnyRedactedSyncMessageEvent,
+    AnyRedactedSyncStateEvent, AnyRoomEvent, AnyStateEventContent, AnySyncRoomEvent, EventContent,
+    RedactedMessageEvent, RedactedSyncMessageEvent, RedactedSyncStateEvent, RedactedUnsigned,
+    Unsigned,
 };
 use ruma_identifiers::{event_id, room_id, user_id, RoomVersionId};
 use ruma_serde::Raw;
-use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+use serde_json::{
+    from_value as from_json_value, json, to_value as to_json_value, value::to_raw_value,
+};
 
 fn unsigned() -> RedactedUnsigned {
     let mut unsigned = RedactedUnsigned::default();
@@ -330,5 +334,41 @@ fn redact_method_properly_redacts() {
             && room_id == room_id!("!roomid:room.com")
             && sender == user_id!("@user:example.com")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
+    );
+}
+
+#[test]
+fn redact_message_content() {
+    let json = json!({
+        "body": "test",
+        "msgtype": "m.audio",
+        "url": "mxc://example.com/AuDi0",
+    });
+
+    let content =
+        AnyMessageEventContent::from_parts("m.room.message", to_raw_value(&json).unwrap()).unwrap();
+
+    assert_matches!(
+        content.redact(&RoomVersionId::Version6),
+        AnyRedactedMessageEventContent::RoomMessage(RedactedMessageEventContent)
+    );
+}
+
+#[test]
+fn redact_state_content() {
+    let json = json!({
+        "creator": "@carl:example.com",
+        "m.federate": true,
+        "room_version": "4"
+    });
+
+    let content =
+        AnyStateEventContent::from_parts("m.room.create", to_raw_value(&json).unwrap()).unwrap();
+
+    assert_matches!(
+        content.redact(&RoomVersionId::Version6),
+        AnyRedactedStateEventContent::RoomCreate(RedactedCreateEventContent {
+            creator
+        }) if creator == user_id!("@carl:example.com")
     );
 }
