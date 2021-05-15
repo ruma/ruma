@@ -461,8 +461,18 @@ fn expand_content_enum(
                     version: &#ruma_identifiers::RoomVersionId,
                 ) -> #redacted_ident {
                     match self {
-                        #( #variant_arms(content) => #redaction_variants(content.redact(version)), )*
-                        Self::Custom(content) => #redacted_ident::Custom(content.redact(version)),
+                        #(
+                            #variant_arms(content) => {
+                                #redaction_variants(
+                                    #ruma_events::RedactContent::redact(content, version)
+                                )
+                            },
+                        )*
+                        Self::Custom(content) => {
+                            #redacted_ident::Custom(
+                                #ruma_events::RedactContent::redact(content, version)
+                            )
+                        },
                     }
                 }
             }
