@@ -301,25 +301,11 @@ pub fn room_id() -> RoomId {
 }
 
 pub fn member_content_ban() -> JsonValue {
-    serde_json::to_value(MemberEventContent {
-        membership: MembershipState::Ban,
-        displayname: None,
-        avatar_url: None,
-        is_direct: None,
-        third_party_invite: None,
-    })
-    .unwrap()
+    serde_json::to_value(MemberEventContent::new(MembershipState::Ban)).unwrap()
 }
 
 pub fn member_content_join() -> JsonValue {
-    serde_json::to_value(MemberEventContent {
-        membership: MembershipState::Join,
-        displayname: None,
-        avatar_url: None,
-        is_direct: None,
-        third_party_invite: None,
-    })
-    .unwrap()
+    serde_json::to_value(MemberEventContent::new(MembershipState::Join)).unwrap()
 }
 
 pub fn to_init_pdu_event(
