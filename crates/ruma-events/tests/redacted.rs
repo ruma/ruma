@@ -12,8 +12,8 @@ use ruma_events::{
     AnyMessageEvent, AnyMessageEventContent, AnyRedactedMessageEvent,
     AnyRedactedMessageEventContent, AnyRedactedStateEventContent, AnyRedactedSyncMessageEvent,
     AnyRedactedSyncStateEvent, AnyRoomEvent, AnyStateEventContent, AnySyncRoomEvent, EventContent,
-    RedactedMessageEvent, RedactedSyncMessageEvent, RedactedSyncStateEvent, RedactedUnsigned,
-    Unsigned,
+    Redact, RedactContent, RedactedMessageEvent, RedactedSyncMessageEvent, RedactedSyncStateEvent,
+    RedactedUnsigned, Unsigned,
 };
 use ruma_identifiers::{event_id, room_id, user_id, RoomVersionId};
 use ruma_serde::Raw;

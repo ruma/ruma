@@ -432,14 +432,14 @@ fn expand_content_enum(
 
     let marker_trait_impls = marker_traits(kind, ruma_events);
 
-    let redacted_ident = kind.to_redacted_content_enum();
-    let redaction_variants = variants.iter().map(|v| v.ctor(&redacted_ident));
-    let redacted_content: Vec<_> = events
-        .iter()
-        .map(|ev| to_event_content_path(kind, ev, Some("Redacted"), ruma_events))
-        .collect();
-
     let redacted_content_enum = if kind.is_state() || kind.is_message() {
+        let redacted_ident = kind.to_redacted_content_enum();
+        let redaction_variants = variants.iter().map(|v| v.ctor(&redacted_ident));
+        let redacted_content: Vec<_> = events
+            .iter()
+            .map(|ev| to_event_content_path(kind, ev, Some("Redacted"), ruma_events))
+            .collect();
+
         quote! {
             #( #attrs )*
             #[derive(Clone, Debug, #serde::Serialize)]
@@ -454,9 +454,11 @@ fn expand_content_enum(
                 Custom(#ruma_events::custom::RedactedCustomEventContent),
             }
 
-            impl #ident {
+            impl #ruma_events::RedactContent for #ident {
+                type Redacted = #redacted_ident;
+
                 /// Redacts `Self` given a `RoomVersionId`.
-                pub fn redact(
+                fn redact(
                     self,
                     version: &#ruma_identifiers::RoomVersionId,
                 ) -> #redacted_ident {
@@ -930,14 +932,10 @@ fn to_event_content_path(
         .collect();
 
     let content_str = match kind {
-        EventKind::ToDevice if prefix.is_some() => {
-            format_ident!("{}{}ToDeviceEventContent", prefix.unwrap(), event)
+        EventKind::ToDevice => {
+            format_ident!("{}{}ToDeviceEventContent", prefix.unwrap_or(""), event)
         }
-        EventKind::ToDevice => format_ident!("{}ToDeviceEventContent", event),
-        _ if prefix.is_some() => {
-            format_ident!("{}{}EventContent", prefix.unwrap(), event)
-        }
-        _ => format_ident!("{}EventContent", event),
+        _ => format_ident!("{}{}EventContent", prefix.unwrap_or(""), event),
     };
 
     let path = path.iter().map(|s| Ident::new(s, span));

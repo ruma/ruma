@@ -130,9 +130,7 @@ pub fn expand_event_content(
         content_attr.iter().flat_map(|args| args.get_event_kinds()).collect::<Vec<_>>();
 
     // We only generate redacted content structs for state and message events
-    let redacted = if needs_redacted(&content_attr)
-        && content_derives.iter().any(|e| e.is_message() || e.is_state())
-    {
+    let redacted = if needs_redacted(&content_attr, &content_derives) {
         let doc = format!("The payload for a redacted `{}`", ident);
         let redacted_ident = format_ident!("Redacted{}", ident);
         let kept_redacted_fields = if let syn::Data::Struct(syn::DataStruct {
@@ -361,9 +359,10 @@ fn generate_event_content_impl(
     }
 }
 
-fn needs_redacted(input: &[MetaAttrs]) -> bool {
+fn needs_redacted(input: &[MetaAttrs], content_derives: &[&EventKind]) -> bool {
     // `is_custom` means that the content struct does not need a generated
     // redacted struct also. If no `custom_redacted` attrs are found the content
     // needs a redacted struct generated.
     !input.iter().any(|a| a.is_custom())
+        && content_derives.iter().any(|e| e.is_message() || e.is_state())
 }
