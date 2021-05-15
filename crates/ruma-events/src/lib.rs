@@ -82,8 +82,8 @@
 //!     }
 //! });
 //!
-//! // The downside of this event is we cannot use it with event enums, but could be deserialized
-//! // from a `Raw<_>` that has failed to deserialize.
+//! // The downside of this event is we cannot use it with event enums,
+//! // but could be deserialized from a `Raw<_>` that has failed to deserialize.
 //! matches::assert_matches!(
 //!     serde_json::from_value::<SyncMessageEvent<ReactionEventContent>>(json),
 //!     Ok(SyncMessageEvent {

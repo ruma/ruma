@@ -3,7 +3,7 @@
 use std::fmt;
 
 use proc_macro2::Span;
-use quote::format_ident;
+use quote::{format_ident, IdentFragment};
 use syn::{
     braced,
     parse::{self, Parse, ParseStream},
@@ -88,6 +88,26 @@ impl fmt::Display for EventKind {
     }
 }
 
+impl IdentFragment for EventKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
+    }
+
+    fn span(&self) -> Option<Span> {
+        Some(Span::call_site())
+    }
+}
+
+impl IdentFragment for EventKindVariation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
+    }
+
+    fn span(&self) -> Option<Span> {
+        Some(Span::call_site())
+    }
+}
+
 impl EventKind {
     pub fn is_state(&self) -> bool {
         matches!(self, Self::State)
@@ -112,9 +132,7 @@ impl EventKind {
             | (Self::State, V::Redacted)
             | (Self::Message, V::RedactedSync)
             | (Self::State, V::RedactedSync)
-            | (Self::State, V::RedactedStripped) => {
-                Some(Ident::new(&format!("{}{}", var, self), Span::call_site()))
-            }
+            | (Self::State, V::RedactedStripped) => Some(format_ident!("{}{}", var, self)),
             _ => None,
         }
     }
@@ -125,7 +143,12 @@ impl EventKind {
 
     /// `Any[kind]EventContent`
     pub fn to_content_enum(&self) -> Ident {
-        Ident::new(&format!("Any{}Content", self), Span::call_site())
+        format_ident!("Any{}Content", self)
+    }
+
+    /// `AnyRedacted[kind]EventContent`
+    pub fn to_redacted_content_enum(&self) -> Ident {
+        format_ident!("AnyRedacted{}Content", self)
     }
 }
 
