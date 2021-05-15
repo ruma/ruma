@@ -3,6 +3,7 @@
 Breaking changes:
 
 * Remove the `empty` module from the public API
+* Remove the `time` module
 
 Improvements:
 

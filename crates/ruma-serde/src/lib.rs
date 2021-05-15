@@ -15,7 +15,6 @@ mod raw;
 pub mod single_element_seq;
 mod strings;
 pub mod test;
-pub mod time;
 pub mod urlencoded;
 
 pub use buf::{json_to_buf, slice_to_buf};
