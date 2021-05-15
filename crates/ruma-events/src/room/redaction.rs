@@ -5,7 +5,7 @@ use ruma_events_macros::{Event, EventContent};
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-use crate::Unsigned;
+use crate::{RedactedStateEventContent, Unsigned};
 
 /// Redaction event.
 #[derive(Clone, Debug, Event)]
@@ -62,3 +62,5 @@ pub struct RedactionEventContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
 }
+
+impl RedactedStateEventContent for RedactedRedactionEventContent {}
