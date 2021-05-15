@@ -306,14 +306,11 @@ pub trait RoomAccountDataEventContent: EventContent {}
 /// Marker trait for the content of a to device event.
 pub trait ToDeviceEventContent: EventContent {}
 
-/// Marker trait for the content of a room event.
-pub trait RoomEventContent: EventContent {}
-
 /// Marker trait for the content of a message event.
-pub trait MessageEventContent: RoomEventContent {}
+pub trait MessageEventContent: EventContent {}
 
 /// Marker trait for the content of a state event.
-pub trait StateEventContent: RoomEventContent {}
+pub trait StateEventContent: EventContent {}
 
 /// The base trait that all redacted event content types implement.
 ///

@@ -307,13 +307,9 @@ fn generate_event_content_derives(
                 },
                 EventKind::Message => quote! {
                     #[automatically_derived]
-                    impl #ruma_events::RoomEventContent for #ident {}
-                    #[automatically_derived]
                     impl #ruma_events::MessageEventContent for #ident {}
                 },
                 EventKind::State => quote! {
-                    #[automatically_derived]
-                    impl #ruma_events::RoomEventContent for #ident {}
                     #[automatically_derived]
                     impl #ruma_events::StateEventContent for #ident {}
                 },

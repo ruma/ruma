@@ -713,13 +713,9 @@ fn marker_traits(kind: &EventKind, ruma_events: &TokenStream) -> TokenStream {
     match kind {
         EventKind::State => quote! {
             #[automatically_derived]
-            impl #ruma_events::RoomEventContent for #ident {}
-            #[automatically_derived]
             impl #ruma_events::StateEventContent for #ident {}
         },
         EventKind::Message => quote! {
-            #[automatically_derived]
-            impl #ruma_events::RoomEventContent for #ident {}
             #[automatically_derived]
             impl #ruma_events::MessageEventContent for #ident {}
         },
