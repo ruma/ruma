@@ -179,14 +179,14 @@ fn expand_deserialize_event(
                                 let json = content.ok_or_else(
                                     || #serde::de::Error::missing_field("content"),
                                 )?;
-                                C::from_parts(&event_type, json).map_err(A::Error::custom)?
+                                C::from_parts(&event_type, &json).map_err(A::Error::custom)?
                             },
                             #ruma_events::HasDeserializeFields::Optional => {
                                 let json = content.unwrap_or(
                                     #serde_json::value::RawValue::from_string("{}".to_owned())
                                         .unwrap()
                                 );
-                                C::from_parts(&event_type, json).map_err(A::Error::custom)?
+                                C::from_parts(&event_type, &json).map_err(A::Error::custom)?
                             },
                         };
                     }
@@ -194,7 +194,7 @@ fn expand_deserialize_event(
                     quote! {
                         let json =
                             content.ok_or_else(|| #serde::de::Error::missing_field("content"))?;
-                        let content = C::from_parts(&event_type, json).map_err(A::Error::custom)?;
+                        let content = C::from_parts(&event_type, &json).map_err(A::Error::custom)?;
                     }
                 } else {
                     quote! {
@@ -207,7 +207,7 @@ fn expand_deserialize_event(
                 if is_generic {
                     quote! {
                         let prev_content = if let Some(json) = prev_content {
-                            Some(C::from_parts(&event_type, json).map_err(A::Error::custom)?)
+                            Some(C::from_parts(&event_type, &json).map_err(A::Error::custom)?)
                         } else {
                             None
                         };

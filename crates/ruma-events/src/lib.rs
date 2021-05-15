@@ -253,7 +253,7 @@ pub trait EventContent: Sized + Serialize {
     fn event_type(&self) -> &str;
 
     /// Constructs the given event content.
-    fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> serde_json::Result<Self>;
+    fn from_parts(event_type: &str, content: &RawJsonValue) -> serde_json::Result<Self>;
 }
 
 /// Trait to define the behavior of redacting an event.
@@ -285,12 +285,12 @@ pub trait RedactContent {
 /// Extension trait for Raw<EventContent>
 pub trait RawExt<T: EventContent> {
     /// Try to deserialize the JSON as an event's content.
-    fn deserialize_content(self, event_type: &str) -> serde_json::Result<T>;
+    fn deserialize_content(&self, event_type: &str) -> serde_json::Result<T>;
 }
 
 impl<T: EventContent> RawExt<T> for Raw<T> {
-    fn deserialize_content(self, event_type: &str) -> serde_json::Result<T> {
-        T::from_parts(event_type, self.into_json())
+    fn deserialize_content(&self, event_type: &str) -> serde_json::Result<T> {
+        T::from_parts(event_type, self.json())
     }
 }
 

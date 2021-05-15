@@ -38,7 +38,7 @@ impl EventContent for CustomEventContent {
         &self.event_type
     }
 
-    fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> serde_json::Result<Self> {
+    fn from_parts(event_type: &str, content: &RawJsonValue) -> serde_json::Result<Self> {
         let data = serde_json::from_str(content.get())?;
         Ok(Self { event_type: event_type.to_owned(), data })
     }
@@ -75,7 +75,7 @@ impl EventContent for RedactedCustomEventContent {
         &self.event_type
     }
 
-    fn from_parts(event_type: &str, _content: Box<RawJsonValue>) -> serde_json::Result<Self> {
+    fn from_parts(event_type: &str, _content: &RawJsonValue) -> serde_json::Result<Self> {
         Ok(Self { event_type: event_type.to_owned() })
     }
 }

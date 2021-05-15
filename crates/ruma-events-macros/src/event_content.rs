@@ -345,7 +345,7 @@ fn generate_event_content_impl(
 
             fn from_parts(
                 ev_type: &str,
-                content: Box<#serde_json::value::RawValue>
+                content: &#serde_json::value::RawValue,
             ) -> #serde_json::Result<Self> {
                 if ev_type != #event_type {
                     return Err(#serde::de::Error::custom(
