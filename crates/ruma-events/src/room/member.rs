@@ -38,6 +38,7 @@ pub type MemberEvent = StateEvent<MemberEventContent>;
 
 /// The payload for `MemberEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.member", kind = State)]
 pub struct MemberEventContent {
     /// The avatar URL for this user, if any. This is added by the homeserver.
@@ -55,8 +56,8 @@ pub struct MemberEventContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub displayname: Option<String>,
 
-    /// Flag indicating if the room containing this event was created
-    /// with the intention of being a direct chat.
+    /// Flag indicating whether the room containing this event was created with the intention of
+    /// being a direct chat.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_direct: Option<bool>,
 
@@ -68,6 +69,19 @@ pub struct MemberEventContent {
     /// contain information about that invitation.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub third_party_invite: Option<ThirdPartyInvite>,
+}
+
+impl MemberEventContent {
+    /// Creates a new `MemberEventContent` with the given membership state.
+    pub fn new(membership: MembershipState) -> Self {
+        Self {
+            membership,
+            avatar_url: None,
+            displayname: None,
+            is_direct: None,
+            third_party_invite: None,
+        }
+    }
 }
 
 /// The membership state of a user.
@@ -95,19 +109,29 @@ pub enum MembershipState {
 
 /// Information about a third party invitation.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ThirdPartyInvite {
     /// A name which can be displayed to represent the user instead of their third party
     /// identifier.
     pub display_name: String,
 
     /// A block of content which has been signed, which servers can use to verify the event.
+    ///
     /// Clients should ignore this.
     pub signed: SignedContent,
+}
+
+impl ThirdPartyInvite {
+    /// Creates a new `ThirdPartyInvite` with the given display name and signed content.
+    pub fn new(display_name: String, signed: SignedContent) -> Self {
+        Self { display_name, signed }
+    }
 }
 
 /// A block of content which has been signed, which servers can use to verify a third party
 /// invitation.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SignedContent {
     /// The invited Matrix user ID.
     ///
@@ -118,8 +142,19 @@ pub struct SignedContent {
     /// section of the server-server API.
     pub signatures: BTreeMap<ServerNameBox, BTreeMap<ServerSigningKeyId, String>>,
 
-    /// The token property of the containing third_party_invite object.
+    /// The token property of the containing `third_party_invite` object.
     pub token: String,
+}
+
+impl SignedContent {
+    /// Creates a new `SignedContent` with the given mxid, signature and token.
+    pub fn new(
+        mxid: UserId,
+        signatures: BTreeMap<ServerNameBox, BTreeMap<ServerSigningKeyId, String>>,
+        token: String,
+    ) -> Self {
+        Self { mxid, signatures, token }
+    }
 }
 
 /// Translation of the membership change in `m.room.member` event.
