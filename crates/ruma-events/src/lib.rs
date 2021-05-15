@@ -275,6 +275,18 @@ pub trait EventContent: Sized + Serialize {
     fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, serde_json::Error>;
 }
 
+/// Trait to define the behavior of redacting an event.
+pub trait Redact {
+    /// The redacted form of the event.
+    type Redacted;
+
+    /// Transforms `self` into a redacted form (removing most fields) according to the spec.
+    ///
+    /// A small number of events have room-version specific redaction behavior, so a version has to
+    /// be specified.
+    fn redact(self, redaction: SyncRedactionEvent, version: &RoomVersionId) -> Self::Redacted;
+}
+
 /// Trait to define the behavior of redact an event's content object.
 pub trait RedactContent {
     /// The redacted form of the event's content.

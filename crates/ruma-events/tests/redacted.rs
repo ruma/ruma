@@ -10,7 +10,7 @@ use ruma_events::{
         redaction::{RedactionEventContent, SyncRedactionEvent},
     },
     AnyMessageEvent, AnyRedactedMessageEvent, AnyRedactedSyncMessageEvent,
-    AnyRedactedSyncStateEvent, AnyRoomEvent, AnySyncRoomEvent, RedactedMessageEvent,
+    AnyRedactedSyncStateEvent, AnyRoomEvent, AnySyncRoomEvent, Redact, RedactedMessageEvent,
     RedactedSyncMessageEvent, RedactedSyncStateEvent, RedactedUnsigned, Unsigned,
 };
 use ruma_identifiers::{event_id, room_id, user_id, RoomVersionId};

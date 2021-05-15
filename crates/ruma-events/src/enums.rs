@@ -4,7 +4,7 @@ use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use serde::{de, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use crate::{from_raw_json_value, room::redaction::SyncRedactionEvent, EventDeHelper};
+use crate::{from_raw_json_value, room::redaction::SyncRedactionEvent, EventDeHelper, Redact};
 
 event_enum! {
     /// Any global account data event.

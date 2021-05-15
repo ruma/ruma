@@ -486,9 +486,10 @@ fn expand_redact(
 
         Some(quote! {
             #[automatically_derived]
-            impl #ident {
-                /// Redacts `Self` given a valid `Redaction[Sync]Event`.
-                pub fn redact(
+            impl #ruma_events::Redact for #ident {
+                type Redacted = #redacted_enum;
+
+                fn redact(
                     self,
                     redaction: #ruma_events::room::redaction::SyncRedactionEvent,
                     version: &#ruma_identifiers::RoomVersionId,
