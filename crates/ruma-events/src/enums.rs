@@ -1,4 +1,6 @@
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events_macros::event_enum;
+use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{de, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
@@ -107,6 +109,29 @@ event_enum! {
     }
 }
 
+/// Declares an item with a doc attribute computed by some macro expression.
+/// This allows documentation to be dynamically generated based on input.
+/// Necessary to work around <https://github.com/rust-lang/rust/issues/52607>.
+macro_rules! doc_concat {
+    ( $( #[doc = $doc:expr] $( $thing:tt )* )* ) => ( $( #[doc = $doc] $( $thing )* )* );
+}
+
+macro_rules! room_ev_accessor {
+    ($field:ident: $ty:ty) => {
+        doc_concat! {
+            #[doc = concat!("Returns this event's `", stringify!($field), "` field.")]
+            pub fn $field(&self) -> $ty {
+                match self {
+                    Self::Message(ev) => ev.$field(),
+                    Self::State(ev) => ev.$field(),
+                    Self::RedactedMessage(ev) => ev.$field(),
+                    Self::RedactedState(ev) => ev.$field(),
+                }
+            }
+        }
+    };
+}
+
 /// Any room event.
 #[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, Serialize)]
@@ -125,6 +150,13 @@ pub enum AnyRoomEvent {
     RedactedState(AnyRedactedStateEvent),
 }
 
+impl AnyRoomEvent {
+    room_ev_accessor!(origin_server_ts: &MilliSecondsSinceUnixEpoch);
+    room_ev_accessor!(room_id: &RoomId);
+    room_ev_accessor!(event_id: &EventId);
+    room_ev_accessor!(sender: &UserId);
+}
+
 /// Any sync room event (room event without a `room_id`, as returned in `/sync` responses)
 #[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, Serialize)]
@@ -141,6 +173,12 @@ pub enum AnySyncRoomEvent {
 
     /// Any sync state event that has been redacted.
     RedactedState(AnyRedactedSyncStateEvent),
+}
+
+impl AnySyncRoomEvent {
+    room_ev_accessor!(origin_server_ts: &MilliSecondsSinceUnixEpoch);
+    room_ev_accessor!(event_id: &EventId);
+    room_ev_accessor!(sender: &UserId);
 }
 
 impl<'de> de::Deserialize<'de> for AnyRoomEvent {
