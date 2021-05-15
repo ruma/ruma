@@ -155,17 +155,6 @@ impl AnyRoomEvent {
     room_ev_accessor!(room_id: &RoomId);
     room_ev_accessor!(event_id: &EventId);
     room_ev_accessor!(sender: &UserId);
-
-    /// Redacts `self`, referencing the given event in `unsigned.redacted_because`.
-    ///
-    /// Does nothing for events that are already redacted.
-    pub fn redact(self, redaction: SyncRedactionEvent, version: &RoomVersionId) -> Self {
-        match self {
-            Self::Message(ev) => Self::RedactedMessage(ev.redact(redaction, version)),
-            Self::State(ev) => Self::RedactedState(ev.redact(redaction, version)),
-            Self::RedactedMessage(_) | Self::RedactedState(_) => self,
-        }
-    }
 }
 
 /// Any sync room event (room event without a `room_id`, as returned in `/sync` responses)
@@ -198,17 +187,6 @@ impl AnySyncRoomEvent {
             Self::State(ev) => AnyRoomEvent::State(ev.into_full_event(room_id)),
             Self::RedactedMessage(ev) => AnyRoomEvent::RedactedMessage(ev.into_full_event(room_id)),
             Self::RedactedState(ev) => AnyRoomEvent::RedactedState(ev.into_full_event(room_id)),
-        }
-    }
-
-    /// Redacts `self`, referencing the given event in `unsigned.redacted_because`.
-    ///
-    /// Does nothing for events that are already redacted.
-    pub fn redact(self, redaction: SyncRedactionEvent, version: &RoomVersionId) -> Self {
-        match self {
-            Self::Message(ev) => Self::RedactedMessage(ev.redact(redaction, version)),
-            Self::State(ev) => Self::RedactedState(ev.redact(redaction, version)),
-            Self::RedactedMessage(_) | Self::RedactedState(_) => self,
         }
     }
 }
@@ -261,6 +239,78 @@ impl<'de> de::Deserialize<'de> for AnySyncRoomEvent {
                 }
                 _ => AnySyncRoomEvent::Message(from_raw_json_value(&json)?),
             })
+        }
+    }
+}
+
+/// Any redacted room event.
+#[allow(clippy::large_enum_variant)]
+#[derive(Clone, Debug)]
+pub enum AnyRedactedRoomEvent {
+    /// Any message event that has been redacted.
+    Message(AnyRedactedMessageEvent),
+
+    /// Any state event that has been redacted.
+    State(AnyRedactedStateEvent),
+}
+
+impl Redact for AnyRoomEvent {
+    type Redacted = AnyRedactedRoomEvent;
+
+    /// Redacts `self`, referencing the given event in `unsigned.redacted_because`.
+    ///
+    /// Does nothing for events that are already redacted.
+    fn redact(self, redaction: SyncRedactionEvent, version: &RoomVersionId) -> Self::Redacted {
+        match self {
+            Self::Message(ev) => Self::Redacted::Message(ev.redact(redaction, version)),
+            Self::State(ev) => Self::Redacted::State(ev.redact(redaction, version)),
+            Self::RedactedMessage(ev) => Self::Redacted::Message(ev),
+            Self::RedactedState(ev) => Self::Redacted::State(ev),
+        }
+    }
+}
+
+impl From<AnyRedactedRoomEvent> for AnyRoomEvent {
+    fn from(ev: AnyRedactedRoomEvent) -> Self {
+        match ev {
+            AnyRedactedRoomEvent::Message(ev) => Self::RedactedMessage(ev),
+            AnyRedactedRoomEvent::State(ev) => Self::RedactedState(ev),
+        }
+    }
+}
+
+/// Any redacted sync room event (room event without a `room_id`, as returned in `/sync` responses)
+#[allow(clippy::large_enum_variant)]
+#[derive(Clone, Debug)]
+pub enum AnyRedactedSyncRoomEvent {
+    /// Any sync message event that has been redacted.
+    Message(AnyRedactedSyncMessageEvent),
+
+    /// Any sync state event that has been redacted.
+    State(AnyRedactedSyncStateEvent),
+}
+
+impl Redact for AnySyncRoomEvent {
+    type Redacted = AnyRedactedSyncRoomEvent;
+
+    /// Redacts `self`, referencing the given event in `unsigned.redacted_because`.
+    ///
+    /// Does nothing for events that are already redacted.
+    fn redact(self, redaction: SyncRedactionEvent, version: &RoomVersionId) -> Self::Redacted {
+        match self {
+            Self::Message(ev) => Self::Redacted::Message(ev.redact(redaction, version)),
+            Self::State(ev) => Self::Redacted::State(ev.redact(redaction, version)),
+            Self::RedactedMessage(ev) => Self::Redacted::Message(ev),
+            Self::RedactedState(ev) => Self::Redacted::State(ev),
+        }
+    }
+}
+
+impl From<AnyRedactedSyncRoomEvent> for AnySyncRoomEvent {
+    fn from(ev: AnyRedactedSyncRoomEvent) -> Self {
+        match ev {
+            AnyRedactedSyncRoomEvent::Message(ev) => Self::RedactedMessage(ev),
+            AnyRedactedSyncRoomEvent::State(ev) => Self::RedactedState(ev),
         }
     }
 }
