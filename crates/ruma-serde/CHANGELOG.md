@@ -9,6 +9,10 @@ Improvements:
 
 * Add serialization decorator `none_as_empty_string` to serialize `None`s as empty strings
 * Add `PartialOrdAsRefStr`, `OrdAsRefStr` and `PartialEqAsRefStr` derives
+* Add `MilliSecondsSinceUnixEpoch` and `SecondsSinceUnixEpoch` types
+* Add `Raw::{get_field, deserialize_as}`
+* Add accessor methods to `CanonicalJsonValue`
+* Add conversion trait implementations for `CanonicalJsonValue`
 
 # 0.3.1
 
