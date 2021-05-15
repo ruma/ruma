@@ -288,6 +288,16 @@ pub trait RawExt<T> {
     fn deserialize_content(&self, event_type: &str) -> serde_json::Result<T>
     where
         T: EventContent;
+
+    /// Try to deserialize the JSON as an event's redacted content.
+    ///
+    /// This method works even if the JSON is a non-redacted event content, effectively redacting it
+    /// through deserialization (which is more efficient than first deserializing the full content
+    /// to then redact it).
+    fn deserialize_redacted_content(&self, event_type: &str) -> serde_json::Result<T::Redacted>
+    where
+        T: RedactContent,
+        T::Redacted: EventContent;
 }
 
 impl<T> RawExt<T> for Raw<T> {
@@ -296,6 +306,14 @@ impl<T> RawExt<T> for Raw<T> {
         T: EventContent,
     {
         T::from_parts(event_type, self.json())
+    }
+
+    fn deserialize_redacted_content(&self, event_type: &str) -> serde_json::Result<T::Redacted>
+    where
+        T: RedactContent,
+        T::Redacted: EventContent,
+    {
+        T::Redacted::from_parts(event_type, self.json())
     }
 }
 
