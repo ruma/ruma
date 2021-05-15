@@ -75,7 +75,7 @@ impl<T> Raw<T> {
     /// # fn foo() -> serde_json::Result<()> {
     /// # let raw_event: ruma_serde::Raw<()> = todo!();
     /// if raw_event.get_field::<String>("type")?.as_deref() == Some("org.custom.matrix.event") {
-    ///     let event: CustomMatrixEvent = serde_json::from_str(raw_event.json().get())?;
+    ///     let event = raw_event.deserialize_as::<CustomMatrixEvent>()?;
     ///     // ...
     /// }
     /// # Ok(())
@@ -134,6 +134,14 @@ where
 {
     /// Try to deserialize the JSON as the expected type.
     pub fn deserialize(&self) -> serde_json::Result<T> {
+        serde_json::from_str(self.json.get())
+    }
+
+    /// Try to deserialize the JSON as a custom type.
+    pub fn deserialize_as<U>(&self) -> serde_json::Result<U>
+    where
+        U: DeserializeOwned,
+    {
         serde_json::from_str(self.json.get())
     }
 }

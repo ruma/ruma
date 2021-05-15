@@ -74,7 +74,7 @@ impl IncomingRequest {
         let mut response = sync_events::Response::new(next_batch.into());
 
         for raw_event in self.events {
-            let helper: EventDeHelper = serde_json::from_str(raw_event.json().get())?;
+            let helper = raw_event.deserialize_as::<EventDeHelper>()?;
             let event_json = Raw::into_json(raw_event);
 
             if let Some(room_id) = helper.room_id {
