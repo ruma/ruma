@@ -118,7 +118,7 @@
 use std::fmt::Debug;
 
 use js_int::Int;
-use ruma_identifiers::EventEncryptionAlgorithm;
+use ruma_identifiers::{EventEncryptionAlgorithm, RoomVersionId};
 use ruma_serde::Raw;
 use serde::{
     de::{self, IgnoredAny},
@@ -273,6 +273,20 @@ pub trait EventContent: Sized + Serialize {
 
     /// Constructs the given event content.
     fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, serde_json::Error>;
+}
+
+/// Trait to define the behavior of redact an event's content object.
+pub trait RedactContent {
+    /// The redacted form of the event's content.
+    type Redacted;
+
+    /// Transform `self` into a redacted form (removing most or all fields) according to the spec.
+    ///
+    /// A small number of events have room-version specific redaction behavior, so a version has to
+    /// be specified.
+    ///
+    /// Where applicable, it is prefered to use [`Redact::redact`] on the outer event.
+    fn redact(self, version: &RoomVersionId) -> Self::Redacted;
 }
 
 /// Extension trait for Raw<EventContent>

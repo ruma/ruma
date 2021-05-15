@@ -8,7 +8,7 @@ use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
 use crate::{
     EphemeralRoomEventContent, EventContent, GlobalAccountDataEventContent, HasDeserializeFields,
-    MessageEventContent, RedactedEventContent, RedactedMessageEventContent,
+    MessageEventContent, RedactContent, RedactedEventContent, RedactedMessageEventContent,
     RedactedStateEventContent, RoomAccountDataEventContent, RoomEventContent, StateEventContent,
     ToDeviceEventContent,
 };
@@ -25,9 +25,10 @@ pub struct CustomEventContent {
     pub data: BTreeMap<String, JsonValue>,
 }
 
-impl CustomEventContent {
-    /// Transforms the full event content into a redacted content according to spec.
-    pub fn redact(self, _: &RoomVersionId) -> RedactedCustomEventContent {
+impl RedactContent for CustomEventContent {
+    type Redacted = RedactedCustomEventContent;
+
+    fn redact(self, _: &RoomVersionId) -> RedactedCustomEventContent {
         RedactedCustomEventContent { event_type: self.event_type }
     }
 }

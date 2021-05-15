@@ -496,7 +496,7 @@ fn expand_redact(
                     match self {
                         #(
                             #self_variants(event) => {
-                                let content = event.content.redact(version);
+                                let content = #ruma_events::RedactContent::redact(event.content, version);
                                 #redaction_variants(#redacted_type {
                                     content,
                                     #fields
@@ -504,7 +504,7 @@ fn expand_redact(
                             }
                         )*
                         Self::Custom(event) => {
-                            let content = event.content.redact(version);
+                            let content = #ruma_events::RedactContent::redact(event.content, version);
                             #redacted_enum::Custom(#redacted_type {
                                 content,
                                 #fields

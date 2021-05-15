@@ -6,7 +6,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
-    EventContent, HasDeserializeFields, RedactedEventContent, RedactedStateEventContent, StateEvent,
+    EventContent, HasDeserializeFields, RedactContent, RedactedEventContent,
+    RedactedStateEventContent, StateEvent,
 };
 
 /// Informs the room about what room aliases it has been given.
@@ -26,9 +27,12 @@ impl AliasesEventContent {
     pub fn new(aliases: Vec<RoomAliasId>) -> Self {
         Self { aliases }
     }
+}
 
-    /// Redact an `AliasesEventContent` according to current Matrix spec.
-    pub fn redact(self, version: &RoomVersionId) -> RedactedAliasesEventContent {
+impl RedactContent for AliasesEventContent {
+    type Redacted = RedactedAliasesEventContent;
+
+    fn redact(self, version: &RoomVersionId) -> RedactedAliasesEventContent {
         // We compare the long way to avoid pre version 6 behavior if/when
         // a new room version is introduced.
         let aliases = match version {

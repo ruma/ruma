@@ -224,9 +224,10 @@ pub fn expand_event_content(
         quote! {
             // this is the non redacted event content's impl
             #[automatically_derived]
-            impl #ident {
-                /// Transforms the full event content into a redacted content according to spec.
-                pub fn redact(self, version: &#ruma_identifiers::RoomVersionId) -> #redacted_ident {
+            impl #ruma_events::RedactContent for #ident {
+                type Redacted = #redacted_ident;
+
+                fn redact(self, version: &#ruma_identifiers::RoomVersionId) -> #redacted_ident {
                     #redacted_ident {
                         #( #redaction_struct_fields: self.#redaction_struct_fields, )*
                     }
