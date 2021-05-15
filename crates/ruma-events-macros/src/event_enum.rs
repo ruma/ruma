@@ -430,7 +430,7 @@ fn expand_content_enum(
         }
     };
 
-    let marker_trait_impls = marker_traits(kind, ruma_events);
+    let marker_trait_impl = marker_trait(kind, ruma_events);
 
     let redacted_content_enum = if kind.is_state() || kind.is_message() {
         let redacted_ident = kind.to_redacted_content_enum();
@@ -488,7 +488,7 @@ fn expand_content_enum(
 
         #event_content_impl
 
-        #marker_trait_impls
+        #marker_trait_impl
 
         #redacted_content_enum
     }
@@ -708,34 +708,21 @@ fn generate_custom_variant(
     }
 }
 
-fn marker_traits(kind: &EventKind, ruma_events: &TokenStream) -> TokenStream {
+fn marker_trait(kind: &EventKind, ruma_events: &TokenStream) -> TokenStream {
+    let marker_trait = match kind {
+        EventKind::State => quote! { StateEventContent },
+        EventKind::Message => quote! { MessageEventContent },
+        EventKind::Ephemeral => quote! { EphemeralRoomEventContent },
+        EventKind::GlobalAccountData => quote! { GlobalAccountDataEventContent },
+        EventKind::RoomAccountData => quote! { RoomAccountDataEventContent },
+        EventKind::ToDevice => quote! { ToDeviceEventContent },
+        _ => return TokenStream::new(),
+    };
+
     let ident = kind.to_content_enum();
-    match kind {
-        EventKind::State => quote! {
-            #[automatically_derived]
-            impl #ruma_events::StateEventContent for #ident {}
-        },
-        EventKind::Message => quote! {
-            #[automatically_derived]
-            impl #ruma_events::MessageEventContent for #ident {}
-        },
-        EventKind::Ephemeral => quote! {
-            #[automatically_derived]
-            impl #ruma_events::EphemeralRoomEventContent for #ident {}
-        },
-        EventKind::GlobalAccountData => quote! {
-            #[automatically_derived]
-            impl #ruma_events::GlobalAccountDataEventContent for #ident {}
-        },
-        EventKind::RoomAccountData => quote! {
-            #[automatically_derived]
-            impl #ruma_events::RoomAccountDataEventContent for #ident {}
-        },
-        EventKind::ToDevice => quote! {
-            #[automatically_derived]
-            impl #ruma_events::ToDeviceEventContent for #ident {}
-        },
-        _ => TokenStream::new(),
+    quote! {
+        #[automatically_derived]
+        impl #ruma_events::#marker_trait for #ident {}
     }
 }
 

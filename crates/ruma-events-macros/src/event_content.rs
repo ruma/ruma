@@ -289,39 +289,26 @@ fn generate_event_content_derives(
 ) -> syn::Result<TokenStream> {
     let msg = "valid event kinds are GlobalAccountData, RoomAccountData, \
         EphemeralRoom, Message, State, ToDevice";
-    content_attr
+    let marker_traits: Vec<_> = content_attr
         .iter()
-        .map(|kind| {
-            Ok(match kind {
-                EventKind::GlobalAccountData => quote! {
-                    #[automatically_derived]
-                    impl #ruma_events::GlobalAccountDataEventContent for #ident {}
-                },
-                EventKind::RoomAccountData => quote! {
-                    #[automatically_derived]
-                    impl #ruma_events::RoomAccountDataEventContent for #ident {}
-                },
-                EventKind::Ephemeral => quote! {
-                    #[automatically_derived]
-                    impl #ruma_events::EphemeralRoomEventContent for #ident {}
-                },
-                EventKind::Message => quote! {
-                    #[automatically_derived]
-                    impl #ruma_events::MessageEventContent for #ident {}
-                },
-                EventKind::State => quote! {
-                    #[automatically_derived]
-                    impl #ruma_events::StateEventContent for #ident {}
-                },
-                EventKind::ToDevice => quote! {
-                    #[automatically_derived]
-                    impl #ruma_events::ToDeviceEventContent for #ident {}
-                },
-                EventKind::Redaction => return Err(syn::Error::new_spanned(ident, msg)),
-                EventKind::Presence => return Err(syn::Error::new_spanned(ident, msg)),
-            })
+        .map(|kind| match kind {
+            EventKind::GlobalAccountData => Ok(quote! { GlobalAccountDataEventContent }),
+            EventKind::RoomAccountData => Ok(quote! { RoomAccountDataEventContent }),
+            EventKind::Ephemeral => Ok(quote! { EphemeralRoomEventContent }),
+            EventKind::Message => Ok(quote! { MessageEventContent }),
+            EventKind::State => Ok(quote! { StateEventContent }),
+            EventKind::ToDevice => Ok(quote! { ToDeviceEventContent }),
+            EventKind::Redaction => Err(syn::Error::new_spanned(ident, msg)),
+            EventKind::Presence => Err(syn::Error::new_spanned(ident, msg)),
         })
-        .collect()
+        .collect::<syn::Result<_>>()?;
+
+    Ok(quote! {
+        #(
+            #[automatically_derived]
+            impl #ruma_events::#marker_traits for #ident {}
+        )*
+    })
 }
 
 fn generate_event_content_impl(
