@@ -126,6 +126,14 @@ impl<T> Raw<T> {
         let mut deserializer = serde_json::Deserializer::from_str(self.json().get());
         deserializer.deserialize_map(SingleFieldVisitor::new(field_name))
     }
+
+    /// Try to deserialize the JSON as a custom type.
+    pub fn deserialize_as<U>(&self) -> serde_json::Result<U>
+    where
+        U: DeserializeOwned,
+    {
+        serde_json::from_str(self.json.get())
+    }
 }
 
 impl<T> Raw<T>
@@ -134,14 +142,6 @@ where
 {
     /// Try to deserialize the JSON as the expected type.
     pub fn deserialize(&self) -> serde_json::Result<T> {
-        serde_json::from_str(self.json.get())
-    }
-
-    /// Try to deserialize the JSON as a custom type.
-    pub fn deserialize_as<U>(&self) -> serde_json::Result<U>
-    where
-        U: DeserializeOwned,
-    {
         serde_json::from_str(self.json.get())
     }
 }
