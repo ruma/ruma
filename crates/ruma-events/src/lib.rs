@@ -283,13 +283,18 @@ pub trait RedactContent {
 }
 
 /// Extension trait for [`Raw<_>`][ruma_serde::Raw].
-pub trait RawExt<T: EventContent> {
+pub trait RawExt<T> {
     /// Try to deserialize the JSON as an event's content.
-    fn deserialize_content(&self, event_type: &str) -> serde_json::Result<T>;
+    fn deserialize_content(&self, event_type: &str) -> serde_json::Result<T>
+    where
+        T: EventContent;
 }
 
-impl<T: EventContent> RawExt<T> for Raw<T> {
-    fn deserialize_content(&self, event_type: &str) -> serde_json::Result<T> {
+impl<T> RawExt<T> for Raw<T> {
+    fn deserialize_content(&self, event_type: &str) -> serde_json::Result<T>
+    where
+        T: EventContent,
+    {
         T::from_parts(event_type, self.json())
     }
 }
