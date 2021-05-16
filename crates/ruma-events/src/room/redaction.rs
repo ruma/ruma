@@ -5,7 +5,7 @@ use ruma_events_macros::{Event, EventContent};
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-use crate::{RedactedStateEventContent, Unsigned};
+use crate::Unsigned;
 
 /// Redaction event.
 #[derive(Clone, Debug, Event)]
@@ -75,5 +75,3 @@ impl RedactionEventContent {
         Self { reason: Some(reason) }
     }
 }
-
-impl RedactedStateEventContent for RedactedRedactionEventContent {}
