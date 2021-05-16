@@ -1,10 +1,13 @@
-# 0.5.0 (unreleased)
+# [unreleased]
+
+# 0.5.0
 
 Breaking changes:
 
-* Rename the Cargo feature `tls` to `tls-native`
+* Make `Client` generic over the http client
+* Make the ruma-client-api dependency optional
 * Upgrade dependencies
 
 Improvements:
 
-* Add support for rustls as the TLS backend
+* Add support for multiple HTTP clients
