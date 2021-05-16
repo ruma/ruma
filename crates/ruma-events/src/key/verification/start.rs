@@ -545,10 +545,7 @@ mod tests {
                 content: StartToDeviceEventContent {
                     from_device,
                     transaction_id,
-                    method: StartMethod::Custom(CustomContent {
-                        method,
-                        data,
-                    })
+                    method: StartMethod::Custom(CustomContent { method, data })
                 }
             } if from_device == "123"
                 && sender == user_id!("@example:localhost")
@@ -616,9 +613,7 @@ mod tests {
                 .unwrap(),
             StartEventContent {
                 from_device,
-                relation: Relation {
-                    event_id,
-                },
+                relation: Relation { event_id },
                 method: StartMethod::MSasV1(MSasV1Content {
                     hashes,
                     key_agreement_protocols,
