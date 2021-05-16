@@ -51,7 +51,11 @@ impl<'a> ThirdPartySigned<'a> {
 }
 
 /// Represents third party IDs to invite to the room.
+///
+/// To create an instance of this type, first create a `Invite3pidInit` and convert it via
+/// `Invite3pid::from` / `.into()`.
 #[derive(Clone, Debug, PartialEq, Outgoing, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(PartialEq)]
 pub struct Invite3pid<'a> {
     /// Hostname and port of identity server to be used for account lookups.
@@ -65,4 +69,30 @@ pub struct Invite3pid<'a> {
 
     /// Third party identifier.
     pub address: &'a str,
+}
+
+/// Initial set of fields of `Invite3pid`.
+///
+/// This struct will not be updated even if additional fields are added to `Invite3pid` in a new
+/// (non-breaking) release of the Matrix specification.
+#[derive(Debug)]
+pub struct Invite3pidInit<'a> {
+    /// Hostname and port of identity server to be used for account lookups.
+    pub id_server: &'a str,
+
+    /// An access token registered with the identity server.
+    pub id_access_token: &'a str,
+
+    /// Type of third party ID.
+    pub medium: Medium,
+
+    /// Third party identifier.
+    pub address: &'a str,
+}
+
+impl<'a> From<Invite3pidInit<'a>> for Invite3pid<'a> {
+    fn from(init: Invite3pidInit<'a>) -> Self {
+        let Invite3pidInit { id_server, id_access_token, medium, address } = init;
+        Self { id_server, id_access_token, medium, address }
+    }
 }
