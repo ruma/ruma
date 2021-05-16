@@ -1,4 +1,6 @@
-# 0.17.0 (unreleased)
+# [unreleased]
+
+# 0.17.0
 
 Breaking changes:
 
@@ -23,7 +25,7 @@ Improvements:
 
 Bug fixes:
 
-* Prevent panic when building requests with an invalid URI  
+* Prevent panic when building requests with an invalid URI
 
 # 0.16.1
 
