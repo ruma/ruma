@@ -2,6 +2,12 @@
 
 # 0.1.0
 
+Breaking changes:
+
+* Upgrade public dependencies
+
+Improvements:
+
 * Add more endpoints:
   ```rust
   association::{
