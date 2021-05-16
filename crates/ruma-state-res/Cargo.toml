@@ -2,7 +2,7 @@
 name = "ruma-state-res"
 authors = ["Devin R <devin.ragotzy@gmail.com>"]
 categories = ["api-bindings", "web-programming"]
-keywords = ["matrix", "chat", "state resolution", "ruma"]
+keywords = ["matrix", "chat", "ruma"]
 description = "An abstraction for Matrix state resolution."
 homepage = "https://www.ruma.io/"
 repository = "https://github.com/ruma/ruma"
