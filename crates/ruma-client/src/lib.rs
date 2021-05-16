@@ -56,10 +56,8 @@
 //! # let client = MatrixClient::new(homeserver_url, None);
 //! use std::convert::TryFrom;
 //!
-//! use ruma::{
-//!     api::client::r0::alias::get_alias,
-//!     room_alias_id, room_id,
-//! };
+//! use ruma_client_api::r0::alias::get_alias;
+//! use ruma_identifiers::{room_alias_id, room_id};
 //!
 //! async {
 //!     let response = client

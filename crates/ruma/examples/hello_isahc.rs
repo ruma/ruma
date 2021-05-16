@@ -1,10 +1,6 @@
 //! Same as the hello_world example, but using the isahc http client (a Rust wrapper around
 //! libcurl).
 
-// "Undo" rename from `Cargo.toml` that only serves to make crate names available as a Cargo
-// feature names.
-extern crate isahc_crate as isahc;
-
 use std::{convert::TryFrom, env, process::exit};
 
 use ruma::{
