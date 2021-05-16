@@ -12,6 +12,7 @@ pub type CandidatesEvent = MessageEvent<CandidatesEventContent>;
 
 /// The payload for `CandidatesEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.call.candidates", kind = Message)]
 pub struct CandidatesEventContent {
     /// The ID of the call this event relates to.
@@ -24,8 +25,17 @@ pub struct CandidatesEventContent {
     pub version: UInt,
 }
 
+impl CandidatesEventContent {
+    /// Creates a new `CandidatesEventContent` with the given call id, candidate list and VoIP
+    /// version.
+    pub fn new(call_id: String, candidates: Vec<Candidate>, version: UInt) -> Self {
+        Self { call_id, candidates, version }
+    }
+}
+
 /// An ICE (Interactive Connectivity Establishment) candidate.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename_all = "camelCase")]
 pub struct Candidate {
     /// The SDP "a" line of the candidate.
@@ -36,4 +46,11 @@ pub struct Candidate {
 
     /// The index of the SDP "m" line this candidate is intended for.
     pub sdp_m_line_index: UInt,
+}
+
+impl Candidate {
+    /// Creates a new `Candidate` with the given "a" line, SDP media type and SDP "m" line.
+    pub fn new(candidate: String, sdp_mid: String, sdp_m_line_index: UInt) -> Self {
+        Self { candidate, sdp_mid, sdp_m_line_index }
+    }
 }

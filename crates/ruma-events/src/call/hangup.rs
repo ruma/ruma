@@ -13,6 +13,7 @@ pub type HangupEvent = MessageEvent<HangupEventContent>;
 
 /// The payload for `HangupEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.call.hangup", kind = Message)]
 pub struct HangupEventContent {
     /// The ID of the call this event relates to.
@@ -24,6 +25,13 @@ pub struct HangupEventContent {
     /// Optional error reason for the hangup.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<Reason>,
+}
+
+impl HangupEventContent {
+    /// Creates a new `HangupEventContent` with the given call ID and VoIP version.
+    pub fn new(call_id: String, version: UInt) -> Self {
+        Self { call_id, version, reason: None }
+    }
 }
 
 /// A reason for a hangup.
