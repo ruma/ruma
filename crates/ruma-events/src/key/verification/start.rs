@@ -83,7 +83,7 @@ impl StartEventContent {
 #[serde(untagged)]
 pub enum StartMethod {
     /// The *m.sas.v1* verification method.
-    MSasV1(MSasV1Content),
+    SasV1(SasV1Content),
 
     /// The *m.reciprocate.v1* verification method.
     ///
@@ -91,7 +91,7 @@ pub enum StartMethod {
     ///
     /// [1]: https://spec.matrix.org/unstable/client-server-api/#mkeyverificationstartmreciprocatev1
     #[cfg(feature = "unstable-pre-spec")]
-    MReciprocateV1(MReciprocateV1Content),
+    ReciprocateV1(ReciprocateV1Content),
 
     /// Any unknown start method.
     Custom(CustomContent),
@@ -113,13 +113,13 @@ pub struct CustomContent {
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename = "m.reciprocate.v1", tag = "method")]
-pub struct MReciprocateV1Content {
+pub struct ReciprocateV1Content {
     /// The shared secret from the QR code, encoded using unpadded base64.
     pub secret: String,
 }
 
 #[cfg(feature = "unstable-pre-spec")]
-impl MReciprocateV1Content {
+impl ReciprocateV1Content {
     /// Create a new `MReciprocateV1Content` with the given shared secret.
     ///
     /// The shared secret needs to come from the scanned QR code, encoded using
@@ -133,7 +133,7 @@ impl MReciprocateV1Content {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename = "m.sas.v1", tag = "method")]
-pub struct MSasV1Content {
+pub struct SasV1Content {
     /// The key agreement protocols the sending device understands.
     ///
     /// Must include at least `Curve25519` or `Curve25519HkdfSha256`.
@@ -157,7 +157,7 @@ pub struct MSasV1Content {
 
 /// Mandatory initial set of fields for creating an `MSasV1Content`.
 #[derive(Clone, Debug, Deserialize)]
-pub struct MSasV1ContentInit {
+pub struct SasV1ContentInit {
     /// The key agreement protocols the sending device understands.
     ///
     /// Must include at least `curve25519`.
@@ -179,7 +179,7 @@ pub struct MSasV1ContentInit {
     pub short_authentication_string: Vec<ShortAuthenticationString>,
 }
 
-impl MSasV1Content {
+impl SasV1Content {
     /// Create a new `MSasV1Content` with the given values.
     ///
     /// # Errors
@@ -191,16 +191,16 @@ impl MSasV1Content {
     /// * `message_authentication_codes` does not include
     /// `MessageAuthenticationCode::HkdfHmacSha256`.
     /// * `short_authentication_string` does not include `ShortAuthenticationString::Decimal`.
-    pub fn new(options: MSasV1ContentInit) -> Result<Self, InvalidInput> {
-        MSasV1Content::try_from(options)
+    pub fn new(options: SasV1ContentInit) -> Result<Self, InvalidInput> {
+        SasV1Content::try_from(options)
     }
 }
 
-impl TryFrom<MSasV1ContentInit> for MSasV1Content {
+impl TryFrom<SasV1ContentInit> for SasV1Content {
     type Error = InvalidInput;
 
     /// Creates a new `MSasV1Content` from the given init struct.
-    fn try_from(init: MSasV1ContentInit) -> Result<Self, Self::Error> {
+    fn try_from(init: SasV1ContentInit) -> Result<Self, Self::Error> {
         if !init.key_agreement_protocols.contains(&KeyAgreementProtocol::Curve25519)
             && !init.key_agreement_protocols.contains(&KeyAgreementProtocol::Curve25519HkdfSha256)
         {
@@ -257,17 +257,17 @@ mod tests {
     };
 
     use super::{
-        CustomContent, HashAlgorithm, KeyAgreementProtocol, MSasV1Content, MSasV1ContentInit,
-        MessageAuthenticationCode, ShortAuthenticationString, StartMethod,
+        CustomContent, HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode,
+        SasV1Content, SasV1ContentInit, ShortAuthenticationString, StartMethod,
         StartToDeviceEventContent,
     };
     #[cfg(feature = "unstable-pre-spec")]
-    use super::{MReciprocateV1Content, Relation, StartEventContent};
+    use super::{ReciprocateV1Content, Relation, StartEventContent};
     use crate::ToDeviceEvent;
 
     #[test]
     fn invalid_m_sas_v1_content_missing_required_key_agreement_protocols() {
-        let error = MSasV1Content::new(MSasV1ContentInit {
+        let error = SasV1Content::new(SasV1ContentInit {
             hashes: vec![HashAlgorithm::Sha256],
             key_agreement_protocols: vec![],
             message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
@@ -281,7 +281,7 @@ mod tests {
 
     #[test]
     fn invalid_m_sas_v1_content_missing_required_hashes() {
-        let error = MSasV1Content::new(MSasV1ContentInit {
+        let error = SasV1Content::new(SasV1ContentInit {
             hashes: vec![],
             key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
             message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
@@ -295,7 +295,7 @@ mod tests {
 
     #[test]
     fn invalid_m_sas_v1_content_missing_required_message_authentication_codes() {
-        let error = MSasV1Content::new(MSasV1ContentInit {
+        let error = SasV1Content::new(SasV1ContentInit {
             hashes: vec![HashAlgorithm::Sha256],
             key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
             message_authentication_codes: vec![],
@@ -309,7 +309,7 @@ mod tests {
 
     #[test]
     fn invalid_m_sas_v1_content_missing_required_short_authentication_string() {
-        let error = MSasV1Content::new(MSasV1ContentInit {
+        let error = SasV1Content::new(SasV1ContentInit {
             hashes: vec![HashAlgorithm::Sha256],
             key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
             message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
@@ -326,8 +326,8 @@ mod tests {
         let key_verification_start_content = StartToDeviceEventContent {
             from_device: "123".into(),
             transaction_id: "456".into(),
-            method: StartMethod::MSasV1(
-                MSasV1Content::new(MSasV1ContentInit {
+            method: StartMethod::SasV1(
+                SasV1Content::new(SasV1ContentInit {
                     hashes: vec![HashAlgorithm::Sha256],
                     key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
                     message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
@@ -394,7 +394,7 @@ mod tests {
             let key_verification_start_content = StartToDeviceEventContent {
                 from_device: "123".into(),
                 transaction_id: "456".into(),
-                method: StartMethod::MReciprocateV1(MReciprocateV1Content::new(secret.clone())),
+                method: StartMethod::ReciprocateV1(ReciprocateV1Content::new(secret.clone())),
             };
 
             let json_data = json!({
@@ -416,8 +416,8 @@ mod tests {
         let key_verification_start_content = StartEventContent {
             from_device: "123".into(),
             relation: Relation { event_id: event_id.clone() },
-            method: StartMethod::MSasV1(
-                MSasV1Content::new(MSasV1ContentInit {
+            method: StartMethod::SasV1(
+                SasV1Content::new(SasV1ContentInit {
                     hashes: vec![HashAlgorithm::Sha256],
                     key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
                     message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
@@ -447,7 +447,7 @@ mod tests {
         let key_verification_start_content = StartEventContent {
             from_device: "123".into(),
             relation: Relation { event_id: event_id.clone() },
-            method: StartMethod::MReciprocateV1(MReciprocateV1Content::new(secret.clone())),
+            method: StartMethod::ReciprocateV1(ReciprocateV1Content::new(secret.clone())),
         };
 
         let json_data = json!({
@@ -484,7 +484,7 @@ mod tests {
             StartToDeviceEventContent {
                 from_device,
                 transaction_id,
-                method: StartMethod::MSasV1(MSasV1Content {
+                method: StartMethod::SasV1(SasV1Content {
                     hashes,
                     key_agreement_protocols,
                     message_authentication_codes,
@@ -524,7 +524,7 @@ mod tests {
                 content: StartToDeviceEventContent {
                     from_device,
                     transaction_id,
-                    method: StartMethod::MSasV1(MSasV1Content {
+                    method: StartMethod::SasV1(SasV1Content {
                         hashes,
                         key_agreement_protocols,
                         message_authentication_codes,
@@ -595,7 +595,7 @@ mod tests {
                     content: StartToDeviceEventContent {
                         from_device,
                         transaction_id,
-                        method: StartMethod::MReciprocateV1(MReciprocateV1Content { secret }),
+                        method: StartMethod::ReciprocateV1(ReciprocateV1Content { secret }),
                     }
                 } if from_device == "123"
                     && sender == user_id!("@example:localhost")
@@ -632,7 +632,7 @@ mod tests {
             StartEventContent {
                 from_device,
                 relation: Relation { event_id },
-                method: StartMethod::MSasV1(MSasV1Content {
+                method: StartMethod::SasV1(SasV1Content {
                     hashes,
                     key_agreement_protocols,
                     message_authentication_codes,
@@ -664,7 +664,7 @@ mod tests {
             StartEventContent {
                 from_device,
                 relation: Relation { event_id },
-                method: StartMethod::MReciprocateV1(MReciprocateV1Content { secret }),
+                method: StartMethod::ReciprocateV1(ReciprocateV1Content { secret }),
             } if from_device == "123"
                 && event_id == id
                 && secret == "It's a secret to everybody"

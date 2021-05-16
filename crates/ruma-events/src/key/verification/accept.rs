@@ -74,7 +74,7 @@ impl AcceptEventContent {
 #[serde(untagged)]
 pub enum AcceptMethod {
     /// The *m.sas.v1* verification method.
-    MSasV1(MSasV1Content),
+    MSasV1(SasV1Content),
 
     /// Any unknown accept method.
     Custom(CustomContent),
@@ -95,7 +95,7 @@ pub struct CustomContent {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename = "m.sas.v1", tag = "method")]
-pub struct MSasV1Content {
+pub struct SasV1Content {
     /// The key agreement protocol the device is choosing to use, out of the
     /// options in the *m.key.verification.start* message.
     pub key_agreement_protocol: KeyAgreementProtocol,
@@ -123,7 +123,7 @@ pub struct MSasV1Content {
 
 /// Mandatory initial set of fields for creating an accept `MSasV1Content`.
 #[derive(Clone, Debug, Deserialize)]
-pub struct MSasV1ContentInit {
+pub struct SasV1ContentInit {
     /// The key agreement protocol the device is choosing to use, out of the
     /// options in the *m.key.verification.start* message.
     pub key_agreement_protocol: KeyAgreementProtocol,
@@ -148,10 +148,10 @@ pub struct MSasV1ContentInit {
     pub commitment: String,
 }
 
-impl From<MSasV1ContentInit> for MSasV1Content {
+impl From<SasV1ContentInit> for SasV1Content {
     /// Creates a new `MSasV1Content` from the given init struct.
-    fn from(init: MSasV1ContentInit) -> Self {
-        MSasV1Content {
+    fn from(init: SasV1ContentInit) -> Self {
+        SasV1Content {
             hash: init.hash,
             key_agreement_protocol: init.key_agreement_protocol,
             message_authentication_code: init.message_authentication_code,
@@ -178,7 +178,7 @@ mod tests {
     use super::{AcceptEventContent, Relation};
     use super::{
         AcceptMethod, AcceptToDeviceEventContent, CustomContent, HashAlgorithm,
-        KeyAgreementProtocol, MSasV1Content, MessageAuthenticationCode, ShortAuthenticationString,
+        KeyAgreementProtocol, MessageAuthenticationCode, SasV1Content, ShortAuthenticationString,
     };
     use crate::ToDeviceEvent;
 
@@ -186,7 +186,7 @@ mod tests {
     fn serialization() {
         let key_verification_accept_content = AcceptToDeviceEventContent {
             transaction_id: "456".into(),
-            method: AcceptMethod::MSasV1(MSasV1Content {
+            method: AcceptMethod::MSasV1(SasV1Content {
                 hash: HashAlgorithm::Sha256,
                 key_agreement_protocol: KeyAgreementProtocol::Curve25519,
                 message_authentication_code: MessageAuthenticationCode::HkdfHmacSha256,
@@ -251,7 +251,7 @@ mod tests {
 
         let key_verification_accept_content = AcceptEventContent {
             relation: Relation { event_id: event_id.clone() },
-            method: AcceptMethod::MSasV1(MSasV1Content {
+            method: AcceptMethod::MSasV1(SasV1Content {
                 hash: HashAlgorithm::Sha256,
                 key_agreement_protocol: KeyAgreementProtocol::Curve25519,
                 message_authentication_code: MessageAuthenticationCode::HkdfHmacSha256,
@@ -296,7 +296,7 @@ mod tests {
                 .unwrap(),
             AcceptToDeviceEventContent {
                 transaction_id,
-                method: AcceptMethod::MSasV1(MSasV1Content {
+                method: AcceptMethod::MSasV1(SasV1Content {
                     commitment,
                     hash,
                     key_agreement_protocol,
@@ -336,7 +336,7 @@ mod tests {
                 sender,
                 content: AcceptToDeviceEventContent {
                     transaction_id,
-                    method: AcceptMethod::MSasV1(MSasV1Content {
+                    method: AcceptMethod::MSasV1(SasV1Content {
                         commitment,
                         hash,
                         key_agreement_protocol,
@@ -415,7 +415,7 @@ mod tests {
                 relation: Relation {
                     event_id
                 },
-                method: AcceptMethod::MSasV1(MSasV1Content {
+                method: AcceptMethod::MSasV1(SasV1Content {
                     commitment,
                     hash,
                     key_agreement_protocol,
