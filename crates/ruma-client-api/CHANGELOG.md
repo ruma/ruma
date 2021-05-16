@@ -1,4 +1,6 @@
-# 0.10.0 (unreleased)
+# [unreleased]
+
+# 0.10.0
 
 Bug fixes:
 
