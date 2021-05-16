@@ -107,7 +107,7 @@ impl<'a> RoomEventFilter<'a> {
         Self::default()
     }
 
-    /// Creates a `RoomEventFilter` that can be used to ignore all room events.
+    /// Creates a new `RoomEventFilter` that can be used to ignore all room events.
     pub fn ignore_all() -> Self {
         Self { types: Some(&[]), ..Default::default() }
     }
@@ -193,7 +193,7 @@ impl<'a> RoomFilter<'a> {
         Self::default()
     }
 
-    /// Creates a `RoomFilter` that can be used to ignore all room events (of any type).
+    /// Creates a new `RoomFilter` that can be used to ignore all room events (of any type).
     pub fn ignore_all() -> Self {
         Self { rooms: Some(&[]), ..Default::default() }
     }
@@ -269,7 +269,7 @@ impl<'a> Filter<'a> {
         Self::default()
     }
 
-    /// Creates a `Filter` that can be used to ignore all events.
+    /// Creates a new `Filter` that can be used to ignore all events.
     pub fn ignore_all() -> Self {
         Self { types: Some(&[]), ..Default::default() }
     }
@@ -337,7 +337,7 @@ impl<'a> FilterDefinition<'a> {
         Self::default()
     }
 
-    /// Creates a `FilterDefinition` that can be used to ignore all events.
+    /// Creates a new `FilterDefinition` that can be used to ignore all events.
     pub fn ignore_all() -> Self {
         Self {
             account_data: Filter::ignore_all(),

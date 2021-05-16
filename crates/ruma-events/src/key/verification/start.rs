@@ -535,7 +535,7 @@ mod tests {
 
     #[test]
     fn deserialization_failure() {
-        // Ensure that invalid JSON  creates a `serde_json::Error` and not `InvalidEvent`
+        // Ensure that invalid JSON  Creates a new `serde_json::Error` and not `InvalidEvent`
         assert!(serde_json::from_str::<Raw<StartToDeviceEventContent>>("{").is_err());
     }
 

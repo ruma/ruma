@@ -56,7 +56,7 @@ pub struct PublicRoomsChunk {
 }
 
 impl PublicRoomsChunk {
-    /// Creates a `PublicRoomsChunk` with the given room ID.
+    /// Creates a new `PublicRoomsChunk` with the given room ID.
     ///
     /// All other fields will be propagated with default values (an empty list of aliases, `None`
     /// for all `Option`al fields and `false` for all boolean fields), which should be overriden;

@@ -37,7 +37,7 @@ impl Request {
 }
 
 impl Response {
-    /// Creates a `Response` with the given `HomeserverInfo`.
+    /// Creates a new `Response` with the given `HomeserverInfo`.
     pub fn new(homeserver: HomeserverInfo) -> Self {
         Self { homeserver, identity_server: None }
     }
@@ -52,7 +52,7 @@ pub struct HomeserverInfo {
 }
 
 impl HomeserverInfo {
-    /// Creates a `HomeserverInfo` with the given `base_url`.
+    /// Creates a new `HomeserverInfo` with the given `base_url`.
     pub fn new(base_url: String) -> Self {
         Self { base_url }
     }

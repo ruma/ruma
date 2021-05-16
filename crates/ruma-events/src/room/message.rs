@@ -197,7 +197,7 @@ pub enum MessageType {
 }
 
 impl MessageType {
-    /// Creates a `MessageType` with the given `msgtype` string and data.
+    /// Creates a new `MessageType` with the given `msgtype` string and data.
     ///
     /// Prefer to use the public variants of `MessageType` where possible; this constructor is meant
     /// be used for unsupported message types only and does not allow setting arbitrary data for

@@ -40,7 +40,7 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Creates a `Request` with the given parameters.
+    /// Creates a new `Request` with the given parameters.
     pub fn new(
         access_token: &'a str,
         token_type: TokenType,

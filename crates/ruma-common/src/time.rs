@@ -11,8 +11,8 @@ use std::{
 pub struct MilliSecondsSinceUnixEpoch(pub UInt);
 
 impl MilliSecondsSinceUnixEpoch {
-    /// Creates a `MilliSecondsSinceUnixEpoch` from the given `SystemTime`, if it is not before the
-    /// unix epoch, or too large to be represented.
+    /// Creates a new `MilliSecondsSinceUnixEpoch` from the given `SystemTime`, if it is not before
+    /// the unix epoch, or too large to be represented.
     pub fn from_system_time(time: SystemTime) -> Option<Self> {
         let duration = time.duration_since(UNIX_EPOCH).ok()?;
         let millis = duration.as_millis().try_into().ok()?;
@@ -24,7 +24,7 @@ impl MilliSecondsSinceUnixEpoch {
         Self::from_system_time(SystemTime::now()).unwrap()
     }
 
-    /// Creates a `SystemTime` from `self`, if it can be represented.
+    /// Creates a new `SystemTime` from `self`, if it can be represented.
     pub fn to_system_time(self) -> Option<SystemTime> {
         UNIX_EPOCH.checked_add(Duration::from_millis(self.0.into()))
     }
@@ -36,15 +36,15 @@ impl MilliSecondsSinceUnixEpoch {
 pub struct SecondsSinceUnixEpoch(pub UInt);
 
 impl SecondsSinceUnixEpoch {
-    /// Creates a `MilliSecondsSinceUnixEpoch` from the given `SystemTime`, if it is not before the
-    /// unix epoch, or too large to be represented.
+    /// Creates a new `MilliSecondsSinceUnixEpoch` from the given `SystemTime`, if it is not before
+    /// the unix epoch, or too large to be represented.
     pub fn from_system_time(time: SystemTime) -> Option<Self> {
         let duration = time.duration_since(UNIX_EPOCH).ok()?;
         let millis = duration.as_secs().try_into().ok()?;
         Some(Self(millis))
     }
 
-    /// Creates a `SystemTime` from `self`, if it can be represented.
+    /// Creates a new `SystemTime` from `self`, if it can be represented.
     pub fn to_system_time(self) -> Option<SystemTime> {
         UNIX_EPOCH.checked_add(Duration::from_secs(self.0.into()))
     }

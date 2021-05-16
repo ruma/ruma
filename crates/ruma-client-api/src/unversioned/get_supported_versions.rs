@@ -37,7 +37,7 @@ impl Request {
 }
 
 impl Response {
-    /// Creates a `Response` with the given `versions`.
+    /// Creates a new `Response` with the given `versions`.
     pub fn new(versions: Vec<String>) -> Self {
         Self { versions, unstable_features: BTreeMap::new() }
     }

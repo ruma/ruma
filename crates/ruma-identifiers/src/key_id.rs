@@ -18,7 +18,7 @@ pub struct KeyId<A, K: ?Sized> {
 }
 
 impl<A, K: ?Sized> KeyId<A, K> {
-    /// Creates a `KeyId` from an algorithm and key name.
+    /// Creates a new `KeyId` from an algorithm and key name.
     pub fn from_parts(algorithm: A, key_name: &K) -> Self
     where
         A: AsRef<str>,

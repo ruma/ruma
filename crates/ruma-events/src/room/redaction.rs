@@ -70,7 +70,7 @@ impl RedactionEventContent {
         Self::default()
     }
 
-    /// Creates a `RedactionEventContent` with the given reason.
+    /// Creates a new `RedactionEventContent` with the given reason.
     pub fn with_reason(reason: String) -> Self {
         Self { reason: Some(reason) }
     }

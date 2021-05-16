@@ -111,7 +111,7 @@ impl Request<'_> {
 }
 
 impl Response {
-    /// Creates a `Response` with the given batch token.
+    /// Creates a new `Response` with the given batch token.
     pub fn new(next_batch: String) -> Self {
         Self {
             next_batch,

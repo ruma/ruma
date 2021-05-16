@@ -67,7 +67,7 @@ pub enum LoginType {
 }
 
 impl LoginType {
-    /// Creates a `LoginType` with the given `login_type` string and data.
+    /// Creates a new `LoginType` with the given `login_type` string and data.
     ///
     /// Prefer to use the public variants of `LoginType` where possible; this constructor is meant
     /// be used for unsupported login types only and does not allow setting arbitrary data for

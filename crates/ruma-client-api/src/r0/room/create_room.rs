@@ -96,14 +96,14 @@ ruma_api! {
 }
 
 impl Request<'_> {
-    /// Creates a `Request` will all-default parameters.
+    /// Creates a new `Request` will all-default parameters.
     pub fn new() -> Self {
         Default::default()
     }
 }
 
 impl Response {
-    /// Creates a `Response` with the given room id.
+    /// Creates a new `Response` with the given room id.
     pub fn new(room_id: RoomId) -> Self {
         Self { room_id }
     }

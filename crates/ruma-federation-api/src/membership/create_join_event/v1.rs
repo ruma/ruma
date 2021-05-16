@@ -42,7 +42,7 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Creates a `Request` from the given room ID, event ID and `Pdu`.
+    /// Creates a new `Request` from the given room ID, event ID and `Pdu`.
     pub fn new(room_id: &'a RoomId, event_id: &'a EventId, pdu: Raw<Pdu>) -> Self {
         Self { room_id, event_id, pdu }
     }
