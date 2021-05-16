@@ -1,6 +1,11 @@
 # [unreleased]
 
+# 0.7.1
+
+Improvements:
+
 * Fix verify_json signature check algorithm
+* Bump dependency versions
 
 # 0.7.0
 

@@ -25,7 +25,7 @@ ruma-serde = { version = "0.4.0", path = "../ruma-serde" }
 
 ruma-client = { version = "=0.5.0-alpha.2", path = "../ruma-client", optional = true }
 ruma-events = { version = "=0.22.0-alpha.3", path = "../ruma-events", optional = true }
-ruma-signatures = { version = "0.7.0", path = "../ruma-signatures", optional = true }
+ruma-signatures = { version = "0.7.1", path = "../ruma-signatures", optional = true }
 ruma-state-res = { version = "0.1.0", path = "../ruma-state-res", optional = true }
 
 ruma-api = { version = "=0.17.0-alpha.4", path = "../ruma-api", optional = true }
