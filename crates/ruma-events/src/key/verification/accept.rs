@@ -21,12 +21,12 @@ pub type AcceptEvent = MessageEvent<AcceptEventContent>;
 
 /// The payload for a to-device `AcceptEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.accept", kind = ToDevice)]
 pub struct AcceptToDeviceEventContent {
     /// An opaque identifier for the verification process.
     ///
-    /// Must be the same as the one used for the *m.key.verification.start*
-    /// message.
+    /// Must be the same as the one used for the *m.key.verification.start* message.
     pub transaction_id: String,
 
     /// The method specific content.
@@ -34,11 +34,20 @@ pub struct AcceptToDeviceEventContent {
     pub method: AcceptMethod,
 }
 
+impl AcceptToDeviceEventContent {
+    /// Creates a new `AcceptToDeviceEventContent` with the given transaction ID and method-specific
+    /// content.
+    pub fn new(transaction_id: String, method: AcceptMethod) -> Self {
+        Self { transaction_id, method }
+    }
+}
+
 /// The payload for a in-room `AcceptEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.key.verification.accept", kind = Message)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct AcceptEventContent {
     /// The method specific content.
     #[serde(flatten)]
@@ -47,6 +56,15 @@ pub struct AcceptEventContent {
     /// Information about the related event.
     #[serde(rename = "m.relates_to")]
     pub relation: Relation,
+}
+
+#[cfg(feature = "unstable-pre-spec")]
+impl AcceptEventContent {
+    /// Creates a new `AcceptToDeviceEventContent` with the given method-specific content and
+    /// relation.
+    pub fn new(method: AcceptMethod, relation: Relation) -> Self {
+        Self { method, relation }
+    }
 }
 
 /// An enum representing the different method specific

@@ -12,6 +12,7 @@ pub type ReadyEvent = MessageEvent<ReadyEventContent>;
 
 /// The payload for a to-device `m.key.verification.ready` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.ready", kind = ToDevice)]
 pub struct ReadyToDeviceEventContent {
     /// The device ID which is initiating the request.
@@ -28,8 +29,21 @@ pub struct ReadyToDeviceEventContent {
     pub transaction_id: String,
 }
 
+impl ReadyToDeviceEventContent {
+    /// Creates a new `ReadyToDeviceEventContent` with the given device ID, verification methods and
+    /// transaction ID.
+    pub fn new(
+        from_device: DeviceIdBox,
+        methods: Vec<VerificationMethod>,
+        transaction_id: String,
+    ) -> Self {
+        Self { from_device, methods, transaction_id }
+    }
+}
+
 /// The payload for an in-room `m.key.verification.ready` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.ready", kind = Message)]
 pub struct ReadyEventContent {
     /// The device ID which is initiating the request.
@@ -42,6 +56,17 @@ pub struct ReadyEventContent {
     /// to.
     #[serde(rename = "m.relates_to")]
     pub relation: Relation,
+}
+
+impl ReadyEventContent {
+    /// Creates a new `ReadyEventContent` with the given device ID, methods and relation.
+    pub fn new(
+        from_device: DeviceIdBox,
+        methods: Vec<VerificationMethod>,
+        relation: Relation,
+    ) -> Self {
+        Self { from_device, methods, relation }
+    }
 }
 
 #[cfg(test)]

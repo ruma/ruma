@@ -9,6 +9,7 @@ use super::VerificationMethod;
 
 /// The payload for `RequestEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.request", kind = ToDevice)]
 pub struct RequestToDeviceEventContent {
     /// The device ID which is initiating the request.
@@ -27,4 +28,17 @@ pub struct RequestToDeviceEventContent {
     /// If the request is in the future by more than 5 minutes or more than 10 minutes in
     /// the past, the message should be ignored by the receiver.
     pub timestamp: MilliSecondsSinceUnixEpoch,
+}
+
+impl RequestToDeviceEventContent {
+    /// Creates a new `RequestToDeviceEventContent` with the given device ID, transaction ID,
+    /// methods and timestamp.
+    pub fn new(
+        from_device: DeviceIdBox,
+        transaction_id: String,
+        methods: Vec<VerificationMethod>,
+        timestamp: MilliSecondsSinceUnixEpoch,
+    ) -> Self {
+        Self { from_device, transaction_id, methods, timestamp }
+    }
 }

@@ -16,6 +16,7 @@ pub type CancelEvent = MessageEvent<CancelEventContent>;
 
 /// The payload for a to-device `CancelEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.cancel", kind = ToDevice)]
 pub struct CancelToDeviceEventContent {
     /// The opaque identifier for the verification process/request.
@@ -26,15 +27,23 @@ pub struct CancelToDeviceEventContent {
     /// The client should only rely on this string if it does not understand the `code`.
     pub reason: String,
 
-    /// The error code for why the process/request was cancelled by the user.
+    /// The error code for why the process / request was cancelled by the user.
     pub code: CancelCode,
+}
+
+impl CancelToDeviceEventContent {
+    /// Creates a new `CancelToDeviceEventContent` with the given transaction ID, reason and code.
+    pub fn new(transaction_id: String, reason: String, code: CancelCode) -> Self {
+        Self { transaction_id, reason, code }
+    }
 }
 
 /// The payload for an in-room `CancelEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.key.verification.cancel", kind = Message)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[ruma_event(type = "m.key.verification.cancel", kind = Message)]
 pub struct CancelEventContent {
     /// A human readable description of the `code`.
     ///
@@ -47,6 +56,14 @@ pub struct CancelEventContent {
     /// Information about the related event.
     #[serde(rename = "m.relates_to")]
     pub relation: Relation,
+}
+
+#[cfg(feature = "unstable-pre-spec")]
+impl CancelEventContent {
+    /// Creates a new `CancelEventContent` with the given reason, code and relation.
+    pub fn new(reason: String, code: CancelCode, relation: Relation) -> Self {
+        Self { reason, code, relation }
+    }
 }
 
 /// An error code for why the process/request was cancelled by the user.

@@ -17,6 +17,7 @@ pub type MacEvent = MessageEvent<MacEventContent>;
 
 /// The payload for a to-device `MacEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.mac", kind = ToDevice)]
 pub struct MacToDeviceEventContent {
     /// An opaque identifier for the verification process.
@@ -32,6 +33,14 @@ pub struct MacToDeviceEventContent {
     /// The MAC of the comma-separated, sorted, list of key IDs given in the `mac` property,
     /// encoded as unpadded Base64.
     pub keys: String,
+}
+
+impl MacToDeviceEventContent {
+    /// Creates a new `MacToDeviceEventContent` with the given transaction ID, key ID to MAC map and
+    /// key MAC.
+    pub fn new(transaction_id: String, mac: BTreeMap<String, String>, keys: String) -> Self {
+        Self { transaction_id, mac, keys }
+    }
 }
 
 /// The payload for an in-room `MacEvent`.
@@ -52,4 +61,12 @@ pub struct MacEventContent {
     /// Information about the related event.
     #[serde(rename = "m.relates_to")]
     pub relation: Relation,
+}
+
+#[cfg(feature = "unstable-pre-spec")]
+impl MacEventContent {
+    /// Creates a new `MacEventContent` with the given key ID to MAC map, key MAC and relation.
+    pub fn new(mac: BTreeMap<String, String>, keys: String, relation: Relation) -> Self {
+        Self { mac, keys, relation }
+    }
 }

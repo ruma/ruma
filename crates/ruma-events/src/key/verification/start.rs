@@ -23,6 +23,7 @@ pub type StartEvent = MessageEvent<StartEventContent>;
 
 /// The payload of a to-device *m.key.verification.start* event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.start", kind = ToDevice)]
 pub struct StartToDeviceEventContent {
     /// The device ID which is initiating the process.
@@ -40,11 +41,20 @@ pub struct StartToDeviceEventContent {
     pub method: StartMethod,
 }
 
+impl StartToDeviceEventContent {
+    /// Creates a new `StartToDeviceEventContent` with the given device ID, transaction ID and
+    /// method specific content.
+    pub fn new(from_device: DeviceIdBox, transaction_id: String, method: StartMethod) -> Self {
+        Self { from_device, transaction_id, method }
+    }
+}
+
 /// The payload of an in-room *m.key.verification.start* event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.key.verification.start", kind = Message)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[ruma_event(type = "m.key.verification.start", kind = Message)]
 pub struct StartEventContent {
     /// The device ID which is initiating the process.
     pub from_device: DeviceIdBox,
@@ -56,6 +66,14 @@ pub struct StartEventContent {
     /// Information about the related event.
     #[serde(rename = "m.relates_to")]
     pub relation: Relation,
+}
+
+#[cfg(feature = "unstable-pre-spec")]
+impl StartEventContent {
+    /// Creates a new `StartEventContent` with the given device ID, method and relation.
+    pub fn new(from_device: DeviceIdBox, method: StartMethod, relation: Relation) -> Self {
+        Self { from_device, method, relation }
+    }
 }
 
 /// An enum representing the different method specific

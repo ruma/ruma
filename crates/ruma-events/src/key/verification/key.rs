@@ -26,11 +26,19 @@ pub struct KeyToDeviceEventContent {
     pub key: String,
 }
 
+impl KeyToDeviceEventContent {
+    /// Creates a new `KeyToDeviceEventContent` with the given transaction ID and key.
+    pub fn new(transaction_id: String, key: String) -> Self {
+        Self { transaction_id, key }
+    }
+}
+
 /// The payload for in-room `KeyEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.key.verification.key", kind = Message)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[ruma_event(type = "m.key.verification.key", kind = Message)]
 pub struct KeyEventContent {
     /// The device's ephemeral public key, encoded as unpadded Base64.
     pub key: String,
@@ -38,4 +46,12 @@ pub struct KeyEventContent {
     /// Information about the related event.
     #[serde(rename = "m.relates_to")]
     pub relation: Relation,
+}
+
+#[cfg(feature = "unstable-pre-spec")]
+impl KeyEventContent {
+    /// Creates a new `KeyEventContent` with the given key and relation.
+    pub fn new(key: String, relation: Relation) -> Self {
+        Self { key, relation }
+    }
 }

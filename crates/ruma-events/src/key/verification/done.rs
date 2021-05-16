@@ -12,6 +12,7 @@ pub type DoneEvent = MessageEvent<DoneEventContent>;
 
 /// The payload for a to-device `m.key.verification.done` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.done", kind = ToDevice)]
 pub struct DoneToDeviceEventContent {
     /// An opaque identifier for the verification process.
@@ -20,14 +21,28 @@ pub struct DoneToDeviceEventContent {
     pub transaction_id: String,
 }
 
+impl DoneToDeviceEventContent {
+    /// Creates a new `DoneToDeviceEventContent` with the given transaction ID.
+    pub fn new(transaction_id: String) -> Self {
+        Self { transaction_id }
+    }
+}
+
 /// The payload for a in-room `m.key.verification.done` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.done", kind = Message)]
 pub struct DoneEventContent {
-    /// Relation signaling which verification request this event is responding
-    /// to.
+    /// Relation signaling which verification request this event is responding to.
     #[serde(rename = "m.relates_to")]
     pub relation: Relation,
+}
+
+impl DoneEventContent {
+    /// Creates a new `DoneEventContent` with the given relation:
+    pub fn new(relation: Relation) -> Self {
+        Self { relation }
+    }
 }
 
 #[cfg(test)]
