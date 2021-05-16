@@ -11,10 +11,27 @@ pub type PushRulesEvent = GlobalAccountDataEvent<PushRulesEventContent>;
 
 /// The payload for `PushRulesEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.push_rules", kind = GlobalAccountData)]
 pub struct PushRulesEventContent {
     /// The global ruleset.
     pub global: Ruleset,
+}
+
+impl PushRulesEventContent {
+    /// Creates a new `PushRulesEventContent` with the given global ruleset.
+    ///
+    /// You can also construct a `PushRulesEventContent` from a global ruleset using `From` /
+    /// `Into`.
+    pub fn new(global: Ruleset) -> Self {
+        Self { global }
+    }
+}
+
+impl From<Ruleset> for PushRulesEventContent {
+    fn from(global: Ruleset) -> Self {
+        Self::new(global)
+    }
 }
 
 #[cfg(test)]

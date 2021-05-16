@@ -20,9 +20,9 @@ pub struct PresenceEvent {
 
 /// Informs the room of members presence.
 ///
-/// This is the only event content a `PresenceEvent` can contain as it's
-/// `content` field.
+/// This is the only type a `PresenceEvent` can contain as its `content` field.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.presence")]
 pub struct PresenceEventContent {
     /// The current avatar URL for this user.
@@ -54,6 +54,20 @@ pub struct PresenceEventContent {
     /// An optional description to accompany the presence.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status_msg: Option<String>,
+}
+
+impl PresenceEventContent {
+    /// Creates a new `PresenceEventContent` with the given state.
+    pub fn new(presence: PresenceState) -> Self {
+        Self {
+            avatar_url: None,
+            currently_active: None,
+            displayname: None,
+            last_active_ago: None,
+            presence,
+            status_msg: None,
+        }
+    }
 }
 
 #[cfg(test)]

@@ -6,12 +6,12 @@ use serde_json::{json, to_value as to_json_value};
 fn serialization() {
     let ev = ToDeviceEvent {
         sender: user_id!("@example:example.org"),
-        content: AnyToDeviceEventContent::RoomKey(RoomKeyToDeviceEventContent {
-            algorithm: EventEncryptionAlgorithm::MegolmV1AesSha2,
-            room_id: room_id!("!testroomid:example.org"),
-            session_id: "SessId".into(),
-            session_key: "SessKey".into(),
-        }),
+        content: AnyToDeviceEventContent::RoomKey(RoomKeyToDeviceEventContent::new(
+            EventEncryptionAlgorithm::MegolmV1AesSha2,
+            room_id!("!testroomid:example.org"),
+            "SessId".into(),
+            "SessKey".into(),
+        )),
     };
 
     assert_eq!(

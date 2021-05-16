@@ -65,7 +65,7 @@ fn ephemeral_serialize_receipt() {
         content: AnyEphemeralRoomEventContent::Receipt(ReceiptEventContent(btreemap! {
             event_id => btreemap! {
                 ReceiptType::Read => btreemap! {
-                    user_id => Receipt { ts: Some(MilliSecondsSinceUnixEpoch(uint!(1))) },
+                    user_id => Receipt::new(MilliSecondsSinceUnixEpoch(uint!(1))),
                 },
             },
         })),

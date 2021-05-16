@@ -85,12 +85,21 @@ pub enum ShortAuthenticationString {
 
 /// The relation that contains info which event the reaction is applying to.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(try_from = "RelatesToJsonRepr", into = "RelatesToJsonRepr")]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(try_from = "RelatesToJsonRepr", into = "RelatesToJsonRepr")]
 pub struct Relation {
     /// The event that is being referenced.
     pub event_id: EventId,
+}
+
+#[cfg(feature = "unstable-pre-spec")]
+impl Relation {
+    /// Creates a new `Relation` with the given event ID.
+    pub fn new(event_id: EventId) -> Self {
+        Self { event_id }
+    }
 }
 
 #[cfg(feature = "unstable-pre-spec")]

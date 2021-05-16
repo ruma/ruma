@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Typically encrypted as an *m.room.encrypted* event, then sent as a to-device event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room_key", kind = ToDevice)]
 pub struct RoomKeyToDeviceEventContent {
     /// The encryption algorithm the key in this event is to be used with.
@@ -23,6 +24,19 @@ pub struct RoomKeyToDeviceEventContent {
 
     /// The key to be exchanged.
     pub session_key: String,
+}
+
+impl RoomKeyToDeviceEventContent {
+    /// Creates a new `RoomKeyToDeviceEventContent` with the given algorithm, room ID, session ID
+    /// and session key.
+    pub fn new(
+        algorithm: EventEncryptionAlgorithm,
+        room_id: RoomId,
+        session_id: String,
+        session_key: String,
+    ) -> Self {
+        Self { algorithm, room_id, session_id, session_key }
+    }
 }
 
 #[cfg(test)]

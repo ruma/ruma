@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 /// The payload for `RoomKeyRequestEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room_key_request", kind = ToDevice)]
 pub struct RoomKeyRequestToDeviceEventContent {
     /// Whether this is a new key request or a cancellation of a previous request.
@@ -14,7 +15,7 @@ pub struct RoomKeyRequestToDeviceEventContent {
 
     /// Information about the requested key.
     ///
-    /// Required when action is `request`.
+    /// Required if action is `request`.
     pub body: Option<RequestedKeyInfo>,
 
     /// ID of the device requesting the key.
@@ -25,6 +26,19 @@ pub struct RoomKeyRequestToDeviceEventContent {
     /// If the key is requested multiple times, it should be reused. It should also reused
     /// in order to cancel a request.
     pub request_id: String,
+}
+
+impl RoomKeyRequestToDeviceEventContent {
+    /// Creates a new `RoomKeyRequestToDeviceEventContent` with the given action, boyd, device ID
+    /// and request ID.
+    pub fn new(
+        action: Action,
+        body: Option<RequestedKeyInfo>,
+        requesting_device_id: DeviceIdBox,
+        request_id: String,
+    ) -> Self {
+        Self { action, body, requesting_device_id, request_id }
+    }
 }
 
 /// A new key request or a cancellation of a previous request.
@@ -44,6 +58,7 @@ pub enum Action {
 
 /// Information about a requested key.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RequestedKeyInfo {
     /// The encryption algorithm the requested key in this event is to be used with.
     pub algorithm: EventEncryptionAlgorithm,
@@ -56,4 +71,17 @@ pub struct RequestedKeyInfo {
 
     /// The ID of the session that the key is for.
     pub session_id: String,
+}
+
+impl RequestedKeyInfo {
+    /// Creates a new `RequestedKeyInfo` with the given algorithm, room ID, sender key and session
+    /// ID.
+    pub fn new(
+        algorithm: EventEncryptionAlgorithm,
+        room_id: RoomId,
+        sender_key: String,
+        session_id: String,
+    ) -> Self {
+        Self { algorithm, room_id, sender_key, session_id }
+    }
 }

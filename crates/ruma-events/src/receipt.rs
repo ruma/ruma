@@ -46,9 +46,19 @@ pub type Receipts = BTreeMap<ReceiptType, UserReceipts>;
 pub type UserReceipts = BTreeMap<UserId, Receipt>;
 
 /// An acknowledgement of an event.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Receipt {
     /// The time when the receipt was sent.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ts: Option<MilliSecondsSinceUnixEpoch>,
+}
+
+impl Receipt {
+    /// Creates a new `Receipt` with the given timestamp.
+    ///
+    /// To create an empty receipt instead, use [`Receipt::default`].
+    pub fn new(ts: MilliSecondsSinceUnixEpoch) -> Self {
+        Self { ts: Some(ts) }
+    }
 }
