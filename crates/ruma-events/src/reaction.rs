@@ -78,15 +78,3 @@ impl TryFrom<RelatesToJsonRepr> for Relation {
         }
     }
 }
-
-impl ReactionEventContent {
-    /// Create a new reaction.
-    ///
-    /// # Arguments
-    ///
-    /// * `event_id` - The id of the event we are reacting to.
-    /// * `emoji` - The emoji that indicates the reaction that is being applied.
-    pub fn new(event_id: EventId, emoji: String) -> Self {
-        ReactionEventContent { relation: Relation { event_id, emoji } }
-    }
-}
