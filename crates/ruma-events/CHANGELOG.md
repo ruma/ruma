@@ -45,6 +45,7 @@ Breaking changes:
 * Split `Basic` enum into `GlobalAccountData` and `RoomAccountData` enums
   * Remove `DummyEvent`, `DummyEventContent`, `RoomKeyEvent`, `RoomKeyEventContent`
 * Remove `BasicEventContent` trait and derive
+* Make most of the types in this crate non-exhaustive
 
 Improvements:
 
