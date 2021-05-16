@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use assign::assign;
 use js_int::uint;
 use matches::assert_matches;
@@ -9,8 +11,8 @@ use ruma_events::{
 use ruma_events::{
     room::{
         message::{
-            AudioMessageEventContent, CustomEventContent, MessageEvent, MessageEventContent,
-            MessageType, Relation, TextMessageEventContent,
+            AudioMessageEventContent, MessageEvent, MessageEventContent, MessageType, Relation,
+            TextMessageEventContent,
         },
         relationships::InReplyTo,
     },
@@ -86,18 +88,15 @@ fn content_serialization() {
 }
 
 #[test]
-fn custom_content_serialization() {
+fn custom_msgtype_serialization() {
     let json_data = json_object! {
         "custom_field".into() => json!("baba"),
         "another_one".into() => json!("abab"),
     };
-    let custom_event_content = MessageType::_Custom(CustomEventContent {
-        msgtype: "my_custom_msgtype".into(),
-        data: json_data,
-    });
+    let custom_msgtype = MessageType::new("my_custom_msgtype", json_data).unwrap();
 
     assert_eq!(
-        to_json_value(&custom_event_content).unwrap(),
+        to_json_value(&custom_msgtype).unwrap(),
         json!({
             "msgtype": "my_custom_msgtype",
             "custom_field": "baba",
@@ -119,17 +118,11 @@ fn custom_content_deserialization() {
         "another_one".into() => json!("abab"),
     };
 
-    assert_matches!(
-        from_json_value::<Raw<MessageType>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
-        MessageType::_Custom(CustomEventContent {
-            msgtype,
-            data
-        }) if msgtype == "my_custom_msgtype"
-            && data == expected_json_data
-    );
+    let custom_event =
+        from_json_value::<Raw<MessageType>>(json_data).unwrap().deserialize().unwrap();
+
+    assert_eq!(custom_event.msgtype(), "my_custom_msgtype");
+    assert_eq!(custom_event.data(), Cow::Owned(expected_json_data));
 }
 
 #[test]

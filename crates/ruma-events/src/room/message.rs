@@ -828,11 +828,11 @@ pub struct KeyVerificationRequestEventContent {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CustomEventContent {
     /// A custom msgtype
-    pub msgtype: String,
+    msgtype: String,
 
     /// Remaining event content
     #[serde(flatten)]
-    pub data: JsonObject,
+    data: JsonObject,
 }
 
 fn get_plain_quote_fallback(original_message: &MessageEvent) -> String {
