@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.1.0
+
 * Add more endpoints:
   ```rust
   association::{
