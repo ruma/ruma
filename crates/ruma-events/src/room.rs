@@ -108,7 +108,11 @@ impl ThumbnailInfo {
 }
 
 /// A file sent to a room with end-to-end encryption enabled.
+///
+/// To create an instance of this type, first create a `EncryptedFileInit` and convert it via
+/// `EncryptedFile::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct EncryptedFile {
     /// The URL to the file.
     pub url: MxcUri,
@@ -127,8 +131,41 @@ pub struct EncryptedFile {
     pub v: String,
 }
 
+/// Initial set of fields of `EncryptedFile`.
+///
+/// This struct will not be updated even if additional fields are added to `EncryptedFile` in a new
+/// (non-breaking) release of the Matrix specification.
+pub struct EncryptedFileInit {
+    /// The URL to the file.
+    pub url: MxcUri,
+
+    /// A [JSON Web Key](https://tools.ietf.org/html/rfc7517#appendix-A.3) object.
+    pub key: JsonWebKey,
+
+    /// The 128-bit unique counter block used by AES-CTR, encoded as unpadded base64.
+    pub iv: String,
+
+    /// A map from an algorithm name to a hash of the ciphertext, encoded as unpadded base64.
+    /// Clients should support the SHA-256 hash, which uses the key sha256.
+    pub hashes: BTreeMap<String, String>,
+
+    /// Version of the encrypted attachments protocol. Must be `v2`.
+    pub v: String,
+}
+
+impl From<EncryptedFileInit> for EncryptedFile {
+    fn from(init: EncryptedFileInit) -> Self {
+        let EncryptedFileInit { url, key, iv, hashes, v } = init;
+        Self { url, key, iv, hashes, v }
+    }
+}
+
 /// A [JSON Web Key](https://tools.ietf.org/html/rfc7517#appendix-A.3) object.
+///
+/// To create an instance of this type, first create a `JsonWebKeyInit` and convert it via
+/// `JsonWebKey::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct JsonWebKey {
     /// Key type. Must be `oct`.
     pub kty: String,
@@ -145,4 +182,33 @@ pub struct JsonWebKey {
     /// Extractable. Must be `true`. This is a
     /// [W3C extension](https://w3c.github.io/webcrypto/#iana-section-jwk).
     pub ext: bool,
+}
+
+/// Initial set of fields of `JsonWebKey`.
+///
+/// This struct will not be updated even if additional fields are added to `JsonWebKey` in a new
+/// (non-breaking) release of the Matrix specification.
+pub struct JsonWebKeyInit {
+    /// Key type. Must be `oct`.
+    pub kty: String,
+
+    /// Key operations. Must at least contain `encrypt` and `decrypt`.
+    pub key_ops: Vec<String>,
+
+    /// Required. Algorithm. Must be `A256CTR`.
+    pub alg: String,
+
+    /// The key, encoded as url-safe unpadded base64.
+    pub k: String,
+
+    /// Extractable. Must be `true`. This is a
+    /// [W3C extension](https://w3c.github.io/webcrypto/#iana-section-jwk).
+    pub ext: bool,
+}
+
+impl From<JsonWebKeyInit> for JsonWebKey {
+    fn from(init: JsonWebKeyInit) -> Self {
+        let JsonWebKeyInit { kty, key_ops, alg, k, ext } = init;
+        Self { kty, key_ops, alg, k, ext }
+    }
 }
