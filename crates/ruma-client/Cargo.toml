@@ -44,7 +44,7 @@ ruma-api = { version = "=0.17.0-alpha.4", path = "../ruma-api" }
 ruma-client-api = { version = "=0.10.0-alpha.3", path = "../ruma-client-api", optional = true, features = ["client"] }
 ruma-common = { version = "0.5.0", path = "../ruma-common" }
 ruma-events = { version = "=0.22.0-alpha.3", path = "../ruma-events" }
-ruma-identifiers = { version = "0.19.0", path = "../ruma-identifiers" }
+ruma-identifiers = { version = "0.19.1", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.4.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.61"

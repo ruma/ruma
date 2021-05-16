@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.19.1
+
 Improvements:
 
 * Bump dependency versions
