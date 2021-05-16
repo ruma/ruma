@@ -355,15 +355,15 @@ pub struct AudioMessageEventContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<MxcUri>,
 
-    /// Metadata for the audio clip referred to in `url`.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub info: Option<Box<AudioInfo>>,
-
     /// Information on the encrypted audio clip.
     ///
     /// Required if the audio clip is encrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub file: Option<Box<EncryptedFile>>,
+
+    /// Metadata for the audio clip referred to in `url`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub info: Option<Box<AudioInfo>>,
 }
 
 impl AudioMessageEventContent {
@@ -456,15 +456,15 @@ pub struct FileMessageEventContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<MxcUri>,
 
-    /// Metadata about the file referred to in `url`.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub info: Option<Box<FileInfo>>,
-
     /// Information on the encrypted file.
     ///
     /// Required if file is encrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub file: Option<Box<EncryptedFile>>,
+
+    /// Metadata about the file referred to in `url`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub info: Option<Box<FileInfo>>,
 }
 
 impl FileMessageEventContent {
@@ -481,7 +481,8 @@ impl FileMessageEventContent {
 }
 
 /// Metadata about a file.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct FileInfo {
     /// The mimetype of the file, e.g. "application/msword".
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -508,8 +509,16 @@ pub struct FileInfo {
     pub thumbnail_file: Option<Box<EncryptedFile>>,
 }
 
+impl FileInfo {
+    /// Creates an empty `FileInfo`.
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
 /// The payload for an image message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.image")]
 pub struct ImageMessageEventContent {
     /// A textual representation of the image.
@@ -517,10 +526,6 @@ pub struct ImageMessageEventContent {
     /// This could be the alt text of the image, the filename of the image, or some kind of content
     /// description for accessibility e.g. "image attachment".
     pub body: String,
-
-    /// Metadata about the image referred to in `url`.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub info: Option<Box<ImageInfo>>,
 
     /// The URL to the image.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -531,10 +536,28 @@ pub struct ImageMessageEventContent {
     /// Required if image is encrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub file: Option<Box<EncryptedFile>>,
+
+    /// Metadata about the image referred to in `url`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub info: Option<Box<ImageInfo>>,
+}
+
+impl ImageMessageEventContent {
+    /// Creates a new non-encrypted `ImageMessageEventContent` with the given body, url and optional
+    /// extra info.
+    pub fn plain(body: String, url: MxcUri, info: Option<Box<ImageInfo>>) -> Self {
+        Self { body, url: Some(url), info, file: None }
+    }
+
+    /// Creates a new encrypted `ImageMessageEventContent` with the given body and encrypted file.
+    pub fn encrypted(body: String, file: EncryptedFile) -> Self {
+        Self { body, url: None, info: None, file: Some(Box::new(file)) }
+    }
 }
 
 /// The payload for a location message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.location")]
 pub struct LocationMessageEventContent {
     /// A description of the location e.g. "Big Ben, London, UK", or some kind of content
@@ -549,13 +572,17 @@ pub struct LocationMessageEventContent {
     pub info: Option<Box<LocationInfo>>,
 }
 
-/// Thumbnail info associated with a location.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct LocationInfo {
-    /// Metadata about the image referred to in `thumbnail_url` or `thumbnail_file`.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_info: Option<Box<ThumbnailInfo>>,
+impl LocationMessageEventContent {
+    /// Creates a new `LocationMessageEventContent` with the given body and geo URI.
+    pub fn new(body: String, geo_uri: String) -> Self {
+        Self { body, geo_uri, info: None }
+    }
+}
 
+/// Thumbnail info associated with a location.
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct LocationInfo {
     /// The URL to a thumbnail of the location being represented.
     ///
     /// Only present if the thumbnail is unencrypted.
@@ -567,6 +594,17 @@ pub struct LocationInfo {
     /// Only present if the thumbnail is encrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_file: Option<Box<EncryptedFile>>,
+
+    /// Metadata about the image referred to in `thumbnail_url` or `thumbnail_file`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thumbnail_info: Option<Box<ThumbnailInfo>>,
+}
+
+impl LocationInfo {
+    /// Creates an empty `LocationInfo`.
+    pub fn new() -> Self {
+        Self::default()
+    }
 }
 
 /// The payload for a notice message.
@@ -596,6 +634,7 @@ impl NoticeMessageEventContent {
 
 /// The payload for a server notice message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.server_notice")]
 pub struct ServerNoticeMessageEventContent {
     /// A human-readable description of the notice.
@@ -615,6 +654,13 @@ pub struct ServerNoticeMessageEventContent {
     /// Required if the notice type is `m.server_notice.usage_limit_reached`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit_type: Option<LimitType>,
+}
+
+impl ServerNoticeMessageEventContent {
+    /// Creates a new `ServerNoticeMessageEventContent` with the given body and notice type.
+    pub fn new(body: String, server_notice_type: ServerNoticeType) -> Self {
+        Self { body, server_notice_type, admin_contact: None, limit_type: None }
+    }
 }
 
 /// Types of server notices.
@@ -644,9 +690,8 @@ pub enum LimitType {
 
 /// The format for the formatted representation of a message body.
 ///
-/// This type can hold an arbitrary string. To check for events that are not
-/// available as a documented variant here, use its string representation,
-/// obtained through `.as_str()`.
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 pub enum MessageFormat {
     /// HTML.
@@ -726,15 +771,12 @@ impl TextMessageEventContent {
 
 /// The payload for a video message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.video")]
 pub struct VideoMessageEventContent {
     /// A description of the video, e.g. "Gangnam Style", or some kind of content description for
     /// accessibility, e.g. "video attachment".
     pub body: String,
-
-    /// Metadata about the video clip referred to in `url`.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub info: Option<Box<VideoInfo>>,
 
     /// The URL to the video clip.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -745,10 +787,28 @@ pub struct VideoMessageEventContent {
     /// Required if video clip is encrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub file: Option<Box<EncryptedFile>>,
+
+    /// Metadata about the video clip referred to in `url`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub info: Option<Box<VideoInfo>>,
+}
+
+impl VideoMessageEventContent {
+    /// Creates a new non-encrypted `VideoMessageEventContent` with the given body, url and optional
+    /// extra info.
+    pub fn plain(body: String, url: MxcUri, info: Option<Box<VideoInfo>>) -> Self {
+        Self { body, url: Some(url), info, file: None }
+    }
+
+    /// Creates a new encrypted `VideoMessageEventContent` with the given body and encrypted file.
+    pub fn encrypted(body: String, file: EncryptedFile) -> Self {
+        Self { body, url: None, info: None, file: Some(Box::new(file)) }
+    }
 }
 
 /// Metadata about a video.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct VideoInfo {
     /// The duration of the video in milliseconds.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -799,10 +859,18 @@ pub struct VideoInfo {
     pub blurhash: Option<String>,
 }
 
+impl VideoInfo {
+    /// Creates an empty `VideoInfo`.
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
 /// The payload for a key verification request message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.key.verification.request")]
 pub struct KeyVerificationRequestEventContent {
     /// A fallback message to alert users that their client does not support the key verification
@@ -819,8 +887,22 @@ pub struct KeyVerificationRequestEventContent {
     ///
     /// Users should only respond to verification requests if they are named in this field. Users
     /// who are not named in this field and who did not send this event should ignore all other
-    /// events that have a m.reference relationship with this event.
+    /// events that have a `m.reference` relationship with this event.
     pub to: UserId,
+}
+
+#[cfg(feature = "unstable-pre-spec")]
+impl KeyVerificationRequestEventContent {
+    /// Creates a new `KeyVerificationRequestEventContent` with the given body, method, device and
+    /// user ID.
+    pub fn new(
+        body: String,
+        methods: Vec<VerificationMethod>,
+        from_device: DeviceIdBox,
+        to: UserId,
+    ) -> Self {
+        Self { body, methods, from_device, to }
+    }
 }
 
 /// The payload for a custom message event.
