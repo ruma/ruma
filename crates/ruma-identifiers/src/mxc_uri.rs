@@ -1,4 +1,6 @@
-//! A URI that should be a Matrix-spec compliant MXC URI.
+//! A URI that should be a Matrix-spec compliant [MXC URI].
+//!
+//! [MXC URI]: https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri
 
 use std::{convert::TryFrom, fmt, num::NonZeroU8};
 
@@ -6,7 +8,9 @@ use ruma_identifiers_validation::mxc_uri::validate;
 
 use crate::ServerName;
 
-/// A URI that should be a Matrix-spec compliant MXC URI.
+/// A URI that should be a Matrix-spec compliant [MXC URI].
+///
+/// [MXC URI]: https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct MxcUri {
     full_uri: Box<str>,
