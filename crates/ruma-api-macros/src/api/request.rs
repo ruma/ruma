@@ -13,7 +13,7 @@ use super::metadata::Metadata;
 mod incoming;
 mod outgoing;
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub(super) struct RequestLifetimes {
     pub body: BTreeSet<Lifetime>,
     pub path: BTreeSet<Lifetime>,

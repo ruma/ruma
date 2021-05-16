@@ -37,5 +37,5 @@ pub(crate) fn import_ruma_api() -> TokenStream {
 }
 
 pub(crate) fn is_cfg_attribute(attr: &Attribute) -> bool {
-    attr.style == AttrStyle::Outer && attr.path.is_ident("cfg")
+    matches!(attr.style, AttrStyle::Outer) && attr.path.is_ident("cfg")
 }
