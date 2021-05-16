@@ -1,6 +1,13 @@
-# 0.1.0 (unreleased)
+# [unreleased]
 
-* Upgrade dependencies
+# 0.1.0
+
+Breaking changes:
+
+* Remove `Copy` implementation for `NotificationCounts` to avoid simple changes
+  being breaking
+* Change `Box<RawJsonValue>` to `&RawJsonValue` in request types
+* Upgrade public dependencies
 
 # 0.0.1
 
