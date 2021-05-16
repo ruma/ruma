@@ -12,8 +12,8 @@ use serde::{Deserialize, Serialize};
 /// The event does not have any content associated with it. The sending client is expected to
 /// send a key share request shortly after this message, causing the receiving client to process
 /// this *m.dummy* event as the most recent event and using the keyshare request to set up the
-/// session. The keyshare request and *m.dummy* combination should result in the original
-/// sending client receiving keys over the newly established session.
+/// session. The keyshare request and *m.dummy* combination should result in the original sending
+/// client receiving keys over the newly established session.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.dummy", kind = ToDevice)]
-pub struct DummyToDeviceEventContent {}
+pub struct DummyToDeviceEventContent;
