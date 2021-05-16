@@ -24,7 +24,7 @@ use serde_json::{
 fn unsigned() -> RedactedUnsigned {
     let mut unsigned = RedactedUnsigned::default();
     unsigned.redacted_because = Some(Box::new(SyncRedactionEvent {
-        content: RedactionEventContent { reason: Some("redacted because".into()) },
+        content: RedactionEventContent::with_reason("redacted because".into()),
         redacts: event_id!("$h29iv0s8:example.com"),
         event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
@@ -167,7 +167,7 @@ fn redacted_deserialize_any_room_sync() {
     // to return early with `RedactedContent` instead of failing to deserialize according
     // to the event type string.
     unsigned.redacted_because = Some(Box::new(SyncRedactionEvent {
-        content: RedactionEventContent { reason: Some("redacted because".into()) },
+        content: RedactionEventContent::with_reason("redacted because".into()),
         redacts: event_id!("$h29iv0s8:example.com"),
         event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
@@ -310,7 +310,7 @@ fn redact_method_properly_redacts() {
     });
 
     let redaction = SyncRedactionEvent {
-        content: RedactionEventContent { reason: Some("redacted because".into()) },
+        content: RedactionEventContent::with_reason("redacted because".into()),
         redacts: event_id!("$143273582443PhrSn:example.com"),
         event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),

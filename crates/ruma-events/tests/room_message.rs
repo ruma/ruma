@@ -160,7 +160,7 @@ fn relates_to_content_serialization() {
     let message_event_content =
         assign!(MessageEventContent::text_plain("> <@test:example.com> test\n\ntest reply"), {
             relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo { event_id: event_id!("$15827405538098VGFWH:example.com") },
+                in_reply_to: InReplyTo::new(event_id!("$15827405538098VGFWH:example.com")),
             }),
         });
 

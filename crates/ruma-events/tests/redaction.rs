@@ -28,7 +28,7 @@ fn redaction() -> JsonValue {
 #[test]
 fn serialize_redaction() {
     let aliases_event = RedactionEvent {
-        content: RedactionEventContent { reason: Some("being a turd".into()) },
+        content: RedactionEventContent::with_reason("being a turd".into()),
         redacts: event_id!("$nomore:example.com"),
         event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
@@ -53,7 +53,7 @@ fn deserialize_redaction() {
             .deserialize()
             .unwrap(),
         AnyMessageEvent::RoomRedaction(RedactionEvent {
-            content: RedactionEventContent { reason: Some(reas) },
+            content: RedactionEventContent { reason: Some(reas), .. },
             redacts,
             event_id,
             origin_server_ts,

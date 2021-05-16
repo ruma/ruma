@@ -47,7 +47,7 @@ impl ThirdPartyInviteEventContent {
     /// Creates a new `ThirdPartyInviteEventContent` with the given display name, key validity url
     /// and public key.
     pub fn new(display_name: String, key_validity_url: String, public_key: String) -> Self {
-        Self { display_name, key_validity_url, public_key, public_keys }
+        Self { display_name, key_validity_url, public_key, public_keys: None }
     }
 }
 
