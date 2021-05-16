@@ -1,8 +1,12 @@
 # [unreleased]
 
+# 0.5.1
+
 Improvements:
 
 * Add `receipt::ReceiptType`
+* Add `MilliSecondsSinceUnixEpoch` and `SecondsSinceUnixEpoch` types
+* Bump dependency versions
 
 # 0.5.0
 
