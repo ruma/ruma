@@ -10,6 +10,7 @@ pub type ServerAclEvent = StateEvent<ServerAclEventContent>;
 
 /// The payload for `ServerAclEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.server_acl", kind = State)]
 pub struct ServerAclEventContent {
     /// True to allow server names that are IP address literals. False to deny.
@@ -36,6 +37,14 @@ pub struct ServerAclEventContent {
     /// This defaults to an empty list when not provided.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub deny: Vec<String>,
+}
+
+impl ServerAclEventContent {
+    /// Creates a new `ServerAclEventContent` with the given IP literal allowance flag, allowed and
+    /// denied servers.
+    pub fn new(allow_ip_literals: bool, allow: Vec<String>, deny: Vec<String>) -> Self {
+        Self { allow_ip_literals, allow, deny }
+    }
 }
 
 #[cfg(test)]

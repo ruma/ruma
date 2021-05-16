@@ -51,22 +51,40 @@ pub(crate) enum RelationJsonRepr {
 
 /// Information about the event a "rich reply" is replying to.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct InReplyTo {
     /// The event being replied to.
     pub event_id: EventId,
+}
+
+impl InReplyTo {
+    /// Creates a new `InReplyTo` with the given event ID.
+    pub fn new(event_id: EventId) -> Self {
+        Self { event_id }
+    }
 }
 
 /// A reference to another event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Reference {
     /// The event we are referencing.
     pub event_id: EventId,
 }
 
+#[cfg(feature = "unstable-pre-spec")]
+impl Reference {
+    /// Creates a new `Reference` with the given event ID.
+    pub fn new(event_id: EventId) -> Self {
+        Self { event_id }
+    }
+}
+
 /// An annotation for an event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Annotation {
     /// The event that is being annotated.
     pub event_id: EventId,
@@ -75,13 +93,29 @@ pub struct Annotation {
     pub key: String,
 }
 
+impl Annotation {
+    /// Creates a new `Annotation` with the given event ID and key.
+    pub fn new(event_id: EventId, key: String) -> Self {
+        Self { event_id, key }
+    }
+}
+
 /// An event replacing another event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Replacement {
     /// The event this event is replacing.
     pub event_id: EventId,
+}
+
+#[cfg(feature = "unstable-pre-spec")]
+impl Replacement {
+    /// Creates a new `Replacement` with the given event ID.
+    pub fn new(event_id: EventId) -> Self {
+        Self { event_id }
+    }
 }
 
 #[cfg(test)]

@@ -55,12 +55,25 @@ pub struct SyncRedactionEvent {
 }
 
 /// A redaction of an event.
-#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.redaction", kind = Message)]
 pub struct RedactionEventContent {
     /// The reason for the redaction, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
+}
+
+impl RedactionEventContent {
+    /// Creates an empty `RedactionEventContent`.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Creates a `RedactionEventContent` with the given reason.
+    pub fn with_reason(reason: String) -> Self {
+        Self { reason: Some(reason) }
+    }
 }
 
 impl RedactedStateEventContent for RedactedRedactionEventContent {}

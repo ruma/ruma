@@ -14,6 +14,7 @@ pub type ThirdPartyInviteEvent = StateEvent<ThirdPartyInviteEventContent>;
 
 /// The payload for `ThirdPartyInviteEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.third_party_invite", kind = State)]
 pub struct ThirdPartyInviteEventContent {
     /// A user-readable string which represents the user who has been invited.
@@ -42,8 +43,17 @@ pub struct ThirdPartyInviteEventContent {
     pub public_keys: Option<Vec<PublicKey>>,
 }
 
+impl ThirdPartyInviteEventContent {
+    /// Creates a new `ThirdPartyInviteEventContent` with the given display name, key validity url
+    /// and public key.
+    pub fn new(display_name: String, key_validity_url: String, public_key: String) -> Self {
+        Self { display_name, key_validity_url, public_key, public_keys }
+    }
+}
+
 /// A public key for signing a third party invite token.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct PublicKey {
     /// An optional URL which can be fetched to validate whether the key has been revoked.
     ///
@@ -54,4 +64,11 @@ pub struct PublicKey {
 
     /// A Base64-encoded Ed25519 key with which the token must be signed.
     pub public_key: String,
+}
+
+impl PublicKey {
+    /// Creates a new `PublicKey` with the given base64-encoded ed25519 key.
+    pub fn new(public_key: String) -> Self {
+        Self { key_validity_url: None, public_key }
+    }
 }

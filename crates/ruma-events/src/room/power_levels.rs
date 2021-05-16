@@ -17,6 +17,7 @@ pub type PowerLevelsEvent = StateEvent<PowerLevelsEventContent>;
 
 /// The payload for `PowerLevelsEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.power_levels", kind = State)]
 pub struct PowerLevelsEventContent {
     /// The level required to ban a user.
@@ -116,8 +117,9 @@ pub struct PowerLevelsEventContent {
     pub notifications: NotificationPowerLevels,
 }
 
-impl Default for PowerLevelsEventContent {
-    fn default() -> Self {
+impl PowerLevelsEventContent {
+    /// Creates a `PowerLevelsEventContent` with all-default values.
+    pub fn new() -> Self {
         // events_default and users_default having a default of 0 while the others have a default
         // of 50 is not an oversight, these defaults are from the Matrix specification.
         Self {
@@ -132,6 +134,12 @@ impl Default for PowerLevelsEventContent {
             users_default: Int::default(),
             notifications: NotificationPowerLevels::default(),
         }
+    }
+}
+
+impl Default for PowerLevelsEventContent {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
