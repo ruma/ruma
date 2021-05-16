@@ -1,4 +1,6 @@
-# 0.22.0 (unreleased)
+# [unreleased]
+
+# 0.22.0
 
 Breaking changes:
 
