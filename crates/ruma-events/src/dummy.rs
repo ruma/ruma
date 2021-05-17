@@ -33,7 +33,7 @@ impl<'de> Deserialize<'de> for DummyToDeviceEventContent {
         impl<'de> de::Visitor<'de> for Visitor {
             type Value = DummyToDeviceEventContent;
 
-            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
                 formatter.write_str("a struct")
             }
 
@@ -41,7 +41,7 @@ impl<'de> Deserialize<'de> for DummyToDeviceEventContent {
             where
                 A: de::MapAccess<'de>,
             {
-                while let Some(_) = map.next_entry::<de::IgnoredAny, de::IgnoredAny>()? {}
+                while map.next_entry::<de::IgnoredAny, de::IgnoredAny>()?.is_some() {}
                 Ok(DummyToDeviceEventContent)
             }
         }
