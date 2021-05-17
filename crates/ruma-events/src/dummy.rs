@@ -1,7 +1,12 @@
 //! Types for the *m.dummy* event.
 
+use std::fmt;
+
 use ruma_events_macros::EventContent;
-use serde::{Deserialize, Serialize};
+use serde::{
+    de::{self, Deserialize, Deserializer},
+    ser::{Serialize, SerializeStruct as _, Serializer},
+};
 
 /// The payload for `DummyEvent`.
 ///
@@ -14,6 +19,42 @@ use serde::{Deserialize, Serialize};
 /// this *m.dummy* event as the most recent event and using the keyshare request to set up the
 /// session. The keyshare request and *m.dummy* combination should result in the original sending
 /// client receiving keys over the newly established session.
-#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[derive(Clone, Debug, EventContent)]
 #[ruma_event(type = "m.dummy", kind = ToDevice)]
 pub struct DummyToDeviceEventContent;
+
+impl<'de> Deserialize<'de> for DummyToDeviceEventContent {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> de::Visitor<'de> for Visitor {
+            type Value = DummyToDeviceEventContent;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("a struct")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where
+                A: de::MapAccess<'de>,
+            {
+                while let Some(_) = map.next_entry::<de::IgnoredAny, de::IgnoredAny>()? {}
+                Ok(DummyToDeviceEventContent)
+            }
+        }
+
+        deserializer.deserialize_struct("DummyToDeviceEventContent", &[], Visitor)
+    }
+}
+
+impl Serialize for DummyToDeviceEventContent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_struct("DummyToDeviceEventContent", 0)?.end()
+    }
+}
