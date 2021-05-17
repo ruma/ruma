@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.22.1
+
+Bug fixes:
+
+* Fix serialized format of `DummyEventContent`
+
 # 0.22.0
 
 Breaking changes:
