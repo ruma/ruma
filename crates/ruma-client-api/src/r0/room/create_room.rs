@@ -129,27 +129,31 @@ pub struct CreationContent {
     /// A reference to the room this room replaces, if the previous room was upgraded.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub predecessor: Option<PreviousRoom>,
+
+    /// The room type that shall be set. This is currently used for spaces
+    #[serde(skip_serializing_if = "Option::is_none", rename = "type")]
+    pub room_type: Option<String>,
 }
 
 impl CreationContent {
     /// Creates a new `CreationContent` with all fields defaulted.
     pub fn new() -> Self {
-        Self { federate: true, predecessor: None }
+        Self { federate: true, predecessor: None, room_type: None }
     }
 
     /// Given a `CreationContent` and the other fields that a homeserver has to fill, construct
     /// a `CreateEventContent`.
     pub fn into_event_content(
-        Self { federate, predecessor }: Self,
+        Self { federate, predecessor, room_type }: Self,
         creator: UserId,
         room_version: RoomVersionId,
     ) -> CreateEventContent {
-        assign!(CreateEventContent::new(creator), { federate, room_version, predecessor })
+        assign!(CreateEventContent::new(creator), { federate, room_version, predecessor, room_type })
     }
 
     /// Returns whether all fields have their default value.
     pub fn is_empty(&self) -> bool {
-        self.federate && self.predecessor.is_none()
+        self.federate && self.predecessor.is_none() && self.room_type.is_none()
     }
 }
 

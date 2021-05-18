@@ -34,13 +34,35 @@ pub struct CreateEventContent {
     /// A reference to the room this room replaces, if the previous room was upgraded.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub predecessor: Option<PreviousRoom>,
+
+    /// The room type that shall be set. This is currently used for spaces
+    #[serde(skip_serializing_if = "Option::is_none", rename = "type")]
+    pub room_type: Option<String>,
 }
 
 impl CreateEventContent {
     /// Creates a new `CreateEventContent` with the given creator.
     pub fn new(creator: UserId) -> Self {
-        Self { creator, federate: true, room_version: default_room_version_id(), predecessor: None }
+        Self {
+            creator,
+            federate: true,
+            room_version: default_room_version_id(),
+            predecessor: None,
+            room_type: None,
+        }
     }
+}
+
+/// An enum of possible room types
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(untagged)]
+pub enum RoomType {
+    /// Defines the room as a space
+    #[serde(rename = "m.space")]
+    Space,
+    /// Defines the room as a custom type
+    Custom(String),
 }
 
 /// A reference to an old room replaced during a room version upgrade.
@@ -82,12 +104,33 @@ mod tests {
             federate: false,
             room_version: RoomVersionId::Version4,
             predecessor: None,
+            room_type: None,
         };
 
         let json = json!({
             "creator": "@carl:example.com",
             "m.federate": false,
             "room_version": "4"
+        });
+
+        assert_eq!(to_json_value(&content).unwrap(), json);
+    }
+
+    #[test]
+    fn space_serialization() {
+        let content = CreateEventContent {
+            creator: user_id!("@carl:example.com"),
+            federate: false,
+            room_version: RoomVersionId::Version4,
+            predecessor: None,
+            room_type: Some("m.space".to_string()),
+        };
+
+        let json = json!({
+            "creator": "@carl:example.com",
+            "m.federate": false,
+            "room_version": "4",
+            "type": "m.space"
         });
 
         assert_eq!(to_json_value(&content).unwrap(), json);
@@ -111,7 +154,32 @@ mod tests {
                 federate: true,
                 room_version: RoomVersionId::Version4,
                 predecessor: None,
+                room_type: None,
             } if creator == "@carl:example.com"
+        );
+    }
+
+    #[test]
+    fn space_deserialization() {
+        let json = json!({
+            "creator": "@carl:example.com",
+            "m.federate": true,
+            "room_version": "4",
+            "type": "m.space"
+        });
+
+        assert_matches!(
+            from_json_value::<Raw<CreateEventContent>>(json)
+                .unwrap()
+                .deserialize()
+                .unwrap(),
+            CreateEventContent {
+                creator,
+                federate: true,
+                room_version: RoomVersionId::Version4,
+                predecessor: None,
+                room_type
+            } if creator == "@carl:example.com" && room_type == Some("m.space".to_string())
         );
     }
 }
