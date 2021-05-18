@@ -430,13 +430,8 @@ impl EmoteMessageEventContent {
     /// plain-text emote.
     #[cfg(feature = "markdown")]
     #[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
-    pub fn markdown(body: impl Into<String>) -> Self {
-        let body = body.into();
-
-        match FormattedBody::markdown(&body) {
-            Some(formatted_body) => Self { formatted: Some(formatted_body), ..Self::plain(body) },
-            _ => Self::plain(body),
-        }
+    pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
+        Self { formatted: FormattedBody::markdown(&body), ..Self::plain(body) }
     }
 }
 
@@ -592,13 +587,8 @@ impl NoticeMessageEventContent {
     /// text notice.
     #[cfg(feature = "markdown")]
     #[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
-    pub fn markdown(body: impl Into<String>) -> Self {
-        let body = body.into();
-
-        match FormattedBody::markdown(&body) {
-            Some(formatted_body) => Self { formatted: Some(formatted_body), ..Self::plain(body) },
-            _ => Self::plain(body),
-        }
+    pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
+        Self { formatted: FormattedBody::markdown(&body), ..Self::plain(body) }
     }
 }
 
@@ -692,14 +682,14 @@ impl FormattedBody {
 
     /// Creates a new HTML-formatted message body by parsing the markdown in `body`.
     ///
-    /// Returns None if no markdown formatting was found.
+    /// Returns `None` if no markdown formatting was found.
     #[cfg(feature = "markdown")]
     #[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
-    pub fn markdown(body: impl Into<String>) -> Option<Self> {
-        let body = body.into();
+    pub fn markdown(body: impl AsRef<str>) -> Option<Self> {
+        let body = body.as_ref();
         let mut html_body = String::new();
 
-        pulldown_cmark::html::push_html(&mut html_body, pulldown_cmark::Parser::new(&body));
+        pulldown_cmark::html::push_html(&mut html_body, pulldown_cmark::Parser::new(body));
 
         if html_body == format!("<p>{}</p>\n", body) {
             None
@@ -739,13 +729,8 @@ impl TextMessageEventContent {
     /// text message.
     #[cfg(feature = "markdown")]
     #[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
-    pub fn markdown(body: impl Into<String>) -> Self {
-        let body = body.into();
-
-        match FormattedBody::markdown(&body) {
-            Some(formatted_body) => Self { formatted: Some(formatted_body), ..Self::plain(body) },
-            _ => Self::plain(body),
-        }
+    pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
+        Self { formatted: FormattedBody::markdown(&body), ..Self::plain(body) }
     }
 
     /// A convenience constructor to create a plain text message.
