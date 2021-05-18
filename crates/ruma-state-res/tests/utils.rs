@@ -48,10 +48,10 @@ pub fn do_check(
 
     // This will be lexi_topo_sorted for resolution
     let mut graph = BTreeMap::new();
-    // this is the same as in `resolve` event_id -> StateEvent
+    // This is the same as in `resolve` event_id -> StateEvent
     let mut fake_event_map = BTreeMap::new();
 
-    // create the DB of events that led up to this point
+    // Create the DB of events that led up to this point
     // TODO maybe clean up some of these clones it is just tests but...
     for ev in init_events.values().chain(events) {
         graph.insert(ev.event_id().clone(), btreeset![]);
@@ -77,7 +77,7 @@ pub fn do_check(
     // event_id -> StateMap<EventId>
     let mut state_at_event: BTreeMap<EventId, StateMap<EventId>> = BTreeMap::new();
 
-    // resolve the current state and add it to the state_at_event map then continue
+    // Resolve the current state and add it to the state_at_event map then continue
     // on in "time"
     for node in StateResolution::lexicographical_topological_sort(&graph, |id| {
         (0, MilliSecondsSinceUnixEpoch(uint!(0)), id.clone())
@@ -163,7 +163,7 @@ pub fn do_check(
             &prev_events.iter().cloned().collect::<Vec<_>>(),
         );
 
-        // we have to update our store, an actual user of this lib would
+        // We have to update our store, an actual user of this lib would
         // be giving us state from a DB.
         store.0.insert(ev_id.clone(), event.clone());
 
@@ -196,7 +196,7 @@ pub fn do_check(
                 // Filter out the dummy messages events.
                 // These act as points in time where there should be a known state to
                 // test against.
-                && k != &&(EventType::RoomMessage, "dummy".to_string())
+                && **k != (EventType::RoomMessage, "dummy".to_string())
         })
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect::<StateMap<EventId>>();

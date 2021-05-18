@@ -58,7 +58,7 @@ impl StateResolution {
     ) -> Result<StateMap<EventId>> {
         info!("State resolution starting");
 
-        // split non-conflicting and conflicting state
+        // Split non-conflicting and conflicting state
         let (clean, conflicting) = StateResolution::separate(state_sets);
 
         info!("non conflicting {:?}", clean.len());
@@ -70,35 +70,35 @@ impl StateResolution {
 
         info!("{} conflicting events", conflicting.len());
 
-        // the set of auth events that are not common across server forks
+        // The set of auth events that are not common across server forks
         let mut auth_diff = StateResolution::get_auth_chain_diff(room_id, &auth_events)?;
 
         debug!("auth diff size {:?}", auth_diff);
 
-        // add the auth_diff to conflicting now we have a full set of conflicting events
+        // Add the auth_diff to conflicting now we have a full set of conflicting events
         auth_diff.extend(conflicting.values().cloned().flatten());
 
         // `all_conflicted` contains unique items
         // synapse says `full_set = {eid for eid in full_conflicted_set if eid in event_map}`
         //
-        // don't honor events we cannot "verify"
+        // Don't honor events we cannot "verify"
         // TODO: BTreeSet::retain() when stable 1.53
         let all_conflicted =
             auth_diff.into_iter().filter(|id| event_map.contains_key(id)).collect::<BTreeSet<_>>();
 
         info!("full conflicted set is {} events", all_conflicted.len());
 
-        // we used to check that all events are events from the correct room
+        // We used to check that all events are events from the correct room
         // this is now a check the caller of `resolve` must make.
 
-        // get only the control events with a state_key: "" or ban/kick event (sender != state_key)
+        // Get only the control events with a state_key: "" or ban/kick event (sender != state_key)
         let control_events = all_conflicted
             .iter()
             .filter(|id| is_power_event_id(id, event_map))
             .cloned()
             .collect::<Vec<_>>();
 
-        // sort the control events based on power_level/clock/event_id and outgoing/incoming edges
+        // Sort the control events based on power_level/clock/event_id and outgoing/incoming edges
         let sorted_control_levels = StateResolution::reverse_topological_power_sort(
             room_id,
             &control_events,
@@ -109,7 +109,7 @@ impl StateResolution {
         debug!("SRTD {:?}", sorted_control_levels);
 
         let room_version = RoomVersion::new(room_version)?;
-        // sequentially auth check each control event.
+        // Sequentially auth check each control event.
         let resolved_control = StateResolution::iterative_auth_check(
             room_id,
             &room_version,
@@ -152,7 +152,7 @@ impl StateResolution {
             event_map,
         )?;
 
-        // add unconflicted state to the resolved state
+        // Add unconflicted state to the resolved state
         // We priorities the unconflicting state
         resolved_state.extend(clean);
         Ok(resolved_state)
@@ -242,7 +242,7 @@ impl StateResolution {
             // tasks can make progress
         }
 
-        // this is used in the `key_fn` passed to the lexico_topo_sort fn
+        // This is used in the `key_fn` passed to the lexico_topo_sort fn
         let mut event_to_pl = BTreeMap::new();
         for event_id in graph.keys() {
             let pl = StateResolution::get_power_level_for_sender(room_id, event_id, event_map);
@@ -256,7 +256,6 @@ impl StateResolution {
         }
 
         StateResolution::lexicographical_topological_sort(&graph, |event_id| {
-            // debug!("{:?}", event_map.get(event_id).unwrap().origin_server_ts());
             let ev = event_map.get(event_id).unwrap();
             let pl = event_to_pl.get(event_id).unwrap();
 
@@ -300,7 +299,7 @@ impl StateResolution {
 
         for (node, edges) in graph.iter() {
             if edges.is_empty() {
-                // the `Reverse` is because rusts `BinaryHeap` sorts largest -> smallest we need
+                // The `Reverse` is because rusts `BinaryHeap` sorts largest -> smallest we need
                 // smallest -> largest
                 zero_outdegree.push(Reverse((key_fn(node), node)));
             }
@@ -313,16 +312,16 @@ impl StateResolution {
 
         let mut heap = BinaryHeap::from(zero_outdegree);
 
-        // we remove the oldest node (most incoming edges) and check against all other
+        // We remove the oldest node (most incoming edges) and check against all other
         let mut sorted = vec![];
-        // destructure the `Reverse` and take the smallest `node` each time
+        // Destructure the `Reverse` and take the smallest `node` each time
         while let Some(Reverse((_, node))) = heap.pop() {
             let node: &EventId = node;
             for parent in reverse_graph.get(node).unwrap() {
-                // the number of outgoing edges this node has
+                // The number of outgoing edges this node has
                 let out = outdegree_map.get_mut(parent).unwrap();
 
-                // only push on the heap once older events have been cleared
+                // Only push on the heap once older events have been cleared
                 out.remove(node);
                 if out.is_empty() {
                     heap.push(Reverse((key_fn(parent), parent)));
@@ -551,7 +550,7 @@ impl StateResolution {
             // tasks can make progress
         }
 
-        // sort the event_ids by their depth, timestamp and EventId
+        // Sort the event_ids by their depth, timestamp and EventId
         // unwrap is OK order map and sort_event_ids are from to_sort (the same Vec)
         let mut sort_event_ids = order_map.keys().map(|&k| k.clone()).collect::<Vec<_>>();
         sort_event_ids.sort_by_key(|sort_id| order_map.get(sort_id).unwrap());
@@ -574,11 +573,9 @@ impl StateResolution {
                 return Ok(*depth);
             }
 
-            // dbg!(&sort_ev);
             let auth_events = &sort_ev.auth_events();
             event = None;
             for aid in auth_events {
-                // dbg!(&aid);
                 let aev = StateResolution::get_or_load_event(room_id, aid, event_map)?;
                 if is_type_and_key(&aev, EventType::RoomPowerLevels, "") {
                     event = Some(aev);
@@ -599,10 +596,10 @@ impl StateResolution {
     ) {
         let mut state = vec![event_id.clone()];
         while !state.is_empty() {
-            // we just checked if it was empty so unwrap is fine
+            // We just checked if it was empty so unwrap is fine
             let eid = state.pop().unwrap();
             graph.entry(eid.clone()).or_insert(btreeset![]);
-            // prefer the store to event as the store filters dedups the events
+            // Prefer the store to event as the store filters dedups the events
             for aid in &StateResolution::get_or_load_event(room_id, &eid, event_map)
                 .map(|ev| ev.auth_events())
                 .unwrap_or_default()
@@ -612,7 +609,7 @@ impl StateResolution {
                         state.push(aid.clone());
                     }
 
-                    // we just inserted this at the start of the while loop
+                    // We just inserted this at the start of the while loop
                     graph.get_mut(&eid).unwrap().insert(aid.clone());
                 }
             }
