@@ -173,7 +173,7 @@ pub fn auth_check<E: Event>(
 
     // [synapse] checks for federation here
 
-    // 4. if type is m.room.aliases
+    // 4. If type is m.room.aliases
     if incoming_event.kind() == EventType::RoomAliases && room_version.special_case_aliases_auth {
         info!("starting m.room.aliases check");
 
@@ -531,7 +531,7 @@ pub fn check_power_levels<E: Event>(
     let current_content =
         serde_json::from_value::<PowerLevelsEventContent>(current_state.content()).unwrap();
 
-    // validation of users is done in Ruma, synapse for loops validating user_ids and integers here
+    // Validation of users is done in Ruma, synapse for loops validating user_ids and integers here
     info!("validation of power event finished");
 
     let user_level = get_user_power_level(power_event.sender(), auth_events);
@@ -739,21 +739,13 @@ pub fn get_user_power_level<E: Event>(user_id: &UserId, auth_events: &StateMap<A
             0 // TODO if this fails DB error?
         }
     } else {
-        // if no power level event found the creator gets 100 everyone else gets 0
+        // If no power level event found the creator gets 100 everyone else gets 0
         let key = (EventType::RoomCreate, "".into());
-        if let Some(create) = auth_events.get(&key) {
-            if let Ok(c) = serde_json::from_value::<CreateEventContent>(create.content()) {
-                if &c.creator == user_id {
-                    100
-                } else {
-                    0
-                }
-            } else {
-                0
-            }
-        } else {
-            0
-        }
+        auth_events
+            .get(&key)
+            .and_then(|create| serde_json::from_value::<CreateEventContent>(create.content()).ok())
+            .and_then(|create| (create.creator == *user_id).then(|| 100))
+            .unwrap_or_default()
     }
 }
 
@@ -808,9 +800,10 @@ pub fn verify_third_party_invite<E: Event>(
     tp_id: &ThirdPartyInvite,
     current_third_party_invite: Option<Arc<E>>,
 ) -> bool {
-    // 1. check for user being banned happens before this is called
+    // 1. Check for user being banned happens before this is called
     // checking for mxid and token keys is done by ruma when deserializing
 
+    // The state key must match the invitee
     if user_state_key != Some(tp_id.signed.mxid.as_str()) {
         return false;
     }

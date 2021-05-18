@@ -46,7 +46,10 @@ pub trait Event {
     /// The `unsigned` content of this event.
     fn unsigned(&self) -> &BTreeMap<String, JsonValue>;
 
+    /// The content hash of this PDU.
     fn hashes(&self) -> &EventHash;
 
+    /// A map of server names to another map consisting of the signing key id and finally the
+    /// signature.
     fn signatures(&self) -> BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>>;
 }

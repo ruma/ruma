@@ -35,7 +35,7 @@ pub struct RoomVersion {
     pub event_format: EventFormatVersion,
     /// Which state resolution algorithm is used.
     pub state_res: StateResolutionVersion,
-    /// not sure
+    // FIXME: not sure what this one means?
     pub enforce_key_validity: bool,
 
     /// `m.room.aliases` had special auth rules and redaction rules
@@ -43,7 +43,7 @@ pub struct RoomVersion {
     ///
     /// before MSC2261/MSC2432,
     pub special_case_aliases_auth: bool,
-    /// Strictly enforce canonicaljson, do not allow:
+    /// Strictly enforce canonical json, do not allow:
     /// * Integers outside the range of [-2 ^ 53 + 1, 2 ^ 53 - 1]
     /// * Floats
     /// * NaN, Infinity, -Infinity
