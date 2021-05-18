@@ -156,6 +156,50 @@ fn plain_text_content_serialization() {
 }
 
 #[test]
+#[cfg(feature = "markdown")]
+fn markdown_content_serialization() {
+    let formatted_message = MessageEventContent::new(MessageType::Text(
+        TextMessageEventContent::markdown("Testing **bold** and _italic_!"),
+    ));
+
+    assert_eq!(
+        to_json_value(&formatted_message).unwrap(),
+        json!({
+            "body": "Testing **bold** and _italic_!",
+            "formatted_body": "<p>Testing <strong>bold</strong> and <em>italic</em>!</p>\n",
+            "format": "org.matrix.custom.html",
+            "msgtype": "m.text"
+        })
+    );
+
+    let plain_message_simple = MessageEventContent::new(MessageType::Text(
+        TextMessageEventContent::markdown("Testing a simple phrase…"),
+    ));
+
+    assert_eq!(
+        to_json_value(&plain_message_simple).unwrap(),
+        json!({
+            "body": "Testing a simple phrase…",
+            "msgtype": "m.text"
+        })
+    );
+
+    let plain_message_paragraphs = MessageEventContent::new(MessageType::Text(
+        TextMessageEventContent::markdown("Testing\n\nSeveral\n\nParagraphs."),
+    ));
+
+    assert_eq!(
+        to_json_value(&plain_message_paragraphs).unwrap(),
+        json!({
+            "body": "Testing\n\nSeveral\n\nParagraphs.",
+            "formatted_body": "<p>Testing</p>\n<p>Several</p>\n<p>Paragraphs.</p>\n",
+            "format": "org.matrix.custom.html",
+            "msgtype": "m.text"
+        })
+    );
+}
+
+#[test]
 fn relates_to_content_serialization() {
     let message_event_content =
         assign!(MessageEventContent::text_plain("> <@test:example.com> test\n\ntest reply"), {

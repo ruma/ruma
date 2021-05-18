@@ -427,13 +427,13 @@ impl EmoteMessageEventContent {
     }
 
     /// A convenience constructor to create a markdown emote.
+    ///
+    /// Returns an html emote message if some markdown formatting was detected, otherwise returns a
+    /// plain-text emote.
     #[cfg(feature = "markdown")]
     #[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
-    pub fn markdown(body: impl Into<String>) -> Self {
-        let body = body.into();
-        let mut html_body = String::new();
-        pulldown_cmark::html::push_html(&mut html_body, pulldown_cmark::Parser::new(&body));
-        Self::html(body, html_body)
+    pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
+        Self { formatted: FormattedBody::markdown(&body), ..Self::plain(body) }
     }
 }
 
@@ -629,6 +629,16 @@ impl NoticeMessageEventContent {
     pub fn html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
         Self { formatted: Some(FormattedBody::html(html_body)), ..Self::plain(body) }
     }
+
+    /// A convenience constructor to create a markdown notice.
+    ///
+    /// Returns an html notice if some markdown formatting was detected, otherwise returns a plain
+    /// text notice.
+    #[cfg(feature = "markdown")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
+    pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
+        Self { formatted: FormattedBody::markdown(&body), ..Self::plain(body) }
+    }
 }
 
 /// The payload for a server notice message.
@@ -725,6 +735,24 @@ impl FormattedBody {
     pub fn html(body: impl Into<String>) -> Self {
         Self { format: MessageFormat::Html, body: body.into() }
     }
+
+    /// Creates a new HTML-formatted message body by parsing the markdown in `body`.
+    ///
+    /// Returns `None` if no markdown formatting was found.
+    #[cfg(feature = "markdown")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
+    pub fn markdown(body: impl AsRef<str>) -> Option<Self> {
+        let body = body.as_ref();
+        let mut html_body = String::new();
+
+        pulldown_cmark::html::push_html(&mut html_body, pulldown_cmark::Parser::new(body));
+
+        if html_body == format!("<p>{}</p>\n", body) {
+            None
+        } else {
+            Some(Self::html(html_body))
+        }
+    }
 }
 
 /// The payload for a text message.
@@ -752,13 +780,13 @@ impl TextMessageEventContent {
     }
 
     /// A convenience constructor to create a markdown message.
+    ///
+    /// Returns an html message if some markdown formatting was detected, otherwise returns a plain
+    /// text message.
     #[cfg(feature = "markdown")]
     #[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
-    pub fn markdown(body: impl Into<String>) -> Self {
-        let body = body.into();
-        let mut html_body = String::new();
-        pulldown_cmark::html::push_html(&mut html_body, pulldown_cmark::Parser::new(&body));
-        Self::html(body, html_body)
+    pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
+        Self { formatted: FormattedBody::markdown(&body), ..Self::plain(body) }
     }
 
     /// A convenience constructor to create a plain text message.
