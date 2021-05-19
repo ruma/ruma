@@ -2,6 +2,8 @@
 
 use assign::assign;
 use ruma_api::ruma_api;
+#[cfg(feature = "unstable-pre-spec")]
+use ruma_events::room::create::RoomType;
 use ruma_events::{
     room::{
         create::{CreateEventContent, PreviousRoom},
@@ -130,30 +132,55 @@ pub struct CreationContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub predecessor: Option<PreviousRoom>,
 
-    /// The room type that shall be set. This is currently used for spaces
+    /// The room type.
+    ///
+    /// This is currently only used for spaces
+    #[cfg(feature = "unstable-pre-spec")]
     #[serde(skip_serializing_if = "Option::is_none", rename = "type")]
-    pub room_type: Option<String>,
+    pub room_type: Option<RoomType>,
 }
 
 impl CreationContent {
     /// Creates a new `CreationContent` with all fields defaulted.
     pub fn new() -> Self {
-        Self { federate: true, predecessor: None, room_type: None }
+        Self {
+            federate: true,
+            predecessor: None,
+            #[cfg(feature = "unstable-pre-spec")]
+            room_type: None,
+        }
     }
 
     /// Given a `CreationContent` and the other fields that a homeserver has to fill, construct
     /// a `CreateEventContent`.
     pub fn into_event_content(
-        Self { federate, predecessor, room_type }: Self,
+        self,
         creator: UserId,
         room_version: RoomVersionId,
     ) -> CreateEventContent {
-        assign!(CreateEventContent::new(creator), { federate, room_version, predecessor, room_type })
+        #[allow(unused_mut)]
+        let mut content = assign!(CreateEventContent::new(creator), { federate: self.federate, room_version: room_version, predecessor:self.predecessor });
+
+        #[cfg(feature = "unstable-pre-spec")]
+        {
+            content.room_type = self.room_type;
+        }
+
+        content
     }
 
     /// Returns whether all fields have their default value.
     pub fn is_empty(&self) -> bool {
-        self.federate && self.predecessor.is_none() && self.room_type.is_none()
+        let stable_fields = self.federate && self.predecessor.is_none();
+
+        #[cfg(feature = "unstable-pre-spec")]
+        {
+            stable_fields && self.room_type.is_none()
+        }
+        #[cfg(not(feature = "unstable-pre-spec"))]
+        {
+            stable_fields
+        }
     }
 }
 
