@@ -134,7 +134,7 @@ pub struct CreationContent {
 
     /// The room type.
     ///
-    /// This is currently only used for spaces
+    /// This is currently only used for spaces.
     #[cfg(feature = "unstable-pre-spec")]
     #[serde(skip_serializing_if = "Option::is_none", rename = "type")]
     pub room_type: Option<RoomType>,
