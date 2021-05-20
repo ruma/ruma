@@ -1,4 +1,4 @@
-//! [/_matrix/client/r0/auth/{auth_type}/fallback/web?session={session_id}](https://matrix.org/docs/spec/client_server/r0.6.0#fallback)
+//! [GET /_matrix/client/r0/auth/{auth_type}/fallback/web?session={session_id}](https://matrix.org/docs/spec/client_server/r0.6.1#fallback)
 
 use ruma_api::ruma_api;
 
@@ -13,7 +13,7 @@ ruma_api! {
     }
 
     request: {
-        /// Auth type is "the type name of the stage it is attempting"
+        /// The type name ("m.login.dummy", etc.) of the uiaa stage to get a fallback page for.
         #[ruma_api(path)]
         pub auth_type: String,
 

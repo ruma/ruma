@@ -152,8 +152,6 @@ pub struct IdentityServerInfo {
 
 mod user_serde;
 
-pub mod fallback;
-
 #[cfg(test)]
 mod tests {
     use matches::assert_matches;

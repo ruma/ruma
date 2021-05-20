@@ -27,7 +27,6 @@ ruma_api! {
         pub initial_device_display_name: Option<&'a str>,
     }
 
-    #[derive(Default)]
     response: {
         /// HTML to return to client.
         #[ruma_api(raw_body)]

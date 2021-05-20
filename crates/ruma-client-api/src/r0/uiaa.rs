@@ -17,6 +17,8 @@ use serde_json::{
 
 use crate::error::{Error as MatrixError, ErrorBody};
 
+pub mod fallback;
+
 /// Additional authentication information for the user-interactive authentication API.
 #[derive(Clone, Debug, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -433,5 +435,3 @@ mod tests {
         );
     }
 }
-
-pub mod fallback;
