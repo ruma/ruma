@@ -3,10 +3,9 @@
 use std::{collections::BTreeMap, time::Duration};
 
 use ruma_api::ruma_api;
+use ruma_common::encryption::OneTimeKey;
 use ruma_identifiers::{DeviceIdBox, DeviceKeyAlgorithm, DeviceKeyId, UserId};
 use serde_json::Value as JsonValue;
-
-use super::OneTimeKey;
 
 ruma_api! {
     metadata: {

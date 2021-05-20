@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Add master_keys and self_signing keys to keys::get_keys::v1 response
+
 # 0.1.0
 
 Breaking Changes:

@@ -3,8 +3,8 @@
 //! Defined in [MSC 1756](https://github.com/matrix-org/matrix-doc/blob/master/proposals/1756-cross-signing.md#uploading-signing-keys)
 
 use ruma_api::ruma_api;
+use ruma_common::encryption::CrossSigningKey;
 
-use super::CrossSigningKey;
 use crate::r0::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
 
 ruma_api! {
