@@ -85,6 +85,12 @@ event_enum! {
         "m.room.third_party_invite",
         "m.room.tombstone",
         "m.room.topic",
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        "m.space.child",
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        "m.space.parent",
     }
 
     /// Any to-device event.
