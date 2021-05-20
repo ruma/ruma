@@ -2,9 +2,9 @@ name: Rust 1.45
 
 on:
   push:
-    branches: [main]
+    branches: [main, next]
   pull_request:
-    branches: [main]
+    branches: [main, next]
 
 jobs:
   check_msrv:

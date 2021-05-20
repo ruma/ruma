@@ -2,7 +2,7 @@ name: Documentation
 
 on:
   push:
-    branches: [main]
+    branches: [next]
 
 jobs:
   build-deploy:
