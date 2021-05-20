@@ -162,7 +162,7 @@ impl CreationContent {
         let mut content = assign!(CreateEventContent::new(creator), {
             federate: self.federate,
             room_version: room_version,
-            predecessor: self.predecessor
+            predecessor: self.predecessor,
         });
 
         #[cfg(feature = "unstable-pre-spec")]
