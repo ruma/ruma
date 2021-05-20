@@ -3,13 +3,14 @@
 A set of [Rust] crates (libraries) for interacting with the [Matrix] chat
 network.
 
-[website] • [chat] • [unstable documentation][docs]
+[website] • [chat] • [unstable documentation][unstable-docs]
 
 [Rust]: https://rust-lang.org/
 [Matrix]: https://matrix.org/
 [website]: https://www.ruma.io/
 [chat]: https://matrix.to/#/#ruma:matrix.org
-[docs]: https://docs.ruma.io/
+[docs]: https://docs.rs/ruma/
+[unstable-docs]: https://docs.ruma.io/
 
 ## Getting started
 
@@ -19,13 +20,18 @@ and many other useful things.
 
 For homeservers, bridges and harder-to-categorize software that works with
 Matrix, you're at the right place. To get started, add `ruma` to your
-dependencies (as a git dependency if you want all of the latest improvements).
+dependencies:
+
+```toml
+# crates.io release
+ruma = { version = "0.1", features = [...] }
+# git dependency (the next branch contains some breaking changes main doesn't)
+ruma = { git = "https://github.com/ruma/ruma", branch = "next", features = [...] }
+```
 
 `ruma` re-exports all of the other crates, so you don't have to worry about
-them. Check out [docs.ruma.io](https://docs.ruma.io/ruma/index.html) for the
-latest documentation including which Cargo features you have to enable for the
-functionality you want. If you are using a released version from crates.io, you
-can also find versioned documentation [on docs.rs](https://docs.rs/ruma/).
+them. Check out the documentation [on docs.rs][docs] (or on
+[docs.ruma.io][unstable-docs] if you use use the git dependency).
 
 [matrix-rust-sdk]: https://github.com/matrix-org/matrix-rust-sdk#readme
 [feat]: https://github.com/ruma/ruma/blob/1166af5a354210dcbced1eaf4a11f795c381d2ec/ruma/Cargo.toml#L35
