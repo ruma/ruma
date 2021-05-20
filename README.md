@@ -3,7 +3,7 @@
 A set of [Rust] crates (libraries) for interacting with the [Matrix] chat
 network.
 
-[website] • [chat] • [unstable documentation][unstable-docs]
+[website] • [chat] • [documentation][docs] ([unstable][unstable-docs])
 
 [Rust]: https://rust-lang.org/
 [Matrix]: https://matrix.org/
