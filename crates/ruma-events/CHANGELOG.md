@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.22.2
+
+Improvements:
+
+* Add unstable support for `m.space.child` and `m.space.parent` events
+
 # 0.22.1
 
 Bug fixes:
