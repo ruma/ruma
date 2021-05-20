@@ -36,7 +36,9 @@ pub struct CreateEventContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub predecessor: Option<PreviousRoom>,
 
-    /// The room type that shall be set. This is currently used for spaces
+    /// The room type.
+    ///
+    /// This is currently only used for spaces.
     #[cfg(feature = "unstable-pre-spec")]
     #[serde(skip_serializing_if = "Option::is_none", rename = "type")]
     pub room_type: Option<RoomType>,
@@ -56,13 +58,13 @@ impl CreateEventContent {
     }
 }
 
-/// An enum of possible room types
+/// An enum of possible room types.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 pub enum RoomType {
-    /// Defines the room as a space
+    /// Defines the room as a space.
     #[ruma_enum(rename = "m.space")]
     Space,
-    /// Defines the room as a custom type
+    /// Defines the room as a custom type.
     #[doc(hidden)]
     _Custom(String),
 }
