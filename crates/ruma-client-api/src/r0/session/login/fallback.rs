@@ -1,4 +1,4 @@
-//! [/_matrix/static/client/login/](https://spec.matrix.org/unstable/client-server-api/#login-fallback)
+//! [GET /_matrix/static/client/login/](https://spec.matrix.org/unstable/client-server-api/#login-fallback)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::DeviceId;
@@ -19,8 +19,9 @@ ruma_api! {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub device_id: Option<&'a DeviceId>,
 
-        /// A display name to assign to the newly-created device. Ignored if device_id corresponds
-        /// to a known device.
+        /// A display name to assign to the newly-created device.
+        ///
+        /// Ignored if `device_id` corresponds to a known device.
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub initial_device_display_name: Option<&'a str>,

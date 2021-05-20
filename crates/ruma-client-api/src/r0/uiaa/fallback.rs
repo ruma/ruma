@@ -17,7 +17,7 @@ ruma_api! {
         #[ruma_api(path)]
         pub auth_type: String,
 
-        /// The ID of the session given by the homeserver
+        /// The ID of the session given by the homeserver.
         #[ruma_api(query)]
         pub session: String,
     }
