@@ -583,14 +583,7 @@ fn expand_redacted_enum(
 
     if let EventKind::State | EventKind::Message = kind {
         let ident = format_ident!("AnyPossiblyRedacted{}", kind.to_event_ident(var)?);
-
-        // FIXME: Use Option::zip once MSRV >= 1.46
-        let (regular_enum_ident, redacted_enum_ident) = match inner_enum_idents(kind, var) {
-            (Some(regular_enum_ident), Some(redacted_enum_ident)) => {
-                (regular_enum_ident, redacted_enum_ident)
-            }
-            _ => return None,
-        };
+        let (regular_enum_ident, redacted_enum_ident) = inner_enum_idents(kind, var)?;
 
         Some(quote! {
             /// An enum that holds either regular un-redacted events or redacted events.
@@ -628,7 +621,7 @@ fn expand_redacted_enum(
 }
 
 fn generate_event_idents(kind: &EventKind, var: &EventKindVariation) -> Option<(Ident, Ident)> {
-    Some((kind.to_event_ident(var)?, kind.to_event_enum_ident(var)?))
+    kind.to_event_ident(var).zip(kind.to_event_enum_ident(var))
 }
 
 fn generate_redacted_fields(
@@ -800,22 +793,22 @@ fn accessor_methods(
     })
 }
 
-fn inner_enum_idents(kind: &EventKind, var: &EventKindVariation) -> (Option<Ident>, Option<Ident>) {
-    match var {
-        EventKindVariation::Full => {
-            (kind.to_event_enum_ident(var), kind.to_event_enum_ident(&EventKindVariation::Redacted))
-        }
+fn inner_enum_idents(kind: &EventKind, var: &EventKindVariation) -> Option<(Ident, Ident)> {
+    Some(match var {
+        EventKindVariation::Full => (
+            kind.to_event_enum_ident(var)?,
+            kind.to_event_enum_ident(&EventKindVariation::Redacted)?,
+        ),
         EventKindVariation::Sync => (
-            kind.to_event_enum_ident(var),
-            kind.to_event_enum_ident(&EventKindVariation::RedactedSync),
+            kind.to_event_enum_ident(var)?,
+            kind.to_event_enum_ident(&EventKindVariation::RedactedSync)?,
         ),
         EventKindVariation::Stripped => (
-            kind.to_event_enum_ident(var),
-            kind.to_event_enum_ident(&EventKindVariation::RedactedStripped),
+            kind.to_event_enum_ident(var)?,
+            kind.to_event_enum_ident(&EventKindVariation::RedactedStripped)?,
         ),
-        EventKindVariation::Initial => (kind.to_event_enum_ident(var), None),
-        _ => (None, None),
-    }
+        _ => return None,
+    })
 }
 
 /// Redacted events do NOT generate `content` or `prev_content` methods like
