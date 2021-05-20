@@ -13,7 +13,7 @@ edition = "2018"
 
 [dependencies]
 ruma-api = { version = "0.17.0", path = "../ruma-api" }
-ruma-client-api = { version = "0.10.0", path = "../ruma-client-api", features = ["client"], optional = true }
+ruma-client-api = { version = "0.10.1", path = "../ruma-client-api", features = ["client"], optional = true }
 ruma-common = { version = "0.5.1", path = "../ruma-common" }
 ruma-events = { version = "0.22.1", path = "../ruma-events" }
 ruma-identifiers = { version = "0.19.1", path = "../ruma-identifiers" }

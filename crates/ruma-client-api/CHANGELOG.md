@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.10.1
+
+Improvements:
+
+* Add unstable support for room types
+
 # 0.10.0
 
 Bug fixes:
