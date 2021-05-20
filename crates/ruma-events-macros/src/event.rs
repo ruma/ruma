@@ -213,13 +213,7 @@ fn expand_deserialize_event(
                         };
                     }
                 } else {
-                    quote! {
-                        let prev_content = if let Some(content) = prev_content {
-                            Some(content)
-                        } else {
-                            None
-                        };
-                    }
+                    TokenStream::new()
                 }
             } else if name == "unsigned" {
                 quote! { let unsigned = unsigned.unwrap_or_default(); }
