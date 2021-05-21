@@ -37,6 +37,7 @@ matches = "0.1.8"
 [features]
 compat = []
 unstable-exhaustive-types = []
-unstable-pre-spec = []
+# feature dependency required for r0::room::create_room::CreationContent::into_event_content
+unstable-pre-spec = ["ruma-events/unstable-pre-spec"]
 client = []
 server = []
