@@ -115,9 +115,9 @@ impl Ed25519KeyPair {
     /// See: https://github.com/briansmith/ring/issues/1299
     fn correct_faulty_ring_private_key(key: &[u8]) -> &[u8] {
         if key.len() == 34 && &key[..2] == &[0x04, 0x20] {
-            return &key[2..];
+            &key[2..]
         } else {
-            return key;
+            key
         }
     }
 

@@ -43,9 +43,6 @@ impl Verifier for Ed25519Verifier {
                     .map_err(|e| Error::new(format!("Could not parse signature: {:?}", e)))?,
             )
             .map_err(|e| Error::new(format!("Could not verify signature: {:?}", e)))
-        // ED25519
-        //     .verify(Input::from(public_key), Input::from(message), Input::from(signature))
-        //     .map_err(|_| Error::new("signature verification failed"))
     }
 }
 
