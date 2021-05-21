@@ -2,7 +2,6 @@
 
 use std::{
     collections::BTreeMap,
-    convert::{TryFrom, TryInto},
     fmt::{Debug, Formatter, Result as FmtResult},
 };
 
@@ -114,7 +113,7 @@ impl Ed25519KeyPair {
     /// corrected here for backwards compatibility.
     /// See: https://github.com/briansmith/ring/issues/1299
     fn correct_faulty_ring_private_key(key: &[u8]) -> &[u8] {
-        if key.len() == 34 && &key[..2] == &[0x04, 0x20] {
+        if key.len() == 34 && key[..2] == [0x04, 0x20] {
             &key[2..]
         } else {
             key
@@ -141,7 +140,7 @@ impl Ed25519KeyPair {
             public_key: Some(public.as_bytes()),
         };
 
-        return oak.to_vec().map_err(|e| Error::new(format!("{}", e)));
+        oak.to_vec().map_err(|e| Error::new(format!("{}", e)))
     }
 
     /// Returns the version string for this keypair.
