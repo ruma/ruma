@@ -171,7 +171,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     use base64::{decode_config, encode_config, STANDARD_NO_PAD};
-    use ring::signature::{Ed25519KeyPair as RingEd25519KeyPair, KeyPair as _};
+    use pkcs8::{der::Decodable, OneAsymmetricKey};
     use ruma_identifiers::RoomVersionId;
     use serde_json::{from_str as from_json_str, to_string as to_json_string};
 
@@ -187,9 +187,10 @@ mod tests {
     /// Convenience method for getting the public key as a string
     fn public_key_string() -> String {
         encode_config(
-            &RingEd25519KeyPair::from_pkcs8(&decode_config(PKCS8, STANDARD_NO_PAD).unwrap())
+            &OneAsymmetricKey::from_der(&decode_config(PKCS8, STANDARD_NO_PAD).unwrap())
                 .unwrap()
-                .public_key(),
+                .public_key
+                .unwrap(),
             STANDARD_NO_PAD,
         )
     }
@@ -291,7 +292,7 @@ mod tests {
 
     #[test]
     fn sign_empty_json() {
-        let key_pair = Ed25519KeyPair::new(
+        let key_pair = Ed25519KeyPair::from_der(
             decode_config(&PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
             "1".into(),
         )
@@ -322,7 +323,7 @@ mod tests {
 
     #[test]
     fn sign_minimal_json() {
-        let key_pair = Ed25519KeyPair::new(
+        let key_pair = Ed25519KeyPair::from_der(
             decode_config(&PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
             "1".into(),
         )
@@ -382,7 +383,7 @@ mod tests {
 
     #[test]
     fn sign_minimal_event() {
-        let key_pair = Ed25519KeyPair::new(
+        let key_pair = Ed25519KeyPair::from_der(
             decode_config(&PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
             "1".into(),
         )
@@ -416,7 +417,7 @@ mod tests {
 
     #[test]
     fn sign_redacted_event() {
-        let key_pair = Ed25519KeyPair::new(
+        let key_pair = Ed25519KeyPair::from_der(
             decode_config(&PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
             "1".into(),
         )
