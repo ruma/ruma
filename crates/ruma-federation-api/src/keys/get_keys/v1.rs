@@ -3,6 +3,8 @@
 use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
+#[cfg(feature = "unstable-pre-spec")]
+use ruma_common::encryption::CrossSigningKey;
 use ruma_common::encryption::DeviceKeys;
 use ruma_identifiers::{DeviceIdBox, UserId};
 
@@ -22,9 +24,22 @@ ruma_api! {
         pub device_keys: BTreeMap<UserId, Vec<DeviceIdBox>>,
     }
 
+    #[derive(Default)]
     response: {
         /// Keys from the queried devices.
         pub device_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, DeviceKeys>>,
+
+        /// Information on the master cross-signing keys of the queried users.
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        pub master_keys: BTreeMap<UserId, CrossSigningKey>,
+
+        /// Information on the self-signing keys of the queried users.
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        pub self_signing_keys: BTreeMap<UserId, CrossSigningKey>,
     }
 }
 
@@ -38,6 +53,6 @@ impl Request {
 impl Response {
     /// Creates a new `Response` with the given device keys.
     pub fn new(device_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, DeviceKeys>>) -> Self {
-        Self { device_keys }
+        Self { device_keys, ..Default::default() }
     }
 }

@@ -8,7 +8,7 @@ use ruma_identifiers::{DeviceIdBox, UserId};
 use serde_json::Value as JsonValue;
 
 #[cfg(feature = "unstable-pre-spec")]
-use super::CrossSigningKey;
+use ruma_common::encryption::CrossSigningKey;
 
 ruma_api! {
     metadata: {
