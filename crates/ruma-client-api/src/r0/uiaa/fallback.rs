@@ -26,7 +26,7 @@ ruma_api! {
     response: {
         /// Optional URI to redirect to.
         #[ruma_api(header = LOCATION)]
-        pub redirect_uri: Option<String>,
+        pub redirect_url: Option<String>,
 
         /// HTML to return to client.
         #[ruma_api(raw_body)]
@@ -45,7 +45,7 @@ impl Request {
 
 impl Response {
     /// Creates a new `Response` with the given redirect URL and HTML body.
-    pub fn new(redirect_uri: Option<String>, body: Vec<u8>) -> Self {
-        Self { redirect_uri, body }
+    pub fn new(redirect_url: Option<String>, body: Vec<u8>) -> Self {
+        Self { redirect_url, body }
     }
 }
