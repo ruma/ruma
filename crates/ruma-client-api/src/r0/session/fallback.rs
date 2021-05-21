@@ -13,8 +13,9 @@ ruma_api! {
         authentication: None,
     }
 
+    #[derive(Default)]
     request: {
-        /// ID of the client device
+        /// ID of the client device.
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub device_id: Option<&'a DeviceId>,
@@ -45,7 +46,7 @@ impl<'a> Request<'a> {
 }
 
 impl Response {
-    /// Creates an new `Response` with redirect uri and raw HTML body.
+    /// Creates a new `Response` with the given HTML body.
     pub fn new(body: Vec<u8>) -> Self {
         Self { body }
     }

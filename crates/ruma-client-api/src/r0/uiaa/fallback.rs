@@ -44,7 +44,7 @@ impl Request {
 }
 
 impl Response {
-    /// Creates an new `Response` with redirect uri and raw HTML body.
+    /// Creates a new `Response` with the given redirect URL and HTML body.
     pub fn new(redirect_uri: Option<String>, body: Vec<u8>) -> Self {
         Self { redirect_uri, body }
     }
