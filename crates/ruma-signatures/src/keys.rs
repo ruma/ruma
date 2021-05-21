@@ -100,12 +100,12 @@ impl Ed25519KeyPair {
     }
 
     /// Constructs a key pair from [`pkcs8::OneAsymmetricKey`].
-    pub fn from_pkcs8_oak(oak: OneAsymmetricKey, version: String) -> Result<Self, Error> {
+    pub fn from_pkcs8_oak(oak: OneAsymmetricKey<'_>, version: String) -> Result<Self, Error> {
         Self::new(oak.algorithm.oid, oak.private_key, oak.public_key, version)
     }
 
     /// Constructs a key pair from [`pkcs8::PrivateKeyInfo`].
-    pub fn from_pkcs8_pki(oak: PrivateKeyInfo, version: String) -> Result<Self, Error> {
+    pub fn from_pkcs8_pki(oak: PrivateKeyInfo<'_>, version: String) -> Result<Self, Error> {
         Self::new(oak.algorithm.oid, oak.private_key, None, version)
     }
 
