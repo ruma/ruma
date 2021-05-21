@@ -15,8 +15,8 @@ version = "0.7.1"
 base64 = "0.13.0"
 ed25519-dalek = "1.0.1"
 # ed25519-dalek = { path = "/home/jonathan/dev/ed25519-dalek" }
-# pkcs8 = { git = "https://github.com/ShadowJonathan/utils", branch = "oak", features = ["alloc"] }
-pkcs8 = { path = "/home/jonathan/dev/rust-security-utils/pkcs8", features = ["alloc", "std"] }
+pkcs8 = { git = "https://github.com/ShadowJonathan/utils", branch = "oak", features = ["alloc"] }
+# pkcs8 = { path = "/home/jonathan/dev/rust-security-utils/pkcs8", features = ["alloc", "std"] }
 # because dalek uses an older version of rand_core
 rand = { version = "0.7", features = ["getrandom"] }
 ring = "0.16.19"
