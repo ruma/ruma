@@ -136,7 +136,6 @@ impl Ed25519KeyPair {
         let public = Into::<PublicKey>::into(&secret);
 
         let oak = OneAsymmetricKey {
-            version: pkcs8::Version::V2,
             algorithm: AlgorithmIdentifier { oid: ED25519_OID, parameters: None },
             private_key: secret.as_bytes(),
             public_key: Some(public.as_bytes()),
