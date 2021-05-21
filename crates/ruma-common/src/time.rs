@@ -1,4 +1,4 @@
-use js_int::UInt;
+use js_int::{uint, UInt};
 use serde::{Deserialize, Serialize};
 use std::{
     convert::TryInto,
@@ -28,6 +28,16 @@ impl MilliSecondsSinceUnixEpoch {
     pub fn to_system_time(self) -> Option<SystemTime> {
         UNIX_EPOCH.checked_add(Duration::from_millis(self.0.into()))
     }
+
+    /// Get the time since the unix epoch in milliseconds.
+    pub fn get(&self) -> UInt {
+        self.0
+    }
+
+    /// Get time since the unix epoch in seconds.
+    pub fn as_secs(&self) -> UInt {
+        self.0 / uint!(1000)
+    }
 }
 
 /// A timestamp represented as the number of seconds since the unix epoch.
@@ -47,6 +57,11 @@ impl SecondsSinceUnixEpoch {
     /// Creates a new `SystemTime` from `self`, if it can be represented.
     pub fn to_system_time(self) -> Option<SystemTime> {
         UNIX_EPOCH.checked_add(Duration::from_secs(self.0.into()))
+    }
+
+    /// Get time since the unix epoch in seconds.
+    pub fn get(&self) -> UInt {
+        self.0
     }
 }
 
