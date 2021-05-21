@@ -1,5 +1,6 @@
 //! Endpoints for user session management.
 
+pub mod fallback;
 pub mod get_login_types;
 pub mod login;
 pub mod logout;
