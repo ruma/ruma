@@ -51,10 +51,8 @@ impl Ed25519KeyPair {
             )));
         }
 
-        let privkey = Self::correct_faulty_ring_private_key(privkey);
-
-        let secret_key =
-            SecretKey::from_bytes(privkey).map_err(|e| Error::new(format!("{:?}", e)))?;
+        let secret_key = SecretKey::from_bytes(Self::correct_privkey_from_octolet(privkey))
+            .map_err(|e| Error::new(format!("{:?}", e)))?;
 
         let derived_pubkey: PublicKey = (&secret_key).into();
 
@@ -109,10 +107,11 @@ impl Ed25519KeyPair {
         Self::new(oak.algorithm.oid, oak.private_key, None, version)
     }
 
-    /// This is due to `ring` messing up the formatting of the PKCS#8 document,
-    /// corrected here for backwards compatibility.
-    /// See: https://github.com/briansmith/ring/issues/1299
-    fn correct_faulty_ring_private_key(key: &[u8]) -> &[u8] {
+    /// PKCS#8's "private key" is not yet actually the entire key,
+    /// so convert it if it is wrongly formatted.
+    ///
+    /// See [RFC 8310 10.3](https://datatracker.ietf.org/doc/html/rfc8410#section-10.3) for more details
+    fn correct_privkey_from_octolet(key: &[u8]) -> &[u8] {
         if key.len() == 34 && key[..2] == [0x04, 0x20] {
             &key[2..]
         } else {
@@ -134,9 +133,14 @@ impl Ed25519KeyPair {
 
         let public = Into::<PublicKey>::into(&secret);
 
+        // Convert into nested OCTAL STRING
+        // Per: https://datatracker.ietf.org/doc/html/rfc8410#section-10.3
+        let mut private: Vec<u8> = vec![0x04, 0x20];
+        private.extend_from_slice(secret.as_bytes());
+
         let oak = OneAsymmetricKey {
             algorithm: AlgorithmIdentifier { oid: ED25519_OID, parameters: None },
-            private_key: secret.as_bytes(),
+            private_key: private.as_ref(),
             public_key: Some(public.as_bytes()),
         };
 
