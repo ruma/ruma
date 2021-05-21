@@ -6,7 +6,7 @@ ruma_api! {
     metadata: {
         description: "Get UIAA fallback web page.",
         method: GET,
-        name: "uiaa_fallback",
+        name: "authorize_fallback",
         path: "/_matrix/client/r0/auth/:auth_type/fallback/web",
         rate_limited: false,
         authentication: None,
@@ -44,8 +44,13 @@ impl Request {
 }
 
 impl Response {
-    /// Creates a new `Response` with the given redirect URL and HTML body.
-    pub fn new(redirect_url: Option<String>, body: Vec<u8>) -> Self {
-        Self { redirect_url, body }
+    /// Creates a new `Response` with the given HTML body.
+    pub fn new(body: Vec<u8>) -> Self {
+        Self { redirect_url: None, body }
+    }
+
+    /// Creates a new `Response` with the given redirect URL and an empty body.
+    pub fn redirect(url: String) -> Self {
+        Self { redirect_url: Some(url), body: Vec::new() }
     }
 }

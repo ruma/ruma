@@ -17,7 +17,7 @@ use serde_json::{
 
 use crate::error::{Error as MatrixError, ErrorBody};
 
-pub mod fallback;
+pub mod authorize_fallback;
 
 /// Additional authentication information for the user-interactive authentication API.
 #[derive(Clone, Debug, Outgoing, Serialize)]
