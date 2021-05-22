@@ -70,7 +70,11 @@ impl Ed25519KeyPair {
             }
         }
 
-        Ok(Self { extended_privkey: ExpandedSecretKey::from(&secret_key), pubkey: derived_pubkey, version })
+        Ok(Self {
+            extended_privkey: ExpandedSecretKey::from(&secret_key),
+            pubkey: derived_pubkey,
+            version,
+        })
     }
 
     /// Initializes a new key pair.
