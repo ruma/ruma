@@ -17,7 +17,6 @@ ed25519-dalek = "1.0.1"
 pkcs8 = { git = "https://github.com/RustCrypto/utils", revision = "51e7c9d734e4d3c5279ba1c181c65b1bd77bcad0", features = ["alloc"] }
 # because dalek uses an older version of rand_core
 rand = { version = "0.7", features = ["getrandom"] }
-ring = "0.16.19"
 ruma-identifiers = { version = "0.19.1", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.4.0", path = "../ruma-serde" }
 serde_json = "1.0.60"
