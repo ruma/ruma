@@ -1,7 +1,8 @@
 //! Verification of digital signatures.
 
-use ring::signature::{VerificationAlgorithm, ED25519};
-use untrusted::Input;
+use std::convert::TryInto;
+
+use ed25519_dalek::{PublicKey, Verifier as _};
 
 use crate::Error;
 
@@ -33,9 +34,15 @@ impl Verifier for Ed25519Verifier {
         signature: &[u8],
         message: &[u8],
     ) -> Result<(), Error> {
-        ED25519
-            .verify(Input::from(public_key), Input::from(message), Input::from(signature))
-            .map_err(|_| Error::new("signature verification failed"))
+        PublicKey::from_bytes(public_key)
+            .map_err(|e| Error::new(format!("Could not parse public key: {:?}", e)))?
+            .verify(
+                message,
+                &signature
+                    .try_into()
+                    .map_err(|e| Error::new(format!("Could not parse signature: {:?}", e)))?,
+            )
+            .map_err(|e| Error::new(format!("Could not verify signature: {:?}", e)))
     }
 }
 
