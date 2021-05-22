@@ -16,7 +16,7 @@ pub type ParentEvent = StateEvent<ParentEventContent>;
 /// The payload for `ParentEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.space.child", kind = State)]
+#[ruma_event(type = "m.space.parent", kind = State)]
 pub struct ParentEventContent {
     /// List of candidate servers that can be used to join the room.
     #[serde(skip_serializing_if = "Option::is_none")]
