@@ -113,6 +113,7 @@ compat = [
     "ruma-events/compat",
     "ruma-identifiers/compat",
     "ruma-client-api/compat",
+    "ruma-signatures/compat",
 ]
 
 # Helper features that aren't exactly part of the spec but could be helpful

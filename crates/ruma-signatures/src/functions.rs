@@ -7,7 +7,7 @@ use std::{
     str::FromStr,
 };
 
-use base64::{decode_config, encode_config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
+use base64::{decode_config, encode_config, Config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
 use ring::digest::{digest, SHA256};
 use ruma_identifiers::{EventId, RoomVersionId, ServerNameBox, UserId};
 use ruma_serde::{to_canonical_json_string, CanonicalJsonObject, CanonicalJsonValue};
@@ -278,11 +278,18 @@ pub fn verify_json(
                 .get(key_id)
                 .ok_or_else(|| Error::new("no key for signature in public_key_map"))?;
 
-            let signature_bytes = decode_config(signature, STANDARD_NO_PAD)?;
+            let verify = |config: Config| {
+                let signature_bytes = decode_config(signature, config)?;
 
-            let public_key_bytes = decode_config(&public_key, STANDARD_NO_PAD)?;
+                let public_key_bytes = decode_config(&public_key, config)?;
 
-            verify_json_with(&Ed25519Verifier, &public_key_bytes, &signature_bytes, object)?;
+                verify_json_with(&Ed25519Verifier, &public_key_bytes, &signature_bytes, object)
+            };
+
+            #[cfg(feature = "compat")]
+            also_try_forgiving_base64(STANDARD_NO_PAD, verify)?;
+            #[cfg(not(feature = "compat"))]
+            verify(STANDARD_NO_PAD)?;
         }
     }
 
@@ -635,11 +642,18 @@ pub fn verify_event(
             }
         };
 
-        let signature_bytes = decode_config(signature, STANDARD_NO_PAD)?;
+        let verify = |config: Config| {
+            let signature_bytes = decode_config(signature, config)?;
 
-        let public_key_bytes = decode_config(&public_key, STANDARD_NO_PAD)?;
+            let public_key_bytes = decode_config(&public_key, config)?;
 
-        verify_json_with(&Ed25519Verifier, &public_key_bytes, &signature_bytes, &canonical_json)?;
+            verify_json_with(&Ed25519Verifier, &public_key_bytes, &signature_bytes, &canonical_json)
+        };
+
+        #[cfg(feature = "compat")]
+        also_try_forgiving_base64(STANDARD_NO_PAD, verify)?;
+        #[cfg(not(feature = "compat"))]
+        verify(STANDARD_NO_PAD)?;
     }
 
     let calculated_hash = content_hash(object);
@@ -781,6 +795,38 @@ fn is_third_party_invite(object: &CanonicalJsonObject) -> Result<bool, Error> {
     }
 }
 
+#[cfg(feature = "compat")]
+// see https://github.com/ruma/ruma/issues/591
+// synapse allows this, so we must allow it too.
+// shouldn't lose data, but when it does, it'll make verification fail instead.
+pub(crate) fn also_try_forgiving_base64<T, E>(
+    config: Config,
+    twice: impl Fn(Config) -> Result<T, E>,
+) -> Result<T, E> where E: std::fmt::Display {
+    use tracing::{debug, warn};
+
+    let first_try = match twice(config) {
+        Ok(t) => return Ok(t),
+        Err(e) => e,
+    };
+
+    let adjusted = config.decode_allow_trailing_bits(true);
+
+    match twice(adjusted) {
+        Ok(t) => {
+            warn!(
+                "Usage of base64 config only worked after allowing trailing bits, first error: {}",
+                first_try
+            );
+            Ok(t)
+        }
+        Err(e) => {
+            debug!("Second error when trying to allow trailing bits: {}", e);
+            Err(first_try)
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::{
@@ -862,6 +908,22 @@ mod tests {
         assert!(verification_result.is_ok());
         let verification = verification_result.unwrap();
         assert!(matches!(verification, Verified::Signatures));
+    }
+
+    #[cfg(feature = "compat")]
+    #[test]
+    fn fallback_invalid_base64() {
+        use base64::{Config, decode_config};
+
+        const SLIGHTLY_MALFORMED_BASE64: &str = "3UmJnEIzUr2xWyaUnJg5fXwRybwG5FVC6GqMHverEUn0ztuIsvVxX89JXX2pvdTsOBbLQx+4TVL02l4Cp5wPCm";
+
+        let verify = |config: Config|  {
+            decode_config(SLIGHTLY_MALFORMED_BASE64, config)
+        };
+
+        assert!(verify(STANDARD_NO_PAD).is_err());
+
+        assert!(super::also_try_forgiving_base64(STANDARD_NO_PAD, verify).is_ok());
     }
 
     #[test]
