@@ -8,10 +8,11 @@ use std::{
 };
 
 use base64::{decode_config, encode_config, Config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
-use ring::digest::{digest, SHA256};
+use ed25519_dalek::Digest;
 use ruma_identifiers::{EventId, RoomVersionId, ServerNameBox, UserId};
 use ruma_serde::{to_canonical_json_string, CanonicalJsonObject, CanonicalJsonValue};
 use serde_json::from_str as from_json_str;
+use sha2::Sha256;
 
 use crate::{
     keys::{KeyPair, PublicKeyMap},
@@ -108,7 +109,7 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "uns
 /// let document = base64::decode_config(&PKCS8, base64::STANDARD_NO_PAD).unwrap();
 ///
 /// // Create an Ed25519 key pair.
-/// let key_pair = ruma_signatures::Ed25519KeyPair::new(
+/// let key_pair = ruma_signatures::Ed25519KeyPair::from_der(
 ///     &document,
 ///     "1".into(), // The "version" of the key.
 /// ).unwrap();
@@ -332,7 +333,7 @@ where
 /// object: A JSON object to generate a content hash for.
 pub fn content_hash(object: &CanonicalJsonObject) -> String {
     let json = canonical_json_with_fields_to_remove(object, CONTENT_HASH_FIELDS_TO_REMOVE);
-    let hash = digest(&SHA256, json.as_bytes());
+    let hash = Sha256::digest(json.as_bytes());
 
     encode_config(&hash, STANDARD_NO_PAD)
 }
@@ -361,7 +362,7 @@ pub fn reference_hash(
     let json =
         canonical_json_with_fields_to_remove(&redacted_value, REFERENCE_HASH_FIELDS_TO_REMOVE);
 
-    let hash = digest(&SHA256, json.as_bytes());
+    let hash = Sha256::digest(json.as_bytes());
 
     Ok(encode_config(
         &hash,
@@ -411,7 +412,7 @@ pub fn reference_hash(
 /// let document = base64::decode_config(&PKCS8, base64::STANDARD_NO_PAD).unwrap();
 ///
 /// // Create an Ed25519 key pair.
-/// let key_pair = Ed25519KeyPair::new(
+/// let key_pair = Ed25519KeyPair::from_der(
 ///     &document,
 ///     "1".into(), // The "version" of the key.
 /// ).unwrap();
@@ -1046,12 +1047,13 @@ mod tests {
 
         assert!(verification_result.is_err());
         let error_msg = verification_result.err().unwrap().message;
-        assert!(error_msg.contains("signature verification failed"));
+        assert!(error_msg.contains("Could not verify signature"));
     }
 
     fn generate_key_pair() -> Ed25519KeyPair {
         let key_content = Ed25519KeyPair::generate().unwrap();
-        Ed25519KeyPair::new(&key_content, "1".to_owned()).unwrap()
+        Ed25519KeyPair::from_der(&key_content, "1".to_owned())
+            .unwrap_or_else(|_| panic!("{:?}", &key_content))
     }
 
     fn add_key_to_map(public_key_map: &mut PublicKeyMap, name: &str, pair: &Ed25519KeyPair) {
