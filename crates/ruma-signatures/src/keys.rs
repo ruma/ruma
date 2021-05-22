@@ -52,9 +52,9 @@ impl Ed25519KeyPair {
         }
 
         let secret_key = SecretKey::from_bytes(Self::correct_privkey_from_octolet(privkey))
-            .map_err(|e| Error::new(format!("{:?}", e)))?;
+            .map_err(|e| Error::new(e.to_string()))?;
 
-        let derived_pubkey: PublicKey = (&secret_key).into();
+        let derived_pubkey = PublicKey::from(&secret_key);
 
         if let Some(oak_key) = pubkey {
             // If the document had a public key, we're verifying it.
@@ -144,7 +144,7 @@ impl Ed25519KeyPair {
             public_key: Some(public.as_bytes()),
         };
 
-        oak.to_vec().map_err(|e| Error::new(format!("{}", e)))
+        oak.to_vec().map_err(|e| Error::new(e.to_string()))
     }
 
     /// Returns the version string for this keypair.
