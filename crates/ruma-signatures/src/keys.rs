@@ -92,7 +92,7 @@ impl Ed25519KeyPair {
     /// generated from the private key. This is a fallback and extra validation against
     /// corruption or
     pub fn from_der(document: &[u8], version: String) -> Result<Self, Error> {
-        let oak = OneAsymmetricKey::from_der(document).map_err(|e| Error::new(format!("{}", e)))?;
+        let oak = OneAsymmetricKey::from_der(document).map_err(|e| Error::new(e.to_string()))?;
 
         Self::from_pkcs8_oak(oak, version)
     }
@@ -131,7 +131,7 @@ impl Ed25519KeyPair {
     pub fn generate() -> Result<Vec<u8>, Error> {
         let secret = SecretKey::generate(&mut rand::rngs::OsRng);
 
-        let public = Into::<PublicKey>::into(&secret);
+        let public = PublicKey::from(&secret);
 
         // Convert into nested OCTAL STRING
         // Per: https://datatracker.ietf.org/doc/html/rfc8410#section-10.3
