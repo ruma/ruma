@@ -802,7 +802,10 @@ fn is_third_party_invite(object: &CanonicalJsonObject) -> Result<bool, Error> {
 pub(crate) fn also_try_forgiving_base64<T, E>(
     config: Config,
     twice: impl Fn(Config) -> Result<T, E>,
-) -> Result<T, E> where E: std::fmt::Display {
+) -> Result<T, E>
+where
+    E: std::fmt::Display,
+{
     use tracing::{debug, warn};
 
     let first_try = match twice(config) {
@@ -913,13 +916,11 @@ mod tests {
     #[cfg(feature = "compat")]
     #[test]
     fn fallback_invalid_base64() {
-        use base64::{Config, decode_config};
+        use base64::{decode_config, Config};
 
         const SLIGHTLY_MALFORMED_BASE64: &str = "3UmJnEIzUr2xWyaUnJg5fXwRybwG5FVC6GqMHverEUn0ztuIsvVxX89JXX2pvdTsOBbLQx+4TVL02l4Cp5wPCm";
 
-        let verify = |config: Config|  {
-            decode_config(SLIGHTLY_MALFORMED_BASE64, config)
-        };
+        let verify = |config: Config| decode_config(SLIGHTLY_MALFORMED_BASE64, config);
 
         assert!(verify(STANDARD_NO_PAD).is_err());
 
