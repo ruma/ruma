@@ -35,9 +35,10 @@ impl Verifier for Ed25519Verifier {
         message: &[u8],
     ) -> Result<(), Error> {
         PublicKey::from_bytes(public_key)
-            .map_err(|e| ParseError::PublicKey(e))?
-            .verify(message, &signature.try_into().map_err(|e| ParseError::Signature(e))?)
-            .map_err(|e| VerificationError::Signature(e).into())
+            .map_err(ParseError::PublicKey)?
+            .verify(message, &signature.try_into().map_err(ParseError::Signature)?)
+            .map_err(VerificationError::Signature)
+            .map_err(Error::from)
     }
 }
 

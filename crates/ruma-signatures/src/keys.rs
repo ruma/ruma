@@ -49,7 +49,7 @@ impl Ed25519KeyPair {
         }
 
         let secret_key = SecretKey::from_bytes(Self::correct_privkey_from_octolet(privkey))
-            .map_err(|e| ParseError::SecretKey(e))?;
+            .map_err(ParseError::SecretKey)?;
 
         let derived_pubkey = PublicKey::from(&secret_key);
 
@@ -90,7 +90,7 @@ impl Ed25519KeyPair {
     /// generated from the private key. This is a fallback and extra validation against
     /// corruption or
     pub fn from_der(document: &[u8], version: String) -> Result<Self, Error> {
-        let oak = OneAsymmetricKey::from_der(document).map_err(|e| Error::DerParse(e))?;
+        let oak = OneAsymmetricKey::from_der(document).map_err(Error::DerParse)?;
 
         Self::from_pkcs8_oak(oak, version)
     }
@@ -142,7 +142,7 @@ impl Ed25519KeyPair {
             public_key: Some(public.as_bytes()),
         };
 
-        oak.to_vec().map_err(|e| Error::DerParse(e))
+        oak.to_vec().map_err(Error::DerParse)
     }
 
     /// Returns the version string for this keypair.

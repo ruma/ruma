@@ -149,7 +149,7 @@ where
     let maybe_unsigned_entry = object.remove_entry("unsigned");
 
     // Get the canonical JSON string.
-    let json = to_canonical_json_string(object).map_err(|e| JsonError::CanonicalJson(e))?;
+    let json = to_canonical_json_string(object).map_err(JsonError::CanonicalJson)?;
 
     // Sign the canonical JSON string.
     let signature = key_pair.sign(json.as_bytes());
@@ -591,8 +591,7 @@ pub fn verify_event(
     };
 
     let servers_to_check = servers_to_check_signatures(object, version)?;
-    let canonical_json =
-        from_json_str(&canonical_json(&redacted)).map_err(|e| JsonError::from(e))?;
+    let canonical_json = from_json_str(&canonical_json(&redacted)).map_err(JsonError::from)?;
 
     for entity_id in servers_to_check {
         let signature_set = match signature_map.get(entity_id.as_str()) {
