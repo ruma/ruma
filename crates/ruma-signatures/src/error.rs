@@ -274,10 +274,3 @@ pub enum SplitError {
     #[error("unknown algorithm: {0}")]
     UnknownAlgorithm(String),
 }
-
-#[test]
-fn error_mess() {
-    let err = Error::from(ParseError::UserId(ruma_identifiers::Error::EmptyRoomVersionId));
-
-    eprintln!("{}", err);
-}
