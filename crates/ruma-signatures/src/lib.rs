@@ -62,57 +62,6 @@ mod keys;
 mod signatures;
 mod verification;
 
-/// An error produced when ruma-signatures operations fail.
-// #[derive(Clone, Debug, PartialEq)]
-// pub struct Error {
-//     /// A human-readable description of the error.
-//     message: String,
-// }
-
-// impl Error {
-//     /// Creates a new error.
-//     ///
-//     /// # Parameters
-//     ///
-//     /// * message: The error message.
-//     pub(crate) fn new<T>(message: T) -> Self
-//     where
-//         T: Into<String>,
-//     {
-//         Self { message: message.into() }
-//     }
-// }
-
-// impl StdError for Error {
-//     fn description(&self) -> &str {
-//         &self.message
-//     }
-// }
-
-// impl Display for Error {
-//     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-//         write!(f, "{}", self.message)
-//     }
-// }
-
-// impl From<base64::DecodeError> for Error {
-//     fn from(error: base64::DecodeError) -> Self {
-//         Self::new(error.to_string())
-//     }
-// }
-
-// impl From<serde_json::Error> for Error {
-//     fn from(error: serde_json::Error) -> Self {
-//         Self::new(error.to_string())
-//     }
-// }
-
-// impl From<CanonicalJsonError> for Error {
-//     fn from(error: CanonicalJsonError) -> Self {
-//         Self::new(error.to_string())
-//     }
-// }
-
 /// The algorithm used for signing data.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, AsRefStr, DisplayAsRefStr)]
 #[ruma_enum(rename_all = "snake_case")]

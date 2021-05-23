@@ -603,8 +603,12 @@ pub fn verify_event(
             None => return Err(VerificationError::signature_not_found(entity_id)),
         };
 
-        let mut maybe_signature = None;
-        let mut maybe_public_key = None;
+        struct SignatureAndPubkey<'a> {
+            signature: &'a CanonicalJsonValue,
+            public_key: &'a String,
+        }
+
+        let mut maybe = None;
 
         let public_keys = public_key_map
             .get(entity_id.as_str())
@@ -618,23 +622,23 @@ pub fn verify_event(
             }
 
             if let Some(signature) = signature_set.get(key_id) {
-                maybe_signature = Some(signature);
-                maybe_public_key = Some(public_key);
+                maybe = Some(SignatureAndPubkey { signature, public_key });
 
                 break;
             }
         }
 
-        let signature = match maybe_signature {
-            Some(CanonicalJsonValue::String(signature)) => signature,
-            Some(_) => return Err(JsonError::not_of_type("signature", JsonType::String)),
-            None => return Err(VerificationError::UnknownPublicKeysForEvent.into()),
+        let signature_and_pubkey = match maybe {
+            Some(value) => value,
+            None => return Err(VerificationError::UnknownPublicKeysForSignature.into()),
         };
 
-        let public_key = match maybe_public_key {
-            Some(public_key) => public_key,
-            None => return Err(VerificationError::UnknownPublicKeysForEvent.into()),
+        let signature = match signature_and_pubkey.signature {
+            CanonicalJsonValue::String(signature) => signature,
+            _ => return Err(JsonError::not_of_type("signature", JsonType::String)),
         };
+
+        let public_key = signature_and_pubkey.public_key;
 
         let signature_bytes = decode_config(signature, STANDARD_NO_PAD)
             .map_err(|e| ParseError::base64("signature", signature, e))?;

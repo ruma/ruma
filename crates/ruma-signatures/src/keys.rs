@@ -58,8 +58,8 @@ impl Ed25519KeyPair {
 
             if oak_key != derived_pubkey.as_bytes() {
                 return Err(ParseError::derived_vs_parsed_mismatch(
-                    derived_pubkey.as_bytes().to_vec(),
                     oak_key,
+                    derived_pubkey.as_bytes().to_vec(),
                 ));
             }
         }

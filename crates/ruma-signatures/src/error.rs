@@ -1,97 +1,102 @@
 use ruma_identifiers::{EventId, RoomVersionId};
 use thiserror::Error;
 
+/// `ruma-signature`'s error type, wraps a number of other error types.
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum Error {
+    /// [`JsonError`] wrapper.
     #[error("JSON error: {0}")]
     Json(#[from] JsonError),
 
+    /// [`VerificationError`] wrapper.
     #[error("Verification error: {0}")]
     Verification(#[from] VerificationError),
 
+    /// [`ParseError`] wrapper.
     #[error("Parse error: {0}")]
     Parse(#[from] ParseError),
 
+    /// Wrapper for [`pkcs8::der::Error`].
     #[error("DER Parse error: {0}")]
     DerParse(pkcs8::der::Error),
 
+    /// [`SplitError`] wrapper.
     #[error("Split error: {0}")]
     SplitError(#[from] SplitError),
-
-    // For leftover errors that cant be converted yet
-    #[error("Error: {0:?}")]
-    Misc(String),
 }
 
-impl Error {
-    // /// Creates a new error.
-    // ///
-    // /// # Parameters
-    // ///
-    // /// * message: The error message.
-    // pub(crate) fn new<T>(message: T) -> Self
-    // where
-    //     T: Into<String>,
-    // {
-    //     Self::Misc(message.into())
-    // }
-}
-
-// impl From<base64::DecodeError> for Error {
-//     fn from(error: base64::DecodeError) -> Self {
-//         Self::new(error.to_string())
-//     }
-// }
-
-// impl From<serde_json::Error> for Error {
-//     fn from(error: serde_json::Error) -> Self {
-//         Self::new(error.to_string())
-//     }
-// }
-
-// impl From<ruma_serde::CanonicalJsonError> for Error {
-//     fn from(error: ruma_serde::CanonicalJsonError) -> Self {
-//         Self::new(error.to_string())
-//     }
-// }
-
+/// All errors related to JSON validation/parsing.
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum JsonError {
+    /// Signals that `target` is not of type `of_type` ([`JsonType`]).
     #[error("Value in {target:?} must be a JSON {of_type:?}")]
-    NotOfType { target: String, of_type: JsonType },
+    NotOfType {
+        /// An arbitrary "target" that doesn't have the required type.
+        target: String,
+        /// The JSON type the target was expected to be.
+        of_type: JsonType,
+    },
 
+    /// Like [`JsonError::NotOfType`], only called when the `target` is a multiple;
+    /// array, set, etc.
     #[error("Values in {target:?} must be JSON {of_type:?}s")]
-    NotMultiplesOfType { target: String, of_type: JsonType },
+    NotMultiplesOfType {
+        /// An arbitrary "target" where
+        /// each or one of it's elements doesn't have the required type.
+        target: String,
+        /// The JSON type the element was expected to be.
+        of_type: JsonType,
+    },
 
+    /// Signals that a specific field is missing from a JSON object.
     #[error("JSON object must contain the field {0:?}")]
     JsonFieldMissingFromObject(String),
 
+    /// Signals a key missing from a JSON object.
+    ///
+    /// Note that this is different from [`JsonError::JsonFieldMissingFromObject`],
+    /// this error talks about an expected identifying key (`"ed25519:abcd"`)
+    /// missing from a target, where the key has a specific "type"/name.
     #[error("JSON object {for_target:?} does not have {type_of} key {with_key:?}")]
-    JsonKeyMissing { for_target: String, type_of: String, with_key: String },
+    JsonKeyMissing {
+        /// The target from which the key is missing.
+        for_target: String,
+        /// The kind of thing the key indicates.
+        type_of: String,
+        /// The key that is missing.
+        with_key: String,
+    },
 
+    /// A derivative error from [`ruma_serde::CanonicalJsonError`],
+    /// captured here.
     #[error("Canonical JSON error: {0}")]
     CanonicalJson(#[from] ruma_serde::CanonicalJsonError),
 
+    /// A more generic JSON error from [`serde_json`].
     #[error(transparent)]
     Serde(#[from] serde_json::Error),
 }
 
 // TODO: make macro for this
 impl JsonError {
+    /// Convenience method for [`JsonError::NotOfType`].
     pub fn not_of_type<T: Into<String>>(target: T, of_type: JsonType) -> Error {
         Self::NotOfType { target: target.into(), of_type }.into()
     }
 
+    /// Convenience method for [`JsonError::NotMultiplesOfType`].
     pub fn not_multiples_of_type<T: Into<String>>(target: T, of_type: JsonType) -> Error {
         Self::NotMultiplesOfType { target: target.into(), of_type }.into()
     }
 
+    /// Convenience method for [`JsonError::JsonFieldMissingFromObject`].
     pub fn field_missing_from_object<T: Into<String>>(target: T) -> Error {
         Self::JsonFieldMissingFromObject(target.into()).into()
     }
 
+    /// Convenience method for [`JsonError::JsonKeyMissing`].
     pub fn key_missing<T1: Into<String>, T2: Into<String>, T3: Into<String>>(
         for_target: T1,
         type_of: T2,
@@ -106,78 +111,120 @@ impl JsonError {
     }
 }
 
+/// A JSON type enum for [`JsonError`] variants.
 #[derive(Debug)]
 pub enum JsonType {
+    /// A JSON Object.
     Object,
+    /// A JSON String.
     String,
+    /// A JSON Integer.
     Integer,
+    /// A JSON Array.
     Array,
+    /// A JSON Boolean.
     Boolean,
+    /// JSON Null.
     Null,
 }
 
+/// Errors relating to verification of events and signatures.
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum VerificationError {
+    /// For when a signature cannot be found for a `target`.
     #[error("Could not find signatures for {0:?}")]
     SignatureNotFound(String),
 
+    /// For when a public key cannot be found for a `target`.
     #[error("Could not find public key for {0:?}")]
     PublicKeyNotFound(String),
 
-    #[error("Event is not signed with any of the given public keys")]
-    UnknownPublicKeysForEvent,
+    /// For when no public key matches the signature given.
+    #[error("Not signed with any of the given public keys")]
+    UnknownPublicKeysForSignature,
 
+    /// For when [`ed25519_dalek`] cannot verify a signature.
     #[error("Could not verify signature: {0}")]
     Signature(#[source] ed25519_dalek::SignatureError),
 }
 
 impl VerificationError {
+    /// Convenience method for [`VerificationError::SignatureNotFound`].
     pub fn signature_not_found<T: Into<String>>(target: T) -> Error {
         Self::SignatureNotFound(target.into()).into()
     }
 
+    /// Convenience method for [`VerificationError::PublicKeyNotFound`].
     pub fn public_key_not_found<T: Into<String>>(target: T) -> Error {
         Self::PublicKeyNotFound(target.into()).into()
     }
 }
 
+/// Errors relating to parsing of all sorts.
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum ParseError {
+    /// For user ID parsing errors.
     #[error("Could not parse User ID: {0}")]
     UserId(#[source] ruma_identifiers::Error),
+    /// For event ID parsing errors.
     #[error("Could not parse Event ID: {0}")]
     EventId(#[source] ruma_identifiers::Error),
 
+    /// For when an event ID, coupled with a specific room version, doesn't have a server name
+    /// embedded.
     #[error("Event Id {0:?} should have a server name for the given room version {1:?}")]
     ServerNameFromEventIdByRoomVersion(EventId, RoomVersionId),
 
+    /// For when the extracted/"parsed" public key from a PKCS#8 v2 document doesn't match the
+    /// public key derived from it's private key.
     #[error("PKCS#8 Document public key does not match public key derived from private key; derived: {0:X?} (len {}), parsed: {1:X?} (len {})", .derived_key.len(), .parsed_key.len())]
-    DerivedPublicKeyDoesNotMatchParsedKey { derived_key: Vec<u8>, parsed_key: Vec<u8> },
+    DerivedPublicKeyDoesNotMatchParsedKey {
+        /// The parsed key.
+        parsed_key: Vec<u8>,
+        /// The derived key.
+        derived_key: Vec<u8>,
+    },
 
+    /// For when the ASN.1 Object Identifier on a PKCS#8 document doesn't match the expected one.
+    ///
+    /// e.g. the document describes a RSA key, while an ed25519 key was expected.
     #[error("Algorithm OID does not match ed25519, expected {expected}, found {found}")]
-    Oid { expected: pkcs8::ObjectIdentifier, found: pkcs8::ObjectIdentifier },
+    Oid {
+        /// The expected OID.
+        expected: pkcs8::ObjectIdentifier,
+        /// The OID that was found instead.
+        found: pkcs8::ObjectIdentifier,
+    },
 
+    /// For when [`ed25519_dalek`] cannot parse a secret/private key.
     #[error("Could not parse secret key: {0}")]
     SecretKey(#[source] ed25519_dalek::SignatureError),
 
+    /// For when [`ed25519_dalek`] cannot parse a public key.
     #[error("Could not parse public key: {0}")]
     PublicKey(#[source] ed25519_dalek::SignatureError),
 
+    /// For when [`ed25519_dalek`] cannot parse a signature.
     #[error("Could not parse signature: {0}")]
     Signature(#[source] ed25519_dalek::SignatureError),
 
+    /// For when parsing base64 gives an error.
     #[error("Could not parse {of_type} base64 string {string:?}: {source}")]
     Base64 {
+        /// The "type"/name of the base64 string
         of_type: String,
+        /// The string itself.
         string: String,
+        /// The originating error.
         #[source]
         source: base64::DecodeError,
     },
 }
 
 impl ParseError {
+    /// Convenience method for [`ParseError::ServerNameFromEventIdByRoomVersion`].
     pub fn from_event_id_by_room_version(
         event_id: &EventId,
         room_version: &RoomVersionId,
@@ -190,17 +237,19 @@ impl ParseError {
         .into()
     }
 
-    pub fn derived_vs_parsed_mismatch<D: Into<Vec<u8>>, P: Into<Vec<u8>>>(
-        derived: D,
+    /// Convenience method for [`ParseError::DerivedPublicKeyDoesNotMatchParsedKey`].
+    pub fn derived_vs_parsed_mismatch<P: Into<Vec<u8>>, D: Into<Vec<u8>>>(
         parsed: P,
+        derived: D,
     ) -> Error {
         Self::DerivedPublicKeyDoesNotMatchParsedKey {
-            derived_key: derived.into(),
             parsed_key: parsed.into(),
+            derived_key: derived.into(),
         }
         .into()
     }
 
+    /// Convenience method for [`ParseError::Base64`].
     pub fn base64<T1: Into<String>, T2: Into<String>>(
         of_type: T1,
         string: T2,
