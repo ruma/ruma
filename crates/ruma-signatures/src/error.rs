@@ -222,11 +222,7 @@ impl ParseError {
         event_id: &EventId,
         room_version: &RoomVersionId,
     ) -> Error {
-        Self::ServerNameFromEventIdByRoomVersion(
-            event_id.clone(),
-            room_version.clone(),
-        )
-        .into()
+        Self::ServerNameFromEventIdByRoomVersion(event_id.clone(), room_version.clone()).into()
     }
 
     pub(crate) fn derived_vs_parsed_mismatch<P: Into<Vec<u8>>, D: Into<Vec<u8>>>(
