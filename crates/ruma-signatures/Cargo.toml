@@ -17,13 +17,14 @@ all-features = true
 [dependencies]
 base64 = "0.13.0"
 ed25519-dalek = "1.0.1"
-pkcs8 = { git = "https://github.com/RustCrypto/utils", rev = "51e7c9d734e4d3c5279ba1c181c65b1bd77bcad0", features = ["alloc"] }
+pkcs8 = { git = "https://github.com/RustCrypto/utils", rev = "51e7c9d734e4d3c5279ba1c181c65b1bd77bcad0", features = ["alloc", "std"] }
 # because dalek uses an older version of rand_core
 rand = { version = "0.7", features = ["getrandom"] }
 ruma-identifiers = { version = "0.19.1", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.4.0", path = "../ruma-serde" }
 serde_json = "1.0.60"
 sha2 = "0.9.5"
+thiserror = "1.0.23"
 tracing = { version = "0.1.25", optional = true }
 untrusted = "0.7.1"
 

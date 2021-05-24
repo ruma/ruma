@@ -2,7 +2,7 @@
 
 use base64::{encode_config, STANDARD_NO_PAD};
 
-use crate::{split_id, Algorithm, Error, SplitError};
+use crate::{split_id, Algorithm, Error};
 
 /// A digital signature.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -42,21 +42,7 @@ impl Signature {
     /// * The key ID is malformed.
     /// * The key ID contains a version with invalid characters.
     pub fn new(id: &str, bytes: &[u8]) -> Result<Self, Error> {
-        let (algorithm, version) = split_id(id).map_err(|split_error| match split_error {
-            SplitError::InvalidLength(length) => Error::new(format!(
-                "malformed signature ID: expected exactly \
-                 2 segment separated by a colon, found {}",
-                length
-            )),
-            SplitError::InvalidVersion(version) => Error::new(format!(
-                "malformed signature ID: expected version to contain only \
-                 characters in the character set `[a-zA-Z0-9_]`, found `{}`",
-                version
-            )),
-            SplitError::UnknownAlgorithm(algorithm) => {
-                Error::new(format!("unknown algorithm: {}", algorithm))
-            }
-        })?;
+        let (algorithm, version) = split_id(id)?;
 
         Ok(Self { algorithm, signature: bytes.to_vec(), version })
     }
