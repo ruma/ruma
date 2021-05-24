@@ -602,12 +602,7 @@ pub fn verify_event(
             None => return Err(VerificationError::signature_not_found(entity_id)),
         };
 
-        struct SignatureAndPubkey<'a> {
-            signature: &'a CanonicalJsonValue,
-            public_key: &'a String,
-        }
-
-        let mut maybe = None;
+        let mut maybe_signature_and_public_key = None;
 
         let public_keys = public_key_map
             .get(entity_id.as_str())
@@ -621,13 +616,13 @@ pub fn verify_event(
             }
 
             if let Some(signature) = signature_set.get(key_id) {
-                maybe = Some(SignatureAndPubkey { signature, public_key });
+                maybe_signature_and_public_key = Some(SignatureAndPubkey { signature, public_key });
 
                 break;
             }
         }
 
-        let signature_and_pubkey = match maybe {
+        let signature_and_pubkey = match maybe_signature_and_public_key {
             Some(value) => value,
             None => return Err(VerificationError::UnknownPublicKeysForSignature.into()),
         };
@@ -655,6 +650,11 @@ pub fn verify_event(
     } else {
         Ok(Verified::Signatures)
     }
+}
+
+struct SignatureAndPubkey<'a> {
+    signature: &'a CanonicalJsonValue,
+    public_key: &'a String,
 }
 
 /// Internal implementation detail of the canonical JSON algorithm. Allows customization of the

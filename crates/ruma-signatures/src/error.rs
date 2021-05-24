@@ -1,4 +1,4 @@
-use ruma_identifiers::{EventId, RoomVersionId};
+use ruma_identifiers::{EventId, RoomVersionId, ServerNameBox};
 use thiserror::Error;
 
 /// `ruma-signature`'s error type, wraps a number of other error types.
@@ -81,23 +81,19 @@ pub enum JsonError {
 
 // TODO: make macro for this
 impl JsonError {
-    /// Convenience method for [`JsonError::NotOfType`].
-    pub fn not_of_type<T: Into<String>>(target: T, of_type: JsonType) -> Error {
+    pub(crate) fn not_of_type<T: Into<String>>(target: T, of_type: JsonType) -> Error {
         Self::NotOfType { target: target.into(), of_type }.into()
     }
 
-    /// Convenience method for [`JsonError::NotMultiplesOfType`].
-    pub fn not_multiples_of_type<T: Into<String>>(target: T, of_type: JsonType) -> Error {
+    pub(crate) fn not_multiples_of_type<T: Into<String>>(target: T, of_type: JsonType) -> Error {
         Self::NotMultiplesOfType { target: target.into(), of_type }.into()
     }
 
-    /// Convenience method for [`JsonError::JsonFieldMissingFromObject`].
-    pub fn field_missing_from_object<T: Into<String>>(target: T) -> Error {
+    pub(crate) fn field_missing_from_object<T: Into<String>>(target: T) -> Error {
         Self::JsonFieldMissingFromObject(target.into()).into()
     }
 
-    /// Convenience method for [`JsonError::JsonKeyMissing`].
-    pub fn key_missing<T1: Into<String>, T2: Into<String>, T3: Into<String>>(
+    pub(crate) fn key_missing<T1: Into<String>, T2: Into<String>, T3: Into<String>>(
         for_target: T1,
         type_of: T2,
         with_key: T3,
@@ -134,11 +130,11 @@ pub enum JsonType {
 pub enum VerificationError {
     /// For when a signature cannot be found for a `target`.
     #[error("Could not find signatures for {0:?}")]
-    SignatureNotFound(String),
+    SignatureNotFound(ServerNameBox),
 
     /// For when a public key cannot be found for a `target`.
     #[error("Could not find public key for {0:?}")]
-    PublicKeyNotFound(String),
+    PublicKeyNotFound(ServerNameBox),
 
     /// For when no public key matches the signature given.
     #[error("Not signed with any of the given public keys")]
@@ -150,13 +146,11 @@ pub enum VerificationError {
 }
 
 impl VerificationError {
-    /// Convenience method for [`VerificationError::SignatureNotFound`].
-    pub fn signature_not_found<T: Into<String>>(target: T) -> Error {
+    pub(crate) fn signature_not_found<T: Into<ServerNameBox>>(target: T) -> Error {
         Self::SignatureNotFound(target.into()).into()
     }
 
-    /// Convenience method for [`VerificationError::PublicKeyNotFound`].
-    pub fn public_key_not_found<T: Into<String>>(target: T) -> Error {
+    pub(crate) fn public_key_not_found<T: Into<ServerNameBox>>(target: T) -> Error {
         Self::PublicKeyNotFound(target.into()).into()
     }
 }
@@ -224,21 +218,18 @@ pub enum ParseError {
 }
 
 impl ParseError {
-    /// Convenience method for [`ParseError::ServerNameFromEventIdByRoomVersion`].
-    pub fn from_event_id_by_room_version(
+    pub(crate) fn from_event_id_by_room_version(
         event_id: &EventId,
         room_version: &RoomVersionId,
     ) -> Error {
         Self::ServerNameFromEventIdByRoomVersion(
-            // FIX: this can be made better
-            event_id.to_owned(),
-            room_version.to_owned(),
+            event_id.clone(),
+            room_version.clone(),
         )
         .into()
     }
 
-    /// Convenience method for [`ParseError::DerivedPublicKeyDoesNotMatchParsedKey`].
-    pub fn derived_vs_parsed_mismatch<P: Into<Vec<u8>>, D: Into<Vec<u8>>>(
+    pub(crate) fn derived_vs_parsed_mismatch<P: Into<Vec<u8>>, D: Into<Vec<u8>>>(
         parsed: P,
         derived: D,
     ) -> Error {
@@ -249,8 +240,7 @@ impl ParseError {
         .into()
     }
 
-    /// Convenience method for [`ParseError::Base64`].
-    pub fn base64<T1: Into<String>, T2: Into<String>>(
+    pub(crate) fn base64<T1: Into<String>, T2: Into<String>>(
         of_type: T1,
         string: T2,
         source: base64::DecodeError,
