@@ -12,7 +12,7 @@ use pkcs8::{
     AlgorithmIdentifier, ObjectIdentifier, OneAsymmetricKey, PrivateKeyInfo,
 };
 
-use crate::{signatures::Signature, Algorithm, Error};
+use crate::{signatures::Signature, Algorithm, Error, ParseError};
 
 /// A cryptographic key pair for digitally signing data.
 pub trait KeyPair: Sized {
@@ -45,14 +45,11 @@ impl Ed25519KeyPair {
         version: String,
     ) -> Result<Self, Error> {
         if oid != ED25519_OID {
-            return Err(Error::new(format!(
-                "Algorithm OID does not match ed25519, expected {}, found {}",
-                ED25519_OID, oid
-            )));
+            return Err(ParseError::Oid { expected: ED25519_OID, found: oid }.into());
         }
 
         let secret_key = SecretKey::from_bytes(Self::correct_privkey_from_octolet(privkey))
-            .map_err(|e| Error::new(e.to_string()))?;
+            .map_err(ParseError::SecretKey)?;
 
         let derived_pubkey = PublicKey::from(&secret_key);
 
@@ -60,13 +57,10 @@ impl Ed25519KeyPair {
             // If the document had a public key, we're verifying it.
 
             if oak_key != derived_pubkey.as_bytes() {
-                return Err(Error::new(format!(
-                    "PKCS#8 Document public key does not match public key derived from private key; derived: {:X?} (len {}), parsed: {:X?} (len {})",
-                    &derived_pubkey.as_bytes(),
-                    derived_pubkey.as_bytes().len(),
+                return Err(ParseError::derived_vs_parsed_mismatch(
                     oak_key,
-                    oak_key.len()
-                )));
+                    derived_pubkey.as_bytes().to_vec(),
+                ));
             }
         }
 
@@ -96,7 +90,7 @@ impl Ed25519KeyPair {
     /// generated from the private key. This is a fallback and extra validation against
     /// corruption or
     pub fn from_der(document: &[u8], version: String) -> Result<Self, Error> {
-        let oak = OneAsymmetricKey::from_der(document).map_err(|e| Error::new(e.to_string()))?;
+        let oak = OneAsymmetricKey::from_der(document).map_err(Error::DerParse)?;
 
         Self::from_pkcs8_oak(oak, version)
     }
@@ -148,7 +142,7 @@ impl Ed25519KeyPair {
             public_key: Some(public.as_bytes()),
         };
 
-        oak.to_vec().map_err(|e| Error::new(e.to_string()))
+        oak.to_vec().map_err(Error::DerParse)
     }
 
     /// Returns the version string for this keypair.

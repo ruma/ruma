@@ -44,13 +44,9 @@
 
 #![warn(missing_docs)]
 
-use std::{
-    error::Error as StdError,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
-
 use ruma_serde::{AsRefStr, DisplayAsRefStr};
 
+pub use error::{Error, JsonError, JsonType, ParseError, SplitError, VerificationError};
 pub use functions::{
     canonical_json, content_hash, hash_and_sign_event, redact, reference_hash, sign_json,
     verify_event, verify_json,
@@ -60,61 +56,11 @@ pub use ruma_serde::{CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue
 pub use signatures::Signature;
 pub use verification::Verified;
 
+mod error;
 mod functions;
 mod keys;
 mod signatures;
 mod verification;
-
-/// An error produced when ruma-signatures operations fail.
-#[derive(Clone, Debug, PartialEq)]
-pub struct Error {
-    /// A human-readable description of the error.
-    message: String,
-}
-
-impl Error {
-    /// Creates a new error.
-    ///
-    /// # Parameters
-    ///
-    /// * message: The error message.
-    pub(crate) fn new<T>(message: T) -> Self
-    where
-        T: Into<String>,
-    {
-        Self { message: message.into() }
-    }
-}
-
-impl StdError for Error {
-    fn description(&self) -> &str {
-        &self.message
-    }
-}
-
-impl Display for Error {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "{}", self.message)
-    }
-}
-
-impl From<base64::DecodeError> for Error {
-    fn from(error: base64::DecodeError) -> Self {
-        Self::new(error.to_string())
-    }
-}
-
-impl From<serde_json::Error> for Error {
-    fn from(error: serde_json::Error) -> Self {
-        Self::new(error.to_string())
-    }
-}
-
-impl From<CanonicalJsonError> for Error {
-    fn from(error: CanonicalJsonError) -> Self {
-        Self::new(error.to_string())
-    }
-}
 
 /// The algorithm used for signing data.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, AsRefStr, DisplayAsRefStr)]
@@ -124,21 +70,8 @@ pub enum Algorithm {
     Ed25519,
 }
 
-/// An error when trying to extract the algorithm and version from a key identifier.
-#[derive(Clone, Debug, PartialEq)]
-enum SplitError<'a> {
-    /// The signature's ID does not have exactly two components separated by a colon.
-    InvalidLength(usize),
-
-    /// The signature's ID contains invalid characters in its version.
-    InvalidVersion(&'a str),
-
-    /// The signature uses an unknown algorithm.
-    UnknownAlgorithm(&'a str),
-}
-
 /// Extract the algorithm and version from a key identifier.
-fn split_id(id: &str) -> Result<(Algorithm, String), SplitError<'_>> {
+fn split_id(id: &str) -> Result<(Algorithm, String), SplitError> {
     /// The length of a valid signature ID.
     const SIGNATURE_ID_LENGTH: usize = 2;
 
@@ -153,14 +86,14 @@ fn split_id(id: &str) -> Result<(Algorithm, String), SplitError<'_>> {
     let version = signature_id[1];
 
     if !version.bytes().all(|ch| ch.is_ascii_alphanumeric() || ch == b'_') {
-        return Err(SplitError::InvalidVersion(version));
+        return Err(SplitError::InvalidVersion(version.into()));
     }
 
     let algorithm_input = signature_id[0];
 
     let algorithm = match algorithm_input {
         "ed25519" => Algorithm::Ed25519,
-        algorithm => return Err(SplitError::UnknownAlgorithm(algorithm)),
+        algorithm => return Err(SplitError::UnknownAlgorithm(algorithm.into())),
     };
 
     Ok((algorithm, signature_id[1].to_owned()))

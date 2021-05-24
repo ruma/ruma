@@ -18,7 +18,7 @@ use crate::{
     keys::{KeyPair, PublicKeyMap},
     split_id,
     verification::{Ed25519Verifier, Verified, Verifier},
-    Error,
+    Error, JsonError, JsonType, ParseError, VerificationError,
 };
 
 /// The fields that are allowed to remain in an event during redaction.
@@ -142,14 +142,14 @@ where
 {
     let (signatures_key, mut signature_map) = match object.remove_entry("signatures") {
         Some((key, CanonicalJsonValue::Object(signatures))) => (Cow::Owned(key), signatures),
-        Some(_) => return Err(Error::new("field `signatures` must be a JSON object")),
+        Some(_) => return Err(JsonError::not_of_type("signatures", JsonType::Object)),
         None => (Cow::Borrowed("signatures"), BTreeMap::new()),
     };
 
     let maybe_unsigned_entry = object.remove_entry("unsigned");
 
     // Get the canonical JSON string.
-    let json = to_canonical_json_string(object)?;
+    let json = to_canonical_json_string(object).map_err(JsonError::CanonicalJson)?;
 
     // Sign the canonical JSON string.
     let signature = key_pair.sign(json.as_bytes());
@@ -161,7 +161,7 @@ where
 
     let signature_set = match signature_set {
         CanonicalJsonValue::Object(obj) => obj,
-        _ => return Err(Error::new("fields in `signatures` must be objects")),
+        _ => return Err(JsonError::not_multiples_of_type("signatures", JsonType::Object)),
     };
 
     signature_set.insert(signature.id(), CanonicalJsonValue::String(signature.base64()));
@@ -249,40 +249,43 @@ pub fn verify_json(
 ) -> Result<(), Error> {
     let signature_map = match object.get("signatures") {
         Some(CanonicalJsonValue::Object(signatures)) => signatures.clone(),
-        Some(_) => return Err(Error::new("field `signatures` must be a JSON object")),
-        None => return Err(Error::new("JSON object must contain a `signatures` field")),
+        Some(_) => return Err(JsonError::not_of_type("signatures", JsonType::Object)),
+        None => return Err(JsonError::field_missing_from_object("signatures")),
     };
 
     for (entity_id, signature_set) in signature_map {
         let signature_set = match signature_set {
             CanonicalJsonValue::Object(set) => set,
-            _ => return Err(Error::new("signature sets must be JSON objects")),
+            _ => return Err(JsonError::not_multiples_of_type("signature sets", JsonType::Object)),
         };
 
         let public_keys = match public_key_map.get(&entity_id) {
             Some(keys) => keys,
             None => {
-                return Err(Error::new(format!(
-                    "no keys for signature in public_key_map for `{}`",
-                    entity_id
-                )))
+                return Err(JsonError::key_missing("public_key_map", "public_keys", &entity_id))
             }
         };
 
         for (key_id, signature) in &signature_set {
             let signature = match signature {
                 CanonicalJsonValue::String(s) => s,
-                _ => return Err(Error::new("signature must be a string")),
+                _ => return Err(JsonError::not_of_type("signature", JsonType::String)),
             };
 
-            let public_key = public_keys
-                .get(key_id)
-                .ok_or_else(|| Error::new("no key for signature in public_key_map"))?;
+            let public_key = public_keys.get(key_id).ok_or_else(|| {
+                JsonError::key_missing(
+                    format!("public_keys of {}", &entity_id),
+                    "signature",
+                    key_id,
+                )
+            })?;
 
             let verify = |config: Config| {
-                let signature_bytes = decode_config(signature, config)?;
+                let signature_bytes = decode_config(signature, config)
+                    .map_err(|e| ParseError::base64("signature", signature, e))?;
 
-                let public_key_bytes = decode_config(&public_key, config)?;
+                let public_key_bytes = decode_config(&public_key, config)
+                    .map_err(|e| ParseError::base64("public key", public_key, e))?;
 
                 verify_json_with(&Ed25519Verifier, &public_key_bytes, &signature_bytes, object)
             };
@@ -488,7 +491,7 @@ where
         CanonicalJsonValue::Object(hashes) => {
             hashes.insert("sha256".into(), CanonicalJsonValue::String(hash))
         }
-        _ => return Err(Error::new("field `hashes` must be a JSON object")),
+        _ => return Err(JsonError::not_of_type("hashes", JsonType::Object)),
     };
 
     let mut redacted = redact(object, version)?;
@@ -579,39 +582,38 @@ pub fn verify_event(
             CanonicalJsonValue::Object(hashes) => match hashes.get("sha256") {
                 Some(hash_value) => match hash_value {
                     CanonicalJsonValue::String(hash) => hash,
-                    _ => return Err(Error::new("sha256 hash must be a JSON string")),
+                    _ => return Err(JsonError::not_of_type("sha256 hash", JsonType::String)),
                 },
-                None => return Err(Error::new("field `hashes` must be a JSON object")),
+                None => return Err(JsonError::not_of_type("hashes", JsonType::Object)),
             },
-            _ => return Err(Error::new("event missing sha256 hash")),
+            _ => return Err(JsonError::field_missing_from_object("sha256")),
         },
-        None => return Err(Error::new("field `hashes` must be present")),
+        None => return Err(JsonError::field_missing_from_object("hashes")),
     };
 
     let signature_map = match object.get("signatures") {
         Some(CanonicalJsonValue::Object(signatures)) => signatures,
-        Some(_) => return Err(Error::new("field `signatures` must be a JSON object")),
-        None => return Err(Error::new("JSON object must contain a `signatures` field.")),
+        Some(_) => return Err(JsonError::not_of_type("signatures", JsonType::Object)),
+        None => return Err(JsonError::field_missing_from_object("signatures")),
     };
 
     let servers_to_check = servers_to_check_signatures(object, version)?;
-    let canonical_json = from_json_str(&canonical_json(&redacted))?;
+    let canonical_json = from_json_str(&canonical_json(&redacted)).map_err(JsonError::from)?;
 
     for entity_id in servers_to_check {
         let signature_set = match signature_map.get(entity_id.as_str()) {
             Some(CanonicalJsonValue::Object(set)) => set,
-            Some(_) => return Err(Error::new("signatures sets must be JSON objects")),
-            None => {
-                return Err(Error::new(format!("no signatures found for entity `{}`", entity_id)))
+            Some(_) => {
+                return Err(JsonError::not_multiples_of_type("signature sets", JsonType::Object))
             }
+            None => return Err(VerificationError::signature_not_found(entity_id)),
         };
 
-        let mut maybe_signature = None;
-        let mut maybe_public_key = None;
+        let mut maybe_signature_and_public_key = None;
 
         let public_keys = public_key_map
             .get(entity_id.as_str())
-            .ok_or_else(|| Error::new(format!("missing public keys for server {}", entity_id)))?;
+            .ok_or_else(|| VerificationError::public_key_not_found(entity_id))?;
 
         for (key_id, public_key) in public_keys {
             // Since only ed25519 is supported right now, we don't actually need to check what the
@@ -621,32 +623,30 @@ pub fn verify_event(
             }
 
             if let Some(signature) = signature_set.get(key_id) {
-                maybe_signature = Some(signature);
-                maybe_public_key = Some(public_key);
+                maybe_signature_and_public_key = Some(SignatureAndPubkey { signature, public_key });
 
                 break;
             }
         }
 
-        let signature = match maybe_signature {
-            Some(CanonicalJsonValue::String(signature)) => signature,
-            Some(_) => return Err(Error::new("signature must be a string")),
-            None => {
-                return Err(Error::new("event is not signed with any of the given public keys"))
-            }
+        let signature_and_pubkey = match maybe_signature_and_public_key {
+            Some(value) => value,
+            None => return Err(VerificationError::UnknownPublicKeysForSignature.into()),
         };
 
-        let public_key = match maybe_public_key {
-            Some(public_key) => public_key,
-            None => {
-                return Err(Error::new("event is not signed with any of the given public keys"))
-            }
+        let signature = match signature_and_pubkey.signature {
+            CanonicalJsonValue::String(signature) => signature,
+            _ => return Err(JsonError::not_of_type("signature", JsonType::String)),
         };
+
+        let public_key = signature_and_pubkey.public_key;
 
         let verify = |config: Config| {
-            let signature_bytes = decode_config(signature, config)?;
+            let signature_bytes = decode_config(signature, config)
+                .map_err(|e| ParseError::base64("signature", signature, e))?;
 
-            let public_key_bytes = decode_config(&public_key, config)?;
+            let public_key_bytes = decode_config(&public_key, config)
+                .map_err(|e| ParseError::base64("public key", public_key, e))?;
 
             verify_json_with(&Ed25519Verifier, &public_key_bytes, &signature_bytes, &canonical_json)
         };
@@ -664,6 +664,11 @@ pub fn verify_event(
     } else {
         Ok(Verified::Signatures)
     }
+}
+
+struct SignatureAndPubkey<'a> {
+    signature: &'a CanonicalJsonValue,
+    public_key: &'a String,
 }
 
 /// Internal implementation detail of the canonical JSON algorithm. Allows customization of the
@@ -707,18 +712,18 @@ pub fn redact(
 
     let event_type_value = match event.get("type") {
         Some(event_type_value) => event_type_value,
-        None => return Err(Error::new("field `type` in JSON value must be present")),
+        None => return Err(JsonError::field_missing_from_object("type")),
     };
 
     let allowed_content_keys = match event_type_value {
         CanonicalJsonValue::String(event_type) => allowed_content_keys_for(event_type, version),
-        _ => return Err(Error::new("field `type` in JSON value must be a JSON string")),
+        _ => return Err(JsonError::not_of_type("type", JsonType::String)),
     };
 
     if let Some(content_value) = event.get_mut("content") {
         let content = match content_value {
             CanonicalJsonValue::Object(map) => map,
-            _ => return Err(Error::new("field `content` in JSON value must be a JSON object")),
+            _ => return Err(JsonError::not_of_type("content", JsonType::Object)),
         };
 
         let mut old_content = mem::take(content);
@@ -752,12 +757,12 @@ fn servers_to_check_signatures(
     if !is_third_party_invite(object)? {
         match object.get("sender") {
             Some(CanonicalJsonValue::String(raw_sender)) => {
-                let user_id = UserId::from_str(raw_sender)
-                    .map_err(|_| Error::new("could not parse user id"))?;
+                let user_id =
+                    UserId::from_str(raw_sender).map_err(|e| Error::from(ParseError::UserId(e)))?;
 
                 servers_to_check.insert(user_id.server_name().to_owned());
             }
-            _ => return Err(Error::new("field `sender` must be a JSON string")),
+            _ => return Err(JsonError::not_of_type("sender", JsonType::String)),
         };
     }
 
@@ -765,21 +770,17 @@ fn servers_to_check_signatures(
         RoomVersionId::Version1 | RoomVersionId::Version2 => match object.get("event_id") {
             Some(CanonicalJsonValue::String(raw_event_id)) => {
                 let event_id = EventId::from_str(raw_event_id)
-                    .map_err(|_| Error::new("could not parse event id"))?;
+                    .map_err(|e| Error::from(ParseError::EventId(e)))?;
 
                 let server_name = event_id
                     .server_name()
-                    .ok_or_else(|| {
-                        Error::new("Event id should have a server name for the given room version")
-                    })?
+                    .ok_or_else(|| ParseError::from_event_id_by_room_version(&event_id, version))?
                     .to_owned();
 
                 servers_to_check.insert(server_name);
             }
             _ => {
-                return Err(Error::new(
-                    "Expected to find a string `event_id` for the given room version",
-                ))
+                return Err(JsonError::field_missing_from_object("event_id"));
             }
         },
         _ => (),
@@ -792,7 +793,7 @@ fn servers_to_check_signatures(
 fn is_third_party_invite(object: &CanonicalJsonObject) -> Result<bool, Error> {
     match object.get("type") {
         Some(CanonicalJsonValue::String(raw_type)) => Ok(raw_type == "m.room.third_party_invite"),
-        _ => Err(Error::new("field `type` must be a JSON string")),
+        _ => Err(JsonError::not_of_type("type", JsonType::String)),
     }
 }
 
@@ -844,7 +845,10 @@ mod tests {
     use serde_json::json;
 
     use super::canonical_json;
-    use crate::{sign_json, verify_event, Ed25519KeyPair, PublicKeyMap, PublicKeySet, Verified};
+    use crate::{
+        sign_json, verify_event, Ed25519KeyPair, Error, PublicKeyMap, PublicKeySet,
+        VerificationError, Verified,
+    };
 
     #[test]
     fn canonical_json_complex() {
@@ -1000,8 +1004,12 @@ mod tests {
             verify_event(&public_key_map, &signed_event, &RoomVersionId::Version6);
 
         assert!(verification_result.is_err());
-        let error_msg = verification_result.err().unwrap().message;
-        assert!(error_msg.contains("missing public keys for server"));
+        let error_msg = verification_result.err().unwrap();
+        if let Error::Verification(VerificationError::PublicKeyNotFound(entity)) = error_msg {
+            assert_eq!(entity, "domain-sender");
+        } else {
+            panic!("Error was not VerificationError::UnknownPublicKeysForEvent: {:?}", error_msg);
+        };
     }
 
     #[test]
@@ -1046,8 +1054,14 @@ mod tests {
             verify_event(&public_key_map, &signed_event, &RoomVersionId::Version6);
 
         assert!(verification_result.is_err());
-        let error_msg = verification_result.err().unwrap().message;
-        assert!(error_msg.contains("Could not verify signature"));
+        let error_msg = verification_result.err().unwrap();
+        if let Error::Verification(VerificationError::Signature(error)) = error_msg {
+            // dalek doesn't expose InternalError :(
+            // https://github.com/dalek-cryptography/ed25519-dalek/issues/174
+            assert!(format!("{:?}", error).contains("Some(Verification equation was not satisfied)"))
+        } else {
+            panic!("Error was not VerificationError::Signature: {:?}", error_msg);
+        };
     }
 
     fn generate_key_pair() -> Ed25519KeyPair {
