@@ -4,7 +4,7 @@ use std::convert::TryInto;
 
 use ed25519_dalek::{PublicKey, Verifier as _};
 
-use crate::Error;
+use crate::{Error, ParseError, VerificationError};
 
 /// A digital signature verifier.
 pub trait Verifier {
@@ -35,14 +35,10 @@ impl Verifier for Ed25519Verifier {
         message: &[u8],
     ) -> Result<(), Error> {
         PublicKey::from_bytes(public_key)
-            .map_err(|e| Error::new(format!("Could not parse public key: {:?}", e)))?
-            .verify(
-                message,
-                &signature
-                    .try_into()
-                    .map_err(|e| Error::new(format!("Could not parse signature: {:?}", e)))?,
-            )
-            .map_err(|e| Error::new(format!("Could not verify signature: {:?}", e)))
+            .map_err(ParseError::PublicKey)?
+            .verify(message, &signature.try_into().map_err(ParseError::Signature)?)
+            .map_err(VerificationError::Signature)
+            .map_err(Error::from)
     }
 }
 
