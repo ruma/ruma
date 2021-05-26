@@ -64,6 +64,7 @@ mod verification;
 
 /// The algorithm used for signing data.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, AsRefStr, DisplayAsRefStr)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_enum(rename_all = "snake_case")]
 pub enum Algorithm {
     /// The Ed25519 digital signature algorithm.

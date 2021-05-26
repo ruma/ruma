@@ -16,6 +16,7 @@ all-features = true
 
 [features]
 compat = ["tracing"]
+unstable-exhaustive-types = []
 
 [dependencies]
 base64 = "0.13.0"
