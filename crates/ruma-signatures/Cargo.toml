@@ -30,3 +30,4 @@ untrusted = "0.7.1"
 
 [features]
 compat = ["tracing"]
+unstable-exhaustive-types = []
