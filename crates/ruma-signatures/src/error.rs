@@ -262,7 +262,7 @@ pub enum SplitError {
     #[error("malformed signature ID: expected version to contain only characters in the character set `[a-zA-Z0-9_]`, found `{0}`")]
     InvalidVersion(String),
 
-    /// The signature uses an unknown algorithm.
-    #[error("unknown algorithm: {0}")]
-    UnknownAlgorithm(String),
+    /// The signature uses an unsupported algorithm.
+    #[error("unsupported algorithm: {0}")]
+    UnsupportedAlgorithm(String),
 }
