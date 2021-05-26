@@ -112,14 +112,19 @@ impl JsonError {
 pub enum JsonType {
     /// A JSON Object.
     Object,
+
     /// A JSON String.
     String,
+
     /// A JSON Integer.
     Integer,
+
     /// A JSON Array.
     Array,
+
     /// A JSON Boolean.
     Boolean,
+
     /// JSON Null.
     Null,
 }
@@ -162,6 +167,7 @@ pub enum ParseError {
     /// For user ID parsing errors.
     #[error("Could not parse User ID: {0}")]
     UserId(#[source] ruma_identifiers::Error),
+
     /// For event ID parsing errors.
     #[error("Could not parse Event ID: {0}")]
     EventId(#[source] ruma_identifiers::Error),
