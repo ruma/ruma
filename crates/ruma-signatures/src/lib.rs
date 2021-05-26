@@ -93,7 +93,7 @@ fn split_id(id: &str) -> Result<(Algorithm, String), SplitError> {
 
     let algorithm = match algorithm_input {
         "ed25519" => Algorithm::Ed25519,
-        algorithm => return Err(SplitError::UnknownAlgorithm(algorithm.into())),
+        algorithm => return Err(SplitError::UnsupportedAlgorithm(algorithm.into())),
     };
 
     Ok((algorithm, signature_id[1].to_owned()))
