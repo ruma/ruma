@@ -1,5 +1,9 @@
 # [unreleased]
 
+Bug fixes:
+
+* Remove authentication for get alias endpoint
+
 # 0.10.1
 
 Improvements:

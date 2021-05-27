@@ -10,7 +10,7 @@ ruma_api! {
         name: "get_alias",
         path: "/_matrix/client/r0/directory/room/:room_alias",
         rate_limited: false,
-        authentication: AccessToken,
+        authentication: None,
     }
 
     request: {
