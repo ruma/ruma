@@ -9,3 +9,4 @@
 /crates/ruma-identity-service-api/     @iinuwa
 /crates/ruma-serde-macros/             @ruma/macro-owners
 /crates/ruma-signatures/               @gnieto
+/crates/ruma-state-res/                @DevinR528
