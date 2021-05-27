@@ -14,5 +14,6 @@ pub mod push;
 pub mod receipt;
 pub mod thirdparty;
 mod time;
+pub mod to_device;
 
 pub use time::{MilliSecondsSinceUnixEpoch, SecondsSinceUnixEpoch};
