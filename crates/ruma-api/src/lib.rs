@@ -285,7 +285,7 @@ pub trait IncomingResponse: Sized {
     ) -> Result<Self, FromHttpResponseError<Self::EndpointError>>;
 }
 
-/// An extension to `OutgoingRequest` which provides Appservice specific methods
+/// An extension to `OutgoingRequest` which provides Appservice specific methods.
 pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
     /// Tries to convert this request into an `http::Request` and appends a virtual `user_id` to
     /// [assert Appservice identity][id_assert].
