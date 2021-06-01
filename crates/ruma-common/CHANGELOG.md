@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Add `thirdparty::ThirdPartyIdentifier`
+
 # 0.5.1
 
 Improvements:
