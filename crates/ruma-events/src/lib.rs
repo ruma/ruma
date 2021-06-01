@@ -281,7 +281,7 @@ pub trait RedactContent {
     /// A small number of events have room-version specific redaction behavior, so a version has to
     /// be specified.
     ///
-    /// Where applicable, it is prefered to use [`Redact::redact`] on the outer event.
+    /// Where applicable, it is preferred to use [`Redact::redact`] on the outer event.
     fn redact(self, version: &RoomVersionId) -> Self::Redacted;
 }
 

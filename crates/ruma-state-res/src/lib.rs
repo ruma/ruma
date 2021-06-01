@@ -175,7 +175,7 @@ impl StateResolution {
     ) -> (StateMap<EventId>, StateMap<Vec<EventId>>) {
         use itertools::Itertools;
 
-        info!("seperating {} sets of events into conflicted/unconflicted", state_sets.len());
+        info!("separating {} sets of events into conflicted/unconflicted", state_sets.len());
 
         let mut unconflicted_state = StateMap::new();
         let mut conflicted_state = StateMap::new();

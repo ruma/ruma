@@ -37,7 +37,7 @@ impl<'a> Request<'a> {
 }
 
 impl Response {
-    /// Creates a new `Reponse` with the given locations.
+    /// Creates a new `Response` with the given locations.
     pub fn new(locations: Vec<Location>) -> Self {
         Self { locations }
     }

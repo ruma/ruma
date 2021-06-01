@@ -35,7 +35,7 @@ impl Request {
 }
 
 impl Response {
-    /// Creates a new `Response` with the given procotols.
+    /// Creates a new `Response` with the given protocols.
     pub fn new(protocols: BTreeMap<String, Protocol>) -> Self {
         Self { protocols }
     }

@@ -59,7 +59,7 @@ impl PublicRoomsChunk {
     /// Creates a new `PublicRoomsChunk` with the given room ID.
     ///
     /// All other fields will be propagated with default values (an empty list of aliases, `None`
-    /// for all `Option`al fields and `false` for all boolean fields), which should be overriden;
+    /// for all `Option`al fields and `false` for all boolean fields), which should be overridden;
     /// the `assign!` macro from the `assign` crate can simplify this.
     pub fn new(room_id: RoomId) -> Self {
         Self {
