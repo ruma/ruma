@@ -11,6 +11,9 @@ repository = "https://github.com/ruma/ruma"
 version = "0.2.0"
 edition = "2018"
 
+[package.metadata.docs.rs]
+all-features = true
+
 [dependencies]
 ruma-api = { version = "0.17.0", path = "../ruma-api" }
 ruma-client-api = { version = "0.10.1", path = "../ruma-client-api", features = ["client"], optional = true }

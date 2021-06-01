@@ -15,6 +15,10 @@ repository = "https://github.com/ruma/ruma"
 version = "0.10.1"
 edition = "2018"
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [dependencies]
 assign = "1.1.1"
 bytes = "1.0.1"
