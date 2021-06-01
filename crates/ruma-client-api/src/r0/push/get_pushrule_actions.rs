@@ -45,7 +45,7 @@ impl<'a> Request<'a> {
 }
 
 impl Response {
-    /// Creates a new `Repsonse` with the given actions.
+    /// Creates a new `Response` with the given actions.
     pub fn new(actions: Vec<Action>) -> Self {
         Self { actions }
     }

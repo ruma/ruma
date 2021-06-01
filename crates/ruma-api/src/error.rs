@@ -15,7 +15,7 @@ use crate::{EndpointError, OutgoingResponse};
 /// Note that individual `ruma-*-api` crates may provide more specific error types.
 #[derive(Clone, Debug)]
 pub struct MatrixError {
-    /// The http reponse's status code.
+    /// The http response's status code.
     pub status_code: http::StatusCode,
 
     /// The http response's body.

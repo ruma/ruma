@@ -36,7 +36,7 @@ ruma_api! {
 
         /// List of state events to send to the new room.
         ///
-        /// Takes precedence over events set by preset, but gets overriden by
+        /// Takes precedence over events set by preset, but gets overridden by
         /// name and topic keys.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
         pub initial_state: &'a [AnyInitialStateEvent],

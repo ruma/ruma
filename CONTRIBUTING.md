@@ -62,7 +62,7 @@ Specification type | Rust type
 `[…]`              | `Vec<…>`
 `{string: …}`      | `BTreeMap<String, …>` (or `BTreeMap<SomeId, …>`)
 
-### (Type) Privacy and Forwards Compatiblity
+### (Type) Privacy and Forwards Compatibility
 
 Generally, all `struct`s that are mirroring types defined in the Matrix specification should have
 all their fields `pub`lic. Where there are restrictions to the fields value beyond their type, these

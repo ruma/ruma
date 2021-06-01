@@ -36,7 +36,7 @@ impl<'a> Request<'a> {
 }
 
 impl Response {
-    /// Creates a new `Response` with the given procotol.
+    /// Creates a new `Response` with the given protocol.
     pub fn new(protocol: Protocol) -> Self {
         Self { protocol }
     }
