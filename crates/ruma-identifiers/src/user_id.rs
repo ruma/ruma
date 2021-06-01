@@ -65,7 +65,7 @@ impl UserId {
         if id_str.starts_with('@') {
             try_from(id.into())
         } else {
-            let is_fully_conforming = localpart_is_fully_comforming(id_str)?;
+            let is_fully_conforming = localpart_is_fully_conforming(id_str)?;
 
             Ok(Self {
                 full_id: format!("@{}:{}", id_str, server_name).into(),
@@ -109,7 +109,7 @@ where
 
 common_impls!(UserId, try_from, "a Matrix user ID");
 
-pub use ruma_identifiers_validation::user_id::localpart_is_fully_comforming;
+pub use ruma_identifiers_validation::user_id::localpart_is_fully_conforming;
 
 #[cfg(test)]
 mod tests {

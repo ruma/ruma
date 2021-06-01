@@ -5,7 +5,7 @@ use crate::{parse_id, Error};
 pub fn validate(s: &str) -> Result<(NonZeroU8, bool), Error> {
     let colon_idx = parse_id(s, &['@'])?;
     let localpart = &s[1..colon_idx.get() as usize];
-    let is_historical = localpart_is_fully_comforming(localpart)?;
+    let is_historical = localpart_is_fully_conforming(localpart)?;
 
     Ok((colon_idx, is_historical))
 }
@@ -19,7 +19,7 @@ pub fn validate(s: &str) -> Result<(NonZeroU8, bool), Error> {
 /// localparts. User IDs that don't even meet the historical user ID restrictions exist in the wild
 /// due to Synapse allowing them over federation. This will likely be fixed in an upcoming room
 /// version; see <https://github.com/matrix-org/matrix-doc/pull/2828>.
-pub fn localpart_is_fully_comforming(localpart: &str) -> Result<bool, Error> {
+pub fn localpart_is_fully_conforming(localpart: &str) -> Result<bool, Error> {
     // See https://matrix.org/docs/spec/appendices#user-identifiers
     let is_fully_conforming = localpart
         .bytes()

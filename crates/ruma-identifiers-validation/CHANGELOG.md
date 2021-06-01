@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Fix a typo in a public function name: `user_id::localpart_is_fully_{comforming => conforming}`
+
 # 0.3.0
 
 Breaking changes:
