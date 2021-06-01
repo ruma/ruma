@@ -1,5 +1,13 @@
 # [unreleased]
 
+# 0.7.2
+
+Improvements:
+
+* Add a `compat` feature
+
+  When enabled, ruma-signatures will accept slightly malformed base64 input.
+
 # 0.7.1
 
 Improvements:
