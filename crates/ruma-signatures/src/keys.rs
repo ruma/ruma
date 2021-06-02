@@ -139,6 +139,7 @@ impl Ed25519KeyPair {
         let oak = OneAsymmetricKey {
             algorithm: AlgorithmIdentifier { oid: ED25519_OID, parameters: None },
             private_key: private.as_ref(),
+            attributes: None,
             public_key: Some(public.as_bytes()),
         };
 
