@@ -13,6 +13,11 @@ edition = "2018"
 [package.metadata.docs.rs]
 all-features = true
 
+[features]
+unstable-exhaustive-types = []
+client = []
+server = []
+
 [dependencies]
 js_int = { version = "0.2.0", features = ["serde"] }
 ruma-api = { version = "0.17.0", path = "../ruma-api" }
@@ -23,8 +28,3 @@ serde = { version = "1.0.118", features = ["derive"] }
 
 [dev-dependencies]
 serde_json = "1.0.61"
-
-[features]
-unstable-exhaustive-types = []
-client = []
-server = []

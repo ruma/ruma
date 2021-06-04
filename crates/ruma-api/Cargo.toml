@@ -18,6 +18,13 @@ edition = "2018"
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
+# These feature gates exist only for the tests. Disabling them results in a
+# compile error.
+[features]
+default = ["client", "server"]
+client = []
+server = []
+
 [dependencies]
 bytes = "1.0.1"
 http = "0.2.2"
@@ -32,10 +39,3 @@ thiserror = "1.0.23"
 [dev-dependencies]
 ruma-events = { version = "0.22.2", path = "../ruma-events" }
 trybuild = "1.0.38"
-
-# These feature gates exist only for the tests. Disabling them results in a
-# compile error.
-[features]
-default = ["client", "server"]
-client = []
-server = []

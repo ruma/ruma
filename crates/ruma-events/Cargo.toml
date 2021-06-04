@@ -15,6 +15,13 @@ edition = "2018"
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
+[features]
+compat = []
+markdown = ["pulldown-cmark"]
+
+unstable-exhaustive-types = []
+unstable-pre-spec = []
+
 [dependencies]
 criterion = { version = "0.3.3", optional = true }
 indoc = "1.0"
@@ -33,13 +40,6 @@ maplit = "1.0.2"
 matches = "0.1.8"
 ruma-identifiers = { version = "0.19.1", path = "../ruma-identifiers", features = ["rand"] }
 trybuild = "1.0.38"
-
-[features]
-compat = []
-markdown = ["pulldown-cmark"]
-
-unstable-exhaustive-types = []
-unstable-pre-spec = []
 
 [[bench]]
 name = "event_deserialize"

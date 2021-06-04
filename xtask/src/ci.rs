@@ -71,7 +71,14 @@ impl CiTask {
     fn build_nightly(&self) -> xshell::Result<()> {
         let fmt_res = cmd!("rustup run nightly cargo fmt -- --check").run();
         let clippy_res = cmd!("rustup run nightly cargo ruma-clippy -D warnings").run();
-        let sort_res = cmd!("rustup run nightly cargo sort --workspace --grouped --check").run();
+        let sort_res = cmd!(
+            "
+            rustup run nightly cargo sort
+                --workspace --grouped --check
+                --order package,lib,features,dependencies,dev-dependencies,build-dependencies
+            "
+        )
+        .run();
 
         fmt_res.and(clippy_res).and(sort_res)
     }

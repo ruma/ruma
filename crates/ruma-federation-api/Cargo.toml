@@ -18,6 +18,12 @@ version = "0.1.0"
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
+[features]
+unstable-exhaustive-types = []
+unstable-pre-spec = []
+client = []
+server = []
+
 [dependencies]
 js_int = { version = "0.2.0", features = ["serde"] }
 ruma-api = { version = "0.17.0", path = "../ruma-api" }
@@ -31,9 +37,3 @@ serde_json = "1.0.61"
 [dev-dependencies]
 http = "0.2.2"
 matches = "0.1.8"
-
-[features]
-unstable-exhaustive-types = []
-unstable-pre-spec = []
-client = []
-server = []

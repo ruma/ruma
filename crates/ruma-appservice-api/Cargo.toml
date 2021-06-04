@@ -14,6 +14,12 @@ edition = "2018"
 [package.metadata.docs.rs]
 all-features = true
 
+[features]
+unstable-exhaustive-types = []
+helper = ["ruma-client-api", "tracing"]
+client = []
+server = []
+
 [dependencies]
 ruma-api = { version = "0.17.0", path = "../ruma-api" }
 ruma-client-api = { version = "0.10.2", path = "../ruma-client-api", features = ["client"], optional = true }
@@ -28,9 +34,3 @@ tracing = { version = "0.1.25", optional = true }
 [dev-dependencies]
 matches = "0.1.8"
 serde_yaml = "0.8.17"
-
-[features]
-unstable-exhaustive-types = []
-helper = ["ruma-client-api", "tracing"]
-client = []
-server = []
