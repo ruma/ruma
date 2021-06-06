@@ -2,10 +2,10 @@
 
 use std::collections::BTreeSet;
 
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::TokenStream;
 use proc_macro_crate::{crate_name, FoundCrate};
-use quote::quote;
-use syn::{AttrStyle, Attribute, Ident, Lifetime};
+use quote::{format_ident, quote};
+use syn::{AttrStyle, Attribute, Lifetime};
 
 /// Generates a `TokenStream` of lifetime identifiers `<'lifetime>`.
 pub(crate) fn unique_lifetimes_to_tokens<'a, I: IntoIterator<Item = &'a Lifetime>>(
@@ -25,11 +25,11 @@ pub(crate) fn is_valid_endpoint_path(string: &str) -> bool {
 }
 
 pub(crate) fn import_ruma_api() -> TokenStream {
-    if let Ok(FoundCrate::Name(possibly_renamed)) = crate_name("ruma-api") {
-        let import = Ident::new(&possibly_renamed, Span::call_site());
+    if let Ok(FoundCrate::Name(name)) = crate_name("ruma-api") {
+        let import = format_ident!("{}", name);
         quote! { ::#import }
-    } else if let Ok(FoundCrate::Name(possibly_renamed)) = crate_name("ruma") {
-        let import = Ident::new(&possibly_renamed, Span::call_site());
+    } else if let Ok(FoundCrate::Name(name)) = crate_name("ruma") {
+        let import = format_ident!("{}", name);
         quote! { ::#import::api }
     } else {
         quote! { ::ruma_api }

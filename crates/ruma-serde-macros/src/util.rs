@@ -1,6 +1,6 @@
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::{Span, TokenStream};
 use proc_macro_crate::{crate_name, FoundCrate};
-use quote::quote;
+use quote::{format_ident, quote};
 use syn::{ItemEnum, LitStr, Variant};
 
 use crate::{
@@ -9,11 +9,11 @@ use crate::{
 };
 
 pub fn import_ruma_serde() -> TokenStream {
-    if let Ok(FoundCrate::Name(possibly_renamed)) = crate_name("ruma-serde") {
-        let import = Ident::new(&possibly_renamed, Span::call_site());
+    if let Ok(FoundCrate::Name(name)) = crate_name("ruma-serde") {
+        let import = format_ident!("{}", name);
         quote! { ::#import }
-    } else if let Ok(FoundCrate::Name(possibly_renamed)) = crate_name("ruma") {
-        let import = Ident::new(&possibly_renamed, Span::call_site());
+    } else if let Ok(FoundCrate::Name(name)) = crate_name("ruma") {
+        let import = format_ident!("{}", name);
         quote! { ::#import::serde }
     } else {
         quote! { ::ruma_serde }
