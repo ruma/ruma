@@ -153,7 +153,7 @@ mod tests {
     #[test]
     fn name_fails_validation_when_too_long() {
         // "XXXX .." 256 times
-        let long_string: String = std::iter::repeat('X').take(256).collect();
+        let long_string: String = "X".repeat(256);
         assert_eq!(long_string.len(), 256);
 
         let long_content_json = json!({ "name": &long_string });
