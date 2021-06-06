@@ -12,10 +12,11 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomId, ServerNameBox, ServerSigningKeyId, UserId};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
+
+use crate::EventType;
 
 /// Enum for PDU schemas
 #[derive(Clone, Debug, Deserialize, Serialize)]
