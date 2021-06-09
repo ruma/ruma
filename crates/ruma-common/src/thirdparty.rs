@@ -85,6 +85,10 @@ pub struct ProtocolInstance {
 
     /// A unique identifier across all instances.
     pub network_id: String,
+
+    /// A unique identifier across all instances.
+    #[cfg(feature = "unstable-pre-spec")]
+    pub instance_id: String,
 }
 
 /// Initial set of fields of `Protocol`.
@@ -101,12 +105,29 @@ pub struct ProtocolInstanceInit {
 
     /// A unique identifier across all instances.
     pub network_id: String,
+
+    /// A unique identifier across all instances.
+    #[cfg(feature = "unstable-pre-spec")]
+    pub instance_id: String,
 }
 
 impl From<ProtocolInstanceInit> for ProtocolInstance {
     fn from(init: ProtocolInstanceInit) -> Self {
-        let ProtocolInstanceInit { desc, fields, network_id } = init;
-        Self { desc, icon: None, fields, network_id }
+        let ProtocolInstanceInit {
+            desc,
+            fields,
+            network_id,
+            #[cfg(feature = "unstable-pre-spec")]
+            instance_id,
+        } = init;
+        Self {
+            desc,
+            icon: None,
+            fields,
+            network_id,
+            #[cfg(feature = "unstable-pre-spec")]
+            instance_id,
+        }
     }
 }
 
