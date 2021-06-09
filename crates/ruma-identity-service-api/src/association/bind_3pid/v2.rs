@@ -25,7 +25,7 @@ ruma_api! {
         pub client_secret: &'a str,
 
         /// The Matrix user ID to associate with the 3PIDs.
-        pub mxid: UserId,
+        pub mxid: &'a UserId,
     }
 
     response: {
@@ -55,16 +55,15 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Creates a `Request` with the given Session ID, client secret
-    /// and Matrix user ID.
-    pub fn new(sid: &'a str, client_secret: &'a str, mxid: UserId) -> Self {
+    /// Creates a `Request` with the given Session ID, client secret and Matrix user ID.
+    pub fn new(sid: &'a str, client_secret: &'a str, mxid: &'a UserId) -> Self {
         Self { sid, client_secret, mxid }
     }
 }
 
 impl Response {
-    /// Creates a `Response` with the given 3PID address, medium,
-    /// Matrix user ID, timestamps and signatures.
+    /// Creates a `Response` with the given 3PID address, medium, Matrix user ID, timestamps and
+    /// signatures.
     pub fn new(
         address: String,
         medium: Medium,
