@@ -16,6 +16,11 @@ pub type EntitySignatures<K> = BTreeMap<SigningKeyId<K>, String>;
 /// signatures.insert(server_name, key_identifier, signature.into());
 /// ```
 #[derive(Clone, Debug, Default)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(transparent, crate = "serde")
+)]
 pub struct Signatures<E: Ord, K: ?Sized>(BTreeMap<E, EntitySignatures<K>>);
 
 impl<E: Ord, K: ?Sized> Signatures<E, K> {
