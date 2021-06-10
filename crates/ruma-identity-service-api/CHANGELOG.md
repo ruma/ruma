@@ -4,12 +4,12 @@ Improvements:
 
 * Add more endpoints:
 
-```rust
-    association::{
-        check_3pid_validity::v2,
-        bind_3pid::v2,
-    }
-```
+  ```rust
+  association::{
+      check_3pid_validity::v2,
+      bind_3pid::v2,
+  }
+  ```
 
 # 0.1.0
 
