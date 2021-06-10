@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.19.2
+
+Improvements:
+
+* Add `get` method to `Signatures` type
+
 # 0.19.1
 
 Improvements:

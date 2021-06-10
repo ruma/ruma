@@ -20,7 +20,7 @@ compat = ["tracing"]
 [dependencies]
 base64 = "0.13.0"
 ring = "0.16.19"
-ruma-identifiers = { version = "0.19.1", path = "../ruma-identifiers" }
+ruma-identifiers = { version = "0.19.2", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.4.0", path = "../ruma-serde" }
 serde_json = "1.0.60"
 tracing = { version = "0.1.25", optional = true }
