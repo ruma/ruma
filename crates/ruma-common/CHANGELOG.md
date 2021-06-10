@@ -1,5 +1,12 @@
 # [unreleased]
 
+# 0.5.3
+
+Improvements:
+
+* Add `instance_id` field to `ProtocolInstance[Init]` under the
+  `unstable-pre-spec` feature
+
 # 0.5.2
 
 Improvements:
