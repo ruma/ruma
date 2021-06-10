@@ -15,6 +15,12 @@ pub type EntitySignatures<K> = BTreeMap<SigningKeyId<K>, String>;
 /// let signature = "YbJva03ihSj5mPk+CHMJKUKlCXCPFXjXOK6VqBnN9nA2evksQcTGn6hwQfrgRHIDDXO2le49x7jnWJHMJrJoBQ";
 /// signatures.insert(server_name, key_identifier, signature.into());
 /// ```
+
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(transparent, crate = "serde")
+)]
 #[derive(Clone, Debug, Default)]
 pub struct Signatures<E: Ord, K: ?Sized>(BTreeMap<E, EntitySignatures<K>>);
 
