@@ -33,16 +33,14 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    response: {
-    }
-
+    response: {}
 }
 
 impl<'a> Request<'a> {
     /// Creates a `Request` with the given Session ID, client secret, Matrix user ID and 3PID.
     pub fn new(
         sid: Option<&'a str>,
-        client_secret:Option<&'a str>,
+        client_secret: Option<&'a str>,
         mxid: &'a UserId,
         threepid: &'a ThirdPartyId,
     ) -> Self {
