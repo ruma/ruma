@@ -152,6 +152,7 @@ pub struct SimplePushRule {
 /// This struct will not be updated even if additional fields are added to `SimplePushRule` in a new
 /// (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
+#[allow(clippy::exhaustive_structs)]
 pub struct SimplePushRuleInit {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
@@ -241,6 +242,7 @@ impl ConditionalPushRule {
 /// This struct will not be updated even if additional fields are added to `ConditionalPushRule` in
 /// a new (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
+#[allow(clippy::exhaustive_structs)]
 pub struct ConditionalPushRuleInit {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
@@ -338,6 +340,7 @@ impl PatternedPushRule {
 /// This struct will not be updated even if additional fields are added to `PatterenedPushRule` in a
 /// new (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
+#[allow(clippy::exhaustive_structs)]
 pub struct PatternedPushRuleInit {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,

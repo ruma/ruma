@@ -113,6 +113,7 @@ impl PushCondition {
 
 /// The context of the room associated to an event to be able to test all push conditions.
 #[derive(Clone, Debug)]
+#[allow(clippy::exhaustive_structs)]
 pub struct PushConditionRoomCtx {
     /// The ID of the room.
     pub room_id: RoomId,

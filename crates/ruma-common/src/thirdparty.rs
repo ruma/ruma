@@ -42,6 +42,7 @@ pub struct Protocol {
 /// This struct will not be updated even if additional fields are added to `Prococol` in a new
 /// (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
+#[allow(clippy::exhaustive_structs)]
 pub struct ProtocolInit {
     /// Fields which may be used to identify a third party user.
     pub user_fields: Vec<String>,
@@ -96,6 +97,7 @@ pub struct ProtocolInstance {
 /// This struct will not be updated even if additional fields are added to `Prococol` in a new
 /// (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
+#[allow(clippy::exhaustive_structs)]
 pub struct ProtocolInstanceInit {
     /// A human-readable description for the protocol, such as the name.
     pub desc: String,
@@ -150,6 +152,7 @@ pub struct FieldType {
 /// This struct will not be updated even if additional fields are added to `FieldType` in a new
 /// (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
+#[allow(clippy::exhaustive_structs)]
 pub struct FieldTypeInit {
     /// A regular expression for validation of a field's value.
     pub regexp: String,
@@ -188,6 +191,7 @@ impl Location {
 
 /// A third party network user.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct User {
     /// A matrix user ID representing a third party user.
     pub userid: UserId,
@@ -246,6 +250,7 @@ pub struct ThirdPartyIdentifier {
 /// This struct will not be updated even if additional fields are added to `ThirdPartyIdentifier`
 /// in a new (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
+#[allow(clippy::exhaustive_structs)]
 pub struct ThirdPartyIdentifierInit {
     /// The third party identifier address.
     pub address: String,
