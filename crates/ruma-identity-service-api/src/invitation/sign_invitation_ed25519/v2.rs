@@ -1,7 +1,7 @@
 //![POST /_matrix/identity/v2/sign-ed25519](https://matrix.org/docs/spec/identity_service/r0.3.0#post-matrix-identity-v2-sign-ed25519)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::{Signatures, UserId};
+use ruma_identifiers::{ServerSignatures, UserId};
 
 ruma_api! {
     metadata: {
@@ -32,7 +32,7 @@ ruma_api! {
         pub sender: UserId,
 
         /// The signature of the mxid, sender and token.
-        pub signatures: Signatures<String, String>,
+        pub signatures: ServerSignatures,
 
         /// The token for the invitation.
         pub token: String,
@@ -49,12 +49,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a `Response` with the given Matrix user ID, sender user ID, signatures and token.
-    pub fn new(
-        mxid: UserId,
-        sender: UserId,
-        signatures: Signatures<String, String>,
-        token: String,
-    ) -> Self {
+    pub fn new(mxid: UserId, sender: UserId, signatures: ServerSignatures, token: String) -> Self {
         Self { mxid, sender, signatures, token }
     }
 }
