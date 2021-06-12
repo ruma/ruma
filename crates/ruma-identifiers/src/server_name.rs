@@ -3,6 +3,8 @@
 use std::{convert::TryFrom, fmt, mem, str::FromStr};
 
 use ruma_identifiers_validation::server_name::validate;
+use std::sync::Arc;
+use std::rc::Rc;
 
 /// A Matrix-spec compliant server name.
 #[repr(transparent)]
@@ -87,6 +89,18 @@ impl AsRef<str> for Box<ServerName> {
 impl From<Box<ServerName>> for String {
     fn from(s: Box<ServerName>) -> Self {
         s.into_owned().into()
+    }
+}
+
+impl<'a> From<&'a ServerName> for Arc<ServerName> {
+    fn from(s: &ServerName) -> Arc<ServerName> {
+        Arc::<ServerName([str])>::from(s.0.as_bytes())
+    }
+}
+
+impl<'a> From<&'a ServerName> for Rc<ServerName> {
+    fn from(s: &ServerName) -> Rc<ServerName> {
+        Rc::<ServerName([str])>::from(s.0.as_bytes())
     }
 }
 

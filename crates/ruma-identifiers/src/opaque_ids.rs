@@ -2,6 +2,8 @@
 
 #[cfg(feature = "rand")]
 use crate::generate_localpart;
+use std::sync::Arc;
+use std::rc::Rc;
 
 opaque_identifier! {
     /// A Matrix key ID.
@@ -19,6 +21,19 @@ impl DeviceId {
         Self::from_owned(generate_localpart(8))
     }
 }
+
+impl<'a> From<&'a DeviceId> for Arc<DeviceId> {
+    fn from(s: &DeviceId) -> Arc<DeviceId> {
+        Arc::<DeviceId([str])>::from(s.0.as_bytes())
+    }
+}
+
+impl<'a> From<&'a DeviceId> for Rc<DeviceId> {
+    fn from(s: &DeviceId) -> Rc<DeviceId> {
+        Rc::<DeviceId([str])>::from(s.0.as_bytes())
+    }
+}
+
 
 opaque_identifier! {
     /// A Matrix key identifier.
