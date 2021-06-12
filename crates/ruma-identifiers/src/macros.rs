@@ -15,10 +15,10 @@ macro_rules! partial_eq_string {
         partial_eq_string!(@imp $(<$($g),*>)?, String, $id);
     };
     (@imp $(<$( $g:ident ),*>)?, $l:ty, $r:ty) => {
-        impl $(<$($g),*>)? ::std::cmp::PartialEq<$r> for $l {
+        impl $(<$($g),*>)? PartialEq<$r> for $l {
             fn eq(&self, other: &$r) -> bool {
-                ::std::convert::AsRef::<str>::as_ref(self)
-                    == ::std::convert::AsRef::<str>::as_ref(other)
+                AsRef::<str>::as_ref(self)
+                    == AsRef::<str>::as_ref(other)
             }
         }
     }
@@ -26,49 +26,49 @@ macro_rules! partial_eq_string {
 
 macro_rules! as_str_based_impls {
     ($id:ty) => {
-        impl ::std::convert::AsRef<str> for $id {
+        impl AsRef<str> for $id {
             fn as_ref(&self) -> &str {
                 self.as_str()
             }
         }
 
-        impl ::std::fmt::Display for $id {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        impl std::fmt::Display for $id {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 write!(f, "{}", self.as_str())
             }
         }
 
-        impl ::std::cmp::PartialEq for $id {
+        impl PartialEq for $id {
             fn eq(&self, other: &Self) -> bool {
                 self.as_str() == other.as_str()
             }
         }
 
-        impl ::std::cmp::Eq for $id {}
+        impl std::cmp::Eq for $id {}
 
-        impl ::std::cmp::PartialOrd for $id {
-            fn partial_cmp(&self, other: &Self) -> Option<::std::cmp::Ordering> {
-                ::std::cmp::PartialOrd::partial_cmp(self.as_str(), other.as_str())
+        impl std::cmp::PartialOrd for $id {
+            fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+                std::cmp::PartialOrd::partial_cmp(self.as_str(), other.as_str())
             }
         }
 
-        impl ::std::cmp::Ord for $id {
-            fn cmp(&self, other: &Self) -> ::std::cmp::Ordering {
-                ::std::cmp::Ord::cmp(self.as_str(), other.as_str())
+        impl std::cmp::Ord for $id {
+            fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+                std::cmp::Ord::cmp(self.as_str(), other.as_str())
             }
         }
 
-        impl ::std::hash::Hash for $id {
-            fn hash<H: ::std::hash::Hasher>(&self, state: &mut H) {
+        impl std::hash::Hash for $id {
+            fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
                 self.as_str().hash(state);
             }
         }
 
         #[cfg(feature = "serde")]
-        impl ::serde::Serialize for $id {
+        impl serde::Serialize for $id {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
-                S: ::serde::Serializer,
+                S: serde::Serializer,
             {
                 serializer.serialize_str(self.as_str())
             }
@@ -108,19 +108,19 @@ macro_rules! common_impls {
             }
         }
 
-        impl ::std::convert::From<$id> for ::std::string::String {
+        impl From<$id> for String {
             fn from(id: $id) -> Self {
                 id.into_string()
             }
         }
 
-        impl ::std::convert::From<$id> for ::std::vec::Vec<u8> {
+        impl From<$id> for Vec<u8> {
             fn from(id: $id) -> Self {
                 id.into_bytes()
             }
         }
 
-        impl ::std::str::FromStr for $id {
+        impl std::str::FromStr for $id {
             type Err = crate::Error;
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -128,7 +128,7 @@ macro_rules! common_impls {
             }
         }
 
-        impl ::std::convert::TryFrom<&str> for $id {
+        impl std::convert::TryFrom<&str> for $id {
             type Error = crate::Error;
 
             fn try_from(s: &str) -> Result<Self, Self::Error> {
@@ -136,7 +136,7 @@ macro_rules! common_impls {
             }
         }
 
-        impl ::std::convert::TryFrom<String> for $id {
+        impl std::convert::TryFrom<String> for $id {
             type Error = crate::Error;
 
             fn try_from(s: String) -> Result<Self, Self::Error> {
@@ -145,10 +145,10 @@ macro_rules! common_impls {
         }
 
         #[cfg(feature = "serde")]
-        impl<'de> ::serde::Deserialize<'de> for $id {
+        impl<'de> serde::Deserialize<'de> for $id {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
-                D: ::serde::Deserializer<'de>,
+                D: serde::Deserializer<'de>,
             {
                 crate::deserialize_id(deserializer, $desc)
             }
@@ -168,25 +168,25 @@ macro_rules! opaque_identifier {
         #[repr(transparent)]
         pub struct $id(str);
 
-        ::paste::paste! {
+        paste::paste! {
             doc_concat! {
                 #[doc = concat!("An owned [", stringify!($id), "].")]
-                pub type [<$id Box>] = ::std::boxed::Box<$id>;
+                pub type [<$id Box>] = Box<$id>;
             }
         }
 
         impl $id {
             #[allow(clippy::transmute_ptr_to_ptr)]
             fn from_borrowed(s: &str) -> &Self {
-                unsafe { ::std::mem::transmute(s) }
+                unsafe { std::mem::transmute(s) }
             }
 
-            pub(super) fn from_owned(s: ::std::boxed::Box<str>) -> ::std::boxed::Box<Self> {
-                unsafe { ::std::mem::transmute(s) }
+            pub(super) fn from_owned(s: Box<str>) -> Box<Self> {
+                unsafe { std::mem::transmute(s) }
             }
 
-            fn into_owned(self: ::std::boxed::Box<Self>) -> ::std::boxed::Box<str> {
-                unsafe { ::std::mem::transmute(self) }
+            fn into_owned(self: Box<Self>) -> Box<str> {
+                unsafe { std::mem::transmute(self) }
             }
 
             doc_concat! {
@@ -204,33 +204,33 @@ macro_rules! opaque_identifier {
             }
         }
 
-        impl ::std::fmt::Debug for $id {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        impl std::fmt::Debug for $id {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 f.write_str(self.as_ref())
             }
         }
 
-        impl Clone for ::std::boxed::Box<$id> {
+        impl Clone for Box<$id> {
             fn clone(&self) -> Self {
                 (**self).to_owned()
             }
         }
 
         impl ToOwned for $id {
-            type Owned = ::std::boxed::Box<$id>;
+            type Owned = Box<$id>;
 
             fn to_owned(&self) -> Self::Owned {
                 Self::from_owned(self.0.to_owned().into_boxed_str())
             }
         }
 
-        impl From<&$id> for ::std::boxed::Box<$id> {
+        impl From<&$id> for Box<$id> {
             fn from(id: &$id) -> Self {
                 id.to_owned()
             }
         }
 
-        impl AsRef<str> for ::std::boxed::Box<$id> {
+        impl AsRef<str> for Box<$id> {
             fn as_ref(&self) -> &str {
                 self.as_str()
             }
@@ -242,36 +242,36 @@ macro_rules! opaque_identifier {
             }
         }
 
-        impl From<&str> for ::std::boxed::Box<$id> {
+        impl From<&str> for Box<$id> {
             fn from(s: &str) -> Self {
                 $id::from_owned(s.into())
             }
         }
 
-        impl From<String> for ::std::boxed::Box<$id> {
+        impl From<String> for Box<$id> {
             fn from(s: String) -> Self {
                 $id::from_owned(s.into())
             }
         }
 
-        impl From<::std::boxed::Box<$id>> for String {
-            fn from(id: ::std::boxed::Box<$id>) -> Self {
+        impl From<Box<$id>> for String {
+            fn from(id: Box<$id>) -> Self {
                 id.into_owned().into()
             }
         }
 
         #[cfg(feature = "serde")]
-        impl<'de> ::serde::Deserialize<'de> for ::std::boxed::Box<$id> {
+        impl<'de> serde::Deserialize<'de> for Box<$id> {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
-                D: ::serde::Deserializer<'de>,
+                D: serde::Deserializer<'de>,
             {
-                ::std::boxed::Box::<str>::deserialize(deserializer).map($id::from_owned)
+                Box::<str>::deserialize(deserializer).map($id::from_owned)
             }
         }
 
         as_str_based_impls!($id);
         partial_eq_string!($id);
-        partial_eq_string!(::std::boxed::Box<$id>);
+        partial_eq_string!(Box<$id>);
     };
 }
