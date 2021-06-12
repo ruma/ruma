@@ -182,11 +182,11 @@ macro_rules! opaque_identifier {
             }
 
             pub(super) fn from_owned(s: Box<str>) -> Box<Self> {
-                unsafe { std::mem::transmute(s) }
+                unsafe { Box::from_raw(Box::into_raw(s) as _) }
             }
 
             fn into_owned(self: Box<Self>) -> Box<str> {
-                unsafe { std::mem::transmute(self) }
+                unsafe { Box::from_raw(Box::into_raw(self) as _) }
             }
 
             doc_concat! {
