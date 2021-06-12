@@ -44,17 +44,17 @@ macro_rules! as_str_based_impls {
             }
         }
 
-        impl std::cmp::Eq for $id {}
+        impl Eq for $id {}
 
-        impl std::cmp::PartialOrd for $id {
+        impl PartialOrd for $id {
             fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-                std::cmp::PartialOrd::partial_cmp(self.as_str(), other.as_str())
+                PartialOrd::partial_cmp(self.as_str(), other.as_str())
             }
         }
 
-        impl std::cmp::Ord for $id {
+        impl Ord for $id {
             fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-                std::cmp::Ord::cmp(self.as_str(), other.as_str())
+                Ord::cmp(self.as_str(), other.as_str())
             }
         }
 
