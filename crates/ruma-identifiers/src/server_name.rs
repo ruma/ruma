@@ -94,13 +94,13 @@ impl From<Box<ServerName>> for String {
 
 impl<'a> From<&'a ServerName> for Arc<ServerName> {
     fn from(s: &ServerName) -> Arc<ServerName> {
-        Arc::<ServerName([str])>::from(s.0.as_bytes())
+        Arc::<ServerName(str)>::from(s.0.as_bytes())
     }
 }
 
 impl<'a> From<&'a ServerName> for Rc<ServerName> {
     fn from(s: &ServerName) -> Rc<ServerName> {
-        Rc::<ServerName([str])>::from(s.0.as_bytes())
+        Rc::<ServerName(str)>::from(s.0.as_bytes())
     }
 }
 

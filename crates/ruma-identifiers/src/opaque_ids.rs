@@ -24,13 +24,13 @@ impl DeviceId {
 
 impl<'a> From<&'a DeviceId> for Arc<DeviceId> {
     fn from(s: &DeviceId) -> Arc<DeviceId> {
-        Arc::<DeviceId([str])>::from(s.0.as_bytes())
+        Arc::<DeviceId(str)>::from(s.0.as_bytes())
     }
 }
 
 impl<'a> From<&'a DeviceId> for Rc<DeviceId> {
     fn from(s: &DeviceId) -> Rc<DeviceId> {
-        Rc::<DeviceId([str])>::from(s.0.as_bytes())
+        Rc::<DeviceId(str)>::from(s.0.as_bytes())
     }
 }
 
