@@ -13,6 +13,7 @@ use crate::{EndpointError, OutgoingResponse};
 /// A general-purpose Matrix error type consisting of an HTTP status code and a JSON body.
 ///
 /// Note that individual `ruma-*-api` crates may provide more specific error types.
+#[allow(clippy::exhaustive_structs)]
 #[derive(Clone, Debug)]
 pub struct MatrixError {
     /// The http response's status code.

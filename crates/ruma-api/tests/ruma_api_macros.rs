@@ -1,3 +1,5 @@
+#![allow(clippy::exhaustive_structs)]
+
 pub mod some_endpoint {
     use ruma_api::ruma_api;
     use ruma_events::{tag::TagEvent, AnyRoomEvent};

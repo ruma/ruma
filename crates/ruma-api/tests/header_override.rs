@@ -1,3 +1,5 @@
+#![allow(clippy::exhaustive_structs)]
+
 use http::header::{Entry, CONTENT_TYPE};
 use ruma_api::{ruma_api, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken};
 

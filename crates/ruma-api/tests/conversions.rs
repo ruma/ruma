@@ -1,3 +1,5 @@
+#![allow(clippy::exhaustive_structs)]
+
 use ruma_api::{
     ruma_api, IncomingRequest as _, OutgoingRequest as _, OutgoingRequestAppserviceExt,
     SendAccessToken,
