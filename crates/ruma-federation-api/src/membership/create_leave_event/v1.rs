@@ -114,4 +114,5 @@ impl Response {
 
 /// An empty object.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Empty {}
