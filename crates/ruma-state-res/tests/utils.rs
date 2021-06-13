@@ -1,4 +1,4 @@
-#![allow(clippy::exhaustive_structs, dead_code)]
+#![allow(dead_code)]
 
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -206,11 +206,11 @@ pub fn do_check(
     assert_eq!(expected_state, end_state);
 }
 
+#[allow(clippy::exhaustive_structs)]
 pub struct TestStore<E: Event>(pub BTreeMap<EventId, Arc<E>>);
 
-#[allow(unused)]
 impl<E: Event> TestStore<E> {
-    pub fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<Arc<E>> {
+    pub fn get_event(&self, _: &RoomId, event_id: &EventId) -> Result<Arc<E>> {
         self.0
             .get(event_id)
             .map(Arc::clone)
@@ -544,6 +544,7 @@ pub mod event {
     }
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
+    #[allow(clippy::exhaustive_structs)]
     pub struct StateEvent {
         pub event_id: EventId,
         #[serde(flatten)]

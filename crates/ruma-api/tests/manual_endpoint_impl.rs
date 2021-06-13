@@ -1,5 +1,7 @@
 //! PUT /_matrix/client/r0/directory/room/:room_alias
 
+#![allow(clippy::exhaustive_structs)]
+
 use std::convert::TryFrom;
 
 use bytes::BufMut;

@@ -8,13 +8,13 @@ use crate::{split_id, Algorithm, Error};
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Signature {
     /// The cryptographic algorithm that generated this signature.
-    pub algorithm: Algorithm,
+    pub(crate) algorithm: Algorithm,
 
     /// The signature data.
-    pub signature: Vec<u8>,
+    pub(crate) signature: Vec<u8>,
 
     /// The "version" of the key identifier for the public key used to generate this signature.
-    pub version: String,
+    pub(crate) version: String,
 }
 
 impl Signature {

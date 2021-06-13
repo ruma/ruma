@@ -46,7 +46,7 @@ impl Package {
 
     /// Update the version of this crate in dependant crates' manifests, with the given version
     /// prefix.
-    pub fn update_dependants(&self, metadata: &Metadata) -> Result<()> {
+    pub(crate) fn update_dependants(&self, metadata: &Metadata) -> Result<()> {
         for package in metadata.packages.iter().filter(|p| {
             p.manifest_path.starts_with(&metadata.workspace_root)
                 && p.dependencies.iter().any(|d| d.name == self.name)
