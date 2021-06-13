@@ -9,6 +9,7 @@
 
 pub mod association;
 pub mod authentication;
+pub mod invitation;
 pub mod keys;
 pub mod lookup;
 pub mod status;
