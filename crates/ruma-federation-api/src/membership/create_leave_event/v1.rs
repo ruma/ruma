@@ -114,4 +114,12 @@ impl Response {
 
 /// An empty object.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[allow(clippy::exhaustive_structs)]
 pub struct Empty {}
+
+impl Empty {
+    /// Create a new `Empty`.
+    pub fn new() -> Self {
+        Self {}
+    }
+}
