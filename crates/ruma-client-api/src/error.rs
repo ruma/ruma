@@ -181,6 +181,7 @@ impl fmt::Display for ErrorKind {
 
 /// A Matrix Error without a status code
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(clippy::exhaustive_structs)]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct ErrorBody {
     /// A value which can be used to handle an error message
@@ -194,6 +195,7 @@ pub struct ErrorBody {
 
 /// A Matrix Error
 #[derive(Debug, Clone)]
+#[allow(clippy::exhaustive_structs)]
 pub struct Error {
     /// A value which can be used to handle an error message
     pub kind: ErrorKind,

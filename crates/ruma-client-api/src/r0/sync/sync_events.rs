@@ -1,5 +1,9 @@
 //! [GET /_matrix/client/r0/sync](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-sync)
 
+// FIXME: once https://github.com/rust-lang/rust/issues/84332 is resolved
+// the structs can just be non_exhaustive (remove __test_exhaustive)
+#![allow(clippy::exhaustive_structs)]
+
 use std::{collections::BTreeMap, time::Duration};
 
 use js_int::UInt;
