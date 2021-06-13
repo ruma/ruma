@@ -60,14 +60,14 @@ pub fn do_check(
 
     for pair in INITIAL_EDGES().windows(2) {
         if let [a, b] = &pair {
-            graph.entry(a.clone()).or_insert_with(Vec::new).push(b.clone());
+            graph.entry(a.clone()).or_insert_with(BTreeSet::new).insert(b.clone());
         }
     }
 
     for edge_list in edges {
         for pair in edge_list.windows(2) {
             if let [a, b] = &pair {
-                graph.entry(a.clone()).or_insert_with(Vec::new).push(b.clone());
+                graph.entry(a.clone()).or_insert_with(BTreeSet::new).insert(b.clone());
             }
         }
     }

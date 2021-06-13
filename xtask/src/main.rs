@@ -3,6 +3,8 @@
 //! This binary is integrated into the `cargo` command line by using an alias in
 //! `.cargo/config`. Run commands as `cargo xtask [command]`.
 
+#![allow(clippy::exhaustive_structs)]
+
 use std::path::PathBuf;
 
 use serde::Deserialize;
@@ -60,7 +62,7 @@ fn try_main() -> Result<()> {
 
 /// The metadata of a cargo workspace.
 #[derive(Clone, Debug, Deserialize)]
-pub struct Metadata {
+pub(crate) struct Metadata {
     pub workspace_root: PathBuf,
     #[cfg(feature = "default")]
     pub packages: Vec<cargo::Package>,

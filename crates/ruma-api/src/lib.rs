@@ -390,6 +390,7 @@ pub enum AuthScheme {
 
 /// Metadata about an API endpoint.
 #[derive(Clone, Debug)]
+#[allow(clippy::exhaustive_structs)]
 pub struct Metadata {
     /// A human-readable description of the endpoint.
     pub description: &'static str,

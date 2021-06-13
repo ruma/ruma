@@ -118,6 +118,7 @@ impl<T: HttpClient> HttpClientExt for T {}
 
 #[doc(hidden)]
 #[derive(Debug)]
+#[allow(clippy::exhaustive_structs)]
 pub struct Dummy;
 
 #[async_trait]

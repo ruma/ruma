@@ -15,11 +15,8 @@ edition = "2018"
 all-features = true
 
 [features]
-unstable-pre-spec = ["ruma-common/unstable-pre-spec", "ruma-events/unstable-pre-spec"]
-unstable-exhaustive-types = [
-    "ruma-common/unstable-exhaustive-types",
-    "ruma-events/unstable-exhaustive-types",
-]
+unstable-pre-spec = ["ruma-events/unstable-pre-spec"]
+unstable-exhaustive-types = []
 
 [dependencies]
 itertools = "0.10.0"
