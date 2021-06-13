@@ -643,6 +643,7 @@ impl MessageFormat {
 /// Common message event content fields for message types that have separate plain-text and
 /// formatted representations.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[allow(clippy::exhaustive_structs)]
 pub struct FormattedBody {
     /// The format used in the `formatted_body`.
     pub format: MessageFormat,

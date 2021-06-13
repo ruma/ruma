@@ -34,16 +34,16 @@ fn serialize_pdu_as_v1() {
         state_key: Some("state".into()),
         prev_events: vec![(
             event_id!("$previousevent:matrix.org"),
-            EventHash { sha256: "123567".into() },
+            EventHash::new("123567".into()),
         )],
         depth: 2_u32.into(),
         auth_events: vec![(
             event_id!("$someauthevent:matrix.org"),
-            EventHash { sha256: "21389CFEDABC".into() },
+            EventHash::new("21389CFEDABC".into()),
         )],
         redacts: Some(event_id!("$9654:matrix.org")),
         unsigned,
-        hashes: EventHash { sha256: "1233543bABACDEF".into() },
+        hashes: EventHash::new("1233543bABACDEF".into()),
         signatures,
     };
     let pdu = Pdu::RoomV1Pdu(v1_pdu);
@@ -103,7 +103,7 @@ fn serialize_pdu_as_v3() {
         auth_events: vec![event_id!("$someauthevent:matrix.org")],
         redacts: Some(event_id!("$9654:matrix.org")),
         unsigned,
-        hashes: EventHash { sha256: "1233543bABACDEF".into() },
+        hashes: EventHash::new("1233543bABACDEF".into()),
         signatures,
     };
     let pdu_stub = Pdu::RoomV3Pdu(v3_pdu);
@@ -188,6 +188,8 @@ fn deserialize_pdu_as_v1() {
             );
         }
         Pdu::RoomV3Pdu(_) => panic!("Matched V3 PDU"),
+        #[cfg(not(feature = "unstable-exhaustive-types"))]
+        _ => unreachable!("new PDU version"),
     }
 }
 
@@ -233,5 +235,7 @@ fn deserialize_pdu_as_v3() {
         Pdu::RoomV3Pdu(v3_pdu) => {
             assert_eq!(v3_pdu.auth_events.first().unwrap(), &event_id!("$abc123:matrix.org"));
         }
+        #[cfg(not(feature = "unstable-exhaustive-types"))]
+        _ => unreachable!("new PDU version"),
     }
 }

@@ -9,6 +9,7 @@ use crate::Unsigned;
 
 /// Redaction event.
 #[derive(Clone, Debug, Event)]
+#[allow(clippy::exhaustive_structs)]
 pub struct RedactionEvent {
     /// Data specific to the event type.
     pub content: RedactionEventContent,
@@ -34,6 +35,7 @@ pub struct RedactionEvent {
 
 /// Redaction event without a `room_id`.
 #[derive(Clone, Debug, Event)]
+#[allow(clippy::exhaustive_structs)]
 pub struct SyncRedactionEvent {
     /// Data specific to the event type.
     pub content: RedactionEventContent,

@@ -17,6 +17,7 @@ pub type DirectEvent = crate::GlobalAccountDataEvent<DirectEventContent>;
 /// A mapping of `UserId`s to a list of `RoomId`s which are considered *direct* for that
 /// particular user.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.direct", kind = GlobalAccountData)]
 pub struct DirectEventContent(pub BTreeMap<UserId, Vec<RoomId>>);
 

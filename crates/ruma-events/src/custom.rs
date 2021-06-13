@@ -15,6 +15,7 @@ use crate::{
 
 /// A custom event's type and `content` JSON object.
 #[derive(Clone, Debug, Serialize)]
+#[allow(clippy::exhaustive_structs)]
 pub struct CustomEventContent {
     /// The event type string.
     #[serde(skip)]
@@ -60,6 +61,7 @@ impl StateEventContent for CustomEventContent {}
 
 /// A custom event that has been redacted.
 #[derive(Clone, Debug, Serialize)]
+#[allow(clippy::exhaustive_structs)]
 pub struct RedactedCustomEventContent {
     // This field is marked skipped but will be present because deserialization
     // passes the `type` field of the JSON event to the events `EventContent::from_parts` method.

@@ -10,6 +10,7 @@ pub type RoomEvent = StateEvent<RoomEventContent>;
 
 /// The payload for `RoomEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.policy.rule.room", kind = State)]
 pub struct RoomEventContent(pub PolicyRuleEventContent);
 

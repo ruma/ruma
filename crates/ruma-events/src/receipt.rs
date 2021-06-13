@@ -20,6 +20,7 @@ pub type ReceiptEvent = EphemeralRoomEvent<ReceiptEventContent>;
 /// A mapping of event ID to a collection of receipts for this event ID. The event ID is the ID of
 /// the event being acknowledged and *not* an ID for the receipt itself.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.receipt", kind = EphemeralRoom)]
 pub struct ReceiptEventContent(pub BTreeMap<EventId, Receipts>);
 

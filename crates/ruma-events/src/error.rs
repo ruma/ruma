@@ -17,6 +17,7 @@ impl Error for InvalidInput {}
 
 /// An error when attempting to create a value from a string via the `FromStr` trait.
 #[derive(Clone, Eq, Debug, Hash, PartialEq)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct FromStrError;
 
 impl fmt::Display for FromStrError {

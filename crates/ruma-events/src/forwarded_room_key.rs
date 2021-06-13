@@ -48,6 +48,7 @@ pub struct ForwardedRoomKeyToDeviceEventContent {
 /// This struct will not be updated even if additional fields are added to `ConditionalPushRule` in
 /// a new (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
+#[allow(clippy::exhaustive_structs)]
 pub struct ForwardedRoomKeyToDeviceEventContentInit {
     /// The encryption algorithm the key in this event is to be used with.
     pub algorithm: EventEncryptionAlgorithm,
