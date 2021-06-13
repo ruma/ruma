@@ -37,7 +37,6 @@ ruma_api! {
         /// The token for the invitation.
         pub token: String,
     }
-
 }
 
 impl<'a> Request<'a> {
