@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+* Use `Raw<AnyInitialStateEvent>` over just `AnyInitialStateEvent` in the `initial_state` field
+  of `r0::room::create_room::Request`
+
 # 0.10.2
 
 Bug fixes:
