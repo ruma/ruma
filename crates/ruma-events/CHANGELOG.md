@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Fix the name of the qr code scan verification method (`MQrScanShowV1` => `MQrCodeScanV1`)
+
 # 0.22.2
 
 Improvements:
