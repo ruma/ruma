@@ -116,6 +116,7 @@ impl TryFrom<&str> for Box<ServerName> {
 
 impl TryFrom<&ServerName> for Rc<ServerName> {
     type Error = crate::Error;
+
     fn try_from(s: &ServerName) -> Result<Self, Self::Error> {
         validate(s.as_str())?;
         let rc = Rc::<str>::from(s.as_str());
@@ -125,6 +126,7 @@ impl TryFrom<&ServerName> for Rc<ServerName> {
 
 impl TryFrom<&ServerName> for Arc<ServerName> {
     type Error = crate::Error;
+
     fn try_from(s: &ServerName) -> Result<Self, Self::Error> {
         validate(s.as_str())?;
         let arc = Arc::<str>::from(s.as_str());
