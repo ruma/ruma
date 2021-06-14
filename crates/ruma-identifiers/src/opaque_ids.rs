@@ -2,8 +2,6 @@
 
 #[cfg(feature = "rand")]
 use crate::generate_localpart;
-use std::sync::Arc;
-use std::rc::Rc;
 
 opaque_identifier! {
     /// A Matrix key ID.
@@ -19,21 +17,6 @@ impl DeviceId {
     #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
     pub fn new() -> Box<Self> {
         Self::from_owned(generate_localpart(8))
-    }
-}
-
-impl From<&DeviceId> for Rc<DeviceId> {
-    /// Convert DeviceId to Rc<DeviceId>
-    fn from(s: &DeviceId) -> Rc<DeviceId> {
-        let rc = Rc::<str>::from(s.as_str());
-        unsafe { Rc::from_raw(Rc::into_raw(rc) as *const DeviceId) }
-    }
-}
-impl From<&DeviceId> for Arc<DeviceId> {
-    /// Convert DeviceId to Arc<DeviceId>
-    fn from(s: &DeviceId) -> Arc<DeviceId> {
-        let arc = Arc::<str>::from(s.as_str());
-        unsafe { Arc::from_raw(Arc::into_raw(arc) as *const DeviceId) }
     }
 }
 
