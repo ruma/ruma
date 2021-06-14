@@ -236,6 +236,20 @@ macro_rules! opaque_identifier {
             }
         }
 
+        impl From<&$id> for std::rc::Rc<$id> {
+            fn from(s: &$id) -> std::rc::Rc<$id> {
+                let rc = std::rc::Rc::<str>::from(s.as_str());
+                unsafe { std::rc::Rc::from_raw(std::rc::Rc::into_raw(rc) as *const $id) }
+            }
+        }
+
+        impl From<&$id> for std::sync::Arc<$id> {
+            fn from(s: &$id) -> std::sync::Arc<$id> {
+                let arc = std::sync::Arc::<str>::from(s.as_str());
+                unsafe { std::sync::Arc::from_raw(std::sync::Arc::into_raw(arc) as *const $id) }
+            }
+        }
+
         impl<'a> From<&'a str> for &'a $id {
             fn from(s: &'a str) -> Self {
                 $id::from_borrowed(s)

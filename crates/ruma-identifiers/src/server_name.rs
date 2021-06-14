@@ -1,6 +1,5 @@
 //! Matrix-spec compliant server names.
-
-use std::{convert::TryFrom, fmt, mem, str::FromStr};
+use std::{convert::TryFrom, fmt, mem, rc::Rc, str::FromStr, sync::Arc};
 
 use ruma_identifiers_validation::server_name::validate;
 
@@ -112,6 +111,26 @@ impl TryFrom<&str> for Box<ServerName> {
 
     fn try_from(s: &str) -> Result<Self, Self::Error> {
         try_from(s)
+    }
+}
+
+impl TryFrom<&ServerName> for Rc<ServerName> {
+    type Error = crate::Error;
+
+    fn try_from(s: &ServerName) -> Result<Self, Self::Error> {
+        validate(s.as_str())?;
+        let rc = Rc::<str>::from(s.as_str());
+        Ok(unsafe { Rc::from_raw(Rc::into_raw(rc) as *const ServerName) })
+    }
+}
+
+impl TryFrom<&ServerName> for Arc<ServerName> {
+    type Error = crate::Error;
+
+    fn try_from(s: &ServerName) -> Result<Self, Self::Error> {
+        validate(s.as_str())?;
+        let arc = Arc::<str>::from(s.as_str());
+        Ok(unsafe { Arc::from_raw(Arc::into_raw(arc) as *const ServerName) })
     }
 }
 
