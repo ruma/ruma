@@ -129,22 +129,22 @@ impl TryFrom<RelatesToJsonRepr> for Relation {
 pub enum VerificationMethod {
     /// The *m.sas.v1* verification method.
     #[ruma_enum(rename = "m.sas.v1")]
-    MSasV1,
+    SasV1,
 
     /// The *m.qr_code.scan.v1* verification method.
     #[cfg(feature = "unstable-pre-spec")]
     #[ruma_enum(rename = "m.qr_code.scan.v1")]
-    MQrCodeScanV1,
+    QrCodeScanV1,
 
     /// The *m.qr_code.show.v1* verification method.
     #[cfg(feature = "unstable-pre-spec")]
     #[ruma_enum(rename = "m.qr_code.show.v1")]
-    MQrCodeShowV1,
+    QrCodeShowV1,
 
     /// The *m.reciprocate.v1* verification method.
     #[cfg(feature = "unstable-pre-spec")]
     #[ruma_enum(rename = "m.reciprocate.v1")]
-    MReciprocateV1,
+    ReciprocateV1,
 
     #[doc(hidden)]
     _Custom(String),

@@ -2,7 +2,9 @@
 
 Breaking changes:
 
-* Fix the name of the qr code scan verification method (`MQrScanShowV1` => `MQrCodeScanV1`)
+* Rename `key::verification::AcceptMethod::{MSasV1 => SasV1}`
+* As above, drop `M` prefix from `key::verification::VerificationMethod` variants
+  * Additionally, fix the name of the QR code one (`QrScanShowV1` to `QrCodeScanV1`)
 
 # 0.22.2
 

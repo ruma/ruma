@@ -74,7 +74,7 @@ impl AcceptEventContent {
 #[serde(untagged)]
 pub enum AcceptMethod {
     /// The *m.sas.v1* verification method.
-    MSasV1(SasV1Content),
+    SasV1(SasV1Content),
 
     /// Any unknown accept method.
     Custom(CustomContent),
@@ -186,7 +186,7 @@ mod tests {
     fn serialization() {
         let key_verification_accept_content = AcceptToDeviceEventContent {
             transaction_id: "456".into(),
-            method: AcceptMethod::MSasV1(SasV1Content {
+            method: AcceptMethod::SasV1(SasV1Content {
                 hash: HashAlgorithm::Sha256,
                 key_agreement_protocol: KeyAgreementProtocol::Curve25519,
                 message_authentication_code: MessageAuthenticationCode::HkdfHmacSha256,
@@ -251,7 +251,7 @@ mod tests {
 
         let key_verification_accept_content = AcceptEventContent {
             relation: Relation { event_id: event_id.clone() },
-            method: AcceptMethod::MSasV1(SasV1Content {
+            method: AcceptMethod::SasV1(SasV1Content {
                 hash: HashAlgorithm::Sha256,
                 key_agreement_protocol: KeyAgreementProtocol::Curve25519,
                 message_authentication_code: MessageAuthenticationCode::HkdfHmacSha256,
@@ -296,7 +296,7 @@ mod tests {
                 .unwrap(),
             AcceptToDeviceEventContent {
                 transaction_id,
-                method: AcceptMethod::MSasV1(SasV1Content {
+                method: AcceptMethod::SasV1(SasV1Content {
                     commitment,
                     hash,
                     key_agreement_protocol,
@@ -336,7 +336,7 @@ mod tests {
                 sender,
                 content: AcceptToDeviceEventContent {
                     transaction_id,
-                    method: AcceptMethod::MSasV1(SasV1Content {
+                    method: AcceptMethod::SasV1(SasV1Content {
                         commitment,
                         hash,
                         key_agreement_protocol,
@@ -415,7 +415,7 @@ mod tests {
                 relation: Relation {
                     event_id
                 },
-                method: AcceptMethod::MSasV1(SasV1Content {
+                method: AcceptMethod::SasV1(SasV1Content {
                     commitment,
                     hash,
                     key_agreement_protocol,

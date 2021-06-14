@@ -95,7 +95,7 @@ mod tests {
         let content = ReadyEventContent {
             from_device: device.clone(),
             relation: Relation { event_id },
-            methods: vec![VerificationMethod::MSasV1],
+            methods: vec![VerificationMethod::SasV1],
         };
 
         assert_eq!(to_json_value(&content).unwrap(), json_data);
@@ -109,7 +109,7 @@ mod tests {
         let content = ReadyToDeviceEventContent {
             from_device: device,
             transaction_id: "456".to_owned(),
-            methods: vec![VerificationMethod::MSasV1],
+            methods: vec![VerificationMethod::SasV1],
         };
 
         assert_eq!(to_json_value(&content).unwrap(), json_data);
@@ -141,7 +141,7 @@ mod tests {
                 },
                 methods,
             } if from_device == device
-                && methods == vec![VerificationMethod::MSasV1]
+                && methods == vec![VerificationMethod::SasV1]
                 && event_id == id
         );
 
@@ -161,7 +161,7 @@ mod tests {
                 transaction_id,
                 methods,
             } if from_device == device
-                && methods == vec![VerificationMethod::MSasV1]
+                && methods == vec![VerificationMethod::SasV1]
                 && transaction_id == "456"
         );
     }
