@@ -121,7 +121,7 @@ pub struct SasV1Content {
     pub commitment: String,
 }
 
-/// Mandatory initial set of fields for creating an accept `MSasV1Content`.
+/// Mandatory initial set of fields for creating an accept `SasV1Content`.
 #[derive(Clone, Debug, Deserialize)]
 pub struct SasV1ContentInit {
     /// The key agreement protocol the device is choosing to use, out of the
@@ -149,7 +149,7 @@ pub struct SasV1ContentInit {
 }
 
 impl From<SasV1ContentInit> for SasV1Content {
-    /// Creates a new `MSasV1Content` from the given init struct.
+    /// Creates a new `SasV1Content` from the given init struct.
     fn from(init: SasV1ContentInit) -> Self {
         SasV1Content {
             hash: init.hash,

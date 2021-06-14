@@ -120,7 +120,7 @@ pub struct ReciprocateV1Content {
 
 #[cfg(feature = "unstable-pre-spec")]
 impl ReciprocateV1Content {
-    /// Create a new `MReciprocateV1Content` with the given shared secret.
+    /// Create a new `ReciprocateV1Content` with the given shared secret.
     ///
     /// The shared secret needs to come from the scanned QR code, encoded using
     /// unpadded base64.
@@ -155,7 +155,7 @@ pub struct SasV1Content {
     pub short_authentication_string: Vec<ShortAuthenticationString>,
 }
 
-/// Mandatory initial set of fields for creating an `MSasV1Content`.
+/// Mandatory initial set of fields for creating an `SasV1Content`.
 #[derive(Clone, Debug, Deserialize)]
 pub struct SasV1ContentInit {
     /// The key agreement protocols the sending device understands.
@@ -180,7 +180,7 @@ pub struct SasV1ContentInit {
 }
 
 impl SasV1Content {
-    /// Create a new `MSasV1Content` with the given values.
+    /// Create a new `SasV1Content` with the given values.
     ///
     /// # Errors
     ///
@@ -199,7 +199,7 @@ impl SasV1Content {
 impl TryFrom<SasV1ContentInit> for SasV1Content {
     type Error = InvalidInput;
 
-    /// Creates a new `MSasV1Content` from the given init struct.
+    /// Creates a new `SasV1Content` from the given init struct.
     fn try_from(init: SasV1ContentInit) -> Result<Self, Self::Error> {
         if !init.key_agreement_protocols.contains(&KeyAgreementProtocol::Curve25519)
             && !init.key_agreement_protocols.contains(&KeyAgreementProtocol::Curve25519HkdfSha256)
