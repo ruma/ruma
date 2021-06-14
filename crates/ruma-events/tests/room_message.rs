@@ -327,7 +327,7 @@ fn verification_request_deserialization() {
         } if body == "@example:localhost is requesting to verify your key, ..."
             && to == user_id
             && from_device == device_id
-            && methods.contains(&VerificationMethod::MSasV1)
+            && methods.contains(&VerificationMethod::SasV1)
     );
 }
 
@@ -339,7 +339,7 @@ fn verification_request_serialization() {
     let body = "@example:localhost is requesting to verify your key, ...".to_owned();
 
     let methods = vec![
-        VerificationMethod::MSasV1,
+        VerificationMethod::SasV1,
         VerificationMethod::_Custom("m.qr_code.show.v1".to_owned()),
         VerificationMethod::_Custom("m.reciprocate.v1".to_owned()),
     ];
