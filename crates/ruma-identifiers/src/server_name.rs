@@ -1,5 +1,6 @@
 //! Matrix-spec compliant server names.
-
+use std::sync::Arc;
+use std::rc::Rc;
 use std::{convert::TryFrom, fmt, mem, str::FromStr};
 
 use ruma_identifiers_validation::server_name::validate;
@@ -138,6 +139,20 @@ impl<'de> serde::Deserialize<'de> for Box<ServerName> {
         crate::deserialize_id(deserializer, "An IP address or hostname")
     }
 }
+
+impl From<&ServerName> for Rc<ServerName> {
+    fn from(s: &ServerName) -> Rc<ServerName> {
+        let rc = Rc::<str>::from(s.as_str());
+        unsafe { Rc::from_raw(Rc::into_raw(rc) as *const ServerName) }
+    }
+}
+impl From<&ServerName> for Arc<ServerName> {
+    fn from(s: &ServerName) -> Arc<ServerName> {
+        let arc = Arc::<str>::from(s.as_str());
+        unsafe { Arc::from_raw(Arc::into_raw(arc) as *const ServerName) }
+    }
+}
+
 
 partial_eq_string!(ServerName);
 partial_eq_string!(Box<ServerName>);
