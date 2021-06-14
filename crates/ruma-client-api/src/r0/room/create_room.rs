@@ -39,7 +39,7 @@ ruma_api! {
         /// Takes precedence over events set by preset, but gets overridden by
         /// name and topic keys.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub initial_state: &'a [AnyInitialStateEvent],
+        pub initial_state: &'a [Raw<AnyInitialStateEvent>],
 
         /// A list of user IDs to invite to the room.
         ///
