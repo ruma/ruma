@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{EventType, StateEvent};
 
-pub use ruma_common::power_levels::NotificationPowerLevels;
+use ruma_common::power_levels::NotificationPowerLevels;
 
 /// Defines the power levels (privileges) of users in the room.
 pub type PowerLevelsEvent = StateEvent<PowerLevelsEventContent>;
