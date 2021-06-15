@@ -20,6 +20,10 @@ ruma_api! {
         #[ruma_api(path)]
         pub room_id: &'a RoomId,
 
+        /// The type of event to send.
+        #[ruma_api(path)]
+        pub event_type: &'a str,
+
         /// The transaction ID for this event.
         ///
         /// Clients should generate an ID unique across requests with the
@@ -27,10 +31,6 @@ ruma_api! {
         /// idempotency of requests.
         #[ruma_api(path)]
         pub txn_id: &'a str,
-
-        /// The type of event to send.
-        #[ruma_api(path)]
-        pub event_type: &'a str,
 
         /// The event content to send.
         #[ruma_api(body)]
