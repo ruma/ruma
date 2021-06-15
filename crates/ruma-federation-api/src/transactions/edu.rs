@@ -6,8 +6,9 @@ use js_int::UInt;
 use ruma_common::{
     encryption::DeviceKeys, presence::PresenceState, to_device::DeviceIdOrAllDevices,
 };
-use ruma_events::{from_raw_json_value, receipt::Receipt, EventType};
+use ruma_events::{from_raw_json_value, receipt::Receipt, AnyToDeviceEventContent, EventType};
 use ruma_identifiers::{DeviceIdBox, EventId, RoomId, UserId};
+use ruma_serde::Raw;
 use serde::{de, Deserialize, Serialize};
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
@@ -255,18 +256,25 @@ pub struct DirectDeviceContent {
     /// Unique utf8 string ID for the message, used for idempotency.
     pub message_id: String,
 
-    /// The contents of the messages to be sent. These are arranged in a map
-    /// of user IDs to a map of device IDs to message bodies. The device ID may
-    /// also be *, meaning all known devices for the user.
-    pub messages: BTreeMap<UserId, BTreeMap<DeviceIdOrAllDevices, Box<RawJsonValue>>>,
+    /// The contents of the messages to be sent.
+    ///
+    /// These are arranged in a map of user IDs to a map of device IDs to message bodies. The
+    /// device ID may also be *, meaning all known devices for the user.
+    pub messages: DirectDeviceMessages,
 }
 
 impl DirectDeviceContent {
     /// Creates a new `DirectDeviceContent` with an empty `messages` map.
     pub fn new(sender: UserId, ev_type: EventType, message_id: String) -> Self {
-        Self { sender, ev_type, message_id, messages: BTreeMap::new() }
+        Self { sender, ev_type, message_id, messages: DirectDeviceMessages::new() }
     }
 }
+
+/// Direct device message contents.
+///
+/// Represented as a map of `{ user-ids => { device-ids => message-content } }`.
+pub type DirectDeviceMessages =
+    BTreeMap<UserId, BTreeMap<DeviceIdOrAllDevices, Raw<AnyToDeviceEventContent>>>;
 
 #[cfg(test)]
 mod test {
