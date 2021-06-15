@@ -3,11 +3,10 @@
 use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
+use ruma_common::to_device::DeviceIdOrAllDevices;
 use ruma_events::EventType;
 use ruma_identifiers::UserId;
 use serde_json::value::RawValue as RawJsonValue;
-
-use super::DeviceIdOrAllDevices;
 
 ruma_api! {
     metadata: {

@@ -4,6 +4,20 @@ Breaking changes:
 
 * Use `Raw<AnyInitialStateEvent>` over just `AnyInitialStateEvent` in the `initial_state` field
   of `r0::room::create_room::Request`
+* Remove
+
+  ```rust
+  r0::keys::{
+      CrossSigningKey, CrossSigningKeySignatures, KeyUsage, OneTimeKey, SignedKey,
+      SignedKeySignatures,
+  }
+  ```
+
+  These are now found in `ruma_common::encryption` (or `ruma::encryption`).
+* Remove `r0::to_device::DeviceIdOrAllDevices`, now found in `ruma_common::to_device`
+  (or `ruma::to_device`)
+* Remove `r0::contact::get_contacts::{ThirdPartyIdentifier, ThirdPartyIdentifierInit}`, now found
+  in `ruma_common::thirdparty` (or `ruma::thirdparty`)
 
 # 0.10.2
 
