@@ -1,10 +1,5 @@
 //! Endpoints for key management
 
-pub use ruma_common::encryption::{
-    CrossSigningKey, CrossSigningKeySignatures, KeyUsage, OneTimeKey, SignedKey,
-    SignedKeySignatures,
-};
-
 pub mod claim_keys;
 pub mod get_key_changes;
 pub mod get_keys;
