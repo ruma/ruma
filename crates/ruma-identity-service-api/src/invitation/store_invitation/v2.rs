@@ -27,23 +27,27 @@ ruma_api! {
         /// The Matrix user ID of the inviting user.
         pub sender: &'a UserId,
 
-        /// The Matrix room alias for the room to which the user is invited. This should be
-        /// retrieved from the `m.room.canonical` state event.
+        /// The Matrix room alias for the room to which the user is invited.
+        ///
+        /// This should be retrieved from the `m.room.canonical` state event.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub room_alias: Option<&'a RoomAliasId>,
 
-        /// The Content URI for the room to which the user is invited. This should be retrieved
-        /// from the `m.room.avatar` state event.
+        /// The Content URI for the room to which the user is invited.
+        ///
+        /// This should be retrieved from the `m.room.avatar` state event.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub room_avatar_url: Option<&'a MxcUri>,
 
-        /// The `join_rule` for the room to which the user is invited. This should be retrieved
-        /// from the `m.room.join_rules` state event.
+        /// The `join_rule` for the room to which the user is invited.
+        ///
+        /// This should be retrieved from the `m.room.join_rules` state event.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub room_join_rules: Option<&'a str>,
 
-        /// The name of the room to which the user is invited. This should be retrieved from the
-        /// `m.room.name` state event.
+        /// The name of the room to which the user is invited.
+        ///
+        /// This should be retrieved from the `m.room.name` state event.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub room_name: Option<&'a str>,
 
@@ -58,6 +62,7 @@ ruma_api! {
 
     response: {
         /// The generated token. Must be a string consisting of the characters `[0-9a-zA-Z.=_-]`.
+        ///
         /// Its length must not exceed 255 characters and it must not be empty.
         pub token: String,
 
