@@ -67,8 +67,7 @@ impl AcceptEventContent {
     }
 }
 
-/// An enum representing the different method specific
-/// *m.key.verification.accept* content.
+/// An enum representing the different method specific *m.key.verification.accept* content.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(untagged)]
@@ -77,12 +76,14 @@ pub enum AcceptMethod {
     SasV1(SasV1Content),
 
     /// Any unknown accept method.
-    Custom(CustomContent),
+    #[doc(hidden)]
+    _Custom(_CustomContent),
 }
 
 /// Method specific content of a unknown key verification method.
+#[doc(hidden)]
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct CustomContent {
+pub struct _CustomContent {
     /// The name of the method.
     pub method: String,
 
@@ -177,8 +178,8 @@ mod tests {
     #[cfg(feature = "unstable-pre-spec")]
     use super::AcceptEventContent;
     use super::{
-        AcceptMethod, AcceptToDeviceEventContent, CustomContent, HashAlgorithm,
-        KeyAgreementProtocol, MessageAuthenticationCode, SasV1Content, ShortAuthenticationString,
+        AcceptMethod, AcceptToDeviceEventContent, HashAlgorithm, KeyAgreementProtocol,
+        MessageAuthenticationCode, SasV1Content, ShortAuthenticationString, _CustomContent,
     };
     #[cfg(feature = "unstable-pre-spec")]
     use crate::key::verification::Relation;
@@ -232,7 +233,7 @@ mod tests {
 
         let key_verification_accept_content = AcceptToDeviceEventContent {
             transaction_id: "456".into(),
-            method: AcceptMethod::Custom(CustomContent {
+            method: AcceptMethod::_Custom(_CustomContent {
                 method: "m.sas.custom".to_owned(),
                 data: vec![("test".to_owned(), JsonValue::from("field"))]
                     .into_iter()
@@ -377,7 +378,7 @@ mod tests {
                 sender,
                 content: AcceptToDeviceEventContent {
                     transaction_id,
-                    method: AcceptMethod::Custom(CustomContent {
+                    method: AcceptMethod::_Custom(_CustomContent {
                         method,
                         data,
                     })

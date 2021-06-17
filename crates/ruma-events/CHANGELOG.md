@@ -8,6 +8,8 @@ Breaking changes:
 * Remove `room::power_level::NotificationPowerLevels`, now found in `ruma_common::power_levels`
   (or `ruma::power_levels`)
 * Remove `Custom` variant from event enums. If you were using this, please get in touch.
+* Remove `Custom` variant from `key::verification::accept::AcceptMethod` and
+  `key::verification::start::StartMethod`.
 
 # 0.22.2
 

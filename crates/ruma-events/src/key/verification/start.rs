@@ -76,8 +76,7 @@ impl StartEventContent {
     }
 }
 
-/// An enum representing the different method specific
-/// *m.key.verification.start* content.
+/// An enum representing the different method specific *m.key.verification.start* content.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(untagged)]
@@ -87,19 +86,21 @@ pub enum StartMethod {
 
     /// The *m.reciprocate.v1* verification method.
     ///
-    /// The spec entry for this method can be found [here][1]
+    /// The spec entry for this method can be found [here][1].
     ///
     /// [1]: https://spec.matrix.org/unstable/client-server-api/#mkeyverificationstartmreciprocatev1
     #[cfg(feature = "unstable-pre-spec")]
     ReciprocateV1(ReciprocateV1Content),
 
     /// Any unknown start method.
-    Custom(CustomContent),
+    #[doc(hidden)]
+    _Custom(_CustomContent),
 }
 
 /// Method specific content of a unknown key verification method.
+#[doc(hidden)]
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct CustomContent {
+pub struct _CustomContent {
     /// The name of the method.
     pub method: String,
 
@@ -257,9 +258,9 @@ mod tests {
     };
 
     use super::{
-        CustomContent, HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode,
-        SasV1Content, SasV1ContentInit, ShortAuthenticationString, StartMethod,
-        StartToDeviceEventContent,
+        HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, SasV1Content,
+        SasV1ContentInit, ShortAuthenticationString, StartMethod, StartToDeviceEventContent,
+        _CustomContent,
     };
     #[cfg(feature = "unstable-pre-spec")]
     use super::{ReciprocateV1Content, StartEventContent};
@@ -376,7 +377,7 @@ mod tests {
         let key_verification_start_content = StartToDeviceEventContent {
             from_device: "123".into(),
             transaction_id: "456".into(),
-            method: StartMethod::Custom(CustomContent {
+            method: StartMethod::_Custom(_CustomContent {
                 method: "m.sas.custom".to_owned(),
                 data: vec![("test".to_owned(), JsonValue::from("field"))]
                     .into_iter()
@@ -565,7 +566,7 @@ mod tests {
                 content: StartToDeviceEventContent {
                     from_device,
                     transaction_id,
-                    method: StartMethod::Custom(CustomContent { method, data })
+                    method: StartMethod::_Custom(_CustomContent { method, data })
                 }
             } if from_device == "123"
                 && sender == user_id!("@example:localhost")
