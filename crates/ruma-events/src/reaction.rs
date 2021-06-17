@@ -52,3 +52,31 @@ impl Relation {
         Self { event_id, emoji }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use matches::assert_matches;
+    use ruma_identifiers::event_id;
+    use serde_json::{from_value as from_json_value, json};
+
+    use super::{ReactionEventContent, Relation};
+
+    #[test]
+    fn deserialize() {
+        let ev_id = event_id!("$1598361704261elfgc:localhost");
+
+        let json = json!({
+            "m.relates_to": {
+                "rel_type": "m.annotation",
+                "event_id": ev_id,
+                "key": "🦛",
+            }
+        });
+
+        assert_matches!(
+            from_json_value::<ReactionEventContent>(json).unwrap(),
+            ReactionEventContent { relates_to: Relation { event_id, emoji } }
+            if event_id == ev_id && emoji == "🦛"
+        );
+    }
+}

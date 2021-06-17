@@ -11,10 +11,10 @@ use ruma_events::{
 use ruma_events::{
     room::{
         message::{
-            AudioMessageEventContent, MessageEvent, MessageEventContent, MessageType, Relation,
+            AudioMessageEventContent, MessageEvent, MessageEventContent, MessageType,
             TextMessageEventContent,
         },
-        relationships::InReplyTo,
+        relationships::{InReplyTo, Relation},
     },
     Unsigned,
 };
@@ -244,7 +244,7 @@ fn edit_deserialization_061() {
                 formatted: None,
                 ..
             }),
-            relates_to: Some(Relation::_Custom(_)),
+            relates_to: None,
             ..
         } if body == "s/foo/bar"
     );
@@ -277,8 +277,7 @@ fn edit_deserialization_future() {
                 formatted: None,
                 ..
             }),
-            relates_to: Some(Relation::Replacement(Replacement { event_id })),
-            new_content: Some(new_content),
+            relates_to: Some(Relation::Replacement(Replacement { event_id, new_content })),
             ..
         } if body == "s/foo/bar"
             && event_id == ev_id

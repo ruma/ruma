@@ -7,7 +7,10 @@ use ruma_events_macros::EventContent;
 use ruma_identifiers::DeviceIdBox;
 use serde::{Deserialize, Serialize};
 
-use crate::{room::message::Relation, MessageEvent};
+use crate::{
+    room::relationships::{relation_serde, Relation},
+    MessageEvent,
+};
 
 /// An event that has been encrypted.
 pub type EncryptedEvent = MessageEvent<EncryptedEventContent>;
@@ -35,22 +38,23 @@ pub struct EncryptedEventContent {
     #[serde(flatten)]
     pub scheme: EncryptedEventScheme,
 
-    /// Information about related messages for
-    /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
-    #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
-    pub relates_to: Option<Relation>,
+    /// Information about related messages for [rich replies].
+    ///
+    /// [rich replies]: https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies
+    #[serde(flatten, with = "relation_serde", skip_serializing_if = "Option::is_none")]
+    pub relation: Option<Relation>,
 }
 
 impl EncryptedEventContent {
     /// Creates a new `EncryptedEventContent` with the given scheme and relation.
     pub fn new(scheme: EncryptedEventScheme, relates_to: Option<Relation>) -> Self {
-        Self { scheme, relates_to }
+        Self { scheme, relation: relates_to }
     }
 }
 
 impl From<EncryptedEventScheme> for EncryptedEventContent {
     fn from(scheme: EncryptedEventScheme) -> Self {
-        Self { scheme, relates_to: None }
+        Self { scheme, relation: None }
     }
 }
 
@@ -150,7 +154,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{EncryptedEventContent, EncryptedEventScheme, MegolmV1AesSha2Content};
-    use crate::room::message::{InReplyTo, Relation};
+    use crate::room::relationships::{InReplyTo, Relation};
     use ruma_identifiers::event_id;
 
     #[test]
@@ -162,7 +166,7 @@ mod tests {
                 device_id: "device_id".into(),
                 session_id: "session_id".into(),
             }),
-            relates_to: Some(Relation::Reply {
+            relation: Some(Relation::Reply {
                 in_reply_to: InReplyTo { event_id: event_id!("$h29iv0s8:example.com") },
             }),
         };
@@ -218,7 +222,7 @@ mod tests {
         );
 
         assert_matches!(
-            content.relates_to,
+            content.relation,
             Some(Relation::Reply { in_reply_to })
                 if in_reply_to.event_id == event_id!("$h29iv0s8:example.com")
         );
