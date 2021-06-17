@@ -42,6 +42,7 @@ impl Response {
 
 /// Collection of localized policies.
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Policies {
     /// The version for the policy.
     ///
@@ -57,8 +58,16 @@ pub struct Policies {
     pub localized: BTreeMap<String, LocalizedPolicy>,
 }
 
+impl Policies {
+    /// Create a new `Policies` with the given version and localized map.
+    pub fn new(version: String, localized: BTreeMap<String, LocalizedPolicy>) -> Self {
+        Self { version, localized }
+    }
+}
+
 /// A localized policy offered by a server.
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct LocalizedPolicy {
     /// The localized name of the policy.
     ///
@@ -70,4 +79,11 @@ pub struct LocalizedPolicy {
     /// Examples are `https://example.org/somewhere/terms-2.0-en.html`
     /// and `https://example.org/somewhere/terms-2.0-fr.html`.
     pub url: String,
+}
+
+impl LocalizedPolicy {
+    /// Create a new `LocalizedPolicy` with the given name and url.
+    pub fn new(name: String, url: String) -> Self {
+        Self { name, url }
+    }
 }
