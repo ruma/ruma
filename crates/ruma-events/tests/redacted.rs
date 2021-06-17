@@ -248,23 +248,11 @@ fn redacted_custom_event_serialize() {
     });
 
     assert_matches!(
-        from_json_value::<Raw<AnySyncRoomEvent>>(redacted.clone())
-            .unwrap()
-            .deserialize()
-            .unwrap(),
-        AnySyncRoomEvent::RedactedState(AnyRedactedSyncStateEvent::Custom(RedactedSyncStateEvent {
-            content: RedactedCustomEventContent {
-                event_type,
-            },
-            event_id, state_key, unsigned, ..
-        })) if event_id == event_id!("$h29iv0s8:example.com")
-            && unsigned.redacted_because.is_some()
-            && state_key == "hello there"
-            && event_type == "m.made.up"
+        from_json_value::<AnySyncRoomEvent>(redacted.clone()),
+        Ok(AnySyncRoomEvent::RedactedState(_))
     );
 
-    let x =
-        from_json_value::<Raw<AnyRedactedSyncStateEvent>>(redacted).unwrap().deserialize().unwrap();
+    let x = from_json_value::<AnyRedactedSyncStateEvent>(redacted).unwrap();
     assert_eq!(x.event_id(), &event_id!("$h29iv0s8:example.com"))
 }
 

@@ -3,12 +3,10 @@ use maplit::btreemap;
 use matches::assert_matches;
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
-    custom::CustomEventContent, AnyMessageEvent, AnyStateEvent, AnyStateEventContent,
-    AnySyncMessageEvent, AnySyncRoomEvent, MessageEvent, StateEvent, SyncMessageEvent,
-    SyncStateEvent, Unsigned,
+    custom::CustomEventContent, AnyStateEvent, AnySyncRoomEvent, AnySyncStateEvent, MessageEvent,
+    StateEvent, Unsigned,
 };
 use ruma_identifiers::{event_id, room_id, user_id};
-use ruma_serde::Raw;
 use serde_json::{
     from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
 };
@@ -36,7 +34,7 @@ fn custom_state_event() -> JsonValue {
 
 #[test]
 fn serialize_custom_message_event() {
-    let aliases_event = AnyMessageEvent::Custom(MessageEvent {
+    let aliases_event = MessageEvent {
         content: CustomEventContent {
             data: btreemap! {
                 "body".into() => " * edited message".into(),
@@ -57,7 +55,7 @@ fn serialize_custom_message_event() {
         room_id: room_id!("!room:room.com"),
         sender: user_id!("@carl:example.com"),
         unsigned: Unsigned::default(),
-    });
+    };
 
     let actual = to_json_value(&aliases_event).unwrap();
     let expected = json!({
@@ -85,7 +83,7 @@ fn serialize_custom_message_event() {
 
 #[test]
 fn serialize_custom_state_event() {
-    let aliases_event = AnyStateEvent::Custom(StateEvent {
+    let aliases_event = StateEvent {
         content: CustomEventContent {
             data: btreemap! {
                 "custom".into() => 10.into()
@@ -99,7 +97,7 @@ fn serialize_custom_state_event() {
         sender: user_id!("@carl:example.com"),
         state_key: "".into(),
         unsigned: Unsigned::default(),
-    });
+    };
 
     let actual = to_json_value(&aliases_event).unwrap();
     let expected = json!({
@@ -120,74 +118,13 @@ fn serialize_custom_state_event() {
 #[test]
 fn deserialize_custom_state_event() {
     let json_data = custom_state_event();
-
-    let expected_content = btreemap! {
-        "m.relates_to".into() => json!({
-            "event_id": "$MDitXXXXXX",
-            "key": "👍",
-            "rel_type": "m.annotation"
-        }),
-    };
-
-    assert_matches!(
-        from_json_value::<Raw<AnyStateEvent>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
-        AnyStateEvent::Custom(StateEvent {
-            content: CustomEventContent {
-                data, event_type,
-            },
-            event_id,
-            origin_server_ts,
-            sender,
-            room_id,
-            prev_content: None,
-            state_key,
-            unsigned,
-        }) if data == expected_content && event_type == "m.reaction"
-            && event_id == event_id!("$h29iv0s8:example.com")
-            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(10))
-            && sender == user_id!("@carl:example.com")
-            && room_id == room_id!("!room:room.com")
-            && state_key.is_empty()
-            && !unsigned.is_empty()
-    );
+    assert_matches!(from_json_value::<AnyStateEvent>(json_data), Ok(_));
 }
 
 #[test]
 fn deserialize_custom_state_sync_event() {
     let json_data = custom_state_event();
-
-    let expected_content = btreemap! {
-        "m.relates_to".into() => json!({
-            "event_id": "$MDitXXXXXX",
-            "key": "👍",
-            "rel_type": "m.annotation"
-        }),
-    };
-
-    assert_matches!(
-        from_json_value::<SyncStateEvent<AnyStateEventContent>>(json_data)
-            .unwrap(),
-        SyncStateEvent {
-            content: AnyStateEventContent::Custom(CustomEventContent {
-                data,
-                event_type,
-            }),
-            event_id,
-            origin_server_ts,
-            sender,
-            prev_content: None,
-            state_key,
-            unsigned,
-        } if data == expected_content && event_type == "m.reaction"
-            && event_id == event_id!("$h29iv0s8:example.com")
-            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(10))
-            && sender == user_id!("@carl:example.com")
-            && state_key.is_empty()
-            && !unsigned.is_empty()
-    );
+    assert_matches!(from_json_value::<AnySyncStateEvent>(json_data), Ok(_));
 }
 
 #[test]
@@ -206,23 +143,8 @@ fn deserialize_custom_message_sync_event() {
         }
     });
 
-    let expected_content = btreemap! {
-        "body".into() => "👍".into(),
-    };
-
     assert_matches!(
-        from_json_value::<AnySyncRoomEvent>(json_data)
-            .unwrap(),
-        AnySyncRoomEvent::Message(AnySyncMessageEvent::Custom(SyncMessageEvent {
-            content: CustomEventContent { data, event_type },
-            event_id,
-            origin_server_ts,
-            sender,
-            unsigned,
-        })) if data == expected_content && event_type == "m.ruma_custom"
-            && event_id == event_id!("$h29iv0s8:example.com")
-            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(10))
-            && sender == user_id!("@carl:example.com")
-            && !unsigned.is_empty()
+        from_json_value::<AnySyncRoomEvent>(json_data),
+        Ok(AnySyncRoomEvent::Message(_))
     );
 }

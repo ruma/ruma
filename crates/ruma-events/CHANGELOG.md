@@ -7,6 +7,7 @@ Breaking changes:
   * Additionally, fix the name of the QR code one (`QrScanShowV1` to `QrCodeScanV1`)
 * Remove `room::power_level::NotificationPowerLevels`, now found in `ruma_common::power_levels`
   (or `ruma::power_levels`)
+* Remove `Custom` variant from event enums. If you were using this, please get in touch.
 
 # 0.22.2
 

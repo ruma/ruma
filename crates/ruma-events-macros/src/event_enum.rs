@@ -254,8 +254,8 @@ fn expand_conversion_impl(
                                 },
                             )*
                             #redaction
-                            #ident::Custom(event) => {
-                                Self::Custom(#ruma_events::#sync_struct::from(event))
+                            #ident::_Custom(event) => {
+                                Self::_Custom(#ruma_events::#sync_struct::from(event))
                             },
                         }
                     }
@@ -297,8 +297,8 @@ fn expand_conversion_impl(
                                 },
                             )*
                             #redaction
-                            Self::Custom(event) => {
-                                #full::Custom(event.into_full_event(room_id))
+                            Self::_Custom(event) => {
+                                #full::_Custom(event.into_full_event(room_id))
                             },
                         }
                     }
@@ -386,7 +386,8 @@ fn expand_content_enum(
                 #variant_decls(#content),
             )*
             /// Content of an event not defined by the Matrix specification.
-            Custom(#ruma_events::custom::CustomEventContent),
+            #[doc(hidden)]
+            _Custom(#ruma_events::custom::CustomEventContent),
         }
     };
 
@@ -403,7 +404,7 @@ fn expand_content_enum(
             fn event_type(&self) -> &::std::primitive::str {
                 match self {
                     #( #variant_arms(content) => content.event_type(), )*
-                    Self::Custom(content) => content.event_type(),
+                    Self::_Custom(content) => content.event_type(),
                 }
             }
 
@@ -421,7 +422,7 @@ fn expand_content_enum(
                     ev_type => {
                         let content =
                             #ruma_events::custom::CustomEventContent::from_parts(ev_type, input)?;
-                        ::std::result::Result::Ok(Self::Custom(content))
+                        ::std::result::Result::Ok(Self::_Custom(content))
                     },
                 }
             }
@@ -449,7 +450,8 @@ fn expand_content_enum(
                     #variant_decls(#redacted_content),
                 )*
                 /// Content of a redacted event not defined by the Matrix specification.
-                Custom(#ruma_events::custom::RedactedCustomEventContent),
+                #[doc(hidden)]
+                _Custom(#ruma_events::custom::RedactedCustomEventContent),
             }
 
             impl #ruma_events::RedactContent for #ident {
@@ -468,8 +470,8 @@ fn expand_content_enum(
                                 )
                             },
                         )*
-                        Self::Custom(content) => {
-                            #redacted_ident::Custom(
+                        Self::_Custom(content) => {
+                            #redacted_ident::_Custom(
                                 #ruma_events::RedactContent::redact(content, version)
                             )
                         },
@@ -557,9 +559,9 @@ fn expand_redact(
                                 })
                             }
                         )*
-                        Self::Custom(event) => {
+                        Self::_Custom(event) => {
                             let content = #ruma_events::RedactContent::redact(event.content, version);
-                            #redacted_enum::Custom(#redacted_type {
+                            #redacted_enum::_Custom(#redacted_type {
                                 content,
                                 #fields
                             })
@@ -661,7 +663,8 @@ fn generate_custom_variant(
         (
             quote! {
                 /// A redacted event not defined by the Matrix specification
-                Custom(
+                #[doc(hidden)]
+                _Custom(
                     #ruma_events::#event_struct<#ruma_events::custom::RedactedCustomEventContent>,
                 ),
             },
@@ -672,7 +675,7 @@ fn generate_custom_variant(
                     >>(json.get())
                     .map_err(D::Error::custom)?;
 
-                    Ok(Self::Custom(event))
+                    Ok(Self::_Custom(event))
                 },
             },
         )
@@ -680,7 +683,8 @@ fn generate_custom_variant(
         (
             quote! {
                 /// An event not defined by the Matrix specification
-                Custom(#ruma_events::#event_struct<#ruma_events::custom::CustomEventContent>),
+                #[doc(hidden)]
+                _Custom(#ruma_events::#event_struct<#ruma_events::custom::CustomEventContent>),
             },
             quote! {
                 event => {
@@ -690,7 +694,7 @@ fn generate_custom_variant(
                         >(json.get())
                         .map_err(D::Error::custom)?;
 
-                    Ok(Self::Custom(event))
+                    Ok(Self::_Custom(event))
                 },
             },
         )
@@ -745,7 +749,7 @@ fn accessor_methods(
             match self {
                 #( #self_variants(event) =>
                     #ruma_events::EventContent::event_type(&event.content), )*
-                Self::Custom(event) =>
+                Self::_Custom(event) =>
                     #ruma_events::EventContent::event_type(&event.content),
             }
         }
@@ -756,7 +760,7 @@ fn accessor_methods(
         pub fn content(&self) -> #content_enum {
             match self {
                 #( #self_variants(event) => #content_variants(event.content.clone()), )*
-                Self::Custom(event) => #content_enum::Custom(event.content.clone()),
+                Self::_Custom(event) => #content_enum::_Custom(event.content.clone()),
             }
         }
     };
@@ -771,8 +775,8 @@ fn accessor_methods(
                             event.prev_content.as_ref().map(|c| #content_variants(c.clone()))
                         },
                     )*
-                    Self::Custom(event) => {
-                        event.prev_content.as_ref().map(|c| #content_enum::Custom(c.clone()))
+                    Self::_Custom(event) => {
+                        event.prev_content.as_ref().map(|c| #content_enum::_Custom(c.clone()))
                     },
                 }
             }
@@ -955,7 +959,7 @@ fn generate_accessor(
             pub fn #ident(&self) -> &#field_type {
                 match self {
                     #( #variants(event) => &event.#ident, )*
-                    Self::Custom(event) => &event.#ident,
+                    Self::_Custom(event) => &event.#ident,
                 }
             }
         }
