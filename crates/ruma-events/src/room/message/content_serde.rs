@@ -5,20 +5,8 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
     from_raw_json_value,
-    room::message::{MessageEventContent, MessageType, Relation},
+    room::message::{MessageEventContent, MessageType},
 };
-
-/// Helper struct to determine the msgtype, relates_to and new_content fields
-/// from a `serde_json::value::RawValue`
-#[derive(Debug, Deserialize)]
-struct MessageContentDeHelper {
-    #[serde(rename = "m.relates_to")]
-    relates_to: Option<Relation>,
-
-    #[cfg(feature = "unstable-pre-spec")]
-    #[serde(rename = "m.new_content")]
-    new_content: Option<Box<MessageEventContent>>,
-}
 
 impl<'de> Deserialize<'de> for MessageEventContent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -26,14 +14,11 @@ impl<'de> Deserialize<'de> for MessageEventContent {
         D: de::Deserializer<'de>,
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let helper = from_raw_json_value::<MessageContentDeHelper, D::Error>(&json)?;
+        let mut deserializer = serde_json::Deserializer::from_str(json.get());
+        let relation =
+            super::relation_serde::deserialize(&mut deserializer).map_err(de::Error::custom)?;
 
-        Ok(Self {
-            msgtype: from_raw_json_value(&json)?,
-            relates_to: helper.relates_to,
-            #[cfg(feature = "unstable-pre-spec")]
-            new_content: helper.new_content,
-        })
+        Ok(Self { msgtype: from_raw_json_value(&json)?, relates_to: relation })
     }
 }
 

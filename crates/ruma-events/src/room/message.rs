@@ -12,14 +12,12 @@ use ruma_serde::StringEnum;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
-#[cfg(feature = "unstable-pre-spec")]
-use super::relationships::{Annotation, Reference, RelationJsonRepr, Replacement};
-use super::{relationships::RelatesToJsonRepr, EncryptedFile, ImageInfo, ThumbnailInfo};
+use super::{
+    relationships::{relation_serde, InReplyTo, Relation},
+    EncryptedFile, ImageInfo, ThumbnailInfo,
+};
 #[cfg(feature = "unstable-pre-spec")]
 use crate::key::verification::VerificationMethod;
-
-// FIXME: Do we want to keep re-exporting this?
-pub use super::relationships::InReplyTo;
 
 mod content_serde;
 pub mod feedback;
@@ -42,29 +40,17 @@ pub struct MessageEventContent {
     #[serde(flatten)]
     pub msgtype: MessageType,
 
-    /// Information about related messages for
-    /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
-    #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
-    pub relates_to: Option<Relation>,
-
-    /// New content of an edited message.
+    /// Information about related messages for [rich replies].
     ///
-    /// This should only be set if `relates_to` is `Some(Relation::Replacement(_))`.
-    #[cfg(feature = "unstable-pre-spec")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-    #[serde(rename = "m.new_content", skip_serializing_if = "Option::is_none")]
-    pub new_content: Option<Box<MessageEventContent>>,
+    /// [rich replies]: https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies
+    #[serde(flatten, with = "relation_serde", skip_serializing_if = "Option::is_none")]
+    pub relates_to: Option<Relation>,
 }
 
 impl MessageEventContent {
     /// Create a `MessageEventContent` with the given `MessageType`.
     pub fn new(msgtype: MessageType) -> Self {
-        Self {
-            msgtype,
-            relates_to: None,
-            #[cfg(feature = "unstable-pre-spec")]
-            new_content: None,
-        }
+        Self { msgtype, relates_to: None }
     }
 
     /// A constructor to create a plain text message.
@@ -273,70 +259,6 @@ impl MessageType {
 impl From<MessageType> for MessageEventContent {
     fn from(msgtype: MessageType) -> Self {
         Self::new(msgtype)
-    }
-}
-
-/// Enum modeling the different ways relationships can be expressed in a
-/// `m.relates_to` field of an `m.room.message` event.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(from = "RelatesToJsonRepr", into = "RelatesToJsonRepr")]
-pub enum Relation {
-    /// A reference to another event.
-    #[cfg(feature = "unstable-pre-spec")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-    Reference(Reference),
-
-    /// An annotation to an event.
-    #[cfg(feature = "unstable-pre-spec")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-    Annotation(Annotation),
-
-    /// An event that replaces another event.
-    #[cfg(feature = "unstable-pre-spec")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-    Replacement(Replacement),
-
-    /// An `m.in_reply_to` relation indicating that the event is a reply to
-    /// another event.
-    Reply {
-        /// Information about another message being replied to.
-        in_reply_to: InReplyTo,
-    },
-
-    /// Custom, unsupported relation.
-    #[doc(hidden)]
-    _Custom(JsonValue),
-}
-
-impl From<Relation> for RelatesToJsonRepr {
-    fn from(value: Relation) -> Self {
-        match value {
-            #[cfg(feature = "unstable-pre-spec")]
-            Relation::Annotation(r) => RelatesToJsonRepr::Relation(RelationJsonRepr::Annotation(r)),
-            #[cfg(feature = "unstable-pre-spec")]
-            Relation::Reference(r) => RelatesToJsonRepr::Relation(RelationJsonRepr::Reference(r)),
-            #[cfg(feature = "unstable-pre-spec")]
-            Relation::Replacement(r) => {
-                RelatesToJsonRepr::Relation(RelationJsonRepr::Replacement(r))
-            }
-            Relation::Reply { in_reply_to } => RelatesToJsonRepr::Reply { in_reply_to },
-            Relation::_Custom(c) => RelatesToJsonRepr::Custom(c),
-        }
-    }
-}
-
-impl From<RelatesToJsonRepr> for Relation {
-    fn from(value: RelatesToJsonRepr) -> Self {
-        match value {
-            #[cfg(feature = "unstable-pre-spec")]
-            RelatesToJsonRepr::Relation(r) => match r {
-                RelationJsonRepr::Annotation(a) => Self::Annotation(a),
-                RelationJsonRepr::Reference(r) => Self::Reference(r),
-                RelationJsonRepr::Replacement(r) => Self::Replacement(r),
-            },
-            RelatesToJsonRepr::Reply { in_reply_to } => Self::Reply { in_reply_to },
-            RelatesToJsonRepr::Custom(v) => Self::_Custom(v),
-        }
     }
 }
 
@@ -1187,5 +1109,38 @@ fn formatted_or_plain_body<'a>(formatted: &'a Option<FormattedBody>, body: &'a s
         &formatted_body.body
     } else {
         body
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use matches::assert_matches;
+    use ruma_identifiers::event_id;
+    use serde_json::{from_value as from_json_value, json};
+
+    use super::{MessageEventContent, MessageType, Relation};
+    use crate::room::relationships::InReplyTo;
+
+    #[test]
+    fn deserialize_reply() {
+        let ev_id = event_id!("$1598361704261elfgc:localhost");
+
+        let json = json!({
+            "msgtype": "m.text",
+            "body": "<text msg>",
+            "m.relates_to": {
+                "m.in_reply_to": {
+                    "event_id": ev_id,
+                },
+            },
+        });
+
+        assert_matches!(
+            from_json_value::<MessageEventContent>(json).unwrap(),
+            MessageEventContent {
+                msgtype: MessageType::Text(_),
+                relates_to: Some(Relation::Reply { in_reply_to: InReplyTo { event_id } }),
+            } if event_id == ev_id
+        );
     }
 }

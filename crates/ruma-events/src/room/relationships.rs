@@ -8,45 +8,57 @@
 
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
-use serde_json::Value as JsonValue;
+
+#[cfg(feature = "unstable-pre-spec")]
+use crate::room::message::MessageEventContent;
+
+pub(crate) mod relation_serde;
 
 /// Enum modeling the different ways relationships can be expressed in a `m.relates_to` field of an
-/// event.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(untagged)]
-pub(crate) enum RelatesToJsonRepr {
-    /// A relation which contains subtypes indicating the type of the relationship with the
-    /// `rel_type` field.
-    #[cfg(feature = "unstable-pre-spec")]
-    Relation(RelationJsonRepr),
-
-    /// An `m.in_reply_to` relationship indicating that the event is a reply to another event.
-    Reply {
-        /// Information about another message being replied to.
-        #[serde(rename = "m.in_reply_to")]
-        in_reply_to: InReplyTo,
-    },
-
-    /// Custom, unsupported relationship.
-    Custom(JsonValue),
-}
-
-/// A relation, which associates new information to an existing event.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg(feature = "unstable-pre-spec")]
-#[serde(tag = "rel_type")]
-pub(crate) enum RelationJsonRepr {
-    /// An annotation to an event.
-    #[serde(rename = "m.annotation")]
-    Annotation(Annotation),
-
+/// `m.room.message` or `m.room.encrypted` event.
+#[derive(Clone, Debug)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub enum Relation {
     /// A reference to another event.
-    #[serde(rename = "m.reference")]
+    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     Reference(Reference),
 
+    /// An annotation to an event.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+    Annotation(Annotation),
+
     /// An event that replaces another event.
-    #[serde(rename = "m.replace")]
+    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     Replacement(Replacement),
+
+    /// An `m.in_reply_to` relation indicating that the event is a reply to another event.
+    Reply {
+        /// Information about another message being replied to.
+        in_reply_to: InReplyTo,
+    },
+}
+
+/// The event this relation belongs to replaces another event.
+#[derive(Clone, Debug)]
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+pub struct Replacement {
+    /// The ID of the event being replacing.
+    pub event_id: EventId,
+
+    /// New content.
+    pub new_content: Box<MessageEventContent>,
+}
+
+#[cfg(feature = "unstable-pre-spec")]
+impl Replacement {
+    /// Creates a new `Replacement` with the given event ID and new content.
+    pub fn new(event_id: EventId, new_content: Box<MessageEventContent>) -> Self {
+        Self { event_id, new_content }
+    }
 }
 
 /// Information about the event a "rich reply" is replying to.
@@ -97,101 +109,5 @@ impl Annotation {
     /// Creates a new `Annotation` with the given event ID and key.
     pub fn new(event_id: EventId, key: String) -> Self {
         Self { event_id, key }
-    }
-}
-
-/// An event replacing another event.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct Replacement {
-    /// The event this event is replacing.
-    pub event_id: EventId,
-}
-
-#[cfg(feature = "unstable-pre-spec")]
-impl Replacement {
-    /// Creates a new `Replacement` with the given event ID.
-    pub fn new(event_id: EventId) -> Self {
-        Self { event_id }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use matches::assert_matches;
-    use ruma_identifiers::event_id;
-    use serde_json::{from_value as from_json_value, json};
-
-    use crate::room::message::Relation;
-
-    #[test]
-    fn reply_deserialize() {
-        let event_id = event_id!("$1598361704261elfgc:localhost");
-
-        let json = json!({
-            "m.in_reply_to": {
-                "event_id": event_id,
-            }
-        });
-
-        assert_matches!(
-            from_json_value::<Relation>(json).unwrap(),
-            Relation::Reply { in_reply_to }
-            if in_reply_to.event_id == event_id
-        );
-    }
-
-    #[test]
-    #[cfg(feature = "unstable-pre-spec")]
-    fn reference_deserialize() {
-        let event_id = event_id!("$1598361704261elfgc:localhost");
-
-        let json = json!({
-            "rel_type": "m.reference",
-            "event_id": event_id,
-        });
-
-        assert_matches!(
-            from_json_value::<Relation>(json).unwrap(),
-            Relation::Reference(reference)
-            if reference.event_id == event_id
-        );
-    }
-
-    #[test]
-    #[cfg(feature = "unstable-pre-spec")]
-    fn replacement_deserialization() {
-        let event_id = event_id!("$1598361704261elfgc:localhost");
-
-        let json = json!({
-            "rel_type": "m.replace",
-            "event_id": event_id,
-        });
-
-        assert_matches!(
-            from_json_value::<Relation>(json).unwrap(),
-            Relation::Replacement(replacement)
-            if replacement.event_id == event_id
-        );
-    }
-
-    #[test]
-    #[cfg(feature = "unstable-pre-spec")]
-    fn annotation_deserialize() {
-        let event_id = event_id!("$1598361704261elfgc:localhost");
-
-        let json = json!({
-            "rel_type": "m.annotation",
-            "event_id": event_id,
-            "key": "🦛",
-        });
-
-        assert_matches!(
-            from_json_value::<Relation>(json).unwrap(),
-            Relation::Annotation(annotation)
-            if annotation.event_id == event_id && annotation.key == "🦛"
-        );
     }
 }
