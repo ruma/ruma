@@ -4,18 +4,11 @@
 //!
 //! The MSC for the in-room variants of the `m.key.verification.*` events can be found
 //! [here](https://github.com/matrix-org/matrix-doc/pull/2241).
-
-#[cfg(feature = "unstable-pre-spec")]
-use std::convert::TryFrom;
-
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_identifiers::EventId;
 use ruma_serde::StringEnum;
 #[cfg(feature = "unstable-pre-spec")]
 use serde::{Deserialize, Serialize};
-
-#[cfg(feature = "unstable-pre-spec")]
-use crate::room::relationships::{Reference, RelatesToJsonRepr, RelationJsonRepr};
 
 pub mod accept;
 pub mod cancel;
@@ -83,14 +76,14 @@ pub enum ShortAuthenticationString {
     _Custom(String),
 }
 
-/// The relation that contains info which event the reaction is applying to.
+/// A relation which associates an `m.key.verification.request` with another key verification event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(try_from = "RelatesToJsonRepr", into = "RelatesToJsonRepr")]
+#[serde(tag = "rel_type", rename = "m.reference")]
 pub struct Relation {
-    /// The event that is being referenced.
+    /// The event ID of a related `m.key.verification.request`.
     pub event_id: EventId,
 }
 
@@ -99,28 +92,6 @@ impl Relation {
     /// Creates a new `Relation` with the given event ID.
     pub fn new(event_id: EventId) -> Self {
         Self { event_id }
-    }
-}
-
-#[cfg(feature = "unstable-pre-spec")]
-impl From<Relation> for RelatesToJsonRepr {
-    fn from(relation: Relation) -> Self {
-        RelatesToJsonRepr::Relation(RelationJsonRepr::Reference(Reference {
-            event_id: relation.event_id,
-        }))
-    }
-}
-
-#[cfg(feature = "unstable-pre-spec")]
-impl TryFrom<RelatesToJsonRepr> for Relation {
-    type Error = &'static str;
-
-    fn try_from(value: RelatesToJsonRepr) -> Result<Self, Self::Error> {
-        if let RelatesToJsonRepr::Relation(RelationJsonRepr::Reference(r)) = value {
-            Ok(Relation { event_id: r.event_id })
-        } else {
-            Err("Expected a relation with a rel_type of `reference`")
-        }
     }
 }
 
