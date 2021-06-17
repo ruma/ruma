@@ -59,7 +59,7 @@ impl<'a> Request<'a> {
         event_type: &'a str,
         body: Raw<AnyMessageEventContent>,
     ) -> Self {
-        Self { room_id, txn_id, event_type, body }
+        Self { room_id, event_type, txn_id, body }
     }
 }
 
