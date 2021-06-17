@@ -262,7 +262,9 @@ mod tests {
         StartToDeviceEventContent,
     };
     #[cfg(feature = "unstable-pre-spec")]
-    use super::{ReciprocateV1Content, Relation, StartEventContent};
+    use super::{ReciprocateV1Content, StartEventContent};
+    #[cfg(feature = "unstable-pre-spec")]
+    use crate::key::verification::Relation;
     use crate::ToDeviceEvent;
 
     #[test]

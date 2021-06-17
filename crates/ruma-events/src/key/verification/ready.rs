@@ -76,7 +76,8 @@ mod tests {
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{ReadyEventContent, ReadyToDeviceEventContent, Relation, VerificationMethod};
+    use super::{ReadyEventContent, ReadyToDeviceEventContent};
+    use crate::key::verification::{Relation, VerificationMethod};
 
     #[test]
     fn serialization() {

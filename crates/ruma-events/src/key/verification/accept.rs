@@ -175,11 +175,13 @@ mod tests {
     };
 
     #[cfg(feature = "unstable-pre-spec")]
-    use super::{AcceptEventContent, Relation};
+    use super::AcceptEventContent;
     use super::{
         AcceptMethod, AcceptToDeviceEventContent, CustomContent, HashAlgorithm,
         KeyAgreementProtocol, MessageAuthenticationCode, SasV1Content, ShortAuthenticationString,
     };
+    #[cfg(feature = "unstable-pre-spec")]
+    use crate::key::verification::Relation;
     use crate::ToDeviceEvent;
 
     #[test]
