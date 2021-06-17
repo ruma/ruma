@@ -103,6 +103,7 @@ pub struct Registration {
 ///
 /// Used for [appservice registration](https://matrix.org/docs/spec/application_service/r0.1.2#registration).
 #[derive(Debug)]
+#[allow(clippy::exhaustive_structs)]
 pub struct RegistrationInit {
     /// A unique, user - defined ID of the application service which will never change.
     pub id: String,
