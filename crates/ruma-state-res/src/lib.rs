@@ -33,6 +33,7 @@ pub type StateMap<T> = BTreeMap<(EventType, String), T>;
 pub type EventMap<T> = BTreeMap<EventId, T>;
 
 #[derive(Default)]
+#[allow(clippy::exhaustive_structs)]
 pub struct StateResolution;
 
 impl StateResolution {

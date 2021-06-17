@@ -16,6 +16,7 @@ all-features = true
 
 [features]
 unstable-pre-spec = ["ruma-events/unstable-pre-spec"]
+unstable-exhaustive-types = []
 
 [dependencies]
 itertools = "0.10.0"
