@@ -39,17 +39,11 @@ impl CiTask {
 
     fn build_msrv(&self) -> xshell::Result<()> {
         // Check all crates with all features except
-        // * ruma (all-features would include the other crates)
-        // * ruma-client (due to transitive ring dependency which only supports latest stable)
-        // * ruma-signatures (for the same reason)
-        // * ruma-state-res (initially exempt from MSRV policy)
+        // * ruma-client (will be tested as part of ruma, don't want to enabled all features)
         // * xtask (no real reason to enforce an MSRV for it)
         cmd!(
             "rustup run {MSRV} cargo check --workspace --all-features
-                --exclude ruma
                 --exclude ruma-client
-                --exclude ruma-signatures
-                --exclude ruma-state-res
                 --exclude xtask"
         )
         .run()?;
