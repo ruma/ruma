@@ -1,7 +1,7 @@
 [alias]
 xtask = "run --package xtask --"
 ruma-clippy = """\
-  clippy --workspace --all-targets --all-features -- \
+  clippy --workspace --all-targets --features=full,compat,unstable-pre-spec -- \
     -W rust_2018_idioms \
     -W semicolon_in_expressions_from_macros \
     -W unused_import_braces \
@@ -21,6 +21,7 @@ ruma-clippy = """\
     -W clippy::unseparated_literal_suffix \
     -W clippy::useless_let_if_seq \
     -W clippy::wildcard_imports \
+    -W clippy::exhaustive_structs \
 """
 
 [doc.extern-map.registries]
