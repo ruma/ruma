@@ -175,11 +175,13 @@ mod tests {
     };
 
     #[cfg(feature = "unstable-pre-spec")]
-    use super::{AcceptEventContent, Relation};
+    use super::AcceptEventContent;
     use super::{
         AcceptMethod, AcceptToDeviceEventContent, CustomContent, HashAlgorithm,
         KeyAgreementProtocol, MessageAuthenticationCode, SasV1Content, ShortAuthenticationString,
     };
+    #[cfg(feature = "unstable-pre-spec")]
+    use crate::key::verification::{Relation, VerificationReference};
     use crate::ToDeviceEvent;
 
     #[test]
@@ -250,7 +252,7 @@ mod tests {
         let event_id = event_id!("$1598361704261elfgc:localhost");
 
         let key_verification_accept_content = AcceptEventContent {
-            relation: Relation { event_id: event_id.clone() },
+            relation: Relation::Reference(VerificationReference { event_id: event_id.clone() }),
             method: AcceptMethod::SasV1(SasV1Content {
                 hash: HashAlgorithm::Sha256,
                 key_agreement_protocol: KeyAgreementProtocol::Curve25519,
@@ -412,9 +414,7 @@ mod tests {
                 .deserialize()
                 .unwrap(),
             AcceptEventContent {
-                relation: Relation {
-                    event_id
-                },
+                relation: Relation::Reference(VerificationReference { event_id }),
                 method: AcceptMethod::SasV1(SasV1Content {
                     commitment,
                     hash,

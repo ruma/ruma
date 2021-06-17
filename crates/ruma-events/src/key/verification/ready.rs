@@ -76,7 +76,8 @@ mod tests {
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{ReadyEventContent, ReadyToDeviceEventContent, Relation, VerificationMethod};
+    use super::{ReadyEventContent, ReadyToDeviceEventContent};
+    use crate::key::verification::{Relation, VerificationMethod, VerificationReference};
 
     #[test]
     fn serialization() {
@@ -94,7 +95,7 @@ mod tests {
 
         let content = ReadyEventContent {
             from_device: device.clone(),
-            relation: Relation { event_id },
+            relation: Relation::Reference(VerificationReference { event_id }),
             methods: vec![VerificationMethod::SasV1],
         };
 
@@ -136,9 +137,7 @@ mod tests {
                 .unwrap(),
             ReadyEventContent {
                 from_device,
-                relation: Relation {
-                    event_id
-                },
+                relation: Relation::Reference(VerificationReference { event_id }),
                 methods,
             } if from_device == device
                 && methods == vec![VerificationMethod::SasV1]

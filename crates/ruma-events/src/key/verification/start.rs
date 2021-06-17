@@ -262,7 +262,9 @@ mod tests {
         StartToDeviceEventContent,
     };
     #[cfg(feature = "unstable-pre-spec")]
-    use super::{ReciprocateV1Content, Relation, StartEventContent};
+    use super::{ReciprocateV1Content, StartEventContent};
+    #[cfg(feature = "unstable-pre-spec")]
+    use crate::key::verification::{Relation, VerificationReference};
     use crate::ToDeviceEvent;
 
     #[test]
@@ -415,7 +417,7 @@ mod tests {
 
         let key_verification_start_content = StartEventContent {
             from_device: "123".into(),
-            relation: Relation { event_id: event_id.clone() },
+            relation: Relation::Reference(VerificationReference { event_id: event_id.clone() }),
             method: StartMethod::SasV1(
                 SasV1Content::new(SasV1ContentInit {
                     hashes: vec![HashAlgorithm::Sha256],
@@ -446,7 +448,7 @@ mod tests {
 
         let key_verification_start_content = StartEventContent {
             from_device: "123".into(),
-            relation: Relation { event_id: event_id.clone() },
+            relation: Relation::Reference(VerificationReference { event_id: event_id.clone() }),
             method: StartMethod::ReciprocateV1(ReciprocateV1Content::new(secret.clone())),
         };
 
@@ -631,7 +633,7 @@ mod tests {
                 .unwrap(),
             StartEventContent {
                 from_device,
-                relation: Relation { event_id },
+                relation: Relation::Reference(VerificationReference { event_id }),
                 method: StartMethod::SasV1(SasV1Content {
                     hashes,
                     key_agreement_protocols,
@@ -663,7 +665,7 @@ mod tests {
                 .unwrap(),
             StartEventContent {
                 from_device,
-                relation: Relation { event_id },
+                relation: Relation::Reference(VerificationReference { event_id }),
                 method: StartMethod::ReciprocateV1(ReciprocateV1Content { secret }),
             } if from_device == "123"
                 && event_id == id

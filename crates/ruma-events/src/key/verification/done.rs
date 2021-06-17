@@ -52,7 +52,8 @@ mod tests {
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{DoneEventContent, Relation};
+    use super::DoneEventContent;
+    use crate::key::verification::{Relation, VerificationReference};
 
     #[test]
     fn serialization() {
@@ -65,7 +66,8 @@ mod tests {
             }
         });
 
-        let content = DoneEventContent { relation: Relation { event_id } };
+        let content =
+            DoneEventContent { relation: Relation::Reference(VerificationReference { event_id }) };
 
         assert_eq!(to_json_value(&content).unwrap(), json_data);
     }
@@ -87,9 +89,7 @@ mod tests {
                 .deserialize()
                 .unwrap(),
             DoneEventContent {
-                relation: Relation {
-                    event_id
-                },
+                relation: Relation::Reference(VerificationReference { event_id }),
             } if event_id == id
         );
     }
