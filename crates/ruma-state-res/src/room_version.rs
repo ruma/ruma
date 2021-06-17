@@ -26,6 +26,7 @@ pub enum StateResolutionVersion {
     V2,
 }
 
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomVersion {
     /// The version this room is set to.
     pub version: RoomVersionId,
