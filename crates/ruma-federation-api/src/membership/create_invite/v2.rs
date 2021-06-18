@@ -41,7 +41,8 @@ ruma_api! {
 }
 
 impl Request {
-    /// Creates a new `Request` with the given parameters.
+    /// Creates a new `Request` with the given room ID, event ID, room version, event and invite
+    /// room state.
     pub fn new(
         room_id: RoomId,
         event_id: EventId,

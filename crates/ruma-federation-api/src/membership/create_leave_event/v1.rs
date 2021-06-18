@@ -68,29 +68,55 @@ ruma_api! {
     }
 }
 
-impl<'a> Request<'a> {
-    /// Creates a new `Request` with:
-    /// * the room ID that is about to be left.
-    /// * the event ID for the leave event.
-    /// * the user ID of the leaving member.
-    /// * the name of the leaving homeserver.
-    /// * a timestamp added by the leaving homeserver.
-    /// * the value `m.room.member`.
-    /// * the user ID of the leaving member.
-    /// * the content of the event.
-    /// * this field must be present but is ignored; it may be 0.
-    #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        room_id: &'a RoomId,
-        event_id: &'a EventId,
-        sender: &'a UserId,
-        origin: &'a ServerName,
-        origin_server_ts: MilliSecondsSinceUnixEpoch,
-        event_type: EventType,
-        state_key: &'a str,
-        content: Raw<MemberEventContent>,
-        depth: UInt,
-    ) -> Self {
+/// Initial set of fields of `Request`.
+///
+/// This struct will not be updated even if additional fields are added to `Request` in a
+/// new (non-breaking) release of the Matrix specification.
+#[derive(Debug)]
+#[allow(clippy::exhaustive_structs)]
+pub struct RequestInit<'a> {
+    /// The room ID that is about to be left.
+    pub room_id: &'a RoomId,
+
+    /// The event ID for the leave event.
+    pub event_id: &'a EventId,
+
+    /// The user ID of the leaving member.
+    pub sender: &'a UserId,
+
+    /// The name of the leaving homeserver.
+    pub origin: &'a ServerName,
+
+    /// A timestamp added by the leaving homeserver.
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
+
+    /// The value `m.room.member`.
+    pub event_type: EventType,
+
+    /// The user ID of the leaving member.
+    pub state_key: &'a str,
+
+    /// The content of the event.
+    pub content: Raw<MemberEventContent>,
+
+    /// This field must be present but is ignored; it may be 0.
+    pub depth: UInt,
+}
+
+impl<'a> From<RequestInit<'a>> for Request<'a> {
+    /// Creates a new `Request` from `RequestInit`.
+    fn from(init: RequestInit<'a>) -> Self {
+        let RequestInit {
+            room_id,
+            event_id,
+            sender,
+            origin,
+            origin_server_ts,
+            event_type,
+            state_key,
+            content,
+            depth,
+        } = init;
         Self {
             room_id,
             event_id,
