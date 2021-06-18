@@ -1,7 +1,11 @@
 # [unreleased]
 
+# 0.19.3
+
 Improvement:
 
+* Add `serde::{Deserialize, Serialize}` implementations for `Signatures` when the `serde` feature
+  is active
 * Add conversions of borrowed `ServerName`, `DeviceId` and `KeyName` to `Arc<_>` and `Rc<_>`
 
 # 0.19.2
