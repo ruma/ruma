@@ -18,10 +18,14 @@ ruma_api! {
     }
 
     request: {
-        /// The type of third party identifier. Currently only "email" is a possible value.
-        pub medium: Medium,
+        /// The type of third party identifier.
+        ///
+        /// Currently only `Medium::Email` is supported.
+        pub medium: &'a Medium,
 
-        /// The third party identifier itself. For example, an email address.
+        /// The third party identifier itself.
+        ///
+        /// For example: an email address.
         pub address: &'a str,
 
         /// The user that is now bound to the third party identifier.
@@ -35,9 +39,19 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Creates a new `Request` with the given address, matrix id and third party invites.
-    pub fn new(address: &'a str, mxid: &'a UserId, invites: &'a [ThirdPartyInvite]) -> Self {
-        Self { medium: Medium::Email, address, mxid, invites }
+    /// Creates a new `Request` with the given medium, address, user ID and third party invites.
+    pub fn new(
+        medium: &'a Medium,
+        address: &'a str,
+        mxid: &'a UserId,
+        invites: &'a [ThirdPartyInvite],
+    ) -> Self {
+        Self { medium, address, mxid, invites }
+    }
+
+    /// Creates a new `Request` with the given email address, user ID and third party invites.
+    pub fn email(address: &'a str, mxid: &'a UserId, invites: &'a [ThirdPartyInvite]) -> Self {
+        Self::new(&Medium::Email, address, mxid, invites)
     }
 }
 

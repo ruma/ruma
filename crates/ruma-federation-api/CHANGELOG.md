@@ -3,10 +3,12 @@
 Breaking Changes:
 
 * Change types of keys::claim_keys::v1 response to match the client-server endpoint
+* Update `thirdparty::bind_callback::v1::Request::new` to have a `medium` parameter
 
 Improvements:
 
 * Add master_keys and self_signing keys to keys::get_keys::v1 response
+* Add `thirdparty::bind_callback::v1::Request::email` convenience constructor
 
 # 0.1.0
 
