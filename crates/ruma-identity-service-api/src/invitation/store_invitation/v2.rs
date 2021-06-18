@@ -15,7 +15,9 @@ ruma_api! {
     }
 
     request: {
-        /// The literal string `email`.
+        /// The type of the third party identifier for the invited user.
+        ///
+        /// Currently, only `Medium::Email` is supported.
         pub medium: &'a Medium,
 
         /// The email address of the invited user.
@@ -75,10 +77,15 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Creates a new `Request` with the given address, room_id and sender.
-    pub fn new(address: &'a str, room_id: &'a RoomId, sender: &'a UserId) -> Self {
+    /// Creates a new `Request with the given medium, email address, room ID and sender.
+    pub fn new(
+        medium: &'a Medium,
+        address: &'a str,
+        room_id: &'a RoomId,
+        sender: &'a UserId,
+    ) -> Self {
         Self {
-            medium: &Medium::Email,
+            medium,
             address,
             room_id,
             sender,
@@ -89,6 +96,11 @@ impl<'a> Request<'a> {
             sender_display_name: None,
             sender_avatar_url: None,
         }
+    }
+
+    /// Creates a new `Request` with the given email address, room ID and sender.
+    pub fn email(address: &'a str, room_id: &'a RoomId, sender: &'a UserId) -> Self {
+        Self::new(&Medium::Email, address, room_id, sender)
     }
 }
 
