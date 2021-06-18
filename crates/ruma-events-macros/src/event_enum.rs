@@ -638,9 +638,7 @@ fn generate_redacted_fields(
 
         if name == "unsigned" {
             quote! {
-                unsigned: #ruma_events::RedactedUnsigned {
-                    redacted_because: Some(::std::boxed::Box::new(redaction)),
-                },
+                unsigned: #ruma_events::RedactedUnsigned::new_because(::std::boxed::Box::new(redaction)),
             }
         } else {
             quote! {

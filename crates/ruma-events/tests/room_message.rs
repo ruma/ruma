@@ -277,7 +277,7 @@ fn edit_deserialization_future() {
                 formatted: None,
                 ..
             }),
-            relates_to: Some(Relation::Replacement(Replacement { event_id, new_content })),
+            relates_to: Some(Relation::Replacement(Replacement { event_id, new_content, .. })),
             ..
         } if body == "s/foo/bar"
             && event_id == ev_id
@@ -321,6 +321,7 @@ fn verification_request_deserialization() {
                 to,
                 from_device,
                 methods,
+                ..
             }),
             ..
         } if body == "@example:localhost is requesting to verify your key, ..."
@@ -351,12 +352,9 @@ fn verification_request_serialization() {
         "methods": methods
     });
 
-    let content = MessageType::VerificationRequest(KeyVerificationRequestEventContent {
-        to: user_id,
-        from_device: device_id,
-        body,
-        methods,
-    });
+    let content = MessageType::VerificationRequest(KeyVerificationRequestEventContent::new(
+        body, methods, device_id, user_id,
+    ));
 
     assert_eq!(to_json_value(&content).unwrap(), json_data,);
 }

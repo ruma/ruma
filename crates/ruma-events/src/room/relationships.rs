@@ -45,6 +45,7 @@ pub enum Relation {
 #[derive(Clone, Debug)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Replacement {
     /// The ID of the event being replacing.
     pub event_id: EventId,

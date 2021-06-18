@@ -10,5 +10,6 @@ pub type UserEvent = StateEvent<UserEventContent>;
 
 /// The payload for `UserEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.policy.rule.user", kind = State)]
 pub struct UserEventContent(pub PolicyRuleEventContent);

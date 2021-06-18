@@ -38,7 +38,7 @@ fn unsigned() -> RedactedUnsigned {
 #[test]
 fn redacted_message_event_serialize() {
     let redacted = RedactedSyncMessageEvent {
-        content: RedactedMessageEventContent,
+        content: RedactedMessageEventContent::new(),
         event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         sender: user_id!("@carl:example.com"),
@@ -59,7 +59,7 @@ fn redacted_message_event_serialize() {
 #[test]
 fn redacted_aliases_event_serialize_no_content() {
     let redacted = RedactedSyncStateEvent {
-        content: RedactedAliasesEventContent { aliases: None },
+        content: RedactedAliasesEventContent::default(),
         event_id: event_id!("$h29iv0s8:example.com"),
         state_key: "".into(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
@@ -82,7 +82,7 @@ fn redacted_aliases_event_serialize_no_content() {
 #[test]
 fn redacted_aliases_event_serialize_with_content() {
     let redacted = RedactedSyncStateEvent {
-        content: RedactedAliasesEventContent { aliases: Some(vec![]) },
+        content: RedactedAliasesEventContent::new_v1(vec![]),
         event_id: event_id!("$h29iv0s8:example.com"),
         state_key: "".to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
@@ -125,7 +125,7 @@ fn redacted_aliases_deserialize() {
             .unwrap(),
         AnySyncRoomEvent::RedactedState(AnyRedactedSyncStateEvent::RoomAliases(
             RedactedSyncStateEvent {
-                content: RedactedAliasesEventContent { aliases },
+                content: RedactedAliasesEventContent { aliases, .. },
                 event_id,
                 ..
             },
@@ -153,7 +153,7 @@ fn redacted_deserialize_any_room() {
             .deserialize()
             .unwrap(),
         AnyRoomEvent::RedactedMessage(AnyRedactedMessageEvent::RoomMessage(RedactedMessageEvent {
-            content: RedactedMessageEventContent,
+            content: RedactedMessageEventContent { .. },
             event_id, room_id, ..
         })) if event_id == event_id!("$h29iv0s8:example.com")
             && room_id == room_id!("!roomid:room.com")
@@ -192,7 +192,7 @@ fn redacted_deserialize_any_room_sync() {
             .unwrap(),
         AnySyncRoomEvent::RedactedMessage(AnyRedactedSyncMessageEvent::RoomMessage(
             RedactedSyncMessageEvent {
-                content: RedactedMessageEventContent,
+                content: RedactedMessageEventContent { .. },
                 event_id,
                 ..
             }
@@ -222,7 +222,7 @@ fn redacted_state_event_deserialize() {
         AnySyncRoomEvent::RedactedState(AnyRedactedSyncStateEvent::RoomCreate(
             RedactedSyncStateEvent {
                 content: RedactedCreateEventContent {
-                    creator,
+                    creator, ..
                 },
                 event_id,
                 state_key,
@@ -311,7 +311,7 @@ fn redact_method_properly_redacts() {
     assert_matches!(
         event.redact(redaction, &RoomVersionId::Version6),
         AnyRedactedMessageEvent::RoomMessage(RedactedMessageEvent {
-            content: RedactedMessageEventContent,
+            content: RedactedMessageEventContent { .. },
             event_id,
             room_id,
             sender,
@@ -338,7 +338,7 @@ fn redact_message_content() {
 
     assert_matches!(
         content.redact(&RoomVersionId::Version6),
-        AnyRedactedMessageEventContent::RoomMessage(RedactedMessageEventContent)
+        AnyRedactedMessageEventContent::RoomMessage(RedactedMessageEventContent { .. })
     );
 }
 
@@ -356,7 +356,8 @@ fn redact_state_content() {
     assert_matches!(
         content.redact(&RoomVersionId::Version6),
         AnyRedactedStateEventContent::RoomCreate(RedactedCreateEventContent {
-            creator
+            creator,
+            ..
         }) if creator == user_id!("@carl:example.com")
     );
 }

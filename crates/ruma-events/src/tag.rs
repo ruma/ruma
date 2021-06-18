@@ -63,6 +63,7 @@ impl FromStr for UserTagName {
 /// An error returned when attempting to create a UserTagName with a string that would make it
 /// invalid.
 #[derive(Debug)]
+#[allow(clippy::exhaustive_structs)]
 pub struct InvalidUserTagName;
 
 impl fmt::Display for InvalidUserTagName {

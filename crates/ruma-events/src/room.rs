@@ -135,6 +135,7 @@ pub struct EncryptedFile {
 ///
 /// This struct will not be updated even if additional fields are added to `EncryptedFile` in a new
 /// (non-breaking) release of the Matrix specification.
+#[allow(clippy::exhaustive_structs)]
 pub struct EncryptedFileInit {
     /// The URL to the file.
     pub url: MxcUri,
@@ -188,6 +189,7 @@ pub struct JsonWebKey {
 ///
 /// This struct will not be updated even if additional fields are added to `JsonWebKey` in a new
 /// (non-breaking) release of the Matrix specification.
+#[allow(clippy::exhaustive_structs)]
 pub struct JsonWebKeyInit {
     /// Key type. Must be `oct`.
     pub kty: String,

@@ -55,7 +55,7 @@ pub struct AnnotationChunk {
 }
 
 impl AnnotationChunk {
-    /// Creates a new `AnnotationChunk`.
+    /// Creates a new `AnnotationChunk` with the given chunk and next batch token.
     pub fn new(chunk: Vec<BundledAnnotation>, next_batch: Option<String>) -> Self {
         Self { chunk, next_batch }
     }
@@ -71,7 +71,7 @@ pub struct Relations {
 }
 
 impl Relations {
-    /// Creates a new `Relations` struct.
+    /// Creates a new `Relations` with the given annotation.
     pub fn new(annotation: Option<AnnotationChunk>) -> Self {
         Self { annotation }
     }

@@ -204,6 +204,20 @@ pub fn expand_event_content(
             quote! { true }
         };
 
+        let initializer = if kept_redacted_fields.is_empty() {
+            let doc = format!("Creates an empty {}.", redacted_ident);
+            quote! {
+                impl #redacted_ident {
+                    #[doc = #doc]
+                    pub fn new() -> Self {
+                        Self
+                    }
+                }
+            }
+        } else {
+            TokenStream::new()
+        };
+
         let redacted_event_content =
             generate_event_content_impl(&redacted_ident, event_type, ruma_events);
 
@@ -237,7 +251,10 @@ pub fn expand_event_content(
 
             #[doc = #doc]
             #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
+            #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             pub struct #redacted_ident #redacted_fields
+
+            #initializer
 
             #redacted_event_content
 
