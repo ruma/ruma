@@ -110,7 +110,7 @@ pub struct RequestInit<'a> {
 }
 
 impl<'a> From<RequestInit<'a>> for Request<'a> {
-    /// Creates a new `Request` with the given parameters.
+    /// Creates a new `Request` from `RequestInit`.
     fn from(init: RequestInit<'a>) -> Self {
         Self {
             room_id: init.room_id,
