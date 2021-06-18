@@ -7,6 +7,7 @@ use std::{
 
 /// A timestamp represented as the number of milliseconds since the unix epoch.
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
+#[allow(clippy::exhaustive_structs)]
 #[serde(transparent)]
 pub struct MilliSecondsSinceUnixEpoch(pub UInt);
 
@@ -42,6 +43,7 @@ impl MilliSecondsSinceUnixEpoch {
 
 /// A timestamp represented as the number of seconds since the unix epoch.
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
+#[allow(clippy::exhaustive_structs)]
 #[serde(transparent)]
 pub struct SecondsSinceUnixEpoch(pub UInt);
 

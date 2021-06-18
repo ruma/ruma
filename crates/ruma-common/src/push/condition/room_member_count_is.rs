@@ -61,6 +61,7 @@ impl Default for ComparisonOperator {
 /// let greater = RoomMemberCountIs::gt(uint!(3));
 /// ```
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[allow(clippy::exhaustive_structs)]
 pub struct RoomMemberCountIs {
     /// One of `==`, `<`, `>`, `>=`, `<=`, or no prefix.
     pub prefix: ComparisonOperator,
