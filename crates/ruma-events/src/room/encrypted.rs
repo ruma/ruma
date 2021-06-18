@@ -125,6 +125,7 @@ pub struct MegolmV1AesSha2Content {
 /// This struct will not be updated even if additional fields are added to `MegolmV1AesSha2Content`
 /// in a new (non-breaking) release of the Matrix specification.
 #[derive(Clone, Debug)]
+#[allow(clippy::exhaustive_structs)]
 pub struct MegolmV1AesSha2ContentInit {
     /// The encrypted content of the event.
     pub ciphertext: String,

@@ -19,9 +19,17 @@ use serde::{
 /// this *m.dummy* event as the most recent event and using the keyshare request to set up the
 /// session. The keyshare request and *m.dummy* combination should result in the original sending
 /// client receiving keys over the newly established session.
-#[derive(Clone, Debug, EventContent)]
+#[derive(Clone, Debug, Default, EventContent)]
+#[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.dummy", kind = ToDevice)]
 pub struct DummyToDeviceEventContent;
+
+impl DummyToDeviceEventContent {
+    /// Create a new `DummyToDeviceEventContent`.
+    pub fn new() -> Self {
+        Self
+    }
+}
 
 impl<'de> Deserialize<'de> for DummyToDeviceEventContent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

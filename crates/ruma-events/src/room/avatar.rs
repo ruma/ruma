@@ -55,7 +55,8 @@ impl AvatarEventContent {
 }
 
 /// Metadata about an image (specific to avatars).
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ImageInfo {
     /// The height of the image in pixels.
     #[serde(rename = "h", skip_serializing_if = "Option::is_none")]
@@ -90,4 +91,11 @@ pub struct ImageInfo {
     #[serde(rename = "xyz.amorgan.blurhash")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub blurhash: Option<String>,
+}
+
+impl ImageInfo {
+    /// Create a new `ImageInfo` with all fields set to `None`.
+    pub fn new() -> Self {
+        Self::default()
+    }
 }

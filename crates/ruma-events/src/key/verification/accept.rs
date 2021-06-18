@@ -83,6 +83,7 @@ pub enum AcceptMethod {
 /// Method specific content of a unknown key verification method.
 #[doc(hidden)]
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[allow(clippy::exhaustive_structs)]
 pub struct _CustomContent {
     /// The name of the method.
     pub method: String,
@@ -124,6 +125,7 @@ pub struct SasV1Content {
 
 /// Mandatory initial set of fields for creating an accept `SasV1Content`.
 #[derive(Clone, Debug, Deserialize)]
+#[allow(clippy::exhaustive_structs)]
 pub struct SasV1ContentInit {
     /// The key agreement protocol the device is choosing to use, out of the
     /// options in the *m.key.verification.start* message.

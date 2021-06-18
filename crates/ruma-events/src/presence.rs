@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 
 /// Presence event.
 #[derive(Clone, Debug, Event)]
+#[allow(clippy::exhaustive_structs)]
 pub struct PresenceEvent {
     /// Data specific to the event type.
     pub content: PresenceEventContent,

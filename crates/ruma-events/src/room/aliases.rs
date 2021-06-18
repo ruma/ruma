@@ -49,13 +49,30 @@ impl RedactContent for AliasesEventContent {
 }
 
 /// An aliases event that has been redacted.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RedactedAliasesEventContent {
     /// A list of room aliases.
     ///
     /// According to the Matrix spec version 1 redaction rules allowed this field to be
     /// kept after redaction, this was changed in version 6.
     pub aliases: Option<Vec<RoomAliasId>>,
+}
+
+impl RedactedAliasesEventContent {
+    /// Create a `RedactedAliasesEventContent` with the given aliases.
+    ///
+    /// This is only valid for room version 5 and below.
+    pub fn new_v1(aliases: Vec<RoomAliasId>) -> Self {
+        Self { aliases: Some(aliases) }
+    }
+
+    /// Create a `RedactedAliasesEventContent` with the given aliases.
+    ///
+    /// This is only valid for room version 6 and above.
+    pub fn new_v6() -> Self {
+        Self::default()
+    }
 }
 
 impl EventContent for RedactedAliasesEventContent {

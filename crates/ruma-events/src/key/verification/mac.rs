@@ -45,9 +45,10 @@ impl MacToDeviceEventContent {
 
 /// The payload for an in-room `MacEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.key.verification.mac", kind = Message)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[ruma_event(type = "m.key.verification.mac", kind = Message)]
 pub struct MacEventContent {
     /// A map of the key ID to the MAC of the key, using the algorithm in the verification process.
     ///
