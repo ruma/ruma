@@ -76,6 +76,7 @@ pub struct Invite3pid<'a> {
 /// This struct will not be updated even if additional fields are added to `Invite3pid` in a new
 /// (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
+#[allow(clippy::exhaustive_structs)]
 pub struct Invite3pidInit<'a> {
     /// Hostname and port of identity server to be used for account lookups.
     pub id_server: &'a str,

@@ -54,7 +54,11 @@ pub enum BackupAlgorithm {
 }
 
 /// Information about the backup key.
+///
+/// To create an instance of this type, first create a `KeyBackupDataInit` and convert it via
+/// `KeyBackupData::from` / `.into()`.
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct KeyBackupData {
     /// The index of the first message in the session that the key can decrypt.
     pub first_message_index: UInt,
@@ -69,8 +73,40 @@ pub struct KeyBackupData {
     pub session_data: SessionData,
 }
 
-/// The algorithm used for storing backups.
+/// Information about the backup key.
+///
+/// This struct will not be updated even if additional fields are added to `SessionData` in a
+/// new (non-breaking) release of the Matrix specification.
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[allow(clippy::exhaustive_structs)]
+pub struct KeyBackupDataInit {
+    /// The index of the first message in the session that the key can decrypt.
+    pub first_message_index: UInt,
+
+    /// The number of times this key has been forwarded via key-sharing between devices.
+    pub forwarded_count: UInt,
+
+    /// Whether the device backing up the key verified the device that the key is from.
+    pub is_verified: bool,
+
+    /// Data about the session.
+    pub session_data: SessionData,
+}
+
+impl From<KeyBackupDataInit> for KeyBackupData {
+    fn from(init: KeyBackupDataInit) -> Self {
+        let KeyBackupDataInit { first_message_index, forwarded_count, is_verified, session_data } =
+            init;
+        Self { first_message_index, forwarded_count, is_verified, session_data }
+    }
+}
+
+/// The algorithm used for storing backups.
+///
+/// To create an instance of this type, first create a `SessionDataInit` and convert it via
+/// `SessionData::from` / `.into()`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SessionData {
     /// Unpadded base64-encoded public half of the ephemeral key.
     pub ephemeral: String,
@@ -80,4 +116,28 @@ pub struct SessionData {
 
     /// First 8 bytes of MAC key, encoded in base64.
     pub mac: String,
+}
+
+/// The algorithm used for storing backups.
+///
+/// This struct will not be updated even if additional fields are added to `SessionData` in a
+/// new (non-breaking) release of the Matrix specification.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[allow(clippy::exhaustive_structs)]
+pub struct SessionDataInit {
+    /// Unpadded base64-encoded public half of the ephemeral key.
+    pub ephemeral: String,
+
+    /// Ciphertext, encrypted using AES-CBC-256 with PKCS#7 padding, encoded in base64.
+    pub ciphertext: String,
+
+    /// First 8 bytes of MAC key, encoded in base64.
+    pub mac: String,
+}
+
+impl From<SessionDataInit> for SessionData {
+    fn from(init: SessionDataInit) -> Self {
+        let SessionDataInit { ephemeral, ciphertext, mac } = init;
+        Self { ephemeral, ciphertext, mac }
+    }
 }

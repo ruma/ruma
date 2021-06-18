@@ -126,6 +126,7 @@ pub enum LoginInfo<'a> {
 
 /// Client configuration provided by the server.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct DiscoveryInfo {
     /// Information about the homeserver to connect to.
     #[serde(rename = "m.homeserver")]
@@ -136,18 +137,41 @@ pub struct DiscoveryInfo {
     pub identity_server: Option<IdentityServerInfo>,
 }
 
+impl DiscoveryInfo {
+    /// Create a new `DiscoveryInfo` with the given homeserver.
+    pub fn new(homeserver: HomeserverInfo) -> Self {
+        Self { homeserver, identity_server: None }
+    }
+}
+
 /// Information about the homeserver to connect to.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct HomeserverInfo {
     /// The base URL for the homeserver for client-server connections.
     pub base_url: String,
 }
 
+impl HomeserverInfo {
+    /// Create a new `HomeserverInfo` with the given base url.
+    pub fn new(base_url: String) -> Self {
+        Self { base_url }
+    }
+}
+
 /// Information about the identity server to connect to.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct IdentityServerInfo {
     /// The base URL for the identity server for client-server connections.
     pub base_url: String,
+}
+
+impl IdentityServerInfo {
+    /// Create a new `IdentityServerInfo` with the given base url.
+    pub fn new(base_url: String) -> Self {
+        Self { base_url }
+    }
 }
 
 mod user_serde;

@@ -240,6 +240,7 @@ pub enum IdentityProviderBrand {
 /// A custom login payload.
 #[doc(hidden)]
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[allow(clippy::exhaustive_structs)]
 pub struct CustomLoginType {
     /// A custom type
     ///
