@@ -69,6 +69,7 @@ fn is_default_limit(limit: &UInt) -> bool {
 
 /// User data as result of a search.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct User {
     /// The user's matrix user ID.
     pub user_id: UserId,
@@ -87,4 +88,11 @@ pub struct User {
         serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
     )]
     pub avatar_url: Option<MxcUri>,
+}
+
+impl User {
+    /// Create a new `User` with the given `UserId`.
+    pub fn new(user_id: UserId) -> Self {
+        Self { user_id, display_name: None, avatar_url: None }
+    }
 }
