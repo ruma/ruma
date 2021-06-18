@@ -2,6 +2,7 @@
 
 use js_int::UInt;
 use ruma_api::ruma_api;
+use ruma_identifiers::ClientSecretBox;
 
 ruma_api! {
     metadata: {
@@ -15,7 +16,7 @@ ruma_api! {
 
     request: {
         /// Client-generated secret string used to protect this session.
-        pub client_secret: &'a str,
+        pub client_secret: &'a ClientSecretBox,
 
         /// The email address.
         pub email: &'a str,
@@ -49,7 +50,7 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given client secret, email and send-attempt counter.
-    pub fn new(client_secret: &'a str, email: &'a str, send_attempt: UInt) -> Self {
+    pub fn new(client_secret: &'a ClientSecretBox, email: &'a str, send_attempt: UInt) -> Self {
         Self {
             client_secret,
             email,
