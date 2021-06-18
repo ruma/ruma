@@ -66,6 +66,7 @@ pub struct PublicRoomsChunk {
 /// This struct will not be updated even if additional fields are added to `PublicRoomsChunk` in a
 /// new (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
+#[allow(clippy::exhaustive_structs)]
 pub struct PublicRoomsChunkInit {
     /// The number of members joined to the room.
     pub num_joined_members: UInt,
