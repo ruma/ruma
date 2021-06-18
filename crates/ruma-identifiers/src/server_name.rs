@@ -63,6 +63,20 @@ impl From<&ServerName> for Box<ServerName> {
     }
 }
 
+impl From<&ServerName> for Rc<ServerName> {
+    fn from(s: &ServerName) -> Self {
+        let rc = Rc::<str>::from(s.as_str());
+        unsafe { Rc::from_raw(Rc::into_raw(rc) as *const ServerName) }
+    }
+}
+
+impl From<&ServerName> for Arc<ServerName> {
+    fn from(s: &ServerName) -> Self {
+        let arc = Arc::<str>::from(s.as_str());
+        unsafe { Arc::from_raw(Arc::into_raw(arc) as *const ServerName) }
+    }
+}
+
 fn try_from<S>(server_name: S) -> Result<Box<ServerName>, crate::Error>
 where
     S: AsRef<str> + Into<Box<str>>,
@@ -111,26 +125,6 @@ impl TryFrom<&str> for Box<ServerName> {
 
     fn try_from(s: &str) -> Result<Self, Self::Error> {
         try_from(s)
-    }
-}
-
-impl TryFrom<&ServerName> for Rc<ServerName> {
-    type Error = crate::Error;
-
-    fn try_from(s: &ServerName) -> Result<Self, Self::Error> {
-        validate(s.as_str())?;
-        let rc = Rc::<str>::from(s.as_str());
-        Ok(unsafe { Rc::from_raw(Rc::into_raw(rc) as *const ServerName) })
-    }
-}
-
-impl TryFrom<&ServerName> for Arc<ServerName> {
-    type Error = crate::Error;
-
-    fn try_from(s: &ServerName) -> Result<Self, Self::Error> {
-        validate(s.as_str())?;
-        let arc = Arc::<str>::from(s.as_str());
-        Ok(unsafe { Arc::from_raw(Arc::into_raw(arc) as *const ServerName) })
     }
 }
 

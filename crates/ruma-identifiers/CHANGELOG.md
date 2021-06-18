@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvement:
+
+* Add conversions of borrowed `ServerName`, `DeviceId` and `KeyName` to `Arc<_>` and `Rc<_>`
+
 # 0.19.2
 
 Improvements:
