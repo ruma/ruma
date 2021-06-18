@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.5.4
+
+Improvements:
+
+* Add `to_device` module containing `DeviceIdOrAllDevices`
+
 # 0.5.3
 
 Improvements:
