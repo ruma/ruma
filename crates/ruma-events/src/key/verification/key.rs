@@ -46,13 +46,13 @@ pub struct KeyEventContent {
 
     /// Information about the related event.
     #[serde(rename = "m.relates_to")]
-    pub relation: Relation,
+    pub relates_to: Relation,
 }
 
 #[cfg(feature = "unstable-pre-spec")]
 impl KeyEventContent {
     /// Creates a new `KeyEventContent` with the given key and relation.
-    pub fn new(key: String, relation: Relation) -> Self {
-        Self { key, relation }
+    pub fn new(key: String, relates_to: Relation) -> Self {
+        Self { key, relates_to }
     }
 }

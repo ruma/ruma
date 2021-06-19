@@ -35,13 +35,13 @@ impl DoneToDeviceEventContent {
 pub struct DoneEventContent {
     /// Relation signaling which verification request this event is responding to.
     #[serde(rename = "m.relates_to")]
-    pub relation: Relation,
+    pub relates_to: Relation,
 }
 
 impl DoneEventContent {
-    /// Creates a new `DoneEventContent` with the given relation:
-    pub fn new(relation: Relation) -> Self {
-        Self { relation }
+    /// Creates a new `DoneEventContent` with the given relation.
+    pub fn new(relates_to: Relation) -> Self {
+        Self { relates_to }
     }
 }
 
@@ -66,7 +66,7 @@ mod tests {
             }
         });
 
-        let content = DoneEventContent { relation: Relation { event_id } };
+        let content = DoneEventContent { relates_to: Relation { event_id } };
 
         assert_eq!(to_json_value(&content).unwrap(), json_data);
     }
@@ -88,7 +88,7 @@ mod tests {
                 .deserialize()
                 .unwrap(),
             DoneEventContent {
-                relation: Relation {
+                relates_to: Relation {
                     event_id
                 },
             } if event_id == id

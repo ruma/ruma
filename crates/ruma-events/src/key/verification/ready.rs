@@ -55,7 +55,7 @@ pub struct ReadyEventContent {
     /// Relation signaling which verification request this event is responding
     /// to.
     #[serde(rename = "m.relates_to")]
-    pub relation: Relation,
+    pub relates_to: Relation,
 }
 
 impl ReadyEventContent {
@@ -63,9 +63,9 @@ impl ReadyEventContent {
     pub fn new(
         from_device: DeviceIdBox,
         methods: Vec<VerificationMethod>,
-        relation: Relation,
+        relates_to: Relation,
     ) -> Self {
-        Self { from_device, methods, relation }
+        Self { from_device, methods, relates_to }
     }
 }
 
@@ -95,7 +95,7 @@ mod tests {
 
         let content = ReadyEventContent {
             from_device: device.clone(),
-            relation: Relation { event_id },
+            relates_to: Relation { event_id },
             methods: vec![VerificationMethod::SasV1],
         };
 
@@ -137,7 +137,7 @@ mod tests {
                 .unwrap(),
             ReadyEventContent {
                 from_device,
-                relation: Relation {
+                relates_to: Relation {
                     event_id
                 },
                 methods,

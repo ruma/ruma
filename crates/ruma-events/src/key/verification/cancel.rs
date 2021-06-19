@@ -55,14 +55,14 @@ pub struct CancelEventContent {
 
     /// Information about the related event.
     #[serde(rename = "m.relates_to")]
-    pub relation: Relation,
+    pub relates_to: Relation,
 }
 
 #[cfg(feature = "unstable-pre-spec")]
 impl CancelEventContent {
     /// Creates a new `CancelEventContent` with the given reason, code and relation.
-    pub fn new(reason: String, code: CancelCode, relation: Relation) -> Self {
-        Self { reason, code, relation }
+    pub fn new(reason: String, code: CancelCode, relates_to: Relation) -> Self {
+        Self { reason, code, relates_to }
     }
 }
 

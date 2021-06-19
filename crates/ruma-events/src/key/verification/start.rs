@@ -65,14 +65,14 @@ pub struct StartEventContent {
 
     /// Information about the related event.
     #[serde(rename = "m.relates_to")]
-    pub relation: Relation,
+    pub relates_to: Relation,
 }
 
 #[cfg(feature = "unstable-pre-spec")]
 impl StartEventContent {
     /// Creates a new `StartEventContent` with the given device ID, method and relation.
-    pub fn new(from_device: DeviceIdBox, method: StartMethod, relation: Relation) -> Self {
-        Self { from_device, method, relation }
+    pub fn new(from_device: DeviceIdBox, method: StartMethod, relates_to: Relation) -> Self {
+        Self { from_device, method, relates_to }
     }
 }
 
@@ -420,7 +420,7 @@ mod tests {
 
         let key_verification_start_content = StartEventContent {
             from_device: "123".into(),
-            relation: Relation { event_id: event_id.clone() },
+            relates_to: Relation { event_id: event_id.clone() },
             method: StartMethod::SasV1(
                 SasV1Content::new(SasV1ContentInit {
                     hashes: vec![HashAlgorithm::Sha256],
@@ -451,7 +451,7 @@ mod tests {
 
         let key_verification_start_content = StartEventContent {
             from_device: "123".into(),
-            relation: Relation { event_id: event_id.clone() },
+            relates_to: Relation { event_id: event_id.clone() },
             method: StartMethod::ReciprocateV1(ReciprocateV1Content::new(secret.clone())),
         };
 
@@ -636,7 +636,7 @@ mod tests {
                 .unwrap(),
             StartEventContent {
                 from_device,
-                relation: Relation { event_id },
+                relates_to: Relation { event_id },
                 method: StartMethod::SasV1(SasV1Content {
                     hashes,
                     key_agreement_protocols,
@@ -668,7 +668,7 @@ mod tests {
                 .unwrap(),
             StartEventContent {
                 from_device,
-                relation: Relation { event_id },
+                relates_to: Relation { event_id },
                 method: StartMethod::ReciprocateV1(ReciprocateV1Content { secret }),
             } if from_device == "123"
                 && event_id == id

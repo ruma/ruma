@@ -42,19 +42,19 @@ pub struct EncryptedEventContent {
     ///
     /// [rich replies]: https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies
     #[serde(flatten, with = "relation_serde", skip_serializing_if = "Option::is_none")]
-    pub relation: Option<Relation>,
+    pub relates_to: Option<Relation>,
 }
 
 impl EncryptedEventContent {
     /// Creates a new `EncryptedEventContent` with the given scheme and relation.
     pub fn new(scheme: EncryptedEventScheme, relates_to: Option<Relation>) -> Self {
-        Self { scheme, relation: relates_to }
+        Self { scheme, relates_to }
     }
 }
 
 impl From<EncryptedEventScheme> for EncryptedEventContent {
     fn from(scheme: EncryptedEventScheme) -> Self {
-        Self { scheme, relation: None }
+        Self { scheme, relates_to: None }
     }
 }
 
@@ -167,7 +167,7 @@ mod tests {
                 device_id: "device_id".into(),
                 session_id: "session_id".into(),
             }),
-            relation: Some(Relation::Reply {
+            relates_to: Some(Relation::Reply {
                 in_reply_to: InReplyTo { event_id: event_id!("$h29iv0s8:example.com") },
             }),
         };
@@ -223,7 +223,7 @@ mod tests {
         );
 
         assert_matches!(
-            content.relation,
+            content.relates_to,
             Some(Relation::Reply { in_reply_to })
                 if in_reply_to.event_id == event_id!("$h29iv0s8:example.com")
         );

@@ -55,15 +55,15 @@ pub struct AcceptEventContent {
 
     /// Information about the related event.
     #[serde(rename = "m.relates_to")]
-    pub relation: Relation,
+    pub relates_to: Relation,
 }
 
 #[cfg(feature = "unstable-pre-spec")]
 impl AcceptEventContent {
     /// Creates a new `AcceptToDeviceEventContent` with the given method-specific content and
     /// relation.
-    pub fn new(method: AcceptMethod, relation: Relation) -> Self {
-        Self { method, relation }
+    pub fn new(method: AcceptMethod, relates_to: Relation) -> Self {
+        Self { method, relates_to }
     }
 }
 
@@ -255,7 +255,7 @@ mod tests {
         let event_id = event_id!("$1598361704261elfgc:localhost");
 
         let key_verification_accept_content = AcceptEventContent {
-            relation: Relation { event_id: event_id.clone() },
+            relates_to: Relation { event_id: event_id.clone() },
             method: AcceptMethod::SasV1(SasV1Content {
                 hash: HashAlgorithm::Sha256,
                 key_agreement_protocol: KeyAgreementProtocol::Curve25519,
@@ -417,7 +417,7 @@ mod tests {
                 .deserialize()
                 .unwrap(),
             AcceptEventContent {
-                relation: Relation {
+                relates_to: Relation {
                     event_id
                 },
                 method: AcceptMethod::SasV1(SasV1Content {

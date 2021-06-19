@@ -61,13 +61,13 @@ pub struct MacEventContent {
 
     /// Information about the related event.
     #[serde(rename = "m.relates_to")]
-    pub relation: Relation,
+    pub relates_to: Relation,
 }
 
 #[cfg(feature = "unstable-pre-spec")]
 impl MacEventContent {
     /// Creates a new `MacEventContent` with the given key ID to MAC map, key MAC and relation.
-    pub fn new(mac: BTreeMap<String, String>, keys: String, relation: Relation) -> Self {
-        Self { mac, keys, relation }
+    pub fn new(mac: BTreeMap<String, String>, keys: String, relates_to: Relation) -> Self {
+        Self { mac, keys, relates_to }
     }
 }
