@@ -133,7 +133,7 @@ pub enum AuthScheme {
 }
 
 impl Parse for AuthScheme {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
 
         if lookahead.peek(kw::None) {
