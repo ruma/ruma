@@ -9,12 +9,9 @@ use ruma_events::{
     key::verification::VerificationMethod, room::message::KeyVerificationRequestEventContent,
 };
 use ruma_events::{
-    room::{
-        message::{
-            AudioMessageEventContent, MessageEvent, MessageEventContent, MessageType,
-            TextMessageEventContent,
-        },
-        relationships::{InReplyTo, Relation},
+    room::message::{
+        AudioMessageEventContent, InReplyTo, MessageEvent, MessageEventContent, MessageType,
+        Relation, TextMessageEventContent,
     },
     Unsigned,
 };
@@ -253,7 +250,7 @@ fn edit_deserialization_061() {
 #[test]
 #[cfg(feature = "unstable-pre-spec")]
 fn edit_deserialization_future() {
-    use ruma_events::room::relationships::Replacement;
+    use ruma_events::room::message::Replacement;
 
     let ev_id = event_id!("$1598361704261elfgc:localhost");
     let json_data = json!({

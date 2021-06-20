@@ -11,6 +11,8 @@ Breaking changes:
 * Remove `Custom` variant from `key::verification::accept::AcceptMethod` and
   `key::verification::start::StartMethod`.
 * Rename `relation` field in some events to `relates_to`
+* All events that support relations now have their own `Relation` types (the `room::relationships`
+  module has been removed)
 
 Improvements:
 

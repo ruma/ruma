@@ -5,12 +5,15 @@ use std::collections::BTreeMap;
 use js_int::UInt;
 use ruma_events_macros::EventContent;
 use ruma_identifiers::DeviceIdBox;
+#[cfg(feature = "unstable-pre-spec")]
+use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    room::relationships::{relation_serde, Relation},
-    MessageEvent,
-};
+#[cfg(feature = "unstable-pre-spec")]
+use crate::room::message::Replacement;
+use crate::{room::message::InReplyTo, MessageEvent};
+
+mod relation_serde;
 
 /// An event that has been encrypted.
 pub type EncryptedEvent = MessageEvent<EncryptedEventContent>;
@@ -59,6 +62,73 @@ pub enum EncryptedEventScheme {
     /// An event encrypted with *m.megolm.v1.aes-sha2*.
     #[serde(rename = "m.megolm.v1.aes-sha2")]
     MegolmV1AesSha2(MegolmV1AesSha2Content),
+}
+
+/// Relationship information about an encrypted event.
+///
+/// Outside of the encrypted payload to support server aggregation.
+#[derive(Clone, Debug)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub enum Relation {
+    /// An `m.in_reply_to` relation indicating that the event is a reply to another event.
+    Reply {
+        /// Information about another message being replied to.
+        in_reply_to: InReplyTo,
+    },
+
+    /// An event that replaces another event.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+    Replacement(Replacement),
+
+    /// A reference to another event.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+    Reference(Reference),
+
+    /// An annotation to an event.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+    Annotation(Annotation),
+}
+
+/// A reference to another event.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct Reference {
+    /// The event we are referencing.
+    pub event_id: EventId,
+}
+
+#[cfg(feature = "unstable-pre-spec")]
+impl Reference {
+    /// Creates a new `Reference` with the given event ID.
+    pub fn new(event_id: EventId) -> Self {
+        Self { event_id }
+    }
+}
+
+/// An annotation for an event.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct Annotation {
+    /// The event that is being annotated.
+    pub event_id: EventId,
+
+    /// The annotation.
+    pub key: String,
+}
+
+#[cfg(feature = "unstable-pre-spec")]
+impl Annotation {
+    /// Creates a new `Annotation` with the given event ID and key.
+    pub fn new(event_id: EventId, key: String) -> Self {
+        Self { event_id, key }
+    }
 }
 
 /// The payload for `EncryptedEvent` using the *m.olm.v1.curve25519-aes-sha2* algorithm.
@@ -154,8 +224,8 @@ mod tests {
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{EncryptedEventContent, EncryptedEventScheme, MegolmV1AesSha2Content};
-    use crate::room::relationships::{InReplyTo, Relation};
+    use super::{EncryptedEventContent, EncryptedEventScheme, MegolmV1AesSha2Content, Relation};
+    use crate::room::message::InReplyTo;
     use ruma_identifiers::event_id;
 
     #[test]

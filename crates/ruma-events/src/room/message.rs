@@ -5,22 +5,20 @@ use std::borrow::Cow;
 use indoc::formatdoc;
 use js_int::UInt;
 use ruma_events_macros::EventContent;
-use ruma_identifiers::MxcUri;
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_identifiers::{DeviceIdBox, UserId};
+use ruma_identifiers::{EventId, MxcUri};
 use ruma_serde::StringEnum;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
-use super::{
-    relationships::{relation_serde, InReplyTo, Relation},
-    EncryptedFile, ImageInfo, ThumbnailInfo,
-};
+use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
 #[cfg(feature = "unstable-pre-spec")]
 use crate::key::verification::VerificationMethod;
 
 mod content_serde;
 pub mod feedback;
+mod relation_serde;
 
 type JsonObject = serde_json::Map<String, JsonValue>;
 
@@ -259,6 +257,60 @@ impl MessageType {
 impl From<MessageType> for MessageEventContent {
     fn from(msgtype: MessageType) -> Self {
         Self::new(msgtype)
+    }
+}
+
+/// Message vent relationship.
+///
+/// Currently used for replies and editing (message replacement).
+#[derive(Clone, Debug)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub enum Relation {
+    /// An `m.in_reply_to` relation indicating that the event is a reply to another event.
+    Reply {
+        /// Information about another message being replied to.
+        in_reply_to: InReplyTo,
+    },
+
+    /// An event that replaces another event.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+    Replacement(Replacement),
+}
+
+/// Information about the event a "rich reply" is replying to.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct InReplyTo {
+    /// The event being replied to.
+    pub event_id: EventId,
+}
+
+impl InReplyTo {
+    /// Creates a new `InReplyTo` with the given event ID.
+    pub fn new(event_id: EventId) -> Self {
+        Self { event_id }
+    }
+}
+
+/// The event this relation belongs to replaces another event.
+#[derive(Clone, Debug)]
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct Replacement {
+    /// The ID of the event being replacing.
+    pub event_id: EventId,
+
+    /// New content.
+    pub new_content: Box<MessageEventContent>,
+}
+
+#[cfg(feature = "unstable-pre-spec")]
+impl Replacement {
+    /// Creates a new `Replacement` with the given event ID and new content.
+    pub fn new(event_id: EventId, new_content: Box<MessageEventContent>) -> Self {
+        Self { event_id, new_content }
     }
 }
 
@@ -1119,8 +1171,7 @@ mod tests {
     use ruma_identifiers::event_id;
     use serde_json::{from_value as from_json_value, json};
 
-    use super::{MessageEventContent, MessageType, Relation};
-    use crate::room::relationships::InReplyTo;
+    use super::{InReplyTo, MessageEventContent, MessageType, Relation};
 
     #[test]
     fn deserialize_reply() {
