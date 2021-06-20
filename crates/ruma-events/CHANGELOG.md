@@ -10,6 +10,7 @@ Breaking changes:
 * Remove `Custom` variant from event enums. If you were using this, please get in touch.
 * Remove `Custom` variant from `key::verification::accept::AcceptMethod` and
   `key::verification::start::StartMethod`.
+* Rename `relation` field in some events to `relates_to`
 
 Improvements:
 
