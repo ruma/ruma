@@ -13,6 +13,8 @@ Breaking changes:
 * Rename `relation` field in some events to `relates_to`
 * All events that support relations now have their own `Relation` types (the `room::relationships`
   module has been removed)
+  * The `room::encryption` relation type can represent any kind of relation and has `From`
+    implementations so any other relation can be converted to it
 
 Improvements:
 
