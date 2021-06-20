@@ -1,7 +1,8 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 
-use super::{Metadata, Request, RequestField, RequestFieldKind};
+use super::{Request, RequestField, RequestFieldKind};
+use crate::api::metadata::{AuthScheme, Metadata};
 
 impl Request {
     pub fn expand_incoming(
@@ -193,7 +194,7 @@ impl Request {
         };
 
         let non_auth_impls = metadata.authentication.iter().filter_map(|auth| {
-            (auth.value == "None").then(|| {
+            matches!(auth.value, AuthScheme::None(_)).then(|| {
                 let attrs = &auth.attrs;
                 quote! {
                     #( #attrs )*

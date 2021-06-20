@@ -1,7 +1,9 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 
-use super::{Metadata, Request, RequestField, RequestFieldKind};
+use crate::api::metadata::{AuthScheme, Metadata};
+
+use super::{Request, RequestField, RequestFieldKind};
 
 impl Request {
     pub fn expand_outgoing(
@@ -133,8 +135,8 @@ impl Request {
         for auth in &metadata.authentication {
             let attrs = &auth.attrs;
 
-            let hdr_kv = if auth.value == "AccessToken" {
-                quote! {
+            let hdr_kv = match auth.value {
+                AuthScheme::AccessToken(_) => quote! {
                     #( #attrs )*
                     req_headers.insert(
                         #http::header::AUTHORIZATION,
@@ -145,9 +147,8 @@ impl Request {
                                 .ok_or(#ruma_api::error::IntoHttpError::NeedsAuthentication)?,
                         ))?,
                     );
-                }
-            } else {
-                quote! {
+                },
+                AuthScheme::None(_) => quote! {
                     if let Some(access_token) = access_token.get_not_required_for_endpoint() {
                         #( #attrs )*
                         req_headers.insert(
@@ -157,7 +158,8 @@ impl Request {
                             )?
                         );
                     }
-                }
+                },
+                AuthScheme::QueryOnlyAccessToken(_) | AuthScheme::ServerSignatures(_) => quote! {},
             };
 
             header_kvs.extend(hdr_kv);
@@ -184,7 +186,7 @@ impl Request {
         };
 
         let non_auth_impls = metadata.authentication.iter().filter_map(|auth| {
-            (auth.value == "None").then(|| {
+            matches!(auth.value, AuthScheme::None(_)).then(|| {
                 let attrs = &auth.attrs;
                 quote! {
                     #( #attrs )*
