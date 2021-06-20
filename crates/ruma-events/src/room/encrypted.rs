@@ -15,20 +15,6 @@ use crate::{
 /// An event that has been encrypted.
 pub type EncryptedEvent = MessageEvent<EncryptedEventContent>;
 
-/// The encryption scheme for `EncryptedEventContent`
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(tag = "algorithm")]
-pub enum EncryptedEventScheme {
-    /// An event encrypted with *m.olm.v1.curve25519-aes-sha2*.
-    #[serde(rename = "m.olm.v1.curve25519-aes-sha2")]
-    OlmV1Curve25519AesSha2(OlmV1Curve25519AesSha2Content),
-
-    /// An event encrypted with *m.megolm.v1.aes-sha2*.
-    #[serde(rename = "m.megolm.v1.aes-sha2")]
-    MegolmV1AesSha2(MegolmV1AesSha2Content),
-}
-
 /// The content payload for `EncryptedEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -45,6 +31,9 @@ pub struct EncryptedEventContent {
     pub relates_to: Option<Relation>,
 }
 
+/// The to-device version of the payload for the `EncryptedEvent`.
+pub type EncryptedToDeviceEventContent = EncryptedEventContent;
+
 impl EncryptedEventContent {
     /// Creates a new `EncryptedEventContent` with the given scheme and relation.
     pub fn new(scheme: EncryptedEventScheme, relates_to: Option<Relation>) -> Self {
@@ -58,8 +47,19 @@ impl From<EncryptedEventScheme> for EncryptedEventContent {
     }
 }
 
-/// The to-device version of the payload for the `EncryptedEvent`.
-pub type EncryptedToDeviceEventContent = EncryptedEventContent;
+/// The encryption scheme for `EncryptedEventContent`
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(tag = "algorithm")]
+pub enum EncryptedEventScheme {
+    /// An event encrypted with *m.olm.v1.curve25519-aes-sha2*.
+    #[serde(rename = "m.olm.v1.curve25519-aes-sha2")]
+    OlmV1Curve25519AesSha2(OlmV1Curve25519AesSha2Content),
+
+    /// An event encrypted with *m.megolm.v1.aes-sha2*.
+    #[serde(rename = "m.megolm.v1.aes-sha2")]
+    MegolmV1AesSha2(MegolmV1AesSha2Content),
+}
 
 /// The payload for `EncryptedEvent` using the *m.olm.v1.curve25519-aes-sha2* algorithm.
 #[derive(Clone, Debug, Serialize, Deserialize)]
