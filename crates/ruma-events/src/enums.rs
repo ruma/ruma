@@ -320,3 +320,44 @@ impl From<AnyRedactedSyncRoomEvent> for AnySyncRoomEvent {
         }
     }
 }
+
+impl AnyMessageEventContent {
+    /// Get a copy of the event's `m.relates_to` field, if any.
+    ///
+    /// This is a helper function intended for encryption. There should not be a reason to access
+    /// `m.relates_to` without first destructuring an `AnyMessageEventContent` otherwise.
+    pub fn relation(&self) -> Option<crate::room::encrypted::Relation> {
+        #[cfg(feature = "unstable-pre-spec")]
+        use crate::key::verification::{
+            accept::AcceptEventContent, cancel::CancelEventContent, done::DoneEventContent,
+            key::KeyEventContent, mac::MacEventContent, ready::ReadyEventContent,
+            start::StartEventContent,
+        };
+
+        match self {
+            #[cfg(feature = "unstable-pre-spec")]
+            #[rustfmt::skip]
+            AnyMessageEventContent::KeyVerificationReady(ReadyEventContent { relates_to, .. })
+            | AnyMessageEventContent::KeyVerificationStart(StartEventContent { relates_to, .. })
+            | AnyMessageEventContent::KeyVerificationCancel(CancelEventContent { relates_to, .. })
+            | AnyMessageEventContent::KeyVerificationAccept(AcceptEventContent { relates_to, .. })
+            | AnyMessageEventContent::KeyVerificationKey(KeyEventContent { relates_to, .. })
+            | AnyMessageEventContent::KeyVerificationMac(MacEventContent { relates_to, .. })
+            | AnyMessageEventContent::KeyVerificationDone(DoneEventContent { relates_to, .. }) => {
+                Some(relates_to.clone().into())
+            },
+            #[cfg(feature = "unstable-pre-spec")]
+            AnyMessageEventContent::Reaction(ev) => Some(ev.relates_to.clone().into()),
+            AnyMessageEventContent::RoomEncrypted(ev) => ev.relates_to.clone(),
+            AnyMessageEventContent::RoomMessage(ev) => ev.relates_to.clone().map(Into::into),
+            AnyMessageEventContent::CallAnswer(_)
+            | AnyMessageEventContent::CallInvite(_)
+            | AnyMessageEventContent::CallHangup(_)
+            | AnyMessageEventContent::CallCandidates(_)
+            | AnyMessageEventContent::RoomMessageFeedback(_)
+            | AnyMessageEventContent::RoomRedaction(_)
+            | AnyMessageEventContent::Sticker(_)
+            | AnyMessageEventContent::_Custom(_) => None,
+        }
+    }
+}
