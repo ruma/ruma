@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.2.0
+
 Breaking Changes:
 
 * Change types of keys::claim_keys::v1 response to match the client-server endpoint
