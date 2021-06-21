@@ -19,11 +19,11 @@ impl ServerName {
     }
 
     fn from_owned(s: Box<str>) -> Box<Self> {
-        unsafe { mem::transmute(s) }
+        unsafe { Box::from_raw(Box::into_raw(s) as _) }
     }
 
     fn into_owned(self: Box<Self>) -> Box<str> {
-        unsafe { mem::transmute(self) }
+        unsafe { Box::from_raw(Box::into_raw(self) as _) }
     }
 
     /// Creates a string slice from this `ServerName`.
