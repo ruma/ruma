@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.11.0
+
 Breaking changes:
 
 * Use `Raw<AnyInitialStateEvent>` over just `AnyInitialStateEvent` in the `initial_state` field
