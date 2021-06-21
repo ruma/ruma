@@ -176,7 +176,6 @@ macro_rules! opaque_identifier {
         }
 
         impl $id {
-            #[allow(clippy::transmute_ptr_to_ptr)]
             fn from_borrowed(s: &str) -> &Self {
                 unsafe { std::mem::transmute(s) }
             }

@@ -13,7 +13,6 @@ pub struct ServerName(str);
 pub type ServerNameBox = Box<ServerName>;
 
 impl ServerName {
-    #[allow(clippy::transmute_ptr_to_ptr)]
     fn from_borrowed(s: &str) -> &Self {
         unsafe { mem::transmute(s) }
     }
