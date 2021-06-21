@@ -1,5 +1,12 @@
 # [unreleased]
 
+# 0.3.0
+
+Breaking changes:
+
+* Upgrade ruma-client-api to 0.11.0
+* Upgrade ruma-events to 0.23.0
+
 # 0.2.0
 
 Breaking changes:
