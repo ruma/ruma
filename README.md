@@ -52,6 +52,10 @@ Ruma currently requires Rust 1.50. In general, we will never require beta or
 nightly for crates.io releases of our crates, and we will try to avoid releasing
 crates that depend on features that were only just stabilized.
 
+`ruma-signatures` is an exception: It uses cryptographic libraries that often
+use relatively new features and that we don't want to use outdated versions of.
+It is guarateed to work with whatever is the latest stable version though.
+
 ## License
 
 [MIT](http://opensource.org/licenses/MIT)
