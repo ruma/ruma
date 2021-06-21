@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.8.0
+
 Breaking changes:
 
 * Replace `ring` dependency with `ed25519-dalek` and `pkcs8`
