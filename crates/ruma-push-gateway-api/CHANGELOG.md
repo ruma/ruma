@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.2.0
+
+Breaking changes:
+
+* Upgrade ruma-events to 0.23.0
+
 # 0.1.0
 
 Breaking changes:
