@@ -8,7 +8,7 @@ homepage = "https://www.ruma.io/"
 repository = "https://github.com/ruma/ruma"
 readme = "README.md"
 license = "MIT"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2018"
 
 [package.metadata.docs.rs]
