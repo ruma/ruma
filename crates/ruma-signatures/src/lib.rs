@@ -105,7 +105,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     use base64::{decode_config, encode_config, STANDARD_NO_PAD};
-    use pkcs8::{der::Decodable, OneAsymmetricKey};
+    use pkcs8::{der::Decodable, PrivateKeyInfo};
     use ruma_identifiers::RoomVersionId;
     use serde_json::{from_str as from_json_str, to_string as to_json_string};
 
@@ -121,7 +121,7 @@ mod tests {
     /// Convenience method for getting the public key as a string
     fn public_key_string() -> String {
         encode_config(
-            &OneAsymmetricKey::from_der(&decode_config(PKCS8, STANDARD_NO_PAD).unwrap())
+            &PrivateKeyInfo::from_der(&decode_config(PKCS8, STANDARD_NO_PAD).unwrap())
                 .unwrap()
                 .public_key
                 .unwrap(),

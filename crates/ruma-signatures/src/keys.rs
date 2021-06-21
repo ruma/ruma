@@ -9,7 +9,7 @@ use ed25519_dalek::{ExpandedSecretKey, PublicKey, SecretKey};
 
 use pkcs8::{
     der::{Decodable, Encodable},
-    AlgorithmIdentifier, ObjectIdentifier, OneAsymmetricKey, PrivateKeyInfo,
+    AlgorithmIdentifier, ObjectIdentifier, PrivateKeyInfo,
 };
 
 use crate::{signatures::Signature, Algorithm, Error, ParseError};
@@ -90,13 +90,13 @@ impl Ed25519KeyPair {
     /// generated from the private key. This is a fallback and extra validation against
     /// corruption or
     pub fn from_der(document: &[u8], version: String) -> Result<Self, Error> {
-        let oak = OneAsymmetricKey::from_der(document).map_err(Error::DerParse)?;
+        let oak = PrivateKeyInfo::from_der(document).map_err(Error::DerParse)?;
 
         Self::from_pkcs8_oak(oak, version)
     }
 
-    /// Constructs a key pair from [`pkcs8::OneAsymmetricKey`].
-    pub fn from_pkcs8_oak(oak: OneAsymmetricKey<'_>, version: String) -> Result<Self, Error> {
+    /// Constructs a key pair from [`pkcs8::PrivateKeyInfo`].
+    pub fn from_pkcs8_oak(oak: PrivateKeyInfo<'_>, version: String) -> Result<Self, Error> {
         Self::new(oak.algorithm.oid, oak.private_key, oak.public_key, version)
     }
 
@@ -136,14 +136,14 @@ impl Ed25519KeyPair {
         let mut private: Vec<u8> = vec![0x04, 0x20];
         private.extend_from_slice(secret.as_bytes());
 
-        let oak = OneAsymmetricKey {
+        let pkinfo = PrivateKeyInfo {
             algorithm: AlgorithmIdentifier { oid: ED25519_OID, parameters: None },
             private_key: private.as_ref(),
             attributes: None,
             public_key: Some(public.as_bytes()),
         };
 
-        oak.to_vec().map_err(Error::DerParse)
+        pkinfo.to_vec().map_err(Error::DerParse)
     }
 
     /// Returns the version string for this keypair.
