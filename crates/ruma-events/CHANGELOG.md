@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.23.0
+
 Breaking changes:
 
 * Rename `key::verification::AcceptMethod::{MSasV1 => SasV1}`
