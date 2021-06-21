@@ -53,7 +53,7 @@ impl ToOwned for ServerName {
     type Owned = Box<ServerName>;
 
     fn to_owned(&self) -> Self::Owned {
-        Self::from_owned(self.0.to_owned().into_boxed_str())
+        Self::from_owned(self.0.into())
     }
 }
 
