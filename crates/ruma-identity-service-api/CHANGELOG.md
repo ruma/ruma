@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.2.0
+
+Breaking changes:
+
+* Make `tos::get_terms_of_service::v2::Policies` non-exhaustive
+
 Improvements:
 
 * Add more endpoints:
