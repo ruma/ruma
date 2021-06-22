@@ -7,8 +7,7 @@ opaque_identifier_validated! {
     ///
     /// Client secrets in Matrix are opaque character sequences of `[0-9a-zA-Z.=_-]`. Their length must
     /// must not exceed 255 characters.
-    pub type ClientSecret;
-    validate;
+    pub type ClientSecret [ validate ];
 }
 
 #[cfg(test)]

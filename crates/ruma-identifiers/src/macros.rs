@@ -292,8 +292,7 @@ macro_rules! opaque_identifier {
 macro_rules! opaque_identifier_validated {
     (
         $( #[doc = $docs:literal] )*
-        $vis:vis type $id:ident;
-        $val_id:ident;
+        $vis:vis type $id:ident [ $validate_id:ident ];
     ) => {
         $( #[doc = $docs] )*
         #[repr(transparent)]
@@ -309,7 +308,6 @@ macro_rules! opaque_identifier_validated {
         }
 
         impl $id {
-
             #[allow(clippy::transmute_ptr_to_ptr)]
             fn from_borrowed(s: &str) -> &Self {
                 unsafe { std::mem::transmute(s) }
@@ -317,10 +315,6 @@ macro_rules! opaque_identifier_validated {
 
             pub(super) fn from_owned(s: Box<str>) -> Box<Self> {
                 unsafe { Box::from_raw(Box::into_raw(s) as _) }
-            }
-
-            fn into_owned(self: Box<Self>) -> Box<str> {
-                unsafe { Box::from_raw(Box::into_raw(self) as _) }
             }
 
             doc_concat! {
@@ -354,7 +348,7 @@ macro_rules! opaque_identifier_validated {
             type Owned = Box<$id>;
 
             fn to_owned(&self) -> Self::Owned {
-                Self::from_owned(self.0.to_owned().into_boxed_str())
+                Self::from_owned(self.0.into())
             }
         }
 
@@ -394,7 +388,7 @@ macro_rules! opaque_identifier_validated {
 
         impl From<Box<$id>> for String {
             fn from(id: Box<$id>) -> Self {
-                id.into_owned().into()
+                id.into()
             }
         }
 
@@ -412,7 +406,7 @@ macro_rules! opaque_identifier_validated {
         where
             S: AsRef<str> + Into<Box<str>>,
         {
-            $val_id(s.as_ref())?;
+            $validate_id(s.as_ref())?;
             Ok($id::from_owned(s.into()))
         }
 
@@ -420,7 +414,7 @@ macro_rules! opaque_identifier_validated {
             type Error = crate::Error;
 
             fn try_from(s: &'a str) -> Result<Self, Self::Error> {
-                $val_id(s)?;
+                $validate_id(s)?;
                 Ok($id::from_borrowed(s))
             }
         }
@@ -458,5 +452,4 @@ macro_rules! opaque_identifier_validated {
         partial_eq_string!($id);
         partial_eq_string!(Box<$id>);
     }
-
 }
