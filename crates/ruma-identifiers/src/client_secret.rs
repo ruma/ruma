@@ -6,7 +6,7 @@ use ruma_identifiers_validation::client_secret::validate;
 
 /// A client secret.
 ///
-/// Session IDs in Matrix are opaque character sequences of `[0-9a-zA-Z.=_-]. Their length must
+/// Session IDs in Matrix are opaque character sequences of `[0-9a-zA-Z.=_-]`. Their length must
 /// must not exceed 255 characters.
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -23,11 +23,11 @@ impl ClientSecret {
     }
 
     fn from_owned(s: Box<str>) -> Box<Self> {
-        unsafe { mem::transmute(s) }
+        unsafe { Box::from_raw(Box::into_raw(s) as _) }
     }
 
     fn into_owned(self: Box<Self>) -> Box<str> {
-        unsafe { mem::transmute(self) }
+        unsafe { Box::from_raw(Box::into_raw(self) as _) }
     }
 
     /// Creates a string slice from this `ClientSecret`.
@@ -57,7 +57,7 @@ impl ToOwned for ClientSecret {
     type Owned = Box<ClientSecret>;
 
     fn to_owned(&self) -> Self::Owned {
-        Self::from_owned(self.0.to_owned().into_boxed_str())
+        Self::from_owned(self.0.into())
     }
 }
 

@@ -1,7 +1,7 @@
 //! [POST /_matrix/client/r0/account/3pid/bind](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-account-3pid-bind)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::{ClientSecretBox, SessionIdBox};
+use ruma_identifiers::{ClientSecret, SessionId};
 
 use super::{IdentityServerInfo, IncomingIdentityServerInfo};
 
@@ -17,7 +17,7 @@ ruma_api! {
 
     request: {
         /// Client-generated secret string used to protect this session.
-        pub client_secret: &'a ClientSecretBox,
+        pub client_secret: &'a ClientSecret,
 
         /// The ID server to send the onward request to as a hostname with an
         /// appended colon and port number if the port is not the default.
@@ -25,7 +25,7 @@ ruma_api! {
         pub identity_server_info: IdentityServerInfo<'a>,
 
         /// The session identifier given by the identity server.
-        pub sid: &'a SessionIdBox,
+        pub sid: &'a SessionId,
     }
 
     #[derive(Default)]
@@ -38,9 +38,9 @@ impl<'a> Request<'a> {
     /// Creates a new `Request` with the given client secret, identity server information and
     /// session identifier.
     pub fn new(
-        client_secret: &'a ClientSecretBox,
+        client_secret: &'a ClientSecret,
         identity_server_info: IdentityServerInfo<'a>,
-        sid: &'a SessionIdBox,
+        sid: &'a SessionId,
     ) -> Self {
         Self { client_secret, identity_server_info, sid }
     }
