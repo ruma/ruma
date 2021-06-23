@@ -1,6 +1,7 @@
 #![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
 
+pub mod client_secret;
 pub mod device_key_id;
 pub mod error;
 pub mod event_id;
@@ -11,6 +12,7 @@ pub mod room_id;
 pub mod room_id_or_alias_id;
 pub mod room_version_id;
 pub mod server_name;
+pub mod session_id;
 pub mod user_id;
 
 use std::num::NonZeroU8;
