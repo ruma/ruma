@@ -2,6 +2,7 @@
 
 use js_int::UInt;
 use ruma_api::ruma_api;
+use ruma_identifiers::{ClientSecret, SessionIdBox};
 
 ruma_api! {
     metadata: {
@@ -15,7 +16,7 @@ ruma_api! {
 
     request: {
         /// Client-generated secret string used to protect this session.
-        pub client_secret: &'a str,
+        pub client_secret: &'a ClientSecret,
 
         /// Two-letter ISO 3166 country code for the phone number.
         pub country: &'a str,
@@ -33,7 +34,7 @@ ruma_api! {
 
     response: {
         /// The session identifier given by the identity server.
-        pub sid: String,
+        pub sid: SessionIdBox,
 
         /// URL to submit validation token to. If omitted, verification happens without client.
         ///
@@ -54,7 +55,7 @@ impl<'a> Request<'a> {
     /// Creates a new `Request` with the given client secret, country code, phone number and
     /// send-attempt counter.
     pub fn new(
-        client_secret: &'a str,
+        client_secret: &'a ClientSecret,
         country: &'a str,
         phone_number: &'a str,
         send_attempt: UInt,
@@ -65,7 +66,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given session identifier.
-    pub fn new(sid: String) -> Self {
+    pub fn new(sid: SessionIdBox) -> Self {
         Self { sid, submit_url: None }
     }
 }

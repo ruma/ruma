@@ -5,6 +5,9 @@ use std::fmt;
 /// An error encountered when trying to parse an invalid ID string.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Error {
+    /// The client secret is empty.
+    EmptyClientSecret,
+
     /// The room version ID is empty.
     EmptyRoomVersionId,
 
@@ -39,6 +42,7 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let message = match self {
+            Error::EmptyClientSecret => "client secret is empty",
             Error::EmptyRoomVersionId => "room version ID is empty",
             Error::InvalidCharacters => "localpart contains invalid characters",
             Error::InvalidKeyAlgorithm => "invalid key algorithm specified",
