@@ -114,6 +114,7 @@ impl Response {
 
 /// The server's long-term public key and generated ephemeral public key.
 #[derive(Debug, Clone)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct PublicKeys {
     /// The server's long-term public key.
     pub server_key: String,
