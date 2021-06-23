@@ -317,6 +317,10 @@ macro_rules! opaque_identifier_validated {
                 unsafe { Box::from_raw(Box::into_raw(s) as _) }
             }
 
+            fn into_owned(self: Box<Self>) -> Box<str> {
+                unsafe { Box::from_raw(Box::into_raw(self) as _) }
+            }
+
             doc_concat! {
                 #[doc = concat!("Creates a string slice from this `", stringify!($id), "`.")]
                 pub fn as_str(&self) -> &str {
@@ -388,7 +392,7 @@ macro_rules! opaque_identifier_validated {
 
         impl From<Box<$id>> for String {
             fn from(id: Box<$id>) -> Self {
-                id.into()
+                id.into_owned().into()
             }
         }
 
