@@ -3,6 +3,7 @@
 use ruma_api::ruma_api;
 use ruma_common::thirdparty::Medium;
 use ruma_identifiers::{MxcUri, RoomAliasId, RoomId, UserId};
+use serde::{ser::SerializeSeq, Deserialize, Serialize};
 
 ruma_api! {
     metadata: {
@@ -69,7 +70,7 @@ ruma_api! {
         pub token: String,
 
         /// A list of [server's long-term public key, generated ephemeral public key].
-        pub public_keys: Vec<String>,
+        pub public_keys: PublicKeys,
 
         /// The generated (redacted) display_name. An example is `f...@b...`.
         pub display_name: String,
@@ -106,7 +107,42 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given token, public keys and display name.
-    pub fn new(token: String, public_keys: Vec<String>, display_name: String) -> Self {
+    pub fn new(token: String, public_keys: PublicKeys, display_name: String) -> Self {
         Self { token, public_keys, display_name }
+    }
+}
+
+/// The server's long-term public key and generated ephemeral public key.
+#[derive(Debug, Clone)]
+pub struct PublicKeys {
+    /// The server's long-term public key.
+    pub server_key: String,
+
+    /// The generated ephemeral public key.
+    pub ephemeral_key: String,
+}
+
+impl<'de> Deserialize<'de> for PublicKeys {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let [server_key, ephemeral_key] = <[String; 2]>::deserialize(deserializer)?;
+
+        Ok(Self { server_key, ephemeral_key })
+    }
+}
+
+impl Serialize for PublicKeys {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(2))?;
+
+        seq.serialize_element(&self.server_key)?;
+        seq.serialize_element(&self.ephemeral_key)?;
+
+        seq.end()
     }
 }
