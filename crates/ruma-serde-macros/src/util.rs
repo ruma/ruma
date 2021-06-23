@@ -15,6 +15,12 @@ pub fn import_ruma_serde() -> TokenStream {
     } else if let Ok(FoundCrate::Name(name)) = crate_name("ruma") {
         let import = format_ident!("{}", name);
         quote! { ::#import::serde }
+    } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk") {
+        let import = format_ident!("{}", name);
+        quote! { ::#import::ruma::serde }
+    } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk-appservice") {
+        let import = format_ident!("{}", name);
+        quote! { ::#import::ruma::serde }
     } else {
         quote! { ::ruma_serde }
     }

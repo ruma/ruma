@@ -31,6 +31,12 @@ pub(crate) fn import_ruma_api() -> TokenStream {
     } else if let Ok(FoundCrate::Name(name)) = crate_name("ruma") {
         let import = format_ident!("{}", name);
         quote! { ::#import::api }
+    } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk") {
+        let import = format_ident!("{}", name);
+        quote! { ::#import::ruma::api }
+    } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk-appservice") {
+        let import = format_ident!("{}", name);
+        quote! { ::#import::ruma::api }
     } else {
         quote! { ::ruma_api }
     }

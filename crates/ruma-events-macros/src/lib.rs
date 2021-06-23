@@ -97,6 +97,12 @@ pub(crate) fn import_ruma_events() -> pm2::TokenStream {
     } else if let Ok(FoundCrate::Name(name)) = crate_name("ruma") {
         let import = format_ident!("{}", name);
         quote! { ::#import::events }
+    } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk") {
+        let import = format_ident!("{}", name);
+        quote! { ::#import::ruma::events }
+    } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk-appservice") {
+        let import = format_ident!("{}", name);
+        quote! { ::#import::ruma::events }
     } else {
         quote! { ::ruma_events }
     }
