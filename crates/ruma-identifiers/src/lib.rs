@@ -20,6 +20,7 @@ use serde::de::{self, Deserializer, Unexpected};
 
 #[doc(inline)]
 pub use crate::{
+    client_secret::{ClientSecret, ClientSecretBox},
     crypto_algorithms::{DeviceKeyAlgorithm, EventEncryptionAlgorithm, SigningKeyAlgorithm},
     device_key_id::DeviceKeyId,
     event_id::EventId,
@@ -31,6 +32,7 @@ pub use crate::{
     room_id_or_room_alias_id::RoomIdOrAliasId,
     room_version_id::RoomVersionId,
     server_name::{ServerName, ServerNameBox},
+    session_id::{SessionId, SessionIdBox},
     signatures::{DeviceSignatures, EntitySignatures, ServerSignatures, Signatures},
     user_id::UserId,
 };
@@ -42,6 +44,7 @@ mod macros;
 
 pub mod user_id;
 
+mod client_secret;
 mod crypto_algorithms;
 mod device_key_id;
 mod event_id;
@@ -53,6 +56,7 @@ mod room_id;
 mod room_id_or_room_alias_id;
 mod room_version_id;
 mod server_name;
+mod session_id;
 mod signatures;
 
 /// Check whether a given string is a valid server name according to [the specification][].

@@ -2,6 +2,7 @@
 
 use js_int::UInt;
 use ruma_api::ruma_api;
+use ruma_identifiers::{ClientSecret, SessionIdBox};
 
 use super::{IdentityServerInfo, IncomingIdentityServerInfo};
 
@@ -17,7 +18,7 @@ ruma_api! {
 
     request: {
         /// Client-generated secret string used to protect this session.
-        pub client_secret: &'a str,
+        pub client_secret: &'a ClientSecret,
 
         /// The email address.
         pub email: &'a str,
@@ -37,7 +38,7 @@ ruma_api! {
 
     response: {
         /// The session identifier given by the identity server.
-        pub sid: String,
+        pub sid: SessionIdBox,
 
         /// URL to submit validation token to. If omitted, verification happens without client.
         ///
@@ -57,14 +58,14 @@ ruma_api! {
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given client secret, email address and send-attempt
     /// counter.
-    pub fn new(client_secret: &'a str, email: &'a str, send_attempt: UInt) -> Self {
+    pub fn new(client_secret: &'a ClientSecret, email: &'a str, send_attempt: UInt) -> Self {
         Self { client_secret, email, send_attempt, next_link: None, identity_server_info: None }
     }
 }
 
 impl Response {
     /// Creates a new `Response` with the given session identifier.
-    pub fn new(sid: String) -> Self {
+    pub fn new(sid: SessionIdBox) -> Self {
         Self { sid, submit_url: None }
     }
 }
