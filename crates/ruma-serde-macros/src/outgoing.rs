@@ -258,8 +258,10 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                     if last_seg.ident == "str" {
                         // &str -> String
                         Some(parse_quote! { ::std::string::String })
-                    } else if last_seg.ident == "DeviceId"
+                    } else if last_seg.ident == "ClientSecret"
+                        || last_seg.ident == "DeviceId"
                         || last_seg.ident == "ServerName"
+                        || last_seg.ident == "SessionId"
                         || last_seg.ident == "RawJsonValue"
                     {
                         // The identifiers that need to be boxed `Box<T>` since they are DST's.
