@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.4.1
+
 Improvements:
 
 * Remove unneeded cargo feature from a dependency
