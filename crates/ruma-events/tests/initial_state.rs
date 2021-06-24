@@ -1,5 +1,7 @@
+use std::convert::TryFrom;
+
 use matches::assert_matches;
-use ruma_events::{AnyInitialStateEvent, InitialStateEvent};
+use ruma_events::{room::name::RoomName, AnyInitialStateEvent, InitialStateEvent};
 use serde_json::json;
 
 #[test]
@@ -11,6 +13,6 @@ fn deserialize_initial_state_event() {
         }))
         .unwrap(),
         AnyInitialStateEvent::RoomName(InitialStateEvent { content, state_key})
-        if content.name() == Some("foo") && state_key.is_empty()
+        if content.name() == &RoomName::try_from("foo".to_string()).ok() && state_key.is_empty()
     );
 }

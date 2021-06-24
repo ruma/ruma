@@ -1,6 +1,8 @@
+use std::convert::TryFrom;
+
 use js_int::uint;
 use ruma_events::{
-    room::{join_rules::JoinRule, topic::TopicEventContent},
+    room::{join_rules::JoinRule, name::RoomName, topic::TopicEventContent},
     AnyStateEventContent, AnyStrippedStateEvent, StrippedStateEvent,
 };
 use ruma_identifiers::{mxc_uri, user_id};
@@ -94,7 +96,7 @@ fn deserialize_stripped_state_events() {
     let event = from_json_value::<AnyStrippedStateEvent>(name_event).unwrap();
     match event {
         AnyStrippedStateEvent::RoomName(event) => {
-            assert_eq!(event.content.name(), Some("Ruma"));
+            assert_eq!(event.content.name(), &RoomName::try_from("Ruma".to_string()).ok());
             assert_eq!(event.state_key, "");
             assert_eq!(event.sender.to_string(), "@example:localhost");
         }
