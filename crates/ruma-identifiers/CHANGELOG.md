@@ -1,8 +1,14 @@
 # [unreleased]
 
+# 0.19.4
+
+Improvements:
+
+* Fix `ruma-serde-macros` dependency (don't require an exact version)
+
 # 0.19.3
 
-Improvement:
+Improvements:
 
 * Add `serde::{Deserialize, Serialize}` implementations for `Signatures` when the `serde` feature
   is active
