@@ -124,7 +124,6 @@ impl Parse for Metadata {
     }
 }
 
-#[derive(PartialEq)]
 pub enum AuthScheme {
     None(kw::None),
     AccessToken(kw::AccessToken),
