@@ -55,13 +55,15 @@ impl Package {
 
             let mut document = read_file(&package.manifest_path)?.parse::<Document>()?;
 
-            for dependency in package.dependencies.iter().filter(|d| d.name == self.name) {
-                let version = if self.version.is_prerelease() || self.name.ends_with("-macros") {
-                    format!("={}", self.version)
-                } else {
-                    self.version.to_string()
-                };
+            let version = if self.version.is_prerelease()
+                || self.name.strip_suffix("-macros") == Some(&package.name)
+            {
+                format!("={}", self.version)
+            } else {
+                self.version.to_string()
+            };
 
+            for dependency in package.dependencies.iter().filter(|d| d.name == self.name) {
                 let kind = match dependency.kind {
                     Some(DependencyKind::Dev) => "dev-dependencies",
                     Some(DependencyKind::Build) => "build-dependencies",
