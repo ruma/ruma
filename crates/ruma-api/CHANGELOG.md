@@ -1,5 +1,12 @@
 # [unreleased]
 
+# 0.17.1
+
+Improvements:
+
+* Allow `ruma_api!` to be used by crates that depend on matrix-sdk, but not (directly) on ruma or
+  ruma-api
+
 # 0.17.0
 
 Breaking changes:
