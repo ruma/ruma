@@ -1,5 +1,12 @@
 # [unreleased]
 
+# 0.23.1
+
+Improvements:
+
+* Allow the macros exported by ruma-events to be used by crates that depend on matrix-sdk, but not
+  (directly) on ruma or ruma-events
+
 # 0.23.0
 
 Breaking changes:
