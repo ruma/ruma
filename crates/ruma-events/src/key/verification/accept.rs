@@ -124,7 +124,7 @@ pub struct SasV1Content {
 }
 
 /// Mandatory initial set of fields for creating an accept `SasV1Content`.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Debug)]
 #[allow(clippy::exhaustive_structs)]
 pub struct SasV1ContentInit {
     /// The key agreement protocol the device is choosing to use, out of the
