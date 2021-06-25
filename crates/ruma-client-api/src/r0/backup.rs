@@ -77,7 +77,7 @@ pub struct KeyBackupData {
 ///
 /// This struct will not be updated even if additional fields are added to `SessionData` in a
 /// new (non-breaking) release of the Matrix specification.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 #[allow(clippy::exhaustive_structs)]
 pub struct KeyBackupDataInit {
     /// The index of the first message in the session that the key can decrypt.
@@ -122,7 +122,7 @@ pub struct SessionData {
 ///
 /// This struct will not be updated even if additional fields are added to `SessionData` in a
 /// new (non-breaking) release of the Matrix specification.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 #[allow(clippy::exhaustive_structs)]
 pub struct SessionDataInit {
     /// Unpadded base64-encoded public half of the ephemeral key.
