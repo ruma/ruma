@@ -82,6 +82,7 @@ impl UnsignedEventContent {
 }
 
 /// Initial set of fields of `Request`.
+#[derive(Debug)]
 #[allow(clippy::exhaustive_structs)]
 pub struct RequestInit<'a> {
     /// The room ID that the user is being invited to.
