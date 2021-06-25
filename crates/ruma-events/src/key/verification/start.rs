@@ -1,6 +1,6 @@
 //! Types for the *m.key.verification.start* event.
 
-use std::{collections::BTreeMap, convert::TryFrom};
+use std::collections::BTreeMap;
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::DeviceIdBox;
@@ -12,7 +12,6 @@ use super::Relation;
 use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
 };
-use crate::InvalidInput;
 #[cfg(feature = "unstable-pre-spec")]
 use crate::MessageEvent;
 
@@ -132,6 +131,9 @@ impl ReciprocateV1Content {
 }
 
 /// The payload of an *m.key.verification.start* event using the *m.sas.v1* method.
+///
+/// To create an instance of this type, first create a `SasV1ContentInit` and convert it via
+/// `SasV1Content::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename = "m.sas.v1", tag = "method")]
@@ -158,91 +160,42 @@ pub struct SasV1Content {
 }
 
 /// Mandatory initial set of fields for creating an `SasV1Content`.
+///
+/// This struct will not be updated even if additional fields are added to `SasV1Content` in a new
+/// (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
 #[allow(clippy::exhaustive_structs)]
 pub struct SasV1ContentInit {
     /// The key agreement protocols the sending device understands.
     ///
-    /// Must include at least `curve25519`.
+    /// Should include at least `curve25519`.
     pub key_agreement_protocols: Vec<KeyAgreementProtocol>,
 
     /// The hash methods the sending device understands.
     ///
-    /// Must include at least `sha256`.
+    /// Should include at least `sha256`.
     pub hashes: Vec<HashAlgorithm>,
 
     /// The message authentication codes that the sending device understands.
     ///
-    /// Must include at least `hkdf-hmac-sha256`.
+    /// Should include at least `hkdf-hmac-sha256`.
     pub message_authentication_codes: Vec<MessageAuthenticationCode>,
 
     /// The SAS methods the sending device (and the sending device's user) understands.
     ///
-    /// Must include at least `decimal`. Optionally can include `emoji`.
+    /// Should include at least `decimal`.
     pub short_authentication_string: Vec<ShortAuthenticationString>,
 }
 
-impl SasV1Content {
-    /// Create a new `SasV1Content` with the given values.
-    ///
-    /// # Errors
-    ///
-    /// `InvalidInput` will be returned in the following cases:
-    ///
-    /// * `key_agreement_protocols` does not include `KeyAgreementProtocol::Curve25519`.
-    /// * `hashes` does not include `HashAlgorithm::Sha256`.
-    /// * `message_authentication_codes` does not include
-    /// `MessageAuthenticationCode::HkdfHmacSha256`.
-    /// * `short_authentication_string` does not include `ShortAuthenticationString::Decimal`.
-    pub fn new(options: SasV1ContentInit) -> Result<Self, InvalidInput> {
-        SasV1Content::try_from(options)
-    }
-}
-
-impl TryFrom<SasV1ContentInit> for SasV1Content {
-    type Error = InvalidInput;
-
+impl From<SasV1ContentInit> for SasV1Content {
     /// Creates a new `SasV1Content` from the given init struct.
-    fn try_from(init: SasV1ContentInit) -> Result<Self, Self::Error> {
-        if !init.key_agreement_protocols.contains(&KeyAgreementProtocol::Curve25519)
-            && !init.key_agreement_protocols.contains(&KeyAgreementProtocol::Curve25519HkdfSha256)
-        {
-            return Err(InvalidInput(
-                "`key_agreement_protocols` must contain at \
-                 least `KeyAgreementProtocol::Curve25519` or \
-                 `KeyAgreementProtocol::Curve25519HkdfSha256`"
-                    .into(),
-            ));
-        }
-
-        if !init.hashes.contains(&HashAlgorithm::Sha256) {
-            return Err(InvalidInput(
-                "`hashes` must contain at least `HashAlgorithm::Sha256`".into(),
-            ));
-        }
-
-        if !init.message_authentication_codes.contains(&MessageAuthenticationCode::HkdfHmacSha256) {
-            return Err(InvalidInput(
-                "`message_authentication_codes` must contain \
-                 at least `MessageAuthenticationCode::HkdfHmacSha256`"
-                    .into(),
-            ));
-        }
-
-        if !init.short_authentication_string.contains(&ShortAuthenticationString::Decimal) {
-            return Err(InvalidInput(
-                "`short_authentication_string` must contain \
-                 at least `ShortAuthenticationString::Decimal`"
-                    .into(),
-            ));
-        }
-
-        Ok(Self {
+    fn from(init: SasV1ContentInit) -> Self {
+        Self {
             key_agreement_protocols: init.key_agreement_protocols,
             hashes: init.hashes,
             message_authentication_codes: init.message_authentication_codes,
             short_authentication_string: init.short_authentication_string,
-        })
+        }
     }
 }
 
@@ -271,74 +224,18 @@ mod tests {
     use crate::ToDeviceEvent;
 
     #[test]
-    fn invalid_m_sas_v1_content_missing_required_key_agreement_protocols() {
-        let error = SasV1Content::new(SasV1ContentInit {
-            hashes: vec![HashAlgorithm::Sha256],
-            key_agreement_protocols: vec![],
-            message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
-            short_authentication_string: vec![ShortAuthenticationString::Decimal],
-        })
-        .err()
-        .unwrap();
-
-        assert!(error.to_string().contains("key_agreement_protocols"));
-    }
-
-    #[test]
-    fn invalid_m_sas_v1_content_missing_required_hashes() {
-        let error = SasV1Content::new(SasV1ContentInit {
-            hashes: vec![],
-            key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
-            message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
-            short_authentication_string: vec![ShortAuthenticationString::Decimal],
-        })
-        .err()
-        .unwrap();
-
-        assert!(error.to_string().contains("hashes"));
-    }
-
-    #[test]
-    fn invalid_m_sas_v1_content_missing_required_message_authentication_codes() {
-        let error = SasV1Content::new(SasV1ContentInit {
-            hashes: vec![HashAlgorithm::Sha256],
-            key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
-            message_authentication_codes: vec![],
-            short_authentication_string: vec![ShortAuthenticationString::Decimal],
-        })
-        .err()
-        .unwrap();
-
-        assert!(error.to_string().contains("message_authentication_codes"));
-    }
-
-    #[test]
-    fn invalid_m_sas_v1_content_missing_required_short_authentication_string() {
-        let error = SasV1Content::new(SasV1ContentInit {
-            hashes: vec![HashAlgorithm::Sha256],
-            key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
-            message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
-            short_authentication_string: vec![],
-        })
-        .err()
-        .unwrap();
-
-        assert!(error.to_string().contains("short_authentication_string"));
-    }
-
-    #[test]
     fn serialization() {
         let key_verification_start_content = StartToDeviceEventContent {
             from_device: "123".into(),
             transaction_id: "456".into(),
             method: StartMethod::SasV1(
-                SasV1Content::new(SasV1ContentInit {
+                SasV1ContentInit {
                     hashes: vec![HashAlgorithm::Sha256],
                     key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
                     message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
                     short_authentication_string: vec![ShortAuthenticationString::Decimal],
-                })
-                .unwrap(),
+                }
+                .into(),
             ),
         };
 
@@ -422,13 +319,13 @@ mod tests {
             from_device: "123".into(),
             relates_to: Relation { event_id: event_id.clone() },
             method: StartMethod::SasV1(
-                SasV1Content::new(SasV1ContentInit {
+                SasV1ContentInit {
                     hashes: vec![HashAlgorithm::Sha256],
                     key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
                     message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
                     short_authentication_string: vec![ShortAuthenticationString::Decimal],
-                })
-                .unwrap(),
+                }
+                .into(),
             ),
         };
 
