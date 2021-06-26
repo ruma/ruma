@@ -15,6 +15,7 @@ use serde::{
 
 /// Represents one or all of a user's devices.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[allow(clippy::exhaustive_enums)]
 pub enum DeviceIdOrAllDevices {
     /// Represents a device Id for one of a user's devices.
     DeviceId(DeviceIdBox),

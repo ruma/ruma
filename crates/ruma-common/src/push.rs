@@ -411,15 +411,26 @@ impl PusherData {
 /// A special format that the homeserver should use when sending notifications to a Push Gateway.
 /// Currently, only "event_id_only" is supported as of [Push Gateway API r0.1.1][spec].
 ///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
+///
 /// [spec]: https://matrix.org/docs/spec/push_gateway/r0.1.1#homeserver-behaviour
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum PushFormat {
     /// Require the homeserver to only send a reduced set of fields in the push.
     EventIdOnly,
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl PushFormat {
+    /// Creates a string slice from this `PushFormat`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }
 
 #[cfg(test)]
