@@ -29,8 +29,12 @@ impl GuestAccessEventContent {
 }
 
 /// A policy for guest user access to a room.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum GuestAccess {
     /// Guests are allowed to join the room.
     CanJoin,
@@ -40,4 +44,11 @@ pub enum GuestAccess {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl GuestAccess {
+    /// Creates a string slice from this `GuestAccess`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }

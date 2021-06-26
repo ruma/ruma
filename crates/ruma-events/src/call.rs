@@ -30,8 +30,12 @@ impl SessionDescription {
 }
 
 /// The type of VoIP session description.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum SessionDescriptionType {
     /// An answer.
     Answer,
@@ -41,4 +45,11 @@ pub enum SessionDescriptionType {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl SessionDescriptionType {
+    /// Creates a string slice from this `SessionDescriptionType`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }

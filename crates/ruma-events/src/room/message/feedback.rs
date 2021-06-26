@@ -34,8 +34,12 @@ impl FeedbackEventContent {
 }
 
 /// A type of feedback.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum FeedbackType {
     /// Sent when a message is received.
     Delivered,
@@ -45,4 +49,11 @@ pub enum FeedbackType {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl FeedbackType {
+    /// Creates a string slice from this `FeedbackType`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }
