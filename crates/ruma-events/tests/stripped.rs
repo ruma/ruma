@@ -96,7 +96,10 @@ fn deserialize_stripped_state_events() {
     let event = from_json_value::<AnyStrippedStateEvent>(name_event).unwrap();
     match event {
         AnyStrippedStateEvent::RoomName(event) => {
-            assert_eq!(event.content.name(), &RoomName::try_from("Ruma".to_string()).ok());
+            assert_eq!(
+                event.content.name(),
+                RoomName::try_from("Ruma".to_string()).ok().as_deref()
+            );
             assert_eq!(event.state_key, "");
             assert_eq!(event.sender.to_string(), "@example:localhost");
         }

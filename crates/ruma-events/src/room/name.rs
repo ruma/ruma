@@ -1,6 +1,6 @@
 //! Types for the *m.room.name* event.
 
-use std::convert::TryFrom;
+use std::{convert::TryFrom, ops::Deref};
 
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -13,7 +13,7 @@ pub type NameEvent = StateEvent<NameEventContent>;
 /// The payload for `NameEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.room.name", kind = State)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct NameEventContent {
     /// The name of the room.
     #[serde(default, deserialize_with = "ruma_serde::empty_string_as_none")]
@@ -27,8 +27,8 @@ impl NameEventContent {
     }
 
     /// The name of the room, if any.
-    pub fn name(&self) -> &Option<RoomName> {
-        &self.name
+    pub fn name(&self) -> Option<&RoomName> {
+        self.name.as_deref()
     }
 }
 
@@ -37,7 +37,6 @@ impl NameEventContent {
 /// It should not exceed 255 characters and should not be empty.
 #[derive(Clone, Debug, Serialize, PartialEq, Eq)]
 #[serde(transparent)]
-#[allow(clippy::exhaustive_structs)]
 pub struct RoomName(String);
 
 impl TryFrom<String> for RoomName {
@@ -71,6 +70,14 @@ impl<'de> Deserialize<'de> for RoomName {
             Ok(name) => Ok(name),
             Err(e) => Err(D::Error::custom(e.to_string())),
         }
+    }
+}
+
+impl Deref for RoomName {
+    type Target = RoomName;
+
+    fn deref(&self) -> &Self::Target {
+        self
     }
 }
 
