@@ -43,6 +43,7 @@ pub struct Relation {
     pub event_id: EventId,
 
     /// A string that holds the emoji reaction.
+    #[serde(rename = "key")]
     pub emoji: String,
 }
 
