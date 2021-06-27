@@ -28,7 +28,7 @@ impl NameEventContent {
 
     /// The name of the room, if any.
     pub fn name(&self) -> Option<&RoomName> {
-        self.name.as_deref()
+        self.name.as_ref()
     }
 }
 
@@ -74,10 +74,10 @@ impl<'de> Deserialize<'de> for RoomName {
 }
 
 impl Deref for RoomName {
-    type Target = RoomName;
+    type Target = str;
 
     fn deref(&self) -> &Self::Target {
-        self
+        self.0.as_str()
     }
 }
 
