@@ -189,6 +189,7 @@ impl StdError for ResponseDeserializationError {}
 
 /// An error was reported by the server (HTTP status code 4xx or 5xx)
 #[derive(Debug)]
+#[allow(clippy::exhaustive_enums)]
 pub enum ServerError<E> {
     /// An error that is expected to happen under certain circumstances and
     /// that has a well-defined structure

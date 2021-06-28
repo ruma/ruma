@@ -17,6 +17,7 @@ mod kind_serde;
 
 /// An enum for the error kind. Items may contain additional information.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ErrorKind {
     /// M_FORBIDDEN
     Forbidden,
