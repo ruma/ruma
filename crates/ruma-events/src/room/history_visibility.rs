@@ -33,7 +33,7 @@ impl HistoryVisibilityEventContent {
 /// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[non_exhaustive]
 pub enum HistoryVisibility {
     /// Previous events are accessible to newly joined members from the point they were invited
     /// onwards. Events stop being accessible when the member's state changes to something other

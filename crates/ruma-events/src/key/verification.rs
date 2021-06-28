@@ -29,7 +29,7 @@ pub mod start;
 /// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[non_exhaustive]
 pub enum HashAlgorithm {
     /// The SHA256 hash algorithm.
     Sha256,
@@ -51,7 +51,7 @@ impl HashAlgorithm {
 /// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "kebab-case")]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[non_exhaustive]
 pub enum KeyAgreementProtocol {
     /// The [Curve25519](https://cr.yp.to/ecdh.html) key agreement protocol.
     Curve25519,
@@ -76,7 +76,7 @@ impl KeyAgreementProtocol {
 /// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "kebab-case")]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[non_exhaustive]
 pub enum MessageAuthenticationCode {
     /// The HKDF-HMAC-SHA256 MAC.
     HkdfHmacSha256,
@@ -101,7 +101,7 @@ impl MessageAuthenticationCode {
 /// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[non_exhaustive]
 pub enum ShortAuthenticationString {
     /// The decimal method.
     Decimal,
@@ -144,7 +144,7 @@ impl Relation {
 /// This type can hold an arbitrary string. To check for formats that are not available as a
 /// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[non_exhaustive]
 pub enum VerificationMethod {
     /// The *m.sas.v1* verification method.
     #[ruma_enum(rename = "m.sas.v1")]

@@ -652,7 +652,7 @@ impl ServerNoticeMessageEventContent {
 /// This type can hold an arbitrary string. To check for formats that are not available as a
 /// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[non_exhaustive]
 pub enum ServerNoticeType {
     /// The server has exceeded some limit which requires the server administrator to intervene.
     #[ruma_enum(rename = "m.server_notice.usage_limit_reached")]
@@ -675,7 +675,7 @@ impl ServerNoticeType {
 /// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[non_exhaustive]
 pub enum LimitType {
     /// The server's number of active users in the last 30 days has exceeded the maximum.
     ///
@@ -699,7 +699,7 @@ impl LimitType {
 /// This type can hold an arbitrary string. To check for formats that are not available as a
 /// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[non_exhaustive]
 pub enum MessageFormat {
     /// HTML.
     #[ruma_enum(rename = "org.matrix.custom.html")]
