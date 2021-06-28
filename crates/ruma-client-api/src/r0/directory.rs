@@ -6,6 +6,7 @@ pub mod get_room_visibility;
 pub mod set_room_visibility;
 
 use js_int::{uint, UInt};
+use ruma_events::room::join_rules::JoinRule;
 use ruma_identifiers::{MxcUri, RoomAliasId, RoomId};
 use serde::{Deserialize, Serialize};
 
@@ -53,6 +54,10 @@ pub struct PublicRoomsChunk {
         serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
     )]
     pub avatar_url: Option<MxcUri>,
+
+    /// The joining rule for the room.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub join_rule: Option<JoinRule>,
 }
 
 impl PublicRoomsChunk {
@@ -72,6 +77,7 @@ impl PublicRoomsChunk {
             world_readable: false,
             guest_can_join: false,
             avatar_url: None,
+            join_rule: None,
         }
     }
 }

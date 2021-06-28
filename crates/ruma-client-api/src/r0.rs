@@ -12,6 +12,7 @@ pub mod device;
 pub mod directory;
 pub mod filter;
 pub mod keys;
+pub mod knock;
 pub mod media;
 pub mod membership;
 pub mod message;

@@ -17,6 +17,7 @@ pub mod directory;
 pub mod discovery;
 pub mod event;
 pub mod keys;
+pub mod knock;
 pub mod membership;
 pub mod openid;
 pub mod query;
