@@ -117,7 +117,6 @@ impl IntoIterator for Ruleset {
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum AnyPushRuleRef<'a> {
-    // TODO: is non_exhaustive useful here?
     /// Rules that override all other kinds.
     Override(&'a ConditionalPushRule),
 
