@@ -109,6 +109,7 @@ impl JsonError {
 
 /// A JSON type enum for [`JsonError`] variants.
 #[derive(Debug)]
+#[allow(clippy::exhaustive_enums)]
 pub enum JsonType {
     /// A JSON Object.
     Object,
@@ -253,6 +254,7 @@ impl ParseError {
 
 /// An error when trying to extract the algorithm and version from a key identifier.
 #[derive(Error, Debug)]
+#[non_exhaustive]
 pub enum SplitError {
     /// The signature's ID does not have exactly two components separated by a colon.
     #[error("malformed signature ID: expected exactly 2 segment separated by a colon, found {0}")]
