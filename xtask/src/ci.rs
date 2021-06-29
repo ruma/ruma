@@ -66,7 +66,7 @@ impl CiTask {
         cmd!("rustup run stable cargo check -p ruma-identifiers --no-default-features").run()?;
 
         // 2. Run tests
-        cmd!("rustup run stable cargo test --workspace").run()
+        cmd!("rustup run stable cargo test --workspace --features unstable-pre-spec").run()
     }
 
     fn build_nightly(&self) -> xshell::Result<()> {
