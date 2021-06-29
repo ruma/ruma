@@ -22,6 +22,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 /// written are represented by a hidden enum variant. You can still construct them the same, and
 /// check for them using one of `RoomVersionId`s `PartialEq` implementations or through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, DisplayAsRefStr)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum RoomVersionId {
     /// A version 1 room.
     Version1,
