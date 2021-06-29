@@ -28,8 +28,12 @@ impl HistoryVisibilityEventContent {
 }
 
 /// Who can see a room's history.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum HistoryVisibility {
     /// Previous events are accessible to newly joined members from the point they were invited
     /// onwards. Events stop being accessible when the member's state changes to something other
@@ -51,4 +55,11 @@ pub enum HistoryVisibility {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl HistoryVisibility {
+    /// Creates a string slice from this `HistoryVisibility`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }

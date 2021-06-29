@@ -367,6 +367,7 @@ pub trait RedactedStateEventContent: RedactedEventContent {}
 /// to aid in deserializing redacted events.
 #[doc(hidden)]
 #[derive(Debug)]
+#[allow(clippy::exhaustive_enums)]
 pub enum HasDeserializeFields {
     /// Deserialize the event's content, failing if invalid.
     True,
