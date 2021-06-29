@@ -50,6 +50,7 @@ impl Verifier for Ed25519Verifier {
 /// that the event has been redacted. In this case, receiving homeservers should store a redacted
 /// version of the event.
 #[derive(Clone, Debug, Hash, PartialEq)]
+#[allow(clippy::exhaustive_enums)]
 pub enum Verified {
     /// All signatures are valid and the content hashes match.
     All,
