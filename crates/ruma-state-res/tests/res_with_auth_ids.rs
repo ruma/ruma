@@ -63,9 +63,9 @@ fn ban_with_auth_chains2() {
     .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().clone()))
     .collect::<StateMap<_>>();
 
-    let mut ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
+    let ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
     let state_sets = vec![state_set_a, state_set_b];
-    let resolved = match StateResolution::resolve::<StateEvent>(
+    let resolved = match StateResolution::resolve::<StateEvent, _>(
         &room_id(),
         &RoomVersionId::Version6,
         &state_sets,
@@ -77,7 +77,7 @@ fn ban_with_auth_chains2() {
                     .unwrap()
             })
             .collect(),
-        &mut ev_map,
+        &|id| ev_map.get(id).map(Arc::clone),
     ) {
         Ok(state) => state,
         Err(e) => panic!("{}", e),
