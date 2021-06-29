@@ -85,8 +85,12 @@ impl MemberEventContent {
 }
 
 /// The membership state of a user.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "lowercase")]
+#[non_exhaustive]
 pub enum MembershipState {
     /// The user is banned.
     Ban,
@@ -105,6 +109,13 @@ pub enum MembershipState {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl MembershipState {
+    /// Creates a string slice from this `MembershipState`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }
 
 /// Information about a third party invitation.

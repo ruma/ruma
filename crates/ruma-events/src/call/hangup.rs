@@ -39,8 +39,12 @@ impl HangupEventContent {
 /// This should not be provided when the user naturally ends or rejects the call. When there was an
 /// error in the call negotiation, this should be `ice_failed` for when ICE negotiation fails or
 /// `invite_timeout` for when the other party did not answer in time.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum Reason {
     /// ICE negotiation failure.
     IceFailed,
@@ -50,4 +54,11 @@ pub enum Reason {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl Reason {
+    /// Creates a string slice from this `Reason`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }
