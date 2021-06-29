@@ -11,6 +11,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 ///
 /// Used by `RoomMemberCountIs`. Defaults to `==`.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[allow(clippy::exhaustive_enums)]
 pub enum ComparisonOperator {
     /// Equals
     Eq,

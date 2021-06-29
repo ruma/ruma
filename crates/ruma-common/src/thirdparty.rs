@@ -211,8 +211,12 @@ impl User {
 }
 
 /// The medium of a third party identifier.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "lowercase")]
+#[non_exhaustive]
 pub enum Medium {
     /// Email address identifier
     Email,
@@ -222,6 +226,13 @@ pub enum Medium {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl Medium {
+    /// Creates a string slice from this `Medium`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }
 
 /// An identifier external to Matrix.
