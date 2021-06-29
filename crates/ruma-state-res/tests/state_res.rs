@@ -252,9 +252,9 @@ fn test_event_map_none() {
     // build up the DAG
     let (state_at_bob, state_at_charlie, expected) = store.set_up();
 
-    let mut ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
+    let ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
     let state_sets = vec![state_at_bob, state_at_charlie];
-    let resolved = match StateResolution::resolve::<StateEvent>(
+    let resolved = match StateResolution::resolve::<StateEvent, _>(
         &room_id(),
         &RoomVersionId::Version2,
         &state_sets,
@@ -266,7 +266,7 @@ fn test_event_map_none() {
                     .unwrap()
             })
             .collect(),
-        &mut ev_map,
+        &|id| ev_map.get(id).map(Arc::clone),
     ) {
         Ok(state) => state,
         Err(e) => panic!("{}", e),
