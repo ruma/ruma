@@ -136,8 +136,12 @@ impl<'a> Notification<'a> {
 ///
 /// This may be used by push gateways to deliver less time-sensitive
 /// notifications in a way that will preserve battery power on mobile devices.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum NotificationPriority {
     /// A high priority notification
     High,
@@ -147,6 +151,13 @@ pub enum NotificationPriority {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl NotificationPriority {
+    /// Creates a string slice from this `NotificationPriority`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }
 
 impl Default for NotificationPriority {
