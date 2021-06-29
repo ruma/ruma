@@ -24,6 +24,7 @@ pub fn to_string<T: Serialize>(val: &T) -> Result<String, Error> {
 
 /// The set of possible errors when serializing to canonical JSON.
 #[derive(Debug)]
+#[allow(clippy::exhaustive_enums)]
 pub enum Error {
     /// The numeric value failed conversion to js_int::Int.
     IntConvert,
