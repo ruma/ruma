@@ -142,6 +142,7 @@ impl MessageEventContent {
 /// The content that is specific to each message type variant.
 #[derive(Clone, Debug, Serialize)]
 #[serde(untagged)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum MessageType {
     /// An audio message.
     Audio(AudioMessageEventContent),
@@ -647,7 +648,11 @@ impl ServerNoticeMessageEventContent {
 }
 
 /// Types of server notices.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[non_exhaustive]
 pub enum ServerNoticeType {
     /// The server has exceeded some limit which requires the server administrator to intervene.
     #[ruma_enum(rename = "m.server_notice.usage_limit_reached")]
@@ -657,9 +662,20 @@ pub enum ServerNoticeType {
     _Custom(String),
 }
 
+impl ServerNoticeType {
+    /// Creates a string slice from this `ServerNoticeType`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
+}
+
 /// Types of usage limits.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum LimitType {
     /// The server's number of active users in the last 30 days has exceeded the maximum.
     ///
@@ -671,11 +687,19 @@ pub enum LimitType {
     _Custom(String),
 }
 
+impl LimitType {
+    /// Creates a string slice from this `LimitType`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
+}
+
 /// The format for the formatted representation of a message body.
 ///
 /// This type can hold an arbitrary string. To check for formats that are not available as a
 /// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[non_exhaustive]
 pub enum MessageFormat {
     /// HTML.
     #[ruma_enum(rename = "org.matrix.custom.html")]

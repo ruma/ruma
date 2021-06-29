@@ -24,8 +24,12 @@ pub mod request;
 pub mod start;
 
 /// A hash algorithm.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum HashAlgorithm {
     /// The SHA256 hash algorithm.
     Sha256,
@@ -34,9 +38,20 @@ pub enum HashAlgorithm {
     _Custom(String),
 }
 
+impl HashAlgorithm {
+    /// Creates a string slice from this `HashAlgorithm`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
+}
+
 /// A key agreement protocol.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "kebab-case")]
+#[non_exhaustive]
 pub enum KeyAgreementProtocol {
     /// The [Curve25519](https://cr.yp.to/ecdh.html) key agreement protocol.
     Curve25519,
@@ -48,9 +63,20 @@ pub enum KeyAgreementProtocol {
     _Custom(String),
 }
 
+impl KeyAgreementProtocol {
+    /// Creates a string slice from this `KeyAgreementProtocol`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
+}
+
 /// A message authentication code algorithm.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "kebab-case")]
+#[non_exhaustive]
 pub enum MessageAuthenticationCode {
     /// The HKDF-HMAC-SHA256 MAC.
     HkdfHmacSha256,
@@ -62,9 +88,20 @@ pub enum MessageAuthenticationCode {
     _Custom(String),
 }
 
+impl MessageAuthenticationCode {
+    /// Creates a string slice from this `MessageAuthenticationCode`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
+}
+
 /// A Short Authentication String method.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum ShortAuthenticationString {
     /// The decimal method.
     Decimal,
@@ -74,6 +111,13 @@ pub enum ShortAuthenticationString {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl ShortAuthenticationString {
+    /// Creates a string slice from this `ShortAuthenticationString`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }
 
 /// A relation which associates an `m.key.verification.request` with another key verification event.
@@ -96,7 +140,11 @@ impl Relation {
 }
 
 /// A Short Authentication String (SAS) verification method.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[non_exhaustive]
 pub enum VerificationMethod {
     /// The *m.sas.v1* verification method.
     #[ruma_enum(rename = "m.sas.v1")]
@@ -119,6 +167,13 @@ pub enum VerificationMethod {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl VerificationMethod {
+    /// Creates a string slice from this `VerificationMethod`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }
 
 #[cfg(test)]

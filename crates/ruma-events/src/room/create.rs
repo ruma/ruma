@@ -59,7 +59,11 @@ impl CreateEventContent {
 }
 
 /// An enum of possible room types.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[non_exhaustive]
 pub enum RoomType {
     /// Defines the room as a space.
     #[ruma_enum(rename = "m.space")]
@@ -67,6 +71,13 @@ pub enum RoomType {
     /// Defines the room as a custom type.
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl RoomType {
+    /// Creates a string slice from this `RoomType`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }
 
 /// A reference to an old room replaced during a room version upgrade.
