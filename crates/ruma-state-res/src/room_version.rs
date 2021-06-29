@@ -2,6 +2,8 @@ use ruma_identifiers::RoomVersionId;
 
 use crate::{Error, Result};
 
+#[derive(Debug)]
+#[allow(clippy::exhaustive_enums)]
 pub enum RoomDisposition {
     /// A room version that has a stable specification.
     Stable,
@@ -10,6 +12,8 @@ pub enum RoomDisposition {
     Unstable,
 }
 
+#[derive(Debug)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum EventFormatVersion {
     /// $id:server event id format
     V1,
@@ -19,6 +23,8 @@ pub enum EventFormatVersion {
     V3,
 }
 
+#[derive(Debug)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum StateResolutionVersion {
     /// State resolution for rooms at version 1.
     V1,
