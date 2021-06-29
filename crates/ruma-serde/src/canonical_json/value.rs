@@ -15,6 +15,7 @@ pub type Object = BTreeMap<String, CanonicalJsonValue>;
 
 /// Represents a canonical JSON value as per the Matrix specification.
 #[derive(Clone, Eq, PartialEq)]
+#[allow(clippy::exhaustive_enums)]
 pub enum CanonicalJsonValue {
     /// Represents a JSON null value.
     ///
