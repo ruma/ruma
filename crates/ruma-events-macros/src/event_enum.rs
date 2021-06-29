@@ -137,6 +137,7 @@ fn expand_any_with_deser(
         #[derive(Clone, Debug, #serde::Serialize)]
         #[serde(untagged)]
         #[allow(clippy::large_enum_variant)]
+        #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
         pub enum #ident {
             #(
                 #[doc = #events]
@@ -380,6 +381,7 @@ fn expand_content_enum(
         #[derive(Clone, Debug, #serde::Serialize)]
         #[serde(untagged)]
         #[allow(clippy::large_enum_variant)]
+        #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
         pub enum #ident {
             #(
                 #[doc = #event_type_str]
@@ -444,6 +446,7 @@ fn expand_content_enum(
             #[derive(Clone, Debug, #serde::Serialize)]
             #[serde(untagged)]
             #[allow(clippy::large_enum_variant)]
+            #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             pub enum #redacted_ident {
                 #(
                     #[doc = #event_type_str]
@@ -591,6 +594,7 @@ fn expand_redacted_enum(
             /// An enum that holds either regular un-redacted events or redacted events.
             #[derive(Clone, Debug, #serde::Serialize)]
             #[serde(untagged)]
+            #[allow(clippy::exhaustive_enums)]
             pub enum #ident {
                 /// An un-redacted event.
                 Regular(#regular_enum_ident),

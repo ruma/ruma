@@ -128,6 +128,7 @@ fn generate_enum(
         /// This type can hold an arbitrary string. To check for events that are not available as a
         /// documented variant here, use its string representation, obtained through `.as_str()`.
         #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, #ruma_serde::StringEnum)]
+        #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
         pub enum #ident {
             #(
                 #[doc = #ev_type_strings]
