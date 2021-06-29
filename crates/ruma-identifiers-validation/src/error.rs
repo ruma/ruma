@@ -4,6 +4,7 @@ use std::fmt;
 
 /// An error encountered when trying to parse an invalid ID string.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
+#[non_exhaustive]
 pub enum Error {
     /// The client secret is empty.
     EmptyClientSecret,
