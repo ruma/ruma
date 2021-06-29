@@ -69,7 +69,11 @@ impl Response {
 }
 
 /// Profile fields to specify in query.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[non_exhaustive]
 pub enum ProfileField {
     /// Display name of the user.
     #[ruma_enum(rename = "displayname")]
@@ -81,4 +85,11 @@ pub enum ProfileField {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl ProfileField {
+    /// Creates a string slice from this `ProfileField`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }
