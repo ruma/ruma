@@ -29,8 +29,12 @@ impl PolicyRuleEventContent {
     }
 }
 
-/// Rules recommendations
+/// The possible actions that can be taken.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[non_exhaustive]
 pub enum Recommendation {
     /// Entities affected by the rule should be banned from participation where possible.
     #[ruma_enum(rename = "m.ban")]
