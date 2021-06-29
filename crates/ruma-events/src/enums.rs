@@ -139,7 +139,7 @@ macro_rules! room_ev_accessor {
 }
 
 /// Any room event.
-#[allow(clippy::large_enum_variant)]
+#[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
 #[derive(Clone, Debug, Serialize)]
 #[serde(untagged)]
 pub enum AnyRoomEvent {
@@ -164,7 +164,7 @@ impl AnyRoomEvent {
 }
 
 /// Any sync room event (room event without a `room_id`, as returned in `/sync` responses)
-#[allow(clippy::large_enum_variant)]
+#[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
 #[derive(Clone, Debug, Serialize)]
 #[serde(untagged)]
 pub enum AnySyncRoomEvent {
@@ -250,7 +250,7 @@ impl<'de> de::Deserialize<'de> for AnySyncRoomEvent {
 }
 
 /// Any redacted room event.
-#[allow(clippy::large_enum_variant)]
+#[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
 #[derive(Clone, Debug)]
 pub enum AnyRedactedRoomEvent {
     /// Any message event that has been redacted.
@@ -286,7 +286,7 @@ impl From<AnyRedactedRoomEvent> for AnyRoomEvent {
 }
 
 /// Any redacted sync room event (room event without a `room_id`, as returned in `/sync` responses)
-#[allow(clippy::large_enum_variant)]
+#[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
 #[derive(Clone, Debug)]
 pub enum AnyRedactedSyncRoomEvent {
     /// Any sync message event that has been redacted.
