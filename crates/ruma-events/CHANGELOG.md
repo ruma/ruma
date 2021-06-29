@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.23.2
+
 Bug fixes:
 
 * Fix reaction event (de)serialization (was broken in 0.23.0)
