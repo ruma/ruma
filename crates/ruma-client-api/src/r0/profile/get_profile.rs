@@ -40,9 +40,10 @@ ruma_api! {
         ///
         /// This uses the unstable prefix in
         /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
-        #[serde(skip_serializing_if = "Option::is_none")]
+        #[cfg(feature = "unstable-pre-spec")]
         #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         #[serde(rename = "xyz.amorgan.blurhash")]
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub blurhash: Option<String>,
     }
 
@@ -58,11 +59,12 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given avatar URL and display name.
-    pub fn new(
-        avatar_url: Option<MxcUri>,
-        displayname: Option<String>,
-        blurhash: Option<String>,
-    ) -> Self {
-        Self { avatar_url, displayname, blurhash }
+    pub fn new(avatar_url: Option<MxcUri>, displayname: Option<String>) -> Self {
+        Self {
+            avatar_url,
+            displayname,
+            #[cfg(feature = "unstable-pre-spec")]
+            blurhash: None,
+        }
     }
 }
