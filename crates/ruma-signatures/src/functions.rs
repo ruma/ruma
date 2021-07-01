@@ -194,11 +194,11 @@ where
 ///     }"#;
 ///
 /// let object = serde_json::from_str(input).unwrap();
-/// let canonical = ruma_signatures::canonical_json(&object);
+/// let canonical = ruma_signatures::canonical_json(&object).unwrap();
 ///
 /// assert_eq!(canonical, r#"{"日":1,"本":2}"#);
 /// ```
-pub fn canonical_json(object: &CanonicalJsonObject) -> String {
+pub fn canonical_json(object: &CanonicalJsonObject) -> Result<String, Error> {
     canonical_json_with_fields_to_remove(object, CANONICAL_JSON_FIELDS_TO_REMOVE)
 }
 
@@ -321,7 +321,7 @@ fn verify_json_with<V>(
 where
     V: Verifier,
 {
-    verifier.verify_json(public_key, signature, canonical_json(object).as_bytes())
+    verifier.verify_json(public_key, signature, canonical_json(object)?.as_bytes())
 }
 
 /// Creates a *content hash* for an event.
@@ -334,11 +334,11 @@ where
 /// # Parameters
 ///
 /// object: A JSON object to generate a content hash for.
-pub fn content_hash(object: &CanonicalJsonObject) -> String {
-    let json = canonical_json_with_fields_to_remove(object, CONTENT_HASH_FIELDS_TO_REMOVE);
+pub fn content_hash(object: &CanonicalJsonObject) -> Result<String, Error> {
+    let json = canonical_json_with_fields_to_remove(object, CONTENT_HASH_FIELDS_TO_REMOVE)?;
     let hash = Sha256::digest(json.as_bytes());
 
-    encode_config(&hash, STANDARD_NO_PAD)
+    Ok(encode_config(&hash, STANDARD_NO_PAD))
 }
 
 /// Creates a *reference hash* for an event.
@@ -363,7 +363,7 @@ pub fn reference_hash(
     let redacted_value = redact(value, version)?;
 
     let json =
-        canonical_json_with_fields_to_remove(&redacted_value, REFERENCE_HASH_FIELDS_TO_REMOVE);
+        canonical_json_with_fields_to_remove(&redacted_value, REFERENCE_HASH_FIELDS_TO_REMOVE)?;
 
     let hash = Sha256::digest(json.as_bytes());
 
@@ -481,7 +481,7 @@ pub fn hash_and_sign_event<K>(
 where
     K: KeyPair,
 {
-    let hash = content_hash(object);
+    let hash = content_hash(object)?;
 
     let hashes_value = object
         .entry("hashes".to_owned())
@@ -598,7 +598,7 @@ pub fn verify_event(
     };
 
     let servers_to_check = servers_to_check_signatures(object, version)?;
-    let canonical_json = from_json_str(&canonical_json(&redacted)).map_err(JsonError::from)?;
+    let canonical_json = from_json_str(&canonical_json(&redacted)?).map_err(JsonError::from)?;
 
     for entity_id in servers_to_check {
         let signature_set = match signature_map.get(entity_id.as_str()) {
@@ -657,7 +657,7 @@ pub fn verify_event(
         verify(STANDARD_NO_PAD)?;
     }
 
-    let calculated_hash = content_hash(object);
+    let calculated_hash = content_hash(object)?;
 
     if *hash == calculated_hash {
         Ok(Verified::All)
@@ -673,14 +673,17 @@ struct SignatureAndPubkey<'a> {
 
 /// Internal implementation detail of the canonical JSON algorithm. Allows customization of the
 /// fields that will be removed before serializing.
-fn canonical_json_with_fields_to_remove(object: &CanonicalJsonObject, fields: &[&str]) -> String {
+fn canonical_json_with_fields_to_remove(
+    object: &CanonicalJsonObject,
+    fields: &[&str],
+) -> Result<String, Error> {
     let mut owned_object = object.clone();
 
     for field in fields {
         owned_object.remove(*field);
     }
 
-    to_canonical_json_string(&owned_object).expect("JSON object serialization to succeed")
+    to_canonical_json_string(&owned_object).map_err(|e| Error::Json(e.into()))
 }
 
 /// Redacts an event using the rules specified in the Matrix client-server specification.
@@ -879,7 +882,7 @@ mod tests {
             _ => unreachable!(),
         };
 
-        assert_eq!(canonical_json(&object), canonical);
+        assert_eq!(canonical_json(&object).unwrap(), canonical);
     }
 
     #[test]
