@@ -132,7 +132,7 @@ mod tests {
     /// Convenience for converting a string of JSON into its canonical form.
     fn test_canonical_json(input: &str) -> String {
         let object = from_json_str(input).unwrap();
-        canonical_json(&object)
+        canonical_json(&object).unwrap()
     }
 
     #[test]
