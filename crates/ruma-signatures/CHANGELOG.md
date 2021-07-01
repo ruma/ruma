@@ -5,6 +5,7 @@
 Breaking changes:
 
 * Replace `ring` dependency with `ed25519-dalek` and `pkcs8`
+* `canonical_json` and `content_hash` now return `Error` when JSON is not canonical
 
 # 0.7.2
 
