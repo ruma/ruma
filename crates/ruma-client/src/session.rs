@@ -29,28 +29,4 @@ impl Session {
     pub fn new(access_token: String, user_id: UserId, device_id: DeviceIdBox) -> Self {
         Self { access_token, identification: Some(Identification { user_id, device_id }) }
     }
-
-    /// Get the access token associated with this session.
-    #[deprecated]
-    pub fn access_token(&self) -> &str {
-        &self.access_token
-    }
-
-    /// Get the ID of the user the session belongs to.
-    #[deprecated]
-    pub fn user_id(&self) -> Option<&UserId> {
-        if let Some(identification) = &self.identification {
-            return Some(&identification.user_id);
-        }
-        None
-    }
-
-    /// Get ID of the device the session belongs to.
-    #[deprecated]
-    pub fn device_id(&self) -> Option<&DeviceId> {
-        if let Some(identification) = &self.identification {
-            return Some(&identification.device_id);
-        }
-        None
-    }
 }
