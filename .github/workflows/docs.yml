@@ -3,6 +3,8 @@ name: Documentation
 on:
   push:
     branches: [next]
+  pull_request:
+    branches: [main, next]
 
 jobs:
   build-deploy:
@@ -26,7 +28,8 @@ jobs:
           command: doc
           args: --no-deps --workspace --exclude ruma-api-macros --exclude ruma-events-macros --exclude ruma-identifiers-macros --exclude ruma-identifiers-validation --exclude xtask --all-features -Zrustdoc-map
       - name: Deploy to docs branch
-        uses: JamesIves/github-pages-deploy-action@4.1.0
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
           branch: docs
           folder: target/doc
