@@ -214,6 +214,7 @@ use error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
 
 /// An enum to control whether an access token should be added to outgoing requests
 #[derive(Clone, Copy, Debug)]
+#[allow(clippy::exhaustive_enums)]
 pub enum SendAccessToken<'a> {
     /// Add the given access token to the request only if the `METADATA` on the request requires it
     IfRequired(&'a str),
@@ -370,6 +371,7 @@ pub trait IncomingNonAuthRequest: IncomingRequest {}
 
 /// Authentication scheme used by the endpoint.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[allow(clippy::exhaustive_enums)]
 pub enum AuthScheme {
     /// No authentication is performed.
     None,

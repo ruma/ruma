@@ -161,9 +161,13 @@ impl Default for RoomVersionsCapability {
     }
 }
 
-/// The stability of a room version
+/// The stability of a room version.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "lowercase")]
+#[non_exhaustive]
 pub enum RoomVersionStability {
     /// Support for the given version is stable.
     Stable,
@@ -173,6 +177,13 @@ pub enum RoomVersionStability {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl RoomVersionStability {
+    /// Creates a string slice from this `RoomVersionStability`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }
 
 #[cfg(test)]

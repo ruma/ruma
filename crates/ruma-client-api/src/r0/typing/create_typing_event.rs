@@ -53,6 +53,7 @@ impl Response {
 /// A mark for whether the user is typing within a length of time or not.
 #[derive(Clone, Copy, Debug, Serialize)]
 #[serde(into = "TypingInner")]
+#[allow(clippy::exhaustive_enums)]
 pub enum Typing {
     /// Not typing.
     No,
