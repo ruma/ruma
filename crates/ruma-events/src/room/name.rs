@@ -1,6 +1,6 @@
 //! Types for the *m.room.name* event.
 
-use std::{convert::TryFrom, ops::Deref};
+use std::convert::TryFrom;
 
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -73,14 +73,6 @@ impl<'de> Deserialize<'de> for RoomName {
     }
 }
 
-impl Deref for RoomName {
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target {
-        self.0.as_str()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::convert::TryFrom;
@@ -98,9 +90,7 @@ mod tests {
     #[test]
     fn serialization_with_optional_fields_as_none() {
         let name_event = StateEvent {
-            content: NameEventContent {
-                name: RoomName::try_from("The room name".to_string()).ok(),
-            },
+            content: NameEventContent { name: RoomName::try_from("The room name".to_owned()).ok() },
             event_id: event_id!("$h29iv0s8:example.com"),
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
             prev_content: None,
@@ -129,13 +119,11 @@ mod tests {
     #[test]
     fn serialization_with_all_fields() {
         let name_event = StateEvent {
-            content: NameEventContent {
-                name: RoomName::try_from("The room name".to_string()).ok(),
-            },
+            content: NameEventContent { name: RoomName::try_from("The room name".to_owned()).ok() },
             event_id: event_id!("$h29iv0s8:example.com"),
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
             prev_content: Some(NameEventContent {
-                name: RoomName::try_from("The old name".to_string()).ok(),
+                name: RoomName::try_from("The old name".to_owned()).ok(),
             }),
             room_id: room_id!("!n8f893n9:example.com"),
             sender: user_id!("@carl:example.com"),
@@ -263,7 +251,7 @@ mod tests {
 
     #[test]
     fn nonempty_field_as_some() {
-        let name = RoomName::try_from("The room name".to_string()).ok();
+        let name = RoomName::try_from("The room name".to_owned()).ok();
         let json_data = json!({
             "content": {
                 "name": "The room name"

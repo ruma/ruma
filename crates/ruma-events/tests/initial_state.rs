@@ -13,6 +13,6 @@ fn deserialize_initial_state_event() {
         }))
         .unwrap(),
         AnyInitialStateEvent::RoomName(InitialStateEvent { content, state_key})
-        if content.name() == RoomName::try_from("foo".to_string()).ok().as_ref() && state_key.is_empty()
+        if content.name() == RoomName::try_from("foo".to_owned()).ok().as_ref() && state_key.is_empty()
     );
 }
