@@ -1,5 +1,7 @@
 //! Types for the *m.room.name* event.
 
+use std::convert::TryFrom;
+
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -11,51 +13,70 @@ pub type NameEvent = StateEvent<NameEventContent>;
 /// The payload for `NameEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.room.name", kind = State)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct NameEventContent {
-    /// The name of the room. This MUST NOT exceed 255 bytes.
-    #[serde(default, deserialize_with = "room_name")]
-    pub(crate) name: Option<String>,
+    /// The name of the room.
+    #[serde(default, deserialize_with = "ruma_serde::empty_string_as_none")]
+    pub name: Option<RoomName>,
 }
 
 impl NameEventContent {
     /// Create a new `NameEventContent` with the given name.
-    ///
-    /// # Errors
-    ///
-    /// `InvalidInput` will be returned if the name is more than 255 bytes.
-    pub fn new(name: String) -> Result<Self, InvalidInput> {
-        match name.len() {
-            0 => Ok(Self { name: None }),
-            1..=255 => Ok(Self { name: Some(name) }),
-            _ => Err(InvalidInput("a room name cannot be more than 255 bytes".into())),
-        }
+    pub fn new(name: Option<RoomName>) -> Self {
+        Self { name }
     }
 
     /// The name of the room, if any.
-    pub fn name(&self) -> Option<&str> {
-        self.name.as_deref()
+    pub fn name(&self) -> Option<&RoomName> {
+        self.name.as_ref()
     }
 }
 
-fn room_name<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
-where
-    D: serde::de::Deserializer<'de>,
-{
-    use serde::de::Error;
+/// The name of a room.
+///
+/// It should not exceed 255 characters and should not be empty.
+#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
+#[serde(transparent)]
+pub struct RoomName(String);
 
-    // this handles the null case and the empty string or nothing case
-    match Option::<String>::deserialize(deserializer)? {
-        Some(name) => match name.len() {
-            0 => Ok(None),
-            1..=255 => Ok(Some(name)),
-            _ => Err(D::Error::custom("a room name cannot be more than 255 bytes")),
-        },
-        None => Ok(None),
+impl TryFrom<String> for RoomName {
+    type Error = InvalidInput;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.len() {
+            0 => Err(InvalidInput("a room name cannot be empty.".into())),
+            1..=255 => Ok(RoomName(value)),
+            _ => Err(InvalidInput("a room name cannot be more than 255 bytes.".into())),
+        }
+    }
+}
+
+impl From<RoomName> for String {
+    fn from(name: RoomName) -> Self {
+        name.0
+    }
+}
+
+impl<'de> Deserialize<'de> for RoomName {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        use serde::de::Error;
+
+        let str_name = String::deserialize(deserializer)?;
+
+        match RoomName::try_from(str_name) {
+            Ok(name) => Ok(name),
+            Err(e) => Err(D::Error::custom(e.to_string())),
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
     use js_int::{int, uint};
     use matches::assert_matches;
     use ruma_common::MilliSecondsSinceUnixEpoch;
@@ -64,12 +85,12 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::NameEventContent;
-    use crate::{StateEvent, Unsigned};
+    use crate::{room::name::RoomName, StateEvent, Unsigned};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
         let name_event = StateEvent {
-            content: NameEventContent { name: Some("The room name".into()) },
+            content: NameEventContent { name: RoomName::try_from("The room name".to_owned()).ok() },
             event_id: event_id!("$h29iv0s8:example.com"),
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
             prev_content: None,
@@ -98,10 +119,12 @@ mod tests {
     #[test]
     fn serialization_with_all_fields() {
         let name_event = StateEvent {
-            content: NameEventContent { name: Some("The room name".into()) },
+            content: NameEventContent { name: RoomName::try_from("The room name".to_owned()).ok() },
             event_id: event_id!("$h29iv0s8:example.com"),
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-            prev_content: Some(NameEventContent { name: Some("The old name".into()) }),
+            prev_content: Some(NameEventContent {
+                name: RoomName::try_from("The old name".to_owned()).ok(),
+            }),
             room_id: room_id!("!n8f893n9:example.com"),
             sender: user_id!("@carl:example.com"),
             state_key: "".into(),
@@ -173,7 +196,7 @@ mod tests {
     #[test]
     fn new_with_empty_name_creates_content_as_none() {
         assert_matches!(
-            NameEventContent::new(String::new()).unwrap(),
+            NameEventContent::new(RoomName::try_from(String::new()).ok()),
             NameEventContent { name: None }
         );
     }
@@ -228,7 +251,7 @@ mod tests {
 
     #[test]
     fn nonempty_field_as_some() {
-        let name = Some("The room name".into());
+        let name = RoomName::try_from("The room name".to_owned()).ok();
         let json_data = json!({
             "content": {
                 "name": "The room name"
