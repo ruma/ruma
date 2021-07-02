@@ -6,6 +6,7 @@ use serde::{ser::SerializeStruct as _, Deserialize, Serialize, Serializer};
 /// [lazy-loading]: https://matrix.org/docs/spec/client_server/r0.6.0#lazy-loading-room-members
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize)]
 #[serde(from = "LazyLoadJsonRepr")]
+#[allow(clippy::exhaustive_enums)]
 pub enum LazyLoadOptions {
     /// Disables lazy-loading of membership events.
     Disabled,

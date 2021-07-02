@@ -236,8 +236,12 @@ impl Grouping {
 }
 
 /// The key within events to use for this grouping.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum GroupingKey {
     /// `room_id`
     RoomId,
@@ -247,6 +251,13 @@ pub enum GroupingKey {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl GroupingKey {
+    /// Creates a string slice from this `GroupingKey`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }
 
 /// Requests that the server partitions the result set based on the provided list of keys.
@@ -272,7 +283,11 @@ impl Groupings<'_> {
 }
 
 /// The keys to search for.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[non_exhaustive]
 pub enum SearchKeys {
     /// content.body
     #[ruma_enum(rename = "content.body")]
@@ -288,6 +303,13 @@ pub enum SearchKeys {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl SearchKeys {
+    /// Creates a string slice from this `SearchKeys`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }
 
 /// The order in which to search for results.
@@ -465,6 +487,7 @@ impl UserProfile {
 
 /// Represents either a room or user ID for returning grouped search results.
 #[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[allow(clippy::exhaustive_enums)]
 pub enum RoomIdOrUserId {
     /// Represents a room ID.
     RoomId(RoomId),
