@@ -59,14 +59,6 @@ mod server_name;
 mod session_id;
 mod signatures;
 
-/// Check whether a given string is a valid server name according to [the specification][].
-///
-/// [the specification]: https://matrix.org/docs/spec/appendices#server-name
-#[deprecated = "Use the [`ServerName`](server_name/struct.ServerName.html) type instead."]
-pub fn is_valid_server_name(name: &str) -> bool {
-    <&ServerName>::try_from(name).is_ok()
-}
-
 /// Generates a random identifier localpart.
 #[cfg(feature = "rand")]
 fn generate_localpart(length: usize) -> Box<str> {
@@ -145,15 +137,6 @@ macro_rules! room_id {
 macro_rules! room_version_id {
     ($s:literal) => {
         $crate::_macros::room_version_id!($crate, $s)
-    };
-}
-
-/// Compile-time checked `ServerSigningKeyId` construction.
-#[macro_export]
-#[deprecated = "use server_signing_key_id!()"]
-macro_rules! server_key_id {
-    ($s:literal) => {
-        $crate::_macros::server_signing_key_id!($crate, $s)
     };
 }
 

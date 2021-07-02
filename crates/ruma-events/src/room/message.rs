@@ -783,12 +783,6 @@ impl TextMessageEventContent {
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
         Self { formatted: FormattedBody::markdown(&body), ..Self::plain(body) }
     }
-
-    /// A convenience constructor to create a plain text message.
-    #[deprecated = "Renamed to plain"]
-    pub fn new_plain(body: impl Into<String>) -> Self {
-        Self::plain(body)
-    }
 }
 
 /// The payload for a video message.
