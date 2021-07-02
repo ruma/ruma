@@ -4,8 +4,9 @@ use std::convert::TryFrom;
 
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
-use crate::{InvalidInput, StateEvent};
+use crate::StateEvent;
 
 /// The room name is a human-friendly string designed to be displayed to the end-user.
 pub type NameEvent = StateEvent<NameEventContent>;
@@ -27,6 +28,7 @@ impl NameEventContent {
     }
 
     /// The name of the room, if any.
+    #[deprecated = "You can access the name field directly."]
     pub fn name(&self) -> Option<&RoomName> {
         self.name.as_ref()
     }
@@ -34,19 +36,19 @@ impl NameEventContent {
 
 /// The name of a room.
 ///
-/// It should not exceed 255 characters and should not be empty.
+/// It can't exceed 255 characters or be empty.
 #[derive(Clone, Debug, Serialize, PartialEq, Eq)]
 #[serde(transparent)]
 pub struct RoomName(String);
 
 impl TryFrom<String> for RoomName {
-    type Error = InvalidInput;
+    type Error = FromStringError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         match value.len() {
-            0 => Err(InvalidInput("a room name cannot be empty.".into())),
+            0 => Err(FromStringError::Empty),
             1..=255 => Ok(RoomName(value)),
-            _ => Err(InvalidInput("a room name cannot be more than 255 bytes.".into())),
+            _ => Err(FromStringError::TooLong),
         }
     }
 }
@@ -68,9 +70,22 @@ impl<'de> Deserialize<'de> for RoomName {
 
         match RoomName::try_from(str_name) {
             Ok(name) => Ok(name),
-            Err(e) => Err(D::Error::custom(e.to_string())),
+            Err(e) => Err(D::Error::custom(e)),
         }
     }
+}
+
+/// Errors that can occur when converting a string to `RoomName`.
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum FromStringError {
+    /// Room name string was empty.
+    #[error("room name may not be empty")]
+    Empty,
+
+    /// Room name string exceeded 255 byte limit.
+    #[error("room name length may not exceed 255 bytes")]
+    TooLong,
 }
 
 #[cfg(test)]
