@@ -195,8 +195,12 @@ impl Default for CreationContent {
 }
 
 /// A convenience parameter for setting a few default state events.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum RoomPreset {
     /// `join_rules` is set to `invite` and `history_visibility` is set to `shared`.
     PrivateChat,
@@ -209,4 +213,11 @@ pub enum RoomPreset {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl RoomPreset {
+    /// Creates a string slice from this `RoomPreset`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }

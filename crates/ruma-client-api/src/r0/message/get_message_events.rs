@@ -121,6 +121,7 @@ fn is_default_limit(val: &UInt) -> bool {
 
 /// The direction to return events from.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[allow(clippy::exhaustive_enums)]
 pub enum Direction {
     /// Return events backwards in time from the requested `from` token.
     #[serde(rename = "b")]

@@ -78,6 +78,7 @@ impl Response {
 /// Identification information for the user.
 #[derive(Clone, Debug, PartialEq, Eq, Outgoing, Serialize)]
 #[serde(from = "user_serde::IncomingUserIdentifier", into = "user_serde::UserIdentifier<'_>")]
+#[allow(clippy::exhaustive_enums)]
 pub enum UserIdentifier<'a> {
     /// Either a fully qualified Matrix user ID, or just the localpart (as part of the 'identifier'
     /// field).
@@ -106,6 +107,7 @@ pub enum UserIdentifier<'a> {
 /// The authentication mechanism.
 #[derive(Clone, Debug, PartialEq, Eq, Outgoing, Serialize)]
 #[serde(tag = "type")]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum LoginInfo<'a> {
     /// An identifier and password are supplied to authenticate.
     #[serde(rename = "m.login.password")]

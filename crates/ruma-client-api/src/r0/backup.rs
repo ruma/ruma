@@ -41,6 +41,7 @@ impl RoomKeyBackup {
 /// The algorithm used for storing backups.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "algorithm", content = "auth_data")]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum BackupAlgorithm {
     /// `m.megolm_backup.v1.curve25519-aes-sha2` backup algorithm.
     #[serde(rename = "m.megolm_backup.v1.curve25519-aes-sha2")]
