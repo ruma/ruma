@@ -35,7 +35,7 @@ ruma_api! {
         #[cfg(feature = "unstable-pre-spec")]
         #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         #[serde(rename = "xyz.amorgan.blurhash")]
-        pub generate_blurhash: &'a bool,
+        pub generate_blurhash: bool,
     }
 
     response: {
@@ -64,7 +64,7 @@ impl<'a> Request<'a> {
             filename: None,
             content_type: None,
             #[cfg(feature = "unstable-pre-spec")]
-            generate_blurhash: &false,
+            generate_blurhash: false,
         }
     }
 }

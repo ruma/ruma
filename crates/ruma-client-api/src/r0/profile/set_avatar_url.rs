@@ -90,7 +90,7 @@ mod tests {
                     .uri("https://bar.org/_matrix/client/r0/profile/@foo:bar.org/avatar_url")
                     .body(&[] as &[u8]).unwrap(),
             ).unwrap(),
-            IncomingRequest { user_id, avatar_url: None, ..} if user_id == "@foo:bar.org"
+            IncomingRequest { user_id, avatar_url: None, .. } if user_id == "@foo:bar.org"
         );
 
         #[cfg(feature = "compat")]
@@ -102,7 +102,7 @@ mod tests {
                     .body(serde_json::to_vec(&serde_json::json!({ "avatar_url": "" })).unwrap())
                     .unwrap(),
             ).unwrap(),
-            IncomingRequest { user_id, avatar_url: None, ..} if user_id == "@foo:bar.org"
+            IncomingRequest { user_id, avatar_url: None, .. } if user_id == "@foo:bar.org"
         );
     }
 }
