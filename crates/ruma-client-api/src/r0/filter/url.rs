@@ -5,6 +5,7 @@ use serde::{
 
 /// Options for filtering based on the presence of a URL.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[allow(clippy::exhaustive_enums)]
 pub enum UrlFilter {
     /// Includes only events with a url key in their content.
     EventsWithUrl,

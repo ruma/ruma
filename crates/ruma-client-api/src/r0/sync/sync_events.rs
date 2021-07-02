@@ -134,6 +134,7 @@ impl Response {
 /// A filter represented either as its full JSON definition or the ID of a saved filter.
 #[derive(Clone, Debug, Outgoing, Serialize)]
 #[allow(clippy::large_enum_variant)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(untagged)]
 pub enum Filter<'a> {
     // The filter definition needs to be (de)serialized twice because it is a URL-encoded JSON
@@ -146,8 +147,8 @@ pub enum Filter<'a> {
     // FilterDefinition is the first variant, JSON decoding is attempted first which is almost
     // functionally equivalent to looking at whether the first symbol is a '{' as the spec says.
     // (there are probably some corner cases like leading whitespace)
-    #[serde(with = "ruma_serde::json_string")]
     /// A complete filter definition serialized to JSON.
+    #[serde(with = "ruma_serde::json_string")]
     FilterDefinition(FilterDefinition<'a>),
 
     /// The ID of a filter saved on the server.

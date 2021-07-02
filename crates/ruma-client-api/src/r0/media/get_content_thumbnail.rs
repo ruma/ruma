@@ -5,20 +5,6 @@ use ruma_api::ruma_api;
 use ruma_identifiers::{Error, MxcUri, ServerName};
 use ruma_serde::StringEnum;
 
-/// The desired resizing method.
-#[derive(Clone, Debug, StringEnum)]
-#[ruma_enum(rename_all = "snake_case")]
-pub enum Method {
-    /// Crop the original to produce the requested image dimensions.
-    Crop,
-
-    /// Maintain the original aspect ratio of the source image.
-    Scale,
-
-    #[doc(hidden)]
-    _Custom(String),
-}
-
 ruma_api! {
     metadata: {
         description: "Get a thumbnail of content from the media store.",
@@ -96,5 +82,30 @@ impl Response {
     /// Creates a new `Response` with the given thumbnail.
     pub fn new(file: Vec<u8>) -> Self {
         Self { file, content_type: None }
+    }
+}
+
+/// The desired resizing method.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
+#[derive(Clone, Debug, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum Method {
+    /// Crop the original to produce the requested image dimensions.
+    Crop,
+
+    /// Maintain the original aspect ratio of the source image.
+    Scale,
+
+    #[doc(hidden)]
+    _Custom(String),
+}
+
+impl Method {
+    /// Creates a string slice from this `Method`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
     }
 }
