@@ -129,7 +129,6 @@ use serde_json::value::RawValue as RawJsonValue;
 use self::room::redaction::SyncRedactionEvent;
 
 mod enums;
-mod error;
 mod event_kinds;
 
 // Hack to allow both ruma-events itself and external crates (or tests) to use procedural macros
@@ -186,11 +185,7 @@ pub mod typing;
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub use self::relation::Relations;
-pub use self::{
-    enums::*,
-    error::{FromStrError, InvalidInput},
-    event_kinds::*,
-};
+pub use self::{enums::*, event_kinds::*};
 
 /// Extra information about an event that is not incorporated into the event's
 /// hash.
