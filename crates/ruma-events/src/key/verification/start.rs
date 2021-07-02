@@ -394,7 +394,7 @@ mod tests {
 
         #[cfg(feature = "unstable-pre-spec")]
         {
-            let secret = "This is a secret to everybody".to_string();
+            let secret = "This is a secret to everybody".to_owned();
 
             let key_verification_start_content = StartToDeviceEventContent {
                 from_device: "123".into(),
@@ -447,7 +447,7 @@ mod tests {
 
         assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
 
-        let secret = "This is a secret to everybody".to_string();
+        let secret = "This is a secret to everybody".to_owned();
 
         let key_verification_start_content = StartEventContent {
             from_device: "123".into(),

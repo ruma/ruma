@@ -49,7 +49,7 @@ fn test_event_sort() {
 
     events_to_sort.shuffle(&mut rand::thread_rng());
 
-    let power_level = resolved_power.get(&(EventType::RoomPowerLevels, "".to_string()));
+    let power_level = resolved_power.get(&(EventType::RoomPowerLevels, "".to_owned()));
 
     let sorted_event_ids =
         StateResolution::mainline_sort(&room_id(), &events_to_sort, power_level, &mut events);

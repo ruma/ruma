@@ -354,11 +354,11 @@ where
     // We don't care if the addition happens in order just that it is atomic
     // (each event has its own value)
     let ts = SERVER_TIMESTAMP.fetch_add(1, SeqCst);
-    let id = if id.contains('$') { id.to_string() } else { format!("${}:foo", id) };
+    let id = if id.contains('$') { id.to_owned() } else { format!("${}:foo", id) };
     let auth_events = auth_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
     let prev_events = prev_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
 
-    let state_key = state_key.map(ToString::to_string);
+    let state_key = state_key.map(ToOwned::to_owned);
     Arc::new(StateEvent {
         event_id: EventId::try_from(id).unwrap(),
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {

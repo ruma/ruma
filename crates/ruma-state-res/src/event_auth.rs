@@ -30,9 +30,9 @@ pub fn auth_types_for_event(
     }
 
     let mut auth_types = vec![
-        (EventType::RoomPowerLevels, "".to_string()),
+        (EventType::RoomPowerLevels, "".to_owned()),
         (EventType::RoomMember, sender.to_string()),
-        (EventType::RoomCreate, "".to_string()),
+        (EventType::RoomCreate, "".to_owned()),
     ];
 
     if kind == &EventType::RoomMember {
@@ -42,7 +42,7 @@ pub fn auth_types_for_event(
                 .map(|m| serde_json::from_value::<MembershipState>(m.clone()))
             {
                 if [MembershipState::Join, MembershipState::Invite].contains(&membership) {
-                    let key = (EventType::RoomJoinRules, "".to_string());
+                    let key = (EventType::RoomJoinRules, "".to_owned());
                     if !auth_types.contains(&key) {
                         auth_types.push(key)
                     }
@@ -165,7 +165,7 @@ pub fn auth_check<E: Event>(
     */
 
     // 3. If event does not have m.room.create in auth_events reject
-    if auth_events.get(&(EventType::RoomCreate, "".to_string())).is_none() {
+    if auth_events.get(&(EventType::RoomCreate, "".to_owned())).is_none() {
         warn!("no m.room.create event in auth chain");
 
         return Ok(false);

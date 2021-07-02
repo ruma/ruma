@@ -17,6 +17,7 @@ ruma-clippy = """\
     -W clippy::mut_mut \
     -W clippy::needless_borrow \
     -A clippy::new_without_default \
+    -W clippy::str_to_string \
     -W clippy::todo \
     -W clippy::unreadable_literal \
     -W clippy::unseparated_literal_suffix \

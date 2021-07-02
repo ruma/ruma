@@ -198,7 +198,7 @@ pub fn do_check(
                 // Filter out the dummy messages events.
                 // These act as points in time where there should be a known state to
                 // test against.
-                && **k != (EventType::RoomMessage, "dummy".to_string())
+                && **k != (EventType::RoomMessage, "dummy".to_owned())
         })
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect::<StateMap<EventId>>();
@@ -317,9 +317,9 @@ pub fn to_init_pdu_event(
     content: JsonValue,
 ) -> Arc<StateEvent> {
     let ts = SERVER_TIMESTAMP.fetch_add(1, SeqCst);
-    let id = if id.contains('$') { id.to_string() } else { format!("${}:foo", id) };
+    let id = if id.contains('$') { id.to_owned() } else { format!("${}:foo", id) };
 
-    let state_key = state_key.map(ToString::to_string);
+    let state_key = state_key.map(ToOwned::to_owned);
     Arc::new(StateEvent {
         event_id: EventId::try_from(id).unwrap(),
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
@@ -355,11 +355,11 @@ where
     S: AsRef<str>,
 {
     let ts = SERVER_TIMESTAMP.fetch_add(1, SeqCst);
-    let id = if id.contains('$') { id.to_string() } else { format!("${}:foo", id) };
+    let id = if id.contains('$') { id.to_owned() } else { format!("${}:foo", id) };
     let auth_events = auth_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
     let prev_events = prev_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
 
-    let state_key = state_key.map(ToString::to_string);
+    let state_key = state_key.map(ToOwned::to_owned);
     Arc::new(StateEvent {
         event_id: EventId::try_from(id).unwrap(),
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {

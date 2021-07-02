@@ -213,7 +213,7 @@ mod tests {
 
     #[test]
     fn ring_key() {
-        let keypair = Ed25519KeyPair::from_der(RING_DOC, "".to_string()).unwrap();
+        let keypair = Ed25519KeyPair::from_der(RING_DOC, "".to_owned()).unwrap();
 
         assert_eq!(keypair.pubkey.as_bytes(), RING_PUBKEY);
     }

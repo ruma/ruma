@@ -38,7 +38,7 @@ impl Request {
                 );
                 format_args.push(quote! {
                     #percent_encoding::utf8_percent_encode(
-                        &self.#path_var.to_string(),
+                        &::std::string::ToString::to_string(&self.#path_var),
                         #percent_encoding::NON_ALPHANUMERIC,
                     )
                 });
