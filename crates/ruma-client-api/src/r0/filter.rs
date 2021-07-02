@@ -15,8 +15,12 @@ use ruma_serde::{Outgoing, StringEnum};
 use serde::Serialize;
 
 /// Format to use for returned events.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum EventFormat {
     /// Client format, as described in the Client API.
     Client,
@@ -26,6 +30,13 @@ pub enum EventFormat {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl EventFormat {
+    /// Creates a string slice from this `EventFormat`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }
 
 impl Default for EventFormat {

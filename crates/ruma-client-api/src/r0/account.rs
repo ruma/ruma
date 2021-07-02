@@ -40,8 +40,12 @@ impl<'a> IdentityServerInfo<'a> {
 }
 
 /// Possible values for deleting or unbinding 3PIDs.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, StringEnum)]
 #[ruma_enum(rename_all = "kebab-case")]
+#[non_exhaustive]
 pub enum ThirdPartyIdRemovalStatus {
     /// Either the homeserver couldn't determine the right identity server to contact, or the
     /// identity server refused the operation.
@@ -52,4 +56,11 @@ pub enum ThirdPartyIdRemovalStatus {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl ThirdPartyIdRemovalStatus {
+    /// Creates a string slice from this `ThirdPartyIdRemovalStatus`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }

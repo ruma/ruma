@@ -9,8 +9,12 @@ pub mod upgrade_room;
 use ruma_serde::StringEnum;
 
 /// Whether or not a newly created room will be listed in the room directory.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum Visibility {
     /// Indicates that the room will be shown in the published room list.
     Public,
@@ -20,6 +24,13 @@ pub enum Visibility {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl Visibility {
+    /// Creates a string slice from this `Visibility`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }
 
 impl Default for Visibility {

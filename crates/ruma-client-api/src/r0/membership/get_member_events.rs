@@ -63,8 +63,12 @@ impl Response {
 }
 
 /// The kind of membership events to filter for.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "lowercase")]
+#[non_exhaustive]
 pub enum MembershipEventFilter {
     /// The user has joined.
     Join,
@@ -80,6 +84,13 @@ pub enum MembershipEventFilter {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl MembershipEventFilter {
+    /// Creates a string slice from this `MembershipEventFilter`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }
 
 #[cfg(all(test, feature = "server"))]

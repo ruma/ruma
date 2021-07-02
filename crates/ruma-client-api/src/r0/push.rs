@@ -159,8 +159,12 @@ impl TryFrom<PushRule> for ConditionalPushRule {
 }
 
 /// The kinds of push rules that are available.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum RuleKind {
     /// User-configured rules that override all other kinds.
     Override,
@@ -181,9 +185,20 @@ pub enum RuleKind {
     _Custom(String),
 }
 
+impl RuleKind {
+    /// Creates a string slice from this `RuleKind`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
+}
+
 /// Which kind a pusher is.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum PusherKind {
     /// A pusher that sends HTTP pokes.
     Http,
@@ -193,4 +208,11 @@ pub enum PusherKind {
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl PusherKind {
+    /// Creates a string slice from this `PusherKind`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }
