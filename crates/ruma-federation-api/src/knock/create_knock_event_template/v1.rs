@@ -1,4 +1,4 @@
-//! [GET /_matrix/federation/v1/make_knock/{roomId}/{userId}](https://github.com/matrix-org/matrix-doc/blob/master/proposals/2403-knock.md#get-_matrixfederationv1make_knockroomiduserid)
+//! [GET /_matrix/federation/v1/make_knock/{roomId}/{userId}](https://spec.matrix.org/unstable/server-server-api/#get_matrixfederationv1make_knockroomiduserid)
 
 use ruma_api::ruma_api;
 use ruma_events::pdu::Pdu;
@@ -15,7 +15,7 @@ ruma_api! {
         authentication: ServerSignatures,
     }
 
-    request : {
+    request: {
         /// The room ID that should receive the knock.
         #[ruma_api(path)]
         pub room_id: &'a RoomId,
@@ -26,7 +26,7 @@ ruma_api! {
 
         /// The room versions the sending has support for.
         ///
-        /// Defaults to `&[RoomVersionId::Version1]
+        /// Defaults to `&[RoomVersionId::Version1]`.
         #[ruma_api(query)]
         pub ver: &'a [RoomVersionId],
     }
@@ -39,5 +39,19 @@ ruma_api! {
         ///
         /// May differ between room versions.
         pub event: Raw<Pdu>,
+    }
+}
+
+impl<'a> Request<'a> {
+    /// Creates a `Request` with the given room ID and user ID.
+    pub fn new(room_id: &'a RoomId, user_id: &'a UserId) -> Self {
+        Self { room_id, user_id, ver: &[RoomVersionId::Version1] }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given room version ID and event.
+    pub fn new(room_version: RoomVersionId, event: Raw<Pdu>) -> Self {
+        Self { room_version, event }
     }
 }

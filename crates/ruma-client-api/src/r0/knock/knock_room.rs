@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/knock/{roomIdOrAlias}](https://github.com/Sorunome/matrix-doc/blob/soru/knock/proposals/2403-knock.md)
+//! [POST /_matrix/client/r0/knock/{roomIdOrAlias}](https://spec.matrix.org/unstable/client-server-api/#post_matrixclientr0knockroomidoralias)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{RoomId, RoomIdOrAliasId, ServerNameBox};
@@ -22,8 +22,9 @@ ruma_api! {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub reason: Option<&'a str>,
 
-        /// The servers to attempt to knock on the room through. One of the servers must be
-        /// participating in the room.
+        /// The servers to attempt to knock on the room through.
+        ///
+        /// One of the servers must be participating in the room.
         #[ruma_api(query)]
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
         pub server_name: &'a [ServerNameBox],

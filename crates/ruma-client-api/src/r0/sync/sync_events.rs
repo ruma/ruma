@@ -182,6 +182,8 @@ pub struct Rooms {
     pub invite: BTreeMap<RoomId, InvitedRoom>,
 
     /// The rooms that the user has knocked on.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub knock: BTreeMap<RoomId, KnockedRoom>,
 
@@ -209,6 +211,7 @@ impl Default for Rooms {
             leave: BTreeMap::new(),
             join: BTreeMap::new(),
             invite: BTreeMap::new(),
+            #[cfg(feature = "unstable-pre-spec")]
             knock: BTreeMap::new(),
             #[cfg(not(feature = "unstable-exhaustive-types"))]
             __test_exhaustive: crate::private(),
@@ -332,30 +335,25 @@ impl Default for JoinedRoom {
 }
 
 /// Updates to knocked rooms.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct KnockedRoom {
     /// The knock state.
     pub knock_state: KnockState,
 }
 
-impl Default for KnockedRoom {
-    fn default() -> Self {
-        Self { knock_state: Default::default() }
-    }
-}
-
 /// A mapping from a key `events` to a list of `StrippedStateEvent`.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct KnockState {
     /// The list of events.
     pub events: Vec<AnyStrippedStateEvent>,
 }
 
-impl Default for KnockState {
-    fn default() -> Self {
-        Self { events: Default::default() }
-    }
-}
 /// Unread notifications count.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct UnreadNotificationsCount {

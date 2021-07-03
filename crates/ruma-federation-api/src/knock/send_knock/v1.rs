@@ -1,4 +1,4 @@
-//! [PUT /_matrix/federation/v1/send_knock/{roomId}/{eventId}](https://github.com/matrix-org/matrix-doc/blob/master/proposals/2403-knock.md#put-_matrixfederationv1send_knockroomideventid)
+//! [PUT /_matrix/federation/v1/send_knock/{roomId}/{eventId}](https://spec.matrix.org/unstable/server-server-api/#put_matrixfederationv1send_knockroomideventid)
 
 use ruma_api::ruma_api;
 use ruma_events::{room::member::MemberEvent, AnyStrippedStateEvent};
