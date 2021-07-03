@@ -55,6 +55,13 @@
 //! * `events`
 //! * `signatures`
 //!
+//! # `ruma-client` features
+//!
+//! The `client` feature activates [`ruma::client`][client], and `client-ext-client-api` activates
+//! `ruma-client`s `client-api` feature. All other `client-*` features activate the same feature
+//! without the `client-` prefix on `ruma-client`. See the crate's documentation for the effect of
+//! these features.
+//!
 //! If you are viewing this on `docs.rs`, you can have a look at the feature dependencies by
 //! clicking **Feature flags** in the toolbar at the top.
 

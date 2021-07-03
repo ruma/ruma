@@ -69,6 +69,25 @@
 //! }
 //! # ;
 //! ```
+//!
+//! # Crate features
+//!
+//! The following features activate http client types in the [`http_client`] module:
+//!
+//! * `hyper`
+//! * `hyper-native-tls`
+//! * `hyper-rustls`
+//! * `isahc`
+//! * `reqwest` – if you use the `reqwest` library already, activate this feature and configure the
+//!   TLS backend on `reqwest` directly. If you want to use `reqwest` but don't depend on it
+//!   already, use one of the sub-features instead. For details on the meaning of these, see
+//!   [reqwest's documentation](https://docs.rs/reqwest/0.11/reqwest/#optional-features):
+//!   * `reqwest-native-tls`
+//!   * `reqwest-native-tls-alpn`
+//!   * `reqwest-native-tls-vendored`
+//!   * `reqwest-rustls-manual-roots`
+//!   * `reqwest-rustls-webpki-roots`
+//!   * `reqwest-rustls-native-roots`
 
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
