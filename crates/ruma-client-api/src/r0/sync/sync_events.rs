@@ -335,7 +335,7 @@ impl Default for JoinedRoom {
 }
 
 /// Updates to knocked rooms.
-#[derive(Debug, Clone, Deserialize, Serialize, Default)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -345,7 +345,7 @@ pub struct KnockedRoom {
 }
 
 /// A mapping from a key `events` to a list of `StrippedStateEvent`.
-#[derive(Debug, Clone, Deserialize, Serialize, Default)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]

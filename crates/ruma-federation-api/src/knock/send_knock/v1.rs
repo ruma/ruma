@@ -25,7 +25,7 @@ ruma_api! {
 
         /// The full knock event.
         #[ruma_api(body)]
-        pub knock_event: &'a MemberEvent
+        pub knock_event: &'a MemberEvent,
     }
 
     response: {
