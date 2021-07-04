@@ -10,6 +10,7 @@ ruma-clippy = """\
     -W clippy::cloned_instead_of_copied \
     -W clippy::dbg_macro \
     -W clippy::empty_line_after_outer_attr \
+    -W clippy::exhaustive_enums \
     -W clippy::exhaustive_structs \
     -W clippy::inefficient_to_string \
     -W clippy::macro_use_imports \
