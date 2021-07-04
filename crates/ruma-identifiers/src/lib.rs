@@ -13,6 +13,7 @@
 #[cfg(feature = "serde")]
 extern crate serde1 as serde;
 
+#[cfg(feature = "serde")]
 use std::convert::TryFrom;
 
 #[cfg(feature = "serde")]
