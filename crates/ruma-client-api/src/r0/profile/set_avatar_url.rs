@@ -37,6 +37,16 @@ ruma_api! {
             serde(skip_serializing_if = "Option::is_none")
         )]
         pub avatar_url: Option<&'a MxcUri>,
+
+        /// The [BlurHash](https://blurha.sh) for the avatar pointed to by `avatar_url`.
+        ///
+        /// This uses the unstable prefix in
+        /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        #[serde(rename = "xyz.amorgan.blurhash")]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub blurhash: Option<&'a str>,
     }
 
     #[derive(Default)]
@@ -48,7 +58,12 @@ ruma_api! {
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given user ID and avatar URL.
     pub fn new(user_id: &'a UserId, avatar_url: Option<&'a MxcUri>) -> Self {
-        Self { user_id, avatar_url }
+        Self {
+            user_id,
+            avatar_url,
+            #[cfg(feature = "unstable-pre-spec")]
+            blurhash: None,
+        }
     }
 }
 
@@ -75,7 +90,7 @@ mod tests {
                     .uri("https://bar.org/_matrix/client/r0/profile/@foo:bar.org/avatar_url")
                     .body(&[] as &[u8]).unwrap(),
             ).unwrap(),
-            IncomingRequest { user_id, avatar_url: None } if user_id == "@foo:bar.org"
+            IncomingRequest { user_id, avatar_url: None, .. } if user_id == "@foo:bar.org"
         );
 
         #[cfg(feature = "compat")]
@@ -87,7 +102,7 @@ mod tests {
                     .body(serde_json::to_vec(&serde_json::json!({ "avatar_url": "" })).unwrap())
                     .unwrap(),
             ).unwrap(),
-            IncomingRequest { user_id, avatar_url: None } if user_id == "@foo:bar.org"
+            IncomingRequest { user_id, avatar_url: None, .. } if user_id == "@foo:bar.org"
         );
     }
 }

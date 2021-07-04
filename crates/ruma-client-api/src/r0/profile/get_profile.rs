@@ -35,6 +35,16 @@ ruma_api! {
         /// The user's display name, if set.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub displayname: Option<String>,
+
+        /// The [BlurHash](https://blurha.sh) for the avatar pointed to by `avatar_url`.
+        ///
+        /// This uses the unstable prefix in
+        /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        #[serde(rename = "xyz.amorgan.blurhash")]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub blurhash: Option<String>,
     }
 
     error: crate::Error
@@ -50,6 +60,11 @@ impl<'a> Request<'a> {
 impl Response {
     /// Creates a new `Response` with the given avatar URL and display name.
     pub fn new(avatar_url: Option<MxcUri>, displayname: Option<String>) -> Self {
-        Self { avatar_url, displayname }
+        Self {
+            avatar_url,
+            displayname,
+            #[cfg(feature = "unstable-pre-spec")]
+            blurhash: None,
+        }
     }
 }

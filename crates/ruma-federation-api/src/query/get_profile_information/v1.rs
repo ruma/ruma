@@ -41,6 +41,16 @@ ruma_api! {
             serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
         )]
         pub avatar_url: Option<MxcUri>,
+
+        /// The [BlurHash](https://blurha.sh) for the avatar pointed to by `avatar_url`.
+        ///
+        /// This uses the unstable prefix in
+        /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        #[serde(rename = "xyz.amorgan.blurhash")]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub blurhash: Option<String>,
     }
 }
 

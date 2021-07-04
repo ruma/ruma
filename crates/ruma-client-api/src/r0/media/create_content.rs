@@ -26,6 +26,16 @@ ruma_api! {
         /// The content type of the file being uploaded.
         #[ruma_api(header = CONTENT_TYPE)]
         pub content_type: Option<&'a str>,
+
+        /// Should the server return a blurhash or not.
+        ///
+        /// This uses the unstable prefix in
+        /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
+        #[ruma_api(query)]
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        #[serde(rename = "xyz.amorgan.blurhash")]
+        pub generate_blurhash: bool,
     }
 
     response: {
@@ -49,7 +59,13 @@ ruma_api! {
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given file contents.
     pub fn new(file: &'a [u8]) -> Self {
-        Self { file, filename: None, content_type: None }
+        Self {
+            file,
+            filename: None,
+            content_type: None,
+            #[cfg(feature = "unstable-pre-spec")]
+            generate_blurhash: false,
+        }
     }
 }
 

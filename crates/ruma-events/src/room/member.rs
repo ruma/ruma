@@ -69,6 +69,16 @@ pub struct MemberEventContent {
     /// contain information about that invitation.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub third_party_invite: Option<ThirdPartyInvite>,
+
+    /// The [BlurHash](https://blurha.sh) for the avatar pointed to by `avatar_url`.
+    ///
+    /// This uses the unstable prefix in
+    /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
+    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+    #[serde(rename = "xyz.amorgan.blurhash")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blurhash: Option<String>,
 }
 
 impl MemberEventContent {
@@ -80,6 +90,8 @@ impl MemberEventContent {
             displayname: None,
             is_direct: None,
             third_party_invite: None,
+            #[cfg(feature = "unstable-pre-spec")]
+            blurhash: None,
         }
     }
 }
@@ -227,6 +239,8 @@ fn membership_change(
             is_direct: None,
             membership: St::Leave,
             third_party_invite: None,
+            #[cfg(feature = "unstable-pre-spec")]
+            blurhash: None,
         }
     };
 
@@ -326,6 +340,7 @@ mod tests {
                     is_direct: None,
                     membership: MembershipState::Join,
                     third_party_invite: None,
+                    ..
                 },
                 event_id,
                 origin_server_ts,
@@ -372,6 +387,7 @@ mod tests {
                     is_direct: None,
                     membership: MembershipState::Join,
                     third_party_invite: None,
+                    ..
                 },
                 event_id,
                 origin_server_ts,
@@ -385,6 +401,7 @@ mod tests {
                     is_direct: None,
                     membership: MembershipState::Join,
                     third_party_invite: None,
+                    ..
                 }),
             } if event_id == "$h29iv0s8:example.com"
                 && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
@@ -439,6 +456,7 @@ mod tests {
                         display_name: third_party_displayname,
                         signed: SignedContent { mxid, signatures, token },
                     }),
+                    ..
                 },
                 event_id,
                 origin_server_ts,
@@ -510,6 +528,7 @@ mod tests {
                     is_direct: None,
                     membership: MembershipState::Join,
                     third_party_invite: None,
+                    ..
                 },
                 event_id,
                 origin_server_ts,
@@ -526,6 +545,7 @@ mod tests {
                         display_name: third_party_displayname,
                         signed: SignedContent { mxid, signatures, token },
                     }),
+                    ..
                 }),
             } if event_id == "$143273582443PhrSn:example.org"
                 && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(233))
@@ -586,6 +606,7 @@ mod tests {
                     is_direct: None,
                     membership: MembershipState::Join,
                     third_party_invite: None,
+                    ..
                 },
                 event_id,
                 origin_server_ts,
@@ -602,6 +623,7 @@ mod tests {
                         display_name: third_party_displayname,
                         signed: SignedContent { mxid, signatures, token },
                     }),
+                    ..
                 }),
             } if event_id == "$143273582443PhrSn:example.org"
                 && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(233))
