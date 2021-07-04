@@ -27,6 +27,7 @@ pub struct OtherThing<'t> {
 
 #[derive(Outgoing)]
 #[incoming_derive(!Deserialize)]
+#[non_exhaustive]
 pub struct FakeRequest<'a, T> {
     pub abc: &'a str,
     pub thing: Thing<'a, T>,
@@ -44,6 +45,7 @@ pub struct FakeRequest<'a, T> {
 
 #[derive(Outgoing)]
 #[incoming_derive(!Deserialize)]
+#[non_exhaustive]
 pub enum EnumThing<'a, T> {
     Abc(&'a str),
     Stuff(Thing<'a, T>),

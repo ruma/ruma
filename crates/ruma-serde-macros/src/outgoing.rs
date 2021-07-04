@@ -159,6 +159,7 @@ fn filter_input_attrs(attr: &Attribute) -> bool {
         || attr.path.is_ident("cfg_attr")
         || attr.path.is_ident("serde")
         || attr.path.is_ident("non_exhaustive")
+        || attr.path.is_ident("allow")
 }
 
 fn impl_outgoing_with_incoming_self(input: &DeriveInput, ruma_serde: &TokenStream) -> TokenStream {
