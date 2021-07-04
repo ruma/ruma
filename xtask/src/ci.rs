@@ -70,8 +70,14 @@ impl CiTask {
     }
 
     fn build_nightly(&self) -> xshell::Result<()> {
+        // Check formatting
         let fmt_res = cmd!("rustup run nightly cargo fmt -- --check").run();
+        // Check `ruma` crate with `full` feature (sometimes things only compile with an unstable
+        // flag)
+        let check_full_res = cmd!("rustup run nightly cargo check -p ruma --features full").run();
+        // Check everything with (almost) all features with clippy
         let clippy_res = cmd!("rustup run nightly cargo ruma-clippy -D warnings").run();
+        // Check dependencies being sorted
         let sort_res = cmd!(
             "
             rustup run nightly cargo sort
@@ -81,6 +87,6 @@ impl CiTask {
         )
         .run();
 
-        fmt_res.and(clippy_res).and(sort_res)
+        fmt_res.and(check_full_res).and(clippy_res).and(sort_res)
     }
 }
