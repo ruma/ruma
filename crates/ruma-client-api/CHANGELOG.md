@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Change inconsistent types in `rooms` and `not_rooms` fields in `RoomEventFilter` structure. Both types now use `RoomId`. 
+
 # 0.11.0
 
 Breaking changes:
