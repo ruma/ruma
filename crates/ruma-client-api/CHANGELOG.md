@@ -1,9 +1,13 @@
 # [unreleased]
 
+Breaking changes:
+
+* Change inconsistent types in `rooms` and `not_rooms` fields in `RoomEventFilter` structure. Both types now use `RoomId`. 
+
 Improvements:
 
 * Add more endpoints:
-  
+
   ```rust
   r0::knock::knock_room
   ```
