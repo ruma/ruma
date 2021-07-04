@@ -148,7 +148,11 @@ mod tests {
         let filter = RoomEventFilter {
             lazy_load_options: LazyLoadOptions::Enabled { include_redundant_members: true },
             rooms: Some(rooms),
-            not_rooms: &["room".into(), "room2".into(), "room3".into()],
+            not_rooms: &[
+                room_id!("!room:example.org"),
+                room_id!("!room2:example.org"),
+                room_id!("!room3:example.org"),
+            ],
             not_types: &["type".into()],
             ..Default::default()
         };
@@ -172,9 +176,7 @@ mod tests {
              &to=token2\
              &dir=b\
              &limit=0\
-             &filter=%7B%22not_types%22%3A%5B%22type%22%5D%2C%22not_rooms%22%3A%5B%22room%22%2C%22\
-              room2%22%2C%22room3%22%5D%2C%22rooms%22%3A%5B%22%21roomid%3Aexample.org%22%5D%2C%22\
-              lazy_load_members%22%3Atrue%2C%22include_redundant_members%22%3Atrue%7D",
+             &filter=%7B%22not_types%22%3A%5B%22type%22%5D%2C%22not_rooms%22%3A%5B%22%21room%3Aexample.org%22%2C%22%21room2%3Aexample.org%22%2C%22%21room3%3Aexample.org%22%5D%2C%22rooms%22%3A%5B%22%21roomid%3Aexample.org%22%5D%2C%22lazy_load_members%22%3Atrue%2C%22include_redundant_members%22%3Atrue%7D",
             request.uri().query().unwrap()
         );
     }

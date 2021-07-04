@@ -63,7 +63,7 @@ pub struct RoomEventFilter<'a> {
     /// If this list is absent then no rooms are excluded. A matching room will be excluded even if
     /// it is listed in the 'rooms' filter.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub not_rooms: &'a [String],
+    pub not_rooms: &'a [RoomId],
 
     /// The maximum number of events to return.
     #[serde(skip_serializing_if = "Option::is_none")]
