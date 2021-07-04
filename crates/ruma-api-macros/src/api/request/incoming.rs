@@ -21,6 +21,9 @@ impl Request {
         let incoming_request_type =
             if self.contains_lifetimes() { quote!(IncomingRequest) } else { quote!(Request) };
 
+        // FIXME: the rest of the field initializer expansions are gated `cfg(...)`
+        // except this one. If we get errors about missing fields in IncomingRequest for
+        // a path field look here.
         let (parse_request_path, path_vars) = if self.has_path_fields() {
             let path_string = metadata.path.value();
 
@@ -65,14 +68,23 @@ impl Request {
         };
 
         let (parse_query, query_vars) = if let Some(field) = self.query_map_field() {
+            let cfg_attrs =
+                field.attrs.iter().filter(|a| a.path.is_ident("cfg")).collect::<Vec<_>>();
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let parse = quote! {
+                #( #cfg_attrs )*
                 let #field_name = #ruma_serde::urlencoded::from_str(
                     &request.uri().query().unwrap_or(""),
                 )?;
             };
 
-            (parse, quote! { #field_name, })
+            (
+                parse,
+                quote! {
+                    #( #cfg_attrs )*
+                    #field_name,
+                },
+            )
         } else if self.has_query_fields() {
             let (decls, names) = self.vars(RequestFieldKind::Query, quote!(request_query));
 
@@ -99,6 +111,9 @@ impl Request {
                         _ => panic!("expected request field to be header variant"),
                     };
 
+                    let cfg_attrs =
+                        field.attrs.iter().filter(|a| a.path.is_ident("cfg")).collect::<Vec<_>>();
+
                     let field_name = &field.ident;
                     let header_name_string = header_name.to_string();
 
@@ -121,6 +136,7 @@ impl Request {
                     };
 
                     let decl = quote! {
+                        #( #cfg_attrs )*
                         let #field_name = match headers.get(#http::header::#header_name) {
                             Some(header_value) => {
                                 let str_value = header_value.to_str()?;
@@ -130,7 +146,13 @@ impl Request {
                         };
                     };
 
-                    (decl, field_name)
+                    (
+                        decl,
+                        quote! {
+                            #( #cfg_attrs )*
+                            #field_name
+                        },
+                    )
                 })
                 .unzip();
 
@@ -263,7 +285,13 @@ impl Request {
                     let #field_name = #src.#field_name;
                 };
 
-                (decl, quote! { #field_name, })
+                (
+                    decl,
+                    quote! {
+                        #( #cfg_attrs )*
+                        #field_name,
+                    },
+                )
             })
             .unzip()
     }

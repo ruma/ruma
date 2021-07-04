@@ -62,6 +62,7 @@ impl Response {
                                 ..
                             }) if segments.last().unwrap().ident == "Option" => {
                                 quote! {
+                                    #( #cfg_attrs )*
                                     #field_name: {
                                         headers.remove(#http::header::#header_name)
                                             .map(|h| h.to_str().map(|s| s.to_owned()))
@@ -70,6 +71,7 @@ impl Response {
                                 }
                             }
                             _ => quote! {
+                                #( #cfg_attrs )*
                                 #field_name: {
                                     headers.remove(#http::header::#header_name)
                                         .expect("response missing expected header")
@@ -82,13 +84,16 @@ impl Response {
                     }
                     ResponseField::NewtypeBody(_) => {
                         quote! {
+                            #( #cfg_attrs )*
                             #field_name: response_body.0
                         }
                     }
                     // This field must be instantiated last to avoid `use of move value` error.
-                    // We are guaranteed only one new body field because of a check in `try_from`.
+                    // We are guaranteed only one new body field because of a check in
+                    // `parse_response`.
                     ResponseField::NewtypeRawBody(_) => {
                         new_type_raw_body = Some(quote! {
+                            #( #cfg_attrs )*
                             #field_name: {
                                 ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
                                     response.body(),
