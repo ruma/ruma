@@ -181,6 +181,12 @@ pub struct Rooms {
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub invite: BTreeMap<RoomId, InvitedRoom>,
 
+    /// The rooms that the user has knocked on.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub knock: BTreeMap<RoomId, KnockedRoom>,
+
     #[cfg(not(feature = "unstable-exhaustive-types"))]
     #[doc(hidden)]
     #[serde(skip, default = "crate::private")]
@@ -205,6 +211,8 @@ impl Default for Rooms {
             leave: BTreeMap::new(),
             join: BTreeMap::new(),
             invite: BTreeMap::new(),
+            #[cfg(feature = "unstable-pre-spec")]
+            knock: BTreeMap::new(),
             #[cfg(not(feature = "unstable-exhaustive-types"))]
             __test_exhaustive: crate::private(),
         }
@@ -324,6 +332,26 @@ impl Default for JoinedRoom {
             __test_exhaustive: crate::private(),
         }
     }
+}
+
+/// Updates to knocked rooms.
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct KnockedRoom {
+    /// The knock state.
+    pub knock_state: KnockState,
+}
+
+/// A mapping from a key `events` to a list of `StrippedStateEvent`.
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct KnockState {
+    /// The list of events.
+    pub events: Vec<AnyStrippedStateEvent>,
 }
 
 /// Unread notifications count.

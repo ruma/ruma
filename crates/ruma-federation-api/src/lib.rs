@@ -17,6 +17,9 @@ pub mod directory;
 pub mod discovery;
 pub mod event;
 pub mod keys;
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+pub mod knock;
 pub mod membership;
 pub mod openid;
 pub mod query;
