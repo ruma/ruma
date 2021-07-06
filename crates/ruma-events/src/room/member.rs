@@ -79,6 +79,12 @@ pub struct MemberEventContent {
     #[serde(rename = "xyz.amorgan.blurhash")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub blurhash: Option<String>,
+
+    /// The reason for leaving a room.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
 }
 
 impl MemberEventContent {
@@ -92,6 +98,8 @@ impl MemberEventContent {
             third_party_invite: None,
             #[cfg(feature = "unstable-pre-spec")]
             blurhash: None,
+            #[cfg(feature = "unstable-pre-spec")]
+            reason: None,
         }
     }
 }
@@ -241,6 +249,8 @@ fn membership_change(
             third_party_invite: None,
             #[cfg(feature = "unstable-pre-spec")]
             blurhash: None,
+            #[cfg(feature = "unstable-pre-spec")]
+            reason: None,
         }
     };
 
