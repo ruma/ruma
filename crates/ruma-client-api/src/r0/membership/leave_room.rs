@@ -17,6 +17,12 @@ ruma_api! {
         /// The room to leave.
         #[ruma_api(path)]
         pub room_id: &'a RoomId,
+
+        /// Optional reason to be included as the `reason` on the subsequent membership event.
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub reason: Option<&'a str>,
     }
 
     #[derive(Default)]
@@ -28,7 +34,11 @@ ruma_api! {
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given room id.
     pub fn new(room_id: &'a RoomId) -> Self {
-        Self { room_id }
+        Self {
+            room_id,
+            #[cfg(feature = "unstable-pre-spec")]
+            reason: None,
+        }
     }
 }
 
