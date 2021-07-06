@@ -6,6 +6,7 @@ pub mod get_room_visibility;
 pub mod set_room_visibility;
 
 use js_int::{uint, UInt};
+#[cfg(feature = "unstable-pre-spec")]
 use ruma_events::room::join_rules::JoinRule;
 use ruma_identifiers::{MxcUri, RoomAliasId, RoomId};
 use serde::{Deserialize, Serialize};
@@ -56,6 +57,8 @@ pub struct PublicRoomsChunk {
     pub avatar_url: Option<MxcUri>,
 
     /// The joining rule for the room.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub join_rule: Option<JoinRule>,
 }
@@ -77,6 +80,7 @@ impl PublicRoomsChunk {
             world_readable: false,
             guest_can_join: false,
             avatar_url: None,
+            #[cfg(feature = "unstable-pre-spec")]
             join_rule: None,
         }
     }
