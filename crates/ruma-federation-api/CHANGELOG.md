@@ -2,7 +2,6 @@
 
 Improvements:
 
-
 * Add more endpoints:
   ```rust
   knock::{
