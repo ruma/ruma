@@ -1,5 +1,13 @@
 # [unreleased]
 
+Improvements:
+
+* Add more endpoints:
+  
+  ```rust
+  invitation::store_invitation::v2
+  ```
+
 # 0.2.0
 
 Breaking changes:
@@ -15,10 +23,7 @@ Improvements:
       check_3pid_validity::v2,
       bind_3pid::v2,
   },
-  invitation::{
-      sign_invitation_ed25519::v2,
-      store_invitation::v2,
-  }
+  invitation::sign_invitation_ed25519::v2,
   ```
 
 # 0.1.0

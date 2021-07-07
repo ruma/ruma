@@ -1,5 +1,16 @@
 # [unreleased]
 
+Improvements:
+
+* Add more endpoints:
+  ```rust
+  knock::{
+    create_knock_event::v1,
+    send_knock::v1,
+  }
+  ```
+  * Add unstable support for room knocking.
+
 # 0.2.0
 
 Breaking Changes:
