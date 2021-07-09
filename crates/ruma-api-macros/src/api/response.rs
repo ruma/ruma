@@ -52,22 +52,11 @@ impl Response {
             format!("Data in the response from the `{}` API endpoint.", metadata.name.value());
         let struct_attributes = &self.attributes;
 
-        let response_def = if self.fields.is_empty() {
-            quote!(;)
-        } else {
-            let fields = self.fields.iter().map(|response_field| response_field.field());
-            quote! { { #(#fields),* } }
-        };
-
         let def = if let Some(body_field) = self.fields.iter().find(|f| f.is_newtype_body()) {
             let field = Field { ident: None, colon_token: None, ..body_field.field().clone() };
-
             quote! { (#field); }
         } else if self.has_body_fields() {
-            let fields = self.fields.iter().filter(|f| f.is_body());
-
-            let fields = fields.map(ResponseField::field);
-
+            let fields = self.fields.iter().filter(|f| f.is_body()).map(ResponseField::field);
             quote! { { #(#fields),* } }
         } else {
             quote! { {} }
@@ -91,6 +80,8 @@ impl Response {
             quote! { #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)] }
         };
 
+        let fields = self.fields.iter().map(|response_field| response_field.field());
+
         let outgoing_response_impl = self.expand_outgoing(ruma_api);
         let incoming_response_impl = self.expand_incoming(error_ty, ruma_api);
 
@@ -100,7 +91,9 @@ impl Response {
             #non_exhaustive_attr
             #[incoming_derive(!Deserialize)]
             #( #struct_attributes )*
-            pub struct Response #response_def
+            pub struct Response {
+                #(#fields),*
+            }
 
             #response_body_struct
 

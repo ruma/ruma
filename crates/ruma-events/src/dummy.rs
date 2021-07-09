@@ -27,7 +27,7 @@ pub struct DummyToDeviceEventContent;
 impl DummyToDeviceEventContent {
     /// Create a new `DummyToDeviceEventContent`.
     pub fn new() -> Self {
-        Self
+        Self {}
     }
 }
 

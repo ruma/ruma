@@ -41,6 +41,6 @@ impl<'a> Request<'a> {
 impl Response {
     /// Creates an empty `Response`.
     pub fn new() -> Self {
-        Self
+        Self {}
     }
 }

@@ -142,13 +142,6 @@ impl Request {
         );
         let struct_attributes = &self.attributes;
 
-        let request_def = if self.fields.is_empty() {
-            quote!(;)
-        } else {
-            let fields = self.fields.iter().map(|request_field| request_field.field());
-            quote! { { #(#fields),* } }
-        };
-
         let request_body_struct =
             if let Some(body_field) = self.fields.iter().find(|f| f.is_newtype_body()) {
                 let field = Field { ident: None, colon_token: None, ..body_field.field().clone() };
@@ -232,6 +225,8 @@ impl Request {
         };
 
         let lifetimes = self.combine_lifetimes();
+        let fields = self.fields.iter().map(|request_field| request_field.field());
+
         let outgoing_request_impl = self.expand_outgoing(metadata, error_ty, &lifetimes, ruma_api);
         let incoming_request_impl = self.expand_incoming(metadata, error_ty, ruma_api);
 
@@ -241,7 +236,9 @@ impl Request {
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             #[incoming_derive(!Deserialize)]
             #( #struct_attributes )*
-            pub struct Request #lifetimes #request_def
+            pub struct Request #lifetimes {
+                #(#fields),*
+            }
 
             #request_body_struct
             #request_query_struct

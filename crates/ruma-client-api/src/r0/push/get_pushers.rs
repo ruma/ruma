@@ -29,7 +29,7 @@ ruma_api! {
 impl Request {
     /// Creates an empty `Request`.
     pub fn new() -> Self {
-        Self
+        Self {}
     }
 }
 
