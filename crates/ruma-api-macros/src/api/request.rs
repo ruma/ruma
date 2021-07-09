@@ -171,8 +171,24 @@ impl Request {
                     (quote!(#serde::Deserialize), TokenStream::new())
                 };
                 let fields = fields.map(RequestField::field);
+                let single_lt_field = if let Some(lt) = self.lifetimes.body.iter().next() {
+                    quote! {
+                        #[serde(skip)]
+                        pub _hack: std::marker::PhantomData<& #lt ()>,
+                    }
+                } else {
+                    TokenStream::new()
+                };
 
-                Some((derive_deserialize, quote! { #lifetimes { #(#fields),* } }))
+                Some((
+                    derive_deserialize,
+                    quote! {
+                        #lifetimes {
+                            #single_lt_field
+                            #(#fields),*
+                        }
+                    },
+                ))
             } else {
                 None
             }

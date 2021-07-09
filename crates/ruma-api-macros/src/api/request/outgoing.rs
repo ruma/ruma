@@ -174,8 +174,18 @@ impl Request {
                     field.ident.as_ref().expect("expected field to have an identifier");
                 quote! { (self.#field_name) }
             } else {
+                let single_lt_field = if self.has_body_lifetimes() {
+                    quote! {
+                        _hack: std::marker::PhantomData,
+                    }
+                } else {
+                    TokenStream::new()
+                };
                 let initializers = self.struct_init_fields(RequestFieldKind::Body, quote!(self));
-                quote! { { #initializers } }
+                quote! { {
+                    #initializers
+                    #single_lt_field
+                } }
             };
 
             quote! {
