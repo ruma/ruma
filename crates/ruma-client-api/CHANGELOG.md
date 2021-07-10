@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Add unstable support for reasons for leaving rooms
+
 # 0.11.0
 
 Breaking changes:
