@@ -77,7 +77,7 @@ fn ban_with_auth_chains2() {
                     .unwrap()
             })
             .collect(),
-        &|id| ev_map.get(id).map(Arc::clone),
+        |id| ev_map.get(id).map(Arc::clone),
     ) {
         Ok(state) => state,
         Err(e) => panic!("{}", e),
