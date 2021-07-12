@@ -61,7 +61,7 @@ impl StateResolution {
         room_version: &RoomVersionId,
         state_sets: &[StateMap<EventId>],
         auth_events: Vec<Vec<EventId>>,
-        fetch_event: &F,
+        fetch_event: F,
     ) -> Result<StateMap<EventId>>
     where
         E: Event,
@@ -105,7 +105,7 @@ impl StateResolution {
         // Get only the control events with a state_key: "" or ban/kick event (sender != state_key)
         let control_events = all_conflicted
             .iter()
-            .filter(|id| is_power_event_id(id, fetch_event))
+            .filter(|id| is_power_event_id(id, &fetch_event))
             .cloned()
             .collect::<Vec<_>>();
 
@@ -113,7 +113,7 @@ impl StateResolution {
         let sorted_control_levels = StateResolution::reverse_topological_power_sort(
             &control_events,
             &all_conflicted,
-            fetch_event,
+            &fetch_event,
         );
 
         debug!("SRTD {:?}", sorted_control_levels);
@@ -124,7 +124,7 @@ impl StateResolution {
             &room_version,
             &sorted_control_levels,
             &clean,
-            fetch_event,
+            &fetch_event,
         )?;
 
         debug!("AUTHED {:?}", resolved_control.iter().collect::<Vec<_>>());
@@ -149,7 +149,7 @@ impl StateResolution {
         debug!("PL {:?}", power_event);
 
         let sorted_left_events =
-            StateResolution::mainline_sort(&events_to_resolve, power_event, fetch_event);
+            StateResolution::mainline_sort(&events_to_resolve, power_event, &fetch_event);
 
         debug!("SORTED LEFT {:?}", sorted_left_events.iter().collect::<Vec<_>>());
 
@@ -157,7 +157,7 @@ impl StateResolution {
             &room_version,
             &sorted_left_events,
             &resolved_control, // The control events are added to the final resolved state
-            fetch_event,
+            &fetch_event,
         )?;
 
         // Add unconflicted state to the resolved state
@@ -234,7 +234,7 @@ impl StateResolution {
     pub fn reverse_topological_power_sort<E, F>(
         events_to_sort: &[EventId],
         auth_diff: &BTreeSet<EventId>,
-        fetch_event: &F,
+        fetch_event: F,
     ) -> Vec<EventId>
     where
         E: Event,
@@ -248,7 +248,7 @@ impl StateResolution {
                 &mut graph,
                 event_id,
                 auth_diff,
-                fetch_event,
+                &fetch_event,
             );
 
             // TODO: if these functions are ever made async here
@@ -259,7 +259,7 @@ impl StateResolution {
         // This is used in the `key_fn` passed to the lexico_topo_sort fn
         let mut event_to_pl = BTreeMap::new();
         for event_id in graph.keys() {
-            let pl = StateResolution::get_power_level_for_sender(event_id, fetch_event);
+            let pl = StateResolution::get_power_level_for_sender(event_id, &fetch_event);
             info!("{} power level {}", event_id, pl);
 
             event_to_pl.insert(event_id.clone(), pl);
@@ -350,7 +350,7 @@ impl StateResolution {
     }
 
     /// Find the power level for the sender of `event_id` or return a default value of zero.
-    fn get_power_level_for_sender<E, F>(event_id: &EventId, fetch_event: &F) -> i64
+    fn get_power_level_for_sender<E, F>(event_id: &EventId, fetch_event: F) -> i64
     where
         E: Event,
         F: Fn(&EventId) -> Option<Arc<E>>,
@@ -404,7 +404,7 @@ impl StateResolution {
         room_version: &RoomVersion,
         events_to_check: &[EventId],
         unconflicted_state: &StateMap<EventId>,
-        fetch_event: &F,
+        fetch_event: F,
     ) -> Result<StateMap<EventId>>
     where
         E: Event,
@@ -501,7 +501,7 @@ impl StateResolution {
     pub fn mainline_sort<E, F>(
         to_sort: &[EventId],
         resolved_power_level: Option<&EventId>,
-        fetch_event: &F,
+        fetch_event: F,
     ) -> Vec<EventId>
     where
         E: Event,
@@ -545,7 +545,7 @@ impl StateResolution {
         for ev_id in to_sort.iter() {
             if let Some(event) = fetch_event(ev_id) {
                 if let Ok(depth) =
-                    StateResolution::get_mainline_depth(Some(event), &mainline_map, fetch_event)
+                    StateResolution::get_mainline_depth(Some(event), &mainline_map, &fetch_event)
                 {
                     order_map.insert(
                         ev_id,
@@ -576,7 +576,7 @@ impl StateResolution {
     fn get_mainline_depth<E, F>(
         mut event: Option<Arc<E>>,
         mainline_map: &EventMap<usize>,
-        fetch_event: &F,
+        fetch_event: F,
     ) -> Result<usize>
     where
         E: Event,
@@ -608,7 +608,7 @@ impl StateResolution {
         graph: &mut BTreeMap<EventId, BTreeSet<EventId>>,
         event_id: &EventId,
         auth_diff: &BTreeSet<EventId>,
-        fetch_event: &F,
+        fetch_event: F,
     ) where
         E: Event,
         F: Fn(&EventId) -> Option<Arc<E>>,
@@ -633,7 +633,7 @@ impl StateResolution {
     }
 }
 
-pub fn is_power_event_id<E, F>(event_id: &EventId, fetch: &F) -> bool
+pub fn is_power_event_id<E, F>(event_id: &EventId, fetch: F) -> bool
 where
     E: Event,
     F: Fn(&EventId) -> Option<Arc<E>>,

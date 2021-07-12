@@ -121,7 +121,7 @@ pub fn do_check(
                             .unwrap()
                     })
                     .collect(),
-                &|id| event_map.get(id).map(Arc::clone),
+                |id| event_map.get(id).map(Arc::clone),
             );
             match resolved {
                 Ok(state) => state,
