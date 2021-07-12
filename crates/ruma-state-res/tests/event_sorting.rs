@@ -30,7 +30,7 @@ fn test_event_sort() {
     // TODO these events are not guaranteed to be sorted but they are resolved, do
     // we need the auth_chain
     let sorted_power_events =
-        StateResolution::reverse_topological_power_sort(&power_events, &auth_chain, &|id| {
+        StateResolution::reverse_topological_power_sort(&power_events, &auth_chain, |id| {
             events.get(id).map(Arc::clone)
         });
 
@@ -40,7 +40,7 @@ fn test_event_sort() {
         &RoomVersion::version_6(),
         &sorted_power_events,
         &BTreeMap::new(), // unconflicted events
-        &|id| events.get(id).map(Arc::clone),
+        |id| events.get(id).map(Arc::clone),
     )
     .expect("iterative auth check failed on resolved events");
 
@@ -51,7 +51,7 @@ fn test_event_sort() {
 
     let power_level = resolved_power.get(&(EventType::RoomPowerLevels, "".to_owned()));
 
-    let sorted_event_ids = StateResolution::mainline_sort(&events_to_sort, power_level, &|id| {
+    let sorted_event_ids = StateResolution::mainline_sort(&events_to_sort, power_level, |id| {
         events.get(id).map(Arc::clone)
     });
 
