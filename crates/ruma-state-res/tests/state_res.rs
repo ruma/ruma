@@ -266,7 +266,7 @@ fn test_event_map_none() {
                     .unwrap()
             })
             .collect(),
-        &|id| ev_map.get(id).map(Arc::clone),
+        |id| ev_map.get(id).map(Arc::clone),
     ) {
         Ok(state) => state,
         Err(e) => panic!("{}", e),
