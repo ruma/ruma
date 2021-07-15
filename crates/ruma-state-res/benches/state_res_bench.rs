@@ -66,15 +66,7 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
                 &room_id(),
                 &RoomVersionId::Version6,
                 &state_sets,
-                state_sets
-                    .iter()
-                    .map(|map| {
-                        store
-                            .auth_event_ids(&room_id(), &map.values().cloned().collect::<Vec<_>>())
-                            .unwrap()
-                    })
-                    .collect(),
-                &|id| ev_map.get(id).map(Arc::clone),
+                |id| ev_map.get(id).map(Arc::clone),
             ) {
                 Ok(state) => state,
                 Err(e) => panic!("{}", e),
@@ -89,7 +81,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
         let ban = BAN_STATE_SET();
 
         inner.extend(ban);
-        let store = TestStore(inner.clone());
+        let _store = TestStore(inner.clone());
 
         let state_set_a = [
             inner.get(&event_id("CREATE")).unwrap(),
@@ -123,15 +115,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
                 &room_id(),
                 &RoomVersionId::Version6,
                 &state_sets,
-                state_sets
-                    .iter()
-                    .map(|map| {
-                        store
-                            .auth_event_ids(&room_id(), &map.values().cloned().collect::<Vec<_>>())
-                            .unwrap()
-                    })
-                    .collect(),
-                &|id| inner.get(id).map(Arc::clone),
+                |id| inner.get(id).map(Arc::clone),
             ) {
                 Ok(state) => state,
                 Err(_) => panic!("resolution failed during benchmarking"),
