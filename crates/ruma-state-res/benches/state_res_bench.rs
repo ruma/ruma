@@ -46,7 +46,7 @@ fn lexico_topo_sort(c: &mut Criterion) {
         };
         b.iter(|| {
             let _ = StateResolution::lexicographical_topological_sort(&graph, |id| {
-                (0, MilliSecondsSinceUnixEpoch(uint!(0)), id.clone())
+                Ok((0, MilliSecondsSinceUnixEpoch(uint!(0)), id.clone()))
             });
         })
     });
