@@ -96,9 +96,11 @@ impl StateResolution {
         }
 
         // The set of auth events that are not common across server forks
-        // This includes the conflicted events
-        let auth_diff =
+        let mut auth_diff =
             StateResolution::get_auth_chain_diff(room_id, &conflicting_state_sets, &fetch_event)?;
+
+        // Add the auth_diff to conflicting now we have a full set of conflicting events
+        auth_diff.extend(conflicting.values().cloned().flatten().filter_map(|o| o));
 
         debug!("auth diff size {:?}", auth_diff);
 
