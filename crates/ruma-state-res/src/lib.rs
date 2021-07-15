@@ -15,7 +15,7 @@ use ruma_events::{
     EventType,
 };
 use ruma_identifiers::{EventId, RoomId, RoomVersionId};
-use tracing::{debug, info, warn};
+use tracing::{debug, info, trace, warn};
 
 mod error;
 pub mod event_auth;
@@ -69,14 +69,16 @@ impl StateResolution {
         // Split non-conflicting and conflicting state
         let (clean, conflicting) = StateResolution::separate(state_sets);
 
-        info!("non conflicting {:?}", clean.len());
+        info!("non conflicting events: {}", clean.len());
+        trace!("{:?}", clean);
 
         if conflicting.is_empty() {
             info!("no conflicting state found");
             return Ok(clean);
         }
 
-        info!("{} conflicting events", conflicting.len());
+        info!("conflicting events: {}", conflicting.len());
+        debug!("{:?}", conflicting);
 
         let mut iter = conflicting.values();
         let mut conflicting_state_sets = iter
@@ -102,7 +104,8 @@ impl StateResolution {
         // Add the auth_diff to conflicting now we have a full set of conflicting events
         auth_diff.extend(conflicting.values().cloned().flatten().filter_map(|o| o));
 
-        debug!("auth diff size {:?}", auth_diff);
+        debug!("auth diff: {}", auth_diff.len());
+        trace!("{:?}", auth_diff);
 
         // `all_conflicted` contains unique items
         // synapse says `full_set = {eid for eid in full_conflicted_set if eid in event_map}`
@@ -112,7 +115,8 @@ impl StateResolution {
         let all_conflicted =
             auth_diff.into_iter().filter(|id| fetch_event(id).is_some()).collect::<BTreeSet<_>>();
 
-        info!("full conflicted set is {} events", all_conflicted.len());
+        info!("full conflicted set: {}", all_conflicted.len());
+        debug!("{:?}", all_conflicted);
 
         // We used to check that all events are events from the correct room
         // this is now a check the caller of `resolve` must make.
@@ -131,7 +135,8 @@ impl StateResolution {
             &fetch_event,
         );
 
-        debug!("SRTD {:?}", sorted_control_levels);
+        debug!("sorted control events: {}", sorted_control_levels.len());
+        trace!("{:?}", sorted_control_levels);
 
         let room_version = RoomVersion::new(room_version)?;
         // Sequentially auth check each control event.
@@ -142,7 +147,8 @@ impl StateResolution {
             &fetch_event,
         )?;
 
-        debug!("AUTHED {:?}", resolved_control.iter().collect::<Vec<_>>());
+        debug!("resolved control events: {}", resolved_control.len());
+        trace!("{:?}", resolved_control);
 
         // At this point the control_events have been resolved we now have to
         // sort the remaining events using the mainline of the resolved power level.
@@ -156,17 +162,18 @@ impl StateResolution {
             .cloned()
             .collect::<Vec<_>>();
 
-        debug!("LEFT {:?}", events_to_resolve.iter().collect::<Vec<_>>());
+        debug!("events left to resolve: {}", events_to_resolve.len());
+        trace!("{:?}", events_to_resolve);
 
         // This "epochs" power level event
         let power_event = resolved_control.get(&(EventType::RoomPowerLevels, "".into()));
 
-        debug!("PL {:?}", power_event);
+        debug!("power event: {:?}", power_event);
 
         let sorted_left_events =
             StateResolution::mainline_sort(&events_to_resolve, power_event, &fetch_event);
 
-        debug!("SORTED LEFT {:?}", sorted_left_events.iter().collect::<Vec<_>>());
+        trace!("events left, sorted: {:?}", sorted_left_events.iter().collect::<Vec<_>>());
 
         let mut resolved_state = StateResolution::iterative_auth_check(
             &room_version,
