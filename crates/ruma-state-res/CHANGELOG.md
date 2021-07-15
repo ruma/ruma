@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* state_res::resolve now doesn't take auth_events anymore and calculates it on its own instead
+
 # 0.2.0
 
 Breaking changes:
