@@ -32,10 +32,9 @@ fn test_event_sort() {
     let sorted_power_events =
         StateResolution::reverse_topological_power_sort(&power_events, &auth_chain, |id| {
             events.get(id).map(Arc::clone)
-        });
+        })
+        .unwrap();
 
-    // This is a TODO in conduit
-    // TODO we may be able to skip this since they are resolved according to spec
     let resolved_power = StateResolution::iterative_auth_check(
         &RoomVersion::version_6(),
         &sorted_power_events,
@@ -53,7 +52,8 @@ fn test_event_sort() {
 
     let sorted_event_ids = StateResolution::mainline_sort(&events_to_sort, power_level, |id| {
         events.get(id).map(Arc::clone)
-    });
+    })
+    .unwrap();
 
     assert_eq!(
         vec![
