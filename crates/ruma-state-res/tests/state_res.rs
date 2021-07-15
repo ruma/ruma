@@ -286,8 +286,9 @@ fn test_lexicographical_sort() {
     };
 
     let res = StateResolution::lexicographical_topological_sort(&graph, |id| {
-        (0, MilliSecondsSinceUnixEpoch(uint!(0)), id.clone())
-    });
+        Ok((0, MilliSecondsSinceUnixEpoch(uint!(0)), id.clone()))
+    })
+    .unwrap();
 
     assert_eq!(
         vec!["o", "l", "n", "m", "p"],

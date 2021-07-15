@@ -80,8 +80,10 @@ pub fn do_check(
     // Resolve the current state and add it to the state_at_event map then continue
     // on in "time"
     for node in StateResolution::lexicographical_topological_sort(&graph, |id| {
-        (0, MilliSecondsSinceUnixEpoch(uint!(0)), id.clone())
-    }) {
+        Ok((0, MilliSecondsSinceUnixEpoch(uint!(0)), id.clone()))
+    })
+    .unwrap()
+    {
         let fake_event = fake_event_map.get(&node).unwrap();
         let event_id = fake_event.event_id().clone();
 
