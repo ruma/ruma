@@ -69,6 +69,14 @@ fn ban_with_auth_chains2() {
         &room_id(),
         &RoomVersionId::Version6,
         &state_sets,
+        state_sets
+            .iter()
+            .map(|map| {
+                store
+                    .auth_event_ids(&room_id(), &map.values().cloned().collect::<Vec<_>>())
+                    .unwrap()
+            })
+            .collect(),
         |id| ev_map.get(id).map(Arc::clone),
     ) {
         Ok(state) => state,
