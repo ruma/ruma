@@ -2,7 +2,7 @@
 
 Breaking changes:
 
-* state_res::resolve now doesn't take auth_events anymore and calculates it on its own instead
+* state_res::resolve auth_events type has been slightly changed and renamed to auth_chain_sets
 
 # 0.2.0
 

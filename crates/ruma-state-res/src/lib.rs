@@ -46,6 +46,9 @@ impl StateResolution {
     /// * `state_sets` - The incoming state to resolve. Each `StateMap` represents a possible fork
     /// in the state of a room.
     ///
+    /// * `auth_chain_sets` - The full recursive set of `auth_events` for each event in the
+    ///   `state_sets`.
+    ///
     /// * `fetch_event` - Any event not found in the `event_map` will defer to this closure to find
     /// the event.
     ///
@@ -58,6 +61,7 @@ impl StateResolution {
         room_id: &RoomId,
         room_version: &RoomVersionId,
         state_sets: &[StateMap<EventId>],
+        auth_chain_sets: Vec<BTreeSet<EventId>>,
         fetch_event: F,
     ) -> Result<StateMap<EventId>>
     where
@@ -98,8 +102,7 @@ impl StateResolution {
         }
 
         // The set of auth events that are not common across server forks
-        let mut auth_diff =
-            StateResolution::get_auth_chain_diff(room_id, &conflicting_state_sets, &fetch_event)?;
+        let mut auth_diff = StateResolution::get_auth_chain_diff(room_id, auth_chain_sets)?;
 
         // Add the auth_diff to conflicting now we have a full set of conflicting events
         auth_diff.extend(conflicting.values().cloned().flatten().filter_map(|o| o));
@@ -219,52 +222,17 @@ impl StateResolution {
     }
 
     /// Returns a Vec of deduped EventIds that appear in some chains but not others.
-    pub fn get_auth_chain_diff<E, F>(
+    pub fn get_auth_chain_diff(
         _room_id: &RoomId,
-        conflicting_state_sets: &[BTreeSet<EventId>],
-        fetch_event: F,
-    ) -> Result<BTreeSet<EventId>>
-    where
-        E: Event,
-        F: Fn(&EventId) -> Option<Arc<E>>,
-    {
-        let mut chains = vec![];
-
-        // Conflicted state sets are just some top level state events. Now we fetch the complete
-        // auth chain of those events
-        for ids in conflicting_state_sets {
-            // TODO state store `auth_event_ids` returns self in the event ids list
-            // when an event returns `auth_event_ids` self is not contained
-            let mut todo = ids.iter().map(|e| e.clone()).collect::<BTreeSet<_>>();
-            let mut auth_chain_ids = ids.clone(); // we also return the events we started with
-
-            while let Some(event_id) = todo.iter().next().cloned() {
-                if let Some(pdu) = fetch_event(&event_id) {
-                    todo.extend(
-                        pdu.auth_events()
-                            .clone()
-                            .into_iter()
-                            .collect::<BTreeSet<_>>()
-                            .difference(&auth_chain_ids)
-                            .cloned(),
-                    );
-                    auth_chain_ids.extend(pdu.auth_events().into_iter());
-                } else {
-                    warn!("Could not find pdu mentioned in auth events.");
-                }
-
-                todo.remove(&event_id);
-            }
-
-            chains.push(auth_chain_ids);
-        }
-
-        if let Some(first) = chains.first().cloned() {
-            let common = chains
+        auth_chain_sets: Vec<BTreeSet<EventId>>,
+    ) -> Result<BTreeSet<EventId>> {
+        if let Some(first) = auth_chain_sets.first().cloned() {
+            let common = auth_chain_sets
                 .iter()
+                .skip(1)
                 .fold(first, |a, b| a.intersection(&b).cloned().collect::<BTreeSet<EventId>>());
 
-            Ok(chains.into_iter().flatten().filter(|id| !common.contains(&id)).collect())
+            Ok(auth_chain_sets.into_iter().flatten().filter(|id| !common.contains(&id)).collect())
         } else {
             Ok(btreeset![])
         }
