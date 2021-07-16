@@ -175,7 +175,11 @@ impl<E: Event> TestStore<E> {
     }
 
     /// Returns a Vec of the related auth events to the given `event`.
-    pub fn auth_event_ids(&self, room_id: &RoomId, event_ids: &[EventId]) -> Result<BTreeSet<EventId>> {
+    pub fn auth_event_ids(
+        &self,
+        room_id: &RoomId,
+        event_ids: &[EventId],
+    ) -> Result<BTreeSet<EventId>> {
         let mut result = BTreeSet::new();
         let mut stack = event_ids.to_vec();
 

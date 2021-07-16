@@ -1,6 +1,6 @@
 #![allow(clippy::or_fun_call, clippy::expect_fun_call)]
 
-use std::{collections::BTreeMap, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
 use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomVersionId};
@@ -48,7 +48,7 @@ fn ban_with_auth_chains2() {
     ]
     .iter()
     .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().clone()))
-    .collect::<BTreeMap<_, _>>();
+    .collect::<StateMap<_>>();
 
     let state_set_b = [
         inner.get(&event_id("CREATE")).unwrap(),
@@ -116,7 +116,7 @@ fn join_rule_with_auth_chain() {
 }
 
 #[allow(non_snake_case)]
-fn BAN_STATE_SET() -> BTreeMap<EventId, Arc<StateEvent>> {
+fn BAN_STATE_SET() -> HashMap<EventId, Arc<StateEvent>> {
     vec![
         to_pdu_event(
             "PA",
@@ -161,7 +161,7 @@ fn BAN_STATE_SET() -> BTreeMap<EventId, Arc<StateEvent>> {
 }
 
 #[allow(non_snake_case)]
-fn JOIN_RULE() -> BTreeMap<EventId, Arc<StateEvent>> {
+fn JOIN_RULE() -> HashMap<EventId, Arc<StateEvent>> {
     vec![
         to_pdu_event(
             "JR",
