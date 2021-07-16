@@ -66,6 +66,14 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
                 &room_id(),
                 &RoomVersionId::Version6,
                 &state_sets,
+                state_sets
+                    .iter()
+                    .map(|map| {
+                        store
+                            .auth_event_ids(&room_id(), &map.values().cloned().collect::<Vec<_>>())
+                            .unwrap()
+                    })
+                    .collect(),
                 |id| ev_map.get(id).map(Arc::clone),
             ) {
                 Ok(state) => state,
@@ -81,7 +89,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
         let ban = BAN_STATE_SET();
 
         inner.extend(ban);
-        let _store = TestStore(inner.clone());
+        let store = TestStore(inner.clone());
 
         let state_set_a = [
             inner.get(&event_id("CREATE")).unwrap(),
@@ -115,6 +123,14 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
                 &room_id(),
                 &RoomVersionId::Version6,
                 &state_sets,
+                state_sets
+                    .iter()
+                    .map(|map| {
+                        store
+                            .auth_event_ids(&room_id(), &map.values().cloned().collect::<Vec<_>>())
+                            .unwrap()
+                    })
+                    .collect(),
                 |id| inner.get(id).map(Arc::clone),
             ) {
                 Ok(state) => state,
@@ -159,8 +175,8 @@ impl<E: Event> TestStore<E> {
     }
 
     /// Returns a Vec of the related auth events to the given `event`.
-    pub fn auth_event_ids(&self, room_id: &RoomId, event_ids: &[EventId]) -> Result<Vec<EventId>> {
-        let mut result = vec![];
+    pub fn auth_event_ids(&self, room_id: &RoomId, event_ids: &[EventId]) -> Result<BTreeSet<EventId>> {
+        let mut result = BTreeSet::new();
         let mut stack = event_ids.to_vec();
 
         // DFS for auth event chain
@@ -170,7 +186,7 @@ impl<E: Event> TestStore<E> {
                 continue;
             }
 
-            result.push(ev_id.clone());
+            result.insert(ev_id.clone());
 
             let event = self.get_event(room_id, &ev_id)?;
 

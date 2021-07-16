@@ -109,10 +109,20 @@ pub fn do_check(
                     .collect::<Vec<_>>()
             );
 
-            let resolved =
-                StateResolution::resolve(&room_id(), &RoomVersionId::Version6, &state_sets, |id| {
-                    event_map.get(id).map(Arc::clone)
-                });
+            let resolved = StateResolution::resolve(
+                &room_id(),
+                &RoomVersionId::Version6,
+                &state_sets,
+                state_sets
+                    .iter()
+                    .map(|map| {
+                        store
+                            .auth_event_ids(&room_id(), &map.values().cloned().collect::<Vec<_>>())
+                            .unwrap()
+                    })
+                    .collect(),
+                |id| event_map.get(id).map(Arc::clone),
+            );
             match resolved {
                 Ok(state) => state,
                 Err(e) => panic!("resolution for {} failed: {}", node, e),
@@ -217,8 +227,12 @@ impl<E: Event> TestStore<E> {
     }
 
     /// Returns a Vec of the related auth events to the given `event`.
-    pub fn auth_event_ids(&self, room_id: &RoomId, event_ids: &[EventId]) -> Result<Vec<EventId>> {
-        let mut result = vec![];
+    pub fn auth_event_ids(
+        &self,
+        room_id: &RoomId,
+        event_ids: &[EventId],
+    ) -> Result<BTreeSet<EventId>> {
+        let mut result = BTreeSet::new();
         let mut stack = event_ids.to_vec();
 
         // DFS for auth event chain
@@ -228,7 +242,7 @@ impl<E: Event> TestStore<E> {
                 continue;
             }
 
-            result.push(ev_id.clone());
+            result.insert(ev_id.clone());
 
             let event = self.get_event(room_id, &ev_id)?;
 
