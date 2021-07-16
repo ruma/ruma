@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use js_int::uint;
-use maplit::{btreemap, btreeset};
+use maplit::{hashmap, hashset};
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{room::join_rules::JoinRule, EventType};
 use ruma_identifiers::{EventId, RoomVersionId};
@@ -247,7 +247,7 @@ fn test_event_map_none() {
     let _ = LOGGER
         .call_once(|| tracer::fmt().with_env_filter(tracer::EnvFilter::from_default_env()).init());
 
-    let mut store = TestStore::<StateEvent>(btreemap! {});
+    let mut store = TestStore::<StateEvent>(hashmap! {});
 
     // build up the DAG
     let (state_at_bob, state_at_charlie, expected) = store.set_up();
@@ -277,12 +277,12 @@ fn test_event_map_none() {
 
 #[test]
 fn test_lexicographical_sort() {
-    let graph = btreemap! {
-        event_id("l") => btreeset![event_id("o")],
-        event_id("m") => btreeset![event_id("n"), event_id("o")],
-        event_id("n") => btreeset![event_id("o")],
-        event_id("o") => btreeset![], // "o" has zero outgoing edges but 4 incoming edges
-        event_id("p") => btreeset![event_id("o")],
+    let graph = hashmap! {
+        event_id("l") => hashset![event_id("o")],
+        event_id("m") => hashset![event_id("n"), event_id("o")],
+        event_id("n") => hashset![event_id("o")],
+        event_id("o") => hashset![], // "o" has zero outgoing edges but 4 incoming edges
+        event_id("p") => hashset![event_id("o")],
     };
 
     let res = StateResolution::lexicographical_topological_sort(&graph, |id| {
