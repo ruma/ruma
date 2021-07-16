@@ -1,5 +1,5 @@
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::{HashMap, HashSet},
     sync::Arc,
 };
 
@@ -18,7 +18,7 @@ fn test_event_sort() {
         .map(|ev| ((ev.kind(), ev.state_key()), ev.clone()))
         .collect::<StateMap<_>>();
 
-    let auth_chain = BTreeSet::new();
+    let auth_chain = HashSet::new();
 
     let power_events = event_map
         .values()
@@ -39,7 +39,7 @@ fn test_event_sort() {
     let resolved_power = StateResolution::iterative_auth_check(
         &RoomVersion::version_6(),
         &sorted_power_events,
-        &BTreeMap::new(), // unconflicted events
+        &HashMap::new(), // unconflicted events
         |id| events.get(id).map(Arc::clone),
     )
     .expect("iterative auth check failed on resolved events");

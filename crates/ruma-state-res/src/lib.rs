@@ -1,11 +1,11 @@
 use std::{
     cmp::Reverse,
-    collections::{BTreeMap, BTreeSet, BinaryHeap},
+    collections::{BinaryHeap, HashMap, HashSet},
     sync::Arc,
 };
 
 use itertools::Itertools;
-use maplit::btreeset;
+use maplit::hashset;
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     room::{
@@ -28,10 +28,10 @@ pub use room_version::RoomVersion;
 pub use state_event::Event;
 
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
-pub type StateMap<T> = BTreeMap<(EventType, String), T>;
+pub type StateMap<T> = HashMap<(EventType, String), T>;
 
 /// A mapping of `EventId` to `T`, usually a `ServerPdu`.
-pub type EventMap<T> = BTreeMap<EventId, T>;
+pub type EventMap<T> = HashMap<EventId, T>;
 
 #[derive(Default)]
 #[allow(clippy::exhaustive_structs)]
@@ -61,7 +61,7 @@ impl StateResolution {
         room_id: &RoomId,
         room_version: &RoomVersionId,
         state_sets: &[StateMap<EventId>],
-        auth_chain_sets: Vec<BTreeSet<EventId>>,
+        auth_chain_sets: Vec<HashSet<EventId>>,
         fetch_event: F,
     ) -> Result<StateMap<EventId>>
     where
@@ -89,7 +89,7 @@ impl StateResolution {
             .next()
             .expect("we made sure conflicting is not empty")
             .iter()
-            .map(|o| if let Some(e) = o { btreeset![e.clone()] } else { BTreeSet::new() })
+            .map(|o| if let Some(e) = o { hashset![e.clone()] } else { HashSet::new() })
             .collect::<Vec<_>>();
 
         for events in iter {
@@ -116,7 +116,7 @@ impl StateResolution {
         // Don't honor events we cannot "verify"
         // TODO: BTreeSet::retain() when stable 1.53
         let all_conflicted =
-            auth_diff.into_iter().filter(|id| fetch_event(id).is_some()).collect::<BTreeSet<_>>();
+            auth_diff.into_iter().filter(|id| fetch_event(id).is_some()).collect::<HashSet<_>>();
 
         info!("full conflicted set: {}", all_conflicted.len());
         debug!("{:?}", all_conflicted);
@@ -155,7 +155,7 @@ impl StateResolution {
 
         // At this point the control_events have been resolved we now have to
         // sort the remaining events using the mainline of the resolved power level.
-        let deduped_power_ev = sorted_control_levels.into_iter().collect::<BTreeSet<_>>();
+        let deduped_power_ev = sorted_control_levels.into_iter().collect::<HashSet<_>>();
 
         // This removes the control events that passed auth and more importantly those that failed
         // auth
@@ -224,17 +224,17 @@ impl StateResolution {
     /// Returns a Vec of deduped EventIds that appear in some chains but not others.
     pub fn get_auth_chain_diff(
         _room_id: &RoomId,
-        auth_chain_sets: Vec<BTreeSet<EventId>>,
-    ) -> Result<BTreeSet<EventId>> {
+        auth_chain_sets: Vec<HashSet<EventId>>,
+    ) -> Result<HashSet<EventId>> {
         if let Some(first) = auth_chain_sets.first().cloned() {
             let common = auth_chain_sets
                 .iter()
                 .skip(1)
-                .fold(first, |a, b| a.intersection(&b).cloned().collect::<BTreeSet<EventId>>());
+                .fold(first, |a, b| a.intersection(&b).cloned().collect::<HashSet<EventId>>());
 
             Ok(auth_chain_sets.into_iter().flatten().filter(|id| !common.contains(&id)).collect())
         } else {
-            Ok(btreeset![])
+            Ok(hashset![])
         }
     }
 
@@ -247,7 +247,7 @@ impl StateResolution {
     /// earlier (further back in time) origin server timestamp.
     pub fn reverse_topological_power_sort<E, F>(
         events_to_sort: &[EventId],
-        auth_diff: &BTreeSet<EventId>,
+        auth_diff: &HashSet<EventId>,
         fetch_event: F,
     ) -> Vec<EventId>
     where
@@ -256,7 +256,7 @@ impl StateResolution {
     {
         debug!("reverse topological sort of power events");
 
-        let mut graph = BTreeMap::new();
+        let mut graph = HashMap::new();
         for event_id in events_to_sort.iter() {
             StateResolution::add_event_and_auth_chain_to_graph(
                 &mut graph,
@@ -271,7 +271,7 @@ impl StateResolution {
         }
 
         // This is used in the `key_fn` passed to the lexico_topo_sort fn
-        let mut event_to_pl = BTreeMap::new();
+        let mut event_to_pl = HashMap::new();
         for event_id in graph.keys() {
             let pl = StateResolution::get_power_level_for_sender(event_id, &fetch_event);
             info!("{} power level {}", event_id, pl);
@@ -300,7 +300,7 @@ impl StateResolution {
     /// `key_fn` is used as a tie breaker. The tie breaker happens based on
     /// power level, age, and event_id.
     pub fn lexicographical_topological_sort<F>(
-        graph: &BTreeMap<EventId, BTreeSet<EventId>>,
+        graph: &HashMap<EventId, HashSet<EventId>>,
         key_fn: F,
     ) -> Vec<EventId>
     where
@@ -314,13 +314,13 @@ impl StateResolution {
         // outgoing edges, c.f.
         // https://en.wikipedia.org/wiki/Topological_sorting#Kahn's_algorithm
 
-        // TODO make the BTreeSet conversion cleaner ??
+        // TODO make the HashSet conversion cleaner ??
         // outdegree_map is an event referring to the events before it, the
         // more outdegree's the more recent the event.
         let mut outdegree_map = graph.clone();
 
         // The number of events that depend on the given event (the eventId key)
-        let mut reverse_graph = BTreeMap::new();
+        let mut reverse_graph = HashMap::new();
 
         // Vec of nodes that have zero out degree, least recent events.
         let mut zero_outdegree = vec![];
@@ -332,9 +332,9 @@ impl StateResolution {
                 zero_outdegree.push(Reverse((key_fn(node), node)));
             }
 
-            reverse_graph.entry(node).or_insert(btreeset![]);
+            reverse_graph.entry(node).or_insert(hashset![]);
             for edge in edges {
-                reverse_graph.entry(edge).or_insert(btreeset![]).insert(node);
+                reverse_graph.entry(edge).or_insert(hashset![]).insert(node);
             }
         }
 
@@ -437,7 +437,7 @@ impl StateResolution {
                 .state_key()
                 .ok_or_else(|| Error::InvalidPdu("State event had no state key".to_owned()))?;
 
-            let mut auth_events = BTreeMap::new();
+            let mut auth_events = HashMap::new();
             for aid in &event.auth_events() {
                 if let Some(ev) = fetch_event(aid) {
                     // TODO synapse check "rejected_reason", I'm guessing this is redacted_because
@@ -553,9 +553,9 @@ impl StateResolution {
             .rev()
             .enumerate()
             .map(|(idx, eid)| ((*eid).clone(), idx))
-            .collect::<BTreeMap<_, _>>();
+            .collect::<HashMap<_, _>>();
 
-        let mut order_map = BTreeMap::new();
+        let mut order_map = HashMap::new();
         for ev_id in to_sort.iter() {
             if let Some(event) = fetch_event(ev_id) {
                 if let Ok(depth) =
@@ -619,9 +619,9 @@ impl StateResolution {
     }
 
     fn add_event_and_auth_chain_to_graph<E, F>(
-        graph: &mut BTreeMap<EventId, BTreeSet<EventId>>,
+        graph: &mut HashMap<EventId, HashSet<EventId>>,
         event_id: &EventId,
-        auth_diff: &BTreeSet<EventId>,
+        auth_diff: &HashSet<EventId>,
         fetch_event: F,
     ) where
         E: Event,
@@ -631,7 +631,7 @@ impl StateResolution {
         while !state.is_empty() {
             // We just checked if it was empty so unwrap is fine
             let eid = state.pop().unwrap();
-            graph.entry(eid.clone()).or_insert(btreeset![]);
+            graph.entry(eid.clone()).or_insert(hashset![]);
             // Prefer the store to event as the store filters dedups the events
             for aid in &fetch_event(&eid).map(|ev| ev.auth_events()).unwrap_or_default() {
                 if auth_diff.contains(aid) {

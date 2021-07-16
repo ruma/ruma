@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::{HashMap, HashSet},
     convert::{TryFrom, TryInto},
     sync::{
         atomic::{AtomicU64, Ordering::SeqCst},
@@ -10,7 +10,7 @@ use std::{
 };
 
 use js_int::uint;
-use maplit::{btreemap, btreeset};
+use maplit::{btreemap, hashset};
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     pdu::{EventHash, Pdu, RoomV3Pdu},
@@ -47,35 +47,35 @@ pub fn do_check(
     );
 
     // This will be lexi_topo_sorted for resolution
-    let mut graph = BTreeMap::new();
+    let mut graph = HashMap::new();
     // This is the same as in `resolve` event_id -> StateEvent
-    let mut fake_event_map = BTreeMap::new();
+    let mut fake_event_map = HashMap::new();
 
     // Create the DB of events that led up to this point
     // TODO maybe clean up some of these clones it is just tests but...
     for ev in init_events.values().chain(events) {
-        graph.insert(ev.event_id().clone(), btreeset![]);
+        graph.insert(ev.event_id().clone(), hashset![]);
         fake_event_map.insert(ev.event_id().clone(), ev.clone());
     }
 
     for pair in INITIAL_EDGES().windows(2) {
         if let [a, b] = &pair {
-            graph.entry(a.clone()).or_insert_with(BTreeSet::new).insert(b.clone());
+            graph.entry(a.clone()).or_insert_with(HashSet::new).insert(b.clone());
         }
     }
 
     for edge_list in edges {
         for pair in edge_list.windows(2) {
             if let [a, b] = &pair {
-                graph.entry(a.clone()).or_insert_with(BTreeSet::new).insert(b.clone());
+                graph.entry(a.clone()).or_insert_with(HashSet::new).insert(b.clone());
             }
         }
     }
 
     // event_id -> StateEvent
-    let mut event_map: BTreeMap<EventId, Arc<StateEvent>> = BTreeMap::new();
+    let mut event_map: HashMap<EventId, Arc<StateEvent>> = HashMap::new();
     // event_id -> StateMap<EventId>
-    let mut state_at_event: BTreeMap<EventId, StateMap<EventId>> = BTreeMap::new();
+    let mut state_at_event: HashMap<EventId, StateMap<EventId>> = HashMap::new();
 
     // Resolve the current state and add it to the state_at_event map then continue
     // on in "time"
@@ -88,7 +88,7 @@ pub fn do_check(
         let prev_events = graph.get(&node).unwrap();
 
         let state_before: StateMap<EventId> = if prev_events.is_empty() {
-            BTreeMap::new()
+            HashMap::new()
         } else if prev_events.len() == 1 {
             state_at_event.get(prev_events.iter().next().unwrap()).unwrap().clone()
         } else {
@@ -207,7 +207,7 @@ pub fn do_check(
 }
 
 #[allow(clippy::exhaustive_structs)]
-pub struct TestStore<E: Event>(pub BTreeMap<EventId, Arc<E>>);
+pub struct TestStore<E: Event>(pub HashMap<EventId, Arc<E>>);
 
 impl<E: Event> TestStore<E> {
     pub fn get_event(&self, _: &RoomId, event_id: &EventId) -> Result<Arc<E>> {
@@ -231,8 +231,8 @@ impl<E: Event> TestStore<E> {
         &self,
         room_id: &RoomId,
         event_ids: &[EventId],
-    ) -> Result<BTreeSet<EventId>> {
-        let mut result = BTreeSet::new();
+    ) -> Result<HashSet<EventId>> {
+        let mut result = HashSet::new();
         let mut stack = event_ids.to_vec();
 
         // DFS for auth event chain
@@ -263,7 +263,7 @@ impl<E: Event> TestStore<E> {
         for ids in event_ids {
             // TODO state store `auth_event_ids` returns self in the event ids list
             // when an event returns `auth_event_ids` self is not contained
-            let chain = self.auth_event_ids(room_id, &ids)?.into_iter().collect::<BTreeSet<_>>();
+            let chain = self.auth_event_ids(room_id, &ids)?.into_iter().collect::<HashSet<_>>();
             chains.push(chain);
         }
 
@@ -388,7 +388,7 @@ where
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-pub fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
+pub fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
     // this is always called so we can init the logger here
     let _ = LOGGER
         .call_once(|| tracer::fmt().with_env_filter(tracer::EnvFilter::from_default_env()).init());
