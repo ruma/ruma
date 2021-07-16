@@ -98,8 +98,12 @@ impl StateResolution {
         }
 
         // The set of auth events that are not common across server forks
-        let mut auth_diff =
-            StateResolution::get_auth_chain_diff(room_id, &conflicting_state_sets, &fetch_event)?;
+        let mut auth_diff = StateResolution::get_auth_chain_diff(
+            room_id,
+            &clean,
+            &conflicting_state_sets,
+            &fetch_event,
+        )?;
 
         // Add the auth_diff to conflicting now we have a full set of conflicting events
         auth_diff.extend(conflicting.values().cloned().flatten().filter_map(|o| o));
@@ -221,6 +225,7 @@ impl StateResolution {
     /// Returns a Vec of deduped EventIds that appear in some chains but not others.
     pub fn get_auth_chain_diff<E, F>(
         _room_id: &RoomId,
+        clean: &StateMap<EventId>,
         conflicting_state_sets: &[BTreeSet<EventId>],
         fetch_event: F,
     ) -> Result<BTreeSet<EventId>>
@@ -240,6 +245,17 @@ impl StateResolution {
 
             while let Some(event_id) = todo.iter().next().cloned() {
                 if let Some(pdu) = fetch_event(&event_id) {
+                    let key = (
+                        pdu.kind().clone(),
+                        pdu.state_key().expect("state events have state keys").clone(),
+                    );
+
+                    if clean.get(&key) == Some(&event_id) {
+                        // Events that are in the unconflicted set can't be in the auth diff
+                        todo.remove(&event_id);
+                        continue;
+                    }
+
                     todo.extend(
                         pdu.auth_events()
                             .clone()
