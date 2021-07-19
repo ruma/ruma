@@ -34,7 +34,7 @@ ruma_api! {
         #[ruma_api(query)]
         #[cfg(feature = "unstable-pre-spec")]
         #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-        #[serde(rename = "xyz.amorgan.blurhash")]
+        #[serde(default, skip_serializing_if = "ruma_serde::is_default", rename = "xyz.amorgan.blurhash")]
         pub generate_blurhash: bool,
     }
 
