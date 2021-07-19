@@ -31,6 +31,7 @@ pub use crate::{
     room_alias_id::RoomAliasId,
     room_id::RoomId,
     room_id_or_room_alias_id::RoomIdOrAliasId,
+    room_name::{RoomName, RoomNameBox},
     room_version_id::RoomVersionId,
     server_name::{ServerName, ServerNameBox},
     session_id::{SessionId, SessionIdBox},
@@ -55,6 +56,7 @@ mod opaque_ids;
 mod room_alias_id;
 mod room_id;
 mod room_id_or_room_alias_id;
+mod room_name;
 mod room_version_id;
 mod server_name;
 mod session_id;

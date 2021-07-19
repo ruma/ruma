@@ -2,7 +2,7 @@
 
 Breaking changes:
 
-* `room::name::NameEventContent` now uses a custom `RoomName` type for its
+* `room::name::NameEventContent` now uses a custom `RoomNameBox` type for its
   `name` field and makes it public, in response the constructor and `name`
   accessor had their types updated too
 * Replace `InvalidEvent` by a more specific `FromStringError` for room name

@@ -1,10 +1,8 @@
 //! Types for the *m.room.name* event.
 
-use std::convert::TryFrom;
-
 use ruma_events_macros::EventContent;
+use ruma_identifiers::{RoomName, RoomNameBox};
 use serde::{Deserialize, Serialize};
-use thiserror::Error;
 
 use crate::StateEvent;
 
@@ -18,74 +16,20 @@ pub type NameEvent = StateEvent<NameEventContent>;
 pub struct NameEventContent {
     /// The name of the room.
     #[serde(default, deserialize_with = "ruma_serde::empty_string_as_none")]
-    pub name: Option<RoomName>,
+    pub name: Option<RoomNameBox>,
 }
 
 impl NameEventContent {
     /// Create a new `NameEventContent` with the given name.
-    pub fn new(name: Option<RoomName>) -> Self {
+    pub fn new(name: Option<RoomNameBox>) -> Self {
         Self { name }
     }
 
     /// The name of the room, if any.
     #[deprecated = "You can access the name field directly."]
     pub fn name(&self) -> Option<&RoomName> {
-        self.name.as_ref()
+        self.name.as_deref()
     }
-}
-
-/// The name of a room.
-///
-/// It can't exceed 255 characters or be empty.
-#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
-#[serde(transparent)]
-pub struct RoomName(String);
-
-impl TryFrom<String> for RoomName {
-    type Error = FromStringError;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        match value.len() {
-            0 => Err(FromStringError::Empty),
-            1..=255 => Ok(RoomName(value)),
-            _ => Err(FromStringError::TooLong),
-        }
-    }
-}
-
-impl From<RoomName> for String {
-    fn from(name: RoomName) -> Self {
-        name.0
-    }
-}
-
-impl<'de> Deserialize<'de> for RoomName {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        use serde::de::Error;
-
-        let str_name = String::deserialize(deserializer)?;
-
-        match RoomName::try_from(str_name) {
-            Ok(name) => Ok(name),
-            Err(e) => Err(D::Error::custom(e)),
-        }
-    }
-}
-
-/// Errors that can occur when converting a string to `RoomName`.
-#[derive(Debug, Error)]
-#[non_exhaustive]
-pub enum FromStringError {
-    /// Room name string was empty.
-    #[error("room name may not be empty")]
-    Empty,
-
-    /// Room name string exceeded 255 byte limit.
-    #[error("room name length may not exceed 255 bytes")]
-    TooLong,
 }
 
 #[cfg(test)]
@@ -95,17 +39,17 @@ mod tests {
     use js_int::{int, uint};
     use matches::assert_matches;
     use ruma_common::MilliSecondsSinceUnixEpoch;
-    use ruma_identifiers::{event_id, room_id, user_id};
+    use ruma_identifiers::{event_id, room_id, user_id, RoomNameBox};
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::NameEventContent;
-    use crate::{room::name::RoomName, StateEvent, Unsigned};
+    use crate::{StateEvent, Unsigned};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
         let name_event = StateEvent {
-            content: NameEventContent { name: RoomName::try_from("The room name".to_owned()).ok() },
+            content: NameEventContent { name: RoomNameBox::try_from("The room name").ok() },
             event_id: event_id!("$h29iv0s8:example.com"),
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
             prev_content: None,
@@ -134,11 +78,11 @@ mod tests {
     #[test]
     fn serialization_with_all_fields() {
         let name_event = StateEvent {
-            content: NameEventContent { name: RoomName::try_from("The room name".to_owned()).ok() },
+            content: NameEventContent { name: RoomNameBox::try_from("The room name").ok() },
             event_id: event_id!("$h29iv0s8:example.com"),
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
             prev_content: Some(NameEventContent {
-                name: RoomName::try_from("The old name".to_owned()).ok(),
+                name: RoomNameBox::try_from("The old name").ok(),
             }),
             room_id: room_id!("!n8f893n9:example.com"),
             sender: user_id!("@carl:example.com"),
@@ -211,7 +155,7 @@ mod tests {
     #[test]
     fn new_with_empty_name_creates_content_as_none() {
         assert_matches!(
-            NameEventContent::new(RoomName::try_from(String::new()).ok()),
+            NameEventContent::new(RoomNameBox::try_from(String::new()).ok()),
             NameEventContent { name: None }
         );
     }
@@ -266,7 +210,7 @@ mod tests {
 
     #[test]
     fn nonempty_field_as_some() {
-        let name = RoomName::try_from("The room name".to_owned()).ok();
+        let name = RoomNameBox::try_from("The room name").ok();
         let json_data = json!({
             "content": {
                 "name": "The room name"
