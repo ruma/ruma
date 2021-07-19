@@ -9,6 +9,9 @@ pub enum Error {
     /// The client secret is empty.
     EmptyClientSecret,
 
+    /// The room name is empty.
+    EmptyRoomName,
+
     /// The room version ID is empty.
     EmptyRoomVersionId,
 
@@ -44,6 +47,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let message = match self {
             Error::EmptyClientSecret => "client secret is empty",
+            Error::EmptyRoomName => "room name is empty",
             Error::EmptyRoomVersionId => "room version ID is empty",
             Error::InvalidCharacters => "localpart contains invalid characters",
             Error::InvalidKeyAlgorithm => "invalid key algorithm specified",

@@ -2,7 +2,7 @@
 
 use ruma_api::ruma_api;
 use ruma_common::thirdparty::Medium;
-use ruma_identifiers::{MxcUri, RoomAliasId, RoomId, UserId};
+use ruma_identifiers::{MxcUri, RoomAliasId, RoomId, RoomName, UserId};
 use serde::{ser::SerializeSeq, Deserialize, Serialize};
 
 ruma_api! {
@@ -52,7 +52,7 @@ ruma_api! {
         ///
         /// This should be retrieved from the `m.room.name` state event.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_name: Option<&'a str>,
+        pub room_name: Option<&'a RoomName>,
 
         /// The display name of the user ID initiating the invite.
         #[serde(skip_serializing_if = "Option::is_none")]
