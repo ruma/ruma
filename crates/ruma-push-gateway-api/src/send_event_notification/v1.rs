@@ -7,7 +7,7 @@ use ruma_common::{
     SecondsSinceUnixEpoch,
 };
 use ruma_events::EventType;
-use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
+use ruma_identifiers::{EventId, RoomAliasId, RoomId, RoomName, UserId};
 use ruma_serde::{Outgoing, StringEnum};
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
@@ -90,7 +90,7 @@ pub struct Notification<'a> {
 
     /// The name of the room in which the event occurred.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub room_name: Option<&'a str>,
+    pub room_name: Option<&'a RoomName>,
 
     /// An alias to display for the room in which the event occurred.
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -402,7 +402,14 @@ macro_rules! opaque_identifier_validated {
             where
                 D: serde::Deserializer<'de>,
             {
-                Box::<str>::deserialize(deserializer).map($id::from_owned)
+                use serde::de::Error;
+
+                let s = String::deserialize(deserializer)?;
+
+                match try_from(s) {
+                    Ok(o) => Ok(o),
+                    Err(e) => Err(D::Error::custom(e)),
+                }
             }
         }
 

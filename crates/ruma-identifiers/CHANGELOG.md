@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Add `RoomName`, `RoomNameBox` types
+
 # 0.19.4
 
 Improvements:
