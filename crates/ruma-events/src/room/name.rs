@@ -1,7 +1,7 @@
 //! Types for the *m.room.name* event.
 
 use ruma_events_macros::EventContent;
-use ruma_identifiers::RoomNameBox;
+use ruma_identifiers::{RoomName, RoomNameBox};
 use serde::{Deserialize, Serialize};
 
 use crate::StateEvent;
@@ -27,8 +27,8 @@ impl NameEventContent {
 
     /// The name of the room, if any.
     #[deprecated = "You can access the name field directly."]
-    pub fn name(&self) -> Option<&RoomNameBox> {
-        self.name.as_ref()
+    pub fn name(&self) -> Option<&RoomName> {
+        self.name.as_deref()
     }
 }
 
