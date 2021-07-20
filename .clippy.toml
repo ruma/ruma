@@ -1,1 +1,12 @@
 msrv = "1.50"
+disallowed-types = [
+    "std::collections::HashMap",
+    "std::collections::HashSet",
+]
+enforced-import-renames = [
+    { path = "serde_json::Value", rename = "JsonValue" },
+]
+standard-macro-braces = [
+    { name = "quote", brace = "{" },
+    { name = "quote::quote", brace = "{" },
+]

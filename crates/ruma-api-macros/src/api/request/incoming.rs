@@ -18,8 +18,11 @@ impl Request {
 
         let method = &metadata.method;
 
-        let incoming_request_type =
-            if self.contains_lifetimes() { quote!(IncomingRequest) } else { quote!(Request) };
+        let incoming_request_type = if self.contains_lifetimes() {
+            quote! { IncomingRequest }
+        } else {
+            quote! { Request }
+        };
 
         // FIXME: the rest of the field initializer expansions are gated `cfg(...)`
         // except this one. If we get errors about missing fields in IncomingRequest for
@@ -86,7 +89,7 @@ impl Request {
                 },
             )
         } else if self.has_query_fields() {
-            let (decls, names) = self.vars(RequestFieldKind::Query, quote!(request_query));
+            let (decls, names) = self.vars(RequestFieldKind::Query, quote! { request_query });
 
             let parse = quote! {
                 let request_query: <RequestQuery as #ruma_serde::Outgoing>::Incoming =
@@ -212,7 +215,7 @@ impl Request {
 
             (parse, quote! { #field_name, })
         } else {
-            self.vars(RequestFieldKind::Body, quote!(request_body))
+            self.vars(RequestFieldKind::Body, quote! { request_body })
         };
 
         let non_auth_impls = metadata.authentication.iter().filter_map(|auth| {

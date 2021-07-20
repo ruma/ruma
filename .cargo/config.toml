@@ -9,14 +9,17 @@ ruma-clippy = """\
     -W clippy::branches_sharing_code \
     -W clippy::cloned_instead_of_copied \
     -W clippy::dbg_macro \
+    -W clippy::disallowed_type \
     -W clippy::empty_line_after_outer_attr \
     -W clippy::exhaustive_structs \
     -W clippy::inefficient_to_string \
     -W clippy::macro_use_imports \
     -W clippy::map_flatten \
+    -W clippy::missing_enforced_import_renames \
     -W clippy::mut_mut \
     -W clippy::needless_borrow \
     -A clippy::new_without_default \
+    -W clippy::nonstandard_macro_braces \
     -W clippy::str_to_string \
     -W clippy::todo \
     -W clippy::unreadable_literal \
