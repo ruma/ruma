@@ -8,7 +8,7 @@
 #![allow(clippy::exhaustive_structs)]
 
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::{HashMap, HashSet},
     convert::{TryFrom, TryInto},
     sync::{
         atomic::{AtomicU64, Ordering::SeqCst},
@@ -19,7 +19,7 @@ use std::{
 use criterion::{criterion_group, criterion_main, Criterion};
 use event::StateEvent;
 use js_int::uint;
-use maplit::{btreemap, btreeset};
+use maplit::{btreemap, hashmap, hashset};
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     pdu::{EventHash, Pdu, RoomV3Pdu},
@@ -37,12 +37,12 @@ static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 
 fn lexico_topo_sort(c: &mut Criterion) {
     c.bench_function("lexicographical topological sort", |b| {
-        let graph = btreemap! {
-            event_id("l") => btreeset![event_id("o")],
-            event_id("m") => btreeset![event_id("n"), event_id("o")],
-            event_id("n") => btreeset![event_id("o")],
-            event_id("o") => btreeset![], // "o" has zero outgoing edges but 4 incoming edges
-            event_id("p") => btreeset![event_id("o")],
+        let graph = hashmap! {
+            event_id("l") => hashset![event_id("o")],
+            event_id("m") => hashset![event_id("n"), event_id("o")],
+            event_id("n") => hashset![event_id("o")],
+            event_id("o") => hashset![], // "o" has zero outgoing edges but 4 incoming edges
+            event_id("p") => hashset![event_id("o")],
         };
         b.iter(|| {
             let _ = StateResolution::lexicographical_topological_sort(&graph, |id| {
@@ -54,7 +54,7 @@ fn lexico_topo_sort(c: &mut Criterion) {
 
 fn resolution_shallow_auth_chain(c: &mut Criterion) {
     c.bench_function("resolve state of 5 events one fork", |b| {
-        let mut store = TestStore(btreemap! {});
+        let mut store = TestStore(hashmap! {});
 
         // build up the DAG
         let (state_at_bob, state_at_charlie, _) = store.set_up();
@@ -154,7 +154,7 @@ criterion_main!(benches);
 //  IMPLEMENTATION DETAILS AHEAD
 //
 /////////////////////////////////////////////////////////////////////*/
-pub struct TestStore<E: Event>(pub BTreeMap<EventId, Arc<E>>);
+pub struct TestStore<E: Event>(pub HashMap<EventId, Arc<E>>);
 
 #[allow(unused)]
 impl<E: Event> TestStore<E> {
@@ -179,8 +179,8 @@ impl<E: Event> TestStore<E> {
         &self,
         room_id: &RoomId,
         event_ids: &[EventId],
-    ) -> Result<BTreeSet<EventId>> {
-        let mut result = BTreeSet::new();
+    ) -> Result<HashSet<EventId>> {
+        let mut result = HashSet::new();
         let mut stack = event_ids.to_vec();
 
         // DFS for auth event chain
@@ -206,26 +206,21 @@ impl<E: Event> TestStore<E> {
         room_id: &RoomId,
         event_ids: Vec<Vec<EventId>>,
     ) -> Result<Vec<EventId>> {
-        let mut chains = vec![];
+        let mut auth_chain_sets = vec![];
         for ids in event_ids {
             // TODO state store `auth_event_ids` returns self in the event ids list
             // when an event returns `auth_event_ids` self is not contained
-            let chain = self.auth_event_ids(room_id, &ids)?.into_iter().collect::<BTreeSet<_>>();
-            chains.push(chain);
+            let chain = self.auth_event_ids(room_id, &ids)?.into_iter().collect::<HashSet<_>>();
+            auth_chain_sets.push(chain);
         }
 
-        if let Some(chain) = chains.first() {
-            let rest = chains.iter().skip(1).flatten().cloned().collect();
-            let common = chain.intersection(&rest).collect::<Vec<_>>();
-
-            Ok(chains
+        if let Some(first) = auth_chain_sets.first().cloned() {
+            let common = auth_chain_sets
                 .iter()
-                .flatten()
-                .filter(|id| !common.contains(id))
-                .cloned()
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect())
+                .skip(1)
+                .fold(first, |a, b| a.intersection(b).cloned().collect::<HashSet<EventId>>());
+
+            Ok(auth_chain_sets.into_iter().flatten().filter(|id| !common.contains(id)).collect())
         } else {
             Ok(vec![])
         }
@@ -387,7 +382,7 @@ where
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
+fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
     vec![
         to_pdu_event::<EventId>(
             "CREATE",
@@ -469,7 +464,7 @@ fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn BAN_STATE_SET() -> BTreeMap<EventId, Arc<StateEvent>> {
+fn BAN_STATE_SET() -> HashMap<EventId, Arc<StateEvent>> {
     vec![
         to_pdu_event(
             "PA",

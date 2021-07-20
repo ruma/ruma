@@ -105,7 +105,7 @@ impl StateResolution {
         let mut auth_diff = StateResolution::get_auth_chain_diff(room_id, auth_chain_sets)?;
 
         // Add the auth_diff to conflicting now we have a full set of conflicting events
-        auth_diff.extend(conflicting.values().cloned().flatten().filter_map(|o| o));
+        auth_diff.extend(conflicting.values().cloned().flatten().flatten());
 
         debug!("auth diff: {}", auth_diff.len());
         trace!("{:?}", auth_diff);
@@ -230,9 +230,9 @@ impl StateResolution {
             let common = auth_chain_sets
                 .iter()
                 .skip(1)
-                .fold(first, |a, b| a.intersection(&b).cloned().collect::<HashSet<EventId>>());
+                .fold(first, |a, b| a.intersection(b).cloned().collect::<HashSet<EventId>>());
 
-            Ok(auth_chain_sets.into_iter().flatten().filter(|id| !common.contains(&id)).collect())
+            Ok(auth_chain_sets.into_iter().flatten().filter(|id| !common.contains(id)).collect())
         } else {
             Ok(hashset![])
         }
