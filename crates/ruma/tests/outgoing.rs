@@ -1,7 +1,7 @@
 // This test should really be part of ruma_serde, but some tooling doesn't like
 // cyclic dev-dependencies, which are required for this test to be moved there.
 
-#![allow(clippy::exhaustive_structs)]
+#![allow(clippy::exhaustive_structs, clippy::redundant_allocation)]
 
 use ruma::{Outgoing, UserId};
 
