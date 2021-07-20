@@ -84,23 +84,6 @@ impl StateResolution {
         info!("conflicting events: {}", conflicting.len());
         debug!("{:?}", conflicting);
 
-        let mut iter = conflicting.values();
-        let mut conflicting_state_sets = iter
-            .next()
-            .expect("we made sure conflicting is not empty")
-            .iter()
-            .map(|o| if let Some(e) = o { hashset![e.clone()] } else { HashSet::new() })
-            .collect::<Vec<_>>();
-
-        for events in iter {
-            for i in 0..events.len() {
-                // This is okay because all vecs have the same length = number of states
-                if let Some(e) = &events[i] {
-                    conflicting_state_sets[i].insert(e.clone());
-                }
-            }
-        }
-
         // The set of auth events that are not common across server forks
         let mut auth_diff = StateResolution::get_auth_chain_diff(room_id, auth_chain_sets)?;
 
@@ -377,8 +360,6 @@ impl StateResolution {
         let event = fetch_event(event_id);
         let mut pl = None;
 
-        // TODO store.auth_event_ids returns "self" with the event ids is this ok
-        // event.auth_event_ids does not include its own event id ?
         for aid in event.as_ref().map(|pdu| pdu.auth_events()).unwrap_or_default() {
             if let Some(aev) = fetch_event(&aid) {
                 if is_type_and_key(&aev, EventType::RoomPowerLevels, "") {

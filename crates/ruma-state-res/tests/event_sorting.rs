@@ -26,9 +26,6 @@ fn test_event_sort() {
         .map(|pdu| pdu.event_id().clone())
         .collect::<Vec<_>>();
 
-    // This is a TODO in conduit
-    // TODO these events are not guaranteed to be sorted but they are resolved, do
-    // we need the auth_chain
     let sorted_power_events =
         StateResolution::reverse_topological_power_sort(&power_events, &auth_chain, |id| {
             events.get(id).map(Arc::clone)
