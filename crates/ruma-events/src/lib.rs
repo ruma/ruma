@@ -177,6 +177,9 @@ pub mod room_key;
 pub mod room_key_request;
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+pub mod secret;
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub mod space;
 pub mod sticker;
 pub mod tag;
