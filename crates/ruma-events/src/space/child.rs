@@ -14,7 +14,7 @@ use crate::StateEvent;
 pub type ChildEvent = StateEvent<ChildEventContent>;
 
 /// The payload for `ChildEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.space.child", kind = State)]
 pub struct ChildEventContent {
@@ -42,6 +42,13 @@ pub struct ChildEventContent {
     /// be a room or a subspace.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub suggested: Option<bool>,
+}
+
+impl ChildEventContent {
+    /// Creates a new `ChildEventContent`.
+    pub fn new() -> Self {
+        Self::default()
+    }
 }
 
 #[cfg(test)]

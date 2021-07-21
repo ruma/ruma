@@ -32,6 +32,13 @@ pub struct ParentEventContent {
     pub canonical: bool,
 }
 
+impl ParentEventContent {
+    /// Creates a new `ParentEventContent` with the given canonical flag.
+    pub fn new(canonical: bool) -> Self {
+        Self { via: None, canonical }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::ParentEventContent;
