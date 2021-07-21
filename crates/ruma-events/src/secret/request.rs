@@ -36,6 +36,19 @@ pub struct SecretRequestEventContent {
     pub request_id: String,
 }
 
+impl SecretRequestEventContent {
+    /// Creates a new `SecretRequestEventContent` with the given name, action, requesting device ID
+    /// and request ID.
+    pub fn new(
+        name: Option<String>,
+        action: RequestAction,
+        requesting_device_id: DeviceIdBox,
+        request_id: String,
+    ) -> Self {
+        Self { name, action, requesting_device_id, request_id }
+    }
+}
+
 /// Action for a *m.secret.request* event.
 #[derive(Clone, Debug, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]

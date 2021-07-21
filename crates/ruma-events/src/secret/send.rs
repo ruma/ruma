@@ -22,3 +22,10 @@ pub struct SecretSendEventContent {
     /// The contents of the secret.
     pub secret: String,
 }
+
+impl SecretSendEventContent {
+    /// Creates a new `SecretSendEventContent` with the given request ID and secret.
+    pub fn new(request_id: String, secret: String) -> Self {
+        Self { request_id, secret }
+    }
+}
