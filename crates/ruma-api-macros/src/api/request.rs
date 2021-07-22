@@ -152,7 +152,7 @@ impl Request {
                 let (derive_deserialize, lifetimes) = if self.has_body_lifetimes() {
                     (TokenStream::new(), self.body_lifetimes())
                 } else {
-                    (quote!(#serde::Deserialize), TokenStream::new())
+                    (quote! { #serde::Deserialize }, TokenStream::new())
                 };
 
                 Some((derive_deserialize, quote! { #lifetimes (#field); }))
@@ -161,7 +161,7 @@ impl Request {
                 let (derive_deserialize, lifetimes) = if self.has_body_lifetimes() {
                     (TokenStream::new(), self.body_lifetimes())
                 } else {
-                    (quote!(#serde::Deserialize), TokenStream::new())
+                    (quote! { #serde::Deserialize }, TokenStream::new())
                 };
                 let fields = fields.map(RequestField::field);
 
@@ -187,7 +187,7 @@ impl Request {
             let (derive_deserialize, lifetime) = if self.has_query_lifetimes() {
                 (TokenStream::new(), self.query_lifetimes())
             } else {
-                (quote!(#serde::Deserialize), TokenStream::new())
+                (quote! { #serde::Deserialize }, TokenStream::new())
             };
 
             quote! {
@@ -205,7 +205,7 @@ impl Request {
             let (derive_deserialize, lifetime) = if self.has_query_lifetimes() {
                 (TokenStream::new(), self.query_lifetimes())
             } else {
-                (quote!(#serde::Deserialize), TokenStream::new())
+                (quote! { #serde::Deserialize }, TokenStream::new())
             };
 
             quote! {

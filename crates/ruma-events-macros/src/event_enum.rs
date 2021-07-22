@@ -127,7 +127,7 @@ fn expand_any_with_deser(
         events.iter().map(|event| to_event_path(event, &event_struct, ruma_events)).collect();
 
     let variant_decls = variants.iter().map(|v| v.decl());
-    let self_variants = variants.iter().map(|v| v.ctor(quote!(Self)));
+    let self_variants = variants.iter().map(|v| v.ctor(quote! { Self }));
 
     let (custom_variant, custom_deserialize) =
         generate_custom_variant(&event_struct, var, ruma_events);
@@ -233,7 +233,7 @@ fn expand_conversion_impl(
             let sync_struct = kind.to_event_ident(&variation)?;
 
             let ident_variants = variants.iter().map(|v| v.match_arm(&ident));
-            let self_variants = variants.iter().map(|v| v.ctor(quote!(Self)));
+            let self_variants = variants.iter().map(|v| v.ctor(quote! { Self }));
 
             let redaction =
                 (*kind == EventKind::Message && *var == EventKindVariation::Full).then(|| {
@@ -270,7 +270,7 @@ fn expand_conversion_impl(
             };
             let full = kind.to_event_enum_ident(&variation)?;
 
-            let self_variants = variants.iter().map(|v| v.match_arm(quote!(Self)));
+            let self_variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
             let full_variants = variants.iter().map(|v| v.ctor(&full));
 
             let redaction =
@@ -395,8 +395,8 @@ fn expand_content_enum(
         let attrs = &v.attrs;
         quote! { #(#attrs)* }
     });
-    let variant_arms = variants.iter().map(|v| v.match_arm(quote!(Self))).collect::<Vec<_>>();
-    let variant_ctors = variants.iter().map(|v| v.ctor(quote!(Self)));
+    let variant_arms = variants.iter().map(|v| v.match_arm(quote! { Self })).collect::<Vec<_>>();
+    let variant_ctors = variants.iter().map(|v| v.ctor(quote! { Self }));
 
     let event_content_impl = quote! {
         #[automatically_derived]
@@ -530,7 +530,7 @@ fn expand_redact(
             _ => return None,
         };
 
-        let self_variants = variants.iter().map(|v| v.match_arm(quote!(Self)));
+        let self_variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
         let redaction_variants = variants.iter().map(|v| v.ctor(&redacted_enum));
 
         let fields = EVENT_FIELDS.iter().map(|(name, has_field)| {
@@ -738,7 +738,7 @@ fn accessor_methods(
 
     let content_enum = kind.to_content_enum();
 
-    let self_variants: Vec<_> = variants.iter().map(|v| v.match_arm(quote!(Self))).collect();
+    let self_variants: Vec<_> = variants.iter().map(|v| v.match_arm(quote! { Self })).collect();
     let content_variants: Vec<_> = variants.iter().map(|v| v.ctor(&content_enum)).collect();
 
     let event_type = quote! {
@@ -950,7 +950,7 @@ fn generate_accessor(
         let docs = format!("Returns this event's {} field.", name);
         let ident = Ident::new(name, Span::call_site());
         let field_type = field_return_type(name, var, ruma_events);
-        let variants = variants.iter().map(|v| v.match_arm(quote!(Self)));
+        let variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
 
         quote! {
             #[doc = #docs]

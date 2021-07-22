@@ -1,0 +1,10 @@
+msrv = "1.50"
+disallowed-types = []
+enforced-import-renames = [ { path = "serde_json::Value", rename = "JsonValue" } ]
+standard-macro-braces = [
+    { name = "btreeset", brace = "[" },
+    # The macro calls itself like btreemap!(...) so this triggers for any use
+    # { name = "btreemap", brace = "{" },
+    { name = "hashset", brace = "[" },
+    { name = "hashmap", brace = "{" },
+]

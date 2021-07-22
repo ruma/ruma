@@ -55,7 +55,7 @@ impl Request {
         let request_query_string = if let Some(field) = self.query_map_field() {
             let field_name = field.ident.as_ref().expect("expected field to have identifier");
 
-            quote!({
+            quote! {{
                 // This function exists so that the compiler will throw an error when the type of
                 // the field with the query_map attribute doesn't implement
                 // `IntoIterator<Item = (String, String)>`.
@@ -80,12 +80,12 @@ impl Request {
                     "?{}",
                     #ruma_serde::urlencoded::to_string(request_query)?
                 )
-            })
+            }}
         } else if self.has_query_fields() {
             let request_query_init_fields =
-                self.struct_init_fields(RequestFieldKind::Query, quote!(self));
+                self.struct_init_fields(RequestFieldKind::Query, quote! { self });
 
-            quote!({
+            quote! {{
                 let request_query = RequestQuery {
                     #request_query_init_fields
                 };
@@ -94,7 +94,7 @@ impl Request {
                     "?{}",
                     #ruma_serde::urlencoded::to_string(request_query)?
                 )
-            })
+            }}
         } else {
             quote! { "" }
         };
@@ -174,7 +174,7 @@ impl Request {
                     field.ident.as_ref().expect("expected field to have an identifier");
                 quote! { (self.#field_name) }
             } else {
-                let initializers = self.struct_init_fields(RequestFieldKind::Body, quote!(self));
+                let initializers = self.struct_init_fields(RequestFieldKind::Body, quote! { self });
                 quote! { { #initializers } }
             };
 

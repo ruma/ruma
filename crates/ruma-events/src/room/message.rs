@@ -958,6 +958,7 @@ fn get_plain_quote_fallback(original_message: &MessageEvent) -> String {
     }
 }
 
+#[allow(clippy::nonstandard_macro_braces)]
 fn get_html_quote_fallback(original_message: &MessageEvent) -> String {
     match &original_message.content.msgtype {
         MessageType::Audio(_) => {
