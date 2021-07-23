@@ -2,6 +2,7 @@
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::DeviceIdBox;
+use ruma_serde::StringEnum;
 use serde::{ser::SerializeMap, Deserialize, Serialize};
 
 use crate::ToDeviceEvent;
@@ -11,7 +12,7 @@ use crate::ToDeviceEvent;
 /// It is sent as an unencrypted to-device event.
 pub type SecretRequestEvent = ToDeviceEvent<SecretRequestEventContent>;
 
-/// The payload for SecretRequestEvent
+/// The payload for SecretRequestEvent.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.secret.request", kind = ToDevice)]
@@ -50,7 +51,7 @@ impl SecretRequestEventContent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum RequestAction {
     /// Request a secret by its name.
-    Request(String),
+    Request(SecretName),
 
     /// Cancel a request for a secret.
     RequestCancellation,
@@ -81,15 +82,38 @@ impl Serialize for RequestAction {
     }
 }
 
+/// The name of a secret.
+#[derive(Clone, Debug, StringEnum)]
+pub enum SecretName {
+    /// Cross-signing master key (m.cross_signing.master).
+    #[ruma_enum(rename = "m.cross_signing.master")]
+    CrossSigningMasterKey,
+
+    /// Cross-signing user-signing key (m.cross_signing.user_signing).
+    #[ruma_enum(rename = "m.cross_signing.user_signing")]
+    CrossSigningUserSigningKey,
+
+    /// Cross-signing self-signing key (m.cross_signing.self_signing).
+    #[ruma_enum(rename = "m.cross_signing.self_signing")]
+    CrossSigningSelfSigningKey,
+
+    /// Recovery key (m.megolm_backup.v1.recovery_key).
+    #[ruma_enum(rename = "m.megolm_backup.v1.recovery_key")]
+    RecoveryKey,
+
+    /// Custom secret name.
+    Custom(String),
+}
+
 #[cfg(test)]
 mod test {
-    use super::{RequestAction, SecretRequestEventContent};
+    use super::{RequestAction, SecretName, SecretRequestEventContent};
     use serde_json::{json, to_value as to_json_value};
 
     #[test]
     fn secret_request_serialization() {
         let content = SecretRequestEventContent::new(
-            RequestAction::Request("org.example.some.secret".into()),
+            RequestAction::Request(SecretName::Custom("org.example.some.secret".into())),
             "ABCDEFG".into(),
             "randomly_generated_id_9573".into(),
         );
@@ -99,6 +123,24 @@ mod test {
             "action": "request",
             "requesting_device_id": "ABCDEFG",
             "request_id": "randomly_generated_id_9573"
+        });
+
+        assert_eq!(to_json_value(&content).unwrap(), json);
+    }
+
+    #[test]
+    fn secret_request_recovery_key_serialization() {
+        let content = SecretRequestEventContent::new(
+            RequestAction::Request(SecretName::RecoveryKey),
+            "XYZxyz".into(),
+            "this_is_a_device_id".into(),
+        );
+
+        let json = json!({
+            "name": "m.megolm_backup.v1.recovery_key",
+            "action": "request",
+            "requesting_device_id": "XYZxyz",
+            "request_id": "this_is_a_device_id"
         });
 
         assert_eq!(to_json_value(&content).unwrap(), json);
