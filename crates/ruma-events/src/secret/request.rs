@@ -2,8 +2,7 @@
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::DeviceIdBox;
-use ruma_serde::StringEnum;
-use serde::{Deserialize, Serialize};
+use serde::{ser::SerializeMap, Deserialize, Serialize};
 
 use crate::ToDeviceEvent;
 
@@ -17,12 +16,10 @@ pub type SecretRequestEvent = ToDeviceEvent<SecretRequestEventContent>;
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.secret.request", kind = ToDevice)]
 pub struct SecretRequestEventContent {
-    /// The name of the secret that is being requested.
+    /// The action for the request, one of `["request", "request_cancellation"]`.
     ///
-    /// Required if `action` is `request`.
-    pub name: Option<String>,
-
-    /// One of ["request", "request_cancellation"].
+    /// If the action is "request", the name of the secret must also be provided.
+    #[serde(flatten)]
     pub action: RequestAction,
 
     /// The ID of the device requesting the event.
@@ -37,29 +34,90 @@ pub struct SecretRequestEventContent {
 }
 
 impl SecretRequestEventContent {
-    /// Creates a new `SecretRequestEventContent` with the given name, action, requesting device ID
-    /// and request ID.
+    /// Creates a new `SecretRequestEventContent` with the given action, requesting device ID and
+    /// request ID.
     pub fn new(
-        name: Option<String>,
         action: RequestAction,
         requesting_device_id: DeviceIdBox,
         request_id: String,
     ) -> Self {
-        Self { name, action, requesting_device_id, request_id }
+        Self { action, requesting_device_id, request_id }
     }
 }
 
 /// Action for a *m.secret.request* event.
-#[derive(Clone, Debug, StringEnum)]
-#[ruma_enum(rename_all = "snake_case")]
+#[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum RequestAction {
-    /// Request a secret.
-    Request,
+    /// Request a secret by its name.
+    Request(String),
 
     /// Cancel a request for a secret.
     RequestCancellation,
 
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl Serialize for RequestAction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            Self::Request(name) => {
+                let mut st = serializer.serialize_map(Some(2))?;
+                st.serialize_entry("name", name)?;
+                st.serialize_entry("action", "request")?;
+                st.end()
+            }
+            Self::RequestCancellation => {
+                let mut st = serializer.serialize_map(Some(1))?;
+                st.serialize_entry("action", "request_cancellation")?;
+                st.end()
+            }
+            RequestAction::_Custom(custom) => serializer.serialize_str(custom),
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::{RequestAction, SecretRequestEventContent};
+    use serde_json::{json, to_value as to_json_value};
+
+    #[test]
+    fn secret_request_serialization() {
+        let content = SecretRequestEventContent::new(
+            RequestAction::Request("org.example.some.secret".into()),
+            "ABCDEFG".into(),
+            "randomly_generated_id_9573".into(),
+        );
+
+        let json = json!({
+            "name": "org.example.some.secret",
+            "action": "request",
+            "requesting_device_id": "ABCDEFG",
+            "request_id": "randomly_generated_id_9573"
+        });
+
+        assert_eq!(to_json_value(&content).unwrap(), json);
+    }
+
+    #[test]
+    fn secret_request_cancellation_serialization() {
+        let content = SecretRequestEventContent::new(
+            RequestAction::RequestCancellation,
+            "ABCDEFG".into(),
+            "randomly_generated_id_9573".into(),
+        );
+
+        let json = json!({
+            "action": "request_cancellation",
+            "requesting_device_id": "ABCDEFG",
+            "request_id": "randomly_generated_id_9573"
+        });
+
+        assert_eq!(to_json_value(&content).unwrap(), json);
+    }
 }
