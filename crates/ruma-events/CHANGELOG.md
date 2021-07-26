@@ -1,5 +1,21 @@
 # [unreleased]
 
+# 0.23.3
+
+Improvements:
+
+* Add unstable blurhash field to member event content struct
+* Add constructors for the unstable spaces parent and child event content types
+
+Bug fixes:
+
+* Remove `new_content` from the plain-text part of `m.encrypted` events
+  * It is supposed to go into the encrypted payload, but we expected it in the
+    plain-text part before.
+  * This is technically a breaking change but since that can only be observed
+    behind an unstable feature and this change doesn't break matrix-sdk, it's
+    made in a point release.
+
 # 0.23.2
 
 Bug fixes:
