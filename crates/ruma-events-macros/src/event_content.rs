@@ -173,15 +173,23 @@ pub fn expand_event_content(
         };
         let redaction_struct_fields = kept_redacted_fields.iter().flat_map(|f| &f.ident);
 
-        // Used in `EventContent::redacted` which only returns zero sized types (unit structs).
-        let redacted_return = if kept_redacted_fields.is_empty() {
-            quote! { Ok(#redacted_ident {}) }
+        // redacted_fields allows one to declare an empty redacted event without braces,
+        // otherwise `RedactedWhateverEventContent {}` is needed.
+        // The redacted_return is used in `EventContent::redacted` which only returns
+        // zero sized types (unit structs).
+        let (redacted_fields, redacted_return) = if kept_redacted_fields.is_empty() {
+            (quote! { ; }, quote! { Ok(#redacted_ident {}) })
         } else {
-            quote! {
-                Err(#serde::de::Error::custom(
-                    format!("this redacted event has fields that cannot be constructed")
-                ))
-            }
+            (
+                quote! {
+                    { #( #kept_redacted_fields, )* }
+                },
+                quote! {
+                    Err(#serde::de::Error::custom(
+                        format!("this redacted event has fields that cannot be constructed")
+                    ))
+                },
+            )
         };
 
         let has_deserialize_fields = if kept_redacted_fields.is_empty() {
@@ -202,7 +210,7 @@ pub fn expand_event_content(
                 impl #redacted_ident {
                     #[doc = #doc]
                     pub fn new() -> Self {
-                        Self {}
+                        Self
                     }
                 }
             }
@@ -244,9 +252,7 @@ pub fn expand_event_content(
             #[doc = #doc]
             #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-            pub struct #redacted_ident {
-                #( #kept_redacted_fields, )*
-            }
+            pub struct #redacted_ident #redacted_fields
 
             #initializer
 
