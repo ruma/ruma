@@ -10,7 +10,7 @@ use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "unstable-pre-spec")]
-use crate::{key::verification, reaction, room::message::Replacement};
+use crate::{key::verification, reaction};
 use crate::{
     room::message::{self, InReplyTo},
     MessageEvent,
@@ -93,6 +93,19 @@ pub enum Relation {
     #[cfg(feature = "unstable-pre-spec")]
     #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     Annotation(Annotation),
+}
+
+/// The event this relation belongs to replaces another event.
+///
+/// In contrast to [`message::Replacement`], this struct doesn't store the new content, since that
+/// is part of the encrypted payload for `m.encrypted` events.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct Replacement {
+    /// The ID of the event being replacing.
+    pub event_id: EventId,
 }
 
 /// A reference to another event.
@@ -221,12 +234,15 @@ impl From<MegolmV1AesSha2ContentInit> for MegolmV1AesSha2Content {
     }
 }
 
+// FIXME: Remove on next breaking change release
 impl From<message::Relation> for Relation {
     fn from(rel: message::Relation) -> Self {
         match rel {
             message::Relation::Reply { in_reply_to } => Self::Reply { in_reply_to },
             #[cfg(feature = "unstable-pre-spec")]
-            message::Relation::Replacement(re) => Self::Replacement(re),
+            message::Relation::Replacement(re) => {
+                Self::Replacement(Replacement { event_id: re.event_id })
+            }
         }
     }
 }

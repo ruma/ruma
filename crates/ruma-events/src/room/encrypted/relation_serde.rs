@@ -1,12 +1,8 @@
-#[cfg(feature = "unstable-pre-spec")]
-use ruma_identifiers::EventId;
 use serde::{ser::SerializeStruct as _, Deserialize, Deserializer, Serialize, Serializer};
 
 #[cfg(feature = "unstable-pre-spec")]
 use super::{Annotation, Reference, Replacement};
 use super::{InReplyTo, Relation};
-#[cfg(feature = "unstable-pre-spec")]
-use crate::room::message::MessageEventContent;
 
 pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<Relation>, D::Error>
 where
@@ -22,9 +18,8 @@ where
             let relation = match relation {
                 RelationJsonRepr::Annotation(a) => Relation::Annotation(a),
                 RelationJsonRepr::Reference(r) => Relation::Reference(r),
-                RelationJsonRepr::Replacement(ReplacementJsonRepr { event_id }) => {
-                    let new_content = ev.new_content?;
-                    Relation::Replacement(Replacement { event_id, new_content })
+                RelationJsonRepr::Replacement(Replacement { event_id }) => {
+                    Relation::Replacement(Replacement { event_id })
                 }
                 // FIXME: Maybe we should log this, though at this point we don't even have access
                 // to the rel_type of the unknown relation.
@@ -64,17 +59,12 @@ where
             ..Default::default()
         }),
         #[cfg(feature = "unstable-pre-spec")]
-        Relation::Replacement(Replacement { event_id, new_content }) => {
-            EventWithRelatesToJsonRepr {
-                relates_to: RelatesToJsonRepr {
-                    relation: Some(RelationJsonRepr::Replacement(ReplacementJsonRepr {
-                        event_id: event_id.clone(),
-                    })),
-                    ..Default::default()
-                },
-                new_content: Some(new_content.clone()),
-            }
-        }
+        Relation::Replacement(r) => EventWithRelatesToJsonRepr {
+            relates_to: RelatesToJsonRepr {
+                relation: Some(RelationJsonRepr::Replacement(r.clone())),
+                ..Default::default()
+            },
+        },
         Relation::Reply { in_reply_to } => EventWithRelatesToJsonRepr::new(RelatesToJsonRepr {
             in_reply_to: Some(in_reply_to.clone()),
             ..Default::default()
@@ -88,19 +78,11 @@ where
 struct EventWithRelatesToJsonRepr {
     #[serde(rename = "m.relates_to", default, skip_serializing_if = "RelatesToJsonRepr::is_empty")]
     relates_to: RelatesToJsonRepr,
-
-    #[cfg(feature = "unstable-pre-spec")]
-    #[serde(rename = "m.new_content", skip_serializing_if = "Option::is_none")]
-    new_content: Option<Box<MessageEventContent>>,
 }
 
 impl EventWithRelatesToJsonRepr {
     fn new(relates_to: RelatesToJsonRepr) -> Self {
-        Self {
-            relates_to,
-            #[cfg(feature = "unstable-pre-spec")]
-            new_content: None,
-        }
+        Self { relates_to }
     }
 }
 
@@ -145,7 +127,7 @@ enum RelationJsonRepr {
 
     /// An event that replaces another event.
     #[serde(rename = "m.replace")]
-    Replacement(ReplacementJsonRepr),
+    Replacement(Replacement),
 
     /// An unknown relation type.
     ///
@@ -153,10 +135,4 @@ enum RelationJsonRepr {
     /// doesn't fail with new / custom `rel_type`s.
     #[serde(other)]
     Unknown,
-}
-
-#[derive(Clone, Deserialize, Serialize)]
-#[cfg(feature = "unstable-pre-spec")]
-struct ReplacementJsonRepr {
-    event_id: EventId,
 }
