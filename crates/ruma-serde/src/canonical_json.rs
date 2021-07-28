@@ -8,18 +8,10 @@ pub mod value;
 use value::Object as CanonicalJsonObject;
 
 /// Returns a canonical JSON string according to Matrix specification.
-///
-/// This function should be preferred over `serde_json::to_string` since it checks the size of the
-/// canonical string. Matrix canonical JSON enforces a size limit of less than 65,535 when sending
-/// PDU's for the server-server protocol.
 pub fn to_string<T: Serialize>(val: &T) -> Result<String, Error> {
     let s = serde_json::to_string(val).map_err(Error::SerDe)?;
 
-    if s.as_bytes().len() > 65_535 {
-        Err(Error::JsonSize)
-    } else {
-        Ok(s)
-    }
+    Ok(s)
 }
 
 /// The set of possible errors when serializing to canonical JSON.
