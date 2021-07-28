@@ -54,3 +54,18 @@ impl Response {
         Self { room_state }
     }
 }
+
+#[cfg(all(test, feature = "server"))]
+mod tests {
+    use ruma_api::OutgoingResponse;
+
+    use super::Response;
+    use super::super::RoomState;
+
+    #[test]
+    fn response_body() {
+        let res = Response::new(RoomState::new("ORIGIN".to_owned())).try_into_http_response::<Vec<u8>>().unwrap();
+
+        assert_eq!(res.body(), b"[200,{\"auth_chain\":[],\"origin\":\"ORIGIN\",\"state\":[]}]");
+    }
+}
