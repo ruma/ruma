@@ -112,6 +112,12 @@ event_enum! {
         #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         "m.key.verification.done",
         "m.room.encrypted",
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        "m.secret.request",
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        "m.secret.send",
     }
 }
 

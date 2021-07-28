@@ -14,13 +14,13 @@ use crate::ToDeviceEvent;
 /// Event sent by a client to request a secret from another device or to cancel a previous request.
 ///
 /// It is sent as an unencrypted to-device event.
-pub type SecretRequestEvent = ToDeviceEvent<SecretRequestEventContent>;
+pub type RequestToDeviceEvent = ToDeviceEvent<RequestToDeviceEventContent>;
 
-/// The payload for SecretRequestEvent.
+/// The payload for RequestToDeviceEvent.
 #[derive(Clone, Debug, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.secret.request", kind = ToDevice)]
-pub struct SecretRequestEventContent {
+pub struct RequestToDeviceEventContent {
     /// The action for the request, one of `["request", "request_cancellation"]`.
     ///
     /// If the action is "request", the name of the secret must also be provided.
@@ -38,8 +38,8 @@ pub struct SecretRequestEventContent {
     pub request_id: String,
 }
 
-impl SecretRequestEventContent {
-    /// Creates a new `SecretRequestEventContent` with the given action, requesting device ID and
+impl RequestToDeviceEventContent {
+    /// Creates a new `RequestToDeviceEventContent` with the given action, requesting device ID and
     /// request ID.
     pub fn new(
         action: RequestAction,
@@ -50,7 +50,7 @@ impl SecretRequestEventContent {
     }
 }
 
-impl<'de> Deserialize<'de> for SecretRequestEventContent {
+impl<'de> Deserialize<'de> for RequestToDeviceEventContent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -98,16 +98,16 @@ impl<'de> Deserialize<'de> for SecretRequestEventContent {
             }
         }
 
-        struct SecretRequestEventContentVisitor;
+        struct RequestToDeviceEventContentVisitor;
 
-        impl<'de> Visitor<'de> for SecretRequestEventContentVisitor {
-            type Value = SecretRequestEventContent;
+        impl<'de> Visitor<'de> for RequestToDeviceEventContentVisitor {
+            type Value = RequestToDeviceEventContent;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("struct SecretRequestEventContent")
+                formatter.write_str("struct RequestToDeviceEventContent")
             }
 
-            fn visit_map<V>(self, mut map: V) -> Result<SecretRequestEventContent, V::Error>
+            fn visit_map<V>(self, mut map: V) -> Result<RequestToDeviceEventContent, V::Error>
             where
                 V: MapAccess<'de>,
             {
@@ -177,15 +177,19 @@ impl<'de> Deserialize<'de> for SecretRequestEventContent {
                     Some(id) => id,
                 };
 
-                Ok(SecretRequestEventContent::new(request_action, requesting_device_id, request_id))
+                Ok(RequestToDeviceEventContent::new(
+                    request_action,
+                    requesting_device_id,
+                    request_id,
+                ))
             }
         }
 
         const FIELDS: &[&str] = &["name", "action", "requesting_device_id", "request_id"];
         deserializer.deserialize_struct(
-            "SecretRequestEventContent",
+            "RequestToDeviceEventContent",
             FIELDS,
-            SecretRequestEventContentVisitor,
+            RequestToDeviceEventContentVisitor,
         )
     }
 }
@@ -251,13 +255,13 @@ pub enum SecretName {
 
 #[cfg(test)]
 mod test {
-    use super::{RequestAction, SecretName, SecretRequestEventContent};
+    use super::{RequestAction, RequestToDeviceEventContent, SecretName};
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     #[test]
     fn secret_request_serialization() {
-        let content = SecretRequestEventContent::new(
+        let content = RequestToDeviceEventContent::new(
             RequestAction::Request(SecretName::Custom("org.example.some.secret".into())),
             "ABCDEFG".into(),
             "randomly_generated_id_9573".into(),
@@ -275,7 +279,7 @@ mod test {
 
     #[test]
     fn secret_request_recovery_key_serialization() {
-        let content = SecretRequestEventContent::new(
+        let content = RequestToDeviceEventContent::new(
             RequestAction::Request(SecretName::RecoveryKey),
             "XYZxyz".into(),
             "this_is_a_request_id".into(),
@@ -293,7 +297,7 @@ mod test {
 
     #[test]
     fn secret_request_cancellation_serialization() {
-        let content = SecretRequestEventContent::new(
+        let content = RequestToDeviceEventContent::new(
             RequestAction::RequestCancellation,
             "ABCDEFG".into(),
             "randomly_generated_id_9573".into(),
@@ -319,7 +323,7 @@ mod test {
 
         assert_matches!(
             from_json_value(json).unwrap(),
-            SecretRequestEventContent {
+            RequestToDeviceEventContent {
                 action: RequestAction::Request(
                     SecretName::Custom(secret)
                 ),
@@ -342,7 +346,7 @@ mod test {
 
         assert_matches!(
             from_json_value(json).unwrap(),
-            SecretRequestEventContent {
+            RequestToDeviceEventContent {
                 action: RequestAction::RequestCancellation,
                 requesting_device_id,
                 request_id,
@@ -363,7 +367,7 @@ mod test {
 
         assert_matches!(
             from_json_value(json).unwrap(),
-            SecretRequestEventContent {
+            RequestToDeviceEventContent {
                 action: RequestAction::Request(
                     SecretName::RecoveryKey
                 ),
