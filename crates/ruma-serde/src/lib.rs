@@ -20,7 +20,7 @@ pub mod urlencoded;
 pub use buf::{json_to_buf, slice_to_buf};
 pub use can_be_empty::{is_empty, CanBeEmpty};
 pub use canonical_json::{
-    to_canonical_value, to_string as to_canonical_json_string, try_from_json_map,
+    to_canonical_value, try_from_json_map,
     value::{CanonicalJsonValue, Object as CanonicalJsonObject},
     Error as CanonicalJsonError,
 };

@@ -10,8 +10,8 @@ use std::{
 use base64::{decode_config, encode_config, Config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
 use ed25519_dalek::Digest;
 use ruma_identifiers::{EventId, RoomVersionId, ServerNameBox, UserId};
-use ruma_serde::{to_canonical_json_string, CanonicalJsonObject, CanonicalJsonValue};
-use serde_json::from_str as from_json_str;
+use ruma_serde::{CanonicalJsonObject, CanonicalJsonValue};
+use serde_json::{from_str as from_json_str, to_string as to_json_string};
 use sha2::Sha256;
 
 use crate::{
@@ -20,6 +20,8 @@ use crate::{
     verification::{Ed25519Verifier, Verified, Verifier},
     Error, JsonError, JsonType, ParseError, VerificationError,
 };
+
+const MAX_PDU_BYTES: usize = 65_535;
 
 /// The fields that are allowed to remain in an event during redaction.
 static ALLOWED_KEYS: &[&str] = &[
@@ -149,7 +151,7 @@ where
     let maybe_unsigned_entry = object.remove_entry("unsigned");
 
     // Get the canonical JSON string.
-    let json = to_canonical_json_string(object).map_err(JsonError::CanonicalJson)?;
+    let json = to_json_string(object).map_err(JsonError::Serde)?;
 
     // Sign the canonical JSON string.
     let signature = key_pair.sign(json.as_bytes());
@@ -204,10 +206,14 @@ pub fn canonical_json(object: &CanonicalJsonObject) -> Result<String, Error> {
 
 /// Uses a set of public keys to verify a signed JSON object.
 ///
+/// Unlike `content_hash` and `reference_hash`, this function does not report an error if the
+/// canonical JSON is larger than 65535 bytes; this function may be used for requests that are
+/// larger than just one PDU's maximum size.
+///
 /// # Parameters
 ///
 /// * public_key_map: A map from entity identifiers to a map from key identifiers to public keys.
-/// Generally, entity identifiers are server names—the host/IP/port of a homeserver (e.g.
+/// Generally, entity identifiers are server names — the host/IP/port of a homeserver (e.g.
 /// "example.com") for which a signature must be verified. Key identifiers for each server (e.g.
 /// "ed25519:1") then map to their respective public keys.
 /// * object: The JSON object that was signed.
@@ -334,8 +340,16 @@ where
 /// # Parameters
 ///
 /// object: A JSON object to generate a content hash for.
+///
+/// # Errors
+///
+/// Returns an error if the event is too large.
 pub fn content_hash(object: &CanonicalJsonObject) -> Result<String, Error> {
     let json = canonical_json_with_fields_to_remove(object, CONTENT_HASH_FIELDS_TO_REMOVE)?;
+    if json.len() > MAX_PDU_BYTES {
+        return Err(Error::PduSize);
+    }
+
     let hash = Sha256::digest(json.as_bytes());
 
     Ok(encode_config(&hash, STANDARD_NO_PAD))
@@ -355,7 +369,7 @@ pub fn content_hash(object: &CanonicalJsonObject) -> Result<String, Error> {
 ///
 /// # Errors
 ///
-/// Returns an error if redaction fails.
+/// Returns an error if the event is too large or redaction fails.
 pub fn reference_hash(
     value: &CanonicalJsonObject,
     version: &RoomVersionId,
@@ -364,6 +378,9 @@ pub fn reference_hash(
 
     let json =
         canonical_json_with_fields_to_remove(&redacted_value, REFERENCE_HASH_FIELDS_TO_REMOVE)?;
+    if json.len() > MAX_PDU_BYTES {
+        return Err(Error::PduSize);
+    }
 
     let hash = Sha256::digest(json.as_bytes());
 
@@ -671,8 +688,9 @@ struct SignatureAndPubkey<'a> {
     public_key: &'a String,
 }
 
-/// Internal implementation detail of the canonical JSON algorithm. Allows customization of the
-/// fields that will be removed before serializing.
+/// Internal implementation detail of the canonical JSON algorithm.
+///
+/// Allows customization of the fields that will be removed before serializing.
 fn canonical_json_with_fields_to_remove(
     object: &CanonicalJsonObject,
     fields: &[&str],
@@ -683,7 +701,7 @@ fn canonical_json_with_fields_to_remove(
         owned_object.remove(*field);
     }
 
-    to_canonical_json_string(&owned_object).map_err(|e| Error::Json(e.into()))
+    to_json_string(&owned_object).map_err(|e| Error::Json(e.into()))
 }
 
 /// Redacts an event using the rules specified in the Matrix client-server specification.

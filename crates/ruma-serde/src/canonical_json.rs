@@ -7,30 +7,12 @@ pub mod value;
 
 use value::Object as CanonicalJsonObject;
 
-/// Returns a canonical JSON string according to Matrix specification.
-///
-/// This function should be preferred over `serde_json::to_string` since it checks the size of the
-/// canonical string. Matrix canonical JSON enforces a size limit of less than 65,535 when sending
-/// PDU's for the server-server protocol.
-pub fn to_string<T: Serialize>(val: &T) -> Result<String, Error> {
-    let s = serde_json::to_string(val).map_err(Error::SerDe)?;
-
-    if s.as_bytes().len() > 65_535 {
-        Err(Error::JsonSize)
-    } else {
-        Ok(s)
-    }
-}
-
 /// The set of possible errors when serializing to canonical JSON.
 #[derive(Debug)]
 #[allow(clippy::exhaustive_enums)]
 pub enum Error {
     /// The numeric value failed conversion to js_int::Int.
     IntConvert,
-
-    /// The `CanonicalJsonValue` being serialized was larger than 65,535 bytes.
-    JsonSize,
 
     /// An error occurred while serializing/deserializing.
     SerDe(JsonError),
@@ -40,7 +22,6 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Error::IntConvert => f.write_str("number found is not a valid `js_int::Int`"),
-            Error::JsonSize => f.write_str("JSON is larger than 65,535 byte max"),
             Error::SerDe(err) => write!(f, "serde Error: {}", err),
         }
     }
@@ -67,10 +48,7 @@ mod tests {
     use js_int::int;
     use serde_json::{from_str as from_json_str, json, to_string as to_json_string};
 
-    use super::{
-        to_canonical_value, to_string as to_canonical_json_string, try_from_json_map,
-        value::CanonicalJsonValue,
-    };
+    use super::{to_canonical_value, try_from_json_map, value::CanonicalJsonValue};
 
     #[test]
     fn serialize_canon() {
@@ -82,7 +60,7 @@ mod tests {
         .try_into()
         .unwrap();
 
-        let ser = to_canonical_json_string(&json).unwrap();
+        let ser = to_json_string(&json).unwrap();
         let back = from_json_str::<CanonicalJsonValue>(&ser).unwrap();
 
         assert_eq!(json, back);

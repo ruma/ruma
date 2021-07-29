@@ -24,6 +24,10 @@ pub enum Error {
     /// [`SplitError`] wrapper.
     #[error("Split error: {0}")]
     SplitError(#[from] SplitError),
+
+    /// PDU was too large
+    #[error("PDU is larger than maximum of 65535 bytes")]
+    PduSize,
 }
 
 /// All errors related to JSON validation/parsing.
@@ -68,11 +72,6 @@ pub enum JsonError {
         /// The key that is missing.
         with_key: String,
     },
-
-    /// A derivative error from [`ruma_serde::CanonicalJsonError`],
-    /// captured here.
-    #[error("Canonical JSON error: {0}")]
-    CanonicalJson(#[from] ruma_serde::CanonicalJsonError),
 
     /// A more generic JSON error from [`serde_json`].
     #[error(transparent)]
