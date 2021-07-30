@@ -1,13 +1,11 @@
 //! Types for the *m.secret.request* event.
 
+use std::convert::TryFrom;
+
 use ruma_events_macros::EventContent;
 use ruma_identifiers::DeviceIdBox;
 use ruma_serde::StringEnum;
-use serde::{
-    de::{self, MapAccess, Visitor},
-    ser::SerializeMap,
-    Deserialize, Serialize,
-};
+use serde::{ser::SerializeStruct, Deserialize, Serialize};
 
 use crate::ToDeviceEvent;
 
@@ -17,7 +15,7 @@ use crate::ToDeviceEvent;
 pub type RequestToDeviceEvent = ToDeviceEvent<RequestToDeviceEventContent>;
 
 /// The payload for RequestToDeviceEvent.
-#[derive(Clone, Debug, Serialize, EventContent)]
+#[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.secret.request", kind = ToDevice)]
 pub struct RequestToDeviceEventContent {
@@ -50,153 +48,10 @@ impl RequestToDeviceEventContent {
     }
 }
 
-impl<'de> Deserialize<'de> for RequestToDeviceEventContent {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        enum Field {
-            Name,
-            Action,
-            RequestingDeviceId,
-            RequestId,
-        }
-
-        impl<'de> Deserialize<'de> for Field {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-            where
-                D: serde::Deserializer<'de>,
-            {
-                struct FieldVisitor;
-
-                impl<'de> Visitor<'de> for FieldVisitor {
-                    type Value = Field;
-
-                    fn expecting(
-                        &self,
-                        formatter: &mut std::fmt::Formatter<'_>,
-                    ) -> std::fmt::Result {
-                        formatter
-                            .write_str("`name`, `action`, `requesting_device_id` or `request_id`")
-                    }
-
-                    fn visit_str<E>(self, value: &str) -> Result<Field, E>
-                    where
-                        E: de::Error,
-                    {
-                        match value {
-                            "name" => Ok(Field::Name),
-                            "action" => Ok(Field::Action),
-                            "requesting_device_id" => Ok(Field::RequestingDeviceId),
-                            "request_id" => Ok(Field::RequestId),
-                            _ => Err(de::Error::unknown_field(value, FIELDS)),
-                        }
-                    }
-                }
-
-                deserializer.deserialize_identifier(FieldVisitor)
-            }
-        }
-
-        struct RequestToDeviceEventContentVisitor;
-
-        impl<'de> Visitor<'de> for RequestToDeviceEventContentVisitor {
-            type Value = RequestToDeviceEventContent;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("struct RequestToDeviceEventContent")
-            }
-
-            fn visit_map<V>(self, mut map: V) -> Result<RequestToDeviceEventContent, V::Error>
-            where
-                V: MapAccess<'de>,
-            {
-                let mut name: Option<String> = None;
-                let mut action: Option<String> = None;
-                let mut requesting_device_id: Option<String> = None;
-                let mut request_id: Option<String> = None;
-
-                while let Some(key) = map.next_key()? {
-                    match key {
-                        Field::Name => {
-                            if name.is_some() {
-                                return Err(de::Error::duplicate_field("name"));
-                            }
-                            name = Some(map.next_value()?);
-                        }
-                        Field::Action => {
-                            if action.is_some() {
-                                return Err(de::Error::duplicate_field("action"));
-                            }
-                            action = Some(map.next_value()?);
-                        }
-                        Field::RequestingDeviceId => {
-                            if requesting_device_id.is_some() {
-                                return Err(de::Error::duplicate_field("requesting_device_id"));
-                            }
-                            requesting_device_id = Some(map.next_value()?);
-                        }
-                        Field::RequestId => {
-                            if request_id.is_some() {
-                                return Err(de::Error::duplicate_field("request_id"));
-                            }
-                            request_id = Some(map.next_value()?);
-                        }
-                    }
-                }
-
-                let request_action = match action {
-                    None => {
-                        return Err(de::Error::missing_field("action"));
-                    }
-                    // If the action is "request", bundle the name in the `RequestAction`, else
-                    // discard the name.
-                    Some(act) => match act.as_ref() {
-                        "request" => RequestAction::Request(match name {
-                            Some(secret_name) => SecretName::from(secret_name),
-                            None => {
-                                return Err(de::Error::missing_field("name"));
-                            }
-                        }),
-                        "request_cancellation" => RequestAction::RequestCancellation,
-                        other_action => RequestAction::_Custom(other_action.to_owned()),
-                    },
-                };
-
-                let requesting_device_id: DeviceIdBox = match requesting_device_id {
-                    None => {
-                        return Err(de::Error::missing_field("requesting_device_id"));
-                    }
-                    Some(id) => id.into(),
-                };
-
-                let request_id = match request_id {
-                    None => {
-                        return Err(de::Error::missing_field("request_id"));
-                    }
-                    Some(id) => id,
-                };
-
-                Ok(RequestToDeviceEventContent::new(
-                    request_action,
-                    requesting_device_id,
-                    request_id,
-                ))
-            }
-        }
-
-        const FIELDS: &[&str] = &["name", "action", "requesting_device_id", "request_id"];
-        deserializer.deserialize_struct(
-            "RequestToDeviceEventContent",
-            FIELDS,
-            RequestToDeviceEventContentVisitor,
-        )
-    }
-}
-
 /// Action for a *m.secret.request* event.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(try_from = "RequestActionInit")]
 pub enum RequestAction {
     /// Request a secret by its name.
     Request(SecretName),
@@ -213,25 +68,53 @@ impl Serialize for RequestAction {
     where
         S: serde::Serializer,
     {
+        let mut st = serializer.serialize_struct("request_action", 2)?;
+
         match self {
             Self::Request(name) => {
-                let mut st = serializer.serialize_map(Some(2))?;
-                st.serialize_entry("name", name)?;
-                st.serialize_entry("action", "request")?;
+                st.serialize_field("name", name)?;
+                st.serialize_field("action", "request")?;
                 st.end()
             }
             Self::RequestCancellation => {
-                let mut st = serializer.serialize_map(Some(1))?;
-                st.serialize_entry("action", "request_cancellation")?;
+                st.serialize_field("action", "request_cancellation")?;
                 st.end()
             }
-            RequestAction::_Custom(custom) => serializer.serialize_str(custom),
+            RequestAction::_Custom(custom) => {
+                st.serialize_field("action", custom)?;
+                st.end()
+            }
+        }
+    }
+}
+
+#[derive(Deserialize)]
+struct RequestActionInit {
+    action: String,
+    name: Option<SecretName>,
+}
+
+impl TryFrom<RequestActionInit> for RequestAction {
+    type Error = &'static str;
+
+    fn try_from(value: RequestActionInit) -> Result<Self, Self::Error> {
+        match value.action.as_str() {
+            "request" => {
+                if let Some(name) = value.name {
+                    Ok(RequestAction::Request(name))
+                } else {
+                    Err("A secret name is required when the action is \"request\".")
+                }
+            }
+            "request_cancellation" => Ok(RequestAction::RequestCancellation),
+            _ => Ok(RequestAction::_Custom(value.action)),
         }
     }
 }
 
 /// The name of a secret.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum SecretName {
     /// Cross-signing master key (m.cross_signing.master).
     #[ruma_enum(rename = "m.cross_signing.master")]
@@ -262,7 +145,7 @@ mod test {
     #[test]
     fn secret_request_serialization() {
         let content = RequestToDeviceEventContent::new(
-            RequestAction::Request(SecretName::_Custom("org.example.some.secret".into())),
+            RequestAction::Request("org.example.some.secret".into()),
             "ABCDEFG".into(),
             "randomly_generated_id_9573".into(),
         );
@@ -288,6 +171,23 @@ mod test {
         let json = json!({
             "name": "m.megolm_backup.v1",
             "action": "request",
+            "requesting_device_id": "XYZxyz",
+            "request_id": "this_is_a_request_id"
+        });
+
+        assert_eq!(to_json_value(&content).unwrap(), json);
+    }
+
+    #[test]
+    fn secret_custom_action_serialization() {
+        let content = RequestToDeviceEventContent::new(
+            RequestAction::_Custom("my_custom_action".into()),
+            "XYZxyz".into(),
+            "this_is_a_request_id".into(),
+        );
+
+        let json = json!({
+            "action": "my_custom_action",
             "requesting_device_id": "XYZxyz",
             "request_id": "this_is_a_request_id"
         });
@@ -325,19 +225,19 @@ mod test {
             from_json_value(json).unwrap(),
             RequestToDeviceEventContent {
                 action: RequestAction::Request(
-                    SecretName::_Custom(secret)
+                    secret
                 ),
                 requesting_device_id,
                 request_id,
             }
-            if secret == "org.example.some.secret"
-            && requesting_device_id == "ABCDEFG"
-            && request_id == "randomly_generated_id_9573"
+            if secret == "org.example.some.secret".into()
+                    && requesting_device_id == "ABCDEFG"
+                    && request_id == "randomly_generated_id_9573"
         )
     }
 
     #[test]
-    fn secret_request_cancellation_deserialisation() {
+    fn secret_request_cancellation_deserialization() {
         let json = json!({
             "action": "request_cancellation",
             "requesting_device_id": "ABCDEFG",
@@ -352,7 +252,7 @@ mod test {
                 request_id,
             }
             if requesting_device_id.as_str() == "ABCDEFG"
-            && request_id == "randomly_generated_id_9573"
+                    && request_id == "randomly_generated_id_9573"
         )
     }
 
@@ -375,7 +275,28 @@ mod test {
                 request_id,
             }
             if requesting_device_id == "XYZxyz"
-            && request_id == "this_is_a_request_id"
+                    && request_id == "this_is_a_request_id"
+        )
+    }
+
+    #[test]
+    fn secret_custom_action_deserialization() {
+        let json = json!({
+            "action": "my_custom_action",
+            "requesting_device_id": "XYZxyz",
+            "request_id": "this_is_a_request_id"
+        });
+
+        assert_matches!(
+            from_json_value::<RequestToDeviceEventContent>(json).unwrap(),
+            RequestToDeviceEventContent {
+                action,
+                requesting_device_id,
+                request_id,
+            }
+            if action == RequestAction::_Custom("my_custom_action".into())
+                    && requesting_device_id == "XYZxyz"
+                    && request_id == "this_is_a_request_id"
         )
     }
 }
