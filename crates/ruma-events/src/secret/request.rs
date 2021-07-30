@@ -195,7 +195,7 @@ impl<'de> Deserialize<'de> for RequestToDeviceEventContent {
 }
 
 /// Action for a *m.secret.request* event.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum RequestAction {
     /// Request a secret by its name.
@@ -231,7 +231,7 @@ impl Serialize for RequestAction {
 }
 
 /// The name of a secret.
-#[derive(Clone, Debug, StringEnum)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 pub enum SecretName {
     /// Cross-signing master key (m.cross_signing.master).
     #[ruma_enum(rename = "m.cross_signing.master")]
@@ -249,8 +249,8 @@ pub enum SecretName {
     #[ruma_enum(rename = "m.megolm_backup.v1")]
     RecoveryKey,
 
-    /// Custom secret name.
-    Custom(String),
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 #[cfg(test)]
@@ -262,7 +262,7 @@ mod test {
     #[test]
     fn secret_request_serialization() {
         let content = RequestToDeviceEventContent::new(
-            RequestAction::Request(SecretName::Custom("org.example.some.secret".into())),
+            RequestAction::Request(SecretName::_Custom("org.example.some.secret".into())),
             "ABCDEFG".into(),
             "randomly_generated_id_9573".into(),
         );
@@ -325,7 +325,7 @@ mod test {
             from_json_value(json).unwrap(),
             RequestToDeviceEventContent {
                 action: RequestAction::Request(
-                    SecretName::Custom(secret)
+                    SecretName::_Custom(secret)
                 ),
                 requesting_device_id,
                 request_id,
