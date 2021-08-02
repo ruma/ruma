@@ -4,7 +4,7 @@ error: no event type attribute found, add `#[ruma_event(type = "any.room.event",
 4 | #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
   |                                                ^^^^^^^^^^^^
   |
-  = note: this error originates in a derive macro (in Nightly builds, run with -Z macro-backtrace for more info)
+  = note: this error originates in the derive macro `EventContent` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: expected one of: `type`, `kind`, `skip_redaction`, `custom_redacted`
   --> $DIR/03-invalid-event-type.rs:11:14
