@@ -20,7 +20,10 @@ use serde::de::{self, Deserializer, Unexpected};
 
 #[doc(inline)]
 pub use crate::{
-    crypto_algorithms::{DeviceKeyAlgorithm, EventEncryptionAlgorithm, SigningKeyAlgorithm},
+    crypto_algorithms::{
+        DeviceKeyAlgorithm, EventEncryptionAlgorithm, KeyDerivationAlgorithm,
+        SecretEncryptionAlgorithm, SigningKeyAlgorithm,
+    },
     device_key_id::DeviceKeyId,
     event_id::EventId,
     key_id::{DeviceSigningKeyId, KeyId, ServerSigningKeyId, SigningKeyId},
