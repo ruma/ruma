@@ -5,8 +5,8 @@ use syn::{
     parse_quote,
     punctuated::Punctuated,
     AngleBracketedGenericArguments, Attribute, Data, DeriveInput, Field, Fields, GenericArgument,
-    GenericParam, Generics, Ident, ImplGenerics, ParenthesizedGenericArguments, PathArguments,
-    Token, Type, TypeGenerics, TypePath, TypeReference, TypeSlice, Variant,
+    GenericParam, Generics, Ident, ImplGenerics, ParenthesizedGenericArguments, Path,
+    PathArguments, Token, Type, TypeGenerics, TypePath, TypeReference, TypeSlice, Variant,
 };
 
 use crate::util::import_ruma_serde;
@@ -315,7 +315,7 @@ impl Parse for Meta {
 }
 
 pub enum DeriveMac {
-    Regular(Ident),
+    Regular(Path),
     NegativeDeserialize,
 }
 
