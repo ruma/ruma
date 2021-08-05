@@ -1,26 +1,21 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 
-use crate::api::metadata::{AuthScheme, Metadata};
+use crate::auth_scheme::AuthScheme;
 
 use super::{Request, RequestField, RequestFieldKind};
 
 impl Request {
-    pub fn expand_outgoing(
-        &self,
-        metadata: &Metadata,
-        error_ty: &TokenStream,
-        lifetimes: &TokenStream,
-        ruma_api: &TokenStream,
-    ) -> TokenStream {
+    pub fn expand_outgoing(&self, ruma_api: &TokenStream) -> TokenStream {
         let bytes = quote! { #ruma_api::exports::bytes };
         let http = quote! { #ruma_api::exports::http };
         let percent_encoding = quote! { #ruma_api::exports::percent_encoding };
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
 
-        let method = &metadata.method;
+        let method = &self.method;
+        let error_ty = &self.error_ty;
         let request_path_string = if self.has_path_fields() {
-            let mut format_string = metadata.path.value();
+            let mut format_string = self.path.value();
             let mut format_args = Vec::new();
 
             while let Some(start_of_segment) = format_string.find(':') {
@@ -132,38 +127,31 @@ impl Request {
             })
             .collect();
 
-        for auth in &metadata.authentication {
-            let attrs = &auth.attrs;
-
-            let hdr_kv = match auth.value {
-                AuthScheme::AccessToken(_) => quote! {
-                    #( #attrs )*
+        let hdr_kv = match self.authentication {
+            AuthScheme::AccessToken(_) => quote! {
+                req_headers.insert(
+                    #http::header::AUTHORIZATION,
+                    ::std::convert::TryFrom::<_>::try_from(::std::format!(
+                        "Bearer {}",
+                        access_token
+                            .get_required_for_endpoint()
+                            .ok_or(#ruma_api::error::IntoHttpError::NeedsAuthentication)?,
+                    ))?,
+                );
+            },
+            AuthScheme::None(_) => quote! {
+                if let Some(access_token) = access_token.get_not_required_for_endpoint() {
                     req_headers.insert(
                         #http::header::AUTHORIZATION,
-                        ::std::convert::TryFrom::<_>::try_from(::std::format!(
-                            "Bearer {}",
-                            access_token
-                                .get_required_for_endpoint()
-                                .ok_or(#ruma_api::error::IntoHttpError::NeedsAuthentication)?,
-                        ))?,
+                        ::std::convert::TryFrom::<_>::try_from(
+                            ::std::format!("Bearer {}", access_token),
+                        )?
                     );
-                },
-                AuthScheme::None(_) => quote! {
-                    if let Some(access_token) = access_token.get_not_required_for_endpoint() {
-                        #( #attrs )*
-                        req_headers.insert(
-                            #http::header::AUTHORIZATION,
-                            ::std::convert::TryFrom::<_>::try_from(
-                                ::std::format!("Bearer {}", access_token),
-                            )?
-                        );
-                    }
-                },
-                AuthScheme::QueryOnlyAccessToken(_) | AuthScheme::ServerSignatures(_) => quote! {},
-            };
-
-            header_kvs.extend(hdr_kv);
-        }
+                }
+            },
+            AuthScheme::QueryOnlyAccessToken(_) | AuthScheme::ServerSignatures(_) => quote! {},
+        };
+        header_kvs.extend(hdr_kv);
 
         let request_body = if let Some(field) = self.newtype_raw_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
@@ -185,22 +173,21 @@ impl Request {
             quote! { <T as ::std::default::Default>::default() }
         };
 
-        let non_auth_impls = metadata.authentication.iter().filter_map(|auth| {
-            matches!(auth.value, AuthScheme::None(_)).then(|| {
-                let attrs = &auth.attrs;
-                quote! {
-                    #( #attrs )*
-                    #[automatically_derived]
-                    #[cfg(feature = "client")]
-                    impl #lifetimes #ruma_api::OutgoingNonAuthRequest for Request #lifetimes {}
-                }
-            })
+        let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
+
+        let non_auth_impl = matches!(self.authentication, AuthScheme::None(_)).then(|| {
+            quote! {
+                #[automatically_derived]
+                #[cfg(feature = "client")]
+                impl #impl_generics #ruma_api::OutgoingNonAuthRequest
+                    for Request #ty_generics #where_clause {}
+            }
         });
 
         quote! {
             #[automatically_derived]
             #[cfg(feature = "client")]
-            impl #lifetimes #ruma_api::OutgoingRequest for Request #lifetimes {
+            impl #impl_generics #ruma_api::OutgoingRequest for Request #ty_generics #where_clause {
                 type EndpointError = #error_ty;
                 type IncomingResponse = <Response as #ruma_serde::Outgoing>::Incoming;
 
@@ -236,7 +223,7 @@ impl Request {
                 }
             }
 
-            #(#non_auth_impls)*
+            #non_auth_impl
         }
     }
 

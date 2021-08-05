@@ -205,6 +205,7 @@ pub mod exports {
     pub use bytes;
     pub use http;
     pub use percent_encoding;
+    pub use ruma_api_macros;
     pub use ruma_serde;
     pub use serde;
     pub use serde_json;
