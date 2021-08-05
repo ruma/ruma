@@ -1,6 +1,5 @@
 //! Details of the `metadata` section of the procedural macro.
 
-use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
     braced,
@@ -8,7 +7,7 @@ use syn::{
     Attribute, Ident, LitBool, LitStr, Token,
 };
 
-use crate::util;
+use crate::{auth_scheme::AuthScheme, util};
 
 mod kw {
     syn::custom_keyword!(metadata);
@@ -18,11 +17,6 @@ mod kw {
     syn::custom_keyword!(path);
     syn::custom_keyword!(rate_limited);
     syn::custom_keyword!(authentication);
-
-    syn::custom_keyword!(None);
-    syn::custom_keyword!(AccessToken);
-    syn::custom_keyword!(ServerSignatures);
-    syn::custom_keyword!(QueryOnlyAccessToken);
 }
 
 /// A field of Metadata that contains attribute macros
@@ -121,42 +115,6 @@ impl Parse for Metadata {
                 authentication
             },
         })
-    }
-}
-
-pub enum AuthScheme {
-    None(kw::None),
-    AccessToken(kw::AccessToken),
-    ServerSignatures(kw::ServerSignatures),
-    QueryOnlyAccessToken(kw::QueryOnlyAccessToken),
-}
-
-impl Parse for AuthScheme {
-    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let lookahead = input.lookahead1();
-
-        if lookahead.peek(kw::None) {
-            input.parse().map(Self::None)
-        } else if lookahead.peek(kw::AccessToken) {
-            input.parse().map(Self::AccessToken)
-        } else if lookahead.peek(kw::ServerSignatures) {
-            input.parse().map(Self::ServerSignatures)
-        } else if lookahead.peek(kw::QueryOnlyAccessToken) {
-            input.parse().map(Self::QueryOnlyAccessToken)
-        } else {
-            Err(lookahead.error())
-        }
-    }
-}
-
-impl ToTokens for AuthScheme {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        match self {
-            AuthScheme::None(kw) => kw.to_tokens(tokens),
-            AuthScheme::AccessToken(kw) => kw.to_tokens(tokens),
-            AuthScheme::ServerSignatures(kw) => kw.to_tokens(tokens),
-            AuthScheme::QueryOnlyAccessToken(kw) => kw.to_tokens(tokens),
-        }
     }
 }
 

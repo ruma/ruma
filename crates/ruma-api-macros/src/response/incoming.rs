@@ -1,10 +1,11 @@
 use proc_macro2::TokenStream;
 use quote::quote;
+use syn::Type;
 
 use super::{Response, ResponseField};
 
 impl Response {
-    pub fn expand_incoming(&self, error_ty: &TokenStream, ruma_api: &TokenStream) -> TokenStream {
+    pub fn expand_incoming(&self, error_ty: &Type, ruma_api: &TokenStream) -> TokenStream {
         let http = quote! { #ruma_api::exports::http };
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
         let serde_json = quote! { #ruma_api::exports::serde_json };

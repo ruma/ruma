@@ -5,25 +5,9 @@ use std::collections::BTreeSet;
 use proc_macro2::TokenStream;
 use proc_macro_crate::{crate_name, FoundCrate};
 use quote::{format_ident, quote};
-use syn::{AttrStyle, Attribute, Lifetime};
+use syn::{parse_quote, visit::Visit, AttrStyle, Attribute, Lifetime, NestedMeta, Type};
 
-/// Generates a `TokenStream` of lifetime identifiers `<'lifetime>`.
-pub(crate) fn unique_lifetimes_to_tokens<'a, I: IntoIterator<Item = &'a Lifetime>>(
-    lifetimes: I,
-) -> TokenStream {
-    let lifetimes = lifetimes.into_iter().collect::<BTreeSet<_>>();
-    if lifetimes.is_empty() {
-        TokenStream::new()
-    } else {
-        quote! { < #( #lifetimes ),* > }
-    }
-}
-
-pub(crate) fn is_valid_endpoint_path(string: &str) -> bool {
-    string.as_bytes().iter().all(|b| (0x21..=0x7E).contains(b))
-}
-
-pub(crate) fn import_ruma_api() -> TokenStream {
+pub fn import_ruma_api() -> TokenStream {
     if let Ok(FoundCrate::Name(name)) = crate_name("ruma-api") {
         let import = format_ident!("{}", name);
         quote! { ::#import }
@@ -41,6 +25,48 @@ pub(crate) fn import_ruma_api() -> TokenStream {
     }
 }
 
-pub(crate) fn is_cfg_attribute(attr: &Attribute) -> bool {
+pub fn is_valid_endpoint_path(string: &str) -> bool {
+    string.as_bytes().iter().all(|b| (0x21..=0x7E).contains(b))
+}
+
+pub fn collect_lifetime_idents(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
+    struct Visitor<'lt>(&'lt mut BTreeSet<Lifetime>);
+    impl<'ast> Visit<'ast> for Visitor<'_> {
+        fn visit_lifetime(&mut self, lt: &'ast Lifetime) {
+            self.0.insert(lt.clone());
+        }
+    }
+
+    Visitor(lifetimes).visit_type(ty)
+}
+
+pub fn is_cfg_attribute(attr: &Attribute) -> bool {
     matches!(attr.style, AttrStyle::Outer) && attr.path.is_ident("cfg")
+}
+
+pub fn all_cfgs_expr(cfgs: &[Attribute]) -> Option<TokenStream> {
+    let sub_cfgs: Vec<_> = cfgs.iter().filter_map(extract_cfg).collect();
+    (!sub_cfgs.is_empty()).then(|| quote! { all( #(#sub_cfgs),* ) })
+}
+
+pub fn all_cfgs(cfgs: &[Attribute]) -> Option<Attribute> {
+    let cfg_expr = all_cfgs_expr(cfgs)?;
+    Some(parse_quote! { #[cfg( #cfg_expr )] })
+}
+
+pub fn extract_cfg(attr: &Attribute) -> Option<NestedMeta> {
+    if !attr.path.is_ident("cfg") {
+        return None;
+    }
+
+    let meta = attr.parse_meta().expect("cfg attribute can be parsed to syn::Meta");
+    let mut list = match meta {
+        syn::Meta::List(l) => l,
+        _ => panic!("unexpected cfg syntax"),
+    };
+
+    assert!(list.path.is_ident("cfg"), "expected cfg attributes only");
+    assert_eq!(list.nested.len(), 1, "expected one item inside cfg()");
+
+    Some(list.nested.pop().unwrap().into_value())
 }
