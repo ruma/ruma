@@ -22,7 +22,6 @@ ruma_api! {
         /// The client secret passed to the `requestToken` call.
         #[ruma_api(query)]
         pub client_secret: &'a str,
-
     }
 
     response: {
@@ -35,7 +34,6 @@ ruma_api! {
         /// Timestamp, in milliseconds, indicating the time that the 3PID was validated.
         pub validated_at: UInt,
     }
-
 }
 
 impl<'a> Request<'a> {

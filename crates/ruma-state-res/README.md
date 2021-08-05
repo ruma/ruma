@@ -34,7 +34,6 @@ impl StateResolution {
         auth_events: Vec<Vec<EventId>>,
         event_map: &mut EventMap<Arc<E>>,
     ) -> Result<StateMap<EventId>> {;
-
 }
 
 ```

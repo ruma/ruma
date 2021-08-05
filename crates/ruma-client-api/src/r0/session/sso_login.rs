@@ -10,7 +10,6 @@ ruma_api! {
         path: "/_matrix/client/r0/login/sso/redirect",
         rate_limited: false,
         authentication: None,
-
     }
 
     request: {

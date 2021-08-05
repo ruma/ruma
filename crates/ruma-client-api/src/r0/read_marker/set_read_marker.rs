@@ -28,7 +28,6 @@ ruma_api! {
         /// provided here to save that extra call.
         #[serde(rename = "m.read", skip_serializing_if = "Option::is_none")]
         pub read_receipt: Option<&'a EventId>,
-
     }
 
     #[derive(Default)]

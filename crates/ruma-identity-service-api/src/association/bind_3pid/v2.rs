@@ -48,7 +48,6 @@ ruma_api! {
         /// association should be trusted, if you trust the verifying identity services.
         pub signatures: ServerSignatures,
     }
-
 }
 
 impl<'a> Request<'a> {
