@@ -7,7 +7,7 @@ Improvements:
   ```rust
   r0::knock::knock_room
   ```
-* Add unstable support for room knocking.
+* Add unstable support for room knocking
 * Add unstable support for reasons for leaving rooms
 
 # 0.11.0
