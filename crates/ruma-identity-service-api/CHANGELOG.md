@@ -5,6 +5,7 @@ Improvements:
 * Add more endpoints:
   
   ```rust
+  association::unbind_3pid::v2,
   invitation::store_invitation::v2
   ```
 
@@ -22,7 +23,6 @@ Improvements:
   association::{
       check_3pid_validity::v2,
       bind_3pid::v2,
-      unbind_3pid::v2,
   },
   invitation::sign_invitation_ed25519::v2,
   ```
