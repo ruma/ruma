@@ -161,6 +161,12 @@ pub mod forwarded_room_key;
 pub mod fully_read;
 pub mod ignored_user_list;
 pub mod key;
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+pub mod notification_attribute_data;
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+pub mod notifications_profile;
 pub mod pdu;
 pub mod policy;
 pub mod presence;

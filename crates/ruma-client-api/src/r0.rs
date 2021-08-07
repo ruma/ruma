@@ -18,6 +18,9 @@ pub mod knock;
 pub mod media;
 pub mod membership;
 pub mod message;
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+pub mod notification_attribute_data;
 pub mod presence;
 pub mod profile;
 pub mod push;
