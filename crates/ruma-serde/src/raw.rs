@@ -5,7 +5,7 @@ use std::{
 };
 
 use serde::{
-    de::{Deserialize, DeserializeOwned, Deserializer, IgnoredAny, MapAccess, Visitor},
+    de::{Deserialize, Deserializer, IgnoredAny, MapAccess, Visitor},
     ser::{Serialize, Serializer},
 };
 use serde_json::value::RawValue;
@@ -127,21 +127,19 @@ impl<T> Raw<T> {
         deserializer.deserialize_map(SingleFieldVisitor::new(field_name))
     }
 
-    /// Try to deserialize the JSON as a custom type.
-    pub fn deserialize_as<U>(&self) -> serde_json::Result<U>
+    /// Try to deserialize the JSON as the expected type.
+    pub fn deserialize<'a>(&'a self) -> serde_json::Result<T>
     where
-        U: DeserializeOwned,
+        T: Deserialize<'a>,
     {
         serde_json::from_str(self.json.get())
     }
-}
 
-impl<T> Raw<T>
-where
-    T: DeserializeOwned,
-{
-    /// Try to deserialize the JSON as the expected type.
-    pub fn deserialize(&self) -> serde_json::Result<T> {
+    /// Try to deserialize the JSON as a custom type.
+    pub fn deserialize_as<'a, U>(&'a self) -> serde_json::Result<U>
+    where
+        U: Deserialize<'a>,
+    {
         serde_json::from_str(self.json.get())
     }
 }

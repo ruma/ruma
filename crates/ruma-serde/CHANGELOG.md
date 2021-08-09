@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Make `Raw::deserialize` & `Raw::deserialize_as` more general
+
 # 0.4.1
 
 Improvements:
