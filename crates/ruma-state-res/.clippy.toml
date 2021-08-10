@@ -5,6 +5,9 @@ standard-macro-braces = [
     { name = "btreeset", brace = "[" },
     # The macro calls itself like btreemap!(...) so this triggers for any use
     # { name = "btreemap", brace = "{" },
-    { name = "hashset", brace = "[" },
-    { name = "hashmap", brace = "{" },
+
+    # For some reason these raise errors in some places where the macros are
+    # used correctly according to the config
+    # { name = "hashset", brace = "[" },
+    # { name = "hashmap", brace = "{" },
 ]
