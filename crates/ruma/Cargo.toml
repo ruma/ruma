@@ -128,7 +128,7 @@ ruma-events = { version = "0.23.3", path = "../ruma-events", optional = true }
 ruma-signatures = { version = "0.8.0", path = "../ruma-signatures", optional = true }
 ruma-state-res = { version = "0.2.0", path = "../ruma-state-res", optional = true }
 
-ruma-api = { version = "0.18.0", path = "../ruma-api", optional = true }
+ruma-api = { version = "0.17.2", path = "../ruma-api", optional = true }
 ruma-appservice-api = { version = "0.3.0", path = "../ruma-appservice-api", optional = true }
 ruma-client-api = { version = "0.11.1", path = "../ruma-client-api", optional = true }
 ruma-federation-api = { version = "0.2.0", path = "../ruma-federation-api", optional = true }
