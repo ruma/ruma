@@ -1,12 +1,5 @@
 # [unreleased]
 
-# 0.18.0
-
-Yanked, this was the same as 0.17.2 but accidentally released with the minor
-rather than the patch version segment incremented.
-
-# 0.17.2
-
 Bug fixes:
 
 * Allow all borrowing query and / or body parameters in `ruma_api!` to be
@@ -14,6 +7,16 @@ Bug fixes:
   * This used lead to broken code being generated and was fixed by moving all
     `impl` block generation code into a derive macro (derive macros run after
     `cfg` expansion)
+
+# 0.18.0
+
+Yanked, this was the same as 0.17.2 but accidentally released with the minor
+rather than the patch version segment incremented. It then turned out that it
+did actually contain breaking changes, so 0.17.2 was yanked too.
+
+# 0.17.2
+
+Yanked since it unintentionally contained breaking changes.
 
 # 0.17.1
 

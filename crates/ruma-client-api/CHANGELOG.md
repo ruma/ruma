@@ -1,11 +1,9 @@
 # [unreleased]
 
-# 0.11.2
-
 Improvements:
 
 * Add more endpoints:
-  
+
   ```rust
   r0::knock::knock_room
   ```
@@ -13,6 +11,10 @@ Improvements:
 * Add unstable support for reasons for leaving rooms
 * Add a `feature = "compat"` workaround for Element failing on `GET /_matrix/client/r0/account/3pid`
   response if the optional `threepids` field is missing
+
+# 0.11.2
+
+Yanked since it depended on a version of ruma-api that had to be yanked too.
 
 # 0.11.1
 
