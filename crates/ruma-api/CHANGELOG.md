@@ -1,5 +1,10 @@
 # [unreleased]
 
+# 0.18.0
+
+Yanked, this was the same as 0.17.2 but accidentally released with the minor
+rather than the patch version segment incremented.
+
 # 0.17.2
 
 Bug fixes:
