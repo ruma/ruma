@@ -1,5 +1,15 @@
 # [unreleased]
 
+# 0.18.0
+
+Bug fixes:
+
+* Allow all borrowing query and / or body parameters in `ruma_api!` to be
+  `cfg`-conditional
+  * This used lead to broken code being generated and was fixed by moving all
+    `impl` block generation code into a derive macro (derive macros run after
+    `cfg` expansion)
+
 # 0.17.1
 
 Improvements:
