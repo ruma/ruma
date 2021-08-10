@@ -5,8 +5,9 @@ use async_stream::try_stream;
 use futures_core::stream::Stream;
 use ruma_client_api::r0::{
     account::register::{self, RegistrationKind},
-    session::login::{self, LoginInfo, UserIdentifier},
+    session::login::{self, LoginInfo},
     sync::sync_events,
+    uiaa::UserIdentifier,
 };
 use ruma_common::presence::PresenceState;
 use ruma_identifiers::DeviceId;

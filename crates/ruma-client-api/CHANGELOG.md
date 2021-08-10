@@ -2,7 +2,10 @@
 
 Breaking changes:
 
-* Change inconsistent types in `rooms` and `not_rooms` fields in `RoomEventFilter` structure. Both types now use `RoomId`. 
+* Change inconsistent types in `rooms` and `not_rooms` fields in
+  `RoomEventFilter` structure: both types now use `RoomId`
+* Move `r0::{session::login::UserIdentifier => uiaa::UserIdentifier}`
+* Add `stages` parameter to `r0::uiaa::AuthFlow::new`
 
 Improvements:
 

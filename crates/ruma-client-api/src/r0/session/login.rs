@@ -1,10 +1,11 @@
 //! [POST /_matrix/client/r0/login](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-login)
 
 use ruma_api::ruma_api;
-use ruma_common::thirdparty::Medium;
 use ruma_identifiers::{DeviceId, DeviceIdBox, ServerNameBox, UserId};
 use ruma_serde::Outgoing;
 use serde::{Deserialize, Serialize};
+
+use crate::r0::uiaa::{IncomingUserIdentifier, UserIdentifier};
 
 ruma_api! {
     metadata: {
@@ -75,35 +76,6 @@ impl Response {
     }
 }
 
-/// Identification information for the user.
-#[derive(Clone, Debug, PartialEq, Eq, Outgoing, Serialize)]
-#[serde(from = "user_serde::IncomingUserIdentifier", into = "user_serde::UserIdentifier<'_>")]
-#[allow(clippy::exhaustive_enums)]
-pub enum UserIdentifier<'a> {
-    /// Either a fully qualified Matrix user ID, or just the localpart (as part of the 'identifier'
-    /// field).
-    MatrixId(&'a str),
-
-    /// Third party identifier (as part of the 'identifier' field).
-    ThirdPartyId {
-        /// Third party identifier for the user.
-        address: &'a str,
-
-        /// The medium of the identifier.
-        medium: Medium,
-    },
-
-    /// Same as third-party identification with medium == msisdn, but with a non-canonicalised
-    /// phone number.
-    PhoneNumber {
-        /// The country that the phone number is from.
-        country: &'a str,
-
-        /// The phone number.
-        phone: &'a str,
-    },
-}
-
 /// The authentication mechanism.
 #[derive(Clone, Debug, PartialEq, Eq, Outgoing, Serialize)]
 #[serde(tag = "type")]
@@ -114,6 +86,7 @@ pub enum LoginInfo<'a> {
     Password {
         /// Identification information for the user.
         identifier: UserIdentifier<'a>,
+
         /// The password.
         password: &'a str,
     },
@@ -176,14 +149,13 @@ impl IdentityServerInfo {
     }
 }
 
-mod user_serde;
-
 #[cfg(test)]
 mod tests {
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json};
 
-    use super::{IncomingLoginInfo, IncomingUserIdentifier};
+    use super::IncomingLoginInfo;
+    use crate::r0::uiaa::IncomingUserIdentifier;
 
     #[test]
     fn deserialize_login_type() {
@@ -213,25 +185,14 @@ mod tests {
     }
 
     #[test]
-    fn deserialize_user() {
-        assert_matches!(
-            from_json_value(json!({
-                "type": "m.id.user",
-                "user": "cheeky_monkey"
-            }))
-            .unwrap(),
-            IncomingUserIdentifier::MatrixId(id)
-            if id == "cheeky_monkey"
-        );
-    }
-
-    #[test]
     #[cfg(feature = "client")]
     fn serialize_login_request_body() {
         use ruma_api::{OutgoingRequest, SendAccessToken};
+        use ruma_common::thirdparty::Medium;
         use serde_json::Value as JsonValue;
 
-        use super::{LoginInfo, Medium, Request, UserIdentifier};
+        use super::{LoginInfo, Request};
+        use crate::r0::uiaa::UserIdentifier;
 
         let req: http::Request<Vec<u8>> = Request {
             login_info: LoginInfo::Token { token: "0xdeadbeef" },
