@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.11.1
+
 Improvements:
 
 * Add more endpoints:
