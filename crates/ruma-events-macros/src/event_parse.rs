@@ -111,14 +111,6 @@ impl IdentFragment for EventKindVariation {
 }
 
 impl EventKind {
-    pub fn is_state(&self) -> bool {
-        matches!(self, Self::State)
-    }
-
-    pub fn is_message(&self) -> bool {
-        matches!(self, Self::Message)
-    }
-
     pub fn to_event_ident(&self, var: &EventKindVariation) -> Option<Ident> {
         use EventKindVariation as V;
 

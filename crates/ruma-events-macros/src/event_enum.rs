@@ -324,34 +324,39 @@ fn expand_any_redacted(
 ) -> TokenStream {
     use EventKindVariation as V;
 
-    if kind.is_state() {
-        let full_state =
-            expand_any_with_deser(kind, events, attrs, variants, &V::Redacted, ruma_events);
-        let sync_state =
-            expand_any_with_deser(kind, events, attrs, variants, &V::RedactedSync, ruma_events);
-        let stripped_state =
-            expand_any_with_deser(kind, events, attrs, variants, &V::RedactedStripped, ruma_events);
+    match kind {
+        EventKind::State => {
+            let full_state =
+                expand_any_with_deser(kind, events, attrs, variants, &V::Redacted, ruma_events);
+            let sync_state =
+                expand_any_with_deser(kind, events, attrs, variants, &V::RedactedSync, ruma_events);
+            let stripped_state = expand_any_with_deser(
+                kind,
+                events,
+                attrs,
+                variants,
+                &V::RedactedStripped,
+                ruma_events,
+            );
 
-        quote! {
-            #full_state
-
-            #sync_state
-
-            #stripped_state
+            quote! {
+                #full_state
+                #sync_state
+                #stripped_state
+            }
         }
-    } else if kind.is_message() {
-        let full_message =
-            expand_any_with_deser(kind, events, attrs, variants, &V::Redacted, ruma_events);
-        let sync_message =
-            expand_any_with_deser(kind, events, attrs, variants, &V::RedactedSync, ruma_events);
+        EventKind::Message => {
+            let full_message =
+                expand_any_with_deser(kind, events, attrs, variants, &V::Redacted, ruma_events);
+            let sync_message =
+                expand_any_with_deser(kind, events, attrs, variants, &V::RedactedSync, ruma_events);
 
-        quote! {
-            #full_message
-
-            #sync_message
+            quote! {
+                #full_message
+                #sync_message
+            }
         }
-    } else {
-        TokenStream::new()
+        _ => TokenStream::new(),
     }
 }
 
@@ -433,7 +438,7 @@ fn expand_content_enum(
 
     let marker_trait_impl = marker_trait(kind, ruma_events);
 
-    let redacted_content_enum = if kind.is_state() || kind.is_message() {
+    let redacted_content_enum = matches!(kind, EventKind::State | EventKind::Message).then(|| {
         let redacted_ident = kind.to_redacted_content_enum();
         let redaction_variants = variants.iter().map(|v| v.ctor(&redacted_ident));
         let redacted_content: Vec<_> = events
@@ -482,17 +487,12 @@ fn expand_content_enum(
                 }
             }
         }
-    } else {
-        TokenStream::new()
-    };
+    });
 
     quote! {
         #content_enum
-
         #event_content_impl
-
         #marker_trait_impl
-
         #redacted_content_enum
     }
 }
