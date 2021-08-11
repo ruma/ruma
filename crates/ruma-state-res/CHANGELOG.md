@@ -1,9 +1,12 @@
 # [unreleased]
 
+# 0.3.0
+
 Breaking changes:
 
 * state_res::resolve auth_events type has been slightly changed and renamed to auth_chain_sets
 * state_res::resolve structs were changed from BTreeMap/Set to HashMap/Set
+* Upgrade dependencies
 
 # 0.2.0
 
