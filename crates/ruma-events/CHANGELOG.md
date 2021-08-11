@@ -9,6 +9,9 @@ Breaking changes:
   validation
 * Remove unused `FromStrError`
 * Remove deprecated method `room::name::NameEventContent::name`
+* Make `encrypted::EncryptedToDeviceEventContent` its own type instead of a type
+  alias for `EncryptedEventContent`
+  * It doesn't have the `relates_to` field `EncryptedEventContent` has
 * Upgrade dependencies
 
 # 0.24.0

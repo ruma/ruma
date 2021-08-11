@@ -26,7 +26,7 @@ pub type EncryptedEvent = MessageEvent<EncryptedEventContent>;
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.encrypted", kind = Message, kind = ToDevice)]
 pub struct EncryptedEventContent {
-    /// Encrypted event content
+    /// Algorithm-specific fields.
     #[serde(flatten)]
     pub scheme: EncryptedEventScheme,
 
@@ -36,9 +36,6 @@ pub struct EncryptedEventContent {
     #[serde(flatten, with = "relation_serde", skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation>,
 }
-
-/// The to-device version of the payload for the `EncryptedEvent`.
-pub type EncryptedToDeviceEventContent = EncryptedEventContent;
 
 impl EncryptedEventContent {
     /// Creates a new `EncryptedEventContent` with the given scheme and relation.
@@ -53,7 +50,17 @@ impl From<EncryptedEventScheme> for EncryptedEventContent {
     }
 }
 
-/// The encryption scheme for `EncryptedEventContent`
+/// The to-device content payload for `m.encrypted` events.
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[ruma_event(type = "m.room.encrypted", kind = ToDevice)]
+pub struct EncryptedToDeviceEventContent {
+    /// Algorithm-specific fields.
+    #[serde(flatten)]
+    pub scheme: EncryptedEventScheme,
+}
+
+/// The encryption scheme for `EncryptedEventContent`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "algorithm")]
