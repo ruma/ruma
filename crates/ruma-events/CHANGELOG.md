@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.24.1
+
 Breaking changes:
 
 * `room::name::NameEventContent` now uses a custom `RoomNameBox` type for its
