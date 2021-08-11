@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.24.2
+
 Improvements:
 
 * Add missing constructor and `From` implementation for
