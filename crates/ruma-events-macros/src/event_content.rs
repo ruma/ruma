@@ -149,12 +149,16 @@ pub fn expand_event_content(
         .transpose()?;
 
     let event_content_impl = generate_event_content_impl(&input.ident, event_type, ruma_events);
+    let static_event_content_impl = event_kind.map(|k| {
+        generate_static_event_content_impl(&input.ident, k, false, event_type, ruma_events)
+    });
     let marker_trait_impl =
         event_kind.map(|k| generate_marker_trait_impl(k, &input.ident, ruma_events)).transpose()?;
 
     Ok(quote! {
         #redacted_event_content
         #event_content_impl
+        #static_event_content_impl
         #marker_trait_impl
     })
 }
@@ -251,7 +255,7 @@ fn generate_redacted_event_content(
     let redacted_event_content =
         generate_event_content_impl(&redacted_ident, event_type, ruma_events);
 
-    let redacted_event_content_derive = match event_kind {
+    let marker_trait_impl = match event_kind {
         Some(EventKind::Message) => quote! {
             #[automatically_derived]
             impl #ruma_events::RedactedMessageEventContent for #redacted_ident {}
@@ -262,6 +266,10 @@ fn generate_redacted_event_content(
         },
         _ => TokenStream::new(),
     };
+
+    let static_event_content_impl = event_kind.map(|k| {
+        generate_static_event_content_impl(&redacted_ident, k, true, event_type, ruma_events)
+    });
 
     Ok(quote! {
         // this is the non redacted event content's impl
@@ -306,7 +314,8 @@ fn generate_redacted_event_content(
             }
         }
 
-        #redacted_event_content_derive
+        #static_event_content_impl
+        #marker_trait_impl
     })
 }
 
@@ -364,6 +373,33 @@ fn generate_event_content_impl(
 
                 #serde_json::from_str(content.get())
             }
+        }
+    }
+}
+
+fn generate_static_event_content_impl(
+    ident: &Ident,
+    event_kind: &EventKind,
+    redacted: bool,
+    event_type: &LitStr,
+    ruma_events: &TokenStream,
+) -> TokenStream {
+    let event_kind = match event_kind {
+        EventKind::GlobalAccountData => quote! { GlobalAccountData },
+        EventKind::RoomAccountData => quote! { RoomAccountData },
+        EventKind::Ephemeral => quote! { EphemeralRoomData },
+        EventKind::Message => quote! { Message { redacted: #redacted } },
+        EventKind::State => quote! { State { redacted: #redacted } },
+        EventKind::ToDevice => quote! { ToDevice },
+        EventKind::Redaction | EventKind::Presence | EventKind::Decrypted => {
+            unreachable!("not a valid event content kind")
+        }
+    };
+
+    quote! {
+        impl #ruma_events::StaticEventContent for #ident {
+            const KIND: #ruma_events::EventKind = #ruma_events::EventKind::#event_kind;
+            const TYPE: &'static ::std::primitive::str = #event_type;
         }
     }
 }

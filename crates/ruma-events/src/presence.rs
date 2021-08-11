@@ -8,6 +8,8 @@ use ruma_events_macros::{Event, EventContent};
 use ruma_identifiers::{MxcUri, UserId};
 use serde::{Deserialize, Serialize};
 
+use crate::{EventKind, StaticEventContent};
+
 /// Presence event.
 #[derive(Clone, Debug, Event)]
 #[allow(clippy::exhaustive_structs)]
@@ -69,6 +71,11 @@ impl PresenceEventContent {
             status_msg: None,
         }
     }
+}
+
+impl StaticEventContent for PresenceEventContent {
+    const KIND: EventKind = EventKind::Presence;
+    const TYPE: &'static str = "m.presence";
 }
 
 #[cfg(test)]

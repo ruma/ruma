@@ -14,6 +14,11 @@ Breaking changes:
   * It doesn't have the `relates_to` field `EncryptedEventContent` has
 * Upgrade dependencies
 
+Improvements:
+
+* Add the `StaticEventContent` trait for abstracting over event content struct
+  types (with a type known at compile-time)
+
 # 0.24.0
 
 Yanked, was released too early missing another important breaking change.
