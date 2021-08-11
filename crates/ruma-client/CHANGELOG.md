@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.7.0
+
+Breaking changes:
+
+* Upgrade dependencies
+
 # 0.6.0
 
 Breaking changes:
