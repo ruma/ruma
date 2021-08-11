@@ -1,5 +1,12 @@
 # [unreleased]
 
+# 0.6.0
+
+Breaking changes:
+
+* Make a few enums non-exhaustive
+* Upgrade dependencies
+
 # 0.5.4
 
 Improvements:

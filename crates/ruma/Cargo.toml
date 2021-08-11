@@ -119,7 +119,7 @@ unstable-pre-spec = [
 assign = "1.1.1"
 js_int = "0.2.0"
 
-ruma-common = { version = "0.5.4", path = "../ruma-common" }
+ruma-common = { version = "0.6.0", path = "../ruma-common" }
 ruma-identifiers = { version = "0.20.0", path = "../ruma-identifiers", features = ["serde"] }
 ruma-serde = { version = "0.5.0", path = "../ruma-serde" }
 
