@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Upgrade dependencies
+
 Improvements:
 
 * Add more endpoints:

@@ -6,6 +6,7 @@ Breaking changes:
   `RoomEventFilter` structure: both types now use `RoomId`
 * Move `r0::{session::login::UserIdentifier => uiaa::UserIdentifier}`
 * Add `stages` parameter to `r0::uiaa::AuthFlow::new`
+* Upgrade dependencies
 
 Improvements:
 
