@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.20.0
+
+Breaking changes:
+
+* Upgrade ruma-serde to 0.5.0
+
 Improvements:
 
 * Add `RoomName`, `RoomNameBox` types
