@@ -1,5 +1,17 @@
 # [unreleased]
 
+# 0.9.0
+
+Breaking changes:
+
+* Change a few functions to return `Result`s
+  * See each function's documentation for how it can fail
+
+Bug fixes:
+
+* Don't check stringified JSON size <= 65535 bytes for verify_json and sign_json
+  since these functions may be used for things other than PDUs
+
 # 0.8.0
 
 Breaking changes:
