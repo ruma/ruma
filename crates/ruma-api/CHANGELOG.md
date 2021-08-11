@@ -1,5 +1,14 @@
 # [unreleased]
 
+# 0.18.1
+
+Breaking changes:
+
+* Generate "struct structs" for `Request` and `Response`, even if there are no
+  fields
+  * We used to generate unit structs when there's no fields
+* Upgrade dependencies
+
 Bug fixes:
 
 * Allow all borrowing query and / or body parameters in `ruma_api!` to be
