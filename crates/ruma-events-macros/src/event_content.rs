@@ -103,12 +103,6 @@ pub fn expand_event_content(
     input: &DeriveInput,
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
-    let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
-    let serde = quote! { #ruma_events::exports::serde };
-    let serde_json = quote! { #ruma_events::exports::serde_json };
-
-    let ident = &input.ident;
-
     let content_attr = input
         .attrs
         .iter()
@@ -150,10 +144,37 @@ pub fn expand_event_content(
     };
 
     // We only generate redacted content structs for state and message events
-    let redacted = if needs_redacted(&content_attr, event_kind) {
-        let doc = format!("The payload for a redacted `{}`", ident);
-        let redacted_ident = format_ident!("Redacted{}", ident);
-        let kept_redacted_fields = if let syn::Data::Struct(syn::DataStruct {
+    let redacted_event_content = needs_redacted(&content_attr, event_kind)
+        .then(|| generate_redacted_event_content(input, event_type, ruma_events, event_kind))
+        .transpose()?;
+
+    let event_content_impl = generate_event_content_impl(&input.ident, event_type, ruma_events);
+    let marker_trait_impl =
+        event_kind.map(|k| generate_marker_trait_impl(k, &input.ident, ruma_events)).transpose()?;
+
+    Ok(quote! {
+        #redacted_event_content
+        #event_content_impl
+        #marker_trait_impl
+    })
+}
+
+fn generate_redacted_event_content(
+    input: &DeriveInput,
+    event_type: &LitStr,
+    ruma_events: &TokenStream,
+    event_kind: Option<&EventKind>,
+) -> Result<TokenStream, syn::Error> {
+    let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
+    let serde = quote! { #ruma_events::exports::serde };
+    let serde_json = quote! { #ruma_events::exports::serde_json };
+
+    let ident = &input.ident;
+    let doc = format!("The payload for a redacted `{}`", ident);
+    let redacted_ident = format_ident!("Redacted{}", ident);
+
+    let kept_redacted_fields =
+        if let syn::Data::Struct(syn::DataStruct {
             fields: syn::Fields::Named(syn::FieldsNamed { named, .. }),
             ..
         }) = &input.data
@@ -191,130 +212,105 @@ pub fn expand_event_content(
         } else {
             vec![]
         };
-        let redaction_struct_fields = kept_redacted_fields.iter().flat_map(|f| &f.ident);
 
-        // redacted_fields allows one to declare an empty redacted event without braces,
-        // otherwise `RedactedWhateverEventContent {}` is needed.
-        // The redacted_return is used in `EventContent::redacted` which only returns
-        // zero sized types (unit structs).
-        let (redacted_fields, redacted_return) = if kept_redacted_fields.is_empty() {
-            (quote! { ; }, quote! { Ok(#redacted_ident {}) })
-        } else {
-            (
-                quote! {
-                    { #( #kept_redacted_fields, )* }
-                },
-                quote! {
-                    Err(#serde::de::Error::custom(
-                        format!("this redacted event has fields that cannot be constructed")
-                    ))
-                },
-            )
-        };
+    let redaction_struct_fields = kept_redacted_fields.iter().flat_map(|f| &f.ident);
 
-        let has_deserialize_fields = if kept_redacted_fields.is_empty() {
-            quote! { #ruma_events::HasDeserializeFields::False }
-        } else {
-            quote! { #ruma_events::HasDeserializeFields::True }
-        };
-
-        let has_serialize_fields = if kept_redacted_fields.is_empty() {
-            quote! { false }
-        } else {
-            quote! { true }
-        };
-
-        let initializer = if kept_redacted_fields.is_empty() {
-            let doc = format!("Creates an empty {}.", redacted_ident);
-            quote! {
-                impl #redacted_ident {
-                    #[doc = #doc]
-                    pub fn new() -> Self {
-                        Self
-                    }
-                }
-            }
-        } else {
-            TokenStream::new()
-        };
-
-        let redacted_event_content =
-            generate_event_content_impl(&redacted_ident, event_type, ruma_events);
-
-        let redacted_event_content_derive = match event_kind {
-            Some(EventKind::Message) => quote! {
-                #[automatically_derived]
-                impl #ruma_events::RedactedMessageEventContent for #redacted_ident {}
-            },
-            Some(EventKind::State) => quote! {
-                #[automatically_derived]
-                impl #ruma_events::RedactedStateEventContent for #redacted_ident {}
-            },
-            _ => TokenStream::new(),
-        };
-
-        quote! {
-            // this is the non redacted event content's impl
-            #[automatically_derived]
-            impl #ruma_events::RedactContent for #ident {
-                type Redacted = #redacted_ident;
-
-                fn redact(self, version: &#ruma_identifiers::RoomVersionId) -> #redacted_ident {
-                    #redacted_ident {
-                        #( #redaction_struct_fields: self.#redaction_struct_fields, )*
-                    }
-                }
-            }
-
-            #[doc = #doc]
-            #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
-            #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-            pub struct #redacted_ident #redacted_fields
-
-            #initializer
-
-            #redacted_event_content
-
-            #[automatically_derived]
-            impl #ruma_events::RedactedEventContent for #redacted_ident {
-                fn empty(ev_type: &str) -> #serde_json::Result<Self> {
-                    if ev_type != #event_type {
-                        return Err(#serde::de::Error::custom(
-                            format!("expected event type `{}`, found `{}`", #event_type, ev_type)
-                        ));
-                    }
-
-                    #redacted_return
-                }
-
-                fn has_serialize_fields(&self) -> bool {
-                    #has_serialize_fields
-                }
-
-                fn has_deserialize_fields() -> #ruma_events::HasDeserializeFields {
-                    #has_deserialize_fields
-                }
-            }
-
-            #redacted_event_content_derive
-        }
+    let (redacted_fields, redacted_return) = if kept_redacted_fields.is_empty() {
+        (quote! { ; }, quote! { Ok(#redacted_ident {}) })
     } else {
-        TokenStream::new()
+        (
+            quote! {
+                { #( #kept_redacted_fields, )* }
+            },
+            quote! {
+                Err(#serde::de::Error::custom(
+                    format!("this redacted event has fields that cannot be constructed")
+                ))
+            },
+        )
     };
 
-    let event_content_derive =
-        event_kind.map(|k| generate_event_content_derive(k, ident, ruma_events)).transpose()?;
+    let (has_deserialize_fields, has_serialize_fields) = if kept_redacted_fields.is_empty() {
+        (quote! { #ruma_events::HasDeserializeFields::False }, quote! { false })
+    } else {
+        (quote! { #ruma_events::HasDeserializeFields::True }, quote! { true })
+    };
 
-    let event_content = generate_event_content_impl(ident, event_type, ruma_events);
+    let constructor = kept_redacted_fields.is_empty().then(|| {
+        let doc = format!("Creates an empty {}.", redacted_ident);
+        quote! {
+            impl #redacted_ident {
+                #[doc = #doc]
+                pub fn new() -> Self {
+                    Self
+                }
+            }
+        }
+    });
+
+    let redacted_event_content =
+        generate_event_content_impl(&redacted_ident, event_type, ruma_events);
+
+    let redacted_event_content_derive = match event_kind {
+        Some(EventKind::Message) => quote! {
+            #[automatically_derived]
+            impl #ruma_events::RedactedMessageEventContent for #redacted_ident {}
+        },
+        Some(EventKind::State) => quote! {
+            #[automatically_derived]
+            impl #ruma_events::RedactedStateEventContent for #redacted_ident {}
+        },
+        _ => TokenStream::new(),
+    };
 
     Ok(quote! {
-        #event_content
-        #event_content_derive
-        #redacted
+        // this is the non redacted event content's impl
+        #[automatically_derived]
+        impl #ruma_events::RedactContent for #ident {
+            type Redacted = #redacted_ident;
+
+            fn redact(self, version: &#ruma_identifiers::RoomVersionId) -> #redacted_ident {
+                #redacted_ident {
+                    #( #redaction_struct_fields: self.#redaction_struct_fields, )*
+                }
+            }
+        }
+
+        #[doc = #doc]
+        #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
+        #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+        pub struct #redacted_ident #redacted_fields
+
+        #constructor
+
+        #redacted_event_content
+
+        #[automatically_derived]
+        impl #ruma_events::RedactedEventContent for #redacted_ident {
+            fn empty(ev_type: &str) -> #serde_json::Result<Self> {
+                if ev_type != #event_type {
+                    return Err(#serde::de::Error::custom(
+                        format!("expected event type `{}`, found `{}`", #event_type, ev_type)
+                    ));
+                }
+
+                #redacted_return
+            }
+
+            fn has_serialize_fields(&self) -> bool {
+                #has_serialize_fields
+            }
+
+            fn has_deserialize_fields() -> #ruma_events::HasDeserializeFields {
+                #has_deserialize_fields
+            }
+        }
+
+        #redacted_event_content_derive
     })
 }
 
-fn generate_event_content_derive(
+fn generate_marker_trait_impl(
     event_kind: &EventKind,
     ident: &Ident,
     ruma_events: &TokenStream,
