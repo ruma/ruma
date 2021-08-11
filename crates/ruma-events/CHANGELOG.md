@@ -1,7 +1,5 @@
 # [unreleased]
 
-# 0.24.0
-
 Breaking changes:
 
 * `room::name::NameEventContent` now uses a custom `RoomNameBox` type for its
@@ -12,6 +10,10 @@ Breaking changes:
 * Remove unused `FromStrError`
 * Remove deprecated method `room::name::NameEventContent::name`
 * Upgrade dependencies
+
+# 0.24.0
+
+Yanked, was released too early missing another important breaking change.
 
 # 0.23.3
 
