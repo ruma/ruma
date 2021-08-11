@@ -60,6 +60,19 @@ pub struct EncryptedToDeviceEventContent {
     pub scheme: EncryptedEventScheme,
 }
 
+impl EncryptedToDeviceEventContent {
+    /// Creates a new `EncryptedToDeviceEventContent` with the given scheme.
+    pub fn new(scheme: EncryptedEventScheme) -> Self {
+        Self { scheme }
+    }
+}
+
+impl From<EncryptedEventScheme> for EncryptedToDeviceEventContent {
+    fn from(scheme: EncryptedEventScheme) -> Self {
+        Self { scheme }
+    }
+}
+
 /// The encryption scheme for `EncryptedEventContent`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]

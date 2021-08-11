@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+* Add missing constructor and `From` implementation for
+  `EncryptedToDeviceEventContent`
+
 # 0.24.1
 
 Breaking changes:
