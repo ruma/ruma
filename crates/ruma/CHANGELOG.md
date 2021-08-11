@@ -1,5 +1,19 @@
 # [unreleased]
 
+# 0.3.0
+
+Breaking changes:
+
+* Upgrade sub-crates. The relevant breaking changes can be found in the changelogs of
+  * ruma-events 0.24.1 (0.24.0 was yanked)
+  * ruma-appservice-api 0.4.0
+  * ruma-client-api 0.12.0
+  * ruma-federation-api 0.3.0
+  * ruma-identity-service-api 0.3.0
+  * ruma-push-gateway-api 0.3.0
+  * ruma-signatures 0.9.0
+  * ruma-state-res 0.3.0
+
 # 0.2.0
 
 Breaking changes:
