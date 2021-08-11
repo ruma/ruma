@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.5.0
+
+Breaking changes:
+
+* Make `Error` type non-exhaustive
+
 # 0.4.0
 
 Breaking changes:
