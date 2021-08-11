@@ -9,7 +9,7 @@ authors = [
 ]
 homepage = "https://www.ruma.io/"
 repository = "https://github.com/ruma/ruma"
-version = "0.4.2"
+version = "0.5.0"
 edition = "2018"
 
 [dependencies]
@@ -17,7 +17,7 @@ bytes = "1.0.1"
 form_urlencoded = "1.0.0"
 itoa = "0.4.6"
 js_int = { version = "0.2.0", features = ["serde"] }
-ruma-serde-macros = { version = "=0.4.2", path = "../ruma-serde-macros" }
+ruma-serde-macros = { version = "=0.5.0", path = "../ruma-serde-macros" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = { version = "1.0.61", features = ["raw_value"] }
 

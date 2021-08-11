@@ -1,5 +1,15 @@
 # [unreleased]
 
+# 0.5.0
+
+Breaking changes:
+
+* Make `urlencoded::ser::Error` non-exhaustive
+* Remove `to_canonical_json_string` and `CanonicalJsonError::JsonSize`
+  * The size check only makes sense for PDUs but canonical JSON objects can be
+    used for other things too
+  * You can simply use `serde_json::to_string` instead
+
 # 0.4.2
 
 Improvements:
