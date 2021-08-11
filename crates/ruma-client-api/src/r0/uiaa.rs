@@ -25,7 +25,7 @@ mod user_serde;
 
 /// Additional authentication information for the user-interactive authentication API.
 #[derive(Clone, Debug, Outgoing, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[non_exhaustive]
 #[allow(clippy::manual_non_exhaustive)]
 #[incoming_derive(!Deserialize)]
 #[serde(untagged)]
