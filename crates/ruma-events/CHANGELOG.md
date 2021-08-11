@@ -8,6 +8,7 @@ Breaking changes:
 * Replace `InvalidEvent` by a more specific `FromStringError` for room name
   validation
 * Remove unused `FromStrError`
+* Remove deprecated method `room::name::NameEventContent::name`
 
 # 0.23.3
 
