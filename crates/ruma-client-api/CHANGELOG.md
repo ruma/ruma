@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.12.0
+
 Breaking changes:
 
 * Change inconsistent types in `rooms` and `not_rooms` fields in
