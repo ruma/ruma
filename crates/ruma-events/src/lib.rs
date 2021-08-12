@@ -442,6 +442,7 @@ pub struct EventTypeDeHelper<'a> {
 /// Helper struct to determine if an event has been redacted.
 #[doc(hidden)]
 #[derive(Deserialize)]
+#[allow(clippy::exhaustive_structs)]
 pub struct RedactionDeHelper {
     /// Used to check whether redacted_because exists.
     pub unsigned: Option<UnsignedDeHelper>,
