@@ -30,6 +30,7 @@ impl SomeProfileEventContent {
 
 /// Event notification actions.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum NotificationAction {
     /// Show a "native notification".
     #[ruma_enum(rename = "m.notify")]
@@ -49,6 +50,7 @@ pub enum NotificationAction {
 
 /// A notification attribute or series of notification attributes.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(untagged)]
 pub enum RequiredNotificationAttribute {
     /// A single notification attribute.
@@ -60,6 +62,7 @@ pub enum RequiredNotificationAttribute {
 
 /// Event notification attributes.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum NotificationAttribute {
     /// The event contains one of the user's registered "notification keywords".
     #[ruma_enum(rename = "m.keyword")]
