@@ -459,7 +459,7 @@ pub struct UnsignedDeHelper {
 #[doc(hidden)]
 pub fn from_raw_json_value<'a, T, E>(val: &'a RawJsonValue) -> Result<T, E>
 where
-    T: de::Deserialize<'a>,
+    T: Deserialize<'a>,
     E: de::Error,
 {
     serde_json::from_str(val.get()).map_err(E::custom)
