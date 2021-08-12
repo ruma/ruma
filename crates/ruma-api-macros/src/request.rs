@@ -187,12 +187,8 @@ impl Request {
             // for lifetimes, the outer check and the macro failing if it encounters
             // an illegal combination of field attributes, is enough to guarantee
             // `body_lifetimes` correctness.
-            let (derive_deserialize, generics) = if self.lifetimes.body.is_empty() {
-                (quote! { #serde::Deserialize }, TokenStream::new())
-            } else {
-                let lifetimes = &self.lifetimes.body;
-                (TokenStream::new(), quote! { < #(#lifetimes),* > })
-            };
+            let lifetimes = &self.lifetimes.body;
+            let derive_deserialize = lifetimes.is_empty().then(|| quote! { #serde::Deserialize });
 
             quote! {
                 /// Data in the request body.
@@ -203,7 +199,7 @@ impl Request {
                     #serde::Serialize,
                     #derive_deserialize
                 )]
-                struct RequestBody #generics #def
+                struct RequestBody< #(#lifetimes),* > #def
             }
         });
 
@@ -218,12 +214,8 @@ impl Request {
         };
 
         let request_query_struct = request_query_def.map(|def| {
-            let (derive_deserialize, generics) = if self.lifetimes.query.is_empty() {
-                (quote! { #serde::Deserialize }, TokenStream::new())
-            } else {
-                let lifetimes = &self.lifetimes.query;
-                (TokenStream::new(), quote! { < #(#lifetimes),* > })
-            };
+            let lifetimes = &self.lifetimes.query;
+            let derive_deserialize = lifetimes.is_empty().then(|| quote! { #serde::Deserialize });
 
             quote! {
                 /// Data in the request's query string.
@@ -234,7 +226,7 @@ impl Request {
                     #serde::Serialize,
                     #derive_deserialize
                 )]
-                struct RequestQuery #generics #def
+                struct RequestQuery< #(#lifetimes),* > #def
             }
         });
 

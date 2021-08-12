@@ -194,6 +194,14 @@ impl ResponseField {
         }
     }
 
+    /// Return the contained field and HTTP header ident if this repsonse field is a header kind.
+    fn as_header_field(&self) -> Option<(&Field, &Ident)> {
+        match self {
+            ResponseField::Header(field, ident) => Some((field, ident)),
+            _ => None,
+        }
+    }
+
     /// Return the contained field if this response field is a newtype body kind.
     fn as_newtype_body_field(&self) -> Option<&Field> {
         match self {

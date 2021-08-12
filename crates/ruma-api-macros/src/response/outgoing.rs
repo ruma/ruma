@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use super::{Response, ResponseField};
+use super::Response;
 
 impl Response {
     pub fn expand_outgoing(&self, ruma_api: &TokenStream) -> TokenStream {
@@ -9,8 +9,8 @@ impl Response {
         let http = quote! { #ruma_api::exports::http };
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
 
-        let serialize_response_headers = self.fields.iter().map(|response_field| {
-            if let ResponseField::Header(field, header_name) = response_field {
+        let serialize_response_headers = self.fields.iter().filter_map(|response_field| {
+            response_field.as_header_field().map(|(field, header_name)| {
                 let field_name =
                     field.ident.as_ref().expect("expected field to have an identifier");
 
@@ -34,9 +34,7 @@ impl Response {
                         );
                     },
                 }
-            } else {
-                TokenStream::new()
-            }
+            })
         });
 
         let body = if let Some(field) = self.newtype_raw_body_field() {
@@ -48,8 +46,8 @@ impl Response {
                 #ruma_serde::json_to_buf(&self.#field_name)?
             }
         } else {
-            let fields = self.fields.iter().map(|response_field| {
-                if let ResponseField::Body(field) = response_field {
+            let fields = self.fields.iter().filter_map(|response_field| {
+                response_field.as_body_field().map(|field| {
                     let field_name =
                         field.ident.as_ref().expect("expected field to have an identifier");
                     let cfg_attrs = field.attrs.iter().filter(|a| a.path.is_ident("cfg"));
@@ -58,9 +56,7 @@ impl Response {
                         #( #cfg_attrs )*
                         #field_name: self.#field_name,
                     }
-                } else {
-                    TokenStream::new()
-                }
+                })
             });
 
             quote! {
