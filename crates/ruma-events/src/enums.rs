@@ -1,10 +1,10 @@
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events_macros::event_enum;
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
-use serde::{de, Serialize};
+use serde::{de, Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use crate::{from_raw_json_value, room::redaction::SyncRedactionEvent, EventDeHelper, Redact};
+use crate::{from_raw_json_value, room::redaction::SyncRedactionEvent, Redact, UnsignedDeHelper};
 
 event_enum! {
     /// Any global account data event.
@@ -197,13 +197,20 @@ impl AnySyncRoomEvent {
     }
 }
 
-impl<'de> de::Deserialize<'de> for AnyRoomEvent {
+#[derive(Deserialize)]
+#[allow(clippy::exhaustive_structs)]
+struct EventDeHelper {
+    pub state_key: Option<de::IgnoredAny>,
+    pub unsigned: Option<UnsignedDeHelper>,
+}
+
+impl<'de> Deserialize<'de> for AnyRoomEvent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: de::Deserializer<'de>,
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let EventDeHelper { state_key, unsigned, .. } = from_raw_json_value(&json)?;
+        let EventDeHelper { state_key, unsigned } = from_raw_json_value(&json)?;
 
         if state_key.is_some() {
             Ok(match unsigned {
@@ -223,13 +230,13 @@ impl<'de> de::Deserialize<'de> for AnyRoomEvent {
     }
 }
 
-impl<'de> de::Deserialize<'de> for AnySyncRoomEvent {
+impl<'de> Deserialize<'de> for AnySyncRoomEvent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: de::Deserializer<'de>,
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let EventDeHelper { state_key, unsigned, .. } = from_raw_json_value(&json)?;
+        let EventDeHelper { state_key, unsigned } = from_raw_json_value(&json)?;
 
         if state_key.is_some() {
             Ok(match unsigned {

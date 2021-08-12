@@ -161,10 +161,10 @@ fn expand_any_with_deser(
                 use #serde::de::Error as _;
 
                 let json = Box::<#serde_json::value::RawValue>::deserialize(deserializer)?;
-                let #ruma_events::EventDeHelper { ev_type, .. } =
+                let #ruma_events::EventTypeDeHelper { ev_type, .. } =
                     #ruma_events::from_raw_json_value(&json)?;
 
-                match ev_type.as_str() {
+                match &*ev_type {
                     #(
                         #variant_attrs #events => {
                             let event = #serde_json::from_str::<#content>(json.get())
@@ -609,7 +609,7 @@ fn expand_redacted_enum(
                     D: #serde::de::Deserializer<'de>,
                 {
                     let json = Box::<#serde_json::value::RawValue>::deserialize(deserializer)?;
-                    let #ruma_events::EventDeHelper { unsigned, .. } =
+                    let #ruma_events::RedactionDeHelper { unsigned } =
                         #ruma_events::from_raw_json_value(&json)?;
 
                     Ok(match unsigned {

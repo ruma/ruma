@@ -430,45 +430,36 @@ pub enum HasDeserializeFields {
     Optional,
 }
 
-/// Helper struct to determine if the event has been redacted.
+/// Helper struct to determine the event kind from a `serde_json::value::RawValue`.
 #[doc(hidden)]
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
+#[allow(clippy::exhaustive_structs)]
+pub struct EventTypeDeHelper<'a> {
+    #[serde(borrow, rename = "type")]
+    pub ev_type: std::borrow::Cow<'a, str>,
+}
+
+/// Helper struct to determine if an event has been redacted.
+#[doc(hidden)]
+#[derive(Deserialize)]
+pub struct RedactionDeHelper {
+    /// Used to check whether redacted_because exists.
+    pub unsigned: Option<UnsignedDeHelper>,
+}
+
+#[doc(hidden)]
+#[derive(Deserialize)]
 #[allow(clippy::exhaustive_structs)]
 pub struct UnsignedDeHelper {
     /// This is the field that signals an event has been redacted.
     pub redacted_because: Option<IgnoredAny>,
 }
 
-/// Helper struct to determine the event kind from a `serde_json::value::RawValue`.
-#[doc(hidden)]
-#[derive(Debug, Deserialize)]
-#[allow(clippy::exhaustive_structs)]
-pub struct EventDeHelper {
-    /// the Matrix event type string "m.room.whatever".
-    #[serde(rename = "type")]
-    pub ev_type: String,
-
-    /// If `state_key` is present the event will be deserialized as a state event.
-    pub state_key: Option<IgnoredAny>,
-
-    /// If no `state_key` is found but an `event_id` is present the event
-    /// will be deserialized as a message event.
-    pub event_id: Option<IgnoredAny>,
-
-    /// If no `event_id` or `state_key` are found but a `room_id` is present
-    /// the event will be deserialized as an ephemeral event.
-    pub room_id: Option<IgnoredAny>,
-
-    /// If this `UnsignedData` contains a `redacted_because` key the event is
-    /// immediately deserialized as a redacted event.
-    pub unsigned: Option<UnsignedDeHelper>,
-}
-
 /// Helper function for `serde_json::value::RawValue` deserialization.
 #[doc(hidden)]
-pub fn from_raw_json_value<T, E>(val: &RawJsonValue) -> Result<T, E>
+pub fn from_raw_json_value<'a, T, E>(val: &'a RawJsonValue) -> Result<T, E>
 where
-    T: de::DeserializeOwned,
+    T: de::Deserialize<'a>,
     E: de::Error,
 {
     serde_json::from_str(val.get()).map_err(E::custom)
