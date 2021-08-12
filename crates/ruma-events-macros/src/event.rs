@@ -192,9 +192,11 @@ fn expand_deserialize_event(
                     }
                 } else if is_generic {
                     quote! {
-                        let json =
-                            content.ok_or_else(|| #serde::de::Error::missing_field("content"))?;
-                        let content = C::from_parts(&event_type, &json).map_err(A::Error::custom)?;
+                        let content = {
+                            let json = content
+                                .ok_or_else(|| #serde::de::Error::missing_field("content"))?;
+                            C::from_parts(&event_type, &json).map_err(A::Error::custom)?
+                        };
                     }
                 } else {
                     quote! {
@@ -206,11 +208,9 @@ fn expand_deserialize_event(
             } else if name == "prev_content" {
                 if is_generic {
                     quote! {
-                        let prev_content = if let Some(json) = prev_content {
-                            Some(C::from_parts(&event_type, &json).map_err(A::Error::custom)?)
-                        } else {
-                            None
-                        };
+                        let prev_content = prev_content.map(|json| {
+                            C::from_parts(&event_type, &json).map_err(A::Error::custom)
+                        }).transpose()?;
                     }
                 } else {
                     TokenStream::new()
