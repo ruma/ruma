@@ -19,9 +19,7 @@ pub type RequestToDeviceEvent = ToDeviceEvent<RequestToDeviceEventContent>;
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.secret.request", kind = ToDevice)]
 pub struct RequestToDeviceEventContent {
-    /// The action for the request, one of `["request", "request_cancellation"]`.
-    ///
-    /// If the action is "request", the name of the secret must also be provided.
+    /// The action for the request.
     #[serde(flatten)]
     pub action: RequestAction,
 
@@ -48,10 +46,10 @@ impl RequestToDeviceEventContent {
     }
 }
 
-/// Action for a *m.secret.request* event.
+/// Action for an *m.secret.request* event.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(try_from = "RequestActionInit")]
+#[serde(try_from = "RequestActionJsonRepr")]
 pub enum RequestAction {
     /// Request a secret by its name.
     Request(SecretName),
@@ -89,15 +87,15 @@ impl Serialize for RequestAction {
 }
 
 #[derive(Deserialize)]
-struct RequestActionInit {
+struct RequestActionJsonRepr {
     action: String,
     name: Option<SecretName>,
 }
 
-impl TryFrom<RequestActionInit> for RequestAction {
+impl TryFrom<RequestActionJsonRepr> for RequestAction {
     type Error = &'static str;
 
-    fn try_from(value: RequestActionInit) -> Result<Self, Self::Error> {
+    fn try_from(value: RequestActionJsonRepr) -> Result<Self, Self::Error> {
         match value.action.as_str() {
             "request" => {
                 if let Some(name) = value.name {
