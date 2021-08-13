@@ -19,7 +19,7 @@ ruma_api! {
         /// The proof that the client owns the 3PID.
         ///
         /// If this is not provided, the request must be signed by the homeserver which controls
-        /// the `user_id`.
+        /// the `mxid`.
         #[serde(flatten)]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub threepid_ownership_proof: Option<&'a ThreePidOwnershipProof>,
