@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.24.3
+
+Improvements:
+
+* Add unstable support for `m.secret.request` and `m.secret.send` events
+
 # 0.24.2
 
 Improvements:
@@ -38,7 +44,6 @@ Improvements:
 
 * Add unstable blurhash field to member event content struct
 * Add constructors for the unstable spaces parent and child event content types
-* Add unstable support for `m.secret.request` and `m.secret.send` events.
 
 Bug fixes:
 
