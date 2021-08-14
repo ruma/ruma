@@ -16,7 +16,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-compat = []
+compat = ["ruma-events-macros/compat"]
 markdown = ["pulldown-cmark"]
 
 unstable-exhaustive-types = []

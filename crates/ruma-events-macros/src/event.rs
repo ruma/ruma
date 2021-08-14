@@ -44,7 +44,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
     };
 
     let serialize_impl = expand_serialize_event(&input, &var, &fields, &ruma_events);
-    let deserialize_impl = expand_deserialize_event(&input, &var, &fields, &ruma_events)?;
+    let deserialize_impl = expand_deserialize_event(&input, &kind, &var, &fields, &ruma_events)?;
     let conversion_impl = expand_from_into(&input, &kind, &var, &fields, &ruma_events);
 
     let eq_impl = expand_eq_ord_event(&input, &fields);
@@ -120,6 +120,7 @@ fn expand_serialize_event(
 
 fn expand_deserialize_event(
     input: &DeriveInput,
+    _kind: &EventKind,
     var: &EventKindVariation,
     fields: &[Field],
     ruma_events: &TokenStream,
@@ -154,12 +155,30 @@ fn expand_deserialize_event(
             let ty = &field.ty;
             if name == "content" || name == "prev_content" {
                 if is_generic {
-                    quote! { Box<#serde_json::value::RawValue> }
+                    quote! { ::std::boxed::Box<#serde_json::value::RawValue> }
                 } else {
                     quote! { #content_type }
                 }
             } else {
-                quote! { #ty }
+                #[allow(unused_mut)]
+                let mut ty = quote! { #ty };
+
+                #[cfg(feature = "compat")]
+                if matches!(_kind, EventKind::State) && name == "unsigned" {
+                    match var {
+                        EventKindVariation::Full | EventKindVariation::Sync => {
+                            ty = quote! { #ruma_events::UnsignedWithPrevContent };
+                        }
+                        EventKindVariation::Redacted | EventKindVariation::RedactedSync => {
+                            ty = quote! { #ruma_events::RedactedUnsignedWithPrevContent };
+                        }
+                        EventKindVariation::Stripped
+                        | EventKindVariation::Initial
+                        | EventKindVariation::RedactedStripped => unreachable!(),
+                    }
+                }
+
+                ty
             }
         })
         .collect();
@@ -207,16 +226,43 @@ fn expand_deserialize_event(
                 }
             } else if name == "prev_content" {
                 if is_generic {
-                    quote! {
+                    #[allow(unused_mut)]
+                    let mut res = quote! {
                         let prev_content = prev_content.map(|json| {
                             C::from_parts(&event_type, &json).map_err(A::Error::custom)
                         }).transpose()?;
-                    }
+                    };
+
+                    #[cfg(feature = "compat")]
+                    if let EventKind::State = _kind {
+                        res = quote! {
+                            let prev_content = prev_content
+                                .or_else(|| unsigned.as_mut().and_then(|u| u.prev_content.take()));
+                            #res
+                        };
+                    };
+
+                    res
                 } else {
                     TokenStream::new()
                 }
             } else if name == "unsigned" {
-                quote! { let unsigned = unsigned.unwrap_or_default(); }
+                #[allow(unused_mut)]
+                let mut res = quote! {
+                    let unsigned = unsigned.unwrap_or_default();
+                };
+
+                #[cfg(feature = "compat")]
+                if matches!(_kind, EventKind::State) {
+                    res = quote! {
+                        let unsigned = unsigned.map_or_else(
+                            ::std::default::Default::default,
+                            ::std::convert::From::from,
+                        );
+                    };
+                }
+
+                res
             } else {
                 let attrs: Vec<_> = field
                     .attrs

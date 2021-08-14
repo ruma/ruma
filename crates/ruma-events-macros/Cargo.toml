@@ -18,6 +18,9 @@ version = "0.24.3"
 [lib]
 proc-macro = true
 
+[features]
+compat = []
+
 [dependencies]
 proc-macro-crate = "1.0.0"
 proc-macro2 = "1.0.24"

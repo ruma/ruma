@@ -194,6 +194,10 @@ pub use self::{
     unsigned::{RedactedUnsigned, Unsigned},
 };
 
+#[doc(hidden)]
+#[cfg(feature = "compat")]
+pub use unsigned::{RedactedUnsignedWithPrevContent, UnsignedWithPrevContent};
+
 /// The base trait that all event content types implement.
 ///
 /// Implementing this trait allows content types to be serialized as well as deserialized.

@@ -74,3 +74,50 @@ impl RedactedUnsigned {
         self.redacted_because.is_none()
     }
 }
+
+#[doc(hidden)]
+#[cfg(feature = "compat")]
+#[derive(Deserialize)]
+pub struct UnsignedWithPrevContent {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    age: Option<Int>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    transaction_id: Option<String>,
+
+    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+    #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]
+    relations: Option<Relations>,
+
+    pub prev_content: Option<Box<serde_json::value::RawValue>>,
+}
+
+#[cfg(feature = "compat")]
+impl From<UnsignedWithPrevContent> for Unsigned {
+    fn from(u: UnsignedWithPrevContent) -> Self {
+        Self {
+            age: u.age,
+            transaction_id: u.transaction_id,
+            #[cfg(feature = "unstable-pre-spec")]
+            relations: u.relations,
+        }
+    }
+}
+
+#[doc(hidden)]
+#[cfg(feature = "compat")]
+#[derive(Deserialize)]
+pub struct RedactedUnsignedWithPrevContent {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    redacted_because: Option<Box<SyncRedactionEvent>>,
+
+    pub prev_content: Option<Box<serde_json::value::RawValue>>,
+}
+
+#[cfg(feature = "compat")]
+impl From<RedactedUnsignedWithPrevContent> for RedactedUnsigned {
+    fn from(u: RedactedUnsignedWithPrevContent) -> Self {
+        Self { redacted_because: u.redacted_because }
+    }
+}
