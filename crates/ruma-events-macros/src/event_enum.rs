@@ -186,6 +186,8 @@ fn expand_any_with_deser(
 
     let redact_impl = expand_redact(&ident, kind, var, variants, ruma_events);
 
+    let from_impl = expand_from_impl(ident, &content, variants);
+
     Some(quote! {
         #any_enum
 
@@ -198,7 +200,36 @@ fn expand_any_with_deser(
         #event_deserialize_impl
 
         #redacted_enum
+
+        #from_impl
     })
+}
+
+fn expand_from_impl(
+    ident: Ident,
+    content: &[TokenStream],
+    variants: &[EventEnumVariant],
+) -> TokenStream {
+    let from_impls = content
+        .iter()
+        .zip(variants)
+        .map(|(content, variant)| {
+            let variant_tokens = variant.ident.to_token_stream();
+            let variant_attrs = &variant.attrs;
+
+            quote! {
+                #[automatically_derived]
+                #(#variant_attrs)*
+                impl From<#content> for #ident {
+                    fn from(c: #content) -> Self {
+                        Self::#variant_tokens(c)
+                    }
+                }
+            }
+        })
+        .collect::<Vec<_>>();
+
+    quote! { #( #from_impls )* }
 }
 
 fn expand_conversion_impl(
@@ -489,30 +520,14 @@ fn expand_content_enum(
         }
     });
 
-    let from_impls = content
-        .iter()
-        .zip(variants)
-        .map(|(content, variant)| {
-            let variant_tokens = variant.ident.to_token_stream();
-            let variant_attrs = &variant.attrs;
-            quote! {
-                #[automatically_derived]
-                #(#variant_attrs)*
-                impl From<#content> for #ident {
-                    fn from(c: #content) -> Self {
-                        Self::#variant_tokens(c)
-                    }
-                }
-            }
-        })
-        .collect::<Vec<_>>();
+    let from_impl = expand_from_impl(ident, &content, variants);
 
     quote! {
         #content_enum
         #event_content_impl
         #marker_trait_impl
         #redacted_content_enum
-        #( #from_impls )*
+        #from_impl
     }
 }
 
