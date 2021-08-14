@@ -489,11 +489,30 @@ fn expand_content_enum(
         }
     });
 
+    let from_impls = content
+        .iter()
+        .zip(variants)
+        .map(|(content, variant)| {
+            let variant_tokens = variant.ident.to_token_stream();
+            let variant_attrs = &variant.attrs;
+            quote! {
+                #[automatically_derived]
+                #(#variant_attrs)*
+                impl From<#content> for #ident {
+                    fn from(c: #content) -> Self {
+                        Self::#variant_tokens(c)
+                    }
+                }
+            }
+        })
+        .collect::<Vec<_>>();
+
     quote! {
         #content_enum
         #event_content_impl
         #marker_trait_impl
         #redacted_content_enum
+        #( #from_impls )*
     }
 }
 
