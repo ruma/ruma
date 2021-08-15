@@ -11,6 +11,7 @@ Improvements:
 * Add more endpoints:
   
   ```rust
+  association::unbind_3pid::v2,
   invitation::store_invitation::v2
   ```
 
