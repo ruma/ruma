@@ -15,6 +15,8 @@ use proc_macro_crate::{crate_name, FoundCrate};
 use quote::{format_ident, quote};
 use syn::{parse_macro_input, DeriveInput};
 
+use crate::event_enum::expand_from_impls_derived;
+
 use self::{
     event::expand_event, event_content::expand_event_content, event_enum::expand_event_enum,
     event_type::expand_event_type_enum,
@@ -106,4 +108,11 @@ pub(crate) fn import_ruma_events() -> pm2::TokenStream {
     } else {
         quote! { ::ruma_events }
     }
+}
+
+/// Generates `From` implementations for event enums.
+#[proc_macro_derive(EventEnumFromEvent)]
+pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_from_impls_derived(input).into()
 }
