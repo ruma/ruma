@@ -47,3 +47,35 @@ impl Response {
         Self { filter }
     }
 }
+
+#[cfg(all(test, any(feature = "client", feature = "server")))]
+mod tests {
+    use matches::assert_matches;
+
+    use crate::r0::filter::IncomingFilterDefinition;
+
+    #[cfg(feature = "client")]
+    #[test]
+    fn deserialize_response() {
+        use ruma_api::IncomingResponse;
+
+        assert_matches!(
+            super::Response::try_from_http_response(
+                http::Response::builder().body(b"{}" as &[u8]).unwrap(),
+            ),
+            Ok(Incoming)
+        );
+    }
+
+    #[cfg(feature = "server")]
+    #[test]
+    fn serialize_response() {
+        use ruma_api::OutgoingResponse;
+
+        assert_matches!(
+            super::Response::new(IncomingFilterDefinition::default())
+                .try_into_http_response::<Vec<u8>>(),
+            Ok(res) if res.body() == b"{}"
+        );
+    }
+}
