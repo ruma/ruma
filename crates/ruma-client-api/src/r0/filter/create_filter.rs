@@ -48,3 +48,46 @@ impl Response {
         Self { filter_id }
     }
 }
+
+#[cfg(all(test, any(feature = "client", feature = "server")))]
+mod tests {
+    use matches::assert_matches;
+
+    #[cfg(feature = "server")]
+    #[test]
+    fn deserialize_request() {
+        use ruma_api::IncomingRequest as _;
+
+        use super::IncomingRequest;
+
+        assert_matches!(
+            IncomingRequest::try_from_http_request(
+                http::Request::builder()
+                    .method(http::Method::POST)
+                    .uri("https://matrix.org/_matrix/client/r0/user/@foo:bar.com/filter")
+                    .body(b"{}" as &[u8])
+                    .unwrap(),
+            ),
+            Ok(IncomingRequest { user_id, filter })
+            if user_id == "@foo:bar.com" && filter.is_empty()
+        );
+    }
+
+    #[cfg(feature = "client")]
+    #[test]
+    fn serialize_request() {
+        use ruma_api::{OutgoingRequest, SendAccessToken};
+        use ruma_identifiers::user_id;
+
+        use crate::r0::filter::FilterDefinition;
+
+        assert_matches!(
+            super::Request::new(&user_id!("@foo:bar.com"), FilterDefinition::default())
+                .try_into_http_request::<Vec<u8>>(
+                    "https://matrix.org",
+                    SendAccessToken::IfRequired("tok"),
+                ),
+            Ok(res) if res.body() == b"{}"
+        );
+    }
+}
