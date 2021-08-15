@@ -63,7 +63,7 @@ mod tests {
             super::Response::try_from_http_response(
                 http::Response::builder().body(b"{}" as &[u8]).unwrap(),
             ),
-            Ok(Incoming)
+            Ok(super::Response { filter }) if filter.is_empty()
         );
     }
 
