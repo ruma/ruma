@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.18.2
+
+Bug fixes:
+
+* Fix (de)serialization of requests with a `#[ruma_api(body)]` field
+
 # 0.18.1
 
 Breaking changes:
