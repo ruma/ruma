@@ -427,7 +427,7 @@ impl TryFrom<Field> for RequestField {
 
             field_kind = Some(match meta {
                 Meta::Word(ident) => match &ident.to_string()[..] {
-                    "body" => RequestFieldKind::Body,
+                    "body" => RequestFieldKind::NewtypeBody,
                     "raw_body" => RequestFieldKind::NewtypeRawBody,
                     "path" => RequestFieldKind::Path,
                     "query" => RequestFieldKind::Query,
