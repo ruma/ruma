@@ -25,7 +25,6 @@ ruma-clippy = """\
     -W clippy::todo \
     -W clippy::unreadable_literal \
     -W clippy::unseparated_literal_suffix \
-    -W clippy::useless_let_if_seq \
     -W clippy::wildcard_imports \
 """
 
