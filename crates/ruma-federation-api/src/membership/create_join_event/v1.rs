@@ -54,3 +54,23 @@ impl Response {
         Self { room_state }
     }
 }
+
+#[cfg(all(test, feature = "server", not(feature = "unstable-pre-spec")))]
+mod tests {
+    use ruma_api::OutgoingResponse;
+    use serde_json::{from_slice as from_json_slice, json, Value as JsonValue};
+
+    use super::{super::RoomState, Response};
+
+    #[test]
+    fn response_body() {
+        let res = Response::new(RoomState::new("ORIGIN".to_owned()))
+            .try_into_http_response::<Vec<u8>>()
+            .unwrap();
+
+        assert_eq!(
+            from_json_slice::<JsonValue>(res.body()).unwrap(),
+            json!([200, { "auth_chain": [], "origin": "ORIGIN", "state": [] }])
+        );
+    }
+}
