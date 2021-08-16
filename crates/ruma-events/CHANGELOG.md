@@ -1,5 +1,12 @@
 # [unreleased]
 
+# 0.24.4
+
+Improvements:
+
+* Add a workaround for synapse putting `prev_content` in unsigned (only active
+  if the `compat` feature is enabled)
+
 # 0.24.3
 
 Improvements:

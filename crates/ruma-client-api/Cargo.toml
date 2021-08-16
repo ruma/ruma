@@ -36,7 +36,7 @@ maplit = "1.0.2"
 percent-encoding = "2.1.0"
 ruma-api = { version = "0.18.2", path = "../ruma-api" }
 ruma-common = { version = "0.6.0", path = "../ruma-common" }
-ruma-events = { version = "0.24.3", path = "../ruma-events" }
+ruma-events = { version = "0.24.4", path = "../ruma-events" }
 ruma-identifiers = { version = "0.20.0", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.5.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
