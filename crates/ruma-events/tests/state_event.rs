@@ -264,12 +264,6 @@ fn deserialize_member_event_with_top_level_membership_field() {
         "type": "m.room.member",
         "unsigned": {
             "age": 1,
-            "replaces_state": "$151800111315tsynI:localhost",
-            "prev_content": {
-                "avatar_url": null,
-                "displayname": "example",
-                "membership": "invite"
-            }
         }
     });
 
