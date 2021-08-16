@@ -40,7 +40,7 @@ impl Response {
 
         let response_init_fields = {
             let mut fields = vec![];
-            let mut new_type_raw_body = None;
+            let mut raw_body = None;
 
             for response_field in &self.fields {
                 let field = response_field.field();
@@ -92,8 +92,8 @@ impl Response {
                     // This field must be instantiated last to avoid `use of move value` error.
                     // We are guaranteed only one new body field because of a check in
                     // `parse_response`.
-                    ResponseField::NewtypeRawBody(_) => {
-                        new_type_raw_body = Some(quote! {
+                    ResponseField::RawBody(_) => {
+                        raw_body = Some(quote! {
                             #( #cfg_attrs )*
                             #field_name: {
                                 ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
@@ -108,7 +108,7 @@ impl Response {
                 });
             }
 
-            fields.extend(new_type_raw_body);
+            fields.extend(raw_body);
 
             quote! {
                 #(#fields,)*

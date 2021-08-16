@@ -74,8 +74,8 @@ impl Response {
     }
 
     /// Returns the body field.
-    fn newtype_raw_body_field(&self) -> Option<&Field> {
-        self.fields.iter().find_map(ResponseField::as_newtype_raw_body_field)
+    fn raw_body_field(&self) -> Option<&Field> {
+        self.fields.iter().find_map(ResponseField::as_raw_body_field)
     }
 
     /// Whether or not this request has any data in the URL path.
@@ -90,7 +90,7 @@ impl Response {
         let serde = quote! { #ruma_api::exports::serde };
 
         let response_body_struct =
-            self.fields.iter().all(|f| !matches!(f, ResponseField::NewtypeRawBody(_))).then(|| {
+            self.fields.iter().all(|f| !matches!(f, ResponseField::RawBody(_))).then(|| {
                 let newtype_body_field =
                     self.fields.iter().find(|f| matches!(f, ResponseField::NewtypeBody(_)));
                 let def = if let Some(body_field) = newtype_body_field {
@@ -133,9 +133,10 @@ impl Response {
             panic!("This macro doesn't support generic types");
         }
 
-        let newtype_body_fields = self.fields.iter().filter(|f| {
-            matches!(f, ResponseField::NewtypeBody(_) | ResponseField::NewtypeRawBody(_))
-        });
+        let newtype_body_fields = self
+            .fields
+            .iter()
+            .filter(|f| matches!(f, ResponseField::NewtypeBody(_) | ResponseField::RawBody(_)));
 
         let has_newtype_body_field = match newtype_body_fields.count() {
             0 => false,
@@ -172,7 +173,7 @@ enum ResponseField {
     NewtypeBody(Field),
 
     /// Arbitrary bytes in the body of the response.
-    NewtypeRawBody(Field),
+    RawBody(Field),
 }
 
 impl ResponseField {
@@ -182,7 +183,7 @@ impl ResponseField {
             ResponseField::Body(field)
             | ResponseField::Header(field, _)
             | ResponseField::NewtypeBody(field)
-            | ResponseField::NewtypeRawBody(field) => field,
+            | ResponseField::RawBody(field) => field,
         }
     }
 
@@ -210,10 +211,10 @@ impl ResponseField {
         }
     }
 
-    /// Return the contained field if this response field is a newtype raw body kind.
-    fn as_newtype_raw_body_field(&self) -> Option<&Field> {
+    /// Return the contained field if this response field is a raw body kind.
+    fn as_raw_body_field(&self) -> Option<&Field> {
         match self {
-            ResponseField::NewtypeRawBody(field) => Some(field),
+            ResponseField::RawBody(field) => Some(field),
             _ => None,
         }
     }
@@ -252,7 +253,7 @@ impl TryFrom<Field> for ResponseField {
             field_kind = Some(match meta {
                 Meta::Word(ident) => match &ident.to_string()[..] {
                     "body" => ResponseFieldKind::NewtypeBody,
-                    "raw_body" => ResponseFieldKind::NewtypeRawBody,
+                    "raw_body" => ResponseFieldKind::RawBody,
                     _ => {
                         return Err(syn::Error::new_spanned(
                             ident,
@@ -280,7 +281,7 @@ impl TryFrom<Field> for ResponseField {
                 ResponseField::Header(field, header.expect("missing header name"))
             }
             ResponseFieldKind::NewtypeBody => ResponseField::NewtypeBody(field),
-            ResponseFieldKind::NewtypeRawBody => ResponseField::NewtypeRawBody(field),
+            ResponseFieldKind::RawBody => ResponseField::RawBody(field),
         })
     }
 }
@@ -302,7 +303,7 @@ enum ResponseFieldKind {
     Body,
     Header,
     NewtypeBody,
-    NewtypeRawBody,
+    RawBody,
 }
 
 fn has_lifetime(ty: &Type) -> bool {

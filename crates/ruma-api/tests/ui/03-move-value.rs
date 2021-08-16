@@ -42,7 +42,7 @@ mod newtype_body {
     }
 }
 
-mod newtype_raw_body {
+mod raw_body {
     use ruma_api::ruma_api;
     use ruma_identifiers::UserId;
 

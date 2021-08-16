@@ -39,7 +39,7 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
                 RequestField::Header(..) => collect_lifetime_idents(&mut lifetimes.header, ty),
                 RequestField::Body(_) => collect_lifetime_idents(&mut lifetimes.body, ty),
                 RequestField::NewtypeBody(_) => collect_lifetime_idents(&mut lifetimes.body, ty),
-                RequestField::NewtypeRawBody(_) => collect_lifetime_idents(&mut lifetimes.body, ty),
+                RequestField::RawBody(_) => collect_lifetime_idents(&mut lifetimes.body, ty),
                 RequestField::Path(_) => collect_lifetime_idents(&mut lifetimes.path, ty),
                 RequestField::Query(_) => collect_lifetime_idents(&mut lifetimes.query, ty),
                 RequestField::QueryMap(_) => collect_lifetime_idents(&mut lifetimes.query, ty),
@@ -158,8 +158,8 @@ impl Request {
         self.fields.iter().find_map(RequestField::as_newtype_body_field)
     }
 
-    fn newtype_raw_body_field(&self) -> Option<&Field> {
-        self.fields.iter().find_map(RequestField::as_newtype_raw_body_field)
+    fn raw_body_field(&self) -> Option<&Field> {
+        self.fields.iter().find_map(RequestField::as_raw_body_field)
     }
 
     fn query_map_field(&self) -> Option<&Field> {
@@ -246,7 +246,7 @@ impl Request {
         // TODO: highlight problematic fields
 
         let newtype_body_fields = self.fields.iter().filter(|field| {
-            matches!(field, RequestField::NewtypeBody(_) | RequestField::NewtypeRawBody(_))
+            matches!(field, RequestField::NewtypeBody(_) | RequestField::RawBody(_))
         });
 
         let has_newtype_body_field = match newtype_body_fields.count() {
@@ -321,7 +321,7 @@ enum RequestField {
     NewtypeBody(Field),
 
     /// Arbitrary bytes in the body of the request.
-    NewtypeRawBody(Field),
+    RawBody(Field),
 
     /// Data that appears in the URL path.
     Path(Field),
@@ -342,7 +342,7 @@ impl RequestField {
                 RequestField::Header(field, header.expect("missing header name"))
             }
             RequestFieldKind::NewtypeBody => RequestField::NewtypeBody(field),
-            RequestFieldKind::NewtypeRawBody => RequestField::NewtypeRawBody(field),
+            RequestFieldKind::RawBody => RequestField::RawBody(field),
             RequestFieldKind::Path => RequestField::Path(field),
             RequestFieldKind::Query => RequestField::Query(field),
             RequestFieldKind::QueryMap => RequestField::QueryMap(field),
@@ -360,8 +360,8 @@ impl RequestField {
     }
 
     /// Return the contained field if this request field is a raw body kind.
-    pub fn as_newtype_raw_body_field(&self) -> Option<&Field> {
-        self.field_of_kind(RequestFieldKind::NewtypeRawBody)
+    pub fn as_raw_body_field(&self) -> Option<&Field> {
+        self.field_of_kind(RequestFieldKind::RawBody)
     }
 
     /// Return the contained field if this request field is a query kind.
@@ -380,7 +380,7 @@ impl RequestField {
             RequestField::Body(field)
             | RequestField::Header(field, _)
             | RequestField::NewtypeBody(field)
-            | RequestField::NewtypeRawBody(field)
+            | RequestField::RawBody(field)
             | RequestField::Path(field)
             | RequestField::Query(field)
             | RequestField::QueryMap(field) => field,
@@ -393,7 +393,7 @@ impl RequestField {
             (RequestField::Body(field), RequestFieldKind::Body)
             | (RequestField::Header(field, _), RequestFieldKind::Header)
             | (RequestField::NewtypeBody(field), RequestFieldKind::NewtypeBody)
-            | (RequestField::NewtypeRawBody(field), RequestFieldKind::NewtypeRawBody)
+            | (RequestField::RawBody(field), RequestFieldKind::RawBody)
             | (RequestField::Path(field), RequestFieldKind::Path)
             | (RequestField::Query(field), RequestFieldKind::Query)
             | (RequestField::QueryMap(field), RequestFieldKind::QueryMap) => Some(field),
@@ -428,7 +428,7 @@ impl TryFrom<Field> for RequestField {
             field_kind = Some(match meta {
                 Meta::Word(ident) => match &ident.to_string()[..] {
                     "body" => RequestFieldKind::NewtypeBody,
-                    "raw_body" => RequestFieldKind::NewtypeRawBody,
+                    "raw_body" => RequestFieldKind::RawBody,
                     "path" => RequestFieldKind::Path,
                     "query" => RequestFieldKind::Query,
                     "query_map" => RequestFieldKind::QueryMap,
@@ -476,7 +476,7 @@ enum RequestFieldKind {
     Body,
     Header,
     NewtypeBody,
-    NewtypeRawBody,
+    RawBody,
     Path,
     Query,
     QueryMap,

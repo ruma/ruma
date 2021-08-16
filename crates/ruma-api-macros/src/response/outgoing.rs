@@ -37,7 +37,7 @@ impl Response {
             })
         });
 
-        let body = if let Some(field) = self.newtype_raw_body_field() {
+        let body = if let Some(field) = self.raw_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             quote! { #ruma_serde::slice_to_buf(&self.#field_name) }
         } else if let Some(field) = self.newtype_body_field() {

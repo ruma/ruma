@@ -93,7 +93,7 @@ pub mod newtype_body_endpoint {
     }
 }
 
-pub mod newtype_raw_body_endpoint {
+pub mod raw_body_endpoint {
     use ruma_api::ruma_api;
 
     #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]

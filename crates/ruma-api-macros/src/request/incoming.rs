@@ -202,7 +202,7 @@ impl Request {
             };
 
             (parse, quote! { #field_name, })
-        } else if let Some(field) = self.newtype_raw_body_field() {
+        } else if let Some(field) = self.raw_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let parse = quote! {
                 let #field_name =
