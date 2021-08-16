@@ -4,7 +4,7 @@ use syn::Field;
 
 use crate::auth_scheme::AuthScheme;
 
-use super::{Request, RequestField, RequestFieldKind};
+use super::{Request, RequestField};
 
 impl Request {
     pub fn expand_outgoing(&self, ruma_api: &TokenStream) -> TokenStream {
@@ -78,8 +78,10 @@ impl Request {
                 )
             }}
         } else if self.has_query_fields() {
-            let request_query_init_fields =
-                self.struct_init_fields(RequestFieldKind::Query, quote! { self });
+            let request_query_init_fields = struct_init_fields(
+                self.fields.iter().filter_map(RequestField::as_query_field),
+                quote! { self },
+            );
 
             quote! {{
                 let request_query = RequestQuery {
@@ -219,17 +221,6 @@ impl Request {
 
             #non_auth_impl
         }
-    }
-
-    fn struct_init_fields(
-        &self,
-        request_field_kind: RequestFieldKind,
-        src: TokenStream,
-    ) -> TokenStream {
-        struct_init_fields(
-            self.fields.iter().filter_map(|f| f.field_of_kind(request_field_kind)),
-            src,
-        )
     }
 }
 

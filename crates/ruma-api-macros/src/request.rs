@@ -119,10 +119,6 @@ impl Request {
         self.fields.iter().filter_map(RequestField::as_body_field)
     }
 
-    fn query_fields(&self) -> impl Iterator<Item = &Field> {
-        self.fields.iter().filter_map(RequestField::as_query_field)
-    }
-
     fn has_body_fields(&self) -> bool {
         self.fields
             .iter()
@@ -269,8 +265,8 @@ impl Request {
             }
         };
 
-        let has_body_fields = self.body_fields().count() > 0;
-        let has_query_fields = self.query_fields().count() > 0;
+        let has_body_fields = self.fields.iter().any(|f| matches!(f, RequestField::Body(_)));
+        let has_query_fields = self.fields.iter().any(|f| matches!(f, RequestField::Query(_)));
 
         if has_newtype_body_field && has_body_fields {
             return Err(syn::Error::new_spanned(
@@ -355,17 +351,26 @@ impl RequestField {
 
     /// Return the contained field if this request field is a raw body kind.
     pub fn as_raw_body_field(&self) -> Option<&Field> {
-        self.field_of_kind(RequestFieldKind::RawBody)
+        match self {
+            RequestField::RawBody(field) => Some(field),
+            _ => None,
+        }
     }
 
     /// Return the contained field if this request field is a query kind.
     pub fn as_query_field(&self) -> Option<&Field> {
-        self.field_of_kind(RequestFieldKind::Query)
+        match self {
+            RequestField::Query(field) => Some(field),
+            _ => None,
+        }
     }
 
     /// Return the contained field if this request field is a query map kind.
     pub fn as_query_map_field(&self) -> Option<&Field> {
-        self.field_of_kind(RequestFieldKind::QueryMap)
+        match self {
+            RequestField::QueryMap(field) => Some(field),
+            _ => None,
+        }
     }
 
     /// Gets the inner `Field` value.
@@ -378,20 +383,6 @@ impl RequestField {
             | RequestField::Path(field)
             | RequestField::Query(field)
             | RequestField::QueryMap(field) => field,
-        }
-    }
-
-    /// Gets the inner `Field` value if it's of the provided kind.
-    fn field_of_kind(&self, kind: RequestFieldKind) -> Option<&Field> {
-        match (self, kind) {
-            (RequestField::Body(field), RequestFieldKind::Body)
-            | (RequestField::Header(field, _), RequestFieldKind::Header)
-            | (RequestField::NewtypeBody(field), RequestFieldKind::NewtypeBody)
-            | (RequestField::RawBody(field), RequestFieldKind::RawBody)
-            | (RequestField::Path(field), RequestFieldKind::Path)
-            | (RequestField::Query(field), RequestFieldKind::Query)
-            | (RequestField::QueryMap(field), RequestFieldKind::QueryMap) => Some(field),
-            _ => None,
         }
     }
 }

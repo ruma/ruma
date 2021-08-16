@@ -2,7 +2,7 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 use syn::Field;
 
-use super::{Request, RequestField, RequestFieldKind};
+use super::{Request, RequestField};
 use crate::auth_scheme::AuthScheme;
 
 impl Request {
@@ -86,7 +86,10 @@ impl Request {
                 },
             )
         } else if self.has_query_fields() {
-            let (decls, names) = self.vars(RequestFieldKind::Query, quote! { request_query });
+            let (decls, names) = vars(
+                self.fields.iter().filter_map(RequestField::as_query_field),
+                quote! { request_query },
+            );
 
             let parse = quote! {
                 let request_query: <RequestQuery as #ruma_serde::Outgoing>::Incoming =
@@ -251,14 +254,6 @@ impl Request {
 
             #non_auth_impl
         }
-    }
-
-    fn vars(
-        &self,
-        request_field_kind: RequestFieldKind,
-        src: TokenStream,
-    ) -> (TokenStream, TokenStream) {
-        vars(self.fields.iter().filter_map(|f| f.field_of_kind(request_field_kind)), src)
     }
 }
 

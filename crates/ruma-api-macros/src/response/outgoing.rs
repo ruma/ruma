@@ -42,7 +42,7 @@ impl Response {
         {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             quote! { #ruma_serde::slice_to_buf(&self.#field_name) }
-        } else if self.has_body_fields() {
+        } else {
             let fields = self.fields.iter().filter_map(|response_field| {
                 response_field.as_body_field().map(|field| {
                     let field_name =
@@ -59,8 +59,6 @@ impl Response {
             quote! {
                 #ruma_serde::json_to_buf(&ResponseBody { #(#fields)* })?
             }
-        } else {
-            quote! { <T as ::std::default::Default>::default() }
         };
 
         quote! {
