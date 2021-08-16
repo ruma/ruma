@@ -12,7 +12,7 @@ pub type NotificationAttributeDataEvent =
 /// The payload for `NotificationAttributeDataEvent`.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.notification_attribute_data", kind = GlobalAccountData)]
+#[ruma_event(type = "org.matrix.msc2785.notification_attribute_data", kind = GlobalAccountData)]
 pub struct NotificationAttributeDataEventContent {
     /// An array of string which form "notification keywords".
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

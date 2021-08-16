@@ -14,7 +14,7 @@ pub type SomeProfileEvent = GlobalAccountDataEvent<SomeProfileEventContent>;
 /// The payload for `SomeProfileEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.notifications_profile.<profile>", kind = GlobalAccountData)]
+#[ruma_event(type = "org.matrix.msc2785.notifications_profile.<profile>", kind = GlobalAccountData)]
 pub struct SomeProfileEventContent {
     /// A map from actions to the notification attributes which trigger the actions.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]

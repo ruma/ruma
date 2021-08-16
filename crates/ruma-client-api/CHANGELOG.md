@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Add unstable support for event notification attributes and actions
+
 # 0.12.0
 
 Breaking changes:

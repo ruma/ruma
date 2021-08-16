@@ -15,7 +15,7 @@ pub type NotificationsProfileEvent = GlobalAccountDataEvent<NotificationsProfile
 /// The payload for `NotificationsProfileEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.notifications_profile", kind = GlobalAccountData)]
+#[ruma_event(type = "org.matrix.msc2785.notifications_profile", kind = GlobalAccountData)]
 pub struct NotificationsProfileEventContent {
     /// The user's "notifications profile".
     pub profile: String,
