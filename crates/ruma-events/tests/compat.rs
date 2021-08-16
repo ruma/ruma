@@ -11,7 +11,7 @@ fn deserialize_unsigned_prev_content() {
             "topic": "New room topic",
         },
         "event_id": "$143273582443PhrSn:example.org",
-        "origin_server_ts": 1432735824653u64,
+        "origin_server_ts": 1432735824653_u64,
         "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
         "sender": "@example:example.org",
         "state_key": "",
