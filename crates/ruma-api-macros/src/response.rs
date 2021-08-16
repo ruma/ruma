@@ -65,17 +65,19 @@ struct Response {
 impl Response {
     /// Whether or not this request has any data in the HTTP body.
     fn has_body_fields(&self) -> bool {
-        self.fields.iter().any(|f| matches!(f, ResponseField::Body(_)))
+        self.fields
+            .iter()
+            .any(|f| matches!(f, ResponseField::Body(_) | &ResponseField::NewtypeBody(_)))
     }
 
-    /// Returns the body field.
-    fn newtype_body_field(&self) -> Option<&Field> {
-        self.fields.iter().find_map(ResponseField::as_newtype_body_field)
+    /// Whether or not this request has a single newtype body field.
+    fn has_newtype_body(&self) -> bool {
+        self.fields.iter().any(|f| matches!(f, ResponseField::NewtypeBody(_)))
     }
 
-    /// Returns the body field.
-    fn raw_body_field(&self) -> Option<&Field> {
-        self.fields.iter().find_map(ResponseField::as_raw_body_field)
+    /// Whether or not this request has a single raw body field.
+    fn has_raw_body(&self) -> bool {
+        self.fields.iter().any(|f| matches!(f, ResponseField::RawBody(_)))
     }
 
     /// Whether or not this request has any data in the URL path.
@@ -89,31 +91,23 @@ impl Response {
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
         let serde = quote! { #ruma_api::exports::serde };
 
-        let response_body_struct =
-            self.fields.iter().all(|f| !matches!(f, ResponseField::RawBody(_))).then(|| {
-                let newtype_body_field =
-                    self.fields.iter().find(|f| matches!(f, ResponseField::NewtypeBody(_)));
-                let def = if let Some(body_field) = newtype_body_field {
-                    let field =
-                        Field { ident: None, colon_token: None, ..body_field.field().clone() };
-                    quote! { (#field); }
-                } else {
-                    let fields = self.fields.iter().filter_map(|f| f.as_body_field());
-                    quote! { { #(#fields),* } }
-                };
+        let response_body_struct = (!self.has_raw_body()).then(|| {
+            let serde_attr = self.has_newtype_body().then(|| quote! { #[serde(transparent)] });
+            let fields = self.fields.iter().filter_map(ResponseField::as_body_field);
 
-                quote! {
-                    /// Data in the response body.
-                    #[derive(
-                        Debug,
-                        #ruma_api_macros::_FakeDeriveRumaApi,
-                        #ruma_serde::Outgoing,
-                        #serde::Deserialize,
-                        #serde::Serialize,
-                    )]
-                    struct ResponseBody #def
-                }
-            });
+            quote! {
+                /// Data in the response body.
+                #[derive(
+                    Debug,
+                    #ruma_api_macros::_FakeDeriveRumaApi,
+                    #ruma_serde::Outgoing,
+                    #serde::Deserialize,
+                    #serde::Serialize,
+                )]
+                #serde_attr
+                struct ResponseBody { #(#fields),* }
+            }
+        });
 
         let outgoing_response_impl = self.expand_outgoing(&ruma_api);
         let incoming_response_impl = self.expand_incoming(&self.error_ty, &ruma_api);
@@ -190,23 +184,7 @@ impl ResponseField {
     /// Return the contained field if this response field is a body kind.
     fn as_body_field(&self) -> Option<&Field> {
         match self {
-            ResponseField::Body(field) => Some(field),
-            _ => None,
-        }
-    }
-
-    /// Return the contained field and HTTP header ident if this repsonse field is a header kind.
-    fn as_header_field(&self) -> Option<(&Field, &Ident)> {
-        match self {
-            ResponseField::Header(field, ident) => Some((field, ident)),
-            _ => None,
-        }
-    }
-
-    /// Return the contained field if this response field is a newtype body kind.
-    fn as_newtype_body_field(&self) -> Option<&Field> {
-        match self {
-            ResponseField::NewtypeBody(field) => Some(field),
+            ResponseField::Body(field) | ResponseField::NewtypeBody(field) => Some(field),
             _ => None,
         }
     }
@@ -215,6 +193,14 @@ impl ResponseField {
     fn as_raw_body_field(&self) -> Option<&Field> {
         match self {
             ResponseField::RawBody(field) => Some(field),
+            _ => None,
+        }
+    }
+
+    /// Return the contained field and HTTP header ident if this repsonse field is a header kind.
+    fn as_header_field(&self) -> Option<(&Field, &Ident)> {
+        match self {
+            ResponseField::Header(field, ident) => Some((field, ident)),
             _ => None,
         }
     }

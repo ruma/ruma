@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use super::Response;
+use super::{Response, ResponseField};
 
 impl Response {
     pub fn expand_outgoing(&self, ruma_api: &TokenStream) -> TokenStream {
@@ -37,15 +37,12 @@ impl Response {
             })
         });
 
-        let body = if let Some(field) = self.raw_body_field() {
+        let body = if let Some(field) =
+            self.fields.iter().find_map(ResponseField::as_raw_body_field)
+        {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             quote! { #ruma_serde::slice_to_buf(&self.#field_name) }
-        } else if let Some(field) = self.newtype_body_field() {
-            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-            quote! {
-                #ruma_serde::json_to_buf(&self.#field_name)?
-            }
-        } else {
+        } else if self.has_body_fields() {
             let fields = self.fields.iter().filter_map(|response_field| {
                 response_field.as_body_field().map(|field| {
                     let field_name =
@@ -62,6 +59,8 @@ impl Response {
             quote! {
                 #ruma_serde::json_to_buf(&ResponseBody { #(#fields)* })?
             }
+        } else {
+            quote! { <T as ::std::default::Default>::default() }
         };
 
         quote! {

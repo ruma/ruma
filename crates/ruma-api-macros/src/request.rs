@@ -124,7 +124,13 @@ impl Request {
     }
 
     fn has_body_fields(&self) -> bool {
-        self.fields.iter().any(|f| matches!(f, RequestField::Body(..)))
+        self.fields
+            .iter()
+            .any(|f| matches!(f, RequestField::Body(_) | RequestField::NewtypeBody(_)))
+    }
+
+    fn has_newtype_body(&self) -> bool {
+        self.fields.iter().any(|f| matches!(f, RequestField::NewtypeBody(_)))
     }
 
     fn has_header_fields(&self) -> bool {
@@ -132,11 +138,11 @@ impl Request {
     }
 
     fn has_path_fields(&self) -> bool {
-        self.fields.iter().any(|f| matches!(f, RequestField::Path(..)))
+        self.fields.iter().any(|f| matches!(f, RequestField::Path(_)))
     }
 
     fn has_query_fields(&self) -> bool {
-        self.fields.iter().any(|f| matches!(f, RequestField::Query(..)))
+        self.fields.iter().any(|f| matches!(f, RequestField::Query(_)))
     }
 
     fn has_lifetimes(&self) -> bool {
@@ -154,10 +160,6 @@ impl Request {
         self.fields.iter().filter(|f| matches!(f, RequestField::Path(..))).count()
     }
 
-    fn newtype_body_field(&self) -> Option<&Field> {
-        self.fields.iter().find_map(RequestField::as_newtype_body_field)
-    }
-
     fn raw_body_field(&self) -> Option<&Field> {
         self.fields.iter().find_map(RequestField::as_raw_body_field)
     }
@@ -172,17 +174,10 @@ impl Request {
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
         let serde = quote! { #ruma_api::exports::serde };
 
-        let request_body_def = if let Some(body_field) = self.newtype_body_field() {
-            let field = Field { ident: None, colon_token: None, ..body_field.clone() };
-            Some(quote! { (#field); })
-        } else if self.has_body_fields() {
+        let request_body_struct = self.has_body_fields().then(|| {
+            let serde_attr = self.has_newtype_body().then(|| quote! { #[serde(transparent)] });
             let fields = self.fields.iter().filter_map(RequestField::as_body_field);
-            Some(quote! { { #(#fields),* } })
-        } else {
-            None
-        };
 
-        let request_body_struct = request_body_def.map(|def| {
             // Though we don't track the difference between newtype body and body
             // for lifetimes, the outer check and the macro failing if it encounters
             // an illegal combination of field attributes, is enough to guarantee
@@ -199,7 +194,8 @@ impl Request {
                     #serde::Serialize,
                     #derive_deserialize
                 )]
-                struct RequestBody< #(#lifetimes),* > #def
+                #serde_attr
+                struct RequestBody< #(#lifetimes),* > { #(#fields),* }
             }
         });
 
@@ -351,12 +347,10 @@ impl RequestField {
 
     /// Return the contained field if this request field is a body kind.
     pub fn as_body_field(&self) -> Option<&Field> {
-        self.field_of_kind(RequestFieldKind::Body)
-    }
-
-    /// Return the contained field if this request field is a body kind.
-    pub fn as_newtype_body_field(&self) -> Option<&Field> {
-        self.field_of_kind(RequestFieldKind::NewtypeBody)
+        match self {
+            RequestField::Body(field) | RequestField::NewtypeBody(field) => Some(field),
+            _ => None,
+        }
     }
 
     /// Return the contained field if this request field is a raw body kind.

@@ -16,27 +16,26 @@ impl Response {
             }
         });
 
-        let typed_response_body_decl =
-            (self.has_body_fields() || self.newtype_body_field().is_some()).then(|| {
-                quote! {
-                    let response_body: <
-                        ResponseBody
-                        as #ruma_serde::Outgoing
-                    >::Incoming = {
-                        let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
-                            response.body(),
-                        );
+        let typed_response_body_decl = self.has_body_fields().then(|| {
+            quote! {
+                let response_body: <
+                    ResponseBody
+                    as #ruma_serde::Outgoing
+                >::Incoming = {
+                    let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
+                        response.body(),
+                    );
 
-                        #serde_json::from_slice(match body {
-                            // If the response body is completely empty, pretend it is an empty
-                            // JSON object instead. This allows responses with only optional body
-                            // parameters to be deserialized in that case.
-                            [] => b"{}",
-                            b => b,
-                        })?
-                    };
-                }
-            });
+                    #serde_json::from_slice(match body {
+                        // If the response body is completely empty, pretend it is an empty
+                        // JSON object instead. This allows responses with only optional body
+                        // parameters to be deserialized in that case.
+                        [] => b"{}",
+                        b => b,
+                    })?
+                };
+            }
+        });
 
         let response_init_fields = {
             let mut fields = vec![];
@@ -50,7 +49,7 @@ impl Response {
                     field.attrs.iter().filter(|a| a.path.is_ident("cfg")).collect::<Vec<_>>();
 
                 fields.push(match response_field {
-                    ResponseField::Body(_) => {
+                    ResponseField::Body(_) | ResponseField::NewtypeBody(_) => {
                         quote! {
                             #( #cfg_attrs )*
                             #field_name: response_body.#field_name
@@ -82,12 +81,6 @@ impl Response {
                             },
                         };
                         quote! { #optional_header }
-                    }
-                    ResponseField::NewtypeBody(_) => {
-                        quote! {
-                            #( #cfg_attrs )*
-                            #field_name: response_body.0
-                        }
                     }
                     // This field must be instantiated last to avoid `use of move value` error.
                     // We are guaranteed only one new body field because of a check in

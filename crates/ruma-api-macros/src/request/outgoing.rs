@@ -1,5 +1,6 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
+use syn::Field;
 
 use crate::auth_scheme::AuthScheme;
 
@@ -156,18 +157,11 @@ impl Request {
         let request_body = if let Some(field) = self.raw_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             quote! { #ruma_serde::slice_to_buf(&self.#field_name) }
-        } else if self.has_body_fields() || self.newtype_body_field().is_some() {
-            let request_body_initializers = if let Some(field) = self.newtype_body_field() {
-                let field_name =
-                    field.ident.as_ref().expect("expected field to have an identifier");
-                quote! { (self.#field_name) }
-            } else {
-                let initializers = self.struct_init_fields(RequestFieldKind::Body, quote! { self });
-                quote! { { #initializers } }
-            };
+        } else if self.has_body_fields() {
+            let initializers = struct_init_fields(self.body_fields(), quote! { self });
 
             quote! {
-                #ruma_serde::json_to_buf(&RequestBody #request_body_initializers)?
+                #ruma_serde::json_to_buf(&RequestBody { #initializers })?
             }
         } else {
             quote! { <T as ::std::default::Default>::default() }
@@ -227,27 +221,35 @@ impl Request {
         }
     }
 
-    /// Produces code for a struct initializer for the given field kind to be accessed through the
-    /// given variable name.
     fn struct_init_fields(
         &self,
         request_field_kind: RequestFieldKind,
         src: TokenStream,
     ) -> TokenStream {
-        self.fields
-            .iter()
-            .filter_map(|f| f.field_of_kind(request_field_kind))
-            .map(|field| {
-                let field_name =
-                    field.ident.as_ref().expect("expected field to have an identifier");
-                let cfg_attrs =
-                    field.attrs.iter().filter(|a| a.path.is_ident("cfg")).collect::<Vec<_>>();
-
-                quote! {
-                    #( #cfg_attrs )*
-                    #field_name: #src.#field_name,
-                }
-            })
-            .collect()
+        struct_init_fields(
+            self.fields.iter().filter_map(|f| f.field_of_kind(request_field_kind)),
+            src,
+        )
     }
+}
+
+/// Produces code for a struct initializer for the given field kind to be accessed through the
+/// given variable name.
+fn struct_init_fields<'a>(
+    fields: impl IntoIterator<Item = &'a Field>,
+    src: TokenStream,
+) -> TokenStream {
+    fields
+        .into_iter()
+        .map(|field| {
+            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
+            let cfg_attrs =
+                field.attrs.iter().filter(|a| a.path.is_ident("cfg")).collect::<Vec<_>>();
+
+            quote! {
+                #( #cfg_attrs )*
+                #field_name: #src.#field_name,
+            }
+        })
+        .collect()
 }

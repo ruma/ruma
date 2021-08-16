@@ -1,5 +1,6 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
+use syn::Field;
 
 use super::{Request, RequestField, RequestFieldKind};
 use crate::auth_scheme::AuthScheme;
@@ -166,43 +167,34 @@ impl Request {
             (TokenStream::new(), TokenStream::new())
         };
 
-        let extract_body =
-            (self.has_body_fields() || self.newtype_body_field().is_some()).then(|| {
-                let body_lifetimes = (!self.lifetimes.body.is_empty()).then(|| {
-                    // duplicate the anonymous lifetime as many times as needed
-                    let lifetimes =
-                        std::iter::repeat(quote! { '_ }).take(self.lifetimes.body.len());
-                    quote! { < #( #lifetimes, )* > }
-                });
-
-                quote! {
-                    let request_body: <
-                        RequestBody #body_lifetimes
-                        as #ruma_serde::Outgoing
-                    >::Incoming = {
-                        let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
-                            request.body(),
-                        );
-
-                        #serde_json::from_slice(match body {
-                            // If the request body is completely empty, pretend it is an empty JSON
-                            // object instead. This allows requests with only optional body parameters
-                            // to be deserialized in that case.
-                            [] => b"{}",
-                            b => b,
-                        })?
-                    };
-                }
+        let extract_body = self.has_body_fields().then(|| {
+            let body_lifetimes = (!self.lifetimes.body.is_empty()).then(|| {
+                // duplicate the anonymous lifetime as many times as needed
+                let lifetimes = std::iter::repeat(quote! { '_ }).take(self.lifetimes.body.len());
+                quote! { < #( #lifetimes, )* > }
             });
 
-        let (parse_body, body_vars) = if let Some(field) = self.newtype_body_field() {
-            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-            let parse = quote! {
-                let #field_name = request_body.0;
-            };
+            quote! {
+                let request_body: <
+                    RequestBody #body_lifetimes
+                    as #ruma_serde::Outgoing
+                >::Incoming = {
+                    let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
+                        request.body(),
+                    );
 
-            (parse, quote! { #field_name, })
-        } else if let Some(field) = self.raw_body_field() {
+                    #serde_json::from_slice(match body {
+                        // If the request body is completely empty, pretend it is an empty JSON
+                        // object instead. This allows requests with only optional body parameters
+                        // to be deserialized in that case.
+                        [] => b"{}",
+                        b => b,
+                    })?
+                };
+            }
+        });
+
+        let (parse_body, body_vars) = if let Some(field) = self.raw_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let parse = quote! {
                 let #field_name =
@@ -211,7 +203,7 @@ impl Request {
 
             (parse, quote! { #field_name, })
         } else {
-            self.vars(RequestFieldKind::Body, quote! { request_body })
+            vars(self.body_fields(), quote! { request_body })
         };
 
         let non_auth_impl = matches!(self.authentication, AuthScheme::None(_)).then(|| {
@@ -266,28 +258,33 @@ impl Request {
         request_field_kind: RequestFieldKind,
         src: TokenStream,
     ) -> (TokenStream, TokenStream) {
-        self.fields
-            .iter()
-            .filter_map(|f| f.field_of_kind(request_field_kind))
-            .map(|field| {
-                let field_name =
-                    field.ident.as_ref().expect("expected field to have an identifier");
-                let cfg_attrs =
-                    field.attrs.iter().filter(|a| a.path.is_ident("cfg")).collect::<Vec<_>>();
-
-                let decl = quote! {
-                    #( #cfg_attrs )*
-                    let #field_name = #src.#field_name;
-                };
-
-                (
-                    decl,
-                    quote! {
-                        #( #cfg_attrs )*
-                        #field_name,
-                    },
-                )
-            })
-            .unzip()
+        vars(self.fields.iter().filter_map(|f| f.field_of_kind(request_field_kind)), src)
     }
+}
+
+fn vars<'a>(
+    fields: impl IntoIterator<Item = &'a Field>,
+    src: TokenStream,
+) -> (TokenStream, TokenStream) {
+    fields
+        .into_iter()
+        .map(|field| {
+            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
+            let cfg_attrs =
+                field.attrs.iter().filter(|a| a.path.is_ident("cfg")).collect::<Vec<_>>();
+
+            let decl = quote! {
+                #( #cfg_attrs )*
+                let #field_name = #src.#field_name;
+            };
+
+            (
+                decl,
+                quote! {
+                    #( #cfg_attrs )*
+                    #field_name,
+                },
+            )
+        })
+        .unzip()
 }
