@@ -2,7 +2,7 @@
 
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
-use syn::{Attribute, Ident, LitStr};
+use syn::{Attribute, Data, DataEnum, DeriveInput, Ident, LitStr};
 
 use crate::event_parse::{EventEnumDecl, EventEnumEntry, EventKind, EventKindVariation};
 
@@ -186,6 +186,8 @@ fn expand_any_with_deser(
 
     let redact_impl = expand_redact(&ident, kind, var, variants, ruma_events);
 
+    let from_impl = expand_from_impl(ident, &content, variants);
+
     Some(quote! {
         #any_enum
 
@@ -198,7 +200,32 @@ fn expand_any_with_deser(
         #event_deserialize_impl
 
         #redacted_enum
+
+        #from_impl
     })
+}
+
+fn expand_from_impl(
+    ty: Ident,
+    content: &[TokenStream],
+    variants: &[EventEnumVariant],
+) -> TokenStream {
+    let from_impls = content.iter().zip(variants).map(|(content, variant)| {
+        let ident = &variant.ident;
+        let attrs = &variant.attrs;
+
+        quote! {
+            #[automatically_derived]
+            #(#attrs)*
+            impl From<#content> for #ty {
+                fn from(c: #content) -> Self {
+                    Self::#ident(c)
+                }
+            }
+        }
+    });
+
+    quote! { #( #from_impls )* }
 }
 
 fn expand_conversion_impl(
@@ -489,11 +516,14 @@ fn expand_content_enum(
         }
     });
 
+    let from_impl = expand_from_impl(ident, &content, variants);
+
     quote! {
         #content_enum
         #event_content_impl
         #marker_trait_impl
         #redacted_content_enum
+        #from_impl
     }
 }
 
@@ -1035,5 +1065,34 @@ impl EventEnumEntry {
         let attrs = self.attrs.clone();
         let ident = to_camel_case(&self.ev_type)?;
         Ok(EventEnumVariant { attrs, ident })
+    }
+}
+
+pub(crate) fn expand_from_impls_derived(input: DeriveInput) -> TokenStream {
+    let variants = match &input.data {
+        Data::Enum(DataEnum { variants, .. }) => variants,
+        _ => panic!("this derive macro only works with enums"),
+    };
+
+    let from_impls = variants.iter().map(|variant| match &variant.fields {
+        syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => {
+            let inner_struct = &fields.unnamed.first().unwrap().ty;
+            let var_ident = &variant.ident;
+            let id = &input.ident;
+            quote! {
+                impl From<#inner_struct> for #id {
+                    fn from(c: #inner_struct) -> Self {
+                        Self::#var_ident(c)
+                    }
+                }
+            }
+        }
+        _ => {
+            panic!("this derive macro only works with enum variants with a single unnamed field")
+        }
+    });
+
+    quote! {
+        #( #from_impls )*
     }
 }

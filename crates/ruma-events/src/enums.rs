@@ -1,5 +1,5 @@
 use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_events_macros::event_enum;
+use ruma_events_macros::{event_enum, EventEnumFromEvent};
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use serde::{de, Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
@@ -146,7 +146,7 @@ macro_rules! room_ev_accessor {
 
 /// Any room event.
 #[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, EventEnumFromEvent)]
 #[serde(untagged)]
 pub enum AnyRoomEvent {
     /// Any message event.
@@ -171,7 +171,7 @@ impl AnyRoomEvent {
 
 /// Any sync room event (room event without a `room_id`, as returned in `/sync` responses)
 #[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, EventEnumFromEvent)]
 #[serde(untagged)]
 pub enum AnySyncRoomEvent {
     /// Any sync message event
@@ -264,7 +264,7 @@ impl<'de> Deserialize<'de> for AnySyncRoomEvent {
 
 /// Any redacted room event.
 #[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, EventEnumFromEvent)]
 pub enum AnyRedactedRoomEvent {
     /// Any message event that has been redacted.
     Message(AnyRedactedMessageEvent),
@@ -300,7 +300,7 @@ impl From<AnyRedactedRoomEvent> for AnyRoomEvent {
 
 /// Any redacted sync room event (room event without a `room_id`, as returned in `/sync` responses)
 #[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, EventEnumFromEvent)]
 pub enum AnyRedactedSyncRoomEvent {
     /// Any sync message event that has been redacted.
     Message(AnyRedactedSyncMessageEvent),
