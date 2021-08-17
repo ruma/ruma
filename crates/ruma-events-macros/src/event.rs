@@ -20,22 +20,19 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         syn::Error::new_spanned(ident, "not a valid ruma event struct identifier")
     })?;
 
-    let fields: Vec<_> = if let Data::Struct(DataStruct { fields, .. }) = input.data.clone() {
-        if let Fields::Named(FieldsNamed { named, .. }) = fields {
-            if !named.iter().any(|f| f.ident.as_ref().unwrap() == "content") {
-                return Err(syn::Error::new(
-                    Span::call_site(),
-                    "struct must contain a `content` field",
-                ));
-            }
-
-            named.into_iter().collect()
-        } else {
-            return Err(syn::Error::new_spanned(
-                fields,
-                "the `Event` derive only supports named fields",
+    let fields: Vec<_> = if let Data::Struct(DataStruct {
+        fields: Fields::Named(FieldsNamed { named, .. }),
+        ..
+    }) = &input.data
+    {
+        if !named.iter().any(|f| f.ident.as_ref().unwrap() == "content") {
+            return Err(syn::Error::new(
+                Span::call_site(),
+                "struct must contain a `content` field",
             ));
         }
+
+        named.iter().cloned().collect()
     } else {
         return Err(syn::Error::new_spanned(
             input.ident,
