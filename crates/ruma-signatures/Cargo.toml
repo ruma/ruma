@@ -28,5 +28,5 @@ ruma-identifiers = { version = "0.20.0", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.5.0", path = "../ruma-serde" }
 serde_json = "1.0.60"
 sha2 = "0.9.5"
-thiserror = "1.0.23"
+thiserror = "1.0.26"
 tracing = { version = "0.1.25", optional = true }

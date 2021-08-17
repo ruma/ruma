@@ -65,11 +65,9 @@ impl<'a> Request<'a> {
 
     /// Creates a new `Request` with the given url and filename.
     pub fn from_url(url: &'a MxcUri, filename: &'a str) -> Result<Self, Error> {
-        if let Some((server_name, media_id)) = url.parts() {
-            Ok(Self { media_id, server_name, filename, allow_remote: true })
-        } else {
-            Err(Error::InvalidMxcUri)
-        }
+        let (server_name, media_id) = url.parts()?;
+
+        Ok(Self { media_id, server_name, filename, allow_remote: true })
     }
 }
 

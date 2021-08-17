@@ -4,9 +4,11 @@
 
 use std::{convert::TryFrom, fmt, num::NonZeroU8};
 
-use ruma_identifiers_validation::mxc_uri::validate;
+use ruma_identifiers_validation::{error::MxcUriError, mxc_uri::validate};
 
 use crate::ServerName;
+
+type Result<T> = std::result::Result<T, MxcUriError>;
 
 /// A URI that should be a Matrix-spec compliant [MXC URI].
 ///
@@ -14,23 +16,23 @@ use crate::ServerName;
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct MxcUri {
     full_uri: Box<str>,
-    slash_idx: Option<NonZeroU8>,
 }
 
 impl MxcUri {
     /// If this is a valid MXC URI, returns the media ID.
-    pub fn media_id(&self) -> Option<&str> {
+    pub fn media_id(&self) -> Result<&str> {
         self.parts().map(|(_, s)| s)
     }
 
     /// If this is a valid MXC URI, returns the server name.
-    pub fn server_name(&self) -> Option<&ServerName> {
+    pub fn server_name(&self) -> Result<&ServerName> {
         self.parts().map(|(s, _)| s)
     }
 
-    /// If this is a valid MXC URI, returns a `(server_name, media_id)` tuple.
-    pub fn parts(&self) -> Option<(&ServerName, &str)> {
-        self.slash_idx.map(|idx| {
+    /// If this is a valid MXC URI, returns a `(server_name, media_id)` tuple, else it returns the
+    /// error.
+    pub fn parts(&self) -> Result<(&ServerName, &str)> {
+        self.extract_slash_idx().map(|idx| {
             (
                 <&ServerName>::try_from(&self.full_uri[6..idx.get() as usize]).unwrap(),
                 &self.full_uri[idx.get() as usize + 1..],
@@ -38,14 +40,27 @@ impl MxcUri {
         })
     }
 
-    /// Returns if this is a spec-compliant MXC URI.
+    /// Validates the URI and returns an error if it failed.
+    pub fn validate(&self) -> Result<()> {
+        self.extract_slash_idx().map(|_| ())
+    }
+
+    /// Convenience method for `.validate().is_ok()`.
+    #[inline(always)]
     pub fn is_valid(&self) -> bool {
-        self.slash_idx.is_some()
+        self.validate().is_ok()
     }
 
     /// Create a string slice from this MXC URI.
+    #[inline(always)]
     pub fn as_str(&self) -> &str {
         &self.full_uri
+    }
+
+    // convenience method for calling validate(self)
+    #[inline(always)]
+    fn extract_slash_idx(&self) -> Result<NonZeroU8> {
+        validate(self.as_str())
     }
 }
 
@@ -65,10 +80,7 @@ fn from<S>(uri: S) -> MxcUri
 where
     S: AsRef<str> + Into<Box<str>>,
 {
-    match validate(uri.as_ref()) {
-        Ok(idx) => MxcUri { full_uri: uri.into(), slash_idx: Some(idx) },
-        Err(_) => MxcUri { full_uri: uri.into(), slash_idx: None },
-    }
+    MxcUri { full_uri: uri.into() }
 }
 
 impl From<&str> for MxcUri {
@@ -85,7 +97,7 @@ impl From<String> for MxcUri {
 
 #[cfg(feature = "serde")]
 impl<'de> serde::Deserialize<'de> for MxcUri {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
@@ -95,7 +107,7 @@ impl<'de> serde::Deserialize<'de> for MxcUri {
 
 #[cfg(feature = "serde")]
 impl serde::Serialize for MxcUri {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
@@ -106,6 +118,8 @@ impl serde::Serialize for MxcUri {
 #[cfg(test)]
 mod tests {
     use std::convert::TryFrom;
+
+    use ruma_identifiers_validation::error::MxcUriError;
 
     use crate::ServerName;
 
@@ -118,7 +132,7 @@ mod tests {
         assert!(mxc.is_valid());
         assert_eq!(
             mxc.parts(),
-            Some((
+            Ok((
                 <&ServerName>::try_from("127.0.0.1").expect("Failed to create ServerName"),
                 "asd32asdfasdsd"
             ))
@@ -130,7 +144,7 @@ mod tests {
         let mxc = MxcUri::from("mxc://127.0.0.1");
 
         assert!(!mxc.is_valid());
-        assert_eq!(mxc.parts(), None);
+        assert_eq!(mxc.parts(), Err(MxcUriError::MissingSlash));
     }
 
     #[test]
@@ -158,10 +172,7 @@ mod tests {
         assert!(mxc.is_valid());
         assert_eq!(
             mxc.parts(),
-            Some((
-                <&ServerName>::try_from("server").expect("Failed to create ServerName"),
-                "1234id"
-            ))
+            Ok((<&ServerName>::try_from("server").expect("Failed to create ServerName"), "1234id"))
         );
     }
 }
