@@ -16,3 +16,6 @@ all-features = true
 
 [features]
 compat = []
+
+[dependencies]
+thiserror = "1.0.26"

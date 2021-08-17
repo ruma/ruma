@@ -33,7 +33,7 @@ ruma-identifiers = { version = "0.20.0", path = "../ruma-identifiers", features 
 ruma-serde = { version = "0.5.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = { version = "1.0.60", features = ["raw_value"] }
-thiserror = "1.0.25"
+thiserror = "1.0.26"
 
 [dev-dependencies]
 assign = "1.1.1"
