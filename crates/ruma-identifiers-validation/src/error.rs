@@ -52,15 +52,26 @@ pub enum Error {
     MissingLeadingSigil,
 }
 
+/// An error occurred while validating a MXC URI.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, thiserror::Error)]
 #[non_exhaustive]
 pub enum MxcUriError {
+    /// MXC URI did not start with `mxc://`.
     #[error("MXC URI schema was not mxc://")]
     WrongSchema,
+
+    /// MXC URI did not have first slash, required for `server.name/media_id`.
     #[error("MXC URI does not have first slash")]
     MissingSlash,
+
+    /// Media identifier malformed due to invalid characters detected.
+    ///
+    /// Valid characters are (in regex notation) `[A-Za-z0-9_-]+`.
+    /// See [here](https://matrix.org/docs/spec/client_server/r0.6.1#id408) for more details.
     #[error("Media Identifier malformed, invalid characters")]
     MediaIdMalformed,
+
+    /// Server identifier malformed; invalid IP, or invalid domain name.
     #[error("invalid Server Name")]
     ServerNameMalformed,
 }

@@ -8,6 +8,8 @@ use ruma_identifiers_validation::{error::MxcUriError, mxc_uri::validate};
 
 use crate::ServerName;
 
+type Result<T> = std::result::Result<T, MxcUriError>;
+
 /// A URI that should be a Matrix-spec compliant [MXC URI].
 ///
 /// [MXC URI]: https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri
@@ -18,19 +20,19 @@ pub struct MxcUri {
 
 impl MxcUri {
     /// If this is a valid MXC URI, returns the media ID.
-    pub fn media_id(&self) -> Option<&str> {
-        self.parts().ok().map(|(_, s)| s)
+    pub fn media_id(&self) -> Result<&str> {
+        self.parts().map(|(_, s)| s)
     }
 
     /// If this is a valid MXC URI, returns the server name.
-    pub fn server_name(&self) -> Option<&ServerName> {
-        self.parts().ok().map(|(s, _)| s)
+    pub fn server_name(&self) -> Result<&ServerName> {
+        self.parts().map(|(s, _)| s)
     }
 
     /// If this is a valid MXC URI, returns a `(server_name, media_id)` tuple, else it returns the
     /// error.
-    pub fn parts(&self) -> Result<(&ServerName, &str), MxcUriError> {
-        self.extract().map(|idx| {
+    pub fn parts(&self) -> Result<(&ServerName, &str)> {
+        self.extract_slash_idx().map(|idx| {
             (
                 <&ServerName>::try_from(&self.full_uri[6..idx.get() as usize]).unwrap(),
                 &self.full_uri[idx.get() as usize + 1..],
@@ -39,8 +41,8 @@ impl MxcUri {
     }
 
     /// Validates the URI and returns an error if it failed.
-    pub fn validate(&self) -> Result<(), MxcUriError> {
-        self.extract().map(|_| ())
+    pub fn validate(&self) -> Result<()> {
+        self.extract_slash_idx().map(|_| ())
     }
 
     /// Convenience method for `.validate().is_ok()`.
@@ -57,7 +59,7 @@ impl MxcUri {
 
     // convenience method for calling validate(self)
     #[inline(always)]
-    fn extract(&self) -> Result<NonZeroU8, MxcUriError> {
+    fn extract_slash_idx(&self) -> Result<NonZeroU8> {
         validate(self.as_str())
     }
 }
@@ -95,7 +97,7 @@ impl From<String> for MxcUri {
 
 #[cfg(feature = "serde")]
 impl<'de> serde::Deserialize<'de> for MxcUri {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
@@ -105,7 +107,7 @@ impl<'de> serde::Deserialize<'de> for MxcUri {
 
 #[cfg(feature = "serde")]
 impl serde::Serialize for MxcUri {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
@@ -142,7 +144,7 @@ mod tests {
         let mxc = MxcUri::from("mxc://127.0.0.1");
 
         assert!(!mxc.is_valid());
-        assert_eq!(mxc.parts(), Err(MxcUriError::WrongSchema));
+        assert_eq!(mxc.parts(), Err(MxcUriError::MissingSlash));
     }
 
     #[test]
