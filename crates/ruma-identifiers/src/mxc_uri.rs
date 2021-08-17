@@ -43,7 +43,7 @@ impl MxcUri {
         self.extract().map(|_| ())
     }
 
-    /// Convenience method for `.validate().is_ok()`
+    /// Convenience method for `.validate().is_ok()`.
     #[inline(always)]
     pub fn is_valid(&self) -> bool {
         self.validate().is_ok()
