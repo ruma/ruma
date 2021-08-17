@@ -206,28 +206,24 @@ fn expand_any_with_deser(
 }
 
 fn expand_from_impl(
-    ident: Ident,
+    ty: Ident,
     content: &[TokenStream],
     variants: &[EventEnumVariant],
 ) -> TokenStream {
-    let from_impls = content
-        .iter()
-        .zip(variants)
-        .map(|(content, variant)| {
-            let variant_tokens = variant.ident.to_token_stream();
-            let variant_attrs = &variant.attrs;
+    let from_impls = content.iter().zip(variants).map(|(content, variant)| {
+        let ident = &variant.ident;
+        let attrs = &variant.attrs;
 
-            quote! {
-                #[automatically_derived]
-                #(#variant_attrs)*
-                impl From<#content> for #ident {
-                    fn from(c: #content) -> Self {
-                        Self::#variant_tokens(c)
-                    }
+        quote! {
+            #[automatically_derived]
+            #(#attrs)*
+            impl From<#content> for #ty {
+                fn from(c: #content) -> Self {
+                    Self::#ident(c)
                 }
             }
-        })
-        .collect::<Vec<_>>();
+        }
+    });
 
     quote! { #( #from_impls )* }
 }
@@ -1074,35 +1070,27 @@ impl EventEnumEntry {
 
 pub(crate) fn expand_from_impls_derived(input: DeriveInput) -> TokenStream {
     let variants = match &input.data {
-        Data::Enum(DataEnum { enum_token: _, brace_token: _, variants }) => variants,
+        Data::Enum(DataEnum { variants, .. }) => variants,
         _ => panic!("this derive macro only works with enums"),
     };
 
-    let from_impls = &variants
-        .iter()
-        .map(|variant| match &variant.fields {
-            syn::Fields::Unnamed(fields) => {
-                if fields.unnamed.len() == 1 {
-                    let inner_struct =
-                        &fields.unnamed.first().unwrap().ty.clone().into_token_stream();
-                    let var_ident = &variant.ident.to_token_stream();
-                    let id = &input.ident;
-                    quote! {
-                        impl From<#inner_struct> for #id {
-                            fn from(c: #inner_struct) -> Self {
-                                Self::#var_ident(c)
-                            }
-                        }
+    let from_impls = variants.iter().map(|variant| match &variant.fields {
+        syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => {
+            let inner_struct = &fields.unnamed.first().unwrap().ty;
+            let var_ident = &variant.ident;
+            let id = &input.ident;
+            quote! {
+                impl From<#inner_struct> for #id {
+                    fn from(c: #inner_struct) -> Self {
+                        Self::#var_ident(c)
                     }
-                } else {
-                    panic!("this derive macro only works with enum variants with a single unnamed field")
                 }
             }
-            _ => {
-                panic!("this derive macro only works with enum variants with a single unnamed field")
-            }
-        })
-        .collect::<Vec<_>>();
+        }
+        _ => {
+            panic!("this derive macro only works with enum variants with a single unnamed field")
+        }
+    });
 
     quote! {
         #( #from_impls )*
