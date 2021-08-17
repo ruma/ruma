@@ -63,3 +63,18 @@ pub enum MxcUriError {
     #[error("invalid Server Name")]
     ServerNameMalformed,
 }
+
+// Required for MxcUri
+impl PartialOrd for MxcUriError {
+    fn partial_cmp(&self, _: &Self) -> Option<std::cmp::Ordering> {
+        None
+    }
+}
+
+// Required for MxcUri
+impl Ord for MxcUriError {
+    fn cmp(&self, _: &Self) -> std::cmp::Ordering {
+        // Makes this effectively a noop in ordering
+        std::cmp::Ordering::Equal
+    }
+}

@@ -4,7 +4,7 @@
 
 use std::{convert::TryFrom, fmt, num::NonZeroU8};
 
-use ruma_identifiers_validation::mxc_uri::validate;
+use ruma_identifiers_validation::{error::MxcUriError, mxc_uri::validate};
 
 use crate::ServerName;
 
@@ -14,7 +14,7 @@ use crate::ServerName;
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct MxcUri {
     full_uri: Box<str>,
-    slash_idx: Option<NonZeroU8>,
+    slash_idx: Result<NonZeroU8, MxcUriError>,
 }
 
 impl MxcUri {
@@ -30,6 +30,11 @@ impl MxcUri {
 
     /// If this is a valid MXC URI, returns a `(server_name, media_id)` tuple.
     pub fn parts(&self) -> Option<(&ServerName, &str)> {
+        self.parts_err().ok()
+    }
+
+    /// Similar to [MxcUri::parts], except returns the error if this is not a valid MXC URI.
+    pub fn parts_err(&self) -> Result<(&ServerName, &str), MxcUriError> {
         self.slash_idx.map(|idx| {
             (
                 <&ServerName>::try_from(&self.full_uri[6..idx.get() as usize]).unwrap(),
@@ -38,9 +43,14 @@ impl MxcUri {
         })
     }
 
+    /// If an error occurred during parsing, retrieve it via here.
+    pub fn inner_err(&self) -> Option<MxcUriError> {
+        self.slash_idx.err()
+    }
+
     /// Returns if this is a spec-compliant MXC URI.
     pub fn is_valid(&self) -> bool {
-        self.slash_idx.is_some()
+        self.slash_idx.is_ok()
     }
 
     /// Create a string slice from this MXC URI.
@@ -65,10 +75,7 @@ fn from<S>(uri: S) -> MxcUri
 where
     S: AsRef<str> + Into<Box<str>>,
 {
-    match validate(uri.as_ref()) {
-        Ok(idx) => MxcUri { full_uri: uri.into(), slash_idx: Some(idx) },
-        Err(_) => MxcUri { full_uri: uri.into(), slash_idx: None },
-    }
+    MxcUri { slash_idx: validate(uri.as_ref()), full_uri: uri.into() }
 }
 
 impl From<&str> for MxcUri {

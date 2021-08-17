@@ -1,18 +1,18 @@
 use std::num::NonZeroU8;
 
-use crate::{error::MxcUriError, server_name, Error};
+use crate::{error::MxcUriError, server_name};
 
 const PROTOCOL: &str = "mxc://";
 
-pub fn validate(uri: &str) -> Result<NonZeroU8, Error> {
+pub fn validate(uri: &str) -> Result<NonZeroU8, MxcUriError> {
     let uri = match uri.strip_prefix(PROTOCOL) {
         Some(uri) => uri,
-        None => return Err(MxcUriError::WrongSchema.into()),
+        None => return Err(MxcUriError::WrongSchema),
     };
 
     let index = match uri.find('/') {
         Some(index) => index,
-        None => return Err(MxcUriError::MissingSlash.into()),
+        None => return Err(MxcUriError::MissingSlash),
     };
 
     let server_name = &uri[..index];
@@ -22,9 +22,9 @@ pub fn validate(uri: &str) -> Result<NonZeroU8, Error> {
         media_id.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'z' | b'A'..=b'Z' | b'-' ));
 
     if !media_id_is_valid {
-        Err(MxcUriError::MediaIdMalformed.into())
+        Err(MxcUriError::MediaIdMalformed)
     } else if !server_name::validate(server_name).is_ok() {
-        Err(MxcUriError::ServerNameMalformed.into())
+        Err(MxcUriError::ServerNameMalformed)
     } else {
         Ok(NonZeroU8::new((index + 6) as u8).unwrap())
     }
