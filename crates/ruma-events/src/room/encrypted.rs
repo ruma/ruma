@@ -90,7 +90,7 @@ pub enum EncryptedEventScheme {
 /// Relationship information about an encrypted event.
 ///
 /// Outside of the encrypted payload to support server aggregation.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum Relation {
     /// An `m.in_reply_to` relation indicating that the event is a reply to another event.
