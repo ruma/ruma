@@ -53,6 +53,7 @@ pub enum Error {
 }
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, thiserror::Error)]
+#[non_exhaustive]
 pub enum MxcUriError {
     #[error("MXC URI schema was not mxc://")]
     WrongSchema,

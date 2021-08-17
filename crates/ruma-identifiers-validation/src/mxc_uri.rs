@@ -23,7 +23,7 @@ pub fn validate(uri: &str) -> Result<NonZeroU8, MxcUriError> {
 
     if !media_id_is_valid {
         Err(MxcUriError::MediaIdMalformed)
-    } else if !server_name::validate(server_name).is_ok() {
+    } else if server_name::validate(server_name).is_err() {
         Err(MxcUriError::ServerNameMalformed)
     } else {
         Ok(NonZeroU8::new((index + 6) as u8).unwrap())
