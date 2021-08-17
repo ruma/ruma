@@ -52,7 +52,7 @@ pub enum Error {
     MissingLeadingSigil,
 }
 
-/// An error occurred while validating a MXC URI.
+/// An error occurred while validating an MXC URI.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, thiserror::Error)]
 #[non_exhaustive]
 pub enum MxcUriError {
@@ -71,7 +71,7 @@ pub enum MxcUriError {
     #[error("Media Identifier malformed, invalid characters")]
     MediaIdMalformed,
 
-    /// Server identifier malformed; invalid IP, or invalid domain name.
+    /// Server identifier malformed: invalid IP or domain name.
     #[error("invalid Server Name")]
     ServerNameMalformed,
 }
