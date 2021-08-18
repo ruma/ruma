@@ -396,7 +396,7 @@ impl StateResolution {
     /// fails the `event_auth::auth_check` will be excluded from the returned `StateMap<EventId>`.
     ///
     /// For each `events_to_check` event we gather the events needed to auth it from the
-    /// `event_map` or `store` and verify each event using the `event_auth::auth_check`
+    /// the `fetch_event` closure and verify each event using the `event_auth::auth_check`
     /// function.
     pub fn iterative_auth_check<E, F>(
         room_version: &RoomVersion,
@@ -424,8 +424,8 @@ impl StateResolution {
             let mut auth_events = HashMap::new();
             for aid in &event.auth_events() {
                 if let Some(ev) = fetch_event(aid) {
-                    // TODO synapse check "rejected_reason", I'm guessing this is redacted_because
-                    // in ruma ??
+                    // TODO synapse check "rejected_reason" which is most likely
+                    // related to soft-failing
                     auth_events.insert(
                         (
                             ev.kind(),
@@ -472,8 +472,8 @@ impl StateResolution {
                 room_version,
                 &event,
                 most_recent_prev_event,
-                &auth_events,
                 current_third_party,
+                |ty, key| auth_events.get(&(ty.clone(), key.to_owned())).cloned(),
             )? {
                 // add event to resolved state map
                 resolved_state.insert((event.kind(), state_key), event_id.clone());
