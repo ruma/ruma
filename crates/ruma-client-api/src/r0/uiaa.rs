@@ -2,7 +2,7 @@
 //!
 //! [uiaa]: https://matrix.org/docs/spec/client_server/r0.6.1#user-interactive-authentication-api
 
-use std::{borrow::Cow, fmt};
+use std::{borrow::Cow, collections::BTreeMap, fmt};
 
 use bytes::BufMut;
 use ruma_api::{
@@ -16,7 +16,9 @@ use serde::{
     de::{self, DeserializeOwned},
     Deserialize, Deserializer, Serialize,
 };
-use serde_json::{from_slice as from_json_slice, value::RawValue as RawJsonValue};
+use serde_json::{
+    from_slice as from_json_slice, value::RawValue as RawJsonValue, Value as JsonValue,
+};
 
 use crate::error::{Error as MatrixError, ErrorBody};
 
@@ -55,13 +57,43 @@ pub enum AuthData<'a> {
     FallbackAcknowledgement(FallbackAcknowledgement<'a>),
 
     #[doc(hidden)]
-    _Custom,
+    _Custom(CustomAuthData<'a>),
 }
 
 impl<'a> AuthData<'a> {
     /// Creates a new `AuthData::FallbackAcknowledgement` with the given session key.
     pub fn fallback_acknowledgement(session: &'a str) -> Self {
         Self::FallbackAcknowledgement(FallbackAcknowledgement::new(session))
+    }
+
+    /// Returns the value of the `type` field, if it exists.
+    pub fn auth_type(&self) -> Option<&'a str> {
+        match self {
+            AuthData::Password(_) => Some("m.login.password"),
+            AuthData::ReCaptcha(_) => Some("m.login.recaptcha"),
+            AuthData::Token(_) => Some("m.login.token"),
+            AuthData::OAuth2(_) => Some("m.login.oauth2"),
+            AuthData::EmailIdentity(_) => Some("m.login.email.identity"),
+            AuthData::Msisdn(_) => Some("m.login.msisdn"),
+            AuthData::Dummy(_) => Some("m.login.dummy"),
+            AuthData::FallbackAcknowledgement(_) => None,
+            AuthData::_Custom(c) => Some(c.auth_type),
+        }
+    }
+
+    /// Returns the value of the `session` field, if it exists.
+    pub fn session(&self) -> Option<&'a str> {
+        match self {
+            AuthData::Password(x) => x.session,
+            AuthData::ReCaptcha(x) => x.session,
+            AuthData::Token(x) => x.session,
+            AuthData::OAuth2(x) => x.session,
+            AuthData::EmailIdentity(x) => x.session,
+            AuthData::Msisdn(x) => x.session,
+            AuthData::Dummy(x) => x.session,
+            AuthData::FallbackAcknowledgement(x) => Some(x.session),
+            AuthData::_Custom(x) => x.session,
+        }
     }
 }
 
@@ -97,7 +129,7 @@ impl<'de> Deserialize<'de> for IncomingAuthData {
             Some("m.login.msisdn") => from_raw_json_value(&json).map(Self::Msisdn),
             Some("m.login.dummy") => from_raw_json_value(&json).map(Self::Dummy),
             None => from_raw_json_value(&json).map(Self::FallbackAcknowledgement),
-            Some(_) => Ok(Self::_Custom),
+            Some(_) => from_raw_json_value(&json).map(Self::_Custom),
         }
     }
 }
@@ -271,6 +303,30 @@ impl<'a> FallbackAcknowledgement<'a> {
     pub fn new(session: &'a str) -> Self {
         Self { session }
     }
+}
+
+#[doc(hidden)]
+#[derive(Clone, Debug, Serialize)]
+pub struct CustomAuthData<'a> {
+    #[serde(rename = "type")]
+    pub auth_type: &'a str,
+    pub session: Option<&'a str>,
+    #[serde(flatten)]
+    pub extra: BTreeMap<String, JsonValue>,
+}
+
+#[doc(hidden)]
+#[derive(Clone, Debug, Deserialize)]
+pub struct IncomingCustomAuthData {
+    #[serde(rename = "type")]
+    pub auth_type: String,
+    pub session: Option<String>,
+    #[serde(flatten)]
+    pub extra: BTreeMap<String, JsonValue>,
+}
+
+impl Outgoing for CustomAuthData<'_> {
+    type Incoming = IncomingCustomAuthData;
 }
 
 /// Identification information for the user.
