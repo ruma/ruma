@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements
+
+* Add `auth_type` and `session` accessors to `uiaa::IncomingAuthData`
+
 # 0.12.1
 
 Improvements:

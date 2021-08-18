@@ -69,30 +69,62 @@ impl<'a> AuthData<'a> {
     /// Returns the value of the `type` field, if it exists.
     pub fn auth_type(&self) -> Option<&'a str> {
         match self {
-            AuthData::Password(_) => Some("m.login.password"),
-            AuthData::ReCaptcha(_) => Some("m.login.recaptcha"),
-            AuthData::Token(_) => Some("m.login.token"),
-            AuthData::OAuth2(_) => Some("m.login.oauth2"),
-            AuthData::EmailIdentity(_) => Some("m.login.email.identity"),
-            AuthData::Msisdn(_) => Some("m.login.msisdn"),
-            AuthData::Dummy(_) => Some("m.login.dummy"),
-            AuthData::FallbackAcknowledgement(_) => None,
-            AuthData::_Custom(c) => Some(c.auth_type),
+            Self::Password(_) => Some("m.login.password"),
+            Self::ReCaptcha(_) => Some("m.login.recaptcha"),
+            Self::Token(_) => Some("m.login.token"),
+            Self::OAuth2(_) => Some("m.login.oauth2"),
+            Self::EmailIdentity(_) => Some("m.login.email.identity"),
+            Self::Msisdn(_) => Some("m.login.msisdn"),
+            Self::Dummy(_) => Some("m.login.dummy"),
+            Self::FallbackAcknowledgement(_) => None,
+            Self::_Custom(c) => Some(c.auth_type),
         }
     }
 
     /// Returns the value of the `session` field, if it exists.
     pub fn session(&self) -> Option<&'a str> {
         match self {
-            AuthData::Password(x) => x.session,
-            AuthData::ReCaptcha(x) => x.session,
-            AuthData::Token(x) => x.session,
-            AuthData::OAuth2(x) => x.session,
-            AuthData::EmailIdentity(x) => x.session,
-            AuthData::Msisdn(x) => x.session,
-            AuthData::Dummy(x) => x.session,
-            AuthData::FallbackAcknowledgement(x) => Some(x.session),
-            AuthData::_Custom(x) => x.session,
+            Self::Password(x) => x.session,
+            Self::ReCaptcha(x) => x.session,
+            Self::Token(x) => x.session,
+            Self::OAuth2(x) => x.session,
+            Self::EmailIdentity(x) => x.session,
+            Self::Msisdn(x) => x.session,
+            Self::Dummy(x) => x.session,
+            Self::FallbackAcknowledgement(x) => Some(x.session),
+            Self::_Custom(x) => x.session,
+        }
+    }
+}
+
+impl IncomingAuthData {
+    /// Returns the value of the `type` field, if it exists.
+    pub fn auth_type(&self) -> Option<&str> {
+        match self {
+            Self::Password(_) => Some("m.login.password"),
+            Self::ReCaptcha(_) => Some("m.login.recaptcha"),
+            Self::Token(_) => Some("m.login.token"),
+            Self::OAuth2(_) => Some("m.login.oauth2"),
+            Self::EmailIdentity(_) => Some("m.login.email.identity"),
+            Self::Msisdn(_) => Some("m.login.msisdn"),
+            Self::Dummy(_) => Some("m.login.dummy"),
+            Self::FallbackAcknowledgement(_) => None,
+            Self::_Custom(c) => Some(&c.auth_type),
+        }
+    }
+
+    /// Returns the value of the `session` field, if it exists.
+    pub fn session(&self) -> Option<&str> {
+        match self {
+            Self::Password(x) => x.session.as_deref(),
+            Self::ReCaptcha(x) => x.session.as_deref(),
+            Self::Token(x) => x.session.as_deref(),
+            Self::OAuth2(x) => x.session.as_deref(),
+            Self::EmailIdentity(x) => x.session.as_deref(),
+            Self::Msisdn(x) => x.session.as_deref(),
+            Self::Dummy(x) => x.session.as_deref(),
+            Self::FallbackAcknowledgement(x) => Some(&x.session),
+            Self::_Custom(x) => x.session.as_deref(),
         }
     }
 }
