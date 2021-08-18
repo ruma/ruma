@@ -22,7 +22,7 @@ server = []
 
 [dependencies]
 ruma-api = { version = "0.18.3", path = "../ruma-api" }
-ruma-client-api = { version = "0.12.1", path = "../ruma-client-api", features = ["client"], optional = true }
+ruma-client-api = { version = "0.12.2", path = "../ruma-client-api", features = ["client"], optional = true }
 ruma-common = { version = "0.6.0", path = "../ruma-common" }
 ruma-events = { version = "0.24.4", path = "../ruma-events" }
 ruma-identifiers = { version = "0.20.0", path = "../ruma-identifiers" }
