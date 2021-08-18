@@ -1,5 +1,12 @@
 # [unreleased]
 
+# 0.18.3
+
+Improvements:
+
+* Refactor handling of newtype bodies in `ruma_api!`
+  * Likely what fixed a bug affecting `ruma-federation-api`
+
 # 0.18.2
 
 Bug fixes:
