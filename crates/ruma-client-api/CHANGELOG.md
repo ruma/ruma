@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.12.1
+
 Improvements:
 
 * Add `auth_type` and `session` accessors to `uiaa::AuthData`
