@@ -307,6 +307,7 @@ impl<'a> FallbackAcknowledgement<'a> {
 
 #[doc(hidden)]
 #[derive(Clone, Debug, Serialize)]
+#[non_exhaustive]
 pub struct CustomAuthData<'a> {
     #[serde(rename = "type")]
     pub auth_type: &'a str,
@@ -317,6 +318,7 @@ pub struct CustomAuthData<'a> {
 
 #[doc(hidden)]
 #[derive(Clone, Debug, Deserialize)]
+#[non_exhaustive]
 pub struct IncomingCustomAuthData {
     #[serde(rename = "type")]
     pub auth_type: String,
