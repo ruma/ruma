@@ -33,7 +33,7 @@ fn test_ban_pass() {
         requester.content(),
         prev,
         None,
-        &auth_events
+        |ty, key| auth_events.get(&(ty.clone(), key.to_owned())).cloned(),
     )
     .unwrap())
 }
@@ -65,7 +65,7 @@ fn test_ban_fail() {
         requester.content(),
         prev,
         None,
-        &auth_events
+        |ty, key| auth_events.get(&(ty.clone(), key.to_owned())).cloned(),
     )
     .unwrap())
 }
