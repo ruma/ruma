@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.24.5
+
 Improvements:
 
 * Add `From` implementations for event and event content enums
