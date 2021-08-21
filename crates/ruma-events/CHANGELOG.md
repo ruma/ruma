@@ -3,6 +3,12 @@
 Improvements:
 
 * Add `From` implementations for event and event content enums
+* It's now an error for a `room::message::Relation` to be `Replaces` without
+  there being `new_content`
+  * Previously, this used to set the relation to `None`
+* Unsupported relations are now deserialized to `relates_to: Some(_)` instead of
+  `None`
+  * It's not possible to inspect the inner value though
 
 # 0.24.4
 

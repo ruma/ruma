@@ -3,10 +3,8 @@
 use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use crate::{
-    from_raw_json_value,
-    room::message::{MessageEventContent, MessageType},
-};
+use super::{MessageEventContent, MessageType, Relation};
+use crate::from_raw_json_value;
 
 impl<'de> Deserialize<'de> for MessageEventContent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -15,10 +13,10 @@ impl<'de> Deserialize<'de> for MessageEventContent {
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
         let mut deserializer = serde_json::Deserializer::from_str(json.get());
-        let relation =
-            super::relation_serde::deserialize(&mut deserializer).map_err(de::Error::custom)?;
+        let relates_to =
+            Option::<Relation>::deserialize(&mut deserializer).map_err(de::Error::custom)?;
 
-        Ok(Self { msgtype: from_raw_json_value(&json)?, relates_to: relation })
+        Ok(Self { msgtype: from_raw_json_value(&json)?, relates_to })
     }
 }
 

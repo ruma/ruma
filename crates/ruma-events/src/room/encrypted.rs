@@ -33,7 +33,7 @@ pub struct EncryptedEventContent {
     /// Information about related messages for [rich replies].
     ///
     /// [rich replies]: https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies
-    #[serde(flatten, with = "relation_serde", skip_serializing_if = "Option::is_none")]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation>,
 }
 
@@ -91,6 +91,7 @@ pub enum EncryptedEventScheme {
 ///
 /// Outside of the encrypted payload to support server aggregation.
 #[derive(Clone, Debug)]
+#[allow(clippy::manual_non_exhaustive)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum Relation {
     /// An `m.in_reply_to` relation indicating that the event is a reply to another event.
@@ -113,6 +114,9 @@ pub enum Relation {
     #[cfg(feature = "unstable-pre-spec")]
     #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     Annotation(Annotation),
+
+    #[doc(hidden)]
+    _Custom,
 }
 
 /// The event this relation belongs to replaces another event.
@@ -263,6 +267,7 @@ impl From<message::Relation> for Relation {
             message::Relation::Replacement(re) => {
                 Self::Replacement(Replacement { event_id: re.event_id })
             }
+            message::Relation::_Custom => Self::_Custom,
         }
     }
 }

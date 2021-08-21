@@ -1,6 +1,6 @@
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_identifiers::EventId;
-use serde::{ser::SerializeStruct as _, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[cfg(feature = "unstable-pre-spec")]
 use super::Replacement;
@@ -8,71 +8,66 @@ use super::{InReplyTo, Relation};
 #[cfg(feature = "unstable-pre-spec")]
 use crate::room::message::MessageEventContent;
 
-pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<Relation>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    fn convert_relation(ev: EventWithRelatesToJsonRepr) -> Option<Relation> {
+impl<'de> Deserialize<'de> for Relation {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let ev = EventWithRelatesToJsonRepr::deserialize(deserializer)?;
+
         if let Some(in_reply_to) = ev.relates_to.in_reply_to {
-            return Some(Relation::Reply { in_reply_to });
+            return Ok(Relation::Reply { in_reply_to });
         }
 
         #[cfg(feature = "unstable-pre-spec")]
         if let Some(relation) = ev.relates_to.relation {
-            let relation = match relation {
+            return Ok(match relation {
                 RelationJsonRepr::Replacement(ReplacementJsonRepr { event_id }) => {
-                    let new_content = ev.new_content?;
+                    let new_content = ev
+                        .new_content
+                        .ok_or_else(|| serde::de::Error::missing_field("m.new_content"))?;
                     Relation::Replacement(Replacement { event_id, new_content })
                 }
-                // FIXME: Maybe we should log this, though at this point we don't even have access
-                // to the rel_type of the unknown relation.
-                RelationJsonRepr::Unknown => return None,
-            };
-
-            return Some(relation);
+                // FIXME: Maybe we should log this, though at this point we don't even have
+                // access to the rel_type of the unknown relation.
+                RelationJsonRepr::Unknown => Relation::_Custom,
+            });
         }
 
-        None
+        Ok(Relation::_Custom)
     }
-
-    EventWithRelatesToJsonRepr::deserialize(deserializer).map(convert_relation)
 }
 
-pub fn serialize<S>(relation: &Option<Relation>, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    let relation = match relation {
-        Some(rel) => rel,
-        // FIXME: If this crate ends up depending on tracing, emit a warning here.
-        // This code path should not be reachable due to the skip_serializing_if serde attribute
-        // that should be applied together with `with = "relation_serde"`.
-        None => return serializer.serialize_struct("NoRelation", 0)?.end(),
-    };
-
-    let json_repr = match relation {
-        Relation::Reply { in_reply_to } => EventWithRelatesToJsonRepr::new(RelatesToJsonRepr {
-            in_reply_to: Some(in_reply_to.clone()),
-            ..Default::default()
-        }),
-        #[cfg(feature = "unstable-pre-spec")]
-        Relation::Replacement(Replacement { event_id, new_content }) => {
-            EventWithRelatesToJsonRepr {
-                relates_to: RelatesToJsonRepr {
-                    relation: Some(RelationJsonRepr::Replacement(ReplacementJsonRepr {
-                        event_id: event_id.clone(),
-                    })),
-                    ..Default::default()
-                },
-                new_content: Some(new_content.clone()),
+impl Serialize for Relation {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let json_repr = match self {
+            Relation::Reply { in_reply_to } => EventWithRelatesToJsonRepr::new(RelatesToJsonRepr {
+                in_reply_to: Some(in_reply_to.clone()),
+                ..Default::default()
+            }),
+            #[cfg(feature = "unstable-pre-spec")]
+            Relation::Replacement(Replacement { event_id, new_content }) => {
+                EventWithRelatesToJsonRepr {
+                    relates_to: RelatesToJsonRepr {
+                        relation: Some(RelationJsonRepr::Replacement(ReplacementJsonRepr {
+                            event_id: event_id.clone(),
+                        })),
+                        ..Default::default()
+                    },
+                    new_content: Some(new_content.clone()),
+                }
             }
-        }
-    };
+            Relation::_Custom => EventWithRelatesToJsonRepr::default(),
+        };
 
-    json_repr.serialize(serializer)
+        json_repr.serialize(serializer)
+    }
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Default, Deserialize, Serialize)]
 struct EventWithRelatesToJsonRepr {
     #[serde(rename = "m.relates_to", default, skip_serializing_if = "RelatesToJsonRepr::is_empty")]
     relates_to: RelatesToJsonRepr,
