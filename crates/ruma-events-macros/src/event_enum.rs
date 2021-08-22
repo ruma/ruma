@@ -89,20 +89,14 @@ pub fn expand_event_enum(input: &EventEnumDecl) -> syn::Result<TokenStream> {
     );
 
     let redacted_event_enums = expand_any_redacted(name, &events, attrs, &variants, &ruma_events);
-
     let event_content_enum = expand_content_enum(name, &events, attrs, &variants, &ruma_events);
 
     Ok(quote! {
         #event_enum
-
         #sync_event_enum
-
         #stripped_event_enum
-
         #initial_event_enum
-
         #redacted_event_enums
-
         #event_content_enum
     })
 }
@@ -179,28 +173,18 @@ fn expand_any_with_deser(
     };
 
     let event_enum_to_from_sync = expand_conversion_impl(kind, var, variants, ruma_events);
-
     let redacted_enum = expand_redacted_enum(kind, var, ruma_events);
-
     let field_accessor_impl = accessor_methods(kind, var, variants, ruma_events);
-
     let redact_impl = expand_redact(&ident, kind, var, variants, ruma_events);
-
     let from_impl = expand_from_impl(ident, &content, variants);
 
     Some(quote! {
         #any_enum
-
         #event_enum_to_from_sync
-
         #field_accessor_impl
-
         #redact_impl
-
         #event_deserialize_impl
-
         #redacted_enum
-
         #from_impl
     })
 }
@@ -819,11 +803,8 @@ fn accessor_methods(
         #[automatically_derived]
         impl #ident {
             #content
-
             #event_type
-
             #prev_content
-
             #( #methods )*
         }
     })
