@@ -404,7 +404,10 @@ fn expand_content_enum(
                 #variant_decls(#content),
             )*
             #[doc(hidden)]
-            _Custom { event_type: ::std::string::String },
+            _Custom {
+                #[serde(skip)]
+                event_type: ::std::string::String,
+            },
         }
     };
 
@@ -466,7 +469,10 @@ fn expand_content_enum(
                     #variant_decls(#redacted_content),
                 )*
                 #[doc(hidden)]
-                _Custom { event_type: ::std::string::String },
+                _Custom {
+                    #[serde(skip)]
+                    event_type: ::std::string::String,
+                },
             }
 
             impl #ruma_events::RedactContent for #ident {
