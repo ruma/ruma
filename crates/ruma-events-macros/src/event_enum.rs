@@ -396,16 +396,15 @@ fn expand_content_enum(
         #( #attrs )*
         #[derive(Clone, Debug, #serde::Serialize)]
         #[serde(untagged)]
-        #[allow(clippy::large_enum_variant)]
+        #[allow(clippy::large_enum_variant, clippy::manual_non_exhaustive)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
         pub enum #ident {
             #(
                 #[doc = #event_type_str]
                 #variant_decls(#content),
             )*
-            /// Content of an event not defined by the Matrix specification.
             #[doc(hidden)]
-            _Custom(#ruma_events::custom::CustomEventContent),
+            _Custom { event_type: ::std::string::String },
         }
     };
 
@@ -422,7 +421,7 @@ fn expand_content_enum(
             fn event_type(&self) -> &::std::primitive::str {
                 match self {
                     #( #variant_arms(content) => content.event_type(), )*
-                    Self::_Custom(content) => content.event_type(),
+                    Self::_Custom { event_type } => &event_type,
                 }
             }
 
@@ -435,13 +434,11 @@ fn expand_content_enum(
                         #variant_attrs #event_type_str => {
                             let content = #content::from_parts(event_type, input)?;
                             ::std::result::Result::Ok(#variant_ctors(content))
-                        },
+                        }
                     )*
-                    ev_type => {
-                        let content =
-                            #ruma_events::custom::CustomEventContent::from_parts(ev_type, input)?;
-                        ::std::result::Result::Ok(Self::_Custom(content))
-                    },
+                    ty => {
+                        ::std::result::Result::Ok(Self::_Custom { event_type: ty.to_owned() })
+                    }
                 }
             }
         }
@@ -461,16 +458,15 @@ fn expand_content_enum(
             #( #attrs )*
             #[derive(Clone, Debug, #serde::Serialize)]
             #[serde(untagged)]
-            #[allow(clippy::large_enum_variant)]
+            #[allow(clippy::large_enum_variant, clippy::manual_non_exhaustive)]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             pub enum #redacted_ident {
                 #(
                     #[doc = #event_type_str]
                     #variant_decls(#redacted_content),
                 )*
-                /// Content of a redacted event not defined by the Matrix specification.
                 #[doc(hidden)]
-                _Custom(#ruma_events::custom::RedactedCustomEventContent),
+                _Custom { event_type: ::std::string::String },
             }
 
             impl #ruma_events::RedactContent for #ident {
@@ -485,15 +481,11 @@ fn expand_content_enum(
                         #(
                             #variant_arms(content) => {
                                 #redaction_variants(
-                                    #ruma_events::RedactContent::redact(content, version)
+                                    #ruma_events::RedactContent::redact(content, version),
                                 )
-                            },
+                            }
                         )*
-                        Self::_Custom(content) => {
-                            #redacted_ident::_Custom(
-                                #ruma_events::RedactContent::redact(content, version)
-                            )
-                        },
+                        Self::_Custom { event_type } => #redacted_ident::_Custom { event_type },
                     }
                 }
             }
@@ -776,7 +768,9 @@ fn accessor_methods(
         pub fn content(&self) -> #content_enum {
             match self {
                 #( #self_variants(event) => #content_variants(event.content.clone()), )*
-                Self::_Custom(event) => #content_enum::_Custom(event.content.clone()),
+                Self::_Custom(event) => #content_enum::_Custom {
+                    event_type: #ruma_events::EventContent::event_type(&event.content).to_owned(),
+                },
             }
         }
     };
@@ -792,7 +786,9 @@ fn accessor_methods(
                         },
                     )*
                     Self::_Custom(event) => {
-                        event.prev_content.as_ref().map(|c| #content_enum::_Custom(c.clone()))
+                        event.prev_content.as_ref().map(|c| #content_enum::_Custom {
+                            event_type: #ruma_events::EventContent::event_type(c).to_owned(),
+                        })
                     },
                 }
             }

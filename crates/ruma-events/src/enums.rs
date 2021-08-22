@@ -370,7 +370,7 @@ impl AnyMessageEventContent {
             | AnyMessageEventContent::RoomMessageFeedback(_)
             | AnyMessageEventContent::RoomRedaction(_)
             | AnyMessageEventContent::Sticker(_)
-            | AnyMessageEventContent::_Custom(_) => None,
+            | AnyMessageEventContent::_Custom { .. } => None,
         }
     }
 }
