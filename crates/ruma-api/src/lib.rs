@@ -78,10 +78,9 @@ use ruma_identifiers::UserId;
 ///
 /// ## Request
 ///
-/// The request block contains normal struct field definitions.
-/// Doc comments and attributes are allowed as normal.
-/// There are also a few special attributes available to control how the struct is converted
-/// into a `http::Request`:
+/// The request block contains normal struct field definitions. Doc comments and attributes are
+/// allowed as normal. There are also a few special attributes available to control how the
+/// struct is converted into an `http::Request`:
 ///
 /// * `#[ruma_api(header = HEADER_NAME)]`: Fields with this attribute will be treated as HTTP
 ///   headers on the request. The value must implement `AsRef<str>`. Generally this is a
