@@ -396,7 +396,7 @@ fn expand_content_enum(
         #( #attrs )*
         #[derive(Clone, Debug, #serde::Serialize)]
         #[serde(untagged)]
-        #[allow(clippy::large_enum_variant, clippy::manual_non_exhaustive)]
+        #[allow(clippy::large_enum_variant)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
         pub enum #ident {
             #(
@@ -458,7 +458,7 @@ fn expand_content_enum(
             #( #attrs )*
             #[derive(Clone, Debug, #serde::Serialize)]
             #[serde(untagged)]
-            #[allow(clippy::large_enum_variant, clippy::manual_non_exhaustive)]
+            #[allow(clippy::large_enum_variant)]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             pub enum #redacted_ident {
                 #(
