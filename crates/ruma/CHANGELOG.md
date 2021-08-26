@@ -1,5 +1,12 @@
 # [unreleased]
 
+# 0.4.0
+
+Breaking changes:
+
+* Upgrade ruma-state-res to 0.4.0
+  * If you are not using state-res, there is no need to upgrade
+
 # 0.3.0
 
 Breaking changes:
