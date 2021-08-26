@@ -29,13 +29,19 @@ use ruma_events::{
     },
     EventType,
 };
-use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
-use ruma_state_res::{Error, Event, EventMap, Result, StateMap, StateResolution};
+use ruma_identifiers::{EventId as Eid, RoomId, RoomVersionId, UserId};
+use ruma_state_res::{Error, Event, EventId, EventMap, Result, StateMap, StateResolution};
 use serde_json::{json, Value as JsonValue};
 
 static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 
 fn lexico_topo_sort(c: &mut Criterion) {
+    fn event_id(id: &str) -> EventId {
+        if id.contains('$') {
+            return Arc::new(Eid::try_from(id).unwrap());
+        }
+        Arc::new(Eid::try_from(format!("${}:foo", id)).unwrap())
+    }
     c.bench_function("lexicographical topological sort", |b| {
         let graph = hashmap! {
             event_id("l") => hashset![event_id("o")],
@@ -101,7 +107,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
             inner.get(&event_id("PA")).unwrap(),
         ]
         .iter()
-        .map(|ev| ((ev.kind(), ev.state_key().unwrap()), ev.event_id().clone()))
+        .map(|ev| ((ev.kind(), ev.state_key()), Arc::new(ev.event_id().clone())))
         .collect::<StateMap<_>>();
 
         let state_set_b = [
@@ -114,7 +120,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
             inner.get(&event_id("PA")).unwrap(),
         ]
         .iter()
-        .map(|ev| ((ev.kind(), ev.state_key().unwrap()), ev.event_id().clone()))
+        .map(|ev| ((ev.kind(), ev.state_key()), Arc::new(ev.event_id().clone())))
         .collect::<StateMap<_>>();
 
         b.iter(|| {
@@ -194,7 +200,7 @@ impl<E: Event> TestStore<E> {
 
             let event = self.get_event(room_id, &ev_id)?;
 
-            stack.extend(event.auth_events().clone());
+            stack.extend(event.auth_events().into_iter().map(Arc::new));
         }
 
         Ok(result)
@@ -229,7 +235,7 @@ impl<E: Event> TestStore<E> {
 
 impl TestStore<StateEvent> {
     pub fn set_up(&mut self) -> (StateMap<EventId>, StateMap<EventId>, StateMap<EventId>) {
-        let create_event = to_pdu_event::<EventId>(
+        let create_event = to_pdu_event::<Eid>(
             "CREATE",
             alice(),
             EventType::RoomCreate,
@@ -238,7 +244,7 @@ impl TestStore<StateEvent> {
             &[],
             &[],
         );
-        let cre = create_event.event_id().clone();
+        let cre = Arc::new(create_event.event_id().clone());
         self.0.insert(cre.clone(), Arc::clone(&create_event));
 
         let alice_mem = to_pdu_event(
@@ -247,10 +253,10 @@ impl TestStore<StateEvent> {
             EventType::RoomMember,
             Some(alice().to_string().as_str()),
             member_content_join(),
-            &[cre.clone()],
-            &[cre.clone()],
+            &[(*cre).clone()],
+            &[(*cre).clone()],
         );
-        self.0.insert(alice_mem.event_id().clone(), Arc::clone(&alice_mem));
+        self.0.insert(Arc::new(alice_mem.event_id().clone()), Arc::clone(&alice_mem));
 
         let join_rules = to_pdu_event(
             "IJR",
@@ -258,10 +264,10 @@ impl TestStore<StateEvent> {
             EventType::RoomJoinRules,
             Some(""),
             json!({ "join_rule": JoinRule::Public }),
-            &[cre.clone(), alice_mem.event_id().clone()],
+            &[(*cre).clone(), alice_mem.event_id().clone()],
             &[alice_mem.event_id().clone()],
         );
-        self.0.insert(join_rules.event_id().clone(), join_rules.clone());
+        self.0.insert(Arc::new(join_rules.event_id().clone()), join_rules.clone());
 
         // Bob and Charlie join at the same time, so there is a fork
         // this will be represented in the state_sets when we resolve
@@ -271,10 +277,10 @@ impl TestStore<StateEvent> {
             EventType::RoomMember,
             Some(bob().to_string().as_str()),
             member_content_join(),
-            &[cre.clone(), join_rules.event_id().clone()],
+            &[(*cre).clone(), join_rules.event_id().clone()],
             &[join_rules.event_id().clone()],
         );
-        self.0.insert(bob_mem.event_id().clone(), bob_mem.clone());
+        self.0.insert(Arc::new(bob_mem.event_id().clone()), bob_mem.clone());
 
         let charlie_mem = to_pdu_event(
             "IMC",
@@ -282,35 +288,35 @@ impl TestStore<StateEvent> {
             EventType::RoomMember,
             Some(charlie().to_string().as_str()),
             member_content_join(),
-            &[cre, join_rules.event_id().clone()],
+            &[(*cre).clone(), join_rules.event_id().clone()],
             &[join_rules.event_id().clone()],
         );
-        self.0.insert(charlie_mem.event_id().clone(), charlie_mem.clone());
+        self.0.insert(Arc::new(charlie_mem.event_id().clone()), charlie_mem.clone());
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key().unwrap()), e.event_id().clone()))
+            .map(|e| ((e.kind(), e.state_key()), Arc::new(e.event_id().clone())))
             .collect::<StateMap<_>>();
 
         let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key().unwrap()), e.event_id().clone()))
+            .map(|e| ((e.kind(), e.state_key()), Arc::new(e.event_id().clone())))
             .collect::<StateMap<_>>();
 
         let expected = [&create_event, &alice_mem, &join_rules, &bob_mem, &charlie_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key().unwrap()), e.event_id().clone()))
+            .map(|e| ((e.kind(), e.state_key()), Arc::new(e.event_id().clone())))
             .collect::<StateMap<_>>();
 
         (state_at_bob, state_at_charlie, expected)
     }
 }
 
-fn event_id(id: &str) -> EventId {
+fn event_id(id: &str) -> Eid {
     if id.contains('$') {
-        return EventId::try_from(id).unwrap();
+        return Eid::try_from(id).unwrap();
     }
-    EventId::try_from(format!("${}:foo", id)).unwrap()
+    Eid::try_from(format!("${}:foo", id)).unwrap()
 }
 
 fn alice() -> UserId {
@@ -359,7 +365,7 @@ where
 
     let state_key = state_key.map(ToOwned::to_owned);
     Arc::new(StateEvent {
-        event_id: EventId::try_from(id).unwrap(),
+        event_id: Eid::try_from(id).unwrap(),
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
             room_id: room_id(),
             sender,
@@ -384,7 +390,7 @@ where
 #[allow(non_snake_case)]
 fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
     vec![
-        to_pdu_event::<EventId>(
+        to_pdu_event::<Eid>(
             "CREATE",
             alice(),
             EventType::RoomCreate,
@@ -438,7 +444,7 @@ fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
             &["CREATE", "IJR", "IPOWER"],
             &["IMB"],
         ),
-        to_pdu_event::<EventId>(
+        to_pdu_event::<Eid>(
             "START",
             charlie(),
             EventType::RoomTopic,
@@ -447,18 +453,10 @@ fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
             &[],
             &[],
         ),
-        to_pdu_event::<EventId>(
-            "END",
-            charlie(),
-            EventType::RoomTopic,
-            Some(""),
-            json!({}),
-            &[],
-            &[],
-        ),
+        to_pdu_event::<Eid>("END", charlie(), EventType::RoomTopic, Some(""), json!({}), &[], &[]),
     ]
     .into_iter()
-    .map(|ev| (ev.event_id().clone(), ev))
+    .map(|ev| (Arc::new(ev.event_id().clone()), ev))
     .collect()
 }
 
@@ -504,7 +502,7 @@ fn BAN_STATE_SET() -> HashMap<EventId, Arc<StateEvent>> {
         ),
     ]
     .into_iter()
-    .map(|ev| (ev.event_id().clone(), ev))
+    .map(|ev| (Arc::new(ev.event_id().clone()), ev))
     .collect()
 }
 
@@ -552,7 +550,7 @@ pub mod event {
         }
 
         fn state_key(&self) -> Option<String> {
-            self.state_key()
+            Some(self.state_key())
         }
 
         fn prev_events(&self) -> Vec<EventId> {
@@ -690,10 +688,10 @@ pub mod event {
                 _ => unreachable!("new PDU version"),
             }
         }
-        pub fn state_key(&self) -> Option<String> {
+        pub fn state_key(&self) -> String {
             match &self.rest {
-                Pdu::RoomV1Pdu(ev) => ev.state_key.clone(),
-                Pdu::RoomV3Pdu(ev) => ev.state_key.clone(),
+                Pdu::RoomV1Pdu(ev) => ev.state_key.clone().unwrap(),
+                Pdu::RoomV3Pdu(ev) => ev.state_key.clone().unwrap(),
                 #[cfg(not(feature = "unstable-exhaustive-types"))]
                 _ => unreachable!("new PDU version"),
             }

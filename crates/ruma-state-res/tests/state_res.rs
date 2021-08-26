@@ -1,11 +1,11 @@
-use std::sync::Arc;
+use std::{convert::TryFrom, sync::Arc};
 
 use js_int::uint;
 use maplit::{hashmap, hashset};
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{room::join_rules::JoinRule, EventType};
-use ruma_identifiers::{EventId, RoomVersionId};
-use ruma_state_res::{EventMap, StateMap, StateResolution};
+use ruma_identifiers::{EventId as Eid, RoomVersionId};
+use ruma_state_res::{EventId, EventMap, StateMap, StateResolution};
 use serde_json::json;
 use tracing_subscriber as tracer;
 
@@ -50,10 +50,11 @@ fn ban_vs_power_level() {
 
     let edges = vec![vec!["END", "MB", "MA", "PA", "START"], vec!["END", "PA", "PB"]]
         .into_iter()
-        .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
+        .map(|list| list.into_iter().map(event_id).map(Arc::new).collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["PA", "MA", "MB"].into_iter().map(event_id).collect::<Vec<_>>();
+    let expected_state_ids =
+        vec!["PA", "MA", "MB"].into_iter().map(event_id).map(Arc::new).collect::<Vec<_>>();
 
     do_check(events, edges, expected_state_ids)
 }
@@ -90,10 +91,11 @@ fn topic_basic() {
     let edges =
         vec![vec!["END", "PA2", "T2", "PA1", "T1", "START"], vec!["END", "T3", "PB", "PA1"]]
             .into_iter()
-            .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
+            .map(|list| list.into_iter().map(event_id).map(Arc::new).collect::<Vec<_>>())
             .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["PA2", "T2"].into_iter().map(event_id).collect::<Vec<_>>();
+    let expected_state_ids =
+        vec!["PA2", "T2"].into_iter().map(event_id).map(Arc::new).collect::<Vec<_>>();
 
     do_check(events, edges, expected_state_ids)
 }
@@ -121,10 +123,11 @@ fn topic_reset() {
 
     let edges = vec![vec!["END", "MB", "T2", "PA", "T1", "START"], vec!["END", "T1"]]
         .into_iter()
-        .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
+        .map(|list| list.into_iter().map(event_id).map(Arc::new).collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["T1", "MB", "PA"].into_iter().map(event_id).collect::<Vec<_>>();
+    let expected_state_ids =
+        vec!["T1", "MB", "PA"].into_iter().map(event_id).map(Arc::new).collect::<Vec<_>>();
 
     do_check(events, edges, expected_state_ids)
 }
@@ -150,10 +153,10 @@ fn join_rule_evasion() {
 
     let edges = vec![vec!["END", "JR", "START"], vec!["END", "ME", "START"]]
         .into_iter()
-        .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
+        .map(|list| list.into_iter().map(event_id).map(Arc::new).collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
-    let expected_state_ids = vec![event_id("JR")];
+    let expected_state_ids = vec![Arc::new(event_id("JR"))];
 
     do_check(events, edges, expected_state_ids)
 }
@@ -186,10 +189,10 @@ fn offtopic_power_level() {
 
     let edges = vec![vec!["END", "PC", "PB", "PA", "START"], vec!["END", "PA"]]
         .into_iter()
-        .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
+        .map(|list| list.into_iter().map(event_id).map(Arc::new).collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["PC"].into_iter().map(event_id).collect::<Vec<_>>();
+    let expected_state_ids = vec!["PC"].into_iter().map(event_id).map(Arc::new).collect::<Vec<_>>();
 
     do_check(events, edges, expected_state_ids)
 }
@@ -230,10 +233,11 @@ fn topic_setting() {
         vec!["END", "MZ1", "T3", "PB", "PA1"],
     ]
     .into_iter()
-    .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
+    .map(|list| list.into_iter().map(event_id).map(Arc::new).collect::<Vec<_>>())
     .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["T4", "PA2"].into_iter().map(event_id).collect::<Vec<_>>();
+    let expected_state_ids =
+        vec!["T4", "PA2"].into_iter().map(event_id).map(Arc::new).collect::<Vec<_>>();
 
     do_check(events, edges, expected_state_ids)
 }
@@ -277,6 +281,13 @@ fn test_event_map_none() {
 
 #[test]
 fn test_lexicographical_sort() {
+    fn event_id(id: &str) -> EventId {
+        if id.contains('$') {
+            return Arc::new(Eid::try_from(id).unwrap());
+        }
+        Arc::new(Eid::try_from(format!("${}:foo", id)).unwrap())
+    }
+
     let graph = hashmap! {
         event_id("l") => hashset![event_id("o")],
         event_id("m") => hashset![event_id("n"), event_id("o")],
@@ -304,7 +315,7 @@ fn test_lexicographical_sort() {
 //
 impl TestStore<StateEvent> {
     pub fn set_up(&mut self) -> (StateMap<EventId>, StateMap<EventId>, StateMap<EventId>) {
-        let create_event = to_pdu_event::<EventId>(
+        let create_event = to_pdu_event::<Eid>(
             "CREATE",
             alice(),
             EventType::RoomCreate,
@@ -313,7 +324,7 @@ impl TestStore<StateEvent> {
             &[],
             &[],
         );
-        let cre = create_event.event_id().clone();
+        let cre = Arc::new(create_event.event_id().clone());
         self.0.insert(cre.clone(), Arc::clone(&create_event));
 
         let alice_mem = to_pdu_event(
@@ -322,10 +333,10 @@ impl TestStore<StateEvent> {
             EventType::RoomMember,
             Some(alice().to_string().as_str()),
             member_content_join(),
-            &[cre.clone()],
-            &[cre.clone()],
+            &[(*cre).clone()],
+            &[(*cre).clone()],
         );
-        self.0.insert(alice_mem.event_id().clone(), Arc::clone(&alice_mem));
+        self.0.insert(Arc::new(alice_mem.event_id().clone()), Arc::clone(&alice_mem));
 
         let join_rules = to_pdu_event(
             "IJR",
@@ -333,10 +344,10 @@ impl TestStore<StateEvent> {
             EventType::RoomJoinRules,
             Some(""),
             json!({ "join_rule": JoinRule::Public }),
-            &[cre.clone(), alice_mem.event_id().clone()],
+            &[(*cre).clone(), alice_mem.event_id().clone()],
             &[alice_mem.event_id().clone()],
         );
-        self.0.insert(join_rules.event_id().clone(), join_rules.clone());
+        self.0.insert(Arc::new(join_rules.event_id().clone()), join_rules.clone());
 
         // Bob and Charlie join at the same time, so there is a fork
         // this will be represented in the state_sets when we resolve
@@ -346,10 +357,10 @@ impl TestStore<StateEvent> {
             EventType::RoomMember,
             Some(bob().to_string().as_str()),
             member_content_join(),
-            &[cre.clone(), join_rules.event_id().clone()],
+            &[(*cre).clone(), join_rules.event_id().clone()],
             &[join_rules.event_id().clone()],
         );
-        self.0.insert(bob_mem.event_id().clone(), bob_mem.clone());
+        self.0.insert(Arc::new(bob_mem.event_id().clone()), bob_mem.clone());
 
         let charlie_mem = to_pdu_event(
             "IMC",
@@ -357,24 +368,24 @@ impl TestStore<StateEvent> {
             EventType::RoomMember,
             Some(charlie().to_string().as_str()),
             member_content_join(),
-            &[cre, join_rules.event_id().clone()],
+            &[(*cre).clone(), join_rules.event_id().clone()],
             &[join_rules.event_id().clone()],
         );
-        self.0.insert(charlie_mem.event_id().clone(), charlie_mem.clone());
+        self.0.insert(Arc::new(charlie_mem.event_id().clone()), charlie_mem.clone());
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key()), e.event_id().clone()))
+            .map(|e| ((e.kind(), e.state_key()), Arc::new(e.event_id().clone())))
             .collect::<StateMap<_>>();
 
         let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key()), e.event_id().clone()))
+            .map(|e| ((e.kind(), e.state_key()), Arc::new(e.event_id().clone())))
             .collect::<StateMap<_>>();
 
         let expected = [&create_event, &alice_mem, &join_rules, &bob_mem, &charlie_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key()), e.event_id().clone()))
+            .map(|e| ((e.kind(), e.state_key()), Arc::new(e.event_id().clone())))
             .collect::<StateMap<_>>();
 
         (state_at_bob, state_at_charlie, expected)

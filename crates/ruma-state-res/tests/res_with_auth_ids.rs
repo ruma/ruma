@@ -3,8 +3,8 @@
 use std::{collections::HashMap, sync::Arc};
 
 use ruma_events::EventType;
-use ruma_identifiers::{EventId, RoomVersionId};
-use ruma_state_res::{EventMap, StateMap, StateResolution};
+use ruma_identifiers::RoomVersionId;
+use ruma_state_res::{EventId, EventMap, StateMap, StateResolution};
 use serde_json::json;
 use tracing::debug;
 
@@ -20,10 +20,11 @@ fn ban_with_auth_chains() {
 
     let edges = vec![vec!["END", "MB", "PA", "START"], vec!["END", "IME", "MB"]]
         .into_iter()
-        .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
+        .map(|list| list.into_iter().map(event_id).map(Arc::new).collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["PA", "MB"].into_iter().map(event_id).collect::<Vec<_>>();
+    let expected_state_ids =
+        vec!["PA", "MB"].into_iter().map(event_id).map(Arc::new).collect::<Vec<_>>();
 
     do_check(&ban.values().cloned().collect::<Vec<_>>(), edges, expected_state_ids);
 }
@@ -47,7 +48,7 @@ fn ban_with_auth_chains2() {
         inner.get(&event_id("PA")).unwrap(),
     ]
     .iter()
-    .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().clone()))
+    .map(|ev| ((ev.kind(), ev.state_key()), Arc::new(ev.event_id().clone())))
     .collect::<StateMap<_>>();
 
     let state_set_b = [
@@ -60,7 +61,7 @@ fn ban_with_auth_chains2() {
         inner.get(&event_id("PA")).unwrap(),
     ]
     .iter()
-    .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().clone()))
+    .map(|ev| ((ev.kind(), ev.state_key()), Arc::new(ev.event_id().clone())))
     .collect::<StateMap<_>>();
 
     let ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
@@ -96,7 +97,7 @@ fn ban_with_auth_chains2() {
 
     for id in expected.iter().map(|i| event_id(i)) {
         // make sure our resolved events are equal to the expected list
-        assert!(resolved.values().any(|eid| eid == &id) || init.contains_key(&id), "{}", id)
+        assert!(resolved.values().any(|eid| **eid == id) || init.contains_key(&id), "{}", id)
     }
     assert_eq!(expected.len(), resolved.len())
 }
@@ -107,10 +108,10 @@ fn join_rule_with_auth_chain() {
 
     let edges = vec![vec!["END", "JR", "START"], vec!["END", "IMZ", "START"]]
         .into_iter()
-        .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
+        .map(|list| list.into_iter().map(event_id).map(Arc::new).collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["JR"].into_iter().map(event_id).collect::<Vec<_>>();
+    let expected_state_ids = vec!["JR"].into_iter().map(event_id).map(Arc::new).collect::<Vec<_>>();
 
     do_check(&join_rule.values().cloned().collect::<Vec<_>>(), edges, expected_state_ids);
 }
@@ -156,7 +157,7 @@ fn BAN_STATE_SET() -> HashMap<EventId, Arc<StateEvent>> {
         ),
     ]
     .into_iter()
-    .map(|ev| (ev.event_id().clone(), ev))
+    .map(|ev| (Arc::new(ev.event_id().clone()), ev))
     .collect()
 }
 
@@ -183,6 +184,6 @@ fn JOIN_RULE() -> HashMap<EventId, Arc<StateEvent>> {
         ),
     ]
     .into_iter()
-    .map(|ev| (ev.event_id().clone(), ev))
+    .map(|ev| (Arc::new(ev.event_id().clone()), ev))
     .collect()
 }

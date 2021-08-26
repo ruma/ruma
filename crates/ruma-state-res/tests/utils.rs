@@ -20,8 +20,10 @@ use ruma_events::{
     },
     EventType,
 };
-use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
-use ruma_state_res::{auth_types_for_event, Error, Event, Result, StateMap, StateResolution};
+use ruma_identifiers::{EventId as Eid, RoomId, RoomVersionId, UserId};
+use ruma_state_res::{
+    auth_types_for_event, Error, Event, EventId, Result, StateMap, StateResolution,
+};
 use serde_json::{json, Value as JsonValue};
 use tracing::info;
 use tracing_subscriber as tracer;
@@ -43,7 +45,11 @@ pub fn do_check(
     let init_events = INITIAL_EVENTS();
 
     let mut store = TestStore(
-        init_events.values().chain(events).map(|ev| (ev.event_id().clone(), ev.clone())).collect(),
+        init_events
+            .values()
+            .chain(events)
+            .map(|ev| (Arc::new(ev.event_id().clone()), ev.clone()))
+            .collect(),
     );
 
     // This will be lexi_topo_sorted for resolution
@@ -54,8 +60,8 @@ pub fn do_check(
     // Create the DB of events that led up to this point
     // TODO maybe clean up some of these clones it is just tests but...
     for ev in init_events.values().chain(events) {
-        graph.insert(ev.event_id().clone(), hashset![]);
-        fake_event_map.insert(ev.event_id().clone(), ev.clone());
+        graph.insert(Arc::new(ev.event_id().clone()), hashset![]);
+        fake_event_map.insert(Arc::new(ev.event_id().clone()), ev.clone());
     }
 
     for pair in INITIAL_EDGES().windows(2) {
@@ -85,7 +91,7 @@ pub fn do_check(
     .unwrap()
     {
         let fake_event = fake_event_map.get(&node).unwrap();
-        let event_id = fake_event.event_id().clone();
+        let event_id = Arc::new(fake_event.event_id().clone());
 
         let prev_events = graph.get(&node).unwrap();
 
@@ -154,15 +160,15 @@ pub fn do_check(
         // TODO The event is just remade, adding the auth_events and prev_events here
         // the `to_pdu_event` was split into `init` and the fn below, could be better
         let e = fake_event;
-        let ev_id = e.event_id().clone();
+        let ev_id = Arc::new(e.event_id().clone());
         let event = to_pdu_event(
             e.event_id().as_str(),
             e.sender().clone(),
             e.kind().clone(),
             Some(&e.state_key()),
             e.content(),
-            &auth_events,
-            &prev_events.iter().cloned().collect::<Vec<_>>(),
+            &auth_events.iter().map(|id| (**id).clone()).collect::<Vec<_>>(),
+            &prev_events.iter().map(|id| (**id).clone()).collect::<Vec<_>>(),
         );
 
         // We have to update our store, an actual user of this lib would
@@ -248,7 +254,7 @@ impl<E: Event> TestStore<E> {
 
             let event = self.get_event(room_id, &ev_id)?;
 
-            stack.extend(event.auth_events().clone());
+            stack.extend(event.auth_events().into_iter().map(Arc::new));
         }
 
         Ok(result)
@@ -280,11 +286,11 @@ impl<E: Event> TestStore<E> {
     }
 }
 
-pub fn event_id(id: &str) -> EventId {
+pub fn event_id(id: &str) -> Eid {
     if id.contains('$') {
-        return EventId::try_from(id).unwrap();
+        return Eid::try_from(id).unwrap();
     }
-    EventId::try_from(format!("${}:foo", id)).unwrap()
+    Eid::try_from(format!("${}:foo", id)).unwrap()
 }
 
 pub fn alice() -> UserId {
@@ -327,7 +333,7 @@ pub fn to_init_pdu_event(
 
     let state_key = state_key.map(ToOwned::to_owned);
     Arc::new(StateEvent {
-        event_id: EventId::try_from(id).unwrap(),
+        event_id: Eid::try_from(id).unwrap(),
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
             room_id: room_id(),
             sender,
@@ -367,7 +373,7 @@ where
 
     let state_key = state_key.map(ToOwned::to_owned);
     Arc::new(StateEvent {
-        event_id: EventId::try_from(id).unwrap(),
+        event_id: Eid::try_from(id).unwrap(),
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
             room_id: room_id(),
             sender,
@@ -396,7 +402,7 @@ pub fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
         .call_once(|| tracer::fmt().with_env_filter(tracer::EnvFilter::from_default_env()).init());
 
     vec![
-        to_pdu_event::<EventId>(
+        to_pdu_event::<Eid>(
             "CREATE",
             alice(),
             EventType::RoomCreate,
@@ -450,7 +456,7 @@ pub fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
             &["CREATE", "IJR", "IPOWER"],
             &["IMB"],
         ),
-        to_pdu_event::<EventId>(
+        to_pdu_event::<Eid>(
             "START",
             charlie(),
             EventType::RoomMessage,
@@ -459,7 +465,7 @@ pub fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
             &[],
             &[],
         ),
-        to_pdu_event::<EventId>(
+        to_pdu_event::<Eid>(
             "END",
             charlie(),
             EventType::RoomMessage,
@@ -470,7 +476,7 @@ pub fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
         ),
     ]
     .into_iter()
-    .map(|ev| (ev.event_id().clone(), ev))
+    .map(|ev| (Arc::new(ev.event_id().clone()), ev))
     .collect()
 }
 
@@ -479,6 +485,7 @@ pub fn INITIAL_EDGES() -> Vec<EventId> {
     vec!["START", "IMC", "IMB", "IJR", "IPOWER", "IMA", "CREATE"]
         .into_iter()
         .map(event_id)
+        .map(Arc::new)
         .collect::<Vec<_>>()
 }
 

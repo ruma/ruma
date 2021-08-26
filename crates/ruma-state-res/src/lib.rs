@@ -14,7 +14,7 @@ use ruma_events::{
     },
     EventType,
 };
-use ruma_identifiers::{EventId, RoomId, RoomVersionId};
+use ruma_identifiers::{EventId as Eid, RoomId, RoomVersionId};
 use tracing::{debug, info, trace, warn};
 
 mod error;
@@ -32,6 +32,8 @@ pub type StateMap<T> = HashMap<(EventType, String), T>;
 
 /// A mapping of `EventId` to `T`, usually a `ServerPdu`.
 pub type EventMap<T> = HashMap<EventId, T>;
+
+pub type EventId = Arc<Eid>;
 
 #[derive(Default)]
 #[allow(clippy::exhaustive_structs)]
@@ -66,7 +68,7 @@ impl StateResolution {
     ) -> Result<StateMap<EventId>>
     where
         E: Event,
-        F: Fn(&EventId) -> Option<Arc<E>>,
+        F: Fn(&Eid) -> Option<Arc<E>>,
     {
         info!("State resolution starting");
 
@@ -144,7 +146,7 @@ impl StateResolution {
         // auth
         let events_to_resolve = all_conflicted
             .iter()
-            .filter(|id| !deduped_power_ev.contains(id))
+            .filter(|id| !deduped_power_ev.contains(*id))
             .cloned()
             .collect::<Vec<_>>();
 
@@ -235,7 +237,7 @@ impl StateResolution {
     ) -> Result<Vec<EventId>>
     where
         E: Event,
-        F: Fn(&EventId) -> Option<Arc<E>>,
+        F: Fn(&Eid) -> Option<Arc<E>>,
     {
         debug!("reverse topological sort of power events");
 
@@ -275,7 +277,7 @@ impl StateResolution {
             // This return value is the key used for sorting events,
             // events are then sorted by power level, time,
             // and lexically by event_id.
-            Ok((-*pl, ev.origin_server_ts(), ev.event_id().clone()))
+            Ok((-*pl, ev.origin_server_ts(), Arc::new(ev.event_id().clone())))
         })
     }
 
@@ -332,7 +334,7 @@ impl StateResolution {
             {
                 // The number of outgoing edges this node has
                 let out = outdegree_map
-                    .get_mut(parent)
+                    .get_mut(*parent)
                     .expect("outdegree_map knows of all referenced EventIds");
 
                 // Only push on the heap once older events have been cleared
@@ -353,7 +355,7 @@ impl StateResolution {
     fn get_power_level_for_sender<E, F>(event_id: &EventId, fetch_event: F) -> i64
     where
         E: Event,
-        F: Fn(&EventId) -> Option<Arc<E>>,
+        F: Fn(&Eid) -> Option<Arc<E>>,
     {
         info!("fetch event ({}) senders power level", event_id);
 
@@ -406,7 +408,7 @@ impl StateResolution {
     ) -> Result<StateMap<EventId>>
     where
         E: Event,
-        F: Fn(&EventId) -> Option<Arc<E>>,
+        F: Fn(&Eid) -> Option<Arc<E>>,
     {
         info!("starting iterative auth check");
 
@@ -503,7 +505,7 @@ impl StateResolution {
     ) -> Result<Vec<EventId>>
     where
         E: Event,
-        F: Fn(&EventId) -> Option<Arc<E>>,
+        F: Fn(&Eid) -> Option<Arc<E>>,
     {
         debug!("mainline sort of events");
 
@@ -525,7 +527,7 @@ impl StateResolution {
                 let ev = fetch_event(aid)
                     .ok_or_else(|| Error::NotFound(format!("Failed to find {}", aid)))?;
                 if is_type_and_key(&ev, EventType::RoomPowerLevels, "") {
-                    pl = Some(aid.clone());
+                    pl = Some(Arc::new(aid.clone()));
                     break;
                 }
             }
@@ -580,12 +582,12 @@ impl StateResolution {
     ) -> Result<usize>
     where
         E: Event,
-        F: Fn(&EventId) -> Option<Arc<E>>,
+        F: Fn(&Eid) -> Option<Arc<E>>,
     {
         while let Some(sort_ev) = event {
             debug!("mainline event_id {}", sort_ev.event_id());
             let id = &sort_ev.event_id();
-            if let Some(depth) = mainline_map.get(id) {
+            if let Some(depth) = mainline_map.get(*id) {
                 return Ok(*depth);
             }
 
@@ -611,7 +613,7 @@ impl StateResolution {
         fetch_event: F,
     ) where
         E: Event,
-        F: Fn(&EventId) -> Option<Arc<E>>,
+        F: Fn(&Eid) -> Option<Arc<E>>,
     {
         let mut state = vec![event_id.clone()];
         while !state.is_empty() {
@@ -622,11 +624,11 @@ impl StateResolution {
             for aid in &fetch_event(&eid).map(|ev| ev.auth_events()).unwrap_or_default() {
                 if auth_diff.contains(aid) {
                     if !graph.contains_key(aid) {
-                        state.push(aid.clone());
+                        state.push(Arc::new(aid.clone()));
                     }
 
                     // We just inserted this at the start of the while loop
-                    graph.get_mut(&eid).unwrap().insert(aid.clone());
+                    graph.get_mut(&eid).unwrap().insert(Arc::new(aid.clone()));
                 }
             }
         }
@@ -636,7 +638,7 @@ impl StateResolution {
 pub fn is_power_event_id<E, F>(event_id: &EventId, fetch: F) -> bool
 where
     E: Event,
-    F: Fn(&EventId) -> Option<Arc<E>>,
+    F: Fn(&Eid) -> Option<Arc<E>>,
 {
     match fetch(event_id).as_ref() {
         Some(state) => is_power_event(state),

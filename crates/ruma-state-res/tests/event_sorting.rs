@@ -23,7 +23,7 @@ fn test_event_sort() {
     let power_events = event_map
         .values()
         .filter(|pdu| is_power_event(pdu))
-        .map(|pdu| pdu.event_id().clone())
+        .map(|pdu| Arc::new(pdu.event_id().clone()))
         .collect::<Vec<_>>();
 
     let sorted_power_events =
