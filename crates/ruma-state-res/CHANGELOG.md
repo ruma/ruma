@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.4.0
+
+Breaking changes:
+
+* Change the way events are supplied
+
 # 0.3.0
 
 Breaking changes:
