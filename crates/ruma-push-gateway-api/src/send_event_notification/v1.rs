@@ -62,10 +62,9 @@ impl Response {
 pub struct Notification<'a> {
     /// The Matrix event ID of the event being notified about.
     ///
-    /// This is required if the notification is about a particular Matrix event.
-    /// It may be omitted for notifications that only contain updated badge
-    /// counts. This ID can and should be used to detect duplicate notification
-    /// requests.
+    /// Required if the notification is about a particular Matrix event. May be omitted for
+    /// notifications that only contain updated badge counts. This ID can and should be used to
+    /// detect duplicate notification requests.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub event_id: Option<&'a EventId>,
 
@@ -83,8 +82,7 @@ pub struct Notification<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sender: Option<&'a UserId>,
 
-    /// The current display name of the sender in the room in which the event
-    /// occurred.
+    /// The current display name of the sender in the room in which the event occurred.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sender_display_name: Option<&'a str>,
 
@@ -96,32 +94,31 @@ pub struct Notification<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub room_alias: Option<&'a RoomAliasId>,
 
-    /// This is `true` if the user receiving the notification is the subject of
-    /// a member event (i.e. the `state_key` of the member event is equal to the
-    /// user's Matrix ID).
+    /// Whether the user receiving the notification is the subject of a member event (i.e. the
+    /// `state_key` of the member event is equal to the user's Matrix ID).
     #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
     pub user_is_target: bool,
 
     /// The priority of the notification.
     ///
-    /// If omitted, `high` is assumed. This may be used by push gateways to
-    /// deliver less time-sensitive notifications in a way that will preserve
-    /// battery power on mobile devices.
+    /// If omitted, `high` is assumed. This may be used by push gateways to deliver less
+    /// time-sensitive notifications in a way that will preserve battery power on mobile devices.
     #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
     pub prio: NotificationPriority,
 
-    /// The `content` field from the event, if present. The pusher may omit this
-    /// if the event had no content or for any other reason.
+    /// The `content` field from the event, if present.
+    ///
+    /// The pusher may omit this if the event had no content or for any other reason.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<&'a RawJsonValue>,
 
-    /// This is a dictionary of the current number of unacknowledged
-    /// communications for the recipient user. Counts whose value is zero should
-    /// be omitted.
+    /// Current number of unacknowledged communications for the recipient user.
+    ///
+    /// Counts whose value is zero should be omitted.
     #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
     pub counts: NotificationCounts,
 
-    /// This is an array of devices that the notification should be sent to.
+    /// An array of devices that the notification should be sent to.
     pub devices: &'a [Device],
 }
 
