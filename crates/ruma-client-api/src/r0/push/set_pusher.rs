@@ -54,13 +54,19 @@ impl Response {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Pusher {
-    /// This is a unique identifier for this pusher. Max length, 512 bytes.
+    /// A unique identifier for this pusher.
+    ///
+    /// The maximum allowed length is 512 bytes.
     pub pushkey: String,
 
-    /// The kind of the pusher. `None` deletes the pusher.
+    /// The kind of the pusher.
+    ///
+    /// `None` deletes the pusher.
     pub kind: Option<PusherKind>,
 
-    /// This is a reverse-DNS style identifier for the application. Max length, 64 chars.
+    /// A reverse-DNS style identifier for the application.
+    ///
+    /// The maximum allowed length is 64 bytes.
     pub app_id: String,
 
     /// A string that will allow the user to identify what application owns this pusher.
@@ -69,7 +75,7 @@ pub struct Pusher {
     /// A string that will allow the user to identify what device owns this pusher.
     pub device_display_name: String,
 
-    /// This string determines which set of device specific rules this pusher executes.
+    /// Determines which set of device specific rules this pusher executes.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub profile_tag: Option<String>,
 
@@ -87,13 +93,19 @@ pub struct Pusher {
 #[derive(Debug)]
 #[allow(clippy::exhaustive_structs)]
 pub struct PusherInit {
-    /// This is a unique identifier for this pusher. Max length, 512 bytes.
+    /// A unique identifier for this pusher.
+    ///
+    /// The maximum allowed length is 512 bytes.
     pub pushkey: String,
 
-    /// The kind of the pusher. `None` deletes the pusher.
+    /// The kind of the pusher.
+    ///
+    /// `None` deletes the pusher.
     pub kind: Option<PusherKind>,
 
-    /// This is a reverse-DNS style identifier for the application. Max length, 64 chars.
+    /// A reverse-DNS style identifier for the application.
+    ///
+    /// The maximum allowed length is 64 bytes.
     pub app_id: String,
 
     /// A string that will allow the user to identify what application owns this pusher.
@@ -102,7 +114,7 @@ pub struct PusherInit {
     /// A string that will allow the user to identify what device owns this pusher.
     pub device_display_name: String,
 
-    /// This string determines which set of device specific rules this pusher executes.
+    /// Determines which set of device specific rules this pusher executes.
     pub profile_tag: Option<String>,
 
     /// The preferred language for receiving notifications (e.g. 'en' or 'en-US')

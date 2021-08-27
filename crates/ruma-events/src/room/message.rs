@@ -501,7 +501,7 @@ impl FileInfo {
 pub struct ImageMessageEventContent {
     /// A textual representation of the image.
     ///
-    /// This could be the alt text of the image, the filename of the image, or some kind of content
+    /// Could be the alt text of the image, the filename of the image, or some kind of content
     /// description for accessibility e.g. "image attachment".
     pub body: String,
 

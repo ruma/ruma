@@ -92,8 +92,8 @@ pub enum CancelCode {
 
     /// The device does not know how to handle the requested method.
     ///
-    /// This should be sent for *m.key.verification.start* messages and messages defined by
-    /// individual verification processes.
+    /// Should be sent for *m.key.verification.start* messages and messages defined by individual
+    /// verification processes.
     #[ruma_enum(rename = "m.unknown_method")]
     UnknownMethod,
 

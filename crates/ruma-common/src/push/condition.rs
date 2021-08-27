@@ -19,7 +19,7 @@ pub use room_member_count_is::{ComparisonOperator, RoomMemberCountIs};
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum PushCondition {
-    /// This is a glob pattern match on a field of the event.
+    /// A glob pattern match on a field of the event.
     EventMatch {
         /// The dot-separated field of the event to match.
         key: String,
@@ -31,18 +31,18 @@ pub enum PushCondition {
         pattern: String,
     },
 
-    /// This matches unencrypted messages where `content.body` contains the owner's display name in
-    /// that room.
+    /// Matches unencrypted messages where `content.body` contains the owner's display name in that
+    /// room.
     ContainsDisplayName,
 
-    /// This matches the current number of members in the room.
+    /// Matches the current number of members in the room.
     RoomMemberCount {
         /// The condition on the current number of members in the room.
         is: RoomMemberCountIs,
     },
 
-    /// This takes into account the current power levels in the room, ensuring the sender of the
-    /// event has high enough power to trigger the notification.
+    /// Takes into account the current power levels in the room, ensuring the sender of the event
+    /// has high enough power to trigger the notification.
     SenderNotificationPermission {
         /// The field in the power level event the user needs a minimum power level for.
         ///

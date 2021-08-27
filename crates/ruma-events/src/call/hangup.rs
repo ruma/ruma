@@ -36,8 +36,8 @@ impl HangupEventContent {
 
 /// A reason for a hangup.
 ///
-/// This should not be provided when the user naturally ends or rejects the call. When there was an
-/// error in the call negotiation, this should be `ice_failed` for when ICE negotiation fails or
+/// Should not be provided when the user naturally ends or rejects the call. When there was an error
+/// in the call negotiation, this should be `ice_failed` for when ICE negotiation fails or
 /// `invite_timeout` for when the other party did not answer in time.
 ///
 /// This type can hold an arbitrary string. To check for formats that are not available as a

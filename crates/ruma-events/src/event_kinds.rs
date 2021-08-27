@@ -44,9 +44,8 @@ pub struct SyncEphemeralRoomEvent<C: EphemeralRoomEventContent> {
 
 /// A message event.
 ///
-/// `MessageEvent` implements the comparison traits using only
-/// the `event_id` field, a sorted list would be sorted lexicographically based on
-/// the event's `EventId`.
+/// `MessageEvent` implements the comparison traits using only the `event_id` field, a sorted list
+/// would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
 pub struct MessageEvent<C: MessageEventContent> {
     /// Data specific to the event type.
@@ -70,9 +69,8 @@ pub struct MessageEvent<C: MessageEventContent> {
 
 /// A message event without a `room_id`.
 ///
-/// `SyncMessageEvent` implements the comparison traits using only
-/// the `event_id` field, a sorted list would be sorted lexicographically based on
-/// the event's `EventId`.
+/// `SyncMessageEvent` implements the comparison traits using only the `event_id` field, a sorted
+/// list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
 pub struct SyncMessageEvent<C: MessageEventContent> {
     /// Data specific to the event type.
@@ -93,9 +91,8 @@ pub struct SyncMessageEvent<C: MessageEventContent> {
 
 /// A redacted message event.
 ///
-/// `RedactedMessageEvent` implements the comparison traits using only
-/// the `event_id` field, a sorted list would be sorted lexicographically based on
-/// the event's `EventId`.
+/// `RedactedMessageEvent` implements the comparison traits using only the `event_id` field, a
+/// sorted list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
 pub struct RedactedMessageEvent<C: RedactedMessageEventContent> {
     /// Data specific to the event type.
@@ -119,13 +116,11 @@ pub struct RedactedMessageEvent<C: RedactedMessageEventContent> {
 
 /// A redacted message event without a `room_id`.
 ///
-/// `RedactedSyncMessageEvent` implements the comparison traits using only
-/// the `event_id` field, a sorted list would be sorted lexicographically based on
-/// the event's `EventId`.
+/// `RedactedSyncMessageEvent` implements the comparison traits using only the `event_id` field, a
+/// sorted list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
 pub struct RedactedSyncMessageEvent<C: RedactedMessageEventContent> {
     /// Data specific to the event type.
-    // #[serde(default, skip_serializing_if = "is_zst")]
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
@@ -143,9 +138,8 @@ pub struct RedactedSyncMessageEvent<C: RedactedMessageEventContent> {
 
 /// A state event.
 ///
-/// `StateEvent` implements the comparison traits using only
-/// the `event_id` field, a sorted list would be sorted lexicographically based on
-/// the event's `EventId`.
+/// `StateEvent` implements the comparison traits using only the `event_id` field, a sorted list
+/// would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
 pub struct StateEvent<C: StateEventContent> {
     /// Data specific to the event type.
@@ -165,8 +159,8 @@ pub struct StateEvent<C: StateEventContent> {
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
-    /// This is often an empty string, but some events send a `UserId` to show
-    /// which user the event affects.
+    /// This is often an empty string, but some events send a `UserId` to show which user the event
+    /// affects.
     pub state_key: String,
 
     /// Optional previous content for this event.
@@ -178,9 +172,8 @@ pub struct StateEvent<C: StateEventContent> {
 
 /// A state event without a `room_id`.
 ///
-/// `SyncStateEvent` implements the comparison traits using only
-/// the `event_id` field, a sorted list would be sorted lexicographically based on
-/// the event's `EventId`.
+/// `SyncStateEvent` implements the comparison traits using only the `event_id` field, a sorted list
+/// would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
 pub struct SyncStateEvent<C: StateEventContent> {
     /// Data specific to the event type.
@@ -197,8 +190,8 @@ pub struct SyncStateEvent<C: StateEventContent> {
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
-    /// This is often an empty string, but some events send a `UserId` to show
-    /// which user the event affects.
+    /// This is often an empty string, but some events send a `UserId` to show which user the event
+    /// affects.
     pub state_key: String,
 
     /// Optional previous content for this event.
@@ -208,8 +201,7 @@ pub struct SyncStateEvent<C: StateEventContent> {
     pub unsigned: Unsigned,
 }
 
-/// A stripped-down state event, used for previews of rooms the user has been
-/// invited to.
+/// A stripped-down state event, used for previews of rooms the user has been invited to.
 #[derive(Clone, Debug, Event)]
 pub struct StrippedStateEvent<C: StateEventContent> {
     /// Data specific to the event type.
@@ -220,8 +212,8 @@ pub struct StrippedStateEvent<C: StateEventContent> {
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
-    /// This is often an empty string, but some events send a `UserId` to show
-    /// which user the event affects.
+    /// This is often an empty string, but some events send a `UserId` to show which user the event
+    /// affects.
     pub state_key: String,
 }
 
@@ -233,8 +225,8 @@ pub struct InitialStateEvent<C: StateEventContent> {
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
-    /// This is often an empty string, but some events send a `UserId` to show
-    /// which user the event affects.
+    /// This is often an empty string, but some events send a `UserId` to show which user the event
+    /// affects.
     ///
     /// Defaults to the empty string.
     #[ruma_event(default)]
@@ -243,9 +235,8 @@ pub struct InitialStateEvent<C: StateEventContent> {
 
 /// A redacted state event.
 ///
-/// `RedactedStateEvent` implements the comparison traits using only
-/// the `event_id` field, a sorted list would be sorted lexicographically based on
-/// the event's `EventId`.
+/// `RedactedStateEvent` implements the comparison traits using only the `event_id` field, a sorted
+/// list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
 pub struct RedactedStateEvent<C: RedactedStateEventContent> {
     /// Data specific to the event type.
@@ -265,8 +256,8 @@ pub struct RedactedStateEvent<C: RedactedStateEventContent> {
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
-    /// This is often an empty string, but some events send a `UserId` to show
-    /// which user the event affects.
+    /// This is often an empty string, but some events send a `UserId` to show which user the event
+    /// affects.
     pub state_key: String,
 
     /// Additional key-value pairs not signed by the homeserver.
@@ -275,13 +266,11 @@ pub struct RedactedStateEvent<C: RedactedStateEventContent> {
 
 /// A redacted state event without a `room_id`.
 ///
-/// `RedactedSyncStateEvent` implements the comparison traits using only
-/// the `event_id` field, a sorted list would be sorted lexicographically based on
-/// the event's `EventId`.
+/// `RedactedSyncStateEvent` implements the comparison traits using only the `event_id` field, a
+/// sorted list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
 pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
     /// Data specific to the event type.
-    // #[serde(default, skip_serializing_if = "is_zst")]
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
@@ -295,8 +284,8 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
-    /// This is often an empty string, but some events send a `UserId` to show
-    /// which user the event affects.
+    /// This is often an empty string, but some events send a `UserId` to show which user the event
+    /// affects.
     pub state_key: String,
 
     /// Additional key-value pairs not signed by the homeserver.
@@ -314,8 +303,8 @@ pub struct RedactedStrippedStateEvent<C: RedactedStateEventContent> {
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
-    /// This is often an empty string, but some events send a `UserId` to show
-    /// which user the event affects.
+    /// This is often an empty string, but some events send a `UserId` to show which user the event
+    /// affects.
     pub state_key: String,
 }
 

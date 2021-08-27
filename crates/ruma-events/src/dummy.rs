@@ -10,7 +10,7 @@ use serde::{
 
 /// The payload for `DummyEvent`.
 ///
-/// This event type is used to indicate new Olm sessions for end-to-end encryption.
+/// This event is used to indicate new Olm sessions for end-to-end encryption.
 ///
 /// Typically it is encrypted as an *m.room.encrypted* event, then sent as a to-device event.
 ///

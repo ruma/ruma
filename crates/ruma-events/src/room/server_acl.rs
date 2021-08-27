@@ -13,28 +13,29 @@ pub type ServerAclEvent = StateEvent<ServerAclEventContent>;
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.server_acl", kind = State)]
 pub struct ServerAclEventContent {
-    /// True to allow server names that are IP address literals. False to deny.
+    /// Whether to allow server names that are IP address literals.
     ///
-    /// This is strongly recommended to be set to false as servers running with IP literal
-    /// names are strongly discouraged in order to require legitimate homeservers to be
-    /// backed by a valid registered domain name.
+    /// This is strongly recommended to be set to false as servers running with IP literal names
+    /// are strongly discouraged in order to require legitimate homeservers to be backed by a
+    /// valid registered domain name.
     #[serde(default = "ruma_serde::default_true", skip_serializing_if = "ruma_serde::is_true")]
     pub allow_ip_literals: bool,
 
-    /// The server names to allow in the room, excluding any port information. Wildcards may
-    /// be used to cover a wider range of hosts, where `*` matches zero or more characters
-    /// and `?` matches exactly one character.
+    /// The server names to allow in the room, excluding any port information.
     ///
-    /// **This defaults to an empty list when not provided, effectively disallowing every
-    /// server.**
+    /// Wildcards may be used to cover a wider range of hosts, where `*` matches zero or more
+    /// characters and `?` matches exactly one character.
+    ///
+    /// **Defaults to an empty list when not provided, effectively disallowing every server.**
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub allow: Vec<String>,
 
-    /// The server names to disallow in the room, excluding any port information. Wildcards may
-    /// be used to cover a wider range of hosts, where * matches zero or more characters and ?
-    /// matches exactly one character.
+    /// The server names to disallow in the room, excluding any port information.
     ///
-    /// This defaults to an empty list when not provided.
+    /// Wildcards may be used to cover a wider range of hosts, where * matches zero or more
+    /// characters and `?` matches exactly one character.
+    ///
+    /// Defaults to an empty list when not provided.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub deny: Vec<String>,
 }

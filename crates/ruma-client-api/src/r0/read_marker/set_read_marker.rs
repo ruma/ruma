@@ -19,13 +19,15 @@ ruma_api! {
         pub room_id: &'a RoomId,
 
         /// The event ID the read marker should be located at.
+        ///
         /// The event MUST belong to the room.
         #[serde(rename = "m.fully_read")]
         pub fully_read: &'a EventId,
 
         /// The event ID to set the read receipt location at.
-        /// This is equivalent to calling the create_read_receipt endpoint and is
-        /// provided here to save that extra call.
+        ///
+        /// This is equivalent to calling the create_read_receipt endpoint and is provided here to
+        /// save that extra call.
         #[serde(rename = "m.read", skip_serializing_if = "Option::is_none")]
         pub read_receipt: Option<&'a EventId>,
     }

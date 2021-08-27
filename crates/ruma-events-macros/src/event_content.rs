@@ -31,8 +31,8 @@ enum EventMeta {
     /// redacted.
     SkipRedacted,
 
-    /// This attribute signals that the events redacted form is manually implemented and should
-    /// not be generated.
+    /// This attribute signals that the events redacted form is manually implemented and should not
+    /// be generated.
     CustomRedacted,
 }
 

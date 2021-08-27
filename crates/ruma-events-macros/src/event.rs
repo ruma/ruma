@@ -445,7 +445,7 @@ fn expand_eq_ord_event(input: &DeriveInput, fields: &[Field]) -> Option<TokenStr
         quote! {
             #[automatically_derived]
             impl #impl_gen ::std::cmp::PartialEq for #ident #ty_gen #where_clause {
-                /// This checks if two `EventId`s are equal.
+                /// Checks if two `EventId`s are equal.
                 fn eq(&self, other: &Self) -> ::std::primitive::bool {
                     self.event_id == other.event_id
                 }
@@ -456,7 +456,7 @@ fn expand_eq_ord_event(input: &DeriveInput, fields: &[Field]) -> Option<TokenStr
 
             #[automatically_derived]
             impl #impl_gen ::std::cmp::PartialOrd for #ident #ty_gen #where_clause {
-                /// This compares `EventId`s and orders them lexicographically.
+                /// Compares `EventId`s and orders them lexicographically.
                 fn partial_cmp(&self, other: &Self) -> ::std::option::Option<::std::cmp::Ordering> {
                     self.event_id.partial_cmp(&other.event_id)
                 }
@@ -464,7 +464,7 @@ fn expand_eq_ord_event(input: &DeriveInput, fields: &[Field]) -> Option<TokenStr
 
             #[automatically_derived]
             impl #impl_gen ::std::cmp::Ord for #ident #ty_gen #where_clause {
-                /// This compares `EventId`s and orders them lexicographically.
+                /// Compares `EventId`s and orders them lexicographically.
                 fn cmp(&self, other: &Self) -> ::std::cmp::Ordering {
                     self.event_id.cmp(&other.event_id)
                 }
