@@ -17,6 +17,7 @@ ruma-clippy = """\
     -W clippy::macro_use_imports \
     -W clippy::map_flatten \
     -W clippy::missing_enforced_import_renames \
+    -W clippy::mod_module_files \
     -W clippy::mut_mut \
     -W clippy::needless_borrow \
     -A clippy::new_without_default \
