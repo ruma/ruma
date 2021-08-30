@@ -42,7 +42,7 @@ ruma_api! {
 
     response: {
         /// A list of member events.
-        pub chunk: Vec<Raw<MemberEvent>>
+        pub chunk: Vec<Raw<MemberEvent>>,
     }
 
     error: crate::Error

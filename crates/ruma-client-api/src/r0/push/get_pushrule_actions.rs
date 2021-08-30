@@ -31,7 +31,7 @@ ruma_api! {
 
     response: {
         /// The actions to perform for this rule.
-        pub actions: Vec<Action>
+        pub actions: Vec<Action>,
     }
 
     error: crate::Error

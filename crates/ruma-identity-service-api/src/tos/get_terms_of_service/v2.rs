@@ -22,7 +22,7 @@ ruma_api! {
         /// The policies the server offers.
         ///
         /// Mapped from arbitrary ID (unused in this version of the specification) to a Policy Object.
-        pub policies: BTreeMap<String, Policies>
+        pub policies: BTreeMap<String, Policies>,
     }
 }
 

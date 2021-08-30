@@ -34,7 +34,7 @@ ruma_api! {
         /// where the notification had the 'highlight' tweak set.
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub only: Option<&'a str>
+        pub only: Option<&'a str>,
     }
 
     response: {

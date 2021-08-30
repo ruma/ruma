@@ -227,7 +227,7 @@ impl Request {
                 const METADATA: #ruma_api::Metadata = self::METADATA;
 
                 fn try_from_http_request<T: ::std::convert::AsRef<[::std::primitive::u8]>>(
-                    request: #http::Request<T>
+                    request: #http::Request<T>,
                 ) -> ::std::result::Result<Self, #ruma_api::error::FromHttpRequestError> {
                     if request.method() != #http::Method::#method {
                         return Err(#ruma_api::error::FromHttpRequestError::MethodMismatch {

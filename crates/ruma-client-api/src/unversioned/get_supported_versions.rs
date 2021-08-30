@@ -23,7 +23,7 @@ ruma_api! {
 
         /// Experimental features supported by the server.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub unstable_features: BTreeMap<String, bool>
+        pub unstable_features: BTreeMap<String, bool>,
     }
 
     error: crate::Error

@@ -39,7 +39,7 @@ ruma_api! {
     #[derive(Default)]
     response: {
         /// The missing PDUs.
-        pub events: Vec<Raw<Pdu>>
+        pub events: Vec<Raw<Pdu>>,
     }
 }
 

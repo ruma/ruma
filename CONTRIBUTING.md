@@ -241,7 +241,7 @@ use
 ```rust
 ruma_api! {
     request: {
-        my_field: MyStruct<'a>
+        my_field: MyStruct<'a>,
     }
     // ...
 }

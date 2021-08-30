@@ -52,7 +52,7 @@ ruma_api! {
             feature = "compat",
             serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
         )]
-        pub submit_url: Option<String>
+        pub submit_url: Option<String>,
     }
 
     error: crate::Error
