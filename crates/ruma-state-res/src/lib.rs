@@ -192,7 +192,10 @@ impl StateResolution {
                 state_sets.iter().map(|state_set| state_set.get(key)).collect::<Vec<_>>();
 
             if event_ids.iter().all_equal() {
-                let id = event_ids.remove(0).expect("unconflicting `EventId` is not None");
+                // First .unwrap() is okay because
+                // * event_ids has the same length as state_sets
+                // * we never enter the loop this code is in if state_sets is empty
+                let id = event_ids.pop().unwrap().expect("unconflicting `EventId` is not None");
                 unconflicted_state.insert(key.clone(), id.clone());
             } else {
                 conflicted_state
