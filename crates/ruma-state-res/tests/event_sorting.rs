@@ -27,7 +27,7 @@ fn test_event_sort() {
         .collect::<Vec<_>>();
 
     let sorted_power_events =
-        StateResolution::reverse_topological_power_sort(&power_events, &auth_chain, |id| {
+        StateResolution::reverse_topological_power_sort(power_events, &auth_chain, |id| {
             events.get(id).map(Arc::clone)
         })
         .unwrap();
