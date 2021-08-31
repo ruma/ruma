@@ -614,9 +614,7 @@ impl StateResolution {
         F: Fn(&EventId) -> Option<Arc<E>>,
     {
         let mut state = vec![event_id.clone()];
-        while !state.is_empty() {
-            // We just checked if it was empty so unwrap is fine
-            let eid = state.pop().unwrap();
+        while let Some(eid) = state.pop() {
             graph.entry(eid.clone()).or_insert(hashset![]);
             // Prefer the store to event as the store filters dedups the events
             for aid in &fetch_event(&eid).map(|ev| ev.auth_events()).unwrap_or_default() {
