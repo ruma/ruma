@@ -5,7 +5,7 @@ use maplit::{hashmap, hashset};
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{room::join_rules::JoinRule, EventType};
 use ruma_identifiers::{EventId, RoomVersionId};
-use ruma_state_res::{EventMap, StateMap, StateResolution};
+use ruma_state_res::{self as state_res, EventMap, StateMap};
 use serde_json::json;
 use tracing_subscriber as tracer;
 
@@ -254,7 +254,7 @@ fn test_event_map_none() {
 
     let ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
     let state_sets = vec![state_at_bob, state_at_charlie];
-    let resolved = match StateResolution::resolve::<StateEvent, _>(
+    let resolved = match state_res::resolve::<StateEvent, _>(
         &room_id(),
         &RoomVersionId::Version2,
         &state_sets,
@@ -285,7 +285,7 @@ fn test_lexicographical_sort() {
         event_id("p") => hashset![event_id("o")],
     };
 
-    let res = StateResolution::lexicographical_topological_sort(&graph, |id| {
+    let res = state_res::lexicographical_topological_sort(&graph, |id| {
         Ok((0, MilliSecondsSinceUnixEpoch(uint!(0)), id.clone()))
     })
     .unwrap();

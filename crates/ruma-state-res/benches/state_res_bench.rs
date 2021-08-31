@@ -30,7 +30,7 @@ use ruma_events::{
     EventType,
 };
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
-use ruma_state_res::{Error, Event, EventMap, Result, StateMap, StateResolution};
+use ruma_state_res::{self as state_res, Error, Event, EventMap, Result, StateMap};
 use serde_json::{json, Value as JsonValue};
 
 static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
@@ -45,7 +45,7 @@ fn lexico_topo_sort(c: &mut Criterion) {
             event_id("p") => hashset![event_id("o")],
         };
         b.iter(|| {
-            let _ = StateResolution::lexicographical_topological_sort(&graph, |id| {
+            let _ = state_res::lexicographical_topological_sort(&graph, |id| {
                 Ok((0, MilliSecondsSinceUnixEpoch(uint!(0)), id.clone()))
             });
         })
@@ -62,7 +62,7 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
         b.iter(|| {
             let ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
             let state_sets = vec![state_at_bob.clone(), state_at_charlie.clone()];
-            let _ = match StateResolution::resolve::<StateEvent, _>(
+            let _ = match state_res::resolve::<StateEvent, _>(
                 &room_id(),
                 &RoomVersionId::Version6,
                 &state_sets,
@@ -119,7 +119,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
 
         b.iter(|| {
             let state_sets = vec![state_set_a.clone(), state_set_b.clone()];
-            let _ = match StateResolution::resolve::<StateEvent, _>(
+            let _ = match state_res::resolve::<StateEvent, _>(
                 &room_id(),
                 &RoomVersionId::Version6,
                 &state_sets,
