@@ -1,7 +1,6 @@
-use std::{convert::TryFrom, sync::Arc};
+use std::{collections::BTreeSet, convert::TryFrom, sync::Arc};
 
 use js_int::int;
-use maplit::btreeset;
 use ruma_events::{
     room::{
         create::CreateEventContent,
@@ -572,7 +571,7 @@ where
 
     let user_level = get_user_power_level(power_event.sender(), fetch_state);
 
-    let mut user_levels_to_check = btreeset![];
+    let mut user_levels_to_check = BTreeSet::new();
     let old_list = &current_content.users;
     let user_list = &user_content.users;
     for user in old_list.keys().chain(user_list.keys()) {
@@ -582,7 +581,7 @@ where
 
     debug!("users to check {:?}", user_levels_to_check);
 
-    let mut event_levels_to_check = btreeset![];
+    let mut event_levels_to_check = BTreeSet::new();
     let old_list = &current_content.events;
     let new_list = &user_content.events;
     for ev_id in old_list.keys().chain(new_list.keys()) {

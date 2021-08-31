@@ -5,7 +5,6 @@ use std::{
 };
 
 use itertools::Itertools;
-use maplit::hashset;
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     room::{
@@ -217,7 +216,7 @@ impl StateResolution {
 
             Ok(auth_chain_sets.into_iter().flatten().filter(|id| !common.contains(id)).collect())
         } else {
-            Ok(hashset![])
+            Ok(HashSet::new())
         }
     }
 
@@ -303,7 +302,7 @@ impl StateResolution {
 
         // The number of events that depend on the given event (the EventId key)
         // How many events reference this event in the DAG as a parent
-        let mut reverse_graph = HashMap::new();
+        let mut reverse_graph: HashMap<&EventId, HashSet<&EventId>> = HashMap::new();
 
         // Vec of nodes that have zero out degree, least recent events.
         let mut zero_outdegree = vec![];
@@ -315,9 +314,9 @@ impl StateResolution {
                 zero_outdegree.push(Reverse((key_fn(node)?, node)));
             }
 
-            reverse_graph.entry(node).or_insert(hashset![]);
+            reverse_graph.entry(node).or_default();
             for edge in edges {
-                reverse_graph.entry(edge).or_insert(hashset![]).insert(node);
+                reverse_graph.entry(edge).or_default().insert(node);
             }
         }
 
@@ -615,7 +614,7 @@ impl StateResolution {
     {
         let mut state = vec![event_id.clone()];
         while let Some(eid) = state.pop() {
-            graph.entry(eid.clone()).or_insert(hashset![]);
+            graph.entry(eid.clone()).or_default();
             // Prefer the store to event as the store filters dedups the events
             for aid in &fetch_event(&eid).map(|ev| ev.auth_events()).unwrap_or_default() {
                 if auth_diff.contains(aid) {
