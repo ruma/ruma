@@ -115,7 +115,7 @@ impl StateResolution {
 
         // Sort the control events based on power_level/clock/event_id and outgoing/incoming edges
         let sorted_control_levels = StateResolution::reverse_topological_power_sort(
-            &control_events,
+            control_events,
             &all_conflicted,
             &fetch_event,
         )?;
@@ -231,7 +231,7 @@ impl StateResolution {
     /// The power level is negative because a higher power level is equated to an
     /// earlier (further back in time) origin server timestamp.
     pub fn reverse_topological_power_sort<E, F>(
-        events_to_sort: &[EventId],
+        events_to_sort: Vec<EventId>,
         auth_diff: &HashSet<EventId>,
         fetch_event: F,
     ) -> Result<Vec<EventId>>
@@ -242,7 +242,7 @@ impl StateResolution {
         debug!("reverse topological sort of power events");
 
         let mut graph = HashMap::new();
-        for event_id in events_to_sort.iter() {
+        for event_id in events_to_sort {
             StateResolution::add_event_and_auth_chain_to_graph(
                 &mut graph,
                 event_id,
@@ -608,14 +608,14 @@ impl StateResolution {
 
     fn add_event_and_auth_chain_to_graph<E, F>(
         graph: &mut HashMap<EventId, HashSet<EventId>>,
-        event_id: &EventId,
+        event_id: EventId,
         auth_diff: &HashSet<EventId>,
         fetch_event: F,
     ) where
         E: Event,
         F: Fn(&EventId) -> Option<Arc<E>>,
     {
-        let mut state = vec![event_id.clone()];
+        let mut state = vec![event_id];
         while let Some(eid) = state.pop() {
             graph.entry(eid.clone()).or_default();
             // Prefer the store to event as the store filters dedups the events
