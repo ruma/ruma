@@ -4,7 +4,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomVersionId};
-use ruma_state_res::{EventMap, StateMap, StateResolution};
+use ruma_state_res::{self as state_res, EventMap, StateMap};
 use serde_json::json;
 use tracing::debug;
 
@@ -65,7 +65,7 @@ fn ban_with_auth_chains2() {
 
     let ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
     let state_sets = vec![state_set_a, state_set_b];
-    let resolved = match StateResolution::resolve::<StateEvent, _>(
+    let resolved = match state_res::resolve::<StateEvent, _>(
         &room_id(),
         &RoomVersionId::Version6,
         &state_sets,

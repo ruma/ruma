@@ -21,7 +21,7 @@ use ruma_events::{
     EventType,
 };
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
-use ruma_state_res::{auth_types_for_event, Error, Event, Result, StateMap, StateResolution};
+use ruma_state_res::{self as state_res, auth_types_for_event, Error, Event, Result, StateMap};
 use serde_json::{json, Value as JsonValue};
 use tracing::info;
 use tracing_subscriber as tracer;
@@ -79,7 +79,7 @@ pub fn do_check(
 
     // Resolve the current state and add it to the state_at_event map then continue
     // on in "time"
-    for node in StateResolution::lexicographical_topological_sort(&graph, |id| {
+    for node in state_res::lexicographical_topological_sort(&graph, |id| {
         Ok((0, MilliSecondsSinceUnixEpoch(uint!(0)), id.clone()))
     })
     .unwrap()
@@ -111,7 +111,7 @@ pub fn do_check(
                     .collect::<Vec<_>>()
             );
 
-            let resolved = StateResolution::resolve(
+            let resolved = state_res::resolve(
                 &room_id(),
                 &RoomVersionId::Version6,
                 &state_sets,

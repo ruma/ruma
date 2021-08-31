@@ -5,7 +5,7 @@ use std::{
 
 use rand::seq::SliceRandom;
 use ruma_events::EventType;
-use ruma_state_res::{is_power_event, room_version::RoomVersion, StateMap, StateResolution};
+use ruma_state_res::{self as state_res, is_power_event, room_version::RoomVersion, StateMap};
 
 mod utils;
 use utils::INITIAL_EVENTS;
@@ -27,12 +27,12 @@ fn test_event_sort() {
         .collect::<Vec<_>>();
 
     let sorted_power_events =
-        StateResolution::reverse_topological_power_sort(power_events, &auth_chain, |id| {
+        state_res::reverse_topological_power_sort(power_events, &auth_chain, |id| {
             events.get(id).map(Arc::clone)
         })
         .unwrap();
 
-    let resolved_power = StateResolution::iterative_auth_check(
+    let resolved_power = state_res::iterative_auth_check(
         &RoomVersion::version_6(),
         &sorted_power_events,
         &HashMap::new(), // unconflicted events
@@ -47,10 +47,9 @@ fn test_event_sort() {
 
     let power_level = resolved_power.get(&(EventType::RoomPowerLevels, "".to_owned()));
 
-    let sorted_event_ids = StateResolution::mainline_sort(&events_to_sort, power_level, |id| {
-        events.get(id).map(Arc::clone)
-    })
-    .unwrap();
+    let sorted_event_ids =
+        state_res::mainline_sort(&events_to_sort, power_level, |id| events.get(id).map(Arc::clone))
+            .unwrap();
 
     assert_eq!(
         vec![
