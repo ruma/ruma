@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.4.1
+
+Improvements:
+
+* Improve performance of `StateResolution::separate`
+
 # 0.4.0
 
 Breaking changes:
