@@ -20,26 +20,23 @@ ruma_api! {
     }
 
     request: {
-        /// The query criteria. The outer string key on the object is the server
-        /// name (eg: matrix.org). The inner string key is the Key ID to query
-        /// for the particular server. If no key IDs are given to be queried,
-        /// the notary server should query for all keys. If no servers are
-        /// given, the notary server must return an empty server_keys array in
-        /// the response.
-        ///
-        /// The notary server may return multiple keys regardless of the Key IDs
-        /// given.
-        #[ruma_api(body)]
-        pub server_keys: BTreeMap<ServerNameBox, BTreeMap<ServerSigningKeyId, QueryCriteria>>,
-
-        /// A millisecond POSIX timestamp in milliseconds indicating when the
-        /// returned certificates will need to be valid until to be useful to
+        /// The time until which the returned certificates will need to be valid to be useful to
         /// the requesting server.
         ///
-        /// If not supplied, the current time as determined by the notary server
-        /// is used.
+        /// If not supplied, the current time as determined by the notary server is used.
         #[ruma_api(query)]
         pub minimum_valid_until_ts: MilliSecondsSinceUnixEpoch,
+
+        /// The query criteria.
+        ///
+        /// The outer string key on the object is the server name (eg: matrix.org). The inner
+        /// string key is the Key ID to query for the particular server. If no key IDs are given to
+        /// be queried, the notary server should query for all keys. If no servers are given, the
+        /// notary server must return an empty server_keys array in the response.
+        ///
+        /// The notary server may return multiple keys regardless of the Key IDs given.
+        pub server_keys: BTreeMap<ServerNameBox, BTreeMap<ServerSigningKeyId, QueryCriteria>>,
+
     }
 
     response: {
