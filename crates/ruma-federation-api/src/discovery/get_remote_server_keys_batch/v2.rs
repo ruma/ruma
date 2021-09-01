@@ -25,6 +25,7 @@ ruma_api! {
         ///
         /// If not supplied, the current time as determined by the notary server is used.
         #[ruma_api(query)]
+        #[serde(default = "MilliSecondsSinceUnixEpoch::now")]
         pub minimum_valid_until_ts: MilliSecondsSinceUnixEpoch,
 
         /// The query criteria.

@@ -3,6 +3,7 @@
 Improvements:
 
 * Fix JSON body (de)serialization of `discovery::get_remote_server_keys::batch::v2::Request`
+* Fix query parameter deserialization of `discovery::get_remote_server_keys::batch::v2::Request`
 
 # 0.3.0
 
