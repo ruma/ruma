@@ -265,11 +265,23 @@ where
 
     // Allow if and only if sender's current power level is greater than
     // or equal to the invite level
-    if incoming_event.event_type() == EventType::RoomThirdPartyInvite
-        && !can_send_invite(incoming_event, &fetch_state)?
-    {
-        warn!("sender's cannot send invites in this room");
-        return Ok(false);
+    if incoming_event.event_type() == EventType::RoomThirdPartyInvite {
+        let user_level = get_user_power_level(incoming_event.sender(), &fetch_state);
+        let invite_level = fetch_state(&EventType::RoomPowerLevels, "")
+            .map_or_else(
+                || Ok::<_, Error>(int!(50)),
+                |power_levels| {
+                    serde_json::from_value::<PowerLevelsEventContent>(power_levels.content())
+                        .map(|pl| pl.invite)
+                        .map_err(Into::into)
+                },
+            )?
+            .into();
+
+        if user_level < invite_level {
+            warn!("sender's cannot send invites in this room");
+            return Ok(false);
+        }
     }
 
     // If the event type's required power level is greater than the sender's power level, reject
@@ -835,27 +847,6 @@ pub fn get_send_level<E: Event>(
         })
         .map(i64::from)
         .unwrap_or_else(|| if state_key.is_some() { 50 } else { 0 })
-}
-
-/// Check user can send invite.
-pub fn can_send_invite<E, F>(event: &Arc<E>, fetch_state: F) -> Result<bool>
-where
-    E: Event,
-    F: Fn(&EventType, &str) -> Option<Arc<E>>,
-{
-    let user_level = get_user_power_level(event.sender(), &fetch_state);
-    let invite_level = fetch_state(&EventType::RoomPowerLevels, "")
-        .map_or_else(
-            || Ok::<_, Error>(int!(50)),
-            |power_levels| {
-                serde_json::from_value::<PowerLevelsEventContent>(power_levels.content())
-                    .map(|pl| pl.invite)
-                    .map_err(Into::into)
-            },
-        )?
-        .into();
-
-    Ok(user_level >= invite_level)
 }
 
 pub fn verify_third_party_invite<E: Event>(
