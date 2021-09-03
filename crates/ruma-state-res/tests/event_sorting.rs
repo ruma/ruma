@@ -5,12 +5,13 @@ use std::{
 
 use rand::seq::SliceRandom;
 use ruma_events::EventType;
-use ruma_state_res::{self as state_res, is_power_event, room_version::RoomVersion, StateMap};
-
-mod utils;
-use utils::INITIAL_EVENTS;
+use ruma_state_res::{
+    self as state_res, is_power_event, room_version::RoomVersion, test_utils::INITIAL_EVENTS,
+    StateMap,
+};
 
 fn test_event_sort() {
+    let _ = tracing_subscriber::fmt::try_init();
     let events = INITIAL_EVENTS();
 
     let event_map = events

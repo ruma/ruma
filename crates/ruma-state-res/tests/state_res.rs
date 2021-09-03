@@ -4,19 +4,21 @@ use js_int::uint;
 use maplit::{hashmap, hashset};
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{room::join_rules::JoinRule, EventType};
-use ruma_identifiers::{EventId, RoomVersionId};
-use ruma_state_res::{self as state_res, EventMap, StateMap};
-use serde_json::json;
-use tracing_subscriber as tracer;
-
-mod utils;
-use utils::{
-    alice, bob, charlie, do_check, ella, event_id, member_content_ban, member_content_join,
-    room_id, to_init_pdu_event, to_pdu_event, zara, StateEvent, TestStore, LOGGER,
+use ruma_identifiers::RoomVersionId;
+use ruma_state_res::{
+    self as state_res,
+    test_utils::{
+        alice, bob, charlie, do_check, ella, event_id, member_content_ban, member_content_join,
+        room_id, to_init_pdu_event, zara, StateEvent, TestStore,
+    },
+    EventMap,
 };
+use serde_json::json;
 
 #[test]
 fn ban_vs_power_level() {
+    let _ = tracing_subscriber::fmt::try_init();
+
     let events = &[
         to_init_pdu_event(
             "PA",
@@ -60,6 +62,8 @@ fn ban_vs_power_level() {
 
 #[test]
 fn topic_basic() {
+    let _ = tracing_subscriber::fmt::try_init();
+
     let events = &[
         to_init_pdu_event("T1", alice(), EventType::RoomTopic, Some(""), json!({})),
         to_init_pdu_event(
@@ -100,6 +104,8 @@ fn topic_basic() {
 
 #[test]
 fn topic_reset() {
+    let _ = tracing_subscriber::fmt::try_init();
+
     let events = &[
         to_init_pdu_event("T1", alice(), EventType::RoomTopic, Some(""), json!({})),
         to_init_pdu_event(
@@ -131,6 +137,8 @@ fn topic_reset() {
 
 #[test]
 fn join_rule_evasion() {
+    let _ = tracing_subscriber::fmt::try_init();
+
     let events = &[
         to_init_pdu_event(
             "JR",
@@ -160,6 +168,8 @@ fn join_rule_evasion() {
 
 #[test]
 fn offtopic_power_level() {
+    let _ = tracing_subscriber::fmt::try_init();
+
     let events = &[
         to_init_pdu_event(
             "PA",
@@ -196,6 +206,8 @@ fn offtopic_power_level() {
 
 #[test]
 fn topic_setting() {
+    let _ = tracing_subscriber::fmt::try_init();
+
     let events = &[
         to_init_pdu_event("T1", alice(), EventType::RoomTopic, Some(""), json!({})),
         to_init_pdu_event(
@@ -240,12 +252,7 @@ fn topic_setting() {
 
 #[test]
 fn test_event_map_none() {
-    // This is the only test that does not use `do_check` so we
-    // have to start the logger if this is what we're running.
-    //
-    // to activate logging use `RUST_LOG=debug cargo t one_test_only`
-    let _ = LOGGER
-        .call_once(|| tracer::fmt().with_env_filter(tracer::EnvFilter::from_default_env()).init());
+    let _ = tracing_subscriber::fmt::try_init();
 
     let mut store = TestStore::<StateEvent>(hashmap! {});
 
@@ -277,6 +284,8 @@ fn test_event_map_none() {
 
 #[test]
 fn test_lexicographical_sort() {
+    let _ = tracing_subscriber::fmt::try_init();
+
     let graph = hashmap! {
         event_id("l") => hashset![event_id("o")],
         event_id("m") => hashset![event_id("n"), event_id("o")],
@@ -297,86 +306,4 @@ fn test_lexicographical_sort() {
             .map(|s| s.replace("$", "").replace(":foo", ""))
             .collect::<Vec<_>>()
     )
-}
-
-// A StateStore implementation for testing
-//
-//
-impl TestStore<StateEvent> {
-    pub fn set_up(&mut self) -> (StateMap<EventId>, StateMap<EventId>, StateMap<EventId>) {
-        let create_event = to_pdu_event::<EventId>(
-            "CREATE",
-            alice(),
-            EventType::RoomCreate,
-            Some(""),
-            json!({ "creator": alice() }),
-            &[],
-            &[],
-        );
-        let cre = create_event.event_id().clone();
-        self.0.insert(cre.clone(), Arc::clone(&create_event));
-
-        let alice_mem = to_pdu_event(
-            "IMA",
-            alice(),
-            EventType::RoomMember,
-            Some(alice().to_string().as_str()),
-            member_content_join(),
-            &[cre.clone()],
-            &[cre.clone()],
-        );
-        self.0.insert(alice_mem.event_id().clone(), Arc::clone(&alice_mem));
-
-        let join_rules = to_pdu_event(
-            "IJR",
-            alice(),
-            EventType::RoomJoinRules,
-            Some(""),
-            json!({ "join_rule": JoinRule::Public }),
-            &[cre.clone(), alice_mem.event_id().clone()],
-            &[alice_mem.event_id().clone()],
-        );
-        self.0.insert(join_rules.event_id().clone(), join_rules.clone());
-
-        // Bob and Charlie join at the same time, so there is a fork
-        // this will be represented in the state_sets when we resolve
-        let bob_mem = to_pdu_event(
-            "IMB",
-            bob(),
-            EventType::RoomMember,
-            Some(bob().to_string().as_str()),
-            member_content_join(),
-            &[cre.clone(), join_rules.event_id().clone()],
-            &[join_rules.event_id().clone()],
-        );
-        self.0.insert(bob_mem.event_id().clone(), bob_mem.clone());
-
-        let charlie_mem = to_pdu_event(
-            "IMC",
-            charlie(),
-            EventType::RoomMember,
-            Some(charlie().to_string().as_str()),
-            member_content_join(),
-            &[cre, join_rules.event_id().clone()],
-            &[join_rules.event_id().clone()],
-        );
-        self.0.insert(charlie_mem.event_id().clone(), charlie_mem.clone());
-
-        let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
-            .iter()
-            .map(|e| ((e.event_type(), e.state_key()), e.event_id().clone()))
-            .collect::<StateMap<_>>();
-
-        let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
-            .iter()
-            .map(|e| ((e.event_type(), e.state_key()), e.event_id().clone()))
-            .collect::<StateMap<_>>();
-
-        let expected = [&create_event, &alice_mem, &join_rules, &bob_mem, &charlie_mem]
-            .iter()
-            .map(|e| ((e.event_type(), e.state_key()), e.event_id().clone()))
-            .collect::<StateMap<_>>();
-
-        (state_at_bob, state_at_charlie, expected)
-    }
 }
