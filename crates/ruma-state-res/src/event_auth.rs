@@ -314,9 +314,12 @@ where
     if incoming_event.event_type() == EventType::RoomPowerLevels {
         info!("starting m.room.power_levels check");
 
-        if let Some(required_pwr_lvl) =
-            check_power_levels(room_version, incoming_event, power_levels_event, sender_power_level)
-        {
+        if let Some(required_pwr_lvl) = check_power_levels(
+            room_version,
+            incoming_event,
+            power_levels_event.as_ref(),
+            sender_power_level,
+        ) {
             if !required_pwr_lvl {
                 warn!("power level was not allowed");
                 return Ok(false);
@@ -337,14 +340,22 @@ where
 
     if room_version.extra_redaction_checks
         && incoming_event.event_type() == EventType::RoomRedaction
-        && !check_redaction(
-            room_version,
-            incoming_event,
-            sender_power_level,
-            get_named_level(fetch_state, "redact", int!(50)),
-        )?
     {
-        return Ok(false);
+        let default = int!(50);
+        let redact_level = if let Some(pl) = power_levels_event {
+            // TODO do this the right way and deserialize
+            if let Some(level) = pl.content().get("redact") {
+                level.to_string().parse().unwrap_or(default)
+            } else {
+                int!(0)
+            }
+        } else {
+            default
+        };
+
+        if !check_redaction(room_version, incoming_event, sender_power_level, redact_level)? {
+            return Ok(false);
+        }
     }
 
     info!("allowing event passed all checks");
@@ -580,7 +591,7 @@ fn can_send_event<E: Event>(event: &Arc<E>, ple: Option<&Arc<E>>, user_level: In
 fn check_power_levels<E>(
     room_version: &RoomVersion,
     power_event: &Arc<E>,
-    previous_power_event: Option<Arc<E>>,
+    previous_power_event: Option<&Arc<E>>,
     user_level: Int,
 ) -> Option<bool>
 where
@@ -784,26 +795,6 @@ pub fn can_federate<E: Event>(auth_events: &StateMap<Arc<E>>) -> bool {
         }
     } else {
         false
-    }
-}
-
-/// Helper function to fetch a field, `name`, from a "m.room.power_level" event's content.
-/// or return `default` if no power level event is found or zero if no field matches `name`.
-pub fn get_named_level<E, F>(fetch_state: F, name: &str, default: Int) -> Int
-where
-    E: Event,
-    F: Fn(&EventType, &str) -> Option<Arc<E>>,
-{
-    let power_level_event = fetch_state(&EventType::RoomPowerLevels, "");
-    if let Some(pl) = power_level_event {
-        // TODO do this the right way and deserialize
-        if let Some(level) = pl.content().get(name) {
-            level.to_string().parse().unwrap_or(default)
-        } else {
-            int!(0)
-        }
-    } else {
-        default
     }
 }
 
