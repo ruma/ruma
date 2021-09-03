@@ -4,18 +4,20 @@ use std::{collections::HashMap, sync::Arc};
 
 use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomVersionId};
-use ruma_state_res::{self as state_res, EventMap, StateMap};
+use ruma_state_res::{
+    self as state_res,
+    test_utils::{
+        alice, bob, do_check, ella, event_id, member_content_ban, member_content_join, room_id,
+        to_pdu_event, zara, StateEvent, TestStore, INITIAL_EVENTS,
+    },
+    EventMap, StateMap,
+};
 use serde_json::json;
 use tracing::debug;
 
-mod utils;
-use utils::{
-    alice, bob, do_check, ella, event_id, member_content_ban, member_content_join, room_id,
-    to_pdu_event, zara, StateEvent, TestStore, INITIAL_EVENTS,
-};
-
 #[test]
 fn ban_with_auth_chains() {
+    let _ = tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
     let ban = BAN_STATE_SET();
 
     let edges = vec![vec!["END", "MB", "PA", "START"], vec!["END", "IME", "MB"]]
@@ -30,6 +32,7 @@ fn ban_with_auth_chains() {
 
 #[test]
 fn ban_with_auth_chains2() {
+    let _ = tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
     let init = INITIAL_EVENTS();
     let ban = BAN_STATE_SET();
 

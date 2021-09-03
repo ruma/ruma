@@ -20,6 +20,8 @@ mod error;
 pub mod event_auth;
 pub mod room_version;
 mod state_event;
+#[doc(hidden)]
+pub mod test_utils;
 
 pub use error::{Error, Result};
 pub use event_auth::{auth_check, auth_types_for_event};
