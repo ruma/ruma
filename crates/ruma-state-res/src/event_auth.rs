@@ -109,6 +109,8 @@ where
     // do_size_check is also mostly accomplished by ruma with the exception of checking event_type,
     // state_key, and json are below a certain size (255 and 65_536 respectively)
 
+    let sender = incoming_event.sender();
+
     // Implementation of https://matrix.org/docs/spec/rooms/v1#authorization-rules
     //
     // 1. If type is m.room.create:
@@ -122,7 +124,7 @@ where
         }
 
         // If the domain of the room_id does not match the domain of the sender, reject
-        if incoming_event.room_id().server_name() != incoming_event.sender().server_name() {
+        if incoming_event.room_id().server_name() != sender.server_name() {
             warn!("creation events server does not match sender");
             return Ok(false); // creation events room id does not match senders
         }
@@ -158,7 +160,7 @@ where
     // b. All entries are valid auth events according to spec
     let expected_auth = auth_types_for_event(
         incoming_event.kind,
-        incoming_event.sender(),
+        sender,
         incoming_event.state_key,
         incoming_event.content().clone(),
     );
@@ -190,7 +192,7 @@ where
         info!("starting m.room.aliases check");
 
         // If sender's domain doesn't matches state_key, reject
-        if incoming_event.state_key() != Some(incoming_event.sender().server_name().to_string()) {
+        if incoming_event.state_key() != Some(sender.server_name().to_string()) {
             warn!("state_key does not match sender");
             return Ok(false);
         }
@@ -200,8 +202,6 @@ where
     }
 
     let power_levels_event = fetch_state(&EventType::RoomPowerLevels, "");
-
-    let sender = incoming_event.sender();
     let sender_member_event = fetch_state(&EventType::RoomMember, sender.as_str());
 
     if incoming_event.event_type() == EventType::RoomMember {
@@ -266,7 +266,23 @@ where
         return Ok(false);
     }
 
-    let sender_power_level = get_user_power_level(incoming_event.sender(), &fetch_state);
+    let sender_power_level = if let Some(pl) = fetch_state(&EventType::RoomPowerLevels, "") {
+        if let Ok(content) = serde_json::from_value::<PowerLevelsEventContent>(pl.content()) {
+            if let Some(level) = content.users.get(sender) {
+                *level
+            } else {
+                content.users_default
+            }
+        } else {
+            int!(0) // TODO if this fails DB error?
+        }
+    } else {
+        // If no power level event found the creator gets 100 everyone else gets 0
+        fetch_state(&EventType::RoomCreate, "")
+            .and_then(|create| serde_json::from_value::<CreateEventContent>(create.content()).ok())
+            .and_then(|create| (create.creator == *sender).then(|| int!(100)))
+            .unwrap_or_default()
+    };
 
     // Allow if and only if sender's current power level is greater than
     // or equal to the invite level
@@ -786,32 +802,6 @@ where
         }
     } else {
         default
-    }
-}
-
-/// Helper function to fetch a users default power level from a "m.room.power_level" event's `users`
-/// object.
-pub fn get_user_power_level<E, F>(user_id: &UserId, fetch_state: F) -> Int
-where
-    E: Event,
-    F: Fn(&EventType, &str) -> Option<Arc<E>>,
-{
-    if let Some(pl) = fetch_state(&EventType::RoomPowerLevels, "") {
-        if let Ok(content) = serde_json::from_value::<PowerLevelsEventContent>(pl.content()) {
-            if let Some(level) = content.users.get(user_id) {
-                *level
-            } else {
-                content.users_default
-            }
-        } else {
-            int!(0) // TODO if this fails DB error?
-        }
-    } else {
-        // If no power level event found the creator gets 100 everyone else gets 0
-        fetch_state(&EventType::RoomCreate, "")
-            .and_then(|create| serde_json::from_value::<CreateEventContent>(create.content()).ok())
-            .and_then(|create| (create.creator == *user_id).then(|| int!(100)))
-            .unwrap_or_default()
     }
 }
 
