@@ -176,8 +176,10 @@ where
     }
     */
 
+    let room_create_event = fetch_state(&EventType::RoomCreate, "");
+
     // 3. If event does not have m.room.create in auth_events reject
-    if fetch_state(&EventType::RoomCreate, "").is_none() {
+    if room_create_event.is_none() {
         warn!("no m.room.create event in auth chain");
 
         return Ok(false);
@@ -266,7 +268,7 @@ where
         return Ok(false);
     }
 
-    let sender_power_level = if let Some(pl) = fetch_state(&EventType::RoomPowerLevels, "") {
+    let sender_power_level = if let Some(pl) = &power_levels_event {
         if let Ok(content) = serde_json::from_value::<PowerLevelsEventContent>(pl.content()) {
             if let Some(level) = content.users.get(sender) {
                 *level
@@ -278,7 +280,7 @@ where
         }
     } else {
         // If no power level event found the creator gets 100 everyone else gets 0
-        fetch_state(&EventType::RoomCreate, "")
+        room_create_event
             .and_then(|create| serde_json::from_value::<CreateEventContent>(create.content()).ok())
             .and_then(|create| (create.creator == *sender).then(|| int!(100)))
             .unwrap_or_default()
