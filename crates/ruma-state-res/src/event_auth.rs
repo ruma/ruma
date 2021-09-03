@@ -199,6 +199,11 @@ where
         return Ok(true);
     }
 
+    let power_levels_event = fetch_state(&EventType::RoomPowerLevels, "");
+
+    let sender = incoming_event.sender();
+    let sender_member_event = fetch_state(&EventType::RoomMember, sender.as_str());
+
     if incoming_event.event_type() == EventType::RoomMember {
         info!("starting m.room.member check");
         let state_key = match incoming_event.state_key() {
@@ -219,7 +224,6 @@ where
             return Ok(false);
         }
 
-        let sender = incoming_event.sender();
         let target_user =
             UserId::try_from(state_key).map_err(|e| Error::InvalidPdu(format!("{}", e)))?;
 
@@ -227,11 +231,11 @@ where
             &target_user,
             fetch_state(&EventType::RoomMember, target_user.as_str()),
             sender,
-            fetch_state(&EventType::RoomMember, sender.as_str()),
+            sender_member_event,
             incoming_event.content(),
             prev_event,
             current_third_party_invite,
-            fetch_state(&EventType::RoomPowerLevels, ""),
+            power_levels_event,
             fetch_state(&EventType::RoomJoinRules, ""),
         )? {
             return Ok(false);
@@ -242,8 +246,7 @@ where
     }
 
     // If the sender's current membership state is not join, reject
-    let sender = incoming_event.sender();
-    let mem = match fetch_state(&EventType::RoomMember, sender.as_str()) {
+    let mem = match sender_member_event {
         Some(mem) => mem,
         None => {
             warn!("sender not found in room");
@@ -263,11 +266,12 @@ where
         return Ok(false);
     }
 
+    let sender_power_level = get_user_power_level(incoming_event.sender(), &fetch_state);
+
     // Allow if and only if sender's current power level is greater than
     // or equal to the invite level
     if incoming_event.event_type() == EventType::RoomThirdPartyInvite {
-        let user_level = get_user_power_level(incoming_event.sender(), &fetch_state);
-        let invite_level = fetch_state(&EventType::RoomPowerLevels, "").map_or_else(
+        let invite_level = power_levels_event.as_ref().map_or_else(
             || Ok::<_, Error>(int!(50)),
             |power_levels| {
                 serde_json::from_value::<PowerLevelsEventContent>(power_levels.content())
@@ -276,7 +280,7 @@ where
             },
         )?;
 
-        if user_level < invite_level {
+        if sender_power_level < invite_level {
             warn!("sender's cannot send invites in this room");
             return Ok(false);
         }
@@ -284,11 +288,7 @@ where
 
     // If the event type's required power level is greater than the sender's power level, reject
     // If the event has a state_key that starts with an @ and does not match the sender, reject.
-    if !can_send_event(
-        incoming_event,
-        fetch_state(&EventType::RoomPowerLevels, ""),
-        get_user_power_level(incoming_event.sender(), &fetch_state),
-    ) {
+    if !can_send_event(incoming_event, power_levels_event.as_ref(), sender_power_level) {
         warn!("user cannot send event");
         return Ok(false);
     }
@@ -296,12 +296,9 @@ where
     if incoming_event.event_type() == EventType::RoomPowerLevels {
         info!("starting m.room.power_levels check");
 
-        if let Some(required_pwr_lvl) = check_power_levels(
-            room_version,
-            incoming_event,
-            fetch_state(&EventType::RoomPowerLevels, ""),
-            get_user_power_level(incoming_event.sender(), &fetch_state),
-        ) {
+        if let Some(required_pwr_lvl) =
+            check_power_levels(room_version, incoming_event, power_levels_event, sender_power_level)
+        {
             if !required_pwr_lvl {
                 warn!("power level was not allowed");
                 return Ok(false);
@@ -325,7 +322,7 @@ where
         && !check_redaction(
             room_version,
             incoming_event,
-            get_user_power_level(incoming_event.sender(), &fetch_state),
+            sender_power_level,
             get_named_level(fetch_state, "redact", int!(50)),
         )?
     {
@@ -543,9 +540,8 @@ fn valid_membership_change<E: Event>(
 /// Is the user allowed to send a specific event based on the rooms power levels.
 ///
 /// Does the event have the correct userId as its state_key if it's not the "" state_key.
-fn can_send_event<E: Event>(event: &Arc<E>, ple: Option<Arc<E>>, user_level: Int) -> bool {
-    let event_type_power_level =
-        get_send_level(&event.event_type(), event.state_key(), ple.as_ref());
+fn can_send_event<E: Event>(event: &Arc<E>, ple: Option<&Arc<E>>, user_level: Int) -> bool {
+    let event_type_power_level = get_send_level(&event.event_type(), event.state_key(), ple);
 
     debug!("{} ev_type {} usr {}", event.event_id(), event_type_power_level, user_level);
 
