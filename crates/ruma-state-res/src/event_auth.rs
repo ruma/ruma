@@ -284,7 +284,11 @@ where
 
     // If the event type's required power level is greater than the sender's power level, reject
     // If the event has a state_key that starts with an @ and does not match the sender, reject.
-    if !can_send_event(incoming_event, fetch_state(&EventType::RoomPowerLevels, ""), &fetch_state) {
+    if !can_send_event(
+        incoming_event,
+        fetch_state(&EventType::RoomPowerLevels, ""),
+        get_user_power_level(incoming_event.sender(), &fetch_state),
+    ) {
         warn!("user cannot send event");
         return Ok(false);
     }
@@ -296,7 +300,7 @@ where
             room_version,
             incoming_event,
             fetch_state(&EventType::RoomPowerLevels, ""),
-            &fetch_state,
+            get_user_power_level(incoming_event.sender(), &fetch_state),
         ) {
             if !required_pwr_lvl {
                 warn!("power level was not allowed");
@@ -318,7 +322,12 @@ where
 
     if room_version.extra_redaction_checks
         && incoming_event.event_type() == EventType::RoomRedaction
-        && !check_redaction(room_version, incoming_event, &fetch_state)?
+        && !check_redaction(
+            room_version,
+            incoming_event,
+            get_user_power_level(incoming_event.sender(), &fetch_state),
+            get_named_level(fetch_state, "redact", int!(50)),
+        )?
     {
         return Ok(false);
     }
@@ -534,14 +543,9 @@ fn valid_membership_change<E: Event>(
 /// Is the user allowed to send a specific event based on the rooms power levels.
 ///
 /// Does the event have the correct userId as its state_key if it's not the "" state_key.
-fn can_send_event<E, F>(event: &Arc<E>, ple: Option<Arc<E>>, fetch_state: F) -> bool
-where
-    E: Event,
-    F: Fn(&EventType, &str) -> Option<Arc<E>>,
-{
+fn can_send_event<E: Event>(event: &Arc<E>, ple: Option<Arc<E>>, user_level: Int) -> bool {
     let event_type_power_level =
         get_send_level(&event.event_type(), event.state_key(), ple.as_ref());
-    let user_level = get_user_power_level(event.sender(), fetch_state);
 
     debug!("{} ev_type {} usr {}", event.event_id(), event_type_power_level, user_level);
 
@@ -559,15 +563,14 @@ where
 }
 
 /// Confirm that the event sender has the required power levels.
-fn check_power_levels<E, F>(
+fn check_power_levels<E>(
     room_version: &RoomVersion,
     power_event: &Arc<E>,
     previous_power_event: Option<Arc<E>>,
-    fetch_state: F,
+    user_level: Int,
 ) -> Option<bool>
 where
     E: Event,
-    F: Fn(&EventType, &str) -> Option<Arc<E>>,
 {
     match power_event.state_key().as_deref() {
         Some("") => {}
@@ -598,8 +601,6 @@ where
 
     // Validation of users is done in Ruma, synapse for loops validating user_ids and integers here
     info!("validation of power event finished");
-
-    let user_level = get_user_power_level(power_event.sender(), fetch_state);
 
     let mut user_levels_to_check = BTreeSet::new();
     let old_list = &current_content.users;
@@ -716,18 +717,12 @@ fn get_deserialize_levels(
 }
 
 /// Does the event redacting come from a user with enough power to redact the given event.
-pub fn check_redaction<E, F>(
+pub fn check_redaction<E: Event>(
     _room_version: &RoomVersion,
     redaction_event: &Arc<E>,
-    fetch_state: F,
-) -> Result<bool>
-where
-    E: Event,
-    F: Fn(&EventType, &str) -> Option<Arc<E>>,
-{
-    let user_level = get_user_power_level(redaction_event.sender(), &fetch_state);
-    let redact_level = get_named_level(fetch_state, "redact", int!(50));
-
+    user_level: Int,
+    redact_level: Int,
+) -> Result<bool> {
     if user_level >= redact_level {
         info!("redaction allowed via power levels");
         return Ok(true);
