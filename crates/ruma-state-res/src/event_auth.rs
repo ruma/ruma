@@ -395,15 +395,19 @@ fn valid_membership_change<E: Event>(
     let power_levels_event = power_levels_event.as_ref();
     let join_rules_event = join_rules_event.as_ref();
 
-    let sender_membership =
-        sender_membership_event.map_or(Ok::<_, Error>(MembershipState::Leave), |pdu| {
-            Ok(serde_json::from_value::<MembershipState>(
-                pdu.content()
-                    .get("membership")
-                    .expect("we assume existing events are valid")
-                    .clone(),
-            )?)
-        })?;
+    let sender_is_joined = {
+        let sender_membership =
+            sender_membership_event.map_or(Ok::<_, Error>(MembershipState::Leave), |pdu| {
+                Ok(serde_json::from_value::<MembershipState>(
+                    pdu.content()
+                        .get("membership")
+                        .expect("we assume existing events are valid")
+                        .clone(),
+                )?)
+            })?;
+
+        sender_membership == MembershipState::Join
+    };
 
     let target_user_current_membership =
         target_user_membership_event.map_or(Ok::<_, Error>(MembershipState::Leave), |pdu| {
@@ -420,9 +424,11 @@ fn valid_membership_change<E: Event>(
         None => PowerLevelsEventContent::default(),
     };
 
-    let sender_power = power_levels.users.get(sender).or_else(|| {
-        (sender_membership == MembershipState::Join).then(|| &power_levels.users_default)
-    });
+    let sender_power = power_levels
+        .users
+        .get(sender)
+        .or_else(|| sender_is_joined.then(|| &power_levels.users_default));
+
     let target_power = power_levels.users.get(target_user).or_else(|| {
         (target_membership == MembershipState::Join).then(|| &power_levels.users_default)
     });
@@ -482,7 +488,7 @@ fn valid_membership_change<E: Event>(
                 }
                 allow
             }
-        } else if sender_membership != MembershipState::Join
+        } else if !sender_is_joined
             || target_user_current_membership == MembershipState::Join
             || target_user_current_membership == MembershipState::Ban
         {
@@ -513,7 +519,7 @@ fn valid_membership_change<E: Event>(
                 );
             }
             allow
-        } else if sender_membership != MembershipState::Join
+        } else if !sender_is_joined
             || target_user_current_membership == MembershipState::Ban
                 && sender_power.filter(|&p| p < &power_levels.ban).is_some()
         {
@@ -534,7 +540,7 @@ fn valid_membership_change<E: Event>(
             allow
         }
     } else if target_membership == MembershipState::Ban {
-        if sender_membership != MembershipState::Join {
+        if !sender_is_joined {
             warn!(
                 "Can't ban user if sender is not joined\nSender user state: {:?}",
                 sender_membership_event.map(|e| e.event_id())
