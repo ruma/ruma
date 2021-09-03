@@ -12,7 +12,7 @@ use ruma_events::{
     EventType,
 };
 use ruma_identifiers::{RoomVersionId, UserId};
-use tracing::{debug, info, warn};
+use tracing::{debug, error, info, warn};
 
 use crate::{room_version::RoomVersion, Error, Event, Result, StateMap};
 
@@ -561,10 +561,19 @@ where
     E: Event,
     F: Fn(&EventType, &str) -> Option<Arc<E>>,
 {
-    let power_event_state_key = power_event.state_key().expect("power events have state keys");
-    let current_state = if let Some(current_state) =
-        fetch_state(&power_event.event_type(), &power_event_state_key)
-    {
+    match power_event.state_key().as_deref() {
+        Some("") => {}
+        Some(key) => {
+            error!("m.room.power_levels event has non-empty state key: {}", key);
+            return None;
+        }
+        None => {
+            error!("check_power_levels requires an m.room.power_levels *state* event argument");
+            return None;
+        }
+    }
+
+    let current_state = if let Some(current_state) = fetch_state(&power_event.event_type(), "") {
         current_state
     } else {
         // If there is no previous m.room.power_levels event in the room, allow
