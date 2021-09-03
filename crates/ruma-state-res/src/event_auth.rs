@@ -192,7 +192,7 @@ where
         info!("starting m.room.aliases check");
 
         // If sender's domain doesn't matches state_key, reject
-        if incoming_event.state_key() != Some(sender.server_name().to_string()) {
+        if incoming_event.state_key().as_deref() != Some(sender.server_name().as_str()) {
             warn!("state_key does not match sender");
             return Ok(false);
         }
