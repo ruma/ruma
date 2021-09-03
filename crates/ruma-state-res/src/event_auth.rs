@@ -1,6 +1,6 @@
 use std::{collections::BTreeSet, convert::TryFrom, sync::Arc};
 
-use js_int::int;
+use js_int::{int, Int};
 use ruma_events::{
     room::{
         create::CreateEventContent,
@@ -267,16 +267,14 @@ where
     // or equal to the invite level
     if incoming_event.event_type() == EventType::RoomThirdPartyInvite {
         let user_level = get_user_power_level(incoming_event.sender(), &fetch_state);
-        let invite_level = fetch_state(&EventType::RoomPowerLevels, "")
-            .map_or_else(
-                || Ok::<_, Error>(int!(50)),
-                |power_levels| {
-                    serde_json::from_value::<PowerLevelsEventContent>(power_levels.content())
-                        .map(|pl| pl.invite)
-                        .map_err(Into::into)
-                },
-            )?
-            .into();
+        let invite_level = fetch_state(&EventType::RoomPowerLevels, "").map_or_else(
+            || Ok::<_, Error>(int!(50)),
+            |power_levels| {
+                serde_json::from_value::<PowerLevelsEventContent>(power_levels.content())
+                    .map(|pl| pl.invite)
+                    .map_err(Into::into)
+            },
+        )?;
 
         if user_level < invite_level {
             warn!("sender's cannot send invites in this room");
@@ -636,15 +634,15 @@ where
         }
 
         // If the current value is equal to the sender's current power level, reject
-        if user != power_event.sender() && old_level.map(|int| (*int).into()) == Some(user_level) {
+        if user != power_event.sender() && old_level == Some(&user_level) {
             warn!("m.room.power_level cannot remove ops == to own");
             return Some(false); // cannot remove ops level == to own
         }
 
         // If the current value is higher than the sender's current power level, reject
         // If the new value is higher than the sender's current power level, reject
-        let old_level_too_big = old_level.map(|int| (*int).into()) > Some(user_level);
-        let new_level_too_big = new_level.map(|int| (*int).into()) > Some(user_level);
+        let old_level_too_big = old_level > Some(&user_level);
+        let new_level_too_big = new_level > Some(&user_level);
         if old_level_too_big || new_level_too_big {
             warn!("m.room.power_level failed to add ops > than own");
             return Some(false); // cannot add ops greater than own
@@ -661,8 +659,8 @@ where
 
         // If the current value is higher than the sender's current power level, reject
         // If the new value is higher than the sender's current power level, reject
-        let old_level_too_big = old_level.map(|int| (*int).into()) > Some(user_level);
-        let new_level_too_big = new_level.map(|int| (*int).into()) > Some(user_level);
+        let old_level_too_big = old_level > Some(&user_level);
+        let new_level_too_big = new_level > Some(&user_level);
         if old_level_too_big || new_level_too_big {
             warn!("m.room.power_level failed to add ops > than own");
             return Some(false); // cannot add ops greater than own
@@ -676,8 +674,8 @@ where
         if old_level != new_level {
             // If the current value is higher than the sender's current power level, reject
             // If the new value is higher than the sender's current power level, reject
-            let old_level_too_big = i64::from(old_level) > user_level;
-            let new_level_too_big = i64::from(new_level) > user_level;
+            let old_level_too_big = old_level > user_level;
+            let new_level_too_big = new_level > user_level;
             if old_level_too_big || new_level_too_big {
                 warn!("m.room.power_level failed to add ops > than own");
                 return Some(false); // cannot add ops greater than own
@@ -708,7 +706,7 @@ fn get_deserialize_levels(
     old: &serde_json::Value,
     new: &serde_json::Value,
     name: &str,
-) -> Option<(i64, i64)> {
+) -> Option<(Int, Int)> {
     Some((
         serde_json::from_value(old.get(name)?.clone()).ok()?,
         serde_json::from_value(new.get(name)?.clone()).ok()?,
@@ -726,7 +724,7 @@ where
     F: Fn(&EventType, &str) -> Option<Arc<E>>,
 {
     let user_level = get_user_power_level(redaction_event.sender(), &fetch_state);
-    let redact_level = get_named_level(fetch_state, "redact", 50);
+    let redact_level = get_named_level(fetch_state, "redact", int!(50));
 
     if user_level >= redact_level {
         info!("redaction allowed via power levels");
@@ -780,7 +778,7 @@ pub fn can_federate<E: Event>(auth_events: &StateMap<Arc<E>>) -> bool {
 
 /// Helper function to fetch a field, `name`, from a "m.room.power_level" event's content.
 /// or return `default` if no power level event is found or zero if no field matches `name`.
-pub fn get_named_level<E, F>(fetch_state: F, name: &str, default: i64) -> i64
+pub fn get_named_level<E, F>(fetch_state: F, name: &str, default: Int) -> Int
 where
     E: Event,
     F: Fn(&EventType, &str) -> Option<Arc<E>>,
@@ -791,7 +789,7 @@ where
         if let Some(level) = pl.content().get(name) {
             level.to_string().parse().unwrap_or(default)
         } else {
-            0
+            int!(0)
         }
     } else {
         default
@@ -800,7 +798,7 @@ where
 
 /// Helper function to fetch a users default power level from a "m.room.power_level" event's `users`
 /// object.
-pub fn get_user_power_level<E, F>(user_id: &UserId, fetch_state: F) -> i64
+pub fn get_user_power_level<E, F>(user_id: &UserId, fetch_state: F) -> Int
 where
     E: Event,
     F: Fn(&EventType, &str) -> Option<Arc<E>>,
@@ -808,18 +806,18 @@ where
     if let Some(pl) = fetch_state(&EventType::RoomPowerLevels, "") {
         if let Ok(content) = serde_json::from_value::<PowerLevelsEventContent>(pl.content()) {
             if let Some(level) = content.users.get(user_id) {
-                (*level).into()
+                *level
             } else {
-                content.users_default.into()
+                content.users_default
             }
         } else {
-            0 // TODO if this fails DB error?
+            int!(0) // TODO if this fails DB error?
         }
     } else {
         // If no power level event found the creator gets 100 everyone else gets 0
         fetch_state(&EventType::RoomCreate, "")
             .and_then(|create| serde_json::from_value::<CreateEventContent>(create.content()).ok())
-            .and_then(|create| (create.creator == *user_id).then(|| 100))
+            .and_then(|create| (create.creator == *user_id).then(|| int!(100)))
             .unwrap_or_default()
     }
 }
@@ -830,7 +828,7 @@ pub fn get_send_level<E: Event>(
     e_type: &EventType,
     state_key: Option<String>,
     power_lvl: Option<&Arc<E>>,
-) -> i64 {
+) -> Int {
     power_lvl
         .and_then(|ple| {
             serde_json::from_value::<PowerLevelsEventContent>(ple.content())
@@ -845,8 +843,7 @@ pub fn get_send_level<E: Event>(
                 })
                 .ok()
         })
-        .map(i64::from)
-        .unwrap_or_else(|| if state_key.is_some() { 50 } else { 0 })
+        .unwrap_or_else(|| if state_key.is_some() { int!(50) } else { int!(0) })
 }
 
 pub fn verify_third_party_invite<E: Event>(
