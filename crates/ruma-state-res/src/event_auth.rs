@@ -289,14 +289,12 @@ where
     // Allow if and only if sender's current power level is greater than
     // or equal to the invite level
     if incoming_event.event_type() == EventType::RoomThirdPartyInvite {
-        let invite_level = power_levels_event.as_ref().map_or_else(
-            || Ok::<_, Error>(int!(50)),
-            |power_levels| {
-                serde_json::from_value::<PowerLevelsEventContent>(power_levels.content())
-                    .map(|pl| pl.invite)
-                    .map_err(Into::into)
-            },
-        )?;
+        let invite_level = match &power_levels_event {
+            Some(power_levels) => {
+                serde_json::from_value::<PowerLevelsEventContent>(power_levels.content())?.invite
+            }
+            None => int!(50),
+        };
 
         if sender_power_level < invite_level {
             warn!("sender's cannot send invites in this room");
@@ -417,24 +415,17 @@ fn valid_membership_change<E: Event>(
             )?)
         })?;
 
-    let power_levels = power_levels_event.map_or_else(
-        || Ok::<_, Error>(PowerLevelsEventContent::default()),
-        |power_levels| {
-            serde_json::from_value::<PowerLevelsEventContent>(power_levels.content())
-                .map_err(Into::into)
-        },
-    )?;
+    let power_levels: PowerLevelsEventContent = match power_levels_event {
+        Some(ev) => serde_json::from_value(ev.content())?,
+        None => PowerLevelsEventContent::default(),
+    };
 
-    let sender_power = power_levels.users.get(sender).map_or_else(
-        || (sender_membership == MembershipState::Join).then(|| &power_levels.users_default),
-        // If it's okay, wrap with Some(_)
-        Some,
-    );
-    let target_power = power_levels.users.get(target_user).map_or_else(
-        || (target_membership == MembershipState::Join).then(|| &power_levels.users_default),
-        // If it's okay, wrap with Some(_)
-        Some,
-    );
+    let sender_power = power_levels.users.get(sender).or_else(|| {
+        (sender_membership == MembershipState::Join).then(|| &power_levels.users_default)
+    });
+    let target_power = power_levels.users.get(target_user).or_else(|| {
+        (target_membership == MembershipState::Join).then(|| &power_levels.users_default)
+    });
 
     let mut join_rules = JoinRule::Invite;
     if let Some(jr) = join_rules_event {
