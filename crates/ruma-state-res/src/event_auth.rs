@@ -396,28 +396,25 @@ fn valid_membership_change<E: Event>(
     let join_rules_event = join_rules_event.as_ref();
 
     let sender_is_joined = {
-        let sender_membership =
-            sender_membership_event.map_or(Ok::<_, Error>(MembershipState::Leave), |pdu| {
-                Ok(serde_json::from_value::<MembershipState>(
-                    pdu.content()
-                        .get("membership")
-                        .expect("we assume existing events are valid")
-                        .clone(),
-                )?)
-            })?;
-
-        sender_membership == MembershipState::Join
-    };
-
-    let target_user_current_membership =
-        target_user_membership_event.map_or(Ok::<_, Error>(MembershipState::Leave), |pdu| {
-            Ok(serde_json::from_value::<MembershipState>(
+        let sender_membership = match sender_membership_event {
+            Some(pdu) => serde_json::from_value(
                 pdu.content()
                     .get("membership")
                     .expect("we assume existing events are valid")
                     .clone(),
-            )?)
-        })?;
+            )?,
+            None => MembershipState::Leave,
+        };
+
+        sender_membership == MembershipState::Join
+    };
+
+    let target_user_current_membership = match target_user_membership_event {
+        Some(pdu) => serde_json::from_value(
+            pdu.content().get("membership").expect("we assume existing events are valid").clone(),
+        )?,
+        None => MembershipState::Leave,
+    };
 
     let power_levels: PowerLevelsEventContent = match power_levels_event {
         Some(ev) => serde_json::from_value(ev.content())?,
