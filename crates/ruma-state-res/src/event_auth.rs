@@ -284,7 +284,7 @@ where
 
     // If the event type's required power level is greater than the sender's power level, reject
     // If the event has a state_key that starts with an @ and does not match the sender, reject.
-    if !can_send_event(incoming_event, &fetch_state) {
+    if !can_send_event(incoming_event, fetch_state(&EventType::RoomPowerLevels, ""), &fetch_state) {
         warn!("user cannot send event");
         return Ok(false);
     }
@@ -292,9 +292,12 @@ where
     if incoming_event.event_type() == EventType::RoomPowerLevels {
         info!("starting m.room.power_levels check");
 
-        if let Some(required_pwr_lvl) =
-            check_power_levels(room_version, incoming_event, &fetch_state)
-        {
+        if let Some(required_pwr_lvl) = check_power_levels(
+            room_version,
+            incoming_event,
+            fetch_state(&EventType::RoomPowerLevels, ""),
+            &fetch_state,
+        ) {
             if !required_pwr_lvl {
                 warn!("power level was not allowed");
                 return Ok(false);
@@ -531,13 +534,11 @@ fn valid_membership_change<E: Event>(
 /// Is the user allowed to send a specific event based on the rooms power levels.
 ///
 /// Does the event have the correct userId as its state_key if it's not the "" state_key.
-pub fn can_send_event<E, F>(event: &Arc<E>, fetch_state: F) -> bool
+fn can_send_event<E, F>(event: &Arc<E>, ple: Option<Arc<E>>, fetch_state: F) -> bool
 where
     E: Event,
     F: Fn(&EventType, &str) -> Option<Arc<E>>,
 {
-    let ple = fetch_state(&EventType::RoomPowerLevels, "");
-
     let event_type_power_level =
         get_send_level(&event.event_type(), event.state_key(), ple.as_ref());
     let user_level = get_user_power_level(event.sender(), fetch_state);
@@ -558,9 +559,10 @@ where
 }
 
 /// Confirm that the event sender has the required power levels.
-pub fn check_power_levels<E, F>(
+fn check_power_levels<E, F>(
     room_version: &RoomVersion,
     power_event: &Arc<E>,
+    previous_power_event: Option<Arc<E>>,
     fetch_state: F,
 ) -> Option<bool>
 where
@@ -579,7 +581,7 @@ where
         }
     }
 
-    let current_state = if let Some(current_state) = fetch_state(&power_event.event_type(), "") {
+    let current_state = if let Some(current_state) = previous_power_event {
         current_state
     } else {
         // If there is no previous m.room.power_levels event in the room, allow
