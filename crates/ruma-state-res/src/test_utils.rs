@@ -1,7 +1,5 @@
-#![allow(dead_code)]
-
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{BTreeMap, HashMap, HashSet},
     convert::{TryFrom, TryInto},
     sync::{
         atomic::{AtomicU64, Ordering::SeqCst},
@@ -10,7 +8,6 @@ use std::{
 };
 
 use js_int::uint;
-use maplit::{btreemap, hashset};
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     pdu::{EventHash, Pdu, RoomV3Pdu},
@@ -21,10 +18,10 @@ use ruma_events::{
     EventType,
 };
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
-use ruma_state_res::{self as state_res, auth_types_for_event, Error, Event, Result, StateMap};
 use serde_json::{json, Value as JsonValue};
 use tracing::info;
-use tracing_subscriber as tracer;
+
+use crate::{self as state_res, auth_types_for_event, Error, Event, Result, StateMap};
 
 pub use event::StateEvent;
 
@@ -54,7 +51,7 @@ pub fn do_check(
     // Create the DB of events that led up to this point
     // TODO maybe clean up some of these clones it is just tests but...
     for ev in init_events.values().chain(events) {
-        graph.insert(ev.event_id().clone(), hashset![]);
+        graph.insert(ev.event_id().clone(), HashSet::new());
         fake_event_map.insert(ev.event_id().clone(), ev.clone());
     }
 
@@ -280,6 +277,86 @@ impl<E: Event> TestStore<E> {
     }
 }
 
+// A StateStore implementation for testing
+impl TestStore<StateEvent> {
+    pub fn set_up(&mut self) -> (StateMap<EventId>, StateMap<EventId>, StateMap<EventId>) {
+        let create_event = to_pdu_event::<EventId>(
+            "CREATE",
+            alice(),
+            EventType::RoomCreate,
+            Some(""),
+            json!({ "creator": alice() }),
+            &[],
+            &[],
+        );
+        let cre = create_event.event_id().clone();
+        self.0.insert(cre.clone(), Arc::clone(&create_event));
+
+        let alice_mem = to_pdu_event(
+            "IMA",
+            alice(),
+            EventType::RoomMember,
+            Some(alice().to_string().as_str()),
+            member_content_join(),
+            &[cre.clone()],
+            &[cre.clone()],
+        );
+        self.0.insert(alice_mem.event_id().clone(), Arc::clone(&alice_mem));
+
+        let join_rules = to_pdu_event(
+            "IJR",
+            alice(),
+            EventType::RoomJoinRules,
+            Some(""),
+            json!({ "join_rule": JoinRule::Public }),
+            &[cre.clone(), alice_mem.event_id().clone()],
+            &[alice_mem.event_id().clone()],
+        );
+        self.0.insert(join_rules.event_id().clone(), join_rules.clone());
+
+        // Bob and Charlie join at the same time, so there is a fork
+        // this will be represented in the state_sets when we resolve
+        let bob_mem = to_pdu_event(
+            "IMB",
+            bob(),
+            EventType::RoomMember,
+            Some(bob().to_string().as_str()),
+            member_content_join(),
+            &[cre.clone(), join_rules.event_id().clone()],
+            &[join_rules.event_id().clone()],
+        );
+        self.0.insert(bob_mem.event_id().clone(), bob_mem.clone());
+
+        let charlie_mem = to_pdu_event(
+            "IMC",
+            charlie(),
+            EventType::RoomMember,
+            Some(charlie().to_string().as_str()),
+            member_content_join(),
+            &[cre, join_rules.event_id().clone()],
+            &[join_rules.event_id().clone()],
+        );
+        self.0.insert(charlie_mem.event_id().clone(), charlie_mem.clone());
+
+        let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
+            .iter()
+            .map(|e| ((e.event_type(), e.state_key()), e.event_id().clone()))
+            .collect::<StateMap<_>>();
+
+        let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
+            .iter()
+            .map(|e| ((e.event_type(), e.state_key()), e.event_id().clone()))
+            .collect::<StateMap<_>>();
+
+        let expected = [&create_event, &alice_mem, &join_rules, &bob_mem, &charlie_mem]
+            .iter()
+            .map(|e| ((e.event_type(), e.state_key()), e.event_id().clone()))
+            .collect::<StateMap<_>>();
+
+        (state_at_bob, state_at_charlie, expected)
+    }
+}
+
 pub fn event_id(id: &str) -> EventId {
     if id.contains('$') {
         return EventId::try_from(id).unwrap();
@@ -336,14 +413,14 @@ pub fn to_init_pdu_event(
             kind: ev_type,
             content,
             redacts: None,
-            unsigned: btreemap! {},
+            unsigned: BTreeMap::new(),
             #[cfg(not(feature = "unstable-pre-spec"))]
             origin: "foo".into(),
             auth_events: vec![],
             prev_events: vec![],
             depth: uint!(0),
             hashes: EventHash::new("".to_owned()),
-            signatures: btreemap! {},
+            signatures: BTreeMap::new(),
         }),
     })
 }
@@ -376,14 +453,14 @@ where
             kind: ev_type,
             content,
             redacts: None,
-            unsigned: btreemap! {},
+            unsigned: BTreeMap::new(),
             #[cfg(not(feature = "unstable-pre-spec"))]
             origin: "foo".into(),
             auth_events,
             prev_events,
             depth: uint!(0),
             hashes: EventHash::new("".to_owned()),
-            signatures: btreemap! {},
+            signatures: BTreeMap::new(),
         }),
     })
 }
@@ -391,10 +468,6 @@ where
 // all graphs start with these input events
 #[allow(non_snake_case)]
 pub fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
-    // this is always called so we can init the logger here
-    let _ = LOGGER
-        .call_once(|| tracer::fmt().with_env_filter(tracer::EnvFilter::from_default_env()).init());
-
     vec![
         to_pdu_event::<EventId>(
             "CREATE",
@@ -496,9 +569,10 @@ pub mod event {
         EventId, RoomId, RoomVersionId, ServerName, ServerSigningKeyId, UserId,
     };
     use ruma_serde::CanonicalJsonObject;
-    use ruma_state_res::Event;
     use serde::{Deserialize, Serialize};
     use serde_json::Value as JsonValue;
+
+    use crate::Event;
 
     impl Event for StateEvent {
         fn event_id(&self) -> &EventId {
@@ -715,7 +789,7 @@ pub mod event {
             &self,
         ) -> BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>> {
             match &self.rest {
-                Pdu::RoomV1Pdu(_) => maplit::btreemap! {},
+                Pdu::RoomV1Pdu(_) => BTreeMap::new(),
                 Pdu::RoomV3Pdu(ev) => ev.signatures.clone(),
                 #[cfg(not(feature = "unstable-exhaustive-types"))]
                 _ => unreachable!("new PDU version"),

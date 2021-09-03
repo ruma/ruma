@@ -1,13 +1,15 @@
 use std::sync::Arc;
 
 use ruma_events::EventType;
-use ruma_state_res::{event_auth::valid_membership_change, StateMap};
-
-mod utils;
-use utils::{alice, charlie, event_id, member_content_ban, to_pdu_event, INITIAL_EVENTS};
+use ruma_state_res::{
+    event_auth::valid_membership_change,
+    test_utils::{alice, charlie, event_id, member_content_ban, to_pdu_event, INITIAL_EVENTS},
+    StateMap,
+};
 
 #[test]
 fn test_ban_pass() {
+    let _ = tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
     let events = INITIAL_EVENTS();
 
     let prev = events.values().find(|ev| ev.event_id().as_str().contains("IMC")).map(Arc::clone);
@@ -40,6 +42,7 @@ fn test_ban_pass() {
 
 #[test]
 fn test_ban_fail() {
+    let _ = tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
     let events = INITIAL_EVENTS();
 
     let prev = events.values().find(|ev| ev.event_id().as_str().contains("IMC")).map(Arc::clone);
