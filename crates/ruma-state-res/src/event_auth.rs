@@ -242,16 +242,25 @@ where
     }
 
     // If the sender's current membership state is not join, reject
-    match check_event_sender_in_room(incoming_event.sender(), &fetch_state) {
-        Some(true) => {} // sender in room
-        Some(false) => {
-            warn!("sender's membership is not join");
-            return Ok(false);
-        }
+    let sender = incoming_event.sender();
+    let mem = match fetch_state(&EventType::RoomMember, sender.as_str()) {
+        Some(mem) => mem,
         None => {
             warn!("sender not found in room");
             return Ok(false);
         }
+    };
+
+    let membership_state = serde_json::from_value::<MembershipState>(
+        mem.content()
+            .get("membership")
+            .expect("we should test before that this field exists")
+            .clone(),
+    )?;
+
+    if !matches!(membership_state, MembershipState::Join) {
+        warn!("sender's membership is not join");
+        return Ok(false);
     }
 
     // Allow if and only if sender's current power level is greater than
@@ -507,25 +516,6 @@ fn valid_membership_change<E: Event>(
         warn!("Unknown membership transition");
         false
     })
-}
-
-/// Is the event's sender in the room that they sent the event to.
-pub fn check_event_sender_in_room<E, F>(sender: &UserId, fetch_state: F) -> Option<bool>
-where
-    E: Event,
-    F: Fn(&EventType, &str) -> Option<Arc<E>>,
-{
-    let mem = fetch_state(&EventType::RoomMember, sender.as_str())?;
-
-    let membership = serde_json::from_value::<MembershipState>(
-        mem.content()
-            .get("membership")
-            .expect("we should test before that this field exists")
-            .clone(),
-    )
-    .ok()?;
-
-    Some(membership == MembershipState::Join)
 }
 
 /// Is the user allowed to send a specific event based on the rooms power levels.
