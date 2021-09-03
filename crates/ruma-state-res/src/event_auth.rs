@@ -418,7 +418,7 @@ where
                 false
             } else {
                 let allow = verify_third_party_invite(
-                    Some(state_key),
+                    Some(&target_user_id),
                     user_sender,
                     &tp_id,
                     current_third_party_invite,
@@ -854,7 +854,7 @@ where
 }
 
 pub fn verify_third_party_invite<E: Event>(
-    user_state_key: Option<&str>,
+    target_user: Option<&UserId>,
     sender: &UserId,
     tp_id: &ThirdPartyInvite,
     current_third_party_invite: Option<Arc<E>>,
@@ -863,7 +863,7 @@ pub fn verify_third_party_invite<E: Event>(
     // checking for mxid and token keys is done by ruma when deserializing
 
     // The state key must match the invitee
-    if user_state_key != Some(tp_id.signed.mxid.as_str()) {
+    if target_user != Some(&tp_id.signed.mxid) {
         return false;
     }
 
