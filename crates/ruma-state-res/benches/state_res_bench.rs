@@ -101,7 +101,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
             inner.get(&event_id("PA")).unwrap(),
         ]
         .iter()
-        .map(|ev| ((ev.kind(), ev.state_key().unwrap()), ev.event_id().clone()))
+        .map(|ev| ((ev.event_type(), ev.state_key().unwrap()), ev.event_id().clone()))
         .collect::<StateMap<_>>();
 
         let state_set_b = [
@@ -114,7 +114,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
             inner.get(&event_id("PA")).unwrap(),
         ]
         .iter()
-        .map(|ev| ((ev.kind(), ev.state_key().unwrap()), ev.event_id().clone()))
+        .map(|ev| ((ev.event_type(), ev.state_key().unwrap()), ev.event_id().clone()))
         .collect::<StateMap<_>>();
 
         b.iter(|| {
@@ -289,17 +289,17 @@ impl TestStore<StateEvent> {
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key().unwrap()), e.event_id().clone()))
+            .map(|e| ((e.event_type(), e.state_key().unwrap()), e.event_id().clone()))
             .collect::<StateMap<_>>();
 
         let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key().unwrap()), e.event_id().clone()))
+            .map(|e| ((e.event_type(), e.state_key().unwrap()), e.event_id().clone()))
             .collect::<StateMap<_>>();
 
         let expected = [&create_event, &alice_mem, &join_rules, &bob_mem, &charlie_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key().unwrap()), e.event_id().clone()))
+            .map(|e| ((e.event_type(), e.state_key().unwrap()), e.event_id().clone()))
             .collect::<StateMap<_>>();
 
         (state_at_bob, state_at_charlie, expected)
@@ -539,8 +539,8 @@ pub mod event {
             self.sender()
         }
 
-        fn kind(&self) -> EventType {
-            self.kind()
+        fn event_type(&self) -> EventType {
+            self.event_type()
         }
 
         fn content(&self) -> serde_json::Value {
@@ -682,7 +682,7 @@ pub mod event {
                 _ => unreachable!("new PDU version"),
             }
         }
-        pub fn kind(&self) -> EventType {
+        pub fn event_type(&self) -> EventType {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => ev.kind.clone(),
                 Pdu::RoomV3Pdu(ev) => ev.kind.clone(),

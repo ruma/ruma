@@ -411,7 +411,7 @@ where
                 // related to soft-failing
                 auth_events.insert(
                     (
-                        ev.kind(),
+                        ev.event_type(),
                         ev.state_key().ok_or_else(|| {
                             Error::InvalidPdu("State event had no state key".to_owned())
                         })?,
@@ -424,7 +424,7 @@ where
         }
 
         for key in auth_types_for_event(
-            &event.kind(),
+            &event.event_type(),
             event.sender(),
             Some(state_key.clone()),
             event.content(),
@@ -445,7 +445,7 @@ where
         // The key for this is (eventType + a state_key of the signed token not sender) so
         // search for it
         let current_third_party = auth_events.iter().find_map(|(_, pdu)| {
-            (pdu.kind() == EventType::RoomThirdPartyInvite).then(|| {
+            (pdu.event_type() == EventType::RoomThirdPartyInvite).then(|| {
                 // TODO no clone, auth_events is borrowed while moved
                 pdu.clone()
             })
@@ -459,7 +459,7 @@ where
             |ty, key| auth_events.get(&(ty.clone(), key.to_owned())).cloned(),
         )? {
             // add event to resolved state map
-            resolved_state.insert((event.kind(), state_key), event_id.clone());
+            resolved_state.insert((event.event_type(), state_key), event_id.clone());
         } else {
             // synapse passes here on AuthError. We do not add this event to resolved_state.
             warn!("event {} failed the authentication check", event_id);
@@ -623,11 +623,11 @@ where
 }
 
 pub fn is_type_and_key<E: Event>(ev: &Arc<E>, ev_type: EventType, state_key: &str) -> bool {
-    ev.kind() == ev_type && ev.state_key().as_deref() == Some(state_key)
+    ev.event_type() == ev_type && ev.state_key().as_deref() == Some(state_key)
 }
 
 pub fn is_power_event<E: Event>(event: &Arc<E>) -> bool {
-    match event.kind() {
+    match event.event_type() {
         EventType::RoomPowerLevels | EventType::RoomJoinRules | EventType::RoomCreate => {
             event.state_key() == Some("".into())
         }

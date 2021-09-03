@@ -364,17 +364,17 @@ impl TestStore<StateEvent> {
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key()), e.event_id().clone()))
+            .map(|e| ((e.event_type(), e.state_key()), e.event_id().clone()))
             .collect::<StateMap<_>>();
 
         let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key()), e.event_id().clone()))
+            .map(|e| ((e.event_type(), e.state_key()), e.event_id().clone()))
             .collect::<StateMap<_>>();
 
         let expected = [&create_event, &alice_mem, &join_rules, &bob_mem, &charlie_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key()), e.event_id().clone()))
+            .map(|e| ((e.event_type(), e.state_key()), e.event_id().clone()))
             .collect::<StateMap<_>>();
 
         (state_at_bob, state_at_charlie, expected)

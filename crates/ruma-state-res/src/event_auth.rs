@@ -95,7 +95,11 @@ where
     E: Event,
     F: Fn(&EventType, &str) -> Option<Arc<E>>,
 {
-    info!("auth_check beginning for {} ({})", incoming_event.event_id(), incoming_event.kind());
+    info!(
+        "auth_check beginning for {} ({})",
+        incoming_event.event_id(),
+        incoming_event.event_type()
+    );
 
     // [synapse] check that all the events are in the same room as `incoming_event`
 
@@ -108,7 +112,7 @@ where
     // Implementation of https://matrix.org/docs/spec/rooms/v1#authorization-rules
     //
     // 1. If type is m.room.create:
-    if incoming_event.kind() == EventType::RoomCreate {
+    if incoming_event.event_type() == EventType::RoomCreate {
         info!("start m.room.create check");
 
         // If it has any previous events, reject
@@ -180,7 +184,9 @@ where
     // [synapse] checks for federation here
 
     // 4. If type is m.room.aliases
-    if incoming_event.kind() == EventType::RoomAliases && room_version.special_case_aliases_auth {
+    if incoming_event.event_type() == EventType::RoomAliases
+        && room_version.special_case_aliases_auth
+    {
         info!("starting m.room.aliases check");
 
         // If sender's domain doesn't matches state_key, reject
@@ -193,7 +199,7 @@ where
         return Ok(true);
     }
 
-    if incoming_event.kind() == EventType::RoomMember {
+    if incoming_event.event_type() == EventType::RoomMember {
         info!("starting m.room.member check");
         let state_key = match incoming_event.state_key() {
             None => {
@@ -243,7 +249,7 @@ where
 
     // Allow if and only if sender's current power level is greater than
     // or equal to the invite level
-    if incoming_event.kind() == EventType::RoomThirdPartyInvite
+    if incoming_event.event_type() == EventType::RoomThirdPartyInvite
         && !can_send_invite(incoming_event, &fetch_state)?
     {
         warn!("sender's cannot send invites in this room");
@@ -257,7 +263,7 @@ where
         return Ok(false);
     }
 
-    if incoming_event.kind() == EventType::RoomPowerLevels {
+    if incoming_event.event_type() == EventType::RoomPowerLevels {
         info!("starting m.room.power_levels check");
 
         if let Some(required_pwr_lvl) =
@@ -282,7 +288,7 @@ where
     // power levels.
 
     if room_version.extra_redaction_checks
-        && incoming_event.kind() == EventType::RoomRedaction
+        && incoming_event.event_type() == EventType::RoomRedaction
         && !check_redaction(room_version, incoming_event, &fetch_state)?
     {
         return Ok(false);
@@ -373,7 +379,7 @@ where
     }
 
     if let Some(prev) = prev_event {
-        if prev.kind() == EventType::RoomCreate && prev.prev_events().is_empty() {
+        if prev.event_type() == EventType::RoomCreate && prev.prev_events().is_empty() {
             return Ok(true);
         }
     }
@@ -526,7 +532,8 @@ where
 {
     let ple = fetch_state(&EventType::RoomPowerLevels, "");
 
-    let event_type_power_level = get_send_level(&event.kind(), event.state_key(), ple.as_ref());
+    let event_type_power_level =
+        get_send_level(&event.event_type(), event.state_key(), ple.as_ref());
     let user_level = get_user_power_level(event.sender(), fetch_state);
 
     debug!("{} ev_type {} usr {}", event.event_id(), event_type_power_level, user_level);
@@ -555,13 +562,14 @@ where
     F: Fn(&EventType, &str) -> Option<Arc<E>>,
 {
     let power_event_state_key = power_event.state_key().expect("power events have state keys");
-    let current_state =
-        if let Some(current_state) = fetch_state(&power_event.kind(), &power_event_state_key) {
-            current_state
-        } else {
-            // If there is no previous m.room.power_levels event in the room, allow
-            return Some(true);
-        };
+    let current_state = if let Some(current_state) =
+        fetch_state(&power_event.event_type(), &power_event_state_key)
+    {
+        current_state
+    } else {
+        // If there is no previous m.room.power_levels event in the room, allow
+        return Some(true);
+    };
 
     // If users key in content is not a dictionary with keys that are valid user IDs
     // with values that are integers (or a string that is an integer), reject.
