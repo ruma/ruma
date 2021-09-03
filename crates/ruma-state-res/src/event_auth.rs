@@ -390,13 +390,8 @@ fn valid_membership_change<E: Event>(
         .get("third_party_invite")
         .map(|t| serde_json::from_value::<ThirdPartyInvite>(t.clone()));
 
-    let target_user_membership_event = target_user_membership_event.as_ref();
-    let sender_membership_event = sender_membership_event.as_ref();
-    let power_levels_event = power_levels_event.as_ref();
-    let join_rules_event = join_rules_event.as_ref();
-
     let sender_is_joined = {
-        let sender_membership = match sender_membership_event {
+        let sender_membership = match &sender_membership_event {
             Some(pdu) => serde_json::from_value(
                 pdu.content()
                     .get("membership")
@@ -409,14 +404,14 @@ fn valid_membership_change<E: Event>(
         sender_membership == MembershipState::Join
     };
 
-    let target_user_current_membership = match target_user_membership_event {
+    let target_user_current_membership = match &target_user_membership_event {
         Some(pdu) => serde_json::from_value(
             pdu.content().get("membership").expect("we assume existing events are valid").clone(),
         )?,
         None => MembershipState::Leave,
     };
 
-    let power_levels: PowerLevelsEventContent = match power_levels_event {
+    let power_levels: PowerLevelsEventContent = match &power_levels_event {
         Some(ev) => serde_json::from_value(ev.content())?,
         None => PowerLevelsEventContent::default(),
     };
@@ -431,7 +426,7 @@ fn valid_membership_change<E: Event>(
     });
 
     let mut join_rules = JoinRule::Invite;
-    if let Some(jr) = join_rules_event {
+    if let Some(jr) = &join_rules_event {
         join_rules = serde_json::from_value::<JoinRulesEventContent>(jr.content())?.join_rule;
     }
 
@@ -441,6 +436,11 @@ fn valid_membership_change<E: Event>(
         }
     }
 
+    let power_levels_event_id = power_levels_event.as_ref().map(|e| e.event_id());
+    let sender_membership_event_id = sender_membership_event.as_ref().map(|e| e.event_id());
+    let target_user_membership_event_id =
+        target_user_membership_event.as_ref().map(|e| e.event_id());
+
     Ok(if target_membership == MembershipState::Join {
         if sender != target_user {
             warn!("Can't make other user join");
@@ -448,7 +448,7 @@ fn valid_membership_change<E: Event>(
         } else if let MembershipState::Ban = target_user_current_membership {
             warn!(
                 "Banned user can't join\nCurrent user state: {:?}",
-                target_user_membership_event.map(|e| e.event_id())
+                target_user_membership_event_id,
             );
             false
         } else {
@@ -459,8 +459,9 @@ fn valid_membership_change<E: Event>(
 
             if !allow {
                 warn!("Can't join if join rules is not public and user is not invited/joined\nJoin Rules: {:?}\nCurrent user state: {:?}",
-                    join_rules_event.map(|e| e.event_id()),
-                    target_user_membership_event.map(|e| e.event_id()));
+                    join_rules_event.as_ref().map(|e| e.event_id()),
+                    target_user_membership_event_id,
+                );
             }
             allow
         }
@@ -470,7 +471,7 @@ fn valid_membership_change<E: Event>(
             if target_user_current_membership == MembershipState::Ban {
                 warn!(
                     "Can't invite banned user\nCurrent user state: {:?}",
-                    target_user_membership_event.map(|e| e.event_id())
+                    target_user_membership_event_id,
                 );
                 false
             } else {
@@ -491,16 +492,16 @@ fn valid_membership_change<E: Event>(
         {
             warn!(
                 "Can't invite user if sender not joined or the user is currently joined or banned\nCurrent user state: {:?}\nSender user state: {:?}",
-                target_user_membership_event.map(|e| e.event_id()),
-                sender_membership_event.map(|e| e.event_id())
+                target_user_membership_event_id,
+                sender_membership_event_id,
             );
             false
         } else {
             let allow = sender_power.filter(|&p| p >= &power_levels.invite).is_some();
             if !allow {
                 warn!("User does not have enough power to invite\nCurrent user state: {:?}\nPower levels: {:?}",
-                    target_user_membership_event.map(|e| e.event_id()),
-                    power_levels_event.map(|e| e.event_id())
+                    target_user_membership_event_id,
+                    power_levels_event_id,
                 );
             }
             allow
@@ -512,7 +513,7 @@ fn valid_membership_change<E: Event>(
             if !allow {
                 warn!(
                     "Can't leave if not invited or joined\nCurrent user state: {:?}",
-                    target_user_membership_event.map(|e| e.event_id()),
+                    target_user_membership_event_id,
                 );
             }
             allow
@@ -521,8 +522,8 @@ fn valid_membership_change<E: Event>(
                 && sender_power.filter(|&p| p < &power_levels.ban).is_some()
         {
             warn!("Can't kick if sender not joined or user is already banned\nCurrent user state: {:?}\nSender user state: {:?}",
-            target_user_membership_event.map(|e| e.event_id()),
-                sender_membership_event.map(|e| e.event_id())
+                target_user_membership_event_id,
+                sender_membership_event_id
             );
             false
         } else {
@@ -530,8 +531,8 @@ fn valid_membership_change<E: Event>(
                 && target_power < sender_power;
             if !allow {
                 warn!("User does not have enough power to kick\nCurrent user state: {:?}\nPower levels: {:?}",
-                    target_user_membership_event.map(|e| e.event_id()),
-                    power_levels_event.map(|e| e.event_id())
+                    target_user_membership_event_id,
+                    power_levels_event_id,
                 );
             }
             allow
@@ -540,7 +541,7 @@ fn valid_membership_change<E: Event>(
         if !sender_is_joined {
             warn!(
                 "Can't ban user if sender is not joined\nSender user state: {:?}",
-                sender_membership_event.map(|e| e.event_id())
+                sender_membership_event_id
             );
             false
         } else {
@@ -548,8 +549,8 @@ fn valid_membership_change<E: Event>(
                 && target_power < sender_power;
             if !allow {
                 warn!("User does not have enough power to ban\nCurrent user state: {:?}\nPower levels: {:?}",
-                    target_user_membership_event.map(|e| e.event_id()),
-                    power_levels_event.map(|e| e.event_id())
+                    target_user_membership_event_id,
+                    power_levels_event_id,
                 );
             }
             allow
