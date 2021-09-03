@@ -21,7 +21,7 @@ pub trait Event {
     fn origin_server_ts(&self) -> MilliSecondsSinceUnixEpoch;
 
     /// The kind of event.
-    fn kind(&self) -> EventType;
+    fn event_type(&self) -> EventType;
 
     /// The `UserId` of this PDU.
     fn content(&self) -> serde_json::Value;

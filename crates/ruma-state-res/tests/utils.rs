@@ -133,12 +133,12 @@ pub fn do_check(
 
         let mut state_after = state_before.clone();
 
-        let ty = fake_event.kind();
+        let ty = fake_event.event_type();
         let key = fake_event.state_key();
         state_after.insert((ty, key), event_id.clone());
 
         let auth_types = auth_types_for_event(
-            &fake_event.kind(),
+            &fake_event.event_type(),
             fake_event.sender(),
             Some(fake_event.state_key()),
             fake_event.content(),
@@ -158,7 +158,7 @@ pub fn do_check(
         let event = to_pdu_event(
             e.event_id().as_str(),
             e.sender().clone(),
-            e.kind().clone(),
+            e.event_type().clone(),
             Some(&e.state_key()),
             e.content(),
             &auth_events,
@@ -183,7 +183,7 @@ pub fn do_check(
             )
         });
 
-        let key = (ev.kind(), ev.state_key());
+        let key = (ev.event_type(), ev.state_key());
 
         expected_state.insert(key, node);
     }
@@ -512,8 +512,8 @@ pub mod event {
         fn sender(&self) -> &UserId {
             self.sender()
         }
-        fn kind(&self) -> EventType {
-            self.kind()
+        fn event_type(&self) -> EventType {
+            self.event_type()
         }
 
         fn content(&self) -> serde_json::Value {
@@ -648,7 +648,7 @@ pub mod event {
                 _ => unreachable!("new PDU version"),
             }
         }
-        pub fn kind(&self) -> EventType {
+        pub fn event_type(&self) -> EventType {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => ev.kind.clone(),
                 Pdu::RoomV3Pdu(ev) => ev.kind.clone(),

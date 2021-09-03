@@ -14,7 +14,7 @@ fn test_ban_pass() {
 
     let auth_events = events
         .values()
-        .map(|ev| ((ev.kind(), ev.state_key()), Arc::clone(ev)))
+        .map(|ev| ((ev.event_type(), ev.state_key()), Arc::clone(ev)))
         .collect::<StateMap<_>>();
 
     let requester = to_pdu_event(
@@ -46,7 +46,7 @@ fn test_ban_fail() {
 
     let auth_events = events
         .values()
-        .map(|ev| ((ev.kind(), ev.state_key()), Arc::clone(ev)))
+        .map(|ev| ((ev.event_type(), ev.state_key()), Arc::clone(ev)))
         .collect::<StateMap<_>>();
 
     let requester = to_pdu_event(

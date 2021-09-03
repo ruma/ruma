@@ -47,7 +47,7 @@ fn ban_with_auth_chains2() {
         inner.get(&event_id("PA")).unwrap(),
     ]
     .iter()
-    .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().clone()))
+    .map(|ev| ((ev.event_type(), ev.state_key()), ev.event_id().clone()))
     .collect::<StateMap<_>>();
 
     let state_set_b = [
@@ -60,7 +60,7 @@ fn ban_with_auth_chains2() {
         inner.get(&event_id("PA")).unwrap(),
     ]
     .iter()
-    .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().clone()))
+    .map(|ev| ((ev.event_type(), ev.state_key()), ev.event_id().clone()))
     .collect::<StateMap<_>>();
 
     let ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
