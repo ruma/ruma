@@ -527,11 +527,7 @@ where
             if let Ok(depth) = get_mainline_depth(Some(event), &mainline_map, &fetch_event) {
                 order_map.insert(
                     ev_id,
-                    (
-                        depth,
-                        fetch_event(ev_id).map(|ev| ev.origin_server_ts()),
-                        ev_id, // TODO should this be a &str to sort lexically??
-                    ),
+                    (depth, fetch_event(ev_id).map(|ev| ev.origin_server_ts()), ev_id),
                 );
             }
         }
