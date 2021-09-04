@@ -13,7 +13,7 @@ use ruma_events::{
     },
     EventType,
 };
-use ruma_identifiers::{EventId, RoomId, RoomVersionId};
+use ruma_identifiers::{EventId, RoomVersionId};
 use tracing::{debug, info, trace, warn};
 
 mod error;
@@ -53,7 +53,6 @@ pub type EventMap<T> = HashMap<EventId, T>;
 /// The caller of `resolve` must ensure that all the events are from the same room. Although this
 /// function takes a `RoomId` it does not check that each event is part of the same room.
 pub fn resolve<E, F>(
-    room_id: &RoomId,
     room_version: &RoomVersionId,
     state_sets: &[StateMap<EventId>],
     auth_chain_sets: Vec<HashSet<EventId>>,
@@ -80,7 +79,7 @@ where
     debug!("{:?}", conflicting);
 
     // The set of auth events that are not common across server forks
-    let mut auth_diff = get_auth_chain_diff(room_id, auth_chain_sets)?;
+    let mut auth_diff = get_auth_chain_diff(auth_chain_sets)?;
 
     // Add the auth_diff to conflicting now we have a full set of conflicting events
     auth_diff.extend(conflicting.values().cloned().flatten().flatten());
@@ -196,10 +195,7 @@ pub fn separate(
 }
 
 /// Returns a Vec of deduped EventIds that appear in some chains but not others.
-pub fn get_auth_chain_diff(
-    _room_id: &RoomId,
-    auth_chain_sets: Vec<HashSet<EventId>>,
-) -> Result<HashSet<EventId>> {
+pub fn get_auth_chain_diff(auth_chain_sets: Vec<HashSet<EventId>>) -> Result<HashSet<EventId>> {
     if let Some(first) = auth_chain_sets.first().cloned() {
         let common = auth_chain_sets
             .iter()
