@@ -69,7 +69,6 @@ fn ban_with_auth_chains2() {
     let ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
     let state_sets = vec![state_set_a, state_set_b];
     let resolved = match state_res::resolve::<StateEvent, _>(
-        &room_id(),
         &RoomVersionId::Version6,
         &state_sets,
         state_sets

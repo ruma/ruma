@@ -262,7 +262,6 @@ fn test_event_map_none() {
     let ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
     let state_sets = vec![state_at_bob, state_at_charlie];
     let resolved = match state_res::resolve::<StateEvent, _>(
-        &room_id(),
         &RoomVersionId::Version2,
         &state_sets,
         state_sets

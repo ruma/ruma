@@ -109,7 +109,6 @@ pub fn do_check(
             );
 
             let resolved = state_res::resolve(
-                &room_id(),
                 &RoomVersionId::Version6,
                 &state_sets,
                 state_sets
