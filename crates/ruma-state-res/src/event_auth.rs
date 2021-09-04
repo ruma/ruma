@@ -604,11 +604,10 @@ where
         }
     }
 
-    let current_state = if let Some(current_state) = previous_power_event {
-        current_state
-    } else {
+    let current_state = match previous_power_event {
+        Some(current_state) => current_state,
         // If there is no previous m.room.power_levels event in the room, allow
-        return Some(true);
+        None => return Some(true),
     };
 
     // If users key in content is not a dictionary with keys that are valid user IDs
