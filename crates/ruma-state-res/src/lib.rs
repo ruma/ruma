@@ -91,9 +91,8 @@ where
     // synapse says `full_set = {eid for eid in full_conflicted_set if eid in event_map}`
     //
     // Don't honor events we cannot "verify"
-    // TODO: BTreeSet::retain() when stable 1.53
-    let all_conflicted =
-        auth_diff.into_iter().filter(|id| fetch_event(id).is_some()).collect::<HashSet<_>>();
+    auth_diff.retain(|id| fetch_event(id).is_some());
+    let all_conflicted = auth_diff;
 
     info!("full conflicted set: {}", all_conflicted.len());
     debug!("{:?}", all_conflicted);
