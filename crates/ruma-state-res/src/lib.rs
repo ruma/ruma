@@ -117,7 +117,7 @@ where
     let room_version = RoomVersion::new(room_version)?;
     // Sequentially auth check each control event.
     let resolved_control =
-        iterative_auth_check(&room_version, &sorted_control_levels, &clean, &fetch_event)?;
+        iterative_auth_check(&room_version, &sorted_control_levels, clean.clone(), &fetch_event)?;
 
     debug!("resolved control events: {}", resolved_control.len());
     trace!("{:?}", resolved_control);
@@ -149,7 +149,7 @@ where
     let mut resolved_state = iterative_auth_check(
         &room_version,
         &sorted_left_events,
-        &resolved_control, // The control events are added to the final resolved state
+        resolved_control, // The control events are added to the final resolved state
         &fetch_event,
     )?;
 
@@ -381,7 +381,7 @@ where
 pub fn iterative_auth_check<E, F>(
     room_version: &RoomVersion,
     events_to_check: &[EventId],
-    unconflicted_state: &StateMap<EventId>,
+    unconflicted_state: StateMap<EventId>,
     fetch_event: F,
 ) -> Result<StateMap<EventId>>
 where
@@ -390,11 +390,11 @@ where
 {
     info!("starting iterative auth check");
 
-    debug!("performing auth checks on {:?}", events_to_check.iter().collect::<Vec<_>>());
+    debug!("performing auth checks on {:?}", events_to_check);
 
-    let mut resolved_state = unconflicted_state.clone();
+    let mut resolved_state = unconflicted_state;
 
-    for event_id in events_to_check.iter() {
+    for event_id in events_to_check {
         let event = fetch_event(event_id)
             .ok_or_else(|| Error::NotFound(format!("Failed to find {}", event_id)))?;
         let state_key = event
