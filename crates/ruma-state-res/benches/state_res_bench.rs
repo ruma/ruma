@@ -202,7 +202,7 @@ impl<E: Event> TestStore<E> {
 
             let event = self.get_event(room_id, &ev_id)?;
 
-            stack.extend(event.auth_events().clone());
+            stack.extend(event.auth_events().cloned());
         }
 
         Ok(result)
@@ -578,7 +578,7 @@ pub mod event {
             self.state_key()
         }
 
-        fn prev_events(&self) -> Vec<EventId> {
+        fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
             self.prev_event_ids()
         }
 
@@ -586,7 +586,7 @@ pub mod event {
             self.depth()
         }
 
-        fn auth_events(&self) -> Vec<EventId> {
+        fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
             self.auth_events()
         }
 
@@ -732,19 +732,19 @@ pub mod event {
             }
         }
 
-        pub fn prev_event_ids(&self) -> Vec<EventId> {
+        pub fn prev_event_ids(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
             match &self.rest {
-                Pdu::RoomV1Pdu(ev) => ev.prev_events.iter().map(|(id, _)| id).cloned().collect(),
-                Pdu::RoomV3Pdu(ev) => ev.prev_events.clone(),
+                Pdu::RoomV1Pdu(ev) => Box::new(ev.prev_events.iter().map(|(id, _)| id)),
+                Pdu::RoomV3Pdu(ev) => Box::new(ev.prev_events.iter()),
                 #[cfg(not(feature = "unstable-exhaustive-types"))]
                 _ => unreachable!("new PDU version"),
             }
         }
 
-        pub fn auth_events(&self) -> Vec<EventId> {
+        pub fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
             match &self.rest {
-                Pdu::RoomV1Pdu(ev) => ev.auth_events.iter().map(|(id, _)| id).cloned().collect(),
-                Pdu::RoomV3Pdu(ev) => ev.auth_events.to_vec(),
+                Pdu::RoomV1Pdu(ev) => Box::new(ev.auth_events.iter().map(|(id, _)| id)),
+                Pdu::RoomV3Pdu(ev) => Box::new(ev.auth_events.iter()),
                 #[cfg(not(feature = "unstable-exhaustive-types"))]
                 _ => unreachable!("new PDU version"),
             }
