@@ -736,7 +736,7 @@ fn get_deserialize_levels(
 }
 
 /// Does the event redacting come from a user with enough power to redact the given event.
-pub fn check_redaction<E: Event>(
+fn check_redaction<E: Event>(
     _room_version: &RoomVersion,
     redaction_event: &Arc<E>,
     user_level: Int,
@@ -762,7 +762,7 @@ pub fn check_redaction<E: Event>(
 /// Check that the member event matches `state`.
 ///
 /// This function returns false instead of failing when deserialization fails.
-pub fn check_membership<E: Event>(member_event: Option<Arc<E>>, state: MembershipState) -> bool {
+fn check_membership<E: Event>(member_event: Option<Arc<E>>, state: MembershipState) -> bool {
     if let Some(event) = member_event {
         if let Some(Ok(membership)) = event
             .content()
@@ -779,7 +779,7 @@ pub fn check_membership<E: Event>(member_event: Option<Arc<E>>, state: Membershi
 }
 
 /// Can this room federate based on its m.room.create event.
-pub fn can_federate<E: Event>(auth_events: &StateMap<Arc<E>>) -> bool {
+fn can_federate<E: Event>(auth_events: &StateMap<Arc<E>>) -> bool {
     let creation_event = auth_events.get(&(EventType::RoomCreate, "".into()));
     if let Some(ev) = creation_event {
         if let Some(fed) = ev.content().get("m.federate") {
@@ -794,7 +794,7 @@ pub fn can_federate<E: Event>(auth_events: &StateMap<Arc<E>>) -> bool {
 
 /// Helper function to fetch the power level needed to send an event of type
 /// `e_type` based on the rooms "m.room.power_level" event.
-pub fn get_send_level<E: Event>(
+fn get_send_level<E: Event>(
     e_type: &EventType,
     state_key: Option<&str>,
     power_lvl: Option<&Arc<E>>,
@@ -816,7 +816,7 @@ pub fn get_send_level<E: Event>(
         .unwrap_or_else(|| if state_key.is_some() { int!(50) } else { int!(0) })
 }
 
-pub fn verify_third_party_invite<E: Event>(
+fn verify_third_party_invite<E: Event>(
     target_user: Option<&UserId>,
     sender: &UserId,
     tp_id: &ThirdPartyInvite,
