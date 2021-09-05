@@ -343,7 +343,7 @@ where
 
     for aid in event.as_ref().map(|pdu| pdu.auth_events()).into_iter().flatten() {
         if let Some(aev) = fetch_event(aid) {
-            if is_type_and_key(&aev, &EventType::RoomPowerLevels, "") {
+            if is_type_and_key(&*aev, &EventType::RoomPowerLevels, "") {
                 pl = Some(aev);
                 break;
             }
@@ -452,9 +452,9 @@ where
 
         if auth_check(
             room_version,
-            &event,
-            most_recent_prev_event,
-            current_third_party,
+            &*event,
+            most_recent_prev_event.as_deref(),
+            current_third_party.as_deref(),
             |ty, key| auth_events.get(&(ty.clone(), key.to_owned())).cloned(),
         )? {
             // add event to resolved state map
@@ -506,7 +506,7 @@ where
         for aid in event.auth_events() {
             let ev = fetch_event(aid)
                 .ok_or_else(|| Error::NotFound(format!("Failed to find {}", aid)))?;
-            if is_type_and_key(&ev, &EventType::RoomPowerLevels, "") {
+            if is_type_and_key(&*ev, &EventType::RoomPowerLevels, "") {
                 pl = Some(aid.clone());
                 break;
             }
@@ -569,7 +569,7 @@ where
         for aid in sort_ev.auth_events() {
             let aev = fetch_event(aid)
                 .ok_or_else(|| Error::NotFound(format!("Failed to find {}", aid)))?;
-            if is_type_and_key(&aev, &EventType::RoomPowerLevels, "") {
+            if is_type_and_key(&*aev, &EventType::RoomPowerLevels, "") {
                 event = Some(aev);
                 break;
             }
@@ -610,17 +610,17 @@ where
     E: Event,
     F: Fn(&EventId) -> Option<Arc<E>>,
 {
-    match fetch(event_id).as_ref() {
+    match fetch(event_id).as_deref() {
         Some(state) => is_power_event(state),
         _ => false,
     }
 }
 
-pub fn is_type_and_key<E: Event>(ev: &Arc<E>, ev_type: &EventType, state_key: &str) -> bool {
+pub fn is_type_and_key<E: Event>(ev: &E, ev_type: &EventType, state_key: &str) -> bool {
     ev.event_type() == ev_type && ev.state_key() == Some(state_key)
 }
 
-pub fn is_power_event<E: Event>(event: &Arc<E>) -> bool {
+pub fn is_power_event<E: Event>(event: &E) -> bool {
     match event.event_type() {
         EventType::RoomPowerLevels | EventType::RoomJoinRules | EventType::RoomCreate => {
             event.state_key() == Some("")

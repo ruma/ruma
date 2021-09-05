@@ -86,9 +86,9 @@ pub fn auth_types_for_event(
 /// This returns an `Error` only when serialization fails or some other fatal outcome.
 pub fn auth_check<E, F>(
     room_version: &RoomVersion,
-    incoming_event: &Arc<E>,
-    prev_event: Option<Arc<E>>,
-    current_third_party_invite: Option<Arc<E>>,
+    incoming_event: &E,
+    prev_event: Option<&E>,
+    current_third_party_invite: Option<&E>,
     fetch_state: F,
 ) -> Result<bool>
 where
@@ -231,14 +231,14 @@ where
 
         if !valid_membership_change(
             &target_user,
-            fetch_state(&EventType::RoomMember, target_user.as_str()),
+            fetch_state(&EventType::RoomMember, target_user.as_str()).as_deref(),
             sender,
-            sender_member_event,
+            sender_member_event.as_deref(),
             incoming_event.content(),
-            prev_event,
+            prev_event.as_deref(),
             current_third_party_invite,
-            power_levels_event,
-            fetch_state(&EventType::RoomJoinRules, ""),
+            power_levels_event.as_deref(),
+            fetch_state(&EventType::RoomJoinRules, "").as_deref(),
         )? {
             return Ok(false);
         }
@@ -304,7 +304,7 @@ where
 
     // If the event type's required power level is greater than the sender's power level, reject
     // If the event has a state_key that starts with an @ and does not match the sender, reject.
-    if !can_send_event(incoming_event, power_levels_event.as_ref(), sender_power_level) {
+    if !can_send_event(incoming_event, power_levels_event.as_deref(), sender_power_level) {
         warn!("user cannot send event");
         return Ok(false);
     }
@@ -315,7 +315,7 @@ where
         if let Some(required_pwr_lvl) = check_power_levels(
             room_version,
             incoming_event,
-            power_levels_event.as_ref(),
+            power_levels_event.as_deref(),
             sender_power_level,
         ) {
             if !required_pwr_lvl {
@@ -373,14 +373,14 @@ where
 #[allow(clippy::too_many_arguments)]
 fn valid_membership_change<E: Event>(
     target_user: &UserId,
-    target_user_membership_event: Option<Arc<E>>,
+    target_user_membership_event: Option<&E>,
     sender: &UserId,
-    sender_membership_event: Option<Arc<E>>,
+    sender_membership_event: Option<&E>,
     content: serde_json::Value,
-    prev_event: Option<Arc<E>>,
-    current_third_party_invite: Option<Arc<E>>,
-    power_levels_event: Option<Arc<E>>,
-    join_rules_event: Option<Arc<E>>,
+    prev_event: Option<&E>,
+    current_third_party_invite: Option<&E>,
+    power_levels_event: Option<&E>,
+    join_rules_event: Option<&E>,
 ) -> Result<bool> {
     let target_membership = serde_json::from_value::<MembershipState>(
         content.get("membership").expect("we test before that this field exists").clone(),
@@ -564,7 +564,7 @@ fn valid_membership_change<E: Event>(
 /// Is the user allowed to send a specific event based on the rooms power levels.
 ///
 /// Does the event have the correct userId as its state_key if it's not the "" state_key.
-fn can_send_event<E: Event>(event: &Arc<E>, ple: Option<&Arc<E>>, user_level: Int) -> bool {
+fn can_send_event<E: Event>(event: &E, ple: Option<&E>, user_level: Int) -> bool {
     let event_type_power_level = get_send_level(event.event_type(), event.state_key(), ple);
 
     debug!("{} ev_type {} usr {}", event.event_id(), event_type_power_level, user_level);
@@ -585,8 +585,8 @@ fn can_send_event<E: Event>(event: &Arc<E>, ple: Option<&Arc<E>>, user_level: In
 /// Confirm that the event sender has the required power levels.
 fn check_power_levels<E>(
     room_version: &RoomVersion,
-    power_event: &Arc<E>,
-    previous_power_event: Option<&Arc<E>>,
+    power_event: &E,
+    previous_power_event: Option<&E>,
     user_level: Int,
 ) -> Option<bool>
 where
@@ -738,7 +738,7 @@ fn get_deserialize_levels(
 /// Does the event redacting come from a user with enough power to redact the given event.
 fn check_redaction<E: Event>(
     _room_version: &RoomVersion,
-    redaction_event: &Arc<E>,
+    redaction_event: &E,
     user_level: Int,
     redact_level: Int,
 ) -> Result<bool> {
@@ -764,7 +764,7 @@ fn check_redaction<E: Event>(
 fn get_send_level<E: Event>(
     e_type: &EventType,
     state_key: Option<&str>,
-    power_lvl: Option<&Arc<E>>,
+    power_lvl: Option<&E>,
 ) -> Int {
     power_lvl
         .and_then(|ple| {
@@ -787,7 +787,7 @@ fn verify_third_party_invite<E: Event>(
     target_user: Option<&UserId>,
     sender: &UserId,
     tp_id: &ThirdPartyInvite,
-    current_third_party_invite: Option<Arc<E>>,
+    current_third_party_invite: Option<&E>,
 ) -> bool {
     // 1. Check for user being banned happens before this is called
     // checking for mxid and token keys is done by ruma when deserializing
@@ -870,14 +870,14 @@ mod tests {
 
         assert!(valid_membership_change(
             &target_user,
-            fetch_state(EventType::RoomMember, target_user.to_string()),
+            fetch_state(EventType::RoomMember, target_user.to_string()).as_deref(),
             &sender,
-            fetch_state(EventType::RoomMember, sender.to_string()),
+            fetch_state(EventType::RoomMember, sender.to_string()).as_deref(),
             requester.content(),
-            prev_event,
+            prev_event.as_deref(),
             None,
-            fetch_state(EventType::RoomPowerLevels, "".to_owned()),
-            fetch_state(EventType::RoomJoinRules, "".to_owned()),
+            fetch_state(EventType::RoomPowerLevels, "".to_owned()).as_deref(),
+            fetch_state(EventType::RoomJoinRules, "".to_owned()).as_deref(),
         )
         .unwrap());
     }
@@ -912,14 +912,14 @@ mod tests {
 
         assert!(!valid_membership_change(
             &target_user,
-            fetch_state(EventType::RoomMember, target_user.to_string()),
+            fetch_state(EventType::RoomMember, target_user.to_string()).as_deref(),
             &sender,
-            fetch_state(EventType::RoomMember, sender.to_string()),
+            fetch_state(EventType::RoomMember, sender.to_string()).as_deref(),
             requester.content(),
-            prev_event,
+            prev_event.as_deref(),
             None,
-            fetch_state(EventType::RoomPowerLevels, "".to_owned()),
-            fetch_state(EventType::RoomJoinRules, "".to_owned()),
+            fetch_state(EventType::RoomPowerLevels, "".to_owned()).as_deref(),
+            fetch_state(EventType::RoomJoinRules, "".to_owned()).as_deref(),
         )
         .unwrap());
     }
