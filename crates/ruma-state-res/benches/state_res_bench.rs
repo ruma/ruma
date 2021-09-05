@@ -100,7 +100,12 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
             inner.get(&event_id("PA")).unwrap(),
         ]
         .iter()
-        .map(|ev| ((ev.event_type(), ev.state_key().unwrap()), ev.event_id().clone()))
+        .map(|ev| {
+            (
+                (ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()),
+                ev.event_id().clone(),
+            )
+        })
         .collect::<StateMap<_>>();
 
         let state_set_b = [
@@ -113,7 +118,12 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
             inner.get(&event_id("PA")).unwrap(),
         ]
         .iter()
-        .map(|ev| ((ev.event_type(), ev.state_key().unwrap()), ev.event_id().clone()))
+        .map(|ev| {
+            (
+                (ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()),
+                ev.event_id().clone(),
+            )
+        })
         .collect::<StateMap<_>>();
 
         b.iter(|| {
@@ -287,17 +297,32 @@ impl TestStore<StateEvent> {
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
-            .map(|e| ((e.event_type(), e.state_key().unwrap()), e.event_id().clone()))
+            .map(|e| {
+                (
+                    (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
+                    e.event_id().clone(),
+                )
+            })
             .collect::<StateMap<_>>();
 
         let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
             .iter()
-            .map(|e| ((e.event_type(), e.state_key().unwrap()), e.event_id().clone()))
+            .map(|e| {
+                (
+                    (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
+                    e.event_id().clone(),
+                )
+            })
             .collect::<StateMap<_>>();
 
         let expected = [&create_event, &alice_mem, &join_rules, &bob_mem, &charlie_mem]
             .iter()
-            .map(|e| ((e.event_type(), e.state_key().unwrap()), e.event_id().clone()))
+            .map(|e| {
+                (
+                    (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
+                    e.event_id().clone(),
+                )
+            })
             .collect::<StateMap<_>>();
 
         (state_at_bob, state_at_charlie, expected)
@@ -537,7 +562,7 @@ pub mod event {
             self.sender()
         }
 
-        fn event_type(&self) -> EventType {
+        fn event_type(&self) -> &EventType {
             self.event_type()
         }
 
@@ -549,7 +574,7 @@ pub mod event {
             *self.origin_server_ts()
         }
 
-        fn state_key(&self) -> Option<String> {
+        fn state_key(&self) -> Option<&str> {
             self.state_key()
         }
 
@@ -680,18 +705,18 @@ pub mod event {
                 _ => unreachable!("new PDU version"),
             }
         }
-        pub fn event_type(&self) -> EventType {
+        pub fn event_type(&self) -> &EventType {
             match &self.rest {
-                Pdu::RoomV1Pdu(ev) => ev.kind.clone(),
-                Pdu::RoomV3Pdu(ev) => ev.kind.clone(),
+                Pdu::RoomV1Pdu(ev) => &ev.kind,
+                Pdu::RoomV3Pdu(ev) => &ev.kind,
                 #[cfg(not(feature = "unstable-exhaustive-types"))]
                 _ => unreachable!("new PDU version"),
             }
         }
-        pub fn state_key(&self) -> Option<String> {
+        pub fn state_key(&self) -> Option<&str> {
             match &self.rest {
-                Pdu::RoomV1Pdu(ev) => ev.state_key.clone(),
-                Pdu::RoomV3Pdu(ev) => ev.state_key.clone(),
+                Pdu::RoomV1Pdu(ev) => ev.state_key.as_deref(),
+                Pdu::RoomV3Pdu(ev) => ev.state_key.as_deref(),
                 #[cfg(not(feature = "unstable-exhaustive-types"))]
                 _ => unreachable!("new PDU version"),
             }

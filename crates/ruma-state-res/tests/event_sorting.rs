@@ -16,7 +16,7 @@ fn test_event_sort() {
 
     let event_map = events
         .values()
-        .map(|ev| ((ev.event_type(), ev.state_key()), ev.clone()))
+        .map(|ev| ((ev.event_type().to_owned(), ev.state_key().to_owned()), ev.clone()))
         .collect::<StateMap<_>>();
 
     let auth_chain = HashSet::new();

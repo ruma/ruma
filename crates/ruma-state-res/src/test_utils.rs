@@ -129,12 +129,12 @@ pub fn do_check(
 
         let mut state_after = state_before.clone();
 
-        let ty = fake_event.event_type();
-        let key = fake_event.state_key();
+        let ty = fake_event.event_type().to_owned();
+        let key = fake_event.state_key().to_owned();
         state_after.insert((ty, key), event_id.clone());
 
         let auth_types = auth_types_for_event(
-            &fake_event.event_type(),
+            fake_event.event_type(),
             fake_event.sender(),
             Some(fake_event.state_key()),
             fake_event.content(),
@@ -155,7 +155,7 @@ pub fn do_check(
             e.event_id().as_str(),
             e.sender().clone(),
             e.event_type().clone(),
-            Some(&e.state_key()),
+            Some(e.state_key()),
             e.content(),
             &auth_events,
             &prev_events.iter().cloned().collect::<Vec<_>>(),
@@ -179,7 +179,7 @@ pub fn do_check(
             )
         });
 
-        let key = (ev.event_type(), ev.state_key());
+        let key = (ev.event_type().to_owned(), ev.state_key().to_owned());
 
         expected_state.insert(key, node);
     }
@@ -339,17 +339,17 @@ impl TestStore<StateEvent> {
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
-            .map(|e| ((e.event_type(), e.state_key()), e.event_id().clone()))
+            .map(|e| ((e.event_type().to_owned(), e.state_key().to_owned()), e.event_id().clone()))
             .collect::<StateMap<_>>();
 
         let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
             .iter()
-            .map(|e| ((e.event_type(), e.state_key()), e.event_id().clone()))
+            .map(|e| ((e.event_type().to_owned(), e.state_key().to_owned()), e.event_id().clone()))
             .collect::<StateMap<_>>();
 
         let expected = [&create_event, &alice_mem, &join_rules, &bob_mem, &charlie_mem]
             .iter()
-            .map(|e| ((e.event_type(), e.state_key()), e.event_id().clone()))
+            .map(|e| ((e.event_type().to_owned(), e.state_key().to_owned()), e.event_id().clone()))
             .collect::<StateMap<_>>();
 
         (state_at_bob, state_at_charlie, expected)
@@ -585,7 +585,7 @@ pub mod event {
         fn sender(&self) -> &UserId {
             self.sender()
         }
-        fn event_type(&self) -> EventType {
+        fn event_type(&self) -> &EventType {
             self.event_type()
         }
 
@@ -596,7 +596,7 @@ pub mod event {
             *self.origin_server_ts()
         }
 
-        fn state_key(&self) -> Option<String> {
+        fn state_key(&self) -> Option<&str> {
             Some(self.state_key())
         }
         fn prev_events(&self) -> Vec<EventId> {
@@ -721,18 +721,18 @@ pub mod event {
                 _ => unreachable!("new PDU version"),
             }
         }
-        pub fn event_type(&self) -> EventType {
+        pub fn event_type(&self) -> &EventType {
             match &self.rest {
-                Pdu::RoomV1Pdu(ev) => ev.kind.clone(),
-                Pdu::RoomV3Pdu(ev) => ev.kind.clone(),
+                Pdu::RoomV1Pdu(ev) => &ev.kind,
+                Pdu::RoomV3Pdu(ev) => &ev.kind,
                 #[cfg(not(feature = "unstable-exhaustive-types"))]
                 _ => unreachable!("new PDU version"),
             }
         }
-        pub fn state_key(&self) -> String {
+        pub fn state_key(&self) -> &str {
             match &self.rest {
-                Pdu::RoomV1Pdu(ev) => ev.state_key.clone().unwrap(),
-                Pdu::RoomV3Pdu(ev) => ev.state_key.clone().unwrap(),
+                Pdu::RoomV1Pdu(ev) => ev.state_key.as_ref().unwrap(),
+                Pdu::RoomV3Pdu(ev) => ev.state_key.as_ref().unwrap(),
                 #[cfg(not(feature = "unstable-exhaustive-types"))]
                 _ => unreachable!("new PDU version"),
             }
