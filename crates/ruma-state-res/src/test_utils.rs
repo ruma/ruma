@@ -21,7 +21,7 @@ use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use serde_json::{json, Value as JsonValue};
 use tracing::info;
 
-use crate::{self as state_res, auth_types_for_event, Error, Event, Result, StateMap};
+use crate::{auth_types_for_event, Error, Event, Result, StateMap};
 
 pub use event::StateEvent;
 
@@ -76,7 +76,7 @@ pub fn do_check(
 
     // Resolve the current state and add it to the state_at_event map then continue
     // on in "time"
-    for node in state_res::lexicographical_topological_sort(&graph, |id| {
+    for node in crate::lexicographical_topological_sort(&graph, |id| {
         Ok((0, MilliSecondsSinceUnixEpoch(uint!(0)), id.clone()))
     })
     .unwrap()
@@ -108,7 +108,7 @@ pub fn do_check(
                     .collect::<Vec<_>>()
             );
 
-            let resolved = state_res::resolve(
+            let resolved = crate::resolve(
                 &RoomVersionId::Version6,
                 &state_sets,
                 state_sets
