@@ -21,13 +21,13 @@ pub trait Event {
     fn origin_server_ts(&self) -> MilliSecondsSinceUnixEpoch;
 
     /// The kind of event.
-    fn event_type(&self) -> EventType;
+    fn event_type(&self) -> &EventType;
 
     /// The `UserId` of this PDU.
     fn content(&self) -> serde_json::Value;
 
     /// The state key for this event.
-    fn state_key(&self) -> Option<String>;
+    fn state_key(&self) -> Option<&str>;
 
     /// The events before this event.
     fn prev_events(&self) -> Vec<EventId>;

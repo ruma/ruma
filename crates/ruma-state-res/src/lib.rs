@@ -343,7 +343,7 @@ where
 
     for aid in event.as_ref().map(|pdu| pdu.auth_events()).unwrap_or_default() {
         if let Some(aev) = fetch_event(&aid) {
-            if is_type_and_key(&aev, EventType::RoomPowerLevels, "") {
+            if is_type_and_key(&aev, &EventType::RoomPowerLevels, "") {
                 pl = Some(aev);
                 break;
             }
@@ -408,10 +408,12 @@ where
                 // related to soft-failing
                 auth_events.insert(
                     (
-                        ev.event_type(),
-                        ev.state_key().ok_or_else(|| {
-                            Error::InvalidPdu("State event had no state key".to_owned())
-                        })?,
+                        ev.event_type().to_owned(),
+                        ev.state_key()
+                            .ok_or_else(|| {
+                                Error::InvalidPdu("State event had no state key".to_owned())
+                            })?
+                            .to_owned(),
                     ),
                     ev,
                 );
@@ -421,15 +423,15 @@ where
         }
 
         for key in auth_types_for_event(
-            &event.event_type(),
+            event.event_type(),
             event.sender(),
-            Some(state_key.clone()),
+            Some(state_key),
             event.content(),
         ) {
             if let Some(ev_id) = resolved_state.get(&key) {
                 if let Some(event) = fetch_event(ev_id) {
                     // TODO synapse checks `rejected_reason` is None here
-                    auth_events.insert(key.clone(), event);
+                    auth_events.insert(key.to_owned(), event);
                 }
             }
         }
@@ -442,7 +444,7 @@ where
         // The key for this is (eventType + a state_key of the signed token not sender) so
         // search for it
         let current_third_party = auth_events.iter().find_map(|(_, pdu)| {
-            (pdu.event_type() == EventType::RoomThirdPartyInvite).then(|| {
+            (*pdu.event_type() == EventType::RoomThirdPartyInvite).then(|| {
                 // TODO no clone, auth_events is borrowed while moved
                 pdu.clone()
             })
@@ -456,7 +458,8 @@ where
             |ty, key| auth_events.get(&(ty.clone(), key.to_owned())).cloned(),
         )? {
             // add event to resolved state map
-            resolved_state.insert((event.event_type(), state_key), event_id.clone());
+            resolved_state
+                .insert((event.event_type().to_owned(), state_key.to_owned()), event_id.clone());
         } else {
             // synapse passes here on AuthError. We do not add this event to resolved_state.
             warn!("event {} failed the authentication check", event_id);
@@ -504,7 +507,7 @@ where
         for aid in auth_events {
             let ev = fetch_event(aid)
                 .ok_or_else(|| Error::NotFound(format!("Failed to find {}", aid)))?;
-            if is_type_and_key(&ev, EventType::RoomPowerLevels, "") {
+            if is_type_and_key(&ev, &EventType::RoomPowerLevels, "") {
                 pl = Some(aid.clone());
                 break;
             }
@@ -568,7 +571,7 @@ where
         for aid in auth_events {
             let aev = fetch_event(aid)
                 .ok_or_else(|| Error::NotFound(format!("Failed to find {}", aid)))?;
-            if is_type_and_key(&aev, EventType::RoomPowerLevels, "") {
+            if is_type_and_key(&aev, &EventType::RoomPowerLevels, "") {
                 event = Some(aev);
                 break;
             }
@@ -615,19 +618,19 @@ where
     }
 }
 
-pub fn is_type_and_key<E: Event>(ev: &Arc<E>, ev_type: EventType, state_key: &str) -> bool {
-    ev.event_type() == ev_type && ev.state_key().as_deref() == Some(state_key)
+pub fn is_type_and_key<E: Event>(ev: &Arc<E>, ev_type: &EventType, state_key: &str) -> bool {
+    ev.event_type() == ev_type && ev.state_key() == Some(state_key)
 }
 
 pub fn is_power_event<E: Event>(event: &Arc<E>) -> bool {
     match event.event_type() {
         EventType::RoomPowerLevels | EventType::RoomJoinRules | EventType::RoomCreate => {
-            event.state_key() == Some("".into())
+            event.state_key() == Some("")
         }
         EventType::RoomMember => {
             if let Ok(content) = serde_json::from_value::<MemberEventContent>(event.content()) {
                 if [MembershipState::Leave, MembershipState::Ban].contains(&content.membership) {
-                    return Some(event.sender().as_str()) != event.state_key().as_deref();
+                    return Some(event.sender().as_str()) != event.state_key();
                 }
             }
 
