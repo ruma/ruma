@@ -14,7 +14,7 @@ use ruma_events::{
 use ruma_identifiers::{RoomVersionId, UserId};
 use tracing::{debug, error, info, warn};
 
-use crate::{room_version::RoomVersion, Error, Event, Result, StateMap};
+use crate::{room_version::RoomVersion, Error, Event, Result};
 
 /// For the given event `kind` what are the relevant auth events that are needed to authenticate
 /// this `content`.
@@ -757,39 +757,6 @@ fn check_redaction<E: Event>(
     }
 
     Ok(false)
-}
-
-/// Check that the member event matches `state`.
-///
-/// This function returns false instead of failing when deserialization fails.
-fn check_membership<E: Event>(member_event: Option<Arc<E>>, state: MembershipState) -> bool {
-    if let Some(event) = member_event {
-        if let Some(Ok(membership)) = event
-            .content()
-            .get("membership")
-            .map(|m| serde_json::from_value::<MembershipState>(m.clone()))
-        {
-            membership == state
-        } else {
-            false
-        }
-    } else {
-        false
-    }
-}
-
-/// Can this room federate based on its m.room.create event.
-fn can_federate<E: Event>(auth_events: &StateMap<Arc<E>>) -> bool {
-    let creation_event = auth_events.get(&(EventType::RoomCreate, "".into()));
-    if let Some(ev) = creation_event {
-        if let Some(fed) = ev.content().get("m.federate") {
-            fed == "true"
-        } else {
-            false
-        }
-    } else {
-        false
-    }
 }
 
 /// Helper function to fetch the power level needed to send an event of type
