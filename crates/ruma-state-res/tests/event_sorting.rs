@@ -23,7 +23,7 @@ fn test_event_sort() {
 
     let power_events = event_map
         .values()
-        .filter(|pdu| is_power_event(pdu))
+        .filter(|&pdu| is_power_event(&**pdu))
         .map(|pdu| pdu.event_id().clone())
         .collect::<Vec<_>>();
 
