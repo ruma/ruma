@@ -341,8 +341,8 @@ where
     let event = fetch_event(event_id);
     let mut pl = None;
 
-    for aid in event.as_ref().map(|pdu| pdu.auth_events()).unwrap_or_default() {
-        if let Some(aev) = fetch_event(&aid) {
+    for aid in event.as_ref().map(|pdu| pdu.auth_events()).into_iter().flatten() {
+        if let Some(aev) = fetch_event(aid) {
             if is_type_and_key(&aev, &EventType::RoomPowerLevels, "") {
                 pl = Some(aev);
                 break;
@@ -402,7 +402,7 @@ where
             .ok_or_else(|| Error::InvalidPdu("State event had no state key".to_owned()))?;
 
         let mut auth_events = HashMap::new();
-        for aid in &event.auth_events() {
+        for aid in event.auth_events() {
             if let Some(ev) = fetch_event(aid) {
                 // TODO synapse check "rejected_reason" which is most likely
                 // related to soft-failing
@@ -439,7 +439,7 @@ where
         debug!("event to check {:?}", event.event_id());
 
         let most_recent_prev_event =
-            event.prev_events().iter().filter_map(|id| fetch_event(id)).next_back();
+            event.prev_events().filter_map(|id| fetch_event(id)).next_back();
 
         // The key for this is (eventType + a state_key of the signed token not sender) so
         // search for it
@@ -502,9 +502,8 @@ where
 
         let event =
             fetch_event(&p).ok_or_else(|| Error::NotFound(format!("Failed to find {}", p)))?;
-        let auth_events = &event.auth_events();
         pl = None;
-        for aid in auth_events {
+        for aid in event.auth_events() {
             let ev = fetch_event(aid)
                 .ok_or_else(|| Error::NotFound(format!("Failed to find {}", aid)))?;
             if is_type_and_key(&ev, &EventType::RoomPowerLevels, "") {
@@ -566,9 +565,8 @@ where
             return Ok(*depth);
         }
 
-        let auth_events = &sort_ev.auth_events();
         event = None;
-        for aid in auth_events {
+        for aid in sort_ev.auth_events() {
             let aev = fetch_event(aid)
                 .ok_or_else(|| Error::NotFound(format!("Failed to find {}", aid)))?;
             if is_type_and_key(&aev, &EventType::RoomPowerLevels, "") {
@@ -594,7 +592,7 @@ fn add_event_and_auth_chain_to_graph<E, F>(
     while let Some(eid) = state.pop() {
         graph.entry(eid.clone()).or_default();
         // Prefer the store to event as the store filters dedups the events
-        for aid in &fetch_event(&eid).map(|ev| ev.auth_events()).unwrap_or_default() {
+        for aid in fetch_event(&eid).as_ref().map(|ev| ev.auth_events()).into_iter().flatten() {
             if auth_diff.contains(aid) {
                 if !graph.contains_key(aid) {
                     state.push(aid.clone());

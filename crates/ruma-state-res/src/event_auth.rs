@@ -118,7 +118,7 @@ where
         info!("start m.room.create check");
 
         // If it has any previous events, reject
-        if !incoming_event.prev_events().is_empty() {
+        if incoming_event.prev_events().next().is_some() {
             warn!("the room creation event had previous events");
             return Ok(false);
         }
@@ -431,7 +431,7 @@ fn valid_membership_change<E: Event>(
     }
 
     if let Some(prev) = prev_event {
-        if *prev.event_type() == EventType::RoomCreate && prev.prev_events().is_empty() {
+        if *prev.event_type() == EventType::RoomCreate && prev.prev_events().next().is_none() {
             return Ok(true);
         }
     }

@@ -30,7 +30,8 @@ pub trait Event {
     fn state_key(&self) -> Option<&str>;
 
     /// The events before this event.
-    fn prev_events(&self) -> Vec<EventId>;
+    // Requires GATs to avoid boxing (and TAIT for making it convenient).
+    fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_>;
 
     /// The maximum number of `prev_events` plus 1.
     ///
@@ -38,7 +39,8 @@ pub trait Event {
     fn depth(&self) -> &UInt;
 
     /// All the authenticating events for this event.
-    fn auth_events(&self) -> Vec<EventId>;
+    // Requires GATs to avoid boxing (and TAIT for making it convenient).
+    fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_>;
 
     /// If this event is a redaction event this is the event it redacts.
     fn redacts(&self) -> Option<&EventId>;
