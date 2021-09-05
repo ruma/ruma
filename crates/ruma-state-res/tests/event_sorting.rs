@@ -36,7 +36,7 @@ fn test_event_sort() {
     let resolved_power = state_res::iterative_auth_check(
         &RoomVersion::version_6(),
         &sorted_power_events,
-        &HashMap::new(), // unconflicted events
+        HashMap::new(), // unconflicted events
         |id| events.get(id).map(Arc::clone),
     )
     .expect("iterative auth check failed on resolved events");
