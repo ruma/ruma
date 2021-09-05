@@ -20,10 +20,10 @@ pub trait Event {
     /// The time of creation on the originating server.
     fn origin_server_ts(&self) -> MilliSecondsSinceUnixEpoch;
 
-    /// The kind of event.
+    /// The event type.
     fn event_type(&self) -> &EventType;
 
-    /// The `UserId` of this PDU.
+    /// The event's content.
     fn content(&self) -> serde_json::Value;
 
     /// The state key for this event.
