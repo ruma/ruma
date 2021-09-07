@@ -78,21 +78,14 @@ where
     info!("conflicting events: {}", conflicting.len());
     debug!("{:?}", conflicting);
 
-    // The set of auth events that are not common across server forks
-    let mut auth_diff: HashSet<_> = get_auth_chain_diff(auth_chain_sets).collect();
-
-    // Add the auth_diff to conflicting now we have a full set of conflicting events
-    auth_diff.extend(conflicting.values().cloned().flatten().flatten());
-
-    debug!("auth diff: {}", auth_diff.len());
-    trace!("{:?}", auth_diff);
-
     // `all_conflicted` contains unique items
     // synapse says `full_set = {eid for eid in full_conflicted_set if eid in event_map}`
-    //
-    // Don't honor events we cannot "verify"
-    auth_diff.retain(|id| fetch_event(id).is_some());
-    let all_conflicted = auth_diff;
+    let all_conflicted: HashSet<_> = get_auth_chain_diff(auth_chain_sets)
+        // FIXME: Use into_values() once MSRV >= 1.54
+        .chain(conflicting.into_iter().flat_map(|(_k, v)| v).flatten())
+        // Don't honor events we cannot "verify"
+        .filter(|id| fetch_event(id).is_some())
+        .collect();
 
     info!("full conflicted set: {}", all_conflicted.len());
     debug!("{:?}", all_conflicted);
