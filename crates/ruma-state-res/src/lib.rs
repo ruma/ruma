@@ -82,7 +82,7 @@ where
     // synapse says `full_set = {eid for eid in full_conflicted_set if eid in event_map}`
     let all_conflicted: HashSet<_> = get_auth_chain_diff(auth_chain_sets)
         // FIXME: Use into_values() once MSRV >= 1.54
-        .chain(conflicting.into_iter().flat_map(|(_k, v)| v).flatten())
+        .chain(conflicting.into_iter().flat_map(|(_k, v)| v))
         // Don't honor events we cannot "verify"
         .filter(|id| fetch_event(id).is_some())
         .collect();
@@ -159,9 +159,7 @@ where
 /// State is determined to be conflicting if for the given key (EventType, StateKey) there is not
 /// exactly one eventId. This includes missing events, if one state_set includes an event that none
 /// of the other have this is a conflicting event.
-pub fn separate(
-    state_sets: &[StateMap<EventId>],
-) -> (StateMap<EventId>, StateMap<Vec<Option<EventId>>>) {
+pub fn separate(state_sets: &[StateMap<EventId>]) -> (StateMap<EventId>, StateMap<Vec<EventId>>) {
     info!("separating {} sets of events into conflicted/unconflicted", state_sets.len());
 
     let mut unconflicted_state = StateMap::new();
@@ -179,7 +177,7 @@ pub fn separate(
             unconflicted_state.insert(key.clone(), id.clone());
         } else {
             conflicted_state
-                .insert(key.clone(), event_ids.into_iter().map(|o| o.cloned()).collect());
+                .insert(key.clone(), event_ids.into_iter().filter_map(|o| o.cloned()).collect());
         }
     }
 
