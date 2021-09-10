@@ -978,6 +978,7 @@ fn get_plain_quote_fallback(original_message: &MessageEvent) -> String {
             format!("> <{:?}> {}", original_message.sender, content.body)
         }
     }
+    .replace('\n', "\n> ")
 }
 
 #[allow(clippy::nonstandard_macro_braces)]
@@ -1190,11 +1191,13 @@ fn formatted_or_plain_body<'a>(formatted: &'a Option<FormattedBody>, body: &'a s
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
     use matches::assert_matches;
-    use ruma_identifiers::event_id;
+    use ruma_identifiers::{event_id, EventId, RoomId, UserId};
     use serde_json::{from_value as from_json_value, json};
 
-    use super::{InReplyTo, MessageEventContent, MessageType, Relation};
+    use super::{InReplyTo, MessageEvent, MessageEventContent, MessageType, Relation};
 
     #[test]
     fn deserialize_reply() {
@@ -1216,6 +1219,21 @@ mod tests {
                 msgtype: MessageType::Text(_),
                 relates_to: Some(Relation::Reply { in_reply_to: InReplyTo { event_id } }),
             } if event_id == ev_id
+        );
+    }
+    #[test]
+    fn plain_quote_fallback_multiline() {
+        let sender = UserId::try_from("@alice:example.com").unwrap();
+        assert_eq!(
+            super::get_plain_quote_fallback(&MessageEvent {
+                content: MessageEventContent::text_plain("multi\nline"),
+                event_id: EventId::new(sender.server_name()),
+                sender,
+                origin_server_ts: ruma_common::MilliSecondsSinceUnixEpoch::now(),
+                room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
+                unsigned: crate::Unsigned::new(),
+            }),
+            "> <@alice:example.com> multi\n> line"
         );
     }
 }
