@@ -1,7 +1,6 @@
 use std::{
     cmp::Reverse,
     collections::{BinaryHeap, HashMap, HashSet},
-    sync::Arc,
 };
 
 use itertools::Itertools;
@@ -59,8 +58,8 @@ pub fn resolve<E, F>(
     fetch_event: F,
 ) -> Result<StateMap<EventId>>
 where
-    E: Event,
-    F: Fn(&EventId) -> Option<Arc<E>>,
+    E: Event + Clone,
+    F: Fn(&EventId) -> Option<E>,
 {
     info!("State resolution starting");
 
@@ -210,7 +209,7 @@ fn reverse_topological_power_sort<E, F>(
 ) -> Result<Vec<EventId>>
 where
     E: Event,
-    F: Fn(&EventId) -> Option<Arc<E>>,
+    F: Fn(&EventId) -> Option<E>,
 {
     debug!("reverse topological sort of power events");
 
@@ -323,7 +322,7 @@ where
 fn get_power_level_for_sender<E, F>(event_id: &EventId, fetch_event: F) -> i64
 where
     E: Event,
-    F: Fn(&EventId) -> Option<Arc<E>>,
+    F: Fn(&EventId) -> Option<E>,
 {
     info!("fetch event ({}) senders power level", event_id);
 
@@ -332,7 +331,7 @@ where
 
     for aid in event.as_ref().map(|pdu| pdu.auth_events()).into_iter().flatten() {
         if let Some(aev) = fetch_event(aid) {
-            if is_type_and_key(&*aev, &EventType::RoomPowerLevels, "") {
+            if is_type_and_key(&aev, &EventType::RoomPowerLevels, "") {
                 pl = Some(aev);
                 break;
             }
@@ -374,8 +373,8 @@ fn iterative_auth_check<E, F>(
     fetch_event: F,
 ) -> Result<StateMap<EventId>>
 where
-    E: Event,
-    F: Fn(&EventId) -> Option<Arc<E>>,
+    E: Event + Clone,
+    F: Fn(&EventId) -> Option<E>,
 {
     info!("starting iterative auth check");
 
@@ -441,9 +440,9 @@ where
 
         if auth_check(
             room_version,
-            &*event,
-            most_recent_prev_event.as_deref(),
-            current_third_party.as_deref(),
+            &event,
+            most_recent_prev_event.as_ref(),
+            current_third_party.as_ref(),
             |ty, key| auth_events.get(&(ty.clone(), key.to_owned())).cloned(),
         )? {
             // add event to resolved state map
@@ -475,7 +474,7 @@ fn mainline_sort<E, F>(
 ) -> Result<Vec<EventId>>
 where
     E: Event,
-    F: Fn(&EventId) -> Option<Arc<E>>,
+    F: Fn(&EventId) -> Option<E>,
 {
     debug!("mainline sort of events");
 
@@ -495,7 +494,7 @@ where
         for aid in event.auth_events() {
             let ev = fetch_event(aid)
                 .ok_or_else(|| Error::NotFound(format!("Failed to find {}", aid)))?;
-            if is_type_and_key(&*ev, &EventType::RoomPowerLevels, "") {
+            if is_type_and_key(&ev, &EventType::RoomPowerLevels, "") {
                 pl = Some(aid.clone());
                 break;
             }
@@ -539,13 +538,13 @@ where
 /// Get the mainline depth from the `mainline_map` or finds a power_level event that has an
 /// associated mainline depth.
 fn get_mainline_depth<E, F>(
-    mut event: Option<Arc<E>>,
+    mut event: Option<E>,
     mainline_map: &EventMap<usize>,
     fetch_event: F,
 ) -> Result<usize>
 where
     E: Event,
-    F: Fn(&EventId) -> Option<Arc<E>>,
+    F: Fn(&EventId) -> Option<E>,
 {
     while let Some(sort_ev) = event {
         debug!("mainline event_id {}", sort_ev.event_id());
@@ -558,7 +557,7 @@ where
         for aid in sort_ev.auth_events() {
             let aev = fetch_event(aid)
                 .ok_or_else(|| Error::NotFound(format!("Failed to find {}", aid)))?;
-            if is_type_and_key(&*aev, &EventType::RoomPowerLevels, "") {
+            if is_type_and_key(&aev, &EventType::RoomPowerLevels, "") {
                 event = Some(aev);
                 break;
             }
@@ -575,7 +574,7 @@ fn add_event_and_auth_chain_to_graph<E, F>(
     fetch_event: F,
 ) where
     E: Event,
-    F: Fn(&EventId) -> Option<Arc<E>>,
+    F: Fn(&EventId) -> Option<E>,
 {
     let mut state = vec![event_id];
     while let Some(eid) = state.pop() {
@@ -597,9 +596,9 @@ fn add_event_and_auth_chain_to_graph<E, F>(
 fn is_power_event_id<E, F>(event_id: &EventId, fetch: F) -> bool
 where
     E: Event,
-    F: Fn(&EventId) -> Option<Arc<E>>,
+    F: Fn(&EventId) -> Option<E>,
 {
-    match fetch(event_id).as_deref() {
+    match fetch(event_id).as_ref() {
         Some(state) => is_power_event(state),
         _ => false,
     }
@@ -977,7 +976,7 @@ mod tests {
 
         let ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
         let state_sets = vec![state_at_bob, state_at_charlie];
-        let resolved = match crate::resolve::<StateEvent, _>(
+        let resolved = match crate::resolve(
             &RoomVersionId::Version2,
             &state_sets,
             state_sets
@@ -1083,7 +1082,7 @@ mod tests {
 
         let ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
         let state_sets = vec![state_set_a, state_set_b];
-        let resolved = match crate::resolve::<StateEvent, _>(
+        let resolved = match crate::resolve(
             &RoomVersionId::Version6,
             &state_sets,
             state_sets
