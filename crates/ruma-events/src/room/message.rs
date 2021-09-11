@@ -1221,6 +1221,7 @@ mod tests {
             } if event_id == ev_id
         );
     }
+
     #[test]
     fn plain_quote_fallback_multiline() {
         let sender = UserId::try_from("@alice:example.com").unwrap();
