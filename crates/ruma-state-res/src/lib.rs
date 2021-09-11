@@ -53,10 +53,10 @@ type EventMap<T> = HashMap<EventId, T>;
 /// function takes a `RoomId` it does not check that each event is part of the same room.
 pub fn resolve<E, F>(
     room_version: &RoomVersionId,
-    state_sets: &[StateMap<EventId>],
-    auth_chain_sets: Vec<HashSet<EventId>>,
+    state_sets: &[StateMap<&EventId>],
+    auth_chain_sets: Vec<HashSet<&EventId>>,
     fetch_event: F,
-) -> Result<StateMap<EventId>>
+) -> Result<StateMap<&EventId>>
 where
     E: Event + Clone,
     F: Fn(&EventId) -> Option<E>,
@@ -244,7 +244,7 @@ where
         // This return value is the key used for sorting events,
         // events are then sorted by power level, time,
         // and lexically by event_id.
-        Ok((-*pl, ev.origin_server_ts(), ev.event_id().clone()))
+        Ok((-*pl, ev.origin_server_ts(), ev.event_id()))
     })
 }
 
@@ -252,10 +252,10 @@ where
 ///
 /// `key_fn` is used as a tie breaker. The tie breaker happens based on power level, age, and
 /// event_id.
-pub fn lexicographical_topological_sort<F>(
-    graph: &HashMap<EventId, HashSet<EventId>>,
+pub fn lexicographical_topological_sort<'a, F>(
+    graph: &HashMap<&'a EventId, HashSet<&EventId>>,
     key_fn: F,
-) -> Result<Vec<EventId>>
+) -> Result<Vec<&'a EventId>>
 where
     F: Fn(&EventId) -> Result<(i64, MilliSecondsSinceUnixEpoch, EventId)>,
 {
@@ -278,7 +278,7 @@ where
     // Vec of nodes that have zero out degree, least recent events.
     let mut zero_outdegree = vec![];
 
-    for (node, edges) in graph.iter() {
+    for (&node, edges) in graph {
         if edges.is_empty() {
             // The `Reverse` is because rusts `BinaryHeap` sorts largest -> smallest we need
             // smallest -> largest
@@ -1010,7 +1010,7 @@ mod tests {
         };
 
         let res = crate::lexicographical_topological_sort(&graph, |id| {
-            Ok((0, MilliSecondsSinceUnixEpoch(uint!(0)), id.clone()))
+            Ok((0, MilliSecondsSinceUnixEpoch(uint!(0)), id))
         })
         .unwrap();
 
