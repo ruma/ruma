@@ -1,4 +1,4 @@
-use std::{collections::BTreeSet, convert::TryFrom, sync::Arc};
+use std::{collections::BTreeSet, convert::TryFrom};
 
 use js_int::{int, Int};
 use ruma_events::{
@@ -93,7 +93,7 @@ pub fn auth_check<E, F>(
 ) -> Result<bool>
 where
     E: Event,
-    F: Fn(&EventType, &str) -> Option<Arc<E>>,
+    F: Fn(&EventType, &str) -> Option<E>,
 {
     info!(
         "auth_check beginning for {} ({})",
@@ -231,14 +231,14 @@ where
 
         if !valid_membership_change(
             &target_user,
-            fetch_state(&EventType::RoomMember, target_user.as_str()).as_deref(),
+            fetch_state(&EventType::RoomMember, target_user.as_str()).as_ref(),
             sender,
-            sender_member_event.as_deref(),
+            sender_member_event.as_ref(),
             incoming_event.content(),
             prev_event,
             current_third_party_invite,
-            power_levels_event.as_deref(),
-            fetch_state(&EventType::RoomJoinRules, "").as_deref(),
+            power_levels_event.as_ref(),
+            fetch_state(&EventType::RoomJoinRules, "").as_ref(),
         )? {
             return Ok(false);
         }
@@ -304,7 +304,7 @@ where
 
     // If the event type's required power level is greater than the sender's power level, reject
     // If the event has a state_key that starts with an @ and does not match the sender, reject.
-    if !can_send_event(incoming_event, power_levels_event.as_deref(), sender_power_level) {
+    if !can_send_event(incoming_event, power_levels_event.as_ref(), sender_power_level) {
         warn!("user cannot send event");
         return Ok(false);
     }
@@ -315,7 +315,7 @@ where
         if let Some(required_pwr_lvl) = check_power_levels(
             room_version,
             incoming_event,
-            power_levels_event.as_deref(),
+            power_levels_event.as_ref(),
             sender_power_level,
         ) {
             if !required_pwr_lvl {
