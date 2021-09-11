@@ -836,7 +836,7 @@ mod tests {
     use crate::{
         event_auth::valid_membership_change,
         test_utils::{alice, charlie, event_id, member_content_ban, to_pdu_event, INITIAL_EVENTS},
-        StateMap,
+        Event, StateMap,
     };
     use ruma_events::EventType;
 
@@ -847,11 +847,13 @@ mod tests {
         let events = INITIAL_EVENTS();
 
         let prev_event =
-            events.values().find(|ev| ev.event_id().as_str().contains("IMC")).map(Arc::clone);
+            events.values().find(|ev| ev.event_id.as_str().contains("IMC")).map(Arc::clone);
 
         let auth_events = events
             .values()
-            .map(|ev| ((ev.event_type().to_owned(), ev.state_key().to_owned()), Arc::clone(ev)))
+            .map(|ev| {
+                ((ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()), Arc::clone(ev))
+            })
             .collect::<StateMap<_>>();
 
         let requester = to_pdu_event(
@@ -889,11 +891,13 @@ mod tests {
         let events = INITIAL_EVENTS();
 
         let prev_event =
-            events.values().find(|ev| ev.event_id().as_str().contains("IMC")).map(Arc::clone);
+            events.values().find(|ev| ev.event_id.as_str().contains("IMC")).map(Arc::clone);
 
         let auth_events = events
             .values()
-            .map(|ev| ((ev.event_type().to_owned(), ev.state_key().to_owned()), Arc::clone(ev)))
+            .map(|ev| {
+                ((ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()), Arc::clone(ev))
+            })
             .collect::<StateMap<_>>();
 
         let requester = to_pdu_event(

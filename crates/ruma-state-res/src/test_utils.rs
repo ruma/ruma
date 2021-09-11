@@ -128,13 +128,13 @@ pub fn do_check(
         let mut state_after = state_before.clone();
 
         let ty = fake_event.event_type().to_owned();
-        let key = fake_event.state_key().to_owned();
+        let key = fake_event.state_key().unwrap().to_owned();
         state_after.insert((ty, key), event_id.clone());
 
         let auth_types = auth_types_for_event(
             fake_event.event_type(),
             fake_event.sender(),
-            Some(fake_event.state_key()),
+            fake_event.state_key(),
             fake_event.content(),
         );
 
@@ -153,7 +153,7 @@ pub fn do_check(
             e.event_id().as_str(),
             e.sender().clone(),
             e.event_type().clone(),
-            Some(e.state_key()),
+            e.state_key(),
             e.content(),
             &auth_events,
             &prev_events.iter().cloned().collect::<Vec<_>>(),
@@ -177,7 +177,7 @@ pub fn do_check(
             )
         });
 
-        let key = (ev.event_type().to_owned(), ev.state_key().to_owned());
+        let key = (ev.event_type().to_owned(), ev.state_key().unwrap().to_owned());
 
         expected_state.insert(key, node);
     }
@@ -303,17 +303,32 @@ impl TestStore<StateEvent> {
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
-            .map(|e| ((e.event_type().to_owned(), e.state_key().to_owned()), e.event_id().clone()))
+            .map(|e| {
+                (
+                    (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
+                    e.event_id().clone(),
+                )
+            })
             .collect::<StateMap<_>>();
 
         let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
             .iter()
-            .map(|e| ((e.event_type().to_owned(), e.state_key().to_owned()), e.event_id().clone()))
+            .map(|e| {
+                (
+                    (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
+                    e.event_id().clone(),
+                )
+            })
             .collect::<StateMap<_>>();
 
         let expected = [&create_event, &alice_mem, &join_rules, &bob_mem, &charlie_mem]
             .iter()
-            .map(|e| ((e.event_type().to_owned(), e.state_key().to_owned()), e.event_id().clone()))
+            .map(|e| {
+                (
+                    (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
+                    e.event_id().clone(),
+                )
+            })
             .collect::<StateMap<_>>();
 
         (state_at_bob, state_at_charlie, expected)
@@ -536,50 +551,124 @@ pub mod event {
 
     impl Event for StateEvent {
         fn event_id(&self) -> &EventId {
-            self.event_id()
+            &self.event_id
         }
 
         fn room_id(&self) -> &RoomId {
-            self.room_id()
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => &ev.room_id,
+                Pdu::RoomV3Pdu(ev) => &ev.room_id,
+                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                _ => unreachable!("new PDU version"),
+            }
         }
 
         fn sender(&self) -> &UserId {
-            self.sender()
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => &ev.sender,
+                Pdu::RoomV3Pdu(ev) => &ev.sender,
+                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                _ => unreachable!("new PDU version"),
+            }
         }
+
         fn event_type(&self) -> &EventType {
-            self.event_type()
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => &ev.kind,
+                Pdu::RoomV3Pdu(ev) => &ev.kind,
+                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                _ => unreachable!("new PDU version"),
+            }
         }
 
         fn content(&self) -> serde_json::Value {
-            self.content()
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => ev.content.clone(),
+                Pdu::RoomV3Pdu(ev) => ev.content.clone(),
+                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                _ => unreachable!("new PDU version"),
+            }
         }
+
         fn origin_server_ts(&self) -> MilliSecondsSinceUnixEpoch {
-            *self.origin_server_ts()
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => ev.origin_server_ts,
+                Pdu::RoomV3Pdu(ev) => ev.origin_server_ts,
+                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                _ => unreachable!("new PDU version"),
+            }
         }
 
         fn state_key(&self) -> Option<&str> {
-            Some(self.state_key())
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => ev.state_key.as_deref(),
+                Pdu::RoomV3Pdu(ev) => ev.state_key.as_deref(),
+                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                _ => unreachable!("new PDU version"),
+            }
         }
+
         fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
-            self.prev_event_ids()
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => Box::new(ev.prev_events.iter().map(|(id, _)| id)),
+                Pdu::RoomV3Pdu(ev) => Box::new(ev.prev_events.iter()),
+                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                _ => unreachable!("new PDU version"),
+            }
         }
+
         fn depth(&self) -> &UInt {
-            self.depth()
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => &ev.depth,
+                Pdu::RoomV3Pdu(ev) => &ev.depth,
+                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                _ => unreachable!("new PDU version"),
+            }
         }
+
         fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
-            self.auth_events()
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => Box::new(ev.auth_events.iter().map(|(id, _)| id)),
+                Pdu::RoomV3Pdu(ev) => Box::new(ev.auth_events.iter()),
+                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                _ => unreachable!("new PDU version"),
+            }
         }
+
         fn redacts(&self) -> Option<&EventId> {
-            self.redacts()
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => ev.redacts.as_ref(),
+                Pdu::RoomV3Pdu(ev) => ev.redacts.as_ref(),
+                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                _ => unreachable!("new PDU version"),
+            }
         }
+
         fn hashes(&self) -> &EventHash {
-            self.hashes()
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => &ev.hashes,
+                Pdu::RoomV3Pdu(ev) => &ev.hashes,
+                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                _ => unreachable!("new PDU version"),
+            }
         }
+
         fn signatures(&self) -> BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>> {
-            self.signatures()
+            match &self.rest {
+                Pdu::RoomV1Pdu(_) => BTreeMap::new(),
+                Pdu::RoomV3Pdu(ev) => ev.signatures.clone(),
+                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                _ => unreachable!("new PDU version"),
+            }
         }
+
         fn unsigned(&self) -> &BTreeMap<String, JsonValue> {
-            self.unsigned()
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => &ev.unsigned,
+                Pdu::RoomV3Pdu(ev) => &ev.unsigned,
+                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                _ => unreachable!("new PDU version"),
+            }
         }
     }
 
@@ -591,125 +680,14 @@ pub mod event {
         pub rest: Pdu,
     }
 
-    impl StateEvent {
-        pub fn origin_server_ts(&self) -> &MilliSecondsSinceUnixEpoch {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => &ev.origin_server_ts,
-                Pdu::RoomV3Pdu(ev) => &ev.origin_server_ts,
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
-                _ => unreachable!("new PDU version"),
-            }
-        }
-        pub fn event_id(&self) -> &EventId {
-            &self.event_id
-        }
-
-        pub fn sender(&self) -> &UserId {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => &ev.sender,
-                Pdu::RoomV3Pdu(ev) => &ev.sender,
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
-                _ => unreachable!("new PDU version"),
-            }
-        }
-
-        pub fn redacts(&self) -> Option<&EventId> {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => ev.redacts.as_ref(),
-                Pdu::RoomV3Pdu(ev) => ev.redacts.as_ref(),
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
-                _ => unreachable!("new PDU version"),
-            }
-        }
-
-        pub fn room_id(&self) -> &RoomId {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => &ev.room_id,
-                Pdu::RoomV3Pdu(ev) => &ev.room_id,
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
-                _ => unreachable!("new PDU version"),
-            }
-        }
-        pub fn event_type(&self) -> &EventType {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => &ev.kind,
-                Pdu::RoomV3Pdu(ev) => &ev.kind,
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
-                _ => unreachable!("new PDU version"),
-            }
-        }
-        pub fn state_key(&self) -> &str {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => ev.state_key.as_ref().unwrap(),
-                Pdu::RoomV3Pdu(ev) => ev.state_key.as_ref().unwrap(),
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
-                _ => unreachable!("new PDU version"),
-            }
-        }
-
-        pub fn prev_event_ids(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => Box::new(ev.prev_events.iter().map(|(id, _)| id)),
-                Pdu::RoomV3Pdu(ev) => Box::new(ev.prev_events.iter()),
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
-                _ => unreachable!("new PDU version"),
-            }
-        }
-
-        pub fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => Box::new(ev.auth_events.iter().map(|(id, _)| id)),
-                Pdu::RoomV3Pdu(ev) => Box::new(ev.auth_events.iter()),
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
-                _ => unreachable!("new PDU version"),
-            }
-        }
-
-        pub fn content(&self) -> serde_json::Value {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => ev.content.clone(),
-                Pdu::RoomV3Pdu(ev) => ev.content.clone(),
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
-                _ => unreachable!("new PDU version"),
-            }
-        }
-
-        pub fn unsigned(&self) -> &BTreeMap<String, serde_json::Value> {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => &ev.unsigned,
-                Pdu::RoomV3Pdu(ev) => &ev.unsigned,
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
-                _ => unreachable!("new PDU version"),
-            }
-        }
-
-        pub fn signatures(
-            &self,
-        ) -> BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>> {
-            match &self.rest {
-                Pdu::RoomV1Pdu(_) => BTreeMap::new(),
-                Pdu::RoomV3Pdu(ev) => ev.signatures.clone(),
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
-                _ => unreachable!("new PDU version"),
-            }
-        }
-
-        pub fn hashes(&self) -> &EventHash {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => &ev.hashes,
-                Pdu::RoomV3Pdu(ev) => &ev.hashes,
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
-                _ => unreachable!("new PDU version"),
-            }
-        }
-
-        pub fn depth(&self) -> &UInt {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => &ev.depth,
-                Pdu::RoomV3Pdu(ev) => &ev.depth,
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
-                _ => unreachable!("new PDU version"),
-            }
-        }
-    }
+    //impl StateEvent {
+    //    pub fn state_key(&self) -> &str {
+    //        match &self.rest {
+    //            Pdu::RoomV1Pdu(ev) => ev.state_key.as_ref().unwrap(),
+    //            Pdu::RoomV3Pdu(ev) => ev.state_key.as_ref().unwrap(),
+    //            #[cfg(not(feature = "unstable-exhaustive-types"))]
+    //            _ => unreachable!("new PDU version"),
+    //        }
+    //    }
+    //}
 }
