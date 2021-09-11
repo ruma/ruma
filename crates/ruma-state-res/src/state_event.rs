@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, sync::Arc};
 
 use js_int::UInt;
 use ruma_common::MilliSecondsSinceUnixEpoch;
@@ -54,4 +54,62 @@ pub trait Event {
     /// A map of server names to another map consisting of the signing key id and finally the
     /// signature.
     fn signatures(&self) -> BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>>;
+}
+
+impl<T: Event> Event for Arc<T> {
+    fn event_id(&self) -> &EventId {
+        (&**self).event_id()
+    }
+
+    fn room_id(&self) -> &RoomId {
+        (&**self).room_id()
+    }
+
+    fn sender(&self) -> &UserId {
+        (&**self).sender()
+    }
+
+    fn origin_server_ts(&self) -> MilliSecondsSinceUnixEpoch {
+        (&**self).origin_server_ts()
+    }
+
+    fn event_type(&self) -> &EventType {
+        (&**self).event_type()
+    }
+
+    fn content(&self) -> serde_json::Value {
+        (&**self).content()
+    }
+
+    fn state_key(&self) -> Option<&str> {
+        (&**self).state_key()
+    }
+
+    fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
+        (&**self).prev_events()
+    }
+
+    fn depth(&self) -> &UInt {
+        (&**self).depth()
+    }
+
+    fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
+        (&**self).auth_events()
+    }
+
+    fn redacts(&self) -> Option<&EventId> {
+        (&**self).redacts()
+    }
+
+    fn unsigned(&self) -> &BTreeMap<String, JsonValue> {
+        (&**self).unsigned()
+    }
+
+    fn hashes(&self) -> &EventHash {
+        (&**self).hashes()
+    }
+
+    fn signatures(&self) -> BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>> {
+        (&**self).signatures()
+    }
 }
