@@ -235,7 +235,7 @@ where
             sender,
             sender_member_event.as_deref(),
             incoming_event.content(),
-            prev_event.as_deref(),
+            prev_event,
             current_third_party_invite,
             power_levels_event.as_deref(),
             fetch_state(&EventType::RoomJoinRules, "").as_deref(),
