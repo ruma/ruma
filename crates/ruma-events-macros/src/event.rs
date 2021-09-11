@@ -169,9 +169,9 @@ fn expand_deserialize_event(
                         EventKindVariation::Redacted | EventKindVariation::RedactedSync => {
                             ty = quote! { #ruma_events::RedactedUnsignedWithPrevContent };
                         }
-                        EventKindVariation::Stripped
-                        | EventKindVariation::Initial
-                        | EventKindVariation::RedactedStripped => unreachable!(),
+                        EventKindVariation::Stripped | EventKindVariation::Initial => {
+                            unreachable!()
+                        }
                     }
                 }
 

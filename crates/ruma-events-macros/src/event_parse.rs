@@ -25,7 +25,6 @@ pub enum EventKindVariation {
     Initial,
     Redacted,
     RedactedSync,
-    RedactedStripped,
 }
 
 impl fmt::Display for EventKindVariation {
@@ -37,21 +36,20 @@ impl fmt::Display for EventKindVariation {
             EventKindVariation::Initial => write!(f, "Initial"),
             EventKindVariation::Redacted => write!(f, "Redacted"),
             EventKindVariation::RedactedSync => write!(f, "RedactedSync"),
-            EventKindVariation::RedactedStripped => write!(f, "RedactedStripped"),
         }
     }
 }
 
 impl EventKindVariation {
     pub fn is_redacted(self) -> bool {
-        matches!(self, Self::Redacted | Self::RedactedSync | Self::RedactedStripped)
+        matches!(self, Self::Redacted | Self::RedactedSync)
     }
 
     pub fn to_full_variation(self) -> Self {
         match self {
-            EventKindVariation::Redacted
-            | EventKindVariation::RedactedSync
-            | EventKindVariation::RedactedStripped => EventKindVariation::Redacted,
+            EventKindVariation::Redacted | EventKindVariation::RedactedSync => {
+                EventKindVariation::Redacted
+            }
             EventKindVariation::Full
             | EventKindVariation::Sync
             | EventKindVariation::Stripped
@@ -125,8 +123,7 @@ impl EventKind {
             | (Self::Message, V::Redacted)
             | (Self::State, V::Redacted)
             | (Self::Message, V::RedactedSync)
-            | (Self::State, V::RedactedSync)
-            | (Self::State, V::RedactedStripped) => Some(format_ident!("{}{}", var, self)),
+            | (Self::State, V::RedactedSync) => Some(format_ident!("{}{}", var, self)),
             _ => None,
         }
     }
@@ -190,9 +187,6 @@ pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation
         "InitialStateEvent" => Some((EventKind::State, EventKindVariation::Initial)),
         "RedactedStateEvent" => Some((EventKind::State, EventKindVariation::Redacted)),
         "RedactedSyncStateEvent" => Some((EventKind::State, EventKindVariation::RedactedSync)),
-        "RedactedStrippedStateEvent" => {
-            Some((EventKind::State, EventKindVariation::RedactedStripped))
-        }
         "ToDeviceEvent" => Some((EventKind::ToDevice, EventKindVariation::Full)),
         "PresenceEvent" => Some((EventKind::Presence, EventKindVariation::Full)),
         "RedactionEvent" => Some((EventKind::Redaction, EventKindVariation::Full)),

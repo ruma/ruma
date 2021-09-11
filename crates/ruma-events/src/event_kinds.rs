@@ -292,22 +292,6 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
     pub unsigned: RedactedUnsigned,
 }
 
-/// A stripped-down redacted state event.
-#[derive(Clone, Debug, Event)]
-pub struct RedactedStrippedStateEvent<C: RedactedStateEventContent> {
-    /// Data specific to the event type.
-    pub content: C,
-
-    /// The fully-qualified ID of the user who sent this event.
-    pub sender: UserId,
-
-    /// A unique key which defines the overwriting semantics for this piece of room state.
-    ///
-    /// This is often an empty string, but some events send a `UserId` to show which user the event
-    /// affects.
-    pub state_key: String,
-}
-
 /// An event sent using send-to-device messaging.
 #[derive(Clone, Debug, Event)]
 pub struct ToDeviceEvent<C: ToDeviceEventContent> {

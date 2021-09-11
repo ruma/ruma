@@ -341,19 +341,10 @@ fn expand_any_redacted(
                 expand_any_with_deser(kind, events, attrs, variants, &V::Redacted, ruma_events);
             let sync_state =
                 expand_any_with_deser(kind, events, attrs, variants, &V::RedactedSync, ruma_events);
-            let stripped_state = expand_any_with_deser(
-                kind,
-                events,
-                attrs,
-                variants,
-                &V::RedactedStripped,
-                ruma_events,
-            );
 
             quote! {
                 #full_state
                 #sync_state
-                #stripped_state
             }
         }
         EventKind::Message => {
@@ -535,13 +526,6 @@ fn expand_redact(
                     kind.to_event_enum_ident(&EventKindVariation::RedactedSync)?,
                 )
             }
-            EventKindVariation::Stripped => {
-                let struct_id = kind.to_event_ident(&EventKindVariation::RedactedStripped)?;
-                (
-                    quote! { #ruma_events::#struct_id },
-                    kind.to_event_enum_ident(&EventKindVariation::RedactedStripped)?,
-                )
-            }
             _ => return None,
         };
 
@@ -673,7 +657,7 @@ fn generate_custom_variant(
 
     let serde_json = quote! { #ruma_events::exports::serde_json };
 
-    if matches!(var, V::Redacted | V::RedactedSync | V::RedactedStripped) {
+    if matches!(var, V::Redacted | V::RedactedSync) {
         (
             quote! {
                 /// A redacted event not defined by the Matrix specification
@@ -744,7 +728,7 @@ fn accessor_methods(
     let ident = kind.to_event_enum_ident(var)?;
 
     // matching `EventKindVariation`s
-    if let V::Redacted | V::RedactedSync | V::RedactedStripped = var {
+    if let V::Redacted | V::RedactedSync = var {
         return redacted_accessor_methods(kind, var, variants, ruma_events);
     }
 
@@ -821,10 +805,6 @@ fn inner_enum_idents(kind: &EventKind, var: &EventKindVariation) -> Option<(Iden
         EventKindVariation::Sync => (
             kind.to_event_enum_ident(var)?,
             kind.to_event_enum_ident(&EventKindVariation::RedactedSync)?,
-        ),
-        EventKindVariation::Stripped => (
-            kind.to_event_enum_ident(var)?,
-            kind.to_event_enum_ident(&EventKindVariation::RedactedStripped)?,
         ),
         _ => return None,
     })
