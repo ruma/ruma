@@ -650,7 +650,7 @@ mod tests {
             alice, bob, charlie, do_check, ella, event_id, member_content_ban, member_content_join,
             room_id, to_init_pdu_event, to_pdu_event, zara, StateEvent, TestStore, INITIAL_EVENTS,
         },
-        EventMap, StateMap,
+        Event, EventMap, StateMap,
     };
 
     fn test_event_sort() {
@@ -660,7 +660,9 @@ mod tests {
 
         let event_map = events
             .values()
-            .map(|ev| ((ev.event_type().to_owned(), ev.state_key().to_owned()), ev.clone()))
+            .map(|ev| {
+                ((ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()), ev.clone())
+            })
             .collect::<StateMap<_>>();
 
         let auth_chain = HashSet::new();
@@ -668,7 +670,7 @@ mod tests {
         let power_events = event_map
             .values()
             .filter(|&pdu| is_power_event(&**pdu))
-            .map(|pdu| pdu.event_id().clone())
+            .map(|pdu| pdu.event_id.clone())
             .collect::<Vec<_>>();
 
         let sorted_power_events =
@@ -1059,7 +1061,9 @@ mod tests {
             inner.get(&event_id("PA")).unwrap(),
         ]
         .iter()
-        .map(|ev| ((ev.event_type().to_owned(), ev.state_key().to_owned()), ev.event_id().clone()))
+        .map(|ev| {
+            ((ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()), ev.event_id.clone())
+        })
         .collect::<StateMap<_>>();
 
         let state_set_b = [
@@ -1072,7 +1076,9 @@ mod tests {
             inner.get(&event_id("PA")).unwrap(),
         ]
         .iter()
-        .map(|ev| ((ev.event_type().to_owned(), ev.state_key().to_owned()), ev.event_id().clone()))
+        .map(|ev| {
+            ((ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()), ev.event_id.clone())
+        })
         .collect::<StateMap<_>>();
 
         let ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
@@ -1174,7 +1180,7 @@ mod tests {
             ),
         ]
         .into_iter()
-        .map(|ev| (ev.event_id().clone(), ev))
+        .map(|ev| (ev.event_id.clone(), ev))
         .collect()
     }
 
@@ -1201,7 +1207,7 @@ mod tests {
             ),
         ]
         .into_iter()
-        .map(|ev| (ev.event_id().clone(), ev))
+        .map(|ev| (ev.event_id.clone(), ev))
         .collect()
     }
 }
