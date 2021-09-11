@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+* Remove `RedactedStrippedStateEvent`
+  * It was not used anywhere since stripped state events are never actually redacted.
+
 # 0.24.5
 
 Improvements:
