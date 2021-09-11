@@ -32,7 +32,7 @@ pub use state_event::Event;
 pub type StateMap<T> = HashMap<(EventType, String), T>;
 
 /// A mapping of `EventId` to `T`, usually a `ServerPdu`.
-pub type EventMap<T> = HashMap<EventId, T>;
+type EventMap<T> = HashMap<EventId, T>;
 
 /// Resolve sets of state events as they come in. Internally `StateResolution` builds a graph and an
 /// auth chain to allow for state conflict resolution.
@@ -159,7 +159,7 @@ where
 /// State is determined to be conflicting if for the given key (EventType, StateKey) there is not
 /// exactly one eventId. This includes missing events, if one state_set includes an event that none
 /// of the other have this is a conflicting event.
-pub fn separate(state_sets: &[StateMap<EventId>]) -> (StateMap<EventId>, StateMap<Vec<EventId>>) {
+fn separate(state_sets: &[StateMap<EventId>]) -> (StateMap<EventId>, StateMap<Vec<EventId>>) {
     info!("separating {} sets of events into conflicted/unconflicted", state_sets.len());
 
     let mut unconflicted_state = StateMap::new();
@@ -185,9 +185,7 @@ pub fn separate(state_sets: &[StateMap<EventId>]) -> (StateMap<EventId>, StateMa
 }
 
 /// Returns a Vec of deduped EventIds that appear in some chains but not others.
-pub fn get_auth_chain_diff(
-    auth_chain_sets: Vec<HashSet<EventId>>,
-) -> impl Iterator<Item = EventId> {
+fn get_auth_chain_diff(auth_chain_sets: Vec<HashSet<EventId>>) -> impl Iterator<Item = EventId> {
     let num_sets = auth_chain_sets.len();
 
     let mut id_counts: HashMap<EventId, usize> = HashMap::new();
@@ -205,7 +203,7 @@ pub fn get_auth_chain_diff(
 ///
 /// The power level is negative because a higher power level is equated to an earlier (further back
 /// in time) origin server timestamp.
-pub fn reverse_topological_power_sort<E, F>(
+fn reverse_topological_power_sort<E, F>(
     events_to_sort: Vec<EventId>,
     auth_diff: &HashSet<EventId>,
     fetch_event: F,
@@ -369,7 +367,7 @@ where
 ///
 /// For each `events_to_check` event we gather the events needed to auth it from the the
 /// `fetch_event` closure and verify each event using the `event_auth::auth_check` function.
-pub fn iterative_auth_check<E, F>(
+fn iterative_auth_check<E, F>(
     room_version: &RoomVersion,
     events_to_check: &[EventId],
     unconflicted_state: StateMap<EventId>,
@@ -470,7 +468,7 @@ where
 /// power_level event. If there have been two power events the after the most recent are depth 0,
 /// the events before (with the first power level as a parent) will be marked as depth 1. depth 1 is
 /// "older" than depth 0.
-pub fn mainline_sort<E, F>(
+fn mainline_sort<E, F>(
     to_sort: &[EventId],
     resolved_power_level: Option<&EventId>,
     fetch_event: F,
@@ -596,7 +594,7 @@ fn add_event_and_auth_chain_to_graph<E, F>(
     }
 }
 
-pub fn is_power_event_id<E, F>(event_id: &EventId, fetch: F) -> bool
+fn is_power_event_id<E, F>(event_id: &EventId, fetch: F) -> bool
 where
     E: Event,
     F: Fn(&EventId) -> Option<Arc<E>>,
@@ -607,11 +605,11 @@ where
     }
 }
 
-pub fn is_type_and_key<E: Event>(ev: &E, ev_type: &EventType, state_key: &str) -> bool {
+fn is_type_and_key<E: Event>(ev: &E, ev_type: &EventType, state_key: &str) -> bool {
     ev.event_type() == ev_type && ev.state_key() == Some(state_key)
 }
 
-pub fn is_power_event<E: Event>(event: &E) -> bool {
+fn is_power_event<E: Event>(event: &E) -> bool {
     match event.event_type() {
         EventType::RoomPowerLevels | EventType::RoomJoinRules | EventType::RoomCreate => {
             event.state_key() == Some("")
