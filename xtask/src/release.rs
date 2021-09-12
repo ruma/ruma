@@ -11,7 +11,6 @@ use isahc::{
     HttpClient, ReadResponseExt, Request,
 };
 use semver::{Identifier, Version};
-use serde::Deserialize;
 use serde_json::json;
 
 use crate::{cargo::Package, cmd, util::ask_yes_no, GithubConfig, Metadata, Result};
@@ -297,13 +296,6 @@ impl ReleaseTask {
             Err(format!("{}: {}", response.status(), response.text()?).into())
         }
     }
-}
-
-/// A tag from the `GET /repos/{owner}/{repo}/tags` endpoint of GitHub REST API.
-#[derive(Debug, Deserialize)]
-struct GithubTag {
-    /// The name of the tag.
-    name: String,
 }
 
 /// String manipulations for crate release.
