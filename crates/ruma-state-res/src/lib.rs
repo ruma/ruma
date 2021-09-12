@@ -136,7 +136,7 @@ where
 
     let sorted_left_events = mainline_sort(&events_to_resolve, power_event, &fetch_event)?;
 
-    trace!("events left, sorted: {:?}", sorted_left_events.iter().collect::<Vec<_>>());
+    trace!("events left, sorted: {:?}", sorted_left_events);
 
     let mut resolved_state = iterative_auth_check(
         &room_version,
