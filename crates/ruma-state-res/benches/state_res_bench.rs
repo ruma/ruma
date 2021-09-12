@@ -30,7 +30,7 @@ use ruma_events::{
     EventType,
 };
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
-use ruma_state_res::{self as state_res, Error, Event, EventMap, Result, StateMap};
+use ruma_state_res::{self as state_res, Error, Event, Result, StateMap};
 use serde_json::{json, Value as JsonValue};
 
 static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
@@ -60,9 +60,9 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
         let (state_at_bob, state_at_charlie, _) = store.set_up();
 
         b.iter(|| {
-            let ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
+            let ev_map = store.0.clone();
             let state_sets = vec![state_at_bob.clone(), state_at_charlie.clone()];
-            let _ = match state_res::resolve::<StateEvent, _>(
+            let _ = match state_res::resolve(
                 &RoomVersionId::Version6,
                 &state_sets,
                 state_sets
@@ -128,7 +128,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
 
         b.iter(|| {
             let state_sets = vec![state_set_a.clone(), state_set_b.clone()];
-            let _ = match state_res::resolve::<StateEvent, _>(
+            let _ = match state_res::resolve(
                 &RoomVersionId::Version6,
                 &state_sets,
                 state_sets
