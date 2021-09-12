@@ -12,6 +12,7 @@ pub struct Thing<'t, T> {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct IncomingThing<T> {
     some: String,
     t: T,
