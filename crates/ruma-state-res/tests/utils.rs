@@ -147,7 +147,7 @@ pub fn do_check(
         let mut auth_events = vec![];
         for key in auth_types {
             if state_before.contains_key(&key) {
-                auth_events.push(state_before[&key].clone())
+                auth_events.push(state_before[&key].clone());
             }
         }
 

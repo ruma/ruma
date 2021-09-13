@@ -43,7 +43,7 @@ pub fn auth_types_for_event(
                 if [MembershipState::Join, MembershipState::Invite].contains(&membership) {
                     let key = (EventType::RoomJoinRules, "".to_owned());
                     if !auth_types.contains(&key) {
-                        auth_types.push(key)
+                        auth_types.push(key);
                     }
                 }
 
@@ -59,7 +59,7 @@ pub fn auth_types_for_event(
                     {
                         let key = (EventType::RoomThirdPartyInvite, t_id.signed.token);
                         if !auth_types.contains(&key) {
-                            auth_types.push(key)
+                            auth_types.push(key);
                         }
                     }
                 }

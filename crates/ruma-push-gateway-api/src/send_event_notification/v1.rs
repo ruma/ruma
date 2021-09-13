@@ -272,7 +272,7 @@ mod tweak_serde {
                         let highlight =
                             if let Ok(highlight) = access.next_value() { highlight } else { true };
 
-                        tweaks.push(Tweak::Highlight(highlight))
+                        tweaks.push(Tweak::Highlight(highlight));
                     }
                     _ => tweaks.push(Tweak::Custom { name: key, value: access.next_value()? }),
                 };
