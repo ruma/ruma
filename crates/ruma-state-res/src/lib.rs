@@ -51,15 +51,14 @@ type EventMap<T> = HashMap<EventId, T>;
 ///
 /// The caller of `resolve` must ensure that all the events are from the same room. Although this
 /// function takes a `RoomId` it does not check that each event is part of the same room.
-pub fn resolve<'a, E, F, SSI>(
+pub fn resolve<'a, E, SSI>(
     room_version: &RoomVersionId,
     state_sets: impl IntoIterator<IntoIter = SSI>,
     auth_chain_sets: Vec<HashSet<EventId>>,
-    fetch_event: F,
+    fetch_event: impl Fn(&EventId) -> Option<E>,
 ) -> Result<StateMap<EventId>>
 where
     E: Event + Clone,
-    F: Fn(&EventId) -> Option<E>,
     SSI: Iterator<Item = &'a StateMap<EventId>> + Clone,
 {
     info!("State resolution starting");
@@ -203,15 +202,11 @@ fn get_auth_chain_diff(auth_chain_sets: Vec<HashSet<EventId>>) -> impl Iterator<
 ///
 /// The power level is negative because a higher power level is equated to an earlier (further back
 /// in time) origin server timestamp.
-fn reverse_topological_power_sort<E, F>(
+fn reverse_topological_power_sort<E: Event>(
     events_to_sort: Vec<EventId>,
     auth_diff: &HashSet<EventId>,
-    fetch_event: F,
-) -> Result<Vec<EventId>>
-where
-    E: Event,
-    F: Fn(&EventId) -> Option<E>,
-{
+    fetch_event: impl Fn(&EventId) -> Option<E>,
+) -> Result<Vec<EventId>> {
     debug!("reverse topological sort of power events");
 
     let mut graph = HashMap::new();
@@ -320,11 +315,10 @@ where
 }
 
 /// Find the power level for the sender of `event_id` or return a default value of zero.
-fn get_power_level_for_sender<E, F>(event_id: &EventId, fetch_event: F) -> i64
-where
-    E: Event,
-    F: Fn(&EventId) -> Option<E>,
-{
+fn get_power_level_for_sender<E: Event>(
+    event_id: &EventId,
+    fetch_event: impl Fn(&EventId) -> Option<E>,
+) -> i64 {
     info!("fetch event ({}) senders power level", event_id);
 
     let event = fetch_event(event_id);
@@ -367,16 +361,12 @@ where
 ///
 /// For each `events_to_check` event we gather the events needed to auth it from the the
 /// `fetch_event` closure and verify each event using the `event_auth::auth_check` function.
-fn iterative_auth_check<E, F>(
+fn iterative_auth_check<E: Event + Clone>(
     room_version: &RoomVersion,
     events_to_check: &[EventId],
     unconflicted_state: StateMap<EventId>,
-    fetch_event: F,
-) -> Result<StateMap<EventId>>
-where
-    E: Event + Clone,
-    F: Fn(&EventId) -> Option<E>,
-{
+    fetch_event: impl Fn(&EventId) -> Option<E>,
+) -> Result<StateMap<EventId>> {
     info!("starting iterative auth check");
 
     debug!("performing auth checks on {:?}", events_to_check);
@@ -468,15 +458,11 @@ where
 /// power_level event. If there have been two power events the after the most recent are depth 0,
 /// the events before (with the first power level as a parent) will be marked as depth 1. depth 1 is
 /// "older" than depth 0.
-fn mainline_sort<E, F>(
+fn mainline_sort<E: Event>(
     to_sort: &[EventId],
     resolved_power_level: Option<&EventId>,
-    fetch_event: F,
-) -> Result<Vec<EventId>>
-where
-    E: Event,
-    F: Fn(&EventId) -> Option<E>,
-{
+    fetch_event: impl Fn(&EventId) -> Option<E>,
+) -> Result<Vec<EventId>> {
     debug!("mainline sort of events");
 
     // There are no EventId's to sort, bail.
@@ -538,15 +524,11 @@ where
 
 /// Get the mainline depth from the `mainline_map` or finds a power_level event that has an
 /// associated mainline depth.
-fn get_mainline_depth<E, F>(
+fn get_mainline_depth<E: Event>(
     mut event: Option<E>,
     mainline_map: &EventMap<usize>,
-    fetch_event: F,
-) -> Result<usize>
-where
-    E: Event,
-    F: Fn(&EventId) -> Option<E>,
-{
+    fetch_event: impl Fn(&EventId) -> Option<E>,
+) -> Result<usize> {
     while let Some(sort_ev) = event {
         debug!("mainline event_id {}", sort_ev.event_id());
         let id = &sort_ev.event_id();
@@ -568,15 +550,12 @@ where
     Ok(0)
 }
 
-fn add_event_and_auth_chain_to_graph<E, F>(
+fn add_event_and_auth_chain_to_graph<E: Event>(
     graph: &mut HashMap<EventId, HashSet<EventId>>,
     event_id: EventId,
     auth_diff: &HashSet<EventId>,
-    fetch_event: F,
-) where
-    E: Event,
-    F: Fn(&EventId) -> Option<E>,
-{
+    fetch_event: impl Fn(&EventId) -> Option<E>,
+) {
     let mut state = vec![event_id];
     while let Some(eid) = state.pop() {
         graph.entry(eid.clone()).or_default();
@@ -594,22 +573,18 @@ fn add_event_and_auth_chain_to_graph<E, F>(
     }
 }
 
-fn is_power_event_id<E, F>(event_id: &EventId, fetch: F) -> bool
-where
-    E: Event,
-    F: Fn(&EventId) -> Option<E>,
-{
+fn is_power_event_id<E: Event>(event_id: &EventId, fetch: impl Fn(&EventId) -> Option<E>) -> bool {
     match fetch(event_id).as_ref() {
         Some(state) => is_power_event(state),
         _ => false,
     }
 }
 
-fn is_type_and_key<E: Event>(ev: &E, ev_type: &EventType, state_key: &str) -> bool {
+fn is_type_and_key(ev: impl Event, ev_type: &EventType, state_key: &str) -> bool {
     ev.event_type() == ev_type && ev.state_key() == Some(state_key)
 }
 
-fn is_power_event<E: Event>(event: &E) -> bool {
+fn is_power_event(event: impl Event) -> bool {
     match event.event_type() {
         EventType::RoomPowerLevels | EventType::RoomJoinRules | EventType::RoomCreate => {
             event.state_key() == Some("")
