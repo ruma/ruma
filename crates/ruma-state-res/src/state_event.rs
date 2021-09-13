@@ -24,7 +24,11 @@ pub trait Event {
     fn event_type(&self) -> &EventType;
 
     /// The event's content.
-    fn content(&self) -> serde_json::Value;
+    // FIXME: This forces a serde_json::Value to be stored, which the previous solution of returning
+    // an owned one did not. However, the previous signature was even less efficient and also
+    // heavily encouraged storing `serde_json::Value`. We should likely force usage of `RawValue`
+    // instead, or somehow allow different storage without pessimizing all but one.
+    fn content(&self) -> &serde_json::Value;
 
     /// The state key for this event.
     fn state_key(&self) -> Option<&str>;
@@ -77,7 +81,7 @@ impl<T: Event> Event for &T {
         (*self).event_type()
     }
 
-    fn content(&self) -> serde_json::Value {
+    fn content(&self) -> &serde_json::Value {
         (*self).content()
     }
 
@@ -135,7 +139,7 @@ impl<T: Event> Event for Arc<T> {
         (&**self).event_type()
     }
 
-    fn content(&self) -> serde_json::Value {
+    fn content(&self) -> &serde_json::Value {
         (&**self).content()
     }
 

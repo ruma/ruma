@@ -22,7 +22,7 @@ pub fn auth_types_for_event(
     kind: &EventType,
     sender: &UserId,
     state_key: Option<&str>,
-    content: serde_json::Value,
+    content: &serde_json::Value,
 ) -> Vec<(EventType, String)> {
     if kind == &EventType::RoomCreate {
         return vec![];
@@ -269,7 +269,9 @@ where
     }
 
     let sender_power_level = if let Some(pl) = &power_levels_event {
-        if let Ok(content) = serde_json::from_value::<PowerLevelsEventContent>(pl.content()) {
+        if let Ok(content) =
+            serde_json::from_value::<PowerLevelsEventContent>(pl.content().to_owned())
+        {
             if let Some(level) = content.users.get(sender) {
                 *level
             } else {
@@ -281,7 +283,9 @@ where
     } else {
         // If no power level event found the creator gets 100 everyone else gets 0
         room_create_event
-            .and_then(|create| serde_json::from_value::<CreateEventContent>(create.content()).ok())
+            .and_then(|create| {
+                serde_json::from_value::<CreateEventContent>(create.content().to_owned()).ok()
+            })
             .and_then(|create| (create.creator == *sender).then(|| int!(100)))
             .unwrap_or_default()
     };
@@ -291,7 +295,10 @@ where
     if *incoming_event.event_type() == EventType::RoomThirdPartyInvite {
         let invite_level = match &power_levels_event {
             Some(power_levels) => {
-                serde_json::from_value::<PowerLevelsEventContent>(power_levels.content())?.invite
+                serde_json::from_value::<PowerLevelsEventContent>(
+                    power_levels.content().to_owned(),
+                )?
+                .invite
             }
             None => int!(50),
         };
@@ -376,7 +383,7 @@ fn valid_membership_change<E: Event>(
     target_user_membership_event: Option<&E>,
     sender: &UserId,
     sender_membership_event: Option<&E>,
-    content: serde_json::Value,
+    content: &serde_json::Value,
     prev_event: Option<&E>,
     current_third_party_invite: Option<&E>,
     power_levels_event: Option<&E>,
@@ -412,7 +419,7 @@ fn valid_membership_change<E: Event>(
     };
 
     let power_levels: PowerLevelsEventContent = match &power_levels_event {
-        Some(ev) => serde_json::from_value(ev.content())?,
+        Some(ev) => serde_json::from_value(ev.content().to_owned())?,
         None => PowerLevelsEventContent::default(),
     };
 
@@ -427,7 +434,8 @@ fn valid_membership_change<E: Event>(
 
     let mut join_rules = JoinRule::Invite;
     if let Some(jr) = &join_rules_event {
-        join_rules = serde_json::from_value::<JoinRulesEventContent>(jr.content())?.join_rule;
+        join_rules =
+            serde_json::from_value::<JoinRulesEventContent>(jr.content().to_owned())?.join_rule;
     }
 
     if let Some(prev) = prev_event {
@@ -613,10 +621,12 @@ where
     // If users key in content is not a dictionary with keys that are valid user IDs
     // with values that are integers (or a string that is an integer), reject.
     let user_content =
-        serde_json::from_value::<PowerLevelsEventContent>(power_event.content()).unwrap();
+        serde_json::from_value::<PowerLevelsEventContent>(power_event.content().to_owned())
+            .unwrap();
 
     let current_content =
-        serde_json::from_value::<PowerLevelsEventContent>(current_state.content()).unwrap();
+        serde_json::from_value::<PowerLevelsEventContent>(current_state.content().to_owned())
+            .unwrap();
 
     // Validation of users is done in Ruma, synapse for loops validating user_ids and integers here
     info!("validation of power event finished");
@@ -768,7 +778,7 @@ fn get_send_level<E: Event>(
 ) -> Int {
     power_lvl
         .and_then(|ple| {
-            serde_json::from_value::<PowerLevelsEventContent>(ple.content())
+            serde_json::from_value::<PowerLevelsEventContent>(ple.content().to_owned())
                 .map(|content| {
                     content.events.get(e_type).copied().unwrap_or_else(|| {
                         if state_key.is_some() {
@@ -810,9 +820,9 @@ fn verify_third_party_invite<E: Event>(
 
         // If any signature in signed matches any public key in the m.room.third_party_invite event,
         // allow
-        if let Ok(tpid_ev) =
-            serde_json::from_value::<ThirdPartyInviteEventContent>(current_tpid.content())
-        {
+        if let Ok(tpid_ev) = serde_json::from_value::<ThirdPartyInviteEventContent>(
+            current_tpid.content().to_owned(),
+        ) {
             // A list of public keys in the public_keys field
             for key in tpid_ev.public_keys.unwrap_or_default() {
                 if key.public_key == tp_id.signed.token {

@@ -149,7 +149,7 @@ pub fn do_check(
             e.sender().clone(),
             e.event_type().clone(),
             e.state_key(),
-            e.content(),
+            e.content().to_owned(),
             &auth_events,
             &prev_events.iter().cloned().collect::<Vec<_>>(),
         );
@@ -575,10 +575,10 @@ pub mod event {
             }
         }
 
-        fn content(&self) -> serde_json::Value {
+        fn content(&self) -> &serde_json::Value {
             match &self.rest {
-                Pdu::RoomV1Pdu(ev) => ev.content.clone(),
-                Pdu::RoomV3Pdu(ev) => ev.content.clone(),
+                Pdu::RoomV1Pdu(ev) => &ev.content,
+                Pdu::RoomV3Pdu(ev) => &ev.content,
                 #[cfg(not(feature = "unstable-exhaustive-types"))]
                 _ => unreachable!("new PDU version"),
             }

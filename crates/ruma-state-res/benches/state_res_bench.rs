@@ -573,10 +573,10 @@ mod event {
             }
         }
 
-        fn content(&self) -> serde_json::Value {
+        fn content(&self) -> &serde_json::Value {
             match &self.rest {
-                Pdu::RoomV1Pdu(ev) => ev.content.clone(),
-                Pdu::RoomV3Pdu(ev) => ev.content.clone(),
+                Pdu::RoomV1Pdu(ev) => &ev.content,
+                Pdu::RoomV3Pdu(ev) => &ev.content,
                 #[cfg(not(feature = "unstable-exhaustive-types"))]
                 _ => unreachable!("new PDU version"),
             }

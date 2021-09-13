@@ -343,9 +343,9 @@ where
         return 0;
     }
 
-    if let Some(content) =
-        pl.and_then(|pl| serde_json::from_value::<PowerLevelsEventContent>(pl.content()).ok())
-    {
+    if let Some(content) = pl.and_then(|pl| {
+        serde_json::from_value::<PowerLevelsEventContent>(pl.content().to_owned()).ok()
+    }) {
         if let Some(ev) = event {
             if let Some(user) = content.users.get(ev.sender()) {
                 debug!("found {} at power_level {}", ev.sender(), user);
@@ -615,7 +615,9 @@ fn is_power_event<E: Event>(event: &E) -> bool {
             event.state_key() == Some("")
         }
         EventType::RoomMember => {
-            if let Ok(content) = serde_json::from_value::<MemberEventContent>(event.content()) {
+            if let Ok(content) =
+                serde_json::from_value::<MemberEventContent>(event.content().to_owned())
+            {
                 if [MembershipState::Leave, MembershipState::Ban].contains(&content.membership) {
                     return Some(event.sender().as_str()) != event.state_key();
                 }
