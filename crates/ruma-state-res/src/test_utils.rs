@@ -89,11 +89,8 @@ pub fn do_check(
         } else if prev_events.len() == 1 {
             state_at_event.get(prev_events.iter().next().unwrap()).unwrap().clone()
         } else {
-            let state_sets = prev_events
-                .iter()
-                .filter_map(|k| state_at_event.get(k))
-                .cloned()
-                .collect::<Vec<_>>();
+            let state_sets =
+                prev_events.iter().filter_map(|k| state_at_event.get(k)).collect::<Vec<_>>();
 
             info!(
                 "{:#?}",
@@ -106,17 +103,17 @@ pub fn do_check(
                     .collect::<Vec<_>>()
             );
 
-            let resolved = crate::resolve(
-                &RoomVersionId::Version6,
-                &state_sets,
-                state_sets
-                    .iter()
-                    .map(|map| {
-                        store.auth_event_ids(&room_id(), map.values().cloned().collect()).unwrap()
-                    })
-                    .collect(),
-                |id| event_map.get(id).map(Arc::clone),
-            );
+            let auth_chain_sets = state_sets
+                .iter()
+                .map(|map| {
+                    store.auth_event_ids(&room_id(), map.values().cloned().collect()).unwrap()
+                })
+                .collect();
+
+            let resolved =
+                crate::resolve(&RoomVersionId::Version6, state_sets, auth_chain_sets, |id| {
+                    event_map.get(id).map(Arc::clone)
+                });
             match resolved {
                 Ok(state) => state,
                 Err(e) => panic!("resolution for {} failed: {}", node, e),

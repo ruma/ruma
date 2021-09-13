@@ -51,20 +51,21 @@ type EventMap<T> = HashMap<EventId, T>;
 ///
 /// The caller of `resolve` must ensure that all the events are from the same room. Although this
 /// function takes a `RoomId` it does not check that each event is part of the same room.
-pub fn resolve<E, F>(
+pub fn resolve<'a, E, F, SSI>(
     room_version: &RoomVersionId,
-    state_sets: &[StateMap<EventId>],
+    state_sets: impl IntoIterator<IntoIter = SSI>,
     auth_chain_sets: Vec<HashSet<EventId>>,
     fetch_event: F,
 ) -> Result<StateMap<EventId>>
 where
     E: Event + Clone,
     F: Fn(&EventId) -> Option<E>,
+    SSI: Iterator<Item = &'a StateMap<EventId>> + Clone,
 {
     info!("State resolution starting");
 
     // Split non-conflicting and conflicting state
-    let (clean, conflicting) = separate(state_sets);
+    let (clean, conflicting) = separate(state_sets.into_iter());
 
     info!("non conflicting events: {}", clean.len());
     trace!("{:?}", clean);
@@ -158,15 +159,15 @@ where
 /// State is determined to be conflicting if for the given key (EventType, StateKey) there is not
 /// exactly one eventId. This includes missing events, if one state_set includes an event that none
 /// of the other have this is a conflicting event.
-fn separate(state_sets: &[StateMap<EventId>]) -> (StateMap<EventId>, StateMap<Vec<EventId>>) {
-    info!("separating {} sets of events into conflicted/unconflicted", state_sets.len());
-
+fn separate<'a>(
+    state_sets_iter: impl Iterator<Item = &'a StateMap<EventId>> + Clone,
+) -> (StateMap<EventId>, StateMap<Vec<EventId>>) {
     let mut unconflicted_state = StateMap::new();
     let mut conflicted_state = StateMap::new();
 
-    for key in state_sets.iter().flat_map(|map| map.keys()).unique() {
+    for key in state_sets_iter.clone().flat_map(|map| map.keys()).unique() {
         let mut event_ids =
-            state_sets.iter().map(|state_set| state_set.get(key)).collect::<Vec<_>>();
+            state_sets_iter.clone().map(|state_set| state_set.get(key)).collect::<Vec<_>>();
 
         if event_ids.iter().all_equal() {
             // First .unwrap() is okay because
@@ -975,7 +976,7 @@ mod tests {
         let (state_at_bob, state_at_charlie, expected) = store.set_up();
 
         let ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
-        let state_sets = vec![state_at_bob, state_at_charlie];
+        let state_sets = [state_at_bob, state_at_charlie];
         let resolved = match crate::resolve(
             &RoomVersionId::Version2,
             &state_sets,
@@ -1079,7 +1080,7 @@ mod tests {
         .collect::<StateMap<_>>();
 
         let ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
-        let state_sets = vec![state_set_a, state_set_b];
+        let state_sets = [state_set_a, state_set_b];
         let resolved = match crate::resolve(
             &RoomVersionId::Version6,
             &state_sets,
