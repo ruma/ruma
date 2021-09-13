@@ -112,9 +112,7 @@ pub fn do_check(
                 state_sets
                     .iter()
                     .map(|map| {
-                        store
-                            .auth_event_ids(&room_id(), &map.values().cloned().collect::<Vec<_>>())
-                            .unwrap()
+                        store.auth_event_ids(&room_id(), map.values().cloned().collect()).unwrap()
                     })
                     .collect(),
                 |id| event_map.get(id).map(Arc::clone),
@@ -217,10 +215,10 @@ impl<E: Event> TestStore<E> {
     pub fn auth_event_ids(
         &self,
         room_id: &RoomId,
-        event_ids: &[EventId],
+        event_ids: Vec<EventId>,
     ) -> Result<HashSet<EventId>> {
         let mut result = HashSet::new();
-        let mut stack = event_ids.to_vec();
+        let mut stack = event_ids;
 
         // DFS for auth event chain
         while let Some(ev_id) = stack.pop() {

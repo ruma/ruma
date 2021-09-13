@@ -68,9 +68,7 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
                 state_sets
                     .iter()
                     .map(|map| {
-                        store
-                            .auth_event_ids(&room_id(), &map.values().cloned().collect::<Vec<_>>())
-                            .unwrap()
+                        store.auth_event_ids(&room_id(), map.values().cloned().collect()).unwrap()
                     })
                     .collect(),
                 |id| ev_map.get(id).map(Arc::clone),
@@ -134,9 +132,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
                 state_sets
                     .iter()
                     .map(|map| {
-                        store
-                            .auth_event_ids(&room_id(), &map.values().cloned().collect::<Vec<_>>())
-                            .unwrap()
+                        store.auth_event_ids(&room_id(), map.values().cloned().collect()).unwrap()
                     })
                     .collect(),
                 |id| inner.get(id).map(Arc::clone),
@@ -183,9 +179,13 @@ impl<E: Event> TestStore<E> {
     }
 
     /// Returns a Vec of the related auth events to the given `event`.
-    fn auth_event_ids(&self, room_id: &RoomId, event_ids: &[EventId]) -> Result<HashSet<EventId>> {
+    fn auth_event_ids(
+        &self,
+        room_id: &RoomId,
+        event_ids: Vec<EventId>,
+    ) -> Result<HashSet<EventId>> {
         let mut result = HashSet::new();
-        let mut stack = event_ids.to_vec();
+        let mut stack = event_ids;
 
         // DFS for auth event chain
         while !stack.is_empty() {
@@ -214,7 +214,7 @@ impl<E: Event> TestStore<E> {
         for ids in event_ids {
             // TODO state store `auth_event_ids` returns self in the event ids list
             // when an event returns `auth_event_ids` self is not contained
-            let chain = self.auth_event_ids(room_id, &ids)?.into_iter().collect::<HashSet<_>>();
+            let chain = self.auth_event_ids(room_id, ids)?.into_iter().collect::<HashSet<_>>();
             auth_chain_sets.push(chain);
         }
 
