@@ -223,8 +223,7 @@ impl<E: Event> TestStore<E> {
         let mut stack = event_ids.to_vec();
 
         // DFS for auth event chain
-        while !stack.is_empty() {
-            let ev_id = stack.pop().unwrap();
+        while let Some(ev_id) = stack.pop() {
             if result.contains(&ev_id) {
                 continue;
             }
