@@ -274,7 +274,7 @@ where
     // Vec of nodes that have zero out degree, least recent events.
     let mut zero_outdegree = vec![];
 
-    for (node, edges) in graph.iter() {
+    for (node, edges) in graph {
         if edges.is_empty() {
             // The `Reverse` is because rusts `BinaryHeap` sorts largest -> smallest we need
             // smallest -> largest
