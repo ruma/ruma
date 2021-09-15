@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+* Remove `From<T>` implementation for `Raw<T>`
+  * Replaced by the new fallible constructor `Raw::new`
+
 # 0.5.0
 
 Breaking changes:

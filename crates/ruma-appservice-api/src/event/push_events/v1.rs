@@ -131,7 +131,7 @@ mod helper_tests {
         }))
         .unwrap();
 
-        let events = vec![Raw::from(state_event), Raw::from(message_event)];
+        let events = vec![Raw::new(&state_event).unwrap(), Raw::new(&message_event).unwrap()];
         let incoming_request = IncomingRequest { txn_id: txn_id.clone(), events };
 
         let response: sync_events::Response =
@@ -168,7 +168,7 @@ mod tests {
             },
         }))
         .unwrap();
-        let dummy_event = Raw::from(dummy_event);
+        let dummy_event = Raw::new(&dummy_event).unwrap();
         let events = vec![dummy_event];
 
         let req: http::Request<Vec<u8>> = Request { events: &events, txn_id: "any_txn_id" }

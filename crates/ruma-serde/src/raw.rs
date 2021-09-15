@@ -8,7 +8,7 @@ use serde::{
     de::{Deserialize, Deserializer, IgnoredAny, MapAccess, Visitor},
     ser::{Serialize, Serializer},
 };
-use serde_json::value::RawValue;
+use serde_json::value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue};
 
 use crate::cow::MyCowStr;
 
@@ -36,35 +36,45 @@ use crate::cow::MyCowStr;
 ///     .unwrap(); // finally get to the AnyRoomEvent
 /// ```
 pub struct Raw<T> {
-    json: Box<RawValue>,
+    json: Box<RawJsonValue>,
     _ev: PhantomData<T>,
 }
 
 impl<T> Raw<T> {
-    fn new(json: Box<RawValue>) -> Self {
-        Self { json, _ev: PhantomData }
+    /// Create a `Raw` by serializing the given `T`.
+    ///
+    /// Shorthand for `serde_json::value::to_raw_value(val).map(Raw::from_json)`, but specialized to
+    /// `T`.
+    ///
+    /// # Errors
+    ///
+    /// Fails if `T`s [`Serialize`] implementation fails.
+    pub fn new(val: &T) -> serde_json::Result<Self>
+    where
+        T: Serialize,
+    {
+        to_raw_json_value(val).map(Self::from_json)
     }
 
     /// Create a `Raw` from a boxed `RawValue`.
-    pub fn from_json(raw: Box<RawValue>) -> Self {
-        Self::new(raw)
+    pub fn from_json(json: Box<RawJsonValue>) -> Self {
+        Self { json, _ev: PhantomData }
     }
 
     /// Access the underlying json value.
-    pub fn json(&self) -> &RawValue {
+    pub fn json(&self) -> &RawJsonValue {
         &self.json
     }
 
     /// Convert `self` into the underlying json value.
-    pub fn into_json(self) -> Box<RawValue> {
+    pub fn into_json(self) -> Box<RawJsonValue> {
         self.json
     }
 
-    /// Try to access a given field inside this `Raw`, assuming it contains an
-    /// object.
+    /// Try to access a given field inside this `Raw`, assuming it contains an object.
     ///
-    /// Returns `Err(_)` when the contained value is not an object, or the field
-    /// exists but is fails to deserialize to the expected type.
+    /// Returns `Err(_)` when the contained value is not an object, or the field exists but is fails
+    /// to deserialize to the expected type.
     ///
     /// Returns `Ok(None)` when the field doesn't exist or is `null`.
     ///
@@ -144,23 +154,9 @@ impl<T> Raw<T> {
     }
 }
 
-impl<T: Serialize> From<&T> for Raw<T> {
-    fn from(val: &T) -> Self {
-        Self::new(serde_json::value::to_raw_value(val).unwrap())
-    }
-}
-
-// With specialization a fast path from impl for `impl<T> From<Box<RawValue...`
-// could be used. Until then there is a special constructor `from_json` for this.
-impl<T: Serialize> From<T> for Raw<T> {
-    fn from(val: T) -> Self {
-        Self::from(&val)
-    }
-}
-
 impl<T> Clone for Raw<T> {
     fn clone(&self) -> Self {
-        Self::new(self.json.clone())
+        Self::from_json(self.json.clone())
     }
 }
 
@@ -176,7 +172,7 @@ impl<'de, T> Deserialize<'de> for Raw<T> {
     where
         D: Deserializer<'de>,
     {
-        Box::<RawValue>::deserialize(deserializer).map(Self::new)
+        Box::<RawJsonValue>::deserialize(deserializer).map(Self::from_json)
     }
 }
 
