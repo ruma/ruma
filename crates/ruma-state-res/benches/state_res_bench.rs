@@ -528,18 +528,11 @@ fn BAN_STATE_SET() -> HashMap<EventId, Arc<StateEvent>> {
 }
 
 mod event {
-    use std::collections::BTreeMap;
-
-    use js_int::UInt;
     use ruma_common::MilliSecondsSinceUnixEpoch;
-    use ruma_events::{
-        pdu::{EventHash, Pdu},
-        EventType,
-    };
-    use ruma_identifiers::{EventId, RoomId, ServerName, ServerSigningKeyId, UserId};
+    use ruma_events::{pdu::Pdu, EventType};
+    use ruma_identifiers::{EventId, RoomId, UserId};
     use ruma_state_res::Event;
     use serde::{Deserialize, Serialize};
-    use serde_json::Value as JsonValue;
 
     impl Event for StateEvent {
         fn event_id(&self) -> &EventId {
@@ -609,15 +602,6 @@ mod event {
             }
         }
 
-        fn depth(&self) -> &UInt {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => &ev.depth,
-                Pdu::RoomV3Pdu(ev) => &ev.depth,
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
-                _ => unreachable!("new PDU version"),
-            }
-        }
-
         fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => Box::new(ev.auth_events.iter().map(|(id, _)| id)),
@@ -631,33 +615,6 @@ mod event {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => ev.redacts.as_ref(),
                 Pdu::RoomV3Pdu(ev) => ev.redacts.as_ref(),
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
-                _ => unreachable!("new PDU version"),
-            }
-        }
-
-        fn hashes(&self) -> &EventHash {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => &ev.hashes,
-                Pdu::RoomV3Pdu(ev) => &ev.hashes,
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
-                _ => unreachable!("new PDU version"),
-            }
-        }
-
-        fn signatures(&self) -> BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>> {
-            match &self.rest {
-                Pdu::RoomV1Pdu(_) => maplit::btreemap! {},
-                Pdu::RoomV3Pdu(ev) => ev.signatures.clone(),
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
-                _ => unreachable!("new PDU version"),
-            }
-        }
-
-        fn unsigned(&self) -> &BTreeMap<String, JsonValue> {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => &ev.unsigned,
-                Pdu::RoomV3Pdu(ev) => &ev.unsigned,
                 #[cfg(not(feature = "unstable-exhaustive-types"))]
                 _ => unreachable!("new PDU version"),
             }

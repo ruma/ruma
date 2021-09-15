@@ -1,10 +1,8 @@
-use std::{collections::BTreeMap, sync::Arc};
+use std::sync::Arc;
 
-use js_int::UInt;
 use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_events::{pdu::EventHash, EventType};
-use ruma_identifiers::{EventId, RoomId, ServerName, ServerSigningKeyId, UserId};
-use serde_json::value::Value as JsonValue;
+use ruma_events::EventType;
+use ruma_identifiers::{EventId, RoomId, UserId};
 
 /// Abstraction of a PDU so users can have their own PDU types.
 pub trait Event {
@@ -37,27 +35,12 @@ pub trait Event {
     // Requires GATs to avoid boxing (and TAIT for making it convenient).
     fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_>;
 
-    /// The maximum number of `prev_events` plus 1.
-    ///
-    /// This is only used in state resolution version 1.
-    fn depth(&self) -> &UInt;
-
     /// All the authenticating events for this event.
     // Requires GATs to avoid boxing (and TAIT for making it convenient).
     fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_>;
 
     /// If this event is a redaction event this is the event it redacts.
     fn redacts(&self) -> Option<&EventId>;
-
-    /// The `unsigned` content of this event.
-    fn unsigned(&self) -> &BTreeMap<String, JsonValue>;
-
-    /// The content hash of this PDU.
-    fn hashes(&self) -> &EventHash;
-
-    /// A map of server names to another map consisting of the signing key id and finally the
-    /// signature.
-    fn signatures(&self) -> BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>>;
 }
 
 impl<T: Event> Event for &T {
@@ -93,28 +76,12 @@ impl<T: Event> Event for &T {
         (*self).prev_events()
     }
 
-    fn depth(&self) -> &UInt {
-        (*self).depth()
-    }
-
     fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
         (*self).auth_events()
     }
 
     fn redacts(&self) -> Option<&EventId> {
         (*self).redacts()
-    }
-
-    fn unsigned(&self) -> &BTreeMap<String, JsonValue> {
-        (*self).unsigned()
-    }
-
-    fn hashes(&self) -> &EventHash {
-        (*self).hashes()
-    }
-
-    fn signatures(&self) -> BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>> {
-        (*self).signatures()
     }
 }
 
@@ -151,27 +118,11 @@ impl<T: Event> Event for Arc<T> {
         (&**self).prev_events()
     }
 
-    fn depth(&self) -> &UInt {
-        (&**self).depth()
-    }
-
     fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
         (&**self).auth_events()
     }
 
     fn redacts(&self) -> Option<&EventId> {
         (&**self).redacts()
-    }
-
-    fn unsigned(&self) -> &BTreeMap<String, JsonValue> {
-        (&**self).unsigned()
-    }
-
-    fn hashes(&self) -> &EventHash {
-        (&**self).hashes()
-    }
-
-    fn signatures(&self) -> BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>> {
-        (&**self).signatures()
     }
 }
