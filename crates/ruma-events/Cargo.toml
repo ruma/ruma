@@ -20,6 +20,7 @@ compat = ["ruma-events-macros/compat"]
 markdown = ["pulldown-cmark"]
 
 unstable-exhaustive-types = []
+unstable-pdu = []
 unstable-pre-spec = []
 
 [dependencies]

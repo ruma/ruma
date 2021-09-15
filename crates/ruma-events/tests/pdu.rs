@@ -1,4 +1,4 @@
-#![cfg(not(feature = "unstable-pre-spec"))]
+#![cfg(all(feature = "unstable-pdu", not(feature = "unstable-pre-spec")))]
 
 use std::{collections::BTreeMap, convert::TryInto};
 

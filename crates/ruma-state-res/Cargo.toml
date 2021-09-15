@@ -34,6 +34,7 @@ tracing = "0.1.26"
 criterion = "0.3.3"
 maplit = "1.0.2"
 rand = "0.8.3"
+ruma-events = { version = "0.24.5", path = "../ruma-events", features = ["unstable-pdu"] }
 tracing-subscriber = "0.2.15"
 
 [[bench]]

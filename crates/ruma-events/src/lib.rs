@@ -161,6 +161,8 @@ pub mod forwarded_room_key;
 pub mod fully_read;
 pub mod ignored_user_list;
 pub mod key;
+#[cfg(feature = "unstable-pdu")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pdu")))]
 pub mod pdu;
 pub mod policy;
 pub mod presence;
