@@ -241,7 +241,7 @@ fn edit_deserialization_061() {
                 formatted: None,
                 ..
             }),
-            relates_to: None,
+            relates_to: Some(_),
             ..
         } if body == "s/foo/bar"
     );
