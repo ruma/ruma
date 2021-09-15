@@ -4,9 +4,6 @@
 //! that the `RoomV1Pdu` takes an `event_id` field (`RoomV3Pdu` does not), and
 //! `auth_events` and `prev_events` take `Vec<(EventId, EventHash)> rather than
 //! `Vec<EventId>` in `RoomV3Pdu`.
-//!
-//! The stubbed versions of each PDU type remove the `event_id` field (if any)
-//! and the `room_id` field for use in PDU templates.
 
 use std::collections::BTreeMap;
 
