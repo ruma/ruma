@@ -1,5 +1,12 @@
 # [unreleased]
 
+Breaking changes:
+
+* Update `send_{message,state}_event::Request::new`'s `content` parameters to be
+  generic, such that custom events can easily be sent
+  * To migrate, simply stop wrapping content structs in `AnyMessageEventContent`
+    before passing them to those constructors
+
 # 0.4.0
 
 Breaking changes:

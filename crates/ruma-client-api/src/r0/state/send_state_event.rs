@@ -1,9 +1,10 @@
 //! [PUT /_matrix/client/r0/rooms/{roomId}/state/{eventType}/{stateKey}](https://matrix.org/docs/spec/client_server/r0.6.1#put-matrix-client-r0-rooms-roomid-state-eventtype-statekey)
 
 use ruma_api::ruma_api;
-use ruma_events::{AnyStateEventContent, EventContent as _};
+use ruma_events::{AnyStateEventContent, StateEventContent};
 use ruma_identifiers::{EventId, RoomId};
 use ruma_serde::{Outgoing, Raw};
+use serde_json::value::to_raw_value as to_raw_json_value;
 
 ruma_api! {
     metadata: {
@@ -45,8 +46,22 @@ pub struct Request<'a> {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given room id, state key and event content.
-    pub fn new(room_id: &'a RoomId, state_key: &'a str, content: &'a AnyStateEventContent) -> Self {
-        Self { room_id, event_type: content.event_type(), body: content.into(), state_key }
+    ///
+    /// # Errors
+    ///
+    /// Since `Request` stores the request body in serialized form, this function can fail if `T`s
+    /// [`Serialize`][serde::Serialize] implementation can fail.
+    pub fn new<T: StateEventContent>(
+        room_id: &'a RoomId,
+        state_key: &'a str,
+        content: &'a T,
+    ) -> serde_json::Result<Self> {
+        Ok(Self {
+            room_id,
+            state_key,
+            event_type: content.event_type(),
+            body: Raw::from_json(to_raw_json_value(content)?),
+        })
     }
 
     /// Creates a new `Request` with the given room id, event type, state key and raw event content.
