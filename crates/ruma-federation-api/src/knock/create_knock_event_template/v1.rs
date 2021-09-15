@@ -1,9 +1,8 @@
 //! [GET /_matrix/federation/v1/make_knock/{roomId}/{userId}](https://spec.matrix.org/unstable/server-server-api/#get_matrixfederationv1make_knockroomiduserid)
 
 use ruma_api::ruma_api;
-use ruma_events::pdu::Pdu;
 use ruma_identifiers::{RoomId, RoomVersionId, UserId};
-use ruma_serde::Raw;
+use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
     metadata: {
@@ -38,7 +37,7 @@ ruma_api! {
         /// An unsigned template event.
         ///
         /// May differ between room versions.
-        pub event: Raw<Pdu>,
+        pub event: Box<RawJsonValue>,
     }
 }
 
@@ -51,7 +50,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given room version ID and event.
-    pub fn new(room_version: RoomVersionId, event: Raw<Pdu>) -> Self {
+    pub fn new(room_version: RoomVersionId, event: Box<RawJsonValue>) -> Self {
         Self { room_version, event }
     }
 }

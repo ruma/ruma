@@ -1,9 +1,9 @@
 //! [GET /_matrix/federation/v1/make_join/{roomId}/{userId}](https://matrix.org/docs/spec/server_server/r0.1.3#get-matrix-federation-v1-make-join-roomid-userid)
 
 use ruma_api::ruma_api;
-use ruma_events::pdu::Pdu;
 use ruma_identifiers::{RoomId, RoomVersionId, UserId};
-use ruma_serde::Raw;
+
+use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
     metadata: {
@@ -38,7 +38,7 @@ ruma_api! {
         pub room_version: Option<RoomVersionId>,
 
         /// An unsigned template event.
-        pub event: Raw<Pdu>,
+        pub event: Box<RawJsonValue>,
     }
 }
 
@@ -59,7 +59,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given template event.
-    pub fn new(event: Raw<Pdu>) -> Self {
+    pub fn new(event: Box<RawJsonValue>) -> Self {
         Self { room_version: None, event }
     }
 }

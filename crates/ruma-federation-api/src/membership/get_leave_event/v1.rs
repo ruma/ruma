@@ -1,9 +1,9 @@
 //! [GET /_matrix/federation/v1/make_leave/{roomId}/{userId}](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-federation-v1-make-leave-roomid-userid)
 
 use ruma_api::ruma_api;
-use ruma_events::pdu::Pdu;
 use ruma_identifiers::{RoomId, RoomVersionId, UserId};
-use ruma_serde::Raw;
+
+use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
     metadata: {
@@ -32,7 +32,7 @@ ruma_api! {
 
         /// An unsigned template event. Note that events have a different format depending on the
         /// room version - check the room version specification for precise event formats.
-        pub event: Raw<Pdu>,
+        pub event: Box<RawJsonValue>,
     }
 }
 
@@ -49,7 +49,7 @@ impl Response {
     /// Creates a new `Response` with:
     /// * the version of the room where the server is trying to leave.
     /// * an unsigned template event.
-    pub fn new(room_version: Option<RoomVersionId>, event: Raw<Pdu>) -> Self {
+    pub fn new(room_version: Option<RoomVersionId>, event: Box<RawJsonValue>) -> Self {
         Self { room_version, event }
     }
 }

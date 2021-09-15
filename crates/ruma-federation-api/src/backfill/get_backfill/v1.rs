@@ -3,9 +3,9 @@
 use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_events::pdu::Pdu;
 use ruma_identifiers::{EventId, RoomId, ServerNameBox};
-use ruma_serde::Raw;
+
+use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
     metadata: {
@@ -39,7 +39,7 @@ ruma_api! {
         pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
         /// List of persistent updates to rooms.
-        pub pdus: Vec<Raw<Pdu>>,
+        pub pdus: Vec<Box<RawJsonValue>>,
     }
 }
 
@@ -61,7 +61,7 @@ impl Response {
     pub fn new(
         origin: ServerNameBox,
         origin_server_ts: MilliSecondsSinceUnixEpoch,
-        pdus: Vec<Raw<Pdu>>,
+        pdus: Vec<Box<RawJsonValue>>,
     ) -> Self {
         Self { origin, origin_server_ts, pdus }
     }

@@ -3,9 +3,8 @@
 pub mod v1;
 pub mod v2;
 
-use ruma_events::pdu::Pdu;
-use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};
+use serde_json::value::RawValue as RawJsonValue;
 
 /// Full state of the room.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -18,10 +17,10 @@ pub struct RoomState {
 
     /// The full set of authorization events that make up the state of the room,
     /// and their authorization events, recursively.
-    pub auth_chain: Vec<Raw<Pdu>>,
+    pub auth_chain: Vec<Box<RawJsonValue>>,
 
     /// The room state.
-    pub state: Vec<Raw<Pdu>>,
+    pub state: Vec<Box<RawJsonValue>>,
 }
 
 #[cfg(feature = "unstable-pre-spec")]

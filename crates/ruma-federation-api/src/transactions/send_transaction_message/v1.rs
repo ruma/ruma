@@ -4,9 +4,9 @@ use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
 use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_events::pdu::Pdu;
 use ruma_identifiers::{EventId, ServerName};
 use ruma_serde::Raw;
+use serde_json::value::RawValue as RawJsonValue;
 
 use crate::transactions::edu::Edu;
 
@@ -36,7 +36,7 @@ ruma_api! {
         ///
         /// Must not be more than 50 items.
         #[cfg_attr(feature = "unstable-pre-spec", serde(default, skip_serializing_if = "<[_]>::is_empty"))]
-        pub pdus: &'a [Raw<Pdu>],
+        pub pdus: &'a [Box<RawJsonValue>],
 
         /// List of ephemeral messages.
         ///

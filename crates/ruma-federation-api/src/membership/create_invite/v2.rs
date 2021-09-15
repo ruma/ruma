@@ -1,9 +1,10 @@
 //! [PUT /_matrix/federation/v2/invite/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v2-invite-roomid-eventid)
 
 use ruma_api::ruma_api;
-use ruma_events::{pdu::Pdu, AnyStrippedStateEvent};
+use ruma_events::AnyStrippedStateEvent;
 use ruma_identifiers::{EventId, RoomId, RoomVersionId};
 use ruma_serde::Raw;
+use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
     metadata: {
@@ -28,7 +29,7 @@ ruma_api! {
         pub room_version: RoomVersionId,
 
         /// The invite event which needs to be signed.
-        pub event: Raw<Pdu>,
+        pub event: Box<RawJsonValue>,
 
         /// An optional list of simplified events to help the receiver of the invite identify the room.
         pub invite_room_state: Vec<Raw<AnyStrippedStateEvent>>,
@@ -36,7 +37,7 @@ ruma_api! {
 
     response: {
         /// The signed invite event.
-        pub event: Raw<Pdu>,
+        pub event: Box<RawJsonValue>,
     }
 }
 
@@ -47,7 +48,7 @@ impl Request {
         room_id: RoomId,
         event_id: EventId,
         room_version: RoomVersionId,
-        event: Raw<Pdu>,
+        event: Box<RawJsonValue>,
         invite_room_state: Vec<Raw<AnyStrippedStateEvent>>,
     ) -> Self {
         Self { room_id, event_id, room_version, event, invite_room_state }
@@ -56,7 +57,7 @@ impl Request {
 
 impl Response {
     /// Creates a new `Response` with the given invite event.
-    pub fn new(event: Raw<Pdu>) -> Self {
+    pub fn new(event: Box<RawJsonValue>) -> Self {
         Self { event }
     }
 }

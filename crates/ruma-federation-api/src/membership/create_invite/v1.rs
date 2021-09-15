@@ -2,10 +2,11 @@
 
 use ruma_api::ruma_api;
 use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_events::{pdu::Pdu, room::member::MemberEventContent, AnyStrippedStateEvent, EventType};
+use ruma_events::{room::member::MemberEventContent, AnyStrippedStateEvent, EventType};
 use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
 use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};
+use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
     metadata: {
@@ -54,7 +55,7 @@ ruma_api! {
         /// The signed invite event.
         #[ruma_api(body)]
         #[serde(with = "crate::serde::v1_pdu")]
-        pub event: Raw<Pdu>,
+        pub event: Box<RawJsonValue>,
     }
 }
 
@@ -129,7 +130,7 @@ impl<'a> From<RequestInit<'a>> for Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given invite event.
-    pub fn new(event: Raw<Pdu>) -> Self {
+    pub fn new(event: Box<RawJsonValue>) -> Self {
         Self { event }
     }
 }

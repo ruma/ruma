@@ -2,9 +2,9 @@
 
 use js_int::{uint, UInt};
 use ruma_api::ruma_api;
-use ruma_events::pdu::Pdu;
 use ruma_identifiers::{EventId, RoomId};
-use ruma_serde::Raw;
+
+use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
     metadata: {
@@ -39,7 +39,7 @@ ruma_api! {
     #[derive(Default)]
     response: {
         /// The missing PDUs.
-        pub events: Vec<Raw<Pdu>>,
+        pub events: Vec<Box<RawJsonValue>>,
     }
 }
 
@@ -62,7 +62,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given events.
-    pub fn new(events: Vec<Raw<Pdu>>) -> Self {
+    pub fn new(events: Vec<Box<RawJsonValue>>) -> Self {
         Self { events }
     }
 }

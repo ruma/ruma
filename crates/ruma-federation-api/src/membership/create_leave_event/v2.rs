@@ -1,9 +1,9 @@
 //! [PUT /_matrix/federation/v2/send_leave/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v2-send-leave-roomid-eventid)
 
 use ruma_api::ruma_api;
-use ruma_events::pdu::Pdu;
 use ruma_identifiers::{EventId, RoomId};
-use ruma_serde::Raw;
+
+use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
     metadata: {
@@ -28,7 +28,7 @@ ruma_api! {
 
         /// The PDU.
         #[ruma_api(body)]
-        pub pdu: Raw<Pdu>,
+        pub pdu: Box<RawJsonValue>,
     }
 
     #[derive(Default)]
@@ -36,8 +36,8 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Creates a new `Request` from the given room ID, event ID and `Pdu`.
-    pub fn new(room_id: &'a RoomId, event_id: &'a EventId, pdu: Raw<Pdu>) -> Self {
+    /// Creates a new `Request` from the given room ID, event ID and PDU.
+    pub fn new(room_id: &'a RoomId, event_id: &'a EventId, pdu: Box<RawJsonValue>) -> Self {
         Self { room_id, event_id, pdu }
     }
 }

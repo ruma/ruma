@@ -2,9 +2,9 @@
 
 use ruma_api::ruma_api;
 use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_events::pdu::Pdu;
 use ruma_identifiers::{EventId, ServerNameBox};
-use ruma_serde::Raw;
+
+use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
     metadata: {
@@ -31,7 +31,7 @@ ruma_api! {
 
         /// The event.
         #[serde(rename = "pdus", with = "ruma_serde::single_element_seq")]
-        pub pdu: Raw<Pdu>,
+        pub pdu: Box<RawJsonValue>,
     }
 }
 
@@ -47,7 +47,7 @@ impl Response {
     pub fn new(
         origin: ServerNameBox,
         origin_server_ts: MilliSecondsSinceUnixEpoch,
-        pdu: Raw<Pdu>,
+        pdu: Box<RawJsonValue>,
     ) -> Self {
         Self { origin, origin_server_ts, pdu }
     }
