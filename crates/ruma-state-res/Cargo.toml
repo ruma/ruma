@@ -15,6 +15,7 @@ edition = "2018"
 all-features = true
 
 [features]
+compat = []
 unstable-pre-spec = ["ruma-events/unstable-pre-spec"]
 unstable-exhaustive-types = []
 

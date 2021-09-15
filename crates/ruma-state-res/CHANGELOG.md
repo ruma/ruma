@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+* Remove some trait methods from `Event`
+* Update `Event::content` signature to return `&RawJsonValue` instead of `&JsonValue`
+
 # 0.4.1
 
 Improvements:

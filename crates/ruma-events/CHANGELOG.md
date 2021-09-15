@@ -4,6 +4,7 @@ Breaking changes:
 
 * Remove `RedactedStrippedStateEvent`
   * It was not used anywhere since stripped state events are never actually redacted.
+* Use `Box<RawJsonValue>` instead of `JsonValue` for PDU `content` field
 
 # 0.24.5
 

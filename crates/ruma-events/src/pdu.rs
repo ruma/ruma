@@ -10,13 +10,16 @@ use std::collections::BTreeMap;
 use js_int::UInt;
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_identifiers::{EventId, RoomId, ServerNameBox, ServerSigningKeyId, UserId};
-use serde::{Deserialize, Serialize};
-use serde_json::Value as JsonValue;
+use serde::{
+    de::{Error as _, IgnoredAny},
+    Deserialize, Deserializer, Serialize,
+};
+use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 
 use crate::EventType;
 
 /// Enum for PDU schemas
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(untagged)]
 pub enum Pdu {
@@ -55,7 +58,7 @@ pub struct RoomV1Pdu {
     pub kind: EventType,
 
     /// The event's content.
-    pub content: JsonValue,
+    pub content: Box<RawJsonValue>,
 
     /// A key that determines which piece of room state the event represents.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -81,7 +84,7 @@ pub struct RoomV1Pdu {
     /// Additional data added by the origin server but not covered by the
     /// signatures.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub unsigned: BTreeMap<String, JsonValue>,
+    pub unsigned: BTreeMap<String, Box<RawJsonValue>>,
 
     /// Content hashes of the PDU.
     pub hashes: EventHash,
@@ -115,7 +118,7 @@ pub struct RoomV3Pdu {
     pub kind: EventType,
 
     /// The event's content.
-    pub content: JsonValue,
+    pub content: Box<RawJsonValue>,
 
     /// A key that determines which piece of room state the event represents.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -139,7 +142,7 @@ pub struct RoomV3Pdu {
     /// Additional data added by the origin server but not covered by the
     /// signatures.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub unsigned: BTreeMap<String, JsonValue>,
+    pub unsigned: BTreeMap<String, Box<RawJsonValue>>,
 
     /// Content hashes of the PDU.
     pub hashes: EventHash,
@@ -160,5 +163,24 @@ impl EventHash {
     /// Create a new `EventHash` with the given SHA256 hash.
     pub fn new(sha256: String) -> Self {
         Self { sha256 }
+    }
+}
+
+impl<'de> Deserialize<'de> for Pdu {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct GetEventId {
+            event_id: Option<IgnoredAny>,
+        }
+
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+        if from_json_str::<GetEventId>(json.get()).map_err(D::Error::custom)?.event_id.is_some() {
+            from_json_str(json.get()).map(Self::RoomV1Pdu).map_err(D::Error::custom)
+        } else {
+            from_json_str(json.get()).map(Self::RoomV3Pdu).map_err(D::Error::custom)
+        }
     }
 }

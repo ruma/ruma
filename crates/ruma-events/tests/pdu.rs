@@ -8,7 +8,10 @@ use ruma_events::{
     EventType,
 };
 use ruma_identifiers::{event_id, room_id, server_name, server_signing_key_id, user_id};
-use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+use serde_json::{
+    from_value as from_json_value, json, to_value as to_json_value,
+    value::to_raw_value as to_raw_json_value,
+};
 
 #[test]
 fn serialize_pdu_as_v1() {
@@ -21,7 +24,7 @@ fn serialize_pdu_as_v1() {
     signatures.insert(server_name!("example.com"), inner_signature);
 
     let mut unsigned = BTreeMap::new();
-    unsigned.insert("somekey".into(), json!({"a": 456}));
+    unsigned.insert("somekey".into(), to_raw_json_value(&json!({ "a": 456 })).unwrap());
 
     let v1_pdu = RoomV1Pdu {
         room_id: room_id!("!n8f893n9:example.com"),
@@ -30,7 +33,7 @@ fn serialize_pdu_as_v1() {
         origin: "matrix.org".into(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(1_592_050_773_658_u64.try_into().unwrap()),
         kind: EventType::RoomPowerLevels,
-        content: json!({"testing": 123}),
+        content: to_raw_json_value(&json!({ "testing": 123 })).unwrap(),
         state_key: Some("state".into()),
         prev_events: vec![(
             event_id!("$previousevent:matrix.org"),
@@ -88,7 +91,7 @@ fn serialize_pdu_as_v3() {
     signatures.insert(server_name!("example.com"), inner_signature);
 
     let mut unsigned = BTreeMap::new();
-    unsigned.insert("somekey".into(), json!({ "a": 456 }));
+    unsigned.insert("somekey".into(), to_raw_json_value(&json!({ "a": 456 })).unwrap());
 
     let v3_pdu = RoomV3Pdu {
         room_id: room_id!("!n8f893n9:example.com"),
@@ -96,7 +99,7 @@ fn serialize_pdu_as_v3() {
         origin: "matrix.org".into(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(1_592_050_773_658_u64.try_into().unwrap()),
         kind: EventType::RoomPowerLevels,
-        content: json!({"testing": 123}),
+        content: to_raw_json_value(&json!({ "testing": 123 })).unwrap(),
         state_key: Some("state".into()),
         prev_events: vec![event_id!("$previousevent:matrix.org")],
         depth: 2_u32.into(),
@@ -205,7 +208,6 @@ fn deserialize_pdu_as_v3() {
             "key": "value"
         },
         "depth": 12,
-        "event_id": "$a4ecee13e2accdadf56c1025:example.com",
         "hashes": {
             "sha256": "ThisHashCoversAllFieldsInCaseThisIsRedacted"
         },

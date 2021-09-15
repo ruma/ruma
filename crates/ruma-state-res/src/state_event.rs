@@ -3,6 +3,7 @@ use std::sync::Arc;
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomId, UserId};
+use serde_json::value::RawValue as RawJsonValue;
 
 /// Abstraction of a PDU so users can have their own PDU types.
 pub trait Event {
@@ -22,11 +23,7 @@ pub trait Event {
     fn event_type(&self) -> &EventType;
 
     /// The event's content.
-    // FIXME: This forces a serde_json::Value to be stored, which the previous solution of returning
-    // an owned one did not. However, the previous signature was even less efficient and also
-    // heavily encouraged storing `serde_json::Value`. We should likely force usage of `RawValue`
-    // instead, or somehow allow different storage without pessimizing all but one.
-    fn content(&self) -> &serde_json::Value;
+    fn content(&self) -> &RawJsonValue;
 
     /// The state key for this event.
     fn state_key(&self) -> Option<&str>;
@@ -64,7 +61,7 @@ impl<T: Event> Event for &T {
         (*self).event_type()
     }
 
-    fn content(&self) -> &serde_json::Value {
+    fn content(&self) -> &RawJsonValue {
         (*self).content()
     }
 
@@ -106,7 +103,7 @@ impl<T: Event> Event for Arc<T> {
         (&**self).event_type()
     }
 
-    fn content(&self) -> &serde_json::Value {
+    fn content(&self) -> &RawJsonValue {
         (&**self).content()
     }
 

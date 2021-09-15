@@ -7,7 +7,7 @@ use std::{
     },
 };
 
-use js_int::uint;
+use js_int::{int, uint};
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     pdu::{EventHash, Pdu, RoomV3Pdu},
@@ -18,7 +18,10 @@ use ruma_events::{
     EventType,
 };
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
-use serde_json::{json, Value as JsonValue};
+use serde_json::{
+    json,
+    value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue},
+};
 use tracing::info;
 
 use crate::{auth_types_for_event, Error, Event, Result, StateMap};
@@ -75,7 +78,7 @@ pub fn do_check(
     // Resolve the current state and add it to the state_at_event map then continue
     // on in "time"
     for node in crate::lexicographical_topological_sort(&graph, |id| {
-        Ok((0, MilliSecondsSinceUnixEpoch(uint!(0)), id.clone()))
+        Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0)), id.clone()))
     })
     .unwrap()
     {
@@ -131,7 +134,8 @@ pub fn do_check(
             fake_event.sender(),
             fake_event.state_key(),
             fake_event.content(),
-        );
+        )
+        .unwrap();
 
         let mut auth_events = vec![];
         for key in auth_types {
@@ -242,7 +246,7 @@ impl TestStore<StateEvent> {
             alice(),
             EventType::RoomCreate,
             Some(""),
-            json!({ "creator": alice() }),
+            to_raw_json_value(&json!({ "creator": alice() })).unwrap(),
             &[],
             &[],
         );
@@ -265,7 +269,7 @@ impl TestStore<StateEvent> {
             alice(),
             EventType::RoomJoinRules,
             Some(""),
-            json!({ "join_rule": JoinRule::Public }),
+            to_raw_json_value(&json!({ "join_rule": JoinRule::Public })).unwrap(),
             &[cre.clone(), alice_mem.event_id().clone()],
             &[alice_mem.event_id().clone()],
         );
@@ -356,12 +360,12 @@ pub fn room_id() -> RoomId {
     RoomId::try_from("!test:foo").unwrap()
 }
 
-pub fn member_content_ban() -> JsonValue {
-    serde_json::to_value(MemberEventContent::new(MembershipState::Ban)).unwrap()
+pub fn member_content_ban() -> Box<RawJsonValue> {
+    to_raw_json_value(&MemberEventContent::new(MembershipState::Ban)).unwrap()
 }
 
-pub fn member_content_join() -> JsonValue {
-    serde_json::to_value(MemberEventContent::new(MembershipState::Join)).unwrap()
+pub fn member_content_join() -> Box<RawJsonValue> {
+    to_raw_json_value(&MemberEventContent::new(MembershipState::Join)).unwrap()
 }
 
 pub fn to_init_pdu_event(
@@ -369,7 +373,7 @@ pub fn to_init_pdu_event(
     sender: UserId,
     ev_type: EventType,
     state_key: Option<&str>,
-    content: JsonValue,
+    content: Box<RawJsonValue>,
 ) -> Arc<StateEvent> {
     let ts = SERVER_TIMESTAMP.fetch_add(1, SeqCst);
     let id = if id.contains('$') { id.to_owned() } else { format!("${}:foo", id) };
@@ -402,7 +406,7 @@ pub fn to_pdu_event<S>(
     sender: UserId,
     ev_type: EventType,
     state_key: Option<&str>,
-    content: JsonValue,
+    content: Box<RawJsonValue>,
     auth_events: &[S],
     prev_events: &[S],
 ) -> Arc<StateEvent>
@@ -446,7 +450,7 @@ pub fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
             alice(),
             EventType::RoomCreate,
             Some(""),
-            json!({ "creator": alice() }),
+            to_raw_json_value(&json!({ "creator": alice() })).unwrap(),
             &[],
             &[],
         ),
@@ -464,7 +468,7 @@ pub fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
             alice(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({ "users": { alice().to_string(): 100 } }),
+            to_raw_json_value(&json!({ "users": { alice().to_string(): 100 } })).unwrap(),
             &["CREATE", "IMA"],
             &["IMA"],
         ),
@@ -473,7 +477,7 @@ pub fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
             alice(),
             EventType::RoomJoinRules,
             Some(""),
-            json!({ "join_rule": JoinRule::Public }),
+            to_raw_json_value(&json!({ "join_rule": JoinRule::Public })).unwrap(),
             &["CREATE", "IMA", "IPOWER"],
             &["IPOWER"],
         ),
@@ -500,7 +504,7 @@ pub fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
             charlie(),
             EventType::RoomMessage,
             Some("dummy"),
-            json!({}),
+            to_raw_json_value(&json!({})).unwrap(),
             &[],
             &[],
         ),
@@ -509,7 +513,7 @@ pub fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
             charlie(),
             EventType::RoomMessage,
             Some("dummy"),
-            json!({}),
+            to_raw_json_value(&json!({})).unwrap(),
             &[],
             &[],
         ),
@@ -530,8 +534,8 @@ pub fn INITIAL_EDGES() -> Vec<EventId> {
 pub mod event {
     use ruma_events::{exports::ruma_common::MilliSecondsSinceUnixEpoch, pdu::Pdu, EventType};
     use ruma_identifiers::{EventId, RoomId, UserId};
-
     use serde::{Deserialize, Serialize};
+    use serde_json::value::RawValue as RawJsonValue;
 
     use crate::Event;
 
@@ -567,7 +571,7 @@ pub mod event {
             }
         }
 
-        fn content(&self) -> &serde_json::Value {
+        fn content(&self) -> &RawJsonValue {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => &ev.content,
                 Pdu::RoomV3Pdu(ev) => &ev.content,

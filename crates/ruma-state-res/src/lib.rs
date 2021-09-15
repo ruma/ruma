@@ -1,18 +1,18 @@
 use std::{
     cmp::Reverse,
-    collections::{BinaryHeap, HashMap, HashSet},
+    collections::{BTreeMap, BinaryHeap, HashMap, HashSet},
 };
 
 use itertools::Itertools;
+use js_int::{int, Int};
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
-    room::{
-        member::{MemberEventContent, MembershipState},
-        power_levels::PowerLevelsEventContent,
-    },
+    room::member::{MemberEventContent, MembershipState},
     EventType,
 };
-use ruma_identifiers::{EventId, RoomVersionId};
+use ruma_identifiers::{EventId, RoomVersionId, UserId};
+use serde::Deserialize;
+use serde_json::from_str as from_json_str;
 use tracing::{debug, info, trace, warn};
 
 mod error;
@@ -221,7 +221,7 @@ fn reverse_topological_power_sort<E: Event>(
     // This is used in the `key_fn` passed to the lexico_topo_sort fn
     let mut event_to_pl = HashMap::new();
     for event_id in graph.keys() {
-        let pl = get_power_level_for_sender(event_id, &fetch_event);
+        let pl = get_power_level_for_sender(event_id, &fetch_event)?;
         info!("{} power level {}", event_id, pl);
 
         event_to_pl.insert(event_id.clone(), pl);
@@ -253,7 +253,7 @@ pub fn lexicographical_topological_sort<F>(
     key_fn: F,
 ) -> Result<Vec<EventId>>
 where
-    F: Fn(&EventId) -> Result<(i64, MilliSecondsSinceUnixEpoch, EventId)>,
+    F: Fn(&EventId) -> Result<(Int, MilliSecondsSinceUnixEpoch, EventId)>,
 {
     info!("starting lexicographical topological sort");
     // NOTE: an event that has no incoming edges happened most recently,
@@ -314,11 +314,25 @@ where
     Ok(sorted)
 }
 
+#[derive(Deserialize)]
+struct PowerLevelsContentFields {
+    #[cfg_attr(
+        feature = "compat",
+        serde(deserialize_with = "ruma_serde::btreemap_int_or_string_to_int_values")
+    )]
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    users: BTreeMap<UserId, Int>,
+
+    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
+    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    users_default: Int,
+}
+
 /// Find the power level for the sender of `event_id` or return a default value of zero.
 fn get_power_level_for_sender<E: Event>(
     event_id: &EventId,
     fetch_event: impl Fn(&EventId) -> Option<E>,
-) -> i64 {
+) -> serde_json::Result<Int> {
     info!("fetch event ({}) senders power level", event_id);
 
     let event = fetch_event(event_id);
@@ -333,23 +347,19 @@ fn get_power_level_for_sender<E: Event>(
         }
     }
 
-    if pl.is_none() {
-        return 0;
+    let content: PowerLevelsContentFields = match pl {
+        None => return Ok(int!(0)),
+        Some(ev) => from_json_str(ev.content().get())?,
+    };
+
+    if let Some(ev) = event {
+        if let Some(&user_level) = content.users.get(ev.sender()) {
+            debug!("found {} at power_level {}", ev.sender(), user_level);
+            return Ok(user_level);
+        }
     }
 
-    if let Some(content) = pl.and_then(|pl| {
-        serde_json::from_value::<PowerLevelsEventContent>(pl.content().to_owned()).ok()
-    }) {
-        if let Some(ev) = event {
-            if let Some(user) = content.users.get(ev.sender()) {
-                debug!("found {} at power_level {}", ev.sender(), user);
-                return (*user).into();
-            }
-        }
-        content.users_default.into()
-    } else {
-        0
-    }
+    Ok(content.users_default)
 }
 
 /// Check the that each event is authenticated based on the events before it.
@@ -406,7 +416,7 @@ fn iterative_auth_check<E: Event + Clone>(
             event.sender(),
             Some(state_key),
             event.content(),
-        ) {
+        )? {
             if let Some(ev_id) = resolved_state.get(&key) {
                 if let Some(event) = fetch_event(ev_id) {
                     // TODO synapse checks `rejected_reason` is None here
@@ -590,9 +600,7 @@ fn is_power_event(event: impl Event) -> bool {
             event.state_key() == Some("")
         }
         EventType::RoomMember => {
-            if let Ok(content) =
-                serde_json::from_value::<MemberEventContent>(event.content().to_owned())
-            {
+            if let Ok(content) = from_json_str::<MemberEventContent>(event.content().get()) {
                 if [MembershipState::Leave, MembershipState::Ban].contains(&content.membership) {
                     return Some(event.sender().as_str()) != event.state_key();
                 }
@@ -611,13 +619,13 @@ mod tests {
         sync::Arc,
     };
 
-    use js_int::uint;
+    use js_int::{int, uint};
     use maplit::{hashmap, hashset};
     use rand::seq::SliceRandom;
     use ruma_common::MilliSecondsSinceUnixEpoch;
     use ruma_events::{room::join_rules::JoinRule, EventType};
     use ruma_identifiers::{EventId, RoomVersionId};
-    use serde_json::json;
+    use serde_json::{json, value::to_raw_value as to_raw_json_value};
     use tracing::debug;
 
     use crate::{
@@ -710,7 +718,7 @@ mod tests {
                 alice(),
                 EventType::RoomPowerLevels,
                 Some(""),
-                json!({ "users": { alice(): 100, bob(): 50 } }),
+                to_raw_json_value(&json!({ "users": { alice(): 100, bob(): 50 } })).unwrap(),
             ),
             to_init_pdu_event(
                 "MA",
@@ -731,7 +739,7 @@ mod tests {
                 bob(),
                 EventType::RoomPowerLevels,
                 Some(""),
-                json!({ "users": { alice(): 100, bob(): 50 } }),
+                to_raw_json_value(&json!({ "users": { alice(): 100, bob(): 50 } })).unwrap(),
             ),
         ];
 
@@ -752,30 +760,48 @@ mod tests {
             tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
 
         let events = &[
-            to_init_pdu_event("T1", alice(), EventType::RoomTopic, Some(""), json!({})),
+            to_init_pdu_event(
+                "T1",
+                alice(),
+                EventType::RoomTopic,
+                Some(""),
+                to_raw_json_value(&json!({})).unwrap(),
+            ),
             to_init_pdu_event(
                 "PA1",
                 alice(),
                 EventType::RoomPowerLevels,
                 Some(""),
-                json!({ "users": { alice(): 100, bob(): 50 } }),
+                to_raw_json_value(&json!({ "users": { alice(): 100, bob(): 50 } })).unwrap(),
             ),
-            to_init_pdu_event("T2", alice(), EventType::RoomTopic, Some(""), json!({})),
+            to_init_pdu_event(
+                "T2",
+                alice(),
+                EventType::RoomTopic,
+                Some(""),
+                to_raw_json_value(&json!({})).unwrap(),
+            ),
             to_init_pdu_event(
                 "PA2",
                 alice(),
                 EventType::RoomPowerLevels,
                 Some(""),
-                json!({ "users": { alice(): 100, bob(): 0 } }),
+                to_raw_json_value(&json!({ "users": { alice(): 100, bob(): 0 } })).unwrap(),
             ),
             to_init_pdu_event(
                 "PB",
                 bob(),
                 EventType::RoomPowerLevels,
                 Some(""),
-                json!({ "users": { alice(): 100, bob(): 50 } }),
+                to_raw_json_value(&json!({ "users": { alice(): 100, bob(): 50 } })).unwrap(),
             ),
-            to_init_pdu_event("T3", bob(), EventType::RoomTopic, Some(""), json!({})),
+            to_init_pdu_event(
+                "T3",
+                bob(),
+                EventType::RoomTopic,
+                Some(""),
+                to_raw_json_value(&json!({})).unwrap(),
+            ),
         ];
 
         let edges =
@@ -795,15 +821,27 @@ mod tests {
             tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
 
         let events = &[
-            to_init_pdu_event("T1", alice(), EventType::RoomTopic, Some(""), json!({})),
+            to_init_pdu_event(
+                "T1",
+                alice(),
+                EventType::RoomTopic,
+                Some(""),
+                to_raw_json_value(&json!({})).unwrap(),
+            ),
             to_init_pdu_event(
                 "PA",
                 alice(),
                 EventType::RoomPowerLevels,
                 Some(""),
-                json!({ "users": { alice(): 100, bob(): 50 } }),
+                to_raw_json_value(&json!({ "users": { alice(): 100, bob(): 50 } })).unwrap(),
             ),
-            to_init_pdu_event("T2", bob(), EventType::RoomTopic, Some(""), json!({})),
+            to_init_pdu_event(
+                "T2",
+                bob(),
+                EventType::RoomTopic,
+                Some(""),
+                to_raw_json_value(&json!({})).unwrap(),
+            ),
             to_init_pdu_event(
                 "MB",
                 alice(),
@@ -835,7 +873,7 @@ mod tests {
                 alice(),
                 EventType::RoomJoinRules,
                 Some(""),
-                json!({ "join_rule": JoinRule::Private }),
+                to_raw_json_value(&json!({ "join_rule": JoinRule::Private })).unwrap(),
             ),
             to_init_pdu_event(
                 "ME",
@@ -867,21 +905,23 @@ mod tests {
                 alice(),
                 EventType::RoomPowerLevels,
                 Some(""),
-                json!({ "users": { alice(): 100, bob(): 50 } }),
+                to_raw_json_value(&json!({ "users": { alice(): 100, bob(): 50 } })).unwrap(),
             ),
             to_init_pdu_event(
                 "PB",
                 bob(),
                 EventType::RoomPowerLevels,
                 Some(""),
-                json!({ "users": { alice(): 100, bob(): 50, charlie(): 50 } }),
+                to_raw_json_value(&json!({ "users": { alice(): 100, bob(): 50, charlie(): 50 } }))
+                    .unwrap(),
             ),
             to_init_pdu_event(
                 "PC",
                 charlie(),
                 EventType::RoomPowerLevels,
                 Some(""),
-                json!({ "users": { alice(): 100, bob(): 50, charlie(): 0 } }),
+                to_raw_json_value(&json!({ "users": { alice(): 100, bob(): 50, charlie(): 0 } }))
+                    .unwrap(),
             ),
         ];
 
@@ -901,32 +941,62 @@ mod tests {
             tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
 
         let events = &[
-            to_init_pdu_event("T1", alice(), EventType::RoomTopic, Some(""), json!({})),
+            to_init_pdu_event(
+                "T1",
+                alice(),
+                EventType::RoomTopic,
+                Some(""),
+                to_raw_json_value(&json!({})).unwrap(),
+            ),
             to_init_pdu_event(
                 "PA1",
                 alice(),
                 EventType::RoomPowerLevels,
                 Some(""),
-                json!({ "users": { alice(): 100, bob(): 50 } }),
+                to_raw_json_value(&json!({ "users": { alice(): 100, bob(): 50 } })).unwrap(),
             ),
-            to_init_pdu_event("T2", alice(), EventType::RoomTopic, Some(""), json!({})),
+            to_init_pdu_event(
+                "T2",
+                alice(),
+                EventType::RoomTopic,
+                Some(""),
+                to_raw_json_value(&json!({})).unwrap(),
+            ),
             to_init_pdu_event(
                 "PA2",
                 alice(),
                 EventType::RoomPowerLevels,
                 Some(""),
-                json!({ "users": { alice(): 100, bob(): 0 } }),
+                to_raw_json_value(&json!({ "users": { alice(): 100, bob(): 0 } })).unwrap(),
             ),
             to_init_pdu_event(
                 "PB",
                 bob(),
                 EventType::RoomPowerLevels,
                 Some(""),
-                json!({ "users": { alice(): 100, bob(): 50 } }),
+                to_raw_json_value(&json!({ "users": { alice(): 100, bob(): 50 } })).unwrap(),
             ),
-            to_init_pdu_event("T3", bob(), EventType::RoomTopic, Some(""), json!({})),
-            to_init_pdu_event("MZ1", zara(), EventType::RoomTopic, Some(""), json!({})),
-            to_init_pdu_event("T4", alice(), EventType::RoomTopic, Some(""), json!({})),
+            to_init_pdu_event(
+                "T3",
+                bob(),
+                EventType::RoomTopic,
+                Some(""),
+                to_raw_json_value(&json!({})).unwrap(),
+            ),
+            to_init_pdu_event(
+                "MZ1",
+                zara(),
+                EventType::RoomTopic,
+                Some(""),
+                to_raw_json_value(&json!({})).unwrap(),
+            ),
+            to_init_pdu_event(
+                "T4",
+                alice(),
+                EventType::RoomTopic,
+                Some(""),
+                to_raw_json_value(&json!({})).unwrap(),
+            ),
         ];
 
         let edges = vec![
@@ -986,7 +1056,7 @@ mod tests {
         };
 
         let res = crate::lexicographical_topological_sort(&graph, |id| {
-            Ok((0, MilliSecondsSinceUnixEpoch(uint!(0)), id.clone()))
+            Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0)), id.clone()))
         })
         .unwrap();
 
@@ -1120,7 +1190,7 @@ mod tests {
                 alice(),
                 EventType::RoomPowerLevels,
                 Some(""),
-                json!({ "users": { alice(): 100, bob(): 50 } }),
+                to_raw_json_value(&json!({ "users": { alice(): 100, bob(): 50 } })).unwrap(),
                 &["CREATE", "IMA", "IPOWER"], // auth_events
                 &["START"],                   // prev_events
             ),
@@ -1129,7 +1199,7 @@ mod tests {
                 alice(),
                 EventType::RoomPowerLevels,
                 Some(""),
-                json!({ "users": { alice(): 100, bob(): 50 } }),
+                to_raw_json_value(&json!({ "users": { alice(): 100, bob(): 50 } })).unwrap(),
                 &["CREATE", "IMA", "IPOWER"],
                 &["END"],
             ),
@@ -1165,7 +1235,7 @@ mod tests {
                 alice(),
                 EventType::RoomJoinRules,
                 Some(""),
-                json!({ "join_rule": "invite" }),
+                to_raw_json_value(&json!({ "join_rule": "invite" })).unwrap(),
                 &["CREATE", "IMA", "IPOWER"],
                 &["START"],
             ),
