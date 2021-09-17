@@ -235,6 +235,30 @@ macro_rules! opaque_identifier_common_impls {
             }
         }
 
+        impl PartialEq<$id> for Box<$id> {
+            fn eq(&self, other: &$id) -> bool {
+                self.as_str() == other.as_str()
+            }
+        }
+
+        impl PartialEq<&'_ $id> for Box<$id> {
+            fn eq(&self, other: &&$id) -> bool {
+                self.as_str() == other.as_str()
+            }
+        }
+
+        impl PartialEq<Box<$id>> for $id {
+            fn eq(&self, other: &Box<$id>) -> bool {
+                self.as_str() == other.as_str()
+            }
+        }
+
+        impl PartialEq<Box<$id>> for &'_ $id {
+            fn eq(&self, other: &Box<$id>) -> bool {
+                self.as_str() == other.as_str()
+            }
+        }
+
         as_str_based_impls!($id);
         partial_eq_string!($id);
         partial_eq_string!(Box<$id>);
