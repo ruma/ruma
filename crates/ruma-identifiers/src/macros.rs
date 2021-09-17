@@ -159,15 +159,8 @@ macro_rules! common_impls {
     };
 }
 
-macro_rules! opaque_identifier {
-    (
-        $( #[doc = $docs:literal] )*
-        $vis:vis type $id:ident;
-    ) => {
-        $( #[doc = $docs] )*
-        #[repr(transparent)]
-        pub struct $id(str);
-
+macro_rules! opaque_identifier_common_impls {
+    ($id:ty) => {
         impl $id {
             fn from_borrowed(s: &str) -> &Self {
                 unsafe { std::mem::transmute(s) }
@@ -241,6 +234,23 @@ macro_rules! opaque_identifier {
                 unsafe { std::sync::Arc::from_raw(std::sync::Arc::into_raw(arc) as *const $id) }
             }
         }
+
+        as_str_based_impls!($id);
+        partial_eq_string!($id);
+        partial_eq_string!(Box<$id>);
+    };
+}
+
+macro_rules! opaque_identifier {
+    (
+        $( #[doc = $docs:literal] )*
+        $vis:vis type $id:ident;
+    ) => {
+        $( #[doc = $docs] )*
+        #[repr(transparent)]
+        pub struct $id(str);
+
+        opaque_identifier_common_impls!($id);
 
         impl<'a> From<&'a str> for &'a $id {
             fn from(s: &'a str) -> Self {
@@ -275,10 +285,6 @@ macro_rules! opaque_identifier {
                 Box::<str>::deserialize(deserializer).map($id::from_owned)
             }
         }
-
-        as_str_based_impls!($id);
-        partial_eq_string!($id);
-        partial_eq_string!(Box<$id>);
     };
 }
 
@@ -289,90 +295,9 @@ macro_rules! opaque_identifier_validated {
     ) => {
         $( #[doc = $docs] )*
         #[repr(transparent)]
-        #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
-        #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent, crate = "serde"))]
         pub struct $id(str);
 
-        impl $id {
-            #[allow(clippy::transmute_ptr_to_ptr)]
-            fn from_borrowed(s: &str) -> &Self {
-                unsafe { std::mem::transmute(s) }
-            }
-
-            pub(super) fn from_owned(s: Box<str>) -> Box<Self> {
-                unsafe { Box::from_raw(Box::into_raw(s) as _) }
-            }
-
-            fn into_owned(self: Box<Self>) -> Box<str> {
-                unsafe { Box::from_raw(Box::into_raw(self) as _) }
-            }
-
-            doc_concat! {
-                #[doc = concat!("Creates a string slice from this `", stringify!($id), "`.")]
-                pub fn as_str(&self) -> &str {
-                    &self.0
-                }
-            }
-
-            doc_concat! {
-                #[doc = concat!("Creates a byte slice from this `", stringify!($id), "`.")]
-                pub fn as_bytes(&self) -> &[u8] {
-                    self.0.as_bytes()
-                }
-            }
-        }
-
-        impl std::fmt::Debug for $id {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                <str as std::fmt::Debug>::fmt(self.as_str(), f)
-            }
-        }
-
-        impl Clone for Box<$id> {
-            fn clone(&self) -> Self {
-                (**self).to_owned()
-            }
-        }
-
-        impl ToOwned for $id {
-            type Owned = Box<$id>;
-
-            fn to_owned(&self) -> Self::Owned {
-                Self::from_owned(self.0.into())
-            }
-        }
-
-        impl From<&$id> for Box<$id> {
-            fn from(id: &$id) -> Self {
-                id.to_owned()
-            }
-        }
-
-        impl AsRef<str> for $id {
-            fn as_ref(&self) -> &str {
-                self.as_str()
-            }
-        }
-
-        impl AsRef<str> for Box<$id> {
-            fn as_ref(&self) -> &str {
-                self.as_str()
-            }
-        }
-
-        impl From<&$id> for std::rc::Rc<$id> {
-            fn from(s: &$id) -> std::rc::Rc<$id> {
-                let rc = std::rc::Rc::<str>::from(s.as_str());
-                unsafe { std::rc::Rc::from_raw(std::rc::Rc::into_raw(rc) as *const $id) }
-            }
-        }
-
-        impl From<&$id> for std::sync::Arc<$id> {
-            fn from(s: &$id) -> std::sync::Arc<$id> {
-                let arc = std::sync::Arc::<str>::from(s.as_str());
-                unsafe { std::sync::Arc::from_raw(std::sync::Arc::into_raw(arc) as *const $id) }
-            }
-        }
+        opaque_identifier_common_impls!($id);
 
         impl From<Box<$id>> for String {
             fn from(id: Box<$id>) -> Self {
@@ -437,14 +362,5 @@ macro_rules! opaque_identifier_validated {
                 try_from(s)
             }
         }
-
-        impl std::fmt::Display for $id {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{}", self.as_str())
-            }
-        }
-
-        partial_eq_string!($id);
-        partial_eq_string!(Box<$id>);
     }
 }
