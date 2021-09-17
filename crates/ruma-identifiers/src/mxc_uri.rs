@@ -2,21 +2,22 @@
 //!
 //! [MXC URI]: https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri
 
-use std::{convert::TryInto, fmt, num::NonZeroU8};
+use std::{convert::TryInto, num::NonZeroU8};
 
 use ruma_identifiers_validation::{error::MxcUriError, mxc_uri::validate};
 
 use crate::ServerName;
 
-type Result<T> = std::result::Result<T, MxcUriError>;
+type Result<T, E = MxcUriError> = std::result::Result<T, E>;
 
 /// A URI that should be a Matrix-spec compliant [MXC URI].
 ///
 /// [MXC URI]: https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct MxcUri {
-    full_uri: Box<str>,
-}
+
+#[repr(transparent)]
+pub struct MxcUri(str);
+
+opaque_identifier!(MxcUri);
 
 impl MxcUri {
     /// If this is a valid MXC URI, returns the media ID.
@@ -34,8 +35,8 @@ impl MxcUri {
     pub fn parts(&self) -> Result<(&ServerName, &str)> {
         self.extract_slash_idx().map(|idx| {
             (
-                self.full_uri[6..idx.get() as usize].try_into().unwrap(),
-                &self.full_uri[idx.get() as usize + 1..],
+                self.as_str()[6..idx.get() as usize].try_into().unwrap(),
+                &self.as_str()[idx.get() as usize + 1..],
             )
         })
     }
@@ -51,67 +52,10 @@ impl MxcUri {
         self.validate().is_ok()
     }
 
-    /// Create a string slice from this MXC URI.
-    #[inline(always)]
-    pub fn as_str(&self) -> &str {
-        &self.full_uri
-    }
-
     // convenience method for calling validate(self)
     #[inline(always)]
     fn extract_slash_idx(&self) -> Result<NonZeroU8> {
         validate(self.as_str())
-    }
-}
-
-impl fmt::Debug for MxcUri {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.full_uri.fmt(f)
-    }
-}
-
-impl fmt::Display for MxcUri {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.full_uri.fmt(f)
-    }
-}
-
-fn from<S>(uri: S) -> MxcUri
-where
-    S: AsRef<str> + Into<Box<str>>,
-{
-    MxcUri { full_uri: uri.into() }
-}
-
-impl From<&str> for MxcUri {
-    fn from(s: &str) -> Self {
-        from(s)
-    }
-}
-
-impl From<String> for MxcUri {
-    fn from(s: String) -> Self {
-        from(s)
-    }
-}
-
-#[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for MxcUri {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        String::deserialize(deserializer).map(Into::into)
-    }
-}
-
-#[cfg(feature = "serde")]
-impl serde::Serialize for MxcUri {
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
     }
 }
 
@@ -125,7 +69,7 @@ mod tests {
 
     #[test]
     fn parse_mxc_uri() {
-        let mxc = MxcUri::from("mxc://127.0.0.1/asd32asdfasdsd");
+        let mxc = Box::<MxcUri>::from("mxc://127.0.0.1/asd32asdfasdsd");
 
         assert!(mxc.is_valid());
         assert_eq!(
@@ -136,7 +80,7 @@ mod tests {
 
     #[test]
     fn parse_mxc_uri_without_media_id() {
-        let mxc = MxcUri::from("mxc://127.0.0.1");
+        let mxc = Box::<MxcUri>::from("mxc://127.0.0.1");
 
         assert!(!mxc.is_valid());
         assert_eq!(mxc.parts(), Err(MxcUriError::MissingSlash));
@@ -144,14 +88,14 @@ mod tests {
 
     #[test]
     fn parse_mxc_uri_without_protocol() {
-        assert!(!MxcUri::from("127.0.0.1/asd32asdfasdsd").is_valid());
+        assert!(!Box::<MxcUri>::from("127.0.0.1/asd32asdfasdsd").is_valid());
     }
 
     #[cfg(feature = "serde")]
     #[test]
     fn serialize_mxc_uri() {
         assert_eq!(
-            serde_json::to_string(&MxcUri::from("mxc://server/1234id"))
+            serde_json::to_string(&Box::<MxcUri>::from("mxc://server/1234id"))
                 .expect("Failed to convert MxcUri to JSON."),
             r#""mxc://server/1234id""#
         );
@@ -160,7 +104,7 @@ mod tests {
     #[cfg(feature = "serde")]
     #[test]
     fn deserialize_mxc_uri() {
-        let mxc = serde_json::from_str::<MxcUri>(r#""mxc://server/1234id""#)
+        let mxc = serde_json::from_str::<Box<MxcUri>>(r#""mxc://server/1234id""#)
             .expect("Failed to convert JSON to MxcUri");
 
         assert_eq!(mxc.as_str(), "mxc://server/1234id");

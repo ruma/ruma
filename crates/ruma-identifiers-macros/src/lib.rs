@@ -117,9 +117,7 @@ pub fn mxc_uri(input: TokenStream) -> TokenStream {
     assert!(mxc_uri::validate(&id.value()).is_ok(), "Invalid mxc://");
 
     let output = quote! {
-        <#dollar_crate::MxcUri as ::std::convert::TryFrom<&str>>::try_from(
-            #id,
-        ).unwrap()
+        <&#dollar_crate::MxcUri as ::std::convert::From<&str>>::from(#id)
     };
 
     output.into()

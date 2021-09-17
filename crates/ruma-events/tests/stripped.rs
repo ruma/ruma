@@ -120,7 +120,7 @@ fn deserialize_stripped_state_events() {
             let expected_url = mxc_uri!("mxc://example.com/iMag3");
 
             #[cfg(feature = "unstable-pre-spec")]
-            let expected_url = Some(expected_url);
+            let expected_url = Some(expected_url.to_owned());
 
             assert_eq!(image_info.height.unwrap(), uint!(128));
             assert_eq!(image_info.width.unwrap(), uint!(128));

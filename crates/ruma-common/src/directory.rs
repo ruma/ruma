@@ -58,7 +58,7 @@ pub struct PublicRoomsChunk {
         feature = "compat",
         serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<MxcUri>,
+    pub avatar_url: Option<Box<MxcUri>>,
 }
 
 /// Initial set of mandatory fields of `PublicRoomsChunk`.

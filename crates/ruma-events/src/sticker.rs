@@ -23,12 +23,12 @@ pub struct StickerEventContent {
     pub info: ImageInfo,
 
     /// The URL to the sticker image.
-    pub url: MxcUri,
+    pub url: Box<MxcUri>,
 }
 
 impl StickerEventContent {
     /// Creates a new `StickerEventContent` with the given body, image info and URL.
-    pub fn new(body: String, info: ImageInfo, url: MxcUri) -> Self {
+    pub fn new(body: String, info: ImageInfo, url: Box<MxcUri>) -> Self {
         Self { body, info, url }
     }
 }

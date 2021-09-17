@@ -37,7 +37,7 @@ pub struct PresenceEventContent {
         feature = "compat",
         serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<MxcUri>,
+    pub avatar_url: Option<Box<MxcUri>>,
 
     /// Whether or not the user is currently active.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -92,7 +92,7 @@ mod tests {
     fn serialization() {
         let event = PresenceEvent {
             content: PresenceEventContent {
-                avatar_url: Some(mxc_uri!("mxc://localhost/wefuiwegh8742w")),
+                avatar_url: Some(mxc_uri!("mxc://localhost/wefuiwegh8742w").to_owned()),
                 currently_active: Some(false),
                 displayname: None,
                 last_active_ago: Some(uint!(2_478_593)),
@@ -143,7 +143,7 @@ mod tests {
                     status_msg: Some(status_msg),
                 },
                 sender,
-            } if avatar_url.to_string() == "mxc://localhost/wefuiwegh8742w"
+            } if avatar_url == "mxc://localhost/wefuiwegh8742w"
                 && status_msg == "Making cupcakes"
                 && sender == "@example:localhost"
                 && last_active_ago == uint!(2_478_593)

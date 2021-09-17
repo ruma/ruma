@@ -263,6 +263,7 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                         || last_seg.ident == "DeviceId"
                         || last_seg.ident == "DeviceKeyId"
                         || last_seg.ident == "EventId"
+                        || last_seg.ident == "MxcUri"
                         || last_seg.ident == "ServerName"
                         || last_seg.ident == "SessionId"
                         || last_seg.ident == "RawJsonValue"

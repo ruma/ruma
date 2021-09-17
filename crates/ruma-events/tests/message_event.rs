@@ -28,9 +28,9 @@ fn message_serialize_sticker() {
                     mimetype: Some("image/png".into()),
                     size: UInt::new(82595),
                 }))),
-                thumbnail_url: Some(mxc_uri!("mxc://matrix.org/irsns989Rrsn")),
+                thumbnail_url: Some(mxc_uri!("mxc://matrix.org/irsns989Rrsn").to_owned()),
             }),
-            mxc_uri!("mxc://matrix.org/rnsldl8srs98IRrs"),
+            mxc_uri!("mxc://matrix.org/rnsldl8srs98IRrs").to_owned(),
         ),
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
@@ -203,7 +203,7 @@ fn deserialize_message_sticker() {
             && width == UInt::new(1011)
             && mimetype == "image/png"
             && size == UInt::new(84242)
-            && thumbnail_url.to_string() == "mxc://matrix.org/irnsNRS2879"
+            && thumbnail_url == "mxc://matrix.org/irnsNRS2879"
             && matches!(
                 thumbnail_info.as_ref(),
                 ThumbnailInfo {
@@ -217,7 +217,7 @@ fn deserialize_message_sticker() {
                     && *thumb_mimetype == Some("image/png".into())
                     && *thumb_size == UInt::new(82595)
             )
-            && url.to_string() == "mxc://matrix.org/jxPXTKpyydzdHJkdFNZjTZrD"
+            && url == "mxc://matrix.org/jxPXTKpyydzdHJkdFNZjTZrD"
             && unsigned.is_empty()
     );
 }

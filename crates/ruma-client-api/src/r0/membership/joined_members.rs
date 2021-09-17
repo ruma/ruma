@@ -62,7 +62,7 @@ pub struct RoomMember {
         feature = "compat",
         serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<MxcUri>,
+    pub avatar_url: Option<Box<MxcUri>>,
 }
 
 impl RoomMember {
@@ -89,7 +89,7 @@ mod test {
                 display_name: Some(display_name),
                 avatar_url: Some(avatar_url),
             } if display_name == "alice"
-                && avatar_url.to_string() == "mxc://localhost/wefuiwegh8742w"
+                && avatar_url == "mxc://localhost/wefuiwegh8742w"
         );
 
         #[cfg(feature = "compat")]

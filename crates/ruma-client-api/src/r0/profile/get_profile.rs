@@ -30,7 +30,7 @@ ruma_api! {
             feature = "compat",
             serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
         )]
-        pub avatar_url: Option<MxcUri>,
+        pub avatar_url: Option<Box<MxcUri>>,
 
         /// The user's display name, if set.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -57,7 +57,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given avatar URL and display name.
-    pub fn new(avatar_url: Option<MxcUri>, displayname: Option<String>) -> Self {
+    pub fn new(avatar_url: Option<Box<MxcUri>>, displayname: Option<String>) -> Self {
         Self {
             avatar_url,
             displayname,

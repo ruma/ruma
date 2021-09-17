@@ -150,6 +150,7 @@ fn deserialize_aliases_sync_with_room_id() {
 }
 
 #[test]
+#[allow(clippy::cmp_owned)] // seems buggy
 fn deserialize_avatar_without_prev_content() {
     let json_data = json!({
         "content": {
@@ -176,7 +177,7 @@ fn deserialize_avatar_without_prev_content() {
         "type": "m.room.avatar"
     });
 
-    let expected_url = "mxc://matrix.org/rnsldl8srs98IRrs".into();
+    let expected_url = mxc_uri!("mxc://matrix.org/rnsldl8srs98IRrs").to_owned();
 
     #[cfg(feature = "unstable-pre-spec")]
     let expected_url = Some(expected_url);
@@ -227,7 +228,7 @@ fn deserialize_avatar_without_prev_content() {
                             && *thumb_height == UInt::new(334)
                             && *thumb_mimetype == Some("image/png".into())
                             && *thumb_size == UInt::new(82595)
-                            && *thumbnail_url == mxc_uri!("mxc://matrix.org/98irRSS23srs")
+                            && thumbnail_url == mxc_uri!("mxc://matrix.org/98irRSS23srs")
                     )
             )
             && url == expected_url

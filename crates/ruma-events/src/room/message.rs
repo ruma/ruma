@@ -403,7 +403,7 @@ pub struct AudioMessageEventContent {
     ///
     /// Required if the file is unencrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<MxcUri>,
+    pub url: Option<Box<MxcUri>>,
 
     /// Information on the encrypted audio clip.
     ///
@@ -419,7 +419,7 @@ pub struct AudioMessageEventContent {
 impl AudioMessageEventContent {
     /// Creates a new non-encrypted `RoomAudioMessageEventContent` with the given body, url and
     /// optional extra info.
-    pub fn plain(body: String, url: MxcUri, info: Option<Box<AudioInfo>>) -> Self {
+    pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<AudioInfo>>) -> Self {
         Self { body, url: Some(url), info, file: None }
     }
 
@@ -504,7 +504,7 @@ pub struct FileMessageEventContent {
 
     /// The URL to the file.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<MxcUri>,
+    pub url: Option<Box<MxcUri>>,
 
     /// Information on the encrypted file.
     ///
@@ -520,7 +520,7 @@ pub struct FileMessageEventContent {
 impl FileMessageEventContent {
     /// Creates a new non-encrypted `RoomFileMessageEventContent` with the given body, url and
     /// optional extra info.
-    pub fn plain(body: String, url: MxcUri, info: Option<Box<FileInfo>>) -> Self {
+    pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<FileInfo>>) -> Self {
         Self { body, filename: None, url: Some(url), info, file: None }
     }
 
@@ -551,7 +551,7 @@ pub struct FileInfo {
     ///
     /// Only present if the thumbnail is unencrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_url: Option<MxcUri>,
+    pub thumbnail_url: Option<Box<MxcUri>>,
 
     /// Information on the encrypted thumbnail file.
     ///
@@ -580,7 +580,7 @@ pub struct ImageMessageEventContent {
 
     /// The URL to the image.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<MxcUri>,
+    pub url: Option<Box<MxcUri>>,
 
     /// Information on the encrypted image.
     ///
@@ -596,7 +596,7 @@ pub struct ImageMessageEventContent {
 impl ImageMessageEventContent {
     /// Creates a new non-encrypted `RoomImageMessageEventContent` with the given body, url and
     /// optional extra info.
-    pub fn plain(body: String, url: MxcUri, info: Option<Box<ImageInfo>>) -> Self {
+    pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<ImageInfo>>) -> Self {
         Self { body, url: Some(url), info, file: None }
     }
 
@@ -639,7 +639,7 @@ pub struct LocationInfo {
     ///
     /// Only present if the thumbnail is unencrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_url: Option<MxcUri>,
+    pub thumbnail_url: Option<Box<MxcUri>>,
 
     /// Information on an encrypted thumbnail of the location being represented.
     ///
@@ -871,7 +871,7 @@ pub struct VideoMessageEventContent {
 
     /// The URL to the video clip.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<MxcUri>,
+    pub url: Option<Box<MxcUri>>,
 
     /// Information on the encrypted video clip.
     ///
@@ -887,7 +887,7 @@ pub struct VideoMessageEventContent {
 impl VideoMessageEventContent {
     /// Creates a new non-encrypted `RoomVideoMessageEventContent` with the given body, url and
     /// optional extra info.
-    pub fn plain(body: String, url: MxcUri, info: Option<Box<VideoInfo>>) -> Self {
+    pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<VideoInfo>>) -> Self {
         Self { body, url: Some(url), info, file: None }
     }
 
@@ -930,7 +930,7 @@ pub struct VideoInfo {
     ///
     /// Only present if the thumbnail is unencrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_url: Option<MxcUri>,
+    pub thumbnail_url: Option<Box<MxcUri>>,
 
     /// Information on the encrypted thumbnail file.
     ///

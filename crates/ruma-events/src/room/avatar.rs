@@ -25,13 +25,13 @@ pub struct RoomAvatarEventContent {
     ///
     /// With the `unstable-pre-spec` feature, this field is optional.
     #[cfg(not(feature = "unstable-pre-spec"))]
-    pub url: MxcUri,
+    pub url: Box<MxcUri>,
 
     /// URL of the avatar image.
     ///
     /// Without the `unstable-pre-spec` feature, this field is not optional.
     #[cfg(feature = "unstable-pre-spec")]
-    pub url: Option<MxcUri>,
+    pub url: Option<Box<MxcUri>>,
 }
 
 impl RoomAvatarEventContent {
@@ -39,7 +39,7 @@ impl RoomAvatarEventContent {
     ///
     /// With the `unstable-pre-spec` feature, this method takes no parameters.
     #[cfg(not(feature = "unstable-pre-spec"))]
-    pub fn new(url: MxcUri) -> Self {
+    pub fn new(url: Box<MxcUri>) -> Self {
         Self { info: None, url }
     }
 
@@ -78,7 +78,7 @@ pub struct ImageInfo {
 
     /// The URL to the thumbnail of the image.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_url: Option<MxcUri>,
+    pub thumbnail_url: Option<Box<MxcUri>>,
 
     /// The [BlurHash](https://blurha.sh) for this image.
     ///
