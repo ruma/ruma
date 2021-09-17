@@ -48,7 +48,7 @@ pub enum BackupAlgorithm {
         public_key: String,
 
         /// Signatures of the auth_data as Signed JSON.
-        signatures: BTreeMap<UserId, BTreeMap<DeviceKeyId, String>>,
+        signatures: BTreeMap<UserId, BTreeMap<Box<DeviceKeyId>, String>>,
     },
 }
 

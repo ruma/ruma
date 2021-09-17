@@ -60,4 +60,4 @@ impl Response {
 }
 
 /// The one-time keys for a given device.
-pub type OneTimeKeys = BTreeMap<Box<DeviceId>, BTreeMap<DeviceKeyId, OneTimeKey>>;
+pub type OneTimeKeys = BTreeMap<Box<DeviceId>, BTreeMap<Box<DeviceKeyId>, OneTimeKey>>;

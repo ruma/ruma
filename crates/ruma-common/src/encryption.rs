@@ -25,10 +25,10 @@ pub struct DeviceKeys {
     pub algorithms: Vec<EventEncryptionAlgorithm>,
 
     /// Public identity keys.
-    pub keys: BTreeMap<DeviceKeyId, String>,
+    pub keys: BTreeMap<Box<DeviceKeyId>, String>,
 
     /// Signatures for the device key object.
-    pub signatures: BTreeMap<UserId, BTreeMap<DeviceKeyId, String>>,
+    pub signatures: BTreeMap<UserId, BTreeMap<Box<DeviceKeyId>, String>>,
 
     /// Additional data added to the device key information by intermediate servers, and
     /// not covered by the signatures.
@@ -43,8 +43,8 @@ impl DeviceKeys {
         user_id: UserId,
         device_id: Box<DeviceId>,
         algorithms: Vec<EventEncryptionAlgorithm>,
-        keys: BTreeMap<DeviceKeyId, String>,
-        signatures: BTreeMap<UserId, BTreeMap<DeviceKeyId, String>>,
+        keys: BTreeMap<Box<DeviceKeyId>, String>,
+        signatures: BTreeMap<UserId, BTreeMap<Box<DeviceKeyId>, String>>,
     ) -> Self {
         Self { user_id, device_id, algorithms, keys, signatures, unsigned: Default::default() }
     }
@@ -72,7 +72,7 @@ impl UnsignedDeviceInfo {
 }
 
 /// Signatures for a `SignedKey` object.
-pub type SignedKeySignatures = BTreeMap<UserId, BTreeMap<DeviceKeyId, String>>;
+pub type SignedKeySignatures = BTreeMap<UserId, BTreeMap<Box<DeviceKeyId>, String>>;
 
 /// A key for the SignedCurve25519 algorithm
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -27,7 +27,7 @@ ruma_api! {
 
         /// One-time public keys for "pre-key" messages.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub one_time_keys: Option<BTreeMap<DeviceKeyId, OneTimeKey>>,
+        pub one_time_keys: Option<BTreeMap<Box<DeviceKeyId>, OneTimeKey>>,
     }
 
     response: {

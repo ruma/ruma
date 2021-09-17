@@ -1,10 +1,12 @@
-use std::num::NonZeroU8;
-
 use crate::Error;
 
-pub fn validate(s: &str) -> Result<NonZeroU8, Error> {
-    let colon_idx = NonZeroU8::new(s.find(':').ok_or(Error::MissingDelimiter)? as u8)
-        .ok_or(Error::InvalidKeyAlgorithm)?;
+pub fn validate(s: &str) -> Result<(), Error> {
+    let colon_idx = s.find(':').ok_or(Error::MissingDelimiter)?;
 
-    Ok(colon_idx)
+    if colon_idx == 0 {
+        Err(Error::InvalidKeyAlgorithm)
+    } else {
+        // Any non-empty string is accepted as a key algorithm for forwards compatibility
+        Ok(())
+    }
 }

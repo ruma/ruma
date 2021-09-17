@@ -31,7 +31,7 @@ pub fn device_key_id(input: TokenStream) -> TokenStream {
     assert!(device_key_id::validate(&id.value()).is_ok(), "Invalid device key id");
 
     let output = quote! {
-        <#dollar_crate::DeviceKeyId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
+        <&#dollar_crate::DeviceKeyId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
     };
 
     output.into()
