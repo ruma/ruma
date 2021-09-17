@@ -388,8 +388,6 @@ macro_rules! opaque_identifier_validated {
             }
         }
 
-
-
         impl From<Box<$id>> for String {
             fn from(id: Box<$id>) -> Self {
                 id.into_owned().into()
