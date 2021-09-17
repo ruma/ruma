@@ -23,11 +23,12 @@ use serde::de::{self, Deserializer, Unexpected};
 pub use crate::{
     client_secret::{ClientSecret, ClientSecretBox},
     crypto_algorithms::{DeviceKeyAlgorithm, EventEncryptionAlgorithm, SigningKeyAlgorithm},
+    device_id::{DeviceId, DeviceIdBox},
     device_key_id::DeviceKeyId,
     event_id::EventId,
     key_id::{DeviceSigningKeyId, KeyId, ServerSigningKeyId, SigningKeyId},
+    key_name::{KeyName, KeyNameBox},
     mxc_uri::MxcUri,
-    opaque_ids::{DeviceId, DeviceIdBox, KeyName, KeyNameBox},
     room_alias_id::RoomAliasId,
     room_id::RoomId,
     room_id_or_room_alias_id::RoomIdOrAliasId,
@@ -48,11 +49,12 @@ pub mod user_id;
 
 mod client_secret;
 mod crypto_algorithms;
+mod device_id;
 mod device_key_id;
 mod event_id;
 mod key_id;
+mod key_name;
 mod mxc_uri;
-mod opaque_ids;
 mod room_alias_id;
 mod room_id;
 mod room_id_or_room_alias_id;
