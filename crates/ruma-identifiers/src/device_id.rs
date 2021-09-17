@@ -1,31 +1,32 @@
 #[cfg(feature = "rand")]
 use crate::generate_localpart;
 
-opaque_identifier! {
-    /// A Matrix key ID.
-    ///
-    /// Device identifiers in Matrix are completely opaque character sequences. This type is
-    /// provided simply for its semantic value.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ruma_identifiers::{DeviceId, device_id};
-    ///
-    /// let random_id = DeviceId::new();
-    /// assert_eq!(random_id.as_str().len(), 8);
-    ///
-    /// let static_id = device_id!("01234567");
-    /// assert_eq!(static_id.as_str(), "01234567");
-    ///
-    /// let ref_id: &DeviceId = "abcdefghi".into();
-    /// assert_eq!(ref_id.as_str(), "abcdefghi");
-    ///
-    /// let owned_id: Box<DeviceId> = "ijklmnop".into();
-    /// assert_eq!(owned_id.as_str(), "ijklmnop");
-    /// ```
-    pub type DeviceId;
-}
+/// A Matrix key ID.
+///
+/// Device identifiers in Matrix are completely opaque character sequences. This type is provided
+/// simply for its semantic value.
+///
+/// # Example
+///
+/// ```
+/// use ruma_identifiers::{DeviceId, device_id};
+///
+/// let random_id = DeviceId::new();
+/// assert_eq!(random_id.as_str().len(), 8);
+///
+/// let static_id = device_id!("01234567");
+/// assert_eq!(static_id.as_str(), "01234567");
+///
+/// let ref_id: &DeviceId = "abcdefghi".into();
+/// assert_eq!(ref_id.as_str(), "abcdefghi");
+///
+/// let owned_id: Box<DeviceId> = "ijklmnop".into();
+/// assert_eq!(owned_id.as_str(), "ijklmnop");
+/// ```
+#[repr(transparent)]
+pub struct DeviceId(str);
+
+opaque_identifier!(DeviceId);
 
 impl DeviceId {
     /// Generates a random `DeviceId`, suitable for assignment to a new device.

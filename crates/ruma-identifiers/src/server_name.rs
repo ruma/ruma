@@ -1,11 +1,10 @@
 //! Matrix-spec compliant server names.
 
-use ruma_identifiers_validation::server_name::validate;
+/// A Matrix-spec compliant server name.
+#[repr(transparent)]
+pub struct ServerName(str);
 
-opaque_identifier_validated! {
-    /// A Matrix-spec compliant server name.
-    pub type ServerName [ validate ];
-}
+opaque_identifier_validated!(ServerName, ruma_identifiers_validation::server_name::validate);
 
 #[cfg(test)]
 mod tests {

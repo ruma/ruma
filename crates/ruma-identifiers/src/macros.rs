@@ -266,14 +266,7 @@ macro_rules! opaque_identifier_common_impls {
 }
 
 macro_rules! opaque_identifier {
-    (
-        $( #[doc = $docs:literal] )*
-        $vis:vis type $id:ident;
-    ) => {
-        $( #[doc = $docs] )*
-        #[repr(transparent)]
-        pub struct $id(str);
-
+    ($id:ident) => {
         opaque_identifier_common_impls!($id);
 
         impl<'a> From<&'a str> for &'a $id {
@@ -313,14 +306,7 @@ macro_rules! opaque_identifier {
 }
 
 macro_rules! opaque_identifier_validated {
-    (
-        $( #[doc = $docs:literal] )*
-        $vis:vis type $id:ident [ $validate_id:ident ];
-    ) => {
-        $( #[doc = $docs] )*
-        #[repr(transparent)]
-        pub struct $id(str);
-
+    ($id:ident, $validate_id:expr) => {
         opaque_identifier_common_impls!($id);
 
         impl From<Box<$id>> for String {
@@ -386,5 +372,5 @@ macro_rules! opaque_identifier_validated {
                 try_from(s)
             }
         }
-    }
+    };
 }

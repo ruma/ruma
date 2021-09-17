@@ -1,13 +1,12 @@
 //! Identifiers for device keys for end-to-end encryption.
 
-use ruma_identifiers_validation::device_key_id::validate;
-
 use crate::{crypto_algorithms::DeviceKeyAlgorithm, DeviceId};
 
-opaque_identifier_validated! {
-    /// A key algorithm and a device id, combined with a ':'.
-    pub type DeviceKeyId [ validate ];
-}
+/// A key algorithm and a device id, combined with a ':'.
+#[repr(transparent)]
+pub struct DeviceKeyId(str);
+
+opaque_identifier_validated!(DeviceKeyId, ruma_identifiers_validation::device_key_id::validate);
 
 impl DeviceKeyId {
     /// Create a `DeviceKeyId` from a `DeviceKeyAlgorithm` and a `DeviceId`.
