@@ -836,7 +836,7 @@ mod tests {
     use crate::{
         event_auth::valid_membership_change,
         test_utils::{
-            alice, charlie, event_id, member_content_ban, to_pdu_event, StateEvent, INITIAL_EVENTS,
+            alice, charlie, member_content_ban, to_pdu_event, StateEvent, INITIAL_EVENTS,
         },
         Event, StateMap,
     };
@@ -865,7 +865,7 @@ mod tests {
             Some(charlie().as_str()),
             member_content_ban(),
             &[],
-            &[event_id("IMC")],
+            &["IMC"],
         );
 
         let fetch_state = |ty, key| auth_events.get(&(ty, key)).cloned();
@@ -909,7 +909,7 @@ mod tests {
             Some(alice().as_str()),
             member_content_ban(),
             &[],
-            &[event_id("IMC")],
+            &["IMC"],
         );
 
         let fetch_state = |ty, key| auth_events.get(&(ty, key)).cloned();

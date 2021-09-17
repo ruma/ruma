@@ -17,7 +17,7 @@ use ruma_events::{
     },
     EventType,
 };
-use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
+use ruma_identifiers::{event_id, room_id, user_id, EventId, RoomId, RoomVersionId, UserId};
 use serde_json::{
     json,
     value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue},
@@ -181,10 +181,10 @@ pub fn do_check(
         expected_state.insert(key, node);
     }
 
-    let start_state = state_at_event.get(&event_id("$START:foo")).unwrap();
+    let start_state = state_at_event.get(&event_id!("$START:foo")).unwrap();
 
     let end_state = state_at_event
-        .get(&event_id("$END:foo"))
+        .get(&event_id!("$END:foo"))
         .unwrap()
         .iter()
         .filter(|(k, v)| {
@@ -341,23 +341,27 @@ pub fn event_id(id: &str) -> EventId {
 }
 
 pub fn alice() -> UserId {
-    UserId::try_from("@alice:foo").unwrap()
+    user_id!("@alice:foo")
 }
+
 pub fn bob() -> UserId {
-    UserId::try_from("@bob:foo").unwrap()
+    user_id!("@bob:foo")
 }
+
 pub fn charlie() -> UserId {
-    UserId::try_from("@charlie:foo").unwrap()
+    user_id!("@charlie:foo")
 }
+
 pub fn ella() -> UserId {
-    UserId::try_from("@ella:foo").unwrap()
+    user_id!("@ella:foo")
 }
+
 pub fn zara() -> UserId {
-    UserId::try_from("@zara:foo").unwrap()
+    user_id!("@zara:foo")
 }
 
 pub fn room_id() -> RoomId {
-    RoomId::try_from("!test:foo").unwrap()
+    room_id!("!test:foo")
 }
 
 pub fn member_content_ban() -> Box<RawJsonValue> {
