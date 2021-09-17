@@ -2,7 +2,7 @@
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_identifiers::{ClientSecret, SessionIdBox};
+use ruma_identifiers::{ClientSecret, SessionId};
 
 use super::{IdentityServerInfo, IncomingIdentityServerInfo};
 
@@ -42,7 +42,7 @@ ruma_api! {
 
     response: {
         /// The session identifier given by the identity server.
-        pub sid: SessionIdBox,
+        pub sid: Box<SessionId>,
 
         /// URL to submit validation token to.
         ///
@@ -83,7 +83,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given session identifier.
-    pub fn new(sid: SessionIdBox) -> Self {
+    pub fn new(sid: Box<SessionId>) -> Self {
         Self { sid, submit_url: None }
     }
 }

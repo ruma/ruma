@@ -1,7 +1,7 @@
 //! [POST /_matrix/client/r0/delete_devices](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-delete-devices)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::DeviceIdBox;
+use ruma_identifiers::DeviceId;
 
 use crate::r0::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
 
@@ -17,7 +17,7 @@ ruma_api! {
 
     request: {
         /// List of devices to delete.
-        pub devices: &'a [DeviceIdBox],
+        pub devices: &'a [Box<DeviceId>],
 
         /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -32,7 +32,7 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given device list.
-    pub fn new(devices: &'a [DeviceIdBox]) -> Self {
+    pub fn new(devices: &'a [Box<DeviceId>]) -> Self {
         Self { devices, auth: None }
     }
 }

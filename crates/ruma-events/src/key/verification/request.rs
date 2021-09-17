@@ -2,7 +2,7 @@
 
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events_macros::EventContent;
-use ruma_identifiers::DeviceIdBox;
+use ruma_identifiers::DeviceId;
 use serde::{Deserialize, Serialize};
 
 use super::VerificationMethod;
@@ -13,7 +13,7 @@ use super::VerificationMethod;
 #[ruma_event(type = "m.key.verification.request", kind = ToDevice)]
 pub struct ToDeviceKeyVerificationRequestEventContent {
     /// The device ID which is initiating the request.
-    pub from_device: DeviceIdBox,
+    pub from_device: Box<DeviceId>,
 
     /// An opaque identifier for the verification request.
     ///
@@ -34,7 +34,7 @@ impl ToDeviceKeyVerificationRequestEventContent {
     /// Creates a new `ToDeviceKeyVerificationRequestEventContent` with the given device ID,
     /// transaction ID, methods and timestamp.
     pub fn new(
-        from_device: DeviceIdBox,
+        from_device: Box<DeviceId>,
         transaction_id: String,
         methods: Vec<VerificationMethod>,
         timestamp: MilliSecondsSinceUnixEpoch,

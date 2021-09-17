@@ -3,7 +3,7 @@
 use std::fmt;
 
 use js_int::UInt;
-use ruma_identifiers::{MxcUri, RoomAliasId, RoomId, RoomNameBox};
+use ruma_identifiers::{MxcUri, RoomAliasId, RoomId, RoomName};
 use ruma_serde::Outgoing;
 use serde::{
     de::{Error, MapAccess, Visitor},
@@ -29,7 +29,7 @@ pub struct PublicRoomsChunk {
 
     /// The name of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<RoomNameBox>,
+    pub name: Option<Box<RoomName>>,
 
     /// The number of members joined to the room.
     pub num_joined_members: UInt,

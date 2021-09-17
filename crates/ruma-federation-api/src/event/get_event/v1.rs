@@ -2,7 +2,7 @@
 
 use ruma_api::ruma_api;
 use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_identifiers::{EventId, ServerNameBox};
+use ruma_identifiers::{EventId, ServerName};
 
 use serde_json::value::RawValue as RawJsonValue;
 
@@ -24,7 +24,7 @@ ruma_api! {
 
     response: {
         /// The `server_name` of the homeserver sending this transaction.
-        pub origin: ServerNameBox,
+        pub origin: Box<ServerName>,
 
         /// Time on originating homeserver when this transaction started.
         pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -45,7 +45,7 @@ impl<'a> Request<'a> {
 impl Response {
     /// Creates a new `Response` with the given server name, timestamp, and event.
     pub fn new(
-        origin: ServerNameBox,
+        origin: Box<ServerName>,
         origin_server_ts: MilliSecondsSinceUnixEpoch,
         pdu: Box<RawJsonValue>,
     ) -> Self {

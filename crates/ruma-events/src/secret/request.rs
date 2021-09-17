@@ -3,7 +3,7 @@
 use std::convert::TryFrom;
 
 use ruma_events_macros::EventContent;
-use ruma_identifiers::DeviceIdBox;
+use ruma_identifiers::DeviceId;
 use ruma_serde::StringEnum;
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 
@@ -21,7 +21,7 @@ pub struct ToDeviceSecretRequestEventContent {
     pub action: RequestAction,
 
     /// The ID of the device requesting the event.
-    pub requesting_device_id: DeviceIdBox,
+    pub requesting_device_id: Box<DeviceId>,
 
     /// A random string uniquely identifying (with respect to the requester and the target) the
     /// target for a secret.
@@ -36,7 +36,7 @@ impl ToDeviceSecretRequestEventContent {
     /// request ID.
     pub fn new(
         action: RequestAction,
-        requesting_device_id: DeviceIdBox,
+        requesting_device_id: Box<DeviceId>,
         request_id: String,
     ) -> Self {
         Self { action, requesting_device_id, request_id }

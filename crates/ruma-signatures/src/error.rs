@@ -1,4 +1,4 @@
-use ruma_identifiers::{EventId, RoomVersionId, ServerNameBox};
+use ruma_identifiers::{EventId, RoomVersionId, ServerName};
 use thiserror::Error;
 
 /// `ruma-signature`'s error type, wraps a number of other error types.
@@ -136,11 +136,11 @@ pub enum JsonType {
 pub enum VerificationError {
     /// For when a signature cannot be found for a `target`.
     #[error("Could not find signatures for {0:?}")]
-    SignatureNotFound(ServerNameBox),
+    SignatureNotFound(Box<ServerName>),
 
     /// For when a public key cannot be found for a `target`.
     #[error("Could not find public key for {0:?}")]
-    PublicKeyNotFound(ServerNameBox),
+    PublicKeyNotFound(Box<ServerName>),
 
     /// For when no public key matches the signature given.
     #[error("Not signed with any of the given public keys")]
@@ -152,11 +152,11 @@ pub enum VerificationError {
 }
 
 impl VerificationError {
-    pub(crate) fn signature_not_found<T: Into<ServerNameBox>>(target: T) -> Error {
+    pub(crate) fn signature_not_found<T: Into<Box<ServerName>>>(target: T) -> Error {
         Self::SignatureNotFound(target.into()).into()
     }
 
-    pub(crate) fn public_key_not_found<T: Into<ServerNameBox>>(target: T) -> Error {
+    pub(crate) fn public_key_not_found<T: Into<Box<ServerName>>>(target: T) -> Error {
         Self::PublicKeyNotFound(target.into()).into()
     }
 }

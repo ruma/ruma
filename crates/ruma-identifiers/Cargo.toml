@@ -26,7 +26,6 @@ unstable-pre-spec = []
 
 [dependencies]
 either = { version = "1.6.1", optional = true }
-paste = "1.0.5"
 percent-encoding = "2.1.0"
 rand = { version = "0.8.3", optional = true }
 ruma-identifiers-macros = { version = "=0.20.0", path = "../ruma-identifiers-macros" }

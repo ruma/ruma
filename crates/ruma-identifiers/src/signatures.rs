@@ -1,6 +1,6 @@
 use std::{borrow::Borrow, collections::BTreeMap};
 
-use crate::{DeviceIdBox, KeyNameBox, ServerNameBox, SigningKeyId, UserId};
+use crate::{DeviceId, KeyName, ServerName, SigningKeyId, UserId};
 
 /// Map of key identifier to signature values.
 pub type EntitySignatures<K> = BTreeMap<SigningKeyId<K>, String>;
@@ -52,7 +52,7 @@ impl<E: Ord, K: ?Sized> Signatures<E, K> {
 }
 
 /// Map of server signatures for an event, grouped by server.
-pub type ServerSignatures = Signatures<ServerNameBox, KeyNameBox>;
+pub type ServerSignatures = Signatures<Box<ServerName>, Box<KeyName>>;
 
 /// Map of device signatures for an event, grouped by user.
-pub type DeviceSignatures = Signatures<UserId, DeviceIdBox>;
+pub type DeviceSignatures = Signatures<UserId, Box<DeviceId>>;

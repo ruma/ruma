@@ -1,7 +1,7 @@
 //! [GET /_matrix/federation/v1/query/directory](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-federation-v1-query-directory)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::{RoomAliasId, RoomId, ServerNameBox};
+use ruma_identifiers::{RoomAliasId, RoomId, ServerName};
 
 ruma_api! {
     metadata: {
@@ -24,7 +24,7 @@ ruma_api! {
         pub room_id: RoomId,
 
         /// An array of server names that are likely to hold the given room.
-        pub servers: Vec<ServerNameBox>,
+        pub servers: Vec<Box<ServerName>>,
     }
 }
 
@@ -37,7 +37,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given room IDs and servers.
-    pub fn new(room_id: RoomId, servers: Vec<ServerNameBox>) -> Self {
+    pub fn new(room_id: RoomId, servers: Vec<Box<ServerName>>) -> Self {
         Self { room_id, servers }
     }
 }

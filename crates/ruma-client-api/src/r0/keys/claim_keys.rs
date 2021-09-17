@@ -4,7 +4,7 @@ use std::{collections::BTreeMap, time::Duration};
 
 use ruma_api::ruma_api;
 use ruma_common::encryption::OneTimeKey;
-use ruma_identifiers::{DeviceIdBox, DeviceKeyAlgorithm, DeviceKeyId, UserId};
+use ruma_identifiers::{DeviceId, DeviceKeyAlgorithm, DeviceKeyId, UserId};
 use serde_json::Value as JsonValue;
 
 ruma_api! {
@@ -28,7 +28,7 @@ ruma_api! {
         pub timeout: Option<Duration>,
 
         /// The keys to be claimed.
-        pub one_time_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, DeviceKeyAlgorithm>>,
+        pub one_time_keys: BTreeMap<UserId, BTreeMap<Box<DeviceId>, DeviceKeyAlgorithm>>,
     }
 
     response: {
@@ -45,7 +45,9 @@ ruma_api! {
 
 impl Request {
     /// Creates a new `Request` with the given key claims and the recommended 10 second timeout.
-    pub fn new(one_time_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, DeviceKeyAlgorithm>>) -> Self {
+    pub fn new(
+        one_time_keys: BTreeMap<UserId, BTreeMap<Box<DeviceId>, DeviceKeyAlgorithm>>,
+    ) -> Self {
         Self { timeout: Some(Duration::from_secs(10)), one_time_keys }
     }
 }
@@ -58,4 +60,4 @@ impl Response {
 }
 
 /// The one-time keys for a given device.
-pub type OneTimeKeys = BTreeMap<DeviceIdBox, BTreeMap<DeviceKeyId, OneTimeKey>>;
+pub type OneTimeKeys = BTreeMap<Box<DeviceId>, BTreeMap<DeviceKeyId, OneTimeKey>>;

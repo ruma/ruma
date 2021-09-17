@@ -1,7 +1,7 @@
 //! [GET /_matrix/client/r0/directory/room/{roomAlias}](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-directory-room-roomalias)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::{RoomAliasId, RoomId, ServerNameBox};
+use ruma_identifiers::{RoomAliasId, RoomId, ServerName};
 
 ruma_api! {
     metadata: {
@@ -24,7 +24,7 @@ ruma_api! {
         pub room_id: RoomId,
 
         /// A list of servers that are aware of this room ID.
-        pub servers: Vec<ServerNameBox>,
+        pub servers: Vec<Box<ServerName>>,
     }
 
     error: crate::Error
@@ -39,7 +39,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given room id and servers
-    pub fn new(room_id: RoomId, servers: Vec<ServerNameBox>) -> Self {
+    pub fn new(room_id: RoomId, servers: Vec<Box<ServerName>>) -> Self {
         Self { room_id, servers }
     }
 }

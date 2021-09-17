@@ -1,7 +1,7 @@
 //! [POST /_matrix/client/r0/join/{roomIdOrAlias}](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-join-roomidoralias)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::{RoomId, RoomIdOrAliasId, ServerNameBox};
+use ruma_identifiers::{RoomId, RoomIdOrAliasId, ServerName};
 
 use super::{IncomingThirdPartySigned, ThirdPartySigned};
 
@@ -25,7 +25,7 @@ ruma_api! {
         /// One of the servers  must be participating in the room.
         #[ruma_api(query)]
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub server_name: &'a [ServerNameBox],
+        pub server_name: &'a [Box<ServerName>],
 
         /// The signature of a `m.third_party_invite` token to prove that this user owns a third
         /// party identity which has been invited to the room.

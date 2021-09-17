@@ -1,7 +1,7 @@
 //! Types for the `m.space.child` event.
 
 use ruma_events_macros::EventContent;
-use ruma_identifiers::ServerNameBox;
+use ruma_identifiers::ServerName;
 use serde::{Deserialize, Serialize};
 
 /// The content of an `m.space.child` event.
@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 pub struct SpaceChildEventContent {
     /// List of candidate servers that can be used to join the room.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub via: Option<Vec<ServerNameBox>>,
+    pub via: Option<Vec<Box<ServerName>>>,
 
     /// Provide a default ordering of siblings in the room list.
     ///

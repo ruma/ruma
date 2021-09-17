@@ -5,7 +5,7 @@ use std::{borrow::Cow, fmt};
 use js_int::UInt;
 use ruma_events_macros::EventContent;
 #[cfg(feature = "unstable-pre-spec")]
-use ruma_identifiers::{DeviceIdBox, UserId};
+use ruma_identifiers::{DeviceId, UserId};
 use ruma_identifiers::{EventId, MxcUri};
 use ruma_serde::{JsonObject, StringEnum};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -968,7 +968,7 @@ pub struct KeyVerificationRequestEventContent {
     pub methods: Vec<VerificationMethod>,
 
     /// The device ID which is initiating the request.
-    pub from_device: DeviceIdBox,
+    pub from_device: Box<DeviceId>,
 
     /// The user ID which should receive the request.
     ///
@@ -985,7 +985,7 @@ impl KeyVerificationRequestEventContent {
     pub fn new(
         body: String,
         methods: Vec<VerificationMethod>,
-        from_device: DeviceIdBox,
+        from_device: Box<DeviceId>,
         to: UserId,
     ) -> Self {
         Self { body, methods, from_device, to }

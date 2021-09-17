@@ -7,7 +7,7 @@ use ruma_common::{
     encryption::DeviceKeys, presence::PresenceState, to_device::DeviceIdOrAllDevices,
 };
 use ruma_events::{from_raw_json_value, receipt::Receipt, AnyToDeviceEventContent, EventType};
-use ruma_identifiers::{DeviceIdBox, EventId, RoomId, UserId};
+use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
 use ruma_serde::Raw;
 use serde::{de, Deserialize, Serialize};
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
@@ -206,7 +206,7 @@ pub struct DeviceListUpdateContent {
     pub user_id: UserId,
 
     /// The ID of the device whose details are changing.
-    pub device_id: DeviceIdBox,
+    pub device_id: Box<DeviceId>,
 
     /// The public human-readable name of this device.
     ///
@@ -234,7 +234,7 @@ pub struct DeviceListUpdateContent {
 impl DeviceListUpdateContent {
     /// Create a new `DeviceListUpdateContent` with the given `user_id`, `device_id` and
     /// `stream_id`.
-    pub fn new(user_id: UserId, device_id: DeviceIdBox, stream_id: UInt) -> Self {
+    pub fn new(user_id: UserId, device_id: Box<DeviceId>, stream_id: UInt) -> Self {
         Self {
             user_id,
             device_id,

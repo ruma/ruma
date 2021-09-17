@@ -1,7 +1,7 @@
 //! Types for the `m.room_key_request` event.
 
 use ruma_events_macros::EventContent;
-use ruma_identifiers::{DeviceIdBox, EventEncryptionAlgorithm, RoomId};
+use ruma_identifiers::{DeviceId, EventEncryptionAlgorithm, RoomId};
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
@@ -19,7 +19,7 @@ pub struct ToDeviceRoomKeyRequestEventContent {
     pub body: Option<RequestedKeyInfo>,
 
     /// ID of the device requesting the key.
-    pub requesting_device_id: DeviceIdBox,
+    pub requesting_device_id: Box<DeviceId>,
 
     /// A random string uniquely identifying the request for a key.
     ///
@@ -34,7 +34,7 @@ impl ToDeviceRoomKeyRequestEventContent {
     pub fn new(
         action: Action,
         body: Option<RequestedKeyInfo>,
-        requesting_device_id: DeviceIdBox,
+        requesting_device_id: Box<DeviceId>,
         request_id: String,
     ) -> Self {
         Self { action, body, requesting_device_id, request_id }

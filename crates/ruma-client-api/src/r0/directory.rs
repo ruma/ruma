@@ -8,7 +8,7 @@ pub mod set_room_visibility;
 use js_int::{uint, UInt};
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_events::room::join_rules::JoinRule;
-use ruma_identifiers::{MxcUri, RoomAliasId, RoomId, RoomNameBox};
+use ruma_identifiers::{MxcUri, RoomAliasId, RoomId, RoomName};
 use serde::{Deserialize, Serialize};
 
 /// A chunk of a room list response, describing one room
@@ -25,7 +25,7 @@ pub struct PublicRoomsChunk {
 
     /// The name of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<RoomNameBox>,
+    pub name: Option<Box<RoomName>>,
 
     /// The number of members joined to the room.
     pub num_joined_members: UInt,

@@ -3,7 +3,7 @@
 use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_identifiers::{EventId, RoomId, ServerNameBox};
+use ruma_identifiers::{EventId, RoomId, ServerName};
 
 use serde_json::value::RawValue as RawJsonValue;
 
@@ -33,7 +33,7 @@ ruma_api! {
 
     response: {
         /// The `server_name` of the homeserver sending this transaction.
-        pub origin: ServerNameBox,
+        pub origin: Box<ServerName>,
 
         /// POSIX timestamp in milliseconds on originating homeserver when this transaction started.
         pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -59,7 +59,7 @@ impl Response {
     /// * the timestamp in milliseconds of when this transaction started.
     /// * the list of persistent updates to rooms.
     pub fn new(
-        origin: ServerNameBox,
+        origin: Box<ServerName>,
         origin_server_ts: MilliSecondsSinceUnixEpoch,
         pdus: Vec<Box<RawJsonValue>>,
     ) -> Self {

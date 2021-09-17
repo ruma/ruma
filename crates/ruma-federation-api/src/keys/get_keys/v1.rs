@@ -6,7 +6,7 @@ use ruma_api::ruma_api;
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_common::encryption::CrossSigningKey;
 use ruma_common::encryption::DeviceKeys;
-use ruma_identifiers::{DeviceIdBox, UserId};
+use ruma_identifiers::{DeviceId, UserId};
 
 ruma_api! {
     metadata: {
@@ -22,13 +22,13 @@ ruma_api! {
         /// The keys to be downloaded.
         ///
         /// Gives all keys for a given user if the list of device ids is empty.
-        pub device_keys: BTreeMap<UserId, Vec<DeviceIdBox>>,
+        pub device_keys: BTreeMap<UserId, Vec<Box<DeviceId>>>,
     }
 
     #[derive(Default)]
     response: {
         /// Keys from the queried devices.
-        pub device_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, DeviceKeys>>,
+        pub device_keys: BTreeMap<UserId, BTreeMap<Box<DeviceId>, DeviceKeys>>,
 
         /// Information on the master cross-signing keys of the queried users.
         #[cfg(feature = "unstable-pre-spec")]
@@ -44,14 +44,14 @@ ruma_api! {
 
 impl Request {
     /// Creates a new `Request` asking for the given device keys.
-    pub fn new(device_keys: BTreeMap<UserId, Vec<DeviceIdBox>>) -> Self {
+    pub fn new(device_keys: BTreeMap<UserId, Vec<Box<DeviceId>>>) -> Self {
         Self { device_keys }
     }
 }
 
 impl Response {
     /// Creates a new `Response` with the given device keys.
-    pub fn new(device_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, DeviceKeys>>) -> Self {
+    pub fn new(device_keys: BTreeMap<UserId, BTreeMap<Box<DeviceId>, DeviceKeys>>) -> Self {
         Self { device_keys, ..Default::default() }
     }
 }

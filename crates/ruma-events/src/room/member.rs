@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use ruma_events_macros::EventContent;
-use ruma_identifiers::{MxcUri, ServerNameBox, ServerSigningKeyId, UserId};
+use ruma_identifiers::{MxcUri, ServerName, ServerSigningKeyId, UserId};
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
@@ -178,7 +178,7 @@ pub struct SignedContent {
 
     /// A single signature from the verifying server, in the format specified by the Signing Events
     /// section of the server-server API.
-    pub signatures: BTreeMap<ServerNameBox, BTreeMap<ServerSigningKeyId, String>>,
+    pub signatures: BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>>,
 
     /// The token property of the containing `third_party_invite` object.
     pub token: String,
@@ -188,7 +188,7 @@ impl SignedContent {
     /// Creates a new `SignedContent` with the given mxid, signature and token.
     pub fn new(
         mxid: UserId,
-        signatures: BTreeMap<ServerNameBox, BTreeMap<ServerSigningKeyId, String>>,
+        signatures: BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>>,
         token: String,
     ) -> Self {
         Self { mxid, signatures, token }

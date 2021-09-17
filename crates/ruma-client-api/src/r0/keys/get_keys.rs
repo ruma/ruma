@@ -4,7 +4,7 @@ use std::{collections::BTreeMap, time::Duration};
 
 use ruma_api::ruma_api;
 use ruma_common::encryption::DeviceKeys;
-use ruma_identifiers::{DeviceIdBox, UserId};
+use ruma_identifiers::{DeviceId, UserId};
 use serde_json::Value as JsonValue;
 
 #[cfg(feature = "unstable-pre-spec")]
@@ -35,7 +35,7 @@ ruma_api! {
         /// The keys to be downloaded.
         ///
         /// An empty list indicates all devices for the corresponding user.
-        pub device_keys: BTreeMap<UserId, Vec<DeviceIdBox>>,
+        pub device_keys: BTreeMap<UserId, Vec<Box<DeviceId>>>,
 
         /// If the client is fetching keys as a result of a device update received in a sync
         /// request, this should be the 'since' token of that sync request, or any later sync token.
@@ -56,7 +56,7 @@ ruma_api! {
 
         /// Information on the queried devices.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub device_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, DeviceKeys>>,
+        pub device_keys: BTreeMap<UserId, BTreeMap<Box<DeviceId>, DeviceKeys>>,
 
         /// Information on the master cross-signing keys of the queried users.
         #[cfg(feature = "unstable-pre-spec")]

@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_identifiers::{ServerNameBox, ServerSigningKeyId};
+use ruma_identifiers::{ServerName, ServerSigningKeyId};
 use serde::{Deserialize, Serialize};
 
 pub mod discover_homeserver;
@@ -51,7 +51,7 @@ impl OldVerifyKey {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ServerSigningKeys {
     /// DNS name of the homeserver.
-    pub server_name: ServerNameBox,
+    pub server_name: Box<ServerName>,
 
     /// Public keys of the homeserver for verifying digital signatures.
     pub verify_keys: BTreeMap<ServerSigningKeyId, VerifyKey>,
@@ -61,8 +61,8 @@ pub struct ServerSigningKeys {
 
     /// Digital signatures of this object signed using the verify_keys.
     ///
-    /// Map of server name to keys by key ID
-    pub signatures: BTreeMap<ServerNameBox, BTreeMap<ServerSigningKeyId, String>>,
+    /// Map of server name to keys by key ID.
+    pub signatures: BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>>,
 
     /// Timestamp when the keys should be refreshed.
     ///
@@ -74,7 +74,7 @@ impl ServerSigningKeys {
     /// Creates a new `ServerSigningKeys` with the given server name and validity timestamp.
     ///
     /// All other fields will be empty.
-    pub fn new(server_name: ServerNameBox, valid_until_ts: MilliSecondsSinceUnixEpoch) -> Self {
+    pub fn new(server_name: Box<ServerName>, valid_until_ts: MilliSecondsSinceUnixEpoch) -> Self {
         Self {
             server_name,
             verify_keys: BTreeMap::new(),

@@ -1,7 +1,7 @@
 //! [POST /_matrix/client/r0/knock/{roomIdOrAlias}](https://spec.matrix.org/unstable/client-server-api/#post_matrixclientr0knockroomidoralias)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::{RoomId, RoomIdOrAliasId, ServerNameBox};
+use ruma_identifiers::{RoomId, RoomIdOrAliasId, ServerName};
 
 ruma_api! {
     metadata: {
@@ -27,7 +27,7 @@ ruma_api! {
         /// One of the servers must be participating in the room.
         #[ruma_api(query)]
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub server_name: &'a [ServerNameBox],
+        pub server_name: &'a [Box<ServerName>],
     }
 
     response: {

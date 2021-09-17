@@ -7,7 +7,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
-use ruma_identifiers::DeviceIdBox;
+use ruma_identifiers::DeviceId;
 use serde::{
     de::{self, Unexpected},
     Deserialize, Deserializer, Serialize, Serializer,
@@ -18,7 +18,7 @@ use serde::{
 #[allow(clippy::exhaustive_enums)]
 pub enum DeviceIdOrAllDevices {
     /// Represents a device Id for one of a user's devices.
-    DeviceId(DeviceIdBox),
+    DeviceId(Box<DeviceId>),
 
     /// Represents all devices for a user.
     AllDevices,
@@ -33,8 +33,8 @@ impl Display for DeviceIdOrAllDevices {
     }
 }
 
-impl From<DeviceIdBox> for DeviceIdOrAllDevices {
-    fn from(d: DeviceIdBox) -> Self {
+impl From<Box<DeviceId>> for DeviceIdOrAllDevices {
+    fn from(d: Box<DeviceId>) -> Self {
         DeviceIdOrAllDevices::DeviceId(d)
     }
 }

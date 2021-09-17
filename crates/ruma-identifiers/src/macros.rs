@@ -168,13 +168,6 @@ macro_rules! opaque_identifier {
         #[repr(transparent)]
         pub struct $id(str);
 
-        paste::paste! {
-            doc_concat! {
-                #[doc = concat!("An owned [", stringify!($id), "].")]
-                pub type [<$id Box>] = Box<$id>;
-            }
-        }
-
         impl $id {
             fn from_borrowed(s: &str) -> &Self {
                 unsafe { std::mem::transmute(s) }
@@ -299,13 +292,6 @@ macro_rules! opaque_identifier_validated {
         #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
         #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent, crate = "serde"))]
         pub struct $id(str);
-
-        paste::paste! {
-            doc_concat! {
-                #[doc = concat!("An owned [", stringify!($id), "].")]
-                pub type [<$id Box>] = Box<$id>;
-            }
-        }
 
         impl $id {
             #[allow(clippy::transmute_ptr_to_ptr)]

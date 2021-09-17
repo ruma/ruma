@@ -72,7 +72,7 @@ Breaking changes:
 Improvements:
 
 * Add `DeviceKeyId::from_parts` and `SigningKeyId::from_parts`
-* Add `DeviceIdBox` and `ServerNameBox` type aliases
+* Add `DeviceId` and `ServerNameBox` type aliases
 * Clean up debug logs for identifiers
 * Allow crypto algorithm enums to contain any string, for forwards compatibility
   and to allow experimentation with non-specified ones

@@ -2,7 +2,7 @@ use std::convert::TryFrom;
 
 use matches::assert_matches;
 use ruma_events::{AnyInitialStateEvent, InitialStateEvent};
-use ruma_identifiers::RoomNameBox;
+use ruma_identifiers::RoomName;
 use serde_json::json;
 
 #[test]
@@ -14,7 +14,7 @@ fn deserialize_initial_state_event() {
         }))
         .unwrap(),
         AnyInitialStateEvent::RoomName(InitialStateEvent { content, state_key})
-        if content.name == Some(RoomNameBox::try_from("foo").unwrap())
+        if content.name == Some(Box::<RoomName>::try_from("foo").unwrap())
             && state_key.is_empty()
     );
 }

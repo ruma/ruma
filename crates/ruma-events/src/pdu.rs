@@ -9,7 +9,7 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_identifiers::{EventId, RoomId, ServerNameBox, ServerSigningKeyId, UserId};
+use ruma_identifiers::{EventId, RoomId, ServerName, ServerSigningKeyId, UserId};
 use serde::{
     de::{Error as _, IgnoredAny},
     Deserialize, Deserializer, Serialize,
@@ -89,7 +89,7 @@ pub struct RoomV1Pdu {
     pub hashes: EventHash,
 
     /// Signatures for the PDU.
-    pub signatures: BTreeMap<ServerNameBox, BTreeMap<ServerSigningKeyId, String>>,
+    pub signatures: BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>>,
 }
 
 /// A 'persistent data unit' (event) for room versions 3 and beyond.
@@ -146,7 +146,7 @@ pub struct RoomV3Pdu {
     pub hashes: EventHash,
 
     /// Signatures for the PDU.
-    pub signatures: BTreeMap<ServerNameBox, BTreeMap<ServerSigningKeyId, String>>,
+    pub signatures: BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>>,
 }
 
 /// Content hashes of a PDU.

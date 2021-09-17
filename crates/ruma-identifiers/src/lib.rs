@@ -21,22 +21,22 @@ use serde::de::{self, Deserializer, Unexpected};
 
 #[doc(inline)]
 pub use crate::{
-    client_secret::{ClientSecret, ClientSecretBox},
+    client_secret::ClientSecret,
     crypto_algorithms::{DeviceKeyAlgorithm, EventEncryptionAlgorithm, SigningKeyAlgorithm},
-    device_id::{DeviceId, DeviceIdBox},
+    device_id::DeviceId,
     device_key_id::DeviceKeyId,
     event_id::EventId,
     key_id::{DeviceSigningKeyId, KeyId, ServerSigningKeyId, SigningKeyId},
-    key_name::{KeyName, KeyNameBox},
+    key_name::KeyName,
     matrix_to::MatrixToRef,
     mxc_uri::MxcUri,
     room_alias_id::RoomAliasId,
     room_id::RoomId,
     room_id_or_room_alias_id::RoomIdOrAliasId,
-    room_name::{RoomName, RoomNameBox},
+    room_name::RoomName,
     room_version_id::RoomVersionId,
-    server_name::{ServerName, ServerNameBox},
-    session_id::{SessionId, SessionIdBox},
+    server_name::ServerName,
+    session_id::SessionId,
     signatures::{DeviceSignatures, EntitySignatures, ServerSignatures, Signatures},
     user_id::UserId,
 };

@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_events_macros::EventContent;
-use ruma_identifiers::DeviceIdBox;
+use ruma_identifiers::DeviceId;
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
@@ -212,7 +212,7 @@ pub struct MegolmV1AesSha2Content {
     pub sender_key: String,
 
     /// The ID of the sending device.
-    pub device_id: DeviceIdBox,
+    pub device_id: Box<DeviceId>,
 
     /// The ID of the session used to encrypt the message.
     pub session_id: String,
@@ -232,7 +232,7 @@ pub struct MegolmV1AesSha2ContentInit {
     pub sender_key: String,
 
     /// The ID of the sending device.
-    pub device_id: DeviceIdBox,
+    pub device_id: Box<DeviceId>,
 
     /// The ID of the session used to encrypt the message.
     pub session_id: String,

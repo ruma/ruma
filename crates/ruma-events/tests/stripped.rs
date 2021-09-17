@@ -5,7 +5,7 @@ use ruma_events::{
     room::{join_rules::JoinRule, topic::RoomTopicEventContent},
     AnyStrippedStateEvent, StrippedStateEvent,
 };
-use ruma_identifiers::{mxc_uri, user_id, RoomNameBox};
+use ruma_identifiers::{mxc_uri, user_id, RoomName};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 #[test]
@@ -96,7 +96,7 @@ fn deserialize_stripped_state_events() {
     let event = from_json_value::<AnyStrippedStateEvent>(name_event).unwrap();
     match event {
         AnyStrippedStateEvent::RoomName(event) => {
-            assert_eq!(event.content.name, Some(RoomNameBox::try_from("Ruma").unwrap()));
+            assert_eq!(event.content.name, Some(Box::<RoomName>::try_from("Ruma").unwrap()));
             assert_eq!(event.state_key, "");
             assert_eq!(event.sender.to_string(), "@example:localhost");
         }

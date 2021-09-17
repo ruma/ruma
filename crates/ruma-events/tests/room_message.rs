@@ -16,7 +16,7 @@ use ruma_events::{
     Unsigned,
 };
 #[cfg(feature = "unstable-pre-spec")]
-use ruma_identifiers::DeviceIdBox;
+use ruma_identifiers::DeviceId;
 use ruma_identifiers::{event_id, mxc_uri, room_id, user_id};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -298,7 +298,7 @@ fn edit_deserialization_future() {
 #[cfg(feature = "unstable-pre-spec")]
 fn verification_request_deserialization() {
     let user_id = user_id!("@example2:localhost");
-    let device_id: DeviceIdBox = "XOWLHHFSWM".into();
+    let device_id: Box<DeviceId> = "XOWLHHFSWM".into();
 
     let json_data = json!({
         "body": "@example:localhost is requesting to verify your key, ...",
@@ -334,7 +334,7 @@ fn verification_request_deserialization() {
 #[cfg(feature = "unstable-pre-spec")]
 fn verification_request_serialization() {
     let user_id = user_id!("@example2:localhost");
-    let device_id: DeviceIdBox = "XOWLHHFSWM".into();
+    let device_id: Box<DeviceId> = "XOWLHHFSWM".into();
     let body = "@example:localhost is requesting to verify your key, ...".to_owned();
 
     let methods = vec![

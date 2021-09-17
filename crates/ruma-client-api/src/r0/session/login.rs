@@ -1,7 +1,7 @@
 //! [POST /_matrix/client/r0/login](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-login)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::{DeviceId, DeviceIdBox, ServerNameBox, UserId};
+use ruma_identifiers::{DeviceId, ServerName, UserId};
 use ruma_serde::{JsonObject, Outgoing};
 use serde::{
     de::{self, DeserializeOwned},
@@ -49,13 +49,13 @@ ruma_api! {
         /// Deprecated: Clients should instead use the `user_id.server_name()`
         /// method if they require it.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub home_server: Option<ServerNameBox>,
+        pub home_server: Option<Box<ServerName>>,
 
         /// ID of the logged-in device.
         ///
         /// Will be the same as the corresponding parameter in the request, if one was
         /// specified.
-        pub device_id: DeviceIdBox,
+        pub device_id: Box<DeviceId>,
 
         /// Client configuration provided by the server.
         ///
@@ -76,7 +76,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given user ID, access token and device ID.
-    pub fn new(user_id: UserId, access_token: String, device_id: DeviceIdBox) -> Self {
+    pub fn new(user_id: UserId, access_token: String, device_id: Box<DeviceId>) -> Self {
         Self { user_id, access_token, home_server: None, device_id, well_known: None }
     }
 }

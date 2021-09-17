@@ -9,7 +9,7 @@ use std::{
 
 use base64::{decode_config, encode_config, Config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
 use ed25519_dalek::Digest;
-use ruma_identifiers::{EventId, RoomVersionId, ServerNameBox, UserId};
+use ruma_identifiers::{EventId, RoomVersionId, ServerName, UserId};
 use ruma_serde::{CanonicalJsonObject, CanonicalJsonValue};
 use serde_json::{from_str as from_json_str, to_string as to_json_string};
 use sha2::Sha256;
@@ -774,7 +774,7 @@ pub fn redact(
 fn servers_to_check_signatures(
     object: &CanonicalJsonObject,
     version: &RoomVersionId,
-) -> Result<BTreeSet<ServerNameBox>, Error> {
+) -> Result<BTreeSet<Box<ServerName>>, Error> {
     let mut servers_to_check = BTreeSet::new();
 
     if !is_third_party_invite(object)? {

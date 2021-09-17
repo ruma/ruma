@@ -1,7 +1,7 @@
 //! [POST /_matrix/client/r0/register](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-register)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::{DeviceId, DeviceIdBox, UserId};
+use ruma_identifiers::{DeviceId, UserId};
 use serde::{Deserialize, Serialize};
 
 use crate::r0::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
@@ -88,7 +88,7 @@ ruma_api! {
         /// ID of the registered device.
         ///
         /// Will be the same as the corresponding parameter in the request, if one was specified.
-        pub device_id: Option<DeviceIdBox>,
+        pub device_id: Option<Box<DeviceId>>,
     }
 
     error: UiaaResponse
