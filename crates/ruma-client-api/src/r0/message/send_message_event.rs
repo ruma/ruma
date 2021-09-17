@@ -40,7 +40,7 @@ ruma_api! {
 
     response: {
         /// A unique identifier for the event.
-        pub event_id: EventId,
+        pub event_id: Box<EventId>,
     }
 
     error: crate::Error
@@ -80,7 +80,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given event id.
-    pub fn new(event_id: EventId) -> Self {
+    pub fn new(event_id: Box<EventId>) -> Self {
         Self { event_id }
     }
 }

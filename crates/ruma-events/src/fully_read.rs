@@ -14,12 +14,12 @@ use serde::{Deserialize, Serialize};
 #[ruma_event(type = "m.fully_read", kind = RoomAccountData)]
 pub struct FullyReadEventContent {
     /// The event the user's read marker is located at in the room.
-    pub event_id: EventId,
+    pub event_id: Box<EventId>,
 }
 
 impl FullyReadEventContent {
     /// Creates a new `FullyReadEventContent` with the given event ID.
-    pub fn new(event_id: EventId) -> Self {
+    pub fn new(event_id: Box<EventId>) -> Self {
         Self { event_id }
     }
 }

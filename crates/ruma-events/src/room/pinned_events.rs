@@ -12,12 +12,12 @@ use serde::{Deserialize, Serialize};
 #[ruma_event(type = "m.room.pinned_events", kind = State)]
 pub struct RoomPinnedEventsEventContent {
     /// An ordered list of event IDs to pin.
-    pub pinned: Vec<EventId>,
+    pub pinned: Vec<Box<EventId>>,
 }
 
 impl RoomPinnedEventsEventContent {
     /// Creates a new `RoomPinnedEventsEventContent` with the given events.
-    pub fn new(pinned: Vec<EventId>) -> Self {
+    pub fn new(pinned: Vec<Box<EventId>>) -> Self {
         Self { pinned }
     }
 }

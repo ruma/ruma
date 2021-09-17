@@ -250,7 +250,7 @@ mod tests {
         let event_id = event_id!("$1598361704261elfgc:localhost");
 
         let key_verification_accept_content = KeyVerificationAcceptEventContent {
-            relates_to: Relation { event_id: event_id.clone() },
+            relates_to: Relation { event_id: event_id.to_owned() },
             method: AcceptMethod::SasV1(SasV1Content {
                 hash: HashAlgorithm::Sha256,
                 key_agreement_protocol: KeyAgreementProtocol::Curve25519,
@@ -411,7 +411,7 @@ mod tests {
                     short_authentication_string,
                 })
             } if commitment == "test_commitment"
-                && event_id == id
+                && *event_id == *id
                 && hash == HashAlgorithm::Sha256
                 && key_agreement_protocol == KeyAgreementProtocol::Curve25519
                 && message_authentication_code == MessageAuthenticationCode::HkdfHmacSha256

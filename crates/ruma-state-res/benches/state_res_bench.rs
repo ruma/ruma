@@ -49,7 +49,7 @@ fn lexico_topo_sort(c: &mut Criterion) {
         };
         b.iter(|| {
             let _ = state_res::lexicographical_topological_sort(&graph, |id| {
-                Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0)), id.clone()))
+                Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0)), id.to_owned()))
             });
         })
     });
@@ -104,7 +104,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
         .map(|ev| {
             (
                 (ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()),
-                ev.event_id().clone(),
+                ev.event_id().to_owned(),
             )
         })
         .collect::<StateMap<_>>();
@@ -122,7 +122,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
         .map(|ev| {
             (
                 (ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()),
-                ev.event_id().clone(),
+                ev.event_id().to_owned(),
             )
         })
         .collect::<StateMap<_>>();
@@ -161,7 +161,7 @@ criterion_main!(benches);
 //  IMPLEMENTATION DETAILS AHEAD
 //
 /////////////////////////////////////////////////////////////////////*/
-struct TestStore<E: Event>(HashMap<EventId, Arc<E>>);
+struct TestStore<E: Event>(HashMap<Box<EventId>, Arc<E>>);
 
 #[allow(unused)]
 impl<E: Event> TestStore<E> {
@@ -173,7 +173,7 @@ impl<E: Event> TestStore<E> {
     }
 
     /// Returns the events that correspond to the `event_ids` sorted in the same order.
-    fn get_events(&self, room_id: &RoomId, event_ids: &[EventId]) -> Result<Vec<Arc<E>>> {
+    fn get_events(&self, room_id: &RoomId, event_ids: &[Box<EventId>]) -> Result<Vec<Arc<E>>> {
         let mut events = vec![];
         for id in event_ids {
             events.push(self.get_event(room_id, id)?);
@@ -185,8 +185,8 @@ impl<E: Event> TestStore<E> {
     fn auth_event_ids(
         &self,
         room_id: &RoomId,
-        event_ids: Vec<EventId>,
-    ) -> Result<HashSet<EventId>> {
+        event_ids: Vec<Box<EventId>>,
+    ) -> Result<HashSet<Box<EventId>>> {
         let mut result = HashSet::new();
         let mut stack = event_ids;
 
@@ -201,18 +201,19 @@ impl<E: Event> TestStore<E> {
 
             let event = self.get_event(room_id, &ev_id)?;
 
-            stack.extend(event.auth_events().cloned());
+            stack.extend(event.auth_events().map(ToOwned::to_owned));
         }
 
         Ok(result)
     }
 
-    /// Returns a Vec<EventId> representing the difference in auth chains of the given `events`.
+    /// Returns a Vec<Box<EventId>> representing the difference in auth chains of the given
+    /// `events`.
     fn auth_chain_diff(
         &self,
         room_id: &RoomId,
-        event_ids: Vec<Vec<EventId>>,
-    ) -> Result<Vec<EventId>> {
+        event_ids: Vec<Vec<Box<EventId>>>,
+    ) -> Result<Vec<Box<EventId>>> {
         let mut auth_chain_sets = vec![];
         for ids in event_ids {
             // TODO state store `auth_event_ids` returns self in the event ids list
@@ -225,7 +226,7 @@ impl<E: Event> TestStore<E> {
             let common = auth_chain_sets
                 .iter()
                 .skip(1)
-                .fold(first, |a, b| a.intersection(b).cloned().collect::<HashSet<EventId>>());
+                .fold(first, |a, b| a.intersection(b).cloned().collect::<HashSet<Box<EventId>>>());
 
             Ok(auth_chain_sets.into_iter().flatten().filter(|id| !common.contains(id)).collect())
         } else {
@@ -235,8 +236,11 @@ impl<E: Event> TestStore<E> {
 }
 
 impl TestStore<StateEvent> {
-    fn set_up(&mut self) -> (StateMap<EventId>, StateMap<EventId>, StateMap<EventId>) {
-        let create_event = to_pdu_event::<EventId>(
+    #[allow(clippy::type_complexity)]
+    fn set_up(
+        &mut self,
+    ) -> (StateMap<Box<EventId>>, StateMap<Box<EventId>>, StateMap<Box<EventId>>) {
+        let create_event = to_pdu_event::<&EventId>(
             "CREATE",
             alice(),
             EventType::RoomCreate,
@@ -245,7 +249,7 @@ impl TestStore<StateEvent> {
             &[],
             &[],
         );
-        let cre = create_event.event_id().clone();
+        let cre = create_event.event_id().to_owned();
         self.0.insert(cre.clone(), Arc::clone(&create_event));
 
         let alice_mem = to_pdu_event(
@@ -257,7 +261,7 @@ impl TestStore<StateEvent> {
             &[cre.clone()],
             &[cre.clone()],
         );
-        self.0.insert(alice_mem.event_id().clone(), Arc::clone(&alice_mem));
+        self.0.insert(alice_mem.event_id().to_owned(), Arc::clone(&alice_mem));
 
         let join_rules = to_pdu_event(
             "IJR",
@@ -265,10 +269,10 @@ impl TestStore<StateEvent> {
             EventType::RoomJoinRules,
             Some(""),
             to_raw_json_value(&RoomJoinRulesEventContent::new(JoinRule::Public)).unwrap(),
-            &[cre.clone(), alice_mem.event_id().clone()],
-            &[alice_mem.event_id().clone()],
+            &[cre.clone(), alice_mem.event_id().to_owned()],
+            &[alice_mem.event_id().to_owned()],
         );
-        self.0.insert(join_rules.event_id().clone(), join_rules.clone());
+        self.0.insert(join_rules.event_id().to_owned(), join_rules.clone());
 
         // Bob and Charlie join at the same time, so there is a fork
         // this will be represented in the state_sets when we resolve
@@ -278,10 +282,10 @@ impl TestStore<StateEvent> {
             EventType::RoomMember,
             Some(bob().to_string().as_str()),
             member_content_join(),
-            &[cre.clone(), join_rules.event_id().clone()],
-            &[join_rules.event_id().clone()],
+            &[cre.clone(), join_rules.event_id().to_owned()],
+            &[join_rules.event_id().to_owned()],
         );
-        self.0.insert(bob_mem.event_id().clone(), bob_mem.clone());
+        self.0.insert(bob_mem.event_id().to_owned(), bob_mem.clone());
 
         let charlie_mem = to_pdu_event(
             "IMC",
@@ -289,17 +293,17 @@ impl TestStore<StateEvent> {
             EventType::RoomMember,
             Some(charlie().to_string().as_str()),
             member_content_join(),
-            &[cre, join_rules.event_id().clone()],
-            &[join_rules.event_id().clone()],
+            &[cre, join_rules.event_id().to_owned()],
+            &[join_rules.event_id().to_owned()],
         );
-        self.0.insert(charlie_mem.event_id().clone(), charlie_mem.clone());
+        self.0.insert(charlie_mem.event_id().to_owned(), charlie_mem.clone());
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
             .map(|e| {
                 (
                     (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
-                    e.event_id().clone(),
+                    e.event_id().to_owned(),
                 )
             })
             .collect::<StateMap<_>>();
@@ -309,7 +313,7 @@ impl TestStore<StateEvent> {
             .map(|e| {
                 (
                     (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
-                    e.event_id().clone(),
+                    e.event_id().to_owned(),
                 )
             })
             .collect::<StateMap<_>>();
@@ -319,7 +323,7 @@ impl TestStore<StateEvent> {
             .map(|e| {
                 (
                     (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
-                    e.event_id().clone(),
+                    e.event_id().to_owned(),
                 )
             })
             .collect::<StateMap<_>>();
@@ -328,11 +332,11 @@ impl TestStore<StateEvent> {
     }
 }
 
-fn event_id(id: &str) -> EventId {
+fn event_id(id: &str) -> Box<EventId> {
     if id.contains('$') {
-        return EventId::try_from(id).unwrap();
+        return id.try_into().unwrap();
     }
-    EventId::try_from(format!("${}:foo", id)).unwrap()
+    format!("${}:foo", id).try_into().unwrap()
 }
 
 fn alice() -> UserId {
@@ -384,7 +388,7 @@ where
 
     let state_key = state_key.map(ToOwned::to_owned);
     Arc::new(StateEvent {
-        event_id: EventId::try_from(id).unwrap(),
+        event_id: id.try_into().unwrap(),
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
             room_id: room_id(),
             sender,
@@ -407,9 +411,9 @@ where
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
+fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<StateEvent>> {
     vec![
-        to_pdu_event::<EventId>(
+        to_pdu_event::<&EventId>(
             "CREATE",
             alice(),
             EventType::RoomCreate,
@@ -463,7 +467,7 @@ fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
             &["CREATE", "IJR", "IPOWER"],
             &["IMB"],
         ),
-        to_pdu_event::<EventId>(
+        to_pdu_event::<&EventId>(
             "START",
             charlie(),
             EventType::RoomTopic,
@@ -472,7 +476,7 @@ fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
             &[],
             &[],
         ),
-        to_pdu_event::<EventId>(
+        to_pdu_event::<&EventId>(
             "END",
             charlie(),
             EventType::RoomTopic,
@@ -483,13 +487,13 @@ fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
         ),
     ]
     .into_iter()
-    .map(|ev| (ev.event_id().clone(), ev))
+    .map(|ev| (ev.event_id().to_owned(), ev))
     .collect()
 }
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn BAN_STATE_SET() -> HashMap<EventId, Arc<StateEvent>> {
+fn BAN_STATE_SET() -> HashMap<Box<EventId>, Arc<StateEvent>> {
     vec![
         to_pdu_event(
             "PA",
@@ -529,7 +533,7 @@ fn BAN_STATE_SET() -> HashMap<EventId, Arc<StateEvent>> {
         ),
     ]
     .into_iter()
-    .map(|ev| (ev.event_id().clone(), ev))
+    .map(|ev| (ev.event_id().to_owned(), ev))
     .collect()
 }
 
@@ -602,8 +606,8 @@ mod event {
 
         fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
             match &self.rest {
-                Pdu::RoomV1Pdu(ev) => Box::new(ev.prev_events.iter().map(|(id, _)| id)),
-                Pdu::RoomV3Pdu(ev) => Box::new(ev.prev_events.iter()),
+                Pdu::RoomV1Pdu(ev) => Box::new(ev.prev_events.iter().map(|(id, _)| &**id)),
+                Pdu::RoomV3Pdu(ev) => Box::new(ev.prev_events.iter().map(|id| &**id)),
                 #[cfg(not(feature = "unstable-exhaustive-types"))]
                 _ => unreachable!("new PDU version"),
             }
@@ -611,8 +615,8 @@ mod event {
 
         fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
             match &self.rest {
-                Pdu::RoomV1Pdu(ev) => Box::new(ev.auth_events.iter().map(|(id, _)| id)),
-                Pdu::RoomV3Pdu(ev) => Box::new(ev.auth_events.iter()),
+                Pdu::RoomV1Pdu(ev) => Box::new(ev.auth_events.iter().map(|(id, _)| &**id)),
+                Pdu::RoomV3Pdu(ev) => Box::new(ev.auth_events.iter().map(|id| &**id)),
                 #[cfg(not(feature = "unstable-exhaustive-types"))]
                 _ => unreachable!("new PDU version"),
             }
@@ -620,8 +624,8 @@ mod event {
 
         fn redacts(&self) -> Option<&EventId> {
             match &self.rest {
-                Pdu::RoomV1Pdu(ev) => ev.redacts.as_ref(),
-                Pdu::RoomV3Pdu(ev) => ev.redacts.as_ref(),
+                Pdu::RoomV1Pdu(ev) => ev.redacts.as_deref(),
+                Pdu::RoomV3Pdu(ev) => ev.redacts.as_deref(),
                 #[cfg(not(feature = "unstable-exhaustive-types"))]
                 _ => unreachable!("new PDU version"),
             }
@@ -630,7 +634,7 @@ mod event {
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct StateEvent {
-        pub event_id: EventId,
+        pub event_id: Box<EventId>,
         #[serde(flatten)]
         pub rest: Pdu,
     }

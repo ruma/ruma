@@ -43,7 +43,7 @@ pub fn event_id(input: TokenStream) -> TokenStream {
     assert!(event_id::validate(&id.value()).is_ok(), "Invalid event id");
 
     let output = quote! {
-        <#dollar_crate::EventId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
+        <&#dollar_crate::EventId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
     };
 
     output.into()

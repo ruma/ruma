@@ -31,7 +31,7 @@ pub use state_event::Event;
 pub type StateMap<T> = HashMap<(EventType, String), T>;
 
 /// A mapping of `EventId` to `T`, usually a `ServerPdu`.
-type EventMap<T> = HashMap<EventId, T>;
+type EventMap<T> = HashMap<Box<EventId>, T>;
 
 /// Resolve sets of state events as they come in.
 ///
@@ -56,12 +56,12 @@ type EventMap<T> = HashMap<EventId, T>;
 pub fn resolve<'a, E, SSI>(
     room_version: &RoomVersionId,
     state_sets: impl IntoIterator<IntoIter = SSI>,
-    auth_chain_sets: Vec<HashSet<EventId>>,
+    auth_chain_sets: Vec<HashSet<Box<EventId>>>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
-) -> Result<StateMap<EventId>>
+) -> Result<StateMap<Box<EventId>>>
 where
     E: Event + Clone,
-    SSI: Iterator<Item = &'a StateMap<EventId>> + Clone,
+    SSI: Iterator<Item = &'a StateMap<Box<EventId>>> + Clone,
 {
     info!("State resolution starting");
 
@@ -124,7 +124,7 @@ where
     // auth
     let events_to_resolve = all_conflicted
         .iter()
-        .filter(|id| !deduped_power_ev.contains(id))
+        .filter(|&id| !deduped_power_ev.contains(id))
         .cloned()
         .collect::<Vec<_>>();
 
@@ -136,7 +136,8 @@ where
 
     debug!("power event: {:?}", power_event);
 
-    let sorted_left_events = mainline_sort(&events_to_resolve, power_event, &fetch_event)?;
+    let sorted_left_events =
+        mainline_sort(&events_to_resolve, power_event.map(|id| &**id), &fetch_event)?;
 
     trace!("events left, sorted: {:?}", sorted_left_events);
 
@@ -161,8 +162,8 @@ where
 /// exactly one eventId. This includes missing events, if one state_set includes an event that none
 /// of the other have this is a conflicting event.
 fn separate<'a>(
-    state_sets_iter: impl Iterator<Item = &'a StateMap<EventId>> + Clone,
-) -> (StateMap<EventId>, StateMap<Vec<EventId>>) {
+    state_sets_iter: impl Iterator<Item = &'a StateMap<Box<EventId>>> + Clone,
+) -> (StateMap<Box<EventId>>, StateMap<Vec<Box<EventId>>>) {
     let mut unconflicted_state = StateMap::new();
     let mut conflicted_state = StateMap::new();
 
@@ -186,10 +187,12 @@ fn separate<'a>(
 }
 
 /// Returns a Vec of deduped EventIds that appear in some chains but not others.
-fn get_auth_chain_diff(auth_chain_sets: Vec<HashSet<EventId>>) -> impl Iterator<Item = EventId> {
+fn get_auth_chain_diff(
+    auth_chain_sets: Vec<HashSet<Box<EventId>>>,
+) -> impl Iterator<Item = Box<EventId>> {
     let num_sets = auth_chain_sets.len();
 
-    let mut id_counts: HashMap<EventId, usize> = HashMap::new();
+    let mut id_counts: HashMap<Box<EventId>, usize> = HashMap::new();
     for id in auth_chain_sets.into_iter().flatten() {
         *id_counts.entry(id).or_default() += 1;
     }
@@ -205,10 +208,10 @@ fn get_auth_chain_diff(auth_chain_sets: Vec<HashSet<EventId>>) -> impl Iterator<
 /// The power level is negative because a higher power level is equated to an earlier (further back
 /// in time) origin server timestamp.
 fn reverse_topological_power_sort<E: Event>(
-    events_to_sort: Vec<EventId>,
-    auth_diff: &HashSet<EventId>,
+    events_to_sort: Vec<Box<EventId>>,
+    auth_diff: &HashSet<Box<EventId>>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
-) -> Result<Vec<EventId>> {
+) -> Result<Vec<Box<EventId>>> {
     debug!("reverse topological sort of power events");
 
     let mut graph = HashMap::new();
@@ -242,7 +245,7 @@ fn reverse_topological_power_sort<E: Event>(
         // This return value is the key used for sorting events,
         // events are then sorted by power level, time,
         // and lexically by event_id.
-        Ok((-*pl, ev.origin_server_ts(), ev.event_id().clone()))
+        Ok((-*pl, ev.origin_server_ts(), ev.event_id().to_owned()))
     })
 }
 
@@ -251,11 +254,11 @@ fn reverse_topological_power_sort<E: Event>(
 /// `key_fn` is used as a tie breaker. The tie breaker happens based on power level, age, and
 /// event_id.
 pub fn lexicographical_topological_sort<F>(
-    graph: &HashMap<EventId, HashSet<EventId>>,
+    graph: &HashMap<Box<EventId>, HashSet<Box<EventId>>>,
     key_fn: F,
-) -> Result<Vec<EventId>>
+) -> Result<Vec<Box<EventId>>>
 where
-    F: Fn(&EventId) -> Result<(Int, MilliSecondsSinceUnixEpoch, EventId)>,
+    F: Fn(&EventId) -> Result<(Int, MilliSecondsSinceUnixEpoch, Box<EventId>)>,
 {
     info!("starting lexicographical topological sort");
     // NOTE: an event that has no incoming edges happened most recently,
@@ -271,7 +274,7 @@ where
 
     // The number of events that depend on the given event (the EventId key)
     // How many events reference this event in the DAG as a parent
-    let mut reverse_graph: HashMap<&EventId, HashSet<&EventId>> = HashMap::new();
+    let mut reverse_graph: HashMap<_, HashSet<_>> = HashMap::new();
 
     // Vec of nodes that have zero out degree, least recent events.
     let mut zero_outdegree = vec![];
@@ -295,8 +298,7 @@ where
     let mut sorted = vec![];
     // Destructure the `Reverse` and take the smallest `node` each time
     while let Some(Reverse((_, node))) = heap.pop() {
-        let node: &EventId = node;
-        for parent in reverse_graph.get(node).expect("EventId in heap is also in reverse_graph") {
+        for &parent in reverse_graph.get(node).expect("EventId in heap is also in reverse_graph") {
             // The number of outgoing edges this node has
             let out = outdegree_map
                 .get_mut(parent)
@@ -310,7 +312,7 @@ where
         }
 
         // synapse yields we push then return the vec
-        sorted.push(node.clone());
+        sorted.push(node.to_owned());
     }
 
     Ok(sorted)
@@ -373,16 +375,16 @@ fn get_power_level_for_sender<E: Event>(
 /// ## Returns
 ///
 /// The `unconflicted_state` combined with the newly auth'ed events. So any event that fails the
-/// `event_auth::auth_check` will be excluded from the returned `StateMap<EventId>`.
+/// `event_auth::auth_check` will be excluded from the returned `StateMap<Box<EventId>>`.
 ///
 /// For each `events_to_check` event we gather the events needed to auth it from the the
 /// `fetch_event` closure and verify each event using the `event_auth::auth_check` function.
 fn iterative_auth_check<E: Event + Clone>(
     room_version: &RoomVersion,
-    events_to_check: &[EventId],
-    unconflicted_state: StateMap<EventId>,
+    events_to_check: &[Box<EventId>],
+    unconflicted_state: StateMap<Box<EventId>>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
-) -> Result<StateMap<EventId>> {
+) -> Result<StateMap<Box<EventId>>> {
     info!("starting iterative auth check");
 
     debug!("performing auth checks on {:?}", events_to_check);
@@ -476,10 +478,10 @@ fn iterative_auth_check<E: Event + Clone>(
 /// the events before (with the first power level as a parent) will be marked as depth 1. depth 1 is
 /// "older" than depth 0.
 fn mainline_sort<E: Event>(
-    to_sort: &[EventId],
+    to_sort: &[Box<EventId>],
     resolved_power_level: Option<&EventId>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
-) -> Result<Vec<EventId>> {
+) -> Result<Vec<Box<EventId>>> {
     debug!("mainline sort of events");
 
     // There are no EventId's to sort, bail.
@@ -488,7 +490,7 @@ fn mainline_sort<E: Event>(
     }
 
     let mut mainline = vec![];
-    let mut pl = resolved_power_level.cloned();
+    let mut pl = resolved_power_level.map(ToOwned::to_owned);
     while let Some(p) = pl {
         mainline.push(p.clone());
 
@@ -499,7 +501,7 @@ fn mainline_sort<E: Event>(
             let ev = fetch_event(aid)
                 .ok_or_else(|| Error::NotFound(format!("Failed to find {}", aid)))?;
             if is_type_and_key(&ev, &EventType::RoomPowerLevels, "") {
-                pl = Some(aid.clone());
+                pl = Some(aid.to_owned());
                 break;
             }
         }
@@ -548,7 +550,7 @@ fn get_mainline_depth<E: Event>(
 ) -> Result<usize> {
     while let Some(sort_ev) = event {
         debug!("mainline event_id {}", sort_ev.event_id());
-        let id = &sort_ev.event_id();
+        let id = sort_ev.event_id();
         if let Some(depth) = mainline_map.get(id) {
             return Ok(*depth);
         }
@@ -568,9 +570,9 @@ fn get_mainline_depth<E: Event>(
 }
 
 fn add_event_and_auth_chain_to_graph<E: Event>(
-    graph: &mut HashMap<EventId, HashSet<EventId>>,
-    event_id: EventId,
-    auth_diff: &HashSet<EventId>,
+    graph: &mut HashMap<Box<EventId>, HashSet<Box<EventId>>>,
+    event_id: Box<EventId>,
+    auth_diff: &HashSet<Box<EventId>>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) {
     let mut state = vec![event_id];
@@ -580,11 +582,11 @@ fn add_event_and_auth_chain_to_graph<E: Event>(
         for aid in fetch_event(&eid).as_ref().map(|ev| ev.auth_events()).into_iter().flatten() {
             if auth_diff.contains(aid) {
                 if !graph.contains_key(aid) {
-                    state.push(aid.clone());
+                    state.push(aid.to_owned());
                 }
 
                 // We just inserted this at the start of the while loop
-                graph.get_mut(&eid).unwrap().insert(aid.clone());
+                graph.get_mut(&eid).unwrap().insert(aid.to_owned());
             }
         }
     }
@@ -690,8 +692,10 @@ mod tests {
         let power_level = resolved_power.get(&(EventType::RoomPowerLevels, "".to_owned()));
 
         let sorted_event_ids =
-            crate::mainline_sort(&events_to_sort, power_level, |id| events.get(id).map(Arc::clone))
-                .unwrap();
+            crate::mainline_sort(&events_to_sort, power_level.map(|id| &**id), |id| {
+                events.get(id).map(Arc::clone)
+            })
+            .unwrap();
 
         assert_eq!(
             vec![
@@ -1066,7 +1070,7 @@ mod tests {
         };
 
         let res = crate::lexicographical_topological_sort(&graph, |id| {
-            Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0)), id.clone()))
+            Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0)), id.to_owned()))
         })
         .unwrap();
 
@@ -1193,7 +1197,7 @@ mod tests {
     }
 
     #[allow(non_snake_case)]
-    fn BAN_STATE_SET() -> HashMap<EventId, Arc<StateEvent>> {
+    fn BAN_STATE_SET() -> HashMap<Box<EventId>, Arc<StateEvent>> {
         vec![
             to_pdu_event(
                 "PA",
@@ -1238,7 +1242,7 @@ mod tests {
     }
 
     #[allow(non_snake_case)]
-    fn JOIN_RULE() -> HashMap<EventId, Arc<StateEvent>> {
+    fn JOIN_RULE() -> HashMap<Box<EventId>, Arc<StateEvent>> {
         vec![
             to_pdu_event(
                 "JR",

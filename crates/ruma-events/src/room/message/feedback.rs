@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 #[ruma_event(type = "m.room.message.feedback", kind = Message)]
 pub struct RoomMessageFeedbackEventContent {
     /// The event that this feedback is related to.
-    pub target_event_id: EventId,
+    pub target_event_id: Box<EventId>,
 
     /// The type of feedback.
     #[serde(rename = "type")]
@@ -24,8 +24,8 @@ pub struct RoomMessageFeedbackEventContent {
 }
 
 impl RoomMessageFeedbackEventContent {
-    /// Create a `RoomFeedbackEventContent` from the given target event id and feedback type.
-    pub fn new(target_event_id: EventId, feedback_type: FeedbackType) -> Self {
+    /// Create a `RoomMessageFeedbackEventContent` from the given target event id and feedback type.
+    pub fn new(target_event_id: Box<EventId>, feedback_type: FeedbackType) -> Self {
         Self { target_event_id, feedback_type }
     }
 }

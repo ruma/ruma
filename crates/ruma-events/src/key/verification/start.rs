@@ -312,7 +312,7 @@ mod tests {
 
         let key_verification_start_content = KeyVerificationStartEventContent {
             from_device: "123".into(),
-            relates_to: Relation { event_id: event_id.clone() },
+            relates_to: Relation { event_id: event_id.to_owned() },
             method: StartMethod::SasV1(
                 SasV1ContentInit {
                     hashes: vec![HashAlgorithm::Sha256],
@@ -343,7 +343,7 @@ mod tests {
 
         let key_verification_start_content = KeyVerificationStartEventContent {
             from_device: "123".into(),
-            relates_to: Relation { event_id: event_id.clone() },
+            relates_to: Relation { event_id: event_id.to_owned() },
             method: StartMethod::ReciprocateV1(ReciprocateV1Content::new(secret.clone())),
         };
 

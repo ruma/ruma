@@ -19,10 +19,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.receipt", kind = EphemeralRoom)]
-pub struct ReceiptEventContent(pub BTreeMap<EventId, Receipts>);
+pub struct ReceiptEventContent(pub BTreeMap<Box<EventId>, Receipts>);
 
 impl Deref for ReceiptEventContent {
-    type Target = BTreeMap<EventId, Receipts>;
+    type Target = BTreeMap<Box<EventId>, Receipts>;
 
     fn deref(&self) -> &Self::Target {
         &self.0

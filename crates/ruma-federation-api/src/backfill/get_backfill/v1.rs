@@ -24,7 +24,7 @@ ruma_api! {
 
         /// The event IDs to backfill from.
         #[ruma_api(query)]
-        pub v: &'a [EventId],
+        pub v: &'a [Box<EventId>],
 
         /// The maximum number of PDUs to retrieve, including the given events.
         #[ruma_api(query)]
@@ -48,7 +48,7 @@ impl<'a> Request<'a> {
     /// * the given room id.
     /// * the event IDs to backfill from.
     /// * the maximum number of PDUs to retrieve, including the given events.
-    pub fn new(room_id: &'a RoomId, v: &'a [EventId], limit: UInt) -> Self {
+    pub fn new(room_id: &'a RoomId, v: &'a [Box<EventId>], limit: UInt) -> Self {
         Self { room_id, v, limit }
     }
 }

@@ -36,10 +36,10 @@ ruma_api! {
         /// The latest event IDs that the sender already has.
         ///
         /// These are skipped when retrieving the previous events of `latest_events`.
-        pub earliest_events: &'a [EventId],
+        pub earliest_events: &'a [Box<EventId>],
 
         /// The event IDs to retrieve the previous events for.
-        pub latest_events: &'a [EventId],
+        pub latest_events: &'a [Box<EventId>],
     }
 
     #[derive(Default)]
@@ -53,8 +53,8 @@ impl<'a> Request<'a> {
     /// Creates a new `Request` for events in the given room with the given constraints.
     pub fn new(
         room_id: &'a RoomId,
-        earliest_events: &'a [EventId],
-        latest_events: &'a [EventId],
+        earliest_events: &'a [Box<EventId>],
+        latest_events: &'a [Box<EventId>],
     ) -> Self {
         Self {
             room_id,

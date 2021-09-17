@@ -28,7 +28,7 @@ fn serialize_pdu_as_v1() {
 
     let v1_pdu = RoomV1Pdu {
         room_id: room_id!("!n8f893n9:example.com"),
-        event_id: event_id!("$somejoinevent:matrix.org"),
+        event_id: event_id!("$somejoinevent:matrix.org").to_owned(),
         sender: user_id!("@sender:example.com"),
         origin: "matrix.org".into(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(1_592_050_773_658_u64.try_into().unwrap()),
@@ -36,15 +36,15 @@ fn serialize_pdu_as_v1() {
         content: to_raw_json_value(&json!({ "testing": 123 })).unwrap(),
         state_key: Some("state".into()),
         prev_events: vec![(
-            event_id!("$previousevent:matrix.org"),
+            event_id!("$previousevent:matrix.org").to_owned(),
             EventHash::new("123567".into()),
         )],
         depth: 2_u32.into(),
         auth_events: vec![(
-            event_id!("$someauthevent:matrix.org"),
+            event_id!("$someauthevent:matrix.org").to_owned(),
             EventHash::new("21389CFEDABC".into()),
         )],
-        redacts: Some(event_id!("$9654:matrix.org")),
+        redacts: Some(event_id!("$9654:matrix.org").to_owned()),
         unsigned,
         hashes: EventHash::new("1233543bABACDEF".into()),
         signatures,
@@ -101,10 +101,10 @@ fn serialize_pdu_as_v3() {
         kind: EventType::RoomPowerLevels,
         content: to_raw_json_value(&json!({ "testing": 123 })).unwrap(),
         state_key: Some("state".into()),
-        prev_events: vec![event_id!("$previousevent:matrix.org")],
+        prev_events: vec![event_id!("$previousevent:matrix.org").to_owned()],
         depth: 2_u32.into(),
-        auth_events: vec![event_id!("$someauthevent:matrix.org")],
-        redacts: Some(event_id!("$9654:matrix.org")),
+        auth_events: vec![event_id!("$someauthevent:matrix.org").to_owned()],
+        redacts: Some(event_id!("$9654:matrix.org").to_owned()),
         unsigned,
         hashes: EventHash::new("1233543bABACDEF".into()),
         signatures,
@@ -235,7 +235,7 @@ fn deserialize_pdu_as_v3() {
     match parsed {
         Pdu::RoomV1Pdu(_) => panic!("Matched V1 PDU"),
         Pdu::RoomV3Pdu(v3_pdu) => {
-            assert_eq!(v3_pdu.auth_events.first().unwrap(), &event_id!("$abc123:matrix.org"));
+            assert_eq!(v3_pdu.auth_events.first().unwrap(), event_id!("$abc123:matrix.org"));
         }
         #[cfg(not(feature = "unstable-exhaustive-types"))]
         _ => unreachable!("new PDU version"),

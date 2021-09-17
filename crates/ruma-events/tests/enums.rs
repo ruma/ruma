@@ -202,7 +202,7 @@ fn message_room_event_deserialization() {
 fn message_event_serialization() {
     let event = MessageEvent {
         content: RoomMessageEventContent::text_plain("test"),
-        event_id: event_id!("$1234:example.com"),
+        event_id: event_id!("$1234:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(0)),
         room_id: room_id!("!roomid:example.com"),
         sender: user_id!("@test:example.com"),
@@ -285,7 +285,7 @@ fn alias_event_field_access() {
         Ok(AnyRoomEvent::State(state_event))
         if state_event.state_key() == ""
             && state_event.room_id() == &room_id!("!room:room.com")
-            && state_event.event_id() == &event_id!("$152037280074GZeOm:localhost")
+            && state_event.event_id() == event_id!("$152037280074GZeOm:localhost")
             && state_event.sender() == &user_id!("@example:localhost")
     );
 

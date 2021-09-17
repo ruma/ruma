@@ -119,7 +119,7 @@ pub enum Relation {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Replacement {
     /// The ID of the event being replacing.
-    pub event_id: EventId,
+    pub event_id: Box<EventId>,
 }
 
 /// A reference to another event.
@@ -128,13 +128,13 @@ pub struct Replacement {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Reference {
     /// The event we are referencing.
-    pub event_id: EventId,
+    pub event_id: Box<EventId>,
 }
 
 #[cfg(feature = "unstable-pre-spec")]
 impl Reference {
     /// Creates a new `Reference` with the given event ID.
-    pub fn new(event_id: EventId) -> Self {
+    pub fn new(event_id: Box<EventId>) -> Self {
         Self { event_id }
     }
 }
@@ -145,7 +145,7 @@ impl Reference {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Annotation {
     /// The event that is being annotated.
-    pub event_id: EventId,
+    pub event_id: Box<EventId>,
 
     /// The annotation.
     pub key: String,
@@ -154,7 +154,7 @@ pub struct Annotation {
 #[cfg(feature = "unstable-pre-spec")]
 impl Annotation {
     /// Creates a new `Annotation` with the given event ID and key.
-    pub fn new(event_id: EventId, key: String) -> Self {
+    pub fn new(event_id: Box<EventId>, key: String) -> Self {
         Self { event_id, key }
     }
 }
@@ -298,7 +298,7 @@ mod tests {
                 session_id: "session_id".into(),
             }),
             relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo { event_id: event_id!("$h29iv0s8:example.com") },
+                in_reply_to: InReplyTo { event_id: event_id!("$h29iv0s8:example.com").to_owned() },
             }),
         };
 

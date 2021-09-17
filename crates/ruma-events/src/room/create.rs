@@ -90,12 +90,12 @@ pub struct PreviousRoom {
     pub room_id: RoomId,
 
     /// The event ID of the last known event in the old room.
-    pub event_id: EventId,
+    pub event_id: Box<EventId>,
 }
 
 impl PreviousRoom {
     /// Creates a new `PreviousRoom` from the given room and event IDs.
-    pub fn new(room_id: RoomId, event_id: EventId) -> Self {
+    pub fn new(room_id: RoomId, event_id: Box<EventId>) -> Self {
         Self { room_id, event_id }
     }
 }

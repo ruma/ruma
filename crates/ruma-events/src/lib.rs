@@ -46,7 +46,7 @@
 //!     #[serde(rename = "m.annotation")]
 //!     Annotation {
 //!         /// The event this reaction relates to.
-//!         event_id: EventId,
+//!         event_id: Box<EventId>,
 //!         /// The displayable content of the reaction.
 //!         key: String,
 //!     },

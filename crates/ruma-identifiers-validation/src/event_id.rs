@@ -1,16 +1,11 @@
-use std::num::NonZeroU8;
+use crate::{validate_delimited_id, Error};
 
-use crate::{parse_id, Error};
+pub fn validate(s: &str) -> Result<(), Error> {
+    if s.contains(':') {
+        validate_delimited_id(s, &['$'])?;
+    } else if !s.starts_with('$') {
+        return Err(Error::MissingLeadingSigil);
+    }
 
-pub fn validate(s: &str) -> Result<Option<NonZeroU8>, Error> {
-    Ok(match s.contains(':') {
-        true => Some(parse_id(s, &['$'])?),
-        false => {
-            if !s.starts_with('$') {
-                return Err(Error::MissingLeadingSigil);
-            }
-
-            None
-        }
-    })
+    Ok(())
 }

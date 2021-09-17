@@ -44,3 +44,9 @@ fn parse_id(id: &str, valid_sigils: &[char]) -> Result<NonZeroU8, Error> {
     server_name::validate(&id[colon_idx + 1..])?;
     Ok(NonZeroU8::new(colon_idx as u8).unwrap())
 }
+
+/// Checks an identifier that contains a localpart and hostname for validity.
+fn validate_delimited_id(id: &str, valid_sigils: &[char]) -> Result<(), Error> {
+    parse_id(id, valid_sigils)?;
+    Ok(())
+}

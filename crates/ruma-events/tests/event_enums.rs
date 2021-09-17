@@ -86,7 +86,7 @@ fn serialize_message_event() {
             }),
             mxc_uri!("mxc://matrix.org/arsrns98rsRSR"),
         ),
-        event_id: event_id!("$h29iv0s8:example.com"),
+        event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         room_id: room_id!("!roomid:room.com"),
         sender: user_id!("@carl:example.com"),

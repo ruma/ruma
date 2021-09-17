@@ -167,12 +167,12 @@ pub struct ReceiptData {
     pub data: Receipt,
 
     /// The extremity event ID the user has read up to.
-    pub event_ids: Vec<EventId>,
+    pub event_ids: Vec<Box<EventId>>,
 }
 
 impl ReceiptData {
     /// Creates a new `ReceiptData`.
-    pub fn new(data: Receipt, event_ids: Vec<EventId>) -> Self {
+    pub fn new(data: Receipt, event_ids: Vec<Box<EventId>>) -> Self {
         Self { data, event_ids }
     }
 }

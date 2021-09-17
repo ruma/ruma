@@ -81,7 +81,7 @@ mod tests {
 
     #[test]
     fn serialization() {
-        let event_id = event_id!("$1598361704261elfgc:localhost");
+        let event_id = event_id!("$1598361704261elfgc:localhost").to_owned();
         let device: Box<DeviceId> = "123".into();
 
         let json_data = json!({

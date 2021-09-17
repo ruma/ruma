@@ -23,8 +23,8 @@ fn unsigned() -> RedactedUnsigned {
     let mut unsigned = RedactedUnsigned::default();
     unsigned.redacted_because = Some(Box::new(SyncRoomRedactionEvent {
         content: RoomRedactionEventContent::with_reason("redacted because".into()),
-        redacts: event_id!("$h29iv0s8:example.com"),
-        event_id: event_id!("$h29iv0s8:example.com"),
+        redacts: event_id!("$h29iv0s8:example.com").to_owned(),
+        event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         sender: user_id!("@carl:example.com"),
         unsigned: Unsigned::default(),
@@ -37,7 +37,7 @@ fn unsigned() -> RedactedUnsigned {
 fn redacted_message_event_serialize() {
     let redacted = RedactedSyncMessageEvent {
         content: RedactedRoomMessageEventContent::new(),
-        event_id: event_id!("$h29iv0s8:example.com"),
+        event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         sender: user_id!("@carl:example.com"),
         unsigned: RedactedUnsigned::default(),
@@ -58,7 +58,7 @@ fn redacted_message_event_serialize() {
 fn redacted_aliases_event_serialize_no_content() {
     let redacted = RedactedSyncStateEvent {
         content: RedactedRoomAliasesEventContent::default(),
-        event_id: event_id!("$h29iv0s8:example.com"),
+        event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         state_key: "".into(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         sender: user_id!("@carl:example.com"),
@@ -81,7 +81,7 @@ fn redacted_aliases_event_serialize_no_content() {
 fn redacted_aliases_event_serialize_with_content() {
     let redacted = RedactedSyncStateEvent {
         content: RedactedRoomAliasesEventContent::new_v1(vec![]),
-        event_id: event_id!("$h29iv0s8:example.com"),
+        event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         state_key: "".to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         sender: user_id!("@carl:example.com"),
@@ -160,8 +160,8 @@ fn redacted_deserialize_any_room_sync() {
     // to the event type string.
     unsigned.redacted_because = Some(Box::new(SyncRoomRedactionEvent {
         content: RoomRedactionEventContent::with_reason("redacted because".into()),
-        redacts: event_id!("$h29iv0s8:example.com"),
-        event_id: event_id!("$h29iv0s8:example.com"),
+        redacts: event_id!("$h29iv0s8:example.com").to_owned(),
+        event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         sender: user_id!("@carl:example.com"),
         unsigned: Unsigned::default(),
@@ -240,7 +240,7 @@ fn redacted_custom_event_serialize() {
     );
 
     let x = from_json_value::<AnyRedactedSyncStateEvent>(redacted).unwrap();
-    assert_eq!(x.event_id(), &event_id!("$h29iv0s8:example.com"))
+    assert_eq!(x.event_id(), event_id!("$h29iv0s8:example.com"))
 }
 
 #[test]
@@ -249,7 +249,7 @@ fn redacted_custom_event_deserialize() {
 
     let redacted = RedactedSyncStateEvent {
         content: RedactedCustomEventContent { event_type: "m.made.up".into() },
-        event_id: event_id!("$h29iv0s8:example.com"),
+        event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         sender: user_id!("@carl:example.com"),
         state_key: "hello there".into(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
@@ -286,8 +286,8 @@ fn redact_method_properly_redacts() {
 
     let redaction = SyncRoomRedactionEvent {
         content: RoomRedactionEventContent::with_reason("redacted because".into()),
-        redacts: event_id!("$143273582443PhrSn:example.com"),
-        event_id: event_id!("$h29iv0s8:example.com"),
+        redacts: event_id!("$143273582443PhrSn:example.com").to_owned(),
+        event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         sender: user_id!("@carl:example.com"),
         unsigned: Unsigned::default(),

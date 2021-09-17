@@ -28,8 +28,8 @@ fn redaction() -> JsonValue {
 fn serialize_redaction() {
     let aliases_event = RoomRedactionEvent {
         content: RoomRedactionEventContent::with_reason("being a turd".into()),
-        redacts: event_id!("$nomore:example.com"),
-        event_id: event_id!("$h29iv0s8:example.com"),
+        redacts: event_id!("$nomore:example.com").to_owned(),
+        event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         room_id: room_id!("!roomid:room.com"),
         sender: user_id!("@carl:example.com"),

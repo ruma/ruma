@@ -363,7 +363,7 @@ mod tests {
         let devices = &[device];
 
         let notice = Notification {
-            event_id: Some(&eid),
+            event_id: Some(eid),
             room_id: Some(&rid),
             event_type: Some(&EventType::RoomMessage),
             sender: Some(&uid),

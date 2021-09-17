@@ -49,7 +49,7 @@ ruma_api! {
     response: {
         /// Map of event IDs and response for each PDU given in the request.
         #[serde(with = "crate::serde::pdu_process_response")]
-        pub pdus: BTreeMap<EventId, Result<(), String>>,
+        pub pdus: BTreeMap<Box<EventId>, Result<(), String>>,
     }
 }
 
@@ -68,7 +68,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given PDUs.
-    pub fn new(pdus: BTreeMap<EventId, Result<(), String>>) -> Self {
+    pub fn new(pdus: BTreeMap<Box<EventId>, Result<(), String>>) -> Self {
         Self { pdus }
     }
 }

@@ -14,7 +14,7 @@ struct WrappedError {
 }
 
 pub fn serialize<S>(
-    response: &BTreeMap<EventId, Result<(), String>>,
+    response: &BTreeMap<Box<EventId>, Result<(), String>>,
     serializer: S,
 ) -> Result<S::Ok, S::Error>
 where
@@ -33,16 +33,17 @@ where
     map.end()
 }
 
+#[allow(clippy::type_complexity)]
 pub fn deserialize<'de, D>(
     deserializer: D,
-) -> Result<BTreeMap<EventId, Result<(), String>>, D::Error>
+) -> Result<BTreeMap<Box<EventId>, Result<(), String>>, D::Error>
 where
     D: Deserializer<'de>,
 {
     struct PduProcessResponseVisitor;
 
     impl<'de> Visitor<'de> for PduProcessResponseVisitor {
-        type Value = BTreeMap<EventId, Result<(), String>>;
+        type Value = BTreeMap<Box<EventId>, Result<(), String>>;
 
         fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
             formatter.write_str("A map of EventIds to a map of optional errors")
@@ -54,7 +55,7 @@ where
         {
             let mut map = BTreeMap::new();
 
-            while let Some((key, value)) = access.next_entry::<EventId, WrappedError>()? {
+            while let Some((key, value)) = access.next_entry::<Box<EventId>, WrappedError>()? {
                 let v = match value.error {
                     None => Ok(()),
                     Some(error) => Err(error),
@@ -79,8 +80,11 @@ mod tests {
 
     #[test]
     fn serialize_error() {
-        let mut response: BTreeMap<EventId, Result<(), String>> = BTreeMap::new();
-        response.insert(event_id!("$someevent:matrix.org"), Err("Some processing error.".into()));
+        let mut response: BTreeMap<Box<EventId>, Result<(), String>> = BTreeMap::new();
+        response.insert(
+            event_id!("$someevent:matrix.org").to_owned(),
+            Err("Some processing error.".into()),
+        );
 
         let serialized = serialize(&response, JsonSerializer).unwrap();
         let json = json!({
@@ -91,8 +95,8 @@ mod tests {
 
     #[test]
     fn serialize_ok() {
-        let mut response: BTreeMap<EventId, Result<(), String>> = BTreeMap::new();
-        response.insert(event_id!("$someevent:matrix.org"), Ok(()));
+        let mut response: BTreeMap<Box<EventId>, Result<(), String>> = BTreeMap::new();
+        response.insert(event_id!("$someevent:matrix.org").to_owned(), Ok(()));
 
         let serialized = serialize(&response, serde_json::value::Serializer).unwrap();
         let json = json!({
@@ -110,7 +114,7 @@ mod tests {
         let response = deserialize(json).unwrap();
         let event_id = event_id!("$someevent:matrix.org");
 
-        let event_response = response.get(&event_id).unwrap().clone().unwrap_err();
+        let event_response = response.get(event_id).unwrap().clone().unwrap_err();
         assert_eq!(event_response, "Some processing error.");
     }
 
@@ -123,7 +127,7 @@ mod tests {
         let response = deserialize(json).unwrap();
         let event_id = event_id!("$someevent:matrix.org");
 
-        assert!(response.get(&event_id).unwrap().is_ok());
+        assert!(response.get(event_id).unwrap().is_ok());
     }
 
     #[test]
@@ -135,7 +139,7 @@ mod tests {
         let response = deserialize(json).unwrap();
         let event_id = event_id!("$someevent:matrix.org");
 
-        let event_response = response.get(&event_id).unwrap().clone().unwrap_err();
+        let event_response = response.get(event_id).unwrap().clone().unwrap_err();
         assert_eq!(event_response, "");
     }
 
@@ -145,6 +149,6 @@ mod tests {
             "$someevent:matrix.org": {}
         });
         let response = deserialize(json).unwrap();
-        assert!(response.get(&event_id!("$someevent:matrix.org")).unwrap().is_ok());
+        assert!(response.get(event_id!("$someevent:matrix.org")).unwrap().is_ok());
     }
 }

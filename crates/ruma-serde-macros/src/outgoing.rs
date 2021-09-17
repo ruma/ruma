@@ -261,6 +261,8 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                         Some(parse_quote! { ::std::string::String })
                     } else if last_seg.ident == "ClientSecret"
                         || last_seg.ident == "DeviceId"
+                        || last_seg.ident == "DeviceKeyId"
+                        || last_seg.ident == "EventId"
                         || last_seg.ident == "ServerName"
                         || last_seg.ident == "SessionId"
                         || last_seg.ident == "RawJsonValue"

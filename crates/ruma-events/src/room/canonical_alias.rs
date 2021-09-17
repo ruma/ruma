@@ -51,7 +51,7 @@ mod tests {
                 alias: Some(room_alias_id!("#somewhere:localhost")),
                 alt_aliases: Vec::new(),
             },
-            event_id: event_id!("$h29iv0s8:example.com"),
+            event_id: event_id!("$h29iv0s8:example.com").to_owned(),
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
             prev_content: None,
             room_id: room_id!("!dummy:example.com"),

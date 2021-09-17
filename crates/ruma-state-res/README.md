@@ -16,7 +16,7 @@ pub trait Event {
 pub type StateMap<T> = BTreeMap<(EventType, Option<String>), T>;
 
 /// A mapping of `EventId` to `T`, usually a `StateEvent`.
-pub type EventMap<T> = BTreeMap<EventId, T>;
+pub type EventMap<T> = BTreeMap<Box<EventId>, T>;
 
 struct StateResolution {
     // For now the StateResolution struct is empty. If "caching" `event_map`
@@ -30,10 +30,10 @@ impl StateResolution {
     pub fn resolve<E: Event>(
         room_id: &RoomId,
         room_version: &RoomVersionId,
-        state_sets: &[StateMap<EventId>],
-        auth_events: Vec<Vec<EventId>>,
+        state_sets: &[StateMap<Box<EventId>>],
+        auth_events: Vec<Vec<Box<EventId>>>,
         event_map: &mut EventMap<Arc<E>>,
-    ) -> Result<StateMap<EventId>> {;
+    ) -> Result<StateMap<Box<EventId>>> {;
 }
 
 ```

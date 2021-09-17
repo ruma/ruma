@@ -792,8 +792,8 @@ fn servers_to_check_signatures(
     match version {
         RoomVersionId::Version1 | RoomVersionId::Version2 => match object.get("event_id") {
             Some(CanonicalJsonValue::String(raw_event_id)) => {
-                let event_id = EventId::from_str(raw_event_id)
-                    .map_err(|e| Error::from(ParseError::EventId(e)))?;
+                let event_id: Box<EventId> =
+                    raw_event_id.parse().map_err(|e| Error::from(ParseError::EventId(e)))?;
 
                 let server_name = event_id
                     .server_name()

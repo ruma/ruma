@@ -125,13 +125,13 @@ impl ShortAuthenticationString {
 #[serde(tag = "rel_type", rename = "m.reference")]
 pub struct Relation {
     /// The event ID of a related `m.key.verification.request`.
-    pub event_id: EventId,
+    pub event_id: Box<EventId>,
 }
 
 #[cfg(feature = "unstable-pre-spec")]
 impl Relation {
     /// Creates a new `Relation` with the given event ID.
-    pub fn new(event_id: EventId) -> Self {
+    pub fn new(event_id: Box<EventId>) -> Self {
         Self { event_id }
     }
 }

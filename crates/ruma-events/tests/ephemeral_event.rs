@@ -52,7 +52,7 @@ fn deserialize_ephemeral_typing() {
 
 #[test]
 fn ephemeral_serialize_receipt() {
-    let event_id = event_id!("$h29iv0s8:example.com");
+    let event_id = event_id!("$h29iv0s8:example.com").to_owned();
     let user_id = user_id!("@carl:example.com");
 
     let aliases_event = EphemeralRoomEvent {
@@ -104,10 +104,10 @@ fn deserialize_ephemeral_receipt() {
         AnyEphemeralRoomEvent::Receipt(EphemeralRoomEvent {
             content: ReceiptEventContent(receipts),
             room_id,
-        }) if !receipts.is_empty() && receipts.contains_key(&event_id)
+        }) if !receipts.is_empty() && receipts.contains_key(event_id)
             && room_id == room_id!("!roomid:room.com")
             && receipts
-                .get(&event_id)
+                .get(event_id)
                 .map(|r| r.get(&ReceiptType::Read).unwrap().get(&user_id).unwrap())
                 .map(|r| r.ts)
                 .unwrap()

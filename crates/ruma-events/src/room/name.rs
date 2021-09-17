@@ -41,7 +41,7 @@ mod tests {
     fn serialization_with_optional_fields_as_none() {
         let name_event = StateEvent {
             content: RoomNameEventContent { name: "The room name".try_into().ok() },
-            event_id: event_id!("$h29iv0s8:example.com"),
+            event_id: event_id!("$h29iv0s8:example.com").to_owned(),
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
             prev_content: None,
             room_id: room_id!("!n8f893n9:example.com"),
@@ -70,7 +70,7 @@ mod tests {
     fn serialization_with_all_fields() {
         let name_event = StateEvent {
             content: RoomNameEventContent { name: "The room name".try_into().ok() },
-            event_id: event_id!("$h29iv0s8:example.com"),
+            event_id: event_id!("$h29iv0s8:example.com").to_owned(),
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
             prev_content: Some(RoomNameEventContent { name: "The old name".try_into().ok() }),
             room_id: room_id!("!n8f893n9:example.com"),

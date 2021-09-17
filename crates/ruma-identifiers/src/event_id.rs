@@ -1,52 +1,46 @@
 //! Matrix event identifiers.
 
-use std::{convert::TryFrom, fmt, num::NonZeroU8};
+use std::convert::TryInto;
+
+use ruma_identifiers_validation::event_id::validate;
 
 use crate::ServerName;
 
-/// A Matrix event ID.
-///
-/// An `EventId` is generated randomly or converted from a string slice, and can be converted back
-/// into a string as needed.
-///
-/// # Room versions
-///
-/// Matrix specifies multiple [room versions](https://matrix.org/docs/spec/#room-versions) and the
-/// format of event identifiers differ between them. The original format used by room versions 1
-/// and 2 uses a short pseudorandom "localpart" followed by the hostname and port of the
-/// originating homeserver. Later room versions change event identifiers to be a hash of the event
-/// encoded with Base64. Some of the methods provided by `EventId` are only relevant to the
-/// original event format.
-///
-/// ```
-/// # use std::convert::TryFrom;
-/// # use ruma_identifiers::EventId;
-/// // Original format
-/// assert_eq!(
-///     EventId::try_from("$h29iv0s8:example.com").unwrap().as_ref(),
-///     "$h29iv0s8:example.com"
-/// );
-/// // Room version 3 format
-/// assert_eq!(
-///     EventId::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk").unwrap().as_ref(),
-///     "$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk"
-/// );
-/// // Room version 4 format
-/// assert_eq!(
-///     EventId::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg").unwrap().as_ref(),
-///     "$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg"
-/// );
-/// ```
-#[derive(Clone)]
-pub struct EventId {
-    full_id: Box<str>,
-    colon_idx: Option<NonZeroU8>,
-}
-
-impl fmt::Debug for EventId {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.full_id.fmt(f)
-    }
+opaque_identifier_validated! {
+    /// A Matrix event ID.
+    ///
+    /// An `EventId` is generated randomly or converted from a string slice, and can be converted
+    /// back into a string as needed.
+    ///
+    /// # Room versions
+    ///
+    /// Matrix specifies multiple [room versions](https://matrix.org/docs/spec/#room-versions) and
+    /// the format of event identifiers differ between them. The original format used by room
+    /// versions 1 and 2 uses a short pseudorandom "localpart" followed by the hostname and port of
+    /// the originating homeserver. Later room versions change event identifiers to be a hash of the
+    /// event encoded with Base64. Some of the methods provided by `EventId` are only relevant to
+    /// the original event format.
+    ///
+    /// ```
+    /// # use std::convert::TryFrom;
+    /// # use ruma_identifiers::EventId;
+    /// // Original format
+    /// assert_eq!(
+    ///     <&EventId>::try_from("$h29iv0s8:example.com").unwrap(),
+    ///     "$h29iv0s8:example.com"
+    /// );
+    /// // Room version 3 format
+    /// assert_eq!(
+    ///     <&EventId>::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk").unwrap(),
+    ///     "$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk"
+    /// );
+    /// // Room version 4 format
+    /// assert_eq!(
+    ///     <&EventId>::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg").unwrap(),
+    ///     "$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg"
+    /// );
+    /// ```
+    pub type EventId [ validate ];
 }
 
 impl EventId {
@@ -56,12 +50,8 @@ impl EventId {
     /// This should only be used for events in the original format  as used by Matrix room versions
     /// 1 and 2.
     #[cfg(feature = "rand")]
-    pub fn new(server_name: &ServerName) -> Self {
-        use crate::generate_localpart;
-
-        let full_id = format!("${}:{}", generate_localpart(18), server_name).into();
-
-        Self { full_id, colon_idx: NonZeroU8::new(19) }
+    pub fn new(server_name: &ServerName) -> Box<Self> {
+        Self::from_owned(format!("${}:{}", crate::generate_localpart(18), server_name).into())
     }
 
     /// Returns the event's unique ID.
@@ -70,36 +60,21 @@ impl EventId {
     /// "localpart" that precedes the homeserver. For later formats, this is the entire ID without
     /// the leading `$` sigil.
     pub fn localpart(&self) -> &str {
-        let idx = match self.colon_idx {
-            Some(idx) => idx.get() as usize,
-            None => self.full_id.len(),
-        };
-
-        &self.full_id[1..idx]
+        let idx = self.colon_idx().unwrap_or_else(|| self.as_str().len());
+        &self.as_str()[1..idx]
     }
 
     /// Returns the server name of the event ID.
     ///
     /// Only applicable to events in the original format as used by Matrix room versions 1 and 2.
     pub fn server_name(&self) -> Option<&ServerName> {
-        self.colon_idx
-            .map(|idx| <&ServerName>::try_from(&self.full_id[idx.get() as usize + 1..]).unwrap())
+        self.colon_idx().map(|idx| self.as_str()[idx as usize + 1..].try_into().unwrap())
+    }
+
+    fn colon_idx(&self) -> Option<usize> {
+        self.as_str().find(':')
     }
 }
-
-/// Attempts to create a new Matrix event ID from a string representation.
-///
-/// If using the original event format as used by Matrix room versions 1 and 2, the string must
-/// include the leading $ sigil, the localpart, a literal colon, and a valid homeserver hostname.
-fn try_from<S>(event_id: S) -> Result<EventId, crate::Error>
-where
-    S: AsRef<str> + Into<Box<str>>,
-{
-    let colon_idx = ruma_identifiers_validation::event_id::validate(event_id.as_ref())?;
-    Ok(EventId { full_id: event_id.into(), colon_idx })
-}
-
-common_impls!(EventId, try_from, "a Matrix event ID");
 
 #[cfg(test)]
 mod tests {
@@ -111,9 +86,7 @@ mod tests {
     #[test]
     fn valid_original_event_id() {
         assert_eq!(
-            EventId::try_from("$39hvsi03hlne:example.com")
-                .expect("Failed to create EventId.")
-                .as_ref(),
+            <&EventId>::try_from("$39hvsi03hlne:example.com").expect("Failed to create EventId."),
             "$39hvsi03hlne:example.com"
         );
     }
@@ -121,9 +94,8 @@ mod tests {
     #[test]
     fn valid_base64_event_id() {
         assert_eq!(
-            EventId::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk")
-                .expect("Failed to create EventId.")
-                .as_ref(),
+            <&EventId>::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk")
+                .expect("Failed to create EventId."),
             "$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk"
         )
     }
@@ -131,9 +103,8 @@ mod tests {
     #[test]
     fn valid_url_safe_base64_event_id() {
         assert_eq!(
-            EventId::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg")
-                .expect("Failed to create EventId.")
-                .as_ref(),
+            <&EventId>::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg")
+                .expect("Failed to create EventId."),
             "$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg"
         )
     }
@@ -155,7 +126,8 @@ mod tests {
     fn serialize_valid_original_event_id() {
         assert_eq!(
             serde_json::to_string(
-                &EventId::try_from("$39hvsi03hlne:example.com").expect("Failed to create EventId.")
+                <&EventId>::try_from("$39hvsi03hlne:example.com")
+                    .expect("Failed to create EventId.")
             )
             .expect("Failed to convert EventId to JSON."),
             r#""$39hvsi03hlne:example.com""#
@@ -167,7 +139,7 @@ mod tests {
     fn serialize_valid_base64_event_id() {
         assert_eq!(
             serde_json::to_string(
-                &EventId::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk")
+                <&EventId>::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk")
                     .expect("Failed to create EventId.")
             )
             .expect("Failed to convert EventId to JSON."),
@@ -180,7 +152,7 @@ mod tests {
     fn serialize_valid_url_safe_base64_event_id() {
         assert_eq!(
             serde_json::to_string(
-                &EventId::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg")
+                <&EventId>::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg")
                     .expect("Failed to create EventId.")
             )
             .expect("Failed to convert EventId to JSON."),
@@ -192,9 +164,9 @@ mod tests {
     #[test]
     fn deserialize_valid_original_event_id() {
         assert_eq!(
-            serde_json::from_str::<EventId>(r#""$39hvsi03hlne:example.com""#)
+            serde_json::from_str::<Box<EventId>>(r#""$39hvsi03hlne:example.com""#)
                 .expect("Failed to convert JSON to EventId"),
-            EventId::try_from("$39hvsi03hlne:example.com").expect("Failed to create EventId.")
+            <&EventId>::try_from("$39hvsi03hlne:example.com").expect("Failed to create EventId.")
         );
     }
 
@@ -202,9 +174,11 @@ mod tests {
     #[test]
     fn deserialize_valid_base64_event_id() {
         assert_eq!(
-            serde_json::from_str::<EventId>(r#""$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk""#)
-                .expect("Failed to convert JSON to EventId"),
-            EventId::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk")
+            serde_json::from_str::<Box<EventId>>(
+                r#""$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk""#
+            )
+            .expect("Failed to convert JSON to EventId"),
+            <&EventId>::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk")
                 .expect("Failed to create EventId.")
         );
     }
@@ -213,9 +187,11 @@ mod tests {
     #[test]
     fn deserialize_valid_url_safe_base64_event_id() {
         assert_eq!(
-            serde_json::from_str::<EventId>(r#""$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg""#)
-                .expect("Failed to convert JSON to EventId"),
-            EventId::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg")
+            serde_json::from_str::<Box<EventId>>(
+                r#""$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg""#
+            )
+            .expect("Failed to convert JSON to EventId"),
+            <&EventId>::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg")
                 .expect("Failed to create EventId.")
         );
     }
@@ -223,9 +199,8 @@ mod tests {
     #[test]
     fn valid_original_event_id_with_explicit_standard_port() {
         assert_eq!(
-            EventId::try_from("$39hvsi03hlne:example.com:443")
-                .expect("Failed to create EventId.")
-                .as_ref(),
+            <&EventId>::try_from("$39hvsi03hlne:example.com:443")
+                .expect("Failed to create EventId."),
             "$39hvsi03hlne:example.com:443"
         );
     }
@@ -233,9 +208,8 @@ mod tests {
     #[test]
     fn valid_original_event_id_with_non_standard_port() {
         assert_eq!(
-            EventId::try_from("$39hvsi03hlne:example.com:5000")
-                .expect("Failed to create EventId.")
-                .as_ref(),
+            <&EventId>::try_from("$39hvsi03hlne:example.com:5000")
+                .expect("Failed to create EventId."),
             "$39hvsi03hlne:example.com:5000"
         );
     }
@@ -243,7 +217,7 @@ mod tests {
     #[test]
     fn missing_original_event_id_sigil() {
         assert_eq!(
-            EventId::try_from("39hvsi03hlne:example.com").unwrap_err(),
+            <&EventId>::try_from("39hvsi03hlne:example.com").unwrap_err(),
             Error::MissingLeadingSigil
         );
     }
@@ -251,7 +225,7 @@ mod tests {
     #[test]
     fn missing_base64_event_id_sigil() {
         assert_eq!(
-            EventId::try_from("acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk").unwrap_err(),
+            <&EventId>::try_from("acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk").unwrap_err(),
             Error::MissingLeadingSigil
         );
     }
@@ -259,20 +233,20 @@ mod tests {
     #[test]
     fn missing_url_safe_base64_event_id_sigil() {
         assert_eq!(
-            EventId::try_from("Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg").unwrap_err(),
+            <&EventId>::try_from("Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg").unwrap_err(),
             Error::MissingLeadingSigil
         );
     }
 
     #[test]
     fn invalid_event_id_host() {
-        assert_eq!(EventId::try_from("$39hvsi03hlne:/").unwrap_err(), Error::InvalidServerName);
+        assert_eq!(<&EventId>::try_from("$39hvsi03hlne:/").unwrap_err(), Error::InvalidServerName);
     }
 
     #[test]
     fn invalid_event_id_port() {
         assert_eq!(
-            EventId::try_from("$39hvsi03hlne:example.com:notaport").unwrap_err(),
+            <&EventId>::try_from("$39hvsi03hlne:example.com:notaport").unwrap_err(),
             Error::InvalidServerName
         );
     }

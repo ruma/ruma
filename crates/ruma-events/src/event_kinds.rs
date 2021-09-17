@@ -52,7 +52,7 @@ pub struct MessageEvent<C: MessageEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: EventId,
+    pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: UserId,
@@ -77,7 +77,7 @@ pub struct SyncMessageEvent<C: MessageEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: EventId,
+    pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: UserId,
@@ -99,7 +99,7 @@ pub struct RedactedMessageEvent<C: RedactedMessageEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: EventId,
+    pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: UserId,
@@ -124,7 +124,7 @@ pub struct RedactedSyncMessageEvent<C: RedactedMessageEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: EventId,
+    pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: UserId,
@@ -146,7 +146,7 @@ pub struct StateEvent<C: StateEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: EventId,
+    pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: UserId,
@@ -180,7 +180,7 @@ pub struct SyncStateEvent<C: StateEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: EventId,
+    pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: UserId,
@@ -243,7 +243,7 @@ pub struct RedactedStateEvent<C: RedactedStateEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: EventId,
+    pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: UserId,
@@ -274,7 +274,7 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: EventId,
+    pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: UserId,

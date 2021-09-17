@@ -37,7 +37,7 @@ impl From<Relation> for ReactionEventContent {
 #[serde(tag = "rel_type", rename = "m.annotation")]
 pub struct Relation {
     /// The event that is being reacted to.
-    pub event_id: EventId,
+    pub event_id: Box<EventId>,
 
     /// A string that holds the emoji reaction.
     #[serde(rename = "key")]
@@ -46,7 +46,7 @@ pub struct Relation {
 
 impl Relation {
     /// Creates a new `Relation` with the given event ID and emoji.
-    pub fn new(event_id: EventId, emoji: String) -> Self {
+    pub fn new(event_id: Box<EventId>, emoji: String) -> Self {
         Self { event_id, emoji }
     }
 }

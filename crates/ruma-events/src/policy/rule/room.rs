@@ -32,7 +32,7 @@ mod tests {
     #[test]
     fn serialization() {
         let room_event = PolicyRuleRoomEvent {
-            event_id: event_id!("$143273582443PhrSn:example.org"),
+            event_id: event_id!("$143273582443PhrSn:example.org").to_owned(),
             sender: user_id!("@example:example.org"),
             origin_server_ts: MilliSecondsSinceUnixEpoch(1_432_735_824_653_u64.try_into().unwrap()),
             room_id: room_id!("!jEsUZKDJdhlrceRyVU:example.org"),

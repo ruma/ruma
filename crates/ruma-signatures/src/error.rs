@@ -176,7 +176,7 @@ pub enum ParseError {
     /// For when an event ID, coupled with a specific room version, doesn't have a server name
     /// embedded.
     #[error("Event Id {0:?} should have a server name for the given room version {1:?}")]
-    ServerNameFromEventIdByRoomVersion(EventId, RoomVersionId),
+    ServerNameFromEventIdByRoomVersion(Box<EventId>, RoomVersionId),
 
     /// For when the extracted/"parsed" public key from a PKCS#8 v2 document doesn't match the
     /// public key derived from it's private key.
@@ -229,7 +229,7 @@ impl ParseError {
         event_id: &EventId,
         room_version: &RoomVersionId,
     ) -> Error {
-        Self::ServerNameFromEventIdByRoomVersion(event_id.clone(), room_version.clone()).into()
+        Self::ServerNameFromEventIdByRoomVersion(event_id.to_owned(), room_version.clone()).into()
     }
 
     pub(crate) fn derived_vs_parsed_mismatch<P: Into<Vec<u8>>, D: Into<Vec<u8>>>(

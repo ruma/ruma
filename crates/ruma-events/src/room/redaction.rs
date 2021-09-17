@@ -15,10 +15,10 @@ pub struct RoomRedactionEvent {
     pub content: RoomRedactionEventContent,
 
     /// The ID of the event that was redacted.
-    pub redacts: EventId,
+    pub redacts: Box<EventId>,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: EventId,
+    pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: UserId,
@@ -62,10 +62,10 @@ pub struct RedactedRoomRedactionEvent {
     pub content: RedactedRoomRedactionEventContent,
 
     /// The ID of the event that was redacted.
-    pub redacts: Option<EventId>,
+    pub redacts: Option<Box<EventId>>,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: EventId,
+    pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: UserId,
@@ -88,10 +88,10 @@ pub struct SyncRoomRedactionEvent {
     pub content: RoomRedactionEventContent,
 
     /// The ID of the event that was redacted.
-    pub redacts: EventId,
+    pub redacts: Box<EventId>,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: EventId,
+    pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: UserId,
@@ -131,10 +131,10 @@ pub struct RedactedSyncRoomRedactionEvent {
     pub content: RedactedRoomRedactionEventContent,
 
     /// The ID of the event that was redacted.
-    pub redacts: Option<EventId>,
+    pub redacts: Option<Box<EventId>>,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: EventId,
+    pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: UserId,

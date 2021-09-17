@@ -134,5 +134,5 @@ enum RelationJsonRepr {
 #[derive(Clone, Deserialize, Serialize)]
 #[cfg(feature = "unstable-pre-spec")]
 struct ReplacementJsonRepr {
-    event_id: EventId,
+    event_id: Box<EventId>,
 }

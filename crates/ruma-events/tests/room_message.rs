@@ -40,7 +40,7 @@ fn serialization() {
             mxc_uri!("mxc://example.org/ffed755USFFxlgbQYZGtryd"),
             None,
         ))),
-        event_id: event_id!("$143273582443PhrSn:example.org"),
+        event_id: event_id!("$143273582443PhrSn:example.org").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
         room_id: room_id!("!testroomid:example.org"),
         sender: user_id!("@user:example.org"),
@@ -203,7 +203,9 @@ fn relates_to_content_serialization() {
     let message_event_content =
         assign!(RoomMessageEventContent::text_plain("> <@test:example.com> test\n\ntest reply"), {
             relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo::new(event_id!("$15827405538098VGFWH:example.com")),
+                in_reply_to: InReplyTo::new(
+                    event_id!("$15827405538098VGFWH:example.com").to_owned(),
+                ),
             }),
         });
 
