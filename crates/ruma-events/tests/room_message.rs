@@ -90,12 +90,14 @@ fn custom_msgtype_serialization() {
         "custom_field".into() => json!("baba"),
         "another_one".into() => json!("abab"),
     };
-    let custom_msgtype = MessageType::new("my_custom_msgtype", json_data).unwrap();
+    let custom_msgtype =
+        MessageType::new("my_custom_msgtype", "my message body".into(), json_data).unwrap();
 
     assert_eq!(
         to_json_value(&custom_msgtype).unwrap(),
         json!({
             "msgtype": "my_custom_msgtype",
+            "body": "my message body",
             "custom_field": "baba",
             "another_one": "abab",
         })
@@ -106,6 +108,7 @@ fn custom_msgtype_serialization() {
 fn custom_content_deserialization() {
     let json_data = json!({
         "msgtype": "my_custom_msgtype",
+        "body": "my custom message",
         "custom_field": "baba",
         "another_one": "abab",
     });
@@ -119,6 +122,7 @@ fn custom_content_deserialization() {
         from_json_value::<Raw<MessageType>>(json_data).unwrap().deserialize().unwrap();
 
     assert_eq!(custom_event.msgtype(), "my_custom_msgtype");
+    assert_eq!(custom_event.body(), "my custom message");
     assert_eq!(custom_event.data(), Cow::Owned(expected_json_data));
 }
 

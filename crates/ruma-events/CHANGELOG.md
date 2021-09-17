@@ -5,6 +5,12 @@ Breaking changes:
 * Remove `RedactedStrippedStateEvent`
   * It was not used anywhere since stripped state events are never actually redacted.
 * Use `Box<RawJsonValue>` instead of `JsonValue` for PDU `content` field
+* Require `room::message::MessageType` to always contain a body
+  * The `new` constructor now also has a body parameter
+
+Improvements:
+
+* Add `room::message::MessageType::body` accessor method
 
 # 0.24.5
 

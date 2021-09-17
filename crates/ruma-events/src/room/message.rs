@@ -187,24 +187,35 @@ impl MessageType {
     /// Prefer to use the public variants of `MessageType` where possible; this constructor is meant
     /// be used for unsupported message types only and does not allow setting arbitrary data for
     /// supported ones.
-    pub fn new(msgtype: &str, data: JsonObject) -> serde_json::Result<Self> {
-        fn from_json_object<T: DeserializeOwned>(obj: JsonObject) -> serde_json::Result<T> {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the `msgtype` is known and serialization of `data` to the corresponding
+    /// `MessageType` variant fails.
+    pub fn new(msgtype: &str, body: String, data: JsonObject) -> serde_json::Result<Self> {
+        fn deserialize_variant<T: DeserializeOwned>(
+            body: String,
+            mut obj: JsonObject,
+        ) -> serde_json::Result<T> {
+            obj.insert("body".into(), body.into());
             serde_json::from_value(JsonValue::Object(obj))
         }
 
         Ok(match msgtype {
-            "m.audio" => Self::Audio(from_json_object(data)?),
-            "m.emote" => Self::Emote(from_json_object(data)?),
-            "m.file" => Self::File(from_json_object(data)?),
-            "m.image" => Self::Image(from_json_object(data)?),
-            "m.location" => Self::Location(from_json_object(data)?),
-            "m.notice" => Self::Notice(from_json_object(data)?),
-            "m.server_notice" => Self::ServerNotice(from_json_object(data)?),
-            "m.text" => Self::Text(from_json_object(data)?),
-            "m.video" => Self::Video(from_json_object(data)?),
+            "m.audio" => Self::Audio(deserialize_variant(body, data)?),
+            "m.emote" => Self::Emote(deserialize_variant(body, data)?),
+            "m.file" => Self::File(deserialize_variant(body, data)?),
+            "m.image" => Self::Image(deserialize_variant(body, data)?),
+            "m.location" => Self::Location(deserialize_variant(body, data)?),
+            "m.notice" => Self::Notice(deserialize_variant(body, data)?),
+            "m.server_notice" => Self::ServerNotice(deserialize_variant(body, data)?),
+            "m.text" => Self::Text(deserialize_variant(body, data)?),
+            "m.video" => Self::Video(deserialize_variant(body, data)?),
             #[cfg(feature = "unstable-pre-spec")]
-            "m.key.verification.request" => Self::VerificationRequest(from_json_object(data)?),
-            _ => Self::_Custom(CustomEventContent { msgtype: msgtype.to_owned(), data }),
+            "m.key.verification.request" => {
+                Self::VerificationRequest(deserialize_variant(body, data)?)
+            }
+            _ => Self::_Custom(CustomEventContent { msgtype: msgtype.to_owned(), body, data }),
         })
     }
 
@@ -223,6 +234,24 @@ impl MessageType {
             #[cfg(feature = "unstable-pre-spec")]
             Self::VerificationRequest(_) => "m.key.verification.request",
             Self::_Custom(c) => &c.msgtype,
+        }
+    }
+
+    /// Return a reference to the message body.
+    pub fn body(&self) -> &str {
+        match self {
+            MessageType::Audio(m) => &m.body,
+            MessageType::Emote(m) => &m.body,
+            MessageType::File(m) => &m.body,
+            MessageType::Image(m) => &m.body,
+            MessageType::Location(m) => &m.body,
+            MessageType::Notice(m) => &m.body,
+            MessageType::ServerNotice(m) => &m.body,
+            MessageType::Text(m) => &m.body,
+            MessageType::Video(m) => &m.body,
+            #[cfg(feature = "unstable-pre-spec")]
+            MessageType::VerificationRequest(m) => &m.body,
+            MessageType::_Custom(m) => &m.body,
         }
     }
 
@@ -929,10 +958,13 @@ impl KeyVerificationRequestEventContent {
 #[doc(hidden)]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CustomEventContent {
-    /// A custom msgtype
+    /// A custom msgtype.
     msgtype: String,
 
-    /// Remaining event content
+    /// The message body.
+    body: String,
+
+    /// Remaining event content.
     #[serde(flatten)]
     data: JsonObject,
 }
@@ -967,11 +999,7 @@ fn get_plain_quote_fallback(original_message: &MessageEvent) -> String {
             format!("> <{:?}> sent a video.", original_message.sender)
         }
         MessageType::_Custom(content) => {
-            format!(
-                "> <{:?}> {}",
-                original_message.sender,
-                content.data["body"].as_str().unwrap_or(""),
-            )
+            format!("> <{:?}> {}", original_message.sender, content.body)
         }
         #[cfg(feature = "unstable-pre-spec")]
         MessageType::VerificationRequest(content) => {
@@ -1156,7 +1184,7 @@ fn get_html_quote_fallback(original_message: &MessageEvent) -> String {
                 room_id = original_message.room_id,
                 event_id = original_message.event_id,
                 sender = original_message.sender,
-                body = content.data["body"].as_str().unwrap_or(""),
+                body = content.body,
             )
         }
         #[cfg(feature = "unstable-pre-spec")]
