@@ -32,7 +32,7 @@ pub struct EphemeralRoomEvent<C: EphemeralRoomEventContent> {
     pub content: C,
 
     /// The ID of the room associated with this event.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 }
 
 /// An ephemeral room event without a `room_id`.
@@ -61,7 +61,7 @@ pub struct MessageEvent<C: MessageEventContent> {
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: Unsigned,
@@ -108,7 +108,7 @@ pub struct RedactedMessageEvent<C: RedactedMessageEventContent> {
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: RedactedUnsigned,
@@ -155,7 +155,7 @@ pub struct StateEvent<C: StateEventContent> {
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
@@ -252,7 +252,7 @@ pub struct RedactedStateEvent<C: RedactedStateEventContent> {
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
@@ -335,5 +335,5 @@ pub struct DecryptedMegolmV1Event<C: MessageEventContent> {
     pub content: C,
 
     /// The ID of the room associated with the event.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 }

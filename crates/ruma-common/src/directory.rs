@@ -35,7 +35,7 @@ pub struct PublicRoomsChunk {
     pub num_joined_members: UInt,
 
     /// The ID of the room.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 
     /// The topic of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -72,7 +72,7 @@ pub struct PublicRoomsChunkInit {
     pub num_joined_members: UInt,
 
     /// The ID of the room.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 
     /// Whether the room may be viewed by guest users without joining.
     pub world_readable: bool,

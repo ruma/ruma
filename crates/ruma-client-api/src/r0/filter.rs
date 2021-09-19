@@ -63,7 +63,7 @@ pub struct RoomEventFilter<'a> {
     /// If this list is absent then no rooms are excluded. A matching room will be excluded even if
     /// it is listed in the 'rooms' filter.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub not_rooms: &'a [RoomId],
+    pub not_rooms: &'a [Box<RoomId>],
 
     /// The maximum number of events to return.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -73,7 +73,7 @@ pub struct RoomEventFilter<'a> {
     ///
     /// If this list is absent then all rooms are included.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub rooms: Option<&'a [RoomId]>,
+    pub rooms: Option<&'a [Box<RoomId>]>,
 
     /// A list of sender IDs to exclude.
     ///
@@ -186,14 +186,14 @@ pub struct RoomFilter<'a> {
     /// it is listed in the 'rooms' filter. This filter is applied before the filters in
     /// `ephemeral`, `state`, `timeline` or `account_data`.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub not_rooms: &'a [RoomId],
+    pub not_rooms: &'a [Box<RoomId>],
 
     /// A list of room IDs to include.
     ///
     /// If this list is absent then all rooms are included. This filter is applied before the
     /// filters in `ephemeral`, `state`, `timeline` or `account_data`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub rooms: Option<&'a [RoomId]>,
+    pub rooms: Option<&'a [Box<RoomId>]>,
 }
 
 impl<'a> RoomFilter<'a> {

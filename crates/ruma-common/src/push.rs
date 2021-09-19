@@ -966,7 +966,7 @@ mod tests {
         let set = Ruleset::server_default(&user_id!("@jolly_jumper:server.name"));
 
         let context_one_to_one = &PushConditionRoomCtx {
-            room_id: room_id!("!dm:server.name"),
+            room_id: room_id!("!dm:server.name").to_owned(),
             member_count: 2_u32.into(),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
@@ -975,7 +975,7 @@ mod tests {
         };
 
         let context_public_room = &PushConditionRoomCtx {
-            room_id: room_id!("!far_west:server.name"),
+            room_id: room_id!("!far_west:server.name").to_owned(),
             member_count: 100_u32.into(),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
@@ -1065,7 +1065,7 @@ mod tests {
     #[test]
     fn custom_ruleset_applies() {
         let context_one_to_one = &PushConditionRoomCtx {
-            room_id: room_id!("!dm:server.name"),
+            room_id: room_id!("!dm:server.name").to_owned(),
             member_count: 2_u32.into(),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),

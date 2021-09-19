@@ -33,7 +33,7 @@ ruma_api! {
 
     response: {
         /// The room that the user joined.
-        pub room_id: RoomId,
+        pub room_id: Box<RoomId>,
     }
 
     error: crate::Error
@@ -53,7 +53,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given room id.
-    pub fn new(room_id: RoomId) -> Self {
+    pub fn new(room_id: Box<RoomId>) -> Self {
         Self { room_id }
     }
 }

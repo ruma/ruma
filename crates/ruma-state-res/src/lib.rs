@@ -1044,7 +1044,7 @@ mod tests {
             state_sets
                 .iter()
                 .map(|map| {
-                    store.auth_event_ids(&room_id(), map.values().cloned().collect()).unwrap()
+                    store.auth_event_ids(room_id(), map.values().cloned().collect()).unwrap()
                 })
                 .collect(),
             |id| ev_map.get(id).map(Arc::clone),
@@ -1148,7 +1148,7 @@ mod tests {
             state_sets
                 .iter()
                 .map(|map| {
-                    store.auth_event_ids(&room_id(), map.values().cloned().collect()).unwrap()
+                    store.auth_event_ids(room_id(), map.values().cloned().collect()).unwrap()
                 })
                 .collect(),
             |id| ev_map.get(id).map(Arc::clone),

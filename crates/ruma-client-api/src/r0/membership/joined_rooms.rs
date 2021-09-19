@@ -19,7 +19,7 @@ ruma_api! {
     response: {
         /// A list of the rooms the user is in, i.e. the ID of each room in
         /// which the user has joined membership.
-        pub joined_rooms: Vec<RoomId>,
+        pub joined_rooms: Vec<Box<RoomId>>,
     }
 
     error: crate::Error
@@ -34,7 +34,7 @@ impl Request {
 
 impl Response {
     /// Creates a new `Response` with the given joined rooms.
-    pub fn new(joined_rooms: Vec<RoomId>) -> Self {
+    pub fn new(joined_rooms: Vec<Box<RoomId>>) -> Self {
         Self { joined_rooms }
     }
 }

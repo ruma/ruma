@@ -54,7 +54,7 @@ mod tests {
             event_id: event_id!("$h29iv0s8:example.com").to_owned(),
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
             prev_content: None,
-            room_id: room_id!("!dummy:example.com"),
+            room_id: room_id!("!dummy:example.com").to_owned(),
             sender: user_id!("@carl:example.com"),
             state_key: "".into(),
             unsigned: Unsigned::default(),

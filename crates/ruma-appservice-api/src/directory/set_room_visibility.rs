@@ -20,7 +20,7 @@ ruma_api! {
 
         /// Room ID of the room to add or remove from the directory.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: Box<RoomId>,
 
         /// Whether the room should be visible (public) in the directory or not (private).
         pub visibility: Visibility,

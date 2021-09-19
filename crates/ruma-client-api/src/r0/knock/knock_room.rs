@@ -32,7 +32,7 @@ ruma_api! {
 
     response: {
         /// The room that the user knocked on.
-        pub room_id: RoomId,
+        pub room_id: Box<RoomId>,
     }
 }
 
@@ -45,7 +45,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given room ID.
-    pub fn new(room_id: RoomId) -> Self {
+    pub fn new(room_id: Box<RoomId>) -> Self {
         Self { room_id }
     }
 }

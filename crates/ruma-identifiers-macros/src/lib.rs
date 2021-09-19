@@ -67,7 +67,7 @@ pub fn room_id(input: TokenStream) -> TokenStream {
     assert!(room_id::validate(&id.value()).is_ok(), "Invalid room_id");
 
     let output = quote! {
-        <#dollar_crate::RoomId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
+        <&#dollar_crate::RoomId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
     };
 
     output.into()

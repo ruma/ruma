@@ -21,7 +21,7 @@ ruma_api! {
 
     response: {
         /// The room ID for this room alias.
-        pub room_id: RoomId,
+        pub room_id: Box<RoomId>,
 
         /// A list of servers that are aware of this room ID.
         pub servers: Vec<Box<ServerName>>,
@@ -39,7 +39,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given room id and servers
-    pub fn new(room_id: RoomId, servers: Vec<Box<ServerName>>) -> Self {
+    pub fn new(room_id: Box<RoomId>, servers: Vec<Box<ServerName>>) -> Self {
         Self { room_id, servers }
     }
 }

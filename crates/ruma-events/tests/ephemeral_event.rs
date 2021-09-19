@@ -15,7 +15,7 @@ use ruma_events::{
 fn ephemeral_serialize_typing() {
     let aliases_event = EphemeralRoomEvent {
         content: TypingEventContent::new(vec![user_id!("@carl:example.com")]),
-        room_id: room_id!("!roomid:room.com"),
+        room_id: room_id!("!roomid:room.com").to_owned(),
     };
 
     let actual = to_json_value(&aliases_event).unwrap();
@@ -63,7 +63,7 @@ fn ephemeral_serialize_receipt() {
                 },
             },
         }),
-        room_id: room_id!("!roomid:room.com"),
+        room_id: room_id!("!roomid:room.com").to_owned(),
     };
 
     let actual = to_json_value(&aliases_event).unwrap();

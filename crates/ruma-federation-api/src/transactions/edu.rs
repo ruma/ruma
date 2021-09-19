@@ -133,12 +133,12 @@ impl PresenceUpdate {
 pub struct ReceiptContent {
     /// Receipts for a particular room.
     #[serde(flatten)]
-    pub receipts: BTreeMap<RoomId, ReceiptMap>,
+    pub receipts: BTreeMap<Box<RoomId>, ReceiptMap>,
 }
 
 impl ReceiptContent {
     /// Creates a new `ReceiptContent`.
-    pub fn new(receipts: BTreeMap<RoomId, ReceiptMap>) -> Self {
+    pub fn new(receipts: BTreeMap<Box<RoomId>, ReceiptMap>) -> Self {
         Self { receipts }
     }
 }
@@ -182,7 +182,7 @@ impl ReceiptData {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct TypingContent {
     /// The room where the user's typing status has been updated.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 
     /// The user ID that has had their typing status changed.
     pub user_id: UserId,
@@ -193,7 +193,7 @@ pub struct TypingContent {
 
 impl TypingContent {
     /// Creates a new `TypingContent`.
-    pub fn new(room_id: RoomId, user_id: UserId, typing: bool) -> Self {
+    pub fn new(room_id: Box<RoomId>, user_id: UserId, typing: bool) -> Self {
         Self { room_id, user_id, typing }
     }
 }
@@ -401,7 +401,7 @@ mod test {
         assert_matches!(
             &edu,
             Edu::Receipt(ReceiptContent { receipts })
-                if receipts.get(&room_id!("!some_room:example.org")).is_some()
+                if receipts.get(room_id!("!some_room:example.org")).is_some()
         );
 
         assert_eq!(serde_json::to_value(&edu).unwrap(), json);

@@ -21,7 +21,7 @@ ruma_api! {
 
     response: {
         /// Room ID mapped to queried alias.
-        pub room_id: RoomId,
+        pub room_id: Box<RoomId>,
 
         /// An array of server names that are likely to hold the given room.
         pub servers: Vec<Box<ServerName>>,
@@ -37,7 +37,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given room IDs and servers.
-    pub fn new(room_id: RoomId, servers: Vec<Box<ServerName>>) -> Self {
+    pub fn new(room_id: Box<RoomId>, servers: Vec<Box<ServerName>>) -> Self {
         Self { room_id, servers }
     }
 }

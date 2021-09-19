@@ -15,7 +15,7 @@ pub struct StateEvent<C: StateEventContent> {
     pub event_id: Box<EventId>,
     pub sender: UserId,
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
     pub state_key: String,
     pub prev_content: Option<C>,
     pub unsigned: Unsigned,

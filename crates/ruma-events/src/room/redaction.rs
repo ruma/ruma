@@ -27,7 +27,7 @@ pub struct RoomRedactionEvent {
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: Unsigned,
@@ -74,7 +74,7 @@ pub struct RedactedRoomRedactionEvent {
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: RedactedUnsigned,

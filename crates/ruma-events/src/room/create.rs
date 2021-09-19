@@ -87,7 +87,7 @@ impl RoomType {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct PreviousRoom {
     /// The ID of the old room.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 
     /// The event ID of the last known event in the old room.
     pub event_id: Box<EventId>,
@@ -95,7 +95,7 @@ pub struct PreviousRoom {
 
 impl PreviousRoom {
     /// Creates a new `PreviousRoom` from the given room and event IDs.
-    pub fn new(room_id: RoomId, event_id: Box<EventId>) -> Self {
+    pub fn new(room_id: Box<RoomId>, event_id: Box<EventId>) -> Self {
         Self { room_id, event_id }
     }
 }

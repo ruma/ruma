@@ -149,7 +149,7 @@ impl ruma_api::IncomingRequest for IncomingRequest {
             let decoded =
                 percent_encoding::percent_decode(path_segments[4].as_bytes()).decode_utf8()?;
 
-            RoomId::try_from(&*decoded)?
+            Box::<RoomId>::try_from(&*decoded)?
         };
 
         let event_type = percent_encoding::percent_decode(path_segments[6].as_bytes())

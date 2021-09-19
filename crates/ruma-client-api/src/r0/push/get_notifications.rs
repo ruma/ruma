@@ -88,7 +88,7 @@ pub struct Notification {
     pub read: bool,
 
     /// The ID of the room in which the event was posted.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 
     /// The time at which the event notification was sent.
     pub ts: MilliSecondsSinceUnixEpoch,
@@ -101,7 +101,7 @@ impl Notification {
         actions: Vec<Action>,
         event: Raw<AnySyncRoomEvent>,
         read: bool,
-        room_id: RoomId,
+        room_id: Box<RoomId>,
         ts: MilliSecondsSinceUnixEpoch,
     ) -> Self {
         Self { actions, event, profile_tag: None, read, room_id, ts }

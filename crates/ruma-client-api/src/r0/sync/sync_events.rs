@@ -162,20 +162,20 @@ impl<'a> From<&'a str> for Filter<'a> {
 pub struct Rooms {
     /// The rooms that the user has left or been banned from.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub leave: BTreeMap<RoomId, LeftRoom>,
+    pub leave: BTreeMap<Box<RoomId>, LeftRoom>,
 
     /// The rooms that the user has joined.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub join: BTreeMap<RoomId, JoinedRoom>,
+    pub join: BTreeMap<Box<RoomId>, JoinedRoom>,
 
     /// The rooms that the user has been invited to.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub invite: BTreeMap<RoomId, InvitedRoom>,
+    pub invite: BTreeMap<Box<RoomId>, InvitedRoom>,
 
     /// The rooms that the user has knocked on.
     #[cfg(feature = "unstable-pre-spec")]
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub knock: BTreeMap<RoomId, KnockedRoom>,
+    pub knock: BTreeMap<Box<RoomId>, KnockedRoom>,
 }
 
 impl Rooms {

@@ -204,7 +204,7 @@ fn message_event_serialization() {
         content: RoomMessageEventContent::text_plain("test"),
         event_id: event_id!("$1234:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(0)),
-        room_id: room_id!("!roomid:example.com"),
+        room_id: room_id!("!roomid:example.com").to_owned(),
         sender: user_id!("@test:example.com"),
         unsigned: Unsigned::default(),
     };
@@ -284,7 +284,7 @@ fn alias_event_field_access() {
         from_json_value::<AnyRoomEvent>(json_data.clone()),
         Ok(AnyRoomEvent::State(state_event))
         if state_event.state_key() == ""
-            && state_event.room_id() == &room_id!("!room:room.com")
+            && state_event.room_id() == room_id!("!room:room.com")
             && state_event.event_id() == event_id!("$152037280074GZeOm:localhost")
             && state_event.sender() == &user_id!("@example:localhost")
     );
@@ -316,7 +316,7 @@ fn ephemeral_event_deserialization() {
     assert_matches!(
         from_json_value::<AnyEphemeralRoomEvent>(json_data),
         Ok(ephem @ AnyEphemeralRoomEvent::Typing(_))
-        if ephem.room_id() == &room_id!("!jEsUZKDJdhlrceRyVU:example.org")
+        if ephem.room_id() == room_id!("!jEsUZKDJdhlrceRyVU:example.org")
     );
 }
 

@@ -182,7 +182,7 @@ impl AnySyncRoomEvent {
     room_ev_accessor!(sender: &UserId);
 
     /// Converts `self` to an `AnyRoomEvent` by adding the given a room ID.
-    pub fn into_full_event(self, room_id: RoomId) -> AnyRoomEvent {
+    pub fn into_full_event(self, room_id: Box<RoomId>) -> AnyRoomEvent {
         match self {
             Self::Message(ev) => AnyRoomEvent::Message(ev.into_full_event(room_id)),
             Self::State(ev) => AnyRoomEvent::State(ev.into_full_event(room_id)),

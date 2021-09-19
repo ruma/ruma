@@ -68,7 +68,7 @@ impl IncomingRequest {
 
         #[derive(Debug, Deserialize)]
         struct EventDeHelper {
-            room_id: Option<RoomId>,
+            room_id: Option<Box<RoomId>>,
         }
 
         let mut response = sync_events::Response::new(next_batch.into());
@@ -138,7 +138,7 @@ mod helper_tests {
             incoming_request.try_into_sync_response(txn_id).unwrap();
 
         let response_rooms_join =
-            response.rooms.join.get(&room_id!("!roomid:room.com")).expect("joined room response");
+            response.rooms.join.get(room_id!("!roomid:room.com")).expect("joined room response");
 
         assert_eq!(response_rooms_join.timeline.events.len(), 2);
     }

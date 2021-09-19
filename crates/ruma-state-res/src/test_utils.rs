@@ -112,7 +112,7 @@ pub fn do_check(
             let auth_chain_sets = state_sets
                 .iter()
                 .map(|map| {
-                    store.auth_event_ids(&room_id(), map.values().cloned().collect()).unwrap()
+                    store.auth_event_ids(room_id(), map.values().cloned().collect()).unwrap()
                 })
                 .collect();
 
@@ -367,7 +367,7 @@ pub fn zara() -> UserId {
     user_id!("@zara:foo")
 }
 
-pub fn room_id() -> RoomId {
+pub fn room_id() -> &'static RoomId {
     room_id!("!test:foo")
 }
 
@@ -393,7 +393,7 @@ pub fn to_init_pdu_event(
     Arc::new(StateEvent {
         event_id: id.try_into().unwrap(),
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
-            room_id: room_id(),
+            room_id: room_id().to_owned(),
             sender,
             origin_server_ts: MilliSecondsSinceUnixEpoch(ts.try_into().unwrap()),
             state_key,
@@ -433,7 +433,7 @@ where
     Arc::new(StateEvent {
         event_id: id.try_into().unwrap(),
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
-            room_id: room_id(),
+            room_id: room_id().to_owned(),
             sender,
             origin_server_ts: MilliSecondsSinceUnixEpoch(ts.try_into().unwrap()),
             state_key,

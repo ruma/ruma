@@ -18,7 +18,7 @@ use serde::{Deserialize, Serialize};
 /// A request to create a new room alias.
 #[derive(Debug)]
 pub struct Request {
-    pub room_id: RoomId,              // body
+    pub room_id: Box<RoomId>,         // body
     pub room_alias: Box<RoomAliasId>, // path
 }
 
@@ -88,7 +88,7 @@ impl IncomingRequest for Request {
 
 #[derive(Debug, Serialize, Deserialize)]
 struct RequestBody {
-    room_id: RoomId,
+    room_id: Box<RoomId>,
 }
 
 /// The response to a request to create a new room alias.

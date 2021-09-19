@@ -29,7 +29,7 @@ use ruma_events::{
     },
     EventType,
 };
-use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
+use ruma_identifiers::{room_id, EventId, RoomId, RoomVersionId, UserId};
 use ruma_state_res::{self as state_res, Error, Event, Result, StateMap};
 use serde_json::{
     json,
@@ -71,7 +71,7 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
                 state_sets
                     .iter()
                     .map(|map| {
-                        store.auth_event_ids(&room_id(), map.values().cloned().collect()).unwrap()
+                        store.auth_event_ids(room_id(), map.values().cloned().collect()).unwrap()
                     })
                     .collect(),
                 |id| ev_map.get(id).map(Arc::clone),
@@ -135,7 +135,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
                 state_sets
                     .iter()
                     .map(|map| {
-                        store.auth_event_ids(&room_id(), map.values().cloned().collect()).unwrap()
+                        store.auth_event_ids(room_id(), map.values().cloned().collect()).unwrap()
                     })
                     .collect(),
                 |id| inner.get(id).map(Arc::clone),
@@ -355,8 +355,8 @@ fn ella() -> UserId {
     UserId::try_from("@ella:foo").unwrap()
 }
 
-fn room_id() -> RoomId {
-    RoomId::try_from("!test:foo").unwrap()
+fn room_id() -> &'static RoomId {
+    room_id!("!test:foo")
 }
 
 fn member_content_ban() -> Box<RawJsonValue> {
@@ -390,7 +390,7 @@ where
     Arc::new(StateEvent {
         event_id: id.try_into().unwrap(),
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
-            room_id: room_id(),
+            room_id: room_id().to_owned(),
             sender,
             origin_server_ts: MilliSecondsSinceUnixEpoch(ts.try_into().unwrap()),
             state_key,

@@ -17,7 +17,7 @@ pub struct ToDeviceRoomKeyEventContent {
     pub algorithm: EventEncryptionAlgorithm,
 
     /// The room where the key is used.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 
     /// The ID of the session that the key is for.
     pub session_id: String,
@@ -31,7 +31,7 @@ impl ToDeviceRoomKeyEventContent {
     /// and session key.
     pub fn new(
         algorithm: EventEncryptionAlgorithm,
-        room_id: RoomId,
+        room_id: Box<RoomId>,
         session_id: String,
         session_key: String,
     ) -> Self {
@@ -52,7 +52,7 @@ mod tests {
         let ev = ToDeviceEvent {
             content: ToDeviceRoomKeyEventContent {
                 algorithm: EventEncryptionAlgorithm::MegolmV1AesSha2,
-                room_id: room_id!("!testroomid:example.org"),
+                room_id: room_id!("!testroomid:example.org").to_owned(),
                 session_id: "SessId".into(),
                 session_key: "SessKey".into(),
             },

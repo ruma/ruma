@@ -71,7 +71,7 @@ pub struct ThirdPartyInvite {
     pub mxid: UserId,
 
     /// The room ID the invite is valid for.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 
     /// The user ID that sent the invite.
     pub sender: UserId,
@@ -85,7 +85,7 @@ impl ThirdPartyInvite {
     pub fn new(
         address: String,
         mxid: UserId,
-        room_id: RoomId,
+        room_id: Box<RoomId>,
         sender: UserId,
         signed: BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>>,
     ) -> Self {

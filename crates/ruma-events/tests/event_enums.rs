@@ -88,7 +88,7 @@ fn serialize_message_event() {
         ),
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-        room_id: room_id!("!roomid:room.com"),
+        room_id: room_id!("!roomid:room.com").to_owned(),
         sender: user_id!("@carl:example.com"),
         unsigned: Unsigned::default(),
     });

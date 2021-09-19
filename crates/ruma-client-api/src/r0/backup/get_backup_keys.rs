@@ -27,7 +27,7 @@ ruma_api! {
 
     response: {
         /// A map from room IDs to session IDs to key data.
-        pub rooms: BTreeMap<RoomId, RoomKeyBackup>,
+        pub rooms: BTreeMap<Box<RoomId>, RoomKeyBackup>,
     }
 
     error: crate::Error
@@ -42,7 +42,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given room key backups.
-    pub fn new(rooms: BTreeMap<RoomId, RoomKeyBackup>) -> Self {
+    pub fn new(rooms: BTreeMap<Box<RoomId>, RoomKeyBackup>) -> Self {
         Self { rooms }
     }
 }

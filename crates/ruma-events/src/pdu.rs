@@ -38,7 +38,7 @@ pub struct RoomV1Pdu {
     pub event_id: Box<EventId>,
 
     /// The room this event belongs to.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 
     /// The user id of the user who sent this event.
     pub sender: UserId,
@@ -97,7 +97,7 @@ pub struct RoomV1Pdu {
 #[allow(clippy::exhaustive_structs)]
 pub struct RoomV3Pdu {
     /// The room this event belongs to.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 
     /// The user id of the user who sent this event.
     pub sender: UserId,

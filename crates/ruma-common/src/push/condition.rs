@@ -116,7 +116,7 @@ impl PushCondition {
 #[allow(clippy::exhaustive_structs)]
 pub struct PushConditionRoomCtx {
     /// The ID of the room.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 
     /// The number of members in the room.
     pub member_count: UInt,
@@ -484,7 +484,7 @@ mod tests {
         users_power_levels.insert(first_sender, 25.into());
 
         let context = PushConditionRoomCtx {
-            room_id: room_id!("!room:server.name"),
+            room_id: room_id!("!room:server.name").to_owned(),
             member_count: 3_u8.into(),
             user_display_name: "Groovy Gorilla".into(),
             users_power_levels,

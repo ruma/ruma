@@ -364,7 +364,7 @@ mod tests {
 
         let notice = Notification {
             event_id: Some(eid),
-            room_id: Some(&rid),
+            room_id: Some(rid),
             event_type: Some(&EventType::RoomMessage),
             sender: Some(&uid),
             sender_display_name: Some("Major Tom"),

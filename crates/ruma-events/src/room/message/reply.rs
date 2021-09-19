@@ -302,7 +302,7 @@ fn formatted_or_plain_body<'a>(formatted: &'a Option<FormattedBody>, body: &'a s
 mod tests {
     use std::convert::TryFrom;
 
-    use ruma_identifiers::{EventId, RoomId, UserId};
+    use ruma_identifiers::{room_id, EventId, UserId};
 
     use super::RoomMessageEvent;
     use crate::room::message::RoomMessageEventContent;
@@ -316,7 +316,7 @@ mod tests {
                 event_id: EventId::new(sender.server_name()),
                 sender,
                 origin_server_ts: ruma_common::MilliSecondsSinceUnixEpoch::now(),
-                room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
+                room_id: room_id!("!n8f893n9:example.com").to_owned(),
                 unsigned: crate::Unsigned::new(),
             }),
             "> <@alice:example.com> multi\n> line"

@@ -172,7 +172,7 @@ pub enum AllowRule {
 #[cfg(feature = "unstable-pre-spec")]
 impl AllowRule {
     /// Constructs an `AllowRule` with membership of the room with the given id as its predicate.
-    pub fn room_membership(room_id: RoomId) -> Self {
+    pub fn room_membership(room_id: Box<RoomId>) -> Self {
         Self::RoomMembership(RoomMembership::new(room_id))
     }
 }
@@ -183,13 +183,13 @@ impl AllowRule {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomMembership {
     /// The id of the room which being a member of grants permission to join another room.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 }
 
 #[cfg(feature = "unstable-pre-spec")]
 impl RoomMembership {
     /// Constructs a new room membership rule for the given room id.
-    pub fn new(room_id: RoomId) -> Self {
+    pub fn new(room_id: Box<RoomId>) -> Self {
         Self { room_id }
     }
 }
@@ -275,8 +275,8 @@ mod tests {
             JoinRule::Restricted(restricted) => assert_eq!(
                 restricted.allow,
                 &[
-                    AllowRule::room_membership(room_id!("!mods:example.org")),
-                    AllowRule::room_membership(room_id!("!users:example.org"))
+                    AllowRule::room_membership(room_id!("!mods:example.org").to_owned()),
+                    AllowRule::room_membership(room_id!("!users:example.org").to_owned())
                 ]
             ),
             rule => panic!("Deserialized to wrong variant: {:?}", rule),

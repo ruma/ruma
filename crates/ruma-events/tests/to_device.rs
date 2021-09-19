@@ -8,7 +8,7 @@ fn serialization() {
         sender: user_id!("@example:example.org"),
         content: ToDeviceRoomKeyEventContent::new(
             EventEncryptionAlgorithm::MegolmV1AesSha2,
-            room_id!("!testroomid:example.org"),
+            room_id!("!testroomid:example.org").to_owned(),
             "SessId".into(),
             "SessKey".into(),
         ),

@@ -27,7 +27,7 @@ fn serialize_pdu_as_v1() {
     unsigned.insert("somekey".into(), to_raw_json_value(&json!({ "a": 456 })).unwrap());
 
     let v1_pdu = RoomV1Pdu {
-        room_id: room_id!("!n8f893n9:example.com"),
+        room_id: room_id!("!n8f893n9:example.com").to_owned(),
         event_id: event_id!("$somejoinevent:matrix.org").to_owned(),
         sender: user_id!("@sender:example.com"),
         origin: "matrix.org".into(),
@@ -94,7 +94,7 @@ fn serialize_pdu_as_v3() {
     unsigned.insert("somekey".into(), to_raw_json_value(&json!({ "a": 456 })).unwrap());
 
     let v3_pdu = RoomV3Pdu {
-        room_id: room_id!("!n8f893n9:example.com"),
+        room_id: room_id!("!n8f893n9:example.com").to_owned(),
         sender: user_id!("@sender:example.com"),
         origin: "matrix.org".into(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(1_592_050_773_658_u64.try_into().unwrap()),

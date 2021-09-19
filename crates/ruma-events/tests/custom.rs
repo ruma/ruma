@@ -52,7 +52,7 @@ fn serialize_custom_message_event() {
         },
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10)),
-        room_id: room_id!("!room:room.com"),
+        room_id: room_id!("!room:room.com").to_owned(),
         sender: user_id!("@carl:example.com"),
         unsigned: Unsigned::default(),
     };
@@ -93,7 +93,7 @@ fn serialize_custom_state_event() {
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10)),
         prev_content: None,
-        room_id: room_id!("!roomid:room.com"),
+        room_id: room_id!("!roomid:room.com").to_owned(),
         sender: user_id!("@carl:example.com"),
         state_key: "".into(),
         unsigned: Unsigned::default(),

@@ -63,11 +63,9 @@ impl RoomIdOrAliasId {
 
     /// Turn this `RoomIdOrAliasId` into `Either<RoomId, RoomAliasId>`
     #[cfg(feature = "either")]
-    pub fn into_either(self) -> either::Either<RoomId, Box<RoomAliasId>> {
+    pub fn into_either(self) -> either::Either<Box<RoomId>, Box<RoomAliasId>> {
         match self.variant() {
-            Variant::RoomId => {
-                either::Either::Left(RoomId { full_id: self.full_id, colon_idx: self.colon_idx })
-            }
+            Variant::RoomId => either::Either::Left(self.as_str().try_into().unwrap()),
             Variant::RoomAliasId => either::Either::Right(self.as_str().try_into().unwrap()),
         }
     }
@@ -103,9 +101,9 @@ where
 
 common_impls!(RoomIdOrAliasId, try_from, "a Matrix room ID or room alias ID");
 
-impl From<RoomId> for RoomIdOrAliasId {
-    fn from(RoomId { full_id, colon_idx }: RoomId) -> Self {
-        Self { full_id, colon_idx }
+impl From<Box<RoomId>> for RoomIdOrAliasId {
+    fn from(room_id: Box<RoomId>) -> Self {
+        Self::try_from(room_id.as_str()).unwrap()
     }
 }
 
@@ -115,24 +113,24 @@ impl From<Box<RoomAliasId>> for RoomIdOrAliasId {
     }
 }
 
-impl TryFrom<RoomIdOrAliasId> for RoomId {
+impl TryFrom<RoomIdOrAliasId> for Box<RoomId> {
     type Error = Box<RoomAliasId>;
 
-    fn try_from(id: RoomIdOrAliasId) -> Result<RoomId, Box<RoomAliasId>> {
+    fn try_from(id: RoomIdOrAliasId) -> Result<Box<RoomId>, Box<RoomAliasId>> {
         match id.variant() {
-            Variant::RoomId => Ok(RoomId { full_id: id.full_id, colon_idx: id.colon_idx }),
+            Variant::RoomId => Ok(id.as_str().try_into().unwrap()),
             Variant::RoomAliasId => Err(id.as_str().try_into().unwrap()),
         }
     }
 }
 
 impl TryFrom<RoomIdOrAliasId> for Box<RoomAliasId> {
-    type Error = RoomId;
+    type Error = Box<RoomId>;
 
-    fn try_from(id: RoomIdOrAliasId) -> Result<Box<RoomAliasId>, RoomId> {
+    fn try_from(id: RoomIdOrAliasId) -> Result<Box<RoomAliasId>, Box<RoomId>> {
         match id.variant() {
             Variant::RoomAliasId => Ok(id.as_str().try_into().unwrap()),
-            Variant::RoomId => Err(RoomId { full_id: id.full_id, colon_idx: id.colon_idx }),
+            Variant::RoomId => Err(id.as_str().try_into().unwrap()),
         }
     }
 }

@@ -31,7 +31,7 @@ pub struct PublicRoomsChunk {
     pub num_joined_members: UInt,
 
     /// The ID of the room.
-    pub room_id: RoomId,
+    pub room_id: Box<RoomId>,
 
     /// The topic of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -68,7 +68,7 @@ impl PublicRoomsChunk {
     /// All other fields will be propagated with default values (an empty list of aliases, `None`
     /// for all `Option`al fields and `false` for all boolean fields), which should be overridden;
     /// the `assign!` macro from the `assign` crate can simplify this.
-    pub fn new(room_id: RoomId) -> Self {
+    pub fn new(room_id: Box<RoomId>) -> Self {
         Self {
             room_id,
             aliases: Vec::new(),

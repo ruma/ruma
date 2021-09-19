@@ -42,7 +42,7 @@ fn serialization() {
         ))),
         event_id: event_id!("$143273582443PhrSn:example.org").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
-        room_id: room_id!("!testroomid:example.org"),
+        room_id: room_id!("!testroomid:example.org").to_owned(),
         sender: user_id!("@user:example.org"),
         unsigned: Unsigned::default(),
     };

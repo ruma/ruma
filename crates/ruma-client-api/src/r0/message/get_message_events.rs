@@ -144,20 +144,20 @@ mod tests {
     #[test]
     fn serialize_some_room_event_filter() {
         let room_id = room_id!("!roomid:example.org");
-        let rooms = &[room_id.clone()];
+        let rooms = &[room_id.to_owned()];
         let filter = RoomEventFilter {
             lazy_load_options: LazyLoadOptions::Enabled { include_redundant_members: true },
             rooms: Some(rooms),
             not_rooms: &[
-                room_id!("!room:example.org"),
-                room_id!("!room2:example.org"),
-                room_id!("!room3:example.org"),
+                room_id!("!room:example.org").to_owned(),
+                room_id!("!room2:example.org").to_owned(),
+                room_id!("!room3:example.org").to_owned(),
             ],
             not_types: &["type".into()],
             ..Default::default()
         };
         let req = Request {
-            room_id: &room_id,
+            room_id,
             from: "token",
             to: Some("token2"),
             dir: Direction::Backward,
@@ -185,7 +185,7 @@ mod tests {
     fn serialize_none_room_event_filter() {
         let room_id = room_id!("!roomid:example.org");
         let req = Request {
-            room_id: &room_id,
+            room_id,
             from: "token",
             to: Some("token2"),
             dir: Direction::Backward,
@@ -206,7 +206,7 @@ mod tests {
     fn serialize_default_room_event_filter() {
         let room_id = room_id!("!roomid:example.org");
         let req = Request {
-            room_id: &room_id,
+            room_id,
             from: "token",
             to: Some("token2"),
             dir: Direction::Backward,
