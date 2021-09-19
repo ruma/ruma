@@ -18,8 +18,8 @@ use serde::{Deserialize, Serialize};
 /// A request to create a new room alias.
 #[derive(Debug)]
 pub struct Request {
-    pub room_id: RoomId,         // body
-    pub room_alias: RoomAliasId, // path
+    pub room_id: RoomId,              // body
+    pub room_alias: Box<RoomAliasId>, // path
 }
 
 impl Outgoing for Request {

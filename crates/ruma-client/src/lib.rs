@@ -61,7 +61,7 @@
 //!
 //! async {
 //!     let response = client
-//!         .send_request(get_alias::Request::new(&room_alias_id!("#example_room:example.com")))
+//!         .send_request(get_alias::Request::new(room_alias_id!("#example_room:example.com")))
 //!         .await?;
 //!
 //!     assert_eq!(response.room_id, room_id!("!n8f893n9:example.com"));

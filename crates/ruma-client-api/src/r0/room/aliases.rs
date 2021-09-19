@@ -21,7 +21,7 @@ ruma_api! {
 
     response: {
         /// The server's local aliases on the room.
-        pub aliases: Vec<RoomAliasId>,
+        pub aliases: Vec<Box<RoomAliasId>>,
     }
 
     error: crate::Error
@@ -36,7 +36,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given aliases.
-    pub fn new(aliases: Vec<RoomAliasId>) -> Self {
+    pub fn new(aliases: Vec<Box<RoomAliasId>>) -> Self {
         Self { aliases }
     }
 }

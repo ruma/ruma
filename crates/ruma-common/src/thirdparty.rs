@@ -173,7 +173,7 @@ impl From<FieldTypeInit> for FieldType {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Location {
     /// An alias for a matrix room.
-    pub alias: RoomAliasId,
+    pub alias: Box<RoomAliasId>,
 
     /// The protocol ID that the third party location is a part of.
     pub protocol: String,
@@ -184,7 +184,11 @@ pub struct Location {
 
 impl Location {
     /// Creates a new `Location` with the given alias, protocol and fields.
-    pub fn new(alias: RoomAliasId, protocol: String, fields: BTreeMap<String, String>) -> Self {
+    pub fn new(
+        alias: Box<RoomAliasId>,
+        protocol: String,
+        fields: BTreeMap<String, String>,
+    ) -> Self {
         Self { alias, protocol, fields }
     }
 }

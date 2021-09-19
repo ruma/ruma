@@ -20,11 +20,11 @@ pub struct RoomCanonicalAliasEventContent {
         deserialize_with = "ruma_serde::empty_string_as_none",
         skip_serializing_if = "Option::is_none"
     )]
-    pub alias: Option<RoomAliasId>,
+    pub alias: Option<Box<RoomAliasId>>,
 
     /// List of alternative aliases to the room.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub alt_aliases: Vec<RoomAliasId>,
+    pub alt_aliases: Vec<Box<RoomAliasId>>,
 }
 
 impl RoomCanonicalAliasEventContent {
@@ -48,7 +48,7 @@ mod tests {
     fn serialization_with_optional_fields_as_none() {
         let canonical_alias_event = StateEvent {
             content: RoomCanonicalAliasEventContent {
-                alias: Some(room_alias_id!("#somewhere:localhost")),
+                alias: Some(room_alias_id!("#somewhere:localhost").to_owned()),
                 alt_aliases: Vec::new(),
             },
             event_id: event_id!("$h29iv0s8:example.com").to_owned(),
@@ -143,7 +143,7 @@ mod tests {
 
     #[test]
     fn nonempty_field_as_some() {
-        let alias = Some(room_alias_id!("#somewhere:localhost"));
+        let alias = Some(room_alias_id!("#somewhere:localhost").to_owned());
         let json_data = json!({
             "content": {
                 "alias": "#somewhere:localhost"

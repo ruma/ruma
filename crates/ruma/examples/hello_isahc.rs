@@ -48,5 +48,6 @@ async fn main() -> anyhow::Result<()> {
             }
         };
 
-    hello_world(homeserver_url, &username, &password, &RoomAliasId::try_from(room.as_str())?).await
+    hello_world(homeserver_url, &username, &password, <&RoomAliasId>::try_from(room.as_str())?)
+        .await
 }
