@@ -3,7 +3,6 @@ use maplit::btreemap;
 use matches::assert_matches;
 use ruma_common::{receipt::ReceiptType, MilliSecondsSinceUnixEpoch};
 use ruma_identifiers::{event_id, room_id, user_id};
-use ruma_serde::Raw;
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 use ruma_events::{
@@ -42,10 +41,7 @@ fn deserialize_ephemeral_typing() {
     });
 
     assert_matches!(
-        from_json_value::<Raw<AnyEphemeralRoomEvent>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
+        from_json_value::<AnyEphemeralRoomEvent>(json_data).unwrap(),
         AnyEphemeralRoomEvent::Typing(EphemeralRoomEvent {
             content: TypingEventContent { user_ids, .. },
             room_id,
@@ -104,7 +100,7 @@ fn deserialize_ephemeral_receipt() {
     });
 
     assert_matches!(
-        from_json_value::<Raw<AnyEphemeralRoomEvent>>(json_data).unwrap().deserialize().unwrap(),
+        from_json_value::<AnyEphemeralRoomEvent>(json_data).unwrap(),
         AnyEphemeralRoomEvent::Receipt(EphemeralRoomEvent {
             content: ReceiptEventContent(receipts),
             room_id,

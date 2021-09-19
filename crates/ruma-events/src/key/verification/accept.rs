@@ -172,7 +172,6 @@ mod tests {
     #[cfg(feature = "unstable-pre-spec")]
     use ruma_identifiers::event_id;
     use ruma_identifiers::user_id;
-    use ruma_serde::Raw;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
@@ -295,10 +294,7 @@ mod tests {
 
         // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
         assert_matches!(
-            from_json_value::<Raw<AcceptToDeviceEventContent>>(json)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
+            from_json_value::<AcceptToDeviceEventContent>(json).unwrap(),
             AcceptToDeviceEventContent {
                 transaction_id,
                 method: AcceptMethod::SasV1(SasV1Content {
@@ -333,10 +329,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<Raw<ToDeviceEvent<AcceptToDeviceEventContent>>>(json)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
+            from_json_value::<ToDeviceEvent<AcceptToDeviceEventContent>>(json).unwrap(),
             ToDeviceEvent {
                 sender,
                 content: AcceptToDeviceEventContent {
@@ -372,10 +365,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<Raw<ToDeviceEvent<AcceptToDeviceEventContent>>>(json)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
+            from_json_value::<ToDeviceEvent<AcceptToDeviceEventContent>>(json).unwrap(),
             ToDeviceEvent {
                 sender,
                 content: AcceptToDeviceEventContent {
@@ -412,10 +402,7 @@ mod tests {
 
         // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
         assert_matches!(
-            from_json_value::<Raw<AcceptEventContent>>(json)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
+            from_json_value::<AcceptEventContent>(json).unwrap(),
             AcceptEventContent {
                 relates_to: Relation {
                     event_id

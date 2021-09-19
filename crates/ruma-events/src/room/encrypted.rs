@@ -343,11 +343,7 @@ mod tests {
             },
         });
 
-        let content: EncryptedEventContent =
-            from_json_value::<Raw<EncryptedEventContent>>(json_data)
-                .unwrap()
-                .deserialize()
-                .unwrap();
+        let content: EncryptedEventContent = from_json_value(json_data).unwrap();
 
         assert_matches!(
             content.scheme,
@@ -381,10 +377,7 @@ mod tests {
             },
             "algorithm": "m.olm.v1.curve25519-aes-sha2"
         });
-        let content = from_json_value::<Raw<EncryptedEventContent>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap();
+        let content: EncryptedEventContent = from_json_value(json_data).unwrap();
 
         match content.scheme {
             EncryptedEventScheme::OlmV1Curve25519AesSha2(c) => {

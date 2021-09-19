@@ -118,8 +118,7 @@ fn custom_content_deserialization() {
         "another_one".into() => json!("abab"),
     };
 
-    let custom_event =
-        from_json_value::<Raw<MessageType>>(json_data).unwrap().deserialize().unwrap();
+    let custom_event: MessageType = from_json_value(json_data).unwrap();
 
     assert_eq!(custom_event.msgtype(), "my_custom_msgtype");
     assert_eq!(custom_event.body(), "my custom message");
@@ -369,9 +368,7 @@ fn content_deserialization() {
     });
 
     assert_matches!(
-        from_json_value::<Raw<MessageEventContent>>(json_data)
-            .unwrap()
-            .deserialize()
+        from_json_value::<MessageEventContent>(json_data)
             .unwrap(),
         MessageEventContent {
             msgtype: MessageType::Audio(AudioMessageEventContent {

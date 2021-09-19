@@ -116,7 +116,7 @@ fn deserialize_message_call_answer() {
     });
 
     assert_matches!(
-        from_json_value::<Raw<AnyMessageEvent>>(json_data).unwrap().deserialize().unwrap(),
+        from_json_value::<AnyMessageEvent>(json_data).unwrap(),
         AnyMessageEvent::CallAnswer(MessageEvent {
             content: AnswerEventContent {
                 answer: SessionDescription {
@@ -170,7 +170,7 @@ fn deserialize_message_sticker() {
     });
 
     assert_matches!(
-        from_json_value::<Raw<AnyMessageEvent>>(json_data).unwrap().deserialize().unwrap(),
+        from_json_value::<AnyMessageEvent>(json_data).unwrap(),
         AnyMessageEvent::Sticker(MessageEvent {
             content: StickerEventContent {
                 body,
@@ -240,15 +240,14 @@ fn deserialize_message_then_convert_to_full() {
         "type": "m.call.answer"
     });
 
-    let sync_ev =
-        from_json_value::<Raw<AnySyncMessageEvent>>(json_data).unwrap().deserialize().unwrap();
+    let sync_ev: AnySyncMessageEvent = from_json_value(json_data).unwrap();
 
     // Test conversion method
     let full = sync_ev.into_full_event(rid);
     let full_json = to_json_value(full).unwrap();
 
     assert_matches!(
-        from_json_value::<Raw<AnyMessageEvent>>(full_json).unwrap().deserialize().unwrap(),
+        from_json_value::<AnyMessageEvent>(full_json).unwrap(),
         AnyMessageEvent::CallAnswer(MessageEvent {
             content: AnswerEventContent {
                 answer: SessionDescription {

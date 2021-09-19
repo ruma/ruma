@@ -42,7 +42,6 @@ mod tests {
     use js_int::uint;
     use ruma_common::MilliSecondsSinceUnixEpoch;
     use ruma_identifiers::{event_id, room_alias_id, room_id, user_id};
-    use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::CanonicalAliasEventContent;
@@ -93,9 +92,7 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<Raw<StateEvent<CanonicalAliasEventContent>>>(json_data)
-                .unwrap()
-                .deserialize()
+            from_json_value::<StateEvent<CanonicalAliasEventContent>>(json_data)
                 .unwrap()
                 .content
                 .alias,
@@ -117,9 +114,7 @@ mod tests {
             "type": "m.room.canonical_alias"
         });
         assert_eq!(
-            from_json_value::<Raw<StateEvent<CanonicalAliasEventContent>>>(json_data)
-                .unwrap()
-                .deserialize()
+            from_json_value::<StateEvent<CanonicalAliasEventContent>>(json_data)
                 .unwrap()
                 .content
                 .alias,
@@ -141,9 +136,7 @@ mod tests {
             "type": "m.room.canonical_alias"
         });
         assert_eq!(
-            from_json_value::<Raw<StateEvent<CanonicalAliasEventContent>>>(json_data)
-                .unwrap()
-                .deserialize()
+            from_json_value::<StateEvent<CanonicalAliasEventContent>>(json_data)
                 .unwrap()
                 .content
                 .alias,
@@ -166,9 +159,7 @@ mod tests {
             "type": "m.room.canonical_alias"
         });
         assert_eq!(
-            from_json_value::<Raw<StateEvent<CanonicalAliasEventContent>>>(json_data)
-                .unwrap()
-                .deserialize()
+            from_json_value::<StateEvent<CanonicalAliasEventContent>>(json_data)
                 .unwrap()
                 .content
                 .alias,

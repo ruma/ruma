@@ -108,7 +108,6 @@ fn default_room_version_id() -> RoomVersionId {
 mod tests {
     use matches::assert_matches;
     use ruma_identifiers::{user_id, RoomVersionId};
-    use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::CreateEventContent;
@@ -166,10 +165,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<Raw<CreateEventContent>>(json)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
+            from_json_value::<CreateEventContent>(json).unwrap(),
             CreateEventContent {
                 creator,
                 federate: true,
@@ -192,10 +188,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<Raw<CreateEventContent>>(json)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
+            from_json_value::<CreateEventContent>(json).unwrap(),
             CreateEventContent {
                 creator,
                 federate: true,

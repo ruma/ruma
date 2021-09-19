@@ -49,7 +49,6 @@ impl DoneEventContent {
 mod tests {
     use matches::assert_matches;
     use ruma_identifiers::event_id;
-    use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::DoneEventContent;
@@ -83,10 +82,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<Raw<DoneEventContent>>(json_data)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
+            from_json_value::<DoneEventContent>(json_data).unwrap(),
             DoneEventContent {
                 relates_to: Relation {
                     event_id

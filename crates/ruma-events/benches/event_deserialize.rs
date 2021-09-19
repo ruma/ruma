@@ -53,10 +53,7 @@ fn deserialize_any_room_event(c: &mut Criterion) {
 
     c.bench_function("deserialize to `AnyRoomEvent`", |b| {
         b.iter(|| {
-            let _ = serde_json::from_value::<Raw<AnyRoomEvent>>(json_data.clone())
-                .unwrap()
-                .deserialize()
-                .unwrap();
+            let _ = serde_json::from_value::<AnyRoomEvent>(json_data.clone()).unwrap();
         })
     });
 }
@@ -67,10 +64,7 @@ fn deserialize_any_state_event(c: &mut Criterion) {
 
     c.bench_function("deserialize to `AnyStateEvent`", |b| {
         b.iter(|| {
-            let _ = serde_json::from_value::<Raw<AnyStateEvent>>(json_data.clone())
-                .unwrap()
-                .deserialize()
-                .unwrap();
+            let _ = serde_json::from_value::<AnyStateEvent>(json_data.clone()).unwrap();
         })
     });
 }
@@ -81,12 +75,9 @@ fn deserialize_specific_event(c: &mut Criterion) {
 
     c.bench_function("deserialize to `StateEvent<PowerLevelsEventContent>`", |b| {
         b.iter(|| {
-            let _ = serde_json::from_value::<Raw<StateEvent<PowerLevelsEventContent>>>(
-                json_data.clone(),
-            )
-            .unwrap()
-            .deserialize()
-            .unwrap();
+            let _ =
+                serde_json::from_value::<StateEvent<PowerLevelsEventContent>>(json_data.clone())
+                    .unwrap();
         })
     });
 }

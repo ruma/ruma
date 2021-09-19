@@ -16,7 +16,6 @@ use ruma_events::{
     RedactedUnsigned, Unsigned,
 };
 use ruma_identifiers::{event_id, room_id, user_id, RoomVersionId};
-use ruma_serde::Raw;
 use serde_json::{
     from_value as from_json_value, json, to_value as to_json_value, value::to_raw_value,
 };
@@ -119,10 +118,7 @@ fn redacted_aliases_deserialize() {
     let actual = to_json_value(&redacted).unwrap();
 
     assert_matches!(
-        from_json_value::<Raw<AnySyncRoomEvent>>(actual)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
+        from_json_value::<AnySyncRoomEvent>(actual).unwrap(),
         AnySyncRoomEvent::RedactedState(AnyRedactedSyncStateEvent::RoomAliases(
             RedactedSyncStateEvent {
                 content: RedactedAliasesEventContent { aliases, .. },
@@ -148,10 +144,7 @@ fn redacted_deserialize_any_room() {
     let actual = to_json_value(&redacted).unwrap();
 
     assert_matches!(
-        from_json_value::<Raw<AnyRoomEvent>>(actual)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
+        from_json_value::<AnyRoomEvent>(actual).unwrap(),
         AnyRoomEvent::RedactedMessage(AnyRedactedMessageEvent::RoomMessage(RedactedMessageEvent {
             content: RedactedMessageEventContent { .. },
             event_id, room_id, ..
@@ -186,10 +179,7 @@ fn redacted_deserialize_any_room_sync() {
     let actual = to_json_value(&redacted).unwrap();
 
     assert_matches!(
-        from_json_value::<Raw<AnySyncRoomEvent>>(actual)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
+        from_json_value::<AnySyncRoomEvent>(actual).unwrap(),
         AnySyncRoomEvent::RedactedMessage(AnyRedactedSyncMessageEvent::RoomMessage(
             RedactedSyncMessageEvent {
                 content: RedactedMessageEventContent { .. },
@@ -215,9 +205,7 @@ fn redacted_state_event_deserialize() {
     });
 
     assert_matches!(
-        from_json_value::<Raw<AnySyncRoomEvent>>(redacted)
-            .unwrap()
-            .deserialize()
+        from_json_value::<AnySyncRoomEvent>(redacted)
             .unwrap(),
         AnySyncRoomEvent::RedactedState(AnyRedactedSyncStateEvent::RoomCreate(
             RedactedSyncStateEvent {
@@ -306,7 +294,7 @@ fn redact_method_properly_redacts() {
         unsigned: Unsigned::default(),
     };
 
-    let event = from_json_value::<Raw<AnyMessageEvent>>(ev).unwrap().deserialize().unwrap();
+    let event: AnyMessageEvent = from_json_value(ev).unwrap();
 
     assert_matches!(
         event.redact(redaction, &RoomVersionId::Version6),

@@ -207,7 +207,6 @@ mod tests {
     #[cfg(feature = "unstable-pre-spec")]
     use ruma_identifiers::event_id;
     use ruma_identifiers::user_id;
-    use ruma_serde::Raw;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
@@ -379,10 +378,7 @@ mod tests {
 
         // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
         assert_matches!(
-            from_json_value::<Raw<StartToDeviceEventContent>>(json)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
+            from_json_value::<StartToDeviceEventContent>(json).unwrap(),
             StartToDeviceEventContent {
                 from_device,
                 transaction_id,
@@ -417,10 +413,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<Raw<ToDeviceEvent<StartToDeviceEventContent>>>(json)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
+            from_json_value::<ToDeviceEvent<StartToDeviceEventContent>>(json).unwrap(),
             ToDeviceEvent {
                 sender,
                 content: StartToDeviceEventContent {
@@ -456,10 +449,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<Raw<ToDeviceEvent<StartToDeviceEventContent>>>(json)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
+            from_json_value::<ToDeviceEvent<StartToDeviceEventContent>>(json).unwrap(),
             ToDeviceEvent {
                 sender,
                 content: StartToDeviceEventContent {
@@ -488,10 +478,7 @@ mod tests {
             });
 
             assert_matches!(
-                from_json_value::<Raw<ToDeviceEvent<StartToDeviceEventContent>>>(json)
-                    .unwrap()
-                    .deserialize()
-                    .unwrap(),
+                from_json_value::<ToDeviceEvent<StartToDeviceEventContent>>(json).unwrap(),
                 ToDeviceEvent {
                     sender,
                     content: StartToDeviceEventContent {
@@ -527,10 +514,7 @@ mod tests {
 
         // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
         assert_matches!(
-            from_json_value::<Raw<StartEventContent>>(json)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
+            from_json_value::<StartEventContent>(json).unwrap(),
             StartEventContent {
                 from_device,
                 relates_to: Relation { event_id },
@@ -559,10 +543,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<Raw<StartEventContent>>(json)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
+            from_json_value::<StartEventContent>(json).unwrap(),
             StartEventContent {
                 from_device,
                 relates_to: Relation { event_id },

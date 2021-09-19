@@ -31,7 +31,6 @@ mod tests {
 
     use ruma_common::MilliSecondsSinceUnixEpoch;
     use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
-    use ruma_serde::Raw;
 
     use super::PinnedEventsEventContent;
     use crate::{StateEvent, Unsigned};
@@ -56,11 +55,8 @@ mod tests {
         };
 
         let serialized_event = serde_json::to_string(&event).unwrap();
-        let parsed_event =
-            serde_json::from_str::<Raw<StateEvent<PinnedEventsEventContent>>>(&serialized_event)
-                .unwrap()
-                .deserialize()
-                .unwrap();
+        let parsed_event: StateEvent<PinnedEventsEventContent> =
+            serde_json::from_str(&serialized_event).unwrap();
 
         assert_eq!(parsed_event.event_id, event.event_id);
         assert_eq!(parsed_event.room_id, event.room_id);

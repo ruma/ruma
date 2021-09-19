@@ -73,7 +73,6 @@ impl ReadyEventContent {
 mod tests {
     use matches::assert_matches;
     use ruma_identifiers::{event_id, DeviceIdBox};
-    use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{ReadyEventContent, ReadyToDeviceEventContent};
@@ -131,10 +130,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<Raw<ReadyEventContent>>(json_data)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
+            from_json_value::<ReadyEventContent>(json_data).unwrap(),
             ReadyEventContent {
                 from_device,
                 relates_to: Relation {
@@ -153,10 +149,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<Raw<ReadyToDeviceEventContent>>(json_data)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
+            from_json_value::<ReadyToDeviceEventContent>(json_data).unwrap(),
             ReadyToDeviceEventContent {
                 from_device,
                 transaction_id,

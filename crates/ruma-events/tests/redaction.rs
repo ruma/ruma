@@ -6,7 +6,6 @@ use ruma_events::{
     AnyMessageEvent, Unsigned,
 };
 use ruma_identifiers::{event_id, room_id, user_id};
-use ruma_serde::Raw;
 use serde_json::{
     from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
 };
@@ -48,10 +47,7 @@ fn deserialize_redaction() {
     let json_data = redaction();
 
     assert_matches!(
-        from_json_value::<Raw<AnyMessageEvent>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
+        from_json_value::<AnyMessageEvent>(json_data).unwrap(),
         AnyMessageEvent::RoomRedaction(RedactionEvent {
             content: RedactionEventContent { reason: Some(reas), .. },
             redacts,

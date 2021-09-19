@@ -40,7 +40,6 @@ mod tests {
     use std::{collections::BTreeMap, convert::TryFrom};
 
     use ruma_identifiers::{RoomId, ServerName, UserId};
-    use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{DirectEvent, DirectEventContent};
@@ -78,8 +77,7 @@ mod tests {
             "type": "m.direct"
         });
 
-        let event: DirectEvent =
-            from_json_value::<Raw<_>>(json_data).unwrap().deserialize().unwrap();
+        let event: DirectEvent = from_json_value(json_data).unwrap();
         let direct_rooms = event.content.get(&alice).unwrap();
 
         assert!(direct_rooms.contains(&rooms[0]));

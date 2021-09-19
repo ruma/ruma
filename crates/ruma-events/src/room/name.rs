@@ -116,12 +116,7 @@ mod tests {
             "type": "m.room.name"
         });
         assert_eq!(
-            from_json_value::<Raw<StateEvent<NameEventContent>>>(json_data)
-                .unwrap()
-                .deserialize()
-                .unwrap()
-                .content
-                .name,
+            from_json_value::<StateEvent<NameEventContent>>(json_data).unwrap().content.name,
             None
         );
     }
@@ -168,12 +163,7 @@ mod tests {
             "type": "m.room.name"
         });
         assert_eq!(
-            from_json_value::<Raw<StateEvent<NameEventContent>>>(json_data)
-                .unwrap()
-                .deserialize()
-                .unwrap()
-                .content
-                .name,
+            from_json_value::<StateEvent<NameEventContent>>(json_data).unwrap().content.name,
             None
         );
     }
@@ -192,12 +182,7 @@ mod tests {
             "type": "m.room.name"
         });
         assert_eq!(
-            from_json_value::<Raw<StateEvent<NameEventContent>>>(json_data)
-                .unwrap()
-                .deserialize()
-                .unwrap()
-                .content
-                .name,
+            from_json_value::<StateEvent<NameEventContent>>(json_data).unwrap().content.name,
             None
         );
     }
@@ -218,12 +203,7 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<Raw<StateEvent<NameEventContent>>>(json_data)
-                .unwrap()
-                .deserialize()
-                .unwrap()
-                .content
-                .name,
+            from_json_value::<StateEvent<NameEventContent>>(json_data).unwrap().content.name,
             name
         );
     }

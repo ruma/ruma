@@ -338,7 +338,6 @@ mod tests {
     use matches::assert_matches;
     use ruma_common::MilliSecondsSinceUnixEpoch;
     use ruma_identifiers::{server_name, server_signing_key_id};
-    use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json};
 
     use super::{MemberEventContent, MembershipState, SignedContent, ThirdPartyInvite};
@@ -359,11 +358,8 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<Raw<StateEvent<MemberEventContent>>>(json)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
-            StateEvent::<MemberEventContent> {
+            from_json_value::<StateEvent<MemberEventContent>>(json).unwrap(),
+            StateEvent {
                 content: MemberEventContent {
                     avatar_url: None,
                     displayname: None,
@@ -406,11 +402,8 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<Raw<StateEvent<MemberEventContent>>>(json)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
-            StateEvent::<MemberEventContent> {
+            from_json_value::<StateEvent<MemberEventContent>>(json).unwrap(),
+            StateEvent {
                 content: MemberEventContent {
                     avatar_url: None,
                     displayname: None,
@@ -472,11 +465,8 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<Raw<StateEvent<MemberEventContent>>>(json)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
-            StateEvent::<MemberEventContent> {
+            from_json_value::<StateEvent<MemberEventContent>>(json).unwrap(),
+            StateEvent {
                 content: MemberEventContent {
                     avatar_url: Some(avatar_url),
                     displayname: Some(displayname),
@@ -547,11 +537,8 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<Raw<StateEvent<MemberEventContent>>>(json)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
-            StateEvent::<MemberEventContent> {
+            from_json_value::<StateEvent<MemberEventContent>>(json).unwrap(),
+            StateEvent {
                 content: MemberEventContent {
                     avatar_url: None,
                     displayname: None,
@@ -597,7 +584,7 @@ mod tests {
 
         #[cfg(feature = "compat")]
         assert_matches!(
-            from_json_value::<Raw<StateEvent<MemberEventContent>>>(json!({
+            from_json_value::<StateEvent<MemberEventContent>>(json!({
                 "type": "m.room.member",
                 "content": {
                     "membership": "join"
@@ -625,11 +612,8 @@ mod tests {
                 "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
                 "sender": "@alice:example.org",
                 "state_key": "@alice:example.org"
-            }))
-                .unwrap()
-                .deserialize()
-                .unwrap(),
-            StateEvent::<MemberEventContent> {
+            })).unwrap(),
+            StateEvent {
                 content: MemberEventContent {
                     avatar_url: None,
                     displayname: None,

@@ -30,7 +30,6 @@ impl IgnoredUserListEventContent {
 mod tests {
     use matches::assert_matches;
     use ruma_identifiers::user_id;
-    use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{IgnoredUserListEvent, IgnoredUserListEventContent};
@@ -68,10 +67,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<Raw<AnyGlobalAccountDataEvent>>(json)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
+            from_json_value::<AnyGlobalAccountDataEvent>(json).unwrap(),
             AnyGlobalAccountDataEvent::IgnoredUserList(
                 IgnoredUserListEvent {
                     content: IgnoredUserListEventContent {

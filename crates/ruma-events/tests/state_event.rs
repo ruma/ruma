@@ -102,7 +102,7 @@ fn deserialize_aliases_with_prev_content() {
     let json_data = aliases_event_with_prev_content();
 
     assert_matches!(
-        from_json_value::<Raw<AnyStateEvent>>(json_data).unwrap().deserialize().unwrap(),
+        from_json_value::<AnyStateEvent>(json_data).unwrap(),
         AnyStateEvent::RoomAliases(StateEvent {
             content,
             event_id,
@@ -182,10 +182,7 @@ fn deserialize_avatar_without_prev_content() {
     let expected_url = Some(expected_url);
 
     assert_matches!(
-        from_json_value::<Raw<AnyStateEvent>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
+        from_json_value::<AnyStateEvent>(json_data).unwrap(),
         AnyStateEvent::RoomAvatar(StateEvent {
             content: AvatarEventContent {
                 info: Some(info),
@@ -281,17 +278,14 @@ fn deserialize_member_event_with_top_level_membership_field() {
 fn deserialize_full_event_convert_to_sync() {
     let json_data = aliases_event_with_prev_content();
 
-    let full_ev = from_json_value::<Raw<AnyStateEvent>>(json_data).unwrap().deserialize().unwrap();
+    let full_ev: AnyStateEvent = from_json_value(json_data).unwrap();
 
     // Test conversion to sync event (without room_id field)
     let sync: AnySyncStateEvent = full_ev.into();
     let sync_json = to_json_value(sync).unwrap();
 
     assert_matches!(
-        from_json_value::<Raw<AnySyncStateEvent>>(sync_json)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
+        from_json_value::<AnySyncStateEvent>(sync_json).unwrap(),
         AnySyncStateEvent::RoomAliases(SyncStateEvent {
             content,
             event_id,
