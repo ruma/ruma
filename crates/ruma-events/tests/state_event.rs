@@ -36,14 +36,10 @@ fn aliases_event_with_prev_content() -> JsonValue {
 #[test]
 fn serialize_aliases_with_prev_content() {
     let aliases_event = StateEvent {
-        content: AnyStateEventContent::RoomAliases(AliasesEventContent::new(vec![room_alias_id!(
-            "#somewhere:localhost"
-        )])),
+        content: AliasesEventContent::new(vec![room_alias_id!("#somewhere:localhost")]),
         event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-        prev_content: Some(AnyStateEventContent::RoomAliases(AliasesEventContent::new(vec![
-            room_alias_id!("#inner:localhost"),
-        ]))),
+        prev_content: Some(AliasesEventContent::new(vec![room_alias_id!("#inner:localhost")])),
         room_id: room_id!("!roomid:room.com"),
         sender: user_id!("@carl:example.com"),
         state_key: "".into(),
@@ -59,9 +55,7 @@ fn serialize_aliases_with_prev_content() {
 #[test]
 fn serialize_aliases_without_prev_content() {
     let aliases_event = StateEvent {
-        content: AnyStateEventContent::RoomAliases(AliasesEventContent::new(vec![room_alias_id!(
-            "#somewhere:localhost"
-        )])),
+        content: AliasesEventContent::new(vec![room_alias_id!("#somewhere:localhost")]),
         event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         prev_content: None,
@@ -108,20 +102,17 @@ fn deserialize_aliases_with_prev_content() {
     let json_data = aliases_event_with_prev_content();
 
     assert_matches!(
-        from_json_value::<Raw<StateEvent<AnyStateEventContent>>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
-        StateEvent {
-            content: AnyStateEventContent::RoomAliases(content),
+        from_json_value::<Raw<AnyStateEvent>>(json_data).unwrap().deserialize().unwrap(),
+        AnyStateEvent::RoomAliases(StateEvent {
+            content,
             event_id,
             origin_server_ts,
-            prev_content: Some(AnyStateEventContent::RoomAliases(prev_content)),
+            prev_content: Some(prev_content),
             room_id,
             sender,
             state_key,
             unsigned,
-        } if content.aliases == vec![room_alias_id!("#somewhere:localhost")]
+        }) if content.aliases == vec![room_alias_id!("#somewhere:localhost")]
             && event_id == event_id!("$h29iv0s8:example.com")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && prev_content.aliases == vec![room_alias_id!("#inner:localhost")]
@@ -138,17 +129,17 @@ fn deserialize_aliases_sync_with_room_id() {
     let json_data = aliases_event_with_prev_content();
 
     assert_matches!(
-        from_json_value::<SyncStateEvent<AnyStateEventContent>>(json_data)
+        from_json_value::<AnySyncStateEvent>(json_data)
             .unwrap(),
-        SyncStateEvent {
-            content: AnyStateEventContent::RoomAliases(content),
+        AnySyncStateEvent::RoomAliases(SyncStateEvent {
+            content,
             event_id,
             origin_server_ts,
-            prev_content: Some(AnyStateEventContent::RoomAliases(prev_content)),
+            prev_content: Some(prev_content),
             sender,
             state_key,
             unsigned,
-        } if content.aliases == vec![room_alias_id!("#somewhere:localhost")]
+        }) if content.aliases == vec![room_alias_id!("#somewhere:localhost")]
             && event_id == event_id!("$h29iv0s8:example.com")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && prev_content.aliases == vec![room_alias_id!("#inner:localhost")]
@@ -191,16 +182,16 @@ fn deserialize_avatar_without_prev_content() {
     let expected_url = Some(expected_url);
 
     assert_matches!(
-        from_json_value::<Raw<StateEvent<AnyStateEventContent>>>(json_data)
+        from_json_value::<Raw<AnyStateEvent>>(json_data)
             .unwrap()
             .deserialize()
             .unwrap(),
-        StateEvent {
-            content: AnyStateEventContent::RoomAvatar(AvatarEventContent {
+        AnyStateEvent::RoomAvatar(StateEvent {
+            content: AvatarEventContent {
                 info: Some(info),
                 url,
                 ..
-            }),
+            },
             event_id,
             origin_server_ts,
             prev_content: None,
@@ -208,7 +199,7 @@ fn deserialize_avatar_without_prev_content() {
             sender,
             state_key,
             unsigned
-        } if event_id == event_id!("$h29iv0s8:example.com")
+        }) if event_id == event_id!("$h29iv0s8:example.com")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && room_id == room_id!("!roomid:room.com")
             && sender == user_id!("@carl:example.com")

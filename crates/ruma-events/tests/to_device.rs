@@ -1,4 +1,4 @@
-use ruma_events::{room_key::RoomKeyToDeviceEventContent, AnyToDeviceEventContent, ToDeviceEvent};
+use ruma_events::{room_key::RoomKeyToDeviceEventContent, ToDeviceEvent};
 use ruma_identifiers::{room_id, user_id, EventEncryptionAlgorithm};
 use serde_json::{json, to_value as to_json_value};
 
@@ -6,12 +6,12 @@ use serde_json::{json, to_value as to_json_value};
 fn serialization() {
     let ev = ToDeviceEvent {
         sender: user_id!("@example:example.org"),
-        content: AnyToDeviceEventContent::RoomKey(RoomKeyToDeviceEventContent::new(
+        content: RoomKeyToDeviceEventContent::new(
             EventEncryptionAlgorithm::MegolmV1AesSha2,
             room_id!("!testroomid:example.org"),
             "SessId".into(),
             "SessKey".into(),
-        )),
+        ),
     };
 
     assert_eq!(

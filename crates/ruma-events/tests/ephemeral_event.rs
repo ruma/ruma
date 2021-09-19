@@ -9,15 +9,13 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 use ruma_events::{
     receipt::{Receipt, ReceiptEventContent},
     typing::TypingEventContent,
-    AnyEphemeralRoomEventContent, EphemeralRoomEvent,
+    AnyEphemeralRoomEvent, EphemeralRoomEvent,
 };
 
 #[test]
 fn ephemeral_serialize_typing() {
     let aliases_event = EphemeralRoomEvent {
-        content: AnyEphemeralRoomEventContent::Typing(TypingEventContent::new(vec![user_id!(
-            "@carl:example.com"
-        )])),
+        content: TypingEventContent::new(vec![user_id!("@carl:example.com")]),
         room_id: room_id!("!roomid:room.com"),
     };
 
@@ -44,14 +42,14 @@ fn deserialize_ephemeral_typing() {
     });
 
     assert_matches!(
-        from_json_value::<Raw<EphemeralRoomEvent<AnyEphemeralRoomEventContent>>>(json_data)
+        from_json_value::<Raw<AnyEphemeralRoomEvent>>(json_data)
             .unwrap()
             .deserialize()
             .unwrap(),
-        EphemeralRoomEvent {
-            content: AnyEphemeralRoomEventContent::Typing(TypingEventContent { user_ids, .. }),
+        AnyEphemeralRoomEvent::Typing(EphemeralRoomEvent {
+            content: TypingEventContent { user_ids, .. },
             room_id,
-        } if user_ids[0] == user_id!("@carl:example.com")
+        }) if user_ids[0] == user_id!("@carl:example.com")
             && room_id == room_id!("!roomid:room.com")
     );
 }
@@ -62,13 +60,13 @@ fn ephemeral_serialize_receipt() {
     let user_id = user_id!("@carl:example.com");
 
     let aliases_event = EphemeralRoomEvent {
-        content: AnyEphemeralRoomEventContent::Receipt(ReceiptEventContent(btreemap! {
+        content: ReceiptEventContent(btreemap! {
             event_id => btreemap! {
                 ReceiptType::Read => btreemap! {
                     user_id => Receipt::new(MilliSecondsSinceUnixEpoch(uint!(1))),
                 },
             },
-        })),
+        }),
         room_id: room_id!("!roomid:room.com"),
     };
 
@@ -106,14 +104,11 @@ fn deserialize_ephemeral_receipt() {
     });
 
     assert_matches!(
-        from_json_value::<Raw<EphemeralRoomEvent<AnyEphemeralRoomEventContent>>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
-        EphemeralRoomEvent {
-            content: AnyEphemeralRoomEventContent::Receipt(ReceiptEventContent(receipts)),
+        from_json_value::<Raw<AnyEphemeralRoomEvent>>(json_data).unwrap().deserialize().unwrap(),
+        AnyEphemeralRoomEvent::Receipt(EphemeralRoomEvent {
+            content: ReceiptEventContent(receipts),
             room_id,
-        } if !receipts.is_empty() && receipts.contains_key(&event_id)
+        }) if !receipts.is_empty() && receipts.contains_key(&event_id)
             && room_id == room_id!("!roomid:room.com")
             && receipts
                 .get(&event_id)

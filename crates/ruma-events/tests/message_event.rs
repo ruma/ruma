@@ -6,7 +6,7 @@ use ruma_events::{
     call::{answer::AnswerEventContent, SessionDescription, SessionDescriptionType},
     room::{ImageInfo, ThumbnailInfo},
     sticker::StickerEventContent,
-    AnyMessageEventContent, AnySyncMessageEvent, MessageEvent, RawExt, Unsigned,
+    AnyMessageEvent, AnyMessageEventContent, AnySyncMessageEvent, MessageEvent, RawExt, Unsigned,
 };
 use ruma_identifiers::{event_id, mxc_uri, room_id, user_id};
 use ruma_serde::Raw;
@@ -15,7 +15,7 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 #[test]
 fn message_serialize_sticker() {
     let aliases_event = MessageEvent {
-        content: AnyMessageEventContent::Sticker(StickerEventContent::new(
+        content: StickerEventContent::new(
             "Hello".into(),
             assign!(ImageInfo::new(), {
                 height: UInt::new(423),
@@ -31,7 +31,7 @@ fn message_serialize_sticker() {
                 thumbnail_url: Some(mxc_uri!("mxc://matrix.org/irsns989Rrsn")),
             }),
             mxc_uri!("mxc://matrix.org/rnsldl8srs98IRrs"),
-        )),
+        ),
         event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         room_id: room_id!("!roomid:room.com"),
@@ -116,12 +116,9 @@ fn deserialize_message_call_answer() {
     });
 
     assert_matches!(
-        from_json_value::<Raw<MessageEvent<AnyMessageEventContent>>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
-        MessageEvent {
-            content: AnyMessageEventContent::CallAnswer(AnswerEventContent {
+        from_json_value::<Raw<AnyMessageEvent>>(json_data).unwrap().deserialize().unwrap(),
+        AnyMessageEvent::CallAnswer(MessageEvent {
+            content: AnswerEventContent {
                 answer: SessionDescription {
                     session_type: SessionDescriptionType::Answer,
                     sdp,
@@ -130,13 +127,13 @@ fn deserialize_message_call_answer() {
                 call_id,
                 version,
                 ..
-            }),
+            },
             event_id,
             origin_server_ts,
             room_id,
             sender,
             unsigned,
-        } if sdp == "Hello" && call_id == "foofoo" && version == UInt::new(1).unwrap()
+        }) if sdp == "Hello" && call_id == "foofoo" && version == UInt::new(1).unwrap()
             && event_id == event_id!("$h29iv0s8:example.com")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && room_id == room_id!("!roomid:room.com")
@@ -173,12 +170,9 @@ fn deserialize_message_sticker() {
     });
 
     assert_matches!(
-        from_json_value::<Raw<MessageEvent<AnyMessageEventContent>>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
-        MessageEvent {
-            content: AnyMessageEventContent::Sticker(StickerEventContent {
+        from_json_value::<Raw<AnyMessageEvent>>(json_data).unwrap().deserialize().unwrap(),
+        AnyMessageEvent::Sticker(MessageEvent {
+            content: StickerEventContent {
                 body,
                 info: ImageInfo {
                     height,
@@ -194,13 +188,13 @@ fn deserialize_message_sticker() {
                 },
                 url,
                 ..
-            }),
+            },
             event_id,
             origin_server_ts,
             room_id,
             sender,
             unsigned
-        } if event_id == event_id!("$h29iv0s8:example.com")
+        }) if event_id == event_id!("$h29iv0s8:example.com")
             && body == "Hello"
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && room_id == room_id!("!roomid:room.com")
@@ -254,12 +248,9 @@ fn deserialize_message_then_convert_to_full() {
     let full_json = to_json_value(full).unwrap();
 
     assert_matches!(
-        from_json_value::<Raw<MessageEvent<AnyMessageEventContent>>>(full_json)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
-        MessageEvent {
-            content: AnyMessageEventContent::CallAnswer(AnswerEventContent {
+        from_json_value::<Raw<AnyMessageEvent>>(full_json).unwrap().deserialize().unwrap(),
+        AnyMessageEvent::CallAnswer(MessageEvent {
+            content: AnswerEventContent {
                 answer: SessionDescription {
                     session_type: SessionDescriptionType::Answer,
                     sdp,
@@ -268,13 +259,13 @@ fn deserialize_message_then_convert_to_full() {
                 call_id,
                 version,
                 ..
-            }),
+            },
             event_id,
             origin_server_ts,
             room_id,
             sender,
             unsigned,
-        } if sdp == "Hello"
+        }) if sdp == "Hello"
             && call_id == "foofoo"
             && version == uint!(1)
             && event_id == "$h29iv0s8:example.com"
