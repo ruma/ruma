@@ -2,7 +2,8 @@
 
 Breaking changes:
 
-* Replace `Raw<Pdu>` with `Box<RawJsonValue>`
+* Replace `Raw<Pdu>` with `Box<RawJsonValue>` or `&RawJsonValue`
+* Borrow more request fields
 
 # 0.3.1
 

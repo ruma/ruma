@@ -30,7 +30,7 @@ ruma_api! {
 
         /// The PDU.
         #[ruma_api(body)]
-        pub pdu: Box<RawJsonValue>,
+        pub pdu: &'a RawJsonValue,
     }
 
     response: {
@@ -42,7 +42,7 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` from the given room ID, event ID and PDU.
-    pub fn new(room_id: &'a RoomId, event_id: &'a EventId, pdu: Box<RawJsonValue>) -> Self {
+    pub fn new(room_id: &'a RoomId, event_id: &'a EventId, pdu: &'a RawJsonValue) -> Self {
         Self { room_id, event_id, pdu }
     }
 }
