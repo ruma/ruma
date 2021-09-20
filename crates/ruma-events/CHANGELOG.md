@@ -11,6 +11,7 @@ Breaking changes:
 Improvements:
 
 * Add `room::message::MessageType::body` accessor method
+* Add (unstable) support for [MSC3083](https://github.com/matrix-org/matrix-doc/blob/main/proposals/3083-restricted-rooms.md)
 
 # 0.24.5
 
