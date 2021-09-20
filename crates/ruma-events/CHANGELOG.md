@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.24.6
+
 Improvements:
 
 * Add (unstable) support for [MSC3083](https://github.com/matrix-org/matrix-doc/blob/main/proposals/3083-restricted-rooms.md)
