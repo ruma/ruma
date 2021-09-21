@@ -19,7 +19,7 @@ ruma_api! {
     response: {
         /// A list of third party identifiers the homeserver has associated with the user's account.
         #[serde(default)]
-        #[cfg_attr(feature = "compat", serde(skip_serializing_if = "Vec::is_empty"))]
+        #[cfg_attr(not(feature = "compat"), serde(skip_serializing_if = "Vec::is_empty"))]
         pub threepids: Vec<ThirdPartyIdentifier>,
     }
 

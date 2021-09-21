@@ -1,5 +1,8 @@
 # [unreleased]
 
+* Add a `feature = "compat"` workaround for Element failing on `GET /_matrix/client/r0/account/3pid`
+  response if the optional `threepids` field is missing
+
 # 0.12.2
 
 Improvements
@@ -31,8 +34,6 @@ Improvements:
   ```
 * Add unstable support for room knocking
 * Add unstable support for reasons for leaving rooms
-* Add a `feature = "compat"` workaround for Element failing on `GET /_matrix/client/r0/account/3pid`
-  response if the optional `threepids` field is missing
 
 # 0.11.2
 
