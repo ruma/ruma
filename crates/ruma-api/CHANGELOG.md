@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.18.4
+
 Bug fixes:
 
 * Stop adding a `Content-Type` header to requests without any fields
