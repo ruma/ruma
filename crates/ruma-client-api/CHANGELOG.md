@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.12.3
+
 * Add a `feature = "compat"` workaround for Element failing on `GET /_matrix/client/r0/account/3pid`
   response if the optional `threepids` field is missing
 
