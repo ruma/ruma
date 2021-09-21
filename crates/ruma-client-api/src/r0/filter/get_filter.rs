@@ -52,8 +52,6 @@ impl Response {
 mod tests {
     use matches::assert_matches;
 
-    use crate::r0::filter::IncomingFilterDefinition;
-
     #[cfg(feature = "client")]
     #[test]
     fn deserialize_response() {
@@ -71,6 +69,8 @@ mod tests {
     #[test]
     fn serialize_response() {
         use ruma_api::OutgoingResponse;
+
+        use crate::r0::filter::IncomingFilterDefinition;
 
         assert_matches!(
             super::Response::new(IncomingFilterDefinition::default())
