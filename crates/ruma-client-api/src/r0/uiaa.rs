@@ -52,6 +52,11 @@ pub enum AuthData<'a> {
     /// Dummy authentication (`m.login.dummy`).
     Dummy(Dummy<'a>),
 
+    /// Registration token-based authentication (`org.matrix.msc3231.login.registration_token`)
+    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+    RegistrationToken(RegistrationToken<'a>),
+
     /// Fallback acknowledgement.
     FallbackAcknowledgement(FallbackAcknowledgement<'a>),
 
@@ -75,6 +80,9 @@ impl<'a> AuthData<'a> {
             Self::EmailIdentity(_) => Some("m.login.email.identity"),
             Self::Msisdn(_) => Some("m.login.msisdn"),
             Self::Dummy(_) => Some("m.login.dummy"),
+            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+            Self::RegistrationToken(_) => Some("org.matrix.msc3231.login.registration_token"),
             Self::FallbackAcknowledgement(_) => None,
             Self::_Custom(c) => Some(c.auth_type),
         }
@@ -90,6 +98,9 @@ impl<'a> AuthData<'a> {
             Self::EmailIdentity(x) => x.session,
             Self::Msisdn(x) => x.session,
             Self::Dummy(x) => x.session,
+            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+            Self::RegistrationToken(x) => x.session,
             Self::FallbackAcknowledgement(x) => Some(x.session),
             Self::_Custom(x) => x.session,
         }
@@ -107,6 +118,9 @@ impl IncomingAuthData {
             Self::EmailIdentity(_) => Some("m.login.email.identity"),
             Self::Msisdn(_) => Some("m.login.msisdn"),
             Self::Dummy(_) => Some("m.login.dummy"),
+            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+            Self::RegistrationToken(_) => Some("org.matrix.msc3231.login.registration_token"),
             Self::FallbackAcknowledgement(_) => None,
             Self::_Custom(c) => Some(&c.auth_type),
         }
@@ -122,6 +136,9 @@ impl IncomingAuthData {
             Self::EmailIdentity(x) => x.session.as_deref(),
             Self::Msisdn(x) => x.session.as_deref(),
             Self::Dummy(x) => x.session.as_deref(),
+            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+            Self::RegistrationToken(x) => x.session.as_deref(),
             Self::FallbackAcknowledgement(x) => Some(&x.session),
             Self::_Custom(x) => x.session.as_deref(),
         }
@@ -159,6 +176,11 @@ impl<'de> Deserialize<'de> for IncomingAuthData {
             Some("m.login.email.identity") => from_raw_json_value(&json).map(Self::EmailIdentity),
             Some("m.login.msisdn") => from_raw_json_value(&json).map(Self::Msisdn),
             Some("m.login.dummy") => from_raw_json_value(&json).map(Self::Dummy),
+            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+            Some("org.matrix.msc3231.login.registration_token") => {
+                from_raw_json_value(&json).map(Self::RegistrationToken)
+            }
             None => from_raw_json_value(&json).map(Self::FallbackAcknowledgement),
             Some(_) => from_raw_json_value(&json).map(Self::_Custom),
         }
@@ -314,6 +336,33 @@ impl Dummy<'_> {
     /// Creates an empty `Dummy`.
     pub fn new() -> Self {
         Self::default()
+    }
+}
+
+/// Data for registration token-based UIAA flow.
+///
+/// See [MSC3231] for how to use this.
+///
+/// [MSC3231]: https://github.com/matrix-org/matrix-doc/pull/3231
+#[derive(Clone, Debug, Outgoing, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[serde(tag = "type", rename = "org.matrix.msc3231.login.registration_token")]
+pub struct RegistrationToken<'a> {
+    /// The registration token.
+    pub token: &'a str,
+
+    /// The value of the session key given by the homeserver, if any.
+    pub session: Option<&'a str>,
+}
+
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+impl<'a> RegistrationToken<'a> {
+    /// Creates a new `RegistrationToken` with the given token.
+    pub fn new(token: &'a str) -> Self {
+        Self { token, session: None }
     }
 }
 

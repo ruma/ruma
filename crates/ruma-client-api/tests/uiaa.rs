@@ -64,6 +64,45 @@ fn deserialize_auth_data_direct_request() {
 }
 
 #[test]
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+fn serialize_auth_data_registration_token() {
+    let auth_data = AuthData::RegistrationToken(
+        assign!(uiaa::RegistrationToken::new("mytoken"), { session: Some("session") }),
+    );
+
+    assert_matches!(
+        to_json_value(auth_data),
+        Ok(val) if val == json!({
+            "type": "org.matrix.msc3231.login.registration_token",
+            "token": "mytoken",
+            "session": "session",
+        })
+    );
+
+}
+
+#[test]
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+fn deserialize_auth_data_registration_token() {
+    let json = json!({
+        "type": "org.matrix.msc3231.login.registration_token",
+        "token": "mytoken",
+        "session": "session",
+    });
+
+    assert_matches!(
+        from_json_value(json),
+        Ok(IncomingAuthData::RegistrationToken(
+            uiaa::IncomingRegistrationToken { token, session: Some(session), .. },
+        ))
+        if token == "mytoken" && session == "session"
+    );
+
+}
+
+#[test]
 fn serialize_auth_data_fallback() {
     let auth_data = AuthData::FallbackAcknowledgement(uiaa::FallbackAcknowledgement::new("ZXY000"));
 
