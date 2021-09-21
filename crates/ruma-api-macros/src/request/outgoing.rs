@@ -97,40 +97,52 @@ impl Request {
             quote! { "" }
         };
 
-        let mut header_kvs: TokenStream = self
-            .header_fields()
-            .map(|request_field| {
-                let (field, header_name) = match request_field {
-                    RequestField::Header(field, header_name) => (field, header_name),
-                    _ => unreachable!("expected request field to be header variant"),
-                };
+        // If there are no body fields, the request body will be empty (not `{}`), so the
+        // `application/json` content-type would be wrong. It may also cause problems with CORS
+        // policies that don't allow the `Content-Type` header (for things such as `.well-known`
+        // that are commonly handled by something else than a homeserver).
+        let mut header_kvs = if self.raw_body_field().is_some() || self.has_body_fields() {
+            TokenStream::new()
+        } else {
+            quote! {
+                req_headers.insert(
+                    #http::header::CONTENT_TYPE,
+                    #http::header::HeaderValue::from_static("application/json"),
+                );
+            }
+        };
 
-                let field_name = &field.ident;
+        header_kvs.extend(self.header_fields().map(|request_field| {
+            let (field, header_name) = match request_field {
+                RequestField::Header(field, header_name) => (field, header_name),
+                _ => unreachable!("expected request field to be header variant"),
+            };
 
-                match &field.ty {
-                    syn::Type::Path(syn::TypePath { path: syn::Path { segments, .. }, .. })
-                        if segments.last().unwrap().ident == "Option" =>
-                    {
-                        quote! {
-                            if let Some(header_val) = self.#field_name.as_ref() {
-                                req_headers.insert(
-                                    #http::header::#header_name,
-                                    #http::header::HeaderValue::from_str(header_val)?,
-                                );
-                            }
+            let field_name = &field.ident;
+
+            match &field.ty {
+                syn::Type::Path(syn::TypePath { path: syn::Path { segments, .. }, .. })
+                    if segments.last().unwrap().ident == "Option" =>
+                {
+                    quote! {
+                        if let Some(header_val) = self.#field_name.as_ref() {
+                            req_headers.insert(
+                                #http::header::#header_name,
+                                #http::header::HeaderValue::from_str(header_val)?,
+                            );
                         }
                     }
-                    _ => quote! {
-                        req_headers.insert(
-                            #http::header::#header_name,
-                            #http::header::HeaderValue::from_str(self.#field_name.as_ref())?,
-                        );
-                    },
                 }
-            })
-            .collect();
+                _ => quote! {
+                    req_headers.insert(
+                        #http::header::#header_name,
+                        #http::header::HeaderValue::from_str(self.#field_name.as_ref())?,
+                    );
+                },
+            }
+        }));
 
-        let hdr_kv = match self.authentication {
+        header_kvs.extend(match self.authentication {
             AuthScheme::AccessToken(_) => quote! {
                 req_headers.insert(
                     #http::header::AUTHORIZATION,
@@ -153,8 +165,7 @@ impl Request {
                 }
             },
             AuthScheme::QueryOnlyAccessToken(_) | AuthScheme::ServerSignatures(_) => quote! {},
-        };
-        header_kvs.extend(hdr_kv);
+        });
 
         let request_body = if let Some(field) = self.raw_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
@@ -203,11 +214,7 @@ impl Request {
                             base_url.strip_suffix('/').unwrap_or(base_url),
                             #request_path_string,
                             #request_query_string,
-                        ))
-                        .header(
-                            #ruma_api::exports::http::header::CONTENT_TYPE,
-                            "application/json",
-                        );
+                        ));
 
                     if let Some(mut req_headers) = req_builder.headers_mut() {
                         #header_kvs
