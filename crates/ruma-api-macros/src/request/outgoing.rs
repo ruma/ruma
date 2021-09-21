@@ -102,14 +102,14 @@ impl Request {
         // policies that don't allow the `Content-Type` header (for things such as `.well-known`
         // that are commonly handled by something else than a homeserver).
         let mut header_kvs = if self.raw_body_field().is_some() || self.has_body_fields() {
-            TokenStream::new()
-        } else {
             quote! {
                 req_headers.insert(
                     #http::header::CONTENT_TYPE,
                     #http::header::HeaderValue::from_static("application/json"),
                 );
             }
+        } else {
+            TokenStream::new()
         };
 
         header_kvs.extend(self.header_fields().map(|request_field| {

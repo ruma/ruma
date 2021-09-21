@@ -1,13 +1,15 @@
 # [unreleased]
 
-# 0.18.4
-
 Bug fixes:
 
 * Stop adding a `Content-Type` header to requests without any fields
   * This fixes usage of the `.well-known` endpoints in a browser WASM
     environment if the server isn't configured to allow that header for
     cross-origin requests
+
+# 0.18.4
+
+Yanked.
 
 # 0.18.3
 
