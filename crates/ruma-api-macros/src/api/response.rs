@@ -32,18 +32,6 @@ impl Response {
             format!("Data in the response from the `{}` API endpoint.", metadata.name.value());
         let struct_attributes = &self.attributes;
 
-        let has_test_exhaustive_field = self
-            .fields
-            .iter()
-            .filter_map(|f| f.ident.as_ref())
-            .any(|ident| ident == "__test_exhaustive");
-
-        let non_exhaustive_attr = if has_test_exhaustive_field {
-            quote! {}
-        } else {
-            quote! { #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)] }
-        };
-
         let response_ident = Ident::new("Response", self.response_kw.span());
         let fields = &self.fields;
         quote! {
@@ -55,7 +43,7 @@ impl Response {
                 #ruma_serde::Outgoing,
                 #ruma_serde::_FakeDeriveSerde,
             )]
-            #non_exhaustive_attr
+            #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             #[incoming_derive(!Deserialize, #ruma_api_macros::_FakeDeriveRumaApi)]
             #[ruma_api(error_ty = #error_ty)]
             #( #struct_attributes )*

@@ -13,14 +13,3 @@ pub mod r0;
 pub mod unversioned;
 
 pub use error::Error;
-
-#[derive(Clone, Debug)]
-#[doc(hidden)]
-pub struct Private {
-    _priv: (),
-}
-
-#[allow(dead_code)]
-fn private() -> Private {
-    Private { _priv: () }
-}
