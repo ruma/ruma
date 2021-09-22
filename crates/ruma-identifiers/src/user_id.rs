@@ -74,9 +74,7 @@ impl UserId {
             })
         }
     }
-}
 
-impl UserId {
     /// Returns the user's localpart.
     pub fn localpart(&self) -> &str {
         &self.full_id[1..self.colon_idx.get() as usize]
