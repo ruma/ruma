@@ -85,9 +85,10 @@ impl UserId {
         <&ServerName>::try_from(&self.full_id[self.colon_idx.get() as usize + 1..]).unwrap()
     }
 
-    /// Whether this user ID is a historical one, i.e. one that doesn't conform to the latest
-    /// specification of the user ID grammar but is still accepted because it was previously
-    /// allowed.
+    /// Whether this user ID is a historical one.
+    ///
+    /// A historical user ID is one that doesn't conform to the latest specification of the user ID
+    /// grammar but is still accepted because it was previously allowed.
     pub fn is_historical(&self) -> bool {
         self.is_historical
     }
