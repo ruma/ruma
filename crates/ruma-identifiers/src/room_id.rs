@@ -2,7 +2,7 @@
 
 use std::{convert::TryInto, fmt, num::NonZeroU8};
 
-use crate::ServerName;
+use crate::{EventId, MatrixToRef, ServerName};
 
 /// A Matrix room ID.
 ///
@@ -52,6 +52,32 @@ impl RoomId {
     /// Returns the server name of the room ID.
     pub fn server_name(&self) -> &ServerName {
         self.full_id[self.colon_idx.get() as usize + 1..].try_into().unwrap()
+    }
+
+    /// Create a `matrix.to` reference for this room ID.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ruma_identifiers::{room_id, server_name};
+    ///
+    /// assert_eq!(
+    ///     room_id!("!somewhere:example.org")
+    ///         .matrix_to_url([&*server_name!("example.org"), &*server_name!("alt.example.org")])
+    ///         .to_string(),
+    ///     "https://matrix.to/#/%21somewhere%3Aexample.org?via=example.org&via=alt.example.org"
+    /// );
+    /// ```
+    pub fn matrix_to_url<'a>(
+        &'a self,
+        via: impl IntoIterator<Item = &'a ServerName>,
+    ) -> MatrixToRef<'a> {
+        MatrixToRef::new(&self.full_id, via.into_iter().collect())
+    }
+
+    /// Create a `matrix.to` reference for an event scoped under this room ID.
+    pub fn matrix_to_event_url<'a>(&'a self, ev_id: &'a EventId) -> MatrixToRef<'a> {
+        MatrixToRef::event(&self.full_id, ev_id, Vec::new())
     }
 }
 

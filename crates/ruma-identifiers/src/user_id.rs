@@ -2,7 +2,7 @@
 
 use std::{convert::TryInto, fmt, num::NonZeroU8};
 
-use crate::ServerName;
+use crate::{MatrixToRef, ServerName};
 
 /// A Matrix user ID.
 ///
@@ -91,6 +91,22 @@ impl UserId {
     /// grammar but is still accepted because it was previously allowed.
     pub fn is_historical(&self) -> bool {
         self.is_historical
+    }
+
+    /// Create a `matrix.to` reference for this user ID.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ruma_identifiers::user_id;
+    ///
+    /// let message = format!(
+    ///     r#"Thanks for the update <a href="{link}">{display_name}</a>."#,
+    ///     link = user_id!("@jplatte:notareal.hs").matrix_to_url(), display_name = "jplatte",
+    /// );
+    /// ```
+    pub fn matrix_to_url(&self) -> MatrixToRef<'_> {
+        MatrixToRef::new(&self.full_id, Vec::new())
     }
 }
 

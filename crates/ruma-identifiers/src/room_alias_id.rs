@@ -2,7 +2,7 @@
 
 use std::{convert::TryInto, fmt, num::NonZeroU8};
 
-use crate::server_name::ServerName;
+use crate::{server_name::ServerName, EventId, MatrixToRef};
 
 /// A Matrix room alias ID.
 ///
@@ -38,6 +38,16 @@ impl RoomAliasId {
     /// Returns the server name of the room alias ID.
     pub fn server_name(&self) -> &ServerName {
         self.full_id[self.colon_idx.get() as usize + 1..].try_into().unwrap()
+    }
+
+    /// Create a `matrix.to` reference for this room alias ID.
+    pub fn matrix_to_url(&self) -> MatrixToRef<'_> {
+        MatrixToRef::new(&self.full_id, Vec::new())
+    }
+
+    /// Create a `matrix.to` reference for an event scoped under this room alias ID.
+    pub fn matrix_to_event_url<'a>(&'a self, ev_id: &'a EventId) -> MatrixToRef<'a> {
+        MatrixToRef::event(&self.full_id, ev_id, Vec::new())
     }
 }
 
