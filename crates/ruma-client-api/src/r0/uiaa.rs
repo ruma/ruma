@@ -81,7 +81,6 @@ impl<'a> AuthData<'a> {
             Self::Msisdn(_) => Some("m.login.msisdn"),
             Self::Dummy(_) => Some("m.login.dummy"),
             #[cfg(feature = "unstable-pre-spec")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
             Self::RegistrationToken(_) => Some("org.matrix.msc3231.login.registration_token"),
             Self::FallbackAcknowledgement(_) => None,
             Self::_Custom(c) => Some(c.auth_type),
@@ -99,7 +98,6 @@ impl<'a> AuthData<'a> {
             Self::Msisdn(x) => x.session,
             Self::Dummy(x) => x.session,
             #[cfg(feature = "unstable-pre-spec")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
             Self::RegistrationToken(x) => x.session,
             Self::FallbackAcknowledgement(x) => Some(x.session),
             Self::_Custom(x) => x.session,
@@ -119,7 +117,6 @@ impl IncomingAuthData {
             Self::Msisdn(_) => Some("m.login.msisdn"),
             Self::Dummy(_) => Some("m.login.dummy"),
             #[cfg(feature = "unstable-pre-spec")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
             Self::RegistrationToken(_) => Some("org.matrix.msc3231.login.registration_token"),
             Self::FallbackAcknowledgement(_) => None,
             Self::_Custom(c) => Some(&c.auth_type),
@@ -137,7 +134,6 @@ impl IncomingAuthData {
             Self::Msisdn(x) => x.session.as_deref(),
             Self::Dummy(x) => x.session.as_deref(),
             #[cfg(feature = "unstable-pre-spec")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
             Self::RegistrationToken(x) => x.session.as_deref(),
             Self::FallbackAcknowledgement(x) => Some(&x.session),
             Self::_Custom(x) => x.session.as_deref(),
@@ -177,7 +173,6 @@ impl<'de> Deserialize<'de> for IncomingAuthData {
             Some("m.login.msisdn") => from_raw_json_value(&json).map(Self::Msisdn),
             Some("m.login.dummy") => from_raw_json_value(&json).map(Self::Dummy),
             #[cfg(feature = "unstable-pre-spec")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
             Some("org.matrix.msc3231.login.registration_token") => {
                 from_raw_json_value(&json).map(Self::RegistrationToken)
             }

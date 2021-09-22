@@ -65,7 +65,6 @@ fn deserialize_auth_data_direct_request() {
 
 #[test]
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 fn serialize_auth_data_registration_token() {
     let auth_data = AuthData::RegistrationToken(
         assign!(uiaa::RegistrationToken::new("mytoken"), { session: Some("session") }),
@@ -79,12 +78,10 @@ fn serialize_auth_data_registration_token() {
             "session": "session",
         })
     );
-
 }
 
 #[test]
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 fn deserialize_auth_data_registration_token() {
     let json = json!({
         "type": "org.matrix.msc3231.login.registration_token",
@@ -99,7 +96,6 @@ fn deserialize_auth_data_registration_token() {
         ))
         if token == "mytoken" && session == "session"
     );
-
 }
 
 #[test]
