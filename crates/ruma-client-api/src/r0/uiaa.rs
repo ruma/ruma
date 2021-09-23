@@ -318,7 +318,7 @@ pub struct Msisdn<'a> {
 ///
 /// See [the spec] for how to use this.
 ///
-/// [the spec]: https://matrix.org/docs/spec/client_server/r0.6.1#password-based
+/// [the spec]: https://matrix.org/docs/spec/client_server/r0.6.1#dummy-auth
 #[derive(Clone, Debug, Default, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.dummy")]
