@@ -30,7 +30,7 @@ ruma_api! {
         pub room_id: &'a RoomId,
 
         /// The user to invite.
-        #[ruma_api(body)]
+        #[serde(flatten)]
         pub recipient: InvitationRecipient<'a>,
 
         /// Optional reason for inviting the user.
