@@ -1,6 +1,6 @@
 //! Matrix room alias identifiers.
 
-use std::{convert::TryFrom, fmt, num::NonZeroU8};
+use std::{convert::TryInto, fmt, num::NonZeroU8};
 
 use crate::server_name::ServerName;
 
@@ -37,7 +37,7 @@ impl RoomAliasId {
 
     /// Returns the server name of the room alias ID.
     pub fn server_name(&self) -> &ServerName {
-        <&ServerName>::try_from(&self.full_id[self.colon_idx.get() as usize + 1..]).unwrap()
+        self.full_id[self.colon_idx.get() as usize + 1..].try_into().unwrap()
     }
 }
 

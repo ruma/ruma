@@ -2,7 +2,7 @@
 //!
 //! [MXC URI]: https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri
 
-use std::{convert::TryFrom, fmt, num::NonZeroU8};
+use std::{convert::TryInto, fmt, num::NonZeroU8};
 
 use ruma_identifiers_validation::{error::MxcUriError, mxc_uri::validate};
 
@@ -34,7 +34,7 @@ impl MxcUri {
     pub fn parts(&self) -> Result<(&ServerName, &str)> {
         self.extract_slash_idx().map(|idx| {
             (
-                <&ServerName>::try_from(&self.full_uri[6..idx.get() as usize]).unwrap(),
+                self.full_uri[6..idx.get() as usize].try_into().unwrap(),
                 &self.full_uri[idx.get() as usize + 1..],
             )
         })

@@ -1,6 +1,6 @@
 //! Matrix user identifiers.
 
-use std::{convert::TryFrom, fmt, num::NonZeroU8};
+use std::{convert::TryInto, fmt, num::NonZeroU8};
 
 use crate::ServerName;
 
@@ -82,7 +82,7 @@ impl UserId {
 
     /// Returns the server name of the user ID.
     pub fn server_name(&self) -> &ServerName {
-        <&ServerName>::try_from(&self.full_id[self.colon_idx.get() as usize + 1..]).unwrap()
+        self.full_id[self.colon_idx.get() as usize + 1..].try_into().unwrap()
     }
 
     /// Whether this user ID is a historical one.
