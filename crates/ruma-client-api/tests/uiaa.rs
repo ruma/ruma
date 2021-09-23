@@ -9,7 +9,8 @@ use serde_json::{
 use ruma_client_api::{
     error::{ErrorBody, ErrorKind},
     r0::uiaa::{
-        self, AuthData, AuthFlow, IncomingAuthData, IncomingUserIdentifier, UiaaInfo, UiaaResponse,
+        self, AuthData, AuthFlow, AuthType, IncomingAuthData, IncomingUserIdentifier, UiaaInfo,
+        UiaaResponse,
     },
 };
 
@@ -148,13 +149,13 @@ fn deserialize_uiaa_info() {
     let json = json!({
         "errcode": "M_FORBIDDEN",
         "error": "Invalid password",
-        "completed": ["example.type.foo"],
+        "completed": ["m.login.recaptcha"],
         "flows": [
             {
-                "stages": ["example.type.foo", "example.type.bar"]
+                "stages": ["m.login.password"]
             },
             {
-                "stages": ["example.type.foo", "example.type.baz"]
+                "stages": ["m.login.email.identity", "m.login.msisdn"]
             }
         ],
         "params": {
@@ -178,17 +179,12 @@ fn deserialize_uiaa_info() {
             session: Some(session),
             ..
         } if error_message == "Invalid password"
-            && completed == vec!["example.type.foo".to_owned()]
+            && completed == vec![AuthType::ReCaptcha]
             && matches!(
                 flows.as_slice(),
                 [f1, f2]
-                if f1.stages == vec![
-                    "example.type.foo".to_owned(),
-                    "example.type.bar".to_owned()
-                ] && f2.stages == vec![
-                    "example.type.foo".to_owned(),
-                    "example.type.baz".to_owned()
-                ]
+                if f1.stages == vec![AuthType::Password]
+                    && f2.stages == vec![AuthType::EmailIdentity, AuthType::Msisdn]
             )
             && from_json_str::<JsonValue>(params.get()).unwrap() == json!({
                 "example.type.baz": {
@@ -201,7 +197,7 @@ fn deserialize_uiaa_info() {
 
 #[test]
 fn try_uiaa_response_into_http_response() {
-    let flows = vec![AuthFlow::new(vec!["m.login.password".into(), "m.login.dummy".into()])];
+    let flows = vec![AuthFlow::new(vec![AuthType::Password, AuthType::Dummy])];
     let params = to_raw_json_value(&json!({
         "example.type.baz": {
             "example_key": "foobar"
@@ -209,7 +205,7 @@ fn try_uiaa_response_into_http_response() {
     }))
     .unwrap();
     let uiaa_info = assign!(UiaaInfo::new(flows, params), {
-        completed: vec!["m.login.password".into()],
+        completed: vec![AuthType::ReCaptcha],
     });
     let uiaa_response =
         UiaaResponse::AuthResponse(uiaa_info).try_into_http_response::<Vec<u8>>().unwrap();
@@ -225,8 +221,8 @@ fn try_uiaa_response_into_http_response() {
             ..
         } if matches!(
             flows.as_slice(),
-            [flow] if flow.stages == vec!["m.login.password".to_owned(), "m.login.dummy".to_owned()]
-        ) && completed == vec!["m.login.password".to_owned()]
+            [flow] if flow.stages == vec![AuthType::Password, AuthType::Dummy]
+        ) && completed == vec![AuthType::ReCaptcha]
             && from_json_str::<JsonValue>(params.get()).unwrap() == json!({
                 "example.type.baz": {
                     "example_key": "foobar"
@@ -241,13 +237,13 @@ fn try_uiaa_response_from_http_response() {
     let json = serde_json::to_string(&json!({
         "errcode": "M_FORBIDDEN",
         "error": "Invalid password",
-        "completed": [ "example.type.foo" ],
+        "completed": ["m.login.recaptcha"],
         "flows": [
             {
-                "stages": [ "example.type.foo", "example.type.bar" ]
+                "stages": ["m.login.password"]
             },
             {
-                "stages": [ "example.type.foo", "example.type.baz" ]
+                "stages": ["m.login.email.identity", "m.login.msisdn"]
             }
         ],
         "params": {
@@ -282,17 +278,12 @@ fn try_uiaa_response_from_http_response() {
             session: Some(session),
             ..
         } if error_message == "Invalid password"
-            && completed == vec!["example.type.foo".to_owned()]
+            && completed == vec![AuthType::ReCaptcha]
             && matches!(
                 flows.as_slice(),
                 [f1, f2]
-                if f1.stages == vec![
-                    "example.type.foo".to_owned(),
-                    "example.type.bar".to_owned()
-                ] && f2.stages == vec![
-                    "example.type.foo".to_owned(),
-                    "example.type.baz".to_owned()
-                ]
+                if f1.stages == vec![AuthType::Password]
+                    && f2.stages == vec![AuthType::EmailIdentity, AuthType::Msisdn]
             )
             && from_json_str::<JsonValue>(params.get()).unwrap() == json!({
                 "example.type.baz": {

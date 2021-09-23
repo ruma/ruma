@@ -11,7 +11,7 @@ use ruma_api::{
 };
 use ruma_common::thirdparty::Medium;
 use ruma_identifiers::{ClientSecret, SessionId};
-use ruma_serde::Outgoing;
+use ruma_serde::{Outgoing, StringEnum};
 use serde::{
     de::{self, DeserializeOwned},
     Deserialize, Deserializer, Serialize,
@@ -25,7 +25,7 @@ use crate::error::{Error as MatrixError, ErrorBody};
 pub mod authorize_fallback;
 mod user_serde;
 
-/// Additional authentication information for the user-interactive authentication API.
+/// Information for one authentication stage.
 #[derive(Clone, Debug, Outgoing, Serialize)]
 #[non_exhaustive]
 #[incoming_derive(!Deserialize)]
@@ -52,7 +52,7 @@ pub enum AuthData<'a> {
     /// Dummy authentication (`m.login.dummy`).
     Dummy(Dummy<'a>),
 
-    /// Registration token-based authentication (`org.matrix.msc3231.login.registration_token`)
+    /// Registration token-based authentication (`org.matrix.msc3231.login.registration_token`).
     #[cfg(feature = "unstable-pre-spec")]
     #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     RegistrationToken(RegistrationToken<'a>),
@@ -71,19 +71,19 @@ impl<'a> AuthData<'a> {
     }
 
     /// Returns the value of the `type` field, if it exists.
-    pub fn auth_type(&self) -> Option<&'a str> {
+    pub fn auth_type(&self) -> Option<AuthType> {
         match self {
-            Self::Password(_) => Some("m.login.password"),
-            Self::ReCaptcha(_) => Some("m.login.recaptcha"),
-            Self::Token(_) => Some("m.login.token"),
-            Self::OAuth2(_) => Some("m.login.oauth2"),
-            Self::EmailIdentity(_) => Some("m.login.email.identity"),
-            Self::Msisdn(_) => Some("m.login.msisdn"),
-            Self::Dummy(_) => Some("m.login.dummy"),
+            Self::Password(_) => Some(AuthType::Password),
+            Self::ReCaptcha(_) => Some(AuthType::ReCaptcha),
+            Self::Token(_) => Some(AuthType::Token),
+            Self::OAuth2(_) => Some(AuthType::OAuth2),
+            Self::EmailIdentity(_) => Some(AuthType::EmailIdentity),
+            Self::Msisdn(_) => Some(AuthType::Msisdn),
+            Self::Dummy(_) => Some(AuthType::Dummy),
             #[cfg(feature = "unstable-pre-spec")]
-            Self::RegistrationToken(_) => Some("org.matrix.msc3231.login.registration_token"),
+            Self::RegistrationToken(_) => Some(AuthType::RegistrationToken),
             Self::FallbackAcknowledgement(_) => None,
-            Self::_Custom(c) => Some(c.auth_type),
+            Self::_Custom(c) => Some(AuthType::_Custom(c.auth_type.to_owned())),
         }
     }
 
@@ -107,19 +107,19 @@ impl<'a> AuthData<'a> {
 
 impl IncomingAuthData {
     /// Returns the value of the `type` field, if it exists.
-    pub fn auth_type(&self) -> Option<&str> {
+    pub fn auth_type(&self) -> Option<AuthType> {
         match self {
-            Self::Password(_) => Some("m.login.password"),
-            Self::ReCaptcha(_) => Some("m.login.recaptcha"),
-            Self::Token(_) => Some("m.login.token"),
-            Self::OAuth2(_) => Some("m.login.oauth2"),
-            Self::EmailIdentity(_) => Some("m.login.email.identity"),
-            Self::Msisdn(_) => Some("m.login.msisdn"),
-            Self::Dummy(_) => Some("m.login.dummy"),
+            Self::Password(_) => Some(AuthType::Password),
+            Self::ReCaptcha(_) => Some(AuthType::ReCaptcha),
+            Self::Token(_) => Some(AuthType::Token),
+            Self::OAuth2(_) => Some(AuthType::OAuth2),
+            Self::EmailIdentity(_) => Some(AuthType::EmailIdentity),
+            Self::Msisdn(_) => Some(AuthType::Msisdn),
+            Self::Dummy(_) => Some(AuthType::Dummy),
             #[cfg(feature = "unstable-pre-spec")]
-            Self::RegistrationToken(_) => Some("org.matrix.msc3231.login.registration_token"),
+            Self::RegistrationToken(_) => Some(AuthType::RegistrationToken),
             Self::FallbackAcknowledgement(_) => None,
-            Self::_Custom(c) => Some(&c.auth_type),
+            Self::_Custom(c) => Some(AuthType::_Custom(c.auth_type.clone())),
         }
     }
 
@@ -180,6 +180,48 @@ impl<'de> Deserialize<'de> for IncomingAuthData {
             Some(_) => from_raw_json_value(&json).map(Self::_Custom),
         }
     }
+}
+
+/// The type of an authentication stage.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[non_exhaustive]
+pub enum AuthType {
+    /// Password-based authentication (`m.login.password`).
+    #[ruma_enum(rename = "m.login.password")]
+    Password,
+
+    /// Google ReCaptcha 2.0 authentication (`m.login.recaptcha`).
+    #[ruma_enum(rename = "m.login.recaptcha")]
+    ReCaptcha,
+
+    /// Token-based authentication (`m.login.token`).
+    #[ruma_enum(rename = "m.login.token")]
+    Token,
+
+    /// OAuth2-based authentication (`m.login.oauth2`).
+    #[ruma_enum(rename = "m.login.oauth2")]
+    OAuth2,
+
+    /// Email-based authentication (`m.login.email.identity`).
+    #[ruma_enum(rename = "m.login.email.identity")]
+    EmailIdentity,
+
+    /// Phone number-based authentication (`m.login.msisdn`).
+    #[ruma_enum(rename = "m.login.msisdn")]
+    Msisdn,
+
+    /// Dummy authentication (`m.login.dummy`).
+    #[ruma_enum(rename = "m.login.dummy")]
+    Dummy,
+
+    /// Registration token-based authentication (`org.matrix.msc3231.login.registration_token`).
+    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+    #[ruma_enum(rename = "org.matrix.msc3231.login.registration_token")]
+    RegistrationToken,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 /// Data for password-based UIAA flow.
@@ -475,7 +517,7 @@ pub struct UiaaInfo {
 
     /// List of stages in the current flow completed by the client.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub completed: Vec<String>,
+    pub completed: Vec<AuthType>,
 
     /// Authentication parameters required for the client to complete authentication.
     ///
@@ -504,14 +546,14 @@ impl UiaaInfo {
 pub struct AuthFlow {
     /// Ordered list of stages required to complete authentication.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub stages: Vec<String>,
+    pub stages: Vec<AuthType>,
 }
 
 impl AuthFlow {
     /// Creates a new `AuthFlow` with the given stages.
     ///
     /// To create an empty `AuthFlow`, use `AuthFlow::default()`.
-    pub fn new(stages: Vec<String>) -> Self {
+    pub fn new(stages: Vec<AuthType>) -> Self {
         Self { stages }
     }
 }
