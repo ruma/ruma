@@ -65,9 +65,7 @@ impl EventId {
 
         Self { full_id, colon_idx: NonZeroU8::new(19) }
     }
-}
 
-impl EventId {
     /// Returns the event's unique ID. For the original event format as used by Matrix room
     /// versions 1 and 2, this is the "localpart" that precedes the homeserver. For later formats,
     /// this is the entire ID without the leading $ sigil.

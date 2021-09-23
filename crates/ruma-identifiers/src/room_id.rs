@@ -43,9 +43,7 @@ impl RoomId {
 
         Self { full_id, colon_idx: NonZeroU8::new(19).unwrap() }
     }
-}
 
-impl RoomId {
     /// Returns the rooms's unique ID.
     pub fn localpart(&self) -> &str {
         &self.full_id[1..self.colon_idx.get() as usize]
