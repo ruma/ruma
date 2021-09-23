@@ -117,11 +117,9 @@ impl serde::Serialize for MxcUri {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
+    use std::convert::TryInto;
 
     use ruma_identifiers_validation::error::MxcUriError;
-
-    use crate::ServerName;
 
     use super::MxcUri;
 
@@ -132,10 +130,7 @@ mod tests {
         assert!(mxc.is_valid());
         assert_eq!(
             mxc.parts(),
-            Ok((
-                <&ServerName>::try_from("127.0.0.1").expect("Failed to create ServerName"),
-                "asd32asdfasdsd"
-            ))
+            Ok(("127.0.0.1".try_into().expect("Failed to create ServerName"), "asd32asdfasdsd"))
         );
     }
 
@@ -172,7 +167,7 @@ mod tests {
         assert!(mxc.is_valid());
         assert_eq!(
             mxc.parts(),
-            Ok((<&ServerName>::try_from("server").expect("Failed to create ServerName"), "1234id"))
+            Ok(("server".try_into().expect("Failed to create ServerName"), "1234id"))
         );
     }
 }

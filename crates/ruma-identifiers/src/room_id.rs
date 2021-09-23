@@ -96,11 +96,9 @@ mod tests {
     #[cfg(feature = "rand")]
     #[test]
     fn generate_random_valid_room_id() {
-        use crate::ServerName;
+        use crate::server_name;
 
-        let server_name =
-            <&ServerName>::try_from("example.com").expect("Failed to parse ServerName");
-        let room_id = RoomId::new(server_name);
+        let room_id = RoomId::new(&server_name!("example.com"));
         let id_str = room_id.as_str();
 
         assert!(id_str.starts_with('!'));

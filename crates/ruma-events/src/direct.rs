@@ -37,9 +37,9 @@ impl DerefMut for DirectEventContent {
 
 #[cfg(test)]
 mod tests {
-    use std::{collections::BTreeMap, convert::TryFrom};
+    use std::collections::BTreeMap;
 
-    use ruma_identifiers::{RoomId, ServerName, UserId};
+    use ruma_identifiers::{server_name, RoomId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{DirectEvent, DirectEventContent};
@@ -47,9 +47,9 @@ mod tests {
     #[test]
     fn serialization() {
         let mut content = DirectEventContent(BTreeMap::new());
-        let server_name = <&ServerName>::try_from("ruma.io").unwrap();
-        let alice = UserId::new(server_name);
-        let room = vec![RoomId::new(server_name)];
+        let server_name = server_name!("ruma.io");
+        let alice = UserId::new(&server_name);
+        let room = vec![RoomId::new(&server_name)];
 
         content.insert(alice.clone(), room.clone());
 
@@ -66,9 +66,9 @@ mod tests {
 
     #[test]
     fn deserialization() {
-        let server_name = <&ServerName>::try_from("ruma.io").unwrap();
-        let alice = UserId::new(server_name);
-        let rooms = vec![RoomId::new(server_name), RoomId::new(server_name)];
+        let server_name = server_name!("ruma.io");
+        let alice = UserId::new(&server_name);
+        let rooms = vec![RoomId::new(&server_name), RoomId::new(&server_name)];
 
         let json_data = json!({
             "content": {

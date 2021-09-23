@@ -141,11 +141,9 @@ mod tests {
     #[cfg(feature = "rand")]
     #[test]
     fn generate_random_valid_event_id() {
-        use crate::ServerName;
+        use crate::server_name;
 
-        let server_name =
-            <&ServerName>::try_from("example.com").expect("Failed to parse ServerName");
-        let event_id = EventId::new(server_name);
+        let event_id = EventId::new(&server_name!("example.com"));
         let id_str = event_id.as_str();
 
         assert!(id_str.starts_with('$'));
