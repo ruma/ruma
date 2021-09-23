@@ -1,8 +1,13 @@
 # [unreleased]
 
+Breaking changes:
+
+* Use an enum for user-interactive auth stage type (used to be `&str` / `String`)
+
 Improvements:
 
 * Add unstable support for reasons in the membership endpoints:
+
   ```rust
   r0::membership::{
     join_room_by_id,
