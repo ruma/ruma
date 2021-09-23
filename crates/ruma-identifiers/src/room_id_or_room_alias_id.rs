@@ -1,6 +1,11 @@
 //! Matrix identifiers for places where a room ID or room alias ID are used interchangeably.
 
-use std::{convert::TryFrom, fmt, hint::unreachable_unchecked, num::NonZeroU8};
+use std::{
+    convert::{TryFrom, TryInto},
+    fmt,
+    hint::unreachable_unchecked,
+    num::NonZeroU8,
+};
 
 use crate::{server_name::ServerName, RoomAliasId, RoomId};
 
@@ -43,7 +48,7 @@ impl RoomIdOrAliasId {
 
     /// Returns the server name of the room (alias) ID.
     pub fn server_name(&self) -> &ServerName {
-        <&ServerName>::try_from(&self.full_id[self.colon_idx.get() as usize + 1..]).unwrap()
+        self.full_id[self.colon_idx.get() as usize + 1..].try_into().unwrap()
     }
 
     /// Whether this is a room id (starts with `'!'`)
