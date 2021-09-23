@@ -30,8 +30,14 @@ ruma_api! {
         pub room_id: &'a RoomId,
 
         /// The user to invite.
-        #[ruma_api(body)]
+        #[serde(flatten)]
         pub recipient: InvitationRecipient<'a>,
+
+        /// Optional reason for inviting the user.
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub reason: Option<&'a str>,
     }
 
     #[derive(Default)]
@@ -43,7 +49,12 @@ ruma_api! {
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given room ID and invitation recipient.
     pub fn new(room_id: &'a RoomId, recipient: InvitationRecipient<'a>) -> Self {
-        Self { room_id, recipient }
+        Self {
+            room_id,
+            recipient,
+            #[cfg(feature = "unstable-pre-spec")]
+            reason: None,
+        }
     }
 }
 
