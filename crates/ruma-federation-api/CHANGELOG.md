@@ -4,6 +4,7 @@ Breaking changes:
 
 * Replace `Raw<Pdu>` with `Box<RawJsonValue>` or `&RawJsonValue`
 * Borrow more request fields
+* Make `device_display_name` field optional in `DeviceListUpdateContent` and update constructor accordingly
 
 # 0.3.1
 
