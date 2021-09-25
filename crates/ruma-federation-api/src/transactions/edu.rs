@@ -281,7 +281,7 @@ pub type DirectDeviceMessages =
 mod test {
     use js_int::uint;
     use matches::assert_matches;
-    use ruma_identifiers::{device_id, room_id, user_id};
+    use ruma_identifiers::{room_id, user_id};
     use serde_json::json;
 
     use super::*;
@@ -289,34 +289,34 @@ mod test {
     #[test]
     fn device_list_update_edu() {
         let json = json!({
-                "content": {
-                    "deleted": false,
-                    "device_display_name": "Mobile",
-                    "device_id": "QBUAZIFURK",
+            "content": {
+                "deleted": false,
+                "device_display_name": "Mobile",
+                "device_id": "QBUAZIFURK",
+                "keys": {
+                    "algorithms": [
+                        "m.olm.v1.curve25519-aes-sha2",
+                        "m.megolm.v1.aes-sha2"
+                    ],
+                    "device_id": "JLAFKJWSCS",
                     "keys": {
-                        "algorithms": [
-                            "m.olm.v1.curve25519-aes-sha2",
-                            "m.megolm.v1.aes-sha2"
-                        ],
-                        "device_id": "JLAFKJWSCS",
-                        "keys": {
-                            "curve25519:JLAFKJWSCS": "3C5BFWi2Y8MaVvjM8M22DBmh24PmgR0nPvJOIArzgyI",
-                            "ed25519:JLAFKJWSCS": "lEuiRJBit0IG6nUf5pUzWTUEsRVVe/HJkoKuEww9ULI"
-                        },
-                        "signatures": {
-                            "@alice:example.com": {
-                                "ed25519:JLAFKJWSCS": "dSO80A01XiigH3uBiDVx/EjzaoycHcjq9lfQX0uWsqxl2giMIiSPR8a4d291W1ihKJL/a+myXS367WT6NAIcBA"
-                            }
-                        },
-                        "user_id": "@alice:example.com"
+                        "curve25519:JLAFKJWSCS": "3C5BFWi2Y8MaVvjM8M22DBmh24PmgR0nPvJOIArzgyI",
+                        "ed25519:JLAFKJWSCS": "lEuiRJBit0IG6nUf5pUzWTUEsRVVe/HJkoKuEww9ULI"
                     },
-                    "stream_id": 6,
-                    "user_id": "@john:example.com"
+                    "signatures": {
+                        "@alice:example.com": {
+                            "ed25519:JLAFKJWSCS": "dSO80A01XiigH3uBiDVx/EjzaoycHcjq9lfQX0uWsqxl2giMIiSPR8a4d291W1ihKJL/a+myXS367WT6NAIcBA"
+                        }
+                    },
+                    "user_id": "@alice:example.com"
                 },
+                "stream_id": 6,
+                "user_id": "@john:example.com"
+            },
             "edu_type": "m.device_list_update"
         });
 
-        let edu = serde_json::from_value::<Edu>(json).unwrap();
+        let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
         assert_matches!(
             &edu,
             Edu::DeviceListUpdate(DeviceListUpdateContent {
@@ -327,33 +327,30 @@ mod test {
                 prev_id,
                 deleted,
                 keys
-            }) if user_id == &user_id!("@john:example.com")
-                && device_id == &device_id!("QBUAZIFURK")
+            }) if user_id == "@john:example.com"
+                && device_id == "QBUAZIFURK"
                 && device_display_name.as_deref() == Some("Mobile")
-                && stream_id == &uint!(6)
+                && *stream_id == uint!(6)
                 && prev_id.is_empty()
-                && deleted == &Some(false)
+                && *deleted == Some(false)
                 && keys.is_some()
         );
 
-        assert_eq!(
-            serde_json::to_string(&edu).unwrap(),
-            r#"{"edu_type":"m.device_list_update","content":{"user_id":"@john:example.com","device_id":"QBUAZIFURK","device_display_name":"Mobile","stream_id":6,"deleted":false,"keys":{"user_id":"@alice:example.com","device_id":"JLAFKJWSCS","algorithms":["m.olm.v1.curve25519-aes-sha2","m.megolm.v1.aes-sha2"],"keys":{"curve25519:JLAFKJWSCS":"3C5BFWi2Y8MaVvjM8M22DBmh24PmgR0nPvJOIArzgyI","ed25519:JLAFKJWSCS":"lEuiRJBit0IG6nUf5pUzWTUEsRVVe/HJkoKuEww9ULI"},"signatures":{"@alice:example.com":{"ed25519:JLAFKJWSCS":"dSO80A01XiigH3uBiDVx/EjzaoycHcjq9lfQX0uWsqxl2giMIiSPR8a4d291W1ihKJL/a+myXS367WT6NAIcBA"}}}}}"#
-        );
+        assert_eq!(serde_json::to_value(&edu).unwrap(), json);
     }
 
     #[test]
     fn minimal_device_list_update_edu() {
         let json = json!({
-                "content": {
-                    "device_id": "QBUAZIFURK",
-                    "stream_id": 6,
-                    "user_id": "@john:example.com"
-                },
+            "content": {
+                "device_id": "QBUAZIFURK",
+                "stream_id": 6,
+                "user_id": "@john:example.com"
+            },
             "edu_type": "m.device_list_update"
         });
 
-        let edu = serde_json::from_value::<Edu>(json).unwrap();
+        let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
         assert_matches!(
             &edu,
             Edu::DeviceListUpdate(DeviceListUpdateContent {
@@ -364,19 +361,16 @@ mod test {
                 prev_id,
                 deleted,
                 keys
-            }) if user_id == &user_id!("@john:example.com")
-                && device_id == &device_id!("QBUAZIFURK")
+            }) if user_id == "@john:example.com"
+                && device_id == "QBUAZIFURK"
                 && device_display_name.is_none()
-                && stream_id == &uint!(6)
+                && *stream_id == uint!(6)
                 && prev_id.is_empty()
                 && deleted.is_none()
                 && keys.is_none()
         );
 
-        assert_eq!(
-            serde_json::to_string(&edu).unwrap(),
-            r#"{"edu_type":"m.device_list_update","content":{"user_id":"@john:example.com","device_id":"QBUAZIFURK","stream_id":6}}"#
-        );
+        assert_eq!(serde_json::to_value(&edu).unwrap(), json);
     }
 
     #[test]
@@ -399,17 +393,14 @@ mod test {
             "edu_type": "m.receipt"
         });
 
-        let edu = serde_json::from_value::<Edu>(json).unwrap();
+        let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
         assert_matches!(
             &edu,
             Edu::Receipt(ReceiptContent { receipts })
                 if receipts.get(&room_id!("!some_room:example.org")).is_some()
         );
 
-        assert_eq!(
-            serde_json::to_string(&edu).unwrap(),
-            r#"{"edu_type":"m.receipt","content":{"!some_room:example.org":{"m.read":{"@john:matrix.org":{"data":{"ts":1533358},"event_ids":["$read_this_event:matrix.org"]}}}}}"#
-        );
+        assert_eq!(serde_json::to_value(&edu).unwrap(), json);
     }
 
     #[test]
@@ -423,20 +414,17 @@ mod test {
             "edu_type": "m.typing"
         });
 
-        let edu = serde_json::from_value::<Edu>(json).unwrap();
+        let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
         assert_matches!(
             &edu,
             Edu::Typing(TypingContent {
                 room_id, user_id, typing
-            }) if room_id == &room_id!("!somewhere:matrix.org")
-                && user_id == &user_id!("@john:matrix.org")
+            }) if room_id == "!somewhere:matrix.org"
+                && user_id == "@john:matrix.org"
                 && *typing
         );
 
-        assert_eq!(
-            serde_json::to_string(&edu).unwrap(),
-            r#"{"edu_type":"m.typing","content":{"room_id":"!somewhere:matrix.org","user_id":"@john:matrix.org","typing":true}}"#
-        );
+        assert_eq!(serde_json::to_value(&edu).unwrap(), json);
     }
 
     #[test]
@@ -460,20 +448,17 @@ mod test {
             "edu_type": "m.direct_to_device"
         });
 
-        let edu = serde_json::from_value::<Edu>(json).unwrap();
+        let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
         assert_matches!(
             &edu,
             Edu::DirectToDevice(DirectDeviceContent {
                 sender, ev_type, message_id, messages
-            }) if sender == &user_id!("@john:example.com")
-                && ev_type == &EventType::RoomKeyRequest
+            }) if sender == "@john:example.com"
+                && *ev_type == EventType::RoomKeyRequest
                 && message_id == "hiezohf6Hoo7kaev"
                 && messages.get(&user_id!("@alice:example.org")).is_some()
         );
 
-        assert_eq!(
-            serde_json::to_string(&edu).unwrap(),
-            r#"{"edu_type":"m.direct_to_device","content":{"sender":"@john:example.com","type":"m.room_key_request","message_id":"hiezohf6Hoo7kaev","messages":{"@alice:example.org":{"IWHQUZUIAH":{"algorithm":"m.megolm.v1.aes-sha2","room_id":"!Cuyf34gef24t:localhost","session_id":"X3lUlvLELLYxeTx4yOVu6UDpasGEVO0Jbu+QFnm0cKQ","session_key":"AgAAAADxKHa9uFxcXzwYoNueL5Xqi69IkD4sni8LlfJL7qNBEY..."}}}}}"#
-        );
+        assert_eq!(serde_json::to_value(&edu).unwrap(), json);
     }
 }
