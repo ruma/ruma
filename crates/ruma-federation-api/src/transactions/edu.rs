@@ -113,7 +113,7 @@ pub struct PresenceUpdate {
 }
 
 impl PresenceUpdate {
-    /// Creates a new `PresenceUpdate` with default `status_msg` and `currently_active`.
+    /// Creates a new `PresenceUpdate` with the given `user_id`, `presence` and `last_activity`.
     pub fn new(user_id: UserId, presence: PresenceState, last_activity: UInt) -> Self {
         Self {
             user_id,
@@ -228,8 +228,8 @@ pub struct DeviceListUpdateContent {
 }
 
 impl DeviceListUpdateContent {
-    /// Creates a new `DeviceListUpdateContent` with default `prev_id`, `deleted`,
-    /// `device_display_name` and `keys` fields.
+    /// Create a new `DeviceListUpdateContent` with the given `user_id`, `device_id` and
+    /// `stream_id`.
     pub fn new(user_id: UserId, device_id: DeviceIdBox, stream_id: UInt) -> Self {
         Self {
             user_id,
@@ -265,7 +265,7 @@ pub struct DirectDeviceContent {
 }
 
 impl DirectDeviceContent {
-    /// Creates a new `DirectDeviceContent` with an empty `messages` map.
+    /// Creates a new `DirectDeviceContent` with the given `sender, `ev_type` and `message_id`.
     pub fn new(sender: UserId, ev_type: EventType, message_id: String) -> Self {
         Self { sender, ev_type, message_id, messages: DirectDeviceMessages::new() }
     }
