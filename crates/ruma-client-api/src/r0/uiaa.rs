@@ -189,7 +189,6 @@ impl IncomingAuthData {
             "m.login.msisdn" => Self::Msisdn(deserialize_variant(session, data)?),
             "m.login.dummy" => Self::Dummy(deserialize_variant(session, data)?),
             #[cfg(feature = "unstable-pre-spec")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
             "org.matrix.msc3231.login.registration_token" => {
                 Self::RegistrationToken(deserialize_variant(session, data)?)
             }
