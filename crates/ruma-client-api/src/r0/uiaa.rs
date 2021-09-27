@@ -519,10 +519,10 @@ impl<'a> FallbackAcknowledgement<'a> {
 #[non_exhaustive]
 pub struct CustomAuthData<'a> {
     #[serde(rename = "type")]
-    pub auth_type: &'a str,
-    pub session: Option<&'a str>,
+    auth_type: &'a str,
+    session: Option<&'a str>,
     #[serde(flatten)]
-    pub extra: JsonObject,
+    extra: JsonObject,
 }
 
 #[doc(hidden)]
@@ -530,10 +530,10 @@ pub struct CustomAuthData<'a> {
 #[non_exhaustive]
 pub struct IncomingCustomAuthData {
     #[serde(rename = "type")]
-    pub auth_type: String,
-    pub session: Option<String>,
+    auth_type: String,
+    session: Option<String>,
     #[serde(flatten)]
-    pub extra: JsonObject,
+    extra: JsonObject,
 }
 
 impl Outgoing for CustomAuthData<'_> {
