@@ -3,6 +3,9 @@
 Breaking changes:
 
 * Use an enum for user-interactive auth stage type (used to be `&str` / `String`)
+* Make `r0::uiaa::ThirdpartyIdCredentials` an owned type and remove its `Incoming` equivalent
+  * Previously, we had two fields of type `&'a [ThirdpartyIdCredentials<'a>]` and this kind of
+    nested borrowing can be very annoying
 
 Improvements:
 

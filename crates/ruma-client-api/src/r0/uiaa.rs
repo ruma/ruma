@@ -333,7 +333,7 @@ impl<'a> OAuth2<'a> {
 pub struct EmailIdentity<'a> {
     /// Thirdparty identifier credentials.
     #[serde(rename = "threepidCreds")]
-    pub thirdparty_id_creds: &'a [ThirdpartyIdCredentials<'a>],
+    pub thirdparty_id_creds: &'a [ThirdpartyIdCredentials],
 
     /// The value of the session key given by the homeserver, if any.
     pub session: Option<&'a str>,
@@ -350,7 +350,7 @@ pub struct EmailIdentity<'a> {
 pub struct Msisdn<'a> {
     /// Thirdparty identifier credentials.
     #[serde(rename = "threepidCreds")]
-    pub thirdparty_id_creds: &'a [ThirdpartyIdCredentials<'a>],
+    pub thirdparty_id_creds: &'a [ThirdpartyIdCredentials],
 
     /// The value of the session key given by the homeserver, if any.
     pub session: Option<&'a str>,
@@ -478,30 +478,30 @@ pub enum UserIdentifier<'a> {
 }
 
 /// Credentials for thirdparty authentification (e.g. email / phone number).
-#[derive(Clone, Debug, Outgoing, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct ThirdpartyIdCredentials<'a> {
+pub struct ThirdpartyIdCredentials {
     /// Identity server session ID.
-    pub sid: &'a SessionId,
+    pub sid: Box<SessionId>,
 
     /// Identity server client secret.
-    pub client_secret: &'a ClientSecret,
+    pub client_secret: Box<ClientSecret>,
 
     /// Identity server URL.
-    pub id_server: &'a str,
+    pub id_server: String,
 
     /// Identity server access token.
-    pub id_access_token: &'a str,
+    pub id_access_token: String,
 }
 
-impl<'a> ThirdpartyIdCredentials<'a> {
+impl ThirdpartyIdCredentials {
     /// Creates a new `ThirdpartyIdCredentials` with the given session ID, client secret, identity
     /// server address and access token.
     pub fn new(
-        sid: &'a SessionId,
-        client_secret: &'a ClientSecret,
-        id_server: &'a str,
-        id_access_token: &'a str,
+        sid: Box<SessionId>,
+        client_secret: Box<ClientSecret>,
+        id_server: String,
+        id_access_token: String,
     ) -> Self {
         Self { sid, client_secret, id_server, id_access_token }
     }
