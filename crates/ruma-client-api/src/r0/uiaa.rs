@@ -433,6 +433,13 @@ pub struct CustomAuthData<'a> {
     pub extra: BTreeMap<String, JsonValue>,
 }
 
+impl<'a> CustomAuthData<'a> {
+    /// Creates a new `CustomAuthData` with the given `auth_type`.
+    pub fn new(auth_type: &'a str) -> Self {
+        Self { auth_type, session: None, extra: BTreeMap::new() }
+    }
+}
+
 #[doc(hidden)]
 #[derive(Clone, Debug, Deserialize)]
 #[non_exhaustive]
