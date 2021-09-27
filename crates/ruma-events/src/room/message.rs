@@ -255,12 +255,18 @@ impl MessageType {
 
     /// Returns the associated data.
     ///
+    /// The returned JSON object won't contain the `msgtype` and `body` fields, use
+    /// [`.msgtype()`][Self::msgtype] / [`.body()`](Self::body) to access those.
+    ///
     /// Prefer to use the public variants of `MessageType` where possible; this method is meant to
     /// be used for custom message types only.
     pub fn data(&self) -> Cow<'_, JsonObject> {
         fn serialize<T: Serialize>(obj: &T) -> JsonObject {
             match serde_json::to_value(obj).expect("message type serialization to succeed") {
-                JsonValue::Object(obj) => obj,
+                JsonValue::Object(mut obj) => {
+                    obj.remove("body");
+                    obj
+                }
                 _ => panic!("all message types must serialize to objects"),
             }
         }
