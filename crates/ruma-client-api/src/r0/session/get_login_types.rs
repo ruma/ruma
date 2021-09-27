@@ -5,12 +5,11 @@ use std::borrow::Cow;
 use ruma_api::ruma_api;
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_identifiers::MxcUri;
+use ruma_serde::JsonObject;
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_serde::StringEnum;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
-
-type JsonObject = serde_json::Map<String, JsonValue>;
 
 ruma_api! {
     metadata: {

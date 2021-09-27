@@ -8,7 +8,7 @@ use ruma_events_macros::EventContent;
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_identifiers::{DeviceIdBox, UserId};
 use ruma_identifiers::{EventId, MxcUri};
-use ruma_serde::StringEnum;
+use ruma_serde::{JsonObject, StringEnum};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
@@ -19,8 +19,6 @@ use crate::key::verification::VerificationMethod;
 mod content_serde;
 pub mod feedback;
 mod relation_serde;
-
-type JsonObject = serde_json::Map<String, JsonValue>;
 
 /// This event is used when sending messages in a room.
 ///

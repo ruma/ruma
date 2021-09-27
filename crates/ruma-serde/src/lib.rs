@@ -4,6 +4,8 @@
 
 #![warn(missing_docs)]
 
+use serde_json::Value as JsonValue;
+
 mod buf;
 pub mod can_be_empty;
 mod canonical_json;
@@ -31,6 +33,9 @@ pub use strings::{
     btreemap_int_or_string_to_int_values, empty_string_as_none, int_or_string_to_int,
     none_as_empty_string,
 };
+
+/// The inner type of [`serde_json::Value:::Object`].
+pub type JsonObject = serde_json::Map<String, JsonValue>;
 
 /// Check whether a value is equal to its default value.
 pub fn is_default<T: Default + PartialEq>(val: &T) -> bool {
