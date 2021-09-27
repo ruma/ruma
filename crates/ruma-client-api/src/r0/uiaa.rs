@@ -26,6 +26,9 @@ pub mod authorize_fallback;
 mod user_serde;
 
 /// Information for one authentication stage.
+///
+/// To construct the custom `AuthData` variant you first have to construct [`IncomingAuthData::new`]
+/// and then call [`IncomingAuthData::to_outgoing`] on it.
 #[derive(Clone, Debug, Outgoing, Serialize)]
 #[non_exhaustive]
 #[incoming_derive(!Deserialize)]
@@ -146,12 +149,58 @@ impl<'a> AuthData<'a> {
             }
             // Dummy and fallback acknowledgement have no associated data
             Self::Dummy(_) | Self::FallbackAcknowledgement(_) => Cow::Owned(JsonObject::default()),
-            Self::_Custom(c) => Cow::Borrowed(&c.extra),
+            Self::_Custom(c) => Cow::Borrowed(c.extra),
         }
     }
 }
 
 impl IncomingAuthData {
+    /// Creates a new `IncomingAuthData` with the given `auth_type` string, session and data.
+    ///
+    /// Prefer to use the public variants of `IncomingAuthData` where possible; this constructor is
+    /// meant be used for unsupported message types only and does not allow setting arbitrary
+    /// data for supported ones. This method can't construct the `RegistrationToken` variant.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the `auth_type` is known and serialization of `data` to the
+    /// corresponding `IncomingAuthData` variant fails.
+    pub fn new(
+        auth_type: &str,
+        session: Option<String>,
+        data: JsonObject,
+    ) -> serde_json::Result<Self> {
+        fn deserialize_variant<T: DeserializeOwned>(
+            session: Option<String>,
+            mut obj: JsonObject,
+        ) -> serde_json::Result<T> {
+            if let Some(session) = session {
+                obj.insert("session".into(), session.into());
+            }
+            serde_json::from_value(JsonValue::Object(obj))
+        }
+
+        Ok(match auth_type {
+            "m.login.password" => Self::Password(deserialize_variant(session, data)?),
+            "m.login.recaptcha" => Self::ReCaptcha(deserialize_variant(session, data)?),
+            "m.login.token" => Self::Token(deserialize_variant(session, data)?),
+            "m.login.oauth2" => Self::OAuth2(deserialize_variant(session, data)?),
+            "m.login.email.identity" => Self::EmailIdentity(deserialize_variant(session, data)?),
+            "m.login.msisdn" => Self::Msisdn(deserialize_variant(session, data)?),
+            "m.login.dummy" => Self::Dummy(deserialize_variant(session, data)?),
+            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+            "org.matrix.msc3231.login.registration_token" => {
+                Self::RegistrationToken(deserialize_variant(session, data)?)
+            }
+            _ => Self::_Custom(IncomingCustomAuthData {
+                auth_type: auth_type.into(),
+                session,
+                extra: data,
+            }),
+        })
+    }
+
     /// Returns the value of the `type` field, if it exists.
     pub fn auth_type(&self) -> Option<AuthType> {
         match self {
@@ -229,6 +278,27 @@ impl IncomingAuthData {
             // Dummy and fallback acknowledgement have no associated data
             Self::Dummy(_) | Self::FallbackAcknowledgement(_) => Cow::Owned(JsonObject::default()),
             Self::_Custom(c) => Cow::Borrowed(&c.extra),
+        }
+    }
+
+    /// Convert `IncomingAuthData` to `AuthData`.
+    pub fn to_outgoing(&self) -> AuthData<'_> {
+        match self {
+            Self::Password(a) => AuthData::Password(a.to_outgoing()),
+            Self::ReCaptcha(a) => AuthData::ReCaptcha(a.to_outgoing()),
+            Self::Token(a) => AuthData::Token(a.to_outgoing()),
+            Self::OAuth2(a) => AuthData::OAuth2(a.to_outgoing()),
+            Self::EmailIdentity(a) => AuthData::EmailIdentity(a.to_outgoing()),
+            Self::Msisdn(a) => AuthData::Msisdn(a.to_outgoing()),
+            Self::Dummy(a) => AuthData::Dummy(a.to_outgoing()),
+            #[cfg(feature = "unstable-pre-spec")]
+            Self::RegistrationToken(a) => AuthData::RegistrationToken(a.to_outgoing()),
+            Self::FallbackAcknowledgement(a) => AuthData::FallbackAcknowledgement(a.to_outgoing()),
+            Self::_Custom(a) => AuthData::_Custom(CustomAuthData {
+                auth_type: a.auth_type.as_ref(),
+                session: a.session.as_deref(),
+                extra: &a.extra,
+            }),
         }
     }
 }
@@ -342,6 +412,17 @@ impl<'a> Password<'a> {
     }
 }
 
+impl IncomingPassword {
+    /// Convert `IncomingPassword` to `Password`.
+    fn to_outgoing(&self) -> Password<'_> {
+        Password {
+            identifier: self.identifier.to_outgoing(),
+            password: &self.password,
+            session: self.session.as_deref(),
+        }
+    }
+}
+
 /// Data for ReCaptcha UIAA flow.
 ///
 /// See [the spec] for how to use this.
@@ -362,6 +443,13 @@ impl<'a> ReCaptcha<'a> {
     /// Creates a new `ReCaptcha` with the given response string.
     pub fn new(response: &'a str) -> Self {
         Self { response, session: None }
+    }
+}
+
+impl IncomingReCaptcha {
+    /// Convert `IncomingReCaptcha` to `ReCaptcha`.
+    fn to_outgoing(&self) -> ReCaptcha<'_> {
+        ReCaptcha { response: &self.response, session: self.session.as_deref() }
     }
 }
 
@@ -391,6 +479,13 @@ impl<'a> Token<'a> {
     }
 }
 
+impl IncomingToken {
+    /// Convert `IncomingToken` to `Token`.
+    fn to_outgoing(&self) -> Token<'_> {
+        Token { token: &self.token, txn_id: &self.txn_id, session: self.session.as_deref() }
+    }
+}
+
 /// Data for OAuth2-based UIAA flow.
 ///
 /// See [the spec] for how to use this.
@@ -414,6 +509,13 @@ impl<'a> OAuth2<'a> {
     }
 }
 
+impl IncomingOAuth2 {
+    /// Convert `IncomingOAuth2` to `OAuth2`.
+    fn to_outgoing(&self) -> OAuth2<'_> {
+        OAuth2 { uri: &self.uri, session: self.session.as_deref() }
+    }
+}
+
 /// Data for Email-based UIAA flow.
 ///
 /// See [the spec] for how to use this.
@@ -429,6 +531,16 @@ pub struct EmailIdentity<'a> {
 
     /// The value of the session key given by the homeserver, if any.
     pub session: Option<&'a str>,
+}
+
+impl IncomingEmailIdentity {
+    /// Convert `IncomingEmailIdentity` to `EmailIdentity`.
+    fn to_outgoing(&self) -> EmailIdentity<'_> {
+        EmailIdentity {
+            thirdparty_id_creds: &self.thirdparty_id_creds,
+            session: self.session.as_deref(),
+        }
+    }
 }
 
 /// Data for phone number-based UIAA flow.
@@ -448,6 +560,13 @@ pub struct Msisdn<'a> {
     pub session: Option<&'a str>,
 }
 
+impl IncomingMsisdn {
+    /// Convert `IncomingMsisdn` to `Msisdn`.
+    fn to_outgoing(&self) -> Msisdn<'_> {
+        Msisdn { thirdparty_id_creds: &self.thirdparty_id_creds, session: self.session.as_deref() }
+    }
+}
+
 /// Data for dummy UIAA flow.
 ///
 /// See [the spec] for how to use this.
@@ -465,6 +584,13 @@ impl Dummy<'_> {
     /// Creates an empty `Dummy`.
     pub fn new() -> Self {
         Self::default()
+    }
+}
+
+impl IncomingDummy {
+    /// Convert from `IncomingDummy` to `Dummy`.
+    fn to_outgoing(&self) -> Dummy<'_> {
+        Dummy { session: self.session.as_deref() }
     }
 }
 
@@ -495,6 +621,15 @@ impl<'a> RegistrationToken<'a> {
     }
 }
 
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+impl IncomingRegistrationToken {
+    /// Convert from `IncomingRegistrationToken` to `RegistrationToken`.
+    fn to_outgoing(&self) -> RegistrationToken<'_> {
+        RegistrationToken { token: &self.token, session: self.session.as_deref() }
+    }
+}
+
 /// Data for UIAA fallback acknowledgement.
 ///
 /// See [the spec] for how to use this.
@@ -514,6 +649,13 @@ impl<'a> FallbackAcknowledgement<'a> {
     }
 }
 
+impl IncomingFallbackAcknowledgement {
+    /// Convert from `IncomingFallbackAcknowledgement` to `FallbackAcknowledgement`.
+    fn to_outgoing(&self) -> FallbackAcknowledgement<'_> {
+        FallbackAcknowledgement { session: &self.session }
+    }
+}
+
 #[doc(hidden)]
 #[derive(Clone, Debug, Serialize)]
 #[non_exhaustive]
@@ -522,7 +664,7 @@ pub struct CustomAuthData<'a> {
     auth_type: &'a str,
     session: Option<&'a str>,
     #[serde(flatten)]
-    extra: JsonObject,
+    extra: &'a JsonObject,
 }
 
 #[doc(hidden)]
