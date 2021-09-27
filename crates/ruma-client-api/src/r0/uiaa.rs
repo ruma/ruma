@@ -158,8 +158,8 @@ impl IncomingAuthData {
     /// Creates a new `IncomingAuthData` with the given `auth_type` string, session and data.
     ///
     /// Prefer to use the public variants of `IncomingAuthData` where possible; this constructor is
-    /// meant be used for unsupported message types only and does not allow setting arbitrary
-    /// data for supported ones. This method can't construct the `RegistrationToken` variant.
+    /// meant be used for unsupported authentication types only and does not allow setting arbitrary
+    /// data for supported ones.
     ///
     /// # Errors
     ///
