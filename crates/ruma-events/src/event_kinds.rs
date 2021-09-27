@@ -325,7 +325,7 @@ pub struct DecryptedOlmV1Event<C: MessageEventContent> {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct OlmV1Keys {
     /// An ed25519 key.
-    ed25519: String,
+    pub ed25519: String,
 }
 
 /// The decrypted payload of an `m.megolm.v1.aes-sha2` event.
