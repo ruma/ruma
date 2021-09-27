@@ -258,7 +258,7 @@ impl MessageType {
     /// Returns the associated data.
     ///
     /// Prefer to use the public variants of `MessageType` where possible; this method is meant to
-    /// be used for unsupported message types only.
+    /// be used for custom message types only.
     pub fn data(&self) -> Cow<'_, JsonObject> {
         fn serialize<T: Serialize>(obj: &T) -> JsonObject {
             match serde_json::to_value(obj).expect("message type serialization to succeed") {
