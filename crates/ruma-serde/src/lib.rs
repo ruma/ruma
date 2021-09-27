@@ -34,7 +34,7 @@ pub use strings::{
     none_as_empty_string,
 };
 
-/// The inner type of [`serde_json::Value:::Object`].
+/// The inner type of [`JsonValue::Object`].
 pub type JsonObject = serde_json::Map<String, JsonValue>;
 
 /// Check whether a value is equal to its default value.
