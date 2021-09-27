@@ -2,7 +2,7 @@
 //!
 //! [uiaa]: https://matrix.org/docs/spec/client_server/r0.6.1#user-interactive-authentication-api
 
-use std::{borrow::Cow, collections::BTreeMap, fmt};
+use std::{borrow::Cow, fmt};
 
 use bytes::BufMut;
 use ruma_api::{
@@ -11,7 +11,7 @@ use ruma_api::{
 };
 use ruma_common::thirdparty::Medium;
 use ruma_identifiers::{ClientSecret, SessionId};
-use ruma_serde::{Outgoing, StringEnum};
+use ruma_serde::{JsonObject, Outgoing, StringEnum};
 use serde::{
     de::{self, DeserializeOwned},
     Deserialize, Deserializer, Serialize,
@@ -103,6 +103,52 @@ impl<'a> AuthData<'a> {
             Self::_Custom(x) => x.session,
         }
     }
+
+    /// Returns the associated data.
+    ///
+    /// The returned JSON object won't contain the `type` and `session` fields, use
+    /// [`.auth_type()`][Self::auth_type] / [`.session()`](Self::session) to access those.
+    ///
+    /// Prefer to use the public variants of `AuthData` where possible; this method is meant to be
+    /// used for custom auth types only.
+    pub fn data(&self) -> Cow<'_, JsonObject> {
+        fn serialize<T: Serialize>(obj: T) -> JsonObject {
+            match serde_json::to_value(obj).expect("auth data serialization to succeed") {
+                JsonValue::Object(obj) => obj,
+                _ => panic!("all auth data variants must serialize to objects"),
+            }
+        }
+
+        match self {
+            Self::Password(x) => Cow::Owned(serialize(Password {
+                identifier: x.identifier.clone(),
+                password: x.password,
+                session: None,
+            })),
+            Self::ReCaptcha(x) => {
+                Cow::Owned(serialize(ReCaptcha { response: x.response, session: None }))
+            }
+            Self::Token(x) => {
+                Cow::Owned(serialize(Token { token: x.token, txn_id: x.txn_id, session: None }))
+            }
+            Self::OAuth2(x) => Cow::Owned(serialize(OAuth2 { uri: x.uri, session: None })),
+            Self::EmailIdentity(x) => Cow::Owned(serialize(EmailIdentity {
+                thirdparty_id_creds: x.thirdparty_id_creds,
+                session: None,
+            })),
+            Self::Msisdn(x) => Cow::Owned(serialize(Msisdn {
+                thirdparty_id_creds: x.thirdparty_id_creds,
+                session: None,
+            })),
+            #[cfg(feature = "unstable-pre-spec")]
+            Self::RegistrationToken(x) => {
+                Cow::Owned(serialize(RegistrationToken { token: x.token, session: None }))
+            }
+            // Dummy and fallback acknowledgement have no associated data
+            Self::Dummy(_) | Self::FallbackAcknowledgement(_) => Cow::Owned(JsonObject::default()),
+            Self::_Custom(c) => Cow::Borrowed(&c.extra),
+        }
+    }
 }
 
 impl IncomingAuthData {
@@ -137,6 +183,52 @@ impl IncomingAuthData {
             Self::RegistrationToken(x) => x.session.as_deref(),
             Self::FallbackAcknowledgement(x) => Some(&x.session),
             Self::_Custom(x) => x.session.as_deref(),
+        }
+    }
+
+    /// Returns the associated data.
+    ///
+    /// The returned JSON object won't contain the `type` and `session` fields, use
+    /// [`.auth_type()`][Self::auth_type] / [`.session()`](Self::session) to access those.
+    ///
+    /// Prefer to use the public variants of `AuthData` where possible; this method is meant to be
+    /// used for custom auth types only.
+    pub fn data(&self) -> Cow<'_, JsonObject> {
+        fn serialize<T: Serialize>(obj: T) -> JsonObject {
+            match serde_json::to_value(obj).expect("auth data serialization to succeed") {
+                JsonValue::Object(obj) => obj,
+                _ => panic!("all auth data variants must serialize to objects"),
+            }
+        }
+
+        match self {
+            Self::Password(x) => Cow::Owned(serialize(Password {
+                identifier: x.identifier.to_outgoing(),
+                password: &x.password,
+                session: None,
+            })),
+            Self::ReCaptcha(x) => {
+                Cow::Owned(serialize(ReCaptcha { response: &x.response, session: None }))
+            }
+            Self::Token(x) => {
+                Cow::Owned(serialize(Token { token: &x.token, txn_id: &x.txn_id, session: None }))
+            }
+            Self::OAuth2(x) => Cow::Owned(serialize(OAuth2 { uri: &x.uri, session: None })),
+            Self::EmailIdentity(x) => Cow::Owned(serialize(EmailIdentity {
+                thirdparty_id_creds: &x.thirdparty_id_creds,
+                session: None,
+            })),
+            Self::Msisdn(x) => Cow::Owned(serialize(Msisdn {
+                thirdparty_id_creds: &x.thirdparty_id_creds,
+                session: None,
+            })),
+            #[cfg(feature = "unstable-pre-spec")]
+            Self::RegistrationToken(x) => {
+                Cow::Owned(serialize(RegistrationToken { token: &x.token, session: None }))
+            }
+            // Dummy and fallback acknowledgement have no associated data
+            Self::Dummy(_) | Self::FallbackAcknowledgement(_) => Cow::Owned(JsonObject::default()),
+            Self::_Custom(c) => Cow::Borrowed(&c.extra),
         }
     }
 }
@@ -430,7 +522,7 @@ pub struct CustomAuthData<'a> {
     pub auth_type: &'a str,
     pub session: Option<&'a str>,
     #[serde(flatten)]
-    pub extra: BTreeMap<String, JsonValue>,
+    pub extra: JsonObject,
 }
 
 #[doc(hidden)]
@@ -441,7 +533,7 @@ pub struct IncomingCustomAuthData {
     pub auth_type: String,
     pub session: Option<String>,
     #[serde(flatten)]
-    pub extra: BTreeMap<String, JsonValue>,
+    pub extra: JsonObject,
 }
 
 impl Outgoing for CustomAuthData<'_> {
@@ -475,6 +567,18 @@ pub enum UserIdentifier<'a> {
         /// The phone number.
         phone: &'a str,
     },
+}
+
+impl IncomingUserIdentifier {
+    fn to_outgoing(&self) -> UserIdentifier<'_> {
+        match self {
+            Self::MatrixId(id) => UserIdentifier::MatrixId(id),
+            Self::ThirdPartyId { address, medium } => {
+                UserIdentifier::ThirdPartyId { address, medium: medium.clone() }
+            }
+            Self::PhoneNumber { country, phone } => UserIdentifier::PhoneNumber { country, phone },
+        }
+    }
 }
 
 /// Credentials for thirdparty authentification (e.g. email / phone number).

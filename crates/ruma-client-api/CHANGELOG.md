@@ -19,6 +19,7 @@ Improvements:
     unban_user
   }
   ```
+* Add a `.data()` accessor method to `r0::uiaa::{AuthData, IncomingAuthData}`
 
 # 0.12.3
 
