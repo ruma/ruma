@@ -1,9 +1,15 @@
 //! [POST /_matrix/client/r0/login](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-login)
 
+use std::borrow::Cow;
+
 use ruma_api::ruma_api;
 use ruma_identifiers::{DeviceId, DeviceIdBox, ServerNameBox, UserId};
-use ruma_serde::Outgoing;
-use serde::{Deserialize, Serialize};
+use ruma_serde::{JsonObject, Outgoing};
+use serde::{
+    de::{self, DeserializeOwned},
+    Deserialize, Deserializer, Serialize,
+};
+use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
 use crate::r0::uiaa::{IncomingUserIdentifier, UserIdentifier};
 
@@ -77,26 +83,160 @@ impl Response {
 }
 
 /// The authentication mechanism.
-#[derive(Clone, Debug, PartialEq, Eq, Outgoing, Serialize)]
-#[serde(tag = "type")]
+///
+/// To construct the custom `LoginInfo` variant you first have to construct
+/// [`IncomingLoginInfo::new`] and then call [`IncomingLoginInfo::to_outgoing`] on it.
+#[derive(Clone, Debug, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[incoming_derive(!Deserialize)]
+#[serde(untagged)]
 pub enum LoginInfo<'a> {
     /// An identifier and password are supplied to authenticate.
-    #[serde(rename = "m.login.password")]
-    Password {
-        /// Identification information for the user.
-        identifier: UserIdentifier<'a>,
-
-        /// The password.
-        password: &'a str,
-    },
+    Password(Password<'a>),
 
     /// Token-based login.
-    #[serde(rename = "m.login.token")]
-    Token {
-        /// The token.
-        token: &'a str,
-    },
+    Token(Token<'a>),
+
+    #[doc(hidden)]
+    _Custom(CustomLoginInfo<'a>),
+}
+
+impl IncomingLoginInfo {
+    /// Creates a new `IncomingLoginInfo` with the given `login_type` string, session and data.
+    ///
+    /// Prefer to use the public variants of `IncomingLoginInfo` where possible; this constructor is
+    /// meant be used for unsupported authentication mechanisms only and does not allow setting
+    /// arbitrary data for supported ones.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the `login_type` is known and serialization of `data` to the
+    /// corresponding `IncomingLoginInfo` variant fails.
+    pub fn new(login_type: &str, data: JsonObject) -> serde_json::Result<Self> {
+        Ok(match login_type {
+            "m.login.password" => Self::Password(serde_json::from_value(JsonValue::Object(data))?),
+            "m.login.token" => Self::Token(serde_json::from_value(JsonValue::Object(data))?),
+            _ => Self::_Custom(IncomingCustomLoginInfo {
+                login_type: login_type.into(),
+                extra: data,
+            }),
+        })
+    }
+
+    /// Convert `IncomingLoginInfo` to `LoginInfo`.
+    pub fn to_outgoing(&self) -> LoginInfo<'_> {
+        match self {
+            Self::Password(a) => LoginInfo::Password(a.to_outgoing()),
+            Self::Token(a) => LoginInfo::Token(a.to_outgoing()),
+            Self::_Custom(a) => {
+                LoginInfo::_Custom(CustomLoginInfo { login_type: &a.login_type, extra: &a.extra })
+            }
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for IncomingLoginInfo {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        fn from_raw_json_value<T: DeserializeOwned, E: de::Error>(
+            raw: &RawJsonValue,
+        ) -> Result<T, E> {
+            serde_json::from_str(raw.get()).map_err(E::custom)
+        }
+
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+
+        #[derive(Deserialize)]
+        struct ExtractType<'a> {
+            #[serde(borrow, rename = "type")]
+            login_type: Cow<'a, str>,
+        }
+
+        let login_type = serde_json::from_str::<ExtractType<'_>>(json.get())
+            .map_err(de::Error::custom)?
+            .login_type;
+
+        match &*login_type {
+            "m.login.password" => from_raw_json_value(&json).map(Self::Password),
+            "m.login.token" => from_raw_json_value(&json).map(Self::Token),
+            _ => from_raw_json_value(&json).map(Self::_Custom),
+        }
+    }
+}
+
+/// An identifier and password to supply as authentication.
+#[derive(Clone, Debug, Outgoing, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(tag = "type", rename = "m.login.password")]
+pub struct Password<'a> {
+    /// Identification information for the user.
+    pub identifier: UserIdentifier<'a>,
+
+    /// The password.
+    pub password: &'a str,
+}
+
+impl<'a> Password<'a> {
+    /// Creates a new `Password` with the given identifier and password.
+    pub fn new(identifier: UserIdentifier<'a>, password: &'a str) -> Self {
+        Self { identifier, password }
+    }
+}
+
+impl IncomingPassword {
+    /// Convert `IncomingPassword` to `Password`.
+    fn to_outgoing(&self) -> Password<'_> {
+        Password { identifier: self.identifier.to_outgoing(), password: &self.password }
+    }
+}
+
+/// A token to supply as authentication.
+#[derive(Clone, Debug, Outgoing, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(tag = "type", rename = "m.login.token")]
+pub struct Token<'a> {
+    /// The token.
+    pub token: &'a str,
+}
+
+impl<'a> Token<'a> {
+    /// Creates a new `Token` with the given token.
+    pub fn new(token: &'a str) -> Self {
+        Self { token }
+    }
+}
+
+impl IncomingToken {
+    /// Convert `IncomingToken` to `Token`.
+    fn to_outgoing(&self) -> Token<'_> {
+        Token { token: &self.token }
+    }
+}
+
+#[doc(hidden)]
+#[derive(Clone, Debug, Serialize)]
+#[non_exhaustive]
+pub struct CustomLoginInfo<'a> {
+    #[serde(rename = "type")]
+    login_type: &'a str,
+    #[serde(flatten)]
+    extra: &'a JsonObject,
+}
+
+#[doc(hidden)]
+#[derive(Clone, Debug, Deserialize)]
+#[non_exhaustive]
+pub struct IncomingCustomLoginInfo {
+    #[serde(rename = "type")]
+    login_type: String,
+    #[serde(flatten)]
+    extra: JsonObject,
+}
+
+impl Outgoing for CustomLoginInfo<'_> {
+    type Incoming = IncomingCustomLoginInfo;
 }
 
 /// Client configuration provided by the server.
@@ -154,7 +294,7 @@ mod tests {
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json};
 
-    use super::IncomingLoginInfo;
+    use super::{IncomingLoginInfo, IncomingPassword, IncomingToken};
     use crate::r0::uiaa::IncomingUserIdentifier;
 
     #[test]
@@ -169,7 +309,7 @@ mod tests {
                 "password": "ilovebananas"
             }))
             .unwrap(),
-            IncomingLoginInfo::Password { identifier: IncomingUserIdentifier::MatrixId(user), password }
+            IncomingLoginInfo::Password(IncomingPassword { identifier: IncomingUserIdentifier::MatrixId(user), password })
             if user == "cheeky_monkey" && password == "ilovebananas"
         );
 
@@ -179,7 +319,7 @@ mod tests {
                 "token": "1234567890abcdef"
             }))
             .unwrap(),
-            IncomingLoginInfo::Token { token }
+            IncomingLoginInfo::Token(IncomingToken { token })
             if token == "1234567890abcdef"
         );
     }
@@ -191,11 +331,11 @@ mod tests {
         use ruma_common::thirdparty::Medium;
         use serde_json::Value as JsonValue;
 
-        use super::{LoginInfo, Request};
+        use super::{LoginInfo, Password, Request, Token};
         use crate::r0::uiaa::UserIdentifier;
 
         let req: http::Request<Vec<u8>> = Request {
-            login_info: LoginInfo::Token { token: "0xdeadbeef" },
+            login_info: LoginInfo::Token(Token { token: "0xdeadbeef" }),
             device_id: None,
             initial_device_display_name: Some("test"),
         }
@@ -213,13 +353,13 @@ mod tests {
         );
 
         let req: http::Request<Vec<u8>> = Request {
-            login_info: LoginInfo::Password {
+            login_info: LoginInfo::Password(Password {
                 identifier: UserIdentifier::ThirdPartyId {
                     address: "hello@example.com",
                     medium: Medium::Email,
                 },
                 password: "deadbeef",
-            },
+            }),
             device_id: None,
             initial_device_display_name: Some("test"),
         }

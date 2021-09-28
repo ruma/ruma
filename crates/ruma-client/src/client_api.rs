@@ -30,7 +30,7 @@ impl<C: HttpClient> Client<C> {
         let response = self
             .send_request(assign!(
                 login::Request::new(
-                    LoginInfo::Password { identifier: UserIdentifier::MatrixId(user), password }
+                    LoginInfo::Password(login::Password { identifier: UserIdentifier::MatrixId(user), password })
                 ), {
                     device_id,
                     initial_device_display_name,

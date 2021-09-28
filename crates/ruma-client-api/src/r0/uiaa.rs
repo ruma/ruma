@@ -295,7 +295,7 @@ impl IncomingAuthData {
             Self::RegistrationToken(a) => AuthData::RegistrationToken(a.to_outgoing()),
             Self::FallbackAcknowledgement(a) => AuthData::FallbackAcknowledgement(a.to_outgoing()),
             Self::_Custom(a) => AuthData::_Custom(CustomAuthData {
-                auth_type: a.auth_type.as_ref(),
+                auth_type: &a.auth_type,
                 session: a.session.as_deref(),
                 extra: &a.extra,
             }),
@@ -712,7 +712,7 @@ pub enum UserIdentifier<'a> {
 }
 
 impl IncomingUserIdentifier {
-    fn to_outgoing(&self) -> UserIdentifier<'_> {
+    pub(crate) fn to_outgoing(&self) -> UserIdentifier<'_> {
         match self {
             Self::MatrixId(id) => UserIdentifier::MatrixId(id),
             Self::ThirdPartyId { address, medium } => {
