@@ -623,7 +623,10 @@ mod tests {
     use maplit::{hashmap, hashset};
     use rand::seq::SliceRandom;
     use ruma_common::MilliSecondsSinceUnixEpoch;
-    use ruma_events::{room::join_rules::JoinRule, EventType};
+    use ruma_events::{
+        room::join_rules::{JoinRule, JoinRulesEventContent},
+        EventType,
+    };
     use ruma_identifiers::{EventId, RoomVersionId};
     use serde_json::{json, value::to_raw_value as to_raw_json_value};
     use tracing::debug;
@@ -873,7 +876,7 @@ mod tests {
                 alice(),
                 EventType::RoomJoinRules,
                 Some(""),
-                to_raw_json_value(&json!({ "join_rule": JoinRule::Private })).unwrap(),
+                to_raw_json_value(&JoinRulesEventContent::new(JoinRule::Private)).unwrap(),
             ),
             to_init_pdu_event(
                 "ME",

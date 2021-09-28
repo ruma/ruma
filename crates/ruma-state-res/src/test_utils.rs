@@ -12,7 +12,7 @@ use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     pdu::{EventHash, Pdu, RoomV3Pdu},
     room::{
-        join_rules::JoinRule,
+        join_rules::{JoinRule, JoinRulesEventContent},
         member::{MemberEventContent, MembershipState},
     },
     EventType,
@@ -269,7 +269,7 @@ impl TestStore<StateEvent> {
             alice(),
             EventType::RoomJoinRules,
             Some(""),
-            to_raw_json_value(&json!({ "join_rule": JoinRule::Public })).unwrap(),
+            to_raw_json_value(&JoinRulesEventContent::new(JoinRule::Public)).unwrap(),
             &[cre.clone(), alice_mem.event_id().clone()],
             &[alice_mem.event_id().clone()],
         );
@@ -481,7 +481,7 @@ pub fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
             alice(),
             EventType::RoomJoinRules,
             Some(""),
-            to_raw_json_value(&json!({ "join_rule": JoinRule::Public })).unwrap(),
+            to_raw_json_value(&JoinRulesEventContent::new(JoinRule::Public)).unwrap(),
             &["CREATE", "IMA", "IPOWER"],
             &["IPOWER"],
         ),
