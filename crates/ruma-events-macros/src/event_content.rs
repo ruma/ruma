@@ -174,7 +174,7 @@ fn generate_redacted_event_content(
     let serde_json = quote! { #ruma_events::exports::serde_json };
 
     let ident = &input.ident;
-    let doc = format!("The payload for a redacted `{}`", ident);
+    let doc = format!("Redacted form of [`{}`]", ident);
     let redacted_ident = format_ident!("Redacted{}", ident);
 
     let kept_redacted_fields =
