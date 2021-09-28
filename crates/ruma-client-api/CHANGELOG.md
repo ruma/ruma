@@ -6,6 +6,8 @@ Breaking changes:
 * Make `r0::uiaa::ThirdpartyIdCredentials` an owned type and remove its `Incoming` equivalent
   * Previously, we had two fields of type `&'a [ThirdpartyIdCredentials<'a>]` and this kind of
     nested borrowing can be very annoying
+* `LoginInfo` no longer implements `PartialEq` and `Eq` due to the custom variant that was added.
+* `LoginInfo` converted to newtype variants.
 
 Improvements:
 
@@ -20,6 +22,10 @@ Improvements:
   }
   ```
 * Add a `.data()` accessor method to `r0::uiaa::{AuthData, IncomingAuthData}`
+* Allow to construct the custom `AuthData` variant with `IncomingAuthData::new` and then call
+  `IncomingAuthData::to_outgoing` on it.
+* Add custom variant to `LoginInfo` which can be constructed with `IncomingLoginInfo::new` and
+  then call `IncomingLoginInfo::to_outgoing` on it.
 
 # 0.12.3
 
