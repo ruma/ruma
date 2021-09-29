@@ -4,12 +4,9 @@ use ruma_events_macros::EventContent;
 use ruma_identifiers::RoomNameBox;
 use serde::{Deserialize, Serialize};
 
-use crate::StateEvent;
-
+/// The content of an `m.room.name` event.
+///
 /// The room name is a human-friendly string designed to be displayed to the end-user.
-pub type NameEvent = StateEvent<NameEventContent>;
-
-/// The payload for `NameEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.room.name", kind = State)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]

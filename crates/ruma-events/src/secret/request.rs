@@ -7,14 +7,11 @@ use ruma_identifiers::DeviceIdBox;
 use ruma_serde::StringEnum;
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 
-use crate::ToDeviceEvent;
-
+/// The content of an `m.secret.request` event.
+///
 /// Event sent by a client to request a secret from another device or to cancel a previous request.
 ///
 /// It is sent as an unencrypted to-device event.
-pub type RequestToDeviceEvent = ToDeviceEvent<RequestToDeviceEventContent>;
-
-/// The payload for RequestToDeviceEvent.
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.secret.request", kind = ToDevice)]

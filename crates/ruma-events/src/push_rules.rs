@@ -4,12 +4,9 @@ use ruma_common::push::Ruleset;
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::GlobalAccountDataEvent;
-
+/// The content of an `m.push_rules` event.
+///
 /// Describes all push rules for a user.
-pub type PushRulesEvent = GlobalAccountDataEvent<PushRulesEventContent>;
-
-/// The payload for `PushRulesEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.push_rules", kind = GlobalAccountData)]

@@ -20,12 +20,11 @@ mod content_serde;
 pub mod feedback;
 mod relation_serde;
 
+/// The content of an `m.room.message` event.
+///
 /// This event is used when sending messages in a room.
 ///
 /// Messages are not limited to be text.
-pub type MessageEvent = crate::MessageEvent<MessageEventContent>;
-
-/// The payload for `MessageEvent`.
 #[derive(Clone, Debug, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.message", kind = Message)]

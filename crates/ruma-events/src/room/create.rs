@@ -5,14 +5,11 @@ use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::StateEvent;
-
+/// The content of an `m.room.create` event.
+///
 /// This is the first event in a room and cannot be changed.
 ///
 /// It acts as the root of all other events.
-pub type CreateEvent = StateEvent<CreateEventContent>;
-
-/// The payload for `CreateEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.create", kind = State)]

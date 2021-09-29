@@ -5,12 +5,10 @@ use ruma_identifiers::DeviceIdBox;
 use serde::{Deserialize, Serialize};
 
 use super::{Relation, VerificationMethod};
-use crate::MessageEvent;
 
+/// The content of a to-device `m.m.key.verification.ready` event.
+///
 /// Response to a previously sent *m.key.verification.request* message.
-pub type ReadyEvent = MessageEvent<ReadyEventContent>;
-
-/// The payload for a to-device `m.key.verification.ready` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.ready", kind = ToDevice)]
@@ -41,7 +39,9 @@ impl ReadyToDeviceEventContent {
     }
 }
 
-/// The payload for an in-room `m.key.verification.ready` event.
+/// The content of an in-room `m.m.key.verification.ready` event.
+///
+/// Response to a previously sent *m.key.verification.request* message.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.ready", kind = Message)]

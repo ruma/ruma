@@ -4,16 +4,13 @@ use ruma_events_macros::EventContent;
 use ruma_identifiers::ServerNameBox;
 use serde::{Deserialize, Serialize};
 
-use crate::StateEvent;
-
+/// The content of an `m.space.child` event.
+///
 /// The admins of a space can advertise rooms and subspaces for their space by setting
 /// `m.space.child` state events.
 ///
 /// The `state_key` is the ID of a child room or space, and the content must contain a `via` key
 /// which gives a list of candidate servers that can be used to join the room.
-pub type ChildEvent = StateEvent<ChildEventContent>;
-
-/// The payload for `ChildEvent`.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.space.child", kind = State)]

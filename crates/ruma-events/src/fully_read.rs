@@ -4,15 +4,11 @@ use ruma_events_macros::EventContent;
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
 
-use crate::RoomAccountDataEvent;
-
+/// The content of an `m.fully_read` event.
+///
 /// The current location of the user's read marker in a room.
 ///
-/// This event appears in the user's room account data for the room the marker is applicable
-/// for.
-pub type FullyReadEvent = RoomAccountDataEvent<FullyReadEventContent>;
-
-/// The payload for `FullyReadEvent`.
+/// This event appears in the user's room account data for the room the marker is applicable for.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.fully_read", kind = RoomAccountData)]

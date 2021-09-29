@@ -10,15 +10,12 @@ use ruma_events_macros::EventContent;
 use ruma_identifiers::{EventId, UserId};
 use serde::{Deserialize, Serialize};
 
-use crate::EphemeralRoomEvent;
-
-/// Informs the client who has read a message specified by it's event id.
-pub type ReceiptEvent = EphemeralRoomEvent<ReceiptEventContent>;
-
-/// The payload for `ReceiptEvent`.
+/// The content of an `m.receipt` event.
 ///
 /// A mapping of event ID to a collection of receipts for this event ID. The event ID is the ID of
 /// the event being acknowledged and *not* an ID for the receipt itself.
+///
+/// Informs the client who has read a message specified by it's event id.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.receipt", kind = EphemeralRoom)]

@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use super::VerificationMethod;
 
-/// The payload for `RequestEvent`.
+/// The content of an `m.key.verification.request` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.request", kind = ToDevice)]

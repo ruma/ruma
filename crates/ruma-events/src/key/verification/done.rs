@@ -4,13 +4,10 @@ use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::Relation;
-use crate::MessageEvent;
 
-/// Event signaling that the interactive key verification has successfully
-/// concluded.
-pub type DoneEvent = MessageEvent<DoneEventContent>;
-
-/// The payload for a to-device `m.key.verification.done` event.
+/// The content of a to-device `m.m.key.verification.done` event.
+///
+/// Event signaling that the interactive key verification has successfully concluded.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.done", kind = ToDevice)]
@@ -29,6 +26,8 @@ impl DoneToDeviceEventContent {
 }
 
 /// The payload for a in-room `m.key.verification.done` event.
+///
+/// Event signaling that the interactive key verification has successfully concluded.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.done", kind = Message)]

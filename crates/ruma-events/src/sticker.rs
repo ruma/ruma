@@ -4,12 +4,11 @@ use ruma_events_macros::EventContent;
 use ruma_identifiers::MxcUri;
 use serde::{Deserialize, Serialize};
 
-use crate::{room::ImageInfo, MessageEvent};
+use crate::room::ImageInfo;
 
+/// The content of an `m.sticker` event.
+///
 /// A sticker message.
-pub type StickerEvent = MessageEvent<StickerEventContent>;
-
-/// The payload for `StickerEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.sticker", kind = Message)]

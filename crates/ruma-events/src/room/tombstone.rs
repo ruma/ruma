@@ -4,13 +4,10 @@ use ruma_events_macros::EventContent;
 use ruma_identifiers::RoomId;
 use serde::{Deserialize, Serialize};
 
-use crate::StateEvent;
-
+/// The content of an `m.room.tombstone` event.
+///
 /// A state event signifying that a room has been upgraded to a different room version, and that
 /// clients should go there.
-pub type TombstoneEvent = StateEvent<TombstoneEventContent>;
-
-/// The payload for `TombstoneEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.room.tombstone", kind = State)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]

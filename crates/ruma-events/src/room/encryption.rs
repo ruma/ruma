@@ -4,12 +4,11 @@ use js_int::UInt;
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{EventEncryptionAlgorithm, StateEvent};
+use crate::EventEncryptionAlgorithm;
 
+/// The content of an `m.room.encryption` event.
+///
 /// Defines how messages sent in this room should be encrypted.
-pub type EncryptionEvent = StateEvent<EncryptionEventContent>;
-
-/// The payload for `EncryptionEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.encryption", kind = State)]

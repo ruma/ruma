@@ -7,8 +7,10 @@ use ruma_identifiers::{MxcUri, ServerNameBox, ServerSigningKeyId, UserId};
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::{StateEvent, StrippedStateEvent, SyncStateEvent};
+use crate::{StrippedStateEvent, SyncStateEvent};
 
+/// The content of an `m.room.member` event.
+///
 /// The current membership state of a user in the room.
 ///
 /// Adjusts the membership state for a user in a room. It is preferable to use the membership
@@ -34,9 +36,6 @@ use crate::{StateEvent, StrippedStateEvent, SyncStateEvent};
 /// The membership for a given user can change over time. Previous membership can be retrieved
 /// from the `prev_content` object on an event. If not present, the user's previous membership
 /// must be assumed as leave.
-pub type MemberEvent = StateEvent<MemberEventContent>;
-
-/// The payload for `MemberEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.member", kind = State)]

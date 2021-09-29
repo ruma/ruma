@@ -6,14 +6,12 @@ use ruma_identifiers::MxcUri;
 use serde::{Deserialize, Serialize};
 
 use super::ThumbnailInfo;
-use crate::StateEvent;
 
+/// The content of an `m.room.avatar` event.
+///
 /// A picture that is associated with the room.
 ///
 /// This can be displayed alongside the room information.
-pub type AvatarEvent = StateEvent<AvatarEventContent>;
-
-/// The payload for `AvatarEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[cfg_attr(feature = "unstable-pre-spec", derive(Default))]

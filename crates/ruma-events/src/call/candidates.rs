@@ -4,13 +4,10 @@ use js_int::UInt;
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::MessageEvent;
-
+/// The content of an `m.call.candidates` event.
+///
 /// This event is sent by callers after sending an invite and by the callee after answering. Its
 /// purpose is to give the other party additional ICE candidates to try using to communicate.
-pub type CandidatesEvent = MessageEvent<CandidatesEventContent>;
-
-/// The payload for `CandidatesEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.call.candidates", kind = Message)]

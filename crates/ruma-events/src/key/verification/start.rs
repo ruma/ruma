@@ -12,15 +12,10 @@ use super::Relation;
 use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
 };
-#[cfg(feature = "unstable-pre-spec")]
-use crate::MessageEvent;
 
+/// The content of a to-device `m.key.verification.start` event.
+///
 /// Begins an SAS key verification process.
-#[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-pub type StartEvent = MessageEvent<StartEventContent>;
-
-/// The payload of a to-device *m.key.verification.start* event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.start", kind = ToDevice)]
@@ -48,7 +43,9 @@ impl StartToDeviceEventContent {
     }
 }
 
-/// The payload of an in-room *m.key.verification.start* event.
+/// The content of an in-room `m.key.verification.start` event.
+///
+/// Begins an SAS key verification process.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]

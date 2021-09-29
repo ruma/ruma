@@ -4,12 +4,9 @@ use ruma_events_macros::EventContent;
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
 
-use crate::MessageEvent;
-
+/// The payload for a `m.reaction` event.
+///
 /// A reaction to another event.
-pub type ReactionEvent = MessageEvent<ReactionEventContent>;
-
-/// The payload for a `ReactionEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.reaction", kind = Message)]

@@ -4,12 +4,9 @@ use ruma_events_macros::EventContent;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
-use crate::EphemeralRoomEvent;
-
+/// The content of an `m.typing` event.
+///
 /// Informs the client who is currently typing in a given room.
-pub type TypingEvent = EphemeralRoomEvent<TypingEventContent>;
-
-/// The payload for `TypingEvent`.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.typing", kind = EphemeralRoom)]

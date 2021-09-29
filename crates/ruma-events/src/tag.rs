@@ -6,15 +6,12 @@ use ruma_events_macros::EventContent;
 use ruma_serde::deserialize_cow_str;
 use serde::{Deserialize, Serialize};
 
-use crate::RoomAccountDataEvent;
-
-/// Informs the client of tags on a room.
-pub type TagEvent = RoomAccountDataEvent<TagEventContent>;
-
 /// Map of tag names to tag info.
 pub type Tags = BTreeMap<TagName, TagInfo>;
 
-/// The payload for `TagEvent`.
+/// The content of an `m.tag` event.
+///
+/// Informs the client of tags on a room.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.tag", kind = RoomAccountData)]

@@ -3,12 +3,9 @@
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::StateEvent;
-
+/// The content of an `m.room.topic` event.
+///
 /// A topic is a short message detailing what is currently being discussed in the room.
-pub type TopicEvent = StateEvent<TopicEventContent>;
-
-/// The payload for `TopicEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.topic", kind = State)]

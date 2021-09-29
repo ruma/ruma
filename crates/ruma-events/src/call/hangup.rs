@@ -5,13 +5,10 @@ use ruma_events_macros::EventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::MessageEvent;
-
+/// The content of an `m.call.hangup` event.
+///
 /// Sent by either party to signal their termination of the call. This can be sent either once the
 /// call has has been established or before to abort the call.
-pub type HangupEvent = MessageEvent<HangupEventContent>;
-
-/// The payload for `HangupEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.call.hangup", kind = Message)]

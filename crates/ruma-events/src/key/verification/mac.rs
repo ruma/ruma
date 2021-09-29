@@ -7,15 +7,10 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "unstable-pre-spec")]
 use super::Relation;
-#[cfg(feature = "unstable-pre-spec")]
-use crate::MessageEvent;
 
+/// The content of a to-device `m.key.verification.` event.
+///
 /// Sends the MAC of a device's key to the partner device.
-#[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-pub type MacEvent = MessageEvent<MacEventContent>;
-
-/// The payload for a to-device `MacEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.mac", kind = ToDevice)]
@@ -43,7 +38,9 @@ impl MacToDeviceEventContent {
     }
 }
 
-/// The payload for an in-room `MacEvent`.
+/// The content of an in-room `m.key.verification.` event.
+///
+/// Sends the MAC of a device's key to the partner device.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]

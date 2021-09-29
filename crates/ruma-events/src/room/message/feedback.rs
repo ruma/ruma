@@ -5,15 +5,12 @@ use ruma_identifiers::EventId;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::MessageEvent;
-
+/// The content of an `m.room.message.feedback` event.
+///
 /// An acknowledgement of a message.
 ///
 /// N.B.: Usage of this event is discouraged in favor of the receipts module. Most clients will
 /// not recognize this event.
-pub type FeedbackEvent = MessageEvent<FeedbackEventContent>;
-
-/// The payload for `FeedbackEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.message.feedback", kind = Message)]

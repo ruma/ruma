@@ -5,7 +5,7 @@ use ruma_identifiers::{DeviceIdBox, EventEncryptionAlgorithm, RoomId};
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-/// The payload for `RoomKeyRequestEvent`.
+/// The content of an `m.room_key_request` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room_key_request", kind = ToDevice)]

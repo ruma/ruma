@@ -6,15 +6,10 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "unstable-pre-spec")]
 use super::Relation;
-#[cfg(feature = "unstable-pre-spec")]
-use crate::MessageEvent;
 
+/// The content of a to-device `m.key.verification.cancel` event.
+///
 /// Cancels a key verification process/request.
-#[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-pub type CancelEvent = MessageEvent<CancelEventContent>;
-
-/// The payload for a to-device `CancelEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.cancel", kind = ToDevice)]
@@ -38,7 +33,9 @@ impl CancelToDeviceEventContent {
     }
 }
 
-/// The payload for an in-room `CancelEvent`.
+/// The content of an in-room `m.key.verification.cancel` event.
+///
+/// Cancels a key verification process/request.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]

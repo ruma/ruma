@@ -4,16 +4,13 @@ use ruma_events_macros::EventContent;
 use ruma_identifiers::ServerNameBox;
 use serde::{Deserialize, Serialize};
 
-use crate::StateEvent;
-
+/// The content of an `m.space.parent` event.
+///
 /// Rooms can claim parents via the `m.space.parent` state event.
 ///
 /// Similar to `m.space.child`, the `state_key` is the ID of the parent space, and the content must
 /// contain a `via` key which gives a list of candidate servers that can be used to join the
 /// parent.
-pub type ParentEvent = StateEvent<ParentEventContent>;
-
-/// The payload for `ParentEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.space.parent", kind = State)]

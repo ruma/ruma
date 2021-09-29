@@ -9,13 +9,12 @@ use ruma_events_macros::EventContent;
 use ruma_identifiers::{RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-/// Informs the client about the rooms that are considered direct by a user.
-pub type DirectEvent = crate::GlobalAccountDataEvent<DirectEventContent>;
-
-/// The payload for `DirectEvent`.
+/// The content of an `m.direct` event.
 ///
-/// A mapping of `UserId`s to a list of `RoomId`s which are considered *direct* for that
-/// particular user.
+/// A mapping of `UserId`s to a list of `RoomId`s which are considered *direct* for that particular
+/// user.
+///
+/// Informs the client about the rooms that are considered direct by a user.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.direct", kind = GlobalAccountData)]

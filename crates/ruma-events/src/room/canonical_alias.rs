@@ -4,12 +4,9 @@ use ruma_events_macros::EventContent;
 use ruma_identifiers::RoomAliasId;
 use serde::{Deserialize, Serialize};
 
-use crate::StateEvent;
-
+/// The content of an `m.room.canonical_alias` event.
+///
 /// Informs the room as to which alias is the canonical one.
-pub type CanonicalAliasEvent = StateEvent<CanonicalAliasEventContent>;
-
-/// The payload for `CanonicalAliasEvent`.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.canonical_alias", kind = State)]

@@ -4,12 +4,9 @@ use ruma_events_macros::EventContent;
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
 
-use crate::StateEvent;
-
+/// The content of an `m.room.pinned_events` event.
+///
 /// Used to "pin" particular events in a room for other participants to review later.
-pub type PinnedEventsEvent = StateEvent<PinnedEventsEventContent>;
-
-/// The payload for `PinnedEventsEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.pinned_events", kind = State)]

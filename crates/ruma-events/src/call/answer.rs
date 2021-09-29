@@ -5,12 +5,10 @@ use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::SessionDescription;
-use crate::MessageEvent;
 
+/// The content of an `m.call.answer` event.
+///
 /// This event is sent by the callee when they wish to answer the call.
-pub type AnswerEvent = MessageEvent<AnswerEventContent>;
-
-/// The payload for `AnswerEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.call.answer", kind = Message)]

@@ -11,15 +11,10 @@ use super::Relation;
 use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
 };
-#[cfg(feature = "unstable-pre-spec")]
-use crate::MessageEvent;
 
+/// The content of a to-device `m.key.verification.accept` event.
+///
 /// Accepts a previously sent *m.key.verification.start* message.
-#[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-pub type AcceptEvent = MessageEvent<AcceptEventContent>;
-
-/// The payload for a to-device `AcceptEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.accept", kind = ToDevice)]
@@ -42,7 +37,9 @@ impl AcceptToDeviceEventContent {
     }
 }
 
-/// The payload for a in-room `AcceptEvent`.
+/// The content of a in-room `m.key.verification.accept` event.
+///
+/// Accepts a previously sent *m.key.verification.start* message.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.key.verification.accept", kind = Message)]
 #[cfg(feature = "unstable-pre-spec")]

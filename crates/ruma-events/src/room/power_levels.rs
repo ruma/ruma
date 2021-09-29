@@ -8,14 +8,13 @@ use ruma_events_macros::EventContent;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
-use crate::{EventType, StateEvent};
+use crate::EventType;
 
 use ruma_common::power_levels::NotificationPowerLevels;
 
+/// The content of an `m.room.power_levels` event.
+///
 /// Defines the power levels (privileges) of users in the room.
-pub type PowerLevelsEvent = StateEvent<PowerLevelsEventContent>;
-
-/// The payload for `PowerLevelsEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.power_levels", kind = State)]

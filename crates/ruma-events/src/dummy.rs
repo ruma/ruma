@@ -8,7 +8,7 @@ use serde::{
     ser::{Serialize, SerializeStruct as _, Serializer},
 };
 
-/// The payload for `DummyEvent`.
+/// The content of an `m.dummy` event.
 ///
 /// This event is used to indicate new Olm sessions for end-to-end encryption.
 ///

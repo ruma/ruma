@@ -9,19 +9,13 @@ use ruma_identifiers::DeviceIdBox;
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
 
+use crate::room::message::{self, InReplyTo};
 #[cfg(feature = "unstable-pre-spec")]
 use crate::{key::verification, reaction};
-use crate::{
-    room::message::{self, InReplyTo},
-    MessageEvent,
-};
 
 mod relation_serde;
 
-/// An event that has been encrypted.
-pub type EncryptedEvent = MessageEvent<EncryptedEventContent>;
-
-/// The content payload for `EncryptedEvent`.
+/// The content of an `m.room.encrypted` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.encrypted", kind = Message, kind = ToDevice)]
@@ -50,7 +44,7 @@ impl From<EncryptedEventScheme> for EncryptedEventContent {
     }
 }
 
-/// The to-device content payload for `m.encrypted` events.
+/// The to-device content of an `m.room.encrypted` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.encrypted", kind = ToDevice)]
@@ -122,7 +116,7 @@ pub enum Relation {
 /// The event this relation belongs to replaces another event.
 ///
 /// In contrast to [`message::Replacement`], this struct doesn't store the new content, since that
-/// is part of the encrypted payload for `m.encrypted` events.
+/// is part of the encrypted content of an `m.room.encrypted` events.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
@@ -171,7 +165,7 @@ impl Annotation {
     }
 }
 
-/// The payload for `EncryptedEvent` using the *m.olm.v1.curve25519-aes-sha2* algorithm.
+/// The content of an `m.room.encrypted` event using the *m.olm.v1.curve25519-aes-sha2* algorithm.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct OlmV1Curve25519AesSha2Content {
@@ -210,7 +204,7 @@ impl CiphertextInfo {
     }
 }
 
-/// The payload for `EncryptedEvent` using the *m.megolm.v1.aes-sha2* algorithm.
+/// The content of an `m.room.encrypted` event using the *m.megolm.v1.aes-sha2* algorithm.
 ///
 /// To create an instance of this type, first create a `MegolmV1AesSha2ContentInit` and convert it
 /// via `MegolmV1AesSha2Content::from` / `.into()`.

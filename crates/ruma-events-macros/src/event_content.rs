@@ -7,7 +7,7 @@ use syn::{
     DeriveInput, Ident, LitStr, Token,
 };
 
-use crate::event_parse::EventKind;
+use crate::event_parse::{EventKind, EventKindVariation};
 
 mod kw {
     // This `content` field is kept when the event is redacted.
@@ -154,12 +154,16 @@ pub fn expand_event_content(
     });
     let marker_trait_impl =
         event_kind.map(|k| generate_marker_trait_impl(k, &input.ident, ruma_events)).transpose()?;
+    let type_aliases = event_kind
+        .map(|k| generate_event_type_aliases(k, &input.ident, &event_type.value(), ruma_events))
+        .transpose()?;
 
     Ok(quote! {
         #redacted_event_content
         #event_content_impl
         #static_event_content_impl
         #marker_trait_impl
+        #type_aliases
     })
 }
 
@@ -316,6 +320,47 @@ fn generate_redacted_event_content(
 
         #static_event_content_impl
         #marker_trait_impl
+    })
+}
+
+fn generate_event_type_aliases(
+    event_kind: &EventKind,
+    ident: &Ident,
+    event_type: &str,
+    ruma_events: &TokenStream,
+) -> syn::Result<TokenStream> {
+    if ident == "RedactionEventContent" {
+        return Ok(quote! {});
+    }
+
+    let ident_s = ident.to_string();
+    let ev_type_s = ident_s.strip_suffix("Content").ok_or_else(|| {
+        syn::Error::new_spanned(ident, "Expected content struct name ending in `Content`")
+    })?;
+
+    let ev_type = format_ident!("{}", ev_type_s);
+    let ev_type_doc =
+        format!("A `{}` event.\n\nFor more information, see [`{}`].", event_type, ident);
+    let ev_struct = format_ident!("{}", event_kind);
+
+    let sync_type_alias =
+        event_kind.to_event_ident(&EventKindVariation::Sync).map(|sync_ev_struct| {
+            let sync_ev_type = format_ident!("Sync{}", ev_type_s);
+            let sync_ev_type_doc = format!(
+                "A `{}` event from a `sync_events` response.\n\nFor more information, see [`{}`].",
+                event_type, ident,
+            );
+
+            quote! {
+                #[doc = #sync_ev_type_doc]
+                pub type #sync_ev_type = #ruma_events::#sync_ev_struct<#ident>;
+            }
+        });
+
+    Ok(quote! {
+        #[doc = #ev_type_doc]
+        pub type #ev_type = #ruma_events::#ev_struct<#ident>;
+        #sync_type_alias
     })
 }
 

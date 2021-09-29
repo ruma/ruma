@@ -4,12 +4,9 @@ use ruma_events_macros::EventContent;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
-use crate::GlobalAccountDataEvent;
-
+/// The content of an `m.ignored_user_list` event.
+///
 /// A list of users to ignore.
-pub type IgnoredUserListEvent = GlobalAccountDataEvent<IgnoredUserListEventContent>;
-
-/// The payload for `IgnoredUserListEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.ignored_user_list", kind = GlobalAccountData)]

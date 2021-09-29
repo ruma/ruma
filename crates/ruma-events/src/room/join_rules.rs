@@ -16,12 +16,9 @@ use std::borrow::Cow;
 #[cfg(feature = "unstable-pre-spec")]
 use std::collections::BTreeMap;
 
-use crate::StateEvent;
-
+/// The content of an `m.room.join_rules` event.
+///
 /// Describes how users are allowed to join the room.
-pub type JoinRulesEvent = StateEvent<JoinRulesEventContent>;
-
-/// The payload for `JoinRulesEvent`.
 #[derive(Clone, Debug, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.join_rules", kind = State)]

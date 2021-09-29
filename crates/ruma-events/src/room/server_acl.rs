@@ -3,12 +3,9 @@
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::StateEvent;
-
+/// The content of an `m.room.server_acl` event.
+///
 /// An event to indicate which servers are permitted to participate in the room.
-pub type ServerAclEvent = StateEvent<ServerAclEventContent>;
-
-/// The payload for `ServerAclEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.server_acl", kind = State)]

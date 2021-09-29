@@ -4,7 +4,7 @@ use ruma_events_macros::EventContent;
 use ruma_identifiers::{EventEncryptionAlgorithm, RoomId};
 use serde::{Deserialize, Serialize};
 
-/// The payload for `ForwardedRoomKeyEvent`.
+/// The content of an `m.forwarded_room_key` event.
 ///
 /// To create an instance of this type, first create a `ForwardedRoomKeyToDeviceEventContentInit`
 /// and convert it via `ForwardedRoomKeyToDeviceEventContent::from` / `.into()`.
