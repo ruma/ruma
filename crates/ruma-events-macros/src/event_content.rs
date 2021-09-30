@@ -338,30 +338,38 @@ fn generate_event_type_aliases(
         syn::Error::new_spanned(ident, "Expected content struct name ending in `Content`")
     })?;
 
-    let ev_type = format_ident!("{}", ev_type_s);
-    let ev_type_doc =
-        format!("A `{}` event.\n\nFor more information, see [`{}`].", event_type, ident);
-    let ev_struct = format_ident!("{}", event_kind);
+    let type_aliases = [
+        EventKindVariation::Full,
+        EventKindVariation::Sync,
+        EventKindVariation::Stripped,
+        EventKindVariation::Redacted,
+        EventKindVariation::RedactedSync,
+    ]
+    .iter()
+    .filter_map(|kind| Some((kind, event_kind.to_event_ident(kind)?)))
+    .map(|(kind, ev_struct)| {
+        let ev_type = format_ident!("{}{}", kind, ev_type_s);
 
-    let sync_type_alias =
-        event_kind.to_event_ident(&EventKindVariation::Sync).map(|sync_ev_struct| {
-            let sync_ev_type = format_ident!("Sync{}", ev_type_s);
-            let sync_ev_type_doc = format!(
-                "A `{}` event from a `sync_events` response.\n\nFor more information, see [`{}`].",
-                event_type, ident,
-            );
-
-            quote! {
-                #[doc = #sync_ev_type_doc]
-                pub type #sync_ev_type = #ruma_events::#sync_ev_struct<#ident>;
+        let doc_text = match kind {
+            EventKindVariation::Full => "",
+            EventKindVariation::Sync => " from a `sync_events` response",
+            EventKindVariation::Stripped => " from an invited room preview",
+            EventKindVariation::Redacted => " that has been redacted",
+            EventKindVariation::RedactedSync => {
+                "from a `sync_events` response that has been redacted"
             }
-        });
+            EventKindVariation::Initial => unreachable!(),
+        };
+        let ev_type_doc = format!("An `{}` event{}.", event_type, doc_text);
 
-    Ok(quote! {
-        #[doc = #ev_type_doc]
-        pub type #ev_type = #ruma_events::#ev_struct<#ident>;
-        #sync_type_alias
+        quote! {
+            #[doc = #ev_type_doc]
+            pub type #ev_type = #ruma_events::#ev_struct<#ident>;
+        }
     })
+    .collect();
+
+    Ok(type_aliases)
 }
 
 fn generate_marker_trait_impl(
