@@ -123,9 +123,10 @@ impl Response {
     pub fn check(&self) -> syn::Result<()> {
         // TODO: highlight problematic fields
 
-        if !self.generics.params.is_empty() || self.generics.where_clause.is_some() {
-            panic!("This macro doesn't support generic types");
-        }
+        assert!(
+            self.generics.params.is_empty() && self.generics.where_clause.is_none(),
+            "This macro doesn't support generic types"
+        );
 
         let newtype_body_fields = self
             .fields
