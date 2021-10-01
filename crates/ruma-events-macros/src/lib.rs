@@ -87,7 +87,7 @@ pub fn derive_event_content(input: TokenStream) -> TokenStream {
 
 /// Generates implementations needed to serialize and deserialize Matrix events.
 #[proc_macro_derive(Event, attributes(ruma_event))]
-pub fn derive_state_event(input: TokenStream) -> TokenStream {
+pub fn derive_event(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     expand_event(input).unwrap_or_else(syn::Error::into_compile_error).into()
 }
