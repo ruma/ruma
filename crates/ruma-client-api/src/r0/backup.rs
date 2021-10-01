@@ -19,7 +19,7 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_identifiers::{DeviceKeyId, UserId};
-use ruma_serde::Raw;
+use ruma_serde::{Base64, Raw};
 use serde::{Deserialize, Serialize};
 
 /// A wrapper around a mapping of session IDs to key data.
@@ -46,7 +46,7 @@ pub enum BackupAlgorithm {
     #[serde(rename = "m.megolm_backup.v1.curve25519-aes-sha2")]
     MegolmBackupV1Curve25519AesSha2 {
         /// The curve25519 public key used to encrypt the backups, encoded in unpadded base64.
-        public_key: String,
+        public_key: Base64,
 
         /// Signatures of the auth_data as Signed JSON.
         signatures: BTreeMap<Box<UserId>, BTreeMap<Box<DeviceKeyId>, String>>,
@@ -109,13 +109,13 @@ impl From<KeyBackupDataInit> for KeyBackupData {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SessionData {
     /// Unpadded base64-encoded public half of the ephemeral key.
-    pub ephemeral: String,
+    pub ephemeral: Base64,
 
     /// Ciphertext, encrypted using AES-CBC-256 with PKCS#7 padding, encoded in base64.
-    pub ciphertext: String,
+    pub ciphertext: Base64,
 
     /// First 8 bytes of MAC key, encoded in base64.
-    pub mac: String,
+    pub mac: Base64,
 }
 
 /// The algorithm used for storing backups.
@@ -126,13 +126,13 @@ pub struct SessionData {
 #[allow(clippy::exhaustive_structs)]
 pub struct SessionDataInit {
     /// Unpadded base64-encoded public half of the ephemeral key.
-    pub ephemeral: String,
+    pub ephemeral: Base64,
 
     /// Ciphertext, encrypted using AES-CBC-256 with PKCS#7 padding, encoded in base64.
-    pub ciphertext: String,
+    pub ciphertext: Base64,
 
     /// First 8 bytes of MAC key, encoded in base64.
-    pub mac: String,
+    pub mac: Base64,
 }
 
 impl From<SessionDataInit> for SessionData {

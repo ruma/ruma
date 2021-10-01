@@ -2,6 +2,7 @@
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{ServerSignatures, UserId};
+use ruma_serde::Base64;
 
 ruma_api! {
     metadata: {
@@ -21,7 +22,7 @@ ruma_api! {
         pub token: &'a str,
 
         /// The private key, encoded as unpadded base64.
-        pub private_key: &'a str,
+        pub private_key: &'a Base64,
     }
 
     response: {
@@ -41,7 +42,7 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a `Request` with the given Matrix user ID, token and private_key.
-    pub fn new(mxid: &'a UserId, token: &'a str, private_key: &'a str) -> Self {
+    pub fn new(mxid: &'a UserId, token: &'a str, private_key: &'a Base64) -> Self {
         Self { mxid, token, private_key }
     }
 }

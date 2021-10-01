@@ -11,6 +11,7 @@ use pkcs8::{
     der::{Decodable, Encodable},
     AlgorithmIdentifier, ObjectIdentifier, PrivateKeyInfo,
 };
+use ruma_serde::Base64;
 
 use crate::{signatures::Signature, Algorithm, Error, ParseError};
 
@@ -184,8 +185,8 @@ pub type PublicKeyMap = BTreeMap<String, PublicKeySet>;
 
 /// A set of public keys for a single homeserver.
 ///
-/// This is represented as a map from key ID to Base64-encoded signature.
-pub type PublicKeySet = BTreeMap<String, String>;
+/// This is represented as a map from key ID to base64-encoded signature.
+pub type PublicKeySet = BTreeMap<String, Base64>;
 
 #[cfg(test)]
 mod tests {
