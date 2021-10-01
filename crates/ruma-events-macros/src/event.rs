@@ -410,7 +410,9 @@ fn expand_from_into(
         let full_struct = kind.to_event_ident(&var.to_full_variation());
         Some(quote! {
             #[automatically_derived]
-            impl #impl_generics From<#full_struct #ty_gen> for #ident #ty_gen #where_clause {
+            impl #impl_generics ::std::convert::From<#full_struct #ty_gen>
+                for #ident #ty_gen #where_clause
+            {
                 fn from(event: #full_struct #ty_gen) -> Self {
                     let #full_struct { #( #fields, )* .. } = event;
                     Self { #( #fields, )* }
