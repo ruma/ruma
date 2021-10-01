@@ -344,6 +344,7 @@ fn generate_event_type_aliases(
         EventKindVariation::Full,
         EventKindVariation::Sync,
         EventKindVariation::Stripped,
+        EventKindVariation::Initial,
         EventKindVariation::Redacted,
         EventKindVariation::RedactedSync,
     ]
@@ -360,7 +361,7 @@ fn generate_event_type_aliases(
             EventKindVariation::RedactedSync => {
                 " from a `sync_events` response that has been redacted"
             }
-            EventKindVariation::Initial => unreachable!(),
+            EventKindVariation::Initial => " for creating a room",
         };
         let ev_type_doc = format!("An `{}` event{}.", event_type, doc_text);
 
