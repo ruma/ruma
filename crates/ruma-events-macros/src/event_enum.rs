@@ -228,6 +228,7 @@ fn expand_conversion_impl(
             let self_variants = variants.iter().map(|v| v.ctor(quote! { Self }));
 
             Some(quote! {
+                #[automatically_derived]
                 impl ::std::convert::From<#ident> for #sync {
                     fn from(event: #ident) -> Self {
                         match event {
@@ -996,6 +997,7 @@ pub(crate) fn expand_from_impls_derived(input: DeriveInput) -> TokenStream {
             let var_ident = &variant.ident;
             let id = &input.ident;
             quote! {
+                #[automatically_derived]
                 impl ::std::convert::From<#inner_struct> for #id {
                     fn from(c: #inner_struct) -> Self {
                         Self::#var_ident(c)
