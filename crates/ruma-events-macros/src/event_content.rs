@@ -331,6 +331,7 @@ fn generate_event_type_aliases(
     event_type: &str,
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
+    // The redaction module has its own event types.
     if ident == "RedactionEventContent" {
         return Ok(quote! {});
     }
