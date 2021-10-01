@@ -60,18 +60,6 @@ impl EventKindVariation {
             _ => None,
         }
     }
-
-    pub fn to_full_variation(self) -> Self {
-        match self {
-            EventKindVariation::Redacted | EventKindVariation::RedactedSync => {
-                EventKindVariation::Redacted
-            }
-            EventKindVariation::Full
-            | EventKindVariation::Sync
-            | EventKindVariation::Stripped
-            | EventKindVariation::Initial => EventKindVariation::Full,
-        }
-    }
 }
 
 // If the variants of this enum change `to_event_path` needs to be updated as well.

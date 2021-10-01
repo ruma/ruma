@@ -407,7 +407,7 @@ fn expand_from_into(
     let fields: Vec<_> = fields.iter().flat_map(|f| &f.ident).collect();
 
     if let EventKindVariation::Sync | EventKindVariation::RedactedSync = var {
-        let full_struct = kind.to_event_ident(&var.to_full_variation());
+        let full_struct = kind.to_event_ident(&var.to_full().unwrap());
         Some(quote! {
             #[automatically_derived]
             impl #impl_generics ::std::convert::From<#full_struct #ty_gen>
