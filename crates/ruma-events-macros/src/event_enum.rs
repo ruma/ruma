@@ -397,7 +397,7 @@ fn expand_content_enum(
 
     let redacted_content_enum = matches!(kind, EventKind::State | EventKind::Message).then(|| {
         let redacted_ident = kind.to_redacted_content_enum();
-        let redaction_variants = variants.iter().map(|v| v.ctor(&redacted_ident));
+        let redacted_variants = variants.iter().map(|v| v.ctor(&redacted_ident));
         let redacted_content: Vec<_> = events
             .iter()
             .map(|ev| to_event_content_path(kind, ev, Some("Redacted"), ruma_events))
@@ -432,7 +432,7 @@ fn expand_content_enum(
                     match self {
                         #(
                             #variant_arms(content) => {
-                                #redaction_variants(
+                                #redacted_variants(
                                     #ruma_events::RedactContent::redact(content, version),
                                 )
                             }
@@ -466,7 +466,7 @@ fn expand_redact(
 
     let redacted_enum = kind.to_event_enum_ident(&var.to_redacted()?)?;
     let self_variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
-    let redaction_variants = variants.iter().map(|v| v.ctor(&redacted_enum));
+    let redacted_variants = variants.iter().map(|v| v.ctor(&redacted_enum));
 
     Some(quote! {
         #[automatically_derived]
@@ -480,7 +480,7 @@ fn expand_redact(
             ) -> #redacted_enum {
                 match self {
                     #(
-                        #self_variants(event) => #redaction_variants(
+                        #self_variants(event) => #redacted_variants(
                             #ruma_events::Redact::redact(event, redaction, version),
                         ),
                     )*
