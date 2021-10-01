@@ -1,5 +1,7 @@
 //! Implementations of the MessageEventContent and StateEventContent derive macro.
 
+use std::borrow::Cow;
+
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::{
@@ -362,9 +364,15 @@ fn generate_event_type_aliases(
         };
         let ev_type_doc = format!("An `{}` event{}.", event_type, doc_text);
 
+        let content_struct = if kind.is_redacted() {
+            Cow::Owned(format_ident!("Redacted{}", ident))
+        } else {
+            Cow::Borrowed(ident)
+        };
+
         quote! {
             #[doc = #ev_type_doc]
-            pub type #ev_type = #ruma_events::#ev_struct<#ident>;
+            pub type #ev_type = #ruma_events::#ev_struct<#content_struct>;
         }
     })
     .collect();
