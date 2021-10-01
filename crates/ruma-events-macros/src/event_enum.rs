@@ -464,19 +464,9 @@ fn expand_redact(
 ) -> Option<TokenStream> {
     let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
 
-    let redacted_var = var.to_redacted()?;
-    let struct_id = kind.to_event_ident(&redacted_var)?;
-    let redacted_enum = kind.to_event_enum_ident(&redacted_var)?;
-    let redacted_type = quote! { #ruma_events::#struct_id };
-
+    let redacted_enum = kind.to_event_enum_ident(&var.to_redacted()?)?;
     let self_variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
     let redaction_variants = variants.iter().map(|v| v.ctor(&redacted_enum));
-
-    let fields = EVENT_FIELDS.iter().map(|(name, has_field)| {
-        generate_redacted_fields(name, kind, var, *has_field, ruma_events)
-    });
-
-    let fields = quote! { #( #fields )* };
 
     Some(quote! {
         #[automatically_derived]
@@ -490,21 +480,13 @@ fn expand_redact(
             ) -> #redacted_enum {
                 match self {
                     #(
-                        #self_variants(event) => {
-                            let content = #ruma_events::RedactContent::redact(event.content, version);
-                            #redaction_variants(#redacted_type {
-                                content,
-                                #fields
-                            })
-                        }
+                        #self_variants(event) => #redaction_variants(
+                            #ruma_events::Redact::redact(event, redaction, version),
+                        ),
                     )*
-                    Self::_Custom(event) => {
-                        let content = #ruma_events::RedactContent::redact(event.content, version);
-                        #redacted_enum::_Custom(#redacted_type {
-                            content,
-                            #fields
-                        })
-                    }
+                    Self::_Custom(event) => #redacted_enum::_Custom(
+                        #ruma_events::Redact::redact(event, redaction, version),
+                    )
                 }
             }
         }
@@ -562,28 +544,6 @@ fn expand_redacted_enum(
 
 fn generate_event_idents(kind: &EventKind, var: &EventKindVariation) -> Option<(Ident, Ident)> {
     kind.to_event_ident(var).zip(kind.to_event_enum_ident(var))
-}
-
-fn generate_redacted_fields(
-    name: &str,
-    kind: &EventKind,
-    var: &EventKindVariation,
-    is_event_kind: EventKindFn,
-    ruma_events: &TokenStream,
-) -> Option<TokenStream> {
-    is_event_kind(kind, var).then(|| {
-        let name = Ident::new(name, Span::call_site());
-
-        if name == "unsigned" {
-            quote! {
-                unsigned: #ruma_events::RedactedUnsigned::new_because(::std::boxed::Box::new(redaction)),
-            }
-        } else {
-            quote! {
-                #name: event.#name,
-            }
-        }
-    })
 }
 
 fn generate_custom_variant(

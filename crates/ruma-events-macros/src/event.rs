@@ -1,9 +1,10 @@
 //! Implementation of the top level `*Event` derive macro.
 
 use proc_macro2::{Span, TokenStream};
-use quote::quote;
+use quote::{format_ident, quote};
 use syn::{
-    Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, Ident, Meta, MetaList, NestedMeta,
+    parse_quote, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, GenericParam, Ident,
+    Meta, MetaList, NestedMeta,
 };
 
 use crate::{
@@ -40,16 +41,17 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         ));
     };
 
+    let conversion_impl = expand_from_into(&input, &kind, &var, &fields, &ruma_events);
     let serialize_impl = expand_serialize_event(&input, &var, &fields, &ruma_events);
     let deserialize_impl = expand_deserialize_event(&input, &kind, &var, &fields, &ruma_events)?;
-    let conversion_impl = expand_from_into(&input, &kind, &var, &fields, &ruma_events);
-
+    let redact_impl = expand_redact_event(&input, &kind, &var, &fields, &ruma_events);
     let eq_impl = expand_eq_ord_event(&input, &fields);
 
     Ok(quote! {
         #conversion_impl
         #serialize_impl
         #deserialize_impl
+        #redact_impl
         #eq_impl
     })
 }
@@ -386,6 +388,74 @@ fn expand_deserialize_event(
                 }
 
                 deserializer.deserialize_map(EventVisitor(#deserialize_phantom_type))
+            }
+        }
+    })
+}
+
+fn expand_redact_event(
+    input: &DeriveInput,
+    kind: &EventKind,
+    var: &EventKindVariation,
+    fields: &[Field],
+    ruma_events: &TokenStream,
+) -> Option<TokenStream> {
+    let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
+
+    let redacted_type = kind.to_event_ident(&var.to_redacted()?)?;
+    let redacted_content_trait =
+        format_ident!("{}Content", kind.to_event_ident(&EventKindVariation::Redacted).unwrap());
+    let ident = &input.ident;
+
+    let mut generics = input.generics.clone();
+    assert_eq!(generics.params.len(), 1, "expected one generic parameter");
+    let ty_param = match &generics.params[0] {
+        GenericParam::Type(ty) => ty.ident.clone(),
+        _ => panic!("expected a type parameter"),
+    };
+
+    let where_clause = generics.make_where_clause();
+    where_clause.predicates.push(parse_quote! { #ty_param: #ruma_events::RedactContent });
+    where_clause.predicates.push(parse_quote! {
+        <#ty_param as #ruma_events::RedactContent>::Redacted:
+            #ruma_events::#redacted_content_trait
+    });
+
+    let (impl_generics, ty_gen, where_clause) = generics.split_for_impl();
+
+    let fields = fields.iter().filter_map(|field| {
+        let ident = field.ident.as_ref().unwrap();
+
+        if ident == "content" || ident == "prev_content" {
+            None
+        } else if ident == "unsigned" {
+            Some(quote! {
+                unsigned:
+                    #ruma_events::RedactedUnsigned::new_because(::std::boxed::Box::new(redaction))
+            })
+        } else {
+            Some(quote! {
+                #ident: self.#ident
+            })
+        }
+    });
+
+    Some(quote! {
+        #[automatically_derived]
+        impl #impl_generics #ruma_events::Redact for #ident #ty_gen #where_clause {
+            type Redacted =
+                #ruma_events::#redacted_type<<#ty_param as #ruma_events::RedactContent>::Redacted>;
+
+            fn redact(
+                self,
+                redaction: #ruma_events::room::redaction::SyncRedactionEvent,
+                version: &#ruma_identifiers::RoomVersionId,
+            ) -> Self::Redacted {
+                let content = #ruma_events::RedactContent::redact(self.content, version);
+                #ruma_events::#redacted_type {
+                    content,
+                    #(#fields),*
+                }
             }
         }
     })

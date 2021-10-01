@@ -5,7 +5,7 @@ use ruma_events_macros::{Event, EventContent};
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-use crate::Unsigned;
+use crate::{Redact, RedactContent, RedactedUnsigned, Unsigned};
 
 /// Redaction event.
 #[derive(Clone, Debug, Event)]
@@ -33,6 +33,26 @@ pub struct RedactionEvent {
     pub unsigned: Unsigned,
 }
 
+impl Redact for RedactionEvent {
+    // Temporary hack
+    type Redacted = crate::RedactedMessageEvent<RedactedRedactionEventContent>;
+
+    fn redact(
+        self,
+        redaction: SyncRedactionEvent,
+        version: &ruma_identifiers::RoomVersionId,
+    ) -> Self::Redacted {
+        crate::RedactedMessageEvent {
+            content: self.content.redact(version),
+            event_id: self.event_id,
+            sender: self.sender,
+            origin_server_ts: self.origin_server_ts,
+            room_id: self.room_id,
+            unsigned: RedactedUnsigned::new_because(Box::new(redaction)),
+        }
+    }
+}
+
 /// Redaction event without a `room_id`.
 #[derive(Clone, Debug, Event)]
 #[allow(clippy::exhaustive_structs)]
@@ -54,6 +74,25 @@ pub struct SyncRedactionEvent {
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: Unsigned,
+}
+
+impl Redact for SyncRedactionEvent {
+    // Temporary hack
+    type Redacted = crate::RedactedSyncMessageEvent<RedactedRedactionEventContent>;
+
+    fn redact(
+        self,
+        redaction: SyncRedactionEvent,
+        version: &ruma_identifiers::RoomVersionId,
+    ) -> Self::Redacted {
+        crate::RedactedSyncMessageEvent {
+            content: self.content.redact(version),
+            event_id: self.event_id,
+            sender: self.sender,
+            origin_server_ts: self.origin_server_ts,
+            unsigned: RedactedUnsigned::new_because(Box::new(redaction)),
+        }
+    }
 }
 
 /// A redaction of an event.
