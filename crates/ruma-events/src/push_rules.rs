@@ -1,4 +1,4 @@
-//! Types for the *m.push_rules* event.
+//! Types for the `m.push_rules` event.
 
 use ruma_common::push::Ruleset;
 use ruma_events_macros::EventContent;

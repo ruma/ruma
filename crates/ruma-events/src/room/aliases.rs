@@ -1,4 +1,4 @@
-//! Types for the *m.room.aliases* event.
+//! Types for the `m.room.aliases` event.
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::{RoomAliasId, RoomVersionId};

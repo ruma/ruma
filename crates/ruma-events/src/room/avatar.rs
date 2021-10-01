@@ -1,4 +1,4 @@
-//! Types for the *m.room.avatar* event.
+//! Types for the `m.room.avatar` event.
 
 use js_int::UInt;
 use ruma_events_macros::EventContent;

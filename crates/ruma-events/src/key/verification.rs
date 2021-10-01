@@ -1,4 +1,4 @@
-//! Modules for events in the *m.key.verification* namespace.
+//! Modules for events in the `m.key.verification` namespace.
 //!
 //! This module also contains types shared by events in its child namespaces.
 //!
@@ -146,21 +146,21 @@ impl Relation {
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[non_exhaustive]
 pub enum VerificationMethod {
-    /// The *m.sas.v1* verification method.
+    /// The `m.sas.v1` verification method.
     #[ruma_enum(rename = "m.sas.v1")]
     SasV1,
 
-    /// The *m.qr_code.scan.v1* verification method.
+    /// The `m.qr_code.scan.v1` verification method.
     #[cfg(feature = "unstable-pre-spec")]
     #[ruma_enum(rename = "m.qr_code.scan.v1")]
     QrCodeScanV1,
 
-    /// The *m.qr_code.show.v1* verification method.
+    /// The `m.qr_code.show.v1` verification method.
     #[cfg(feature = "unstable-pre-spec")]
     #[ruma_enum(rename = "m.qr_code.show.v1")]
     QrCodeShowV1,
 
-    /// The *m.reciprocate.v1* verification method.
+    /// The `m.reciprocate.v1` verification method.
     #[cfg(feature = "unstable-pre-spec")]
     #[ruma_enum(rename = "m.reciprocate.v1")]
     ReciprocateV1,

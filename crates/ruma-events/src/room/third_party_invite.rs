@@ -1,4 +1,4 @@
-//! Types for the *m.room.third_party_invite* event.
+//! Types for the `m.room.third_party_invite` event.
 
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// An invitation to a room issued to a third party identifier, rather than a matrix user ID.
 ///
-/// Acts as an *m.room.member* invite event, where there isn't a target user_id to invite. This
+/// Acts as an `m.room.member` invite event, where there isn't a target user_id to invite. This
 /// event contains a token and a public key whose private key must be used to sign the token.
 /// Any user who can present that signature may use this invitation to join the target room.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]

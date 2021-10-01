@@ -1,4 +1,4 @@
-//! Types for the *m.room.member* event.
+//! Types for the `m.room.member` event.
 
 use std::collections::BTreeMap;
 
@@ -20,7 +20,7 @@ use crate::{StrippedStateEvent, SyncStateEvent};
 /// directly will fail.
 ///
 /// The `third_party_invite` property will be set if this invite is an *invite* event and is the
-/// successor of an *m.room.third_party_invite* event, and absent otherwise.
+/// successor of an `m.room.third_party_invite` event, and absent otherwise.
 ///
 /// This event may also include an `invite_room_state` key inside the event's unsigned data. If
 /// present, this contains an array of `StrippedState` events. These events provide information

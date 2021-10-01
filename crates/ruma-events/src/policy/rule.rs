@@ -1,4 +1,4 @@
-//! Modules and types for events in the *m.policy.rule* namespace.
+//! Modules and types for events in the `m.policy.rule` namespace.
 
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};

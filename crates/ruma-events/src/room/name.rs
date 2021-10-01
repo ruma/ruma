@@ -1,4 +1,4 @@
-//! Types for the *m.room.name* event.
+//! Types for the `m.room.name` event.
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::RoomNameBox;

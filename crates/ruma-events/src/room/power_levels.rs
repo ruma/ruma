@@ -1,4 +1,4 @@
-//! Types for the *m.room.power_levels* event.
+//! Types for the `m.room.power_levels` event.
 
 use std::collections::BTreeMap;
 

@@ -1,4 +1,4 @@
-//! Types for the *m.secret.send* event.
+//! Types for the `m.secret.send` event.
 
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};

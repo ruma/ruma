@@ -1,4 +1,4 @@
-//! Types for the *m.room.topic* event.
+//! Types for the `m.room.topic` event.
 
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};

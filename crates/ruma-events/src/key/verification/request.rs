@@ -1,4 +1,4 @@
-//! Types for the *m.key.verification.request* event.
+//! Types for the `m.key.verification.request` event.
 
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events_macros::EventContent;

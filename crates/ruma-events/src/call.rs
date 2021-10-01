@@ -1,4 +1,4 @@
-//! Modules for events in the *m.call* namespace.
+//! Modules for events in the `m.call` namespace.
 //!
 //! This module also contains types shared by events in its child namespaces.
 

@@ -1,4 +1,4 @@
-//! Types for the *m.room_key* event.
+//! Types for the `m.room_key` event.
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::{EventEncryptionAlgorithm, RoomId};
@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 /// The content of an `m.room_key` event.
 ///
-/// Typically encrypted as an *m.room.encrypted* event, then sent as a to-device event.
+/// Typically encrypted as an `m.room.encrypted` event, then sent as a to-device event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room_key", kind = ToDevice)]

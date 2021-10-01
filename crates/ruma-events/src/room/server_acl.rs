@@ -1,4 +1,4 @@
-//! Types for the *m.room.server_acl* event.
+//! Types for the `m.room.server_acl` event.
 
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};

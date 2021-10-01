@@ -1,4 +1,4 @@
-//! Types for the *m.room.message.feedback* event.
+//! Types for the `m.room.message.feedback` event.
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::EventId;

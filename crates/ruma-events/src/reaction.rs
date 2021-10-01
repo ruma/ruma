@@ -1,4 +1,4 @@
-//! Types for the *m.reaction* event.
+//! Types for the `m.reaction` event.
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::EventId;

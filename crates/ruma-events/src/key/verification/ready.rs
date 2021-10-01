@@ -1,4 +1,4 @@
-//! Types for the *m.key.verification.ready* event.
+//! Types for the `m.key.verification.ready` event.
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::DeviceIdBox;
@@ -8,7 +8,7 @@ use super::{Relation, VerificationMethod};
 
 /// The content of a to-device `m.m.key.verification.ready` event.
 ///
-/// Response to a previously sent *m.key.verification.request* message.
+/// Response to a previously sent `m.key.verification.request` message.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.ready", kind = ToDevice)]
@@ -22,7 +22,7 @@ pub struct ToDeviceReadyEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be unique with respect to the devices involved. Must be the same as the
-    /// `transaction_id` given in the *m.key.verification.request* from a
+    /// `transaction_id` given in the `m.key.verification.request` from a
     /// request.
     pub transaction_id: String,
 }
@@ -41,7 +41,7 @@ impl ToDeviceReadyEventContent {
 
 /// The content of an in-room `m.m.key.verification.ready` event.
 ///
-/// Response to a previously sent *m.key.verification.request* message.
+/// Response to a previously sent `m.key.verification.request` message.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.ready", kind = Message)]

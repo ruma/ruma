@@ -1,4 +1,4 @@
-//! Types for the *m.key.verification.accept* event.
+//! Types for the `m.key.verification.accept` event.
 
 use std::collections::BTreeMap;
 
@@ -14,14 +14,14 @@ use super::{
 
 /// The content of a to-device `m.key.verification.accept` event.
 ///
-/// Accepts a previously sent *m.key.verification.start* message.
+/// Accepts a previously sent `m.key.verification.start` message.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.accept", kind = ToDevice)]
 pub struct ToDeviceAcceptEventContent {
     /// An opaque identifier for the verification process.
     ///
-    /// Must be the same as the one used for the *m.key.verification.start* message.
+    /// Must be the same as the one used for the `m.key.verification.start` message.
     pub transaction_id: String,
 
     /// The method specific content.
@@ -39,7 +39,7 @@ impl ToDeviceAcceptEventContent {
 
 /// The content of a in-room `m.key.verification.accept` event.
 ///
-/// Accepts a previously sent *m.key.verification.start* message.
+/// Accepts a previously sent `m.key.verification.start` message.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.key.verification.accept", kind = Message)]
 #[cfg(feature = "unstable-pre-spec")]
@@ -64,12 +64,12 @@ impl AcceptEventContent {
     }
 }
 
-/// An enum representing the different method specific *m.key.verification.accept* content.
+/// An enum representing the different method specific `m.key.verification.accept` content.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(untagged)]
 pub enum AcceptMethod {
-    /// The *m.sas.v1* verification method.
+    /// The `m.sas.v1` verification method.
     SasV1(SasV1Content),
 
     /// Any unknown accept method.
@@ -90,33 +90,33 @@ pub struct _CustomContent {
     pub data: BTreeMap<String, JsonValue>,
 }
 
-/// The payload of an *m.key.verification.accept* event using the *m.sas.v1* method.
+/// The payload of an `m.key.verification.accept` event using the `m.sas.v1` method.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename = "m.sas.v1", tag = "method")]
 pub struct SasV1Content {
     /// The key agreement protocol the device is choosing to use, out of the
-    /// options in the *m.key.verification.start* message.
+    /// options in the `m.key.verification.start` message.
     pub key_agreement_protocol: KeyAgreementProtocol,
 
     /// The hash method the device is choosing to use, out of the options in the
-    /// *m.key.verification.start* message.
+    /// `m.key.verification.start` message.
     pub hash: HashAlgorithm,
 
     /// The message authentication code the device is choosing to use, out of
-    /// the options in the *m.key.verification.start* message.
+    /// the options in the `m.key.verification.start` message.
     pub message_authentication_code: MessageAuthenticationCode,
 
     /// The SAS methods both devices involved in the verification process
     /// understand.
     ///
-    /// Must be a subset of the options in the *m.key.verification.start*
+    /// Must be a subset of the options in the `m.key.verification.start`
     /// message.
     pub short_authentication_string: Vec<ShortAuthenticationString>,
 
     /// The hash (encoded as unpadded base64) of the concatenation of the
     /// device's ephemeral public key (encoded as unpadded base64) and the
-    /// canonical JSON representation of the *m.key.verification.start* message.
+    /// canonical JSON representation of the `m.key.verification.start` message.
     pub commitment: String,
 }
 
@@ -125,11 +125,11 @@ pub struct SasV1Content {
 #[allow(clippy::exhaustive_structs)]
 pub struct SasV1ContentInit {
     /// The key agreement protocol the device is choosing to use, out of the
-    /// options in the *m.key.verification.start* message.
+    /// options in the `m.key.verification.start` message.
     pub key_agreement_protocol: KeyAgreementProtocol,
 
     /// The hash method the device is choosing to use, out of the options in the
-    /// *m.key.verification.start* message.
+    /// `m.key.verification.start` message.
     pub hash: HashAlgorithm,
 
     /// The message authentication codes that the accepting device understands.
@@ -138,13 +138,13 @@ pub struct SasV1ContentInit {
     /// The SAS methods both devices involved in the verification process
     /// understand.
     ///
-    /// Must be a subset of the options in the *m.key.verification.start*
+    /// Must be a subset of the options in the `m.key.verification.start`
     /// message.
     pub short_authentication_string: Vec<ShortAuthenticationString>,
 
     /// The hash (encoded as unpadded base64) of the concatenation of the
     /// device's ephemeral public key (encoded as unpadded base64) and the
-    /// canonical JSON representation of the *m.key.verification.start* message.
+    /// canonical JSON representation of the `m.key.verification.start` message.
     pub commitment: String,
 }
 

@@ -1,4 +1,4 @@
-//! Types for the *m.call.candidates* event.
+//! Types for the `m.call.candidates` event.
 
 use js_int::UInt;
 use ruma_events_macros::EventContent;

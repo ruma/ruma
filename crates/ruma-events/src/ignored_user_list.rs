@@ -1,4 +1,4 @@
-//! Types for the *m.ignored_user_list* event.
+//! Types for the `m.ignored_user_list` event.
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::UserId;

@@ -1,3 +1,3 @@
-//! Modules for events in the *m.policy* namespace.
+//! Modules for events in the `m.policy` namespace.
 
 pub mod rule;

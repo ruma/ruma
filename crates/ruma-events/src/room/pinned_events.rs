@@ -1,4 +1,4 @@
-//! Types for the *m.room.pinned_events* event.
+//! Types for the `m.room.pinned_events` event.
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::EventId;

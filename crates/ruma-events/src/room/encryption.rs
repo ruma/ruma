@@ -1,4 +1,4 @@
-//! Types for the *m.room.encryption* event.
+//! Types for the `m.room.encryption` event.
 
 use js_int::UInt;
 use ruma_events_macros::EventContent;

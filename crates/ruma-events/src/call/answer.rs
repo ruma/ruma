@@ -1,4 +1,4 @@
-//! Types for the *m.call.answer* event.
+//! Types for the `m.call.answer` event.
 
 use js_int::UInt;
 use ruma_events_macros::EventContent;

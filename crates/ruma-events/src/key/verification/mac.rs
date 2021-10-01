@@ -1,4 +1,4 @@
-//! Types for the *m.key.verification.mac* event.
+//! Types for the `m.key.verification.mac` event.
 
 use std::collections::BTreeMap;
 
@@ -17,7 +17,7 @@ use super::Relation;
 pub struct ToDeviceMacEventContent {
     /// An opaque identifier for the verification process.
     ///
-    /// Must be the same as the one used for the *m.key.verification.start* message.
+    /// Must be the same as the one used for the `m.key.verification.start` message.
     pub transaction_id: String,
 
     /// A map of the key ID to the MAC of the key, using the algorithm in the verification process.

@@ -1,4 +1,4 @@
-//! Types for the *m.receipt* event.
+//! Types for the `m.receipt` event.
 
 use std::{
     collections::BTreeMap,

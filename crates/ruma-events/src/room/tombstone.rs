@@ -1,4 +1,4 @@
-//! Types for the *m.room.tombstone* event.
+//! Types for the `m.room.tombstone` event.
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::RoomId;

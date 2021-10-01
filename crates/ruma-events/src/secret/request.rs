@@ -1,4 +1,4 @@
-//! Types for the *m.secret.request* event.
+//! Types for the `m.secret.request` event.
 
 use std::convert::TryFrom;
 
@@ -43,7 +43,7 @@ impl ToDeviceRequestEventContent {
     }
 }
 
-/// Action for an *m.secret.request* event.
+/// Action for an `m.secret.request` event.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(try_from = "RequestActionJsonRepr")]

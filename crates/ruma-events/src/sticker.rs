@@ -1,4 +1,4 @@
-//! Types for the *m.sticker* event.
+//! Types for the `m.sticker` event.
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::MxcUri;

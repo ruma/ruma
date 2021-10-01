@@ -1,4 +1,4 @@
-//! Types for the *m.key.verification.start* event.
+//! Types for the `m.key.verification.start` event.
 
 use std::collections::BTreeMap;
 
@@ -26,7 +26,7 @@ pub struct ToDeviceStartEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be unique with respect to the devices involved. Must be the same as the
-    /// `transaction_id` given in the *m.key.verification.request* if this process is originating
+    /// `transaction_id` given in the `m.key.verification.request` if this process is originating
     /// from a request.
     pub transaction_id: String,
 
@@ -72,15 +72,15 @@ impl StartEventContent {
     }
 }
 
-/// An enum representing the different method specific *m.key.verification.start* content.
+/// An enum representing the different method specific `m.key.verification.start` content.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(untagged)]
 pub enum StartMethod {
-    /// The *m.sas.v1* verification method.
+    /// The `m.sas.v1` verification method.
     SasV1(SasV1Content),
 
-    /// The *m.reciprocate.v1* verification method.
+    /// The `m.reciprocate.v1` verification method.
     ///
     /// The spec entry for this method can be found [here][1].
     ///
@@ -106,7 +106,7 @@ pub struct _CustomContent {
     pub data: BTreeMap<String, JsonValue>,
 }
 
-/// The payload of an *m.key.verification.start* event using the *m.sas.v1* method.
+/// The payload of an `m.key.verification.start` event using the `m.sas.v1` method.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -127,7 +127,7 @@ impl ReciprocateV1Content {
     }
 }
 
-/// The payload of an *m.key.verification.start* event using the *m.sas.v1* method.
+/// The payload of an `m.key.verification.start` event using the `m.sas.v1` method.
 ///
 /// To create an instance of this type, first create a `SasV1ContentInit` and convert it via
 /// `SasV1Content::from` / `.into()`.

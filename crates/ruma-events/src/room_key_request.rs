@@ -1,4 +1,4 @@
-//! Types for the *m.room_key_request* event.
+//! Types for the `m.room_key_request` event.
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::{DeviceIdBox, EventEncryptionAlgorithm, RoomId};

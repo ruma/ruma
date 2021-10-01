@@ -1,4 +1,4 @@
-//! Modules for events in the *m.room* namespace.
+//! Modules for events in the `m.room` namespace.
 //!
 //! This module also contains types shared by events in its child namespaces.
 

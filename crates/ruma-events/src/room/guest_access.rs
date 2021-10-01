@@ -1,4 +1,4 @@
-//! Types for the *m.room.guest_access* event.
+//! Types for the `m.room.guest_access` event.
 
 use ruma_events_macros::EventContent;
 use ruma_serde::StringEnum;

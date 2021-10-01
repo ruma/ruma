@@ -1,4 +1,4 @@
-//! Types for the *m.room.create* event.
+//! Types for the `m.room.create` event.
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};

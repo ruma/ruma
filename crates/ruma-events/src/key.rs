@@ -1,3 +1,3 @@
-//! Modules for events in the *m.key* namespace.
+//! Modules for events in the `m.key` namespace.
 
 pub mod verification;

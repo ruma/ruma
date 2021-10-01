@@ -1,4 +1,4 @@
-//! Types for the *m.space* events.
+//! Types for the `m.space` events.
 //!
 //! See [MSC2758] and [MSC1772].
 //!

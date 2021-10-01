@@ -1,4 +1,4 @@
-//! Types for the *m.tag* event.
+//! Types for the `m.tag` event.
 
 use std::{collections::BTreeMap, error::Error, fmt, str::FromStr};
 

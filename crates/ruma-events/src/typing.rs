@@ -1,4 +1,4 @@
-//! Types for the *m.typing* event.
+//! Types for the `m.typing` event.
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::UserId;

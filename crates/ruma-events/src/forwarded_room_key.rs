@@ -1,4 +1,4 @@
-//! Types for the *m.forwarded_room_key* event.
+//! Types for the `m.forwarded_room_key` event.
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::{EventEncryptionAlgorithm, RoomId};

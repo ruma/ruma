@@ -1,4 +1,4 @@
-//! Types for the *m.room.history_visibility* event.
+//! Types for the `m.room.history_visibility` event.
 
 use ruma_events_macros::EventContent;
 use ruma_serde::StringEnum;

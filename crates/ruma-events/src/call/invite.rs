@@ -1,4 +1,4 @@
-//! Types for the *m.call.invite* event.
+//! Types for the `m.call.invite` event.
 
 use js_int::UInt;
 use ruma_events_macros::EventContent;

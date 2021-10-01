@@ -1,4 +1,4 @@
-//! Types for the *m.key.verification.cancel* event.
+//! Types for the `m.key.verification.cancel` event.
 
 use ruma_events_macros::EventContent;
 use ruma_serde::StringEnum;
@@ -89,7 +89,7 @@ pub enum CancelCode {
 
     /// The device does not know how to handle the requested method.
     ///
-    /// Should be sent for *m.key.verification.start* messages and messages defined by individual
+    /// Should be sent for `m.key.verification.start` messages and messages defined by individual
     /// verification processes.
     #[ruma_enum(rename = "m.unknown_method")]
     UnknownMethod,
@@ -112,7 +112,7 @@ pub enum CancelCode {
     #[ruma_enum(rename = "m.invalid_message")]
     InvalidMessage,
 
-    /// An *m.key.verification.request* was accepted by a different device.
+    /// An `m.key.verification.request` was accepted by a different device.
     ///
     /// The device receiving this error can ignore the verification request.
     #[ruma_enum(rename = "m.accepted")]

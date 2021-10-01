@@ -1,4 +1,4 @@
-//! Types for the *m.room.redaction* event.
+//! Types for the `m.room.redaction` event.
 
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events_macros::{Event, EventContent};

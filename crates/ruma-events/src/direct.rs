@@ -1,4 +1,4 @@
-//! Types for the *m.direct* event.
+//! Types for the `m.direct` event.
 
 use std::{
     collections::BTreeMap,

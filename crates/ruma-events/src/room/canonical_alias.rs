@@ -1,4 +1,4 @@
-//! Types for the *m.room.canonical_alias* event.
+//! Types for the `m.room.canonical_alias` event.
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::RoomAliasId;

@@ -1,4 +1,4 @@
-//! Types for the *m.policy.rule.server* event.
+//! Types for the `m.policy.rule.server` event.
 
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};

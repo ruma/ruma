@@ -1,4 +1,4 @@
-//! Types for the *m.fully_read* event.
+//! Types for the `m.fully_read` event.
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::EventId;

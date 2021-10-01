@@ -1,4 +1,4 @@
-//! Types for the *m.room.message* event.
+//! Types for the `m.room.message` event.
 
 use std::borrow::Cow;
 

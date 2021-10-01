@@ -1,4 +1,4 @@
-//! Types for the *m.room.encrypted* event.
+//! Types for the `m.room.encrypted` event.
 
 use std::collections::BTreeMap;
 
@@ -72,11 +72,11 @@ impl From<EncryptedEventScheme> for ToDeviceEncryptedEventContent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "algorithm")]
 pub enum EncryptedEventScheme {
-    /// An event encrypted with *m.olm.v1.curve25519-aes-sha2*.
+    /// An event encrypted with `m.olm.v1.curve25519-aes-sha2`.
     #[serde(rename = "m.olm.v1.curve25519-aes-sha2")]
     OlmV1Curve25519AesSha2(OlmV1Curve25519AesSha2Content),
 
-    /// An event encrypted with *m.megolm.v1.aes-sha2*.
+    /// An event encrypted with `m.megolm.v1.aes-sha2`.
     #[serde(rename = "m.megolm.v1.aes-sha2")]
     MegolmV1AesSha2(MegolmV1AesSha2Content),
 }
@@ -165,7 +165,7 @@ impl Annotation {
     }
 }
 
-/// The content of an `m.room.encrypted` event using the *m.olm.v1.curve25519-aes-sha2* algorithm.
+/// The content of an `m.room.encrypted` event using the `m.olm.v1.curve25519-aes-sha2` algorithm.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct OlmV1Curve25519AesSha2Content {
@@ -185,7 +185,7 @@ impl OlmV1Curve25519AesSha2Content {
 
 /// Ciphertext information holding the ciphertext and message type.
 ///
-/// Used for messages encrypted with the *m.olm.v1.curve25519-aes-sha2* algorithm.
+/// Used for messages encrypted with the `m.olm.v1.curve25519-aes-sha2` algorithm.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct CiphertextInfo {
@@ -204,7 +204,7 @@ impl CiphertextInfo {
     }
 }
 
-/// The content of an `m.room.encrypted` event using the *m.megolm.v1.aes-sha2* algorithm.
+/// The content of an `m.room.encrypted` event using the `m.megolm.v1.aes-sha2` algorithm.
 ///
 /// To create an instance of this type, first create a `MegolmV1AesSha2ContentInit` and convert it
 /// via `MegolmV1AesSha2Content::from` / `.into()`.

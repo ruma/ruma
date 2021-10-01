@@ -1,4 +1,4 @@
-//! Types for the *m.room.join_rules* event.
+//! Types for the `m.room.join_rules` event.
 
 use ruma_events_macros::EventContent;
 #[cfg(feature = "unstable-pre-spec")]

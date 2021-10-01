@@ -1,4 +1,4 @@
-//! Types for the *m.space.child* event.
+//! Types for the `m.space.child` event.
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::ServerNameBox;

@@ -1,4 +1,4 @@
-//! Types for the *m.key.verification.done* event.
+//! Types for the `m.key.verification.done` event.
 
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -14,7 +14,7 @@ use super::Relation;
 pub struct ToDeviceDoneEventContent {
     /// An opaque identifier for the verification process.
     ///
-    /// Must be the same as the one used for the *m.key.verification.start* message.
+    /// Must be the same as the one used for the `m.key.verification.start` message.
     pub transaction_id: String,
 }
 
