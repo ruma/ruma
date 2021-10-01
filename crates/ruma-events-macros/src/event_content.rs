@@ -356,7 +356,7 @@ fn generate_event_type_aliases(
             EventKindVariation::Stripped => " from an invited room preview",
             EventKindVariation::Redacted => " that has been redacted",
             EventKindVariation::RedactedSync => {
-                "from a `sync_events` response that has been redacted"
+                " from a `sync_events` response that has been redacted"
             }
             EventKindVariation::Initial => unreachable!(),
         };
