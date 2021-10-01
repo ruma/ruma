@@ -866,7 +866,7 @@ fn to_event_path(name: &LitStr, struct_name: &Ident, ruma_events: &TokenStream) 
             quote! { #ruma_events::#struct_name<#ruma_events::#( #path )::*::#content> }
         }
         "ToDeviceEvent" => {
-            let content = format_ident!("{}ToDeviceEventContent", event);
+            let content = format_ident!("ToDevice{}EventContent", event);
             quote! { #ruma_events::#struct_name<#ruma_events::#( #path )::*::#content> }
         }
         struct_str if struct_str.contains("Redacted") => {
@@ -902,7 +902,7 @@ fn to_event_content_path(
 
     let content_str = match kind {
         EventKind::ToDevice => {
-            format_ident!("{}{}ToDeviceEventContent", prefix.unwrap_or(""), event)
+            format_ident!("ToDevice{}{}EventContent", prefix.unwrap_or(""), event)
         }
         _ => format_ident!("{}{}EventContent", prefix.unwrap_or(""), event),
     };

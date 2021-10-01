@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room_key_request", kind = ToDevice)]
-pub struct RoomKeyRequestToDeviceEventContent {
+pub struct ToDeviceRoomKeyRequestEventContent {
     /// Whether this is a new key request or a cancellation of a previous request.
     pub action: Action,
 
@@ -28,8 +28,8 @@ pub struct RoomKeyRequestToDeviceEventContent {
     pub request_id: String,
 }
 
-impl RoomKeyRequestToDeviceEventContent {
-    /// Creates a new `RoomKeyRequestToDeviceEventContent` with the given action, boyd, device ID
+impl ToDeviceRoomKeyRequestEventContent {
+    /// Creates a new `ToDeviceRoomKeyRequestEventContent` with the given action, boyd, device ID
     /// and request ID.
     pub fn new(
         action: Action,

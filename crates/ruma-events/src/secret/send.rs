@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.secret.send", kind = ToDevice)]
-pub struct SendToDeviceEventContent {
+pub struct ToDeviceSendEventContent {
     /// The ID of the request that this is a response to.
     pub request_id: String,
 
@@ -20,7 +20,7 @@ pub struct SendToDeviceEventContent {
     pub secret: String,
 }
 
-impl SendToDeviceEventContent {
+impl ToDeviceSendEventContent {
     /// Creates a new `SecretSendEventContent` with the given request ID and secret.
     pub fn new(request_id: String, secret: String) -> Self {
         Self { request_id, secret }

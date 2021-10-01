@@ -22,16 +22,16 @@ use serde::{
 #[derive(Clone, Debug, Default, EventContent)]
 #[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.dummy", kind = ToDevice)]
-pub struct DummyToDeviceEventContent;
+pub struct ToDeviceDummyEventContent;
 
-impl DummyToDeviceEventContent {
-    /// Create a new `DummyToDeviceEventContent`.
+impl ToDeviceDummyEventContent {
+    /// Create a new `ToDeviceDummyEventContent`.
     pub fn new() -> Self {
         Self
     }
 }
 
-impl<'de> Deserialize<'de> for DummyToDeviceEventContent {
+impl<'de> Deserialize<'de> for ToDeviceDummyEventContent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -39,7 +39,7 @@ impl<'de> Deserialize<'de> for DummyToDeviceEventContent {
         struct Visitor;
 
         impl<'de> de::Visitor<'de> for Visitor {
-            type Value = DummyToDeviceEventContent;
+            type Value = ToDeviceDummyEventContent;
 
             fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
                 formatter.write_str("a struct")
@@ -50,19 +50,19 @@ impl<'de> Deserialize<'de> for DummyToDeviceEventContent {
                 A: de::MapAccess<'de>,
             {
                 while map.next_entry::<de::IgnoredAny, de::IgnoredAny>()?.is_some() {}
-                Ok(DummyToDeviceEventContent)
+                Ok(ToDeviceDummyEventContent)
             }
         }
 
-        deserializer.deserialize_struct("DummyToDeviceEventContent", &[], Visitor)
+        deserializer.deserialize_struct("ToDeviceDummyEventContent", &[], Visitor)
     }
 }
 
-impl Serialize for DummyToDeviceEventContent {
+impl Serialize for ToDeviceDummyEventContent {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        serializer.serialize_struct("DummyToDeviceEventContent", 0)?.end()
+        serializer.serialize_struct("ToDeviceDummyEventContent", 0)?.end()
     }
 }

@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room_key", kind = ToDevice)]
-pub struct RoomKeyToDeviceEventContent {
+pub struct ToDeviceRoomKeyEventContent {
     /// The encryption algorithm the key in this event is to be used with.
     ///
     /// Must be `m.megolm.v1.aes-sha2`.
@@ -26,8 +26,8 @@ pub struct RoomKeyToDeviceEventContent {
     pub session_key: String,
 }
 
-impl RoomKeyToDeviceEventContent {
-    /// Creates a new `RoomKeyToDeviceEventContent` with the given algorithm, room ID, session ID
+impl ToDeviceRoomKeyEventContent {
+    /// Creates a new `ToDeviceRoomKeyEventContent` with the given algorithm, room ID, session ID
     /// and session key.
     pub fn new(
         algorithm: EventEncryptionAlgorithm,
@@ -44,13 +44,13 @@ mod tests {
     use ruma_identifiers::{room_id, user_id, EventEncryptionAlgorithm};
     use serde_json::{json, to_value as to_json_value};
 
-    use super::RoomKeyToDeviceEventContent;
+    use super::ToDeviceRoomKeyEventContent;
     use crate::ToDeviceEvent;
 
     #[test]
     fn serialization() {
         let ev = ToDeviceEvent {
-            content: RoomKeyToDeviceEventContent {
+            content: ToDeviceRoomKeyEventContent {
                 algorithm: EventEncryptionAlgorithm::MegolmV1AesSha2,
                 room_id: room_id!("!testroomid:example.org"),
                 session_id: "SessId".into(),

@@ -13,7 +13,7 @@ use super::Relation;
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.cancel", kind = ToDevice)]
-pub struct CancelToDeviceEventContent {
+pub struct ToDeviceCancelEventContent {
     /// The opaque identifier for the verification process/request.
     pub transaction_id: String,
 
@@ -26,8 +26,8 @@ pub struct CancelToDeviceEventContent {
     pub code: CancelCode,
 }
 
-impl CancelToDeviceEventContent {
-    /// Creates a new `CancelToDeviceEventContent` with the given transaction ID, reason and code.
+impl ToDeviceCancelEventContent {
+    /// Creates a new `ToDeviceCancelEventContent` with the given transaction ID, reason and code.
     pub fn new(transaction_id: String, reason: String, code: CancelCode) -> Self {
         Self { transaction_id, reason, code }
     }

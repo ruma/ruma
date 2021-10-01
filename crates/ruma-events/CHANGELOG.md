@@ -7,6 +7,7 @@ Breaking changes:
 * Use `Box<RawJsonValue>` instead of `JsonValue` for PDU `content` field
 * Require `room::message::MessageType` to always contain a body
   * The `new` constructor now also has a body parameter
+* Rename `*ToDeviceEventContent` structs to `ToDevice*Content`
 
 Improvements:
 

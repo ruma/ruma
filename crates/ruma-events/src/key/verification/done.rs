@@ -11,15 +11,15 @@ use super::Relation;
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.done", kind = ToDevice)]
-pub struct DoneToDeviceEventContent {
+pub struct ToDeviceDoneEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the *m.key.verification.start* message.
     pub transaction_id: String,
 }
 
-impl DoneToDeviceEventContent {
-    /// Creates a new `DoneToDeviceEventContent` with the given transaction ID.
+impl ToDeviceDoneEventContent {
+    /// Creates a new `ToDeviceDoneEventContent` with the given transaction ID.
     pub fn new(transaction_id: String) -> Self {
         Self { transaction_id }
     }

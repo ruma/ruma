@@ -48,20 +48,20 @@ impl From<EncryptedEventScheme> for EncryptedEventContent {
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.encrypted", kind = ToDevice)]
-pub struct EncryptedToDeviceEventContent {
+pub struct ToDeviceEncryptedEventContent {
     /// Algorithm-specific fields.
     #[serde(flatten)]
     pub scheme: EncryptedEventScheme,
 }
 
-impl EncryptedToDeviceEventContent {
-    /// Creates a new `EncryptedToDeviceEventContent` with the given scheme.
+impl ToDeviceEncryptedEventContent {
+    /// Creates a new `ToDeviceEncryptedEventContent` with the given scheme.
     pub fn new(scheme: EncryptedEventScheme) -> Self {
         Self { scheme }
     }
 }
 
-impl From<EncryptedEventScheme> for EncryptedToDeviceEventContent {
+impl From<EncryptedEventScheme> for ToDeviceEncryptedEventContent {
     fn from(scheme: EncryptedEventScheme) -> Self {
         Self { scheme }
     }

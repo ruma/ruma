@@ -11,7 +11,7 @@ use super::VerificationMethod;
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.request", kind = ToDevice)]
-pub struct RequestToDeviceEventContent {
+pub struct ToDeviceRequestEventContent {
     /// The device ID which is initiating the request.
     pub from_device: DeviceIdBox,
 
@@ -30,8 +30,8 @@ pub struct RequestToDeviceEventContent {
     pub timestamp: MilliSecondsSinceUnixEpoch,
 }
 
-impl RequestToDeviceEventContent {
-    /// Creates a new `RequestToDeviceEventContent` with the given device ID, transaction ID,
+impl ToDeviceRequestEventContent {
+    /// Creates a new `ToDeviceRequestEventContent` with the given device ID, transaction ID,
     /// methods and timestamp.
     pub fn new(
         from_device: DeviceIdBox,

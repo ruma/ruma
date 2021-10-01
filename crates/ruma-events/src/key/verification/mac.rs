@@ -14,7 +14,7 @@ use super::Relation;
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.mac", kind = ToDevice)]
-pub struct MacToDeviceEventContent {
+pub struct ToDeviceMacEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the *m.key.verification.start* message.
@@ -30,9 +30,9 @@ pub struct MacToDeviceEventContent {
     pub keys: String,
 }
 
-impl MacToDeviceEventContent {
-    /// Creates a new `MacToDeviceEventContent` with the given transaction ID, key ID to MAC map and
-    /// key MAC.
+impl ToDeviceMacEventContent {
+    /// Creates a new `ToDeviceMacEventContent` with the given transaction ID, key ID to MAC
+    /// map and key MAC.
     pub fn new(transaction_id: String, mac: BTreeMap<String, String>, keys: String) -> Self {
         Self { transaction_id, mac, keys }
     }

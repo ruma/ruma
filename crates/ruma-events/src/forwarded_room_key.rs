@@ -6,12 +6,12 @@ use serde::{Deserialize, Serialize};
 
 /// The content of an `m.forwarded_room_key` event.
 ///
-/// To create an instance of this type, first create a `ForwardedRoomKeyToDeviceEventContentInit`
-/// and convert it via `ForwardedRoomKeyToDeviceEventContent::from` / `.into()`.
+/// To create an instance of this type, first create a `ToDeviceForwardedRoomKeyEventContentInit`
+/// and convert it via `ToDeviceForwardedRoomKeyEventContent::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.forwarded_room_key", kind = ToDevice)]
-pub struct ForwardedRoomKeyToDeviceEventContent {
+pub struct ToDeviceForwardedRoomKeyEventContent {
     /// The encryption algorithm the key in this event is to be used with.
     pub algorithm: EventEncryptionAlgorithm,
 
@@ -43,13 +43,13 @@ pub struct ForwardedRoomKeyToDeviceEventContent {
     pub forwarding_curve25519_key_chain: Vec<String>,
 }
 
-/// Initial set of fields of `ForwardedRoomKeyToDeviceEventContent`.
+/// Initial set of fields of `ToDeviceForwardedRoomKeyEventContent`.
 ///
 /// This struct will not be updated even if additional fields are added to `ConditionalPushRule` in
 /// a new (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
 #[allow(clippy::exhaustive_structs)]
-pub struct ForwardedRoomKeyToDeviceEventContentInit {
+pub struct ToDeviceForwardedRoomKeyEventContentInit {
     /// The encryption algorithm the key in this event is to be used with.
     pub algorithm: EventEncryptionAlgorithm,
 
@@ -81,8 +81,8 @@ pub struct ForwardedRoomKeyToDeviceEventContentInit {
     pub forwarding_curve25519_key_chain: Vec<String>,
 }
 
-impl From<ForwardedRoomKeyToDeviceEventContentInit> for ForwardedRoomKeyToDeviceEventContent {
-    fn from(init: ForwardedRoomKeyToDeviceEventContentInit) -> Self {
+impl From<ToDeviceForwardedRoomKeyEventContentInit> for ToDeviceForwardedRoomKeyEventContent {
+    fn from(init: ToDeviceForwardedRoomKeyEventContentInit) -> Self {
         Self {
             algorithm: init.algorithm,
             room_id: init.room_id,

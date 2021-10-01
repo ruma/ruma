@@ -18,7 +18,7 @@ use super::{
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.accept", kind = ToDevice)]
-pub struct AcceptToDeviceEventContent {
+pub struct ToDeviceAcceptEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the *m.key.verification.start* message.
@@ -29,8 +29,8 @@ pub struct AcceptToDeviceEventContent {
     pub method: AcceptMethod,
 }
 
-impl AcceptToDeviceEventContent {
-    /// Creates a new `AcceptToDeviceEventContent` with the given transaction ID and method-specific
+impl ToDeviceAcceptEventContent {
+    /// Creates a new `ToDeviceAcceptEventContent` with the given transaction ID and method-specific
     /// content.
     pub fn new(transaction_id: String, method: AcceptMethod) -> Self {
         Self { transaction_id, method }
@@ -57,7 +57,7 @@ pub struct AcceptEventContent {
 
 #[cfg(feature = "unstable-pre-spec")]
 impl AcceptEventContent {
-    /// Creates a new `AcceptToDeviceEventContent` with the given method-specific content and
+    /// Creates a new `ToDeviceAcceptEventContent` with the given method-specific content and
     /// relation.
     pub fn new(method: AcceptMethod, relates_to: Relation) -> Self {
         Self { method, relates_to }
@@ -176,8 +176,8 @@ mod tests {
     #[cfg(feature = "unstable-pre-spec")]
     use super::AcceptEventContent;
     use super::{
-        AcceptMethod, AcceptToDeviceEventContent, HashAlgorithm, KeyAgreementProtocol,
-        MessageAuthenticationCode, SasV1Content, ShortAuthenticationString, _CustomContent,
+        AcceptMethod, HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, SasV1Content,
+        ShortAuthenticationString, ToDeviceAcceptEventContent, _CustomContent,
     };
     #[cfg(feature = "unstable-pre-spec")]
     use crate::key::verification::Relation;
@@ -185,7 +185,7 @@ mod tests {
 
     #[test]
     fn serialization() {
-        let key_verification_accept_content = AcceptToDeviceEventContent {
+        let key_verification_accept_content = ToDeviceAcceptEventContent {
             transaction_id: "456".into(),
             method: AcceptMethod::SasV1(SasV1Content {
                 hash: HashAlgorithm::Sha256,
@@ -229,7 +229,7 @@ mod tests {
             "type": "m.key.verification.accept"
         });
 
-        let key_verification_accept_content = AcceptToDeviceEventContent {
+        let key_verification_accept_content = ToDeviceAcceptEventContent {
             transaction_id: "456".into(),
             method: AcceptMethod::_Custom(_CustomContent {
                 method: "m.sas.custom".to_owned(),
@@ -291,8 +291,8 @@ mod tests {
 
         // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
         assert_matches!(
-            from_json_value::<AcceptToDeviceEventContent>(json).unwrap(),
-            AcceptToDeviceEventContent {
+            from_json_value::<ToDeviceAcceptEventContent>(json).unwrap(),
+            ToDeviceAcceptEventContent {
                 transaction_id,
                 method: AcceptMethod::SasV1(SasV1Content {
                     commitment,
@@ -326,10 +326,10 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<ToDeviceEvent<AcceptToDeviceEventContent>>(json).unwrap(),
+            from_json_value::<ToDeviceEvent<ToDeviceAcceptEventContent>>(json).unwrap(),
             ToDeviceEvent {
                 sender,
-                content: AcceptToDeviceEventContent {
+                content: ToDeviceAcceptEventContent {
                     transaction_id,
                     method: AcceptMethod::SasV1(SasV1Content {
                         commitment,
@@ -362,10 +362,10 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<ToDeviceEvent<AcceptToDeviceEventContent>>(json).unwrap(),
+            from_json_value::<ToDeviceEvent<ToDeviceAcceptEventContent>>(json).unwrap(),
             ToDeviceEvent {
                 sender,
-                content: AcceptToDeviceEventContent {
+                content: ToDeviceAcceptEventContent {
                     transaction_id,
                     method: AcceptMethod::_Custom(_CustomContent {
                         method,
