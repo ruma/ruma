@@ -221,40 +221,11 @@ fn expand_conversion_impl(
     let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
 
     let ident = kind.to_event_enum_ident(var)?;
-    let variants: Vec<_> = variants
-        .iter()
-        .filter(|v| {
-            // We filter this variant out only for non redacted events.
-            // The type of the struct held in the enum variant is different in this case
-            // so we construct the variant manually.
-            !(v.ident == "RoomRedaction"
-                && matches!(var, EventKindVariation::Full | EventKindVariation::Sync))
-        })
-        .collect();
-
     match var {
         EventKindVariation::Full | EventKindVariation::Redacted => {
-            // the opposite event variation full -> sync, redacted -> redacted sync
-            let variation = if var == &EventKindVariation::Full {
-                EventKindVariation::Sync
-            } else {
-                EventKindVariation::RedactedSync
-            };
-
-            let sync = kind.to_event_enum_ident(&variation)?;
-            let sync_struct = kind.to_event_ident(&variation)?;
-
+            let sync = kind.to_event_enum_ident(&var.to_sync().unwrap())?;
             let ident_variants = variants.iter().map(|v| v.match_arm(&ident));
             let self_variants = variants.iter().map(|v| v.ctor(quote! { Self }));
-
-            let redaction =
-                (*kind == EventKind::Message && *var == EventKindVariation::Full).then(|| {
-                    quote! {
-                        #ident::RoomRedaction(event) => Self::RoomRedaction(
-                            #ruma_events::room::redaction::SyncRedactionEvent::from(event),
-                        ),
-                    }
-                });
 
             Some(quote! {
                 impl From<#ident> for #sync {
@@ -262,12 +233,11 @@ fn expand_conversion_impl(
                         match event {
                             #(
                                 #ident_variants(event) => {
-                                    #self_variants(#ruma_events::#sync_struct::from(event))
+                                    #self_variants(::std::convert::From::from(event))
                                 },
                             )*
-                            #redaction
                             #ident::_Custom(event) => {
-                                Self::_Custom(#ruma_events::#sync_struct::from(event))
+                                Self::_Custom(::std::convert::From::from(event))
                             },
                         }
                     }
@@ -275,29 +245,14 @@ fn expand_conversion_impl(
             })
         }
         EventKindVariation::Sync | EventKindVariation::RedactedSync => {
-            let variation = if var == &EventKindVariation::Sync {
-                EventKindVariation::Full
-            } else {
-                EventKindVariation::Redacted
-            };
-            let full = kind.to_event_enum_ident(&variation)?;
-
+            let full = kind.to_event_enum_ident(&var.to_full().unwrap())?;
             let self_variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
             let full_variants = variants.iter().map(|v| v.ctor(&full));
-
-            let redaction =
-                (*kind == EventKind::Message && *var == EventKindVariation::Sync).then(|| {
-                    quote! {
-                        Self::RoomRedaction(event) => {
-                            #full::RoomRedaction(event.into_full_event(room_id))
-                        },
-                    }
-                });
 
             Some(quote! {
                 #[automatically_derived]
                 impl #ident {
-                    /// Convert this sync event into a full event, one with a room_id field.
+                    /// Convert this sync event into a full event (one with a `room_id` field).
                     pub fn into_full_event(
                         self,
                         room_id: #ruma_identifiers::RoomId
@@ -308,7 +263,6 @@ fn expand_conversion_impl(
                                     #full_variants(event.into_full_event(room_id))
                                 },
                             )*
-                            #redaction
                             Self::_Custom(event) => {
                                 #full::_Custom(event.into_full_event(room_id))
                             },
