@@ -4,7 +4,11 @@ use xshell::pushd;
 
 use crate::{cmd, Metadata, Result};
 
-const MSRV: &str = "1.55";
+mod spec_links;
+
+use spec_links::check_spec_links;
+
+const MSRV: &str = "1.50";
 
 /// Task to run CI tests.
 pub struct CiTask {
@@ -37,7 +41,7 @@ impl CiTask {
         Ok(())
     }
 
-    fn build_msrv(&self) -> xshell::Result<()> {
+    fn build_msrv(&self) -> Result<()> {
         // Check all crates with all features except
         // * ruma (would pull in ruma-signatures)
         // * ruma-client (tested with default features due to optional HTTP client deps)
@@ -56,10 +60,10 @@ impl CiTask {
         cmd!("rustup run {MSRV} cargo check -p ruma-client").run()?;
 
         // Check ruma crate with default features
-        cmd!("rustup run {MSRV} cargo check -p ruma").run()
+        cmd!("rustup run {MSRV} cargo check -p ruma").run().map_err(Into::into)
     }
 
-    fn build_stable(&self) -> xshell::Result<()> {
+    fn build_stable(&self) -> Result<()> {
         // 1. Make sure everything compiles
         cmd!("rustup run stable cargo check --workspace --all-features").run()?;
         cmd!("rustup run stable cargo check -p ruma-client --no-default-features").run()?;
@@ -72,10 +76,10 @@ impl CiTask {
         let events_compat_res =
             cmd!("rustup run stable cargo test -p ruma-events --features compat compat").run();
 
-        workspace_res.and(events_compat_res)
+        workspace_res.and(events_compat_res).map_err(Into::into)
     }
 
-    fn build_nightly(&self) -> xshell::Result<()> {
+    fn build_nightly(&self) -> Result<()> {
         // Check formatting
         let fmt_res = cmd!("rustup run nightly cargo fmt -- --check").run();
         // Check `ruma` crate with `full` feature (sometimes things only compile with an unstable
@@ -107,6 +111,10 @@ impl CiTask {
         )
         .run();
 
-        fmt_res.and(check_full_res).and(clippy_default_res).and(clippy_all_res).and(sort_res)
+        println!("Checking all Matrix Spec links point to same version...");
+        check_spec_links(&self.project_root.join("crates"))?;
+        println!("All links to the Matrix Spec are consistent!");
+
+        fmt_res.and(check_full_res).and(clippy_res).and(sort_res).map_err(Into::into)
     }
 }
