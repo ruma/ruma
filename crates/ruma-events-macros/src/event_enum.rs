@@ -118,7 +118,7 @@ fn expand_any_with_deser(
     let (event_struct, ident) = generate_event_idents(kind, var)?;
 
     let content: Vec<_> =
-        events.iter().map(|event| to_event_path(event, &event_struct, ruma_events)).collect();
+        events.iter().map(|event| to_event_path(event, kind, var, ruma_events)).collect();
 
     let variant_decls = variants.iter().map(|v| v.decl());
     let self_variants = variants.iter().map(|v| v.ctor(quote! { Self }));
@@ -831,12 +831,34 @@ fn redacted_accessor_methods(
     })
 }
 
-fn to_event_path(name: &LitStr, struct_name: &Ident, ruma_events: &TokenStream) -> TokenStream {
+fn to_event_path(
+    name: &LitStr,
+    kind: &EventKind,
+    var: &EventKindVariation,
+    ruma_events: &TokenStream,
+) -> TokenStream {
     let span = name.span();
     let name = name.value();
 
     // There is no need to give a good compiler error as `to_camel_case` is called first.
     assert_eq!(&name[..2], "m.");
+
+    // Temporary hack
+    if *kind == EventKind::Message && name == "m.room.redaction" {
+        if *var == EventKindVariation::Redacted {
+            return quote! {
+                #ruma_events::RedactedMessageEvent<
+                    #ruma_events::room::redaction::RedactedRedactionEventContent
+                >
+            };
+        } else if *var == EventKindVariation::RedactedSync {
+            return quote! {
+                #ruma_events::RedactedSyncMessageEvent<
+                    #ruma_events::room::redaction::RedactedRedactionEventContent
+                >
+            };
+        }
+    }
 
     let path: Vec<_> = name[2..].split('.').collect();
 
@@ -848,36 +870,13 @@ fn to_event_path(name: &LitStr, struct_name: &Ident, ruma_events: &TokenStream) 
 
     let path = path.iter().map(|s| Ident::new(s, span));
 
-    match struct_name.to_string().as_str() {
-        "MessageEvent" | "SyncMessageEvent" if name == "m.room.redaction" => {
-            let redaction = if struct_name == "MessageEvent" {
-                quote! { RedactionEvent }
-            } else {
-                quote! { SyncRedactionEvent }
-            };
-            quote! { #ruma_events::room::redaction::#redaction }
-        }
-        "SyncStateEvent"
-        | "StrippedStateEvent"
-        | "InitialStateEvent"
-        | "SyncMessageEvent"
-        | "SyncEphemeralRoomEvent" => {
-            let content = format_ident!("{}EventContent", event);
-            quote! { #ruma_events::#struct_name<#ruma_events::#( #path )::*::#content> }
-        }
-        "ToDeviceEvent" => {
-            let content = format_ident!("ToDevice{}EventContent", event);
-            quote! { #ruma_events::#struct_name<#ruma_events::#( #path )::*::#content> }
-        }
-        struct_str if struct_str.contains("Redacted") => {
-            let content = format_ident!("Redacted{}EventContent", event);
-            quote! { #ruma_events::#struct_name<#ruma_events::#( #path )::*::#content> }
-        }
-        _ => {
-            let event_name = format_ident!("{}Event", event);
-            quote! { #ruma_events::#( #path )::*::#event_name }
-        }
-    }
+    let event_name = if *kind == EventKind::ToDevice {
+        assert_eq!(*var, EventKindVariation::Full);
+        format_ident!("ToDevice{}Event", event)
+    } else {
+        format_ident!("{}{}Event", var, event)
+    };
+    quote! { #ruma_events::#( #path )::*::#event_name }
 }
 
 fn to_event_content_path(

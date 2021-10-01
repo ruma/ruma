@@ -17,7 +17,7 @@ mod kw {
 }
 
 // If the variants of this enum change `to_event_path` needs to be updated as well.
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum EventKindVariation {
     Full,
     Sync,
