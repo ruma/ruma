@@ -1,6 +1,7 @@
 //! [GET /_matrix/identity/v2/pubkey/isvalid](https://matrix.org/docs/spec/identity_service/r0.3.0#get-matrix-identity-v2-pubkey-isvalid)
 
 use ruma_api::ruma_api;
+use ruma_serde::Base64;
 
 ruma_api! {
     metadata: {
@@ -15,7 +16,7 @@ ruma_api! {
     request: {
         /// Base64-encoded (no padding) public key to check for validity.
         #[ruma_api(query)]
-        pub public_key: &'a str,
+        pub public_key: &'a Base64,
     }
 
     response: {
@@ -26,7 +27,7 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Create a `Request` with the given base64-encoded (unpadded) public key.
-    pub fn new(public_key: &'a str) -> Self {
+    pub fn new(public_key: &'a Base64) -> Self {
         Self { public_key }
     }
 }

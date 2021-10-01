@@ -3,6 +3,7 @@
 //! [`m.key.verification.key`]: https://spec.matrix.org/v1.1/client-server-api/#mkeyverificationkey
 
 use ruma_events_macros::EventContent;
+use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "unstable-pre-spec")]
@@ -20,14 +21,14 @@ pub struct ToDeviceKeyVerificationKeyEventContent {
     /// Must be the same as the one used for the `m.key.verification.start` message.
     pub transaction_id: String,
 
-    /// The device's ephemeral public key, encoded as unpadded Base64.
-    pub key: String,
+    /// The device's ephemeral public key, encoded as unpadded base64.
+    pub key: Base64,
 }
 
 impl ToDeviceKeyVerificationKeyEventContent {
     /// Creates a new `ToDeviceKeyVerificationKeyEventContent` with the given transaction ID and
     /// key.
-    pub fn new(transaction_id: String, key: String) -> Self {
+    pub fn new(transaction_id: String, key: Base64) -> Self {
         Self { transaction_id, key }
     }
 }
@@ -40,8 +41,8 @@ impl ToDeviceKeyVerificationKeyEventContent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.key", kind = Message)]
 pub struct KeyVerificationKeyEventContent {
-    /// The device's ephemeral public key, encoded as unpadded Base64.
-    pub key: String,
+    /// The device's ephemeral public key, encoded as unpadded base64.
+    pub key: Base64,
 
     /// Information about the related event.
     #[serde(rename = "m.relates_to")]
@@ -51,7 +52,7 @@ pub struct KeyVerificationKeyEventContent {
 #[cfg(feature = "unstable-pre-spec")]
 impl KeyVerificationKeyEventContent {
     /// Creates a new `KeyVerificationKeyEventContent` with the given key and relation.
-    pub fn new(key: String, relates_to: Relation) -> Self {
+    pub fn new(key: Base64, relates_to: Relation) -> Self {
         Self { key, relates_to }
     }
 }

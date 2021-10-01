@@ -5,6 +5,7 @@
 use std::collections::BTreeMap;
 
 use ruma_events_macros::EventContent;
+use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
@@ -118,7 +119,7 @@ pub struct SasV1Content {
     /// The hash (encoded as unpadded base64) of the concatenation of the
     /// device's ephemeral public key (encoded as unpadded base64) and the
     /// canonical JSON representation of the `m.key.verification.start` message.
-    pub commitment: String,
+    pub commitment: Base64,
 }
 
 /// Mandatory initial set of fields for creating an accept `SasV1Content`.
@@ -146,7 +147,7 @@ pub struct SasV1ContentInit {
     /// The hash (encoded as unpadded base64) of the concatenation of the
     /// device's ephemeral public key (encoded as unpadded base64) and the
     /// canonical JSON representation of the `m.key.verification.start` message.
-    pub commitment: String,
+    pub commitment: Base64,
 }
 
 impl From<SasV1ContentInit> for SasV1Content {
@@ -170,6 +171,7 @@ mod tests {
     #[cfg(feature = "unstable-pre-spec")]
     use ruma_identifiers::event_id;
     use ruma_identifiers::user_id;
+    use ruma_serde::Base64;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
@@ -193,7 +195,7 @@ mod tests {
                 key_agreement_protocol: KeyAgreementProtocol::Curve25519,
                 message_authentication_code: MessageAuthenticationCode::HkdfHmacSha256,
                 short_authentication_string: vec![ShortAuthenticationString::Decimal],
-                commitment: "test_commitment".into(),
+                commitment: Base64::parse("aGVsbG8K").unwrap(),
             }),
         };
 
@@ -203,7 +205,7 @@ mod tests {
             "content": {
                 "transaction_id": "456",
                 "method": "m.sas.v1",
-                "commitment": "test_commitment",
+                "commitment": "aGVsbG8K",
                 "key_agreement_protocol": "curve25519",
                 "hash": "sha256",
                 "message_authentication_code": "hkdf-hmac-sha256",
@@ -282,7 +284,7 @@ mod tests {
     fn deserialization() {
         let json = json!({
             "transaction_id": "456",
-            "commitment": "test_commitment",
+            "commitment": "aGVsbG8K",
             "method": "m.sas.v1",
             "hash": "sha256",
             "key_agreement_protocol": "curve25519",
@@ -302,7 +304,7 @@ mod tests {
                     message_authentication_code,
                     short_authentication_string,
                 })
-            } if commitment == "test_commitment"
+            } if commitment.encode() == "aGVsbG8K"
                 && transaction_id == "456"
                 && hash == HashAlgorithm::Sha256
                 && key_agreement_protocol == KeyAgreementProtocol::Curve25519
@@ -314,7 +316,7 @@ mod tests {
 
         let json = json!({
             "content": {
-                "commitment": "test_commitment",
+                "commitment": "aGVsbG8K",
                 "transaction_id": "456",
                 "method": "m.sas.v1",
                 "key_agreement_protocol": "curve25519",
@@ -340,7 +342,7 @@ mod tests {
                         short_authentication_string,
                     })
                 }
-            } if commitment == "test_commitment"
+            } if commitment.encode() == "aGVsbG8K"
                 && sender == user_id!("@example:localhost")
                 && transaction_id == "456"
                 && hash == HashAlgorithm::Sha256

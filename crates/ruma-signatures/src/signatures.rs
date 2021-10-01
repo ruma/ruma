@@ -57,7 +57,7 @@ impl Signature {
         self.signature.as_slice()
     }
 
-    /// A Base64 encoding of the signature.
+    /// A base64 encoding of the signature.
     ///
     /// Uses the standard character set with no padding.
     pub fn base64(&self) -> String {

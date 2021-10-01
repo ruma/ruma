@@ -12,7 +12,7 @@ use ruma_events::{
     EventType,
 };
 use ruma_identifiers::{RoomVersionId, UserId};
-use ruma_serde::Raw;
+use ruma_serde::{Base64, Raw};
 use serde::{de::IgnoredAny, Deserialize};
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 use tracing::{debug, error, info, warn};
@@ -925,15 +925,21 @@ fn verify_third_party_invite(
             Err(_) => return false,
         };
 
+    let decoded_invite_token = match Base64::parse(&tp_id.signed.token) {
+        Ok(tok) => tok,
+        // FIXME: Log a warning?
+        Err(_) => return false,
+    };
+
     // A list of public keys in the public_keys field
     for key in tpid_ev.public_keys.unwrap_or_default() {
-        if key.public_key == tp_id.signed.token {
+        if key.public_key == decoded_invite_token {
             return true;
         }
     }
 
     // A single public key in the public_key field
-    tpid_ev.public_key == tp_id.signed.token
+    tpid_ev.public_key == decoded_invite_token
 }
 
 #[cfg(test)]
