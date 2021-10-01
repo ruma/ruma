@@ -464,69 +464,51 @@ fn expand_redact(
 ) -> Option<TokenStream> {
     let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
 
-    if let EventKindVariation::Full | EventKindVariation::Sync | EventKindVariation::Stripped = var
-    {
-        let (redacted_type, redacted_enum) = match var {
-            EventKindVariation::Full => {
-                let struct_id = kind.to_event_ident(&EventKindVariation::Redacted)?;
-                (
-                    quote! { #ruma_events::#struct_id },
-                    kind.to_event_enum_ident(&EventKindVariation::Redacted)?,
-                )
-            }
-            EventKindVariation::Sync => {
-                let struct_id = kind.to_event_ident(&EventKindVariation::RedactedSync)?;
-                (
-                    quote! { #ruma_events::#struct_id },
-                    kind.to_event_enum_ident(&EventKindVariation::RedactedSync)?,
-                )
-            }
-            _ => return None,
-        };
+    let redacted_var = var.to_redacted()?;
+    let struct_id = kind.to_event_ident(&redacted_var)?;
+    let redacted_enum = kind.to_event_enum_ident(&redacted_var)?;
+    let redacted_type = quote! { #ruma_events::#struct_id };
 
-        let self_variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
-        let redaction_variants = variants.iter().map(|v| v.ctor(&redacted_enum));
+    let self_variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
+    let redaction_variants = variants.iter().map(|v| v.ctor(&redacted_enum));
 
-        let fields = EVENT_FIELDS.iter().map(|(name, has_field)| {
-            generate_redacted_fields(name, kind, var, *has_field, ruma_events)
-        });
+    let fields = EVENT_FIELDS.iter().map(|(name, has_field)| {
+        generate_redacted_fields(name, kind, var, *has_field, ruma_events)
+    });
 
-        let fields = quote! { #( #fields )* };
+    let fields = quote! { #( #fields )* };
 
-        Some(quote! {
-            #[automatically_derived]
-            impl #ruma_events::Redact for #ident {
-                type Redacted = #redacted_enum;
+    Some(quote! {
+        #[automatically_derived]
+        impl #ruma_events::Redact for #ident {
+            type Redacted = #redacted_enum;
 
-                fn redact(
-                    self,
-                    redaction: #ruma_events::room::redaction::SyncRedactionEvent,
-                    version: &#ruma_identifiers::RoomVersionId,
-                ) -> #redacted_enum {
-                    match self {
-                        #(
-                            #self_variants(event) => {
-                                let content = #ruma_events::RedactContent::redact(event.content, version);
-                                #redaction_variants(#redacted_type {
-                                    content,
-                                    #fields
-                                })
-                            }
-                        )*
-                        Self::_Custom(event) => {
+            fn redact(
+                self,
+                redaction: #ruma_events::room::redaction::SyncRedactionEvent,
+                version: &#ruma_identifiers::RoomVersionId,
+            ) -> #redacted_enum {
+                match self {
+                    #(
+                        #self_variants(event) => {
                             let content = #ruma_events::RedactContent::redact(event.content, version);
-                            #redacted_enum::_Custom(#redacted_type {
+                            #redaction_variants(#redacted_type {
                                 content,
                                 #fields
                             })
                         }
+                    )*
+                    Self::_Custom(event) => {
+                        let content = #ruma_events::RedactContent::redact(event.content, version);
+                        #redacted_enum::_Custom(#redacted_type {
+                            content,
+                            #fields
+                        })
                     }
                 }
             }
-        })
-    } else {
-        None
-    }
+        }
+    })
 }
 
 fn expand_redacted_enum(
@@ -539,7 +521,8 @@ fn expand_redacted_enum(
 
     if let EventKind::State | EventKind::Message = kind {
         let ident = format_ident!("AnyPossiblyRedacted{}", kind.to_event_ident(var)?);
-        let (regular_enum_ident, redacted_enum_ident) = inner_enum_idents(kind, var)?;
+        let regular_enum_ident = kind.to_event_enum_ident(var)?;
+        let redacted_enum_ident = kind.to_event_enum_ident(&var.to_redacted()?)?;
 
         Some(quote! {
             /// An enum that holds either regular un-redacted events or redacted events.
@@ -748,20 +731,6 @@ fn accessor_methods(
             #prev_content
             #( #methods )*
         }
-    })
-}
-
-fn inner_enum_idents(kind: &EventKind, var: &EventKindVariation) -> Option<(Ident, Ident)> {
-    Some(match var {
-        EventKindVariation::Full => (
-            kind.to_event_enum_ident(var)?,
-            kind.to_event_enum_ident(&EventKindVariation::Redacted)?,
-        ),
-        EventKindVariation::Sync => (
-            kind.to_event_enum_ident(var)?,
-            kind.to_event_enum_ident(&EventKindVariation::RedactedSync)?,
-        ),
-        _ => return None,
     })
 }
 
