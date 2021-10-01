@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/versions](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-versions)
+//! [GET /_matrix/client/versions](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-versions)
 
 use std::collections::BTreeMap;
 

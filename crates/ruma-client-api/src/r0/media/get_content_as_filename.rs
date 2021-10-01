@@ -1,4 +1,4 @@
-//! [GET /_matrix/media/r0/download/{serverName}/{mediaId}/{fileName}](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-media-r0-download-servername-mediaid-filename)
+//! [GET /_matrix/media/r0/download/{serverName}/{mediaId}/{fileName}](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-media-r0-download-servername-mediaid-filename)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{Error, MxcUri, ServerName};

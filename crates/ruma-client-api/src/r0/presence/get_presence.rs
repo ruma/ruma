@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/presence/{userId}/status](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-presence-userid-status)
+//! [GET /_matrix/client/r0/presence/{userId}/status](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-presence-userid-status)
 
 use std::time::Duration;
 

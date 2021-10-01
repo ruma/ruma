@@ -1,4 +1,4 @@
-//! [POST /_matrix/media/r0/upload](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-media-r0-upload)
+//! [POST /_matrix/media/r0/upload](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-media-r0-upload)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::MxcUri;

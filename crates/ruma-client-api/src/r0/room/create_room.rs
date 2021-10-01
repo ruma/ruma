@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/createRoom](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-createroom)
+//! [POST /_matrix/client/r0/createRoom](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-createroom)
 
 use assign::assign;
 use ruma_api::ruma_api;

@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/join/{roomIdOrAlias}](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-join-roomidoralias)
+//! [POST /_matrix/client/r0/join/{roomIdOrAlias}](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-join-roomidoralias)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{RoomId, RoomIdOrAliasId, ServerNameBox};

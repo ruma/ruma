@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/thirdparty/protocols](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-thirdparty-protocols)
+//! [GET /_matrix/client/r0/thirdparty/protocols](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-thirdparty-protocols)
 
 use std::collections::BTreeMap;
 

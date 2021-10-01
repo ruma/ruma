@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/login/sso/redirect](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-login-sso-redirect)
+//! [GET /_matrix/client/r0/login/sso/redirect](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-login-sso-redirect)
 
 use ruma_api::ruma_api;
 

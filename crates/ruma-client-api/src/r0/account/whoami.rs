@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/account/whoami](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-account-whoami)
+//! [GET /_matrix/client/r0/account/whoami](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-account-whoami)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::UserId;

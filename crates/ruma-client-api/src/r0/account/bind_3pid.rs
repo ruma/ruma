@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/account/3pid/bind](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-account-3pid-bind)
+//! [POST /_matrix/client/r0/account/3pid/bind](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-account-3pid-bind)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{ClientSecret, SessionId};

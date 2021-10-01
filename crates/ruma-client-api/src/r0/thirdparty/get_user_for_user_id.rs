@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/thirdparty/user](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-thirdparty-user)
+//! [GET /_matrix/client/r0/thirdparty/user](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-thirdparty-user)
 
 use ruma_api::ruma_api;
 use ruma_common::thirdparty::User;

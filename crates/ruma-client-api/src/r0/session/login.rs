@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/login](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-login)
+//! [POST /_matrix/client/r0/login](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-login)
 
 use std::borrow::Cow;
 

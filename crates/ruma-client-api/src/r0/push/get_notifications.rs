@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/notifications](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-notifications)
+//! [GET /_matrix/client/r0/notifications](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-notifications)
 
 use js_int::UInt;
 use ruma_api::ruma_api;

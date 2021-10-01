@@ -1,4 +1,4 @@
-//! [GET /_matrix/media/r0/preview_url](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-media-r0-preview-url)
+//! [GET /_matrix/media/r0/preview_url](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-media-r0-preview-url)
 
 use ruma_api::ruma_api;
 use ruma_common::MilliSecondsSinceUnixEpoch;

@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/thirdparty/location](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-thirdparty-location)
+//! [GET /_matrix/client/r0/thirdparty/location](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-thirdparty-location)
 
 use ruma_api::ruma_api;
 use ruma_common::thirdparty::Location;

@@ -1,4 +1,4 @@
-//! [GET /_matrix/media/r0/config](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-media-r0-config)
+//! [GET /_matrix/media/r0/config](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-media-r0-config)
 
 use js_int::UInt;
 use ruma_api::ruma_api;

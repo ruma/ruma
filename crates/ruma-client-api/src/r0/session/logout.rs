@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/logout](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-logout)
+//! [POST /_matrix/client/r0/logout](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-logout)
 
 use ruma_api::ruma_api;
 

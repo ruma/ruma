@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/account/password/email/requestToken](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-account-password-email-requesttoken)
+//! [POST /_matrix/client/r0/account/password/email/requestToken](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-account-password-email-requesttoken)
 
 use js_int::UInt;
 use ruma_api::ruma_api;

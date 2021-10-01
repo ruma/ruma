@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/voip/turnServer](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-voip-turnserver)
+//! [GET /_matrix/client/r0/voip/turnServer](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-voip-turnserver)
 
 use std::time::Duration;
 

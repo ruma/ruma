@@ -1,4 +1,4 @@
-//! [DELETE /_matrix/client/r0/pushrules/{scope}/{kind}/{ruleId}](https://matrix.org/docs/spec/client_server/r0.6.0#delete-matrix-client-r0-pushrules-scope-kind-ruleid)
+//! [DELETE /_matrix/client/r0/pushrules/{scope}/{kind}/{ruleId}](https://matrix.org/docs/spec/client_server/r0.6.1#delete-matrix-client-r0-pushrules-scope-kind-ruleid)
 
 use ruma_api::ruma_api;
 

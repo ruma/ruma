@@ -1,4 +1,4 @@
-//! [PUT /_matrix/client/r0/user/{userId}/rooms/{roomId}/account_data/{type}](https://matrix.org/docs/spec/client_server/r0.6.0#put-matrix-client-r0-user-userid-rooms-roomid-account-data-type)
+//! [PUT /_matrix/client/r0/user/{userId}/rooms/{roomId}/account_data/{type}](https://matrix.org/docs/spec/client_server/r0.6.1#put-matrix-client-r0-user-userid-rooms-roomid-account-data-type)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{RoomId, UserId};

@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/keys/upload](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-keys-upload)
+//! [POST /_matrix/client/r0/keys/upload](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-keys-upload)
 
 use std::collections::BTreeMap;
 

@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/user/{userId}/filter/{filterId}](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-user-userid-filter-filterid)
+//! [GET /_matrix/client/r0/user/{userId}/filter/{filterId}](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-user-userid-filter-filterid)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::UserId;

@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/user/{userId}/rooms/{roomId}/tags](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-user-userid-rooms-roomid-tags)
+//! [GET /_matrix/client/r0/user/{userId}/rooms/{roomId}/tags](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-user-userid-rooms-roomid-tags)
 
 use ruma_api::ruma_api;
 use ruma_events::tag::Tags;

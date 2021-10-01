@@ -1,4 +1,4 @@
-//! [GET /.well-known/matrix/client](https://matrix.org/docs/spec/client_server/r0.6.0#get-well-known-matrix-client)
+//! [GET /.well-known/matrix/client](https://matrix.org/docs/spec/client_server/r0.6.1#get-well-known-matrix-client)
 
 use ruma_api::ruma_api;
 use serde::{Deserialize, Serialize};

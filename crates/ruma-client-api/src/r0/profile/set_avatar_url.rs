@@ -1,4 +1,4 @@
-//! [PUT /_matrix/client/r0/profile/{userId}/avatar_url](https://matrix.org/docs/spec/client_server/r0.6.0#put-matrix-client-r0-profile-userid-avatar-url)
+//! [PUT /_matrix/client/r0/profile/{userId}/avatar_url](https://matrix.org/docs/spec/client_server/r0.6.1#put-matrix-client-r0-profile-userid-avatar-url)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{MxcUri, UserId};

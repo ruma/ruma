@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/keys/query](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-keys-query)
+//! [POST /_matrix/client/r0/keys/query](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-keys-query)
 
 use std::{collections::BTreeMap, time::Duration};
 
