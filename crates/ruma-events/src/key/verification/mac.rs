@@ -31,8 +31,8 @@ pub struct ToDeviceMacEventContent {
 }
 
 impl ToDeviceMacEventContent {
-    /// Creates a new `ToDeviceMacEventContent` with the given transaction ID, key ID to MAC
-    /// map and key MAC.
+    /// Creates a new `ToDeviceMacEventContent` with the given transaction ID, key ID to MAC map and
+    /// key MAC.
     pub fn new(transaction_id: String, mac: BTreeMap<String, String>, keys: String) -> Self {
         Self { transaction_id, mac, keys }
     }

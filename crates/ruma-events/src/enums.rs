@@ -169,15 +169,17 @@ impl AnyRoomEvent {
     room_ev_accessor!(sender: &UserId);
 }
 
-/// Any sync room event (room event without a `room_id`, as returned in `/sync` responses)
+/// Any sync room event.
+///
+/// Sync room events are room event without a `room_id`, as returned in `/sync` responses.
 #[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
 #[derive(Clone, Debug, Serialize, EventEnumFromEvent)]
 #[serde(untagged)]
 pub enum AnySyncRoomEvent {
-    /// Any sync message event
+    /// Any sync message event.
     Message(AnySyncMessageEvent),
 
-    /// Any sync state event
+    /// Any sync state event.
     State(AnySyncStateEvent),
 
     /// Any sync message event that has been redacted.

@@ -36,8 +36,7 @@ ruma_api! {
 
         /// List of state events to send to the new room.
         ///
-        /// Takes precedence over events set by preset, but gets overridden by
-        /// name and topic keys.
+        /// Takes precedence over events set by preset, but gets overridden by name and topic keys.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
         pub initial_state: &'a [Raw<AnyInitialStateEvent>],
 
@@ -55,8 +54,8 @@ ruma_api! {
         #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
         pub is_direct: bool,
 
-        /// If this is included, an `m.room.name` event will be sent into the room to indicate
-        /// the name of the room.
+        /// If this is included, an `m.room.name` event will be sent into the room to indicate the
+        /// name of the room.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub name: Option<&'a RoomName>,
 

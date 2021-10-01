@@ -120,8 +120,7 @@ pub struct ReciprocateV1Content {
 impl ReciprocateV1Content {
     /// Create a new `ReciprocateV1Content` with the given shared secret.
     ///
-    /// The shared secret needs to come from the scanned QR code, encoded using
-    /// unpadded base64.
+    /// The shared secret needs to come from the scanned QR code, encoded using unpadded base64.
     pub fn new(secret: String) -> Self {
         Self { secret }
     }

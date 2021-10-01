@@ -123,6 +123,7 @@ pub struct EncryptedFile {
     pub iv: String,
 
     /// A map from an algorithm name to a hash of the ciphertext, encoded as unpadded base64.
+    ///
     /// Clients should support the SHA-256 hash, which uses the key sha256.
     pub hashes: BTreeMap<String, String>,
 
@@ -147,6 +148,7 @@ pub struct EncryptedFileInit {
     pub iv: String,
 
     /// A map from an algorithm name to a hash of the ciphertext, encoded as unpadded base64.
+    ///
     /// Clients should support the SHA-256 hash, which uses the key sha256.
     pub hashes: BTreeMap<String, String>,
 
@@ -180,7 +182,9 @@ pub struct JsonWebKey {
     /// The key, encoded as url-safe unpadded base64.
     pub k: String,
 
-    /// Extractable. Must be `true`. This is a
+    /// Extractable.
+    ///
+    /// Must be `true`. This is a
     /// [W3C extension](https://w3c.github.io/webcrypto/#iana-section-jwk).
     pub ext: bool,
 }
@@ -204,7 +208,9 @@ pub struct JsonWebKeyInit {
     /// The key, encoded as url-safe unpadded base64.
     pub k: String,
 
-    /// Extractable. Must be `true`. This is a
+    /// Extractable.
+    ///
+    /// Must be `true`. This is a
     /// [W3C extension](https://w3c.github.io/webcrypto/#iana-section-jwk).
     pub ext: bool,
 }
