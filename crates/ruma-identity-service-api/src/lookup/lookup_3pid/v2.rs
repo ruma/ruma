@@ -1,4 +1,4 @@
-//! [POST /_matrix/identity/v2/lookup](https://matrix.org/docs/spec/identity_service/0.3.0#post-matrix-identity-v2-lookup)
+//! [POST /_matrix/identity/v2/lookup](https://matrix.org/docs/spec/identity_service/r0.3.0#post-matrix-identity-v2-lookup)
 
 use std::collections::BTreeMap;
 
