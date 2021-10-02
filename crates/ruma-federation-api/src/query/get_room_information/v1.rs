@@ -1,4 +1,4 @@
-//! [GET /_matrix/federation/v1/query/directory](https://matrix.org/docs/spec/server_server/r0.1.3#get-matrix-federation-v1-query-directory)
+//! [GET /_matrix/federation/v1/query/directory](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-federation-v1-query-directory)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{RoomAliasId, RoomId, ServerNameBox};

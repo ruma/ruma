@@ -1,4 +1,4 @@
-//! [GET /_matrix/federation/v1/version](https://matrix.org/docs/spec/server_server/r0.1.3#get-matrix-federation-v1-version)
+//! [GET /_matrix/federation/v1/version](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-federation-v1-version)
 
 use ruma_api::ruma_api;
 use serde::{Deserialize, Serialize};

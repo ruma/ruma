@@ -1,4 +1,4 @@
-//! [PUT /_matrix/federation/v1/send/{txnId}](https://matrix.org/docs/spec/server_server/r0.1.3#put-matrix-federation-v1-send-txnid)
+//! [PUT /_matrix/federation/v1/send/{txnId}](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v1-send-txnid)
 
 use std::collections::BTreeMap;
 

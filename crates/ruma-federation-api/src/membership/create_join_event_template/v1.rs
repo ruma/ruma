@@ -1,4 +1,4 @@
-//! [GET /_matrix/federation/v1/make_join/{roomId}/{userId}](https://matrix.org/docs/spec/server_server/r0.1.3#get-matrix-federation-v1-make-join-roomid-userid)
+//! [GET /_matrix/federation/v1/make_join/{roomId}/{userId}](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-federation-v1-make-join-roomid-userid)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{RoomId, RoomVersionId, UserId};
