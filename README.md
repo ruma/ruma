@@ -38,9 +38,10 @@ them. Check out the documentation [on docs.rs][docs] (or on
 
 ## Status
 
-As of 2021-08-17, we support the entirety of the latest released versions of
-the various Matrix APIs. Various popular MSCs are also implemented, gated behind
-the `unstable-pre-spec` Cargo feature.
+As of 2021-02-10, we support all events and REST endpoints the latest released
+versions of the various Matrix APIs. Various changes from the unstable version
+of the specifications and some MSCs are also implemented, gated behind the
+`unstable-pre-spec` Cargo feature.
 
 ## Contributing
 
