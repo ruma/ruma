@@ -39,7 +39,7 @@ use crate::{StrippedStateEvent, SyncStateEvent};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.member", kind = State)]
-pub struct MemberEventContent {
+pub struct RoomMemberEventContent {
     /// The avatar URL for this user, if any. This is added by the homeserver.
     ///
     /// If you activate the `compat` feature, this field being an empty string in JSON will give
@@ -95,8 +95,8 @@ pub struct MemberEventContent {
     pub reason: Option<String>,
 }
 
-impl MemberEventContent {
-    /// Creates a new `MemberEventContent` with the given membership state.
+impl RoomMemberEventContent {
+    /// Creates a new `RoomMemberEventContent` with the given membership state.
     pub fn new(membership: MembershipState) -> Self {
         Self {
             membership,
@@ -246,11 +246,11 @@ pub enum MembershipChange {
     NotImplemented,
 }
 
-/// Internal function so all `MemberEventContent` state event kinds can share the same
+/// Internal function so all `RoomMemberEventContent` state event kinds can share the same
 /// implementation.
 fn membership_change(
-    content: &MemberEventContent,
-    prev_content: Option<&MemberEventContent>,
+    content: &RoomMemberEventContent,
+    prev_content: Option<&RoomMemberEventContent>,
     sender: &UserId,
     state_key: &str,
 ) -> MembershipChange {
@@ -260,7 +260,7 @@ fn membership_change(
     let prev_content = if let Some(prev_content) = &prev_content {
         prev_content
     } else {
-        &MemberEventContent {
+        &RoomMemberEventContent {
             avatar_url: None,
             displayname: None,
             is_direct: None,
@@ -303,7 +303,7 @@ fn membership_change(
     }
 }
 
-impl MemberEvent {
+impl RoomMemberEvent {
     /// Helper function for membership change. Check [the specification][spec] for details.
     ///
     /// [spec]: https://matrix.org/docs/spec/client_server/r0.6.1#m-room-member
@@ -312,7 +312,7 @@ impl MemberEvent {
     }
 }
 
-impl SyncStateEvent<MemberEventContent> {
+impl SyncStateEvent<RoomMemberEventContent> {
     /// Helper function for membership change. Check [the specification][spec] for details.
     ///
     /// [spec]: https://matrix.org/docs/spec/client_server/r0.6.1#m-room-member
@@ -321,7 +321,7 @@ impl SyncStateEvent<MemberEventContent> {
     }
 }
 
-impl StrippedStateEvent<MemberEventContent> {
+impl StrippedStateEvent<RoomMemberEventContent> {
     /// Helper function for membership change. Check [the specification][spec] for details.
     ///
     /// [spec]: https://matrix.org/docs/spec/client_server/r0.6.1#m-room-member
@@ -339,7 +339,7 @@ mod tests {
     use ruma_identifiers::{server_name, server_signing_key_id};
     use serde_json::{from_value as from_json_value, json};
 
-    use super::{MemberEventContent, MembershipState, SignedContent, ThirdPartyInvite};
+    use super::{MembershipState, RoomMemberEventContent, SignedContent, ThirdPartyInvite};
     use crate::StateEvent;
 
     #[test]
@@ -357,9 +357,9 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<StateEvent<MemberEventContent>>(json).unwrap(),
+            from_json_value::<StateEvent<RoomMemberEventContent>>(json).unwrap(),
             StateEvent {
-                content: MemberEventContent {
+                content: RoomMemberEventContent {
                     avatar_url: None,
                     displayname: None,
                     is_direct: None,
@@ -401,9 +401,9 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<StateEvent<MemberEventContent>>(json).unwrap(),
+            from_json_value::<StateEvent<RoomMemberEventContent>>(json).unwrap(),
             StateEvent {
-                content: MemberEventContent {
+                content: RoomMemberEventContent {
                     avatar_url: None,
                     displayname: None,
                     is_direct: None,
@@ -417,7 +417,7 @@ mod tests {
                 sender,
                 state_key,
                 unsigned,
-                prev_content: Some(MemberEventContent {
+                prev_content: Some(RoomMemberEventContent {
                     avatar_url: None,
                     displayname: None,
                     is_direct: None,
@@ -464,9 +464,9 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<StateEvent<MemberEventContent>>(json).unwrap(),
+            from_json_value::<StateEvent<RoomMemberEventContent>>(json).unwrap(),
             StateEvent {
-                content: MemberEventContent {
+                content: RoomMemberEventContent {
                     avatar_url: Some(avatar_url),
                     displayname: Some(displayname),
                     is_direct: Some(true),
@@ -536,9 +536,9 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<StateEvent<MemberEventContent>>(json).unwrap(),
+            from_json_value::<StateEvent<RoomMemberEventContent>>(json).unwrap(),
             StateEvent {
-                content: MemberEventContent {
+                content: RoomMemberEventContent {
                     avatar_url: None,
                     displayname: None,
                     is_direct: None,
@@ -552,7 +552,7 @@ mod tests {
                 sender,
                 state_key,
                 unsigned,
-                prev_content: Some(MemberEventContent {
+                prev_content: Some(RoomMemberEventContent {
                     avatar_url: Some(avatar_url),
                     displayname: Some(displayname),
                     is_direct: Some(true),
@@ -583,7 +583,7 @@ mod tests {
 
         #[cfg(feature = "compat")]
         assert_matches!(
-            from_json_value::<StateEvent<MemberEventContent>>(json!({
+            from_json_value::<StateEvent<RoomMemberEventContent>>(json!({
                 "type": "m.room.member",
                 "content": {
                     "membership": "join"
@@ -613,7 +613,7 @@ mod tests {
                 "state_key": "@alice:example.org"
             })).unwrap(),
             StateEvent {
-                content: MemberEventContent {
+                content: RoomMemberEventContent {
                     avatar_url: None,
                     displayname: None,
                     is_direct: None,
@@ -627,7 +627,7 @@ mod tests {
                 sender,
                 state_key,
                 unsigned,
-                prev_content: Some(MemberEventContent {
+                prev_content: Some(RoomMemberEventContent {
                     avatar_url: None,
                     displayname: Some(displayname),
                     is_direct: Some(true),

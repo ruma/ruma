@@ -15,7 +15,7 @@ use serde::{ser::SerializeStruct, Deserialize, Serialize};
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.secret.request", kind = ToDevice)]
-pub struct ToDeviceRequestEventContent {
+pub struct ToDeviceSecretRequestEventContent {
     /// The action for the request.
     #[serde(flatten)]
     pub action: RequestAction,
@@ -31,7 +31,7 @@ pub struct ToDeviceRequestEventContent {
     pub request_id: String,
 }
 
-impl ToDeviceRequestEventContent {
+impl ToDeviceSecretRequestEventContent {
     /// Creates a new `ToDeviceRequestEventContent` with the given action, requesting device ID and
     /// request ID.
     pub fn new(
@@ -133,13 +133,13 @@ pub enum SecretName {
 
 #[cfg(test)]
 mod test {
-    use super::{RequestAction, SecretName, ToDeviceRequestEventContent};
+    use super::{RequestAction, SecretName, ToDeviceSecretRequestEventContent};
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     #[test]
     fn secret_request_serialization() {
-        let content = ToDeviceRequestEventContent::new(
+        let content = ToDeviceSecretRequestEventContent::new(
             RequestAction::Request("org.example.some.secret".into()),
             "ABCDEFG".into(),
             "randomly_generated_id_9573".into(),
@@ -157,7 +157,7 @@ mod test {
 
     #[test]
     fn secret_request_recovery_key_serialization() {
-        let content = ToDeviceRequestEventContent::new(
+        let content = ToDeviceSecretRequestEventContent::new(
             RequestAction::Request(SecretName::RecoveryKey),
             "XYZxyz".into(),
             "this_is_a_request_id".into(),
@@ -175,7 +175,7 @@ mod test {
 
     #[test]
     fn secret_custom_action_serialization() {
-        let content = ToDeviceRequestEventContent::new(
+        let content = ToDeviceSecretRequestEventContent::new(
             RequestAction::_Custom("my_custom_action".into()),
             "XYZxyz".into(),
             "this_is_a_request_id".into(),
@@ -192,7 +192,7 @@ mod test {
 
     #[test]
     fn secret_request_cancellation_serialization() {
-        let content = ToDeviceRequestEventContent::new(
+        let content = ToDeviceSecretRequestEventContent::new(
             RequestAction::RequestCancellation,
             "ABCDEFG".into(),
             "randomly_generated_id_9573".into(),
@@ -218,7 +218,7 @@ mod test {
 
         assert_matches!(
             from_json_value(json).unwrap(),
-            ToDeviceRequestEventContent {
+            ToDeviceSecretRequestEventContent {
                 action: RequestAction::Request(
                     secret
                 ),
@@ -241,7 +241,7 @@ mod test {
 
         assert_matches!(
             from_json_value(json).unwrap(),
-            ToDeviceRequestEventContent {
+            ToDeviceSecretRequestEventContent {
                 action: RequestAction::RequestCancellation,
                 requesting_device_id,
                 request_id,
@@ -262,7 +262,7 @@ mod test {
 
         assert_matches!(
             from_json_value(json).unwrap(),
-            ToDeviceRequestEventContent {
+            ToDeviceSecretRequestEventContent {
                 action: RequestAction::Request(
                     SecretName::RecoveryKey
                 ),
@@ -283,8 +283,8 @@ mod test {
         });
 
         assert_matches!(
-            from_json_value::<ToDeviceRequestEventContent>(json).unwrap(),
-            ToDeviceRequestEventContent {
+            from_json_value::<ToDeviceSecretRequestEventContent>(json).unwrap(),
+            ToDeviceSecretRequestEventContent {
                 action,
                 requesting_device_id,
                 request_id,

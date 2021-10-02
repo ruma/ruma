@@ -3,11 +3,11 @@ use std::{collections::BTreeSet, convert::TryFrom};
 use js_int::{int, Int};
 use ruma_events::{
     room::{
-        create::CreateEventContent,
-        join_rules::{JoinRule, JoinRulesEventContent},
+        create::RoomCreateEventContent,
+        join_rules::{JoinRule, RoomJoinRulesEventContent},
         member::{MembershipState, ThirdPartyInvite},
-        power_levels::PowerLevelsEventContent,
-        third_party_invite::ThirdPartyInviteEventContent,
+        power_levels::RoomPowerLevelsEventContent,
+        third_party_invite::RoomThirdPartyInviteEventContent,
     },
     EventType,
 };
@@ -281,7 +281,7 @@ pub fn auth_check<E: Event>(
     } else {
         // If no power level event found the creator gets 100 everyone else gets 0
         room_create_event
-            .and_then(|create| from_json_str::<CreateEventContent>(create.content().get()).ok())
+            .and_then(|create| from_json_str::<RoomCreateEventContent>(create.content().get()).ok())
             .and_then(|create| (create.creator == *sender).then(|| int!(100)))
             .unwrap_or_default()
     };
@@ -414,9 +414,9 @@ fn valid_membership_change(
         None => MembershipState::Leave,
     };
 
-    let power_levels: PowerLevelsEventContent = match &power_levels_event {
+    let power_levels: RoomPowerLevelsEventContent = match &power_levels_event {
         Some(ev) => from_json_str(ev.content().get())?,
-        None => PowerLevelsEventContent::default(),
+        None => RoomPowerLevelsEventContent::default(),
     };
 
     let sender_power = power_levels
@@ -430,7 +430,7 @@ fn valid_membership_change(
 
     let mut join_rules = JoinRule::Invite;
     if let Some(jr) = &join_rules_event {
-        join_rules = from_json_str::<JoinRulesEventContent>(jr.content().get())?.join_rule;
+        join_rules = from_json_str::<RoomJoinRulesEventContent>(jr.content().get())?.join_rule;
     }
 
     if let Some(prev) = prev_event {
@@ -613,10 +613,10 @@ fn check_power_levels(
     // If users key in content is not a dictionary with keys that are valid user IDs
     // with values that are integers (or a string that is an integer), reject.
     let user_content =
-        from_json_str::<PowerLevelsEventContent>(power_event.content().get()).unwrap();
+        from_json_str::<RoomPowerLevelsEventContent>(power_event.content().get()).unwrap();
 
     let current_content =
-        from_json_str::<PowerLevelsEventContent>(current_state.content().get()).unwrap();
+        from_json_str::<RoomPowerLevelsEventContent>(current_state.content().get()).unwrap();
 
     // Validation of users is done in Ruma, synapse for loops validating user_ids and integers here
     info!("validation of power event finished");
@@ -768,7 +768,7 @@ fn get_send_level(
 ) -> Int {
     power_lvl
         .and_then(|ple| {
-            from_json_str::<PowerLevelsEventContent>(ple.content().get())
+            from_json_str::<RoomPowerLevelsEventContent>(ple.content().get())
                 .map(|content| {
                     content.events.get(e_type).copied().unwrap_or_else(|| {
                         if state_key.is_some() {
@@ -811,7 +811,7 @@ fn verify_third_party_invite(
         // If any signature in signed matches any public key in the m.room.third_party_invite event,
         // allow
         if let Ok(tpid_ev) =
-            from_json_str::<ThirdPartyInviteEventContent>(current_tpid.content().get())
+            from_json_str::<RoomThirdPartyInviteEventContent>(current_tpid.content().get())
         {
             // A list of public keys in the public_keys field
             for key in tpid_ev.public_keys.unwrap_or_default() {

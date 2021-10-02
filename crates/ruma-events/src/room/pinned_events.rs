@@ -10,13 +10,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.pinned_events", kind = State)]
-pub struct PinnedEventsEventContent {
+pub struct RoomPinnedEventsEventContent {
     /// An ordered list of event IDs to pin.
     pub pinned: Vec<EventId>,
 }
 
-impl PinnedEventsEventContent {
-    /// Creates a new `PinnedEventsEventContent` with the given events.
+impl RoomPinnedEventsEventContent {
+    /// Creates a new `RoomPinnedEventsEventContent` with the given events.
     pub fn new(pinned: Vec<EventId>) -> Self {
         Self { pinned }
     }
@@ -29,12 +29,13 @@ mod tests {
     use ruma_common::MilliSecondsSinceUnixEpoch;
     use ruma_identifiers::{server_name, EventId, RoomId, UserId};
 
-    use super::PinnedEventsEventContent;
+    use super::RoomPinnedEventsEventContent;
     use crate::{StateEvent, Unsigned};
 
     #[test]
     fn serialization_deserialization() {
-        let mut content: PinnedEventsEventContent = PinnedEventsEventContent { pinned: Vec::new() };
+        let mut content: RoomPinnedEventsEventContent =
+            RoomPinnedEventsEventContent { pinned: Vec::new() };
         let server_name = server_name!("example.com");
 
         content.pinned.push(EventId::new(&server_name));
@@ -52,7 +53,7 @@ mod tests {
         };
 
         let serialized_event = serde_json::to_string(&event).unwrap();
-        let parsed_event: StateEvent<PinnedEventsEventContent> =
+        let parsed_event: StateEvent<RoomPinnedEventsEventContent> =
             serde_json::from_str(&serialized_event).unwrap();
 
         assert_eq!(parsed_event.event_id, event.event_id);

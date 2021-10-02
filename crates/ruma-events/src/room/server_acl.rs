@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.server_acl", kind = State)]
-pub struct ServerAclEventContent {
+pub struct RoomServerAclEventContent {
     /// Whether to allow server names that are IP address literals.
     ///
     /// This is strongly recommended to be set to false as servers running with IP literal names
@@ -37,9 +37,9 @@ pub struct ServerAclEventContent {
     pub deny: Vec<String>,
 }
 
-impl ServerAclEventContent {
-    /// Creates a new `ServerAclEventContent` with the given IP literal allowance flag, allowed and
-    /// denied servers.
+impl RoomServerAclEventContent {
+    /// Creates a new `RoomServerAclEventContent` with the given IP literal allowance flag, allowed
+    /// and denied servers.
     pub fn new(allow_ip_literals: bool, allow: Vec<String>, deny: Vec<String>) -> Self {
         Self { allow_ip_literals, allow, deny }
     }
@@ -49,7 +49,7 @@ impl ServerAclEventContent {
 mod tests {
     use serde_json::{from_value as from_json_value, json};
 
-    use super::ServerAclEventContent;
+    use super::RoomServerAclEventContent;
     use crate::StateEvent;
 
     #[test]
@@ -64,7 +64,7 @@ mod tests {
             "type": "m.room.server_acl"
         });
 
-        let server_acl_event: StateEvent<ServerAclEventContent> =
+        let server_acl_event: StateEvent<RoomServerAclEventContent> =
             from_json_value(json_data).unwrap();
 
         assert!(server_acl_event.content.allow_ip_literals);

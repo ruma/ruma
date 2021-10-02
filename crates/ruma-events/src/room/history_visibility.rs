@@ -11,14 +11,14 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.history_visibility", kind = State)]
-pub struct HistoryVisibilityEventContent {
+pub struct RoomHistoryVisibilityEventContent {
     /// Who can see the room history.
     #[ruma_event(skip_redaction)]
     pub history_visibility: HistoryVisibility,
 }
 
-impl HistoryVisibilityEventContent {
-    /// Creates a new `HistoryVisibilityEventContent` with the given policy.
+impl RoomHistoryVisibilityEventContent {
+    /// Creates a new `RoomHistoryVisibilityEventContent` with the given policy.
     pub fn new(history_visibility: HistoryVisibility) -> Self {
         Self { history_visibility }
     }

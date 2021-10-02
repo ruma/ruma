@@ -10,14 +10,14 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.room.name", kind = State)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct NameEventContent {
+pub struct RoomNameEventContent {
     /// The name of the room.
     #[serde(default, deserialize_with = "ruma_serde::empty_string_as_none")]
     pub name: Option<RoomNameBox>,
 }
 
-impl NameEventContent {
-    /// Create a new `NameEventContent` with the given name.
+impl RoomNameEventContent {
+    /// Create a new `RoomNameEventContent` with the given name.
     pub fn new(name: Option<RoomNameBox>) -> Self {
         Self { name }
     }
@@ -34,13 +34,13 @@ mod tests {
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::NameEventContent;
+    use super::RoomNameEventContent;
     use crate::{StateEvent, Unsigned};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
         let name_event = StateEvent {
-            content: NameEventContent { name: RoomNameBox::try_from("The room name").ok() },
+            content: RoomNameEventContent { name: RoomNameBox::try_from("The room name").ok() },
             event_id: event_id!("$h29iv0s8:example.com"),
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
             prev_content: None,
@@ -69,10 +69,10 @@ mod tests {
     #[test]
     fn serialization_with_all_fields() {
         let name_event = StateEvent {
-            content: NameEventContent { name: RoomNameBox::try_from("The room name").ok() },
+            content: RoomNameEventContent { name: RoomNameBox::try_from("The room name").ok() },
             event_id: event_id!("$h29iv0s8:example.com"),
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-            prev_content: Some(NameEventContent {
+            prev_content: Some(RoomNameEventContent {
                 name: RoomNameBox::try_from("The old name").ok(),
             }),
             room_id: room_id!("!n8f893n9:example.com"),
@@ -113,7 +113,7 @@ mod tests {
             "type": "m.room.name"
         });
         assert_eq!(
-            from_json_value::<StateEvent<NameEventContent>>(json_data).unwrap().content.name,
+            from_json_value::<StateEvent<RoomNameEventContent>>(json_data).unwrap().content.name,
             None
         );
     }
@@ -125,7 +125,7 @@ mod tests {
         assert_eq!(long_string.len(), 256);
 
         let long_content_json = json!({ "name": &long_string });
-        let from_raw: Raw<NameEventContent> = from_json_value(long_content_json).unwrap();
+        let from_raw: Raw<RoomNameEventContent> = from_json_value(long_content_json).unwrap();
 
         let result = from_raw.deserialize();
         assert!(result.is_err(), "Result should be invalid: {:?}", result);
@@ -134,15 +134,15 @@ mod tests {
     #[test]
     fn json_with_empty_name_creates_content_as_none() {
         let long_content_json = json!({ "name": "" });
-        let from_raw: Raw<NameEventContent> = from_json_value(long_content_json).unwrap();
-        assert_matches!(from_raw.deserialize().unwrap(), NameEventContent { name: None });
+        let from_raw: Raw<RoomNameEventContent> = from_json_value(long_content_json).unwrap();
+        assert_matches!(from_raw.deserialize().unwrap(), RoomNameEventContent { name: None });
     }
 
     #[test]
     fn new_with_empty_name_creates_content_as_none() {
         assert_matches!(
-            NameEventContent::new(RoomNameBox::try_from(String::new()).ok()),
-            NameEventContent { name: None }
+            RoomNameEventContent::new(RoomNameBox::try_from(String::new()).ok()),
+            RoomNameEventContent { name: None }
         );
     }
 
@@ -160,7 +160,7 @@ mod tests {
             "type": "m.room.name"
         });
         assert_eq!(
-            from_json_value::<StateEvent<NameEventContent>>(json_data).unwrap().content.name,
+            from_json_value::<StateEvent<RoomNameEventContent>>(json_data).unwrap().content.name,
             None
         );
     }
@@ -179,7 +179,7 @@ mod tests {
             "type": "m.room.name"
         });
         assert_eq!(
-            from_json_value::<StateEvent<NameEventContent>>(json_data).unwrap().content.name,
+            from_json_value::<StateEvent<RoomNameEventContent>>(json_data).unwrap().content.name,
             None
         );
     }
@@ -200,7 +200,7 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<StateEvent<NameEventContent>>(json_data).unwrap().content.name,
+            from_json_value::<StateEvent<RoomNameEventContent>>(json_data).unwrap().content.name,
             name
         );
     }

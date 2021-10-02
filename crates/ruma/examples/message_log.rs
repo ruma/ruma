@@ -4,7 +4,7 @@ use assign::assign;
 use ruma::{
     api::client::r0::{filter::FilterDefinition, sync::sync_events},
     events::{
-        room::message::{MessageEventContent, MessageType, TextMessageEventContent},
+        room::message::{MessageType, RoomMessageEventContent, TextMessageEventContent},
         AnySyncMessageEvent, AnySyncRoomEvent, SyncMessageEvent,
     },
     presence::PresenceState,
@@ -44,7 +44,7 @@ async fn log_messages(
                 if let AnySyncRoomEvent::Message(AnySyncMessageEvent::RoomMessage(
                     SyncMessageEvent {
                         content:
-                            MessageEventContent {
+                            RoomMessageEventContent {
                                 msgtype:
                                     MessageType::Text(TextMessageEventContent {
                                         body: msg_body, ..

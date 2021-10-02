@@ -12,7 +12,7 @@ use super::{Relation, VerificationMethod};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.ready", kind = ToDevice)]
-pub struct ToDeviceReadyEventContent {
+pub struct ToDeviceKeyVerificationReadyEventContent {
     /// The device ID which is initiating the request.
     pub from_device: DeviceIdBox,
 
@@ -27,9 +27,9 @@ pub struct ToDeviceReadyEventContent {
     pub transaction_id: String,
 }
 
-impl ToDeviceReadyEventContent {
-    /// Creates a new `ToDeviceReadyEventContent` with the given device ID, verification methods and
-    /// transaction ID.
+impl ToDeviceKeyVerificationReadyEventContent {
+    /// Creates a new `ToDeviceKeyVerificationReadyEventContent` with the given device ID,
+    /// verification methods and transaction ID.
     pub fn new(
         from_device: DeviceIdBox,
         methods: Vec<VerificationMethod>,
@@ -45,7 +45,7 @@ impl ToDeviceReadyEventContent {
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.ready", kind = Message)]
-pub struct ReadyEventContent {
+pub struct KeyVerificationReadyEventContent {
     /// The device ID which is initiating the request.
     pub from_device: DeviceIdBox,
 
@@ -58,8 +58,9 @@ pub struct ReadyEventContent {
     pub relates_to: Relation,
 }
 
-impl ReadyEventContent {
-    /// Creates a new `ReadyEventContent` with the given device ID, methods and relation.
+impl KeyVerificationReadyEventContent {
+    /// Creates a new `KeyVerificationReadyEventContent` with the given device ID, methods and
+    /// relation.
     pub fn new(
         from_device: DeviceIdBox,
         methods: Vec<VerificationMethod>,
@@ -75,7 +76,7 @@ mod tests {
     use ruma_identifiers::{event_id, DeviceIdBox};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{ReadyEventContent, ToDeviceReadyEventContent};
+    use super::{KeyVerificationReadyEventContent, ToDeviceKeyVerificationReadyEventContent};
     use crate::key::verification::{Relation, VerificationMethod};
 
     #[test]
@@ -92,7 +93,7 @@ mod tests {
             }
         });
 
-        let content = ReadyEventContent {
+        let content = KeyVerificationReadyEventContent {
             from_device: device.clone(),
             relates_to: Relation { event_id },
             methods: vec![VerificationMethod::SasV1],
@@ -106,7 +107,7 @@ mod tests {
             "transaction_id": "456",
         });
 
-        let content = ToDeviceReadyEventContent {
+        let content = ToDeviceKeyVerificationReadyEventContent {
             from_device: device,
             transaction_id: "456".to_owned(),
             methods: vec![VerificationMethod::SasV1],
@@ -130,8 +131,8 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<ReadyEventContent>(json_data).unwrap(),
-            ReadyEventContent {
+            from_json_value::<KeyVerificationReadyEventContent>(json_data).unwrap(),
+            KeyVerificationReadyEventContent {
                 from_device,
                 relates_to: Relation {
                     event_id
@@ -149,8 +150,8 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<ToDeviceReadyEventContent>(json_data).unwrap(),
-            ToDeviceReadyEventContent {
+            from_json_value::<ToDeviceKeyVerificationReadyEventContent>(json_data).unwrap(),
+            ToDeviceKeyVerificationReadyEventContent {
                 from_device,
                 transaction_id,
                 methods,

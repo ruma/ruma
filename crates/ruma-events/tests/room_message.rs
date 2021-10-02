@@ -10,8 +10,8 @@ use ruma_events::{
 };
 use ruma_events::{
     room::message::{
-        AudioMessageEventContent, InReplyTo, MessageEvent, MessageEventContent, MessageType,
-        Relation, TextMessageEventContent,
+        AudioMessageEventContent, InReplyTo, MessageType, Relation, RoomMessageEvent,
+        RoomMessageEventContent, TextMessageEventContent,
     },
     Unsigned,
 };
@@ -34,8 +34,8 @@ macro_rules! json_object {
 
 #[test]
 fn serialization() {
-    let ev = MessageEvent {
-        content: MessageEventContent::new(MessageType::Audio(AudioMessageEventContent::plain(
+    let ev = RoomMessageEvent {
+        content: RoomMessageEventContent::new(MessageType::Audio(AudioMessageEventContent::plain(
             "test".into(),
             mxc_uri!("mxc://example.org/ffed755USFFxlgbQYZGtryd"),
             None,
@@ -67,7 +67,7 @@ fn serialization() {
 #[test]
 fn content_serialization() {
     let message_event_content =
-        MessageEventContent::new(MessageType::Audio(AudioMessageEventContent::plain(
+        RoomMessageEventContent::new(MessageType::Audio(AudioMessageEventContent::plain(
             "test".into(),
             mxc_uri!("mxc://example.org/ffed755USFFxlgbQYZGtryd"),
             None,
@@ -127,7 +127,7 @@ fn custom_content_deserialization() {
 #[test]
 fn formatted_body_serialization() {
     let message_event_content =
-        MessageEventContent::text_html("Hello, World!", "Hello, <em>World</em>!");
+        RoomMessageEventContent::text_html("Hello, World!", "Hello, <em>World</em>!");
 
     assert_eq!(
         to_json_value(&message_event_content).unwrap(),
@@ -143,7 +143,7 @@ fn formatted_body_serialization() {
 #[test]
 fn plain_text_content_serialization() {
     let message_event_content =
-        MessageEventContent::text_plain("> <@test:example.com> test\n\ntest reply");
+        RoomMessageEventContent::text_plain("> <@test:example.com> test\n\ntest reply");
 
     assert_eq!(
         to_json_value(&message_event_content).unwrap(),
@@ -157,7 +157,7 @@ fn plain_text_content_serialization() {
 #[test]
 #[cfg(feature = "markdown")]
 fn markdown_content_serialization() {
-    let formatted_message = MessageEventContent::new(MessageType::Text(
+    let formatted_message = RoomMessageEventContent::new(MessageType::Text(
         TextMessageEventContent::markdown("Testing **bold** and _italic_!"),
     ));
 
@@ -171,7 +171,7 @@ fn markdown_content_serialization() {
         })
     );
 
-    let plain_message_simple = MessageEventContent::new(MessageType::Text(
+    let plain_message_simple = RoomMessageEventContent::new(MessageType::Text(
         TextMessageEventContent::markdown("Testing a simple phrase…"),
     ));
 
@@ -183,7 +183,7 @@ fn markdown_content_serialization() {
         })
     );
 
-    let plain_message_paragraphs = MessageEventContent::new(MessageType::Text(
+    let plain_message_paragraphs = RoomMessageEventContent::new(MessageType::Text(
         TextMessageEventContent::markdown("Testing\n\nSeveral\n\nParagraphs."),
     ));
 
@@ -201,7 +201,7 @@ fn markdown_content_serialization() {
 #[test]
 fn relates_to_content_serialization() {
     let message_event_content =
-        assign!(MessageEventContent::text_plain("> <@test:example.com> test\n\ntest reply"), {
+        assign!(RoomMessageEventContent::text_plain("> <@test:example.com> test\n\ntest reply"), {
             relates_to: Some(Relation::Reply {
                 in_reply_to: InReplyTo::new(event_id!("$15827405538098VGFWH:example.com")),
             }),
@@ -236,8 +236,8 @@ fn edit_deserialization_061() {
     });
 
     assert_matches!(
-        from_json_value::<MessageEventContent>(json_data).unwrap(),
-        MessageEventContent {
+        from_json_value::<RoomMessageEventContent>(json_data).unwrap(),
+        RoomMessageEventContent {
             msgtype: MessageType::Text(TextMessageEventContent {
                 body,
                 formatted: None,
@@ -269,8 +269,8 @@ fn edit_deserialization_future() {
     });
 
     assert_matches!(
-        from_json_value::<MessageEventContent>(json_data).unwrap(),
-        MessageEventContent {
+        from_json_value::<RoomMessageEventContent>(json_data).unwrap(),
+        RoomMessageEventContent {
             msgtype: MessageType::Text(TextMessageEventContent {
                 body,
                 formatted: None,
@@ -282,7 +282,7 @@ fn edit_deserialization_future() {
             && event_id == ev_id
             && matches!(
                 &*new_content,
-                MessageEventContent {
+                RoomMessageEventContent {
                     msgtype: MessageType::Text(TextMessageEventContent {
                         body,
                         formatted: None,
@@ -313,8 +313,8 @@ fn verification_request_deserialization() {
     });
 
     assert_matches!(
-        from_json_value::<MessageEventContent>(json_data).unwrap(),
-        MessageEventContent {
+        from_json_value::<RoomMessageEventContent>(json_data).unwrap(),
+        RoomMessageEventContent {
             msgtype: MessageType::VerificationRequest(KeyVerificationRequestEventContent {
                 body,
                 to,
@@ -367,9 +367,9 @@ fn content_deserialization() {
     });
 
     assert_matches!(
-        from_json_value::<MessageEventContent>(json_data)
+        from_json_value::<RoomMessageEventContent>(json_data)
             .unwrap(),
-        MessageEventContent {
+        RoomMessageEventContent {
             msgtype: MessageType::Audio(AudioMessageEventContent {
                 body,
                 info: None,
@@ -388,5 +388,5 @@ fn content_deserialization_failure() {
         "body": "test","msgtype": "m.location",
         "url": "http://example.com/audio.mp3"
     });
-    assert!(from_json_value::<MessageEventContent>(json_data).is_err());
+    assert!(from_json_value::<RoomMessageEventContent>(json_data).is_err());
 }

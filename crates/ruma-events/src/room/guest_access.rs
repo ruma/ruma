@@ -13,13 +13,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.guest_access", kind = State)]
-pub struct GuestAccessEventContent {
+pub struct RoomGuestAccessEventContent {
     /// A policy for guest user access to a room.
     pub guest_access: GuestAccess,
 }
 
-impl GuestAccessEventContent {
-    /// Creates a new `GuestAccessEventContent` with the given policy.
+impl RoomGuestAccessEventContent {
+    /// Creates a new `RoomGuestAccessEventContent` with the given policy.
     pub fn new(guest_access: GuestAccess) -> Self {
         Self { guest_access }
     }

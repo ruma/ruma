@@ -22,34 +22,34 @@ use std::collections::BTreeMap;
 #[derive(Clone, Debug, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.join_rules", kind = State)]
-pub struct JoinRulesEventContent {
+pub struct RoomJoinRulesEventContent {
     /// The type of rules used for users wishing to join this room.
     #[ruma_event(skip_redaction)]
     #[serde(flatten)]
     pub join_rule: JoinRule,
 }
 
-impl JoinRulesEventContent {
-    /// Creates a new `JoinRulesEventContent` with the given rule.
+impl RoomJoinRulesEventContent {
+    /// Creates a new `RoomJoinRulesEventContent` with the given rule.
     pub fn new(join_rule: JoinRule) -> Self {
         Self { join_rule }
     }
 
-    /// Creates a new `JoinRulesEventContent` with the restricted rule and the given set of allow
-    /// rules.
+    /// Creates a new `RoomJoinRulesEventContent` with the restricted rule and the given set of
+    /// allow rules.
     #[cfg(feature = "unstable-pre-spec")]
     pub fn restricted(allow: Vec<AllowRule>) -> Self {
         Self { join_rule: JoinRule::Restricted(Restricted::new(allow)) }
     }
 }
 
-impl<'de> Deserialize<'de> for JoinRulesEventContent {
+impl<'de> Deserialize<'de> for RoomJoinRulesEventContent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
         let join_rule = JoinRule::deserialize(deserializer)?;
-        Ok(JoinRulesEventContent { join_rule })
+        Ok(RoomJoinRulesEventContent { join_rule })
     }
 }
 
@@ -241,15 +241,15 @@ impl<'de> Deserialize<'de> for AllowRule {
 mod tests {
     #[cfg(feature = "unstable-pre-spec")]
     use super::AllowRule;
-    use super::{JoinRule, JoinRulesEventContent};
+    use super::{JoinRule, RoomJoinRulesEventContent};
     #[cfg(feature = "unstable-pre-spec")]
     use ruma_identifiers::room_id;
 
     #[test]
     fn deserialize() {
         let json = r#"{"join_rule": "public"}"#;
-        let event: JoinRulesEventContent = serde_json::from_str(json).unwrap();
-        assert!(matches!(event, JoinRulesEventContent { join_rule: JoinRule::Public }));
+        let event: RoomJoinRulesEventContent = serde_json::from_str(json).unwrap();
+        assert!(matches!(event, RoomJoinRulesEventContent { join_rule: JoinRule::Public }));
     }
 
     #[cfg(feature = "unstable-pre-spec")]
@@ -268,7 +268,7 @@ mod tests {
                 }
             ]
         }"#;
-        let event: JoinRulesEventContent = serde_json::from_str(json).unwrap();
+        let event: RoomJoinRulesEventContent = serde_json::from_str(json).unwrap();
         match event.join_rule {
             JoinRule::Restricted(restricted) => assert_eq!(
                 restricted.allow,

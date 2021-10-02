@@ -9,13 +9,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.topic", kind = State)]
-pub struct TopicEventContent {
+pub struct RoomTopicEventContent {
     /// The topic text.
     pub topic: String,
 }
 
-impl TopicEventContent {
-    /// Creates a new `TopicEventContent` with the given topic.
+impl RoomTopicEventContent {
+    /// Creates a new `RoomTopicEventContent` with the given topic.
     pub fn new(topic: String) -> Self {
         Self { topic }
     }

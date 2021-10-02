@@ -13,7 +13,7 @@ use super::Relation;
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.cancel", kind = ToDevice)]
-pub struct ToDeviceCancelEventContent {
+pub struct ToDeviceKeyVerificationCancelEventContent {
     /// The opaque identifier for the verification process/request.
     pub transaction_id: String,
 
@@ -26,8 +26,9 @@ pub struct ToDeviceCancelEventContent {
     pub code: CancelCode,
 }
 
-impl ToDeviceCancelEventContent {
-    /// Creates a new `ToDeviceCancelEventContent` with the given transaction ID, reason and code.
+impl ToDeviceKeyVerificationCancelEventContent {
+    /// Creates a new `ToDeviceKeyVerificationCancelEventContent` with the given transaction ID,
+    /// reason and code.
     pub fn new(transaction_id: String, reason: String, code: CancelCode) -> Self {
         Self { transaction_id, reason, code }
     }
@@ -41,7 +42,7 @@ impl ToDeviceCancelEventContent {
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.cancel", kind = Message)]
-pub struct CancelEventContent {
+pub struct KeyVerificationCancelEventContent {
     /// A human readable description of the `code`.
     ///
     /// The client should only rely on this string if it does not understand the `code`.
@@ -56,8 +57,8 @@ pub struct CancelEventContent {
 }
 
 #[cfg(feature = "unstable-pre-spec")]
-impl CancelEventContent {
-    /// Creates a new `CancelEventContent` with the given reason, code and relation.
+impl KeyVerificationCancelEventContent {
+    /// Creates a new `KeyVerificationCancelEventContent` with the given reason, code and relation.
     pub fn new(reason: String, code: CancelCode, relates_to: Relation) -> Self {
         Self { reason, code, relates_to }
     }

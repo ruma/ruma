@@ -11,4 +11,4 @@ use crate::policy::rule::PolicyRuleEventContent;
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.policy.rule.server", kind = State)]
-pub struct ServerEventContent(pub PolicyRuleEventContent);
+pub struct PolicyRuleServerEventContent(pub PolicyRuleEventContent);

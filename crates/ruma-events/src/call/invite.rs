@@ -12,7 +12,7 @@ use super::SessionDescription;
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.call.invite", kind = Message)]
-pub struct InviteEventContent {
+pub struct CallInviteEventContent {
     /// A unique identifier for the call.
     pub call_id: String,
 
@@ -28,7 +28,7 @@ pub struct InviteEventContent {
     pub version: UInt,
 }
 
-impl InviteEventContent {
+impl CallInviteEventContent {
     /// Creates a new `InviteEventContent` with the given call ID, lifetime and VoIP version.
     pub fn new(call_id: String, lifetime: UInt, offer: SessionDescription, version: UInt) -> Self {
         Self { call_id, lifetime, offer, version }

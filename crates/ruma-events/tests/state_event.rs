@@ -3,8 +3,8 @@ use matches::assert_matches;
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     room::{
-        aliases::AliasesEventContent,
-        avatar::{AvatarEventContent, ImageInfo},
+        aliases::RoomAliasesEventContent,
+        avatar::{ImageInfo, RoomAvatarEventContent},
         ThumbnailInfo,
     },
     AnyRoomEvent, AnyStateEvent, AnyStateEventContent, AnySyncStateEvent, RawExt, StateEvent,
@@ -36,10 +36,10 @@ fn aliases_event_with_prev_content() -> JsonValue {
 #[test]
 fn serialize_aliases_with_prev_content() {
     let aliases_event = StateEvent {
-        content: AliasesEventContent::new(vec![room_alias_id!("#somewhere:localhost")]),
+        content: RoomAliasesEventContent::new(vec![room_alias_id!("#somewhere:localhost")]),
         event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-        prev_content: Some(AliasesEventContent::new(vec![room_alias_id!("#inner:localhost")])),
+        prev_content: Some(RoomAliasesEventContent::new(vec![room_alias_id!("#inner:localhost")])),
         room_id: room_id!("!roomid:room.com"),
         sender: user_id!("@carl:example.com"),
         state_key: "".into(),
@@ -55,7 +55,7 @@ fn serialize_aliases_with_prev_content() {
 #[test]
 fn serialize_aliases_without_prev_content() {
     let aliases_event = StateEvent {
-        content: AliasesEventContent::new(vec![room_alias_id!("#somewhere:localhost")]),
+        content: RoomAliasesEventContent::new(vec![room_alias_id!("#somewhere:localhost")]),
         event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         prev_content: None,
@@ -184,7 +184,7 @@ fn deserialize_avatar_without_prev_content() {
     assert_matches!(
         from_json_value::<AnyStateEvent>(json_data).unwrap(),
         AnyStateEvent::RoomAvatar(StateEvent {
-            content: AvatarEventContent {
+            content: RoomAvatarEventContent {
                 info: Some(info),
                 url,
                 ..

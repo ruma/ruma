@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.space.child", kind = State)]
-pub struct ChildEventContent {
+pub struct SpaceChildEventContent {
     /// List of candidate servers that can be used to join the room.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub via: Option<Vec<ServerNameBox>>,
@@ -41,7 +41,7 @@ pub struct ChildEventContent {
     pub suggested: Option<bool>,
 }
 
-impl ChildEventContent {
+impl SpaceChildEventContent {
     /// Creates a new `ChildEventContent`.
     pub fn new() -> Self {
         Self::default()
@@ -50,13 +50,13 @@ impl ChildEventContent {
 
 #[cfg(test)]
 mod tests {
-    use super::ChildEventContent;
+    use super::SpaceChildEventContent;
     use ruma_identifiers::server_name;
     use serde_json::{json, to_value as to_json_value};
 
     #[test]
     fn space_child_serialization() {
-        let content = ChildEventContent {
+        let content = SpaceChildEventContent {
             via: Some(vec![server_name!("example.com")]),
             order: Some("uwu".to_owned()),
             suggested: Some(false),
@@ -73,7 +73,7 @@ mod tests {
 
     #[test]
     fn space_child_empty_serialization() {
-        let content = ChildEventContent { via: None, order: None, suggested: None };
+        let content = SpaceChildEventContent { via: None, order: None, suggested: None };
 
         let json = json!({});
 

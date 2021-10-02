@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.message.feedback", kind = Message)]
-pub struct FeedbackEventContent {
+pub struct RoomMessageFeedbackEventContent {
     /// The event that this feedback is related to.
     pub target_event_id: EventId,
 
@@ -23,8 +23,8 @@ pub struct FeedbackEventContent {
     pub feedback_type: FeedbackType,
 }
 
-impl FeedbackEventContent {
-    /// Create a `FeedbackEventContent` from the given target event id and feedback type.
+impl RoomMessageFeedbackEventContent {
+    /// Create a `RoomFeedbackEventContent` from the given target event id and feedback type.
     pub fn new(target_event_id: EventId, feedback_type: FeedbackType) -> Self {
         Self { target_event_id, feedback_type }
     }

@@ -6,7 +6,7 @@ use ruma_identifiers::{event_id, mxc_uri, room_id, user_id};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 use ruma_events::{
-    call::{answer::AnswerEventContent, SessionDescription, SessionDescriptionType},
+    call::{answer::CallAnswerEventContent, SessionDescription, SessionDescriptionType},
     room::{ImageInfo, ThumbnailInfo},
     sticker::StickerEventContent,
     AnyMessageEvent, MessageEvent, Unsigned,
@@ -42,7 +42,7 @@ fn deserialize_message_event() {
         from_json_value::<AnyMessageEvent>(json_data)
             .unwrap(),
         AnyMessageEvent::CallAnswer(MessageEvent {
-            content: AnswerEventContent {
+            content: CallAnswerEventContent {
                 answer: SessionDescription {
                     session_type: SessionDescriptionType::Answer,
                     sdp,

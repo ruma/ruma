@@ -28,7 +28,7 @@ mod relation_serde;
 #[derive(Clone, Debug, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.message", kind = Message)]
-pub struct MessageEventContent {
+pub struct RoomMessageEventContent {
     /// A key which identifies the type of message being sent.
     ///
     /// This also holds the specific content of each message.
@@ -42,8 +42,8 @@ pub struct MessageEventContent {
     pub relates_to: Option<Relation>,
 }
 
-impl MessageEventContent {
-    /// Create a `MessageEventContent` with the given `MessageType`.
+impl RoomMessageEventContent {
+    /// Create a `RoomMessageEventContent` with the given `MessageType`.
     pub fn new(msgtype: MessageType) -> Self {
         Self { msgtype, relates_to: None }
     }
@@ -69,7 +69,7 @@ impl MessageEventContent {
     }
 
     /// Creates a plain text reply to a message.
-    pub fn text_reply_plain(reply: impl Into<String>, original_message: &MessageEvent) -> Self {
+    pub fn text_reply_plain(reply: impl Into<String>, original_message: &RoomMessageEvent) -> Self {
         let quoted = get_plain_quote_fallback(original_message);
 
         let body = format!("{}\n\n{}", quoted, reply.into());
@@ -86,7 +86,7 @@ impl MessageEventContent {
     pub fn text_reply_html(
         reply: impl Into<String>,
         html_reply: impl Into<String>,
-        original_message: &MessageEvent,
+        original_message: &RoomMessageEvent,
     ) -> Self {
         let quoted = get_plain_quote_fallback(original_message);
         let quoted_html = get_html_quote_fallback(original_message);
@@ -103,7 +103,10 @@ impl MessageEventContent {
     }
 
     /// Creates a plain text notice reply to a message.
-    pub fn notice_reply_plain(reply: impl Into<String>, original_message: &MessageEvent) -> Self {
+    pub fn notice_reply_plain(
+        reply: impl Into<String>,
+        original_message: &RoomMessageEvent,
+    ) -> Self {
         let quoted = get_plain_quote_fallback(original_message);
 
         let body = format!("{}\n\n{}", quoted, reply.into());
@@ -119,7 +122,7 @@ impl MessageEventContent {
     pub fn notice_reply_html(
         reply: impl Into<String>,
         html_reply: impl Into<String>,
-        original_message: &MessageEvent,
+        original_message: &RoomMessageEvent,
     ) -> Self {
         let quoted = get_plain_quote_fallback(original_message);
         let quoted_html = get_html_quote_fallback(original_message);
@@ -287,7 +290,7 @@ impl MessageType {
     }
 }
 
-impl From<MessageType> for MessageEventContent {
+impl From<MessageType> for RoomMessageEventContent {
     fn from(msgtype: MessageType) -> Self {
         Self::new(msgtype)
     }
@@ -340,13 +343,13 @@ pub struct Replacement {
     pub event_id: EventId,
 
     /// New content.
-    pub new_content: Box<MessageEventContent>,
+    pub new_content: Box<RoomMessageEventContent>,
 }
 
 #[cfg(feature = "unstable-pre-spec")]
 impl Replacement {
     /// Creates a new `Replacement` with the given event ID and new content.
-    pub fn new(event_id: EventId, new_content: Box<MessageEventContent>) -> Self {
+    pub fn new(event_id: EventId, new_content: Box<RoomMessageEventContent>) -> Self {
         Self { event_id, new_content }
     }
 }
@@ -377,13 +380,14 @@ pub struct AudioMessageEventContent {
 }
 
 impl AudioMessageEventContent {
-    /// Creates a new non-encrypted `AudioMessageEventContent` with the given body, url and optional
-    /// extra info.
+    /// Creates a new non-encrypted `RoomAudioMessageEventContent` with the given body, url and
+    /// optional extra info.
     pub fn plain(body: String, url: MxcUri, info: Option<Box<AudioInfo>>) -> Self {
         Self { body, url: Some(url), info, file: None }
     }
 
-    /// Creates a new encrypted `AudioMessageEventContent` with the given body and encrypted file.
+    /// Creates a new encrypted `RoomAudioMessageEventContent` with the given body and encrypted
+    /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
         Self { body, url: None, info: None, file: Some(Box::new(file)) }
     }
@@ -478,13 +482,14 @@ pub struct FileMessageEventContent {
 }
 
 impl FileMessageEventContent {
-    /// Creates a new non-encrypted `FileMessageEventContent` with the given body, url and optional
-    /// extra info.
+    /// Creates a new non-encrypted `RoomFileMessageEventContent` with the given body, url and
+    /// optional extra info.
     pub fn plain(body: String, url: MxcUri, info: Option<Box<FileInfo>>) -> Self {
         Self { body, filename: None, url: Some(url), info, file: None }
     }
 
-    /// Creates a new encrypted `FileMessageEventContent` with the given body and encrypted file.
+    /// Creates a new encrypted `RoomFileMessageEventContent` with the given body and encrypted
+    /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
         Self { body, filename: None, url: None, info: None, file: Some(Box::new(file)) }
     }
@@ -553,13 +558,14 @@ pub struct ImageMessageEventContent {
 }
 
 impl ImageMessageEventContent {
-    /// Creates a new non-encrypted `ImageMessageEventContent` with the given body, url and optional
-    /// extra info.
+    /// Creates a new non-encrypted `RoomImageMessageEventContent` with the given body, url and
+    /// optional extra info.
     pub fn plain(body: String, url: MxcUri, info: Option<Box<ImageInfo>>) -> Self {
         Self { body, url: Some(url), info, file: None }
     }
 
-    /// Creates a new encrypted `ImageMessageEventContent` with the given body and encrypted file.
+    /// Creates a new encrypted `RoomImageMessageEventContent` with the given body and encrypted
+    /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
         Self { body, url: None, info: None, file: Some(Box::new(file)) }
     }
@@ -583,7 +589,7 @@ pub struct LocationMessageEventContent {
 }
 
 impl LocationMessageEventContent {
-    /// Creates a new `LocationMessageEventContent` with the given body and geo URI.
+    /// Creates a new `RoomLocationMessageEventContent` with the given body and geo URI.
     pub fn new(body: String, geo_uri: String) -> Self {
         Self { body, geo_uri, info: None }
     }
@@ -677,7 +683,7 @@ pub struct ServerNoticeMessageEventContent {
 }
 
 impl ServerNoticeMessageEventContent {
-    /// Creates a new `ServerNoticeMessageEventContent` with the given body and notice type.
+    /// Creates a new `RoomServerNoticeMessageEventContent` with the given body and notice type.
     pub fn new(body: String, server_notice_type: ServerNoticeType) -> Self {
         Self { body, server_notice_type, admin_contact: None, limit_type: None }
     }
@@ -846,13 +852,14 @@ pub struct VideoMessageEventContent {
 }
 
 impl VideoMessageEventContent {
-    /// Creates a new non-encrypted `VideoMessageEventContent` with the given body, url and optional
-    /// extra info.
+    /// Creates a new non-encrypted `RoomVideoMessageEventContent` with the given body, url and
+    /// optional extra info.
     pub fn plain(body: String, url: MxcUri, info: Option<Box<VideoInfo>>) -> Self {
         Self { body, url: Some(url), info, file: None }
     }
 
-    /// Creates a new encrypted `VideoMessageEventContent` with the given body and encrypted file.
+    /// Creates a new encrypted `RoomVideoMessageEventContent` with the given body and encrypted
+    /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
         Self { body, url: None, info: None, file: Some(Box::new(file)) }
     }
@@ -945,8 +952,8 @@ pub struct KeyVerificationRequestEventContent {
 
 #[cfg(feature = "unstable-pre-spec")]
 impl KeyVerificationRequestEventContent {
-    /// Creates a new `KeyVerificationRequestEventContent` with the given body, method, device and
-    /// user ID.
+    /// Creates a new `RoomKeyVerificationRequestEventContent` with the given body, method, device
+    /// and user ID.
     pub fn new(
         body: String,
         methods: Vec<VerificationMethod>,
@@ -972,7 +979,7 @@ pub struct CustomEventContent {
     data: JsonObject,
 }
 
-fn get_plain_quote_fallback(original_message: &MessageEvent) -> String {
+fn get_plain_quote_fallback(original_message: &RoomMessageEvent) -> String {
     match &original_message.content.msgtype {
         MessageType::Audio(_) => {
             format!("> <{:?}> sent an audio file.", original_message.sender)
@@ -1013,7 +1020,7 @@ fn get_plain_quote_fallback(original_message: &MessageEvent) -> String {
 }
 
 #[allow(clippy::nonstandard_macro_braces)]
-fn get_html_quote_fallback(original_message: &MessageEvent) -> String {
+fn get_html_quote_fallback(original_message: &RoomMessageEvent) -> String {
     match &original_message.content.msgtype {
         MessageType::Audio(_) => {
             formatdoc!(
@@ -1228,7 +1235,7 @@ mod tests {
     use ruma_identifiers::{event_id, EventId, RoomId, UserId};
     use serde_json::{from_value as from_json_value, json};
 
-    use super::{InReplyTo, MessageEvent, MessageEventContent, MessageType, Relation};
+    use super::{InReplyTo, MessageType, Relation, RoomMessageEvent, RoomMessageEventContent};
 
     #[test]
     fn deserialize_reply() {
@@ -1245,8 +1252,8 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<MessageEventContent>(json).unwrap(),
-            MessageEventContent {
+            from_json_value::<RoomMessageEventContent>(json).unwrap(),
+            RoomMessageEventContent {
                 msgtype: MessageType::Text(_),
                 relates_to: Some(Relation::Reply { in_reply_to: InReplyTo { event_id } }),
             } if event_id == ev_id
@@ -1257,8 +1264,8 @@ mod tests {
     fn plain_quote_fallback_multiline() {
         let sender = UserId::try_from("@alice:example.com").unwrap();
         assert_eq!(
-            super::get_plain_quote_fallback(&MessageEvent {
-                content: MessageEventContent::text_plain("multi\nline"),
+            super::get_plain_quote_fallback(&RoomMessageEvent {
+                content: RoomMessageEventContent::text_plain("multi\nline"),
                 event_id: EventId::new(sender.server_name()),
                 sender,
                 origin_server_ts: ruma_common::MilliSecondsSinceUnixEpoch::now(),

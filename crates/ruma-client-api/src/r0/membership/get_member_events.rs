@@ -1,7 +1,7 @@
 //! [GET /_matrix/client/r0/rooms/{roomId}/members](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-rooms-roomid-members)
 
 use ruma_api::ruma_api;
-use ruma_events::room::member::MemberEvent;
+use ruma_events::room::member::RoomMemberEvent;
 use ruma_identifiers::RoomId;
 use ruma_serde::{Raw, StringEnum};
 
@@ -42,7 +42,7 @@ ruma_api! {
 
     response: {
         /// A list of member events.
-        pub chunk: Vec<Raw<MemberEvent>>,
+        pub chunk: Vec<Raw<RoomMemberEvent>>,
     }
 
     error: crate::Error
@@ -57,7 +57,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given member event chunk.
-    pub fn new(chunk: Vec<Raw<MemberEvent>>) -> Self {
+    pub fn new(chunk: Vec<Raw<RoomMemberEvent>>) -> Self {
         Self { chunk }
     }
 }

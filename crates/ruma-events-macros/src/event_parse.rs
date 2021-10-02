@@ -79,7 +79,7 @@ pub enum EventKind {
     Message,
     State,
     ToDevice,
-    Redaction,
+    RoomRedaction,
     Presence,
     Decrypted,
 }
@@ -93,7 +93,7 @@ impl fmt::Display for EventKind {
             EventKind::Message => write!(f, "MessageEvent"),
             EventKind::State => write!(f, "StateEvent"),
             EventKind::ToDevice => write!(f, "ToDeviceEvent"),
-            EventKind::Redaction => write!(f, "RedactionEvent"),
+            EventKind::RoomRedaction => write!(f, "RoomRedactionEvent"),
             EventKind::Presence => write!(f, "PresenceEvent"),
             EventKind::Decrypted => unreachable!(),
         }
@@ -133,10 +133,10 @@ impl EventKind {
             | (Self::State, V::Stripped)
             | (Self::State, V::Initial)
             | (Self::Message, V::Redacted)
-            | (Self::Redaction, V::Redacted)
+            | (Self::RoomRedaction, V::Redacted)
             | (Self::State, V::Redacted)
             | (Self::Message, V::RedactedSync)
-            | (Self::Redaction, V::RedactedSync)
+            | (Self::RoomRedaction, V::RedactedSync)
             | (Self::State, V::RedactedSync) => Some(format_ident!("{}{}", var, self)),
             _ => None,
         }
@@ -203,11 +203,13 @@ pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation
         "RedactedSyncStateEvent" => Some((EventKind::State, EventKindVariation::RedactedSync)),
         "ToDeviceEvent" => Some((EventKind::ToDevice, EventKindVariation::Full)),
         "PresenceEvent" => Some((EventKind::Presence, EventKindVariation::Full)),
-        "RedactionEvent" => Some((EventKind::Redaction, EventKindVariation::Full)),
-        "SyncRedactionEvent" => Some((EventKind::Redaction, EventKindVariation::Sync)),
-        "RedactedRedactionEvent" => Some((EventKind::Redaction, EventKindVariation::Redacted)),
-        "RedactedSyncRedactionEvent" => {
-            Some((EventKind::Redaction, EventKindVariation::RedactedSync))
+        "RoomRedactionEvent" => Some((EventKind::RoomRedaction, EventKindVariation::Full)),
+        "SyncRoomRedactionEvent" => Some((EventKind::RoomRedaction, EventKindVariation::Sync)),
+        "RedactedRoomRedactionEvent" => {
+            Some((EventKind::RoomRedaction, EventKindVariation::Redacted))
+        }
+        "RedactedSyncRoomRedactionEvent" => {
+            Some((EventKind::RoomRedaction, EventKindVariation::RedactedSync))
         }
         "DecryptedOlmV1Event" | "DecryptedMegolmV1Event" => {
             Some((EventKind::Decrypted, EventKindVariation::Full))

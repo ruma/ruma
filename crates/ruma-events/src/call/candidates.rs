@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.call.candidates", kind = Message)]
-pub struct CandidatesEventContent {
+pub struct CallCandidatesEventContent {
     /// The ID of the call this event relates to.
     pub call_id: String,
 
@@ -22,7 +22,7 @@ pub struct CandidatesEventContent {
     pub version: UInt,
 }
 
-impl CandidatesEventContent {
+impl CallCandidatesEventContent {
     /// Creates a new `CandidatesEventContent` with the given call id, candidate list and VoIP
     /// version.
     pub fn new(call_id: String, candidates: Vec<Candidate>, version: UInt) -> Self {

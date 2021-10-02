@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.room.tombstone", kind = State)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct TombstoneEventContent {
+pub struct RoomTombstoneEventContent {
     /// A server-defined message.
     ///
     /// If you activate the `compat` feature, this field being absent in JSON will give you an
@@ -23,8 +23,8 @@ pub struct TombstoneEventContent {
     pub replacement_room: RoomId,
 }
 
-impl TombstoneEventContent {
-    /// Creates a new `TombstoneEventContent` with the given body and replacement room ID.
+impl RoomTombstoneEventContent {
+    /// Creates a new `RoomTombstoneEventContent` with the given body and replacement room ID.
     pub fn new(body: String, replacement_room: RoomId) -> Self {
         Self { body, replacement_room }
     }

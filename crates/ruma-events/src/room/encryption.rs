@@ -12,7 +12,7 @@ use crate::EventEncryptionAlgorithm;
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.encryption", kind = State)]
-pub struct EncryptionEventContent {
+pub struct RoomEncryptionEventContent {
     /// The encryption algorithm to be used to encrypt messages sent in this room.
     ///
     /// Must be `m.megolm.v1.aes-sha2`.
@@ -31,8 +31,8 @@ pub struct EncryptionEventContent {
     pub rotation_period_msgs: Option<UInt>,
 }
 
-impl EncryptionEventContent {
-    /// Creates a new `EncryptionEventContent` with the given algorithm.
+impl RoomEncryptionEventContent {
+    /// Creates a new `RoomEncryptionEventContent` with the given algorithm.
     pub fn new(algorithm: EventEncryptionAlgorithm) -> Self {
         Self { algorithm, rotation_period_ms: None, rotation_period_msgs: None }
     }

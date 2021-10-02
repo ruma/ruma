@@ -3,7 +3,7 @@ use js_int::{uint, UInt};
 use matches::assert_matches;
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
-    call::{answer::AnswerEventContent, SessionDescription, SessionDescriptionType},
+    call::{answer::CallAnswerEventContent, SessionDescription, SessionDescriptionType},
     room::{ImageInfo, ThumbnailInfo},
     sticker::StickerEventContent,
     AnyMessageEvent, AnyMessageEventContent, AnySyncMessageEvent, MessageEvent, RawExt, Unsigned,
@@ -84,7 +84,7 @@ fn deserialize_message_call_answer_content() {
             .unwrap()
             .deserialize_content("m.call.answer")
             .unwrap(),
-        AnyMessageEventContent::CallAnswer(AnswerEventContent {
+        AnyMessageEventContent::CallAnswer(CallAnswerEventContent {
             answer: SessionDescription {
                 session_type: SessionDescriptionType::Answer,
                 sdp,
@@ -118,7 +118,7 @@ fn deserialize_message_call_answer() {
     assert_matches!(
         from_json_value::<AnyMessageEvent>(json_data).unwrap(),
         AnyMessageEvent::CallAnswer(MessageEvent {
-            content: AnswerEventContent {
+            content: CallAnswerEventContent {
                 answer: SessionDescription {
                     session_type: SessionDescriptionType::Answer,
                     sdp,
@@ -249,7 +249,7 @@ fn deserialize_message_then_convert_to_full() {
     assert_matches!(
         from_json_value::<AnyMessageEvent>(full_json).unwrap(),
         AnyMessageEvent::CallAnswer(MessageEvent {
-            content: AnswerEventContent {
+            content: CallAnswerEventContent {
                 answer: SessionDescription {
                     session_type: SessionDescriptionType::Answer,
                     sdp,

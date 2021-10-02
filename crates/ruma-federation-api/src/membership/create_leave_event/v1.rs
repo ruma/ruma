@@ -3,7 +3,7 @@
 use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_events::{room::member::MemberEventContent, EventType};
+use ruma_events::{room::member::RoomMemberEventContent, EventType};
 use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
 use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};
@@ -50,7 +50,7 @@ ruma_api! {
 
         /// The content of the event.
         #[ruma_api(query)]
-        pub content: Raw<MemberEventContent>,
+        pub content: Raw<RoomMemberEventContent>,
 
         /// This field must be present but is ignored; it may be 0.
         #[ruma_api(query)]
@@ -97,7 +97,7 @@ pub struct RequestInit<'a> {
     pub state_key: &'a str,
 
     /// The content of the event.
-    pub content: Raw<MemberEventContent>,
+    pub content: Raw<RoomMemberEventContent>,
 
     /// This field must be present but is ignored; it may be 0.
     pub depth: UInt,

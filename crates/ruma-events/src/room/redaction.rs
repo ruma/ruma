@@ -10,9 +10,9 @@ use crate::{Redact, RedactContent, RedactedUnsigned, Unsigned};
 /// Redaction event.
 #[derive(Clone, Debug, Event)]
 #[allow(clippy::exhaustive_structs)]
-pub struct RedactionEvent {
+pub struct RoomRedactionEvent {
     /// Data specific to the event type.
-    pub content: RedactionEventContent,
+    pub content: RoomRedactionEventContent,
 
     /// The ID of the event that was redacted.
     pub redacts: EventId,
@@ -33,15 +33,15 @@ pub struct RedactionEvent {
     pub unsigned: Unsigned,
 }
 
-impl Redact for RedactionEvent {
-    type Redacted = RedactedRedactionEvent;
+impl Redact for RoomRedactionEvent {
+    type Redacted = RedactedRoomRedactionEvent;
 
     fn redact(
         self,
-        redaction: SyncRedactionEvent,
+        redaction: SyncRoomRedactionEvent,
         version: &ruma_identifiers::RoomVersionId,
     ) -> Self::Redacted {
-        RedactedRedactionEvent {
+        RedactedRoomRedactionEvent {
             content: self.content.redact(version),
             // There is no released room version where this isn't redacted yet
             redacts: None,
@@ -57,9 +57,9 @@ impl Redact for RedactionEvent {
 /// Redacted redaction event.
 #[derive(Clone, Debug, Event)]
 #[allow(clippy::exhaustive_structs)]
-pub struct RedactedRedactionEvent {
+pub struct RedactedRoomRedactionEvent {
     /// Data specific to the event type.
-    pub content: RedactedRedactionEventContent,
+    pub content: RedactedRoomRedactionEventContent,
 
     /// The ID of the event that was redacted.
     pub redacts: Option<EventId>,
@@ -83,9 +83,9 @@ pub struct RedactedRedactionEvent {
 /// Redaction event without a `room_id`.
 #[derive(Clone, Debug, Event)]
 #[allow(clippy::exhaustive_structs)]
-pub struct SyncRedactionEvent {
+pub struct SyncRoomRedactionEvent {
     /// Data specific to the event type.
-    pub content: RedactionEventContent,
+    pub content: RoomRedactionEventContent,
 
     /// The ID of the event that was redacted.
     pub redacts: EventId,
@@ -103,15 +103,15 @@ pub struct SyncRedactionEvent {
     pub unsigned: Unsigned,
 }
 
-impl Redact for SyncRedactionEvent {
-    type Redacted = RedactedSyncRedactionEvent;
+impl Redact for SyncRoomRedactionEvent {
+    type Redacted = RedactedSyncRoomRedactionEvent;
 
     fn redact(
         self,
-        redaction: SyncRedactionEvent,
+        redaction: SyncRoomRedactionEvent,
         version: &ruma_identifiers::RoomVersionId,
     ) -> Self::Redacted {
-        RedactedSyncRedactionEvent {
+        RedactedSyncRoomRedactionEvent {
             content: self.content.redact(version),
             // There is no released room version where this isn't redacted yet
             redacts: None,
@@ -126,9 +126,9 @@ impl Redact for SyncRedactionEvent {
 /// Redacted redaction event without a `room_id`.
 #[derive(Clone, Debug, Event)]
 #[allow(clippy::exhaustive_structs)]
-pub struct RedactedSyncRedactionEvent {
+pub struct RedactedSyncRoomRedactionEvent {
     /// Data specific to the event type.
-    pub content: RedactedRedactionEventContent,
+    pub content: RedactedRoomRedactionEventContent,
 
     /// The ID of the event that was redacted.
     pub redacts: Option<EventId>,
@@ -150,19 +150,19 @@ pub struct RedactedSyncRedactionEvent {
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.redaction", kind = Message)]
-pub struct RedactionEventContent {
+pub struct RoomRedactionEventContent {
     /// The reason for the redaction, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
 }
 
-impl RedactionEventContent {
-    /// Creates an empty `RedactionEventContent`.
+impl RoomRedactionEventContent {
+    /// Creates an empty `RoomRedactionEventContent`.
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Creates a new `RedactionEventContent` with the given reason.
+    /// Creates a new `RoomRedactionEventContent` with the given reason.
     pub fn with_reason(reason: String) -> Self {
         Self { reason: Some(reason) }
     }

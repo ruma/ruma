@@ -16,22 +16,22 @@ use crate::{
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.aliases", kind = State, custom_redacted)]
-pub struct AliasesEventContent {
+pub struct RoomAliasesEventContent {
     /// A list of room aliases.
     pub aliases: Vec<RoomAliasId>,
 }
 
-impl AliasesEventContent {
-    /// Create an `AliasesEventContent` from the given aliases.
+impl RoomAliasesEventContent {
+    /// Create an `RoomAliasesEventContent` from the given aliases.
     pub fn new(aliases: Vec<RoomAliasId>) -> Self {
         Self { aliases }
     }
 }
 
-impl RedactContent for AliasesEventContent {
-    type Redacted = RedactedAliasesEventContent;
+impl RedactContent for RoomAliasesEventContent {
+    type Redacted = RedactedRoomAliasesEventContent;
 
-    fn redact(self, version: &RoomVersionId) -> RedactedAliasesEventContent {
+    fn redact(self, version: &RoomVersionId) -> RedactedRoomAliasesEventContent {
         // We compare the long way to avoid pre version 6 behavior if/when
         // a new room version is introduced.
         let aliases = match version {
@@ -43,14 +43,14 @@ impl RedactContent for AliasesEventContent {
             _ => None,
         };
 
-        RedactedAliasesEventContent { aliases }
+        RedactedRoomAliasesEventContent { aliases }
     }
 }
 
 /// An aliases event that has been redacted.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct RedactedAliasesEventContent {
+pub struct RedactedRoomAliasesEventContent {
     /// A list of room aliases.
     ///
     /// According to the Matrix spec version 1 redaction rules allowed this field to be
@@ -58,7 +58,7 @@ pub struct RedactedAliasesEventContent {
     pub aliases: Option<Vec<RoomAliasId>>,
 }
 
-impl RedactedAliasesEventContent {
+impl RedactedRoomAliasesEventContent {
     /// Create a `RedactedAliasesEventContent` with the given aliases.
     ///
     /// This is only valid for room version 5 and below.
@@ -74,7 +74,7 @@ impl RedactedAliasesEventContent {
     }
 }
 
-impl EventContent for RedactedAliasesEventContent {
+impl EventContent for RedactedRoomAliasesEventContent {
     fn event_type(&self) -> &str {
         "m.room.aliases"
     }
@@ -93,7 +93,7 @@ impl EventContent for RedactedAliasesEventContent {
 
 // Since this redacted event has fields we leave the default `empty` method
 // that will error if called.
-impl RedactedEventContent for RedactedAliasesEventContent {
+impl RedactedEventContent for RedactedRoomAliasesEventContent {
     fn has_serialize_fields(&self) -> bool {
         self.aliases.is_some()
     }
@@ -103,4 +103,4 @@ impl RedactedEventContent for RedactedAliasesEventContent {
     }
 }
 
-impl RedactedStateEventContent for RedactedAliasesEventContent {}
+impl RedactedStateEventContent for RedactedRoomAliasesEventContent {}

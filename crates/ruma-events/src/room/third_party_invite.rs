@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.third_party_invite", kind = State)]
-pub struct ThirdPartyInviteEventContent {
+pub struct RoomThirdPartyInviteEventContent {
     /// A user-readable string which represents the user who has been invited.
     ///
     /// If you activate the `compat` feature, this field being absent in JSON will give you an
@@ -40,9 +40,9 @@ pub struct ThirdPartyInviteEventContent {
     pub public_keys: Option<Vec<PublicKey>>,
 }
 
-impl ThirdPartyInviteEventContent {
-    /// Creates a new `ThirdPartyInviteEventContent` with the given display name, key validity url
-    /// and public key.
+impl RoomThirdPartyInviteEventContent {
+    /// Creates a new `RoomThirdPartyInviteEventContent` with the given display name, key validity
+    /// url and public key.
     pub fn new(display_name: String, key_validity_url: String, public_key: String) -> Self {
         Self { display_name, key_validity_url, public_key, public_keys: None }
     }

@@ -16,7 +16,7 @@ use super::ThumbnailInfo;
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[cfg_attr(feature = "unstable-pre-spec", derive(Default))]
 #[ruma_event(type = "m.room.avatar", kind = State)]
-pub struct AvatarEventContent {
+pub struct RoomAvatarEventContent {
     /// Information about the avatar image.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<Box<ImageInfo>>,
@@ -34,8 +34,8 @@ pub struct AvatarEventContent {
     pub url: Option<MxcUri>,
 }
 
-impl AvatarEventContent {
-    /// Create an `AvatarEventContent` from the given image URL.
+impl RoomAvatarEventContent {
+    /// Create an `RoomAvatarEventContent` from the given image URL.
     ///
     /// With the `unstable-pre-spec` feature, this method takes no parameters.
     #[cfg(not(feature = "unstable-pre-spec"))]
@@ -43,7 +43,7 @@ impl AvatarEventContent {
         Self { info: None, url }
     }
 
-    /// Create an empty `AvatarEventContent`.
+    /// Create an empty `RoomAvatarEventContent`.
     ///
     /// With the `unstable-pre-spec` feature, this method takes an `MxcUri`.
     #[cfg(feature = "unstable-pre-spec")]

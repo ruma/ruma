@@ -11,7 +11,7 @@ use crate::policy::rule::PolicyRuleEventContent;
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.policy.rule.room", kind = State)]
-pub struct RoomEventContent(pub PolicyRuleEventContent);
+pub struct PolicyRuleRoomEventContent(pub PolicyRuleEventContent);
 
 #[cfg(test)]
 mod tests {
@@ -23,7 +23,7 @@ mod tests {
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{RoomEvent, RoomEventContent};
+    use super::{PolicyRuleRoomEvent, PolicyRuleRoomEventContent};
     use crate::{
         policy::rule::{PolicyRuleEventContent, Recommendation},
         Unsigned,
@@ -31,7 +31,7 @@ mod tests {
 
     #[test]
     fn serialization() {
-        let room_event = RoomEvent {
+        let room_event = PolicyRuleRoomEvent {
             event_id: event_id!("$143273582443PhrSn:example.org"),
             sender: user_id!("@example:example.org"),
             origin_server_ts: MilliSecondsSinceUnixEpoch(1_432_735_824_653_u64.try_into().unwrap()),
@@ -44,7 +44,7 @@ mod tests {
                 #[cfg(feature = "unstable-pre-spec")]
                 relations: None,
             },
-            content: RoomEventContent(PolicyRuleEventContent {
+            content: PolicyRuleRoomEventContent(PolicyRuleEventContent {
                 entity: "#*:example.org".into(),
                 reason: "undesirable content".into(),
                 recommendation: Recommendation::Ban,
@@ -90,6 +90,6 @@ mod tests {
             }
         });
 
-        assert!(from_json_value::<Raw<RoomEvent>>(json).unwrap().deserialize().is_ok());
+        assert!(from_json_value::<Raw<PolicyRuleRoomEvent>>(json).unwrap().deserialize().is_ok());
     }
 }

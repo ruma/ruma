@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.canonical_alias", kind = State)]
-pub struct CanonicalAliasEventContent {
+pub struct RoomCanonicalAliasEventContent {
     /// The canonical alias.
     ///
     /// Rooms with `alias: None` should be treated the same as a room
@@ -27,8 +27,8 @@ pub struct CanonicalAliasEventContent {
     pub alt_aliases: Vec<RoomAliasId>,
 }
 
-impl CanonicalAliasEventContent {
-    /// Creates an empty `CanonicalAliasEventContent`.
+impl RoomCanonicalAliasEventContent {
+    /// Creates an empty `RoomCanonicalAliasEventContent`.
     pub fn new() -> Self {
         Self { alias: None, alt_aliases: Vec::new() }
     }
@@ -41,13 +41,13 @@ mod tests {
     use ruma_identifiers::{event_id, room_alias_id, room_id, user_id};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::CanonicalAliasEventContent;
+    use super::RoomCanonicalAliasEventContent;
     use crate::{StateEvent, Unsigned};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
         let canonical_alias_event = StateEvent {
-            content: CanonicalAliasEventContent {
+            content: RoomCanonicalAliasEventContent {
                 alias: Some(room_alias_id!("#somewhere:localhost")),
                 alt_aliases: Vec::new(),
             },
@@ -89,7 +89,7 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<StateEvent<CanonicalAliasEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomCanonicalAliasEventContent>>(json_data)
                 .unwrap()
                 .content
                 .alias,
@@ -111,7 +111,7 @@ mod tests {
             "type": "m.room.canonical_alias"
         });
         assert_eq!(
-            from_json_value::<StateEvent<CanonicalAliasEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomCanonicalAliasEventContent>>(json_data)
                 .unwrap()
                 .content
                 .alias,
@@ -133,7 +133,7 @@ mod tests {
             "type": "m.room.canonical_alias"
         });
         assert_eq!(
-            from_json_value::<StateEvent<CanonicalAliasEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomCanonicalAliasEventContent>>(json_data)
                 .unwrap()
                 .content
                 .alias,
@@ -156,7 +156,7 @@ mod tests {
             "type": "m.room.canonical_alias"
         });
         assert_eq!(
-            from_json_value::<StateEvent<CanonicalAliasEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomCanonicalAliasEventContent>>(json_data)
                 .unwrap()
                 .content
                 .alias,

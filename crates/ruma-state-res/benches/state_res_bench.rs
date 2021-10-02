@@ -24,8 +24,8 @@ use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     pdu::{EventHash, Pdu, RoomV3Pdu},
     room::{
-        join_rules::{JoinRule, JoinRulesEventContent},
-        member::{MemberEventContent, MembershipState},
+        join_rules::{JoinRule, RoomJoinRulesEventContent},
+        member::{MembershipState, RoomMemberEventContent},
     },
     EventType,
 };
@@ -264,7 +264,7 @@ impl TestStore<StateEvent> {
             alice(),
             EventType::RoomJoinRules,
             Some(""),
-            to_raw_json_value(&JoinRulesEventContent::new(JoinRule::Public)).unwrap(),
+            to_raw_json_value(&RoomJoinRulesEventContent::new(JoinRule::Public)).unwrap(),
             &[cre.clone(), alice_mem.event_id().clone()],
             &[alice_mem.event_id().clone()],
         );
@@ -356,11 +356,11 @@ fn room_id() -> RoomId {
 }
 
 fn member_content_ban() -> Box<RawJsonValue> {
-    to_raw_json_value(&MemberEventContent::new(MembershipState::Ban)).unwrap()
+    to_raw_json_value(&RoomMemberEventContent::new(MembershipState::Ban)).unwrap()
 }
 
 fn member_content_join() -> Box<RawJsonValue> {
-    to_raw_json_value(&MemberEventContent::new(MembershipState::Join)).unwrap()
+    to_raw_json_value(&RoomMemberEventContent::new(MembershipState::Join)).unwrap()
 }
 
 fn to_pdu_event<S>(
@@ -441,7 +441,7 @@ fn INITIAL_EVENTS() -> HashMap<EventId, Arc<StateEvent>> {
             alice(),
             EventType::RoomJoinRules,
             Some(""),
-            to_raw_json_value(&JoinRulesEventContent::new(JoinRule::Public)).unwrap(),
+            to_raw_json_value(&RoomJoinRulesEventContent::new(JoinRule::Public)).unwrap(),
             &["CREATE", "IMA", "IPOWER"],
             &["IPOWER"],
         ),

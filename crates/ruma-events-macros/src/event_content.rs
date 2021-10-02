@@ -332,7 +332,7 @@ fn generate_event_type_aliases(
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
     // The redaction module has its own event types.
-    if ident == "RedactionEventContent" {
+    if ident == "RoomRedactionEventContent" {
         return Ok(quote! {});
     }
 
@@ -394,7 +394,7 @@ fn generate_marker_trait_impl(
         EventKind::Message => quote! { MessageEventContent },
         EventKind::State => quote! { StateEventContent },
         EventKind::ToDevice => quote! { ToDeviceEventContent },
-        EventKind::Redaction | EventKind::Presence | EventKind::Decrypted => {
+        EventKind::RoomRedaction | EventKind::Presence | EventKind::Decrypted => {
             return Err(syn::Error::new_spanned(
                 ident,
                 "valid event kinds are GlobalAccountData, RoomAccountData, \
@@ -454,7 +454,7 @@ fn generate_static_event_content_impl(
         EventKind::Message => quote! { Message { redacted: #redacted } },
         EventKind::State => quote! { State { redacted: #redacted } },
         EventKind::ToDevice => quote! { ToDevice },
-        EventKind::Redaction | EventKind::Presence | EventKind::Decrypted => {
+        EventKind::RoomRedaction | EventKind::Presence | EventKind::Decrypted => {
             unreachable!("not a valid event content kind")
         }
     };

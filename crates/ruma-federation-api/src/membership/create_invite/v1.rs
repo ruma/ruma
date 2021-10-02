@@ -2,7 +2,7 @@
 
 use ruma_api::ruma_api;
 use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_events::{room::member::MemberEventContent, AnyStrippedStateEvent, EventType};
+use ruma_events::{room::member::RoomMemberEventContent, AnyStrippedStateEvent, EventType};
 use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
 use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};
@@ -44,7 +44,7 @@ ruma_api! {
         pub state_key: &'a UserId,
 
         /// The content of the event.
-        pub content: MemberEventContent,
+        pub content: RoomMemberEventContent,
 
         /// Information included alongside the event that is not signed.
         #[serde(default, skip_serializing_if = "UnsignedEventContent::is_empty")]
@@ -105,7 +105,7 @@ pub struct RequestInit<'a> {
     pub state_key: &'a UserId,
 
     /// The content of the event.
-    pub content: MemberEventContent,
+    pub content: RoomMemberEventContent,
 
     /// Information included alongside the event that is not signed.
     pub unsigned: UnsignedEventContent,

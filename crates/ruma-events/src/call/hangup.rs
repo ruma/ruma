@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.call.hangup", kind = Message)]
-pub struct HangupEventContent {
+pub struct CallHangupEventContent {
     /// The ID of the call this event relates to.
     pub call_id: String,
 
@@ -24,7 +24,7 @@ pub struct HangupEventContent {
     pub reason: Option<Reason>,
 }
 
-impl HangupEventContent {
+impl CallHangupEventContent {
     /// Creates a new `HangupEventContent` with the given call ID and VoIP version.
     pub fn new(call_id: String, version: UInt) -> Self {
         Self { call_id, version, reason: None }

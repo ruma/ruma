@@ -19,7 +19,7 @@ use super::{
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.start", kind = ToDevice)]
-pub struct ToDeviceStartEventContent {
+pub struct ToDeviceKeyVerificationStartEventContent {
     /// The device ID which is initiating the process.
     pub from_device: DeviceIdBox,
 
@@ -35,9 +35,9 @@ pub struct ToDeviceStartEventContent {
     pub method: StartMethod,
 }
 
-impl ToDeviceStartEventContent {
-    /// Creates a new `ToDeviceStartEventContent` with the given device ID, transaction ID and
-    /// method specific content.
+impl ToDeviceKeyVerificationStartEventContent {
+    /// Creates a new `ToDeviceKeyVerificationStartEventContent` with the given device ID,
+    /// transaction ID and method specific content.
     pub fn new(from_device: DeviceIdBox, transaction_id: String, method: StartMethod) -> Self {
         Self { from_device, transaction_id, method }
     }
@@ -51,7 +51,7 @@ impl ToDeviceStartEventContent {
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.start", kind = Message)]
-pub struct StartEventContent {
+pub struct KeyVerificationStartEventContent {
     /// The device ID which is initiating the process.
     pub from_device: DeviceIdBox,
 
@@ -65,8 +65,9 @@ pub struct StartEventContent {
 }
 
 #[cfg(feature = "unstable-pre-spec")]
-impl StartEventContent {
-    /// Creates a new `StartEventContent` with the given device ID, method and relation.
+impl KeyVerificationStartEventContent {
+    /// Creates a new `KeyVerificationStartEventContent` with the given device ID, method and
+    /// relation.
     pub fn new(from_device: DeviceIdBox, method: StartMethod, relates_to: Relation) -> Self {
         Self { from_device, method, relates_to }
     }
@@ -209,18 +210,18 @@ mod tests {
 
     use super::{
         HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, SasV1Content,
-        SasV1ContentInit, ShortAuthenticationString, StartMethod, ToDeviceStartEventContent,
-        _CustomContent,
+        SasV1ContentInit, ShortAuthenticationString, StartMethod,
+        ToDeviceKeyVerificationStartEventContent, _CustomContent,
     };
     #[cfg(feature = "unstable-pre-spec")]
-    use super::{ReciprocateV1Content, StartEventContent};
+    use super::{KeyVerificationStartEventContent, ReciprocateV1Content};
     #[cfg(feature = "unstable-pre-spec")]
     use crate::key::verification::Relation;
     use crate::ToDeviceEvent;
 
     #[test]
     fn serialization() {
-        let key_verification_start_content = ToDeviceStartEventContent {
+        let key_verification_start_content = ToDeviceKeyVerificationStartEventContent {
             from_device: "123".into(),
             transaction_id: "456".into(),
             method: StartMethod::SasV1(
@@ -268,7 +269,7 @@ mod tests {
             "sender": sender
         });
 
-        let key_verification_start_content = ToDeviceStartEventContent {
+        let key_verification_start_content = ToDeviceKeyVerificationStartEventContent {
             from_device: "123".into(),
             transaction_id: "456".into(),
             method: StartMethod::_Custom(_CustomContent {
@@ -288,7 +289,7 @@ mod tests {
         {
             let secret = "This is a secret to everybody".to_owned();
 
-            let key_verification_start_content = ToDeviceStartEventContent {
+            let key_verification_start_content = ToDeviceKeyVerificationStartEventContent {
                 from_device: "123".into(),
                 transaction_id: "456".into(),
                 method: StartMethod::ReciprocateV1(ReciprocateV1Content::new(secret.clone())),
@@ -310,7 +311,7 @@ mod tests {
     fn in_room_serialization() {
         let event_id = event_id!("$1598361704261elfgc:localhost");
 
-        let key_verification_start_content = StartEventContent {
+        let key_verification_start_content = KeyVerificationStartEventContent {
             from_device: "123".into(),
             relates_to: Relation { event_id: event_id.clone() },
             method: StartMethod::SasV1(
@@ -341,7 +342,7 @@ mod tests {
 
         let secret = "This is a secret to everybody".to_owned();
 
-        let key_verification_start_content = StartEventContent {
+        let key_verification_start_content = KeyVerificationStartEventContent {
             from_device: "123".into(),
             relates_to: Relation { event_id: event_id.clone() },
             method: StartMethod::ReciprocateV1(ReciprocateV1Content::new(secret.clone())),
@@ -374,8 +375,8 @@ mod tests {
 
         // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
         assert_matches!(
-            from_json_value::<ToDeviceStartEventContent>(json).unwrap(),
-            ToDeviceStartEventContent {
+            from_json_value::<ToDeviceKeyVerificationStartEventContent>(json).unwrap(),
+            ToDeviceKeyVerificationStartEventContent {
                 from_device,
                 transaction_id,
                 method: StartMethod::SasV1(SasV1Content {
@@ -409,10 +410,10 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<ToDeviceEvent<ToDeviceStartEventContent>>(json).unwrap(),
+            from_json_value::<ToDeviceEvent<ToDeviceKeyVerificationStartEventContent>>(json).unwrap(),
             ToDeviceEvent {
                 sender,
-                content: ToDeviceStartEventContent {
+                content: ToDeviceKeyVerificationStartEventContent {
                     from_device,
                     transaction_id,
                     method: StartMethod::SasV1(SasV1Content {
@@ -445,10 +446,10 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<ToDeviceEvent<ToDeviceStartEventContent>>(json).unwrap(),
+            from_json_value::<ToDeviceEvent<ToDeviceKeyVerificationStartEventContent>>(json).unwrap(),
             ToDeviceEvent {
                 sender,
-                content: ToDeviceStartEventContent {
+                content: ToDeviceKeyVerificationStartEventContent {
                     from_device,
                     transaction_id,
                     method: StartMethod::_Custom(_CustomContent { method, data })
@@ -474,10 +475,10 @@ mod tests {
             });
 
             assert_matches!(
-                from_json_value::<ToDeviceEvent<ToDeviceStartEventContent>>(json).unwrap(),
+                from_json_value::<ToDeviceEvent<ToDeviceKeyVerificationStartEventContent>>(json).unwrap(),
                 ToDeviceEvent {
                     sender,
-                    content: ToDeviceStartEventContent {
+                    content: ToDeviceKeyVerificationStartEventContent {
                         from_device,
                         transaction_id,
                         method: StartMethod::ReciprocateV1(ReciprocateV1Content { secret }),
@@ -510,8 +511,8 @@ mod tests {
 
         // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
         assert_matches!(
-            from_json_value::<StartEventContent>(json).unwrap(),
-            StartEventContent {
+            from_json_value::<KeyVerificationStartEventContent>(json).unwrap(),
+            KeyVerificationStartEventContent {
                 from_device,
                 relates_to: Relation { event_id },
                 method: StartMethod::SasV1(SasV1Content {
@@ -539,8 +540,8 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<StartEventContent>(json).unwrap(),
-            StartEventContent {
+            from_json_value::<KeyVerificationStartEventContent>(json).unwrap(),
+            KeyVerificationStartEventContent {
                 from_device,
                 relates_to: Relation { event_id },
                 method: StartMethod::ReciprocateV1(ReciprocateV1Content { secret }),

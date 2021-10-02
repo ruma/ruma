@@ -125,7 +125,7 @@ use serde::{
 };
 use serde_json::value::RawValue as RawJsonValue;
 
-use self::room::redaction::SyncRedactionEvent;
+use self::room::redaction::SyncRoomRedactionEvent;
 
 mod enums;
 mod event_kinds;
@@ -220,7 +220,7 @@ pub trait Redact {
     ///
     /// A small number of events have room-version specific redaction behavior, so a version has to
     /// be specified.
-    fn redact(self, redaction: SyncRedactionEvent, version: &RoomVersionId) -> Self::Redacted;
+    fn redact(self, redaction: SyncRoomRedactionEvent, version: &RoomVersionId) -> Self::Redacted;
 }
 
 /// Trait to define the behavior of redact an event's content object.

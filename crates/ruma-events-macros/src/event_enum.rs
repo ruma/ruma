@@ -475,7 +475,7 @@ fn expand_redact(
 
             fn redact(
                 self,
-                redaction: #ruma_events::room::redaction::SyncRedactionEvent,
+                redaction: #ruma_events::room::redaction::SyncRoomRedactionEvent,
                 version: &#ruma_identifiers::RoomVersionId,
             ) -> #redacted_enum {
                 match self {
@@ -729,9 +729,8 @@ fn to_event_path(
 
     let path: Vec<_> = name[2..].split('.').collect();
 
-    let event_str = path.last().unwrap();
-    let event: String = event_str
-        .split('_')
+    let event: String = name[2..]
+        .split(&['.', '_'] as &[char])
         .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
         .collect();
 
@@ -760,9 +759,8 @@ fn to_event_content_path(
 
     let path: Vec<_> = name[2..].split('.').collect();
 
-    let event_str = path.last().unwrap();
-    let event: String = event_str
-        .split('_')
+    let event: String = name[2..]
+        .split(&['.', '_'] as &[char])
         .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
         .collect();
 

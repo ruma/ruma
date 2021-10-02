@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "unstable-pre-spec")]
 use crate::relation::Relations;
-use crate::room::redaction::SyncRedactionEvent;
+use crate::room::redaction::SyncRoomRedactionEvent;
 
 /// Extra information about an event that is not incorporated into the event's hash.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -51,7 +51,7 @@ impl Unsigned {
 pub struct RedactedUnsigned {
     /// The event that redacted this event, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub redacted_because: Option<Box<SyncRedactionEvent>>,
+    pub redacted_because: Option<Box<SyncRoomRedactionEvent>>,
 }
 
 impl RedactedUnsigned {
@@ -61,7 +61,7 @@ impl RedactedUnsigned {
     }
 
     /// Create a new `RedactedUnsigned` with the given redacted because.
-    pub fn new_because(redacted_because: Box<SyncRedactionEvent>) -> Self {
+    pub fn new_because(redacted_because: Box<SyncRoomRedactionEvent>) -> Self {
         Self { redacted_because: Some(redacted_because) }
     }
 
@@ -110,7 +110,7 @@ impl From<UnsignedWithPrevContent> for Unsigned {
 #[derive(Deserialize)]
 pub struct RedactedUnsignedWithPrevContent {
     #[serde(skip_serializing_if = "Option::is_none")]
-    redacted_because: Option<Box<SyncRedactionEvent>>,
+    redacted_because: Option<Box<SyncRoomRedactionEvent>>,
 
     pub prev_content: Option<Box<serde_json::value::RawValue>>,
 }

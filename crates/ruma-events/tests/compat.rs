@@ -1,12 +1,12 @@
 #![cfg(feature = "compat")]
 
 use matches::assert_matches;
-use ruma_events::room::topic::{TopicEvent, TopicEventContent};
+use ruma_events::room::topic::{RoomTopicEvent, RoomTopicEventContent};
 use serde_json::{from_value as from_json_value, json};
 
 #[test]
 fn deserialize_unsigned_prev_content() {
-    let res = from_json_value::<TopicEvent>(json!({
+    let res = from_json_value::<RoomTopicEvent>(json!({
         "content": {
             "topic": "New room topic",
         },
@@ -26,9 +26,9 @@ fn deserialize_unsigned_prev_content() {
 
     assert_matches!(
         res,
-        Ok(TopicEvent {
-            content: TopicEventContent { topic: new_topic, .. },
-            prev_content: Some(TopicEventContent { topic: old_topic, .. }),
+        Ok(RoomTopicEvent {
+            content: RoomTopicEventContent { topic: new_topic, .. },
+            prev_content: Some(RoomTopicEventContent { topic: old_topic, .. }),
             ..
         }) if new_topic == "New room topic"
             && old_topic == "Old room topic"

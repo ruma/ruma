@@ -19,7 +19,7 @@ mod relation_serde;
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.encrypted", kind = Message, kind = ToDevice)]
-pub struct EncryptedEventContent {
+pub struct RoomEncryptedEventContent {
     /// Algorithm-specific fields.
     #[serde(flatten)]
     pub scheme: EncryptedEventScheme,
@@ -31,14 +31,14 @@ pub struct EncryptedEventContent {
     pub relates_to: Option<Relation>,
 }
 
-impl EncryptedEventContent {
-    /// Creates a new `EncryptedEventContent` with the given scheme and relation.
+impl RoomEncryptedEventContent {
+    /// Creates a new `RoomEncryptedEventContent` with the given scheme and relation.
     pub fn new(scheme: EncryptedEventScheme, relates_to: Option<Relation>) -> Self {
         Self { scheme, relates_to }
     }
 }
 
-impl From<EncryptedEventScheme> for EncryptedEventContent {
+impl From<EncryptedEventScheme> for RoomEncryptedEventContent {
     fn from(scheme: EncryptedEventScheme) -> Self {
         Self { scheme, relates_to: None }
     }
@@ -48,26 +48,26 @@ impl From<EncryptedEventScheme> for EncryptedEventContent {
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.encrypted", kind = ToDevice)]
-pub struct ToDeviceEncryptedEventContent {
+pub struct ToDeviceRoomEncryptedEventContent {
     /// Algorithm-specific fields.
     #[serde(flatten)]
     pub scheme: EncryptedEventScheme,
 }
 
-impl ToDeviceEncryptedEventContent {
-    /// Creates a new `ToDeviceEncryptedEventContent` with the given scheme.
+impl ToDeviceRoomEncryptedEventContent {
+    /// Creates a new `ToDeviceRoomEncryptedEventContent` with the given scheme.
     pub fn new(scheme: EncryptedEventScheme) -> Self {
         Self { scheme }
     }
 }
 
-impl From<EncryptedEventScheme> for ToDeviceEncryptedEventContent {
+impl From<EncryptedEventScheme> for ToDeviceRoomEncryptedEventContent {
     fn from(scheme: EncryptedEventScheme) -> Self {
         Self { scheme }
     }
 }
 
-/// The encryption scheme for `EncryptedEventContent`.
+/// The encryption scheme for `RoomEncryptedEventContent`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "algorithm")]
@@ -288,13 +288,15 @@ mod tests {
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{EncryptedEventContent, EncryptedEventScheme, MegolmV1AesSha2Content, Relation};
+    use super::{
+        EncryptedEventScheme, MegolmV1AesSha2Content, Relation, RoomEncryptedEventContent,
+    };
     use crate::room::message::InReplyTo;
     use ruma_identifiers::event_id;
 
     #[test]
     fn serialization() {
-        let key_verification_start_content = EncryptedEventContent {
+        let key_verification_start_content = RoomEncryptedEventContent {
             scheme: EncryptedEventScheme::MegolmV1AesSha2(MegolmV1AesSha2Content {
                 ciphertext: "ciphertext".into(),
                 sender_key: "sender_key".into(),
@@ -337,7 +339,7 @@ mod tests {
             },
         });
 
-        let content: EncryptedEventContent = from_json_value(json_data).unwrap();
+        let content: RoomEncryptedEventContent = from_json_value(json_data).unwrap();
 
         assert_matches!(
             content.scheme,
@@ -371,7 +373,7 @@ mod tests {
             },
             "algorithm": "m.olm.v1.curve25519-aes-sha2"
         });
-        let content: EncryptedEventContent = from_json_value(json_data).unwrap();
+        let content: RoomEncryptedEventContent = from_json_value(json_data).unwrap();
 
         match content.scheme {
             EncryptedEventScheme::OlmV1Curve25519AesSha2(c) => {
@@ -386,7 +388,7 @@ mod tests {
 
     #[test]
     fn deserialization_failure() {
-        assert!(from_json_value::<Raw<EncryptedEventContent>>(
+        assert!(from_json_value::<Raw<RoomEncryptedEventContent>>(
             json!({ "algorithm": "m.megolm.v1.aes-sha2" })
         )
         .unwrap()

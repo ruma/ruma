@@ -5,7 +5,7 @@ use std::{convert::TryFrom, env, process::exit};
 
 use ruma::{
     api::client::r0::{alias::get_alias, membership::join_room_by_id, message::send_message_event},
-    events::room::message::MessageEventContent,
+    events::room::message::RoomMessageEventContent,
     RoomAliasId,
 };
 
@@ -27,7 +27,7 @@ async fn hello_world(
         .send_request(send_message_event::Request::new(
             &room_id,
             "1",
-            &MessageEventContent::text_plain("Hello World!"),
+            &RoomMessageEventContent::text_plain("Hello World!"),
         )?)
         .await?;
 

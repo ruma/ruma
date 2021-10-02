@@ -14,7 +14,7 @@ use super::Relation;
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.mac", kind = ToDevice)]
-pub struct ToDeviceMacEventContent {
+pub struct ToDeviceKeyVerificationMacEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the `m.key.verification.start` message.
@@ -30,9 +30,9 @@ pub struct ToDeviceMacEventContent {
     pub keys: String,
 }
 
-impl ToDeviceMacEventContent {
-    /// Creates a new `ToDeviceMacEventContent` with the given transaction ID, key ID to MAC map and
-    /// key MAC.
+impl ToDeviceKeyVerificationMacEventContent {
+    /// Creates a new `ToDeviceKeyVerificationMacEventContent` with the given transaction ID, key ID
+    /// to MAC map and key MAC.
     pub fn new(transaction_id: String, mac: BTreeMap<String, String>, keys: String) -> Self {
         Self { transaction_id, mac, keys }
     }
@@ -46,7 +46,7 @@ impl ToDeviceMacEventContent {
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.mac", kind = Message)]
-pub struct MacEventContent {
+pub struct KeyVerificationMacEventContent {
     /// A map of the key ID to the MAC of the key, using the algorithm in the verification process.
     ///
     /// The MAC is encoded as unpadded Base64.
@@ -62,8 +62,9 @@ pub struct MacEventContent {
 }
 
 #[cfg(feature = "unstable-pre-spec")]
-impl MacEventContent {
-    /// Creates a new `MacEventContent` with the given key ID to MAC map, key MAC and relation.
+impl KeyVerificationMacEventContent {
+    /// Creates a new `KeyVerificationMacEventContent` with the given key ID to MAC map, key MAC and
+    /// relation.
     pub fn new(mac: BTreeMap<String, String>, keys: String, relates_to: Relation) -> Self {
         Self { mac, keys, relates_to }
     }

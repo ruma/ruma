@@ -4,7 +4,9 @@ use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use serde::{de, Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use crate::{from_raw_json_value, room::redaction::SyncRedactionEvent, Redact, UnsignedDeHelper};
+use crate::{
+    from_raw_json_value, room::redaction::SyncRoomRedactionEvent, Redact, UnsignedDeHelper,
+};
 
 event_enum! {
     /// Any global account data event.
@@ -281,7 +283,7 @@ impl Redact for AnyRoomEvent {
     /// Redacts `self`, referencing the given event in `unsigned.redacted_because`.
     ///
     /// Does nothing for events that are already redacted.
-    fn redact(self, redaction: SyncRedactionEvent, version: &RoomVersionId) -> Self::Redacted {
+    fn redact(self, redaction: SyncRoomRedactionEvent, version: &RoomVersionId) -> Self::Redacted {
         match self {
             Self::Message(ev) => Self::Redacted::Message(ev.redact(redaction, version)),
             Self::State(ev) => Self::Redacted::State(ev.redact(redaction, version)),
@@ -317,7 +319,7 @@ impl Redact for AnySyncRoomEvent {
     /// Redacts `self`, referencing the given event in `unsigned.redacted_because`.
     ///
     /// Does nothing for events that are already redacted.
-    fn redact(self, redaction: SyncRedactionEvent, version: &RoomVersionId) -> Self::Redacted {
+    fn redact(self, redaction: SyncRoomRedactionEvent, version: &RoomVersionId) -> Self::Redacted {
         match self {
             Self::Message(ev) => Self::Redacted::Message(ev.redact(redaction, version)),
             Self::State(ev) => Self::Redacted::State(ev.redact(redaction, version)),
@@ -344,21 +346,22 @@ impl AnyMessageEventContent {
     pub fn relation(&self) -> Option<crate::room::encrypted::Relation> {
         #[cfg(feature = "unstable-pre-spec")]
         use crate::key::verification::{
-            accept::AcceptEventContent, cancel::CancelEventContent, done::DoneEventContent,
-            key::KeyEventContent, mac::MacEventContent, ready::ReadyEventContent,
-            start::StartEventContent,
+            accept::KeyVerificationAcceptEventContent, cancel::KeyVerificationCancelEventContent,
+            done::KeyVerificationDoneEventContent, key::KeyVerificationKeyEventContent,
+            mac::KeyVerificationMacEventContent, ready::KeyVerificationReadyEventContent,
+            start::KeyVerificationStartEventContent,
         };
 
         match self {
             #[cfg(feature = "unstable-pre-spec")]
             #[rustfmt::skip]
-            AnyMessageEventContent::KeyVerificationReady(ReadyEventContent { relates_to, .. })
-            | AnyMessageEventContent::KeyVerificationStart(StartEventContent { relates_to, .. })
-            | AnyMessageEventContent::KeyVerificationCancel(CancelEventContent { relates_to, .. })
-            | AnyMessageEventContent::KeyVerificationAccept(AcceptEventContent { relates_to, .. })
-            | AnyMessageEventContent::KeyVerificationKey(KeyEventContent { relates_to, .. })
-            | AnyMessageEventContent::KeyVerificationMac(MacEventContent { relates_to, .. })
-            | AnyMessageEventContent::KeyVerificationDone(DoneEventContent { relates_to, .. }) => {
+            AnyMessageEventContent::KeyVerificationReady(KeyVerificationReadyEventContent { relates_to, .. })
+            | AnyMessageEventContent::KeyVerificationStart(KeyVerificationStartEventContent { relates_to, .. })
+            | AnyMessageEventContent::KeyVerificationCancel(KeyVerificationCancelEventContent { relates_to, .. })
+            | AnyMessageEventContent::KeyVerificationAccept(KeyVerificationAcceptEventContent { relates_to, .. })
+            | AnyMessageEventContent::KeyVerificationKey(KeyVerificationKeyEventContent { relates_to, .. })
+            | AnyMessageEventContent::KeyVerificationMac(KeyVerificationMacEventContent { relates_to, .. })
+            | AnyMessageEventContent::KeyVerificationDone(KeyVerificationDoneEventContent { relates_to, .. }) => {
                 Some(relates_to.clone().into())
             },
             #[cfg(feature = "unstable-pre-spec")]

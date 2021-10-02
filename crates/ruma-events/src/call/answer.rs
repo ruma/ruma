@@ -12,7 +12,7 @@ use super::SessionDescription;
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.call.answer", kind = Message)]
-pub struct AnswerEventContent {
+pub struct CallAnswerEventContent {
     /// The VoIP session description object. The session description type must be *answer*.
     pub answer: SessionDescription,
 
@@ -23,7 +23,7 @@ pub struct AnswerEventContent {
     pub version: UInt,
 }
 
-impl AnswerEventContent {
+impl CallAnswerEventContent {
     /// Creates an `AnswerEventContent` with the given answer, call ID and VoIP version.
     pub fn new(answer: SessionDescription, call_id: String, version: UInt) -> Self {
         Self { answer, call_id, version }

@@ -18,7 +18,7 @@ use super::{
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.accept", kind = ToDevice)]
-pub struct ToDeviceAcceptEventContent {
+pub struct ToDeviceKeyVerificationAcceptEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the `m.key.verification.start` message.
@@ -29,9 +29,9 @@ pub struct ToDeviceAcceptEventContent {
     pub method: AcceptMethod,
 }
 
-impl ToDeviceAcceptEventContent {
-    /// Creates a new `ToDeviceAcceptEventContent` with the given transaction ID and method-specific
-    /// content.
+impl ToDeviceKeyVerificationAcceptEventContent {
+    /// Creates a new `ToDeviceKeyVerificationAcceptEventContent` with the given transaction ID and
+    /// method-specific content.
     pub fn new(transaction_id: String, method: AcceptMethod) -> Self {
         Self { transaction_id, method }
     }
@@ -45,7 +45,7 @@ impl ToDeviceAcceptEventContent {
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct AcceptEventContent {
+pub struct KeyVerificationAcceptEventContent {
     /// The method specific content.
     #[serde(flatten)]
     pub method: AcceptMethod,
@@ -56,9 +56,9 @@ pub struct AcceptEventContent {
 }
 
 #[cfg(feature = "unstable-pre-spec")]
-impl AcceptEventContent {
-    /// Creates a new `ToDeviceAcceptEventContent` with the given method-specific content and
-    /// relation.
+impl KeyVerificationAcceptEventContent {
+    /// Creates a new `ToDeviceKeyVerificationAcceptEventContent` with the given method-specific
+    /// content and relation.
     pub fn new(method: AcceptMethod, relates_to: Relation) -> Self {
         Self { method, relates_to }
     }
@@ -174,10 +174,10 @@ mod tests {
     };
 
     #[cfg(feature = "unstable-pre-spec")]
-    use super::AcceptEventContent;
+    use super::KeyVerificationAcceptEventContent;
     use super::{
         AcceptMethod, HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, SasV1Content,
-        ShortAuthenticationString, ToDeviceAcceptEventContent, _CustomContent,
+        ShortAuthenticationString, ToDeviceKeyVerificationAcceptEventContent, _CustomContent,
     };
     #[cfg(feature = "unstable-pre-spec")]
     use crate::key::verification::Relation;
@@ -185,7 +185,7 @@ mod tests {
 
     #[test]
     fn serialization() {
-        let key_verification_accept_content = ToDeviceAcceptEventContent {
+        let key_verification_accept_content = ToDeviceKeyVerificationAcceptEventContent {
             transaction_id: "456".into(),
             method: AcceptMethod::SasV1(SasV1Content {
                 hash: HashAlgorithm::Sha256,
@@ -229,7 +229,7 @@ mod tests {
             "type": "m.key.verification.accept"
         });
 
-        let key_verification_accept_content = ToDeviceAcceptEventContent {
+        let key_verification_accept_content = ToDeviceKeyVerificationAcceptEventContent {
             transaction_id: "456".into(),
             method: AcceptMethod::_Custom(_CustomContent {
                 method: "m.sas.custom".to_owned(),
@@ -250,7 +250,7 @@ mod tests {
     fn in_room_serialization() {
         let event_id = event_id!("$1598361704261elfgc:localhost");
 
-        let key_verification_accept_content = AcceptEventContent {
+        let key_verification_accept_content = KeyVerificationAcceptEventContent {
             relates_to: Relation { event_id: event_id.clone() },
             method: AcceptMethod::SasV1(SasV1Content {
                 hash: HashAlgorithm::Sha256,
@@ -291,8 +291,8 @@ mod tests {
 
         // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
         assert_matches!(
-            from_json_value::<ToDeviceAcceptEventContent>(json).unwrap(),
-            ToDeviceAcceptEventContent {
+            from_json_value::<ToDeviceKeyVerificationAcceptEventContent>(json).unwrap(),
+            ToDeviceKeyVerificationAcceptEventContent {
                 transaction_id,
                 method: AcceptMethod::SasV1(SasV1Content {
                     commitment,
@@ -326,10 +326,10 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<ToDeviceEvent<ToDeviceAcceptEventContent>>(json).unwrap(),
+            from_json_value::<ToDeviceEvent<ToDeviceKeyVerificationAcceptEventContent>>(json).unwrap(),
             ToDeviceEvent {
                 sender,
-                content: ToDeviceAcceptEventContent {
+                content: ToDeviceKeyVerificationAcceptEventContent {
                     transaction_id,
                     method: AcceptMethod::SasV1(SasV1Content {
                         commitment,
@@ -362,10 +362,10 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<ToDeviceEvent<ToDeviceAcceptEventContent>>(json).unwrap(),
+            from_json_value::<ToDeviceEvent<ToDeviceKeyVerificationAcceptEventContent>>(json).unwrap(),
             ToDeviceEvent {
                 sender,
-                content: ToDeviceAcceptEventContent {
+                content: ToDeviceKeyVerificationAcceptEventContent {
                     transaction_id,
                     method: AcceptMethod::_Custom(_CustomContent {
                         method,
@@ -399,8 +399,8 @@ mod tests {
 
         // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
         assert_matches!(
-            from_json_value::<AcceptEventContent>(json).unwrap(),
-            AcceptEventContent {
+            from_json_value::<KeyVerificationAcceptEventContent>(json).unwrap(),
+            KeyVerificationAcceptEventContent {
                 relates_to: Relation {
                     event_id
                 },

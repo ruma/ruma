@@ -6,8 +6,8 @@ use ruma_api::ruma_api;
 use ruma_events::room::create::RoomType;
 use ruma_events::{
     room::{
-        create::{CreateEventContent, PreviousRoom},
-        power_levels::PowerLevelsEventContent,
+        create::{PreviousRoom, RoomCreateEventContent},
+        power_levels::RoomPowerLevelsEventContent,
     },
     AnyInitialStateEvent,
 };
@@ -61,7 +61,7 @@ ruma_api! {
 
         /// Power level content to override in the default power level event.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub power_level_content_override: Option<Raw<PowerLevelsEventContent>>,
+        pub power_level_content_override: Option<Raw<RoomPowerLevelsEventContent>>,
 
         /// Convenience parameter for setting various default state events based on a preset.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -151,14 +151,14 @@ impl CreationContent {
     }
 
     /// Given a `CreationContent` and the other fields that a homeserver has to fill, construct
-    /// a `CreateEventContent`.
+    /// a `RoomCreateEventContent`.
     pub fn into_event_content(
         self,
         creator: UserId,
         room_version: RoomVersionId,
-    ) -> CreateEventContent {
+    ) -> RoomCreateEventContent {
         #[allow(unused_mut)]
-        let mut content = assign!(CreateEventContent::new(creator), {
+        let mut content = assign!(RoomCreateEventContent::new(creator), {
             federate: self.federate,
             room_version: room_version,
             predecessor: self.predecessor,

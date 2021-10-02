@@ -6,7 +6,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use super::Replacement;
 use super::{InReplyTo, Relation};
 #[cfg(feature = "unstable-pre-spec")]
-use crate::room::message::MessageEventContent;
+use crate::room::message::RoomMessageEventContent;
 
 impl<'de> Deserialize<'de> for Relation {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -74,7 +74,7 @@ struct EventWithRelatesToJsonRepr {
 
     #[cfg(feature = "unstable-pre-spec")]
     #[serde(rename = "m.new_content", skip_serializing_if = "Option::is_none")]
-    new_content: Option<Box<MessageEventContent>>,
+    new_content: Option<Box<RoomMessageEventContent>>,
 }
 
 impl EventWithRelatesToJsonRepr {

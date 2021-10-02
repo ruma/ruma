@@ -7,9 +7,9 @@ use serde_json::{from_value as from_json_value, json, Value as JsonValue};
 
 use ruma_events::{
     room::{
-        aliases::AliasesEventContent,
-        message::{MessageEventContent, MessageType, TextMessageEventContent},
-        power_levels::PowerLevelsEventContent,
+        aliases::RoomAliasesEventContent,
+        message::{MessageType, RoomMessageEventContent, TextMessageEventContent},
+        power_levels::RoomPowerLevelsEventContent,
     },
     AnyEphemeralRoomEvent, AnyMessageEvent, AnyRoomEvent, AnyStateEvent, AnyStateEventContent,
     AnySyncMessageEvent, AnySyncRoomEvent, AnySyncStateEvent, EphemeralRoomEventType, EventType,
@@ -123,7 +123,7 @@ fn power_event_sync_deserialization() {
         from_json_value::<AnySyncRoomEvent>(json_data),
         Ok(AnySyncRoomEvent::State(
             AnySyncStateEvent::RoomPowerLevels(SyncStateEvent {
-                content: PowerLevelsEventContent {
+                content: RoomPowerLevelsEventContent {
                     ban, ..
                 },
                 ..
@@ -141,7 +141,7 @@ fn message_event_sync_deserialization() {
         from_json_value::<AnySyncRoomEvent>(json_data),
         Ok(AnySyncRoomEvent::Message(
             AnySyncMessageEvent::RoomMessage(SyncMessageEvent {
-                content: MessageEventContent {
+                content: RoomMessageEventContent {
                     msgtype: MessageType::Text(TextMessageEventContent {
                         body,
                         formatted: Some(formatted),
@@ -164,7 +164,7 @@ fn aliases_event_sync_deserialization() {
         from_json_value::<AnySyncRoomEvent>(json_data),
         Ok(AnySyncRoomEvent::State(
             AnySyncStateEvent::RoomAliases(SyncStateEvent {
-                content: AliasesEventContent {
+                content: RoomAliasesEventContent {
                     aliases,
                     ..
                 },
@@ -183,7 +183,7 @@ fn message_room_event_deserialization() {
         from_json_value::<AnyRoomEvent>(json_data),
         Ok(AnyRoomEvent::Message(
             AnyMessageEvent::RoomMessage(MessageEvent {
-                content: MessageEventContent {
+                content: RoomMessageEventContent {
                     msgtype: MessageType::Text(TextMessageEventContent {
                         body,
                         formatted: Some(formatted),
@@ -201,7 +201,7 @@ fn message_room_event_deserialization() {
 #[test]
 fn message_event_serialization() {
     let event = MessageEvent {
-        content: MessageEventContent::text_plain("test"),
+        content: RoomMessageEventContent::text_plain("test"),
         event_id: event_id!("$1234:example.com"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(0)),
         room_id: room_id!("!roomid:example.com"),
@@ -223,7 +223,7 @@ fn alias_room_event_deserialization() {
         from_json_value::<AnyRoomEvent>(json_data),
         Ok(AnyRoomEvent::State(
             AnyStateEvent::RoomAliases(StateEvent {
-                content: AliasesEventContent {
+                content: RoomAliasesEventContent {
                     aliases,
                     ..
                 },
@@ -242,7 +242,7 @@ fn message_event_deserialization() {
         from_json_value::<AnyRoomEvent>(json_data),
         Ok(AnyRoomEvent::Message(
             AnyMessageEvent::RoomMessage(MessageEvent {
-                content: MessageEventContent {
+                content: RoomMessageEventContent {
                     msgtype: MessageType::Text(TextMessageEventContent {
                         body,
                         formatted: Some(formatted),
@@ -265,7 +265,7 @@ fn alias_event_deserialization() {
         from_json_value::<AnyRoomEvent>(json_data),
         Ok(AnyRoomEvent::State(
             AnyStateEvent::RoomAliases(StateEvent {
-                content: AliasesEventContent {
+                content: RoomAliasesEventContent {
                     aliases,
                     ..
                 },
@@ -290,7 +290,8 @@ fn alias_event_field_access() {
     );
 
     let deser = from_json_value::<AnyStateEvent>(json_data).unwrap();
-    if let AnyStateEventContent::RoomAliases(AliasesEventContent { aliases, .. }) = deser.content()
+    if let AnyStateEventContent::RoomAliases(RoomAliasesEventContent { aliases, .. }) =
+        deser.content()
     {
         assert_eq!(aliases, vec![room_alias_id!("#somewhere:localhost")])
     } else {

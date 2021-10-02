@@ -1,7 +1,7 @@
 //! [PUT /_matrix/federation/v1/send_knock/{roomId}/{eventId}](https://spec.matrix.org/unstable/server-server-api/#put_matrixfederationv1send_knockroomideventid)
 
 use ruma_api::ruma_api;
-use ruma_events::{room::member::MemberEvent, AnyStrippedStateEvent};
+use ruma_events::{room::member::RoomMemberEvent, AnyStrippedStateEvent};
 use ruma_identifiers::{EventId, RoomId};
 
 ruma_api! {
@@ -25,7 +25,7 @@ ruma_api! {
 
         /// The full knock event.
         #[ruma_api(body)]
-        pub knock_event: &'a MemberEvent,
+        pub knock_event: &'a RoomMemberEvent,
     }
 
     response: {
@@ -36,7 +36,11 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given room ID, event ID and knock event.
-    pub fn new(room_id: &'a RoomId, event_id: &'a EventId, knock_event: &'a MemberEvent) -> Self {
+    pub fn new(
+        room_id: &'a RoomId,
+        event_id: &'a EventId,
+        knock_event: &'a RoomMemberEvent,
+    ) -> Self {
         Self { room_id, event_id, knock_event }
     }
 }

@@ -7,7 +7,7 @@ use itertools::Itertools;
 use js_int::{int, Int};
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
-    room::member::{MemberEventContent, MembershipState},
+    room::member::{MembershipState, RoomMemberEventContent},
     EventType,
 };
 use ruma_identifiers::{EventId, RoomVersionId, UserId};
@@ -601,7 +601,7 @@ fn is_power_event(event: impl Event) -> bool {
             event.state_key() == Some("")
         }
         EventType::RoomMember => {
-            if let Ok(content) = from_json_str::<MemberEventContent>(event.content().get()) {
+            if let Ok(content) = from_json_str::<RoomMemberEventContent>(event.content().get()) {
                 if [MembershipState::Leave, MembershipState::Ban].contains(&content.membership) {
                     return Some(event.sender().as_str()) != event.state_key();
                 }
@@ -625,7 +625,7 @@ mod tests {
     use rand::seq::SliceRandom;
     use ruma_common::MilliSecondsSinceUnixEpoch;
     use ruma_events::{
-        room::join_rules::{JoinRule, JoinRulesEventContent},
+        room::join_rules::{JoinRule, RoomJoinRulesEventContent},
         EventType,
     };
     use ruma_identifiers::{EventId, RoomVersionId};
@@ -877,7 +877,7 @@ mod tests {
                 alice(),
                 EventType::RoomJoinRules,
                 Some(""),
-                to_raw_json_value(&JoinRulesEventContent::new(JoinRule::Private)).unwrap(),
+                to_raw_json_value(&RoomJoinRulesEventContent::new(JoinRule::Private)).unwrap(),
             ),
             to_init_pdu_event(
                 "ME",

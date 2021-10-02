@@ -4,10 +4,10 @@ use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     custom::RedactedCustomEventContent,
     room::{
-        aliases::RedactedAliasesEventContent,
-        create::RedactedCreateEventContent,
-        message::RedactedMessageEventContent,
-        redaction::{RedactionEventContent, SyncRedactionEvent},
+        aliases::RedactedRoomAliasesEventContent,
+        create::RedactedRoomCreateEventContent,
+        message::RedactedRoomMessageEventContent,
+        redaction::{RoomRedactionEventContent, SyncRoomRedactionEvent},
     },
     AnyMessageEvent, AnyMessageEventContent, AnyRedactedMessageEvent,
     AnyRedactedMessageEventContent, AnyRedactedStateEventContent, AnyRedactedSyncMessageEvent,
@@ -22,8 +22,8 @@ use serde_json::{
 
 fn unsigned() -> RedactedUnsigned {
     let mut unsigned = RedactedUnsigned::default();
-    unsigned.redacted_because = Some(Box::new(SyncRedactionEvent {
-        content: RedactionEventContent::with_reason("redacted because".into()),
+    unsigned.redacted_because = Some(Box::new(SyncRoomRedactionEvent {
+        content: RoomRedactionEventContent::with_reason("redacted because".into()),
         redacts: event_id!("$h29iv0s8:example.com"),
         event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
@@ -37,7 +37,7 @@ fn unsigned() -> RedactedUnsigned {
 #[test]
 fn redacted_message_event_serialize() {
     let redacted = RedactedSyncMessageEvent {
-        content: RedactedMessageEventContent::new(),
+        content: RedactedRoomMessageEventContent::new(),
         event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         sender: user_id!("@carl:example.com"),
@@ -58,7 +58,7 @@ fn redacted_message_event_serialize() {
 #[test]
 fn redacted_aliases_event_serialize_no_content() {
     let redacted = RedactedSyncStateEvent {
-        content: RedactedAliasesEventContent::default(),
+        content: RedactedRoomAliasesEventContent::default(),
         event_id: event_id!("$h29iv0s8:example.com"),
         state_key: "".into(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
@@ -81,7 +81,7 @@ fn redacted_aliases_event_serialize_no_content() {
 #[test]
 fn redacted_aliases_event_serialize_with_content() {
     let redacted = RedactedSyncStateEvent {
-        content: RedactedAliasesEventContent::new_v1(vec![]),
+        content: RedactedRoomAliasesEventContent::new_v1(vec![]),
         event_id: event_id!("$h29iv0s8:example.com"),
         state_key: "".to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
@@ -121,7 +121,7 @@ fn redacted_aliases_deserialize() {
         from_json_value::<AnySyncRoomEvent>(actual).unwrap(),
         AnySyncRoomEvent::RedactedState(AnyRedactedSyncStateEvent::RoomAliases(
             RedactedSyncStateEvent {
-                content: RedactedAliasesEventContent { aliases, .. },
+                content: RedactedRoomAliasesEventContent { aliases, .. },
                 event_id,
                 ..
             },
@@ -146,7 +146,7 @@ fn redacted_deserialize_any_room() {
     assert_matches!(
         from_json_value::<AnyRoomEvent>(actual).unwrap(),
         AnyRoomEvent::RedactedMessage(AnyRedactedMessageEvent::RoomMessage(RedactedMessageEvent {
-            content: RedactedMessageEventContent { .. },
+            content: RedactedRoomMessageEventContent { .. },
             event_id, room_id, ..
         })) if event_id == event_id!("$h29iv0s8:example.com")
             && room_id == room_id!("!roomid:room.com")
@@ -159,8 +159,8 @@ fn redacted_deserialize_any_room_sync() {
     // The presence of `redacted_because` triggers the event enum (AnySyncRoomEvent in this case)
     // to return early with `RedactedContent` instead of failing to deserialize according
     // to the event type string.
-    unsigned.redacted_because = Some(Box::new(SyncRedactionEvent {
-        content: RedactionEventContent::with_reason("redacted because".into()),
+    unsigned.redacted_because = Some(Box::new(SyncRoomRedactionEvent {
+        content: RoomRedactionEventContent::with_reason("redacted because".into()),
         redacts: event_id!("$h29iv0s8:example.com"),
         event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
@@ -182,7 +182,7 @@ fn redacted_deserialize_any_room_sync() {
         from_json_value::<AnySyncRoomEvent>(actual).unwrap(),
         AnySyncRoomEvent::RedactedMessage(AnyRedactedSyncMessageEvent::RoomMessage(
             RedactedSyncMessageEvent {
-                content: RedactedMessageEventContent { .. },
+                content: RedactedRoomMessageEventContent { .. },
                 event_id,
                 ..
             }
@@ -209,7 +209,7 @@ fn redacted_state_event_deserialize() {
             .unwrap(),
         AnySyncRoomEvent::RedactedState(AnyRedactedSyncStateEvent::RoomCreate(
             RedactedSyncStateEvent {
-                content: RedactedCreateEventContent {
+                content: RedactedRoomCreateEventContent {
                     creator, ..
                 },
                 event_id,
@@ -285,8 +285,8 @@ fn redact_method_properly_redacts() {
         }
     });
 
-    let redaction = SyncRedactionEvent {
-        content: RedactionEventContent::with_reason("redacted because".into()),
+    let redaction = SyncRoomRedactionEvent {
+        content: RoomRedactionEventContent::with_reason("redacted because".into()),
         redacts: event_id!("$143273582443PhrSn:example.com"),
         event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
@@ -299,7 +299,7 @@ fn redact_method_properly_redacts() {
     assert_matches!(
         event.redact(redaction, &RoomVersionId::Version6),
         AnyRedactedMessageEvent::RoomMessage(RedactedMessageEvent {
-            content: RedactedMessageEventContent { .. },
+            content: RedactedRoomMessageEventContent { .. },
             event_id,
             room_id,
             sender,
@@ -326,7 +326,7 @@ fn redact_message_content() {
 
     assert_matches!(
         content.redact(&RoomVersionId::Version6),
-        AnyRedactedMessageEventContent::RoomMessage(RedactedMessageEventContent { .. })
+        AnyRedactedMessageEventContent::RoomMessage(RedactedRoomMessageEventContent { .. })
     );
 }
 
@@ -343,7 +343,7 @@ fn redact_state_content() {
 
     assert_matches!(
         content.redact(&RoomVersionId::Version6),
-        AnyRedactedStateEventContent::RoomCreate(RedactedCreateEventContent {
+        AnyRedactedStateEventContent::RoomCreate(RedactedRoomCreateEventContent {
             creator,
             ..
         }) if creator == user_id!("@carl:example.com")

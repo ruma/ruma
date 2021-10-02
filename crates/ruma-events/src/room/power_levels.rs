@@ -18,7 +18,7 @@ use ruma_common::power_levels::NotificationPowerLevels;
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.power_levels", kind = State)]
-pub struct PowerLevelsEventContent {
+pub struct RoomPowerLevelsEventContent {
     /// The level required to ban a user.
     ///
     /// If you activate the `compat` feature, deserialization will work for stringified
@@ -116,8 +116,8 @@ pub struct PowerLevelsEventContent {
     pub notifications: NotificationPowerLevels,
 }
 
-impl PowerLevelsEventContent {
-    /// Creates a new `PowerLevelsEventContent` with all-default values.
+impl RoomPowerLevelsEventContent {
+    /// Creates a new `RoomPowerLevelsEventContent` with all-default values.
     pub fn new() -> Self {
         // events_default and users_default having a default of 0 while the others have a default
         // of 50 is not an oversight, these defaults are from the Matrix specification.
@@ -136,7 +136,7 @@ impl PowerLevelsEventContent {
     }
 }
 
-impl Default for PowerLevelsEventContent {
+impl Default for RoomPowerLevelsEventContent {
     fn default() -> Self {
         Self::new()
     }
@@ -159,7 +159,7 @@ mod tests {
     use ruma_identifiers::{event_id, room_id, user_id};
     use serde_json::{json, to_value as to_json_value};
 
-    use super::{default_power_level, NotificationPowerLevels, PowerLevelsEventContent};
+    use super::{default_power_level, NotificationPowerLevels, RoomPowerLevelsEventContent};
     use crate::{EventType, StateEvent, Unsigned};
 
     #[test]
@@ -167,7 +167,7 @@ mod tests {
         let default = default_power_level();
 
         let power_levels_event = StateEvent {
-            content: PowerLevelsEventContent {
+            content: RoomPowerLevelsEventContent {
                 ban: default,
                 events: BTreeMap::new(),
                 events_default: int!(0),
@@ -206,7 +206,7 @@ mod tests {
     fn serialization_with_all_fields() {
         let user = user_id!("@carl:example.com");
         let power_levels_event = StateEvent {
-            content: PowerLevelsEventContent {
+            content: RoomPowerLevelsEventContent {
                 ban: int!(23),
                 events: btreemap! {
                     EventType::Dummy => int!(23)
@@ -224,7 +224,7 @@ mod tests {
             },
             event_id: event_id!("$h29iv0s8:example.com"),
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-            prev_content: Some(PowerLevelsEventContent {
+            prev_content: Some(RoomPowerLevelsEventContent {
                 // Make just one field different so we at least know they're two different objects.
                 ban: int!(42),
                 events: btreemap! {

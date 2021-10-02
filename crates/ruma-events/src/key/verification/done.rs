@@ -11,15 +11,15 @@ use super::Relation;
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.done", kind = ToDevice)]
-pub struct ToDeviceDoneEventContent {
+pub struct ToDeviceKeyVerificationDoneEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the `m.key.verification.start` message.
     pub transaction_id: String,
 }
 
-impl ToDeviceDoneEventContent {
-    /// Creates a new `ToDeviceDoneEventContent` with the given transaction ID.
+impl ToDeviceKeyVerificationDoneEventContent {
+    /// Creates a new `ToDeviceKeyVerificationDoneEventContent` with the given transaction ID.
     pub fn new(transaction_id: String) -> Self {
         Self { transaction_id }
     }
@@ -31,14 +31,14 @@ impl ToDeviceDoneEventContent {
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.done", kind = Message)]
-pub struct DoneEventContent {
+pub struct KeyVerificationDoneEventContent {
     /// Relation signaling which verification request this event is responding to.
     #[serde(rename = "m.relates_to")]
     pub relates_to: Relation,
 }
 
-impl DoneEventContent {
-    /// Creates a new `DoneEventContent` with the given relation.
+impl KeyVerificationDoneEventContent {
+    /// Creates a new `KeyVerificationDoneEventContent` with the given relation.
     pub fn new(relates_to: Relation) -> Self {
         Self { relates_to }
     }
@@ -50,7 +50,7 @@ mod tests {
     use ruma_identifiers::event_id;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::DoneEventContent;
+    use super::KeyVerificationDoneEventContent;
     use crate::key::verification::Relation;
 
     #[test]
@@ -64,7 +64,7 @@ mod tests {
             }
         });
 
-        let content = DoneEventContent { relates_to: Relation { event_id } };
+        let content = KeyVerificationDoneEventContent { relates_to: Relation { event_id } };
 
         assert_eq!(to_json_value(&content).unwrap(), json_data);
     }
@@ -81,8 +81,8 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<DoneEventContent>(json_data).unwrap(),
-            DoneEventContent {
+            from_json_value::<KeyVerificationDoneEventContent>(json_data).unwrap(),
+            KeyVerificationDoneEventContent {
                 relates_to: Relation {
                     event_id
                 },

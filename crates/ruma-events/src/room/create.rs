@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.create", kind = State)]
-pub struct CreateEventContent {
+pub struct RoomCreateEventContent {
     /// The `user_id` of the room creator. This is set by the homeserver.
     #[ruma_event(skip_redaction)]
     pub creator: UserId,
@@ -42,8 +42,8 @@ pub struct CreateEventContent {
     pub room_type: Option<RoomType>,
 }
 
-impl CreateEventContent {
-    /// Creates a new `CreateEventContent` with the given creator.
+impl RoomCreateEventContent {
+    /// Creates a new `RoomCreateEventContent` with the given creator.
     pub fn new(creator: UserId) -> Self {
         Self {
             creator,
@@ -107,14 +107,14 @@ mod tests {
     use ruma_identifiers::{user_id, RoomVersionId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::CreateEventContent;
+    use super::RoomCreateEventContent;
 
     #[cfg(feature = "unstable-pre-spec")]
     use super::RoomType;
 
     #[test]
     fn serialization() {
-        let content = CreateEventContent {
+        let content = RoomCreateEventContent {
             creator: user_id!("@carl:example.com"),
             federate: false,
             room_version: RoomVersionId::Version4,
@@ -135,7 +135,7 @@ mod tests {
     #[cfg(feature = "unstable-pre-spec")]
     #[test]
     fn space_serialization() {
-        let content = CreateEventContent {
+        let content = RoomCreateEventContent {
             creator: user_id!("@carl:example.com"),
             federate: false,
             room_version: RoomVersionId::Version4,
@@ -162,8 +162,8 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<CreateEventContent>(json).unwrap(),
-            CreateEventContent {
+            from_json_value::<RoomCreateEventContent>(json).unwrap(),
+            RoomCreateEventContent {
                 creator,
                 federate: true,
                 room_version: RoomVersionId::Version4,
@@ -185,8 +185,8 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<CreateEventContent>(json).unwrap(),
-            CreateEventContent {
+            from_json_value::<RoomCreateEventContent>(json).unwrap(),
+            RoomCreateEventContent {
                 creator,
                 federate: true,
                 room_version: RoomVersionId::Version4,
