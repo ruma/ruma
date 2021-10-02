@@ -34,16 +34,17 @@ pub struct RedactionEvent {
 }
 
 impl Redact for RedactionEvent {
-    // Temporary hack
-    type Redacted = crate::RedactedMessageEvent<RedactedRedactionEventContent>;
+    type Redacted = RedactedRedactionEvent;
 
     fn redact(
         self,
         redaction: SyncRedactionEvent,
         version: &ruma_identifiers::RoomVersionId,
     ) -> Self::Redacted {
-        crate::RedactedMessageEvent {
+        RedactedRedactionEvent {
             content: self.content.redact(version),
+            // There is no released room version where this isn't redacted yet
+            redacts: None,
             event_id: self.event_id,
             sender: self.sender,
             origin_server_ts: self.origin_server_ts,
@@ -51,6 +52,32 @@ impl Redact for RedactionEvent {
             unsigned: RedactedUnsigned::new_because(Box::new(redaction)),
         }
     }
+}
+
+/// Redacted redaction event.
+#[derive(Clone, Debug, Event)]
+#[allow(clippy::exhaustive_structs)]
+pub struct RedactedRedactionEvent {
+    /// Data specific to the event type.
+    pub content: RedactedRedactionEventContent,
+
+    /// The ID of the event that was redacted.
+    pub redacts: Option<EventId>,
+
+    /// The globally unique event identifier for the user who sent the event.
+    pub event_id: EventId,
+
+    /// The fully-qualified ID of the user who sent this event.
+    pub sender: UserId,
+
+    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
+
+    /// The ID of the room associated with this event.
+    pub room_id: RoomId,
+
+    /// Additional key-value pairs not signed by the homeserver.
+    pub unsigned: RedactedUnsigned,
 }
 
 /// Redaction event without a `room_id`.
@@ -77,22 +104,46 @@ pub struct SyncRedactionEvent {
 }
 
 impl Redact for SyncRedactionEvent {
-    // Temporary hack
-    type Redacted = crate::RedactedSyncMessageEvent<RedactedRedactionEventContent>;
+    type Redacted = RedactedSyncRedactionEvent;
 
     fn redact(
         self,
         redaction: SyncRedactionEvent,
         version: &ruma_identifiers::RoomVersionId,
     ) -> Self::Redacted {
-        crate::RedactedSyncMessageEvent {
+        RedactedSyncRedactionEvent {
             content: self.content.redact(version),
+            // There is no released room version where this isn't redacted yet
+            redacts: None,
             event_id: self.event_id,
             sender: self.sender,
             origin_server_ts: self.origin_server_ts,
             unsigned: RedactedUnsigned::new_because(Box::new(redaction)),
         }
     }
+}
+
+/// Redacted redaction event without a `room_id`.
+#[derive(Clone, Debug, Event)]
+#[allow(clippy::exhaustive_structs)]
+pub struct RedactedSyncRedactionEvent {
+    /// Data specific to the event type.
+    pub content: RedactedRedactionEventContent,
+
+    /// The ID of the event that was redacted.
+    pub redacts: Option<EventId>,
+
+    /// The globally unique event identifier for the user who sent the event.
+    pub event_id: EventId,
+
+    /// The fully-qualified ID of the user who sent this event.
+    pub sender: UserId,
+
+    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
+
+    /// Additional key-value pairs not signed by the homeserver.
+    pub unsigned: RedactedUnsigned,
 }
 
 /// A redaction of an event.

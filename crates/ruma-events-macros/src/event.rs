@@ -408,6 +408,10 @@ fn expand_redact_event(
     let ident = &input.ident;
 
     let mut generics = input.generics.clone();
+    if generics.params.is_empty() {
+        return None;
+    }
+
     assert_eq!(generics.params.len(), 1, "expected one generic parameter");
     let ty_param = match &generics.params[0] {
         GenericParam::Type(ty) => ty.ident.clone(),
@@ -477,7 +481,7 @@ fn expand_from_into(
     let fields: Vec<_> = fields.iter().flat_map(|f| &f.ident).collect();
 
     if let EventKindVariation::Sync | EventKindVariation::RedactedSync = var {
-        let full_struct = kind.to_event_ident(&var.to_full().unwrap());
+        let full_struct = kind.to_event_ident(&var.to_full().unwrap()).unwrap();
         Some(quote! {
             #[automatically_derived]
             impl #impl_generics ::std::convert::From<#full_struct #ty_gen>

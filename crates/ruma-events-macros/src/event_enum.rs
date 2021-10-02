@@ -727,23 +727,6 @@ fn to_event_path(
     // There is no need to give a good compiler error as `to_camel_case` is called first.
     assert_eq!(&name[..2], "m.");
 
-    // Temporary hack
-    if *kind == EventKind::Message && name == "m.room.redaction" {
-        if *var == EventKindVariation::Redacted {
-            return quote! {
-                #ruma_events::RedactedMessageEvent<
-                    #ruma_events::room::redaction::RedactedRedactionEventContent
-                >
-            };
-        } else if *var == EventKindVariation::RedactedSync {
-            return quote! {
-                #ruma_events::RedactedSyncMessageEvent<
-                    #ruma_events::room::redaction::RedactedRedactionEventContent
-                >
-            };
-        }
-    }
-
     let path: Vec<_> = name[2..].split('.').collect();
 
     let event_str = path.last().unwrap();
