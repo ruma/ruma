@@ -24,9 +24,9 @@ dependencies:
 
 ```toml
 # crates.io release
-ruma = { version = "0.3.0", features = [...] }
-# git dependency (the next branch contains some breaking changes main doesn't)
-ruma = { git = "https://github.com/ruma/ruma", branch = "next", features = [...] }
+ruma = { version = "0.3.0", features = ["..."] }
+# git dependency
+ruma = { git = "https://github.com/ruma/ruma", branch = "main", features = ["..."] }
 ```
 
 `ruma` re-exports all of the other crates, so you don't have to worry about
