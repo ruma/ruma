@@ -18,7 +18,6 @@ use ruma_events::{
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_identifiers::DeviceIdBox;
 use ruma_identifiers::{event_id, mxc_uri, room_id, user_id};
-use ruma_serde::Raw;
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 macro_rules! json_object {
@@ -389,5 +388,5 @@ fn content_deserialization_failure() {
         "body": "test","msgtype": "m.location",
         "url": "http://example.com/audio.mp3"
     });
-    assert!(from_json_value::<Raw<MessageEventContent>>(json_data).unwrap().deserialize().is_err());
+    assert!(from_json_value::<MessageEventContent>(json_data).is_err());
 }
