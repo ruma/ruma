@@ -76,12 +76,6 @@ fn expand_serialize_event(
                         state.serialize_field("content", &self.content)?;
                     }
                 }
-            } else if name == "prev_content" {
-                quote! {
-                    if let Some(content) = self.prev_content.as_ref() {
-                        state.serialize_field("prev_content", content)?;
-                    }
-                }
             } else if name == "unsigned" {
                 quote! {
                     if !self.unsigned.is_empty() {
@@ -89,8 +83,20 @@ fn expand_serialize_event(
                     }
                 }
             } else {
-                quote! {
-                    state.serialize_field(stringify!(#name), &self.#name)?;
+                let name_s = name.to_string();
+                match &field.ty {
+                    syn::Type::Path(syn::TypePath { path: syn::Path { segments, .. }, .. })
+                        if segments.last().unwrap().ident == "Option" =>
+                    {
+                        quote! {
+                            if let Some(content) = self.#name.as_ref() {
+                                state.serialize_field(#name_s, content)?;
+                            }
+                        }
+                    }
+                    _ => quote! {
+                        state.serialize_field(#name_s, &self.#name)?;
+                    },
                 }
             }
         })
