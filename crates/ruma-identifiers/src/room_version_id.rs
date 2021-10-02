@@ -42,6 +42,21 @@ pub enum RoomVersionId {
     /// A version 6 room.
     Version6,
 
+    /// A version 7 room.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+    Version7,
+
+    /// A version 8 room.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+    Version8,
+
+    /// A version 9 room.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+    Version9,
+
     #[doc(hidden)]
     _Custom(CustomRoomVersion),
 }
@@ -58,6 +73,12 @@ impl RoomVersionId {
             Self::Version4 => "4",
             Self::Version5 => "5",
             Self::Version6 => "6",
+            #[cfg(feature = "unstable-pre-spec")]
+            Self::Version7 => "7",
+            #[cfg(feature = "unstable-pre-spec")]
+            Self::Version8 => "8",
+            #[cfg(feature = "unstable-pre-spec")]
+            Self::Version9 => "9",
             Self::_Custom(version) => version.as_str(),
         }
     }
@@ -77,6 +98,12 @@ impl From<RoomVersionId> for String {
             RoomVersionId::Version4 => "4".to_owned(),
             RoomVersionId::Version5 => "5".to_owned(),
             RoomVersionId::Version6 => "6".to_owned(),
+            #[cfg(feature = "unstable-pre-spec")]
+            RoomVersionId::Version7 => "7".to_owned(),
+            #[cfg(feature = "unstable-pre-spec")]
+            RoomVersionId::Version8 => "8".to_owned(),
+            #[cfg(feature = "unstable-pre-spec")]
+            RoomVersionId::Version9 => "9".to_owned(),
             RoomVersionId::_Custom(version) => version.into(),
         }
     }
@@ -142,6 +169,12 @@ where
         "4" => RoomVersionId::Version4,
         "5" => RoomVersionId::Version5,
         "6" => RoomVersionId::Version6,
+        #[cfg(feature = "unstable-pre-spec")]
+        "7" => RoomVersionId::Version7,
+        #[cfg(feature = "unstable-pre-spec")]
+        "8" => RoomVersionId::Version8,
+        #[cfg(feature = "unstable-pre-spec")]
+        "9" => RoomVersionId::Version9,
         custom => {
             ruma_identifiers_validation::room_version_id::validate(custom)?;
             RoomVersionId::_Custom(CustomRoomVersion(room_version_id.into()))

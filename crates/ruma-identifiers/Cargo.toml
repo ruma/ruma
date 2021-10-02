@@ -22,6 +22,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 default = ["serde"]
 compat = ["ruma-identifiers-validation/compat"]
 serde = ["ruma-serde", "serde1"]
+unstable-pre-spec = []
 
 [dependencies]
 either = { version = "1.6.1", optional = true }
