@@ -230,6 +230,7 @@ pub fn auth_check<E: Event>(
             <&UserId>::try_from(state_key).map_err(|e| Error::InvalidPdu(format!("{}", e)))?;
 
         if !valid_membership_change(
+            room_version,
             target_user,
             fetch_state(&EventType::RoomMember, target_user.as_str()).as_ref(),
             sender,
@@ -375,6 +376,7 @@ pub fn auth_check<E: Event>(
 /// State.
 #[allow(clippy::too_many_arguments)]
 fn valid_membership_change(
+    _room_version: &RoomVersion,
     target_user: &UserId,
     target_user_membership_event: Option<impl Event>,
     sender: &UserId,
@@ -400,14 +402,11 @@ fn valid_membership_change(
     let third_party_invite =
         from_json_str::<GetThirdPartyInvite>(content.get())?.third_party_invite;
 
-    let sender_is_joined = {
-        let sender_membership = match &sender_membership_event {
-            Some(pdu) => from_json_str::<GetMembership>(pdu.content().get())?.membership,
-            None => MembershipState::Leave,
-        };
-
-        sender_membership == MembershipState::Join
+    let sender_membership = match &sender_membership_event {
+        Some(pdu) => from_json_str::<GetMembership>(pdu.content().get())?.membership,
+        None => MembershipState::Leave,
     };
+    let sender_is_joined = sender_membership == MembershipState::Join;
 
     let target_user_current_membership = match &target_user_membership_event {
         Some(pdu) => from_json_str::<GetMembership>(pdu.content().get())?.membership,
@@ -555,6 +554,33 @@ fn valid_membership_change(
                     );
                 }
                 allow
+            }
+        }
+        #[cfg(feature = "unstable-pre-spec")]
+        MembershipState::Knock if _room_version.allow_knocking => {
+            // 1. If the `join_rule` is anything other than `knock`, reject.
+            if join_rules != JoinRule::Knock {
+                warn!("Join rule is not set to knock");
+                false
+            } else {
+                // 2. If `sender` does not match `state_key`, reject.
+                // 3. If the `sender`'s current membership is not `ban`, `invite`, or `join`, allow.
+                // 4. Otherwise, reject.
+                if sender != target_user {
+                    warn!("Can't make other user join");
+                    false
+                } else if matches!(
+                    sender_membership,
+                    MembershipState::Ban | MembershipState::Invite | MembershipState::Join
+                ) {
+                    warn!(
+                        ?target_user_membership_event_id,
+                        "Membership state of ban, invite, or join are invalid",
+                    );
+                    false
+                } else {
+                    true
+                }
             }
         }
         _ => {
@@ -838,7 +864,7 @@ mod tests {
         test_utils::{
             alice, charlie, member_content_ban, to_pdu_event, StateEvent, INITIAL_EVENTS,
         },
-        Event, StateMap,
+        Event, RoomVersion, StateMap,
     };
     use ruma_events::EventType;
 
@@ -873,6 +899,7 @@ mod tests {
         let sender = alice();
 
         assert!(valid_membership_change(
+            &RoomVersion::VERSION6,
             &target_user,
             fetch_state(EventType::RoomMember, target_user.to_string()),
             &sender,
@@ -917,6 +944,7 @@ mod tests {
         let sender = charlie();
 
         assert!(!valid_membership_change(
+            &RoomVersion::VERSION6,
             &target_user,
             fetch_state(EventType::RoomMember, target_user.to_string()),
             &sender,
