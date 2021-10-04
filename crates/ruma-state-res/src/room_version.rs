@@ -61,6 +61,10 @@ pub struct RoomVersion {
     pub limit_notifications_power_levels: bool,
     /// Extra rules when verifying redaction events.
     pub extra_redaction_checks: bool,
+    /// Allow knocking in event authentication.
+    pub allow_knocking: bool,
+    /// Allow knocking in event authentication.
+    pub restricted_join_rules: bool,
 }
 
 impl RoomVersion {
@@ -72,6 +76,12 @@ impl RoomVersion {
             RoomVersionId::Version4 => Self::version_4(),
             RoomVersionId::Version5 => Self::version_5(),
             RoomVersionId::Version6 => Self::version_6(),
+            #[cfg(feature = "unstable-pre-spec")]
+            RoomVersionId::Version7 => Self::version_7(),
+            #[cfg(feature = "unstable-pre-spec")]
+            RoomVersionId::Version8 => Self::version_8(),
+            #[cfg(feature = "unstable-pre-spec")]
+            RoomVersionId::Version9 => Self::version_9(),
             ver => return Err(Error::Unsupported(format!("found version `{}`", ver.as_str()))),
         })
     }
@@ -87,6 +97,8 @@ impl RoomVersion {
             strict_canonicaljson: false,
             limit_notifications_power_levels: false,
             extra_redaction_checks: false,
+            allow_knocking: false,
+            restricted_join_rules: false,
         }
     }
 
@@ -101,6 +113,8 @@ impl RoomVersion {
             strict_canonicaljson: false,
             limit_notifications_power_levels: false,
             extra_redaction_checks: false,
+            allow_knocking: false,
+            restricted_join_rules: false,
         }
     }
 
@@ -115,6 +129,8 @@ impl RoomVersion {
             strict_canonicaljson: false,
             limit_notifications_power_levels: false,
             extra_redaction_checks: true,
+            allow_knocking: false,
+            restricted_join_rules: false,
         }
     }
 
@@ -129,6 +145,8 @@ impl RoomVersion {
             strict_canonicaljson: false,
             limit_notifications_power_levels: false,
             extra_redaction_checks: true,
+            allow_knocking: false,
+            restricted_join_rules: false,
         }
     }
 
@@ -143,6 +161,8 @@ impl RoomVersion {
             strict_canonicaljson: false,
             limit_notifications_power_levels: false,
             extra_redaction_checks: true,
+            allow_knocking: false,
+            restricted_join_rules: false,
         }
     }
 
@@ -157,6 +177,61 @@ impl RoomVersion {
             strict_canonicaljson: true,
             limit_notifications_power_levels: true,
             extra_redaction_checks: true,
+            allow_knocking: false,
+            restricted_join_rules: false,
+        }
+    }
+
+    #[cfg(feature = "unstable-pre-spec")]
+    pub fn version_7() -> Self {
+        Self {
+            version: RoomVersionId::Version7,
+            disposition: RoomDisposition::Stable,
+            event_format: EventFormatVersion::V3,
+            state_res: StateResolutionVersion::V2,
+            enforce_key_validity: true,
+            special_case_aliases_auth: false,
+            strict_canonicaljson: true,
+            limit_notifications_power_levels: true,
+            extra_redaction_checks: true,
+            allow_knocking: true,
+            restricted_join_rules: false,
+        }
+    }
+
+    #[cfg(feature = "unstable-pre-spec")]
+    pub fn version_8() -> Self {
+        Self {
+            version: RoomVersionId::Version8,
+            disposition: RoomDisposition::Stable,
+            event_format: EventFormatVersion::V3,
+            state_res: StateResolutionVersion::V2,
+            enforce_key_validity: true,
+            special_case_aliases_auth: false,
+            strict_canonicaljson: true,
+            limit_notifications_power_levels: true,
+            extra_redaction_checks: true,
+            // Wait so should this be false?
+            // because: https://github.com/matrix-org/matrix-doc/pull/3289#issuecomment-884165177
+            allow_knocking: false,
+            restricted_join_rules: true,
+        }
+    }
+
+    #[cfg(feature = "unstable-pre-spec")]
+    pub fn version_9() -> Self {
+        Self {
+            version: RoomVersionId::Version9,
+            disposition: RoomDisposition::Stable,
+            event_format: EventFormatVersion::V3,
+            state_res: StateResolutionVersion::V2,
+            enforce_key_validity: true,
+            special_case_aliases_auth: false,
+            strict_canonicaljson: true,
+            limit_notifications_power_levels: true,
+            extra_redaction_checks: true,
+            allow_knocking: true,
+            restricted_join_rules: true,
         }
     }
 }
