@@ -331,6 +331,10 @@ struct PowerLevelsContentFields {
 }
 
 /// Find the power level for the sender of `event_id` or return a default value of zero.
+///
+/// Do NOT use this any where but topological sort, we find the power level for the eventId
+/// at the eventId's generation (we walk backwards to `EventId`s most recent previous power level
+/// event).
 fn get_power_level_for_sender<E: Event>(
     event_id: &EventId,
     fetch_event: impl Fn(&EventId) -> Option<E>,

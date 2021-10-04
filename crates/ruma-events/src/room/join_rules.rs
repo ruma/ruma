@@ -161,7 +161,7 @@ impl Restricted {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type")]
 pub enum AllowRule {
-    /// Joining is allowed if a user is already a member of the romm with the id `room_id`.
+    /// Joining is allowed if a user is already a member of the room with the id `room_id`.
     #[serde(rename = "m.room_membership")]
     RoomMembership(RoomMembership),
 
