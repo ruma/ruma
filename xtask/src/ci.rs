@@ -81,7 +81,7 @@ impl CiTask {
 
     fn build_nightly(&self) -> Result<()> {
         // Check formatting
-        let fmt_res = cmd!("rustup run nightly cargo fmt -- --check").run();
+        let fmt_res = cmd!("rustup run nightly cargo fmt -- --check").run().map_err(Into::into);
         // Check `ruma` crate with `full` feature (sometimes things only compile with an unstable
         // flag)
         let check_full_res = cmd!("rustup run nightly cargo check -p ruma --features full").run();
@@ -109,12 +109,11 @@ impl CiTask {
                 --order package,lib,features,dependencies,dev-dependencies,build-dependencies
             "
         )
-        .run();
+        .run()
+        .map_err(Into::into);
+        // Check that all links point to the same version of the spec
+        let spec_links = check_spec_links(&self.project_root.join("crates"));
 
-        println!("Checking all Matrix Spec links point to same version...");
-        check_spec_links(&self.project_root.join("crates"))?;
-        println!("All links to the Matrix Spec are consistent!");
-
-        fmt_res.and(check_full_res).and(clippy_res).and(sort_res).map_err(Into::into)
+        fmt_res.and(check_full_res).and(clippy_res).and(sort_res).and(spec_links)
     }
 }
