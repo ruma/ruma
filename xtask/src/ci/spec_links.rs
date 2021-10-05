@@ -24,6 +24,7 @@ const SPLITS: &[(&str, VersionFn)] = &[
 ];
 
 pub(crate) fn check_spec_links(path: &Path) -> Result<()> {
+    println!("Checking all Matrix Spec links point to same version...");
     // This is WAY overkill but since there are a few mixed in ruma-common
     // and this would catch any wrong version anywhere it's probably ok
     for (split, version_fn) in SPLITS {
@@ -43,24 +44,22 @@ fn walk_dirs(path: &Path, split: &str, version_match: fn(&str) -> bool) -> Resul
                 let content = fs::read_to_string(&path)?;
                 let split = content.split(split).collect::<Vec<_>>();
 
-                match split.as_slice() {
-                    // No spec link was found
-                    // `[]` is only to satisfy exhaustiveness checking
-                    [] | [_] => {}
-                    [pre, post, rest @ ..] => {
-                        if pre.lines().rev().next().map_or(false, |l| l.starts_with("//!"))
-                            && !version_match(post)
-                        {
-                            return Err(format!(
-                                "error: spec URL with no version number\nfrom: {}\n{}",
-                                path.display(),
-                                &post[0..25]
-                            )
-                            .into());
+                let mut last_segment = false;
+                for chunk in split.chunks(2) {
+                    match chunk {
+                        [pre] if last_segment && !version_match(pre) => {
+                            return err(&path, pre);
                         }
-
-                        check_rest(rest, &path, version_match)?;
+                        [pre, post] => {
+                            if pre.lines().next_back().map_or(false, |l| l.starts_with("//!"))
+                                && !version_match(post)
+                            {
+                                return err(&path, post);
+                            }
+                        }
+                        [] | [..] => {}
                     }
+                    last_segment = true;
                 }
             }
         }
@@ -68,36 +67,11 @@ fn walk_dirs(path: &Path, split: &str, version_match: fn(&str) -> bool) -> Resul
     Ok(())
 }
 
-fn check_rest(rest: &[&str], path: &Path, version_match: fn(&str) -> bool) -> Result<()> {
-    match rest {
-        [] => Ok(()),
-        [rest] => {
-            if !version_match(rest) {
-                Err(format!(
-                    "error: spec URL with no version number\nfrom: {}\n{}",
-                    path.display(),
-                    &rest[0..25]
-                )
-                .into())
-            } else {
-                Ok(())
-            }
-        }
-        [pre, post, rest @ ..] => {
-            if pre.lines().rev().next().map_or(false, |l| l.starts_with("//!"))
-                && !version_match(post)
-            {
-                return Err(format!(
-                    "error: spec URL with no version number\nfrom: {}\n{}",
-                    path.display(),
-                    &post[0..25]
-                )
-                .into());
-            }
-            if !rest.is_empty() {
-                check_rest(rest, path, version_match)?;
-            }
-            Ok(())
-        }
-    }
+fn err(path: &Path, snippet: &str) -> Result<()> {
+    Err(format!(
+        "error: spec URL with wrong version number\nfile: {}\n\nsnippet:\n{}",
+        path.display(),
+        &snippet[0..25]
+    )
+    .into())
 }
