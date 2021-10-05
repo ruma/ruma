@@ -51,9 +51,7 @@ fn walk_dirs(path: &Path, split: &str, version_match: fn(&str) -> bool) -> Resul
                             return err(&path, pre);
                         }
                         [pre, post] => {
-                            if pre.lines().next_back().map_or(false, |l| l.starts_with("//!"))
-                                && !version_match(post)
-                            {
+                            if !version_match(post) {
                                 return err(&path, post);
                             }
                         }

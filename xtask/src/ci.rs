@@ -81,26 +81,12 @@ impl CiTask {
 
     fn build_nightly(&self) -> Result<()> {
         // Check formatting
-        let fmt_res = cmd!("rustup run nightly cargo fmt -- --check").run().map_err(Into::into);
+        let fmt_res = cmd!("rustup run nightly cargo fmt -- --check").run();
         // Check `ruma` crate with `full` feature (sometimes things only compile with an unstable
         // flag)
         let check_full_res = cmd!("rustup run nightly cargo check -p ruma --features full").run();
-        // Check everything with default features with clippy
-        let clippy_default_res = cmd!(
-            "
-            rustup run nightly cargo clippy
-                --workspace --all-targets --features=full -- -D warnings
-            "
-        )
-        .run();
-        // Check everything with almost all features with clippy
-        let clippy_all_res = cmd!(
-            "
-            rustup run nightly cargo clippy
-                --workspace --all-targets --features=full,compat,unstable-pre-spec -- -D warnings
-            "
-        )
-        .run();
+        // Check everything with (almost) all features with clippy
+        let clippy_res = cmd!("rustup run nightly cargo ruma-clippy -D warnings").run();
         // Check dependencies being sorted
         let sort_res = cmd!(
             "
@@ -109,11 +95,15 @@ impl CiTask {
                 --order package,lib,features,dependencies,dev-dependencies,build-dependencies
             "
         )
-        .run()
-        .map_err(Into::into);
+        .run();
         // Check that all links point to the same version of the spec
         let spec_links = check_spec_links(&self.project_root.join("crates"));
 
-        fmt_res.and(check_full_res).and(clippy_res).and(sort_res).and(spec_links)
+        fmt_res
+            .and(check_full_res)
+            .and(clippy_res)
+            .and(sort_res)
+            .map_err(Into::into)
+            .and(spec_links)
     }
 }
