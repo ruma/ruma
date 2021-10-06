@@ -65,8 +65,8 @@ fn expand_event_enum(
 ) -> TokenStream {
     let serde = quote! { #ruma_events::exports::serde };
 
-    let event_struct = kind.to_event_ident(var).unwrap();
-    let ident = kind.to_event_enum_ident(var).unwrap();
+    let event_struct = kind.to_event_ident(var);
+    let ident = kind.to_event_enum_ident(var);
 
     let variant_decls = variants.iter().map(|v| v.decl());
     let content: Vec<_> =
@@ -121,8 +121,8 @@ fn expand_deserialize_impl(
     let serde = quote! { #ruma_events::exports::serde };
     let serde_json = quote! { #ruma_events::exports::serde_json };
 
-    let ident = kind.to_event_enum_ident(var).unwrap();
-    let event_struct = kind.to_event_ident(var).unwrap();
+    let ident = kind.to_event_enum_ident(var);
+    let event_struct = kind.to_event_ident(var);
 
     let variant_attrs = variants.iter().map(|v| {
         let attrs = &v.attrs;
@@ -211,8 +211,8 @@ fn expand_from_full_event(
     var: EventKindVariation,
     variants: &[EventEnumVariant],
 ) -> TokenStream {
-    let ident = kind.to_event_enum_ident(var).unwrap();
-    let sync = kind.to_event_enum_ident(var.to_sync().unwrap()).unwrap();
+    let ident = kind.to_event_enum_ident(var);
+    let sync = kind.to_event_enum_ident(var.to_sync());
 
     let ident_variants = variants.iter().map(|v| v.match_arm(&ident));
     let self_variants = variants.iter().map(|v| v.ctor(quote! { Self }));
@@ -244,8 +244,8 @@ fn expand_into_full_event(
 ) -> TokenStream {
     let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
 
-    let ident = kind.to_event_enum_ident(var).unwrap();
-    let full = kind.to_event_enum_ident(var.to_full().unwrap()).unwrap();
+    let ident = kind.to_event_enum_ident(var);
+    let full = kind.to_event_enum_ident(var.to_full());
 
     let self_variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
     let full_variants = variants.iter().map(|v| v.ctor(&full));
@@ -361,8 +361,8 @@ fn expand_redact(
 ) -> TokenStream {
     let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
 
-    let ident = kind.to_event_enum_ident(var).unwrap();
-    let redacted_enum = kind.to_event_enum_ident(var.to_redacted().unwrap()).unwrap();
+    let ident = kind.to_event_enum_ident(var);
+    let redacted_enum = kind.to_event_enum_ident(var.to_redacted());
 
     let self_variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
     let redacted_variants = variants.iter().map(|v| v.ctor(&redacted_enum));
@@ -400,9 +400,9 @@ fn expand_possibly_redacted_enum(
     let serde = quote! { #ruma_events::exports::serde };
     let serde_json = quote! { #ruma_events::exports::serde_json };
 
-    let ident = format_ident!("AnyPossiblyRedacted{}", kind.to_event_ident(var).unwrap());
-    let regular_enum_ident = kind.to_event_enum_ident(var).unwrap();
-    let redacted_enum_ident = kind.to_event_enum_ident(var.to_redacted().unwrap()).unwrap();
+    let ident = format_ident!("AnyPossiblyRedacted{}", kind.to_event_ident(var));
+    let regular_enum_ident = kind.to_event_enum_ident(var);
+    let redacted_enum_ident = kind.to_event_enum_ident(var.to_redacted());
 
     quote! {
         /// An enum that holds either regular un-redacted events or redacted events.
@@ -461,7 +461,7 @@ fn expand_accessor_methods(
     variants: &[EventEnumVariant],
     ruma_events: &TokenStream,
 ) -> TokenStream {
-    let ident = kind.to_event_enum_ident(var).unwrap();
+    let ident = kind.to_event_enum_ident(var);
     let self_variants: Vec<_> = variants.iter().map(|v| v.match_arm(quote! { Self })).collect();
 
     let content_accessors = (!var.is_redacted()).then(|| {

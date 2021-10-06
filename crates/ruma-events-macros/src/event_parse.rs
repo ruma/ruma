@@ -49,27 +49,27 @@ impl EventKindVariation {
         matches!(self, Self::Sync | Self::RedactedSync)
     }
 
-    pub fn to_redacted(self) -> Option<Self> {
+    pub fn to_redacted(self) -> Self {
         match self {
-            EventKindVariation::Full => Some(EventKindVariation::Redacted),
-            EventKindVariation::Sync => Some(EventKindVariation::RedactedSync),
-            _ => None,
+            EventKindVariation::Full => EventKindVariation::Redacted,
+            EventKindVariation::Sync => EventKindVariation::RedactedSync,
+            _ => panic!("No redacted form of {:?}", self),
         }
     }
 
-    pub fn to_sync(self) -> Option<Self> {
+    pub fn to_sync(self) -> Self {
         match self {
-            EventKindVariation::Full => Some(EventKindVariation::Sync),
-            EventKindVariation::Redacted => Some(EventKindVariation::RedactedSync),
-            _ => None,
+            EventKindVariation::Full => EventKindVariation::Sync,
+            EventKindVariation::Redacted => EventKindVariation::RedactedSync,
+            _ => panic!("No sync form of {:?}", self),
         }
     }
 
-    pub fn to_full(self) -> Option<Self> {
+    pub fn to_full(self) -> Self {
         match self {
-            EventKindVariation::Sync => Some(EventKindVariation::Full),
-            EventKindVariation::RedactedSync => Some(EventKindVariation::Redacted),
-            _ => None,
+            EventKindVariation::Sync => EventKindVariation::Full,
+            EventKindVariation::RedactedSync => EventKindVariation::Redacted,
+            _ => panic!("No full form of {:?}", self),
         }
     }
 }
@@ -125,10 +125,9 @@ impl IdentFragment for EventKindVariation {
 }
 
 impl EventKind {
-    pub fn to_event_ident(self, var: EventKindVariation) -> Option<Ident> {
+    pub fn try_to_event_ident(self, var: EventKindVariation) -> Option<Ident> {
         use EventKindVariation as V;
 
-        // this match is only used to validate the input
         match (self, var) {
             (_, V::Full)
             | (Self::Message | Self::RoomRedaction | Self::State | Self::Ephemeral, V::Sync)
@@ -138,8 +137,14 @@ impl EventKind {
         }
     }
 
-    pub fn to_event_enum_ident(self, var: EventKindVariation) -> Option<Ident> {
-        Some(format_ident!("Any{}", self.to_event_ident(var)?))
+    pub fn to_event_ident(self, var: EventKindVariation) -> Ident {
+        self.try_to_event_ident(var).unwrap_or_else(|| {
+            panic!("({:?}, {:?}) is not a valid event kind / variation combination", self, var);
+        })
+    }
+
+    pub fn to_event_enum_ident(self, var: EventKindVariation) -> Ident {
+        format_ident!("Any{}", self.to_event_ident(var))
     }
 
     /// `Any[kind]EventContent`

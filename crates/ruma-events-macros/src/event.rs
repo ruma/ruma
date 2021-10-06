@@ -416,9 +416,9 @@ fn expand_redact_event(
 ) -> TokenStream {
     let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
 
-    let redacted_type = kind.to_event_ident(var.to_redacted().unwrap()).unwrap();
+    let redacted_type = kind.to_event_ident(var.to_redacted());
     let redacted_content_trait =
-        format_ident!("{}Content", kind.to_event_ident(EventKindVariation::Redacted).unwrap());
+        format_ident!("{}Content", kind.to_event_ident(EventKindVariation::Redacted));
     let ident = &input.ident;
 
     let mut generics = input.generics.clone();
@@ -489,7 +489,7 @@ fn expand_sync_from_into_full(
     let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
 
     let ident = &input.ident;
-    let full_struct = kind.to_event_ident(var.to_full().unwrap()).unwrap();
+    let full_struct = kind.to_event_ident(var.to_full());
     let (impl_generics, ty_gen, where_clause) = input.generics.split_for_impl();
     let fields: Vec<_> = fields.iter().flat_map(|f| &f.ident).collect();
 
