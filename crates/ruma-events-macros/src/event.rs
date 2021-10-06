@@ -10,6 +10,7 @@ use syn::{
 use crate::{
     event_parse::{to_kind_variation, EventKind, EventKindVariation},
     import_ruma_events,
+    util::is_non_stripped_room_event,
 };
 
 /// Derive `Event` macro code generation.
@@ -41,19 +42,26 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         ));
     };
 
-    let conversion_impl = expand_from_into(&input, kind, var, &fields, &ruma_events);
-    let serialize_impl = expand_serialize_event(&input, var, &fields, &ruma_events);
-    let deserialize_impl = expand_deserialize_event(&input, kind, var, &fields, &ruma_events)?;
-    let redact_impl = expand_redact_event(&input, kind, var, &fields, &ruma_events);
-    let eq_impl = expand_eq_ord_event(&input, &fields);
+    let mut res = TokenStream::new();
 
-    Ok(quote! {
-        #conversion_impl
-        #serialize_impl
-        #deserialize_impl
-        #redact_impl
-        #eq_impl
-    })
+    res.extend(expand_serialize_event(&input, var, &fields, &ruma_events));
+    res.extend(expand_deserialize_event(&input, kind, var, &fields, &ruma_events)?);
+
+    if var.is_sync() {
+        res.extend(expand_sync_from_into_full(&input, kind, var, &fields, &ruma_events));
+    }
+
+    if matches!(kind, EventKind::Message | EventKind::State)
+        && matches!(var, EventKindVariation::Full | EventKindVariation::Sync)
+    {
+        res.extend(expand_redact_event(&input, kind, var, &fields, &ruma_events));
+    }
+
+    if is_non_stripped_room_event(kind, var) {
+        res.extend(expand_eq_ord_event(&input));
+    }
+
+    Ok(res)
 }
 
 fn expand_serialize_event(
@@ -405,17 +413,17 @@ fn expand_redact_event(
     var: EventKindVariation,
     fields: &[Field],
     ruma_events: &TokenStream,
-) -> Option<TokenStream> {
+) -> TokenStream {
     let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
 
-    let redacted_type = kind.to_event_ident(var.to_redacted()?)?;
+    let redacted_type = kind.to_event_ident(var.to_redacted().unwrap()).unwrap();
     let redacted_content_trait =
         format_ident!("{}Content", kind.to_event_ident(EventKindVariation::Redacted).unwrap());
     let ident = &input.ident;
 
     let mut generics = input.generics.clone();
     if generics.params.is_empty() {
-        return None;
+        return TokenStream::new();
     }
 
     assert_eq!(generics.params.len(), 1, "expected one generic parameter");
@@ -450,7 +458,7 @@ fn expand_redact_event(
         }
     });
 
-    Some(quote! {
+    quote! {
         #[automatically_derived]
         impl #impl_generics #ruma_events::Redact for #ident #ty_gen #where_clause {
             type Redacted =
@@ -468,91 +476,83 @@ fn expand_redact_event(
                 }
             }
         }
-    })
+    }
 }
 
-fn expand_from_into(
+fn expand_sync_from_into_full(
     input: &DeriveInput,
     kind: EventKind,
     var: EventKindVariation,
     fields: &[Field],
     ruma_events: &TokenStream,
-) -> Option<TokenStream> {
+) -> TokenStream {
     let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
 
     let ident = &input.ident;
-
+    let full_struct = kind.to_event_ident(var.to_full().unwrap()).unwrap();
     let (impl_generics, ty_gen, where_clause) = input.generics.split_for_impl();
-
     let fields: Vec<_> = fields.iter().flat_map(|f| &f.ident).collect();
 
-    if let EventKindVariation::Sync | EventKindVariation::RedactedSync = var {
-        let full_struct = kind.to_event_ident(var.to_full().unwrap()).unwrap();
-        Some(quote! {
-            #[automatically_derived]
-            impl #impl_generics ::std::convert::From<#full_struct #ty_gen>
-                for #ident #ty_gen #where_clause
-            {
-                fn from(event: #full_struct #ty_gen) -> Self {
-                    let #full_struct { #( #fields, )* .. } = event;
-                    Self { #( #fields, )* }
-                }
+    quote! {
+        #[automatically_derived]
+        impl #impl_generics ::std::convert::From<#full_struct #ty_gen>
+            for #ident #ty_gen #where_clause
+        {
+            fn from(event: #full_struct #ty_gen) -> Self {
+                let #full_struct { #( #fields, )* .. } = event;
+                Self { #( #fields, )* }
             }
+        }
 
-            #[automatically_derived]
-            impl #impl_generics #ident #ty_gen #where_clause {
-                /// Convert this sync event into a full event, one with a room_id field.
-                pub fn into_full_event(
-                    self,
-                    room_id: #ruma_identifiers::RoomId,
-                ) -> #full_struct #ty_gen {
-                    let Self { #( #fields, )* } = self;
-                    #full_struct {
-                        #( #fields, )*
-                        room_id,
-                    }
-                }
-            }
-        })
-    } else {
-        None
-    }
-}
-
-fn expand_eq_ord_event(input: &DeriveInput, fields: &[Field]) -> Option<TokenStream> {
-    fields.iter().flat_map(|f| f.ident.as_ref()).any(|f| f == "event_id").then(|| {
-        let ident = &input.ident;
-        let (impl_gen, ty_gen, where_clause) = input.generics.split_for_impl();
-
-        quote! {
-            #[automatically_derived]
-            impl #impl_gen ::std::cmp::PartialEq for #ident #ty_gen #where_clause {
-                /// Checks if two `EventId`s are equal.
-                fn eq(&self, other: &Self) -> ::std::primitive::bool {
-                    self.event_id == other.event_id
-                }
-            }
-
-            #[automatically_derived]
-            impl #impl_gen ::std::cmp::Eq for #ident #ty_gen #where_clause {}
-
-            #[automatically_derived]
-            impl #impl_gen ::std::cmp::PartialOrd for #ident #ty_gen #where_clause {
-                /// Compares `EventId`s and orders them lexicographically.
-                fn partial_cmp(&self, other: &Self) -> ::std::option::Option<::std::cmp::Ordering> {
-                    self.event_id.partial_cmp(&other.event_id)
-                }
-            }
-
-            #[automatically_derived]
-            impl #impl_gen ::std::cmp::Ord for #ident #ty_gen #where_clause {
-                /// Compares `EventId`s and orders them lexicographically.
-                fn cmp(&self, other: &Self) -> ::std::cmp::Ordering {
-                    self.event_id.cmp(&other.event_id)
+        #[automatically_derived]
+        impl #impl_generics #ident #ty_gen #where_clause {
+            /// Convert this sync event into a full event, one with a room_id field.
+            pub fn into_full_event(
+                self,
+                room_id: #ruma_identifiers::RoomId,
+            ) -> #full_struct #ty_gen {
+                let Self { #( #fields, )* } = self;
+                #full_struct {
+                    #( #fields, )*
+                    room_id,
                 }
             }
         }
-    })
+    }
+}
+
+fn expand_eq_ord_event(input: &DeriveInput) -> TokenStream {
+    let ident = &input.ident;
+    let (impl_gen, ty_gen, where_clause) = input.generics.split_for_impl();
+
+    quote! {
+        #[automatically_derived]
+        impl #impl_gen ::std::cmp::PartialEq for #ident #ty_gen #where_clause {
+            /// Checks if two `EventId`s are equal.
+            fn eq(&self, other: &Self) -> ::std::primitive::bool {
+                self.event_id == other.event_id
+            }
+        }
+
+        #[automatically_derived]
+        impl #impl_gen ::std::cmp::Eq for #ident #ty_gen #where_clause {}
+
+        #[automatically_derived]
+        impl #impl_gen ::std::cmp::PartialOrd for #ident #ty_gen #where_clause {
+            /// Compares `EventId`s and orders them lexicographically.
+            fn partial_cmp(&self, other: &Self) -> ::std::option::Option<::std::cmp::Ordering> {
+                self.event_id.partial_cmp(&other.event_id)
+            }
+        }
+
+        #[automatically_derived]
+        impl #impl_gen ::std::cmp::Ord for #ident #ty_gen #where_clause {
+            /// Compares `EventId`s and orders them lexicographically.
+            fn cmp(&self, other: &Self) -> ::std::cmp::Ordering {
+                self.event_id.cmp(&other.event_id)
+            }
+        }
+    }
 }
 
 /// CamelCase's a field ident like "foo_bar" to "FooBar".

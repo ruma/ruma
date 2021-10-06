@@ -4,43 +4,10 @@ use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::{Attribute, Data, DataEnum, DeriveInput, Ident, LitStr};
 
-use crate::event_parse::{EventEnumDecl, EventEnumEntry, EventKind, EventKindVariation};
-
-fn is_non_stripped_room_event(kind: EventKind, var: EventKindVariation) -> bool {
-    matches!(kind, EventKind::Message | EventKind::State)
-        && matches!(
-            var,
-            EventKindVariation::Full
-                | EventKindVariation::Sync
-                | EventKindVariation::Redacted
-                | EventKindVariation::RedactedSync
-        )
-}
-
-fn has_prev_content_field(kind: EventKind, var: EventKindVariation) -> bool {
-    matches!(kind, EventKind::State)
-        && matches!(var, EventKindVariation::Full | EventKindVariation::Sync)
-}
-
-type EventKindFn = fn(EventKind, EventKindVariation) -> bool;
-
-/// This const is used to generate the accessor methods for the `Any*Event` enums.
-///
-/// DO NOT alter the field names unless the structs in `ruma_events::event_kinds` have changed.
-const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
-    ("origin_server_ts", is_non_stripped_room_event),
-    ("room_id", |kind, var| {
-        matches!(kind, EventKind::Message | EventKind::State | EventKind::Ephemeral)
-            && matches!(var, EventKindVariation::Full | EventKindVariation::Redacted)
-    }),
-    ("event_id", is_non_stripped_room_event),
-    ("sender", |kind, var| {
-        matches!(kind, EventKind::Message | EventKind::State | EventKind::ToDevice)
-            && var != EventKindVariation::Initial
-    }),
-    ("state_key", |kind, _| matches!(kind, EventKind::State)),
-    ("unsigned", is_non_stripped_room_event),
-];
+use crate::{
+    event_parse::{EventEnumDecl, EventEnumEntry, EventKind, EventKindVariation},
+    util::{has_prev_content_field, EVENT_FIELDS},
+};
 
 /// Create a content enum from `EventEnumInput`.
 pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {

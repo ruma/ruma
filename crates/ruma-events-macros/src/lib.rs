@@ -27,6 +27,7 @@ mod event_content;
 mod event_enum;
 mod event_parse;
 mod event_type;
+mod util;
 
 /// Generates an enum to represent the various Matrix event types.
 ///

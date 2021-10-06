@@ -45,6 +45,10 @@ impl EventKindVariation {
         matches!(self, Self::Redacted | Self::RedactedSync)
     }
 
+    pub fn is_sync(self) -> bool {
+        matches!(self, Self::Sync | Self::RedactedSync)
+    }
+
     pub fn to_redacted(self) -> Option<Self> {
         match self {
             EventKindVariation::Full => Some(EventKindVariation::Redacted),
