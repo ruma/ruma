@@ -1,4 +1,4 @@
-name: Rust 1.50
+name: Rust 1.53
 
 on:
   push:
@@ -13,11 +13,11 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
-      - name: Install rust 1.50 toolchain
+      - name: Install rust 1.53 toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: '1.50'
+          toolchain: '1.53'
       # Used to compile xtask
       - name: Install rust stable toolchain
         uses: actions-rs/toolchain@v1
