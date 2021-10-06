@@ -18,7 +18,7 @@ use syn::{parse_macro_input, DeriveInput};
 use crate::event_enum::expand_from_impls_derived;
 
 use self::{
-    event::expand_event, event_content::expand_event_content, event_enum::expand_event_enum,
+    event::expand_event, event_content::expand_event_content, event_enum::expand_event_enums,
     event_type::expand_event_type_enum,
 };
 
@@ -62,7 +62,7 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
     let enums = event_enum_input
         .enums
         .iter()
-        .map(expand_event_enum)
+        .map(expand_event_enums)
         .collect::<syn::Result<pm2::TokenStream>>();
     let event_types = expand_event_type_enum(event_enum_input, ruma_events);
     event_types

@@ -43,7 +43,7 @@ const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
 ];
 
 /// Create a content enum from `EventEnumInput`.
-pub fn expand_event_enum(input: &EventEnumDecl) -> syn::Result<TokenStream> {
+pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
     let ruma_events = crate::import_ruma_events();
 
     let name = &input.name;
@@ -52,25 +52,13 @@ pub fn expand_event_enum(input: &EventEnumDecl) -> syn::Result<TokenStream> {
     let variants: Vec<_> =
         input.events.iter().map(EventEnumEntry::to_variant).collect::<syn::Result<_>>()?;
 
-    let event_enum = expand_any_with_deser(
-        name,
-        &events,
-        attrs,
-        &variants,
-        &EventKindVariation::Full,
-        &ruma_events,
-    );
+    let event_enum =
+        expand_event_enum(name, &events, attrs, &variants, &EventKindVariation::Full, &ruma_events);
 
-    let sync_event_enum = expand_any_with_deser(
-        name,
-        &events,
-        attrs,
-        &variants,
-        &EventKindVariation::Sync,
-        &ruma_events,
-    );
+    let sync_event_enum =
+        expand_event_enum(name, &events, attrs, &variants, &EventKindVariation::Sync, &ruma_events);
 
-    let stripped_event_enum = expand_any_with_deser(
+    let stripped_event_enum = expand_event_enum(
         name,
         &events,
         attrs,
@@ -79,7 +67,7 @@ pub fn expand_event_enum(input: &EventEnumDecl) -> syn::Result<TokenStream> {
         &ruma_events,
     );
 
-    let initial_event_enum = expand_any_with_deser(
+    let initial_event_enum = expand_event_enum(
         name,
         &events,
         attrs,
@@ -88,7 +76,8 @@ pub fn expand_event_enum(input: &EventEnumDecl) -> syn::Result<TokenStream> {
         &ruma_events,
     );
 
-    let redacted_event_enums = expand_any_redacted(name, &events, attrs, &variants, &ruma_events);
+    let redacted_event_enums =
+        expand_redacted_event_enum(name, &events, attrs, &variants, &ruma_events);
     let event_content_enum = expand_content_enum(name, &events, attrs, &variants, &ruma_events);
 
     Ok(quote! {
@@ -101,7 +90,7 @@ pub fn expand_event_enum(input: &EventEnumDecl) -> syn::Result<TokenStream> {
     })
 }
 
-fn expand_any_with_deser(
+fn expand_event_enum(
     kind: &EventKind,
     events: &[LitStr],
     attrs: &[Attribute],
@@ -126,7 +115,7 @@ fn expand_any_with_deser(
     let (custom_variant, custom_deserialize) =
         generate_custom_variant(&event_struct, var, ruma_events);
 
-    let any_enum = quote! {
+    let event_enum = quote! {
         #( #attrs )*
         #[derive(Clone, Debug, #serde::Serialize)]
         #[serde(untagged)]
@@ -179,7 +168,7 @@ fn expand_any_with_deser(
     let from_impl = expand_from_impl(ident, &content, variants);
 
     Some(quote! {
-        #any_enum
+        #event_enum
         #event_enum_to_from_sync
         #field_accessor_impl
         #redact_impl
@@ -281,7 +270,7 @@ fn expand_conversion_impl(
 ///
 /// No content enums are generated since no part of the API deals with
 /// redacted event's content. There are only five state variants that contain content.
-fn expand_any_redacted(
+fn expand_redacted_event_enum(
     kind: &EventKind,
     events: &[LitStr],
     attrs: &[Attribute],
@@ -293,9 +282,9 @@ fn expand_any_redacted(
     match kind {
         EventKind::State => {
             let full_state =
-                expand_any_with_deser(kind, events, attrs, variants, &V::Redacted, ruma_events);
+                expand_event_enum(kind, events, attrs, variants, &V::Redacted, ruma_events);
             let sync_state =
-                expand_any_with_deser(kind, events, attrs, variants, &V::RedactedSync, ruma_events);
+                expand_event_enum(kind, events, attrs, variants, &V::RedactedSync, ruma_events);
 
             quote! {
                 #full_state
@@ -304,9 +293,9 @@ fn expand_any_redacted(
         }
         EventKind::Message => {
             let full_message =
-                expand_any_with_deser(kind, events, attrs, variants, &V::Redacted, ruma_events);
+                expand_event_enum(kind, events, attrs, variants, &V::Redacted, ruma_events);
             let sync_message =
-                expand_any_with_deser(kind, events, attrs, variants, &V::RedactedSync, ruma_events);
+                expand_event_enum(kind, events, attrs, variants, &V::RedactedSync, ruma_events);
 
             quote! {
                 #full_message
@@ -601,7 +590,7 @@ fn accessor_methods(
     };
 
     let content = quote! {
-        /// Returns the any content enum for this event.
+        /// Returns the content enum for this event.
         pub fn content(&self) -> #content_enum {
             match self {
                 #( #self_variants(event) => #content_variants(event.content.clone()), )*
@@ -614,7 +603,7 @@ fn accessor_methods(
 
     let prev_content = has_prev_content_field(kind, var).then(|| {
         quote! {
-            /// Returns the any content enum for this events prev_content.
+            /// Returns the content enum for this events prev_content.
             pub fn prev_content(&self) -> Option<#content_enum> {
                 match self {
                     #(
