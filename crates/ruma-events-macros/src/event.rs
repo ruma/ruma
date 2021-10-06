@@ -41,10 +41,10 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         ));
     };
 
-    let conversion_impl = expand_from_into(&input, &kind, &var, &fields, &ruma_events);
-    let serialize_impl = expand_serialize_event(&input, &var, &fields, &ruma_events);
-    let deserialize_impl = expand_deserialize_event(&input, &kind, &var, &fields, &ruma_events)?;
-    let redact_impl = expand_redact_event(&input, &kind, &var, &fields, &ruma_events);
+    let conversion_impl = expand_from_into(&input, kind, var, &fields, &ruma_events);
+    let serialize_impl = expand_serialize_event(&input, var, &fields, &ruma_events);
+    let deserialize_impl = expand_deserialize_event(&input, kind, var, &fields, &ruma_events)?;
+    let redact_impl = expand_redact_event(&input, kind, var, &fields, &ruma_events);
     let eq_impl = expand_eq_ord_event(&input, &fields);
 
     Ok(quote! {
@@ -58,7 +58,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
 
 fn expand_serialize_event(
     input: &DeriveInput,
-    var: &EventKindVariation,
+    var: EventKindVariation,
     fields: &[Field],
     ruma_events: &TokenStream,
 ) -> TokenStream {
@@ -125,8 +125,8 @@ fn expand_serialize_event(
 
 fn expand_deserialize_event(
     input: &DeriveInput,
-    _kind: &EventKind,
-    var: &EventKindVariation,
+    _kind: EventKind,
+    var: EventKindVariation,
     fields: &[Field],
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
@@ -401,16 +401,16 @@ fn expand_deserialize_event(
 
 fn expand_redact_event(
     input: &DeriveInput,
-    kind: &EventKind,
-    var: &EventKindVariation,
+    kind: EventKind,
+    var: EventKindVariation,
     fields: &[Field],
     ruma_events: &TokenStream,
 ) -> Option<TokenStream> {
     let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
 
-    let redacted_type = kind.to_event_ident(&var.to_redacted()?)?;
+    let redacted_type = kind.to_event_ident(var.to_redacted()?)?;
     let redacted_content_trait =
-        format_ident!("{}Content", kind.to_event_ident(&EventKindVariation::Redacted).unwrap());
+        format_ident!("{}Content", kind.to_event_ident(EventKindVariation::Redacted).unwrap());
     let ident = &input.ident;
 
     let mut generics = input.generics.clone();
@@ -473,8 +473,8 @@ fn expand_redact_event(
 
 fn expand_from_into(
     input: &DeriveInput,
-    kind: &EventKind,
-    var: &EventKindVariation,
+    kind: EventKind,
+    var: EventKindVariation,
     fields: &[Field],
     ruma_events: &TokenStream,
 ) -> Option<TokenStream> {
@@ -487,7 +487,7 @@ fn expand_from_into(
     let fields: Vec<_> = fields.iter().flat_map(|f| &f.ident).collect();
 
     if let EventKindVariation::Sync | EventKindVariation::RedactedSync = var {
-        let full_struct = kind.to_event_ident(&var.to_full().unwrap()).unwrap();
+        let full_struct = kind.to_event_ident(var.to_full().unwrap()).unwrap();
         Some(quote! {
             #[automatically_derived]
             impl #impl_generics ::std::convert::From<#full_struct #ty_gen>

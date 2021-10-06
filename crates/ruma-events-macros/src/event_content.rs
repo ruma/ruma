@@ -46,9 +46,9 @@ impl EventMeta {
         }
     }
 
-    fn get_event_kind(&self) -> Option<&EventKind> {
+    fn get_event_kind(&self) -> Option<EventKind> {
         match self {
-            Self::Kind(k) => Some(k),
+            Self::Kind(k) => Some(*k),
             _ => None,
         }
     }
@@ -88,7 +88,7 @@ impl MetaAttrs {
         self.0.iter().find_map(|a| a.get_event_type())
     }
 
-    fn get_event_kind(&self) -> Option<&EventKind> {
+    fn get_event_kind(&self) -> Option<EventKind> {
         self.0.iter().find_map(|a| a.get_event_kind())
     }
 }
@@ -173,7 +173,7 @@ fn generate_redacted_event_content(
     input: &DeriveInput,
     event_type: &LitStr,
     ruma_events: &TokenStream,
-    event_kind: Option<&EventKind>,
+    event_kind: Option<EventKind>,
 ) -> Result<TokenStream, syn::Error> {
     let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
     let serde = quote! { #ruma_events::exports::serde };
@@ -326,7 +326,7 @@ fn generate_redacted_event_content(
 }
 
 fn generate_event_type_aliases(
-    event_kind: &EventKind,
+    event_kind: EventKind,
     ident: &Ident,
     event_type: &str,
     ruma_events: &TokenStream,
@@ -350,7 +350,7 @@ fn generate_event_type_aliases(
         EventKindVariation::RedactedSync,
     ]
     .iter()
-    .filter_map(|kind| Some((kind, event_kind.to_event_ident(kind)?)))
+    .filter_map(|&kind| Some((kind, event_kind.to_event_ident(kind)?)))
     .map(|(kind, ev_struct)| {
         let ev_type = format_ident!("{}{}", kind, ev_type_s);
 
@@ -383,7 +383,7 @@ fn generate_event_type_aliases(
 }
 
 fn generate_marker_trait_impl(
-    event_kind: &EventKind,
+    event_kind: EventKind,
     ident: &Ident,
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
@@ -442,7 +442,7 @@ fn generate_event_content_impl(
 
 fn generate_static_event_content_impl(
     ident: &Ident,
-    event_kind: &EventKind,
+    event_kind: EventKind,
     redacted: bool,
     event_type: &LitStr,
     ruma_events: &TokenStream,
@@ -467,7 +467,7 @@ fn generate_static_event_content_impl(
     }
 }
 
-fn needs_redacted(input: &[MetaAttrs], event_kind: Option<&EventKind>) -> bool {
+fn needs_redacted(input: &[MetaAttrs], event_kind: Option<EventKind>) -> bool {
     // `is_custom` means that the content struct does not need a generated
     // redacted struct also. If no `custom_redacted` attrs are found the content
     // needs a redacted struct generated.

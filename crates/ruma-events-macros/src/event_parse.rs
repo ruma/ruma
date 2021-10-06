@@ -71,7 +71,7 @@ impl EventKindVariation {
 }
 
 // If the variants of this enum change `to_event_path` needs to be updated as well.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum EventKind {
     GlobalAccountData,
     RoomAccountData,
@@ -121,7 +121,7 @@ impl IdentFragment for EventKindVariation {
 }
 
 impl EventKind {
-    pub fn to_event_ident(&self, var: &EventKindVariation) -> Option<Ident> {
+    pub fn to_event_ident(self, var: EventKindVariation) -> Option<Ident> {
         use EventKindVariation as V;
 
         // this match is only used to validate the input
@@ -134,12 +134,12 @@ impl EventKind {
         }
     }
 
-    pub fn to_event_enum_ident(&self, var: &EventKindVariation) -> Option<Ident> {
+    pub fn to_event_enum_ident(self, var: EventKindVariation) -> Option<Ident> {
         Some(format_ident!("Any{}", self.to_event_ident(var)?))
     }
 
     /// `Any[kind]EventContent`
-    pub fn to_content_enum(&self) -> Ident {
+    pub fn to_content_enum(self) -> Ident {
         format_ident!("Any{}Content", self)
     }
 }

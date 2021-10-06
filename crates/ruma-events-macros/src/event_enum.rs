@@ -6,7 +6,7 @@ use syn::{Attribute, Data, DataEnum, DeriveInput, Ident, LitStr};
 
 use crate::event_parse::{EventEnumDecl, EventEnumEntry, EventKind, EventKindVariation};
 
-fn is_non_stripped_room_event(kind: &EventKind, var: &EventKindVariation) -> bool {
+fn is_non_stripped_room_event(kind: EventKind, var: EventKindVariation) -> bool {
     matches!(kind, EventKind::Message | EventKind::State)
         && matches!(
             var,
@@ -17,12 +17,12 @@ fn is_non_stripped_room_event(kind: &EventKind, var: &EventKindVariation) -> boo
         )
 }
 
-fn has_prev_content_field(kind: &EventKind, var: &EventKindVariation) -> bool {
+fn has_prev_content_field(kind: EventKind, var: EventKindVariation) -> bool {
     matches!(kind, EventKind::State)
         && matches!(var, EventKindVariation::Full | EventKindVariation::Sync)
 }
 
-type EventKindFn = fn(&EventKind, &EventKindVariation) -> bool;
+type EventKindFn = fn(EventKind, EventKindVariation) -> bool;
 
 /// This const is used to generate the accessor methods for the `Any*Event` enums.
 ///
@@ -34,7 +34,7 @@ const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
             && matches!(var, EventKindVariation::Full | EventKindVariation::Redacted)
     }),
     ("event_id", is_non_stripped_room_event),
-    ("sender", |kind, &var| {
+    ("sender", |kind, var| {
         matches!(kind, EventKind::Message | EventKind::State | EventKind::ToDevice)
             && var != EventKindVariation::Initial
     }),
@@ -48,19 +48,18 @@ pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
 
     let ruma_events = crate::import_ruma_events();
 
-    let kind = &input.kind;
+    let kind = input.kind;
     let attrs = &input.attrs;
     let events: Vec<_> = input.events.iter().map(|entry| entry.ev_type.clone()).collect();
     let variants: Vec<_> =
         input.events.iter().map(EventEnumEntry::to_variant).collect::<syn::Result<_>>()?;
 
-    let event_enum = expand_event_enum(kind, &events, attrs, &variants, &V::Full, &ruma_events);
-    let sync_event_enum =
-        expand_event_enum(kind, &events, attrs, &variants, &V::Sync, &ruma_events);
+    let event_enum = expand_event_enum(kind, &events, attrs, &variants, V::Full, &ruma_events);
+    let sync_event_enum = expand_event_enum(kind, &events, attrs, &variants, V::Sync, &ruma_events);
     let stripped_event_enum =
-        expand_event_enum(kind, &events, attrs, &variants, &V::Stripped, &ruma_events);
+        expand_event_enum(kind, &events, attrs, &variants, V::Stripped, &ruma_events);
     let initial_event_enum =
-        expand_event_enum(kind, &events, attrs, &variants, &V::Initial, &ruma_events);
+        expand_event_enum(kind, &events, attrs, &variants, V::Initial, &ruma_events);
     let redacted_event_enums =
         expand_redacted_event_enum(kind, &events, attrs, &variants, &ruma_events);
     let event_content_enum = expand_content_enum(kind, &events, attrs, &variants, &ruma_events);
@@ -76,11 +75,11 @@ pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
 }
 
 fn expand_event_enum(
-    kind: &EventKind,
+    kind: EventKind,
     events: &[LitStr],
     attrs: &[Attribute],
     variants: &[EventEnumVariant],
-    var: &EventKindVariation,
+    var: EventKindVariation,
     ruma_events: &TokenStream,
 ) -> Option<TokenStream> {
     let serde = quote! { #ruma_events::exports::serde };
@@ -187,8 +186,8 @@ fn expand_from_impl(
 }
 
 fn expand_conversion_impl(
-    kind: &EventKind,
-    var: &EventKindVariation,
+    kind: EventKind,
+    var: EventKindVariation,
     variants: &[EventEnumVariant],
     ruma_events: &TokenStream,
 ) -> Option<TokenStream> {
@@ -197,7 +196,7 @@ fn expand_conversion_impl(
     let ident = kind.to_event_enum_ident(var)?;
     match var {
         EventKindVariation::Full | EventKindVariation::Redacted => {
-            let sync = kind.to_event_enum_ident(&var.to_sync().unwrap())?;
+            let sync = kind.to_event_enum_ident(var.to_sync().unwrap())?;
             let ident_variants = variants.iter().map(|v| v.match_arm(&ident));
             let self_variants = variants.iter().map(|v| v.ctor(quote! { Self }));
 
@@ -220,7 +219,7 @@ fn expand_conversion_impl(
             })
         }
         EventKindVariation::Sync | EventKindVariation::RedactedSync => {
-            let full = kind.to_event_enum_ident(&var.to_full().unwrap())?;
+            let full = kind.to_event_enum_ident(var.to_full().unwrap())?;
             let self_variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
             let full_variants = variants.iter().map(|v| v.ctor(&full));
 
@@ -256,7 +255,7 @@ fn expand_conversion_impl(
 /// No content enums are generated since no part of the API deals with
 /// redacted event's content. There are only five state variants that contain content.
 fn expand_redacted_event_enum(
-    kind: &EventKind,
+    kind: EventKind,
     events: &[LitStr],
     attrs: &[Attribute],
     variants: &[EventEnumVariant],
@@ -265,8 +264,8 @@ fn expand_redacted_event_enum(
     use EventKindVariation as V;
 
     if matches!(kind, EventKind::Message | EventKind::State) {
-        let full = expand_event_enum(kind, events, attrs, variants, &V::Redacted, ruma_events);
-        let sync = expand_event_enum(kind, events, attrs, variants, &V::RedactedSync, ruma_events);
+        let full = expand_event_enum(kind, events, attrs, variants, V::Redacted, ruma_events);
+        let sync = expand_event_enum(kind, events, attrs, variants, V::RedactedSync, ruma_events);
 
         quote! {
             #full
@@ -279,7 +278,7 @@ fn expand_redacted_event_enum(
 
 /// Create a content enum from `EventEnumInput`.
 fn expand_content_enum(
-    kind: &EventKind,
+    kind: EventKind,
     events: &[LitStr],
     attrs: &[Attribute],
     variants: &[EventEnumVariant],
@@ -366,14 +365,14 @@ fn expand_content_enum(
 
 fn expand_redact(
     ident: &Ident,
-    kind: &EventKind,
-    var: &EventKindVariation,
+    kind: EventKind,
+    var: EventKindVariation,
     variants: &[EventEnumVariant],
     ruma_events: &TokenStream,
 ) -> Option<TokenStream> {
     let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
 
-    let redacted_enum = kind.to_event_enum_ident(&var.to_redacted()?)?;
+    let redacted_enum = kind.to_event_enum_ident(var.to_redacted()?)?;
     let self_variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
     let redacted_variants = variants.iter().map(|v| v.ctor(&redacted_enum));
 
@@ -403,8 +402,8 @@ fn expand_redact(
 }
 
 fn expand_redacted_enum(
-    kind: &EventKind,
-    var: &EventKindVariation,
+    kind: EventKind,
+    var: EventKindVariation,
     ruma_events: &TokenStream,
 ) -> Option<TokenStream> {
     let serde = quote! { #ruma_events::exports::serde };
@@ -413,7 +412,7 @@ fn expand_redacted_enum(
     if let EventKind::State | EventKind::Message = kind {
         let ident = format_ident!("AnyPossiblyRedacted{}", kind.to_event_ident(var)?);
         let regular_enum_ident = kind.to_event_enum_ident(var)?;
-        let redacted_enum_ident = kind.to_event_enum_ident(&var.to_redacted()?)?;
+        let redacted_enum_ident = kind.to_event_enum_ident(var.to_redacted()?)?;
 
         Some(quote! {
             /// An enum that holds either regular un-redacted events or redacted events.
@@ -451,13 +450,13 @@ fn expand_redacted_enum(
     }
 }
 
-fn generate_event_idents(kind: &EventKind, var: &EventKindVariation) -> Option<(Ident, Ident)> {
+fn generate_event_idents(kind: EventKind, var: EventKindVariation) -> Option<(Ident, Ident)> {
     kind.to_event_ident(var).zip(kind.to_event_enum_ident(var))
 }
 
 fn generate_custom_variant(
     event_struct: &Ident,
-    var: &EventKindVariation,
+    var: EventKindVariation,
     ruma_events: &TokenStream,
 ) -> (TokenStream, TokenStream) {
     use EventKindVariation as V;
@@ -506,7 +505,7 @@ fn generate_custom_variant(
     }
 }
 
-fn marker_trait(kind: &EventKind, ruma_events: &TokenStream) -> TokenStream {
+fn marker_trait(kind: EventKind, ruma_events: &TokenStream) -> TokenStream {
     let marker_trait = match kind {
         EventKind::State => quote! { StateEventContent },
         EventKind::Message => quote! { MessageEventContent },
@@ -525,8 +524,8 @@ fn marker_trait(kind: &EventKind, ruma_events: &TokenStream) -> TokenStream {
 }
 
 fn accessor_methods(
-    kind: &EventKind,
-    var: &EventKindVariation,
+    kind: EventKind,
+    var: EventKindVariation,
     variants: &[EventEnumVariant],
     ruma_events: &TokenStream,
 ) -> Option<TokenStream> {
@@ -606,8 +605,8 @@ fn accessor_methods(
 /// Redacted events do NOT generate `content` or `prev_content` methods like
 /// un-redacted events; otherwise, they are the same.
 fn redacted_accessor_methods(
-    kind: &EventKind,
-    var: &EventKindVariation,
+    kind: EventKind,
+    var: EventKindVariation,
     variants: &[EventEnumVariant],
     ruma_events: &TokenStream,
 ) -> Option<TokenStream> {
@@ -626,8 +625,8 @@ fn redacted_accessor_methods(
 
 fn to_event_path(
     name: &LitStr,
-    kind: &EventKind,
-    var: &EventKindVariation,
+    kind: EventKind,
+    var: EventKindVariation,
     ruma_events: &TokenStream,
 ) -> TokenStream {
     let span = name.span();
@@ -645,8 +644,8 @@ fn to_event_path(
 
     let path = path.iter().map(|s| Ident::new(s, span));
 
-    let event_name = if *kind == EventKind::ToDevice {
-        assert_eq!(*var, EventKindVariation::Full);
+    let event_name = if kind == EventKind::ToDevice {
+        assert_eq!(var, EventKindVariation::Full);
         format_ident!("ToDevice{}Event", event)
     } else {
         format_ident!("{}{}Event", var, event)
@@ -655,7 +654,7 @@ fn to_event_path(
 }
 
 fn to_event_content_path(
-    kind: &EventKind,
+    kind: EventKind,
     name: &LitStr,
     prefix: Option<&str>,
     ruma_events: &TokenStream,
@@ -710,8 +709,8 @@ fn to_camel_case(name: &LitStr) -> syn::Result<Ident> {
 
 fn generate_accessor(
     name: &str,
-    kind: &EventKind,
-    var: &EventKindVariation,
+    kind: EventKind,
+    var: EventKindVariation,
     is_event_kind: EventKindFn,
     variants: &[EventEnumVariant],
     ruma_events: &TokenStream,
@@ -736,7 +735,7 @@ fn generate_accessor(
 
 fn field_return_type(
     name: &str,
-    var: &EventKindVariation,
+    var: EventKindVariation,
     ruma_events: &TokenStream,
 ) -> TokenStream {
     let ruma_common = quote! { #ruma_events::exports::ruma_common };
