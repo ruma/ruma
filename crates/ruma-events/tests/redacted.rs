@@ -48,7 +48,7 @@ fn redacted_message_event_serialize() {
       "event_id": "$h29iv0s8:example.com",
       "origin_server_ts": 1,
       "sender": "@carl:example.com",
-      "type": "m.room.message"
+      "type": "m.room.message",
     });
 
     let actual = to_json_value(&redacted).unwrap();
@@ -71,7 +71,7 @@ fn redacted_aliases_event_serialize_no_content() {
       "state_key": "",
       "origin_server_ts": 1,
       "sender": "@carl:example.com",
-      "type": "m.room.aliases"
+      "type": "m.room.aliases",
     });
 
     let actual = to_json_value(&redacted).unwrap();
@@ -97,7 +97,7 @@ fn redacted_aliases_event_serialize_with_content() {
       "state_key": "",
       "origin_server_ts": 1,
       "sender": "@carl:example.com",
-      "type": "m.room.aliases"
+      "type": "m.room.aliases",
     });
 
     let actual = to_json_value(&redacted).unwrap();
@@ -112,7 +112,7 @@ fn redacted_aliases_deserialize() {
       "sender": "@carl:example.com",
       "state_key": "hello",
       "unsigned": unsigned(),
-      "type": "m.room.aliases"
+      "type": "m.room.aliases",
     });
 
     let actual = to_json_value(&redacted).unwrap();
@@ -138,7 +138,7 @@ fn redacted_deserialize_any_room() {
       "origin_server_ts": 1,
       "sender": "@carl:example.com",
       "unsigned": unsigned(),
-      "type": "m.room.message"
+      "type": "m.room.message",
     });
 
     let actual = to_json_value(&redacted).unwrap();
@@ -173,7 +173,7 @@ fn redacted_deserialize_any_room_sync() {
       "origin_server_ts": 1,
       "sender": "@carl:example.com",
       "unsigned": unsigned,
-      "type": "m.room.message"
+      "type": "m.room.message",
     });
 
     let actual = to_json_value(&redacted).unwrap();
@@ -201,7 +201,7 @@ fn redacted_state_event_deserialize() {
       "sender": "@carl:example.com",
       "state_key": "hello there",
       "unsigned": unsigned(),
-      "type": "m.room.create"
+      "type": "m.room.create",
     });
 
     assert_matches!(
@@ -232,7 +232,7 @@ fn redacted_custom_event_serialize() {
         "sender": "@carl:example.com",
         "state_key": "hello there",
         "unsigned": unsigned(),
-        "type": "m.made.up"
+        "type": "m.made.up",
     });
 
     assert_matches!(
@@ -263,7 +263,7 @@ fn redacted_custom_event_deserialize() {
       "sender": "@carl:example.com",
       "state_key": "hello there",
       "unsigned": unsigned,
-      "type": "m.made.up"
+      "type": "m.made.up",
     });
 
     let actual = to_json_value(&redacted).unwrap();
@@ -282,7 +282,7 @@ fn redact_method_properly_redacts() {
             "body": "test",
             "msgtype": "m.audio",
             "url": "mxc://example.com/AuDi0",
-        }
+        },
     });
 
     let redaction = SyncRoomRedactionEvent {
@@ -335,7 +335,7 @@ fn redact_state_content() {
     let json = json!({
         "creator": "@carl:example.com",
         "m.federate": true,
-        "room_version": "4"
+        "room_version": "4",
     });
 
     let raw_json = to_raw_value(&json).unwrap();
