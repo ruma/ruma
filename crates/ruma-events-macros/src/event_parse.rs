@@ -127,17 +127,9 @@ impl EventKind {
         // this match is only used to validate the input
         match (self, var) {
             (_, V::Full)
-            | (Self::Ephemeral, V::Sync)
-            | (Self::Message, V::Sync)
-            | (Self::State, V::Sync)
-            | (Self::State, V::Stripped)
-            | (Self::State, V::Initial)
-            | (Self::Message, V::Redacted)
-            | (Self::RoomRedaction, V::Redacted)
-            | (Self::State, V::Redacted)
-            | (Self::Message, V::RedactedSync)
-            | (Self::RoomRedaction, V::RedactedSync)
-            | (Self::State, V::RedactedSync) => Some(format_ident!("{}{}", var, self)),
+            | (Self::Message | Self::RoomRedaction | Self::State | Self::Ephemeral, V::Sync)
+            | (Self::Message | Self::RoomRedaction | Self::State, V::Redacted | V::RedactedSync)
+            | (Self::State, V::Stripped | V::Initial) => Some(format_ident!("{}{}", var, self)),
             _ => None,
         }
     }
