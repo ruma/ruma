@@ -48,22 +48,22 @@ pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
 
     let ruma_events = crate::import_ruma_events();
 
-    let name = &input.name;
+    let kind = &input.kind;
     let attrs = &input.attrs;
     let events: Vec<_> = input.events.iter().map(|entry| entry.ev_type.clone()).collect();
     let variants: Vec<_> =
         input.events.iter().map(EventEnumEntry::to_variant).collect::<syn::Result<_>>()?;
 
-    let event_enum = expand_event_enum(name, &events, attrs, &variants, &V::Full, &ruma_events);
+    let event_enum = expand_event_enum(kind, &events, attrs, &variants, &V::Full, &ruma_events);
     let sync_event_enum =
-        expand_event_enum(name, &events, attrs, &variants, &V::Sync, &ruma_events);
+        expand_event_enum(kind, &events, attrs, &variants, &V::Sync, &ruma_events);
     let stripped_event_enum =
-        expand_event_enum(name, &events, attrs, &variants, &V::Stripped, &ruma_events);
+        expand_event_enum(kind, &events, attrs, &variants, &V::Stripped, &ruma_events);
     let initial_event_enum =
-        expand_event_enum(name, &events, attrs, &variants, &V::Initial, &ruma_events);
+        expand_event_enum(kind, &events, attrs, &variants, &V::Initial, &ruma_events);
     let redacted_event_enums =
-        expand_redacted_event_enum(name, &events, attrs, &variants, &ruma_events);
-    let event_content_enum = expand_content_enum(name, &events, attrs, &variants, &ruma_events);
+        expand_redacted_event_enum(kind, &events, attrs, &variants, &ruma_events);
+    let event_content_enum = expand_content_enum(kind, &events, attrs, &variants, &ruma_events);
 
     Ok(quote! {
         #event_enum

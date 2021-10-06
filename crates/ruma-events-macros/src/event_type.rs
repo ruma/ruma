@@ -18,7 +18,7 @@ pub fn expand_event_type_enum(
     let mut global_account: Vec<&Vec<EventEnumEntry>> = vec![];
     let mut to_device: Vec<&Vec<EventEnumEntry>> = vec![];
     for event in &input.enums {
-        match event.name {
+        match event.kind {
             EventKind::GlobalAccountData => global_account.push(&event.events),
             EventKind::RoomAccountData => room_account.push(&event.events),
             EventKind::Ephemeral => ephemeral.push(&event.events),

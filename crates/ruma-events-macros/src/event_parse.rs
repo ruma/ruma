@@ -229,8 +229,8 @@ pub struct EventEnumDecl {
     /// Outer attributes on the field, such as a docstring.
     pub attrs: Vec<Attribute>,
 
-    /// The name of the event.
-    pub name: EventKind,
+    /// The event kind.
+    pub kind: EventKind,
 
     /// An array of valid matrix event types.
     ///
@@ -253,13 +253,13 @@ impl Parse for EventEnumInput {
             let attrs = input.call(Attribute::parse_outer)?;
 
             let _: Token![enum] = input.parse()?;
-            let name: EventKind = input.parse()?;
+            let kind: EventKind = input.parse()?;
 
             let content;
             braced!(content in input);
             let events = content.parse_terminated::<_, Token![,]>(EventEnumEntry::parse)?;
             let events = events.into_iter().collect();
-            enums.push(EventEnumDecl { attrs, name, events });
+            enums.push(EventEnumDecl { attrs, kind, events });
         }
         Ok(EventEnumInput { enums })
     }
