@@ -264,30 +264,16 @@ fn expand_redacted_event_enum(
 ) -> TokenStream {
     use EventKindVariation as V;
 
-    match kind {
-        EventKind::State => {
-            let full_state =
-                expand_event_enum(kind, events, attrs, variants, &V::Redacted, ruma_events);
-            let sync_state =
-                expand_event_enum(kind, events, attrs, variants, &V::RedactedSync, ruma_events);
+    if matches!(kind, EventKind::Message | EventKind::State) {
+        let full = expand_event_enum(kind, events, attrs, variants, &V::Redacted, ruma_events);
+        let sync = expand_event_enum(kind, events, attrs, variants, &V::RedactedSync, ruma_events);
 
-            quote! {
-                #full_state
-                #sync_state
-            }
+        quote! {
+            #full
+            #sync
         }
-        EventKind::Message => {
-            let full_message =
-                expand_event_enum(kind, events, attrs, variants, &V::Redacted, ruma_events);
-            let sync_message =
-                expand_event_enum(kind, events, attrs, variants, &V::RedactedSync, ruma_events);
-
-            quote! {
-                #full_message
-                #sync_message
-            }
-        }
-        _ => TokenStream::new(),
+    } else {
+        TokenStream::new()
     }
 }
 
