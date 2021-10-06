@@ -72,6 +72,8 @@ pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
 
     if matches!(kind, EventKind::Message | EventKind::State) {
         res.extend(expand_redacted_event_enum(kind, &events, attrs, &variants, &ruma_events));
+        res.extend(expand_possibly_redacted_enum(kind, V::Full, &ruma_events));
+        res.extend(expand_possibly_redacted_enum(kind, V::Sync, &ruma_events));
         res.extend(expand_from_full_event(kind, V::Redacted, &variants));
         res.extend(expand_into_full_event(kind, V::RedactedSync, &variants, &ruma_events));
     }
@@ -148,7 +150,6 @@ fn expand_event_enum(
         }
     };
 
-    let redacted_enum = expand_redacted_enum(kind, var, ruma_events);
     let field_accessor_impl = accessor_methods(kind, var, variants, ruma_events);
     let redact_impl = expand_redact(&ident, kind, var, variants, ruma_events);
     let from_impl = expand_from_impl(ident, &content, variants);
@@ -158,7 +159,6 @@ fn expand_event_enum(
         #field_accessor_impl
         #redact_impl
         #event_deserialize_impl
-        #redacted_enum
         #from_impl
     }
 }
@@ -398,52 +398,48 @@ fn expand_redact(
     })
 }
 
-fn expand_redacted_enum(
+fn expand_possibly_redacted_enum(
     kind: EventKind,
     var: EventKindVariation,
     ruma_events: &TokenStream,
-) -> Option<TokenStream> {
+) -> TokenStream {
     let serde = quote! { #ruma_events::exports::serde };
     let serde_json = quote! { #ruma_events::exports::serde_json };
 
-    if let EventKind::State | EventKind::Message = kind {
-        let ident = format_ident!("AnyPossiblyRedacted{}", kind.to_event_ident(var)?);
-        let regular_enum_ident = kind.to_event_enum_ident(var)?;
-        let redacted_enum_ident = kind.to_event_enum_ident(var.to_redacted()?)?;
+    let ident = format_ident!("AnyPossiblyRedacted{}", kind.to_event_ident(var).unwrap());
+    let regular_enum_ident = kind.to_event_enum_ident(var).unwrap();
+    let redacted_enum_ident = kind.to_event_enum_ident(var.to_redacted().unwrap()).unwrap();
 
-        Some(quote! {
-            /// An enum that holds either regular un-redacted events or redacted events.
-            #[derive(Clone, Debug, #serde::Serialize)]
-            #[serde(untagged)]
-            #[allow(clippy::exhaustive_enums)]
-            pub enum #ident {
-                /// An un-redacted event.
-                Regular(#regular_enum_ident),
+    quote! {
+        /// An enum that holds either regular un-redacted events or redacted events.
+        #[derive(Clone, Debug, #serde::Serialize)]
+        #[serde(untagged)]
+        #[allow(clippy::exhaustive_enums)]
+        pub enum #ident {
+            /// An un-redacted event.
+            Regular(#regular_enum_ident),
 
-                /// A redacted event.
-                Redacted(#redacted_enum_ident),
+            /// A redacted event.
+            Redacted(#redacted_enum_ident),
+        }
+
+        impl<'de> #serde::de::Deserialize<'de> for #ident {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: #serde::de::Deserializer<'de>,
+            {
+                let json = Box::<#serde_json::value::RawValue>::deserialize(deserializer)?;
+                let #ruma_events::RedactionDeHelper { unsigned } =
+                    #ruma_events::from_raw_json_value(&json)?;
+
+                Ok(match unsigned {
+                    Some(unsigned) if unsigned.redacted_because.is_some() => {
+                        Self::Redacted(#ruma_events::from_raw_json_value(&json)?)
+                    }
+                    _ => Self::Regular(#ruma_events::from_raw_json_value(&json)?),
+                })
             }
-
-            impl<'de> #serde::de::Deserialize<'de> for #ident {
-                fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-                where
-                    D: #serde::de::Deserializer<'de>,
-                {
-                    let json = Box::<#serde_json::value::RawValue>::deserialize(deserializer)?;
-                    let #ruma_events::RedactionDeHelper { unsigned } =
-                        #ruma_events::from_raw_json_value(&json)?;
-
-                    Ok(match unsigned {
-                        Some(unsigned) if unsigned.redacted_because.is_some() => {
-                            Self::Redacted(#ruma_events::from_raw_json_value(&json)?)
-                        }
-                        _ => Self::Regular(#ruma_events::from_raw_json_value(&json)?),
-                    })
-                }
-            }
-        })
-    } else {
-        None
+        }
     }
 }
 
@@ -521,7 +517,7 @@ fn accessor_methods(
     var: EventKindVariation,
     variants: &[EventEnumVariant],
     ruma_events: &TokenStream,
-) -> Option<TokenStream> {
+) -> TokenStream {
     let ident = kind.to_event_enum_ident(var).unwrap();
 
     let methods = EVENT_FIELDS.iter().map(|(name, has_field)| {
@@ -582,14 +578,14 @@ fn accessor_methods(
         }
     });
 
-    Some(quote! {
+    quote! {
         #[automatically_derived]
         impl #ident {
             #event_type
             #content_accessors
             #( #methods )*
         }
-    })
+    }
 }
 
 fn to_event_path(
