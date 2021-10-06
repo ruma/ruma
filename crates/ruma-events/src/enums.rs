@@ -355,27 +355,27 @@ impl AnyMessageEventContent {
         match self {
             #[cfg(feature = "unstable-pre-spec")]
             #[rustfmt::skip]
-            AnyMessageEventContent::KeyVerificationReady(KeyVerificationReadyEventContent { relates_to, .. })
-            | AnyMessageEventContent::KeyVerificationStart(KeyVerificationStartEventContent { relates_to, .. })
-            | AnyMessageEventContent::KeyVerificationCancel(KeyVerificationCancelEventContent { relates_to, .. })
-            | AnyMessageEventContent::KeyVerificationAccept(KeyVerificationAcceptEventContent { relates_to, .. })
-            | AnyMessageEventContent::KeyVerificationKey(KeyVerificationKeyEventContent { relates_to, .. })
-            | AnyMessageEventContent::KeyVerificationMac(KeyVerificationMacEventContent { relates_to, .. })
-            | AnyMessageEventContent::KeyVerificationDone(KeyVerificationDoneEventContent { relates_to, .. }) => {
+            Self::KeyVerificationReady(KeyVerificationReadyEventContent { relates_to, .. })
+            | Self::KeyVerificationStart(KeyVerificationStartEventContent { relates_to, .. })
+            | Self::KeyVerificationCancel(KeyVerificationCancelEventContent { relates_to, .. })
+            | Self::KeyVerificationAccept(KeyVerificationAcceptEventContent { relates_to, .. })
+            | Self::KeyVerificationKey(KeyVerificationKeyEventContent { relates_to, .. })
+            | Self::KeyVerificationMac(KeyVerificationMacEventContent { relates_to, .. })
+            | Self::KeyVerificationDone(KeyVerificationDoneEventContent { relates_to, .. }) => {
                 Some(relates_to.clone().into())
             },
             #[cfg(feature = "unstable-pre-spec")]
-            AnyMessageEventContent::Reaction(ev) => Some(ev.relates_to.clone().into()),
-            AnyMessageEventContent::RoomEncrypted(ev) => ev.relates_to.clone(),
-            AnyMessageEventContent::RoomMessage(ev) => ev.relates_to.clone().map(Into::into),
-            AnyMessageEventContent::CallAnswer(_)
-            | AnyMessageEventContent::CallInvite(_)
-            | AnyMessageEventContent::CallHangup(_)
-            | AnyMessageEventContent::CallCandidates(_)
-            | AnyMessageEventContent::RoomMessageFeedback(_)
-            | AnyMessageEventContent::RoomRedaction(_)
-            | AnyMessageEventContent::Sticker(_)
-            | AnyMessageEventContent::_Custom { .. } => None,
+            Self::Reaction(ev) => Some(ev.relates_to.clone().into()),
+            Self::RoomEncrypted(ev) => ev.relates_to.clone(),
+            Self::RoomMessage(ev) => ev.relates_to.clone().map(Into::into),
+            Self::CallAnswer(_)
+            | Self::CallInvite(_)
+            | Self::CallHangup(_)
+            | Self::CallCandidates(_)
+            | Self::RoomMessageFeedback(_)
+            | Self::RoomRedaction(_)
+            | Self::Sticker(_)
+            | Self::_Custom { .. } => None,
         }
     }
 }
