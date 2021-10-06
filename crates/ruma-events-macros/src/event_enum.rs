@@ -522,23 +522,13 @@ fn accessor_methods(
     variants: &[EventEnumVariant],
     ruma_events: &TokenStream,
 ) -> Option<TokenStream> {
-    use EventKindVariation as V;
-
-    let ident = kind.to_event_enum_ident(var)?;
-
-    // matching `EventKindVariation`s
-    if let V::Redacted | V::RedactedSync = var {
-        return redacted_accessor_methods(kind, var, variants, ruma_events);
-    }
+    let ident = kind.to_event_enum_ident(var).unwrap();
 
     let methods = EVENT_FIELDS.iter().map(|(name, has_field)| {
         generate_accessor(name, kind, var, *has_field, variants, ruma_events)
     });
 
-    let content_enum = kind.to_content_enum();
-
     let self_variants: Vec<_> = variants.iter().map(|v| v.match_arm(quote! { Self })).collect();
-    let content_variants: Vec<_> = variants.iter().map(|v| v.ctor(&content_enum)).collect();
 
     let event_type = quote! {
         /// Returns the `type` of this event.
@@ -552,65 +542,51 @@ fn accessor_methods(
         }
     };
 
-    let content = quote! {
-        /// Returns the content enum for this event.
-        pub fn content(&self) -> #content_enum {
-            match self {
-                #( #self_variants(event) => #content_variants(event.content.clone()), )*
-                Self::_Custom(event) => #content_enum::_Custom {
-                    event_type: #ruma_events::EventContent::event_type(&event.content).to_owned(),
-                },
-            }
-        }
-    };
+    let content_accessors = (!var.is_redacted()).then(|| {
+        let content_enum = kind.to_content_enum();
+        let content_variants: Vec<_> = variants.iter().map(|v| v.ctor(&content_enum)).collect();
 
-    let prev_content = has_prev_content_field(kind, var).then(|| {
-        quote! {
-            /// Returns the content enum for this events prev_content.
-            pub fn prev_content(&self) -> Option<#content_enum> {
-                match self {
-                    #(
-                        #self_variants(event) => {
-                            event.prev_content.as_ref().map(|c| #content_variants(c.clone()))
+        let prev_content = has_prev_content_field(kind, var).then(|| {
+            quote! {
+                /// Returns the previous content for this event.
+                pub fn prev_content(&self) -> Option<#content_enum> {
+                    match self {
+                        #(
+                            #self_variants(event) => {
+                                event.prev_content.as_ref().map(|c| #content_variants(c.clone()))
+                            },
+                        )*
+                        Self::_Custom(event) => {
+                            event.prev_content.as_ref().map(|c| #content_enum::_Custom {
+                                event_type: #ruma_events::EventContent::event_type(c).to_owned(),
+                            })
                         },
-                    )*
-                    Self::_Custom(event) => {
-                        event.prev_content.as_ref().map(|c| #content_enum::_Custom {
-                            event_type: #ruma_events::EventContent::event_type(c).to_owned(),
-                        })
+                    }
+                }
+            }
+        });
+
+        quote! {
+            /// Returns the content for this event.
+            pub fn content(&self) -> #content_enum {
+                match self {
+                    #( #self_variants(event) => #content_variants(event.content.clone()), )*
+                    Self::_Custom(event) => #content_enum::_Custom {
+                        event_type: #ruma_events::EventContent::event_type(&event.content)
+                            .to_owned(),
                     },
                 }
             }
-        }
-    });
 
-    Some(quote! {
-        #[automatically_derived]
-        impl #ident {
-            #content
-            #event_type
             #prev_content
-            #( #methods )*
         }
-    })
-}
-
-/// Redacted events do NOT generate `content` or `prev_content` methods like
-/// un-redacted events; otherwise, they are the same.
-fn redacted_accessor_methods(
-    kind: EventKind,
-    var: EventKindVariation,
-    variants: &[EventEnumVariant],
-    ruma_events: &TokenStream,
-) -> Option<TokenStream> {
-    let ident = kind.to_event_enum_ident(var)?;
-    let methods = EVENT_FIELDS.iter().map(|(name, has_field)| {
-        generate_accessor(name, kind, var, *has_field, variants, ruma_events)
     });
 
     Some(quote! {
         #[automatically_derived]
         impl #ident {
+            #event_type
+            #content_accessors
             #( #methods )*
         }
     })
