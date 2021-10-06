@@ -61,6 +61,8 @@ pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
 
     if matches!(kind, EventKind::Ephemeral | EventKind::Message | EventKind::State) {
         res.extend(expand_event_enum(kind, &events, attrs, &variants, V::Sync, &ruma_events));
+        res.extend(expand_from_full_event(kind, V::Full, &variants));
+        res.extend(expand_into_full_event(kind, V::Sync, &variants, &ruma_events));
     }
 
     if matches!(kind, EventKind::State) {
@@ -70,6 +72,8 @@ pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
 
     if matches!(kind, EventKind::Message | EventKind::State) {
         res.extend(expand_redacted_event_enum(kind, &events, attrs, &variants, &ruma_events));
+        res.extend(expand_from_full_event(kind, V::Redacted, &variants));
+        res.extend(expand_into_full_event(kind, V::RedactedSync, &variants, &ruma_events));
     }
 
     Ok(res)
@@ -144,7 +148,6 @@ fn expand_event_enum(
         }
     };
 
-    let event_enum_to_from_sync = expand_conversion_impl(kind, var, variants, ruma_events);
     let redacted_enum = expand_redacted_enum(kind, var, ruma_events);
     let field_accessor_impl = accessor_methods(kind, var, variants, ruma_events);
     let redact_impl = expand_redact(&ident, kind, var, variants, ruma_events);
@@ -152,7 +155,6 @@ fn expand_event_enum(
 
     quote! {
         #event_enum
-        #event_enum_to_from_sync
         #field_accessor_impl
         #redact_impl
         #event_deserialize_impl
@@ -184,67 +186,70 @@ fn expand_from_impl(
     quote! { #( #from_impls )* }
 }
 
-fn expand_conversion_impl(
+fn expand_from_full_event(
+    kind: EventKind,
+    var: EventKindVariation,
+    variants: &[EventEnumVariant],
+) -> TokenStream {
+    let ident = kind.to_event_enum_ident(var).unwrap();
+    let sync = kind.to_event_enum_ident(var.to_sync().unwrap()).unwrap();
+
+    let ident_variants = variants.iter().map(|v| v.match_arm(&ident));
+    let self_variants = variants.iter().map(|v| v.ctor(quote! { Self }));
+
+    quote! {
+        #[automatically_derived]
+        impl ::std::convert::From<#ident> for #sync {
+            fn from(event: #ident) -> Self {
+                match event {
+                    #(
+                        #ident_variants(event) => {
+                            #self_variants(::std::convert::From::from(event))
+                        },
+                    )*
+                    #ident::_Custom(event) => {
+                        Self::_Custom(::std::convert::From::from(event))
+                    },
+                }
+            }
+        }
+    }
+}
+
+fn expand_into_full_event(
     kind: EventKind,
     var: EventKindVariation,
     variants: &[EventEnumVariant],
     ruma_events: &TokenStream,
-) -> Option<TokenStream> {
+) -> TokenStream {
     let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
 
-    let ident = kind.to_event_enum_ident(var)?;
-    match var {
-        EventKindVariation::Full | EventKindVariation::Redacted => {
-            let sync = kind.to_event_enum_ident(var.to_sync().unwrap())?;
-            let ident_variants = variants.iter().map(|v| v.match_arm(&ident));
-            let self_variants = variants.iter().map(|v| v.ctor(quote! { Self }));
+    let ident = kind.to_event_enum_ident(var).unwrap();
+    let full = kind.to_event_enum_ident(var.to_full().unwrap()).unwrap();
 
-            Some(quote! {
-                #[automatically_derived]
-                impl ::std::convert::From<#ident> for #sync {
-                    fn from(event: #ident) -> Self {
-                        match event {
-                            #(
-                                #ident_variants(event) => {
-                                    #self_variants(::std::convert::From::from(event))
-                                },
-                            )*
-                            #ident::_Custom(event) => {
-                                Self::_Custom(::std::convert::From::from(event))
-                            },
-                        }
-                    }
-                }
-            })
-        }
-        EventKindVariation::Sync | EventKindVariation::RedactedSync => {
-            let full = kind.to_event_enum_ident(var.to_full().unwrap())?;
-            let self_variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
-            let full_variants = variants.iter().map(|v| v.ctor(&full));
+    let self_variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
+    let full_variants = variants.iter().map(|v| v.ctor(&full));
 
-            Some(quote! {
-                #[automatically_derived]
-                impl #ident {
-                    /// Convert this sync event into a full event (one with a `room_id` field).
-                    pub fn into_full_event(
-                        self,
-                        room_id: #ruma_identifiers::RoomId
-                    ) -> #full {
-                        match self {
-                            #(
-                                #self_variants(event) => {
-                                    #full_variants(event.into_full_event(room_id))
-                                },
-                            )*
-                            Self::_Custom(event) => {
-                                #full::_Custom(event.into_full_event(room_id))
-                            },
-                        }
-                    }
+    quote! {
+        #[automatically_derived]
+        impl #ident {
+            /// Convert this sync event into a full event (one with a `room_id` field).
+            pub fn into_full_event(
+                self,
+                room_id: #ruma_identifiers::RoomId
+            ) -> #full {
+                match self {
+                    #(
+                        #self_variants(event) => {
+                            #full_variants(event.into_full_event(room_id))
+                        },
+                    )*
+                    Self::_Custom(event) => {
+                        #full::_Custom(event.into_full_event(room_id))
+                    },
                 }
-            })
+            }
         }
-        _ => None,
     }
 }
 
