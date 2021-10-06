@@ -325,7 +325,6 @@ fn expand_content_enum(
     variants: &[EventEnumVariant],
     ruma_events: &TokenStream,
 ) -> TokenStream {
-    let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
     let serde = quote! { #ruma_events::exports::serde };
     let serde_json = quote! { #ruma_events::exports::serde_json };
 
@@ -395,62 +394,12 @@ fn expand_content_enum(
 
     let marker_trait_impl = marker_trait(kind, ruma_events);
 
-    let redacted_content_enum = matches!(kind, EventKind::State | EventKind::Message).then(|| {
-        let redacted_ident = kind.to_redacted_content_enum();
-        let redacted_variants = variants.iter().map(|v| v.ctor(&redacted_ident));
-        let redacted_content: Vec<_> = events
-            .iter()
-            .map(|ev| to_event_content_path(kind, ev, Some("Redacted"), ruma_events))
-            .collect();
-
-        quote! {
-            #( #attrs )*
-            #[derive(Clone, Debug, #serde::Serialize)]
-            #[serde(untagged)]
-            #[allow(clippy::large_enum_variant)]
-            #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-            pub enum #redacted_ident {
-                #(
-                    #[doc = #event_type_str]
-                    #variant_decls(#redacted_content),
-                )*
-                #[doc(hidden)]
-                _Custom {
-                    #[serde(skip)]
-                    event_type: ::std::string::String,
-                },
-            }
-
-            impl #ruma_events::RedactContent for #ident {
-                type Redacted = #redacted_ident;
-
-                /// Redacts `Self` given a `RoomVersionId`.
-                fn redact(
-                    self,
-                    version: &#ruma_identifiers::RoomVersionId,
-                ) -> #redacted_ident {
-                    match self {
-                        #(
-                            #variant_arms(content) => {
-                                #redacted_variants(
-                                    #ruma_events::RedactContent::redact(content, version),
-                                )
-                            }
-                        )*
-                        Self::_Custom { event_type } => #redacted_ident::_Custom { event_type },
-                    }
-                }
-            }
-        }
-    });
-
     let from_impl = expand_from_impl(ident, &content, variants);
 
     quote! {
         #content_enum
         #event_content_impl
         #marker_trait_impl
-        #redacted_content_enum
         #from_impl
     }
 }

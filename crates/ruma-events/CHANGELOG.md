@@ -8,6 +8,7 @@ Breaking changes:
 * Require `room::message::MessageType` to always contain a body
   * The `new` constructor now also has a body parameter
 * Rename `*ToDeviceEventContent` structs to `ToDevice*Content`
+* Remove unneeded redacted event content enums
 
 Improvements:
 

@@ -5,15 +5,14 @@ use ruma_events::{
     custom::RedactedCustomEventContent,
     room::{
         aliases::RedactedRoomAliasesEventContent,
-        create::RedactedRoomCreateEventContent,
-        message::RedactedRoomMessageEventContent,
+        create::{RedactedRoomCreateEventContent, RoomCreateEventContent},
+        message::{RedactedRoomMessageEventContent, RoomMessageEventContent},
         redaction::{RoomRedactionEventContent, SyncRoomRedactionEvent},
     },
-    AnyMessageEvent, AnyMessageEventContent, AnyRedactedMessageEvent,
-    AnyRedactedMessageEventContent, AnyRedactedStateEventContent, AnyRedactedSyncMessageEvent,
-    AnyRedactedSyncStateEvent, AnyRoomEvent, AnyStateEventContent, AnySyncRoomEvent, EventContent,
-    Redact, RedactContent, RedactedMessageEvent, RedactedSyncMessageEvent, RedactedSyncStateEvent,
-    RedactedUnsigned, Unsigned,
+    AnyMessageEvent, AnyRedactedMessageEvent, AnyRedactedSyncMessageEvent,
+    AnyRedactedSyncStateEvent, AnyRoomEvent, AnySyncRoomEvent, EventContent, Redact, RedactContent,
+    RedactedMessageEvent, RedactedSyncMessageEvent, RedactedSyncStateEvent, RedactedUnsigned,
+    Unsigned,
 };
 use ruma_identifiers::{event_id, room_id, user_id, RoomVersionId};
 use serde_json::{
@@ -322,11 +321,11 @@ fn redact_message_content() {
     });
 
     let raw_json = to_raw_value(&json).unwrap();
-    let content = AnyMessageEventContent::from_parts("m.room.message", &raw_json).unwrap();
+    let content = RoomMessageEventContent::from_parts("m.room.message", &raw_json).unwrap();
 
     assert_matches!(
         content.redact(&RoomVersionId::Version6),
-        AnyRedactedMessageEventContent::RoomMessage(RedactedRoomMessageEventContent { .. })
+        RedactedRoomMessageEventContent { .. }
     );
 }
 
@@ -339,13 +338,13 @@ fn redact_state_content() {
     });
 
     let raw_json = to_raw_value(&json).unwrap();
-    let content = AnyStateEventContent::from_parts("m.room.create", &raw_json).unwrap();
+    let content = RoomCreateEventContent::from_parts("m.room.create", &raw_json).unwrap();
 
     assert_matches!(
         content.redact(&RoomVersionId::Version6),
-        AnyRedactedStateEventContent::RoomCreate(RedactedRoomCreateEventContent {
+        RedactedRoomCreateEventContent {
             creator,
             ..
-        }) if creator == user_id!("@carl:example.com")
+        } if creator == user_id!("@carl:example.com")
     );
 }

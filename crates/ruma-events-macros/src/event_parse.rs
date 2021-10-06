@@ -150,11 +150,6 @@ impl EventKind {
     pub fn to_content_enum(&self) -> Ident {
         format_ident!("Any{}Content", self)
     }
-
-    /// `AnyRedacted[kind]EventContent`
-    pub fn to_redacted_content_enum(&self) -> Ident {
-        format_ident!("AnyRedacted{}Content", self)
-    }
 }
 
 impl Parse for EventKind {
