@@ -48,30 +48,31 @@ pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
 
     let ruma_events = crate::import_ruma_events();
 
+    let mut res = TokenStream::new();
+
     let kind = input.kind;
     let attrs = &input.attrs;
     let events: Vec<_> = input.events.iter().map(|entry| entry.ev_type.clone()).collect();
     let variants: Vec<_> =
         input.events.iter().map(EventEnumEntry::to_variant).collect::<syn::Result<_>>()?;
 
-    let event_enum = expand_event_enum(kind, &events, attrs, &variants, V::Full, &ruma_events);
-    let sync_event_enum = expand_event_enum(kind, &events, attrs, &variants, V::Sync, &ruma_events);
-    let stripped_event_enum =
-        expand_event_enum(kind, &events, attrs, &variants, V::Stripped, &ruma_events);
-    let initial_event_enum =
-        expand_event_enum(kind, &events, attrs, &variants, V::Initial, &ruma_events);
-    let redacted_event_enums =
-        expand_redacted_event_enum(kind, &events, attrs, &variants, &ruma_events);
-    let event_content_enum = expand_content_enum(kind, &events, attrs, &variants, &ruma_events);
+    res.extend(expand_event_enum(kind, &events, attrs, &variants, V::Full, &ruma_events));
+    res.extend(expand_content_enum(kind, &events, attrs, &variants, &ruma_events));
 
-    Ok(quote! {
-        #event_enum
-        #sync_event_enum
-        #stripped_event_enum
-        #initial_event_enum
-        #redacted_event_enums
-        #event_content_enum
-    })
+    if matches!(kind, EventKind::Ephemeral | EventKind::Message | EventKind::State) {
+        res.extend(expand_event_enum(kind, &events, attrs, &variants, V::Sync, &ruma_events));
+    }
+
+    if matches!(kind, EventKind::State) {
+        res.extend(expand_event_enum(kind, &events, attrs, &variants, V::Stripped, &ruma_events));
+        res.extend(expand_event_enum(kind, &events, attrs, &variants, V::Initial, &ruma_events));
+    }
+
+    if matches!(kind, EventKind::Message | EventKind::State) {
+        res.extend(expand_redacted_event_enum(kind, &events, attrs, &variants, &ruma_events));
+    }
+
+    Ok(res)
 }
 
 fn expand_event_enum(
@@ -81,14 +82,12 @@ fn expand_event_enum(
     variants: &[EventEnumVariant],
     var: EventKindVariation,
     ruma_events: &TokenStream,
-) -> Option<TokenStream> {
+) -> TokenStream {
     let serde = quote! { #ruma_events::exports::serde };
     let serde_json = quote! { #ruma_events::exports::serde_json };
 
-    // If the event cannot be generated this bails out returning None which is rendered the same
-    // as an empty `TokenStream`. This is effectively the check if the given input generates
-    // a valid event enum.
-    let (event_struct, ident) = generate_event_idents(kind, var)?;
+    let event_struct = kind.to_event_ident(var).unwrap();
+    let ident = kind.to_event_enum_ident(var).unwrap();
 
     let content: Vec<_> =
         events.iter().map(|event| to_event_path(event, kind, var, ruma_events)).collect();
@@ -151,7 +150,7 @@ fn expand_event_enum(
     let redact_impl = expand_redact(&ident, kind, var, variants, ruma_events);
     let from_impl = expand_from_impl(ident, &content, variants);
 
-    Some(quote! {
+    quote! {
         #event_enum
         #event_enum_to_from_sync
         #field_accessor_impl
@@ -159,7 +158,7 @@ fn expand_event_enum(
         #event_deserialize_impl
         #redacted_enum
         #from_impl
-    })
+    }
 }
 
 fn expand_from_impl(
@@ -263,17 +262,10 @@ fn expand_redacted_event_enum(
 ) -> TokenStream {
     use EventKindVariation as V;
 
-    if matches!(kind, EventKind::Message | EventKind::State) {
-        let full = expand_event_enum(kind, events, attrs, variants, V::Redacted, ruma_events);
-        let sync = expand_event_enum(kind, events, attrs, variants, V::RedactedSync, ruma_events);
+    let full = expand_event_enum(kind, events, attrs, variants, V::Redacted, ruma_events);
+    let sync = expand_event_enum(kind, events, attrs, variants, V::RedactedSync, ruma_events);
 
-        quote! {
-            #full
-            #sync
-        }
-    } else {
-        TokenStream::new()
-    }
+    quote! { #full #sync }
 }
 
 /// Create a content enum from `EventEnumInput`.
@@ -448,10 +440,6 @@ fn expand_redacted_enum(
     } else {
         None
     }
-}
-
-fn generate_event_idents(kind: EventKind, var: EventKindVariation) -> Option<(Ident, Ident)> {
-    kind.to_event_ident(var).zip(kind.to_event_enum_ident(var))
 }
 
 fn generate_custom_variant(
