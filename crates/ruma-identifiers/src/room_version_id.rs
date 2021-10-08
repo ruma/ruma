@@ -44,17 +44,14 @@ pub enum RoomVersionId {
 
     /// A version 7 room.
     #[cfg(feature = "unstable-pre-spec")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     Version7,
 
     /// A version 8 room.
     #[cfg(feature = "unstable-pre-spec")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     Version8,
 
     /// A version 9 room.
     #[cfg(feature = "unstable-pre-spec")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     Version9,
 
     #[doc(hidden)]

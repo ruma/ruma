@@ -35,28 +35,20 @@ event_enum! {
         "m.call.hangup",
         "m.call.candidates",
         #[cfg(feature = "unstable-pre-spec")]
-        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         "m.key.verification.ready",
         #[cfg(feature = "unstable-pre-spec")]
-        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         "m.key.verification.start",
         #[cfg(feature = "unstable-pre-spec")]
-        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         "m.key.verification.cancel",
         #[cfg(feature = "unstable-pre-spec")]
-        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         "m.key.verification.accept",
         #[cfg(feature = "unstable-pre-spec")]
-        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         "m.key.verification.key",
         #[cfg(feature = "unstable-pre-spec")]
-        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         "m.key.verification.mac",
         #[cfg(feature = "unstable-pre-spec")]
-        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         "m.key.verification.done",
         #[cfg(feature = "unstable-pre-spec")]
-        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         "m.reaction",
         "m.room.encrypted",
         "m.room.message",
@@ -88,10 +80,8 @@ event_enum! {
         "m.room.tombstone",
         "m.room.topic",
         #[cfg(feature = "unstable-pre-spec")]
-        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         "m.space.child",
         #[cfg(feature = "unstable-pre-spec")]
-        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         "m.space.parent",
     }
 
@@ -103,7 +93,6 @@ event_enum! {
         "m.forwarded_room_key",
         "m.key.verification.request",
         #[cfg(feature = "unstable-pre-spec")]
-        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         "m.key.verification.ready",
         "m.key.verification.start",
         "m.key.verification.cancel",
@@ -111,14 +100,11 @@ event_enum! {
         "m.key.verification.key",
         "m.key.verification.mac",
         #[cfg(feature = "unstable-pre-spec")]
-        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         "m.key.verification.done",
         "m.room.encrypted",
         #[cfg(feature = "unstable-pre-spec")]
-        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         "m.secret.request",
         #[cfg(feature = "unstable-pre-spec")]
-        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         "m.secret.send",
     }
 }

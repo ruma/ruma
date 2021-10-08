@@ -74,7 +74,6 @@ pub struct RoomMemberEventContent {
     /// This uses the unstable prefix in
     /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
     #[cfg(feature = "unstable-pre-spec")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     #[serde(rename = "xyz.amorgan.blurhash")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub blurhash: Option<String>,
@@ -90,7 +89,6 @@ pub struct RoomMemberEventContent {
     /// the potential for spam and abuse. Hiding the reason behind a button or other component
     /// is recommended.
     #[cfg(feature = "unstable-pre-spec")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
 }

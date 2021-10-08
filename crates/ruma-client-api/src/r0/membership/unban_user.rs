@@ -23,7 +23,6 @@ ruma_api! {
 
         /// Optional reason for unbanning the user.
         #[cfg(feature = "unstable-pre-spec")]
-        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub reason: Option<&'a str>,
     }

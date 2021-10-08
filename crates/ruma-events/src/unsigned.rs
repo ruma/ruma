@@ -24,7 +24,6 @@ pub struct Unsigned {
 
     /// Server-compiled information from other events relating to this event.
     #[cfg(feature = "unstable-pre-spec")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]
     pub relations: Option<Relations>,
 }
@@ -86,7 +85,6 @@ pub struct UnsignedWithPrevContent {
     transaction_id: Option<String>,
 
     #[cfg(feature = "unstable-pre-spec")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]
     relations: Option<Relations>,
 

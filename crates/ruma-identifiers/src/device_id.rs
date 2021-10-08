@@ -12,7 +12,6 @@ opaque_identifier! {
 impl DeviceId {
     /// Generates a random `DeviceId`, suitable for assignment to a new device.
     #[cfg(feature = "rand")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
     pub fn new() -> Box<Self> {
         Self::from_owned(generate_localpart(8))
     }

@@ -173,7 +173,6 @@ pub enum MessageType {
 
     /// A request to initiate a key verification.
     #[cfg(feature = "unstable-pre-spec")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     VerificationRequest(KeyVerificationRequestEventContent),
 
     /// A custom message.
@@ -311,7 +310,6 @@ pub enum Relation {
 
     /// An event that replaces another event.
     #[cfg(feature = "unstable-pre-spec")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     Replacement(Replacement),
 
     #[doc(hidden)]
@@ -336,7 +334,6 @@ impl InReplyTo {
 /// The event this relation belongs to replaces another event.
 #[derive(Clone, Debug)]
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Replacement {
     /// The ID of the event being replacing.
@@ -446,7 +443,6 @@ impl EmoteMessageEventContent {
     /// Returns an html emote message if some markdown formatting was detected, otherwise returns a
     /// plain-text emote.
     #[cfg(feature = "markdown")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
         Self { formatted: FormattedBody::markdown(&body), ..Self::plain(body) }
     }
@@ -652,7 +648,6 @@ impl NoticeMessageEventContent {
     /// Returns an html notice if some markdown formatting was detected, otherwise returns a plain
     /// text notice.
     #[cfg(feature = "markdown")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
         Self { formatted: FormattedBody::markdown(&body), ..Self::plain(body) }
     }
@@ -781,7 +776,6 @@ impl FormattedBody {
     ///
     /// Returns `None` if no markdown formatting was found.
     #[cfg(feature = "markdown")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
     pub fn markdown(body: impl AsRef<str>) -> Option<Self> {
         let body = body.as_ref();
         let mut html_body = String::new();
@@ -821,7 +815,6 @@ impl TextMessageEventContent {
     /// Returns an html message if some markdown formatting was detected, otherwise returns a plain
     /// text message.
     #[cfg(feature = "markdown")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
         Self { formatted: FormattedBody::markdown(&body), ..Self::plain(body) }
     }
@@ -912,7 +905,6 @@ pub struct VideoInfo {
     /// This uses the unstable prefix in
     /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
     #[cfg(feature = "unstable-pre-spec")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     #[serde(rename = "xyz.amorgan.blurhash")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub blurhash: Option<String>,
@@ -928,7 +920,6 @@ impl VideoInfo {
 /// The payload for a key verification request message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.key.verification.request")]
 pub struct KeyVerificationRequestEventContent {

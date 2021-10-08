@@ -57,7 +57,6 @@ impl EventId {
     /// Does not currently ever fail, but may fail in the future if the homeserver cannot be parsed
     /// parsed as a valid host.
     #[cfg(feature = "rand")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
     pub fn new(server_name: &ServerName) -> Self {
         use crate::generate_localpart;
 

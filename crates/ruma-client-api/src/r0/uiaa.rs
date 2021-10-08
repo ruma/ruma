@@ -57,7 +57,6 @@ pub enum AuthData<'a> {
 
     /// Registration token-based authentication (`org.matrix.msc3231.login.registration_token`).
     #[cfg(feature = "unstable-pre-spec")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     RegistrationToken(RegistrationToken<'a>),
 
     /// Fallback acknowledgement.
@@ -377,7 +376,6 @@ pub enum AuthType {
 
     /// Registration token-based authentication (`org.matrix.msc3231.login.registration_token`).
     #[cfg(feature = "unstable-pre-spec")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     #[ruma_enum(rename = "org.matrix.msc3231.login.registration_token")]
     RegistrationToken,
 
@@ -601,7 +599,6 @@ impl IncomingDummy {
 #[derive(Clone, Debug, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[serde(tag = "type", rename = "org.matrix.msc3231.login.registration_token")]
 pub struct RegistrationToken<'a> {
     /// The registration token.
@@ -612,7 +609,6 @@ pub struct RegistrationToken<'a> {
 }
 
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 impl<'a> RegistrationToken<'a> {
     /// Creates a new `RegistrationToken` with the given token.
     pub fn new(token: &'a str) -> Self {
@@ -621,7 +617,6 @@ impl<'a> RegistrationToken<'a> {
 }
 
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 impl IncomingRegistrationToken {
     /// Convert from `IncomingRegistrationToken` to `RegistrationToken`.
     fn to_outgoing(&self) -> RegistrationToken<'_> {

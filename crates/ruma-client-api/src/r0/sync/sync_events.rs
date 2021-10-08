@@ -174,7 +174,6 @@ pub struct Rooms {
 
     /// The rooms that the user has knocked on.
     #[cfg(feature = "unstable-pre-spec")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub knock: BTreeMap<RoomId, KnockedRoom>,
 }
@@ -274,7 +273,6 @@ impl JoinedRoom {
 /// Updates to knocked rooms.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct KnockedRoom {
     /// The knock state.
@@ -284,7 +282,6 @@ pub struct KnockedRoom {
 /// A mapping from a key `events` to a list of `StrippedStateEvent`.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct KnockState {
     /// The list of events.

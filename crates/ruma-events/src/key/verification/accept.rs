@@ -43,7 +43,6 @@ impl ToDeviceKeyVerificationAcceptEventContent {
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.key.verification.accept", kind = Message)]
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct KeyVerificationAcceptEventContent {
     /// The method specific content.

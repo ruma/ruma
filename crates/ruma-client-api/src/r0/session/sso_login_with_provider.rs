@@ -2,7 +2,6 @@
 //!
 //! This uses the unstable prefix in [MSC2858](https://github.com/matrix-org/matrix-doc/pull/2858).
 #![cfg(feature = "unstable-pre-spec")]
-#![cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 
 use ruma_api::ruma_api;
 

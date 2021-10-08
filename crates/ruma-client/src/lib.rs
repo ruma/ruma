@@ -108,7 +108,6 @@ extern crate hyper_rustls_crate as hyper_rustls;
 extern crate isahc_crate as isahc;
 
 #[cfg(feature = "client-api")]
-#[cfg_attr(docsrs, doc(cfg(feature = "client-api")))]
 mod client_api;
 mod error;
 pub mod http_client;

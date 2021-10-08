@@ -44,7 +44,6 @@ pub struct RoomV1Pdu {
     pub sender: UserId,
 
     #[cfg(not(feature = "unstable-pre-spec"))]
-    #[cfg_attr(docsrs, doc(cfg(not(feature = "unstable-pre-spec"))))]
     /// The `server_name` of the homeserver that created this event.
     pub origin: String,
 
@@ -104,7 +103,6 @@ pub struct RoomV3Pdu {
     pub sender: UserId,
 
     #[cfg(not(feature = "unstable-pre-spec"))]
-    #[cfg_attr(docsrs, doc(cfg(not(feature = "unstable-pre-spec"))))]
     /// The `server_name` of the homeserver that created this event.
     pub origin: String,
 

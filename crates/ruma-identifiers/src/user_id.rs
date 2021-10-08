@@ -40,7 +40,6 @@ impl UserId {
     /// Attempts to generate a `UserId` for the given origin server with a localpart consisting of
     /// 12 random ASCII characters.
     #[cfg(feature = "rand")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
     pub fn new(server_name: &ServerName) -> Self {
         use crate::generate_localpart;
 

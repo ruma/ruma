@@ -13,12 +13,10 @@ use serde::{Deserialize, Serialize};
 pub mod accept;
 pub mod cancel;
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub mod done;
 pub mod key;
 pub mod mac;
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub mod ready;
 pub mod request;
 pub mod start;
@@ -123,7 +121,6 @@ impl ShortAuthenticationString {
 /// A relation which associates an `m.key.verification.request` with another key verification event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "rel_type", rename = "m.reference")]
 pub struct Relation {

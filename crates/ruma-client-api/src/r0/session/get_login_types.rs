@@ -151,7 +151,6 @@ pub struct SsoLoginType {
     /// This uses the unstable prefix in
     /// [MSC2858](https://github.com/matrix-org/matrix-doc/pull/2858).
     #[cfg(feature = "unstable-pre-spec")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     #[serde(
         default,
         rename = "org.matrix.msc2858.identity_providers",
@@ -169,7 +168,6 @@ impl SsoLoginType {
 
 /// An SSO login identity provider.
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct IdentityProvider {
@@ -199,7 +197,6 @@ impl IdentityProvider {
 /// This uses the unstable prefix in
 /// [MSC2858](https://github.com/matrix-org/matrix-doc/pull/2858).
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum IdentityProviderBrand {

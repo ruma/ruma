@@ -162,33 +162,27 @@ pub mod fully_read;
 pub mod ignored_user_list;
 pub mod key;
 #[cfg(feature = "unstable-pdu")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pdu")))]
 pub mod pdu;
 pub mod policy;
 pub mod presence;
 pub mod push_rules;
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub mod reaction;
 pub mod receipt;
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub mod relation;
 pub mod room;
 pub mod room_key;
 pub mod room_key_request;
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub mod secret;
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub mod space;
 pub mod sticker;
 pub mod tag;
 pub mod typing;
 
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub use self::relation::Relations;
 pub use self::{
     enums::*,

@@ -20,7 +20,6 @@ ruma_api! {
 
         /// Optional reason to be included as the `reason` on the subsequent membership event.
         #[cfg(feature = "unstable-pre-spec")]
-        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub reason: Option<&'a str>,
     }

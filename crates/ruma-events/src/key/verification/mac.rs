@@ -43,7 +43,6 @@ impl ToDeviceKeyVerificationMacEventContent {
 /// Sends the MAC of a device's key to the partner device.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.mac", kind = Message)]
 pub struct KeyVerificationMacEventContent {

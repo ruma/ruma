@@ -35,7 +35,6 @@ impl ToDeviceKeyVerificationKeyEventContent {
 /// Sends the ephemeral public key for a device to the partner device.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.key", kind = Message)]
 pub struct KeyVerificationKeyEventContent {

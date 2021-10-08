@@ -92,19 +92,15 @@ pub use ruma_identifiers::{
 };
 
 #[cfg(feature = "client")]
-#[cfg_attr(docsrs, doc(cfg(feature = "client")))]
 #[doc(inline)]
 pub use ruma_client as client;
 #[cfg(feature = "events")]
-#[cfg_attr(docsrs, doc(cfg(feature = "events")))]
 #[doc(inline)]
 pub use ruma_events as events;
 #[cfg(feature = "signatures")]
-#[cfg_attr(docsrs, doc(cfg(feature = "signatures")))]
 #[doc(inline)]
 pub use ruma_signatures as signatures;
 #[cfg(feature = "state-res")]
-#[cfg_attr(docsrs, doc(cfg(feature = "state-res")))]
 #[doc(inline)]
 pub use ruma_state_res as state_res;
 
@@ -113,7 +109,6 @@ pub use ruma_state_res as state_res;
 ///
 /// [apis]: https://matrix.org/docs/spec/#matrix-apis
 #[cfg(feature = "api")]
-#[cfg_attr(docsrs, doc(cfg(feature = "api")))]
 pub mod api {
     pub use ruma_api::*;
 

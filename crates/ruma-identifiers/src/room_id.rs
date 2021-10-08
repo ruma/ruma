@@ -35,7 +35,6 @@ impl RoomId {
     ///
     /// Fails if the given homeserver cannot be parsed as a valid host.
     #[cfg(feature = "rand")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
     pub fn new(server_name: &ServerName) -> Self {
         use crate::generate_localpart;
 

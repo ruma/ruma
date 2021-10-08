@@ -63,7 +63,6 @@ impl RoomIdOrAliasId {
 
     /// Turn this `RoomIdOrAliasId` into `Either<RoomId, RoomAliasId>`
     #[cfg(feature = "either")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "either")))]
     pub fn into_either(self) -> either::Either<RoomId, RoomAliasId> {
         match self.variant() {
             Variant::RoomId => {

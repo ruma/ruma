@@ -31,13 +31,11 @@ ruma_api! {
 
         /// Information on the master cross-signing keys of the queried users.
         #[cfg(feature = "unstable-pre-spec")]
-        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
         pub master_keys: BTreeMap<UserId, CrossSigningKey>,
 
         /// Information on the self-signing keys of the queried users.
         #[cfg(feature = "unstable-pre-spec")]
-        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
         pub self_signing_keys: BTreeMap<UserId, CrossSigningKey>,
     }
