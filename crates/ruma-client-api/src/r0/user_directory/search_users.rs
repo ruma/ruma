@@ -80,8 +80,8 @@ pub struct User {
 
     /// The avatar url, as an MXC, if one exists.
     ///
-    /// If you activate the `compat` feature, this field being an empty string in JSON will give
-    /// you `None` here.
+    /// If you activate the `compat` feature, this field being an empty string in JSON will result
+    /// in `None` here during deserialization.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
         feature = "compat",

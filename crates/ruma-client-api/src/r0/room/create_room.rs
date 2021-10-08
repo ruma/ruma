@@ -71,7 +71,9 @@ ruma_api! {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub room_alias_name: Option<&'a str>,
 
-        /// Room version to set for the room. Defaults to homeserver's default if not specified.
+        /// Room version to set for the room.
+        ///
+        /// Defaults to homeserver's default if not specified.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub room_version: Option<&'a RoomVersionId>,
 
@@ -80,10 +82,10 @@ ruma_api! {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub topic: Option<&'a str>,
 
-        /// A public visibility indicates that the room will be shown in the published room
-        /// list. A private visibility will hide the room from the published room list.
+        /// A public visibility indicates that the room will be shown in the published room list.
         ///
-        /// Defaults to `Private`.
+        /// A private visibility will hide the room from the published room list. Defaults to
+        /// `Private`.
         #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
         pub visibility: Visibility,
     }

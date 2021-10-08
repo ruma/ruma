@@ -15,7 +15,9 @@ use serde_json::{from_slice as from_json_slice, Value as JsonValue};
 /// Separate module because it's a lot of code.
 mod kind_serde;
 
-/// An enum for the error kind. Items may contain additional information.
+/// An enum for the error kind.
+///
+/// Items may contain additional information.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ErrorKind {
@@ -25,7 +27,9 @@ pub enum ErrorKind {
     /// M_UNKNOWN_TOKEN
     UnknownToken {
         /// If this is `true`, the client can acquire a new access token by specifying the device
-        /// ID it is already using to the login API. For more information, see [the spec].
+        /// ID it is already using to the login API.
+        ///
+        /// For more information, see [the spec].
         ///
         /// [the spec]: https://matrix.org/docs/spec/client_server/r0.6.1#soft-logout
         soft_logout: bool,

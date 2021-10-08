@@ -26,15 +26,18 @@ ruma_api! {
         /// make use of it.
         pub pepper: &'a str,
 
-        /// The addresses to look up. The format of the entries here depend on the `algorithm`
-        /// used. Note that queries which have been incorrectly hashed or formatted will lead to no
-        /// matches.
+        /// The addresses to look up.
+        ///
+        /// The format of the entries here depend on the `algorithm` used. Note that queries which
+        /// have been incorrectly hashed or formatted will lead to no matches.
         pub addresses: &'a [String],
     }
 
     response: {
-        /// Any applicable mappings of `addresses` to Matrix User IDs. Addresses which do not have
-        /// associations will not be included, which can make this property be an empty object.
+        /// Any applicable mappings of `addresses` to Matrix User IDs.
+        ///
+        /// Addresses which do not have associations will not be included, which can make this
+        /// property be an empty object.
         pub mappings: BTreeMap<String, UserId>,
     }
 }

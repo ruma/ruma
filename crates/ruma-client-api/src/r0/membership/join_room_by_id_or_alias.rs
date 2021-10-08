@@ -20,8 +20,9 @@ ruma_api! {
         #[ruma_api(path)]
         pub room_id_or_alias: &'a RoomIdOrAliasId,
 
-        /// The servers to attempt to join the room through. One of the servers
-        /// must be participating in the room.
+        /// The servers to attempt to join the room through.
+        ///
+        /// One of the servers  must be participating in the room.
         #[ruma_api(query)]
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
         pub server_name: &'a [ServerNameBox],

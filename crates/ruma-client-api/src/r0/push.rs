@@ -21,8 +21,8 @@ pub mod set_pushrule;
 pub mod set_pushrule_actions;
 pub mod set_pushrule_enabled;
 
-/// Like `SimplePushRule`, but may represent any kind of push rule
-/// thanks to `pattern` and `conditions` being optional.
+/// Like `SimplePushRule`, but may represent any kind of push rule thanks to `pattern` and
+/// `conditions` being optional.
 ///
 /// To create an instance of this type, use one of its `From` implementations.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -41,13 +41,15 @@ pub struct PushRule {
     pub rule_id: String,
 
     /// The conditions that must hold true for an event in order for a rule to be applied to an
-    /// event. A rule with no conditions always matches.
+    /// event.
     ///
-    /// Only applicable to underride and override rules.
+    /// A rule with no conditions always matches. Only applicable to underride and override rules.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub conditions: Option<Vec<PushCondition>>,
 
-    /// The glob-style pattern to match against. Only applicable to content rules.
+    /// The glob-style pattern to match against.
+    ///
+    /// Only applicable to content rules.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pattern: Option<String>,
 }

@@ -51,11 +51,10 @@ impl fmt::Debug for EventId {
 
 impl EventId {
     /// Attempts to generate an `EventId` for the given origin server with a localpart consisting
-    /// of 18 random ASCII characters. This should only be used for events in the original format
-    /// as used by Matrix room versions 1 and 2.
+    /// of 18 random ASCII characters.
     ///
-    /// Does not currently ever fail, but may fail in the future if the homeserver cannot be parsed
-    /// parsed as a valid host.
+    /// This should only be used for events in the original format  as used by Matrix room versions
+    /// 1 and 2.
     #[cfg(feature = "rand")]
     pub fn new(server_name: &ServerName) -> Self {
         use crate::generate_localpart;
@@ -65,9 +64,11 @@ impl EventId {
         Self { full_id, colon_idx: NonZeroU8::new(19) }
     }
 
-    /// Returns the event's unique ID. For the original event format as used by Matrix room
-    /// versions 1 and 2, this is the "localpart" that precedes the homeserver. For later formats,
-    /// this is the entire ID without the leading $ sigil.
+    /// Returns the event's unique ID.
+    ///
+    /// For the original event format as used by Matrix room versions 1 and 2, this is the
+    /// "localpart" that precedes the homeserver. For later formats, this is the entire ID without
+    /// the leading `$` sigil.
     pub fn localpart(&self) -> &str {
         let idx = match self.colon_idx {
             Some(idx) => idx.get() as usize,

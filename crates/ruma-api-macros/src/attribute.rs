@@ -22,8 +22,10 @@ impl Parse for MetaValue {
     }
 }
 
-/// Like syn::MetaNameValue, but expects an identifier as the value. Also, we don't care about the
-/// the span of the equals sign, so we don't have the `eq_token` field from syn::MetaNameValue.
+/// Like syn::MetaNameValue, but expects an identifier as the value.
+///
+/// Also, we don't care about the the span of the equals sign, so we don't have the `eq_token` field
+/// from syn::MetaNameValue.
 pub struct MetaNameValue<V> {
     /// The part left of the equals sign
     pub name: Ident,
@@ -50,7 +52,9 @@ pub enum Meta {
 }
 
 impl Meta {
-    /// Check if the given attribute is a ruma_api attribute. If it is, parse it.
+    /// Check if the given attribute is a ruma_api attribute.
+    ///
+    /// If it is, parse it.
     pub fn from_attribute(attr: &syn::Attribute) -> syn::Result<Option<Self>> {
         if attr.path.is_ident("ruma_api") {
             attr.parse_args().map(Some)

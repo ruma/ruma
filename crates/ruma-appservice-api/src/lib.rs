@@ -87,7 +87,9 @@ pub struct Registration {
     /// A list of users, aliases and rooms namespaces that the application service controls.
     pub namespaces: Namespaces,
 
-    /// Whether requests from masqueraded users are rate-limited. The sender is excluded.
+    /// Whether requests from masqueraded users are rate-limited.
+    ///
+    /// The sender is excluded.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rate_limited: Option<bool>,
 
@@ -123,7 +125,9 @@ pub struct RegistrationInit {
     /// A list of users, aliases and rooms namespaces that the application service controls.
     pub namespaces: Namespaces,
 
-    /// Whether requests from masqueraded users are rate-limited. The sender is excluded.
+    /// Whether requests from masqueraded users are rate-limited.
+    ///
+    /// The sender is excluded.
     pub rate_limited: Option<bool>,
 
     /// The external protocols which the application service provides (e.g. IRC).

@@ -17,15 +17,18 @@ ruma_api! {
     }
 
     request: {
-        /// An access token the consumer may use to verify the identity of the
-        /// person who generated the token. This is given to the federation API
-        /// GET /openid/userinfo to verify the user's identity.
+        /// An access token the consumer may use to verify the identity of the person who generated
+        /// the token.
+        ///
+        /// This is given to the federation API `GET /openid/userinfo` to verify the user's
+        /// identity.
         pub access_token: &'a str,
 
         /// The string `Bearer`.
         pub token_type: TokenType,
 
-        /// The homeserver domain the consumer should use when attempting to verify the user's identity.
+        /// The homeserver domain the consumer should use when attempting to verify the user's
+        /// identity.
         pub matrix_server_name: &'a ServerName,
 
         /// The number of seconds before this token expires and a new one must be generated.
@@ -34,7 +37,8 @@ ruma_api! {
     }
 
     response: {
-        /// An opaque string representing the token to authenticate future requests to the identity server with.
+        /// An opaque string representing the token to authenticate future requests to the identity
+        /// server with.
         pub token: String,
     }
 }

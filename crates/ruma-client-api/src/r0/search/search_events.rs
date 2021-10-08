@@ -77,7 +77,9 @@ pub struct Criteria<'a> {
     /// The string to search events for.
     pub search_term: &'a str,
 
-    /// The keys to search for. Defaults to all keys.
+    /// The keys to search for.
+    ///
+    /// Defaults to all keys.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub keys: Option<&'a [SearchKeys]>,
 
@@ -357,7 +359,9 @@ pub struct ResultRoomEvents {
     pub groups: BTreeMap<GroupingKey, BTreeMap<RoomIdOrUserId, ResultGroup>>,
 
     /// Token that can be used to get the next batch of results, by passing as the `next_batch`
-    /// parameter to the next call. If this field is absent, there are no more results.
+    /// parameter to the next call.
+    ///
+    /// If this field is absent, there are no more results.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub next_batch: Option<String>,
 
@@ -365,8 +369,9 @@ pub struct ResultRoomEvents {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub results: Vec<SearchResult>,
 
-    /// The current state for every room in the results. This is included if the request had the
-    /// `include_state` key set with a value of `true`.
+    /// The current state for every room in the results.
+    ///
+    /// This is included if the request had the `include_state` key set with a value of `true`.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub state: BTreeMap<RoomId, Vec<Raw<AnyStateEvent>>>,
 
@@ -398,8 +403,9 @@ impl ResultRoomEvents {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ResultGroup {
     /// Token that can be used to get the next batch of results in the group, by passing as the
-    /// `next_batch` parameter to the next call. If this field is absent, there are no more
-    /// results in this group.
+    /// `next_batch` parameter to the next call.
+    ///
+    /// If this field is absent, there are no more results in this group.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub next_batch: Option<String>,
 
@@ -432,7 +438,9 @@ pub struct SearchResult {
     #[serde(skip_serializing_if = "EventContextResult::is_empty")]
     pub context: EventContextResult,
 
-    /// A number that describes how closely this result matches the search. Higher is closer.
+    /// A number that describes how closely this result matches the search.
+    ///
+    /// Higher is closer.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rank: Option<UInt>,
 
@@ -459,8 +467,8 @@ impl SearchResult {
 pub struct UserProfile {
     /// The user's avatar URL, if set.
     ///
-    /// If you activate the `compat` feature, this field being an empty string in JSON will give
-    /// you `None` here.
+    /// If you activate the `compat` feature, this field being an empty string in JSON will result
+    /// in `None` here during deserialization.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
         feature = "compat",

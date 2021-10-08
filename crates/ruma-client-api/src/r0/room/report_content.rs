@@ -26,7 +26,9 @@ ruma_api! {
         /// Integer between -100 and 0 rating offensivness.
         pub score: Int,
 
-        /// Reason to report content. May be blank.
+        /// Reason to report content.
+        ///
+        /// May be blank.
         pub reason: &'a str,
     }
 

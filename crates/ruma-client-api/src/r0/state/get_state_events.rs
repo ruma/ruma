@@ -23,8 +23,10 @@ ruma_api! {
 
     response: {
         /// If the user is a member of the room this will be the current state of the room as a
-        /// list of events. If the user has left the room then this will be the state of the
-        /// room when they left as a list of events.
+        /// list of events.
+        ///
+        /// If the user has left the room then this will be the state of the room when they left as
+        /// a list of events.
         #[ruma_api(body)]
         pub room_state: Vec<Raw<AnyStateEvent>>,
     }

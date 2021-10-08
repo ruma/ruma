@@ -59,12 +59,14 @@ pub struct ServerSigningKeys {
     /// Public keys that the homeserver used to use and when it stopped using them.
     pub old_verify_keys: BTreeMap<ServerSigningKeyId, OldVerifyKey>,
 
-    /// Digital signatures of this object signed using the verify_keys. Map of
-    /// server name to keys by key ID
+    /// Digital signatures of this object signed using the verify_keys.
+    ///
+    /// Map of server name to keys by key ID
     pub signatures: BTreeMap<ServerNameBox, BTreeMap<ServerSigningKeyId, String>>,
 
-    /// Timestamp when the keys should be refreshed. This field MUST be ignored in room
-    /// versions 1, 2, 3, and 4.
+    /// Timestamp when the keys should be refreshed.
+    ///
+    /// This field MUST be ignored in room versions 1, 2, 3, and 4.
     pub valid_until_ts: MilliSecondsSinceUnixEpoch,
 }
 

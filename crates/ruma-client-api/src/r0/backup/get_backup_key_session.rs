@@ -16,7 +16,9 @@ ruma_api! {
     }
 
     request: {
-        /// The backup version. Must be the current backup.
+        /// The backup version.
+        ///
+        /// Must be the current backup.
         #[ruma_api(query)]
         pub version: &'a str,
 

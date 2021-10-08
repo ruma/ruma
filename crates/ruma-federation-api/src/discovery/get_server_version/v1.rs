@@ -46,7 +46,9 @@ pub struct Server {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
 
-    /// Version of this implementation. The version format depends on the implementation.
+    /// Version of this implementation.
+    ///
+    /// The version format depends on the implementation.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub version: Option<String>,
 }

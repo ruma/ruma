@@ -33,8 +33,10 @@ pub type StateMap<T> = HashMap<(EventType, String), T>;
 /// A mapping of `EventId` to `T`, usually a `ServerPdu`.
 type EventMap<T> = HashMap<EventId, T>;
 
-/// Resolve sets of state events as they come in. Internally `StateResolution` builds a graph and an
-/// auth chain to allow for state conflict resolution.
+/// Resolve sets of state events as they come in.
+///
+/// Internally `StateResolution` builds a graph and an auth chain to allow for state conflict
+/// resolution.
 ///
 /// ## Arguments
 ///

@@ -32,8 +32,9 @@ ruma_api! {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub device_id: Option<&'a DeviceId>,
 
-        /// A display name to assign to the newly-created device. Ignored if device_id corresponds
-        /// to a known device.
+        /// A display name to assign to the newly-created device.
+        ///
+        /// Ignored if `device_id` corresponds to a known device.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub initial_device_display_name: Option<&'a str>,
     }

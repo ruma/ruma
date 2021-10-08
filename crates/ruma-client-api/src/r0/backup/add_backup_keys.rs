@@ -19,7 +19,9 @@ ruma_api! {
     }
 
     request: {
-        /// The backup version. Must be the current backup.
+        /// The backup version.
+        ///
+        /// Must be the current backup.
         #[ruma_api(query)]
         pub version: &'a str,
 
@@ -28,8 +30,10 @@ ruma_api! {
     }
 
     response: {
-        /// An opaque string representing stored keys in the backup. Clients can compare it with
-        /// the etag value they received in the request of their last key storage request.
+        /// An opaque string representing stored keys in the backup.
+        ///
+        /// Clients can compare it with  the etag value they received in the request of their last
+        /// key storage request.
         pub etag: String,
 
         /// The number of keys stored in the backup.

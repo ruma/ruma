@@ -20,21 +20,26 @@ ruma_api! {
         #[ruma_api(path)]
         pub room_id: &'a RoomId,
 
-        /// The point in time (pagination token) to return members for in the room. This token can
-        /// be obtained from a prev_batch token returned for each room by the sync API.
+        /// The point in time (pagination token) to return members for in the room.
+        ///
+        /// This token can be obtained from a prev_batch token returned for each room by the sync
+        /// API.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
         pub at: Option<&'a str>,
 
-        /// The kind of memberships to filter for. Defaults to no filtering if unspecified. When
-        /// specified alongside not_membership, the two parameters create an 'or' condition: either
-        /// the membership is the same as membership or is not the same as not_membership.
+        /// The kind of memberships to filter for.
+        ///
+        /// Defaults to no filtering if unspecified. When specified alongside not_membership, the
+        /// two parameters create an 'or' condition: either the membership is the same as membership
+        /// or is not the same as not_membership.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
         pub membership: Option<MembershipEventFilter>,
 
-        /// The kind of memberships to *exclude* from the results. Defaults to no filtering if
-        /// unspecified.
+        /// The kind of memberships to *exclude* from the results.
+        ///
+        /// Defaults to no filtering if unspecified.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
         pub not_membership: Option<MembershipEventFilter>,

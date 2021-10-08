@@ -204,14 +204,16 @@ pub struct Device {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pushkey_ts: Option<SecondsSinceUnixEpoch>,
 
-    /// A dictionary of additional pusher-specific data. For 'http' pushers,
-    /// this is the data dictionary passed in at pusher creation minus the `url`
-    /// key.
+    /// A dictionary of additional pusher-specific data.
+    ///
+    /// For 'http' pushers, this is the data dictionary passed in at pusher creation minus the
+    /// `url` key.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<PusherData>,
 
-    /// A dictionary of customisations made to the way this notification is to
-    /// be presented. These are added by push rules.
+    /// A dictionary of customisations made to the way this notification is to be presented.
+    ///
+    /// These are added by push rules.
     #[serde(with = "tweak_serde", skip_serializing_if = "Vec::is_empty")]
     pub tweaks: Vec<Tweak>,
 }

@@ -867,13 +867,11 @@ pub struct VideoInfo {
     pub duration: Option<UInt>,
 
     /// The height of the video in pixels.
-    #[serde(rename = "h")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "h", skip_serializing_if = "Option::is_none")]
     pub height: Option<UInt>,
 
     /// The width of the video in pixels.
-    #[serde(rename = "w")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "w", skip_serializing_if = "Option::is_none")]
     pub width: Option<UInt>,
 
     /// The mimetype of the video, e.g. "video/mp4".
@@ -905,8 +903,7 @@ pub struct VideoInfo {
     /// This uses the unstable prefix in
     /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
     #[cfg(feature = "unstable-pre-spec")]
-    #[serde(rename = "xyz.amorgan.blurhash")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
     pub blurhash: Option<String>,
 }
 

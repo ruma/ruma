@@ -78,8 +78,9 @@ pub enum CancelCode {
     #[ruma_enum(rename = "m.user")]
     User,
 
-    /// The verification process timed out. Verification processes can define their own timeout
-    /// parameters.
+    /// The verification process timed out.
+    ///
+    /// Verification processes can define their own timeout parameters.
     #[ruma_enum(rename = "m.timeout")]
     Timeout,
 

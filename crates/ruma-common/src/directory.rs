@@ -51,8 +51,8 @@ pub struct PublicRoomsChunk {
 
     /// The URL for the room's avatar, if one is set.
     ///
-    /// If you activate the `compat` feature, this field being an empty string in JSON will give
-    /// you `None` here.
+    /// If you activate the `compat` feature, this field being an empty string in JSON will result
+    /// in `None` here during deserialization.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
         feature = "compat",

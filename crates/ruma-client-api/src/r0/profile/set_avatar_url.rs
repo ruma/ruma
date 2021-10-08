@@ -22,8 +22,8 @@ ruma_api! {
         ///
         /// `None` is used to unset the avatar.
         ///
-        /// If you activate the `compat` feature, this field being an empty string in JSON will give
-        /// you `None` here.
+        /// If you activate the `compat` feature, this field being an empty string in JSON will result
+        /// in `None` here during deserialization.
         #[cfg_attr(
             feature = "compat",
             serde(
@@ -43,8 +43,7 @@ ruma_api! {
         /// This uses the unstable prefix in
         /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
         #[cfg(feature = "unstable-pre-spec")]
-        #[serde(rename = "xyz.amorgan.blurhash")]
-        #[serde(skip_serializing_if = "Option::is_none")]
+        #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
         pub blurhash: Option<&'a str>,
     }
 

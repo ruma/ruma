@@ -14,8 +14,8 @@ use serde::{Deserialize, Serialize};
 pub struct RoomTombstoneEventContent {
     /// A server-defined message.
     ///
-    /// If you activate the `compat` feature, this field being absent in JSON will give you an
-    /// empty string here.
+    /// If you activate the `compat` feature, this field being absent in JSON will result in an
+    /// empty string here during deserialization.
     #[cfg_attr(feature = "compat", serde(default))]
     pub body: String,
 

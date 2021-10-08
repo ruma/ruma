@@ -23,7 +23,9 @@ ruma_api! {
         /// Servers SHOULD rotate this string often.
         pub lookup_pepper: String,
 
-        /// The algorithms the server supports. Must contain at least `sha256`.
+        /// The algorithms the server supports.
+        ///
+        /// Must contain at least `sha256`.
         pub algorithms: Vec<IdentifierHashingAlgorithm>,
     }
 }

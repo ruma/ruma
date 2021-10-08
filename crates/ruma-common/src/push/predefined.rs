@@ -209,10 +209,11 @@ impl ConditionalPushRule {
         }
     }
 
-    /// Matches any encrypted event sent in a room with exactly two members. Unlike other push
-    /// rules, this rule cannot be matched against the content of the event by nature of it being
-    /// encrypted. This causes the rule to be an "all or nothing" match where it either matches all
-    /// events that are encrypted (in 1:1 rooms) or none.
+    /// Matches any encrypted event sent in a room with exactly two members.
+    ///
+    /// Unlike other push rules, this rule cannot be matched against the content of the event by
+    /// nature of it being encrypted. This causes the rule to be an "all or nothing" match where it
+    /// either matches all events that are encrypted (in 1:1 rooms) or none.
     pub fn encrypted_room_one_to_one() -> Self {
         Self {
             rule_id: ".m.rules.encrypted_room_one_to_one".into(),
@@ -259,10 +260,11 @@ impl ConditionalPushRule {
         }
     }
 
-    /// Matches all encrypted events. Unlike other push rules, this rule cannot be matched against
-    /// the content of the event by nature of it being encrypted. This causes the rule to be an
-    /// "all or nothing" match where it either matches all events that are encrypted (in group
-    /// rooms) or none.
+    /// Matches all encrypted events.
+    ///
+    /// Unlike other push rules, this rule cannot be matched against the content of the event by
+    /// nature of it being encrypted. This causes the rule to be an "all or nothing" match where it
+    /// either matches all events that are encrypted (in group rooms) or none.
     pub fn encrypted() -> Self {
         Self {
             rule_id: ".m.rules.encrypted".into(),

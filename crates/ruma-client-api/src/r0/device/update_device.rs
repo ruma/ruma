@@ -18,8 +18,9 @@ ruma_api! {
         #[ruma_api(path)]
         pub device_id: &'a DeviceId,
 
-        /// The new display name for this device. If this is `None`, the display name won't be
-        /// changed.
+        /// The new display name for this device.
+        ///
+        /// If this is `None`, the display name won't be changed.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub display_name: Option<String>,
     }

@@ -247,8 +247,7 @@ pub struct JoinedRoom {
     #[serde(default, skip_serializing_if = "RoomAccountData::is_empty")]
     pub account_data: RoomAccountData,
 
-    /// The ephemeral events in the room that aren't recorded in the timeline or state of the
-    /// room. e.g. typing.
+    /// The ephemeral events in the room that aren't recorded in the timeline or state of the room.
     #[serde(default, skip_serializing_if = "Ephemeral::is_empty")]
     pub ephemeral: Ephemeral,
 }
@@ -433,8 +432,9 @@ impl Ephemeral {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomSummary {
-    /// Users which can be used to generate a room name if the room does not have
-    /// one. Required if room name or canonical aliases are not set or empty.
+    /// Users which can be used to generate a room name if the room does not have one.
+    ///
+    /// Required if room name or canonical aliases are not set or empty.
     #[serde(rename = "m.heroes", default, skip_serializing_if = "Vec::is_empty")]
     pub heroes: Vec<String>,
 

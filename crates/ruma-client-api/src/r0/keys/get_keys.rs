@@ -22,8 +22,9 @@ ruma_api! {
 
     #[derive(Default)]
     request: {
-        /// The time (in milliseconds) to wait when downloading keys from remote
-        /// servers. 10 seconds is the recommended default.
+        /// The time (in milliseconds) to wait when downloading keys from remote servers.
+        ///
+        /// 10 seconds is the recommended default.
         #[serde(
             with = "ruma_serde::duration::opt_ms",
             default,
@@ -31,24 +32,25 @@ ruma_api! {
         )]
         pub timeout: Option<Duration>,
 
-        /// The keys to be downloaded. An empty list indicates all devices for
-        /// the corresponding user.
+        /// The keys to be downloaded.
+        ///
+        /// An empty list indicates all devices for the corresponding user.
         pub device_keys: BTreeMap<UserId, Vec<DeviceIdBox>>,
 
-        /// If the client is fetching keys as a result of a device update
-        /// received in a sync request, this should be the 'since' token of that
-        /// sync request, or any later sync token. This allows the server to
-        /// ensure its response contains the keys advertised by the notification
-        /// in that sync.
+        /// If the client is fetching keys as a result of a device update received in a sync
+        /// request, this should be the 'since' token of that sync request, or any later sync token.
+        ///
+        /// This allows the server to ensure its response contains the keys advertised by the
+        /// notification in that sync.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub token: Option<&'a str>,
     }
 
     #[derive(Default)]
     response: {
-        /// If any remote homeservers could not be reached, they are recorded
-        /// here. The names of the properties are the names of the unreachable
-        /// servers.
+        /// If any remote homeservers could not be reached, they are recorded here.
+        ///
+        /// The names of the properties are the names of the unreachable servers.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
         pub failures: BTreeMap<String, JsonValue>,
 

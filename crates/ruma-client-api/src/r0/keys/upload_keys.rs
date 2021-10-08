@@ -19,7 +19,9 @@ ruma_api! {
 
     #[derive(Default)]
     request: {
-        /// Identity keys for the device. May be absent if no new identity keys are required.
+        /// Identity keys for the device.
+        ///
+        /// May be absent if no new identity keys are required.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub device_keys: Option<DeviceKeys>,
 

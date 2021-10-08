@@ -17,7 +17,9 @@ ruma_api! {
     }
 
     request: {
-        /// The user ID to retrieve devices for. Must be a user local to the receiving homeserver.
+        /// The user ID to retrieve devices for.
+        ///
+        /// Must be a user local to the receiving homeserver.
         #[ruma_api(path)]
         pub user_id: &'a UserId,
     }
@@ -26,12 +28,13 @@ ruma_api! {
         /// The user ID devices were requested for.
         pub user_id: UserId,
 
-        /// A unique ID for a given user_id which describes the version of the returned device
-        /// list. This is matched with the `stream_id` field in `m.device_list_update` EDUs in
-        /// order to incrementally update the returned device_list.
+        /// A unique ID for a given user_id which describes the version of the returned device list.
+        ///
+        /// This is matched with the `stream_id` field in `m.device_list_update` EDUs in order to
+        /// incrementally update the returned device_list.
         pub stream_id: UInt,
 
-        /// The user's devices. May be empty.
+        /// The user's devices.
         pub devices: Vec<UserDevice>,
     }
 }

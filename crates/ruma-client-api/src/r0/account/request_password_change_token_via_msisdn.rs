@@ -36,10 +36,12 @@ ruma_api! {
         /// The session identifier given by the identity server.
         pub sid: SessionIdBox,
 
-        /// URL to submit validation token to. If omitted, verification happens without client.
+        /// URL to submit validation token to.
         ///
-        /// If you activate the `compat` feature, this field being an empty string in JSON will give
-        /// you `None` here.
+        /// If omitted, verification happens without client.
+        ///
+        /// If you activate the `compat` feature, this field being an empty string in JSON will result
+        /// in `None` here during deserialization.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[cfg_attr(
             feature = "compat",

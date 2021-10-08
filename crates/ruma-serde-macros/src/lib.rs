@@ -27,8 +27,10 @@ mod serialize_as_ref_str;
 mod util;
 
 /// Derive the `Outgoing` trait, possibly generating an 'Incoming' version of the struct this
-/// derive macro is used on. Specifically, if no lifetime variables are used on any of the fields
-/// of the struct, this simple implementation will be generated:
+/// derive macro is used on.
+///
+/// Specifically, if no lifetime variables are used on any of the fields of the struct, this simple
+/// implementation will be generated:
 ///
 /// ```ignore
 /// # // TODO: "ignore" this doctest until it is more extensively documented. (See #541)

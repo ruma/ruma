@@ -52,11 +52,15 @@ pub struct ImageInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<Box<ThumbnailInfo>>,
 
-    /// The URL to the thumbnail of the image. Only present if the thumbnail is unencrypted.
+    /// The URL to the thumbnail of the image.
+    ///
+    /// Only present if the thumbnail is unencrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_url: Option<MxcUri>,
 
-    /// Information on the encrypted thumbnail image. Only present if the thumbnail is encrypted.
+    /// Information on the encrypted thumbnail image.
+    ///
+    /// Only present if the thumbnail is encrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_file: Option<Box<EncryptedFile>>,
 
@@ -65,8 +69,7 @@ pub struct ImageInfo {
     /// This uses the unstable prefix in
     /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
     #[cfg(feature = "unstable-pre-spec")]
-    #[serde(rename = "xyz.amorgan.blurhash")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
     pub blurhash: Option<String>,
 }
 
@@ -126,7 +129,9 @@ pub struct EncryptedFile {
     /// Clients should support the SHA-256 hash, which uses the key sha256.
     pub hashes: BTreeMap<String, String>,
 
-    /// Version of the encrypted attachments protocol. Must be `v2`.
+    /// Version of the encrypted attachments protocol.
+    ///
+    /// Must be `v2`.
     pub v: String,
 }
 
@@ -151,7 +156,9 @@ pub struct EncryptedFileInit {
     /// Clients should support the SHA-256 hash, which uses the key sha256.
     pub hashes: BTreeMap<String, String>,
 
-    /// Version of the encrypted attachments protocol. Must be `v2`.
+    /// Version of the encrypted attachments protocol.
+    ///
+    /// Must be `v2`.
     pub v: String,
 }
 
@@ -169,13 +176,19 @@ impl From<EncryptedFileInit> for EncryptedFile {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct JsonWebKey {
-    /// Key type. Must be `oct`.
+    /// Key type.
+    ///
+    /// Must be `oct`.
     pub kty: String,
 
-    /// Key operations. Must at least contain `encrypt` and `decrypt`.
+    /// Key operations.
+    ///
+    /// Must at least contain `encrypt` and `decrypt`.
     pub key_ops: Vec<String>,
 
-    /// Required. Algorithm. Must be `A256CTR`.
+    /// Algorithm.
+    ///
+    /// Must be `A256CTR`.
     pub alg: String,
 
     /// The key, encoded as url-safe unpadded base64.
@@ -195,13 +208,19 @@ pub struct JsonWebKey {
 #[derive(Debug)]
 #[allow(clippy::exhaustive_structs)]
 pub struct JsonWebKeyInit {
-    /// Key type. Must be `oct`.
+    /// Key type.
+    ///
+    /// Must be `oct`.
     pub kty: String,
 
-    /// Key operations. Must at least contain `encrypt` and `decrypt`.
+    /// Key operations.
+    ///
+    /// Must at least contain `encrypt` and `decrypt`.
     pub key_ops: Vec<String>,
 
-    /// Required. Algorithm. Must be `A256CTR`.
+    /// Algorithm.
+    ///
+    /// Must be `A256CTR`.
     pub alg: String,
 
     /// The key, encoded as url-safe unpadded base64.

@@ -21,15 +21,21 @@ ruma_api! {
         #[ruma_api(path)]
         pub room_id: &'a RoomId,
 
-        /// The maximum number of events to retrieve. Defaults to 10.
+        /// The maximum number of events to retrieve.
+        ///
+        /// Defaults to 10.
         #[serde(default = "default_limit", skip_serializing_if = "is_default_limit")]
         pub limit: UInt,
 
-        /// The minimum depth of events to retrieve. Defaults to 0.
+        /// The minimum depth of events to retrieve.
+        ///
+        /// Defaults to 0.
         #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
         pub min_depth: UInt,
 
-        /// The latest event IDs that the sender already has. These are skipped when retrieving the previous events of `latest_events`.
+        /// The latest event IDs that the sender already has.
+        ///
+        /// These are skipped when retrieving the previous events of `latest_events`.
         pub earliest_events: &'a [EventId],
 
         /// The event IDs to retrieve the previous events for.

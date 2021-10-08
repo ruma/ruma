@@ -216,14 +216,16 @@ use error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
 #[derive(Clone, Copy, Debug)]
 #[allow(clippy::exhaustive_enums)]
 pub enum SendAccessToken<'a> {
-    /// Add the given access token to the request only if the `METADATA` on the request requires it
+    /// Add the given access token to the request only if the `METADATA` on the request requires
+    /// it.
     IfRequired(&'a str),
 
-    /// Always add the access token
+    /// Always add the access token.
     Always(&'a str),
 
-    /// Don't add an access token. This will lead to an error if the request endpoint requires
-    /// authentication
+    /// Don't add an access token.
+    ///
+    /// This will lead to an error if the request endpoint requires authentication
     None,
 }
 

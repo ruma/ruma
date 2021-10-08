@@ -20,15 +20,16 @@ ruma_api! {
         ///
         /// If this is not provided, the request must be signed by the homeserver which controls
         /// the `mxid`.
-        #[serde(flatten)]
-        #[serde(skip_serializing_if = "Option::is_none")]
+        #[serde(flatten, skip_serializing_if = "Option::is_none")]
         pub threepid_ownership_proof: Option<&'a ThreePidOwnershipProof>,
 
         /// The Matrix user ID to remove from the 3PIDs.
         pub mxid: &'a UserId,
 
-        /// The 3PID to remove. Must match the 3PID used to generate the session if using `sid` and
-        /// `client_secret` to authenticate this request.
+        /// The 3PID to remove.
+        ///
+        /// Must match the 3PID used to generate the session if using `sid` and `client_secret` to
+        /// authenticate this request.
         pub threepid:  &'a ThirdPartyId,
     }
 

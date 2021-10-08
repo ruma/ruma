@@ -19,7 +19,9 @@ ruma_api! {
         #[ruma_api(path)]
         pub room_id: &'a RoomId,
 
-        /// The event type. Must be `m.room.member`.
+        /// The event type.
+        ///
+        /// Must be `EventType::RoomMember`.
         #[serde(rename = "type")]
         pub kind: EventType,
 

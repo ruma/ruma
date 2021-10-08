@@ -767,8 +767,10 @@ pub fn redact(
     Ok(event)
 }
 
-/// Extracts the server names to check signatures for given event. It will return the sender's
-/// server (unless it's a third party invite) and the event id server (on v1 and v2 room versions)
+/// Extracts the server names to check signatures for given event.
+///
+/// It will return the sender's server (unless it's a third party invite) and the event id server
+/// (on v1 and v2 room versions)
 fn servers_to_check_signatures(
     object: &CanonicalJsonObject,
     version: &RoomVersionId,

@@ -75,8 +75,9 @@ impl Error for InvalidUserTagName {}
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum TagName {
-    /// `m.favourite`: The user's favorite rooms. These should be shown with higher precedence
-    /// than other rooms.
+    /// `m.favourite`: The user's favorite rooms.
+    ///
+    /// These should be shown with higher precedence than other rooms.
     Favorite,
 
     /// `m.lowpriority`: These should be shown with lower precedence than others.

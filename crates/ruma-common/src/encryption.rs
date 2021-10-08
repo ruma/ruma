@@ -11,10 +11,14 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct DeviceKeys {
-    /// The ID of the user the device belongs to. Must match the user ID used when logging in.
+    /// The ID of the user the device belongs to.
+    ///
+    /// Must match the user ID used when logging in.
     pub user_id: UserId,
 
-    /// The ID of the device these keys belong to. Must match the device ID used when logging in.
+    /// The ID of the device these keys belong to.
+    ///
+    /// Must match the device ID used when logging in.
     pub device_id: DeviceIdBox,
 
     /// The encryption algorithms supported by this device.
@@ -113,17 +117,20 @@ pub struct CrossSigningKey {
     /// What the key is used for.
     pub usage: Vec<KeyUsage>,
 
-    /// The public key. The object must have exactly one property.
+    /// The public key.
+    ///
+    /// The object must have exactly one property.
     pub keys: BTreeMap<String, String>,
 
-    /// Signatures of the key. Only optional for master key.
+    /// Signatures of the key.
+    ///
+    /// Only optional for master key.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub signatures: CrossSigningKeySignatures,
 }
 
 impl CrossSigningKey {
-    /// Creates a new `CrossSigningKey` with the given user ID, usage, keys and
-    /// signatures.
+    /// Creates a new `CrossSigningKey` with the given user ID, usage, keys and signatures.
     pub fn new(
         user_id: UserId,
         usage: Vec<KeyUsage>,

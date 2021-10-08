@@ -40,10 +40,10 @@ use crate::{StrippedStateEvent, SyncStateEvent};
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.member", kind = State)]
 pub struct RoomMemberEventContent {
-    /// The avatar URL for this user, if any. This is added by the homeserver.
+    /// The avatar URL for this user, if any.
     ///
-    /// If you activate the `compat` feature, this field being an empty string in JSON will give
-    /// you `None` here.
+    /// This is added by the homeserver. If you activate the `compat` feature, this field being an
+    /// empty string in JSON will result in `None` here during deserialization.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
         feature = "compat",
@@ -51,7 +51,9 @@ pub struct RoomMemberEventContent {
     )]
     pub avatar_url: Option<MxcUri>,
 
-    /// The display name for this user, if any. This is added by the homeserver.
+    /// The display name for this user, if any.
+    ///
+    /// This is added by the homeserver.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub displayname: Option<String>,
 
@@ -74,8 +76,7 @@ pub struct RoomMemberEventContent {
     /// This uses the unstable prefix in
     /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
     #[cfg(feature = "unstable-pre-spec")]
-    #[serde(rename = "xyz.amorgan.blurhash")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
     pub blurhash: Option<String>,
 
     /// User-supplied text for why their membership has changed.
@@ -302,7 +303,9 @@ fn membership_change(
 }
 
 impl RoomMemberEvent {
-    /// Helper function for membership change. Check [the specification][spec] for details.
+    /// Helper function for membership change.
+    ///
+    /// Check [the specification][spec] for details.
     ///
     /// [spec]: https://matrix.org/docs/spec/client_server/r0.6.1#m-room-member
     pub fn membership_change(&self) -> MembershipChange {
@@ -311,7 +314,9 @@ impl RoomMemberEvent {
 }
 
 impl SyncStateEvent<RoomMemberEventContent> {
-    /// Helper function for membership change. Check [the specification][spec] for details.
+    /// Helper function for membership change.
+    ///
+    /// Check [the specification][spec] for details.
     ///
     /// [spec]: https://matrix.org/docs/spec/client_server/r0.6.1#m-room-member
     pub fn membership_change(&self) -> MembershipChange {
@@ -320,7 +325,9 @@ impl SyncStateEvent<RoomMemberEventContent> {
 }
 
 impl StrippedStateEvent<RoomMemberEventContent> {
-    /// Helper function for membership change. Check [the specification][spec] for details.
+    /// Helper function for membership change.
+    ///
+    /// Check [the specification][spec] for details.
     ///
     /// [spec]: https://matrix.org/docs/spec/client_server/r0.6.1#m-room-member
     pub fn membership_change(&self) -> MembershipChange {

@@ -21,7 +21,7 @@ ruma_api! {
     }
 
     response: {
-        /// The backup version. This is an opaque string.
+        /// The backup version.
         pub version: String,
     }
 

@@ -19,8 +19,9 @@ ruma_api! {
     }
 
     request: {
-        /// The keys to be downloaded. Gives all keys for a given user if the list of device ids is
-        /// empty.
+        /// The keys to be downloaded.
+        ///
+        /// Gives all keys for a given user if the list of device ids is empty.
         pub device_keys: BTreeMap<UserId, Vec<DeviceIdBox>>,
     }
 

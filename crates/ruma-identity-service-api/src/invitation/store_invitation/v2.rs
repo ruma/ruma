@@ -64,15 +64,18 @@ ruma_api! {
     }
 
     response: {
-        /// The generated token. Must be a string consisting of the characters `[0-9a-zA-Z.=_-]`.
+        /// The generated token.
         ///
-        /// Its length must not exceed 255 characters and it must not be empty.
+        /// Must be a string consisting of the characters `[0-9a-zA-Z.=_-]`. Its length must not
+        /// exceed 255 characters and it must not be empty.
         pub token: String,
 
         /// A list of [server's long-term public key, generated ephemeral public key].
         pub public_keys: PublicKeys,
 
-        /// The generated (redacted) display_name. An example is `f...@b...`.
+        /// The generated (redacted) display_name.
+        ///
+        /// An example is `f...@b...`.
         pub display_name: String,
     }
 }

@@ -11,8 +11,10 @@ pub mod user;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct PolicyRuleEventContent {
-    /// The entity affected by this rule. Glob characters * and ? can be used to match zero or more
-    /// and one or more characters respectively.
+    /// The entity affected by this rule.
+    ///
+    /// Glob characters `*` and `?` can be used to match zero or more and one or more characters
+    /// respectively.
     pub entity: String,
 
     /// The suggested action to take.

@@ -59,7 +59,9 @@ impl<'a> Request<'a> {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ThirdPartyInvite {
-    /// The type of third party invite issues. Currently only "email" is used.
+    /// The type of third party invite issues.
+    ///
+    /// Currently only `Medium::Email` is used.
     pub medium: Medium,
 
     /// The third party identifier that received the invite.

@@ -26,12 +26,15 @@ ruma_api! {
     }
 
     response: {
-        /// The version of the room where the server is trying to leave. If not provided, the room
-        /// version is assumed to be either "1" or "2".
+        /// The version of the room where the server is trying to leave.
+        ///
+        /// If not provided, the room version is assumed to be either "1" or "2".
         pub room_version: Option<RoomVersionId>,
 
-        /// An unsigned template event. Note that events have a different format depending on the
-        /// room version - check the room version specification for precise event formats.
+        /// An unsigned template event.
+        ///
+        /// Note that events have a different format depending on the room version - check the room
+        /// version specification for precise event formats.
         pub event: Box<RawJsonValue>,
     }
 }

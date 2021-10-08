@@ -107,7 +107,9 @@ pub struct PresenceUpdate {
     /// The number of milliseconds that have elapsed since the user last did something.
     pub last_active_ago: UInt,
 
-    /// Whether or not the user is currently active. Defaults to false.
+    /// Whether or not the user is currently active.
+    ///
+    /// Defaults to false.
     #[serde(default)]
     pub currently_active: bool,
 }
@@ -206,15 +208,17 @@ pub struct DeviceListUpdateContent {
     /// The ID of the device whose details are changing.
     pub device_id: DeviceIdBox,
 
-    /// The public human-readable name of this device. Will be absent if the device has no name.
+    /// The public human-readable name of this device.
+    ///
+    /// Will be absent if the device has no name.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub device_display_name: Option<String>,
 
     /// An ID sent by the server for this update, unique for a given user_id.
     pub stream_id: UInt,
 
-    /// The stream_ids of any prior m.device_list_update EDUs sent for this user
-    /// which have not been referred to already in an EDU's prev_id field.
+    /// The stream_ids of any prior m.device_list_update EDUs sent for this user which have not
+    /// been referred to already in an EDU's prev_id field.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub prev_id: Vec<UInt>,
 

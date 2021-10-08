@@ -14,7 +14,9 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.create", kind = State)]
 pub struct RoomCreateEventContent {
-    /// The `user_id` of the room creator. This is set by the homeserver.
+    /// The `user_id` of the room creator.
+    ///
+    /// This is set by the homeserver.
     #[ruma_event(skip_redaction)]
     pub creator: UserId,
 
@@ -26,7 +28,9 @@ pub struct RoomCreateEventContent {
     )]
     pub federate: bool,
 
-    /// The version of the room. Defaults to "1" if the key does not exist.
+    /// The version of the room.
+    ///
+    /// Defaults to `RoomVersionId::Version1`.
     #[serde(default = "default_room_version_id")]
     pub room_version: RoomVersionId,
 

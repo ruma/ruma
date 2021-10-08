@@ -30,16 +30,20 @@ ruma_api! {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub limit: Option<UInt>,
 
-        /// Allows basic filtering of events returned. Supply "highlight" to return only events
-        /// where the notification had the 'highlight' tweak set.
+        /// Allows basic filtering of events returned.
+        ///
+        /// Supply "highlight" to return only events where the notification had the 'highlight'
+        /// tweak set.
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub only: Option<&'a str>,
     }
 
     response: {
-        /// The token to supply in the from param of the next /notifications request in order
-        /// to request more events. If this is absent, there are no more results.
+        /// The token to supply in the from param of the next /notifications request in order to
+        /// request more events.
+        ///
+        /// If this is absent, there are no more results.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub next_token: Option<String>,
 

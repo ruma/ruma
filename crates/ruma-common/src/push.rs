@@ -392,7 +392,9 @@ impl Equivalent<PatternedPushRule> for str {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct PusherData {
-    /// Required if the pusher's kind is http. The URL to use to send notifications to.
+    /// The URL to use to send notifications to.
+    ///
+    /// Required if the pusher's kind is http.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
 

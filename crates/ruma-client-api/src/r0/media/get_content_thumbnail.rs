@@ -29,13 +29,15 @@ ruma_api! {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub method: Option<Method>,
 
-        /// The *desired* width of the thumbnail. The actual thumbnail may not match the size
-        /// specified.
+        /// The *desired* width of the thumbnail.
+        ///
+        /// The actual thumbnail may not match the size specified.
         #[ruma_api(query)]
         pub width: UInt,
 
-        /// The *desired* height of the thumbnail. The actual thumbnail may not match the size
-        /// specified.
+        /// The *desired* height of the thumbnail.
+        ///
+        /// The actual thumbnail may not match the size specified.
         #[ruma_api(query)]
         pub height: UInt,
 

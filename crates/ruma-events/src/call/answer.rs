@@ -13,7 +13,9 @@ use super::SessionDescription;
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.call.answer", kind = Message)]
 pub struct CallAnswerEventContent {
-    /// The VoIP session description object. The session description type must be *answer*.
+    /// The VoIP session description object.
+    ///
+    /// The session description type must be *answer*.
     pub answer: SessionDescription,
 
     /// The ID of the call this event relates to.
