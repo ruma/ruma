@@ -1,7 +1,6 @@
 //! [GET /_matrix/client/r0/login/sso/redirect/{idp_id}](https://github.com/matrix-org/matrix-doc/blob/master/proposals/2858-Multiple-SSO-Identity-Providers.md)
 //!
 //! This uses the unstable prefix in [MSC2858](https://github.com/matrix-org/matrix-doc/pull/2858).
-#![cfg(feature = "unstable-pre-spec")]
 
 use ruma_api::ruma_api;
 
