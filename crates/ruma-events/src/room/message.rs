@@ -58,6 +58,12 @@ impl RoomMessageEventContent {
         Self::new(MessageType::Text(TextMessageEventContent::html(body, html_body)))
     }
 
+    /// A constructor to create a markdown message.
+    #[cfg(feature = "markdown")]
+    pub fn text_markdown(body: impl AsRef<str> + Into<String>) -> Self {
+        Self::new(MessageType::Text(TextMessageEventContent::markdown(body)))
+    }
+
     /// A constructor to create a plain text notice.
     pub fn notice_plain(body: impl Into<String>) -> Self {
         Self::new(MessageType::Notice(NoticeMessageEventContent::plain(body)))
@@ -66,6 +72,12 @@ impl RoomMessageEventContent {
     /// A constructor to create an html notice.
     pub fn notice_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
         Self::new(MessageType::Notice(NoticeMessageEventContent::html(body, html_body)))
+    }
+
+    /// A constructor to create a markdown notice.
+    #[cfg(feature = "markdown")]
+    pub fn notice_markdown(body: impl AsRef<str> + Into<String>) -> Self {
+        Self::new(MessageType::Notice(NoticeMessageEventContent::markdown(body)))
     }
 
     /// Creates a plain text reply to a message.
