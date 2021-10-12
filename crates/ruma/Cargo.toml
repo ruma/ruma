@@ -106,6 +106,7 @@ unstable-exhaustive-types = [
     "ruma-push-gateway-api/unstable-exhaustive-types",
     "ruma-state-res/unstable-exhaustive-types"
 ]
+unstable-pdu = ["ruma-events/unstable-pdu"]
 unstable-pre-spec = [
     "ruma-common/unstable-pre-spec",
     "ruma-client-api/unstable-pre-spec",
