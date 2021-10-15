@@ -1,7 +1,5 @@
 //! [POST /_matrix/client/r0/login](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-login)
 
-use std::borrow::Cow;
-
 use ruma_api::ruma_api;
 use ruma_identifiers::{DeviceId, DeviceIdBox, ServerNameBox, UserId};
 use ruma_serde::{JsonObject, Outgoing};
