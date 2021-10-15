@@ -9,7 +9,7 @@ use serde::{
     de::{self, DeserializeOwned},
     Deserialize, Deserializer, Serialize,
 };
-use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
+use serde_json::Value as JsonValue;
 
 use crate::r0::uiaa::{IncomingUserIdentifier, UserIdentifier};
 
@@ -141,28 +141,19 @@ impl<'de> Deserialize<'de> for IncomingLoginInfo {
     where
         D: Deserializer<'de>,
     {
-        fn from_raw_json_value<T: DeserializeOwned, E: de::Error>(
-            raw: &RawJsonValue,
-        ) -> Result<T, E> {
-            serde_json::from_str(raw.get()).map_err(E::custom)
+        fn from_json_value<T: DeserializeOwned, E: de::Error>(val: JsonValue) -> Result<T, E> {
+            serde_json::from_value(val).map_err(E::custom)
         }
 
-        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+        // FIXME: Would be better to use serde_json::value::RawValue, but that would require
+        // implementing Deserialize manually for Request, bc. `#[serde(flatten)]` breaks things.
+        let json = JsonValue::deserialize(deserializer)?;
 
-        #[derive(Deserialize)]
-        struct ExtractType<'a> {
-            #[serde(borrow, rename = "type")]
-            login_type: Cow<'a, str>,
-        }
-
-        let login_type = serde_json::from_str::<ExtractType<'_>>(json.get())
-            .map_err(de::Error::custom)?
-            .login_type;
-
-        match &*login_type {
-            "m.login.password" => from_raw_json_value(&json).map(Self::Password),
-            "m.login.token" => from_raw_json_value(&json).map(Self::Token),
-            _ => from_raw_json_value(&json).map(Self::_Custom),
+        let login_type = json["type"].as_str().ok_or_else(|| de::Error::missing_field("type"))?;
+        match login_type {
+            "m.login.password" => from_json_value(json).map(Self::Password),
+            "m.login.token" => from_json_value(json).map(Self::Token),
+            _ => from_json_value(json).map(Self::_Custom),
         }
     }
 }
