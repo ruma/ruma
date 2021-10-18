@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 
-use assign::assign;
 use isahc::{HttpClient, ReadResponseExt};
 use semver::Version;
 use serde::{de::IgnoredAny, Deserialize};
@@ -55,7 +54,7 @@ impl Package {
 
             let mut document = read_file(&package.manifest_path)?.parse::<Document>()?;
 
-            let version = if self.version.is_prerelease()
+            let version = if !self.version.pre.is_empty()
                 || self.name.strip_suffix("-macros") == Some(&package.name)
             {
                 format!("={}", self.version)
@@ -87,7 +86,11 @@ impl Package {
         changelog_path.set_file_name("CHANGELOG.md");
 
         let changelog = read_file(&changelog_path)?;
-        let version = assign!(self.version.clone(), { pre: vec![], build: vec![] });
+        let version = Version {
+            pre: semver::Prerelease::EMPTY,
+            build: semver::BuildMetadata::EMPTY,
+            ..self.version.clone()
+        };
 
         if !changelog.starts_with(&format!("# {}\n", version))
             && !changelog.starts_with(&format!("# {} (unreleased)\n", version))

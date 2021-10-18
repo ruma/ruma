@@ -10,7 +10,7 @@ use isahc::{
     http::StatusCode,
     HttpClient, ReadResponseExt, Request,
 };
-use semver::{Identifier, Version};
+use semver::Version;
 use serde_json::json;
 
 use crate::{cargo::Package, cmd, util::ask_yes_no, GithubConfig, Metadata, Result};
@@ -58,7 +58,7 @@ impl ReleaseTask {
     /// Run the task to effectively create a release.
     pub(crate) fn run(&mut self) -> Result<()> {
         let title = &self.title();
-        let prerelease = self.version.is_prerelease();
+        let prerelease = !self.version.pre.is_empty();
         let publish_only = self.package.name == "ruma-identifiers-validation";
 
         if let Some(name) = self.package.name.strip_suffix("-macros") {
@@ -371,35 +371,29 @@ trait VersionExt {
 
 impl VersionExt for Version {
     fn add_pre_release(&mut self) {
-        if !self.is_prerelease() {
-            self.pre = vec![Identifier::AlphaNumeric("alpha".into()), Identifier::Numeric(1)];
+        if self.pre.is_empty() {
+            self.pre = semver::Prerelease::new("alpha.1").unwrap();
         }
     }
 
     fn increment_pre_number(&mut self) {
-        if self.is_prerelease() {
-            if let Identifier::Numeric(n) = self.pre[1] {
-                self.pre[1] = Identifier::Numeric(n + 1);
+        if let Some((prefix, num)) = self.pre.as_str().rsplit_once('.') {
+            if let Ok(num) = num.parse::<u8>() {
+                self.pre = semver::Prerelease::new(&format!("{}.{}", prefix, num + 1)).unwrap();
             }
         }
     }
 
     fn increment_pre_label(&mut self) {
-        if self.is_prerelease() {
-            match &self.pre[0] {
-                Identifier::AlphaNumeric(n) if n == "alpha" => {
-                    self.pre =
-                        vec![Identifier::AlphaNumeric("beta".into()), Identifier::Numeric(1)];
-                }
-                _ => {}
-            }
+        if self.pre.as_str().starts_with("alpha.") {
+            self.pre = semver::Prerelease::new("beta.1").unwrap();
         }
     }
 
     fn is_next(&self, version: &Version) -> bool {
         let mut next = self.clone();
 
-        if self.is_prerelease() {
+        if !self.pre.is_empty() {
             next.increment_pre_number();
             if next == *version {
                 return true;
@@ -410,9 +404,9 @@ impl VersionExt for Version {
                 return true;
             }
 
-            next.pre = vec![];
+            next.pre = semver::Prerelease::EMPTY;
         } else {
-            next.increment_patch();
+            next.patch += 1;
             if next == *version {
                 return true;
             }
@@ -422,7 +416,7 @@ impl VersionExt for Version {
                 return true;
             }
 
-            next.increment_minor();
+            next.minor += 1;
             if next == *version {
                 return true;
             }
@@ -432,7 +426,7 @@ impl VersionExt for Version {
                 return true;
             }
 
-            next.increment_major();
+            next.major += 1;
             if next == *version {
                 return true;
             }
