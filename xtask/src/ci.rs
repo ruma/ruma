@@ -4,7 +4,7 @@ use xshell::pushd;
 
 use crate::{cmd, Metadata, Result};
 
-const MSRV: &str = "1.53";
+const MSRV: &str = "1.55";
 
 /// Task to run CI tests.
 pub struct CiTask {

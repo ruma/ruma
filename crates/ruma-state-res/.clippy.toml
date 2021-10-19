@@ -1,4 +1,4 @@
-msrv = "1.53"
+msrv = "1.55"
 avoid-breaking-exported-api = false
 disallowed-types = []
 enforced-import-renames = [ { path = "serde_json::Value", rename = "JsonValue" } ]

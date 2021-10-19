@@ -1,4 +1,4 @@
-msrv = "1.53"
+msrv = "1.55"
 avoid-breaking-exported-api = false
 disallowed-types = [
     "std::collections::HashMap",
