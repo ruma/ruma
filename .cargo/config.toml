@@ -1,33 +1,34 @@
 [alias]
 xtask = "run --package xtask --"
-ruma-clippy = """\
-  clippy --workspace --all-targets --features=full,compat,unstable-pre-spec -- \
-    -W rust_2018_idioms \
-    -W semicolon_in_expressions_from_macros \
-    -W unused_import_braces \
-    -W unused_qualifications \
-    -W clippy::branches_sharing_code \
-    -W clippy::cloned_instead_of_copied \
-    -W clippy::dbg_macro \
-    -W clippy::disallowed_type \
-    -W clippy::empty_line_after_outer_attr \
-    -W clippy::exhaustive_enums \
-    -W clippy::exhaustive_structs \
-    -W clippy::inefficient_to_string \
-    -W clippy::macro_use_imports \
-    -W clippy::map_flatten \
-    -W clippy::missing_enforced_import_renames \
-    -W clippy::mod_module_files \
-    -W clippy::mut_mut \
-    -W clippy::needless_borrow \
-    -A clippy::new_without_default \
-    -W clippy::nonstandard_macro_braces \
-    -W clippy::str_to_string \
-    -W clippy::todo \
-    -W clippy::unreadable_literal \
-    -W clippy::unseparated_literal_suffix \
-    -W clippy::wildcard_imports \
-"""
 
 [doc.extern-map.registries]
 crates-io = "https://docs.rs/"
+
+[target.'cfg(all())']
+rustflags = [
+    "-Wrust_2018_idioms",
+    "-Wsemicolon_in_expressions_from_macros",
+    "-Wunused_import_braces",
+    "-Wunused_qualifications",
+    "-Wclippy::branches_sharing_code",
+    "-Wclippy::cloned_instead_of_copied",
+    "-Wclippy::dbg_macro",
+    "-Wclippy::disallowed_type",
+    "-Wclippy::empty_line_after_outer_attr",
+    "-Wclippy::exhaustive_enums",
+    "-Wclippy::exhaustive_structs",
+    "-Wclippy::inefficient_to_string",
+    "-Wclippy::macro_use_imports",
+    "-Wclippy::map_flatten",
+    "-Wclippy::missing_enforced_import_renames",
+    "-Wclippy::mod_module_files",
+    "-Wclippy::mut_mut",
+    "-Wclippy::needless_borrow",
+    "-Aclippy::new_without_default",
+    "-Wclippy::nonstandard_macro_braces",
+    "-Wclippy::str_to_string",
+    "-Wclippy::todo",
+    "-Wclippy::unreadable_literal",
+    "-Wclippy::unseparated_literal_suffix",
+    "-Wclippy::wildcard_imports",
+]

@@ -81,8 +81,22 @@ impl CiTask {
         // Check `ruma` crate with `full` feature (sometimes things only compile with an unstable
         // flag)
         let check_full_res = cmd!("rustup run nightly cargo check -p ruma --features full").run();
-        // Check everything with (almost) all features with clippy
-        let clippy_res = cmd!("rustup run nightly cargo ruma-clippy -D warnings").run();
+        // Check everything with default features with clippy
+        let clippy_default_res = cmd!(
+            "
+            rustup run nightly cargo clippy
+                --workspace --all-targets --features=full -- -D warnings
+            "
+        )
+        .run();
+        // Check everything with almost all features with clippy
+        let clippy_all_res = cmd!(
+            "
+            rustup run nightly cargo clippy
+                --workspace --all-targets --features=full,compat,unstable-pre-spec -- -D warnings
+            "
+        )
+        .run();
         // Check dependencies being sorted
         let sort_res = cmd!(
             "
@@ -93,6 +107,6 @@ impl CiTask {
         )
         .run();
 
-        fmt_res.and(check_full_res).and(clippy_res).and(sort_res)
+        fmt_res.and(check_full_res).and(clippy_default_res).and(clippy_all_res).and(sort_res)
     }
 }
