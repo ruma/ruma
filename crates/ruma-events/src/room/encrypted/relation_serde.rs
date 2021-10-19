@@ -40,6 +40,7 @@ impl Serialize for Relation {
     where
         S: Serializer,
     {
+        #[allow(clippy::needless_update)]
         let relates_to = match self {
             #[cfg(feature = "unstable-pre-spec")]
             Relation::Annotation(r) => RelatesToJsonRepr {

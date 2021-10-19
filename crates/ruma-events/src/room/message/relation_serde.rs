@@ -43,6 +43,7 @@ impl Serialize for Relation {
     where
         S: Serializer,
     {
+        #[allow(clippy::needless_update)]
         let json_repr = match self {
             Relation::Reply { in_reply_to } => EventWithRelatesToJsonRepr::new(RelatesToJsonRepr {
                 in_reply_to: Some(in_reply_to.clone()),
