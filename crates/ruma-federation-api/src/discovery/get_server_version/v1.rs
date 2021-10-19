@@ -7,8 +7,8 @@ ruma_api! {
     metadata: {
         description: "Get the implementation name and version of this homeserver.",
         method: GET,
-        name: "discover_homeserver",
-        path: "/.well-known/matrix/server",
+        name: "get_server_version",
+        path: "/_matrix/federation/v1/version",
         rate_limited: false,
         authentication: None,
     }
