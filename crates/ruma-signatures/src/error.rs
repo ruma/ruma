@@ -4,6 +4,7 @@ use thiserror::Error;
 /// `ruma-signature`'s error type, wraps a number of other error types.
 #[derive(Debug, Error)]
 #[non_exhaustive]
+#[allow(clippy::enum_variant_names)]
 pub enum Error {
     /// [`JsonError`] wrapper.
     #[error("JSON error: {0}")]
