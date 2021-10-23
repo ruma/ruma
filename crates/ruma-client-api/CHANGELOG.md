@@ -8,6 +8,7 @@ Breaking changes:
     nested borrowing can be very annoying
 * `LoginInfo` no longer implements `PartialEq` and `Eq` due to the custom variant that was added.
 * `LoginInfo` converted to newtype variants.
+* Use `Raw` for `create_room::Request::creation_content`
 
 Improvements:
 

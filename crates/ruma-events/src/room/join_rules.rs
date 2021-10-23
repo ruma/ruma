@@ -239,17 +239,19 @@ impl<'de> Deserialize<'de> for AllowRule {
 
 #[cfg(test)]
 mod tests {
-    #[cfg(feature = "unstable-pre-spec")]
-    use super::AllowRule;
-    use super::{JoinRule, RoomJoinRulesEventContent};
+    use matches::assert_matches;
     #[cfg(feature = "unstable-pre-spec")]
     use ruma_identifiers::room_id;
+
+    #[cfg(feature = "unstable-pre-spec")]
+    use super::AllowRule;
+    use super::{JoinRule, RoomJoinRulesEvent, RoomJoinRulesEventContent};
 
     #[test]
     fn deserialize() {
         let json = r#"{"join_rule": "public"}"#;
         let event: RoomJoinRulesEventContent = serde_json::from_str(json).unwrap();
-        assert!(matches!(event, RoomJoinRulesEventContent { join_rule: JoinRule::Public }));
+        assert_matches!(event, RoomJoinRulesEventContent { join_rule: JoinRule::Public });
     }
 
     #[cfg(feature = "unstable-pre-spec")]
@@ -279,5 +281,26 @@ mod tests {
             ),
             rule => panic!("Deserialized to wrong variant: {:?}", rule),
         }
+    }
+
+    fn deserialize_restricted_event() {
+        let json = r#"{
+            "type": "m.room.join_rules",
+            "sender": "@admin:community.rs",
+            "content": {
+                "join_rule": "restricted",
+                "allow":[
+                    { "type": "m.room_membership","room_id": "!KqeUnzmXPIhHRaWMTs:mccarty.io" }
+                ]
+            },
+            "state_key": "",
+            "origin_server_ts":1630508835342,
+            "unsigned": {
+                "age":4165521871
+            },
+            "event_id": "$0ACb9KSPlT3al3kikyRYvFhMqXPP9ZcQOBrsdIuh58U"
+        }"#;
+
+        assert_matches!(serde_json::from_str::<RoomJoinRulesEvent>(json), Ok(_));
     }
 }

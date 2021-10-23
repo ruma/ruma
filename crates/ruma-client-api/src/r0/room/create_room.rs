@@ -31,8 +31,8 @@ ruma_api! {
     #[derive(Default)]
     request: {
         /// Extra keys to be added to the content of the `m.room.create`.
-        #[serde(default, skip_serializing_if = "CreationContent::is_empty")]
-        pub creation_content: CreationContent,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub creation_content: Option<Raw<CreationContent>>,
 
         /// List of state events to send to the new room.
         ///
