@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Oh no, it's a bug. Where is the squasher?
+about: Oh no, it's a bug. Let's squash it!
 title: ''
 labels: type/bug, untriaged
 assignees: ''
