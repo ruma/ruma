@@ -184,12 +184,12 @@ impl fmt::Display for ErrorKind {
     }
 }
 
-/// A Matrix Error without a status code
+/// A Matrix Error without a status code.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(clippy::exhaustive_structs)]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct ErrorBody {
-    /// A value which can be used to handle an error message
+    /// A value which can be used to handle an error message.
     #[serde(flatten)]
     pub kind: ErrorKind,
 
@@ -202,13 +202,13 @@ pub struct ErrorBody {
 #[derive(Debug, Clone)]
 #[allow(clippy::exhaustive_structs)]
 pub struct Error {
-    /// A value which can be used to handle an error message
+    /// A value which can be used to handle an error message.
     pub kind: ErrorKind,
 
     /// A human-readable error message, usually a sentence explaining what went wrong.
     pub message: String,
 
-    /// The http status code
+    /// The http status code.
     pub status_code: http::StatusCode,
 }
 
