@@ -1,4 +1,8 @@
-use std::{fs, path::Path};
+use std::{
+    fs::{self, File},
+    io::{BufRead, BufReader},
+    path::Path,
+};
 
 use crate::Result;
 
@@ -41,23 +45,18 @@ fn walk_dirs(path: &Path, split: &str, version_match: fn(&str) -> bool) -> Resul
             if path.is_dir() {
                 walk_dirs(&path, split, version_match)?;
             } else {
-                let content = fs::read_to_string(&path)?;
-                let split = content.split(split).collect::<Vec<_>>();
+                let mut buf = String::new();
+                let mut content = BufReader::new(File::open(&path)?);
 
-                let mut last_segment = false;
-                for chunk in split.chunks(2) {
-                    match chunk {
-                        [pre] if last_segment && !version_match(pre) => {
-                            return err(&path, pre);
+                // We can assume a spec link will never overflow to another line
+                while content.read_line(&mut buf)? > 0 {
+                    // If for some reason a line has 2 spec links
+                    for (idx, _) in buf.match_indices(split) {
+                        if !version_match(&buf[idx + split.len()..]) {
+                            return err(&path, &buf);
                         }
-                        [pre, post] => {
-                            if !version_match(post) {
-                                return err(&path, post);
-                            }
-                        }
-                        [] | [..] => {}
                     }
-                    last_segment = true;
+                    buf.clear();
                 }
             }
         }
