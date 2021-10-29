@@ -27,7 +27,7 @@ pub enum DeviceIdOrAllDevices {
 impl Display for DeviceIdOrAllDevices {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            DeviceIdOrAllDevices::DeviceId(device_id) => write!(f, "{}", device_id.to_string()),
+            DeviceIdOrAllDevices::DeviceId(device_id) => write!(f, "{}", device_id),
             DeviceIdOrAllDevices::AllDevices => write!(f, "*"),
         }
     }
