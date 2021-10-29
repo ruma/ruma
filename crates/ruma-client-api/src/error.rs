@@ -4,7 +4,7 @@ use std::{collections::BTreeMap, fmt, time::Duration};
 
 use bytes::BufMut;
 use ruma_api::{
-    error::{IntoHttpError, ResponseDeserializationError},
+    error::{DeserializationError, IntoHttpError},
     EndpointError, OutgoingResponse,
 };
 use ruma_identifiers::RoomVersionId;
@@ -215,7 +215,7 @@ pub struct Error {
 impl EndpointError for Error {
     fn try_from_http_response<T: AsRef<[u8]>>(
         response: http::Response<T>,
-    ) -> Result<Self, ResponseDeserializationError> {
+    ) -> Result<Self, DeserializationError> {
         let status = response.status();
         let error_body: ErrorBody = from_json_slice(response.body().as_ref())?;
         Ok(error_body.into_error(status))

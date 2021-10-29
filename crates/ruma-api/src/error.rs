@@ -47,7 +47,7 @@ impl OutgoingResponse for MatrixError {
 impl EndpointError for MatrixError {
     fn try_from_http_response<T: AsRef<[u8]>>(
         response: http::Response<T>,
-    ) -> Result<Self, ResponseDeserializationError> {
+    ) -> Result<Self, DeserializationError> {
         Ok(Self {
             status_code: response.status(),
             body: from_json_slice(response.body().as_ref())?,
@@ -90,7 +90,7 @@ pub enum IntoHttpError {
 pub enum FromHttpRequestError {
     /// Deserialization failed
     #[error("deserialization failed: {0}")]
-    Deserialization(RequestDeserializationError),
+    Deserialization(DeserializationError),
 
     /// HTTP method mismatch
     #[error("http method mismatch: expected {expected}, received: {received}")]
@@ -104,26 +104,10 @@ pub enum FromHttpRequestError {
 
 impl<T> From<T> for FromHttpRequestError
 where
-    T: Into<RequestDeserializationError>,
-{
-    fn from(err: T) -> Self {
-        Self::Deserialization(err.into())
-    }
-}
-
-/// An error that occurred when trying to deserialize a request.
-#[derive(Debug, Error)]
-#[error("{inner}")]
-pub struct RequestDeserializationError {
-    inner: DeserializationError,
-}
-
-impl<T> From<T> for RequestDeserializationError
-where
     T: Into<DeserializationError>,
 {
     fn from(err: T) -> Self {
-        Self { inner: err.into() }
+        Self::Deserialization(err.into())
     }
 }
 
@@ -132,7 +116,7 @@ where
 #[non_exhaustive]
 pub enum FromHttpResponseError<E> {
     /// Deserialization failed
-    Deserialization(ResponseDeserializationError),
+    Deserialization(DeserializationError),
 
     /// The server returned a non-success status
     Http(ServerError<E>),
@@ -155,7 +139,7 @@ impl<E> From<ServerError<E>> for FromHttpResponseError<E> {
 
 impl<E, T> From<T> for FromHttpResponseError<E>
 where
-    T: Into<ResponseDeserializationError>,
+    T: Into<DeserializationError>,
 {
     fn from(err: T) -> Self {
         Self::Deserialization(err.into())
@@ -163,29 +147,6 @@ where
 }
 
 impl<E: StdError> StdError for FromHttpResponseError<E> {}
-
-/// An error that occurred when trying to deserialize a response.
-#[derive(Debug)]
-pub struct ResponseDeserializationError {
-    inner: DeserializationError,
-}
-
-impl<T> From<T> for ResponseDeserializationError
-where
-    T: Into<DeserializationError>,
-{
-    fn from(err: T) -> Self {
-        Self { inner: err.into() }
-    }
-}
-
-impl fmt::Display for ResponseDeserializationError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(&self.inner, f)
-    }
-}
-
-impl StdError for ResponseDeserializationError {}
 
 /// An error was reported by the server (HTTP status code 4xx or 5xx)
 #[derive(Debug)]
@@ -196,7 +157,7 @@ pub enum ServerError<E> {
     Known(E),
 
     /// An error of unexpected type of structure
-    Unknown(ResponseDeserializationError),
+    Unknown(DeserializationError),
 }
 
 impl<E: fmt::Display> fmt::Display for ServerError<E> {

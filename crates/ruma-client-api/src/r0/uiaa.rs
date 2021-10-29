@@ -6,7 +6,7 @@ use std::{borrow::Cow, fmt};
 
 use bytes::BufMut;
 use ruma_api::{
-    error::{IntoHttpError, ResponseDeserializationError},
+    error::{DeserializationError, IntoHttpError},
     EndpointError, OutgoingResponse,
 };
 use ruma_common::thirdparty::Medium;
@@ -827,7 +827,7 @@ impl From<MatrixError> for UiaaResponse {
 impl EndpointError for UiaaResponse {
     fn try_from_http_response<T: AsRef<[u8]>>(
         response: http::Response<T>,
-    ) -> Result<Self, ResponseDeserializationError> {
+    ) -> Result<Self, DeserializationError> {
         if response.status() == http::StatusCode::UNAUTHORIZED {
             Ok(UiaaResponse::AuthResponse(from_json_slice(response.body().as_ref())?))
         } else {

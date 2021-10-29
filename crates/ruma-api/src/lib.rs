@@ -362,7 +362,7 @@ pub trait EndpointError: OutgoingResponse + StdError + Sized + Send + 'static {
     /// the `ruma_api` macro.
     fn try_from_http_response<T: AsRef<[u8]>>(
         response: http::Response<T>,
-    ) -> Result<Self, error::ResponseDeserializationError>;
+    ) -> Result<Self, error::DeserializationError>;
 }
 
 /// Marker trait for requests that don't require authentication, for the client side.

@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+* Remove the `RequestDeserializationError` and `ResponseDeserializationError`
+  types in favor of using `DeserializationError` directly
+
 # 0.18.5
 
 Bug fixes:
