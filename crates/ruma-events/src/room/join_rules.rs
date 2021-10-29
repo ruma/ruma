@@ -245,7 +245,7 @@ mod tests {
 
     #[cfg(feature = "unstable-pre-spec")]
     use super::AllowRule;
-    use super::{JoinRule, RoomJoinRulesEvent, RoomJoinRulesEventContent};
+    use super::{JoinRule, RoomJoinRulesEventContent, SyncRoomJoinRulesEvent};
 
     #[test]
     fn deserialize() {
@@ -283,6 +283,7 @@ mod tests {
         }
     }
 
+    #[test]
     fn deserialize_restricted_event() {
         let json = r#"{
             "type": "m.room.join_rules",
@@ -301,6 +302,6 @@ mod tests {
             "event_id": "$0ACb9KSPlT3al3kikyRYvFhMqXPP9ZcQOBrsdIuh58U"
         }"#;
 
-        assert_matches!(serde_json::from_str::<RoomJoinRulesEvent>(json), Ok(_));
+        assert_matches!(serde_json::from_str::<SyncRoomJoinRulesEvent>(json), Ok(_));
     }
 }
