@@ -1,5 +1,6 @@
-// rustc overflows when compiling this see:
+// Required, probably until Rust 1.57
 // https://github.com/rust-lang/rust/issues/55779
+#[allow(unused_extern_crates)]
 extern crate serde;
 
 use ruma_common::MilliSecondsSinceUnixEpoch;
