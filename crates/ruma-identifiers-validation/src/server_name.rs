@@ -1,5 +1,7 @@
 use crate::error::Error;
 
+// Clippy lint is buggy, should be fixed within the next week (as of 2021-10-29)
+#[allow(clippy::question_mark)]
 pub fn validate(server_name: &str) -> Result<(), Error> {
     use std::net::Ipv6Addr;
 
