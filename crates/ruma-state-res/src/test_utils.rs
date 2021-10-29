@@ -171,7 +171,7 @@ pub fn do_check(
         let ev = event_map.get(&node).unwrap_or_else(|| {
             panic!(
                 "{} not found in {:?}",
-                node.to_string(),
+                node,
                 event_map.keys().map(ToString::to_string).collect::<Vec<_>>()
             )
         });
@@ -209,7 +209,7 @@ impl<E: Event> TestStore<E> {
         self.0
             .get(event_id)
             .map(Arc::clone)
-            .ok_or_else(|| Error::NotFound(format!("{} not found", event_id.to_string())))
+            .ok_or_else(|| Error::NotFound(format!("{} not found", event_id)))
     }
 
     /// Returns a Vec of the related auth events to the given `event`.

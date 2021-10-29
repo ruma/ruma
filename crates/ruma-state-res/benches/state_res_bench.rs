@@ -169,7 +169,7 @@ impl<E: Event> TestStore<E> {
         self.0
             .get(event_id)
             .map(Arc::clone)
-            .ok_or_else(|| Error::NotFound(format!("{} not found", event_id.to_string())))
+            .ok_or_else(|| Error::NotFound(format!("{} not found", event_id)))
     }
 
     /// Returns the events that correspond to the `event_ids` sorted in the same order.
