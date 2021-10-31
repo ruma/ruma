@@ -4,7 +4,7 @@ use std::{collections::BTreeMap, fmt, time::Duration};
 
 use bytes::BufMut;
 use ruma_api::{
-    error::{DeserializationError, IntoHttpError},
+    error::{DeserializationError, FromHttpRequestError, IntoHttpError},
     EndpointError, OutgoingResponse,
 };
 use ruma_identifiers::RoomVersionId;
@@ -230,6 +230,31 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
+impl From<FromHttpRequestError> for Error {
+    fn from(error: FromHttpRequestError) -> Self {
+        let kind = match error {
+            FromHttpRequestError::Deserialization(DeserializationError::Json(t)) => {
+                match t.is_syntax() {
+                    true => ErrorKind::NotJson,
+                    false => ErrorKind::BadJson,
+                }
+            }
+            FromHttpRequestError::Deserialization(_anything) => ErrorKind::InvalidParam,
+            _ => ErrorKind::Unknown,
+        };
+        Self {
+            message: match &kind {
+                ErrorKind::NotJson => "The JSON is malformed and cannot be parsed".into(),
+                ErrorKind::BadJson => "JSON was parsed but failed to deserialize properly".into(),
+                ErrorKind::InvalidParam => "There was one or more invalid parameters".into(),
+                _ => "Not sure what error has occured".into(),
+            },
+            kind,
+            status_code: http::StatusCode::from_u16(400_u16).unwrap(),
+        }
+    }
+}
+
 impl From<Error> for ErrorBody {
     fn from(error: Error) -> Self {
         Self { kind: error.kind, message: error.message }
@@ -257,9 +282,10 @@ impl OutgoingResponse for Error {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::{from_value as from_json_value, json};
+    use ruma_api::error::{DeserializationError, FromHttpRequestError};
+    use serde_json::{from_value as from_json_value, json, Value};
 
-    use super::{ErrorBody, ErrorKind};
+    use super::{Error, ErrorBody, ErrorKind};
 
     #[test]
     fn deserialize_forbidden() {
@@ -276,5 +302,19 @@ mod tests {
                 message: "You are not authorized to ban users in this room.".into(),
             }
         );
+    }
+    #[test]
+    fn convert_from_formhttprequest_error() {
+        let deserialization_result: Result<Value, serde_json::Error> =
+            serde_json::from_str(r#"notajsonbutarandomstring"#);
+        match deserialization_result {
+            Ok(_) => assert_eq!(1, 2), //intentional fail to notify of changed serde API if ever.
+            Err(e) => {
+                let fromhttp_error =
+                    FromHttpRequestError::Deserialization(DeserializationError::Json(e));
+                let error: Error = fromhttp_error.into();
+                assert_eq!(error.kind, ErrorKind::NotJson);
+            }
+        };
     }
 }
