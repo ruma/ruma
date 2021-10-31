@@ -1,10 +1,10 @@
-#![cfg(all(feature = "unstable-pdu", not(feature = "unstable-pre-spec")))]
+//#![cfg(all(feature = "unstable-pdu", not(feature = "unstable-pre-spec")))]
 
 use std::{collections::BTreeMap, convert::TryInto};
 
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
-    pdu::{EventHash, Pdu, RoomV1Pdu, RoomV3Pdu},
+    pdu::{EventHash, Pdu, PduTemplate, RoomV1Pdu, RoomV3Pdu},
     EventType,
 };
 use ruma_identifiers::{event_id, room_id, server_name, server_signing_key_id, user_id};
@@ -239,5 +239,80 @@ fn deserialize_pdu_as_v3() {
         }
         #[cfg(not(feature = "unstable-exhaustive-types"))]
         _ => unreachable!("new PDU version"),
+    }
+}
+
+#[cfg(not(feature = "unstable-pre-spec"))]
+#[test]
+fn pdu_template_deserialization_v1() {
+    let sender = "@anon-20211031_141932-1:localhost:8800";
+    let origin = "localhost:39683";
+    let room_id = "!0:localhost:39683";
+    let depth = 3;
+
+    let v1_pdu_template = serde_json::json!({
+        "sender": sender,
+        "origin": origin,
+        "room_id": room_id,
+        "content":{"membership":"join"},
+        "prev_events": [["$2:localhost:39701",{"sha256":"ooRPisKrLwix35DLWJBfHcTOXvjKkaZPZtkMaJ0RLGM"}]],
+        "depth": depth,
+        "type":"m.room.member",
+        "auth_events":[["$0:localhost:39701",{"sha256":"HcQurx5OWHOVsY3LELwxPPmew94BDVgXS4GcMx6lL3I"}],["$2:localhost:39701",{"sha256":"ooRPisKrLwix35DLWJBfHcTOXvjKkaZPZtkMaJ0RLGM"}]],
+        "origin_server_ts": 1635689973327i64,
+        "state_key": sender,
+    });
+
+    let pdu = serde_json::from_value::<PduTemplate>(v1_pdu_template).unwrap();
+
+    match pdu {
+        PduTemplate::RoomV1PduTemplate(pdu_template) => {
+            assert_eq!(pdu_template.sender.as_str(), sender);
+            assert_eq!(pdu_template.state_key.unwrap(), sender);
+            assert_eq!(pdu_template.origin, origin);
+            assert_eq!(pdu_template.room_id.as_str(), room_id);
+            assert_eq!(pdu_template.prev_events.len(), 1);
+            assert_eq!(pdu_template.auth_events.len(), 2);
+            assert_eq!(pdu_template.kind, EventType::RoomMember);
+        }
+        _ => panic!("unexpected PDU type"),
+    }
+}
+
+#[cfg(not(feature = "unstable-pre-spec"))]
+#[test]
+fn pdu_template_deserialziation_v3() {
+    let sender = "@anon-20211031_141932-1:localhost:8800";
+    let origin = "localhost:39683";
+    let room_id = "!0:localhost:39683";
+    let depth = 3;
+    let event_type = "m.room.member";
+
+    let v3_pdu_template = serde_json::json!({
+        "sender": sender,
+        "origin": origin,
+        "room_id": room_id,
+        "content":{"membership":"join"},
+        "prev_events": ["$EWEZh_ktVbINupsn3X0cjZHU53E3MnyHZ9hyRphb6zU"],
+        "depth": depth,
+        "type": event_type,
+        "auth_events":["$nEl36fNP70Cg3dpgmddyJasqe3_3TgYWGsOd9eWHWJ0","$EWEZh_ktVbINupsn3X0cjZHU53E3MnyHZ9hyRphb6zU"],
+        "origin_server_ts": 1635689973327i64,
+        "state_key": sender,
+    });
+
+    let pdu = serde_json::from_value::<PduTemplate>(v3_pdu_template).unwrap();
+
+    match pdu {
+        PduTemplate::RoomV3PduTemplate(pdu_template) => {
+            assert_eq!(pdu_template.sender.as_str(), sender);
+            assert_eq!(pdu_template.state_key.unwrap(), sender);
+            assert_eq!(pdu_template.origin, origin);
+            assert_eq!(pdu_template.room_id.as_str(), room_id);
+            assert_eq!(pdu_template.prev_events.len(), 1);
+            assert_eq!(pdu_template.auth_events.len(), 2);
+            assert_eq!(pdu_template.kind, EventType::RoomMember);
+        }
+        _ => panic!("unexpected PDU type"),
     }
 }

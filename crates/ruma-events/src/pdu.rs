@@ -149,6 +149,104 @@ pub struct RoomV3Pdu {
     pub signatures: BTreeMap<ServerNameBox, BTreeMap<ServerSigningKeyId, String>>,
 }
 
+/// Enum for PDU template schemas
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(untagged)]
+pub enum PduTemplate {
+    /// PDU for room versions 1 and 2.
+    RoomV1PduTemplate(RoomV1PduTemplate),
+
+    /// PDU for room versions 3 and above.
+    RoomV3PduTemplate(RoomV3PduTemplate),
+}
+
+/// A 'persistent data unit' template for room versions 1 and 2.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[allow(clippy::exhaustive_structs)]
+pub struct RoomV1PduTemplate {
+    /// The room this event belongs to.
+    pub room_id: RoomId,
+
+    /// The user id of the user who sent this event.
+    pub sender: UserId,
+
+    #[cfg(not(feature = "unstable-pre-spec"))]
+    /// The `server_name` of the homeserver that created this event.
+    pub origin: String,
+
+    /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver
+    /// of when this event was created.
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
+
+    // TODO: Encode event type as content enum variant, like event enums do
+    /// The event's type.
+    #[serde(rename = "type")]
+    pub kind: EventType,
+
+    /// The event's content.
+    pub content: Box<RawJsonValue>,
+
+    /// A key that determines which piece of room state the event represents.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state_key: Option<String>,
+
+    /// Event IDs for the most recent events in the room that the homeserver was
+    /// aware of when it created this event.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub prev_events: Vec<(EventId, EventHash)>,
+
+    /// The maximum depth of the `prev_events`, plus one.
+    pub depth: UInt,
+
+    /// Event IDs for the authorization events that would allow this event to be
+    /// in the room.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub auth_events: Vec<(EventId, EventHash)>,
+}
+
+/// A 'persistent data unit' template for room versions 3 and beyond.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[allow(clippy::exhaustive_structs)]
+pub struct RoomV3PduTemplate {
+    /// The room this event belongs to.
+    pub room_id: RoomId,
+
+    /// The user id of the user who sent this event.
+    pub sender: UserId,
+
+    #[cfg(not(feature = "unstable-pre-spec"))]
+    /// The `server_name` of the homeserver that created this event.
+    pub origin: String,
+
+    /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver
+    /// of when this event was created.
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
+
+    // TODO: Encode event type as content enum variant, like event enums do
+    /// The event's type.
+    #[serde(rename = "type")]
+    pub kind: EventType,
+
+    /// The event's content.
+    pub content: Box<RawJsonValue>,
+
+    /// A key that determines which piece of room state the event represents.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state_key: Option<String>,
+
+    /// Event IDs for the most recent events in the room that the homeserver was
+    /// aware of when it created this event.
+    pub prev_events: Vec<EventId>,
+
+    /// The maximum depth of the `prev_events`, plus one.
+    pub depth: UInt,
+
+    /// Event IDs for the authorization events that would allow this event to be
+    /// in the room.
+    pub auth_events: Vec<EventId>,
+}
+
 /// Content hashes of a PDU.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
