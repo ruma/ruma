@@ -31,3 +31,19 @@ fn empty_de() {
     assert_eq!(from_json_value::<StringStruct>(json!({"x": ""})).unwrap(), string);
     assert_eq!(from_json_value::<NoneStruct>(json!({})).unwrap(), none);
 }
+
+#[test]
+fn empty_de_no_field() {
+    #[derive(Deserialize, PartialEq, Debug)]
+    struct UndecoratedStringStruct {
+        x: Option<String>,
+    }
+
+    // A test with an absent underorated field passes
+    let string = UndecoratedStringStruct { x: None };
+    assert_eq!(from_json_value::<UndecoratedStringStruct>(json!({})).unwrap(), string);
+
+    // While with a decorated one it fails
+    let string = StringStruct { x: None };
+    assert_eq!(from_json_value::<StringStruct>(json!({})).unwrap(), string);
+}
