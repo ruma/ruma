@@ -54,10 +54,8 @@ mod user {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
     use std::convert::TryFrom;
 
-    const CARL: &str = "@carl:example.com";
-
     fn carl() -> UserId {
-        UserId::try_from(CARL).expect("Failed to create UserId.")
+        user_id!("@carl:example.com")
     }
 
     #[derive(Serialize, Deserialize, PartialEq, Debug)]
