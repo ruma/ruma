@@ -49,10 +49,11 @@ mod string {
 }
 
 mod user {
-    use ruma_identifiers::UserId;
+    use ruma_identifiers::{user_id, UserId};
     use serde::{Deserialize, Serialize};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
-    use std::convert::TryFrom;
+
+    const CARL: &str = "@carl:example.com";
 
     fn carl() -> UserId {
         user_id!("@carl:example.com")
