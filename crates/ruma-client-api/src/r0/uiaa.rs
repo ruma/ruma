@@ -523,8 +523,8 @@ impl IncomingOAuth2 {
 #[serde(tag = "type", rename = "m.login.email.identity")]
 pub struct EmailIdentity<'a> {
     /// Thirdparty identifier credentials.
-    #[serde(rename = "threepidCreds")]
-    #[cfg_attr(feature = "compat", alias = "threepid_creds")]
+    #[cfg_attr(not(feature = "compat"), serde(rename = "threepidCreds"))]
+    #[cfg_attr(feature = "compat", rename = "threepid_creds", alias = "threepidCreds")]
     pub thirdparty_id_creds: &'a [ThirdpartyIdCredentials],
 
     /// The value of the session key given by the homeserver, if any.
@@ -551,8 +551,8 @@ impl IncomingEmailIdentity {
 #[serde(tag = "type", rename = "m.login.msisdn")]
 pub struct Msisdn<'a> {
     /// Thirdparty identifier credentials.
-    #[serde(rename = "threepidCreds")]
-    #[cfg_attr(feature = "compat", alias = "threepid_creds")]
+    #[cfg_attr(not(feature = "compat"), serde(rename = "threepidCreds"))]
+    #[cfg_attr(feature = "compat", rename = "threepid_creds", alias = "threepidCreds")]
     pub thirdparty_id_creds: &'a [ThirdpartyIdCredentials],
 
     /// The value of the session key given by the homeserver, if any.
