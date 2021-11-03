@@ -523,14 +523,10 @@ impl IncomingOAuth2 {
 #[serde(tag = "type", rename = "m.login.email.identity")]
 pub struct EmailIdentity<'a> {
     /// Thirdparty identifier credentials.
-    #[cfg_attr(not(feature = "compat"), serde(rename = "threepidCreds"))]
+    #[cfg_attr(rename = "threepidCreds")]
     #[cfg_attr(
         feature = "compat",
-        serde(
-            rename = "threepid_creds",
-            alias = "threepidCreds",
-            deserialize_with = "deserialize_thirdparty_id_creds"
-        )
+        serde(alias = "threepid_creds", deserialize_with = "deserialize_thirdparty_id_creds")
     )]
     pub thirdparty_id_creds: &'a [ThirdpartyIdCredentials],
 
@@ -558,14 +554,10 @@ impl IncomingEmailIdentity {
 #[serde(tag = "type", rename = "m.login.msisdn")]
 pub struct Msisdn<'a> {
     /// Thirdparty identifier credentials.
-    #[cfg_attr(not(feature = "compat"), serde(rename = "threepidCreds"))]
+    #[cfg_attr(rename = "threepidCreds")]
     #[cfg_attr(
         feature = "compat",
-        serde(
-            rename = "threepid_creds",
-            alias = "threepidCreds",
-            deserialize_with = "deserialize_thirdparty_id_creds"
-        )
+        serde(alias = "threepid_creds", deserialize_with = "deserialize_thirdparty_id_creds")
     )]
     pub thirdparty_id_creds: &'a [ThirdpartyIdCredentials],
 
