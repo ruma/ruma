@@ -524,6 +524,7 @@ impl IncomingOAuth2 {
 pub struct EmailIdentity<'a> {
     /// Thirdparty identifier credentials.
     #[serde(rename = "threepidCreds")]
+    #[cfg_attr(feature = "compat", alias = "threepid_creds")]
     pub thirdparty_id_creds: &'a [ThirdpartyIdCredentials],
 
     /// The value of the session key given by the homeserver, if any.
@@ -551,6 +552,7 @@ impl IncomingEmailIdentity {
 pub struct Msisdn<'a> {
     /// Thirdparty identifier credentials.
     #[serde(rename = "threepidCreds")]
+    #[cfg_attr(feature = "compat", alias = "threepid_creds")]
     pub thirdparty_id_creds: &'a [ThirdpartyIdCredentials],
 
     /// The value of the session key given by the homeserver, if any.
