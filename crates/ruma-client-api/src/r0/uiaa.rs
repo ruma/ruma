@@ -524,7 +524,14 @@ impl IncomingOAuth2 {
 pub struct EmailIdentity<'a> {
     /// Thirdparty identifier credentials.
     #[cfg_attr(not(feature = "compat"), serde(rename = "threepidCreds"))]
-    #[cfg_attr(feature = "compat", serde(rename = "threepid_creds", alias = "threepidCreds"))]
+    #[cfg_attr(
+        feature = "compat",
+        serde(
+            rename = "threepid_creds",
+            alias = "threepidCreds",
+            deserialize_with = "deserialize_thirdparty_id_creds"
+        )
+    )]
     pub thirdparty_id_creds: &'a [ThirdpartyIdCredentials],
 
     /// The value of the session key given by the homeserver, if any.
@@ -552,7 +559,14 @@ impl IncomingEmailIdentity {
 pub struct Msisdn<'a> {
     /// Thirdparty identifier credentials.
     #[cfg_attr(not(feature = "compat"), serde(rename = "threepidCreds"))]
-    #[cfg_attr(feature = "compat", serde(rename = "threepid_creds", alias = "threepidCreds"))]
+    #[cfg_attr(
+        feature = "compat",
+        serde(
+            rename = "threepid_creds",
+            alias = "threepidCreds",
+            deserialize_with = "deserialize_thirdparty_id_creds"
+        )
+    )]
     pub thirdparty_id_creds: &'a [ThirdpartyIdCredentials],
 
     /// The value of the session key given by the homeserver, if any.
@@ -851,6 +865,38 @@ impl OutgoingResponse for UiaaResponse {
                 .body(ruma_serde::json_to_buf(&authentication_info)?)
                 .map_err(Into::into),
             UiaaResponse::MatrixError(error) => error.try_into_http_response(),
+        }
+    }
+}
+
+fn deserialize_thirdparty_id_creds<'de, D>(deserializer: D) -> Vec<ThirdpartyIdCredentials>
+where
+    D: Deserializer<'de>,
+{
+    use de::value::{MapAccessDeserializer, SeqAccessDeserializer};
+
+    struct CredsVisitor;
+
+    impl<'de> de::Visitor<'de> for CredsVisitor {
+        type Value = Vec<ThirdpartyIdCredentials>;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+            formatter.write_str("an array or object")
+        }
+
+        fn visit_seq<A>(self, seq: A) -> Result<Self::Value, A::Error>
+        where
+            A: de::SeqAccess<'de>,
+        {
+            <Vec<ThirdpartyIdCredentials>>::deserialize(SeqAccessDeserializer::new(seq))
+        }
+
+        fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+        where
+            A: de::MapAccess<'de>,
+        {
+            let creds = ThirdpartyIdCredentials::deserialize(MapAccessDeserializer::new(map))?;
+            Ok(vec![creds])
         }
     }
 }
