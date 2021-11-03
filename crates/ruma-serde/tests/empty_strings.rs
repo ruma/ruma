@@ -104,3 +104,54 @@ mod user {
         assert_eq!(from_json_value::<User>(encoded).unwrap(), decoded);
     }
 }
+
+mod int {
+    use serde::{Deserialize, Serialize};
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+
+    #[derive(Serialize, Deserialize, PartialEq, Debug)]
+    struct Int {
+        #[serde(
+            default,
+            deserialize_with = "ruma_serde::empty_string_as_none",
+            serialize_with = "ruma_serde::none_as_empty_string"
+        )]
+        x: Option<i32>,
+    }
+
+    #[test]
+    fn none_se() {
+        let decoded = Int { x: None };
+        let encoded = json!({ "x": "" });
+        assert_eq!(to_json_value(decoded).unwrap(), encoded);
+    }
+
+    #[test]
+    fn some_se() {
+        let decoded = Int { x: Some(1) };
+        let encoded = json!({ "x": 1 });
+        assert_eq!(to_json_value(decoded).unwrap(), encoded);
+    }
+
+    #[test]
+    fn absent_de() {
+        let encoded = json!({});
+        let decoded = Int { x: None };
+        assert_eq!(from_json_value::<Int>(encoded).unwrap(), decoded);
+    }
+
+    #[test]
+    fn empty_de() {
+        let encoded = json!({ "x": "" });
+        let decoded = Int { x: None };
+        assert_eq!(from_json_value::<Int>(encoded).unwrap(), decoded);
+    }
+
+    #[test]
+    fn some_de() {
+        // TODO doesn't work with `json!({ "x": 1 })` - unquoted `1`
+        let encoded = json!({ "x": "1" });
+        let decoded = Int { x: Some(1) };
+        assert_eq!(from_json_value::<Int>(encoded).unwrap(), decoded);
+    }
+}

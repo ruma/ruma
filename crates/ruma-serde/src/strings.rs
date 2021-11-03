@@ -1,8 +1,8 @@
-use std::{collections::BTreeMap, convert::TryInto, fmt, marker::PhantomData};
+use std::{collections::BTreeMap, convert::TryInto, fmt, marker::PhantomData, str::FromStr};
 
 use js_int::Int;
 use serde::{
-    de::{self, Deserializer, IntoDeserializer as _, MapAccess, Visitor},
+    de::{self, Deserializer, MapAccess, Visitor},
     ser::Serializer,
     Deserialize, Serialize,
 };
@@ -20,14 +20,15 @@ use serde::{
 pub fn empty_string_as_none<'de, D, T>(de: D) -> Result<Option<T>, D::Error>
 where
     D: Deserializer<'de>,
-    T: Deserialize<'de>,
+    T: FromStr,
+    T::Err: fmt::Display,
 {
     let opt = Option::<String>::deserialize(de)?;
     match opt.as_deref() {
         None | Some("") => Ok(None),
         // If T = String, like in m.room.name, the second deserialize is actually superfluous.
         // TODO: optimize that somehow?
-        Some(s) => T::deserialize(s.into_deserializer()).map(Some),
+        Some(s) => FromStr::from_str(s).map_err(de::Error::custom).map(Some),
     }
 }
 
