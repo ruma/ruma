@@ -861,6 +861,7 @@ impl OutgoingResponse for UiaaResponse {
     }
 }
 
+#[cfg(feature = "compat")]
 fn deserialize_thirdparty_id_creds<'de, D>(
     deserializer: D,
 ) -> Result<Vec<ThirdpartyIdCredentials>, D::Error>
