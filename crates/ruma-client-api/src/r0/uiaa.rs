@@ -523,7 +523,7 @@ impl IncomingOAuth2 {
 #[serde(tag = "type", rename = "m.login.email.identity")]
 pub struct EmailIdentity<'a> {
     /// Thirdparty identifier credentials.
-    #[cfg_attr(rename = "threepidCreds")]
+    #[serde(rename = "threepidCreds")]
     #[cfg_attr(
         feature = "compat",
         serde(alias = "threepid_creds", deserialize_with = "deserialize_thirdparty_id_creds")
@@ -554,7 +554,7 @@ impl IncomingEmailIdentity {
 #[serde(tag = "type", rename = "m.login.msisdn")]
 pub struct Msisdn<'a> {
     /// Thirdparty identifier credentials.
-    #[cfg_attr(rename = "threepidCreds")]
+    #[serde(rename = "threepidCreds")]
     #[cfg_attr(
         feature = "compat",
         serde(alias = "threepid_creds", deserialize_with = "deserialize_thirdparty_id_creds")
@@ -861,7 +861,9 @@ impl OutgoingResponse for UiaaResponse {
     }
 }
 
-fn deserialize_thirdparty_id_creds<'de, D>(deserializer: D) -> Vec<ThirdpartyIdCredentials>
+fn deserialize_thirdparty_id_creds<'de, D>(
+    deserializer: D,
+) -> Result<Vec<ThirdpartyIdCredentials>, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -891,4 +893,6 @@ where
             Ok(vec![creds])
         }
     }
+
+    deserializer.deserialize_any(CredsVisitor)
 }
