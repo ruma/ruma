@@ -59,4 +59,4 @@ It is guarateed to work with whatever is the latest stable version though.
 
 ## License
 
-[MIT](http://opensource.org/licenses/MIT)
+[MIT](https://opensource.org/licenses/MIT)
