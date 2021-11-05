@@ -420,6 +420,19 @@ impl PusherData {
     pub fn new() -> Self {
         Default::default()
     }
+
+    /// Returns `true` if all fields are `None`.
+    pub fn is_empty(&self) -> bool {
+        #[cfg(not(feature = "unstable-pre-spec"))]
+        {
+            self.url.is_none() && self.format.is_none()
+        }
+
+        #[cfg(feature = "unstable-pre-spec")]
+        {
+            self.url.is_none() && self.format.is_none() && self.default_payload.is_none()
+        }
+    }
 }
 
 /// A special format that the homeserver should use when sending notifications to a Push Gateway.

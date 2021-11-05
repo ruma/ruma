@@ -208,8 +208,8 @@ pub struct Device {
     ///
     /// For 'http' pushers, this is the data dictionary passed in at pusher creation minus the
     /// `url` key.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub data: Option<PusherData>,
+    #[serde(default, skip_serializing_if = "PusherData::is_empty")]
+    pub data: PusherData,
 
     /// A dictionary of customisations made to the way this notification is to be presented.
     ///
@@ -221,7 +221,7 @@ pub struct Device {
 impl Device {
     /// Create a new device with the given app id and pushkey
     pub fn new(app_id: String, pushkey: String) -> Self {
-        Device { app_id, pushkey, pushkey_ts: None, data: None, tweaks: Vec::new() }
+        Device { app_id, pushkey, pushkey_ts: None, data: PusherData::new(), tweaks: Vec::new() }
     }
 }
 
