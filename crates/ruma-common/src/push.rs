@@ -19,6 +19,8 @@ use std::hash::{Hash, Hasher};
 use indexmap::{Equivalent, IndexSet};
 use ruma_serde::{Raw, StringEnum};
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "unstable-pre-spec")]
+use serde_json::Value as JsonValue;
 
 mod action;
 mod condition;
@@ -401,6 +403,16 @@ pub struct PusherData {
     /// The format to use when sending notifications to the Push Gateway.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub format: Option<PushFormat>,
+
+    /// iOS (+ macOS?) specific default payload that will be sent to apple push notification
+    /// service.
+    ///
+    /// For more information, see [Sygnal docs][sygnal].
+    ///
+    /// [sygnal]: https://github.com/matrix-org/sygnal/blob/main/docs/applications.md#ios-applications-beware
+    // Not specified, issue: https://github.com/matrix-org/matrix-doc/issues/3474
+    #[cfg(feature = "unstable-pre-spec")]
+    pub default_payload: Option<JsonValue>,
 }
 
 impl PusherData {
