@@ -5,6 +5,7 @@ Breaking changes:
 * Replace `Raw<Pdu>` with `Box<RawJsonValue>` or `&RawJsonValue`
 * Borrow more request fields
 * Make `device_display_name` field optional in `DeviceListUpdateContent` and update constructor accordingly
+* Remove unneeded `minimum_valid_until_ts` query parameter from `get_remote_server_keys_batch` endpoint
 
 # 0.3.1
 
