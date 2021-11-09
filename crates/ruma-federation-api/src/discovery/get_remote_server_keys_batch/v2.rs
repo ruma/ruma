@@ -39,7 +39,7 @@ ruma_api! {
 }
 
 impl Request {
-    /// Creates a new `Request` with the given query criteria and `minimum_valid_until` timestamp.
+    /// Creates a new `Request` with the given query criteria.
     pub fn new(
         server_keys: BTreeMap<ServerNameBox, BTreeMap<ServerSigningKeyId, QueryCriteria>>,
     ) -> Self {
