@@ -7,7 +7,6 @@ pub mod appservice;
 pub mod backup;
 pub mod capabilities;
 pub mod config;
-pub mod contact;
 pub mod context;
 pub mod device;
 pub mod directory;

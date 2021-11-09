@@ -7,7 +7,7 @@ ruma_api! {
     metadata: {
         description: "Get a list of 3rd party contacts associated with the user's account.",
         method: GET,
-        name: "get_contacts",
+        name: "get_3pids",
         path: "/_matrix/client/r0/account/3pid",
         rate_limited: false,
         authentication: AccessToken,

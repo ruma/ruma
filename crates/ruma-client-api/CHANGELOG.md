@@ -9,6 +9,10 @@ Breaking changes:
 * `LoginInfo` no longer implements `PartialEq` and `Eq` due to the custom variant that was added.
 * `LoginInfo` converted to newtype variants.
 * Use `Raw` for `create_room::Request::creation_content`
+* Delete `r0::contact` module
+  * `request_contact_verification_token` was an out-of-date duplicate of
+    `r0::account::request_3pid_management_token_via_email`
+  * `get_contacts` has been can now be found at `r0::account::get_3pids`
 
 Improvements:
 

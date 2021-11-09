@@ -5,6 +5,7 @@ pub mod bind_3pid;
 pub mod change_password;
 pub mod deactivate;
 pub mod delete_3pid;
+pub mod get_3pids;
 pub mod get_username_availability;
 pub mod register;
 pub mod request_3pid_management_token_via_email;
