@@ -8,7 +8,7 @@ pub mod delete_3pid;
 pub mod get_username_availability;
 pub mod register;
 #[cfg(feature = "unstable-pre-spec")]
-pub mod registration_token_validity;
+pub mod check_registration_token_validity;
 pub mod request_3pid_management_token_via_email;
 pub mod request_3pid_management_token_via_msisdn;
 pub mod request_openid_token;
