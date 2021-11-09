@@ -64,6 +64,9 @@ pub struct QueryCriteria {
     ///
     /// If not supplied, the current time as determined by the notary server is
     /// used.
+    // This doesn't use `serde(default)` because the default would then be
+    // determined by the client rather than the server (and it would take more
+    // bandwidth because `skip_serializing_if` couldn't be used).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub minimum_valid_until_ts: Option<MilliSecondsSinceUnixEpoch>,
 }
