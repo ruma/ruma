@@ -6,7 +6,7 @@ ruma_api! {
     metadata: {
         description: "Checks to see if the given registration token is valid.",
         method: GET,
-        name: "registration_token_validity",
+        name: "check_registration_token_validity",
         path: "/_matrix/client/unstable/org.matrix.msc3231/register/org.matrix.msc3231.login.registration_token/validity",
         rate_limited: true,
         authentication: None,
