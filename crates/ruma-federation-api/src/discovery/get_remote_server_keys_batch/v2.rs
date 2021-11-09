@@ -20,14 +20,6 @@ ruma_api! {
     }
 
     request: {
-        /// The time until which the returned certificates will need to be valid to be useful to
-        /// the requesting server.
-        ///
-        /// If not supplied, the current time as determined by the notary server is used.
-        #[ruma_api(query)]
-        #[serde(default = "MilliSecondsSinceUnixEpoch::now")]
-        pub minimum_valid_until_ts: MilliSecondsSinceUnixEpoch,
-
         /// The query criteria.
         ///
         /// The outer string key on the object is the server name (eg: matrix.org). The inner
@@ -47,12 +39,11 @@ ruma_api! {
 }
 
 impl Request {
-    /// Creates a new `Request` with the given query criteria and `minimum_valid_until` timestamp.
+    /// Creates a new `Request` with the given query criteria.
     pub fn new(
         server_keys: BTreeMap<ServerNameBox, BTreeMap<ServerSigningKeyId, QueryCriteria>>,
-        minimum_valid_until_ts: MilliSecondsSinceUnixEpoch,
     ) -> Self {
-        Self { server_keys, minimum_valid_until_ts }
+        Self { server_keys }
     }
 }
 
