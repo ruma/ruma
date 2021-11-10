@@ -10,7 +10,7 @@ ruma_api! {
     metadata: {
         description: "Request a 3PID management token with a phone number.",
         method: POST,
-        name: "request_3pid_association_token_via_msisdn",
+        name: "request_3pid_management_token_via_msisdn",
         path: "/_matrix/client/r0/account/3pid/msisdn/requestToken",
         rate_limited: false,
         authentication: None,
