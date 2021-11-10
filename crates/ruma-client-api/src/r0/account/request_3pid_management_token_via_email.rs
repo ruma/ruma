@@ -10,7 +10,7 @@ ruma_api! {
     metadata: {
         description: "Request a 3PID management token with a 3rd party email.",
         method: POST,
-        name: "request_3pid_association_token_via_email",
+        name: "request_3pid_management_token_via_email",
         path: "/_matrix/client/r0/account/3pid/email/requestToken",
         rate_limited: false,
         authentication: None,
