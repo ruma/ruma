@@ -11,6 +11,7 @@ use ruma_events::{
     },
     EventType,
 };
+
 use ruma_identifiers::{RoomVersionId, UserId};
 use ruma_serde::Raw;
 use serde::{de::IgnoredAny, Deserialize};
@@ -18,6 +19,12 @@ use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 use tracing::{debug, error, info, warn};
 
 use crate::{room_version::RoomVersion, Error, Event, PowerLevelsContentFields, Result};
+
+// FIXME: field extracting could be bundled for `content`
+#[derive(Deserialize)]
+struct GetMembership {
+    membership: MembershipState,
+}
 
 /// For the given event `kind` what are the relevant auth events that are needed to authenticate
 /// this `content`.
@@ -98,6 +105,12 @@ pub fn auth_check<E: Event>(
     #[derive(Deserialize)]
     struct RoomMemberContentFields {
         membership: Option<Raw<MembershipState>>,
+        join_authorised_via_users_server: Option<Raw<UserId>>,
+    }
+
+    #[derive(Deserialize)]
+    struct PowerLevelsContentInvite {
+        invite: Int,
     }
 
     info!(
@@ -221,7 +234,7 @@ pub fn auth_check<E: Event>(
         };
 
         let content: RoomMemberContentFields = from_json_str(incoming_event.content().get())?;
-        if content.membership.and_then(|m| m.deserialize().ok()).is_none() {
+        if content.membership.as_ref().and_then(|m| m.deserialize().ok()).is_none() {
             warn!("no valid membership field found for m.room.member event content");
             return Ok(false);
         }
@@ -240,6 +253,46 @@ pub fn auth_check<E: Event>(
             current_third_party_invite,
             power_levels_event.as_ref(),
             fetch_state(&EventType::RoomJoinRules, "").as_ref(),
+            || {
+                if let Some(auth_user) = content
+                    .join_authorised_via_users_server
+                    .as_ref()
+                    .and_then(|u| u.deserialize().ok())
+                {
+                    let auth_user_membership =
+                        fetch_state(&EventType::RoomMember, auth_user.as_str())
+                            .and_then(|mem| {
+                                from_json_str::<GetMembership>(mem.content().get()).ok()
+                            })
+                            .map_or(MembershipState::Leave, |mem| mem.membership);
+                    let (auth_user_pl, invite_level) = if let Some(pl) = &power_levels_event {
+                        let invite =
+                            match from_json_str::<PowerLevelsContentInvite>(pl.content().get()) {
+                                Ok(power_levels) => power_levels.invite,
+                                _ => int!(50),
+                            };
+
+                        if let Ok(content) =
+                            from_json_str::<PowerLevelsContentFields>(pl.content().get())
+                        {
+                            let user_pl = if let Some(level) = content.users.get(sender) {
+                                *level
+                            } else {
+                                content.users_default
+                            };
+
+                            (user_pl, invite)
+                        } else {
+                            (int!(0), invite)
+                        }
+                    } else {
+                        (int!(0), int!(0))
+                    };
+                    auth_user_membership == MembershipState::Join && auth_user_pl < invite_level
+                } else {
+                    false
+                }
+            },
         )? {
             return Ok(false);
         }
@@ -290,11 +343,6 @@ pub fn auth_check<E: Event>(
     // Allow if and only if sender's current power level is greater than
     // or equal to the invite level
     if *incoming_event.event_type() == EventType::RoomThirdPartyInvite {
-        #[derive(Deserialize)]
-        struct PowerLevelsContentInvite {
-            invite: Int,
-        }
-
         let invite_level = match &power_levels_event {
             Some(power_levels) => {
                 from_json_str::<PowerLevelsContentInvite>(power_levels.content().get())?.invite
@@ -386,13 +434,8 @@ fn valid_membership_change(
     current_third_party_invite: Option<impl Event>,
     power_levels_event: Option<impl Event>,
     join_rules_event: Option<impl Event>,
+    restricted_join_rules_auth: impl Fn() -> bool,
 ) -> Result<bool> {
-    // FIXME: field extracting could be bundled for `content`
-    #[derive(Deserialize)]
-    struct GetMembership {
-        membership: MembershipState,
-    }
-
     #[derive(Deserialize)]
     struct GetThirdPartyInvite {
         third_party_invite: Option<Raw<ThirdPartyInvite>>,
@@ -443,6 +486,11 @@ fn valid_membership_change(
     let target_user_membership_event_id =
         target_user_membership_event.as_ref().map(|e| e.event_id());
 
+    #[cfg(feature = "unstable-pre-spec")]
+    let restricted = matches!(join_rules, JoinRule::Restricted(_));
+    #[cfg(not(feature = "unstable-pre-spec"))]
+    let restricted = false;
+
     Ok(match target_membership {
         MembershipState::Join => {
             if sender != target_user {
@@ -455,7 +503,20 @@ fn valid_membership_change(
                 let allow = join_rules == JoinRule::Invite
                     && (target_user_current_membership == MembershipState::Join
                         || target_user_current_membership == MembershipState::Invite)
-                    || join_rules == JoinRule::Public;
+                    || join_rules == JoinRule::Public
+                    || (room_version.restricted_join_rules
+                        // 0. room version of 8 ^ and join rule of restricted
+                        && restricted
+                        // 1. The user's previous membership was invite or join
+                        && matches!(
+                            target_user_current_membership,
+                            MembershipState::Invite | MembershipState::Join
+                        ))
+                        // TODO: implement this better the function is awful lots of code dup
+                        //
+                        // 2. The join event has a valid signature from a homeserver whose
+                        // users have the power to issue invites.
+                        && restricted_join_rules_auth();
 
                 if !allow {
                     warn!(
@@ -561,7 +622,7 @@ fn valid_membership_change(
         MembershipState::Knock if room_version.allow_knocking => {
             // 1. If the `join_rule` is anything other than `knock`, reject.
             if join_rules != JoinRule::Knock {
-                warn!("Join rule is not set to knock");
+                warn!("Join rule is not set to knock, knocking is not allowed");
                 false
             } else {
                 // 2. If `sender` does not match `state_key`, reject.
@@ -569,7 +630,11 @@ fn valid_membership_change(
                 // allow.
                 // 4. Otherwise, reject.
                 if sender != target_user {
-                    warn!("Can't make other user join");
+                    warn!(
+                        ?sender,
+                        ?target_user,
+                        "Can't make another user join, sender did not match target"
+                    );
                     false
                 } else if matches!(
                     sender_membership,
@@ -866,7 +931,7 @@ mod tests {
         test_utils::{
             alice, charlie, member_content_ban, to_pdu_event, StateEvent, INITIAL_EVENTS,
         },
-        Event, StateMap,
+        Event, RoomVersion, StateMap,
     };
     use ruma_events::EventType;
 
@@ -911,6 +976,7 @@ mod tests {
             None::<StateEvent>,
             fetch_state(EventType::RoomPowerLevels, "".to_owned()),
             fetch_state(EventType::RoomJoinRules, "".to_owned()),
+            || false,
         )
         .unwrap());
     }
@@ -956,6 +1022,7 @@ mod tests {
             None::<StateEvent>,
             fetch_state(EventType::RoomPowerLevels, "".to_owned()),
             fetch_state(EventType::RoomJoinRules, "".to_owned()),
+            || false,
         )
         .unwrap());
     }
