@@ -105,7 +105,7 @@ impl RoomVersion {
         Self { version: RoomVersionId::V5, enforce_key_validity: true, ..Self::VERSION4 };
 
     pub const VERSION6: Self = Self {
-        version: RoomVersionId::V5,
+        version: RoomVersionId::V6,
         special_case_aliases_auth: false,
         strict_canonicaljson: true,
         limit_notifications_power_levels: true,

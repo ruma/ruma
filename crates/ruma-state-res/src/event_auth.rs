@@ -11,7 +11,6 @@ use ruma_events::{
     },
     EventType,
 };
-
 use ruma_identifiers::{RoomVersionId, UserId};
 use ruma_serde::Raw;
 use serde::{de::IgnoredAny, Deserialize};
