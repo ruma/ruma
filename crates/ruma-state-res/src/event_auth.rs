@@ -265,6 +265,8 @@ pub fn auth_check<E: Event>(
             power_levels_event.as_ref(),
             fetch_state(&EventType::RoomJoinRules, "").as_ref(),
             #[cfg(feature = "unstable-pre-spec")]
+            join_authed_user,
+            #[cfg(feature = "unstable-pre-spec")]
             join_authed_user_membership,
         )? {
             return Ok(false);
@@ -407,6 +409,7 @@ fn valid_membership_change(
     current_third_party_invite: Option<impl Event>,
     power_levels_event: Option<impl Event>,
     join_rules_event: Option<impl Event>,
+    #[cfg(feature = "unstable-pre-spec")] authed_user_id: Option<UserId>,
     #[cfg(feature = "unstable-pre-spec")] auth_user_membership: Option<MembershipState>,
 ) -> Result<bool> {
     #[derive(Deserialize)]
@@ -459,15 +462,28 @@ fn valid_membership_change(
     let target_user_membership_event_id =
         target_user_membership_event.as_ref().map(|e| e.event_id());
 
-    #[cfg(feature = "unstable-pre-spec")]
-    let restricted = matches!(join_rules, JoinRule::Restricted(_));
     #[cfg(not(feature = "unstable-pre-spec"))]
     let restricted = false;
 
     #[cfg(not(feature = "unstable-pre-spec"))]
+    let allow_based_on_membership = false;
+
+    #[cfg(not(feature = "unstable-pre-spec"))]
     let restricted_join_rules_auth = false;
+    // FIXME: `JoinRule::Restricted(_)` can contain conditions that allow a user to join if
+    // they are met. So far the spec talks about roomId based auth inheritance, the problem with
+    // this is that ruma-state-res can only request events from one room at a time :(
     #[cfg(feature = "unstable-pre-spec")]
-    let restricted_join_rules_auth = {
+    let restricted = matches!(join_rules, JoinRule::Restricted(_));
+
+    #[cfg(feature = "unstable-pre-spec")]
+    let allow_based_on_membership =
+        matches!(target_user_current_membership, MembershipState::Invite | MembershipState::Join)
+            || authed_user_id.is_none();
+
+    #[cfg(feature = "unstable-pre-spec")]
+    let restricted_join_rules_auth = if let Some(authed_user_id) = &authed_user_id {
+        // Is the authorised user allowed to invite users into this rooom
         let (auth_user_pl, invite_level) = if let Some(pl) = &power_levels_event {
             let invite = match from_json_str::<PowerLevelsContentInvite>(pl.content().get()) {
                 Ok(power_levels) => power_levels.invite,
@@ -475,7 +491,7 @@ fn valid_membership_change(
             };
 
             if let Ok(content) = from_json_str::<PowerLevelsContentFields>(pl.content().get()) {
-                let user_pl = if let Some(level) = content.users.get(sender) {
+                let user_pl = if let Some(level) = content.users.get(authed_user_id) {
                     *level
                 } else {
                     content.users_default
@@ -488,8 +504,12 @@ fn valid_membership_change(
         } else {
             (int!(0), int!(0))
         };
-        (auth_user_membership == Some(MembershipState::Join)) && (auth_user_pl < invite_level)
+        (auth_user_membership == Some(MembershipState::Join)) && (auth_user_pl >= invite_level)
+    } else {
+        // If the `join_authorised_via_users_server` was empty we treat the target user as invited
+        true
     };
+
     Ok(match target_membership {
         MembershipState::Join => {
             if sender != target_user {
@@ -503,16 +523,13 @@ fn valid_membership_change(
                     && (target_user_current_membership == MembershipState::Join
                         || target_user_current_membership == MembershipState::Invite)
                     || join_rules == JoinRule::Public
-                    || (room_version.restricted_join_rules
+                    || room_version.restricted_join_rules
                         // 0. room version of 8 ^ and join rule of restricted
                         && restricted
                         // 1. The user's previous membership was invite or join
-                        && matches!(
-                            target_user_current_membership,
-                            MembershipState::Invite | MembershipState::Join
-                        ))
+                        && allow_based_on_membership
                         // 2. The join event has a valid signature from a homeserver whose
-                        // users have the power to issue invites.
+                        // users have the power to issue invites or the field was `None`.
                         && restricted_join_rules_auth;
 
                 if !allow {
@@ -987,6 +1004,8 @@ mod tests {
             fetch_state(EventType::RoomPowerLevels, "".to_owned()),
             fetch_state(EventType::RoomJoinRules, "".to_owned()),
             #[cfg(feature = "unstable-pre-spec")]
+            None,
+            #[cfg(feature = "unstable-pre-spec")]
             None
         )
         .unwrap());
@@ -1035,6 +1054,8 @@ mod tests {
             fetch_state(EventType::RoomPowerLevels, "".to_owned()),
             fetch_state(EventType::RoomJoinRules, "".to_owned()),
             #[cfg(feature = "unstable-pre-spec")]
+            None,
+            #[cfg(feature = "unstable-pre-spec")]
             None
         )
         .unwrap());
@@ -1059,6 +1080,8 @@ mod tests {
             &["IPOWER"],
         );
 
+        let mut member = RoomMemberEventContent::new(MembershipState::Invite);
+        member.join_authorised_via_users_server = Some(alice());
         events.insert(
             event_id("new"),
             to_pdu_event(
@@ -1066,7 +1089,7 @@ mod tests {
                 bob(),
                 EventType::RoomMember,
                 Some(ella().as_str()),
-                to_raw_json_value(&RoomMemberEventContent::new(MembershipState::Invite)).unwrap(),
+                to_raw_json_value(&member).unwrap(),
                 &["CREATE", "IJR", "IPOWER"],
                 &["IMC"],
             ),
@@ -1097,7 +1120,23 @@ mod tests {
         let sender = ella();
 
         assert!(valid_membership_change(
-            &RoomVersion::VERSION8,
+            &RoomVersion::VERSION9,
+            &target_user,
+            fetch_state(EventType::RoomMember, target_user.to_string()),
+            &sender,
+            fetch_state(EventType::RoomMember, sender.to_string()),
+            requester.content(),
+            prev_event.clone(),
+            None::<StateEvent>,
+            fetch_state(EventType::RoomPowerLevels, "".to_owned()),
+            fetch_state(EventType::RoomJoinRules, "".to_owned()),
+            Some(alice()),
+            Some(MembershipState::Join),
+        )
+        .unwrap());
+
+        assert!(!valid_membership_change(
+            &RoomVersion::VERSION9,
             &target_user,
             fetch_state(EventType::RoomMember, target_user.to_string()),
             &sender,
@@ -1107,9 +1146,10 @@ mod tests {
             None::<StateEvent>,
             fetch_state(EventType::RoomPowerLevels, "".to_owned()),
             fetch_state(EventType::RoomJoinRules, "".to_owned()),
+            Some(ella()),
             Some(MembershipState::Join),
         )
-        .unwrap(),);
+        .unwrap());
     }
 
     #[cfg(feature = "unstable-pre-spec")]
@@ -1163,6 +1203,7 @@ mod tests {
             None::<StateEvent>,
             fetch_state(EventType::RoomPowerLevels, "".to_owned()),
             fetch_state(EventType::RoomJoinRules, "".to_owned()),
+            None,
             None,
         )
         .unwrap());
