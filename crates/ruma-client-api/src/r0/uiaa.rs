@@ -370,6 +370,10 @@ pub enum AuthType {
     #[ruma_enum(rename = "m.login.msisdn")]
     Msisdn,
 
+    /// SSO-based authentication (`m.login.sso`).
+    #[ruma_enum(rename = "m.login.sso")]
+    Sso,
+
     /// Dummy authentication (`m.login.dummy`).
     #[ruma_enum(rename = "m.login.dummy")]
     Dummy,
