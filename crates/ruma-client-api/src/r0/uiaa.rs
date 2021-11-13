@@ -22,7 +22,7 @@ use serde_json::{
 
 use crate::error::{Error as MatrixError, ErrorBody};
 
-pub mod authorize_fallback;
+pub mod get_uiaa_fallback_page;
 mod user_serde;
 
 /// Information for one authentication stage.

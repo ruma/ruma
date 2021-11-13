@@ -13,6 +13,7 @@ Breaking changes:
   * `request_contact_verification_token` was an out-of-date duplicate of
     `r0::account::request_3pid_management_token_via_email`
   * `get_contacts` has been can now be found at `r0::account::get_3pids`
+* Move `r0::uiaa::authorize_fallback` to `r0::uiaa::get_uiaa_fallback_page`
 
 Improvements:
 
