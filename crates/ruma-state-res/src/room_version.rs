@@ -8,7 +8,6 @@ pub enum RoomDisposition {
     /// A room version that has a stable specification.
     Stable,
     /// A room version that is not yet fully specified.
-    #[allow(dead_code)]
     Unstable,
 }
 
@@ -62,8 +61,12 @@ pub struct RoomVersion {
     /// Extra rules when verifying redaction events.
     pub extra_redaction_checks: bool,
     /// Allow knocking in event authentication.
+    ///
+    /// See: https://spec.matrix.org/unstable/rooms/v7/ for more information.
     pub allow_knocking: bool,
-    /// Allow knocking in event authentication.
+    /// Adds support for the restricted join rule.
+    ///
+    /// See: https://github.com/matrix-org/matrix-doc/pull/3289 for more information.
     pub restricted_join_rules: bool,
 }
 

@@ -36,7 +36,6 @@ pub fn do_check(
     expected_state_ids: Vec<EventId>,
 ) {
     // To activate logging use `RUST_LOG=debug cargo t`
-    // The logger is initialized in the `INITIAL_EVENTS` function.
 
     let init_events = INITIAL_EVENTS();
 
