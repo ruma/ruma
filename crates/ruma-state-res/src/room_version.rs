@@ -68,170 +68,81 @@ pub struct RoomVersion {
 }
 
 impl RoomVersion {
+    pub const VERSION1: Self = Self {
+        version: RoomVersionId::Version1,
+        disposition: RoomDisposition::Stable,
+        event_format: EventFormatVersion::V1,
+        state_res: StateResolutionVersion::V1,
+        enforce_key_validity: false,
+        special_case_aliases_auth: true,
+        strict_canonicaljson: false,
+        limit_notifications_power_levels: false,
+        extra_redaction_checks: false,
+        allow_knocking: false,
+        restricted_join_rules: false,
+    };
+
+    pub const VERSION2: Self = Self {
+        version: RoomVersionId::Version2,
+        state_res: StateResolutionVersion::V2,
+        ..Self::VERSION1
+    };
+
+    pub const VERSION3: Self = Self {
+        version: RoomVersionId::Version3,
+        event_format: EventFormatVersion::V2,
+        extra_redaction_checks: true,
+        ..Self::VERSION2
+    };
+
+    pub const VERSION4: Self = Self {
+        version: RoomVersionId::Version4,
+        event_format: EventFormatVersion::V3,
+        ..Self::VERSION3
+    };
+
+    pub const VERSION5: Self =
+        Self { version: RoomVersionId::Version5, enforce_key_validity: true, ..Self::VERSION4 };
+
+    pub const VERSION6: Self = Self {
+        version: RoomVersionId::Version5,
+        special_case_aliases_auth: false,
+        strict_canonicaljson: true,
+        limit_notifications_power_levels: true,
+        ..Self::VERSION5
+    };
+
+    #[cfg(feature = "unstable-pre-spec")]
+    pub const VERSION7: Self = Self {
+        version: RoomVersionId::Version7,
+        // FIXME: once room version 7 is stabilized move this to version 8
+        disposition: RoomDisposition::Unstable,
+        allow_knocking: true,
+        ..Self::VERSION6
+    };
+
+    #[cfg(feature = "unstable-pre-spec")]
+    pub const VERSION8: Self =
+        Self { version: RoomVersionId::Version8, restricted_join_rules: true, ..Self::VERSION7 };
+
+    #[cfg(feature = "unstable-pre-spec")]
+    pub const VERSION9: Self = Self { version: RoomVersionId::Version9, ..Self::VERSION8 };
+
     pub fn new(version: &RoomVersionId) -> Result<Self> {
         Ok(match version {
-            RoomVersionId::Version1 => Self::version_1(),
-            RoomVersionId::Version2 => Self::version_2(),
-            RoomVersionId::Version3 => Self::version_3(),
-            RoomVersionId::Version4 => Self::version_4(),
-            RoomVersionId::Version5 => Self::version_5(),
-            RoomVersionId::Version6 => Self::version_6(),
+            RoomVersionId::Version1 => Self::VERSION1,
+            RoomVersionId::Version2 => Self::VERSION2,
+            RoomVersionId::Version3 => Self::VERSION3,
+            RoomVersionId::Version4 => Self::VERSION4,
+            RoomVersionId::Version5 => Self::VERSION5,
+            RoomVersionId::Version6 => Self::VERSION6,
             #[cfg(feature = "unstable-pre-spec")]
-            RoomVersionId::Version7 => Self::version_7(),
+            RoomVersionId::Version7 => Self::VERSION7,
             #[cfg(feature = "unstable-pre-spec")]
-            RoomVersionId::Version8 => Self::version_8(),
+            RoomVersionId::Version8 => Self::VERSION8,
             #[cfg(feature = "unstable-pre-spec")]
-            RoomVersionId::Version9 => Self::version_9(),
+            RoomVersionId::Version9 => Self::VERSION9,
             ver => return Err(Error::Unsupported(format!("found version `{}`", ver.as_str()))),
         })
-    }
-
-    pub fn version_1() -> Self {
-        Self {
-            version: RoomVersionId::Version1,
-            disposition: RoomDisposition::Stable,
-            event_format: EventFormatVersion::V1,
-            state_res: StateResolutionVersion::V1,
-            enforce_key_validity: false,
-            special_case_aliases_auth: true,
-            strict_canonicaljson: false,
-            limit_notifications_power_levels: false,
-            extra_redaction_checks: false,
-            allow_knocking: false,
-            restricted_join_rules: false,
-        }
-    }
-
-    pub fn version_2() -> Self {
-        Self {
-            version: RoomVersionId::Version2,
-            disposition: RoomDisposition::Stable,
-            event_format: EventFormatVersion::V1,
-            state_res: StateResolutionVersion::V2,
-            enforce_key_validity: false,
-            special_case_aliases_auth: true,
-            strict_canonicaljson: false,
-            limit_notifications_power_levels: false,
-            extra_redaction_checks: false,
-            allow_knocking: false,
-            restricted_join_rules: false,
-        }
-    }
-
-    pub fn version_3() -> Self {
-        Self {
-            version: RoomVersionId::Version3,
-            disposition: RoomDisposition::Stable,
-            event_format: EventFormatVersion::V2,
-            state_res: StateResolutionVersion::V2,
-            enforce_key_validity: false,
-            special_case_aliases_auth: true,
-            strict_canonicaljson: false,
-            limit_notifications_power_levels: false,
-            extra_redaction_checks: true,
-            allow_knocking: false,
-            restricted_join_rules: false,
-        }
-    }
-
-    pub fn version_4() -> Self {
-        Self {
-            version: RoomVersionId::Version4,
-            disposition: RoomDisposition::Stable,
-            event_format: EventFormatVersion::V3,
-            state_res: StateResolutionVersion::V2,
-            enforce_key_validity: false,
-            special_case_aliases_auth: true,
-            strict_canonicaljson: false,
-            limit_notifications_power_levels: false,
-            extra_redaction_checks: true,
-            allow_knocking: false,
-            restricted_join_rules: false,
-        }
-    }
-
-    pub fn version_5() -> Self {
-        Self {
-            version: RoomVersionId::Version5,
-            disposition: RoomDisposition::Stable,
-            event_format: EventFormatVersion::V3,
-            state_res: StateResolutionVersion::V2,
-            enforce_key_validity: true,
-            special_case_aliases_auth: true,
-            strict_canonicaljson: false,
-            limit_notifications_power_levels: false,
-            extra_redaction_checks: true,
-            allow_knocking: false,
-            restricted_join_rules: false,
-        }
-    }
-
-    pub fn version_6() -> Self {
-        Self {
-            version: RoomVersionId::Version6,
-            disposition: RoomDisposition::Stable,
-            event_format: EventFormatVersion::V3,
-            state_res: StateResolutionVersion::V2,
-            enforce_key_validity: true,
-            special_case_aliases_auth: false,
-            strict_canonicaljson: true,
-            limit_notifications_power_levels: true,
-            extra_redaction_checks: true,
-            allow_knocking: false,
-            restricted_join_rules: false,
-        }
-    }
-
-    #[cfg(feature = "unstable-pre-spec")]
-    pub fn version_7() -> Self {
-        Self {
-            version: RoomVersionId::Version7,
-            disposition: RoomDisposition::Stable,
-            event_format: EventFormatVersion::V3,
-            state_res: StateResolutionVersion::V2,
-            enforce_key_validity: true,
-            special_case_aliases_auth: false,
-            strict_canonicaljson: true,
-            limit_notifications_power_levels: true,
-            extra_redaction_checks: true,
-            allow_knocking: true,
-            restricted_join_rules: false,
-        }
-    }
-
-    #[cfg(feature = "unstable-pre-spec")]
-    pub fn version_8() -> Self {
-        Self {
-            version: RoomVersionId::Version8,
-            disposition: RoomDisposition::Stable,
-            event_format: EventFormatVersion::V3,
-            state_res: StateResolutionVersion::V2,
-            enforce_key_validity: true,
-            special_case_aliases_auth: false,
-            strict_canonicaljson: true,
-            limit_notifications_power_levels: true,
-            extra_redaction_checks: true,
-            // Wait so should this be false?
-            // because: https://github.com/matrix-org/matrix-doc/pull/3289#issuecomment-884165177
-            allow_knocking: false,
-            restricted_join_rules: true,
-        }
-    }
-
-    #[cfg(feature = "unstable-pre-spec")]
-    pub fn version_9() -> Self {
-        Self {
-            version: RoomVersionId::Version9,
-            disposition: RoomDisposition::Stable,
-            event_format: EventFormatVersion::V3,
-            state_res: StateResolutionVersion::V2,
-            enforce_key_validity: true,
-            special_case_aliases_auth: false,
-            strict_canonicaljson: true,
-            limit_notifications_power_levels: true,
-            extra_redaction_checks: true,
-            allow_knocking: true,
-            restricted_join_rules: true,
-        }
     }
 }
