@@ -10,10 +10,13 @@ opaque_identifier! {
     /// # Example
     ///
     /// ```
-    /// use ruma_identifiers::DeviceId;
+    /// use ruma_identifiers::{DeviceId, device_id};
     ///
     /// let random_id = DeviceId::new();
     /// assert_eq!(random_id.as_str().len(), 8);
+    ///
+    /// let static_id = device_id!("01234567");
+    /// assert_eq!(static_id.as_str(), "01234567");
     ///
     /// let ref_id: &DeviceId = "abcdefghi".into();
     /// assert_eq!(ref_id.as_str(), "abcdefghi");
