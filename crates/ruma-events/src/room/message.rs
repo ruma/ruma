@@ -307,7 +307,7 @@ impl From<MessageType> for RoomMessageEventContent {
     }
 }
 
-/// Message vent relationship.
+/// Message event relationship.
 ///
 /// Currently used for replies and editing (message replacement).
 #[derive(Clone, Debug)]
