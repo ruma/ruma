@@ -5,38 +5,38 @@ use super::{FormattedBody, MessageType, RoomMessageEvent};
 pub fn get_plain_quote_fallback(original_message: &RoomMessageEvent) -> String {
     match &original_message.content.msgtype {
         MessageType::Audio(_) => {
-            format!("> <{:?}> sent an audio file.", original_message.sender)
+            format!("> <{}> sent an audio file.", original_message.sender)
         }
         MessageType::Emote(content) => {
-            format!("> * <{:?}> {}", original_message.sender, content.body)
+            format!("> * <{}> {}", original_message.sender, content.body)
         }
         MessageType::File(_) => {
-            format!("> <{:?}> sent a file.", original_message.sender)
+            format!("> <{}> sent a file.", original_message.sender)
         }
         MessageType::Image(_) => {
-            format!("> <{:?}> sent an image.", original_message.sender)
+            format!("> <{}> sent an image.", original_message.sender)
         }
         MessageType::Location(content) => {
-            format!("> <{:?}> {}", original_message.sender, content.body)
+            format!("> <{}> {}", original_message.sender, content.body)
         }
         MessageType::Notice(content) => {
-            format!("> <{:?}> {}", original_message.sender, content.body)
+            format!("> <{}> {}", original_message.sender, content.body)
         }
         MessageType::ServerNotice(content) => {
-            format!("> <{:?}> {}", original_message.sender, content.body)
+            format!("> <{}> {}", original_message.sender, content.body)
         }
         MessageType::Text(content) => {
-            format!("> <{:?}> {}", original_message.sender, content.body)
+            format!("> <{}> {}", original_message.sender, content.body)
         }
         MessageType::Video(_) => {
-            format!("> <{:?}> sent a video.", original_message.sender)
+            format!("> <{}> sent a video.", original_message.sender)
         }
         MessageType::_Custom(content) => {
-            format!("> <{:?}> {}", original_message.sender, content.body)
+            format!("> <{}> {}", original_message.sender, content.body)
         }
         #[cfg(feature = "unstable-pre-spec")]
         MessageType::VerificationRequest(content) => {
-            format!("> <{:?}> {}", original_message.sender, content.body)
+            format!("> <{}> {}", original_message.sender, content.body)
         }
     }
     .replace('\n', "\n> ")
