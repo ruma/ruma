@@ -18,8 +18,8 @@ opaque_identifier! {
     /// let ref_id: &DeviceId = "abcdefghi".into();
     /// assert_eq!(ref_id.as_str(), "abcdefghi");
     ///
-    /// let box_id: Box<DeviceId> = "ijklmnop".into();
-    /// assert_eq!(box_id.as_str(), "ijklmnop");
+    /// let owned_id: Box<DeviceId> = "ijklmnop".into();
+    /// assert_eq!(owned_id.as_str(), "ijklmnop");
     /// ```
     pub type DeviceId;
 }
