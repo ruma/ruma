@@ -55,7 +55,7 @@ crates that depend on features that were only just stabilized.
 
 `ruma-signatures` is an exception: It uses cryptographic libraries that often
 use relatively new features and that we don't want to use outdated versions of.
-It is guarateed to work with whatever is the latest stable version though.
+It is guaranteed to work with whatever is the latest stable version though.
 
 ## License
 
