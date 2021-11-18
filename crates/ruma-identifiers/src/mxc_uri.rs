@@ -66,13 +66,13 @@ impl MxcUri {
 
 impl fmt::Debug for MxcUri {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&self.full_uri)
+        self.full_uri.fmt(f)
     }
 }
 
 impl fmt::Display for MxcUri {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&self.full_uri)
+        self.full_uri.fmt(f)
     }
 }
 

@@ -25,7 +25,7 @@ pub struct RoomAliasId {
 
 impl fmt::Debug for RoomAliasId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&self.full_id)
+        self.full_id.fmt(f)
     }
 }
 
