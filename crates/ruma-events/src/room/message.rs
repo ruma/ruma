@@ -1,6 +1,6 @@
 //! Types for the `m.room.message` event.
 
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt};
 
 use indoc::formatdoc;
 use js_int::UInt;
@@ -81,10 +81,10 @@ impl RoomMessageEventContent {
     }
 
     /// Creates a plain text reply to a message.
-    pub fn text_reply_plain(reply: impl Into<String>, original_message: &RoomMessageEvent) -> Self {
+    pub fn text_reply_plain(reply: impl fmt::Display, original_message: &RoomMessageEvent) -> Self {
         let quoted = get_plain_quote_fallback(original_message);
 
-        let body = format!("{}\n\n{}", quoted, reply.into());
+        let body = format!("{}\n\n{}", quoted, reply);
 
         Self {
             relates_to: Some(Relation::Reply {
@@ -96,15 +96,15 @@ impl RoomMessageEventContent {
 
     /// Creates a html text reply to a message.
     pub fn text_reply_html(
-        reply: impl Into<String>,
-        html_reply: impl Into<String>,
+        reply: impl fmt::Display,
+        html_reply: impl fmt::Display,
         original_message: &RoomMessageEvent,
     ) -> Self {
         let quoted = get_plain_quote_fallback(original_message);
         let quoted_html = get_html_quote_fallback(original_message);
 
-        let body = format!("{}\n\n{}", quoted, reply.into());
-        let html_body = format!("{}\n\n{}", quoted_html, html_reply.into());
+        let body = format!("{}\n\n{}", quoted, reply);
+        let html_body = format!("{}\n\n{}", quoted_html, html_reply);
 
         Self {
             relates_to: Some(Relation::Reply {
@@ -116,12 +116,12 @@ impl RoomMessageEventContent {
 
     /// Creates a plain text notice reply to a message.
     pub fn notice_reply_plain(
-        reply: impl Into<String>,
+        reply: impl fmt::Display,
         original_message: &RoomMessageEvent,
     ) -> Self {
         let quoted = get_plain_quote_fallback(original_message);
 
-        let body = format!("{}\n\n{}", quoted, reply.into());
+        let body = format!("{}\n\n{}", quoted, reply);
         Self {
             relates_to: Some(Relation::Reply {
                 in_reply_to: InReplyTo { event_id: original_message.event_id.clone() },
@@ -132,15 +132,15 @@ impl RoomMessageEventContent {
 
     /// Creates a html text notice reply to a message.
     pub fn notice_reply_html(
-        reply: impl Into<String>,
-        html_reply: impl Into<String>,
+        reply: impl fmt::Display,
+        html_reply: impl fmt::Display,
         original_message: &RoomMessageEvent,
     ) -> Self {
         let quoted = get_plain_quote_fallback(original_message);
         let quoted_html = get_html_quote_fallback(original_message);
 
-        let body = format!("{}\n\n{}", quoted, reply.into());
-        let html_body = format!("{}\n\n{}", quoted_html, html_reply.into());
+        let body = format!("{}\n\n{}", quoted, reply);
+        let html_body = format!("{}\n\n{}", quoted_html, html_reply);
 
         Self {
             relates_to: Some(Relation::Reply {

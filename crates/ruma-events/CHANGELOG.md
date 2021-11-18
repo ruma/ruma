@@ -9,6 +9,8 @@ Breaking changes:
   * The `new` constructor now also has a body parameter
 * Rename `*ToDeviceEventContent` structs to `ToDevice*Content`
 * Remove unneeded redacted event content enums
+* Update `reply` and `html_reply` types to `impl Display` on `RoomMessageEventContent`'s reply
+  constructors
 
 Improvements:
 
