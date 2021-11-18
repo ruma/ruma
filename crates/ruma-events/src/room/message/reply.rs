@@ -1,42 +1,90 @@
 use indoc::formatdoc;
+use ruma_identifiers::{EventId, UserId};
 
-use super::{FormattedBody, MessageType, RoomMessageEvent};
+use super::{
+    FormattedBody, MessageType, RoomMessageEvent, RoomMessageEventContent, SyncRoomMessageEvent,
+};
 
-pub fn get_plain_quote_fallback(original_message: &RoomMessageEvent) -> String {
-    match &original_message.content.msgtype {
+/// An event that can be replied to.
+///
+/// This trait only exists to allow the plain-text `reply` constructors on `MessageEventContent` to
+/// use either a [`RoomMessageEvent`] or a [`SyncRoomMessageEvent`] as the event being replied to.
+pub trait ReplyBaseEvent {
+    #[doc(hidden)]
+    fn event_id(&self) -> &EventId;
+
+    #[doc(hidden)]
+    fn sender(&self) -> &UserId;
+
+    #[doc(hidden)]
+    fn content(&self) -> &RoomMessageEventContent;
+}
+
+impl ReplyBaseEvent for RoomMessageEvent {
+    fn event_id(&self) -> &EventId {
+        &self.event_id
+    }
+
+    fn sender(&self) -> &UserId {
+        &self.sender
+    }
+
+    fn content(&self) -> &RoomMessageEventContent {
+        &self.content
+    }
+}
+
+impl ReplyBaseEvent for SyncRoomMessageEvent {
+    fn event_id(&self) -> &EventId {
+        &self.event_id
+    }
+
+    fn sender(&self) -> &UserId {
+        &self.sender
+    }
+
+    fn content(&self) -> &RoomMessageEventContent {
+        &self.content
+    }
+}
+
+pub fn get_plain_quote_fallback(original_message: &impl ReplyBaseEvent) -> String {
+    let sender = original_message.sender();
+
+    match &original_message.content().msgtype {
         MessageType::Audio(_) => {
-            format!("> <{}> sent an audio file.", original_message.sender)
+            format!("> <{}> sent an audio file.", sender)
         }
         MessageType::Emote(content) => {
-            format!("> * <{}> {}", original_message.sender, content.body)
+            format!("> * <{}> {}", sender, content.body)
         }
         MessageType::File(_) => {
-            format!("> <{}> sent a file.", original_message.sender)
+            format!("> <{}> sent a file.", sender)
         }
         MessageType::Image(_) => {
-            format!("> <{}> sent an image.", original_message.sender)
+            format!("> <{}> sent an image.", sender)
         }
         MessageType::Location(content) => {
-            format!("> <{}> {}", original_message.sender, content.body)
+            format!("> <{}> {}", sender, content.body)
         }
         MessageType::Notice(content) => {
-            format!("> <{}> {}", original_message.sender, content.body)
+            format!("> <{}> {}", sender, content.body)
         }
         MessageType::ServerNotice(content) => {
-            format!("> <{}> {}", original_message.sender, content.body)
+            format!("> <{}> {}", sender, content.body)
         }
         MessageType::Text(content) => {
-            format!("> <{}> {}", original_message.sender, content.body)
+            format!("> <{}> {}", sender, content.body)
         }
         MessageType::Video(_) => {
-            format!("> <{}> sent a video.", original_message.sender)
+            format!("> <{}> sent a video.", sender)
         }
         MessageType::_Custom(content) => {
-            format!("> <{}> {}", original_message.sender, content.body)
+            format!("> <{}> {}", sender, content.body)
         }
         #[cfg(feature = "unstable-pre-spec")]
         MessageType::VerificationRequest(content) => {
-            format!("> <{}> {}", original_message.sender, content.body)
+            format!("> <{}> {}", sender, content.body)
         }
     }
     .replace('\n', "\n> ")

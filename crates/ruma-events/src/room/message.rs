@@ -20,6 +20,8 @@ pub mod feedback;
 mod relation_serde;
 mod reply;
 
+pub use reply::ReplyBaseEvent;
+
 /// The content of an `m.room.message` event.
 ///
 /// This event is used when sending messages in a room.
@@ -81,20 +83,28 @@ impl RoomMessageEventContent {
     }
 
     /// Creates a plain text reply to a message.
-    pub fn text_reply_plain(reply: impl fmt::Display, original_message: &RoomMessageEvent) -> Self {
+    pub fn text_reply_plain(
+        reply: impl fmt::Display,
+        original_message: &impl ReplyBaseEvent,
+    ) -> Self {
         let quoted = reply::get_plain_quote_fallback(original_message);
 
         let body = format!("{}\n\n{}", quoted, reply);
 
         Self {
             relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo { event_id: original_message.event_id.clone() },
+                in_reply_to: InReplyTo { event_id: original_message.event_id().clone() },
             }),
             ..Self::text_plain(body)
         }
     }
 
     /// Creates a html text reply to a message.
+    ///
+    /// Different from `text_reply_plain`, this constructor requires specifically a
+    /// [`RoomMessageEvent`] since it creates a permalink to the previous message, for which the
+    /// room ID is required. If you want to reply to a [`SyncRoomMessageEvent`], you have to convert
+    /// it first by calling [`.into_full_event()`][crate::SyncMessageEvent::into_full_event].
     pub fn text_reply_html(
         reply: impl fmt::Display,
         html_reply: impl fmt::Display,
@@ -115,16 +125,21 @@ impl RoomMessageEventContent {
     }
 
     /// Creates a plain text notice reply to a message.
+    ///
+    /// Different from `notice_reply_plain`, this constructor requires specifically a
+    /// [`RoomMessageEvent`] since it creates a permalink to the previous message, for which the
+    /// room ID is required. If you want to reply to a [`SyncRoomMessageEvent`], you have to convert
+    /// it first by calling [`.into_full_event()`][crate::SyncMessageEvent::into_full_event].
     pub fn notice_reply_plain(
         reply: impl fmt::Display,
-        original_message: &RoomMessageEvent,
+        original_message: &impl ReplyBaseEvent,
     ) -> Self {
         let quoted = reply::get_plain_quote_fallback(original_message);
 
         let body = format!("{}\n\n{}", quoted, reply);
         Self {
             relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo { event_id: original_message.event_id.clone() },
+                in_reply_to: InReplyTo { event_id: original_message.event_id().clone() },
             }),
             ..Self::notice_plain(body)
         }
