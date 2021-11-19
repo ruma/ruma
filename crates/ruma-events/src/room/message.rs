@@ -125,11 +125,6 @@ impl RoomMessageEventContent {
     }
 
     /// Creates a plain text notice reply to a message.
-    ///
-    /// Different from `notice_reply_plain`, this constructor requires specifically a
-    /// [`RoomMessageEvent`] since it creates a permalink to the previous message, for which the
-    /// room ID is required. If you want to reply to a [`SyncRoomMessageEvent`], you have to convert
-    /// it first by calling [`.into_full_event()`][crate::SyncMessageEvent::into_full_event].
     pub fn notice_reply_plain(
         reply: impl fmt::Display,
         original_message: &impl ReplyBaseEvent,
@@ -146,6 +141,11 @@ impl RoomMessageEventContent {
     }
 
     /// Creates a html text notice reply to a message.
+    ///
+    /// Different from `notice_reply_plain`, this constructor requires specifically a
+    /// [`RoomMessageEvent`] since it creates a permalink to the previous message, for which the
+    /// room ID is required. If you want to reply to a [`SyncRoomMessageEvent`], you have to convert
+    /// it first by calling [`.into_full_event()`][crate::SyncMessageEvent::into_full_event].
     pub fn notice_reply_html(
         reply: impl fmt::Display,
         html_reply: impl fmt::Display,
