@@ -16,6 +16,7 @@ Improvements:
 
 * Add `room::message::MessageType::body` accessor method
 * Implement `Redact` for event structs (in addition to `Any` event enums)
+* Add `room::message::RoomMessageEventContent::{body, msgtype}` accessor methods
 
 # 0.24.6
 

@@ -164,6 +164,19 @@ impl RoomMessageEventContent {
             ..Self::notice_html(body, html_body)
         }
     }
+
+    /// Returns a reference to the `msgtype` string.
+    ///
+    /// If you want to access the message type-specific data rather than the message type itself,
+    /// use the `msgtype` *field*, not this method.
+    pub fn msgtype(&self) -> &str {
+        self.msgtype.msgtype()
+    }
+
+    /// Return a reference to the message body.
+    pub fn body(&self) -> &str {
+        self.msgtype.body()
+    }
 }
 
 /// The content that is specific to each message type variant.
