@@ -30,10 +30,10 @@ pub use event::StateEvent;
 
 static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 
-pub fn do_check(
-    events: &[Arc<StateEvent>],
-    edges: Vec<Vec<EventId>>,
-    expected_state_ids: Vec<EventId>,
+pub fn do_check<'e>(
+    events: &'e [Arc<StateEvent>],
+    edges: Vec<Vec<&'e EventId>>,
+    expected_state_ids: Vec<&'e EventId>,
 ) {
     // To activate logging use `RUST_LOG=debug cargo t`
 
@@ -43,21 +43,30 @@ pub fn do_check(
         init_events.values().chain(events).map(|ev| (ev.event_id().clone(), ev.clone())).collect(),
     );
 
-    // This will be lexi_topo_sorted for resolution
-    let mut graph = HashMap::new();
     // This is the same as in `resolve` event_id -> StateEvent
-    let mut fake_event_map = HashMap::new();
+    let mut fake_event_map: HashMap<&EventId, Arc<StateEvent>> = HashMap::new();
+    // This will be lexi_topo_sorted for resolution
+    let mut graph: HashMap<&EventId, HashSet<&EventId>> = HashMap::new();
 
     // Create the DB of events that led up to this point
     // TODO maybe clean up some of these clones it is just tests but...
     for ev in init_events.values().chain(events) {
-        graph.insert(ev.event_id().clone(), HashSet::new());
-        fake_event_map.insert(ev.event_id().clone(), ev.clone());
+        graph.insert(ev.event_id(), HashSet::new());
+        fake_event_map.insert(ev.event_id(), ev.clone());
     }
 
-    for pair in INITIAL_EDGES().windows(2) {
+    for pair in {
+        // This grabs the values from INITIAL_EDGES and launders them to use the borrows from
+        // `graph` instead
+        INITIAL_EDGES()
+            .into_iter()
+            .map(|v| *graph.get_key_value(&v).expect("This is using the same store").0)
+            .collect::<Vec<_>>()
+    }
+    .windows(2)
+    {
         if let [a, b] = &pair {
-            graph.entry(a.clone()).or_insert_with(HashSet::new).insert(b.clone());
+            graph.entry(a).or_insert_with(HashSet::new).insert(b);
         }
     }
 
@@ -69,24 +78,29 @@ pub fn do_check(
         }
     }
 
+    let graph = graph;
+    let fake_event_map = fake_event_map;
+
+    // let graph = (&graph).into_iter().map(|(k, v)| (k, v.into_iter().collect())).collect();
+
     // event_id -> StateEvent
-    let mut event_map: HashMap<EventId, Arc<StateEvent>> = HashMap::new();
+    let mut event_map: HashMap<&EventId, Arc<StateEvent>> = HashMap::new();
     // event_id -> StateMap<EventId>
-    let mut state_at_event: HashMap<EventId, StateMap<EventId>> = HashMap::new();
+    let mut state_at_event: HashMap<&EventId, StateMap<&EventId>> = HashMap::new();
 
     // Resolve the current state and add it to the state_at_event map then continue
     // on in "time"
     for node in crate::lexicographical_topological_sort(&graph, |id| {
-        Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0)), id.clone()))
+        Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0)), id))
     })
     .unwrap()
     {
         let fake_event = fake_event_map.get(&node).unwrap();
-        let event_id = fake_event.event_id().clone();
+        let event_id = fake_event.event_id();
 
         let prev_events = graph.get(&node).unwrap();
 
-        let state_before: StateMap<EventId> = if prev_events.is_empty() {
+        let state_before_tainted: StateMap<&EventId> = if prev_events.is_empty() {
             HashMap::new()
         } else if prev_events.len() == 1 {
             state_at_event.get(prev_events.iter().next().unwrap()).unwrap().clone()
@@ -108,13 +122,13 @@ pub fn do_check(
             let auth_chain_sets = state_sets
                 .iter()
                 .map(|map| {
-                    store.auth_event_ids(&room_id(), map.values().cloned().collect()).unwrap()
+                    store.auth_event_ids(&room_id(), map.values().map(|e| *e).collect()).unwrap()
                 })
                 .collect();
 
             let resolved =
                 crate::resolve(&RoomVersionId::Version6, state_sets, auth_chain_sets, |id| {
-                    event_map.get(id).map(Arc::clone)
+                    event_map.get(id)
                 });
             match resolved {
                 Ok(state) => state,
@@ -122,11 +136,23 @@ pub fn do_check(
             }
         };
 
+        // This is a lifetime issue.
+        // We borrowed the Event IDs of state_before_tainted from 'store' in an immutable sense
+        // 'store' is Complicated to make work with borrowed event IDs (todo), but lets just ignore
+        // that and recycle those event IDs to use 'graph's lifetime on these things.
+        //
+        // In short, this is "laundering" the lifetimes accustomed to state_before_tainted to use
+        // 'graph' instead.
+        let state_before: HashMap<_, _> = state_before_tainted
+            .into_iter()
+            .map(|(k, v)| (k, *graph.get_key_value(v).expect("This is using the same store").0))
+            .collect();
+
         let mut state_after = state_before.clone();
 
         let ty = fake_event.event_type().to_owned();
         let key = fake_event.state_key().unwrap().to_owned();
-        state_after.insert((ty, key), event_id.clone());
+        state_after.insert((ty, key), event_id);
 
         let auth_types = auth_types_for_event(
             fake_event.event_type(),
@@ -143,6 +169,8 @@ pub fn do_check(
             }
         }
 
+        drop(state_before);
+
         // TODO The event is just remade, adding the auth_events and prev_events here
         // the `to_pdu_event` was split into `init` and the fn below, could be better
         let e = fake_event;
@@ -154,15 +182,16 @@ pub fn do_check(
             e.state_key(),
             e.content().to_owned(),
             &auth_events,
-            &prev_events.iter().cloned().collect::<Vec<_>>(),
+            &prev_events.iter().map(|e| (*e).clone()).collect::<Vec<_>>(),
         );
+
+        state_at_event.insert(node, state_after);
 
         // We have to update our store, an actual user of this lib would
         // be giving us state from a DB.
         store.0.insert(ev_id.clone(), event.clone());
 
-        state_at_event.insert(node, state_after);
-        event_map.insert(event_id.clone(), Arc::clone(store.0.get(&ev_id).unwrap()));
+        event_map.insert(event_id, Arc::clone(store.0.get(&ev_id).unwrap()));
     }
 
     let mut expected_state = StateMap::new();
@@ -194,8 +223,8 @@ pub fn do_check(
                 // test against.
                 && **k != (EventType::RoomMessage, "dummy".to_owned())
         })
-        .map(|(k, v)| (k.clone(), v.clone()))
-        .collect::<StateMap<EventId>>();
+        .map(|(k, v)| (k.clone(), (*v)))
+        .collect::<StateMap<&EventId>>();
 
     assert_eq!(expected_state, end_state);
 }
@@ -204,19 +233,19 @@ pub fn do_check(
 pub struct TestStore<E: Event>(pub HashMap<EventId, Arc<E>>);
 
 impl<E: Event> TestStore<E> {
-    pub fn get_event(&self, _: &RoomId, event_id: &EventId) -> Result<Arc<E>> {
+    pub fn get_event<'a>(&'a self, _: &RoomId, event_id: &EventId) -> Result<&'a E> {
         self.0
             .get(event_id)
-            .map(Arc::clone)
+            .map(|e| (&**e))
             .ok_or_else(|| Error::NotFound(format!("{} not found", event_id)))
     }
 
     /// Returns a Vec of the related auth events to the given `event`.
-    pub fn auth_event_ids(
-        &self,
+    pub fn auth_event_ids<'e>(
+        &'e self,
         room_id: &RoomId,
-        event_ids: Vec<EventId>,
-    ) -> Result<HashSet<EventId>> {
+        event_ids: Vec<&'e EventId>,
+    ) -> Result<HashSet<&'e EventId>> {
         let mut result = HashSet::new();
         let mut stack = event_ids;
 
@@ -226,11 +255,11 @@ impl<E: Event> TestStore<E> {
                 continue;
             }
 
-            result.insert(ev_id.clone());
+            result.insert(ev_id);
 
-            let event = self.get_event(room_id, &ev_id)?;
+            let event = self.get_event(room_id, ev_id)?;
 
-            stack.extend(event.auth_events().cloned());
+            stack.extend(event.auth_events());
         }
 
         Ok(result)
