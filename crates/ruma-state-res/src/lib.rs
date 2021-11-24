@@ -1,6 +1,7 @@
 use std::{
     cmp::Reverse,
     collections::{BTreeMap, BinaryHeap, HashMap, HashSet},
+    ops::Deref,
 };
 
 use itertools::Itertools;
@@ -30,9 +31,6 @@ pub use state_event::Event;
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
 pub type StateMap<T> = HashMap<(EventType, String), T>;
 
-/// A mapping of `EventId` to `T`, usually a `ServerPdu`.
-type EventMap<T> = HashMap<EventId, T>;
-
 /// Resolve sets of state events as they come in.
 ///
 /// Internally `StateResolution` builds a graph and an auth chain to allow for state conflict
@@ -53,15 +51,24 @@ type EventMap<T> = HashMap<EventId, T>;
 ///
 /// The caller of `resolve` must ensure that all the events are from the same room. Although this
 /// function takes a `RoomId` it does not check that each event is part of the same room.
-pub fn resolve<'a, E, SSI>(
+pub fn resolve<'a, E, EID, SSI>(
     room_version: &RoomVersionId,
     state_sets: impl IntoIterator<IntoIter = SSI>,
-    auth_chain_sets: Vec<HashSet<EventId>>,
+    auth_chain_sets: Vec<HashSet<EID>>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
-) -> Result<StateMap<EventId>>
+    clean_id: impl Fn(&EventId) -> EID,
+) -> Result<StateMap<EID>>
 where
     E: Event + Clone,
-    SSI: Iterator<Item = &'a StateMap<EventId>> + Clone,
+    EID: Deref<Target = EventId>
+        + Clone
+        + Eq
+        + Ord
+        + std::hash::Hash
+        + std::fmt::Debug
+        + std::fmt::Display
+        + 'a,
+    SSI: Iterator<Item = &'a StateMap<EID>> + Clone,
 {
     info!("State resolution starting");
 
@@ -81,11 +88,11 @@ where
 
     // `all_conflicted` contains unique items
     // synapse says `full_set = {eid for eid in full_conflicted_set if eid in event_map}`
-    let all_conflicted: HashSet<_> = get_auth_chain_diff(auth_chain_sets)
+    let all_conflicted: HashSet<EID> = get_auth_chain_diff(auth_chain_sets)
         // FIXME: Use into_values() once MSRV >= 1.54
         .chain(conflicting.into_iter().flat_map(|(_k, v)| v))
         // Don't honor events we cannot "verify"
-        .filter(|id| fetch_event(id).is_some())
+        .filter(|id| fetch_event(&id).is_some())
         .collect();
 
     info!("full conflicted set: {}", all_conflicted.len());
@@ -103,7 +110,7 @@ where
 
     // Sort the control events based on power_level/clock/event_id and outgoing/incoming edges
     let sorted_control_levels =
-        reverse_topological_power_sort(control_events, &all_conflicted, &fetch_event)?;
+        reverse_topological_power_sort(control_events, &all_conflicted, &fetch_event, &clean_id)?;
 
     debug!("sorted control events: {}", sorted_control_levels.len());
     trace!("{:?}", sorted_control_levels);
@@ -136,7 +143,8 @@ where
 
     debug!("power event: {:?}", power_event);
 
-    let sorted_left_events = mainline_sort(&events_to_resolve, power_event, &fetch_event)?;
+    let sorted_left_events =
+        mainline_sort(&events_to_resolve, power_event, &fetch_event, &clean_id)?;
 
     trace!("events left, sorted: {:?}", sorted_left_events);
 
@@ -160,9 +168,12 @@ where
 /// State is determined to be conflicting if for the given key (EventType, StateKey) there is not
 /// exactly one eventId. This includes missing events, if one state_set includes an event that none
 /// of the other have this is a conflicting event.
-fn separate<'a>(
-    state_sets_iter: impl Iterator<Item = &'a StateMap<EventId>> + Clone,
-) -> (StateMap<EventId>, StateMap<Vec<EventId>>) {
+fn separate<'a, EID>(
+    state_sets_iter: impl Iterator<Item = &'a StateMap<EID>> + Clone,
+) -> (StateMap<EID>, StateMap<Vec<EID>>)
+where
+    EID: Deref<Target = EventId> + Clone + PartialEq + 'a,
+{
     let mut unconflicted_state = StateMap::new();
     let mut conflicted_state = StateMap::new();
 
@@ -186,10 +197,13 @@ fn separate<'a>(
 }
 
 /// Returns a Vec of deduped EventIds that appear in some chains but not others.
-fn get_auth_chain_diff(auth_chain_sets: Vec<HashSet<EventId>>) -> impl Iterator<Item = EventId> {
+fn get_auth_chain_diff<EID>(auth_chain_sets: Vec<HashSet<EID>>) -> impl Iterator<Item = EID>
+where
+    EID: Deref<Target = EventId> + Clone + Eq + std::hash::Hash + std::fmt::Debug,
+{
     let num_sets = auth_chain_sets.len();
 
-    let mut id_counts: HashMap<EventId, usize> = HashMap::new();
+    let mut id_counts: HashMap<EID, usize> = HashMap::new();
     for id in auth_chain_sets.into_iter().flatten() {
         *id_counts.entry(id).or_default() += 1;
     }
@@ -204,16 +218,26 @@ fn get_auth_chain_diff(auth_chain_sets: Vec<HashSet<EventId>>) -> impl Iterator<
 ///
 /// The power level is negative because a higher power level is equated to an earlier (further back
 /// in time) origin server timestamp.
-fn reverse_topological_power_sort<E: Event>(
-    events_to_sort: Vec<EventId>,
-    auth_diff: &HashSet<EventId>,
+fn reverse_topological_power_sort<E: Event, EID>(
+    events_to_sort: Vec<EID>,
+    auth_diff: &HashSet<EID>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
-) -> Result<Vec<EventId>> {
+    clean_id: impl Fn(&EventId) -> EID,
+) -> Result<Vec<EID>>
+where
+    EID: Deref<Target = EventId>
+        + Clone
+        + Eq
+        + Ord
+        + std::hash::Hash
+        + std::fmt::Debug
+        + std::fmt::Display,
+{
     debug!("reverse topological sort of power events");
 
     let mut graph = HashMap::new();
     for event_id in events_to_sort {
-        add_event_and_auth_chain_to_graph(&mut graph, event_id, auth_diff, &fetch_event);
+        add_event_and_auth_chain_to_graph(&mut graph, event_id, auth_diff, &fetch_event, &clean_id);
 
         // TODO: if these functions are ever made async here
         // is a good place to yield every once in a while so other
@@ -242,7 +266,7 @@ fn reverse_topological_power_sort<E: Event>(
         // This return value is the key used for sorting events,
         // events are then sorted by power level, time,
         // and lexically by event_id.
-        Ok((-*pl, ev.origin_server_ts(), ev.event_id().clone()))
+        Ok((-*pl, ev.origin_server_ts(), event_id))
     })
 }
 
@@ -250,12 +274,19 @@ fn reverse_topological_power_sort<E: Event>(
 ///
 /// `key_fn` is used as a tie breaker. The tie breaker happens based on power level, age, and
 /// event_id.
-pub fn lexicographical_topological_sort<F>(
-    graph: &HashMap<EventId, HashSet<EventId>>,
+pub fn lexicographical_topological_sort<F, EID>(
+    graph: &HashMap<EID, HashSet<EID>>,
     key_fn: F,
-) -> Result<Vec<EventId>>
+) -> Result<Vec<EID>>
 where
-    F: Fn(&EventId) -> Result<(Int, MilliSecondsSinceUnixEpoch, EventId)>,
+    F: for<'a> Fn(&'a EID) -> Result<(Int, MilliSecondsSinceUnixEpoch, &'a EID)>,
+    EID: Deref<Target = EventId>
+        + Clone
+        + Eq
+        + Ord
+        + std::hash::Hash
+        + std::fmt::Debug
+        + std::fmt::Display,
 {
     info!("starting lexicographical topological sort");
     // NOTE: an event that has no incoming edges happened most recently,
@@ -271,7 +302,7 @@ where
 
     // The number of events that depend on the given event (the EventId key)
     // How many events reference this event in the DAG as a parent
-    let mut reverse_graph: HashMap<&EventId, HashSet<&EventId>> = HashMap::new();
+    let mut reverse_graph: HashMap<&EID, HashSet<&EID>> = HashMap::new();
 
     // Vec of nodes that have zero out degree, least recent events.
     let mut zero_outdegree = vec![];
@@ -295,7 +326,6 @@ where
     let mut sorted = vec![];
     // Destructure the `Reverse` and take the smallest `node` each time
     while let Some(Reverse((_, node))) = heap.pop() {
-        let node: &EventId = node;
         for parent in reverse_graph.get(node).expect("EventId in heap is also in reverse_graph") {
             // The number of outgoing edges this node has
             let out = outdegree_map
@@ -377,12 +407,15 @@ fn get_power_level_for_sender<E: Event>(
 ///
 /// For each `events_to_check` event we gather the events needed to auth it from the the
 /// `fetch_event` closure and verify each event using the `event_auth::auth_check` function.
-fn iterative_auth_check<E: Event + Clone>(
+fn iterative_auth_check<E: Event + Clone, EID>(
     room_version: &RoomVersion,
-    events_to_check: &[EventId],
-    unconflicted_state: StateMap<EventId>,
+    events_to_check: &[EID],
+    unconflicted_state: StateMap<EID>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
-) -> Result<StateMap<EventId>> {
+) -> Result<StateMap<EID>>
+where
+    EID: Deref<Target = EventId> + Clone + Eq + std::hash::Hash + std::fmt::Debug,
+{
     info!("starting iterative auth check");
 
     debug!("performing auth checks on {:?}", events_to_check);
@@ -391,7 +424,7 @@ fn iterative_auth_check<E: Event + Clone>(
 
     for event_id in events_to_check {
         let event = fetch_event(event_id)
-            .ok_or_else(|| Error::NotFound(format!("Failed to find {}", event_id)))?;
+            .ok_or_else(|| Error::NotFound(format!("Failed to find {:?}", event_id)))?;
         let state_key = event
             .state_key()
             .ok_or_else(|| Error::InvalidPdu("State event had no state key".to_owned()))?;
@@ -413,7 +446,7 @@ fn iterative_auth_check<E: Event + Clone>(
                     ev,
                 );
             } else {
-                warn!("auth event id for {} is missing {}", aid, event_id);
+                warn!("auth event id for {} is missing {:?}", aid, event_id);
             }
         }
 
@@ -458,7 +491,7 @@ fn iterative_auth_check<E: Event + Clone>(
                 .insert((event.event_type().to_owned(), state_key.to_owned()), event_id.clone());
         } else {
             // synapse passes here on AuthError. We do not add this event to resolved_state.
-            warn!("event {} failed the authentication check", event_id);
+            warn!("event {:?} failed the authentication check", event_id);
         }
 
         // TODO: if these functions are ever made async here
@@ -475,11 +508,21 @@ fn iterative_auth_check<E: Event + Clone>(
 /// power_level event. If there have been two power events the after the most recent are depth 0,
 /// the events before (with the first power level as a parent) will be marked as depth 1. depth 1 is
 /// "older" than depth 0.
-fn mainline_sort<E: Event>(
-    to_sort: &[EventId],
-    resolved_power_level: Option<&EventId>,
+fn mainline_sort<E: Event, EID>(
+    to_sort: &[EID],
+    resolved_power_level: Option<&EID>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
-) -> Result<Vec<EventId>> {
+    clean_id: impl Fn(&EventId) -> EID,
+) -> Result<Vec<EID>>
+where
+    EID: Deref<Target = EventId>
+        + Clone
+        + Eq
+        + Ord
+        + std::hash::Hash
+        + std::fmt::Debug
+        + std::fmt::Display,
+{
     debug!("mainline sort of events");
 
     // There are no EventId's to sort, bail.
@@ -494,12 +537,13 @@ fn mainline_sort<E: Event>(
 
         let event =
             fetch_event(&p).ok_or_else(|| Error::NotFound(format!("Failed to find {}", p)))?;
+
         pl = None;
         for aid in event.auth_events() {
             let ev = fetch_event(aid)
                 .ok_or_else(|| Error::NotFound(format!("Failed to find {}", aid)))?;
             if is_type_and_key(&ev, &EventType::RoomPowerLevels, "") {
-                pl = Some(aid.clone());
+                pl = Some(clean_id(aid));
                 break;
             }
         }
@@ -518,7 +562,9 @@ fn mainline_sort<E: Event>(
     let mut order_map = HashMap::new();
     for ev_id in to_sort.iter() {
         if let Some(event) = fetch_event(ev_id) {
-            if let Ok(depth) = get_mainline_depth(Some(event), &mainline_map, &fetch_event) {
+            if let Ok(depth) =
+                get_mainline_depth(Some(event), &mainline_map, &fetch_event, &clean_id)
+            {
                 order_map.insert(
                     ev_id,
                     (depth, fetch_event(ev_id).map(|ev| ev.origin_server_ts()), ev_id),
@@ -541,15 +587,24 @@ fn mainline_sort<E: Event>(
 
 /// Get the mainline depth from the `mainline_map` or finds a power_level event that has an
 /// associated mainline depth.
-fn get_mainline_depth<E: Event>(
+fn get_mainline_depth<E: Event, EID>(
     mut event: Option<E>,
-    mainline_map: &EventMap<usize>,
+    mainline_map: &HashMap<EID, usize>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
-) -> Result<usize> {
+    clean_id: impl Fn(&EventId) -> EID,
+) -> Result<usize>
+where
+    EID: Deref<Target = EventId>
+        + Clone
+        + Eq
+        + std::hash::Hash
+        + std::fmt::Debug
+        + std::fmt::Display,
+{
     while let Some(sort_ev) = event {
         debug!("mainline event_id {}", sort_ev.event_id());
-        let id = &sort_ev.event_id();
-        if let Some(depth) = mainline_map.get(id) {
+        let id = clean_id(sort_ev.event_id());
+        if let Some(depth) = mainline_map.get(&id) {
             return Ok(*depth);
         }
 
@@ -567,19 +622,28 @@ fn get_mainline_depth<E: Event>(
     Ok(0)
 }
 
-fn add_event_and_auth_chain_to_graph<E: Event>(
-    graph: &mut HashMap<EventId, HashSet<EventId>>,
-    event_id: EventId,
-    auth_diff: &HashSet<EventId>,
+fn add_event_and_auth_chain_to_graph<E: Event, EID>(
+    graph: &mut HashMap<EID, HashSet<EID>>,
+    event_id: EID,
+    auth_diff: &HashSet<EID>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
-) {
+    clean_id: impl Fn(&EventId) -> EID,
+) where
+    EID: Deref<Target = EventId> + Clone + Eq + std::hash::Hash + std::fmt::Debug,
+{
     let mut state = vec![event_id];
     while let Some(eid) = state.pop() {
         graph.entry(eid.clone()).or_default();
         // Prefer the store to event as the store filters dedups the events
-        for aid in fetch_event(&eid).as_ref().map(|ev| ev.auth_events()).into_iter().flatten() {
-            if auth_diff.contains(aid) {
-                if !graph.contains_key(aid) {
+        for aid in fetch_event(&eid)
+            .as_ref()
+            .map(|ev| ev.auth_events())
+            .into_iter()
+            .flatten()
+            .map(&clean_id)
+        {
+            if auth_diff.contains(&aid) {
+                if !graph.contains_key(&aid) {
                     state.push(aid.clone());
                 }
 
@@ -642,10 +706,11 @@ mod tests {
         is_power_event,
         room_version::RoomVersion,
         test_utils::{
-            alice, bob, charlie, do_check, ella, event_id, member_content_ban, member_content_join,
-            room_id, to_init_pdu_event, to_pdu_event, zara, StateEvent, TestStore, INITIAL_EVENTS,
+            alice, bob, charlie, do_check, ella, event_id, map_box_value, map_unbox_value,
+            member_content_ban, member_content_join, room_id, to_init_pdu_event, to_pdu_event,
+            zara, StateEvent, TestStore, INITIAL_EVENTS,
         },
-        Event, EventMap, StateMap,
+        Event, StateMap,
     };
 
     fn test_event_sort() {
@@ -665,14 +730,16 @@ mod tests {
         let power_events = event_map
             .values()
             .filter(|&pdu| is_power_event(&**pdu))
-            .map(|pdu| pdu.event_id.clone())
+            .map(|pdu| Box::new(pdu.event_id.clone()))
             .collect::<Vec<_>>();
 
-        let sorted_power_events =
-            crate::reverse_topological_power_sort(power_events, &auth_chain, |id| {
-                events.get(id).map(Arc::clone)
-            })
-            .unwrap();
+        let sorted_power_events = crate::reverse_topological_power_sort(
+            power_events,
+            &auth_chain,
+            |id| events.get(id).map(Arc::clone),
+            |e| Box::new(e.clone()),
+        )
+        .unwrap();
 
         let resolved_power = crate::iterative_auth_check(
             &RoomVersion::VERSION6,
@@ -683,15 +750,19 @@ mod tests {
         .expect("iterative auth check failed on resolved events");
 
         // don't remove any events so we know it sorts them all correctly
-        let mut events_to_sort = events.keys().cloned().collect::<Vec<_>>();
+        let mut events_to_sort = events.keys().cloned().map(Box::new).collect::<Vec<_>>();
 
         events_to_sort.shuffle(&mut rand::thread_rng());
 
         let power_level = resolved_power.get(&(EventType::RoomPowerLevels, "".to_owned()));
 
-        let sorted_event_ids =
-            crate::mainline_sort(&events_to_sort, power_level, |id| events.get(id).map(Arc::clone))
-                .unwrap();
+        let sorted_event_ids = crate::mainline_sort(
+            &events_to_sort,
+            power_level,
+            |id| events.get(id).map(Arc::clone),
+            |e| Box::new(e.clone()),
+        )
+        .unwrap();
 
         assert_eq!(
             vec![
@@ -1032,20 +1103,27 @@ mod tests {
         // build up the DAG
         let (state_at_bob, state_at_charlie, expected) = store.set_up();
 
-        let ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
-        let state_sets = [state_at_bob, state_at_charlie];
+        let ev_map: HashMap<EventId, Arc<StateEvent>> = store.0.clone();
+        let state_sets =
+            vec![state_at_bob, state_at_charlie].into_iter().map(map_box_value).collect::<Vec<_>>();
         let resolved = match crate::resolve(
             &RoomVersionId::Version2,
             &state_sets,
             state_sets
                 .iter()
                 .map(|map| {
-                    store.auth_event_ids(&room_id(), map.values().cloned().collect()).unwrap()
+                    store
+                        .auth_event_ids(&room_id(), map.values().map(|e| (**e).clone()).collect())
+                        .unwrap()
+                        .into_iter()
+                        .map(Box::new)
+                        .collect()
                 })
                 .collect(),
             |id| ev_map.get(id).map(Arc::clone),
+            |e| Box::new(e.clone()),
         ) {
-            Ok(state) => state,
+            Ok(state) => map_unbox_value(state),
             Err(e) => panic!("{}", e),
         };
 
@@ -1063,10 +1141,13 @@ mod tests {
             event_id("n") => hashset![event_id("o")],
             event_id("o") => hashset![], // "o" has zero outgoing edges but 4 incoming edges
             event_id("p") => hashset![event_id("o")],
-        };
+        }
+        .into_iter()
+        .map(|(e, s)| (Box::new(e), s.into_iter().map(Box::new).collect()))
+        .collect();
 
         let res = crate::lexicographical_topological_sort(&graph, |id| {
-            Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0)), id.clone()))
+            Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0)), id))
         })
         .unwrap();
 
@@ -1136,18 +1217,25 @@ mod tests {
         })
         .collect::<StateMap<_>>();
 
-        let ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
-        let state_sets = [state_set_a, state_set_b];
+        let ev_map: HashMap<EventId, Arc<StateEvent>> = store.0.clone();
+        let state_sets =
+            vec![state_set_a, state_set_b].into_iter().map(map_box_value).collect::<Vec<_>>();
         let resolved = match crate::resolve(
             &RoomVersionId::Version6,
             &state_sets,
             state_sets
                 .iter()
                 .map(|map| {
-                    store.auth_event_ids(&room_id(), map.values().cloned().collect()).unwrap()
+                    store
+                        .auth_event_ids(&room_id(), map.values().map(|e| (**e).clone()).collect())
+                        .unwrap()
+                        .into_iter()
+                        .map(Box::new)
+                        .collect()
                 })
                 .collect(),
             |id| ev_map.get(id).map(Arc::clone),
+            |e| Box::new(e.clone()),
         ) {
             Ok(state) => state,
             Err(e) => panic!("{}", e),
@@ -1173,7 +1261,7 @@ mod tests {
 
         for id in expected.iter().map(|i| event_id(i)) {
             // make sure our resolved events are equal to the expected list
-            assert!(resolved.values().any(|eid| eid == &id) || init.contains_key(&id), "{}", id)
+            assert!(resolved.values().any(|eid| &**eid == &id) || init.contains_key(&id), "{}", id)
         }
         assert_eq!(expected.len(), resolved.len())
     }

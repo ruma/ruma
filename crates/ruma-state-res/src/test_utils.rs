@@ -30,6 +30,14 @@ pub use event::StateEvent;
 
 static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 
+pub fn map_unbox_value<K: Eq + std::hash::Hash, V>(map: HashMap<K, Box<V>>) -> HashMap<K, V> {
+    map.into_iter().map(|(k, v)| (k, *v)).collect()
+}
+
+pub fn map_box_value<K: Eq + std::hash::Hash, V>(map: HashMap<K, V>) -> HashMap<K, Box<V>> {
+    map.into_iter().map(|(k, v)| (k, Box::new(v))).collect()
+}
+
 pub fn do_check(
     events: &[Arc<StateEvent>],
     edges: Vec<Vec<EventId>>,
@@ -69,24 +77,29 @@ pub fn do_check(
         }
     }
 
+    let graph = graph
+        .into_iter()
+        .map(|(e, s)| (Box::new(e), s.into_iter().map(Box::new).collect()))
+        .collect();
+
     // event_id -> StateEvent
     let mut event_map: HashMap<EventId, Arc<StateEvent>> = HashMap::new();
     // event_id -> StateMap<EventId>
-    let mut state_at_event: HashMap<EventId, StateMap<EventId>> = HashMap::new();
+    let mut state_at_event: HashMap<EventId, StateMap<Box<EventId>>> = HashMap::new();
 
     // Resolve the current state and add it to the state_at_event map then continue
     // on in "time"
     for node in crate::lexicographical_topological_sort(&graph, |id| {
-        Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0)), id.clone()))
+        Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0)), id))
     })
     .unwrap()
     {
         let fake_event = fake_event_map.get(&node).unwrap();
-        let event_id = fake_event.event_id().clone();
+        let event_id = Box::new(fake_event.event_id().clone());
 
         let prev_events = graph.get(&node).unwrap();
 
-        let state_before: StateMap<EventId> = if prev_events.is_empty() {
+        let state_before: StateMap<Box<EventId>> = if prev_events.is_empty() {
             HashMap::new()
         } else if prev_events.len() == 1 {
             state_at_event.get(prev_events.iter().next().unwrap()).unwrap().clone()
@@ -108,14 +121,22 @@ pub fn do_check(
             let auth_chain_sets = state_sets
                 .iter()
                 .map(|map| {
-                    store.auth_event_ids(&room_id(), map.values().cloned().collect()).unwrap()
+                    store
+                        .auth_event_ids(&room_id(), map.values().map(|e| (**e).clone()).collect())
+                        .unwrap()
+                        .into_iter()
+                        .map(Box::new)
+                        .collect()
                 })
                 .collect();
 
-            let resolved =
-                crate::resolve(&RoomVersionId::Version6, state_sets, auth_chain_sets, |id| {
-                    event_map.get(id).map(Arc::clone)
-                });
+            let resolved = crate::resolve(
+                &RoomVersionId::Version6,
+                state_sets,
+                auth_chain_sets,
+                |id| event_map.get(id).map(Arc::clone),
+                |e| Box::new(e.clone()),
+            );
             match resolved {
                 Ok(state) => state,
                 Err(e) => panic!("resolution for {} failed: {}", node, e),
@@ -139,7 +160,7 @@ pub fn do_check(
         let mut auth_events = vec![];
         for key in auth_types {
             if state_before.contains_key(&key) {
-                auth_events.push(state_before[&key].clone());
+                auth_events.push((*state_before[&key]).clone());
             }
         }
 
@@ -154,15 +175,15 @@ pub fn do_check(
             e.state_key(),
             e.content().to_owned(),
             &auth_events,
-            &prev_events.iter().cloned().collect::<Vec<_>>(),
+            &prev_events.iter().map(|e| (**e).clone()).collect::<Vec<_>>(),
         );
 
         // We have to update our store, an actual user of this lib would
         // be giving us state from a DB.
         store.0.insert(ev_id.clone(), event.clone());
 
-        state_at_event.insert(node, state_after);
-        event_map.insert(event_id.clone(), Arc::clone(store.0.get(&ev_id).unwrap()));
+        state_at_event.insert(*node, state_after);
+        event_map.insert(*event_id, Arc::clone(store.0.get(&ev_id).unwrap()));
     }
 
     let mut expected_state = StateMap::new();
@@ -194,7 +215,7 @@ pub fn do_check(
                 // test against.
                 && **k != (EventType::RoomMessage, "dummy".to_owned())
         })
-        .map(|(k, v)| (k.clone(), v.clone()))
+        .map(|(k, v)| (k.clone(), (**v).clone()))
         .collect::<StateMap<EventId>>();
 
     assert_eq!(expected_state, end_state);
