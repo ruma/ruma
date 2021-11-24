@@ -530,7 +530,7 @@ fn mainline_sort<'r, E: Event + 'r>(
 
     // Sort the event_ids by their depth, timestamp and EventId
     // unwrap is OK order map and sort_event_ids are from to_sort (the same Vec)
-    let mut sort_event_ids = order_map.keys().map(|&k| k.clone()).collect::<Vec<_>>();
+    let mut sort_event_ids = order_map.keys().map(|&&k| k).collect::<Vec<_>>();
     sort_event_ids.sort_by_key(|sort_id| order_map.get(sort_id).unwrap());
 
     Ok(sort_event_ids)
