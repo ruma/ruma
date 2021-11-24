@@ -1,7 +1,5 @@
-use std::num::NonZeroU8;
+use crate::{validate_delimited_id, Error};
 
-use crate::{parse_id, Error};
-
-pub fn validate(s: &str) -> Result<NonZeroU8, Error> {
-    parse_id(s, &['#', '!'])
+pub fn validate(s: &str) -> Result<(), Error> {
+    validate_delimited_id(s, &['#', '!'])
 }

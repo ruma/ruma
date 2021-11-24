@@ -356,7 +356,7 @@ pub struct ResultRoomEvents {
 
     /// Any groups that were requested.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub groups: BTreeMap<GroupingKey, BTreeMap<RoomIdOrUserId, ResultGroup>>,
+    pub groups: BTreeMap<GroupingKey, BTreeMap<Box<RoomIdOrUserId>, ResultGroup>>,
 
     /// Token that can be used to get the next batch of results, by passing as the `next_batch`
     /// parameter to the next call.
