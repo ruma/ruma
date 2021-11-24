@@ -18,10 +18,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.direct", kind = GlobalAccountData)]
-pub struct DirectEventContent(pub BTreeMap<UserId, Vec<Box<RoomId>>>);
+pub struct DirectEventContent(pub BTreeMap<Box<UserId>, Vec<Box<RoomId>>>);
 
 impl Deref for DirectEventContent {
-    type Target = BTreeMap<UserId, Vec<Box<RoomId>>>;
+    type Target = BTreeMap<Box<UserId>, Vec<Box<RoomId>>>;
 
     fn deref(&self) -> &Self::Target {
         &self.0

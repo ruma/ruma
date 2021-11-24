@@ -80,13 +80,13 @@ pub struct RoomEventFilter<'a> {
     /// If this list is absent then no senders are excluded. A matching sender will be excluded
     /// even if it is listed in the 'senders' filter.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub not_senders: &'a [UserId],
+    pub not_senders: &'a [Box<UserId>],
 
     /// A list of senders IDs to include.
     ///
     /// If this list is absent then all senders are included.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub senders: Option<&'a [UserId]>,
+    pub senders: Option<&'a [Box<UserId>]>,
 
     /// A list of event types to include.
     ///
@@ -255,7 +255,7 @@ pub struct Filter<'a> {
     ///
     /// If this list is absent then all senders are included.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub senders: Option<&'a [UserId]>,
+    pub senders: Option<&'a [Box<UserId>]>,
 
     /// A list of event types to include.
     ///
@@ -269,7 +269,7 @@ pub struct Filter<'a> {
     /// If this list is absent then no senders are excluded. A matching sender will be excluded
     /// even if it is listed in the 'senders' filter.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub not_senders: &'a [UserId],
+    pub not_senders: &'a [Box<UserId>],
 }
 
 impl<'a> Filter<'a> {

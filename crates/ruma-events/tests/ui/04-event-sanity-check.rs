@@ -13,7 +13,7 @@ use ruma_identifiers::{EventId, RoomId, UserId};
 pub struct StateEvent<C: StateEventContent> {
     pub content: C,
     pub event_id: Box<EventId>,
-    pub sender: UserId,
+    pub sender: Box<UserId>,
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
     pub room_id: Box<RoomId>,
     pub state_key: String,

@@ -153,7 +153,7 @@ pub fn do_check(
         let ev_id = e.event_id();
         let event = to_pdu_event(
             e.event_id().as_str(),
-            e.sender().clone(),
+            e.sender().to_owned(),
             e.event_type().clone(),
             e.state_key(),
             e.content().to_owned(),
@@ -347,24 +347,24 @@ pub fn event_id(id: &str) -> Box<EventId> {
     format!("${}:foo", id).try_into().unwrap()
 }
 
-pub fn alice() -> UserId {
-    user_id!("@alice:foo")
+pub fn alice() -> Box<UserId> {
+    user_id!("@alice:foo").to_owned()
 }
 
-pub fn bob() -> UserId {
-    user_id!("@bob:foo")
+pub fn bob() -> Box<UserId> {
+    user_id!("@bob:foo").to_owned()
 }
 
-pub fn charlie() -> UserId {
-    user_id!("@charlie:foo")
+pub fn charlie() -> Box<UserId> {
+    user_id!("@charlie:foo").to_owned()
 }
 
-pub fn ella() -> UserId {
-    user_id!("@ella:foo")
+pub fn ella() -> Box<UserId> {
+    user_id!("@ella:foo").to_owned()
 }
 
-pub fn zara() -> UserId {
-    user_id!("@zara:foo")
+pub fn zara() -> Box<UserId> {
+    user_id!("@zara:foo").to_owned()
 }
 
 pub fn room_id() -> &'static RoomId {
@@ -381,7 +381,7 @@ pub fn member_content_join() -> Box<RawJsonValue> {
 
 pub fn to_init_pdu_event(
     id: &str,
-    sender: UserId,
+    sender: Box<UserId>,
     ev_type: EventType,
     state_key: Option<&str>,
     content: Box<RawJsonValue>,
@@ -414,7 +414,7 @@ pub fn to_init_pdu_event(
 
 pub fn to_pdu_event<S>(
     id: &str,
-    sender: UserId,
+    sender: Box<UserId>,
     ev_type: EventType,
     state_key: Option<&str>,
     content: Box<RawJsonValue>,

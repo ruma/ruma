@@ -21,7 +21,7 @@ ruma_api! {
 
     response: {
         /// The Matrix User ID who generated the token.
-        pub sub: UserId,
+        pub sub: Box<UserId>,
     }
 }
 
@@ -34,7 +34,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given user id.
-    pub fn new(sub: UserId) -> Self {
+    pub fn new(sub: Box<UserId>) -> Self {
         Self { sub }
     }
 }

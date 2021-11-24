@@ -29,7 +29,7 @@ fn serialize_pdu_as_v1() {
     let v1_pdu = RoomV1Pdu {
         room_id: room_id!("!n8f893n9:example.com").to_owned(),
         event_id: event_id!("$somejoinevent:matrix.org").to_owned(),
-        sender: user_id!("@sender:example.com"),
+        sender: user_id!("@sender:example.com").to_owned(),
         origin: "matrix.org".into(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(1_592_050_773_658_u64.try_into().unwrap()),
         kind: EventType::RoomPowerLevels,
@@ -95,7 +95,7 @@ fn serialize_pdu_as_v3() {
 
     let v3_pdu = RoomV3Pdu {
         room_id: room_id!("!n8f893n9:example.com").to_owned(),
-        sender: user_id!("@sender:example.com"),
+        sender: user_id!("@sender:example.com").to_owned(),
         origin: "matrix.org".into(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(1_592_050_773_658_u64.try_into().unwrap()),
         kind: EventType::RoomPowerLevels,

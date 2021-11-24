@@ -26,7 +26,7 @@ ruma_api! {
 
     response: {
         /// The user ID devices were requested for.
-        pub user_id: UserId,
+        pub user_id: Box<UserId>,
 
         /// A unique ID for a given user_id which describes the version of the returned device list.
         ///
@@ -50,7 +50,7 @@ impl Response {
     /// Creates a new `Response` with the given user id and stream id.
     ///
     /// The device list will be empty.
-    pub fn new(user_id: UserId, stream_id: UInt) -> Self {
+    pub fn new(user_id: Box<UserId>, stream_id: UInt) -> Self {
         Self { user_id, stream_id, devices: Vec::new() }
     }
 }

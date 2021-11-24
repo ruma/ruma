@@ -44,11 +44,11 @@ impl Response {
 }
 
 /// A claim for one time keys
-pub type OneTimeKeyClaims = BTreeMap<UserId, BTreeMap<Box<DeviceId>, DeviceKeyAlgorithm>>;
+pub type OneTimeKeyClaims = BTreeMap<Box<UserId>, BTreeMap<Box<DeviceId>, DeviceKeyAlgorithm>>;
 
 /// One time keys for use in pre-key messages
 pub type OneTimeKeys =
-    BTreeMap<UserId, BTreeMap<Box<DeviceId>, BTreeMap<Box<DeviceKeyId>, OneTimeKey>>>;
+    BTreeMap<Box<UserId>, BTreeMap<Box<DeviceId>, BTreeMap<Box<DeviceKeyId>, OneTimeKey>>>;
 
 /// A key and its signature
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -58,14 +58,14 @@ pub struct KeyObject {
     pub key: String,
 
     /// Signature of the key object.
-    pub signatures: BTreeMap<UserId, BTreeMap<Box<DeviceKeyId>, String>>,
+    pub signatures: BTreeMap<Box<UserId>, BTreeMap<Box<DeviceKeyId>, String>>,
 }
 
 impl KeyObject {
     /// Creates a new `KeyObject` with the given key and signatures.
     pub fn new(
         key: String,
-        signatures: BTreeMap<UserId, BTreeMap<Box<DeviceKeyId>, String>>,
+        signatures: BTreeMap<Box<UserId>, BTreeMap<Box<DeviceKeyId>, String>>,
     ) -> Self {
         Self { key, signatures }
     }

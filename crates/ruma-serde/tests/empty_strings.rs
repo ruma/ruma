@@ -55,8 +55,8 @@ mod user {
 
     const CARL: &str = "@carl:example.com";
 
-    fn carl() -> UserId {
-        user_id!("@carl:example.com")
+    fn carl() -> Box<UserId> {
+        user_id!("@carl:example.com").to_owned()
     }
 
     #[derive(Serialize, Deserialize, PartialEq, Debug)]
@@ -66,7 +66,7 @@ mod user {
             deserialize_with = "ruma_serde::empty_string_as_none",
             serialize_with = "ruma_serde::none_as_empty_string"
         )]
-        x: Option<UserId>,
+        x: Option<Box<UserId>>,
     }
 
     #[test]

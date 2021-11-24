@@ -975,7 +975,7 @@ pub struct KeyVerificationRequestEventContent {
     /// Users should only respond to verification requests if they are named in this field. Users
     /// who are not named in this field and who did not send this event should ignore all other
     /// events that have a `m.reference` relationship with this event.
-    pub to: UserId,
+    pub to: Box<UserId>,
 }
 
 #[cfg(feature = "unstable-pre-spec")]
@@ -986,7 +986,7 @@ impl KeyVerificationRequestEventContent {
         body: String,
         methods: Vec<VerificationMethod>,
         from_device: Box<DeviceId>,
-        to: UserId,
+        to: Box<UserId>,
     ) -> Self {
         Self { body, methods, from_device, to }
     }

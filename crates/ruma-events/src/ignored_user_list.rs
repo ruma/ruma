@@ -13,12 +13,12 @@ use serde::{Deserialize, Serialize};
 pub struct IgnoredUserListEventContent {
     /// A list of users to ignore.
     #[serde(with = "ruma_serde::vec_as_map_of_empty")]
-    pub ignored_users: Vec<UserId>,
+    pub ignored_users: Vec<Box<UserId>>,
 }
 
 impl IgnoredUserListEventContent {
     /// Creates a new `IgnoredUserListEventContent` from the given user IDs.
-    pub fn new(ignored_users: Vec<UserId>) -> Self {
+    pub fn new(ignored_users: Vec<Box<UserId>>) -> Self {
         Self { ignored_users }
     }
 }
@@ -36,7 +36,7 @@ mod tests {
     fn serialization() {
         let ignored_user_list_event = GlobalAccountDataEvent {
             content: IgnoredUserListEventContent {
-                ignored_users: vec![user_id!("@carl:example.com")],
+                ignored_users: vec![user_id!("@carl:example.com").to_owned()],
             },
         };
 

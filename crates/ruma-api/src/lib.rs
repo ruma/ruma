@@ -298,11 +298,10 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
         self,
         base_url: &str,
         access_token: SendAccessToken<'_>,
-        user_id: UserId,
+        user_id: &UserId,
     ) -> Result<http::Request<T>, IntoHttpError> {
         let mut http_request = self.try_into_http_request(base_url, access_token)?;
-        let user_id_query =
-            ruma_serde::urlencoded::to_string(&[("user_id", &user_id.into_string())])?;
+        let user_id_query = ruma_serde::urlencoded::to_string(&[("user_id", user_id)])?;
 
         let uri = http_request.uri().to_owned();
         let mut parts = uri.into_parts();

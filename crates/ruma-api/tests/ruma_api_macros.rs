@@ -39,7 +39,7 @@ pub mod some_endpoint {
             // This value will be inserted into the request's URL in place of the
             // ":user" path component.
             #[ruma_api(path)]
-            pub user: UserId,
+            pub user: Box<UserId>,
         }
 
         response: {

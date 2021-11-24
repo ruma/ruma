@@ -95,7 +95,7 @@ mod tests {
             json!({ "user_id": "@carl:example.org" }),
         )
         .unwrap();
-        let user_id = user_id!("@carl:example.org");
+        let user_id = user_id!("@carl:example.org").to_owned();
         let recipient = IncomingInvitationRecipient::UserId { user_id };
         assert_eq!(incoming, recipient);
     }

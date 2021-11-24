@@ -325,7 +325,7 @@ struct PowerLevelsContentFields {
         serde(deserialize_with = "ruma_serde::btreemap_int_or_string_to_int_values")
     )]
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    users: BTreeMap<UserId, Int>,
+    users: BTreeMap<Box<UserId>, Int>,
 
     #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
     #[serde(default, skip_serializing_if = "ruma_serde::is_default")]

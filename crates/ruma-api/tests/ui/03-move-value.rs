@@ -26,7 +26,7 @@ mod newtype_body {
             pub bar: String,
 
             #[ruma_api(query)]
-            pub baz: UserId,
+            pub baz: Box<UserId>,
 
             #[ruma_api(header = CONTENT_TYPE)]
             pub world: String,
@@ -64,7 +64,7 @@ mod raw_body {
             pub bar: String,
 
             #[ruma_api(query)]
-            pub baz: UserId,
+            pub baz: Box<UserId>,
 
             #[ruma_api(header = CONTENT_TYPE)]
             pub world: String,
@@ -103,7 +103,7 @@ mod plain {
             pub bar: String,
 
             #[ruma_api(query)]
-            pub baz: UserId,
+            pub baz: Box<UserId>,
 
             #[ruma_api(header = CONTENT_TYPE)]
             pub world: String,

@@ -129,7 +129,7 @@ pub fn user_id(input: TokenStream) -> TokenStream {
     assert!(user_id::validate(&id.value()).is_ok(), "Invalid user_id");
 
     let output = quote! {
-        <#dollar_crate::UserId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
+        <&#dollar_crate::UserId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
     };
 
     output.into()

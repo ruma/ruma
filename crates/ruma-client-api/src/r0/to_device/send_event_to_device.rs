@@ -57,4 +57,5 @@ impl Response {
 /// Messages to send in a send-to-device request.
 ///
 /// Represented as a map of `{ user-ids => { device-ids => message-content } }`.
-pub type Messages = BTreeMap<UserId, BTreeMap<DeviceIdOrAllDevices, Raw<AnyToDeviceEventContent>>>;
+pub type Messages =
+    BTreeMap<Box<UserId>, BTreeMap<DeviceIdOrAllDevices, Raw<AnyToDeviceEventContent>>>;

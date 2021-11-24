@@ -198,7 +198,7 @@ impl Location {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct User {
     /// A matrix user ID representing a third party user.
-    pub userid: UserId,
+    pub userid: Box<UserId>,
 
     /// The protocol ID that the third party user is a part of.
     pub protocol: String,
@@ -209,7 +209,7 @@ pub struct User {
 
 impl User {
     /// Creates a new `User` with the given userid, protocol and fields.
-    pub fn new(userid: UserId, protocol: String, fields: BTreeMap<String, String>) -> Self {
+    pub fn new(userid: Box<UserId>, protocol: String, fields: BTreeMap<String, String>) -> Self {
         Self { userid, protocol, fields }
     }
 }

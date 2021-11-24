@@ -300,21 +300,18 @@ fn formatted_or_plain_body<'a>(formatted: &'a Option<FormattedBody>, body: &'a s
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
-    use ruma_identifiers::{room_id, EventId, UserId};
+    use ruma_identifiers::{event_id, room_id, user_id};
 
     use super::RoomMessageEvent;
     use crate::room::message::RoomMessageEventContent;
 
     #[test]
     fn plain_quote_fallback_multiline() {
-        let sender = UserId::try_from("@alice:example.com").unwrap();
         assert_eq!(
             super::get_plain_quote_fallback(&RoomMessageEvent {
                 content: RoomMessageEventContent::text_plain("multi\nline"),
-                event_id: EventId::new(sender.server_name()),
-                sender,
+                event_id: event_id!("$1598361704261elfgc:localhost").to_owned(),
+                sender: user_id!("@alice:example.com").to_owned(),
                 origin_server_ts: ruma_common::MilliSecondsSinceUnixEpoch::now(),
                 room_id: room_id!("!n8f893n9:example.com").to_owned(),
                 unsigned: crate::Unsigned::new(),

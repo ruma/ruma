@@ -271,6 +271,7 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                         || last_seg.ident == "RoomId"
                         || last_seg.ident == "RoomIdOrAliasId"
                         || last_seg.ident == "RoomName"
+                        || last_seg.ident == "UserId"
                     {
                         // The identifiers that need to be boxed `Box<T>` since they are DST's.
                         Some(parse_quote! { ::std::boxed::Box<#path> })

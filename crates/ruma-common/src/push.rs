@@ -963,7 +963,7 @@ mod tests {
 
     #[test]
     fn default_ruleset_applies() {
-        let set = Ruleset::server_default(&user_id!("@jolly_jumper:server.name"));
+        let set = Ruleset::server_default(user_id!("@jolly_jumper:server.name"));
 
         let context_one_to_one = &PushConditionRoomCtx {
             room_id: room_id!("!dm:server.name").to_owned(),

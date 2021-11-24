@@ -3,8 +3,8 @@
 use std::{
     borrow::Cow,
     collections::{BTreeMap, BTreeSet},
+    convert::TryFrom,
     mem,
-    str::FromStr,
 };
 
 use base64::{decode_config, encode_config, Config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
@@ -780,8 +780,8 @@ fn servers_to_check_signatures(
     if !is_third_party_invite(object)? {
         match object.get("sender") {
             Some(CanonicalJsonValue::String(raw_sender)) => {
-                let user_id =
-                    UserId::from_str(raw_sender).map_err(|e| Error::from(ParseError::UserId(e)))?;
+                let user_id = <&UserId>::try_from(raw_sender.as_str())
+                    .map_err(|e| Error::from(ParseError::UserId(e)))?;
 
                 servers_to_check.insert(user_id.server_name().to_owned());
             }

@@ -9,7 +9,7 @@
 
 use std::{
     collections::{HashMap, HashSet},
-    convert::{TryFrom, TryInto},
+    convert::TryInto,
     sync::{
         atomic::{AtomicU64, Ordering::SeqCst},
         Arc,
@@ -29,7 +29,7 @@ use ruma_events::{
     },
     EventType,
 };
-use ruma_identifiers::{room_id, EventId, RoomId, RoomVersionId, UserId};
+use ruma_identifiers::{room_id, user_id, EventId, RoomId, RoomVersionId, UserId};
 use ruma_state_res::{self as state_res, Error, Event, Result, StateMap};
 use serde_json::{
     json,
@@ -339,20 +339,20 @@ fn event_id(id: &str) -> Box<EventId> {
     format!("${}:foo", id).try_into().unwrap()
 }
 
-fn alice() -> UserId {
-    UserId::try_from("@alice:foo").unwrap()
+fn alice() -> Box<UserId> {
+    user_id!("@alice:foo").to_owned()
 }
 
-fn bob() -> UserId {
-    UserId::try_from("@bob:foo").unwrap()
+fn bob() -> Box<UserId> {
+    user_id!("@bob:foo").to_owned()
 }
 
-fn charlie() -> UserId {
-    UserId::try_from("@charlie:foo").unwrap()
+fn charlie() -> Box<UserId> {
+    user_id!("@charlie:foo").to_owned()
 }
 
-fn ella() -> UserId {
-    UserId::try_from("@ella:foo").unwrap()
+fn ella() -> Box<UserId> {
+    user_id!("@ella:foo").to_owned()
 }
 
 fn room_id() -> &'static RoomId {
@@ -369,7 +369,7 @@ fn member_content_join() -> Box<RawJsonValue> {
 
 fn to_pdu_event<S>(
     id: &str,
-    sender: UserId,
+    sender: Box<UserId>,
     ev_type: EventType,
     state_key: Option<&str>,
     content: Box<RawJsonValue>,

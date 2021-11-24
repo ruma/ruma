@@ -18,7 +18,7 @@ ruma_api! {
 
     response: {
         /// The user ID which registered the token.
-        pub user_id: UserId,
+        pub user_id: Box<UserId>,
     }
 }
 
@@ -31,7 +31,7 @@ impl Request {
 
 impl Response {
     /// Creates a new `Response` with the given `UserId`.
-    pub fn new(user_id: UserId) -> Self {
+    pub fn new(user_id: Box<UserId>) -> Self {
         Self { user_id }
     }
 }

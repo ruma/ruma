@@ -234,7 +234,7 @@ mod tests {
             ),
         };
 
-        let sender = user_id!("@example:localhost");
+        let sender = user_id!("@example:localhost").to_owned();
 
         let json_data = json!({
             "content": {
@@ -255,7 +255,7 @@ mod tests {
 
         assert_eq!(to_json_value(&key_verification_start).unwrap(), json_data);
 
-        let sender = user_id!("@example:localhost");
+        let sender = user_id!("@example:localhost").to_owned();
 
         let json_data = json!({
             "content": {

@@ -28,7 +28,7 @@ ruma_api! {
         pub timeout: Option<Duration>,
 
         /// The keys to be claimed.
-        pub one_time_keys: BTreeMap<UserId, BTreeMap<Box<DeviceId>, DeviceKeyAlgorithm>>,
+        pub one_time_keys: BTreeMap<Box<UserId>, BTreeMap<Box<DeviceId>, DeviceKeyAlgorithm>>,
     }
 
     response: {
@@ -37,7 +37,7 @@ ruma_api! {
         pub failures: BTreeMap<String, JsonValue>,
 
         /// One-time keys for the queried devices.
-        pub one_time_keys: BTreeMap<UserId, OneTimeKeys>,
+        pub one_time_keys: BTreeMap<Box<UserId>, OneTimeKeys>,
     }
 
     error: crate::Error
@@ -46,7 +46,7 @@ ruma_api! {
 impl Request {
     /// Creates a new `Request` with the given key claims and the recommended 10 second timeout.
     pub fn new(
-        one_time_keys: BTreeMap<UserId, BTreeMap<Box<DeviceId>, DeviceKeyAlgorithm>>,
+        one_time_keys: BTreeMap<Box<UserId>, BTreeMap<Box<DeviceId>, DeviceKeyAlgorithm>>,
     ) -> Self {
         Self { timeout: Some(Duration::from_secs(10)), one_time_keys }
     }
@@ -54,7 +54,7 @@ impl Request {
 
 impl Response {
     /// Creates a new `Response` with the given keys and no failures.
-    pub fn new(one_time_keys: BTreeMap<UserId, OneTimeKeys>) -> Self {
+    pub fn new(one_time_keys: BTreeMap<Box<UserId>, OneTimeKeys>) -> Self {
         Self { failures: BTreeMap::new(), one_time_keys }
     }
 }

@@ -82,7 +82,7 @@ mod tests {
         use crate::r0::filter::FilterDefinition;
 
         assert_matches!(
-            super::Request::new(&user_id!("@foo:bar.com"), FilterDefinition::default())
+            super::Request::new(user_id!("@foo:bar.com"), FilterDefinition::default())
                 .try_into_http_request::<Vec<u8>>(
                     "https://matrix.org",
                     SendAccessToken::IfRequired("tok"),

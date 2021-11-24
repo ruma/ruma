@@ -43,7 +43,7 @@ fn serialization() {
         event_id: event_id!("$143273582443PhrSn:example.org").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
         room_id: room_id!("!testroomid:example.org").to_owned(),
-        sender: user_id!("@user:example.org"),
+        sender: user_id!("@user:example.org").to_owned(),
         unsigned: Unsigned::default(),
     };
 
@@ -335,7 +335,7 @@ fn verification_request_deserialization() {
 #[test]
 #[cfg(feature = "unstable-pre-spec")]
 fn verification_request_serialization() {
-    let user_id = user_id!("@example2:localhost");
+    let user_id = user_id!("@example2:localhost").to_owned();
     let device_id: Box<DeviceId> = "XOWLHHFSWM".into();
     let body = "@example:localhost is requesting to verify your key, ...".to_owned();
 

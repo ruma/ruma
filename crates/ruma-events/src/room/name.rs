@@ -45,7 +45,7 @@ mod tests {
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
             prev_content: None,
             room_id: room_id!("!n8f893n9:example.com").to_owned(),
-            sender: user_id!("@carl:example.com"),
+            sender: user_id!("@carl:example.com").to_owned(),
             state_key: "".into(),
             unsigned: Unsigned::default(),
         };
@@ -74,7 +74,7 @@ mod tests {
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
             prev_content: Some(RoomNameEventContent { name: "The old name".try_into().ok() }),
             room_id: room_id!("!n8f893n9:example.com").to_owned(),
-            sender: user_id!("@carl:example.com"),
+            sender: user_id!("@carl:example.com").to_owned(),
             state_key: "".into(),
             unsigned: Unsigned { age: Some(int!(100)), ..Unsigned::default() },
         };

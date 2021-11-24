@@ -33,7 +33,7 @@ ruma_api! {
         pub medium: Medium,
 
         /// The Matrix user ID associated with the 3PID.
-        pub mxid: UserId,
+        pub mxid: Box<UserId>,
 
         /// A UNIX timestamp before which the association is not known to be valid.
         pub not_before: MilliSecondsSinceUnixEpoch,
@@ -63,7 +63,7 @@ impl Response {
     pub fn new(
         address: String,
         medium: Medium,
-        mxid: UserId,
+        mxid: Box<UserId>,
         not_before: MilliSecondsSinceUnixEpoch,
         not_after: MilliSecondsSinceUnixEpoch,
         ts: MilliSecondsSinceUnixEpoch,

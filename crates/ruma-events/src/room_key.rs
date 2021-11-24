@@ -56,7 +56,7 @@ mod tests {
                 session_id: "SessId".into(),
                 session_key: "SessKey".into(),
             },
-            sender: user_id!("@user:example.org"),
+            sender: user_id!("@user:example.org").to_owned(),
         };
 
         assert_eq!(

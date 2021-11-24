@@ -5,7 +5,7 @@ use serde_json::{json, to_value as to_json_value};
 #[test]
 fn serialization() {
     let ev = ToDeviceEvent {
-        sender: user_id!("@example:example.org"),
+        sender: user_id!("@example:example.org").to_owned(),
         content: ToDeviceRoomKeyEventContent::new(
             EventEncryptionAlgorithm::MegolmV1AesSha2,
             room_id!("!testroomid:example.org").to_owned(),

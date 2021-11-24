@@ -68,13 +68,13 @@ pub struct ThirdPartyInvite {
     pub address: String,
 
     /// The now-bound user ID that received the invite.
-    pub mxid: UserId,
+    pub mxid: Box<UserId>,
 
     /// The room ID the invite is valid for.
     pub room_id: Box<RoomId>,
 
     /// The user ID that sent the invite.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 
     /// Signature from the identity server using a long-term private key.
     pub signed: BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>>,
@@ -84,9 +84,9 @@ impl ThirdPartyInvite {
     /// Creates a new third party invite with the given parameters.
     pub fn new(
         address: String,
-        mxid: UserId,
+        mxid: Box<UserId>,
         room_id: Box<RoomId>,
-        sender: UserId,
+        sender: Box<UserId>,
         signed: BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>>,
     ) -> Self {
         Self { medium: Medium::Email, address, mxid, room_id, sender, signed }

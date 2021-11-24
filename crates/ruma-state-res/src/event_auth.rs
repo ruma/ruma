@@ -227,10 +227,10 @@ pub fn auth_check<E: Event>(
         }
 
         let target_user =
-            UserId::try_from(state_key).map_err(|e| Error::InvalidPdu(format!("{}", e)))?;
+            <&UserId>::try_from(state_key).map_err(|e| Error::InvalidPdu(format!("{}", e)))?;
 
         if !valid_membership_change(
-            &target_user,
+            target_user,
             fetch_state(&EventType::RoomMember, target_user.as_str()).as_ref(),
             sender,
             sender_member_event.as_ref(),

@@ -18,7 +18,7 @@ pub struct RoomCreateEventContent {
     ///
     /// This is set by the homeserver.
     #[ruma_event(skip_redaction)]
-    pub creator: UserId,
+    pub creator: Box<UserId>,
 
     /// Whether or not this room's data should be transferred to other homeservers.
     #[serde(
@@ -48,7 +48,7 @@ pub struct RoomCreateEventContent {
 
 impl RoomCreateEventContent {
     /// Creates a new `RoomCreateEventContent` with the given creator.
-    pub fn new(creator: UserId) -> Self {
+    pub fn new(creator: Box<UserId>) -> Self {
         Self {
             creator,
             federate: true,
@@ -119,7 +119,7 @@ mod tests {
     #[test]
     fn serialization() {
         let content = RoomCreateEventContent {
-            creator: user_id!("@carl:example.com"),
+            creator: user_id!("@carl:example.com").to_owned(),
             federate: false,
             room_version: RoomVersionId::Version4,
             predecessor: None,
@@ -140,7 +140,7 @@ mod tests {
     #[test]
     fn space_serialization() {
         let content = RoomCreateEventContent {
-            creator: user_id!("@carl:example.com"),
+            creator: user_id!("@carl:example.com").to_owned(),
             federate: false,
             room_version: RoomVersionId::Version4,
             predecessor: None,

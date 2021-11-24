@@ -27,7 +27,7 @@ ruma_api! {
         #[ruma_api(path)]
         pub bar: String,
         #[ruma_api(path)]
-        pub user: UserId,
+        pub user: Box<UserId>,
     }
 
     response: {
@@ -47,7 +47,7 @@ fn request_serde() {
         q1: "query_param_special_chars %/&@!".to_owned(),
         q2: 55,
         bar: "barVal".to_owned(),
-        user: user_id!("@bazme:ruma.io"),
+        user: user_id!("@bazme:ruma.io").to_owned(),
     };
 
     let http_req = req
@@ -72,7 +72,7 @@ fn invalid_uri_should_not_panic() {
         q1: "query_param_special_chars %/&@!".to_owned(),
         q2: 55,
         bar: "barVal".to_owned(),
-        user: user_id!("@bazme:ruma.io"),
+        user: user_id!("@bazme:ruma.io").to_owned(),
     };
 
     let result = req.try_into_http_request::<Vec<u8>>("invalid uri", SendAccessToken::None);
@@ -87,7 +87,7 @@ fn request_with_user_id_serde() {
         q1: "query_param_special_chars %/&@!".to_owned(),
         q2: 55,
         bar: "barVal".to_owned(),
-        user: user_id!("@bazme:ruma.io"),
+        user: user_id!("@bazme:ruma.io").to_owned(),
     };
 
     let user_id = user_id!("@_virtual_:ruma.io");
@@ -127,7 +127,7 @@ mod without_query {
             #[ruma_api(path)]
             pub bar: String,
             #[ruma_api(path)]
-            pub user: UserId,
+            pub user: Box<UserId>,
         }
 
         response: {
@@ -145,7 +145,7 @@ mod without_query {
             hello: "hi".to_owned(),
             world: "test".to_owned(),
             bar: "barVal".to_owned(),
-            user: user_id!("@bazme:ruma.io"),
+            user: user_id!("@bazme:ruma.io").to_owned(),
         };
 
         let user_id = user_id!("@_virtual_:ruma.io");

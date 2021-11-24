@@ -55,7 +55,7 @@ mod tests {
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
             prev_content: None,
             room_id: room_id!("!dummy:example.com").to_owned(),
-            sender: user_id!("@carl:example.com"),
+            sender: user_id!("@carl:example.com").to_owned(),
             state_key: "".into(),
             unsigned: Unsigned::default(),
         };

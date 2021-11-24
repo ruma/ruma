@@ -55,7 +55,7 @@ pub struct MessageEvent<C: MessageEventContent> {
     pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -80,7 +80,7 @@ pub struct SyncMessageEvent<C: MessageEventContent> {
     pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -102,7 +102,7 @@ pub struct RedactedMessageEvent<C: RedactedMessageEventContent> {
     pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -127,7 +127,7 @@ pub struct RedactedSyncMessageEvent<C: RedactedMessageEventContent> {
     pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -149,7 +149,7 @@ pub struct StateEvent<C: StateEventContent> {
     pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -183,7 +183,7 @@ pub struct SyncStateEvent<C: StateEventContent> {
     pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -208,7 +208,7 @@ pub struct StrippedStateEvent<C: StateEventContent> {
     pub content: C,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
@@ -246,7 +246,7 @@ pub struct RedactedStateEvent<C: RedactedStateEventContent> {
     pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -277,7 +277,7 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
     pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -299,7 +299,7 @@ pub struct ToDeviceEvent<C: ToDeviceEventContent> {
     pub content: C,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 }
 
 /// The decrypted payload of an `m.olm.v1.curve25519-aes-sha2` event.
@@ -309,10 +309,10 @@ pub struct DecryptedOlmV1Event<C: MessageEventContent> {
     pub content: C,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 
     /// The fully-qualified ID of the intended recipient this event.
-    pub recipient: UserId,
+    pub recipient: Box<UserId>,
 
     /// The recipient's ed25519 key.
     pub recipient_keys: OlmV1Keys,

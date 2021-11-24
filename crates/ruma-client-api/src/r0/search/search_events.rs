@@ -194,7 +194,7 @@ pub struct EventContextResult {
 
     /// The historic profile information of the users that sent the events returned.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub profile_info: BTreeMap<UserId, UserProfile>,
+    pub profile_info: BTreeMap<Box<UserId>, UserProfile>,
 
     /// Pagination token for the start of the chunk.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -501,5 +501,5 @@ pub enum RoomIdOrUserId {
     RoomId(Box<RoomId>),
 
     /// Represents a user ID.
-    UserId(UserId),
+    UserId(Box<UserId>),
 }

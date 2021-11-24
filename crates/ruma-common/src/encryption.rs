@@ -14,7 +14,7 @@ pub struct DeviceKeys {
     /// The ID of the user the device belongs to.
     ///
     /// Must match the user ID used when logging in.
-    pub user_id: UserId,
+    pub user_id: Box<UserId>,
 
     /// The ID of the device these keys belong to.
     ///
@@ -28,7 +28,7 @@ pub struct DeviceKeys {
     pub keys: BTreeMap<Box<DeviceKeyId>, String>,
 
     /// Signatures for the device key object.
-    pub signatures: BTreeMap<UserId, BTreeMap<Box<DeviceKeyId>, String>>,
+    pub signatures: BTreeMap<Box<UserId>, BTreeMap<Box<DeviceKeyId>, String>>,
 
     /// Additional data added to the device key information by intermediate servers, and
     /// not covered by the signatures.
@@ -40,11 +40,11 @@ impl DeviceKeys {
     /// Creates a new `DeviceKeys` from the given user id, device id, algorithms, keys and
     /// signatures.
     pub fn new(
-        user_id: UserId,
+        user_id: Box<UserId>,
         device_id: Box<DeviceId>,
         algorithms: Vec<EventEncryptionAlgorithm>,
         keys: BTreeMap<Box<DeviceKeyId>, String>,
-        signatures: BTreeMap<UserId, BTreeMap<Box<DeviceKeyId>, String>>,
+        signatures: BTreeMap<Box<UserId>, BTreeMap<Box<DeviceKeyId>, String>>,
     ) -> Self {
         Self { user_id, device_id, algorithms, keys, signatures, unsigned: Default::default() }
     }
@@ -72,7 +72,7 @@ impl UnsignedDeviceInfo {
 }
 
 /// Signatures for a `SignedKey` object.
-pub type SignedKeySignatures = BTreeMap<UserId, BTreeMap<Box<DeviceKeyId>, String>>;
+pub type SignedKeySignatures = BTreeMap<Box<UserId>, BTreeMap<Box<DeviceKeyId>, String>>;
 
 /// A key for the SignedCurve25519 algorithm
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -105,14 +105,14 @@ pub enum OneTimeKey {
 }
 
 /// Signatures for a `CrossSigningKey` object.
-pub type CrossSigningKeySignatures = BTreeMap<UserId, BTreeMap<String, String>>;
+pub type CrossSigningKeySignatures = BTreeMap<Box<UserId>, BTreeMap<String, String>>;
 
 /// A cross signing key.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct CrossSigningKey {
     /// The ID of the user the key belongs to.
-    pub user_id: UserId,
+    pub user_id: Box<UserId>,
 
     /// What the key is used for.
     pub usage: Vec<KeyUsage>,
@@ -132,7 +132,7 @@ pub struct CrossSigningKey {
 impl CrossSigningKey {
     /// Creates a new `CrossSigningKey` with the given user ID, usage, keys and signatures.
     pub fn new(
-        user_id: UserId,
+        user_id: Box<UserId>,
         usage: Vec<KeyUsage>,
         keys: BTreeMap<String, String>,
         signatures: CrossSigningKeySignatures,

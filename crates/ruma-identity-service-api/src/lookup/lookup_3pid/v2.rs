@@ -38,7 +38,7 @@ ruma_api! {
         ///
         /// Addresses which do not have associations will not be included, which can make this
         /// property be an empty object.
-        pub mappings: BTreeMap<String, UserId>,
+        pub mappings: BTreeMap<String, Box<UserId>>,
     }
 }
 
@@ -56,7 +56,7 @@ impl<'a> Request<'a> {
 impl Response {
     /// Create a `Response` with the BTreeMap which map addresses from the request which were
     /// found to their corresponding User IDs.
-    pub fn new(mappings: BTreeMap<String, UserId>) -> Self {
+    pub fn new(mappings: BTreeMap<String, Box<UserId>>) -> Self {
         Self { mappings }
     }
 }

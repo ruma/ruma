@@ -27,7 +27,7 @@ ruma_api! {
     response: {
         /// The Matrix user ID of the user.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub user_id: Option<UserId>,
+        pub user_id: Option<Box<UserId>>,
 
         /// A map of the user's device identifiers to information about that device.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]

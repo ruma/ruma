@@ -95,7 +95,7 @@ impl PresenceContent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct PresenceUpdate {
     /// The user ID this presence EDU is for.
-    pub user_id: UserId,
+    pub user_id: Box<UserId>,
 
     /// The presence of the user.
     pub presence: PresenceState,
@@ -116,7 +116,7 @@ pub struct PresenceUpdate {
 
 impl PresenceUpdate {
     /// Creates a new `PresenceUpdate` with the given `user_id`, `presence` and `last_activity`.
-    pub fn new(user_id: UserId, presence: PresenceState, last_activity: UInt) -> Self {
+    pub fn new(user_id: Box<UserId>, presence: PresenceState, last_activity: UInt) -> Self {
         Self {
             user_id,
             presence,
@@ -149,12 +149,12 @@ impl ReceiptContent {
 pub struct ReceiptMap {
     /// Read receipts for users in the room.
     #[serde(rename = "m.read")]
-    pub read: BTreeMap<UserId, ReceiptData>,
+    pub read: BTreeMap<Box<UserId>, ReceiptData>,
 }
 
 impl ReceiptMap {
     /// Creates a new `ReceiptMap`.
-    pub fn new(read: BTreeMap<UserId, ReceiptData>) -> Self {
+    pub fn new(read: BTreeMap<Box<UserId>, ReceiptData>) -> Self {
         Self { read }
     }
 }
@@ -185,7 +185,7 @@ pub struct TypingContent {
     pub room_id: Box<RoomId>,
 
     /// The user ID that has had their typing status changed.
-    pub user_id: UserId,
+    pub user_id: Box<UserId>,
 
     /// Whether the user is typing in the room or not.
     pub typing: bool,
@@ -193,7 +193,7 @@ pub struct TypingContent {
 
 impl TypingContent {
     /// Creates a new `TypingContent`.
-    pub fn new(room_id: Box<RoomId>, user_id: UserId, typing: bool) -> Self {
+    pub fn new(room_id: Box<RoomId>, user_id: Box<UserId>, typing: bool) -> Self {
         Self { room_id, user_id, typing }
     }
 }
@@ -203,7 +203,7 @@ impl TypingContent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct DeviceListUpdateContent {
     /// The user ID who owns the device.
-    pub user_id: UserId,
+    pub user_id: Box<UserId>,
 
     /// The ID of the device whose details are changing.
     pub device_id: Box<DeviceId>,
@@ -234,7 +234,7 @@ pub struct DeviceListUpdateContent {
 impl DeviceListUpdateContent {
     /// Create a new `DeviceListUpdateContent` with the given `user_id`, `device_id` and
     /// `stream_id`.
-    pub fn new(user_id: UserId, device_id: Box<DeviceId>, stream_id: UInt) -> Self {
+    pub fn new(user_id: Box<UserId>, device_id: Box<DeviceId>, stream_id: UInt) -> Self {
         Self {
             user_id,
             device_id,
@@ -252,7 +252,7 @@ impl DeviceListUpdateContent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct DirectDeviceContent {
     /// The user ID of the sender.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 
     /// Event type for the message.
     #[serde(rename = "type")]
@@ -270,7 +270,7 @@ pub struct DirectDeviceContent {
 
 impl DirectDeviceContent {
     /// Creates a new `DirectDeviceContent` with the given `sender, `ev_type` and `message_id`.
-    pub fn new(sender: UserId, ev_type: EventType, message_id: String) -> Self {
+    pub fn new(sender: Box<UserId>, ev_type: EventType, message_id: String) -> Self {
         Self { sender, ev_type, message_id, messages: DirectDeviceMessages::new() }
     }
 }
@@ -279,7 +279,7 @@ impl DirectDeviceContent {
 ///
 /// Represented as a map of `{ user-ids => { device-ids => message-content } }`.
 pub type DirectDeviceMessages =
-    BTreeMap<UserId, BTreeMap<DeviceIdOrAllDevices, Raw<AnyToDeviceEventContent>>>;
+    BTreeMap<Box<UserId>, BTreeMap<DeviceIdOrAllDevices, Raw<AnyToDeviceEventContent>>>;
 
 #[cfg(test)]
 mod test {
@@ -460,7 +460,7 @@ mod test {
             }) if sender == "@john:example.com"
                 && *ev_type == EventType::RoomKeyRequest
                 && message_id == "hiezohf6Hoo7kaev"
-                && messages.get(&user_id!("@alice:example.org")).is_some()
+                && messages.get(user_id!("@alice:example.org")).is_some()
         );
 
         assert_eq!(serde_json::to_value(&edu).unwrap(), json);

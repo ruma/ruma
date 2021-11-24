@@ -72,7 +72,7 @@ fn is_default_limit(limit: &UInt) -> bool {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct User {
     /// The user's matrix user ID.
-    pub user_id: UserId,
+    pub user_id: Box<UserId>,
 
     /// The display name of the user, if one exists.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -92,7 +92,7 @@ pub struct User {
 
 impl User {
     /// Create a new `User` with the given `UserId`.
-    pub fn new(user_id: UserId) -> Self {
+    pub fn new(user_id: Box<UserId>) -> Self {
         Self { user_id, display_name: None, avatar_url: None }
     }
 }

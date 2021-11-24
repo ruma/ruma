@@ -83,7 +83,7 @@ ruma_api! {
         pub access_token: Option<String>,
 
         /// The fully-qualified Matrix ID that has been registered.
-        pub user_id: UserId,
+        pub user_id: Box<UserId>,
 
         /// ID of the registered device.
         ///
@@ -103,7 +103,7 @@ impl Request<'_> {
 
 impl Response {
     /// Creates a new `Response` with the given user ID.
-    pub fn new(user_id: UserId) -> Self {
+    pub fn new(user_id: Box<UserId>) -> Self {
         Self { access_token: None, user_id, device_id: None }
     }
 }

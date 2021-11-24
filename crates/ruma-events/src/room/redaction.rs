@@ -21,7 +21,7 @@ pub struct RoomRedactionEvent {
     pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -68,7 +68,7 @@ pub struct RedactedRoomRedactionEvent {
     pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -94,7 +94,7 @@ pub struct SyncRoomRedactionEvent {
     pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -137,7 +137,7 @@ pub struct RedactedSyncRoomRedactionEvent {
     pub event_id: Box<EventId>,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,

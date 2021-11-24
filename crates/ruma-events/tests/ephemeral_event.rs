@@ -14,7 +14,7 @@ use ruma_events::{
 #[test]
 fn ephemeral_serialize_typing() {
     let aliases_event = EphemeralRoomEvent {
-        content: TypingEventContent::new(vec![user_id!("@carl:example.com")]),
+        content: TypingEventContent::new(vec![user_id!("@carl:example.com").to_owned()]),
         room_id: room_id!("!roomid:room.com").to_owned(),
     };
 
@@ -53,7 +53,7 @@ fn deserialize_ephemeral_typing() {
 #[test]
 fn ephemeral_serialize_receipt() {
     let event_id = event_id!("$h29iv0s8:example.com").to_owned();
-    let user_id = user_id!("@carl:example.com");
+    let user_id = user_id!("@carl:example.com").to_owned();
 
     let aliases_event = EphemeralRoomEvent {
         content: ReceiptEventContent(btreemap! {
@@ -108,7 +108,7 @@ fn deserialize_ephemeral_receipt() {
             && room_id == room_id!("!roomid:room.com")
             && receipts
                 .get(event_id)
-                .map(|r| r.get(&ReceiptType::Read).unwrap().get(&user_id).unwrap())
+                .map(|r| r.get(&ReceiptType::Read).unwrap().get(user_id).unwrap())
                 .map(|r| r.ts)
                 .unwrap()
                 == Some(MilliSecondsSinceUnixEpoch(uint!(1)))

@@ -205,7 +205,7 @@ fn message_event_serialization() {
         event_id: event_id!("$1234:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(0)),
         room_id: room_id!("!roomid:example.com").to_owned(),
-        sender: user_id!("@test:example.com"),
+        sender: user_id!("@test:example.com").to_owned(),
         unsigned: Unsigned::default(),
     };
 
@@ -286,7 +286,7 @@ fn alias_event_field_access() {
         if state_event.state_key() == ""
             && state_event.room_id() == room_id!("!room:room.com")
             && state_event.event_id() == event_id!("$152037280074GZeOm:localhost")
-            && state_event.sender() == &user_id!("@example:localhost")
+            && state_event.sender() == user_id!("@example:localhost")
     );
 
     let deser = from_json_value::<AnyStateEvent>(json_data).unwrap();

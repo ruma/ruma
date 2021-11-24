@@ -26,7 +26,7 @@ fn unsigned() -> RedactedUnsigned {
         redacts: event_id!("$h29iv0s8:example.com").to_owned(),
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-        sender: user_id!("@carl:example.com"),
+        sender: user_id!("@carl:example.com").to_owned(),
         unsigned: Unsigned::default(),
     }));
 
@@ -39,7 +39,7 @@ fn redacted_message_event_serialize() {
         content: RedactedRoomMessageEventContent::new(),
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-        sender: user_id!("@carl:example.com"),
+        sender: user_id!("@carl:example.com").to_owned(),
         unsigned: RedactedUnsigned::default(),
     };
 
@@ -61,7 +61,7 @@ fn redacted_aliases_event_serialize_no_content() {
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         state_key: "".into(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-        sender: user_id!("@carl:example.com"),
+        sender: user_id!("@carl:example.com").to_owned(),
         unsigned: RedactedUnsigned::default(),
     };
 
@@ -84,7 +84,7 @@ fn redacted_aliases_event_serialize_with_content() {
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         state_key: "".to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-        sender: user_id!("@carl:example.com"),
+        sender: user_id!("@carl:example.com").to_owned(),
         unsigned: RedactedUnsigned::default(),
     };
 
@@ -163,7 +163,7 @@ fn redacted_deserialize_any_room_sync() {
         redacts: event_id!("$h29iv0s8:example.com").to_owned(),
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-        sender: user_id!("@carl:example.com"),
+        sender: user_id!("@carl:example.com").to_owned(),
         unsigned: Unsigned::default(),
     }));
 
@@ -250,7 +250,7 @@ fn redacted_custom_event_deserialize() {
     let redacted = RedactedSyncStateEvent {
         content: RedactedCustomEventContent { event_type: "m.made.up".into() },
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
-        sender: user_id!("@carl:example.com"),
+        sender: user_id!("@carl:example.com").to_owned(),
         state_key: "hello there".into(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         unsigned: unsigned.clone(),
@@ -289,7 +289,7 @@ fn redact_method_properly_redacts() {
         redacts: event_id!("$143273582443PhrSn:example.com").to_owned(),
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-        sender: user_id!("@carl:example.com"),
+        sender: user_id!("@carl:example.com").to_owned(),
         unsigned: Unsigned::default(),
     };
 

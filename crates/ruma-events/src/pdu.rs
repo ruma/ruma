@@ -41,7 +41,7 @@ pub struct RoomV1Pdu {
     pub room_id: Box<RoomId>,
 
     /// The user id of the user who sent this event.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 
     #[cfg(not(feature = "unstable-pre-spec"))]
     /// The `server_name` of the homeserver that created this event.
@@ -100,7 +100,7 @@ pub struct RoomV3Pdu {
     pub room_id: Box<RoomId>,
 
     /// The user id of the user who sent this event.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 
     #[cfg(not(feature = "unstable-pre-spec"))]
     /// The `server_name` of the homeserver that created this event.

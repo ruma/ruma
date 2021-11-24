@@ -30,11 +30,11 @@ ruma_api! {
 
     response: {
         /// The Matrix User IDs of all users who updated their device identity keys.
-        pub changed: Vec<UserId>,
+        pub changed: Vec<Box<UserId>>,
 
         /// The Matrix User IDs of all users who may have left all the end-to-end
         /// encrypted rooms they previously shared with the user.
-        pub left: Vec<UserId>,
+        pub left: Vec<Box<UserId>>,
     }
 
     error: crate::Error
@@ -49,7 +49,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given changed and left user ID lists.
-    pub fn new(changed: Vec<UserId>, left: Vec<UserId>) -> Self {
+    pub fn new(changed: Vec<Box<UserId>>, left: Vec<Box<UserId>>) -> Self {
         Self { changed, left }
     }
 }

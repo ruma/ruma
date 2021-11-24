@@ -13,7 +13,7 @@ fn serialize_stripped_state_event_any_content() {
     let event = StrippedStateEvent {
         content: RoomTopicEventContent::new("Testing room".into()),
         state_key: "".into(),
-        sender: user_id!("@example:localhost"),
+        sender: user_id!("@example:localhost").to_owned(),
     };
 
     let json_data = json!({
@@ -33,7 +33,7 @@ fn serialize_stripped_state_event_any_event() {
     let event = AnyStrippedStateEvent::RoomTopic(StrippedStateEvent {
         content: RoomTopicEventContent::new("Testing room".into()),
         state_key: "".into(),
-        sender: user_id!("@example:localhost"),
+        sender: user_id!("@example:localhost").to_owned(),
     });
 
     let json_data = json!({

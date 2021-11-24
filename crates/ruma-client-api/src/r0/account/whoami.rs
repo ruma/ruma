@@ -18,7 +18,7 @@ ruma_api! {
 
     response: {
         /// The id of the user that owns the access token.
-        pub user_id: UserId,
+        pub user_id: Box<UserId>,
     }
 
     error: crate::Error
@@ -33,7 +33,7 @@ impl Request {
 
 impl Response {
     /// Creates a new `Response` with the given user ID.
-    pub fn new(user_id: UserId) -> Self {
+    pub fn new(user_id: Box<UserId>) -> Self {
         Self { user_id }
     }
 }

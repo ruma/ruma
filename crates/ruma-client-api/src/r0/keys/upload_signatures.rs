@@ -21,7 +21,7 @@ ruma_api! {
     request: {
         /// Signed keys.
         #[ruma_api(body)]
-        pub signed_keys: BTreeMap<UserId, BTreeMap<String, JsonValue>>,
+        pub signed_keys: BTreeMap<Box<UserId>, BTreeMap<String, JsonValue>>,
     }
 
     #[derive(Default)]
@@ -32,7 +32,7 @@ ruma_api! {
 
 impl Request {
     /// Creates a new `Request` with the given signed keys.
-    pub fn new(signed_keys: BTreeMap<UserId, BTreeMap<String, JsonValue>>) -> Self {
+    pub fn new(signed_keys: BTreeMap<Box<UserId>, BTreeMap<String, JsonValue>>) -> Self {
         Self { signed_keys }
     }
 }

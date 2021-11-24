@@ -90,7 +90,7 @@ impl PushCondition {
             Self::RoomMemberCount { is } => is.contains(&context.member_count),
             Self::SenderNotificationPermission { key } => {
                 let sender_id = match event.get("sender") {
-                    Some(v) => match UserId::try_from(v) {
+                    Some(v) => match <&UserId>::try_from(v) {
                         Ok(u) => u,
                         Err(_) => return false,
                     },
@@ -99,7 +99,7 @@ impl PushCondition {
 
                 let sender_level = context
                     .users_power_levels
-                    .get(&sender_id)
+                    .get(sender_id)
                     .unwrap_or(&context.default_power_level);
 
                 match context.notification_power_levels.get(key) {
@@ -125,7 +125,7 @@ pub struct PushConditionRoomCtx {
     pub user_display_name: String,
 
     /// The power levels of the users of the room.
-    pub users_power_levels: BTreeMap<UserId, Int>,
+    pub users_power_levels: BTreeMap<Box<UserId>, Int>,
 
     /// The default power level of the users of the room.
     pub default_power_level: Int,
@@ -478,7 +478,7 @@ mod tests {
 
     #[test]
     fn conditions_apply_to_events() {
-        let first_sender = user_id!("@worthy_whale:server.name");
+        let first_sender = user_id!("@worthy_whale:server.name").to_owned();
 
         let mut users_power_levels = BTreeMap::new();
         users_power_levels.insert(first_sender, 25.into());

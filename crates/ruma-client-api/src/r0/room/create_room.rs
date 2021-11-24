@@ -44,7 +44,7 @@ ruma_api! {
         ///
         /// This will tell the server to invite everyone in the list to the newly created room.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub invite: &'a [UserId],
+        pub invite: &'a [Box<UserId>],
 
         /// List of third party IDs of users to invite.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
@@ -156,7 +156,7 @@ impl CreationContent {
     /// a `RoomCreateEventContent`.
     pub fn into_event_content(
         self,
-        creator: UserId,
+        creator: Box<UserId>,
         room_version: RoomVersionId,
     ) -> RoomCreateEventContent {
         #[allow(unused_mut)]

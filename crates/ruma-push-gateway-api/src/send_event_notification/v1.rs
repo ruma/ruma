@@ -366,7 +366,7 @@ mod tests {
             event_id: Some(eid),
             room_id: Some(rid),
             event_type: Some(&EventType::RoomMessage),
-            sender: Some(&uid),
+            sender: Some(uid),
             sender_display_name: Some("Major Tom"),
             room_alias: Some(alias),
             content: Some(serde_json::from_str("{}").unwrap()),

@@ -22,36 +22,36 @@ ruma_api! {
         /// The keys to be downloaded.
         ///
         /// Gives all keys for a given user if the list of device ids is empty.
-        pub device_keys: BTreeMap<UserId, Vec<Box<DeviceId>>>,
+        pub device_keys: BTreeMap<Box<UserId>, Vec<Box<DeviceId>>>,
     }
 
     #[derive(Default)]
     response: {
         /// Keys from the queried devices.
-        pub device_keys: BTreeMap<UserId, BTreeMap<Box<DeviceId>, DeviceKeys>>,
+        pub device_keys: BTreeMap<Box<UserId>, BTreeMap<Box<DeviceId>, DeviceKeys>>,
 
         /// Information on the master cross-signing keys of the queried users.
         #[cfg(feature = "unstable-pre-spec")]
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub master_keys: BTreeMap<UserId, CrossSigningKey>,
+        pub master_keys: BTreeMap<Box<UserId>, CrossSigningKey>,
 
         /// Information on the self-signing keys of the queried users.
         #[cfg(feature = "unstable-pre-spec")]
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub self_signing_keys: BTreeMap<UserId, CrossSigningKey>,
+        pub self_signing_keys: BTreeMap<Box<UserId>, CrossSigningKey>,
     }
 }
 
 impl Request {
     /// Creates a new `Request` asking for the given device keys.
-    pub fn new(device_keys: BTreeMap<UserId, Vec<Box<DeviceId>>>) -> Self {
+    pub fn new(device_keys: BTreeMap<Box<UserId>, Vec<Box<DeviceId>>>) -> Self {
         Self { device_keys }
     }
 }
 
 impl Response {
     /// Creates a new `Response` with the given device keys.
-    pub fn new(device_keys: BTreeMap<UserId, BTreeMap<Box<DeviceId>, DeviceKeys>>) -> Self {
+    pub fn new(device_keys: BTreeMap<Box<UserId>, BTreeMap<Box<DeviceId>, DeviceKeys>>) -> Self {
         Self { device_keys, ..Default::default() }
     }
 }

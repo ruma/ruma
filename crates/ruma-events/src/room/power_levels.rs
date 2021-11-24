@@ -98,7 +98,7 @@ pub struct RoomPowerLevelsEventContent {
     )]
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     #[ruma_event(skip_redaction)]
-    pub users: BTreeMap<UserId, Int>,
+    pub users: BTreeMap<Box<UserId>, Int>,
 
     /// The default power level for every user in the room.
     ///
@@ -184,7 +184,7 @@ mod tests {
             prev_content: None,
             room_id: room_id!("!n8f893n9:example.com").to_owned(),
             unsigned: Unsigned::default(),
-            sender: user_id!("@carl:example.com"),
+            sender: user_id!("@carl:example.com").to_owned(),
             state_key: "".into(),
         };
 
@@ -217,7 +217,7 @@ mod tests {
                 redact: int!(23),
                 state_default: int!(23),
                 users: btreemap! {
-                    user.clone() => int!(23)
+                    user.to_owned() => int!(23)
                 },
                 users_default: int!(23),
                 notifications: assign!(NotificationPowerLevels::new(), { room: int!(23) }),
@@ -236,14 +236,14 @@ mod tests {
                 redact: int!(42),
                 state_default: int!(42),
                 users: btreemap! {
-                    user.clone() => int!(42)
+                    user.to_owned() => int!(42)
                 },
                 users_default: int!(42),
                 notifications: assign!(NotificationPowerLevels::new(), { room: int!(42) }),
             }),
             room_id: room_id!("!n8f893n9:example.com").to_owned(),
             unsigned: Unsigned { age: Some(int!(100)), ..Unsigned::default() },
-            sender: user,
+            sender: user.to_owned(),
             state_key: "".into(),
         };
 

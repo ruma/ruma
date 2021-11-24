@@ -18,7 +18,7 @@ pub struct PresenceEvent {
     pub content: PresenceEventContent,
 
     /// Contains the fully-qualified ID of the user who sent this event.
-    pub sender: UserId,
+    pub sender: Box<UserId>,
 }
 
 /// Informs the room of members presence.
@@ -99,7 +99,7 @@ mod tests {
                 presence: PresenceState::Online,
                 status_msg: Some("Making cupcakes".into()),
             },
-            sender: user_id!("@example:localhost"),
+            sender: user_id!("@example:localhost").to_owned(),
         };
 
         let json = json!({

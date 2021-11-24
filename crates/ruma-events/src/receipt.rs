@@ -41,7 +41,7 @@ pub type Receipts = BTreeMap<ReceiptType, UserReceipts>;
 /// A mapping of user ID to receipt.
 ///
 /// The user ID is the entity who sent this receipt.
-pub type UserReceipts = BTreeMap<UserId, Receipt>;
+pub type UserReceipts = BTreeMap<Box<UserId>, Receipt>;
 
 /// An acknowledgement of an event.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]

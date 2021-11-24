@@ -35,7 +35,7 @@ ruma_api! {
         /// The keys to be downloaded.
         ///
         /// An empty list indicates all devices for the corresponding user.
-        pub device_keys: BTreeMap<UserId, Vec<Box<DeviceId>>>,
+        pub device_keys: BTreeMap<Box<UserId>, Vec<Box<DeviceId>>>,
 
         /// If the client is fetching keys as a result of a device update received in a sync
         /// request, this should be the 'since' token of that sync request, or any later sync token.
@@ -56,22 +56,22 @@ ruma_api! {
 
         /// Information on the queried devices.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub device_keys: BTreeMap<UserId, BTreeMap<Box<DeviceId>, DeviceKeys>>,
+        pub device_keys: BTreeMap<Box<UserId>, BTreeMap<Box<DeviceId>, DeviceKeys>>,
 
         /// Information on the master cross-signing keys of the queried users.
         #[cfg(feature = "unstable-pre-spec")]
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub master_keys: BTreeMap<UserId, CrossSigningKey>,
+        pub master_keys: BTreeMap<Box<UserId>, CrossSigningKey>,
 
         /// Information on the self-signing keys of the queried users.
         #[cfg(feature = "unstable-pre-spec")]
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub self_signing_keys: BTreeMap<UserId, CrossSigningKey>,
+        pub self_signing_keys: BTreeMap<Box<UserId>, CrossSigningKey>,
 
         /// Information on the user-signing keys of the queried users.
         #[cfg(feature = "unstable-pre-spec")]
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub user_signing_keys: BTreeMap<UserId, CrossSigningKey>,
+        pub user_signing_keys: BTreeMap<Box<UserId>, CrossSigningKey>,
     }
 
     error: crate::Error

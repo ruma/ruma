@@ -25,7 +25,7 @@ ruma_api! {
     response: {
         /// A list of the rooms the user is in, i.e.
         /// the ID of each room in which the user has joined membership.
-        pub joined: BTreeMap<UserId, RoomMember>,
+        pub joined: BTreeMap<Box<UserId>, RoomMember>,
     }
 
     error: crate::Error
@@ -40,7 +40,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given joined rooms.
-    pub fn new(joined: BTreeMap<UserId, RoomMember>) -> Self {
+    pub fn new(joined: BTreeMap<Box<UserId>, RoomMember>) -> Self {
         Self { joined }
     }
 }
