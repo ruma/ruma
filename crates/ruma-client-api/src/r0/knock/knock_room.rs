@@ -16,7 +16,7 @@ ruma_api! {
     request: {
         /// The room the user should knock on.
         #[ruma_api(path)]
-        pub room_id_or_alias: RoomIdOrAliasId,
+        pub room_id_or_alias: &'a RoomIdOrAliasId,
 
         /// The reason for joining a room.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -38,7 +38,7 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given room ID or alias.
-    pub fn new(room_id_or_alias: RoomIdOrAliasId) -> Self {
+    pub fn new(room_id_or_alias: &'a RoomIdOrAliasId) -> Self {
         Self { room_id_or_alias, reason: None, server_name: &[] }
     }
 }
