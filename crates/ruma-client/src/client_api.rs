@@ -28,12 +28,10 @@ impl<C: HttpClient> Client<C> {
         initial_device_display_name: Option<&str>,
     ) -> Result<login::Response, Error<C::Error, ruma_client_api::Error>> {
         let response = self
-            .send_request(assign!(
-                login::Request::new(
-                    LoginInfo::Password(login::Password { identifier: UserIdentifier::MatrixId(user), password })
-                ), {
-                    device_id,
-                    initial_device_display_name,
+            .send_request(assign!(login::Request::new(
+                LoginInfo::Password(login::Password::new(UserIdentifier::MatrixId(user), password))), {
+                device_id,
+                initial_device_display_name,
                 }
             ))
             .await?;
