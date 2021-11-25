@@ -4,6 +4,7 @@ use crate::{crypto_algorithms::DeviceKeyAlgorithm, DeviceId};
 
 /// A key algorithm and a device id, combined with a ':'.
 #[repr(transparent)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct DeviceKeyId(str);
 
 opaque_identifier_validated!(DeviceKeyId, ruma_identifiers_validation::device_key_id::validate);

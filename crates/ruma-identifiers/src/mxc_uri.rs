@@ -15,6 +15,7 @@ type Result<T, E = MxcUriError> = std::result::Result<T, E>;
 /// [MXC URI]: https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri
 
 #[repr(transparent)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct MxcUri(str);
 
 opaque_identifier!(MxcUri);

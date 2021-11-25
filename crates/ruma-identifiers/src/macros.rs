@@ -38,32 +38,6 @@ macro_rules! as_str_based_impls {
             }
         }
 
-        impl PartialEq for $id {
-            fn eq(&self, other: &Self) -> bool {
-                self.as_str() == other.as_str()
-            }
-        }
-
-        impl Eq for $id {}
-
-        impl PartialOrd for $id {
-            fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-                PartialOrd::partial_cmp(self.as_str(), other.as_str())
-            }
-        }
-
-        impl Ord for $id {
-            fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-                Ord::cmp(self.as_str(), other.as_str())
-            }
-        }
-
-        impl std::hash::Hash for $id {
-            fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-                self.as_str().hash(state);
-            }
-        }
-
         #[cfg(feature = "serde")]
         impl serde::Serialize for $id {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

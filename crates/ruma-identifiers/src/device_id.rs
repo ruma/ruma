@@ -24,6 +24,7 @@ use crate::generate_localpart;
 /// assert_eq!(owned_id.as_str(), "ijklmnop");
 /// ```
 #[repr(transparent)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct DeviceId(str);
 
 opaque_identifier!(DeviceId);

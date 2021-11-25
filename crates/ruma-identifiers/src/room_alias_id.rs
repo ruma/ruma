@@ -18,6 +18,7 @@ use crate::{server_name::ServerName, EventId, MatrixToRef};
 /// );
 /// ```
 #[repr(transparent)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct RoomAliasId(str);
 
 opaque_identifier_validated!(RoomAliasId, ruma_identifiers_validation::room_alias_id::validate);

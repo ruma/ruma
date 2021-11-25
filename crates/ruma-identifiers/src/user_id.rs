@@ -18,6 +18,7 @@ use crate::{MatrixToRef, ServerName};
 /// );
 /// ```
 #[repr(transparent)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct UserId(str);
 
 opaque_identifier_validated!(UserId, ruma_identifiers_validation::user_id::validate);

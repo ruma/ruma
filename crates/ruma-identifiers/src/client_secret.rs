@@ -5,6 +5,7 @@
 /// Client secrets in Matrix are opaque character sequences of `[0-9a-zA-Z.=_-]`. Their length must
 /// must not exceed 255 characters.
 #[repr(transparent)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ClientSecret(str);
 
 opaque_identifier_validated!(ClientSecret, ruma_identifiers_validation::client_secret::validate);

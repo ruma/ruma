@@ -38,6 +38,7 @@ use crate::ServerName;
 /// );
 /// ```
 #[repr(transparent)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct EventId(str);
 
 opaque_identifier_validated!(EventId, ruma_identifiers_validation::event_id::validate);

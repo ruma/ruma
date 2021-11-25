@@ -2,6 +2,7 @@
 
 /// A Matrix-spec compliant server name.
 #[repr(transparent)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ServerName(str);
 
 opaque_identifier_validated!(ServerName, ruma_identifiers_validation::server_name::validate);

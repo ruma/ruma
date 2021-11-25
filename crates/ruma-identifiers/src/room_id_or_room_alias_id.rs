@@ -27,6 +27,7 @@ use crate::{server_name::ServerName, RoomAliasId, RoomId};
 /// );
 /// ```
 #[repr(transparent)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct RoomIdOrAliasId(str);
 
 opaque_identifier_validated!(
