@@ -266,7 +266,7 @@ where
         // This return value is the key used for sorting events,
         // events are then sorted by power level, time,
         // and lexically by event_id.
-        Ok((-*pl, ev.origin_server_ts(), event_id))
+        Ok((-*pl, ev.origin_server_ts()))
     })
 }
 
@@ -279,7 +279,7 @@ pub fn lexicographical_topological_sort<F, EID>(
     key_fn: F,
 ) -> Result<Vec<EID>>
 where
-    F: for<'a> Fn(&'a EID) -> Result<(Int, MilliSecondsSinceUnixEpoch, &'a EID)>,
+    F: Fn(&EID) -> Result<(Int, MilliSecondsSinceUnixEpoch)>,
     EID: Deref<Target = EventId>
         + Clone
         + Eq
@@ -1146,8 +1146,8 @@ mod tests {
         .map(|(e, s)| (Box::new(e), s.into_iter().map(Box::new).collect()))
         .collect();
 
-        let res = crate::lexicographical_topological_sort(&graph, |id| {
-            Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0)), id))
+        let res = crate::lexicographical_topological_sort(&graph, |_| {
+            Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0))))
         })
         .unwrap();
 
