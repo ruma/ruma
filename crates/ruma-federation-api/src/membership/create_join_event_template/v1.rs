@@ -26,7 +26,7 @@ ruma_api! {
 
         /// The room versions the sending server has support for.
         ///
-        /// Defaults to `&[RoomVersionId::Version1]`.
+        /// Defaults to `&[RoomVersionId::V1]`.
         #[ruma_api(query)]
         #[serde(default = "default_ver", skip_serializing_if = "is_default_ver")]
         pub ver: &'a [RoomVersionId],
@@ -43,17 +43,17 @@ ruma_api! {
 }
 
 fn default_ver() -> Vec<RoomVersionId> {
-    vec![RoomVersionId::Version1]
+    vec![RoomVersionId::V1]
 }
 
 fn is_default_ver(ver: &&[RoomVersionId]) -> bool {
-    **ver == [RoomVersionId::Version1]
+    **ver == [RoomVersionId::V1]
 }
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given room id and user id.
     pub fn new(room_id: &'a RoomId, user_id: &'a UserId) -> Self {
-        Self { room_id, user_id, ver: &[RoomVersionId::Version1] }
+        Self { room_id, user_id, ver: &[RoomVersionId::V1] }
     }
 }
 

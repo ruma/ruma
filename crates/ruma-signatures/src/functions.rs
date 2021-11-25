@@ -58,11 +58,11 @@ fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'stat
             "users_default",
         ],
         "m.room.aliases" => match version {
-            RoomVersionId::Version1
-            | RoomVersionId::Version2
-            | RoomVersionId::Version3
-            | RoomVersionId::Version4
-            | RoomVersionId::Version5 => &["aliases"],
+            RoomVersionId::V1
+            | RoomVersionId::V2
+            | RoomVersionId::V3
+            | RoomVersionId::V4
+            | RoomVersionId::V5 => &["aliases"],
             // All other room versions, including custom ones, are treated by version 6 rules.
             // TODO: Should we return an error for unknown versions instead?
             _ => &[],
@@ -387,9 +387,7 @@ pub fn reference_hash(
     Ok(encode_config(
         &hash,
         match version {
-            RoomVersionId::Version1 | RoomVersionId::Version2 | RoomVersionId::Version3 => {
-                STANDARD_NO_PAD
-            }
+            RoomVersionId::V1 | RoomVersionId::V2 | RoomVersionId::V3 => STANDARD_NO_PAD,
             // Room versions higher than version 3 are url safe base64 encoded
             _ => URL_SAFE_NO_PAD,
         },
@@ -458,7 +456,7 @@ pub fn reference_hash(
 /// ).unwrap();
 ///
 /// // Hash and sign the JSON with the key pair.
-/// assert!(hash_and_sign_event("domain", &key_pair, &mut object, &RoomVersionId::Version1).is_ok());
+/// assert!(hash_and_sign_event("domain", &key_pair, &mut object, &RoomVersionId::V1).is_ok());
 /// ```
 ///
 /// This will modify the JSON from the structure shown to a structure like this:
@@ -583,7 +581,7 @@ where
 /// public_key_map.insert("domain".into(), public_key_set);
 ///
 /// // Verify at least one signature for each entity in `public_key_map`.
-/// let verification_result = verify_event(&public_key_map, &object, &RoomVersionId::Version6);
+/// let verification_result = verify_event(&public_key_map, &object, &RoomVersionId::V6);
 /// assert!(verification_result.is_ok());
 /// assert!(matches!(verification_result.unwrap(), Verified::All));
 /// ```
@@ -790,7 +788,7 @@ fn servers_to_check_signatures(
     }
 
     match version {
-        RoomVersionId::Version1 | RoomVersionId::Version2 => match object.get("event_id") {
+        RoomVersionId::V1 | RoomVersionId::V2 => match object.get("event_id") {
             Some(CanonicalJsonValue::String(raw_event_id)) => {
                 let event_id: Box<EventId> =
                     raw_event_id.parse().map_err(|e| Error::from(ParseError::EventId(e)))?;
@@ -933,8 +931,7 @@ mod tests {
         ).unwrap();
 
         let public_key_map = BTreeMap::new();
-        let verification_result =
-            verify_event(&public_key_map, &signed_event, &RoomVersionId::Version6);
+        let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6);
 
         assert!(verification_result.is_ok());
         let verification = verification_result.unwrap();
@@ -987,8 +984,7 @@ mod tests {
         add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
         add_key_to_map(&mut public_key_map, "domain-event", &key_pair_event);
 
-        let verification_result =
-            verify_event(&public_key_map, &signed_event, &RoomVersionId::Version1);
+        let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V1);
 
         assert!(verification_result.is_ok());
         let verification = verification_result.unwrap();
@@ -1023,8 +1019,7 @@ mod tests {
 
         // Verify with an empty public key map should fail due to missing public keys
         let public_key_map = BTreeMap::new();
-        let verification_result =
-            verify_event(&public_key_map, &signed_event, &RoomVersionId::Version6);
+        let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6);
 
         assert!(verification_result.is_err());
         let error_msg = verification_result.err().unwrap();
@@ -1073,8 +1068,7 @@ mod tests {
         sender_key_map.insert(version.to_string(), encoded_public_key);
         public_key_map.insert("domain-sender".to_owned(), sender_key_map);
 
-        let verification_result =
-            verify_event(&public_key_map, &signed_event, &RoomVersionId::Version6);
+        let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6);
 
         assert!(verification_result.is_err());
         let error_msg = verification_result.err().unwrap();

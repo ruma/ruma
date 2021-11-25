@@ -30,7 +30,7 @@ pub struct RoomCreateEventContent {
 
     /// The version of the room.
     ///
-    /// Defaults to `RoomVersionId::Version1`.
+    /// Defaults to `RoomVersionId::V1`.
     #[serde(default = "default_room_version_id")]
     pub room_version: RoomVersionId,
 
@@ -102,7 +102,7 @@ impl PreviousRoom {
 
 /// Used to default the `room_version` field to room version 1.
 fn default_room_version_id() -> RoomVersionId {
-    RoomVersionId::Version1
+    RoomVersionId::V1
 }
 
 #[cfg(test)]
@@ -121,7 +121,7 @@ mod tests {
         let content = RoomCreateEventContent {
             creator: user_id!("@carl:example.com").to_owned(),
             federate: false,
-            room_version: RoomVersionId::Version4,
+            room_version: RoomVersionId::V4,
             predecessor: None,
             #[cfg(feature = "unstable-pre-spec")]
             room_type: None,
@@ -142,7 +142,7 @@ mod tests {
         let content = RoomCreateEventContent {
             creator: user_id!("@carl:example.com").to_owned(),
             federate: false,
-            room_version: RoomVersionId::Version4,
+            room_version: RoomVersionId::V4,
             predecessor: None,
             room_type: Some(RoomType::Space),
         };
@@ -170,7 +170,7 @@ mod tests {
             RoomCreateEventContent {
                 creator,
                 federate: true,
-                room_version: RoomVersionId::Version4,
+                room_version: RoomVersionId::V4,
                 predecessor: None,
                 #[cfg(feature = "unstable-pre-spec")]
                 room_type: None,
@@ -193,7 +193,7 @@ mod tests {
             RoomCreateEventContent {
                 creator,
                 federate: true,
-                room_version: RoomVersionId::Version4,
+                room_version: RoomVersionId::V4,
                 predecessor: None,
                 room_type
             } if creator == "@carl:example.com" && room_type == Some(RoomType::Space)

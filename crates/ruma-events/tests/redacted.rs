@@ -296,7 +296,7 @@ fn redact_method_properly_redacts() {
     let event: AnyMessageEvent = from_json_value(ev).unwrap();
 
     assert_matches!(
-        event.redact(redaction, &RoomVersionId::Version6),
+        event.redact(redaction, &RoomVersionId::V6),
         AnyRedactedMessageEvent::RoomMessage(RedactedMessageEvent {
             content: RedactedRoomMessageEventContent { .. },
             event_id,
@@ -323,10 +323,7 @@ fn redact_message_content() {
     let raw_json = to_raw_value(&json).unwrap();
     let content = RoomMessageEventContent::from_parts("m.room.message", &raw_json).unwrap();
 
-    assert_matches!(
-        content.redact(&RoomVersionId::Version6),
-        RedactedRoomMessageEventContent { .. }
-    );
+    assert_matches!(content.redact(&RoomVersionId::V6), RedactedRoomMessageEventContent { .. });
 }
 
 #[test]
@@ -341,7 +338,7 @@ fn redact_state_content() {
     let content = RoomCreateEventContent::from_parts("m.room.create", &raw_json).unwrap();
 
     assert_matches!(
-        content.redact(&RoomVersionId::Version6),
+        content.redact(&RoomVersionId::V6),
         RedactedRoomCreateEventContent {
             creator,
             ..

@@ -142,11 +142,11 @@ impl RoomVersionsCapability {
 
     /// Returns whether all fields have their default value.
     pub fn is_default(&self) -> bool {
-        self.default == RoomVersionId::Version1
+        self.default == RoomVersionId::V1
             && self.available.len() == 1
             && self
                 .available
-                .get(&RoomVersionId::Version1)
+                .get(&RoomVersionId::V1)
                 .map(|stability| *stability == RoomVersionStability::Stable)
                 .unwrap_or(false)
     }
@@ -155,8 +155,8 @@ impl RoomVersionsCapability {
 impl Default for RoomVersionsCapability {
     fn default() -> Self {
         Self {
-            default: RoomVersionId::Version1,
-            available: btreemap! { RoomVersionId::Version1 => RoomVersionStability::Stable },
+            default: RoomVersionId::V1,
+            available: btreemap! { RoomVersionId::V1 => RoomVersionStability::Stable },
         }
     }
 }

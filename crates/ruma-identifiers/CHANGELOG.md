@@ -9,6 +9,7 @@ Breaking changes:
     (these *might* be converted into the same kind of type at some point in the future)
   * The corresponding macros (and also `server_name!`) now return `'static` references instead of
     owned values now – use `.to_owned()` to get an owned copy
+* Rename `RoomVersionId::Version{X}` variants to `RoomVersionId::V{X}`
 
 # 0.20.0
 

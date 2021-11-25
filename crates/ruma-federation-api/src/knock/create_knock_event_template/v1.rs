@@ -25,7 +25,7 @@ ruma_api! {
 
         /// The room versions the sending has support for.
         ///
-        /// Defaults to `&[RoomVersionId::Version1]`.
+        /// Defaults to `&[RoomVersionId::V1]`.
         #[ruma_api(query)]
         pub ver: &'a [RoomVersionId],
     }
@@ -44,7 +44,7 @@ ruma_api! {
 impl<'a> Request<'a> {
     /// Creates a `Request` with the given room ID and user ID.
     pub fn new(room_id: &'a RoomId, user_id: &'a UserId) -> Self {
-        Self { room_id, user_id, ver: &[RoomVersionId::Version1] }
+        Self { room_id, user_id, ver: &[RoomVersionId::V1] }
     }
 }
 

@@ -25,34 +25,34 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum RoomVersionId {
     /// A version 1 room.
-    Version1,
+    V1,
 
     /// A version 2 room.
-    Version2,
+    V2,
 
     /// A version 3 room.
-    Version3,
+    V3,
 
     /// A version 4 room.
-    Version4,
+    V4,
 
     /// A version 5 room.
-    Version5,
+    V5,
 
     /// A version 6 room.
-    Version6,
+    V6,
 
     /// A version 7 room.
     #[cfg(feature = "unstable-pre-spec")]
-    Version7,
+    V7,
 
     /// A version 8 room.
     #[cfg(feature = "unstable-pre-spec")]
-    Version8,
+    V8,
 
     /// A version 9 room.
     #[cfg(feature = "unstable-pre-spec")]
-    Version9,
+    V9,
 
     #[doc(hidden)]
     _Custom(CustomRoomVersion),
@@ -64,18 +64,18 @@ impl RoomVersionId {
         // FIXME: Add support for non-`str`-deref'ing types for fallback to AsRefStr derive and
         //        implement this function in terms of `AsRef<str>`
         match &self {
-            Self::Version1 => "1",
-            Self::Version2 => "2",
-            Self::Version3 => "3",
-            Self::Version4 => "4",
-            Self::Version5 => "5",
-            Self::Version6 => "6",
+            Self::V1 => "1",
+            Self::V2 => "2",
+            Self::V3 => "3",
+            Self::V4 => "4",
+            Self::V5 => "5",
+            Self::V6 => "6",
             #[cfg(feature = "unstable-pre-spec")]
-            Self::Version7 => "7",
+            Self::V7 => "7",
             #[cfg(feature = "unstable-pre-spec")]
-            Self::Version8 => "8",
+            Self::V8 => "8",
             #[cfg(feature = "unstable-pre-spec")]
-            Self::Version9 => "9",
+            Self::V9 => "9",
             Self::_Custom(version) => version.as_str(),
         }
     }
@@ -89,18 +89,18 @@ impl RoomVersionId {
 impl From<RoomVersionId> for String {
     fn from(id: RoomVersionId) -> Self {
         match id {
-            RoomVersionId::Version1 => "1".to_owned(),
-            RoomVersionId::Version2 => "2".to_owned(),
-            RoomVersionId::Version3 => "3".to_owned(),
-            RoomVersionId::Version4 => "4".to_owned(),
-            RoomVersionId::Version5 => "5".to_owned(),
-            RoomVersionId::Version6 => "6".to_owned(),
+            RoomVersionId::V1 => "1".to_owned(),
+            RoomVersionId::V2 => "2".to_owned(),
+            RoomVersionId::V3 => "3".to_owned(),
+            RoomVersionId::V4 => "4".to_owned(),
+            RoomVersionId::V5 => "5".to_owned(),
+            RoomVersionId::V6 => "6".to_owned(),
             #[cfg(feature = "unstable-pre-spec")]
-            RoomVersionId::Version7 => "7".to_owned(),
+            RoomVersionId::V7 => "7".to_owned(),
             #[cfg(feature = "unstable-pre-spec")]
-            RoomVersionId::Version8 => "8".to_owned(),
+            RoomVersionId::V8 => "8".to_owned(),
             #[cfg(feature = "unstable-pre-spec")]
-            RoomVersionId::Version9 => "9".to_owned(),
+            RoomVersionId::V9 => "9".to_owned(),
             RoomVersionId::_Custom(version) => version.into(),
         }
     }
@@ -160,18 +160,18 @@ where
     S: AsRef<str> + Into<Box<str>>,
 {
     let version = match room_version_id.as_ref() {
-        "1" => RoomVersionId::Version1,
-        "2" => RoomVersionId::Version2,
-        "3" => RoomVersionId::Version3,
-        "4" => RoomVersionId::Version4,
-        "5" => RoomVersionId::Version5,
-        "6" => RoomVersionId::Version6,
+        "1" => RoomVersionId::V1,
+        "2" => RoomVersionId::V2,
+        "3" => RoomVersionId::V3,
+        "4" => RoomVersionId::V4,
+        "5" => RoomVersionId::V5,
+        "6" => RoomVersionId::V6,
         #[cfg(feature = "unstable-pre-spec")]
-        "7" => RoomVersionId::Version7,
+        "7" => RoomVersionId::V7,
         #[cfg(feature = "unstable-pre-spec")]
-        "8" => RoomVersionId::Version8,
+        "8" => RoomVersionId::V8,
         #[cfg(feature = "unstable-pre-spec")]
-        "9" => RoomVersionId::Version9,
+        "9" => RoomVersionId::V9,
         custom => {
             ruma_identifiers_validation::room_version_id::validate(custom)?;
             RoomVersionId::_Custom(CustomRoomVersion(room_version_id.into()))
@@ -349,7 +349,7 @@ mod tests {
         let deserialized = serde_json::from_str::<RoomVersionId>(r#""1""#)
             .expect("Failed to convert RoomVersionId to JSON.");
 
-        assert_eq!(deserialized, RoomVersionId::Version1);
+        assert_eq!(deserialized, RoomVersionId::V1);
 
         assert_eq!(
             deserialized,

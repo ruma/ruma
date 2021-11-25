@@ -341,7 +341,7 @@ mod tests {
         }"#;
 
         let mut object = from_json_str(json).unwrap();
-        hash_and_sign_event("domain", &key_pair, &mut object, &RoomVersionId::Version5).unwrap();
+        hash_and_sign_event("domain", &key_pair, &mut object, &RoomVersionId::V5).unwrap();
 
         assert_eq!(
             to_json_string(&object).unwrap(),
@@ -374,7 +374,7 @@ mod tests {
         }"#;
 
         let mut object = from_json_str(json).unwrap();
-        hash_and_sign_event("domain", &key_pair, &mut object, &RoomVersionId::Version5).unwrap();
+        hash_and_sign_event("domain", &key_pair, &mut object, &RoomVersionId::V5).unwrap();
 
         assert_eq!(
             to_json_string(&object).unwrap(),
@@ -415,6 +415,6 @@ mod tests {
             }"#
         ).unwrap();
 
-        assert!(verify_event(&public_key_map, &value, &RoomVersionId::Version5).is_ok());
+        assert!(verify_event(&public_key_map, &value, &RoomVersionId::V5).is_ok());
     }
 }

@@ -116,10 +116,9 @@ pub fn do_check(
                 })
                 .collect();
 
-            let resolved =
-                crate::resolve(&RoomVersionId::Version6, state_sets, auth_chain_sets, |id| {
-                    event_map.get(id).map(Arc::clone)
-                });
+            let resolved = crate::resolve(&RoomVersionId::V6, state_sets, auth_chain_sets, |id| {
+                event_map.get(id).map(Arc::clone)
+            });
             match resolved {
                 Ok(state) => state,
                 Err(e) => panic!("resolution for {} failed: {}", node, e),

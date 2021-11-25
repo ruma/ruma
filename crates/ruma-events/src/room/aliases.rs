@@ -35,11 +35,11 @@ impl RedactContent for RoomAliasesEventContent {
         // We compare the long way to avoid pre version 6 behavior if/when
         // a new room version is introduced.
         let aliases = match version {
-            RoomVersionId::Version1
-            | RoomVersionId::Version2
-            | RoomVersionId::Version3
-            | RoomVersionId::Version4
-            | RoomVersionId::Version5 => Some(self.aliases),
+            RoomVersionId::V1
+            | RoomVersionId::V2
+            | RoomVersionId::V3
+            | RoomVersionId::V4
+            | RoomVersionId::V5 => Some(self.aliases),
             _ => None,
         };
 

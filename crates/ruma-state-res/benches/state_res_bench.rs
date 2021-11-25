@@ -66,7 +66,7 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
             let ev_map = store.0.clone();
             let state_sets = [&state_at_bob, &state_at_charlie];
             let _ = match state_res::resolve(
-                &RoomVersionId::Version6,
+                &RoomVersionId::V6,
                 state_sets,
                 state_sets
                     .iter()
@@ -130,7 +130,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
         b.iter(|| {
             let state_sets = [&state_set_a, &state_set_b];
             let _ = match state_res::resolve(
-                &RoomVersionId::Version6,
+                &RoomVersionId::V6,
                 state_sets,
                 state_sets
                     .iter()
