@@ -3,7 +3,7 @@ use std::{borrow::Borrow, collections::BTreeMap};
 use crate::{DeviceId, KeyName, ServerName, SigningKeyId, UserId};
 
 /// Map of key identifier to signature values.
-pub type EntitySignatures<K> = BTreeMap<SigningKeyId<K>, String>;
+pub type EntitySignatures<K> = BTreeMap<Box<SigningKeyId<K>>, String>;
 
 /// Map of all signatures, grouped by entity
 ///
@@ -35,7 +35,7 @@ impl<E: Ord, K: ?Sized> Signatures<E, K> {
     pub fn insert(
         &mut self,
         entity: E,
-        key_identifier: SigningKeyId<K>,
+        key_identifier: Box<SigningKeyId<K>>,
         value: String,
     ) -> Option<String> {
         self.0.entry(entity).or_insert_with(Default::default).insert(key_identifier, value)

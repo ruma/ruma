@@ -54,15 +54,15 @@ pub struct ServerSigningKeys {
     pub server_name: Box<ServerName>,
 
     /// Public keys of the homeserver for verifying digital signatures.
-    pub verify_keys: BTreeMap<ServerSigningKeyId, VerifyKey>,
+    pub verify_keys: BTreeMap<Box<ServerSigningKeyId>, VerifyKey>,
 
     /// Public keys that the homeserver used to use and when it stopped using them.
-    pub old_verify_keys: BTreeMap<ServerSigningKeyId, OldVerifyKey>,
+    pub old_verify_keys: BTreeMap<Box<ServerSigningKeyId>, OldVerifyKey>,
 
     /// Digital signatures of this object signed using the verify_keys.
     ///
     /// Map of server name to keys by key ID.
-    pub signatures: BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>>,
+    pub signatures: BTreeMap<Box<ServerName>, BTreeMap<Box<ServerSigningKeyId>, String>>,
 
     /// Timestamp when the keys should be refreshed.
     ///

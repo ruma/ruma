@@ -18,7 +18,7 @@ fn serialize_pdu_as_v1() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
     inner_signature.insert(
-        server_signing_key_id!("ed25519:key_version"),
+        server_signing_key_id!("ed25519:key_version").to_owned(),
         "86BytesOfSignatureOfTheRedactedEvent".into(),
     );
     signatures.insert(server_name!("example.com"), inner_signature);
@@ -85,7 +85,7 @@ fn serialize_pdu_as_v3() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
     inner_signature.insert(
-        server_signing_key_id!("ed25519:key_version"),
+        server_signing_key_id!("ed25519:key_version").to_owned(),
         "86BytesOfSignatureOfTheRedactedEvent".into(),
     );
     signatures.insert(server_name!("example.com"), inner_signature);

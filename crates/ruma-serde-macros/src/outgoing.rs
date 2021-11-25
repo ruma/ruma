@@ -262,7 +262,9 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                     } else if last_seg.ident == "ClientSecret"
                         || last_seg.ident == "DeviceId"
                         || last_seg.ident == "DeviceKeyId"
+                        || last_seg.ident == "DeviceSigningKeyId"
                         || last_seg.ident == "EventId"
+                        || last_seg.ident == "KeyId"
                         || last_seg.ident == "MxcUri"
                         || last_seg.ident == "ServerName"
                         || last_seg.ident == "SessionId"
@@ -271,6 +273,8 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                         || last_seg.ident == "RoomId"
                         || last_seg.ident == "RoomIdOrAliasId"
                         || last_seg.ident == "RoomName"
+                        || last_seg.ident == "ServerSigningKeyId"
+                        || last_seg.ident == "SigningKeyId"
                         || last_seg.ident == "UserId"
                     {
                         // The identifiers that need to be boxed `Box<T>` since they are DST's.

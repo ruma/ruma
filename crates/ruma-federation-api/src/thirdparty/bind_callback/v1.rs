@@ -77,7 +77,7 @@ pub struct ThirdPartyInvite {
     pub sender: Box<UserId>,
 
     /// Signature from the identity server using a long-term private key.
-    pub signed: BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>>,
+    pub signed: BTreeMap<Box<ServerName>, BTreeMap<Box<ServerSigningKeyId>, String>>,
 }
 
 impl ThirdPartyInvite {
@@ -87,7 +87,7 @@ impl ThirdPartyInvite {
         mxid: Box<UserId>,
         room_id: Box<RoomId>,
         sender: Box<UserId>,
-        signed: BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>>,
+        signed: BTreeMap<Box<ServerName>, BTreeMap<Box<ServerSigningKeyId>, String>>,
     ) -> Self {
         Self { medium: Medium::Email, address, mxid, room_id, sender, signed }
     }

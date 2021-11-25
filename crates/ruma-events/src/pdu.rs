@@ -89,7 +89,7 @@ pub struct RoomV1Pdu {
     pub hashes: EventHash,
 
     /// Signatures for the PDU.
-    pub signatures: BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>>,
+    pub signatures: BTreeMap<Box<ServerName>, BTreeMap<Box<ServerSigningKeyId>, String>>,
 }
 
 /// A 'persistent data unit' (event) for room versions 3 and beyond.
@@ -146,7 +146,7 @@ pub struct RoomV3Pdu {
     pub hashes: EventHash,
 
     /// Signatures for the PDU.
-    pub signatures: BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>>,
+    pub signatures: BTreeMap<Box<ServerName>, BTreeMap<Box<ServerSigningKeyId>, String>>,
 }
 
 /// Content hashes of a PDU.

@@ -178,7 +178,7 @@ pub struct SignedContent {
 
     /// A single signature from the verifying server, in the format specified by the Signing Events
     /// section of the server-server API.
-    pub signatures: BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>>,
+    pub signatures: BTreeMap<Box<ServerName>, BTreeMap<Box<ServerSigningKeyId>, String>>,
 
     /// The token property of the containing `third_party_invite` object.
     pub token: String,
@@ -188,7 +188,7 @@ impl SignedContent {
     /// Creates a new `SignedContent` with the given mxid, signature and token.
     pub fn new(
         mxid: Box<UserId>,
-        signatures: BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>>,
+        signatures: BTreeMap<Box<ServerName>, BTreeMap<Box<ServerSigningKeyId>, String>>,
         token: String,
     ) -> Self {
         Self { mxid, signatures, token }
@@ -495,7 +495,7 @@ mod tests {
                 && mxid == "@alice:example.org"
                 && signatures == btreemap! {
                     server_name!("magic.forest") => btreemap! {
-                        server_signing_key_id!("ed25519:3") => "foobar".to_owned()
+                        server_signing_key_id!("ed25519:3").to_owned() => "foobar".to_owned()
                     }
                 }
                 && token == "abc123"
@@ -580,7 +580,7 @@ mod tests {
                 && mxid == "@alice:example.org"
                 && signatures == btreemap! {
                     server_name!("magic.forest") => btreemap! {
-                        server_signing_key_id!("ed25519:3") => "foobar".to_owned()
+                        server_signing_key_id!("ed25519:3").to_owned() => "foobar".to_owned()
                     }
                 }
                 && token == "abc123"
@@ -654,7 +654,7 @@ mod tests {
                 && mxid == "@alice:example.org"
                 && signatures == btreemap! {
                     server_name!("magic.forest") => btreemap! {
-                        server_signing_key_id!("ed25519:3") => "foobar".to_owned()
+                        server_signing_key_id!("ed25519:3").to_owned() => "foobar".to_owned()
                     }
                 }
                 && token == "abc123"

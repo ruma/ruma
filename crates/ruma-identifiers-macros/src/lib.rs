@@ -91,7 +91,7 @@ pub fn server_signing_key_id(input: TokenStream) -> TokenStream {
     assert!(key_id::validate(&id.value()).is_ok(), "Invalid server_signing_key_id");
 
     let output = quote! {
-        <#dollar_crate::ServerSigningKeyId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
+        <&#dollar_crate::ServerSigningKeyId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
     };
 
     output.into()

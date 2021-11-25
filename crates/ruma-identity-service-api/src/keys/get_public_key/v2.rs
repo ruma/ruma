@@ -16,7 +16,7 @@ ruma_api! {
     request: {
         /// The ID of the key.
         #[ruma_api(path)]
-        pub key_id: ServerSigningKeyId,
+        pub key_id: &'a ServerSigningKeyId,
     }
 
     response: {
@@ -25,9 +25,9 @@ ruma_api! {
     }
 }
 
-impl Request {
+impl<'a> Request<'a> {
     /// Create a `Request` with the given key_id.
-    pub fn new(key_id: ServerSigningKeyId) -> Self {
+    pub fn new(key_id: &'a ServerSigningKeyId) -> Self {
         Self { key_id }
     }
 }
