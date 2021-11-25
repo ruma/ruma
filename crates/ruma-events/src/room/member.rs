@@ -494,7 +494,7 @@ mod tests {
                 && third_party_displayname == "alice"
                 && mxid == "@alice:example.org"
                 && signatures == btreemap! {
-                    server_name!("magic.forest") => btreemap! {
+                    server_name!("magic.forest").to_owned() => btreemap! {
                         server_signing_key_id!("ed25519:3").to_owned() => "foobar".to_owned()
                     }
                 }
@@ -579,7 +579,7 @@ mod tests {
                 && third_party_displayname == "alice"
                 && mxid == "@alice:example.org"
                 && signatures == btreemap! {
-                    server_name!("magic.forest") => btreemap! {
+                    server_name!("magic.forest").to_owned() => btreemap! {
                         server_signing_key_id!("ed25519:3").to_owned() => "foobar".to_owned()
                     }
                 }
@@ -653,7 +653,7 @@ mod tests {
                 && third_party_displayname == "alice"
                 && mxid == "@alice:example.org"
                 && signatures == btreemap! {
-                    server_name!("magic.forest") => btreemap! {
+                    server_name!("magic.forest").to_owned() => btreemap! {
                         server_signing_key_id!("ed25519:3").to_owned() => "foobar".to_owned()
                     }
                 }

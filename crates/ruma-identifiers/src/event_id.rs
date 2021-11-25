@@ -114,7 +114,7 @@ mod tests {
     fn generate_random_valid_event_id() {
         use crate::server_name;
 
-        let event_id = EventId::new(&server_name!("example.com"));
+        let event_id = EventId::new(server_name!("example.com"));
         let id_str = event_id.as_str();
 
         assert!(id_str.starts_with('$'));

@@ -104,7 +104,7 @@ mod tests {
     fn generate_random_valid_room_id() {
         use crate::server_name;
 
-        let room_id = RoomId::new(&server_name!("example.com"));
+        let room_id = RoomId::new(server_name!("example.com"));
         let id_str = room_id.as_str();
 
         assert!(id_str.starts_with('!'));

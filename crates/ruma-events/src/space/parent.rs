@@ -45,7 +45,7 @@ mod tests {
     #[test]
     fn space_parent_serialization() {
         let content = SpaceParentEventContent {
-            via: Some(vec![server_name!("example.com")]),
+            via: Some(vec![server_name!("example.com").to_owned()]),
             canonical: true,
         };
 

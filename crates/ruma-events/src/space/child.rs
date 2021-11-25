@@ -57,7 +57,7 @@ mod tests {
     #[test]
     fn space_child_serialization() {
         let content = SpaceChildEventContent {
-            via: Some(vec![server_name!("example.com")]),
+            via: Some(vec![server_name!("example.com").to_owned()]),
             order: Some("uwu".to_owned()),
             suggested: Some(false),
         };

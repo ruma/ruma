@@ -113,7 +113,7 @@ mod tests {
     #[test]
     fn parse_valid_user_id() {
         let server_name = server_name!("example.com");
-        let user_id = UserId::parse_with_server_name("@carl:example.com", &server_name)
+        let user_id = UserId::parse_with_server_name("@carl:example.com", server_name)
             .expect("Failed to create UserId.");
         assert_eq!(user_id.as_str(), "@carl:example.com");
         assert_eq!(user_id.localpart(), "carl");
@@ -125,7 +125,7 @@ mod tests {
     fn parse_valid_user_id_parts() {
         let server_name = server_name!("example.com");
         let user_id =
-            UserId::parse_with_server_name("carl", &server_name).expect("Failed to create UserId.");
+            UserId::parse_with_server_name("carl", server_name).expect("Failed to create UserId.");
         assert_eq!(user_id.as_str(), "@carl:example.com");
         assert_eq!(user_id.localpart(), "carl");
         assert_eq!(user_id.server_name(), "example.com");
@@ -145,7 +145,7 @@ mod tests {
     #[test]
     fn parse_valid_historical_user_id() {
         let server_name = server_name!("example.com");
-        let user_id = UserId::parse_with_server_name("@a%b[irc]:example.com", &server_name)
+        let user_id = UserId::parse_with_server_name("@a%b[irc]:example.com", server_name)
             .expect("Failed to create UserId.");
         assert_eq!(user_id.as_str(), "@a%b[irc]:example.com");
         assert_eq!(user_id.localpart(), "a%b[irc]");
@@ -156,7 +156,7 @@ mod tests {
     #[test]
     fn parse_valid_historical_user_id_parts() {
         let server_name = server_name!("example.com");
-        let user_id = UserId::parse_with_server_name("a%b[irc]", &server_name)
+        let user_id = UserId::parse_with_server_name("a%b[irc]", server_name)
             .expect("Failed to create UserId.");
         assert_eq!(user_id.as_str(), "@a%b[irc]:example.com");
         assert_eq!(user_id.localpart(), "a%b[irc]");
@@ -175,7 +175,7 @@ mod tests {
     #[test]
     fn generate_random_valid_user_id() {
         let server_name = server_name!("example.com");
-        let user_id = UserId::new(&server_name);
+        let user_id = UserId::new(server_name);
         assert_eq!(user_id.localpart().len(), 12);
         assert_eq!(user_id.server_name(), "example.com");
 

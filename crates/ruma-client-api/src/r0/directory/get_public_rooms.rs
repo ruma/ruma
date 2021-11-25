@@ -82,7 +82,7 @@ mod tests {
         let req = super::Request {
             limit: Some(uint!(10)),
             since: Some("hello"),
-            server: Some(&server_name!("test.tld")),
+            server: Some(server_name!("test.tld")),
         }
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
