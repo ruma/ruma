@@ -15,7 +15,7 @@ ruma_api! {
 
     request: {
         /// The Matrix user ID of the user accepting the invitation.
-        pub mxid: UserId,
+        pub mxid: &'a UserId,
 
         /// The token from the call to store-invite.
         pub token: &'a str,
@@ -41,7 +41,7 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a `Request` with the given Matrix user ID, token and private_key.
-    pub fn new(mxid: UserId, token: &'a str, private_key: &'a str) -> Self {
+    pub fn new(mxid: &'a UserId, token: &'a str, private_key: &'a str) -> Self {
         Self { mxid, token, private_key }
     }
 }

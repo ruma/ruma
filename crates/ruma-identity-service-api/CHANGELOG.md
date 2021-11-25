@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Borrow `mxid` in `invitation::sign_invitation_ed25519::v2::Request`
+
 # 0.3.0
 
 Breaking changes:
