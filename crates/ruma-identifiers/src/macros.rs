@@ -24,32 +24,6 @@ macro_rules! partial_eq_string {
     }
 }
 
-macro_rules! as_str_based_impls {
-    ($id:ty) => {
-        impl AsRef<str> for $id {
-            fn as_ref(&self) -> &str {
-                self.as_str()
-            }
-        }
-
-        impl std::fmt::Display for $id {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{}", self.as_str())
-            }
-        }
-
-        #[cfg(feature = "serde")]
-        impl serde::Serialize for $id {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: serde::Serializer,
-            {
-                serializer.serialize_str(self.as_str())
-            }
-        }
-    };
-}
-
 macro_rules! opaque_identifier_common_impls {
     ($id:ty) => {
         impl $id {
@@ -80,12 +54,6 @@ macro_rules! opaque_identifier_common_impls {
             }
         }
 
-        impl std::fmt::Debug for $id {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                <str as std::fmt::Debug>::fmt(self.as_str(), f)
-            }
-        }
-
         impl Clone for Box<$id> {
             fn clone(&self) -> Self {
                 (**self).to_owned()
@@ -100,15 +68,21 @@ macro_rules! opaque_identifier_common_impls {
             }
         }
 
-        impl From<&$id> for Box<$id> {
-            fn from(id: &$id) -> Self {
-                id.to_owned()
+        impl AsRef<str> for $id {
+            fn as_ref(&self) -> &str {
+                self.as_str()
             }
         }
 
         impl AsRef<str> for Box<$id> {
             fn as_ref(&self) -> &str {
                 self.as_str()
+            }
+        }
+
+        impl From<&$id> for Box<$id> {
+            fn from(id: &$id) -> Self {
+                id.to_owned()
             }
         }
 
@@ -150,7 +124,28 @@ macro_rules! opaque_identifier_common_impls {
             }
         }
 
-        as_str_based_impls!($id);
+        impl std::fmt::Debug for $id {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                <str as std::fmt::Debug>::fmt(self.as_str(), f)
+            }
+        }
+
+        impl std::fmt::Display for $id {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{}", self.as_str())
+            }
+        }
+
+        #[cfg(feature = "serde")]
+        impl serde::Serialize for $id {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                serializer.serialize_str(self.as_str())
+            }
+        }
+
         partial_eq_string!($id);
         partial_eq_string!(Box<$id>);
     };
