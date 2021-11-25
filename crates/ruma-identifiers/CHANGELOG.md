@@ -1,5 +1,15 @@
 # [unreleased]
 
+Breaking changes:
+
+* Make almost all identifier types dynamically-sized types that wrap `str`
+  * This makes types like `&RoomId` and `&UserId` lighter
+  * If you want to own an identifier, use `Box<SomeId>`, `Arc<SomeId>` or similar
+  * The exception to this are the enums like `RoomVersionId` and `EventEncryptionAlgorithm`
+    (these *might* be converted into the same kind of type at some point in the future)
+  * The corresponding macros (and also `server_name!`) now return `'static` references instead of
+    owned values now – use `.to_owned()` to get an owned copy
+
 # 0.20.0
 
 Breaking changes:
