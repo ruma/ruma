@@ -48,8 +48,8 @@ fn lexico_topo_sort(c: &mut Criterion) {
             event_id("p") => hashset![event_id("o")],
         };
         b.iter(|| {
-            let _ = state_res::lexicographical_topological_sort(&graph, |id| {
-                Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0)), id.clone()))
+            let _ = state_res::lexicographical_topological_sort(&graph, |_| {
+                Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0))))
             });
         })
     });
@@ -71,10 +71,15 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
                 state_sets
                     .iter()
                     .map(|map| {
-                        store.auth_event_ids(&room_id(), map.values().cloned().collect()).unwrap()
+                        store
+                            .auth_event_ids(&room_id(), map.values().cloned().collect())
+                            .unwrap()
+                            .into_iter()
+                            .collect()
                     })
                     .collect(),
                 |id| ev_map.get(id).map(Arc::clone),
+                |id| id.clone(),
             ) {
                 Ok(state) => state,
                 Err(e) => panic!("{}", e),
@@ -135,10 +140,15 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
                 state_sets
                     .iter()
                     .map(|map| {
-                        store.auth_event_ids(&room_id(), map.values().cloned().collect()).unwrap()
+                        store
+                            .auth_event_ids(&room_id(), map.values().cloned().collect())
+                            .unwrap()
+                            .into_iter()
+                            .collect()
                     })
                     .collect(),
                 |id| inner.get(id).map(Arc::clone),
+                |id| id.clone(),
             ) {
                 Ok(state) => state,
                 Err(_) => panic!("resolution failed during benchmarking"),
