@@ -85,9 +85,8 @@ pub use ruma_identifiers::{
     device_id, device_key_id, event_id, mxc_uri, room_alias_id, room_id, room_version_id,
     server_name, server_signing_key_id, user_id, ClientSecret, DeviceId, DeviceKeyAlgorithm,
     DeviceKeyId, DeviceSignatures, DeviceSigningKeyId, EntitySignatures, EventEncryptionAlgorithm,
-    EventId, KeyId, KeyName, MxcUri, RoomAliasId, RoomId, RoomIdOrAliasId, RoomVersionId,
-    ServerName, ServerSignatures, ServerSigningKeyId, SessionId, Signatures, SigningKeyAlgorithm,
-    UserId,
+    EventId, KeyId, KeyName, MxcUri, RoomAliasId, RoomId, RoomOrAliasId, RoomVersionId, ServerName,
+    ServerSignatures, ServerSigningKeyId, SessionId, Signatures, SigningKeyAlgorithm, UserId,
 };
 
 #[cfg(feature = "client")]

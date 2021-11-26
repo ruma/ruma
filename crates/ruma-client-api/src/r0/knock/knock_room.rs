@@ -1,7 +1,7 @@
 //! [POST /_matrix/client/r0/knock/{roomIdOrAlias}](https://spec.matrix.org/unstable/client-server-api/#post_matrixclientr0knockroomidoralias)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::{RoomId, RoomIdOrAliasId, ServerName};
+use ruma_identifiers::{RoomId, RoomOrAliasId, ServerName};
 
 ruma_api! {
     metadata: {
@@ -16,7 +16,7 @@ ruma_api! {
     request: {
         /// The room the user should knock on.
         #[ruma_api(path)]
-        pub room_id_or_alias: &'a RoomIdOrAliasId,
+        pub room_id_or_alias: &'a RoomOrAliasId,
 
         /// The reason for joining a room.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -38,7 +38,7 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given room ID or alias.
-    pub fn new(room_id_or_alias: &'a RoomIdOrAliasId) -> Self {
+    pub fn new(room_id_or_alias: &'a RoomOrAliasId) -> Self {
         Self { room_id_or_alias, reason: None, server_name: &[] }
     }
 }

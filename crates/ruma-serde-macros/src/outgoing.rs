@@ -271,7 +271,7 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                         || last_seg.ident == "RawJsonValue"
                         || last_seg.ident == "RoomAliasId"
                         || last_seg.ident == "RoomId"
-                        || last_seg.ident == "RoomIdOrAliasId"
+                        || last_seg.ident == "RoomOrAliasId"
                         || last_seg.ident == "RoomName"
                         || last_seg.ident == "ServerSigningKeyId"
                         || last_seg.ident == "SigningKeyId"

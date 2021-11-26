@@ -32,8 +32,8 @@ pub use crate::{
     mxc_uri::MxcUri,
     room_alias_id::RoomAliasId,
     room_id::RoomId,
-    room_id_or_room_alias_id::RoomIdOrAliasId,
     room_name::RoomName,
+    room_or_room_alias_id::RoomOrAliasId,
     room_version_id::RoomVersionId,
     server_name::ServerName,
     session_id::SessionId,
@@ -59,8 +59,8 @@ mod matrix_to;
 mod mxc_uri;
 mod room_alias_id;
 mod room_id;
-mod room_id_or_room_alias_id;
 mod room_name;
+mod room_or_room_alias_id;
 mod room_version_id;
 mod server_name;
 mod session_id;

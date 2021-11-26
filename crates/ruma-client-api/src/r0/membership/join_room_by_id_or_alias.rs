@@ -1,7 +1,7 @@
 //! [POST /_matrix/client/r0/join/{roomIdOrAlias}](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-join-roomidoralias)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::{RoomId, RoomIdOrAliasId, ServerName};
+use ruma_identifiers::{RoomId, RoomOrAliasId, ServerName};
 
 use super::{IncomingThirdPartySigned, ThirdPartySigned};
 
@@ -18,7 +18,7 @@ ruma_api! {
     request: {
         /// The room where the user should be invited.
         #[ruma_api(path)]
-        pub room_id_or_alias: &'a RoomIdOrAliasId,
+        pub room_id_or_alias: &'a RoomOrAliasId,
 
         /// The servers to attempt to join the room through.
         ///
@@ -48,7 +48,7 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given room ID or alias ID.
-    pub fn new(room_id_or_alias: &'a RoomIdOrAliasId) -> Self {
+    pub fn new(room_id_or_alias: &'a RoomOrAliasId) -> Self {
         Self {
             room_id_or_alias,
             server_name: &[],
