@@ -84,6 +84,18 @@ enum Variant {
     RoomAliasId,
 }
 
+impl<'a> From<&'a RoomId> for &'a RoomOrAliasId {
+    fn from(room_id: &'a RoomId) -> Self {
+        RoomOrAliasId::from_borrowed(room_id.as_str())
+    }
+}
+
+impl<'a> From<&'a RoomAliasId> for &'a RoomOrAliasId {
+    fn from(room_alias_id: &'a RoomAliasId) -> Self {
+        RoomOrAliasId::from_borrowed(room_alias_id.as_str())
+    }
+}
+
 impl From<Box<RoomId>> for Box<RoomOrAliasId> {
     fn from(room_id: Box<RoomId>) -> Self {
         RoomOrAliasId::from_owned(room_id.into_owned())
@@ -93,6 +105,28 @@ impl From<Box<RoomId>> for Box<RoomOrAliasId> {
 impl From<Box<RoomAliasId>> for Box<RoomOrAliasId> {
     fn from(room_alias_id: Box<RoomAliasId>) -> Self {
         RoomOrAliasId::from_owned(room_alias_id.into_owned())
+    }
+}
+
+impl<'a> TryFrom<&'a RoomOrAliasId> for &'a RoomId {
+    type Error = &'a RoomAliasId;
+
+    fn try_from(id: &'a RoomOrAliasId) -> Result<&'a RoomId, &'a RoomAliasId> {
+        match id.variant() {
+            Variant::RoomId => Ok(RoomId::from_borrowed(id.as_str())),
+            Variant::RoomAliasId => Err(RoomAliasId::from_borrowed(id.as_str())),
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a RoomOrAliasId> for &'a RoomAliasId {
+    type Error = &'a RoomId;
+
+    fn try_from(id: &'a RoomOrAliasId) -> Result<&'a RoomAliasId, &'a RoomId> {
+        match id.variant() {
+            Variant::RoomAliasId => Ok(RoomAliasId::from_borrowed(id.as_str())),
+            Variant::RoomId => Err(RoomId::from_borrowed(id.as_str())),
+        }
     }
 }
 
