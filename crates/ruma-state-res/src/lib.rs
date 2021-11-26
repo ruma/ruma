@@ -51,15 +51,17 @@ pub type StateMap<T> = HashMap<(EventType, String), T>;
 ///
 /// The caller of `resolve` must ensure that all the events are from the same room. Although this
 /// function takes a `RoomId` it does not check that each event is part of the same room.
-pub fn resolve<'a, E, EID, SSI>(
+pub fn resolve<'a, E, EID, SEK, SSI>(
     room_version: &RoomVersionId,
     state_sets: impl IntoIterator<IntoIter = SSI>,
     auth_chain_sets: Vec<Vec<EID>>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
     clean_id: impl Fn(&EventId) -> EID,
-) -> Result<StateMap<EID>>
+    clean_sek: impl Fn(&EventType, &str) -> SEK,
+) -> Result<HashMap<SEK, EID>>
 where
     E: Event + Clone,
+    // Event ID
     EID: Borrow<EventId>
         + Clone
         + Eq
@@ -68,7 +70,9 @@ where
         + std::fmt::Debug
         + std::fmt::Display
         + 'a,
-    SSI: Iterator<Item = &'a StateMap<EID>> + Clone,
+    // State Event Key
+    SEK: Borrow<(EventType, String)> + Eq + std::hash::Hash + Clone + std::fmt::Debug + 'a,
+    SSI: Iterator<Item = &'a HashMap<SEK, EID>> + Clone,
 {
     info!("State resolution starting");
 
@@ -117,8 +121,13 @@ where
 
     let room_version = RoomVersion::new(room_version)?;
     // Sequentially auth check each control event.
-    let resolved_control =
-        iterative_auth_check(&room_version, &sorted_control_levels, clean.clone(), &fetch_event)?;
+    let resolved_control = iterative_auth_check(
+        &room_version,
+        &sorted_control_levels,
+        clean.clone(),
+        &fetch_event,
+        &clean_sek,
+    )?;
 
     debug!("resolved control events: {}", resolved_control.len());
     trace!("{:?}", resolved_control);
@@ -153,6 +162,7 @@ where
         &sorted_left_events,
         resolved_control, // The control events are added to the final resolved state
         &fetch_event,
+        &clean_sek,
     )?;
 
     // Add unconflicted state to the resolved state
@@ -168,18 +178,21 @@ where
 /// State is determined to be conflicting if for the given key (EventType, StateKey) there is not
 /// exactly one eventId. This includes missing events, if one state_set includes an event that none
 /// of the other have this is a conflicting event.
-fn separate<'a, EID>(
-    state_sets_iter: impl Iterator<Item = &'a StateMap<EID>> + Clone,
-) -> (StateMap<EID>, StateMap<Vec<EID>>)
+fn separate<'a, SEK, EID>(
+    state_sets_iter: impl Iterator<Item = &'a HashMap<SEK, EID>> + Clone,
+) -> (HashMap<SEK, EID>, HashMap<SEK, Vec<EID>>)
 where
     EID: Borrow<EventId> + Clone + PartialEq + 'a,
+    SEK: Borrow<(EventType, String)> + Eq + std::hash::Hash + Clone + 'a,
 {
-    let mut unconflicted_state = StateMap::new();
-    let mut conflicted_state = StateMap::new();
+    let mut unconflicted_state = HashMap::new();
+    let mut conflicted_state = HashMap::new();
 
     for key in state_sets_iter.clone().flat_map(|map| map.keys()).unique() {
-        let mut event_ids =
-            state_sets_iter.clone().map(|state_set| state_set.get(key)).collect::<Vec<_>>();
+        let mut event_ids = state_sets_iter
+            .clone()
+            .map(|state_set| state_set.get(key.borrow()))
+            .collect::<Vec<_>>();
 
         if event_ids.iter().all_equal() {
             // First .unwrap() is okay because
@@ -395,14 +408,16 @@ fn get_power_level_for_sender<E: Event>(
 ///
 /// For each `events_to_check` event we gather the events needed to auth it from the the
 /// `fetch_event` closure and verify each event using the `event_auth::auth_check` function.
-fn iterative_auth_check<E: Event + Clone, EID>(
+fn iterative_auth_check<E: Event + Clone, EID, SEK>(
     room_version: &RoomVersion,
     events_to_check: &[EID],
-    unconflicted_state: StateMap<EID>,
+    unconflicted_state: HashMap<SEK, EID>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
-) -> Result<StateMap<EID>>
+    clean_sek: impl Fn(&EventType, &str) -> SEK,
+) -> Result<HashMap<SEK, EID>>
 where
     EID: Borrow<EventId> + Clone + Eq + std::hash::Hash + std::fmt::Debug,
+    SEK: Borrow<(EventType, String)> + Eq + std::hash::Hash,
 {
     info!("starting iterative auth check");
 
@@ -475,8 +490,7 @@ where
             |ty, key| auth_events.get(&(ty.clone(), key.to_owned())).cloned(),
         )? {
             // add event to resolved state map
-            resolved_state
-                .insert((event.event_type().to_owned(), state_key.to_owned()), event_id.clone());
+            resolved_state.insert(clean_sek(event.event_type(), state_key), event_id.clone());
         } else {
             // synapse passes here on AuthError. We do not add this event to resolved_state.
             warn!("event {:?} failed the authentication check", event_id);
@@ -722,6 +736,7 @@ mod tests {
             &sorted_power_events,
             HashMap::new(), // unconflicted events
             |id| events.get(id).map(Arc::clone),
+            |t, s| (t.clone(), s.to_owned()),
         )
         .expect("iterative auth check failed on resolved events");
 
@@ -1096,6 +1111,7 @@ mod tests {
                 .collect(),
             |id| ev_map.get(id).map(Arc::clone),
             |id| id.clone(),
+            |t, s| (t.clone(), s.to_owned()),
         ) {
             Ok(state) => state,
             Err(e) => panic!("{}", e),
@@ -1117,7 +1133,7 @@ mod tests {
             event_id("p") => hashset![event_id("o")],
         };
 
-        let res = crate::lexicographical_topological_sort(&graph, |id| {
+        let res = crate::lexicographical_topological_sort(&graph, |_| {
             Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0))))
         })
         .unwrap();
@@ -1205,6 +1221,7 @@ mod tests {
                 .collect(),
             |id| ev_map.get(id).map(Arc::clone),
             |id| id.clone(),
+            |t, s| (t.clone(), s.to_owned()),
         ) {
             Ok(state) => state,
             Err(e) => panic!("{}", e),

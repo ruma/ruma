@@ -80,6 +80,7 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
                     .collect(),
                 |id| ev_map.get(id).map(Arc::clone),
                 |id| id.clone(),
+                |t, s| (t.clone(), s.to_owned()),
             ) {
                 Ok(state) => state,
                 Err(e) => panic!("{}", e),
@@ -149,6 +150,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
                     .collect(),
                 |id| inner.get(id).map(Arc::clone),
                 |id| id.clone(),
+                |t, s| (t.clone(), s.to_owned()),
             ) {
                 Ok(state) => state,
                 Err(_) => panic!("resolution failed during benchmarking"),
