@@ -1,5 +1,7 @@
 //! Matrix user identifiers.
 
+use std::{rc::Rc, sync::Arc};
+
 use crate::{MatrixToRef, ServerName};
 
 /// A Matrix user ID.
@@ -48,6 +50,38 @@ impl UserId {
             Self::parse(id)
         } else {
             Ok(Self::from_owned(format!("@{}:{}", id_str, server_name).into()))
+        }
+    }
+
+    /// Variation of [`parse_with_server_name`] that returns `Rc<Self>`.
+    ///
+    /// [`parse_with_server_name`]: Self::parse_with_server_name
+    pub fn parse_with_server_name_rc(
+        id: impl AsRef<str> + Into<Rc<str>>,
+        server_name: &ServerName,
+    ) -> Result<Rc<Self>, crate::Error> {
+        let id_str = id.as_ref();
+
+        if id_str.starts_with('@') {
+            Self::parse_rc(id)
+        } else {
+            Ok(Self::from_rc(format!("@{}:{}", id_str, server_name).into()))
+        }
+    }
+
+    /// Variation of [`parse_with_server_name`] that returns `Arc<Self>`.
+    ///
+    /// [`parse_with_server_name`]: Self::parse_with_server_name
+    pub fn parse_with_server_name_arc(
+        id: impl AsRef<str> + Into<Arc<str>>,
+        server_name: &ServerName,
+    ) -> Result<Arc<Self>, crate::Error> {
+        let id_str = id.as_ref();
+
+        if id_str.starts_with('@') {
+            Self::parse_arc(id)
+        } else {
+            Ok(Self::from_arc(format!("@{}:{}", id_str, server_name).into()))
         }
     }
 

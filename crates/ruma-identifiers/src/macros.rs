@@ -217,6 +217,26 @@ macro_rules! opaque_identifier_validated {
                     Ok($id::from_owned(s.into()))
                 }
             }
+
+            doc_concat! {
+                #[doc = concat!("Try parsing a `&str` into an `Rc<", stringify!($id), ">`.")]
+                pub fn parse_rc(
+                    s: impl AsRef<str> + Into<std::rc::Rc<str>>,
+                ) -> Result<std::rc::Rc<Self>, crate::Error> {
+                    $validate_id(s.as_ref())?;
+                    Ok($id::from_rc(s.into()))
+                }
+            }
+
+            doc_concat! {
+                #[doc = concat!("Try parsing a `&str` into an `Arc<", stringify!($id), ">`.")]
+                pub fn parse_arc(
+                    s: impl AsRef<str> + Into<std::sync::Arc<str>>,
+                ) -> Result<std::sync::Arc<Self>, crate::Error> {
+                    $validate_id(s.as_ref())?;
+                    Ok($id::from_arc(s.into()))
+                }
+            }
         }
 
         opaque_identifier_common_impls!($id);
