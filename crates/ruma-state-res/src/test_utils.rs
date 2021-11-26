@@ -30,14 +30,6 @@ pub use event::StateEvent;
 
 static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 
-pub fn map_unbox_value<K: Eq + std::hash::Hash, V>(map: HashMap<K, Box<V>>) -> HashMap<K, V> {
-    map.into_iter().map(|(k, v)| (k, *v)).collect()
-}
-
-pub fn map_box_value<K: Eq + std::hash::Hash, V>(map: HashMap<K, V>) -> HashMap<K, Box<V>> {
-    map.into_iter().map(|(k, v)| (k, Box::new(v))).collect()
-}
-
 pub fn do_check(
     events: &[Arc<StateEvent>],
     edges: Vec<Vec<EventId>>,
@@ -136,6 +128,7 @@ pub fn do_check(
                 auth_chain_sets,
                 |id| event_map.get(id).map(Arc::clone),
                 |e| Box::new(e.clone()),
+                |t, s| (t.clone(), s.to_owned()),
             );
             match resolved {
                 Ok(state) => state,
