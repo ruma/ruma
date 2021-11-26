@@ -92,11 +92,11 @@ where
     })
 }
 
-/// Shorthand for `Box::<DeviceId>::from`.
+/// Shorthand for `<&DeviceId>::from`.
 #[macro_export]
 macro_rules! device_id {
-    ($s:tt) => {
-        ::std::boxed::Box::<$crate::DeviceId>::from($s)
+    ($s:expr) => {
+        <&$crate::DeviceId as ::std::convert::From<_>>::from($s)
     };
 }
 
