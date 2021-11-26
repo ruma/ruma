@@ -3,11 +3,15 @@
 use std::collections::BTreeMap;
 
 use ruma_events_macros::EventContent;
-use ruma_identifiers::{MxcUri, ServerName, ServerSigningKeyId, UserId};
+use ruma_identifiers::{MxcUri, RoomVersionId, ServerName, ServerSigningKeyId, UserId};
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
+use serde_json::value::RawValue as RawJsonValue;
 
-use crate::{StrippedStateEvent, SyncStateEvent};
+use crate::{
+    EventContent, HasDeserializeFields, RedactContent, RedactedEventContent,
+    RedactedStateEventContent, StrippedStateEvent, SyncStateEvent,
+};
 
 /// The content of an `m.room.member` event.
 ///
@@ -38,7 +42,7 @@ use crate::{StrippedStateEvent, SyncStateEvent};
 /// must be assumed as leave.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.member", kind = State)]
+#[ruma_event(type = "m.room.member", kind = State, custom_redacted)]
 pub struct RoomMemberEventContent {
     /// The avatar URL for this user, if any.
     ///
@@ -63,7 +67,6 @@ pub struct RoomMemberEventContent {
     pub is_direct: Option<bool>,
 
     /// The membership state of this user.
-    #[ruma_event(skip_redaction)]
     pub membership: MembershipState,
 
     /// If this member event is the successor to a third party invitation, this field will
@@ -92,6 +95,12 @@ pub struct RoomMemberEventContent {
     #[cfg(feature = "unstable-pre-spec")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
+
+    /// Arbitrarily chosen `UserId` (MxID) of a local user who can send an invite.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[serde(rename = "join_authorised_via_users_server")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub join_authorized_via_users_server: Option<Box<UserId>>,
 }
 
 impl RoomMemberEventContent {
@@ -107,9 +116,85 @@ impl RoomMemberEventContent {
             blurhash: None,
             #[cfg(feature = "unstable-pre-spec")]
             reason: None,
+            #[cfg(feature = "unstable-pre-spec")]
+            join_authorized_via_users_server: None,
         }
     }
 }
+
+impl RedactContent for RoomMemberEventContent {
+    type Redacted = RedactedRoomMemberEventContent;
+
+    fn redact(self, _version: &RoomVersionId) -> RedactedRoomMemberEventContent {
+        RedactedRoomMemberEventContent {
+            membership: self.membership,
+            #[cfg(feature = "unstable-pre-spec")]
+            join_authorized_via_users_server: match _version {
+                #[cfg(feature = "unstable-pre-spec")]
+                RoomVersionId::V9 => self.join_authorized_via_users_server,
+                _ => None,
+            },
+        }
+    }
+}
+
+/// A member event that has been redacted.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct RedactedRoomMemberEventContent {
+    /// The membership state of this user.
+    pub membership: MembershipState,
+
+    /// An arbitrary user who has the power to issue invites.
+    ///
+    /// This is redacted in room versions 8 and below. It is used for validating
+    /// joins when the join rule is restricted.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[serde(rename = "join_authorised_via_users_server")]
+    pub join_authorized_via_users_server: Option<Box<UserId>>,
+}
+
+impl RedactedRoomMemberEventContent {
+    /// Create a `RedactedRoomMemberEventContent` with the given membership.
+    pub fn new(membership: MembershipState) -> Self {
+        Self {
+            membership,
+            #[cfg(feature = "unstable-pre-spec")]
+            join_authorized_via_users_server: None,
+        }
+    }
+}
+
+impl EventContent for RedactedRoomMemberEventContent {
+    fn event_type(&self) -> &str {
+        "m.room.member"
+    }
+
+    fn from_parts(event_type: &str, content: &RawJsonValue) -> serde_json::Result<Self> {
+        if event_type != "m.room.member" {
+            return Err(::serde::de::Error::custom(format!(
+                "expected event type `m.room.member`, found `{}`",
+                event_type
+            )));
+        }
+
+        serde_json::from_str(content.get())
+    }
+}
+
+// Since this redacted event has fields we leave the default `empty` method
+// that will error if called.
+impl RedactedEventContent for RedactedRoomMemberEventContent {
+    fn has_serialize_fields(&self) -> bool {
+        true
+    }
+
+    fn has_deserialize_fields() -> HasDeserializeFields {
+        HasDeserializeFields::Optional
+    }
+}
+
+impl RedactedStateEventContent for RedactedRoomMemberEventContent {}
 
 /// The membership state of a user.
 ///
@@ -269,6 +354,8 @@ fn membership_change(
             blurhash: None,
             #[cfg(feature = "unstable-pre-spec")]
             reason: None,
+            #[cfg(feature = "unstable-pre-spec")]
+            join_authorized_via_users_server: None,
         }
     };
 
@@ -658,6 +745,51 @@ mod tests {
                     }
                 }
                 && token == "abc123"
+        );
+    }
+
+    #[cfg(feature = "unstable-pre-spec")]
+    #[test]
+    fn serde_with_join_authorized() {
+        let json = json!({
+            "type": "m.room.member",
+            "content": {
+                "membership": "join",
+                "join_authorised_via_users_server": "@notcarl:example.com"
+            },
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "room_id": "!n8f893n9:example.com",
+            "sender": "@carl:example.com",
+            "state_key": "example.com"
+        });
+
+        assert_matches!(
+            from_json_value::<StateEvent<RoomMemberEventContent>>(json).unwrap(),
+            StateEvent {
+                content: RoomMemberEventContent {
+                    avatar_url: None,
+                    displayname: None,
+                    is_direct: None,
+                    membership: MembershipState::Join,
+                    third_party_invite: None,
+                    join_authorized_via_users_server: Some(authed),
+                    ..
+                },
+                event_id,
+                origin_server_ts,
+                room_id,
+                sender,
+                state_key,
+                unsigned,
+                prev_content: None,
+            } if event_id == "$h29iv0s8:example.com"
+                && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
+                && room_id == "!n8f893n9:example.com"
+                && sender == "@carl:example.com"
+                && authed == "@notcarl:example.com"
+                && state_key == "example.com"
+                && unsigned.is_empty()
         );
     }
 }
