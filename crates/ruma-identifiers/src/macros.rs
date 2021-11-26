@@ -35,6 +35,14 @@ macro_rules! opaque_identifier_common_impls {
                 unsafe { Box::from_raw(Box::into_raw(s) as _) }
             }
 
+            pub(super) fn from_rc(s: std::rc::Rc<str>) -> std::rc::Rc<Self> {
+                unsafe { std::rc::Rc::from_raw(std::rc::Rc::into_raw(s) as _) }
+            }
+
+            pub(super) fn from_arc(s: std::sync::Arc<str>) -> std::sync::Arc<Self> {
+                unsafe { std::sync::Arc::from_raw(std::sync::Arc::into_raw(s) as _) }
+            }
+
             pub(super) fn into_owned(self: Box<Self>) -> Box<str> {
                 unsafe { Box::from_raw(Box::into_raw(self) as _) }
             }
@@ -89,14 +97,14 @@ macro_rules! opaque_identifier_common_impls {
         impl From<&$id> for std::rc::Rc<$id> {
             fn from(s: &$id) -> std::rc::Rc<$id> {
                 let rc = std::rc::Rc::<str>::from(s.as_str());
-                unsafe { std::rc::Rc::from_raw(std::rc::Rc::into_raw(rc) as *const $id) }
+                <$id>::from_rc(rc)
             }
         }
 
         impl From<&$id> for std::sync::Arc<$id> {
             fn from(s: &$id) -> std::sync::Arc<$id> {
                 let arc = std::sync::Arc::<str>::from(s.as_str());
-                unsafe { std::sync::Arc::from_raw(std::sync::Arc::into_raw(arc) as *const $id) }
+                <$id>::from_arc(arc)
             }
         }
 
