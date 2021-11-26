@@ -4,6 +4,8 @@ Breaking changes:
 
 * Remove some trait methods from `Event`
 * Update `Event::content` signature to return `&RawJsonValue` instead of `&JsonValue`
+* The `key_fn` in `lexicographical_topological_sort` has removed the event ID from its return type
+  and changed to expect just the power level, not the negated power level
 
 # 0.4.1
 

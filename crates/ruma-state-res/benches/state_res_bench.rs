@@ -48,8 +48,8 @@ fn lexico_topo_sort(c: &mut Criterion) {
             event_id("p") => hashset![event_id("o")],
         };
         b.iter(|| {
-            let _ = state_res::lexicographical_topological_sort(&graph, |id| {
-                Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0)), id.to_owned()))
+            let _ = state_res::lexicographical_topological_sort(&graph, |_id| {
+                Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0))))
             });
         })
     });
