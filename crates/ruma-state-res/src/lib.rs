@@ -238,28 +238,29 @@ fn reverse_topological_power_sort<E: Event>(
 
     lexicographical_topological_sort(&graph, |event_id| {
         let ev = fetch_event(event_id).ok_or_else(|| Error::NotFound("".into()))?;
-        let pl = event_to_pl.get(event_id).ok_or_else(|| Error::NotFound("".into()))?;
-
-        debug!("{:?}", (-*pl, ev.origin_server_ts(), &ev.event_id()));
-
-        // This return value is the key used for sorting events,
-        // events are then sorted by power level, time,
-        // and lexically by event_id.
-        Ok((-*pl, ev.origin_server_ts(), ev.event_id().to_owned()))
+        let pl = *event_to_pl.get(event_id).ok_or_else(|| Error::NotFound("".into()))?;
+        Ok((pl, ev.origin_server_ts()))
     })
 }
 
 /// Sorts the event graph based on number of outgoing/incoming edges.
 ///
-/// `key_fn` is used as a tie breaker. The tie breaker happens based on power level, age, and
-/// event_id.
+/// `key_fn` is used as to obtain the power level and age of an event for breaking ties (together
+/// with the event ID).
 pub fn lexicographical_topological_sort<F>(
     graph: &HashMap<Box<EventId>, HashSet<Box<EventId>>>,
     key_fn: F,
 ) -> Result<Vec<Box<EventId>>>
 where
-    F: Fn(&EventId) -> Result<(Int, MilliSecondsSinceUnixEpoch, Box<EventId>)>,
+    F: Fn(&EventId) -> Result<(Int, MilliSecondsSinceUnixEpoch)>,
 {
+    #[derive(PartialEq, Eq, PartialOrd, Ord)]
+    struct TieBreaker<'a> {
+        inv_power_level: Int,
+        age: MilliSecondsSinceUnixEpoch,
+        event_id: &'a EventId,
+    }
+
     info!("starting lexicographical topological sort");
     // NOTE: an event that has no incoming edges happened most recently,
     // and an event that has no outgoing edges happened least recently.
@@ -274,16 +275,21 @@ where
 
     // The number of events that depend on the given event (the EventId key)
     // How many events reference this event in the DAG as a parent
-    let mut reverse_graph: HashMap<_, HashSet<_>> = HashMap::new();
+    let mut reverse_graph: HashMap<&EventId, HashSet<&EventId>> = HashMap::new();
 
     // Vec of nodes that have zero out degree, least recent events.
-    let mut zero_outdegree = vec![];
+    let mut zero_outdegree: Vec<Reverse<TieBreaker<'_>>> = vec![];
 
     for (node, edges) in graph {
         if edges.is_empty() {
+            let (power_level, age) = key_fn(node)?;
             // The `Reverse` is because rusts `BinaryHeap` sorts largest -> smallest we need
             // smallest -> largest
-            zero_outdegree.push(Reverse((key_fn(node)?, node)));
+            zero_outdegree.push(Reverse(TieBreaker {
+                inv_power_level: -power_level,
+                age,
+                event_id: node,
+            }));
         }
 
         reverse_graph.entry(node).or_default();
@@ -297,7 +303,9 @@ where
     // We remove the oldest node (most incoming edges) and check against all other
     let mut sorted = vec![];
     // Destructure the `Reverse` and take the smallest `node` each time
-    while let Some(Reverse((_, node))) = heap.pop() {
+    while let Some(Reverse(item)) = heap.pop() {
+        let node = item.event_id;
+
         for &parent in reverse_graph.get(node).expect("EventId in heap is also in reverse_graph") {
             // The number of outgoing edges this node has
             let out = outdegree_map
@@ -307,7 +315,12 @@ where
             // Only push on the heap once older events have been cleared
             out.remove(node);
             if out.is_empty() {
-                heap.push(Reverse((key_fn(parent)?, parent)));
+                let (power_level, age) = key_fn(node)?;
+                heap.push(Reverse(TieBreaker {
+                    inv_power_level: -power_level,
+                    age,
+                    event_id: parent,
+                }));
             }
         }
 
@@ -1069,8 +1082,8 @@ mod tests {
             event_id("p") => hashset![event_id("o")],
         };
 
-        let res = crate::lexicographical_topological_sort(&graph, |id| {
-            Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0)), id.to_owned()))
+        let res = crate::lexicographical_topological_sort(&graph, |_id| {
+            Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0))))
         })
         .unwrap();
 

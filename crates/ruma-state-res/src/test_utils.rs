@@ -80,8 +80,8 @@ pub fn do_check(
 
     // Resolve the current state and add it to the state_at_event map then continue
     // on in "time"
-    for node in crate::lexicographical_topological_sort(&graph, |id| {
-        Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0)), id.to_owned()))
+    for node in crate::lexicographical_topological_sort(&graph, |_id| {
+        Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0))))
     })
     .unwrap()
     {
