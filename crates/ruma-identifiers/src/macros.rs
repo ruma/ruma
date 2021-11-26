@@ -201,6 +201,24 @@ macro_rules! opaque_identifier {
 
 macro_rules! opaque_identifier_validated {
     ($id:ident, $validate_id:expr) => {
+        impl $id {
+            #[rustfmt::skip]
+            doc_concat! {
+                #[doc = concat!("\
+                    Try parsing a `&str` into a `Box<", stringify!($id), ">`.\n\
+                    \n\
+                    The same can also be done using `FromStr`, `TryFrom` or `TryInto`.\n\
+                    This function is simply more constrained and thus useful in generic contexts.\
+                ")]
+                pub fn parse(
+                    s: impl AsRef<str> + Into<Box<str>>,
+                ) -> Result<Box<Self>, crate::Error> {
+                    $validate_id(s.as_ref())?;
+                    Ok($id::from_owned(s.into()))
+                }
+            }
+        }
+
         opaque_identifier_common_impls!($id);
 
         impl From<Box<$id>> for String {
@@ -219,19 +237,11 @@ macro_rules! opaque_identifier_validated {
 
                 let s = String::deserialize(deserializer)?;
 
-                match try_from(s) {
+                match $id::parse(s) {
                     Ok(o) => Ok(o),
                     Err(e) => Err(D::Error::custom(e)),
                 }
             }
-        }
-
-        fn try_from<S>(s: S) -> Result<Box<$id>, crate::Error>
-        where
-            S: AsRef<str> + Into<Box<str>>,
-        {
-            $validate_id(s.as_ref())?;
-            Ok($id::from_owned(s.into()))
         }
 
         impl<'a> std::convert::TryFrom<&'a str> for &'a $id {
@@ -247,7 +257,7 @@ macro_rules! opaque_identifier_validated {
             type Err = crate::Error;
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
-                try_from(s)
+                $id::parse(s)
             }
         }
 
@@ -255,7 +265,7 @@ macro_rules! opaque_identifier_validated {
             type Error = crate::Error;
 
             fn try_from(s: &str) -> Result<Self, Self::Error> {
-                try_from(s)
+                $id::parse(s)
             }
         }
 
@@ -263,7 +273,7 @@ macro_rules! opaque_identifier_validated {
             type Error = crate::Error;
 
             fn try_from(s: String) -> Result<Self, Self::Error> {
-                try_from(s)
+                $id::parse(s)
             }
         }
     };

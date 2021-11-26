@@ -45,7 +45,7 @@ impl UserId {
         let id_str = id.as_ref();
 
         if id_str.starts_with('@') {
-            try_from(id)
+            Self::parse(id)
         } else {
             Ok(Self::from_owned(format!("@{}:{}", id_str, server_name).into()))
         }
