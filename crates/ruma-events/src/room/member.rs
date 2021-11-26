@@ -92,6 +92,12 @@ pub struct RoomMemberEventContent {
     #[cfg(feature = "unstable-pre-spec")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
+
+    /// Arbitrarily chosen `UserId` (MxID) of a local user who can send an invite.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[serde(rename = "join_authorised_via_users_server")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub join_authorized_via_users_server: Option<Box<UserId>>,
 }
 
 impl RoomMemberEventContent {
@@ -107,6 +113,12 @@ impl RoomMemberEventContent {
             blurhash: None,
             #[cfg(feature = "unstable-pre-spec")]
             reason: None,
+            #[cfg(feature = "unstable-pre-spec")]
+            join_authorized_via_users_server: None,
+        }
+    }
+}
+
         }
     }
 }
@@ -269,6 +281,8 @@ fn membership_change(
             blurhash: None,
             #[cfg(feature = "unstable-pre-spec")]
             reason: None,
+            #[cfg(feature = "unstable-pre-spec")]
+            join_authorized_via_users_server: None,
         }
     };
 
@@ -658,6 +672,51 @@ mod tests {
                     }
                 }
                 && token == "abc123"
+        );
+    }
+
+    #[cfg(feature = "unstable-pre-spec")]
+    #[test]
+    fn serde_with_join_authorized() {
+        let json = json!({
+            "type": "m.room.member",
+            "content": {
+                "membership": "join",
+                "join_authorised_via_users_server": "@notcarl:example.com"
+            },
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "room_id": "!n8f893n9:example.com",
+            "sender": "@carl:example.com",
+            "state_key": "example.com"
+        });
+
+        assert_matches!(
+            from_json_value::<StateEvent<RoomMemberEventContent>>(json).unwrap(),
+            StateEvent {
+                content: RoomMemberEventContent {
+                    avatar_url: None,
+                    displayname: None,
+                    is_direct: None,
+                    membership: MembershipState::Join,
+                    third_party_invite: None,
+                    join_authorized_via_users_server: Some(authed),
+                    ..
+                },
+                event_id,
+                origin_server_ts,
+                room_id,
+                sender,
+                state_key,
+                unsigned,
+                prev_content: None,
+            } if event_id == "$h29iv0s8:example.com"
+                && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
+                && room_id == "!n8f893n9:example.com"
+                && sender == "@carl:example.com"
+                && authed == "@notcarl:example.com"
+                && state_key == "example.com"
+                && unsigned.is_empty()
         );
     }
 }
