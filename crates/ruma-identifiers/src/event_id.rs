@@ -1,7 +1,5 @@
 //! Matrix event identifiers.
 
-use std::convert::TryInto;
-
 use crate::ServerName;
 
 /// A Matrix event ID.
@@ -68,7 +66,7 @@ impl EventId {
     ///
     /// Only applicable to events in the original format as used by Matrix room versions 1 and 2.
     pub fn server_name(&self) -> Option<&ServerName> {
-        self.colon_idx().map(|idx| self.as_str()[idx as usize + 1..].try_into().unwrap())
+        self.colon_idx().map(|idx| ServerName::from_borrowed(&self.as_str()[idx + 1..]))
     }
 
     fn colon_idx(&self) -> Option<usize> {

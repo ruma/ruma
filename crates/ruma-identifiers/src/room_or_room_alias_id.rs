@@ -43,7 +43,7 @@ impl RoomOrAliasId {
 
     /// Returns the server name of the room (alias) ID.
     pub fn server_name(&self) -> &ServerName {
-        self.as_str()[self.colon_idx() + 1..].try_into().unwrap()
+        ServerName::from_borrowed(&self.as_str()[self.colon_idx() + 1..])
     }
 
     /// Whether this is a room id (starts with `'!'`)

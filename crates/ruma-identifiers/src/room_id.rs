@@ -1,7 +1,5 @@
 //! Matrix room identifiers.
 
-use std::convert::TryInto;
-
 use crate::{EventId, MatrixToRef, ServerName};
 
 /// A Matrix room ID.
@@ -40,7 +38,7 @@ impl RoomId {
 
     /// Returns the server name of the room ID.
     pub fn server_name(&self) -> &ServerName {
-        self.as_str()[self.colon_idx() + 1..].try_into().unwrap()
+        ServerName::from_borrowed(&self.as_str()[self.colon_idx() + 1..])
     }
 
     /// Create a `matrix.to` reference for this room ID.

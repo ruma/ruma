@@ -1,7 +1,5 @@
 //! Matrix user identifiers.
 
-use std::convert::TryInto;
-
 use crate::{MatrixToRef, ServerName};
 
 /// A Matrix user ID.
@@ -60,7 +58,7 @@ impl UserId {
 
     /// Returns the server name of the user ID.
     pub fn server_name(&self) -> &ServerName {
-        self.as_str()[self.colon_idx() as usize + 1..].try_into().unwrap()
+        ServerName::from_borrowed(&self.as_str()[self.colon_idx() + 1..])
     }
 
     /// Whether this user ID is a historical one.

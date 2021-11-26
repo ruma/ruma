@@ -27,7 +27,7 @@ macro_rules! partial_eq_string {
 macro_rules! opaque_identifier_common_impls {
     ($id:ty) => {
         impl $id {
-            fn from_borrowed(s: &str) -> &Self {
+            pub(super) fn from_borrowed(s: &str) -> &Self {
                 unsafe { std::mem::transmute(s) }
             }
 

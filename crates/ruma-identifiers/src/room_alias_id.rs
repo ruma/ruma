@@ -1,7 +1,5 @@
 //! Matrix room alias identifiers.
 
-use std::convert::TryInto;
-
 use crate::{server_name::ServerName, EventId, MatrixToRef};
 
 /// A Matrix room alias ID.
@@ -31,7 +29,7 @@ impl RoomAliasId {
 
     /// Returns the server name of the room alias ID.
     pub fn server_name(&self) -> &ServerName {
-        self.as_str()[self.colon_idx() + 1..].try_into().unwrap()
+        ServerName::from_borrowed(&self.as_str()[self.colon_idx() + 1..])
     }
 
     /// Create a `matrix.to` reference for this room alias ID.
