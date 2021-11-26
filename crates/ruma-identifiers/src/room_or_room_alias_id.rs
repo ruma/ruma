@@ -1,9 +1,6 @@
 //! Matrix identifiers for places where a room ID or room alias ID are used interchangeably.
 
-use std::{
-    convert::{TryFrom, TryInto},
-    hint::unreachable_unchecked,
-};
+use std::{convert::TryFrom, hint::unreachable_unchecked};
 
 use crate::{server_name::ServerName, RoomAliasId, RoomId};
 
@@ -89,13 +86,13 @@ enum Variant {
 
 impl From<Box<RoomId>> for Box<RoomOrAliasId> {
     fn from(room_id: Box<RoomId>) -> Self {
-        Self::try_from(room_id.as_str()).unwrap()
+        RoomOrAliasId::from_owned(room_id.into_owned())
     }
 }
 
 impl From<Box<RoomAliasId>> for Box<RoomOrAliasId> {
     fn from(room_alias_id: Box<RoomAliasId>) -> Self {
-        Self::try_from(room_alias_id.as_str()).unwrap()
+        RoomOrAliasId::from_owned(room_alias_id.into_owned())
     }
 }
 
@@ -104,8 +101,8 @@ impl TryFrom<Box<RoomOrAliasId>> for Box<RoomId> {
 
     fn try_from(id: Box<RoomOrAliasId>) -> Result<Box<RoomId>, Box<RoomAliasId>> {
         match id.variant() {
-            Variant::RoomId => Ok(id.as_str().try_into().unwrap()),
-            Variant::RoomAliasId => Err(id.as_str().try_into().unwrap()),
+            Variant::RoomId => Ok(RoomId::from_owned(id.into_owned())),
+            Variant::RoomAliasId => Err(RoomAliasId::from_owned(id.into_owned())),
         }
     }
 }
@@ -115,8 +112,8 @@ impl TryFrom<Box<RoomOrAliasId>> for Box<RoomAliasId> {
 
     fn try_from(id: Box<RoomOrAliasId>) -> Result<Box<RoomAliasId>, Box<RoomId>> {
         match id.variant() {
-            Variant::RoomAliasId => Ok(id.as_str().try_into().unwrap()),
-            Variant::RoomId => Err(id.as_str().try_into().unwrap()),
+            Variant::RoomAliasId => Ok(RoomAliasId::from_owned(id.into_owned())),
+            Variant::RoomId => Err(RoomId::from_owned(id.into_owned())),
         }
     }
 }

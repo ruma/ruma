@@ -35,7 +35,7 @@ macro_rules! opaque_identifier_common_impls {
                 unsafe { Box::from_raw(Box::into_raw(s) as _) }
             }
 
-            fn into_owned(self: Box<Self>) -> Box<str> {
+            pub(super) fn into_owned(self: Box<Self>) -> Box<str> {
                 unsafe { Box::from_raw(Box::into_raw(self) as _) }
             }
 
