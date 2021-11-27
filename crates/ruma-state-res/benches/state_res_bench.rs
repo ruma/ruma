@@ -8,6 +8,7 @@
 #![allow(clippy::exhaustive_structs)]
 
 use std::{
+    borrow::Borrow,
     collections::{HashMap, HashSet},
     convert::TryInto,
     sync::{
@@ -182,11 +183,7 @@ impl<E: Event> TestStore<E> {
     }
 
     /// Returns a Vec of the related auth events to the given `event`.
-    fn auth_event_ids(
-        &self,
-        room_id: &RoomId,
-        event_ids: Vec<Box<EventId>>,
-    ) -> Result<HashSet<Box<EventId>>> {
+    fn auth_event_ids(&self, room_id: &RoomId, event_ids: Vec<E::Id>) -> Result<HashSet<E::Id>> {
         let mut result = HashSet::new();
         let mut stack = event_ids;
 
@@ -199,7 +196,7 @@ impl<E: Event> TestStore<E> {
 
             result.insert(ev_id.clone());
 
-            let event = self.get_event(room_id, &ev_id)?;
+            let event = self.get_event(room_id, ev_id.borrow())?;
 
             stack.extend(event.auth_events().map(ToOwned::to_owned));
         }
@@ -207,13 +204,8 @@ impl<E: Event> TestStore<E> {
         Ok(result)
     }
 
-    /// Returns a Vec<Box<EventId>> representing the difference in auth chains of the given
-    /// `events`.
-    fn auth_chain_diff(
-        &self,
-        room_id: &RoomId,
-        event_ids: Vec<Vec<Box<EventId>>>,
-    ) -> Result<Vec<Box<EventId>>> {
+    /// Returns a vector representing the difference in auth chains of the given `events`.
+    fn auth_chain_diff(&self, room_id: &RoomId, event_ids: Vec<Vec<E::Id>>) -> Result<Vec<E::Id>> {
         let mut auth_chain_sets = vec![];
         for ids in event_ids {
             // TODO state store `auth_event_ids` returns self in the event ids list
@@ -226,9 +218,13 @@ impl<E: Event> TestStore<E> {
             let common = auth_chain_sets
                 .iter()
                 .skip(1)
-                .fold(first, |a, b| a.intersection(b).cloned().collect::<HashSet<Box<EventId>>>());
+                .fold(first, |a, b| a.intersection(b).cloned().collect::<HashSet<_>>());
 
-            Ok(auth_chain_sets.into_iter().flatten().filter(|id| !common.contains(id)).collect())
+            Ok(auth_chain_sets
+                .into_iter()
+                .flatten()
+                .filter(|id| !common.contains(id.borrow()))
+                .collect())
         } else {
             Ok(vec![])
         }
@@ -546,7 +542,9 @@ mod event {
     use serde_json::value::RawValue as RawJsonValue;
 
     impl Event for StateEvent {
-        fn event_id(&self) -> &EventId {
+        type Id = Box<EventId>;
+
+        fn event_id(&self) -> &Self::Id {
             &self.event_id
         }
 
@@ -604,28 +602,28 @@ mod event {
             }
         }
 
-        fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
+        fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
             match &self.rest {
-                Pdu::RoomV1Pdu(ev) => Box::new(ev.prev_events.iter().map(|(id, _)| &**id)),
-                Pdu::RoomV3Pdu(ev) => Box::new(ev.prev_events.iter().map(|id| &**id)),
+                Pdu::RoomV1Pdu(ev) => Box::new(ev.prev_events.iter().map(|(id, _)| id)),
+                Pdu::RoomV3Pdu(ev) => Box::new(ev.prev_events.iter()),
                 #[cfg(not(feature = "unstable-exhaustive-types"))]
                 _ => unreachable!("new PDU version"),
             }
         }
 
-        fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
+        fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
             match &self.rest {
-                Pdu::RoomV1Pdu(ev) => Box::new(ev.auth_events.iter().map(|(id, _)| &**id)),
-                Pdu::RoomV3Pdu(ev) => Box::new(ev.auth_events.iter().map(|id| &**id)),
+                Pdu::RoomV1Pdu(ev) => Box::new(ev.auth_events.iter().map(|(id, _)| id)),
+                Pdu::RoomV3Pdu(ev) => Box::new(ev.auth_events.iter()),
                 #[cfg(not(feature = "unstable-exhaustive-types"))]
                 _ => unreachable!("new PDU version"),
             }
         }
 
-        fn redacts(&self) -> Option<&EventId> {
+        fn redacts(&self) -> Option<&Self::Id> {
             match &self.rest {
-                Pdu::RoomV1Pdu(ev) => ev.redacts.as_deref(),
-                Pdu::RoomV3Pdu(ev) => ev.redacts.as_deref(),
+                Pdu::RoomV1Pdu(ev) => ev.redacts.as_ref(),
+                Pdu::RoomV3Pdu(ev) => ev.redacts.as_ref(),
                 #[cfg(not(feature = "unstable-exhaustive-types"))]
                 _ => unreachable!("new PDU version"),
             }

@@ -1,4 +1,9 @@
-use std::sync::Arc;
+use std::{
+    borrow::Borrow,
+    fmt::{Debug, Display},
+    hash::Hash,
+    sync::Arc,
+};
 
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::EventType;
@@ -7,8 +12,10 @@ use serde_json::value::RawValue as RawJsonValue;
 
 /// Abstraction of a PDU so users can have their own PDU types.
 pub trait Event {
+    type Id: Clone + Debug + Display + Eq + Ord + Hash + Borrow<EventId>;
+
     /// The `EventId` of this event.
-    fn event_id(&self) -> &EventId;
+    fn event_id(&self) -> &Self::Id;
 
     /// The `RoomId` of this event.
     fn room_id(&self) -> &RoomId;
@@ -30,18 +37,20 @@ pub trait Event {
 
     /// The events before this event.
     // Requires GATs to avoid boxing (and TAIT for making it convenient).
-    fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_>;
+    fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_>;
 
     /// All the authenticating events for this event.
     // Requires GATs to avoid boxing (and TAIT for making it convenient).
-    fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_>;
+    fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_>;
 
     /// If this event is a redaction event this is the event it redacts.
-    fn redacts(&self) -> Option<&EventId>;
+    fn redacts(&self) -> Option<&Self::Id>;
 }
 
 impl<T: Event> Event for &T {
-    fn event_id(&self) -> &EventId {
+    type Id = T::Id;
+
+    fn event_id(&self) -> &Self::Id {
         (*self).event_id()
     }
 
@@ -69,21 +78,23 @@ impl<T: Event> Event for &T {
         (*self).state_key()
     }
 
-    fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
+    fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
         (*self).prev_events()
     }
 
-    fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
+    fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
         (*self).auth_events()
     }
 
-    fn redacts(&self) -> Option<&EventId> {
+    fn redacts(&self) -> Option<&Self::Id> {
         (*self).redacts()
     }
 }
 
 impl<T: Event> Event for Arc<T> {
-    fn event_id(&self) -> &EventId {
+    type Id = T::Id;
+
+    fn event_id(&self) -> &Self::Id {
         (&**self).event_id()
     }
 
@@ -111,15 +122,15 @@ impl<T: Event> Event for Arc<T> {
         (&**self).state_key()
     }
 
-    fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
+    fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
         (&**self).prev_events()
     }
 
-    fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &EventId> + '_> {
+    fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
         (&**self).auth_events()
     }
 
-    fn redacts(&self) -> Option<&EventId> {
+    fn redacts(&self) -> Option<&Self::Id> {
         (&**self).redacts()
     }
 }

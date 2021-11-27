@@ -1,4 +1,4 @@
-use std::{collections::BTreeSet, convert::TryFrom};
+use std::{borrow::Borrow, collections::BTreeSet, convert::TryFrom};
 
 use js_int::{int, Int};
 use ruma_events::{
@@ -749,8 +749,8 @@ fn check_redaction(
 
     // If the domain of the event_id of the event being redacted is the same as the
     // domain of the event_id of the m.room.redaction, allow
-    if redaction_event.event_id().server_name()
-        == redaction_event.redacts().as_ref().and_then(|id| id.server_name())
+    if redaction_event.event_id().borrow().server_name()
+        == redaction_event.redacts().as_ref().and_then(|&id| id.borrow().server_name())
     {
         info!("redaction event allowed via room version 1 rules");
         return Ok(true);
