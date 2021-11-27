@@ -53,15 +53,15 @@ type EventMap<T> = HashMap<Box<EventId>, T>;
 ///
 /// The caller of `resolve` must ensure that all the events are from the same room. Although this
 /// function takes a `RoomId` it does not check that each event is part of the same room.
-pub fn resolve<'a, E, SSI>(
+pub fn resolve<'a, E, SetIter>(
     room_version: &RoomVersionId,
-    state_sets: impl IntoIterator<IntoIter = SSI>,
+    state_sets: impl IntoIterator<IntoIter = SetIter>,
     auth_chain_sets: Vec<HashSet<Box<EventId>>>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) -> Result<StateMap<Box<EventId>>>
 where
     E: Event + Clone,
-    SSI: Iterator<Item = &'a StateMap<Box<EventId>>> + Clone,
+    SetIter: Iterator<Item = &'a StateMap<Box<EventId>>> + Clone,
 {
     info!("State resolution starting");
 
