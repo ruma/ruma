@@ -8,11 +8,10 @@ use std::{
 };
 
 use base64::{decode_config, encode_config, Config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
-use ed25519_dalek::Digest;
 use ruma_identifiers::{EventId, RoomVersionId, ServerName, UserId};
 use ruma_serde::{CanonicalJsonObject, CanonicalJsonValue};
 use serde_json::{from_str as from_json_str, to_string as to_json_string};
-use sha2::Sha256;
+use sha2::{digest::Digest, Sha256};
 
 use crate::{
     keys::{KeyPair, PublicKeyMap},
