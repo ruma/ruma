@@ -30,9 +30,6 @@ pub use state_event::Event;
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
 pub type StateMap<T> = HashMap<(EventType, String), T>;
 
-/// A mapping of `EventId` to `T`, usually a `ServerPdu`.
-type EventMap<T> = HashMap<Box<EventId>, T>;
-
 /// Resolve sets of state events as they come in.
 ///
 /// Internally `StateResolution` builds a graph and an auth chain to allow for state conflict
@@ -558,7 +555,7 @@ fn mainline_sort<E: Event>(
 /// associated mainline depth.
 fn get_mainline_depth<E: Event>(
     mut event: Option<E>,
-    mainline_map: &EventMap<usize>,
+    mainline_map: &HashMap<Box<EventId>, usize>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) -> Result<usize> {
     while let Some(sort_ev) = event {
@@ -660,7 +657,7 @@ mod tests {
             alice, bob, charlie, do_check, ella, event_id, member_content_ban, member_content_join,
             room_id, to_init_pdu_event, to_pdu_event, zara, StateEvent, TestStore, INITIAL_EVENTS,
         },
-        Event, EventMap, StateMap,
+        Event, StateMap,
     };
 
     fn test_event_sort() {
@@ -1049,7 +1046,7 @@ mod tests {
         // build up the DAG
         let (state_at_bob, state_at_charlie, expected) = store.set_up();
 
-        let ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
+        let ev_map = store.0.clone();
         let state_sets = [state_at_bob, state_at_charlie];
         let resolved = match crate::resolve(
             &RoomVersionId::V2,
@@ -1153,7 +1150,7 @@ mod tests {
         })
         .collect::<StateMap<_>>();
 
-        let ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
+        let ev_map = store.0.clone();
         let state_sets = [state_set_a, state_set_b];
         let resolved = match crate::resolve(
             &RoomVersionId::V6,
