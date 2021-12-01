@@ -29,6 +29,11 @@ ruma_api! {
         /// One-time public keys for "pre-key" messages.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub one_time_keys: Option<BTreeMap<Box<DeviceKeyId>, Raw<OneTimeKey>>>,
+
+        /// Fallback public keys for "pre-key" messages.
+        #[cfg(feature = "unstable-pre-spec")]
+        #[serde(skip_serializing_if = "Option::is_none", rename = "org.matrix.msc2732.fallback_keys")]
+        pub fallback_keys: Option<BTreeMap<Box<DeviceKeyId>, Raw<OneTimeKey>>>,
     }
 
     response: {

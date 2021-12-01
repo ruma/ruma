@@ -93,6 +93,15 @@ ruma_api! {
         /// currently held on the server for a device.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
         pub device_one_time_keys_count: BTreeMap<DeviceKeyAlgorithm, UInt>,
+
+        /// For each key algorithm, the number of unclaimed one-time keys
+        /// currently held on the server for a device.
+        ///
+        /// The presence of this field indicates that the server supports
+        /// fallback keys.
+        #[cfg(feature = "unstable-pre-spec")]
+        #[serde(rename = "org.matrix.msc2732.device_unused_fallback_key_types")]
+        pub device_unused_fallback_key_types: Option<Vec<DeviceKeyAlgorithm>>,
     }
 
     error: crate::Error
@@ -116,6 +125,8 @@ impl Response {
             to_device: Default::default(),
             device_lists: Default::default(),
             device_one_time_keys_count: BTreeMap::new(),
+            #[cfg(feature = "unstable-pre-spec")]
+            device_unused_fallback_key_types: None,
         }
     }
 }
