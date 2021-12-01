@@ -83,12 +83,28 @@ pub struct SignedKey {
 
     /// Signatures for the key object.
     pub signatures: SignedKeySignatures,
+
+    /// Is this key considered to be a fallback key, defaults to false.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    pub fallback: bool,
 }
 
 impl SignedKey {
     /// Creates a new `SignedKey` with the given key and signatures.
     pub fn new(key: String, signatures: SignedKeySignatures) -> Self {
-        Self { key, signatures }
+        Self {
+            key,
+            signatures,
+            #[cfg(feature = "unstable-pre-spec")]
+            fallback: false,
+        }
+    }
+
+    /// Creates a new fallback `SignedKey` with the given key and signatures.
+    #[cfg(feature = "unstable-pre-spec")]
+    pub fn new_fallback(key: String, signatures: SignedKeySignatures) -> Self {
+        Self { key, signatures, fallback: true }
     }
 }
 
