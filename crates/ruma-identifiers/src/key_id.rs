@@ -4,7 +4,9 @@ use std::{
     fmt,
     hash::{Hash, Hasher},
     marker::PhantomData,
+    rc::Rc,
     str::FromStr,
+    sync::Arc,
 };
 
 use crate::{crypto_algorithms::SigningKeyAlgorithm, DeviceId, KeyName};
@@ -108,17 +110,17 @@ impl<A, K: ?Sized> AsRef<str> for Box<KeyId<A, K>> {
     }
 }
 
-impl<A, K: ?Sized> From<&KeyId<A, K>> for std::rc::Rc<KeyId<A, K>> {
-    fn from(s: &KeyId<A, K>) -> std::rc::Rc<KeyId<A, K>> {
-        let rc = std::rc::Rc::<str>::from(s.as_str());
-        unsafe { std::rc::Rc::from_raw(std::rc::Rc::into_raw(rc) as *const KeyId<A, K>) }
+impl<A, K: ?Sized> From<&KeyId<A, K>> for Rc<KeyId<A, K>> {
+    fn from(s: &KeyId<A, K>) -> Rc<KeyId<A, K>> {
+        let rc = Rc::<str>::from(s.as_str());
+        unsafe { Rc::from_raw(Rc::into_raw(rc) as *const KeyId<A, K>) }
     }
 }
 
-impl<A, K: ?Sized> From<&KeyId<A, K>> for std::sync::Arc<KeyId<A, K>> {
-    fn from(s: &KeyId<A, K>) -> std::sync::Arc<KeyId<A, K>> {
-        let arc = std::sync::Arc::<str>::from(s.as_str());
-        unsafe { std::sync::Arc::from_raw(std::sync::Arc::into_raw(arc) as *const KeyId<A, K>) }
+impl<A, K: ?Sized> From<&KeyId<A, K>> for Arc<KeyId<A, K>> {
+    fn from(s: &KeyId<A, K>) -> Arc<KeyId<A, K>> {
+        let arc = Arc::<str>::from(s.as_str());
+        unsafe { Arc::from_raw(Arc::into_raw(arc) as *const KeyId<A, K>) }
     }
 }
 
