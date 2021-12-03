@@ -4,6 +4,7 @@ use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
+use ruma_serde::Raw;
 
 use super::RoomKeyBackup;
 
@@ -27,7 +28,7 @@ ruma_api! {
 
     response: {
         /// A map from room IDs to session IDs to key data.
-        pub rooms: BTreeMap<Box<RoomId>, RoomKeyBackup>,
+        pub rooms: BTreeMap<Box<RoomId>, Raw<RoomKeyBackup>>,
     }
 
     error: crate::Error
@@ -42,7 +43,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given room key backups.
-    pub fn new(rooms: BTreeMap<Box<RoomId>, RoomKeyBackup>) -> Self {
+    pub fn new(rooms: BTreeMap<Box<RoomId>, Raw<RoomKeyBackup>>) -> Self {
         Self { rooms }
     }
 }

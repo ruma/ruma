@@ -2,6 +2,7 @@
 
 use js_int::UInt;
 use ruma_api::ruma_api;
+use ruma_serde::Raw;
 
 use super::BackupAlgorithm;
 
@@ -21,7 +22,7 @@ ruma_api! {
     response: {
         /// The algorithm used for storing backups.
         #[serde(flatten)]
-        pub algorithm: BackupAlgorithm,
+        pub algorithm: Raw<BackupAlgorithm>,
 
         /// The number of keys stored in the backup.
         pub count: UInt,
@@ -48,7 +49,12 @@ impl Request {
 
 impl Response {
     /// Creates a new `Response` with the given algorithm, key count, etag and version.
-    pub fn new(algorithm: BackupAlgorithm, count: UInt, etag: String, version: String) -> Self {
+    pub fn new(
+        algorithm: Raw<BackupAlgorithm>,
+        count: UInt,
+        etag: String,
+        version: String,
+    ) -> Self {
         Self { algorithm, count, etag, version }
     }
 }

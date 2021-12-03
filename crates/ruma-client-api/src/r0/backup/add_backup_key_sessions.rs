@@ -5,6 +5,7 @@ use std::collections::BTreeMap;
 use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
+use ruma_serde::Raw;
 
 use super::KeyBackupData;
 
@@ -30,7 +31,7 @@ ruma_api! {
         pub room_id: &'a RoomId,
 
         /// A map from session IDs to key data.
-        pub sessions: BTreeMap<String, KeyBackupData>,
+        pub sessions: BTreeMap<String, Raw<KeyBackupData>>,
     }
 
     response: {
@@ -52,7 +53,7 @@ impl<'a> Request<'a> {
     pub fn new(
         version: &'a str,
         room_id: &'a RoomId,
-        sessions: BTreeMap<String, KeyBackupData>,
+        sessions: BTreeMap<String, Raw<KeyBackupData>>,
     ) -> Self {
         Self { version, room_id, sessions }
     }
