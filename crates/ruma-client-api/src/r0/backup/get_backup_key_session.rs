@@ -2,6 +2,7 @@
 
 use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
+use ruma_serde::Raw;
 
 use super::KeyBackupData;
 
@@ -34,7 +35,7 @@ ruma_api! {
     response: {
         /// Information about the requested backup key.
         #[ruma_api(body)]
-        pub key_data: KeyBackupData,
+        pub key_data: Raw<KeyBackupData>,
     }
 
     error: crate::Error
@@ -49,7 +50,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given key_data.
-    pub fn new(key_data: KeyBackupData) -> Self {
+    pub fn new(key_data: Raw<KeyBackupData>) -> Self {
         Self { key_data }
     }
 }

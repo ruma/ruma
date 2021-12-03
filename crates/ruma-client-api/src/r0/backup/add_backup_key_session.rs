@@ -3,6 +3,7 @@
 use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
+use ruma_serde::Raw;
 
 use super::KeyBackupData;
 
@@ -33,7 +34,7 @@ ruma_api! {
 
         /// The key information to backup.
         #[ruma_api(body)]
-        pub session_data: KeyBackupData,
+        pub session_data: Raw<KeyBackupData>,
     }
 
     response: {
@@ -56,7 +57,7 @@ impl<'a> Request<'a> {
         version: &'a str,
         room_id: &'a RoomId,
         session_id: &'a str,
-        session_data: KeyBackupData,
+        session_data: Raw<KeyBackupData>,
     ) -> Self {
         Self { version, room_id, session_id, session_data }
     }

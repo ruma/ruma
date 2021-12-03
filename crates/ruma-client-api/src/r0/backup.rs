@@ -19,6 +19,7 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_identifiers::{DeviceKeyId, UserId};
+use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};
 
 /// A wrapper around a mapping of session IDs to key data.
@@ -26,12 +27,12 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomKeyBackup {
     /// A map of session IDs to key data.
-    pub sessions: BTreeMap<String, KeyBackupData>,
+    pub sessions: BTreeMap<String, Raw<KeyBackupData>>,
 }
 
 impl RoomKeyBackup {
     /// Creates a new `RoomKeyBackup` with the given sessions.
-    pub fn new(sessions: BTreeMap<String, KeyBackupData>) -> Self {
+    pub fn new(sessions: BTreeMap<String, Raw<KeyBackupData>>) -> Self {
         Self { sessions }
     }
 }
