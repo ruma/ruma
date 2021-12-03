@@ -70,13 +70,13 @@ impl Response {
 #[incoming_derive(PartialEq)]
 #[serde(untagged)]
 pub enum InvitationRecipient<'a> {
-    /// Used to invite user by their Matrix identifer.
+    /// Used to invite user by their Matrix identifier.
     UserId {
         /// Matrix identifier of user.
         user_id: &'a UserId,
     },
 
-    /// Used to invite user by a third party identifer.
+    /// Used to invite user by a third party identifier.
     ThirdPartyId(Invite3pid<'a>),
 }
 

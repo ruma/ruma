@@ -84,7 +84,7 @@ Breaking changes:
 
 Improvements:
 
-* The `EndpointError`s that come with ruma crates now implement `std::errror::Error`
+* The `EndpointError`s that come with ruma crates now implement `std::error::Error`
 * Add a new `MatrixError` type to the `error` module that consists of a HTTP status code and JSON
   `body` and is the new default error type for `ruma_api!`
 

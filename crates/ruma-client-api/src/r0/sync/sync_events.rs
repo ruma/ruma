@@ -79,7 +79,7 @@ ruma_api! {
         #[serde(default, skip_serializing_if = "GlobalAccountData::is_empty")]
         pub account_data: GlobalAccountData,
 
-        /// Messages sent dirrectly between devices.
+        /// Messages sent directly between devices.
         #[serde(default, skip_serializing_if = "ToDevice::is_empty")]
         pub to_device: ToDevice,
 
@@ -539,7 +539,7 @@ impl Presence {
     }
 }
 
-/// Messages sent dirrectly between devices.
+/// Messages sent directly between devices.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ToDevice {
@@ -560,7 +560,7 @@ impl ToDevice {
     }
 }
 
-/// Information on E2E device udpates.
+/// Information on E2E device updates.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct DeviceLists {

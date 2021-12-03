@@ -198,7 +198,7 @@ impl ResponseField {
         }
     }
 
-    /// Return the contained field and HTTP header ident if this repsonse field is a header kind.
+    /// Return the contained field and HTTP header ident if this response field is a header kind.
     fn as_header_field(&self) -> Option<(&Field, &Ident)> {
         match self {
             ResponseField::Header(field, ident) => Some((field, ident)),

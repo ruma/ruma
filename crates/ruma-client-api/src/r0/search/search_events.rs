@@ -217,7 +217,7 @@ impl EventContextResult {
     }
 }
 
-/// A grouping for partioning the result set.
+/// A grouping for partitioning the result set.
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Grouping {
