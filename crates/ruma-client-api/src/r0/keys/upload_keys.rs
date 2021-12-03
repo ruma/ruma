@@ -6,6 +6,7 @@ use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_common::encryption::{DeviceKeys, OneTimeKey};
 use ruma_identifiers::{DeviceKeyAlgorithm, DeviceKeyId};
+use ruma_serde::Raw;
 
 ruma_api! {
     metadata: {
@@ -23,11 +24,11 @@ ruma_api! {
         ///
         /// May be absent if no new identity keys are required.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub device_keys: Option<DeviceKeys>,
+        pub device_keys: Option<Raw<DeviceKeys>>,
 
         /// One-time public keys for "pre-key" messages.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub one_time_keys: Option<BTreeMap<Box<DeviceKeyId>, OneTimeKey>>,
+        pub one_time_keys: Option<BTreeMap<Box<DeviceKeyId>, Raw<OneTimeKey>>>,
     }
 
     response: {
