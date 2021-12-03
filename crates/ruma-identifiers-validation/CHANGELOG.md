@@ -48,4 +48,4 @@ Improvements:
 
 Breaking changes:
 
-* Remove `key_algorithms` module (moved to ruma-identifers as `crypto_algorithms`)
+* Remove `key_algorithms` module (moved to ruma-identifiers as `crypto_algorithms`)

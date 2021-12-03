@@ -156,7 +156,7 @@ Breaking changes:
   ids without the need to understand the concrete method.
 * Change `get_message_events` limit field type from `Option<UInt>` to `UInt`
 * Add `alt_aliases` to `CanonicalAliasEventContent`
-* Replace `format` and `formatted_body` fields in `TextMessagEventContent`,
+* Replace `format` and `formatted_body` fields in `TextMessageEventContent`,
   `NoticeMessageEventContent` and `EmoteMessageEventContent` with `formatted: FormattedBody`
 * Rename `override_rules` in `push_rules::Ruleset` to `override_`
 * Change `push_rules::PushCondition` variants from newtype variants with separate inner types to
@@ -297,7 +297,7 @@ Improvements:
 
 Breaking changes:
 
-* `collections::only` no longer exports a `raw` submodule. It was never meant ot be exported in the first place.
+* `collections::only` no longer exports a `raw` submodule. It was never meant to be exported in the first place.
 * Renamed `stripped::{StrippedState => AnyStrippedStateEvent, StrippedStateContent => StrippedStateEvent}`
 
 Improvements:

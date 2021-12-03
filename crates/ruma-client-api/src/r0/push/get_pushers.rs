@@ -57,7 +57,7 @@ pub struct Pusher {
 
     /// A reverse-DNS style identifier for the application.
     ///
-    /// The maximum allowed lenght is 64 bytes.
+    /// The maximum allowed length is 64 bytes.
     pub app_id: String,
 
     /// A string that will allow the user to identify what application owns this pusher.

@@ -729,7 +729,7 @@ impl IncomingUserIdentifier {
     }
 }
 
-/// Credentials for thirdparty authentification (e.g. email / phone number).
+/// Credentials for third-party authentication (e.g. email / phone number).
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ThirdpartyIdCredentials {

@@ -200,7 +200,7 @@ Improvements:
 * Add method `into_event_content` for `r0::room::create_room::CreationContent`
 * Add room visibility endpoints: `r0::directory::{get_room_visibility, set_room_visibility}`.
 * Add is_empty helpers for structs in `r0::sync::sync_events`
-* Add a constructor for request structs of the followign endpoints
+* Add a constructor for request structs of the following endpoints
   * `r0::room::create_room`
   * `r0::message::get_message_events`
 * Add `logout_devices` field to `r0::account::change_password`
@@ -276,7 +276,7 @@ Improvements:
 * Add missing serde attributes to `get_content_thumbnail` query parameters
 * Add missing `state` response field to `r0::message::get_message_events`
 * Normalize `serde_json` imports
-* Remove dependeny on the `url` crate
+* Remove dependency on the `url` crate
 
 # 0.7.2
 
@@ -368,7 +368,7 @@ Improvements:
   * `r0::account::request_3pid_management_token_via_msisdn`
   * `r0::account::request_password_change_token_via_msisdn`
   * `r0::account::request_registration_token_via_msisdn`
-  * `r0::acount::request_3pid_management_token_via_email`
+  * `r0::account::request_3pid_management_token_via_email`
 * Update `r0::presence_get_presence` from r0.4.0 to r0.6.0
 * Add `r0::account::bind_3pid`
 * Add `r0::account::delete_3pid`
