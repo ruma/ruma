@@ -5,6 +5,7 @@ use std::{collections::BTreeMap, time::Duration};
 use ruma_api::ruma_api;
 use ruma_common::encryption::OneTimeKey;
 use ruma_identifiers::{DeviceId, DeviceKeyAlgorithm, DeviceKeyId, UserId};
+use ruma_serde::Raw;
 use serde_json::Value as JsonValue;
 
 ruma_api! {
@@ -60,4 +61,4 @@ impl Response {
 }
 
 /// The one-time keys for a given device.
-pub type OneTimeKeys = BTreeMap<Box<DeviceId>, BTreeMap<Box<DeviceKeyId>, OneTimeKey>>;
+pub type OneTimeKeys = BTreeMap<Box<DeviceId>, BTreeMap<Box<DeviceKeyId>, Raw<OneTimeKey>>>;
