@@ -69,7 +69,7 @@ pub struct RoomVersion {
 }
 
 impl RoomVersion {
-    pub const VERSION1: Self = Self {
+    pub const V1: Self = Self {
         disposition: RoomDisposition::Stable,
         event_format: EventFormatVersion::V1,
         state_res: StateResolutionVersion::V1,
@@ -82,53 +82,50 @@ impl RoomVersion {
         restricted_join_rules: false,
     };
 
-    pub const VERSION2: Self = Self { state_res: StateResolutionVersion::V2, ..Self::VERSION1 };
+    pub const V2: Self = Self { state_res: StateResolutionVersion::V2, ..Self::V1 };
 
-    pub const VERSION3: Self = Self {
-        event_format: EventFormatVersion::V2,
-        extra_redaction_checks: true,
-        ..Self::VERSION2
-    };
+    pub const V3: Self =
+        Self { event_format: EventFormatVersion::V2, extra_redaction_checks: true, ..Self::V2 };
 
-    pub const VERSION4: Self = Self { event_format: EventFormatVersion::V3, ..Self::VERSION3 };
+    pub const V4: Self = Self { event_format: EventFormatVersion::V3, ..Self::V3 };
 
-    pub const VERSION5: Self = Self { enforce_key_validity: true, ..Self::VERSION4 };
+    pub const V5: Self = Self { enforce_key_validity: true, ..Self::V4 };
 
-    pub const VERSION6: Self = Self {
+    pub const V6: Self = Self {
         special_case_aliases_auth: false,
         strict_canonicaljson: true,
         limit_notifications_power_levels: true,
-        ..Self::VERSION5
+        ..Self::V5
     };
 
     #[cfg(feature = "unstable-pre-spec")]
-    pub const VERSION7: Self = Self {
+    pub const V7: Self = Self {
         // FIXME: once room version 7 is stabilized move this to version 8
         disposition: RoomDisposition::Unstable,
         allow_knocking: true,
-        ..Self::VERSION6
+        ..Self::V6
     };
 
     #[cfg(feature = "unstable-pre-spec")]
-    pub const VERSION8: Self = Self { restricted_join_rules: true, ..Self::VERSION7 };
+    pub const V8: Self = Self { restricted_join_rules: true, ..Self::V7 };
 
     #[cfg(feature = "unstable-pre-spec")]
-    pub const VERSION9: Self = Self::VERSION8;
+    pub const V9: Self = Self::V8;
 
     pub fn new(version: &RoomVersionId) -> Result<Self> {
         Ok(match version {
-            RoomVersionId::V1 => Self::VERSION1,
-            RoomVersionId::V2 => Self::VERSION2,
-            RoomVersionId::V3 => Self::VERSION3,
-            RoomVersionId::V4 => Self::VERSION4,
-            RoomVersionId::V5 => Self::VERSION5,
-            RoomVersionId::V6 => Self::VERSION6,
+            RoomVersionId::V1 => Self::V1,
+            RoomVersionId::V2 => Self::V2,
+            RoomVersionId::V3 => Self::V3,
+            RoomVersionId::V4 => Self::V4,
+            RoomVersionId::V5 => Self::V5,
+            RoomVersionId::V6 => Self::V6,
             #[cfg(feature = "unstable-pre-spec")]
-            RoomVersionId::V7 => Self::VERSION7,
+            RoomVersionId::V7 => Self::V7,
             #[cfg(feature = "unstable-pre-spec")]
-            RoomVersionId::V8 => Self::VERSION8,
+            RoomVersionId::V8 => Self::V8,
             #[cfg(feature = "unstable-pre-spec")]
-            RoomVersionId::V9 => Self::VERSION9,
+            RoomVersionId::V9 => Self::V9,
             ver => return Err(Error::Unsupported(format!("found version `{}`", ver.as_str()))),
         })
     }

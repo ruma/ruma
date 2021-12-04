@@ -696,7 +696,7 @@ mod tests {
             .unwrap();
 
         let resolved_power = crate::iterative_auth_check(
-            &RoomVersion::VERSION6,
+            &RoomVersion::V6,
             &sorted_power_events,
             HashMap::new(), // unconflicted events
             |id| events.get(id).map(Arc::clone),

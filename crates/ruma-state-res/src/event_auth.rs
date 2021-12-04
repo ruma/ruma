@@ -899,7 +899,7 @@ mod tests {
         let sender = alice();
 
         assert!(valid_membership_change(
-            &RoomVersion::VERSION6,
+            &RoomVersion::V6,
             &target_user,
             fetch_state(EventType::RoomMember, target_user.to_string()),
             &sender,
@@ -944,7 +944,7 @@ mod tests {
         let sender = charlie();
 
         assert!(!valid_membership_change(
-            &RoomVersion::VERSION6,
+            &RoomVersion::V6,
             &target_user,
             fetch_state(EventType::RoomMember, target_user.to_string()),
             &sender,
