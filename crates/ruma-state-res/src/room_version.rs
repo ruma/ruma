@@ -33,8 +33,6 @@ pub enum StateResolutionVersion {
 
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomVersion {
-    /// The version this room is set to.
-    pub version: RoomVersionId,
     /// The stability of this room.
     pub disposition: RoomDisposition,
     /// The format of the EventId.
@@ -72,7 +70,6 @@ pub struct RoomVersion {
 
 impl RoomVersion {
     pub const VERSION1: Self = Self {
-        version: RoomVersionId::V1,
         disposition: RoomDisposition::Stable,
         event_format: EventFormatVersion::V1,
         state_res: StateResolutionVersion::V1,
@@ -85,27 +82,19 @@ impl RoomVersion {
         restricted_join_rules: false,
     };
 
-    pub const VERSION2: Self = Self {
-        version: RoomVersionId::V2,
-        state_res: StateResolutionVersion::V2,
-        ..Self::VERSION1
-    };
+    pub const VERSION2: Self = Self { state_res: StateResolutionVersion::V2, ..Self::VERSION1 };
 
     pub const VERSION3: Self = Self {
-        version: RoomVersionId::V3,
         event_format: EventFormatVersion::V2,
         extra_redaction_checks: true,
         ..Self::VERSION2
     };
 
-    pub const VERSION4: Self =
-        Self { version: RoomVersionId::V4, event_format: EventFormatVersion::V3, ..Self::VERSION3 };
+    pub const VERSION4: Self = Self { event_format: EventFormatVersion::V3, ..Self::VERSION3 };
 
-    pub const VERSION5: Self =
-        Self { version: RoomVersionId::V5, enforce_key_validity: true, ..Self::VERSION4 };
+    pub const VERSION5: Self = Self { enforce_key_validity: true, ..Self::VERSION4 };
 
     pub const VERSION6: Self = Self {
-        version: RoomVersionId::V5,
         special_case_aliases_auth: false,
         strict_canonicaljson: true,
         limit_notifications_power_levels: true,
@@ -114,7 +103,6 @@ impl RoomVersion {
 
     #[cfg(feature = "unstable-pre-spec")]
     pub const VERSION7: Self = Self {
-        version: RoomVersionId::V7,
         // FIXME: once room version 7 is stabilized move this to version 8
         disposition: RoomDisposition::Unstable,
         allow_knocking: true,
@@ -122,11 +110,10 @@ impl RoomVersion {
     };
 
     #[cfg(feature = "unstable-pre-spec")]
-    pub const VERSION8: Self =
-        Self { version: RoomVersionId::V8, restricted_join_rules: true, ..Self::VERSION7 };
+    pub const VERSION8: Self = Self { restricted_join_rules: true, ..Self::VERSION7 };
 
     #[cfg(feature = "unstable-pre-spec")]
-    pub const VERSION9: Self = Self { version: RoomVersionId::V9, ..Self::VERSION8 };
+    pub const VERSION9: Self = Self::VERSION8;
 
     pub fn new(version: &RoomVersionId) -> Result<Self> {
         Ok(match version {
