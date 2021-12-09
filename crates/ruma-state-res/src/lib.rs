@@ -1095,7 +1095,7 @@ mod tests {
             vec!["o", "l", "n", "m", "p"],
             res.iter()
                 .map(ToString::to_string)
-                .map(|s| s.replace("$", "").replace(":foo", ""))
+                .map(|s| s.replace('$', "").replace(":foo", ""))
                 .collect::<Vec<_>>()
         )
     }

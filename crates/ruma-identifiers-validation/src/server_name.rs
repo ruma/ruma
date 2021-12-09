@@ -1,7 +1,5 @@
 use crate::error::Error;
 
-// Clippy lint is buggy, should be fixed within the next week (as of 2021-10-29)
-#[allow(clippy::question_mark)]
 pub fn validate(server_name: &str) -> Result<(), Error> {
     use std::net::Ipv6Addr;
 
@@ -21,6 +19,7 @@ pub fn validate(server_name: &str) -> Result<(), Error> {
 
         end_of_ipv6 + 1
     } else {
+        #[allow(clippy::unnecessary_lazy_evaluations)]
         let end_of_host = server_name.find(':').unwrap_or_else(|| server_name.len());
 
         if server_name[..end_of_host]
