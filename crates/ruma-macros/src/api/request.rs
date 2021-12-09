@@ -113,6 +113,10 @@ impl Request {
         self.fields.iter().any(|f| matches!(&f.kind, RequestFieldKind::NewtypeBody))
     }
 
+    fn has_raw_body(&self) -> bool {
+        self.fields.iter().any(|f| matches!(&f.kind, RequestFieldKind::RawBody))
+    }
+
     fn has_header_fields(&self) -> bool {
         self.fields.iter().any(|f| matches!(&f.kind, RequestFieldKind::Header(_)))
     }
@@ -147,17 +151,42 @@ impl Request {
 
         let request_body_struct = self.has_body_fields().then(|| {
             let serde_attr = self.has_newtype_body().then(|| quote! { #[serde(transparent)] });
-            let fields =
-                self.fields.iter().filter_map(RequestField::as_body_field).map(PrivateField);
+            let fields: Vec<_> = self
+                .fields
+                .iter()
+                .filter_map(RequestField::as_body_field)
+                .map(PrivateField)
+                .collect();
+
+            // If there are no fields, don't derive `Deserialize`
+            let incoming_derive =
+                fields.is_empty().then(|| quote! { #[incoming_derive(!Deserialize)] });
+
+            // … and also add a `FromHttpBody` impl.
+            let from_http_body_impl = fields.is_empty().then(|| {
+                quote! {
+                    #[automatically_derived]
+                    impl<Error> #ruma_common::api::FromHttpBody<Error> for RequestBody {
+                        fn from_buf(_body: &[::std::primitive::u8]) -> Result<Self, Error> {
+                            Ok(Self {})
+                        }
+                    }
+                }
+            });
 
             quote! {
                 /// Data in the request body.
+                #[doc(hidden)] // until type_alias_impl_trait works well enough
+                #[non_exhaustive]
                 #[cfg(any(feature = "client", feature = "server"))]
                 #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
                 #[cfg_attr(feature = "client", derive(#serde::Serialize))]
                 #[cfg_attr(feature = "server", derive(#serde::Deserialize))]
                 #serde_attr
-                struct RequestBody { #(#fields),* }
+                #incoming_derive
+                pub struct RequestBody { #(#fields),* }
+
+                #from_http_body_impl
             }
         });
 

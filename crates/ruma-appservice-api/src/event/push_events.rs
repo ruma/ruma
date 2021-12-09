@@ -389,8 +389,8 @@ pub mod v1 {
     #[cfg(feature = "server")]
     #[cfg(test)]
     mod tests {
-        use ruma_common::api::{OutgoingRequest, SendAccessToken};
-        use serde_json::json;
+        use ruma_common::api::{IntoHttpBody, OutgoingRequest, SendAccessToken};
+        use serde_json::{json, Value as JsonValue};
 
         use super::Request;
 
@@ -411,17 +411,18 @@ pub mod v1 {
             let events = vec![dummy_event];
 
             let req = Request::new("any_txn_id".into(), events)
-                .try_into_http_request::<Vec<u8>>(
+                .try_into_http_request(
                     "https://homeserver.tld",
                     SendAccessToken::IfRequired("auth_tok"),
                     &[ruma_common::api::MatrixVersion::V1_1],
                 )
                 .unwrap();
-            let json_body: serde_json::Value = serde_json::from_slice(req.body()).unwrap();
+            let json_body: JsonValue =
+                serde_json::from_slice(&req.body().to_buf::<Vec<u8>>().unwrap()).unwrap();
 
             assert_eq!(
+                json_body.as_object().unwrap().get("events").unwrap().as_array().unwrap().len(),
                 1,
-                json_body.as_object().unwrap().get("events").unwrap().as_array().unwrap().len()
             );
         }
     }

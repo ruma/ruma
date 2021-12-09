@@ -1,5 +1,5 @@
 use ruma_common::api::{
-    MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken,
+    IntoHttpBody as _, MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken,
 };
 
 mod get {
@@ -54,7 +54,7 @@ mod post {
 fn empty_post_request_http_repr() {
     let req = post::Request {};
     let http_req = req
-        .try_into_http_request::<Vec<u8>>(
+        .try_into_http_request(
             "https://homeserver.tld",
             SendAccessToken::None,
             &[MatrixVersion::V1_1],
@@ -62,13 +62,13 @@ fn empty_post_request_http_repr() {
         .unwrap();
 
     // Empty POST requests should contain an empty dictionary as a body...
-    assert_eq!(http_req.body(), b"{}");
+    assert_eq!(http_req.body().to_buf::<Vec<u8>>().unwrap(), b"{}");
 }
 #[test]
 fn empty_get_request_http_repr() {
     let req = get::Request {};
     let http_req = req
-        .try_into_http_request::<Vec<u8>>(
+        .try_into_http_request(
             "https://homeserver.tld",
             SendAccessToken::None,
             &[MatrixVersion::V1_1],
@@ -76,23 +76,23 @@ fn empty_get_request_http_repr() {
         .unwrap();
 
     // ... but GET requests' bodies should be empty.
-    assert_eq!(http_req.body().len(), 0);
+    assert_eq!(http_req.body().to_buf::<Vec<u8>>().unwrap(), b"");
 }
 
 #[test]
 fn empty_post_response_http_repr() {
     let res = post::Response {};
-    let http_res = res.try_into_http_response::<Vec<u8>>().unwrap();
+    let http_res = res.try_into_http_response().unwrap();
 
     // For the response, the body should be an empty dict again...
-    assert_eq!(http_res.body(), b"{}");
+    assert_eq!(http_res.body().to_buf::<Vec<u8>>().unwrap(), b"{}");
 }
 
 #[test]
 fn empty_get_response_http_repr() {
     let res = get::Response {};
-    let http_res = res.try_into_http_response::<Vec<u8>>().unwrap();
+    let http_res = res.try_into_http_response().unwrap();
 
     // ... even for GET requests.
-    assert_eq!(http_res.body(), b"{}");
+    assert_eq!(http_res.body().to_buf::<Vec<u8>>().unwrap(), b"{}");
 }

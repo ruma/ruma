@@ -2,12 +2,13 @@
 
 use std::{collections::BTreeMap, fmt, sync::Arc, time::Duration};
 
-use bytes::{BufMut, Bytes};
+use bytes::Bytes;
 use ruma_common::{
     api::{
         error::{IntoHttpError, MatrixErrorBody},
-        EndpointError, OutgoingResponse,
+        EndpointError, FromHttpBody, IntoHttpBody, OutgoingResponse,
     },
+    serde::json_to_buf,
     RoomVersionId,
 };
 use serde::{Deserialize, Serialize};
@@ -282,6 +283,38 @@ pub enum ErrorBody {
     },
 }
 
+impl IntoHttpBody for ErrorBody {
+    fn to_buf<B>(&self) -> Result<B, IntoHttpError>
+    where
+        B: Default + bytes::BufMut,
+    {
+        match self {
+            ErrorBody::Standard { kind, message } => Ok(json_to_buf(&StandardErrorBody {
+                kind: kind.clone(),
+                message: message.clone(),
+            })?),
+            ErrorBody::Json(json) => Ok(json_to_buf(&json)?),
+            ErrorBody::NotJson { .. } => Err(IntoHttpError::Json(serde::ser::Error::custom(
+                "attempted to serialize ErrorBody::NotJson",
+            ))),
+        }
+    }
+}
+
+impl FromHttpBody for ErrorBody {
+    fn from_buf(body: &[u8]) -> Self {
+        match from_json_slice(body) {
+            Ok(StandardErrorBody { kind, message }) => ErrorBody::Standard { kind, message },
+            Err(_) => match MatrixErrorBody::from_bytes(body) {
+                MatrixErrorBody::Json(json) => ErrorBody::Json(json),
+                MatrixErrorBody::NotJson { bytes, deserialization_error, .. } => {
+                    ErrorBody::NotJson { bytes, deserialization_error }
+                }
+            },
+        }
+    }
+}
+
 /// A JSON body with the fields expected for Client API errors.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[allow(clippy::exhaustive_structs)]
@@ -311,8 +344,11 @@ pub struct Error {
 }
 
 impl EndpointError for Error {
-    fn from_http_response<T: AsRef<[u8]>>(response: http::Response<T>) -> Self {
+    type IncomingBody = ErrorBody;
+
+    fn from_http_response(response: http::Response<ErrorBody>) -> Self {
         let status = response.status();
+        let (_parts, error_body) = response.into_parts();
 
         #[cfg(feature = "unstable-msc2967")]
         let authenticate = response
@@ -320,17 +356,6 @@ impl EndpointError for Error {
             .get(http::header::WWW_AUTHENTICATE)
             .and_then(|val| val.to_str().ok())
             .and_then(AuthenticateError::from_str);
-
-        let body_bytes = &response.body().as_ref();
-        let error_body: ErrorBody = match from_json_slice(body_bytes) {
-            Ok(StandardErrorBody { kind, message }) => ErrorBody::Standard { kind, message },
-            Err(_) => match MatrixErrorBody::from_bytes(body_bytes) {
-                MatrixErrorBody::Json(json) => ErrorBody::Json(json),
-                MatrixErrorBody::NotJson { bytes, deserialization_error, .. } => {
-                    ErrorBody::NotJson { bytes, deserialization_error }
-                }
-            },
-        };
 
         let error = error_body.into_error(status);
 
@@ -370,9 +395,9 @@ impl ErrorBody {
 }
 
 impl OutgoingResponse for Error {
-    fn try_into_http_response<T: Default + BufMut>(
-        self,
-    ) -> Result<http::Response<T>, IntoHttpError> {
+    type OutgoingBody = ErrorBody;
+
+    fn try_into_http_response(self) -> Result<http::Response<ErrorBody>, IntoHttpError> {
         let builder = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "application/json")
             .status(self.status_code);
@@ -384,19 +409,21 @@ impl OutgoingResponse for Error {
             builder
         };
 
-        builder
-            .body(match self.body {
-                ErrorBody::Standard { kind, message } => {
-                    ruma_common::serde::json_to_buf(&StandardErrorBody { kind, message })?
-                }
-                ErrorBody::Json(json) => ruma_common::serde::json_to_buf(&json)?,
-                ErrorBody::NotJson { .. } => {
-                    return Err(IntoHttpError::Json(serde::ser::Error::custom(
-                        "attempted to serialize ErrorBody::NotJson",
-                    )));
-                }
-            })
-            .map_err(Into::into)
+        /*
+        match self.body {
+            ErrorBody::Standard { kind, message } => {
+                ruma_common::serde::json_to_buf(&StandardErrorBody { kind, message })?
+            }
+            ErrorBody::Json(json) => ruma_common::serde::json_to_buf(&json)?,
+            ErrorBody::NotJson { .. } => {
+                return Err(IntoHttpError::Json(serde::ser::Error::custom(
+                    "attempted to serialize ErrorBody::NotJson",
+                )));
+            }
+        }
+        */
+
+        builder.body(self.into()).map_err(Into::into)
     }
 }
 
@@ -570,7 +597,7 @@ mod tests {
             )
             .status(http::StatusCode::UNAUTHORIZED)
             .body(
-                serde_json::to_string(&json!({
+                serde_json::from_value(json!({
                     "errcode": "M_FORBIDDEN",
                     "error": "Insufficient privilege",
                 }))

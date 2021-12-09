@@ -4,11 +4,11 @@
 
 use std::{error::Error as StdError, fmt, sync::Arc};
 
-use bytes::{BufMut, Bytes};
+use bytes::Bytes;
 use serde_json::{from_slice as from_json_slice, Value as JsonValue};
 use thiserror::Error;
 
-use super::{EndpointError, MatrixVersion, OutgoingResponse};
+use super::{body::FromHttpBody, EndpointError, IntoHttpBody, MatrixVersion, OutgoingResponse};
 
 /// A general-purpose Matrix error type consisting of an HTTP status code and a JSON body.
 ///
@@ -36,28 +36,23 @@ impl fmt::Display for MatrixError {
 impl StdError for MatrixError {}
 
 impl OutgoingResponse for MatrixError {
-    fn try_into_http_response<T: Default + BufMut>(
-        self,
-    ) -> Result<http::Response<T>, IntoHttpError> {
+    type OutgoingBody = MatrixErrorBody;
+
+    fn try_into_http_response(self) -> Result<http::Response<MatrixErrorBody>, IntoHttpError> {
         http::Response::builder()
             .header(http::header::CONTENT_TYPE, "application/json")
             .status(self.status_code)
-            .body(match self.body {
-                MatrixErrorBody::Json(json) => crate::serde::json_to_buf(&json)?,
-                MatrixErrorBody::NotJson { .. } => {
-                    return Err(IntoHttpError::Json(serde::ser::Error::custom(
-                        "attempted to serialize MatrixErrorBody::NotJson",
-                    )));
-                }
-            })
+            .body(self.body)
             .map_err(Into::into)
     }
 }
 
 impl EndpointError for MatrixError {
-    fn from_http_response<T: AsRef<[u8]>>(response: http::Response<T>) -> Self {
+    type IncomingBody = MatrixErrorBody;
+
+    fn from_http_response(response: http::Response<MatrixErrorBody>) -> Self {
         let status_code = response.status();
-        let body = MatrixErrorBody::from_bytes(response.body().as_ref());
+        let body = response.into_body();
         Self { status_code, body }
     }
 }
@@ -78,6 +73,26 @@ pub enum MatrixErrorBody {
         /// The error from trying to deserialize the bytes as JSON.
         deserialization_error: Arc<serde_json::Error>,
     },
+}
+
+impl IntoHttpBody for MatrixErrorBody {
+    fn to_buf<B>(&self) -> Result<B, IntoHttpError>
+    where
+        B: Default + bytes::BufMut,
+    {
+        match self {
+            MatrixErrorBody::Json(json) => Ok(crate::serde::json_to_buf(&json)?),
+            MatrixErrorBody::NotJson { .. } => Err(IntoHttpError::Json(serde::ser::Error::custom(
+                "attempted to serialize MatrixErrorBody::NotJson",
+            ))),
+        }
+    }
+}
+
+impl FromHttpBody for MatrixErrorBody {
+    fn from_buf(body: &[u8]) -> Self {
+        Self::from_bytes(body)
+    }
 }
 
 impl MatrixErrorBody {

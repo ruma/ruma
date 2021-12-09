@@ -72,10 +72,9 @@ pub mod v3 {
             tags.insert("u.user_tag".into(), assign!(TagInfo::new(), { order: Some(0.11) }));
             let response = Response { tags };
 
-            let http_response = response.try_into_http_response::<Vec<u8>>().unwrap();
+            let http_response = response.try_into_http_response().unwrap();
 
-            let json_response: serde_json::Value =
-                serde_json::from_slice(http_response.body()).unwrap();
+            let json_response = json!(http_response.body());
             assert_eq!(
                 json_response,
                 json!({

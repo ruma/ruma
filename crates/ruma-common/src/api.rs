@@ -15,7 +15,6 @@
 use std::{convert::TryInto as _, error::Error as StdError};
 
 use as_variant::as_variant;
-use bytes::BufMut;
 use serde::{Deserialize, Serialize};
 
 use self::error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
@@ -302,10 +301,14 @@ pub use ruma_macros::request;
 /// ```
 pub use ruma_macros::response;
 
+mod body;
 pub mod error;
 mod metadata;
 
-pub use self::metadata::{MatrixVersion, Metadata, VersionHistory, VersioningDecision};
+pub use self::{
+    body::{FromHttpBody, IntoHttpBody, RawHttpBody, TryFromHttpBody},
+    metadata::{MatrixVersion, Metadata, VersionHistory, VersioningDecision},
+};
 
 /// An enum to control whether an access token should be added to outgoing requests
 #[derive(Clone, Copy, Debug)]
@@ -342,6 +345,9 @@ impl<'a> SendAccessToken<'a> {
 
 /// A request type for a Matrix API endpoint, used for sending requests.
 pub trait OutgoingRequest: Sized + Clone {
+    /// A Rust representation of the body fields of this request.
+    type OutgoingBody: IntoHttpBody;
+
     /// A type capturing the expected error conditions the server can return.
     type EndpointError: EndpointError;
 
@@ -369,22 +375,25 @@ pub trait OutgoingRequest: Sized + Clone {
     /// The endpoints path will be appended to the given `base_url`, for example
     /// `https://matrix.org`. Since all paths begin with a slash, it is not necessary for the
     /// `base_url` to have a trailing slash. If it has one however, it will be ignored.
-    fn try_into_http_request<T: Default + BufMut>(
+    fn try_into_http_request(
         self,
         base_url: &str,
         access_token: SendAccessToken<'_>,
         considering_versions: &'_ [MatrixVersion],
-    ) -> Result<http::Request<T>, IntoHttpError>;
+    ) -> Result<http::Request<Self::OutgoingBody>, IntoHttpError>;
 }
 
 /// A response type for a Matrix API endpoint, used for receiving responses.
 pub trait IncomingResponse: Sized {
+    /// A Rust representation of the body fields of this response.
+    type IncomingBody: TryFromHttpBody<FromHttpResponseError<Self::EndpointError>>;
+
     /// A type capturing the expected error conditions the server can return.
     type EndpointError: EndpointError;
 
     /// Tries to convert the given `http::Response` into this response type.
-    fn try_from_http_response<T: AsRef<[u8]>>(
-        response: http::Response<T>,
+    fn try_from_http_response(
+        response: http::Response<Self::IncomingBody>,
     ) -> Result<Self, FromHttpResponseError<Self::EndpointError>>;
 }
 
@@ -394,13 +403,13 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
     /// [assert Appservice identity][id_assert].
     ///
     /// [id_assert]: https://spec.matrix.org/latest/application-service-api/#identity-assertion
-    fn try_into_http_request_with_user_id<T: Default + BufMut>(
+    fn try_into_http_request_with_user_id(
         self,
         base_url: &str,
         access_token: SendAccessToken<'_>,
         user_id: &UserId,
         considering_versions: &'_ [MatrixVersion],
-    ) -> Result<http::Request<T>, IntoHttpError> {
+    ) -> Result<http::Request<Self::OutgoingBody>, IntoHttpError> {
         let mut http_request =
             self.try_into_http_request(base_url, access_token, considering_versions)?;
         let user_id_query = serde_html_form::to_string([("user_id", user_id)])?;
@@ -429,6 +438,9 @@ impl<T: OutgoingRequest> OutgoingRequestAppserviceExt for T {}
 
 /// A request type for a Matrix API endpoint, used for receiving requests.
 pub trait IncomingRequest: Sized {
+    /// A Rust representation of the body fields of this request.
+    type IncomingBody: TryFromHttpBody<FromHttpRequestError>;
+
     /// A type capturing the error conditions that can be returned in the response.
     type EndpointError: EndpointError;
 
@@ -442,33 +454,36 @@ pub trait IncomingRequest: Sized {
     /// together with the corresponding path arguments.
     ///
     /// Note: The strings in path_args need to be percent-decoded.
-    fn try_from_http_request<B, S>(
-        req: http::Request<B>,
+    fn try_from_http_request<S>(
+        req: http::Request<Self::IncomingBody>,
         path_args: &[S],
     ) -> Result<Self, FromHttpRequestError>
     where
-        B: AsRef<[u8]>,
         S: AsRef<str>;
 }
 
 /// A request type for a Matrix API endpoint, used for sending responses.
 pub trait OutgoingResponse {
+    /// A Rust representation of the body fields of this response.
+    type OutgoingBody: IntoHttpBody;
+
     /// Tries to convert this response into an `http::Response`.
     ///
     /// This method should only fail when when invalid header values are specified. It may also
     /// fail with a serialization error in case of bugs in Ruma though.
-    fn try_into_http_response<T: Default + BufMut>(
-        self,
-    ) -> Result<http::Response<T>, IntoHttpError>;
+    fn try_into_http_response(self) -> Result<http::Response<Self::OutgoingBody>, IntoHttpError>;
 }
 
 /// Gives users the ability to define their own serializable / deserializable errors.
 pub trait EndpointError: OutgoingResponse + StdError + Sized + Send + 'static {
+    /// A Rust representation of the body fields of this response.
+    type IncomingBody: FromHttpBody;
+
     /// Tries to construct `Self` from an `http::Response`.
     ///
     /// This will always return `Err` variant when no `error` field is defined in
     /// the `ruma_api` macro.
-    fn from_http_response<T: AsRef<[u8]>>(response: http::Response<T>) -> Self;
+    fn from_http_response(response: http::Response<Self::IncomingBody>) -> Self;
 }
 
 /// Authentication scheme used by the endpoint.

@@ -61,14 +61,13 @@ pub mod v3 {
 
         #[test]
         fn serialize_sso_login_request_uri() {
-            let req: http::Request<Vec<u8>> =
-                Request { redirect_url: "https://example.com/sso".to_owned() }
-                    .try_into_http_request(
-                        "https://homeserver.tld",
-                        SendAccessToken::None,
-                        &[MatrixVersion::V1_1],
-                    )
-                    .unwrap();
+            let req = Request { redirect_url: "https://example.com/sso".to_owned() }
+                .try_into_http_request(
+                    "https://homeserver.tld",
+                    SendAccessToken::None,
+                    &[MatrixVersion::V1_1],
+                )
+                .unwrap();
 
             assert_eq!(
             req.uri().to_string(),

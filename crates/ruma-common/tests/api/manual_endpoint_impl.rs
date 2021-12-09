@@ -2,13 +2,12 @@
 
 #![allow(clippy::exhaustive_structs)]
 
-use bytes::BufMut;
 use http::{header::CONTENT_TYPE, method::Method};
 use ruma_common::{
     api::{
         error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError},
-        AuthScheme, EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata,
-        OutgoingRequest, OutgoingResponse, SendAccessToken, VersionHistory,
+        AuthScheme, IncomingRequest, IncomingResponse, IntoHttpBody, MatrixVersion, Metadata,
+        OutgoingRequest, OutgoingResponse, SendAccessToken, TryFromHttpBody, VersionHistory,
     },
     OwnedRoomAliasId, OwnedRoomId,
 };
@@ -37,17 +36,18 @@ const METADATA: Metadata = Metadata {
 };
 
 impl OutgoingRequest for Request {
+    type OutgoingBody = impl IntoHttpBody;
     type EndpointError = MatrixError;
     type IncomingResponse = Response;
 
     const METADATA: Metadata = METADATA;
 
-    fn try_into_http_request<T: Default + BufMut>(
+    fn try_into_http_request(
         self,
         base_url: &str,
         _access_token: SendAccessToken<'_>,
         considering_versions: &'_ [MatrixVersion],
-    ) -> Result<http::Request<T>, IntoHttpError> {
+    ) -> Result<http::Request<Self::OutgoingBody>, IntoHttpError> {
         let url =
             METADATA.make_endpoint_url(considering_versions, base_url, &[&self.room_alias], "")?;
 
@@ -56,7 +56,7 @@ impl OutgoingRequest for Request {
         let http_request = http::Request::builder()
             .method(METADATA.method)
             .uri(url)
-            .body(ruma_common::serde::json_to_buf(&request_body)?)
+            .body(request_body)
             // this cannot fail because we don't give user-supplied data to any of the
             // builder methods
             .unwrap();
@@ -66,17 +66,17 @@ impl OutgoingRequest for Request {
 }
 
 impl IncomingRequest for Request {
+    type IncomingBody = impl TryFromHttpBody<FromHttpRequestError>;
     type EndpointError = MatrixError;
     type OutgoingResponse = Response;
 
     const METADATA: Metadata = METADATA;
 
-    fn try_from_http_request<B, S>(
-        request: http::Request<B>,
+    fn try_from_http_request<S>(
+        request: http::Request<Self::IncomingBody>,
         path_args: &[S],
     ) -> Result<Self, FromHttpRequestError>
     where
-        B: AsRef<[u8]>,
         S: AsRef<str>,
     {
         let (room_alias,) = serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
@@ -86,14 +86,13 @@ impl IncomingRequest for Request {
             path_args.iter().map(::std::convert::AsRef::as_ref),
         ))?;
 
-        let request_body: RequestBody = serde_json::from_slice(request.body().as_ref())?;
-
+        let request_body: RequestBody = request.into_body();
         Ok(Request { room_id: request_body.room_id, room_alias })
     }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct RequestBody {
+pub struct RequestBody {
     room_id: OwnedRoomId,
 }
 
@@ -101,27 +100,35 @@ struct RequestBody {
 #[derive(Clone, Copy, Debug)]
 pub struct Response;
 
+#[doc(hidden)]
+#[derive(Serialize)]
+pub struct ResponseBody {}
+
+impl<Error> TryFromHttpBody<Error> for ResponseBody {
+    fn from_buf(_body: &[u8]) -> Result<Self, Error> {
+        Ok(Self {})
+    }
+}
+
 impl IncomingResponse for Response {
+    type IncomingBody = impl TryFromHttpBody<FromHttpResponseError<Self::EndpointError>>;
     type EndpointError = MatrixError;
 
-    fn try_from_http_response<T: AsRef<[u8]>>(
-        http_response: http::Response<T>,
+    fn try_from_http_response(
+        http_response: http::Response<Self::IncomingBody>,
     ) -> Result<Self, FromHttpResponseError<MatrixError>> {
-        if http_response.status().as_u16() < 400 {
-            Ok(Response)
-        } else {
-            Err(FromHttpResponseError::Server(MatrixError::from_http_response(http_response)))
-        }
+        let _body: ResponseBody = http_response.into_body();
+        Ok(Response)
     }
 }
 
 impl OutgoingResponse for Response {
-    fn try_into_http_response<T: Default + BufMut>(
-        self,
-    ) -> Result<http::Response<T>, IntoHttpError> {
+    type OutgoingBody = impl IntoHttpBody;
+
+    fn try_into_http_response(self) -> Result<http::Response<Self::OutgoingBody>, IntoHttpError> {
         let response = http::Response::builder()
             .header(CONTENT_TYPE, "application/json")
-            .body(ruma_common::serde::slice_to_buf(b"{}"))
+            .body(ResponseBody {})
             .unwrap();
 
         Ok(response)

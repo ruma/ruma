@@ -88,7 +88,7 @@ pub mod v3 {
 
     #[cfg(all(test, feature = "server"))]
     mod tests {
-        use ruma_common::api::IncomingRequest as _;
+        use ruma_common::api::{IncomingRequest as _, TryFromHttpBody};
 
         use super::Request;
 
@@ -98,7 +98,7 @@ pub mod v3 {
                 http::Request::builder()
                     .method("PUT")
                     .uri("https://bar.org/_matrix/client/r0/profile/@foo:bar.org/avatar_url")
-                    .body(&[] as &[u8])
+                    .body(TryFromHttpBody::from_buf(b"{}").unwrap())
                     .unwrap(),
                 &["@foo:bar.org"],
             )
@@ -112,7 +112,10 @@ pub mod v3 {
                     http::Request::builder()
                         .method("PUT")
                         .uri("https://bar.org/_matrix/client/r0/profile/@foo:bar.org/avatar_url")
-                        .body(serde_json::to_vec(&serde_json::json!({ "avatar_url": "" })).unwrap())
+                        .body(
+                            serde_json::from_value(serde_json::json!({ "avatar_url": "" }))
+                                .unwrap(),
+                        )
                         .unwrap(),
                     &["@foo:bar.org"],
                 )

@@ -205,7 +205,7 @@ pub mod v3 {
                 filter,
             };
 
-            let request: http::Request<Vec<u8>> = req
+            let request = req
                 .try_into_http_request(
                     "https://homeserver.tld",
                     SendAccessToken::IfRequired("auth_tok"),
@@ -235,7 +235,7 @@ pub mod v3 {
             };
 
             let request = req
-                .try_into_http_request::<Vec<u8>>(
+                .try_into_http_request(
                     "https://homeserver.tld",
                     SendAccessToken::IfRequired("auth_tok"),
                     &[MatrixVersion::V1_1],

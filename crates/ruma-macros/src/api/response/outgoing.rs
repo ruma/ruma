@@ -5,7 +5,6 @@ use super::{Response, ResponseField};
 
 impl Response {
     pub fn expand_outgoing(&self, ruma_common: &TokenStream) -> TokenStream {
-        let bytes = quote! { #ruma_common::exports::bytes };
         let http = quote! { #ruma_common::exports::http };
 
         let serialize_response_headers = self.fields.iter().filter_map(|response_field| {
@@ -40,8 +39,8 @@ impl Response {
             self.fields.iter().find_map(ResponseField::as_raw_body_field)
         {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-            quote! { #ruma_common::serde::slice_to_buf(&self.#field_name) }
-        } else {
+            quote! { #ruma_common::api::RawHttpBody(self.#field_name) }
+        } else if self.has_body_fields() {
             let fields = self.fields.iter().filter_map(|response_field| {
                 response_field.as_body_field().map(|field| {
                     let field_name =
@@ -56,7 +55,11 @@ impl Response {
             });
 
             quote! {
-                #ruma_common::serde::json_to_buf(&ResponseBody { #(#fields)* })?
+                ResponseBody { #(#fields)* }
+            }
+        } else {
+            quote! {
+                #ruma_common::api::RawHttpBody(b"{}".to_vec())
             }
         };
 
@@ -64,9 +67,14 @@ impl Response {
             #[automatically_derived]
             #[cfg(feature = "server")]
             impl #ruma_common::api::OutgoingResponse for Response {
-                fn try_into_http_response<T: ::std::default::Default + #bytes::BufMut>(
+                type OutgoingBody = impl #ruma_common::api::IntoHttpBody;
+
+                fn try_into_http_response(
                     self,
-                ) -> ::std::result::Result<#http::Response<T>, #ruma_common::api::error::IntoHttpError> {
+                ) -> ::std::result::Result<
+                    #http::Response<Self::OutgoingBody>,
+                    #ruma_common::api::error::IntoHttpError,
+                > {
                     let mut resp_builder = #http::Response::builder()
                         .header(#http::header::CONTENT_TYPE, "application/json");
 

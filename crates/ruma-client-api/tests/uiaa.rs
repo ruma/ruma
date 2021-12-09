@@ -8,8 +8,8 @@ use ruma_client_api::{
 };
 use ruma_common::api::{EndpointError, OutgoingResponse};
 use serde_json::{
-    from_slice as from_json_slice, from_str as from_json_str, from_value as from_json_value, json,
-    to_value as to_json_value, value::to_raw_value as to_raw_json_value, Value as JsonValue,
+    from_str as from_json_str, from_value as from_json_value, json, to_value as to_json_value,
+    value::to_raw_value as to_raw_json_value, Value as JsonValue,
 };
 
 #[test]
@@ -149,10 +149,9 @@ fn try_uiaa_response_into_http_response() {
     let uiaa_info = assign!(UiaaInfo::new(flows, params), {
         completed: vec![AuthType::ReCaptcha],
     });
-    let uiaa_response =
-        UiaaResponse::AuthResponse(uiaa_info).try_into_http_response::<Vec<u8>>().unwrap();
+    let uiaa_response = UiaaResponse::AuthResponse(uiaa_info).try_into_http_response().unwrap();
 
-    let info = from_json_slice::<UiaaInfo>(uiaa_response.body()).unwrap();
+    let info = from_json_str::<UiaaInfo>(uiaa_response.body().get()).unwrap();
     assert_eq!(info.flows.len(), 1);
     assert_eq!(info.flows[0].stages, vec![AuthType::Password, AuthType::Dummy]);
     assert_eq!(info.completed, vec![AuthType::ReCaptcha]);
@@ -171,7 +170,7 @@ fn try_uiaa_response_into_http_response() {
 
 #[test]
 fn try_uiaa_response_from_http_response() {
-    let json = serde_json::to_string(&json!({
+    let body = serde_json::from_value(json!({
         "errcode": "M_FORBIDDEN",
         "error": "Invalid password",
         "completed": ["m.login.recaptcha"],
@@ -192,10 +191,8 @@ fn try_uiaa_response_from_http_response() {
     }))
     .unwrap();
 
-    let http_response = http::Response::builder()
-        .status(http::StatusCode::UNAUTHORIZED)
-        .body(json.as_bytes())
-        .unwrap();
+    let http_response =
+        http::Response::builder().status(http::StatusCode::UNAUTHORIZED).body(body).unwrap();
 
     assert_matches!(
         UiaaResponse::from_http_response(http_response),

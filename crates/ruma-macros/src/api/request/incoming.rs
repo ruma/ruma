@@ -9,9 +9,14 @@ impl Request {
         let http = quote! { #ruma_common::exports::http };
         let serde = quote! { #ruma_common::exports::serde };
         let serde_html_form = quote! { #ruma_common::exports::serde_html_form };
-        let serde_json = quote! { #ruma_common::exports::serde_json };
 
         let error_ty = &self.error_ty;
+
+        let body_type = if !self.has_body_fields() || self.has_raw_body() {
+            quote! { #ruma_common::api::RawHttpBody }
+        } else {
+            quote! { RequestBody }
+        };
 
         // FIXME: the rest of the field initializer expansions are gated `cfg(...)` except this one.
         // If we get errors about missing fields in Request for a path field look here.
@@ -126,51 +131,36 @@ impl Request {
             (TokenStream::new(), TokenStream::new())
         };
 
-        let extract_body = self.has_body_fields().then(|| {
-            quote! {
-                let request_body: RequestBody = {
-                    let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
-                        request.body(),
-                    );
-
-                    #serde_json::from_slice(match body {
-                        // If the request body is completely empty, pretend it is an empty JSON
-                        // object instead. This allows requests with only optional body parameters
-                        // to be deserialized in that case.
-                        [] => b"{}",
-                        b => b,
-                    })?
-                };
-            }
-        });
-
         let (parse_body, body_vars) = if let Some(field) = self.raw_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let parse = quote! {
-                let #field_name =
-                    ::std::convert::AsRef::<[u8]>::as_ref(request.body()).to_vec();
+                let #field_name = request_body.0;
             };
 
             (parse, quote! { #field_name, })
-        } else {
+        } else if self.has_body_fields() {
             vars(self.body_fields(), quote! { request_body })
+        } else {
+            (quote! {}, quote! {})
         };
 
         quote! {
             #[automatically_derived]
             #[cfg(feature = "server")]
             impl #ruma_common::api::IncomingRequest for Request {
+                type IncomingBody = impl #ruma_common::api::TryFromHttpBody<
+                    #ruma_common::api::error::FromHttpRequestError,
+                >;
                 type EndpointError = #error_ty;
                 type OutgoingResponse = Response;
 
                 const METADATA: #ruma_common::api::Metadata = METADATA;
 
-                fn try_from_http_request<B, S>(
-                    request: #http::Request<B>,
+                fn try_from_http_request<S>(
+                    request: #http::Request<Self::IncomingBody>,
                     path_args: &[S],
                 ) -> ::std::result::Result<Self, #ruma_common::api::error::FromHttpRequestError>
                 where
-                    B: ::std::convert::AsRef<[::std::primitive::u8]>,
                     S: ::std::convert::AsRef<::std::primitive::str>,
                 {
                     if !(request.method() == METADATA.method
@@ -187,7 +177,7 @@ impl Request {
                     #parse_query
                     #parse_headers
 
-                    #extract_body
+                    let request_body: #body_type = request.into_body();
                     #parse_body
 
                     ::std::result::Result::Ok(Self {

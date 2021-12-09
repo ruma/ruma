@@ -123,13 +123,40 @@ impl Response {
         let ruma_macros = quote! { #ruma_common::exports::ruma_macros };
         let serde = quote! { #ruma_common::exports::serde };
 
-        let response_body_struct = (!self.has_raw_body()).then(|| {
-            let serde_derives = self.manual_body_serde.not().then(|| {
-                quote! {
-                    #[cfg_attr(feature = "client", derive(#serde::Deserialize))]
+        let response_body_struct = self.has_body_fields().then(|| {
+            let tuple = self.manual_body_serde.not().then(|| {
+                // Only derive `Deserialize` if there are any fields,
+                let derive_deserialize = (!self.fields.is_empty()).then(|| {
+                    quote! {
+                        #[cfg_attr(feature = "client", derive(#serde::Deserialize))]
+                    }
+                });
+
+                // … otherwise `FromHttpBody` will be implemented directly.
+                let from_http_body_impl = self.fields.is_empty().then(|| {
+                    quote! {
+                        #[automatically_derived]
+                        impl<Error> #ruma_common::api::FromHttpBody<Error> for ResponseBody {
+                            fn from_buf(_body: &[::std::primitive::u8]) -> Result<Self, Error> {
+                                Ok(Self {})
+                            }
+                        }
+                    }
+                });
+
+                let serde_derives = quote! {
+                    #derive_deserialize
                     #[cfg_attr(feature = "server", derive(#serde::Serialize))]
-                }
+                };
+
+                (from_http_body_impl, serde_derives)
             });
+
+            // FIXME: Use Option::unzip once MSRV >= 1.66
+            let (from_http_body_impl, serde_derives) = match tuple {
+                Some((a, b)) => (Some(a), Some(b)),
+                None => (None, None),
+            };
 
             let serde_attr = self.has_newtype_body().then(|| quote! { #[serde(transparent)] });
             let fields =
@@ -137,11 +164,15 @@ impl Response {
 
             quote! {
                 /// Data in the response body.
+                #[doc(hidden)] // until type_alias_impl_trait works well enough
+                #[non_exhaustive]
                 #[cfg(any(feature = "client", feature = "server"))]
                 #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
                 #serde_derives
                 #serde_attr
-                struct ResponseBody { #(#fields),* }
+                pub struct ResponseBody { #(#fields),* }
+
+                #from_http_body_impl
             }
         });
 

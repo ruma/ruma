@@ -71,7 +71,7 @@ pub mod v3 {
                 idp_id: "provider".to_owned(),
                 redirect_url: "https://example.com/sso".to_owned(),
             }
-            .try_into_http_request::<Vec<u8>>(
+            .try_into_http_request(
                 "https://homeserver.tld",
                 SendAccessToken::None,
                 &[MatrixVersion::V1_1],

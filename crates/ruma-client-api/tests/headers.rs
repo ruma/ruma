@@ -6,7 +6,7 @@ use ruma_common::api::{MatrixVersion, OutgoingRequest as _, SendAccessToken};
 
 #[test]
 fn get_request_headers() {
-    let req: http::Request<Vec<u8>> = discover_homeserver::Request::new()
+    let req = discover_homeserver::Request::new()
         .try_into_http_request(
             "https://homeserver.tld",
             SendAccessToken::None,

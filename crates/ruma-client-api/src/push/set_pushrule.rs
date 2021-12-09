@@ -7,8 +7,10 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3pushrulesscopekindruleid
 
+    #[cfg(feature = "server")]
+    use ruma_common::api::error::FromHttpRequestError;
     use ruma_common::{
-        api::{response, Metadata},
+        api::{response, IntoHttpBody, Metadata, RawHttpBody, TryFromHttpBody},
         metadata,
         push::{Action, NewPushRule, PushCondition},
     };
@@ -66,17 +68,19 @@ pub mod v3 {
 
     #[cfg(feature = "client")]
     impl ruma_common::api::OutgoingRequest for Request {
+        type OutgoingBody = impl IntoHttpBody;
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
 
         const METADATA: Metadata = METADATA;
 
-        fn try_into_http_request<T: Default + bytes::BufMut>(
+        fn try_into_http_request(
             self,
             base_url: &str,
             access_token: ruma_common::api::SendAccessToken<'_>,
             considering_versions: &[ruma_common::api::MatrixVersion],
-        ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
+        ) -> Result<http::Request<Self::OutgoingBody>, ruma_common::api::error::IntoHttpError>
+        {
             use http::header;
 
             let query_string = serde_html_form::to_string(RequestQuery {
@@ -106,24 +110,24 @@ pub mod v3 {
                             .ok_or(ruma_common::api::error::IntoHttpError::NeedsAuthentication)?,
                     ),
                 )
-                .body(ruma_common::serde::json_to_buf(&body)?)
+                .body(body)
                 .map_err(Into::into)
         }
     }
 
     #[cfg(feature = "server")]
     impl ruma_common::api::IncomingRequest for Request {
+        type IncomingBody = impl TryFromHttpBody<FromHttpRequestError>;
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
 
         const METADATA: Metadata = METADATA;
 
-        fn try_from_http_request<B, S>(
-            request: http::Request<B>,
+        fn try_from_http_request<S>(
+            request: http::Request<Self::IncomingBody>,
             path_args: &[S],
-        ) -> Result<Self, ruma_common::api::error::FromHttpRequestError>
+        ) -> Result<Self, FromHttpRequestError>
         where
-            B: AsRef<[u8]>,
             S: AsRef<str>,
         {
             use ruma_common::push::{
@@ -158,34 +162,34 @@ pub mod v3 {
             let IncomingRequestQuery { before, after } =
                 serde_html_form::from_str(request.uri().query().unwrap_or(""))?;
 
+            let body: RawHttpBody = request.into_body();
+
             let rule = match kind {
                 RuleKind::Override => {
                     let ConditionalRequestBody { actions, conditions } =
-                        serde_json::from_slice(request.body().as_ref())?;
+                        serde_json::from_slice(&body.0)?;
                     NewPushRule::Override(NewConditionalPushRule::new(rule_id, conditions, actions))
                 }
                 RuleKind::Underride => {
                     let ConditionalRequestBody { actions, conditions } =
-                        serde_json::from_slice(request.body().as_ref())?;
+                        serde_json::from_slice(&body.0)?;
                     NewPushRule::Underride(NewConditionalPushRule::new(
                         rule_id, conditions, actions,
                     ))
                 }
                 RuleKind::Sender => {
-                    let SimpleRequestBody { actions } =
-                        serde_json::from_slice(request.body().as_ref())?;
+                    let SimpleRequestBody { actions } = serde_json::from_slice(&body.0)?;
                     let rule_id = rule_id.try_into()?;
                     NewPushRule::Sender(NewSimplePushRule::new(rule_id, actions))
                 }
                 RuleKind::Room => {
-                    let SimpleRequestBody { actions } =
-                        serde_json::from_slice(request.body().as_ref())?;
+                    let SimpleRequestBody { actions } = serde_json::from_slice(&body.0)?;
                     let rule_id = rule_id.try_into()?;
                     NewPushRule::Room(NewSimplePushRule::new(rule_id, actions))
                 }
                 RuleKind::Content => {
                     let PatternedRequestBody { actions, pattern } =
-                        serde_json::from_slice(request.body().as_ref())?;
+                        serde_json::from_slice(&body.0)?;
                     NewPushRule::Content(NewPatternedPushRule::new(rule_id, pattern, actions))
                 }
             };

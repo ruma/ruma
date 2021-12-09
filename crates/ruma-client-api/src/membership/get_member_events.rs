@@ -104,7 +104,7 @@ pub mod v3 {
 
     #[cfg(all(test, feature = "server"))]
     mod tests {
-        use ruma_common::api::IncomingRequest as _;
+        use ruma_common::api::{IncomingRequest as _, TryFromHttpBody};
 
         use super::{MembershipEventFilter, Request};
 
@@ -122,7 +122,10 @@ pub mod v3 {
                 .unwrap();
 
             let req = Request::try_from_http_request(
-                http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
+                http::Request::builder()
+                    .uri(uri)
+                    .body(TryFromHttpBody::from_buf(b"").unwrap())
+                    .unwrap(),
                 &["!dummy:example.org"],
             )
             .unwrap();

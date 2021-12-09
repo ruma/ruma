@@ -108,17 +108,19 @@ pub mod v3 {
 
     #[cfg(feature = "client")]
     impl ruma_common::api::OutgoingRequest for Request {
+        type OutgoingBody = Raw<AnyStateEventContent>;
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
 
         const METADATA: Metadata = METADATA;
 
-        fn try_into_http_request<T: Default + bytes::BufMut>(
+        fn try_into_http_request(
             self,
             base_url: &str,
             access_token: ruma_common::api::SendAccessToken<'_>,
             considering_versions: &'_ [ruma_common::api::MatrixVersion],
-        ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
+        ) -> Result<http::Request<Self::OutgoingBody>, ruma_common::api::error::IntoHttpError>
+        {
             use http::header::{self, HeaderValue};
 
             let query_string =
@@ -142,7 +144,7 @@ pub mod v3 {
                             .ok_or(ruma_common::api::error::IntoHttpError::NeedsAuthentication)?
                     ))?,
                 )
-                .body(ruma_common::serde::json_to_buf(&self.body)?)?;
+                .body(self.body)?;
 
             Ok(http_request)
         }
@@ -150,17 +152,17 @@ pub mod v3 {
 
     #[cfg(feature = "server")]
     impl ruma_common::api::IncomingRequest for Request {
+        type IncomingBody = Raw<AnyStateEventContent>;
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
 
         const METADATA: Metadata = METADATA;
 
-        fn try_from_http_request<B, S>(
-            request: http::Request<B>,
+        fn try_from_http_request<S>(
+            request: http::Request<Self::IncomingBody>,
             path_args: &[S],
         ) -> Result<Self, ruma_common::api::error::FromHttpRequestError>
         where
-            B: AsRef<[u8]>,
             S: AsRef<str>,
         {
             // FIXME: find a way to make this if-else collapse with serde recognizing trailing
@@ -188,7 +190,7 @@ pub mod v3 {
             let request_query: RequestQuery =
                 serde_html_form::from_str(request.uri().query().unwrap_or(""))?;
 
-            let body = serde_json::from_slice(request.body().as_ref())?;
+            let body = request.into_body();
 
             Ok(Self { room_id, event_type, state_key, body, timestamp: request_query.timestamp })
         }
@@ -220,7 +222,7 @@ pub mod v3 {
             &RoomNameEventContent::new("Test room".to_owned()),
         )
         .unwrap()
-        .try_into_http_request::<Vec<u8>>(
+        .try_into_http_request(
             "https://server.tld",
             SendAccessToken::IfRequired("access_token"),
             &[MatrixVersion::V1_1],

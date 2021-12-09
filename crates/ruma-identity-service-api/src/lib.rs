@@ -5,6 +5,7 @@
 //!
 //! [identity-api]: https://spec.matrix.org/latest/identity-service-api/
 
+#![feature(impl_trait_in_assoc_type)]
 #![warn(missing_docs)]
 
 use std::fmt;

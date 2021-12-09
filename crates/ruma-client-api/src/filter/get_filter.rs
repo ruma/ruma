@@ -66,7 +66,7 @@ pub mod v3 {
             use ruma_common::api::IncomingResponse;
 
             let res = super::Response::try_from_http_response(
-                http::Response::builder().body(b"{}" as &[u8]).unwrap(),
+                http::Response::builder().body(serde_json::from_str("{}").unwrap()).unwrap(),
             )
             .unwrap();
             assert!(res.filter.is_empty());
@@ -75,14 +75,13 @@ pub mod v3 {
         #[cfg(feature = "server")]
         #[test]
         fn serialize_response() {
-            use ruma_common::api::OutgoingResponse;
+            use ruma_common::api::{IntoHttpBody as _, OutgoingResponse};
 
             use crate::filter::FilterDefinition;
 
-            let res = super::Response::new(FilterDefinition::default())
-                .try_into_http_response::<Vec<u8>>()
-                .unwrap();
-            assert_eq!(res.body(), b"{}");
+            let res =
+                super::Response::new(FilterDefinition::default()).try_into_http_response().unwrap();
+            assert_eq!(res.body().to_buf::<Vec<u8>>().unwrap(), b"{}");
         }
     }
 }

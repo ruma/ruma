@@ -56,14 +56,14 @@ impl Response {
 
 #[cfg(all(test, feature = "server"))]
 mod tests {
-    use ruma_common::api::OutgoingResponse;
+    use ruma_common::api::{IntoHttpBody, OutgoingResponse};
 
     use super::Response;
 
     #[test]
     fn response_body() {
-        let res = Response::new().try_into_http_response::<Vec<u8>>().unwrap();
+        let res = Response::new().try_into_http_response().unwrap();
 
-        assert_eq!(res.body(), b"{}");
+        assert_eq!(res.into_body().to_buf::<Vec<u8>>().unwrap(), b"{}");
     }
 }

@@ -5,6 +5,7 @@
 //!
 //! [push-api]: https://spec.matrix.org/latest/push-gateway-api/
 
+#![feature(impl_trait_in_assoc_type)]
 #![warn(missing_docs)]
 
 use std::fmt;

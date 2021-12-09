@@ -38,7 +38,7 @@ pub struct Response {
 #[test]
 fn response_content_type_override() {
     let res = Response { stuff: "magic".into() };
-    let mut http_res = res.try_into_http_response::<Vec<u8>>().unwrap();
+    let mut http_res = res.try_into_http_response().unwrap();
 
     // Test that we correctly replaced the default content type,
     // not adding another content-type header.
@@ -56,7 +56,7 @@ fn response_content_type_override() {
 fn request_content_type_override() {
     let req = Request { location: None, stuff: "magic".into() };
     let mut http_req = req
-        .try_into_http_request::<Vec<u8>>(
+        .try_into_http_request(
             "https://homeserver.tld",
             SendAccessToken::None,
             &[MatrixVersion::V1_1],

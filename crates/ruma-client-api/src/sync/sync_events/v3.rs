@@ -627,7 +627,7 @@ mod client_tests {
 
     #[test]
     fn serialize_all_params() {
-        let req: http::Request<Vec<u8>> = Request {
+        let req = Request {
             filter: Some(Filter::FilterId("66696p746572".to_owned())),
             since: Some("s72594_4483_1934".to_owned()),
             full_state: true,
@@ -658,7 +658,10 @@ mod server_tests {
     use std::time::Duration;
 
     use assert_matches2::assert_matches;
-    use ruma_common::{api::IncomingRequest as _, presence::PresenceState};
+    use ruma_common::{
+        api::{IncomingRequest as _, TryFromHttpBody},
+        presence::PresenceState,
+    };
 
     use super::{Filter, Request};
 
@@ -679,7 +682,10 @@ mod server_tests {
             .unwrap();
 
         let req = Request::try_from_http_request(
-            http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
+            http::Request::builder()
+                .uri(uri)
+                .body(TryFromHttpBody::from_buf(b"").unwrap())
+                .unwrap(),
             &[] as &[String],
         )
         .unwrap();
@@ -702,7 +708,10 @@ mod server_tests {
             .unwrap();
 
         let req = Request::try_from_http_request(
-            http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
+            http::Request::builder()
+                .uri(uri)
+                .body(TryFromHttpBody::from_buf(b"").unwrap())
+                .unwrap(),
             &[] as &[String],
         )
         .unwrap();
@@ -728,7 +737,10 @@ mod server_tests {
             .unwrap();
 
         let req = Request::try_from_http_request(
-            http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
+            http::Request::builder()
+                .uri(uri)
+                .body(TryFromHttpBody::from_buf(b"").unwrap())
+                .unwrap(),
             &[] as &[String],
         )
         .unwrap();

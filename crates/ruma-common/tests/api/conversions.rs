@@ -3,8 +3,8 @@
 use http::header::CONTENT_TYPE;
 use ruma_common::{
     api::{
-        request, response, IncomingRequest as _, MatrixVersion, Metadata, OutgoingRequest as _,
-        OutgoingRequestAppserviceExt, SendAccessToken,
+        request, response, IncomingRequest as _, IntoHttpBody, MatrixVersion, Metadata,
+        OutgoingRequest as _, OutgoingRequestAppserviceExt, SendAccessToken, TryFromHttpBody,
     },
     metadata, owned_user_id, user_id, OwnedUserId,
 };
@@ -64,12 +64,17 @@ fn request_serde() {
 
     let http_req = req
         .clone()
-        .try_into_http_request::<Vec<u8>>(
+        .try_into_http_request(
             "https://homeserver.tld",
             SendAccessToken::None,
             &[MatrixVersion::V1_1],
         )
-        .unwrap();
+        .unwrap()
+        .map(|body| {
+            let bytes: Vec<u8> = body.to_buf().unwrap();
+            TryFromHttpBody::from_buf(&bytes).unwrap()
+        });
+
     let req2 = Request::try_from_http_request(http_req, &["barVal", "@bazme:ruma.io"]).unwrap();
 
     assert_eq!(req.hello, req2.hello);
@@ -91,12 +96,9 @@ fn invalid_uri_should_not_panic() {
         user: owned_user_id!("@bazme:ruma.io"),
     };
 
-    let result = req.try_into_http_request::<Vec<u8>>(
-        "invalid uri",
-        SendAccessToken::None,
-        &[MatrixVersion::V1_1],
-    );
-    result.unwrap_err();
+    let res =
+        req.try_into_http_request("invalid uri", SendAccessToken::None, &[MatrixVersion::V1_1]);
+    assert!(res.is_err());
 }
 
 #[test]
@@ -112,7 +114,7 @@ fn request_with_user_id_serde() {
 
     let user_id = user_id!("@_virtual_:ruma.io");
     let http_req = req
-        .try_into_http_request_with_user_id::<Vec<u8>>(
+        .try_into_http_request_with_user_id(
             "https://homeserver.tld",
             SendAccessToken::None,
             user_id,
@@ -185,7 +187,7 @@ mod without_query {
 
         let user_id = user_id!("@_virtual_:ruma.io");
         let http_req = req
-            .try_into_http_request_with_user_id::<Vec<u8>>(
+            .try_into_http_request_with_user_id(
                 "https://homeserver.tld",
                 SendAccessToken::None,
                 user_id,

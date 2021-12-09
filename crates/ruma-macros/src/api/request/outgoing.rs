@@ -6,7 +6,6 @@ use super::{Request, RequestField};
 
 impl Request {
     pub fn expand_outgoing(&self, ruma_common: &TokenStream) -> TokenStream {
-        let bytes = quote! { #ruma_common::exports::bytes };
         let http = quote! { #ruma_common::exports::http };
         let serde_html_form = quote! { #ruma_common::exports::serde_html_form };
 
@@ -104,15 +103,15 @@ impl Request {
 
         let request_body = if let Some(field) = self.raw_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-            quote! { #ruma_common::serde::slice_to_buf(&self.#field_name) }
+            quote! { #ruma_common::api::RawHttpBody(self.#field_name) }
         } else if self.has_body_fields() {
             let initializers = struct_init_fields(self.body_fields(), quote! { self });
 
             quote! {
-                #ruma_common::serde::json_to_buf(&RequestBody { #initializers })?
+                RequestBody { #initializers }
             }
         } else {
-            quote! { METADATA.empty_request_body::<T>() }
+            quote! { METADATA.empty_request_body() }
         };
 
         let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
@@ -120,18 +119,24 @@ impl Request {
         quote! {
             #[automatically_derived]
             #[cfg(feature = "client")]
-            impl #impl_generics #ruma_common::api::OutgoingRequest for Request #ty_generics #where_clause {
+            impl #impl_generics #ruma_common::api::OutgoingRequest
+                for Request #ty_generics #where_clause
+            {
+                type OutgoingBody = impl #ruma_common::api::IntoHttpBody;
                 type EndpointError = #error_ty;
                 type IncomingResponse = Response;
 
                 const METADATA: #ruma_common::api::Metadata = METADATA;
 
-                fn try_into_http_request<T: ::std::default::Default + #bytes::BufMut>(
+                fn try_into_http_request(
                     self,
                     base_url: &::std::primitive::str,
                     access_token: #ruma_common::api::SendAccessToken<'_>,
                     considering_versions: &'_ [#ruma_common::api::MatrixVersion],
-                ) -> ::std::result::Result<#http::Request<T>, #ruma_common::api::error::IntoHttpError> {
+                ) -> ::std::result::Result<
+                    #http::Request<Self::OutgoingBody>,
+                    #ruma_common::api::error::IntoHttpError
+                > {
                     let mut req_builder = #http::Request::builder()
                         .method(METADATA.method)
                         .uri(METADATA.make_endpoint_url(

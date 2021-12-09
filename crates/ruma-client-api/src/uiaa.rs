@@ -4,9 +4,11 @@
 
 use std::{borrow::Cow, fmt};
 
-use bytes::BufMut;
 use ruma_common::{
-    api::{error::IntoHttpError, EndpointError, OutgoingResponse},
+    api::{
+        error::{IntoHttpError, MatrixErrorBody},
+        EndpointError, OutgoingResponse,
+    },
     serde::{from_raw_json_value, JsonObject, StringEnum},
     thirdparty::Medium,
     ClientSecret, OwnedSessionId, OwnedUserId,
@@ -16,7 +18,9 @@ use serde::{
     Deserialize, Deserializer, Serialize,
 };
 use serde_json::{
-    from_slice as from_json_slice, value::RawValue as RawJsonValue, Value as JsonValue,
+    from_str as from_json_str, from_value as from_json_value,
+    value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue},
+    Value as JsonValue,
 };
 
 use crate::{
@@ -657,9 +661,11 @@ impl From<MatrixError> for UiaaResponse {
 }
 
 impl EndpointError for UiaaResponse {
-    fn from_http_response<T: AsRef<[u8]>>(response: http::Response<T>) -> Self {
+    type IncomingBody = MatrixErrorBody;
+
+    fn from_http_response(response: http::Response<Self::IncomingBody>) -> Self {
         if response.status() == http::StatusCode::UNAUTHORIZED {
-            if let Ok(uiaa_info) = from_json_slice(response.body().as_ref()) {
+            if let Ok(uiaa_info) = from_json_value(response.body().clone()) {
                 return Self::AuthResponse(uiaa_info);
             }
         }
@@ -671,16 +677,20 @@ impl EndpointError for UiaaResponse {
 impl std::error::Error for UiaaResponse {}
 
 impl OutgoingResponse for UiaaResponse {
-    fn try_into_http_response<T: Default + BufMut>(
-        self,
-    ) -> Result<http::Response<T>, IntoHttpError> {
+    // FIXME: Use an enum instead?
+    type OutgoingBody = Box<RawJsonValue>;
+
+    fn try_into_http_response(self) -> Result<http::Response<Box<RawJsonValue>>, IntoHttpError> {
         match self {
             UiaaResponse::AuthResponse(authentication_info) => http::Response::builder()
                 .header(http::header::CONTENT_TYPE, "application/json")
                 .status(&http::StatusCode::UNAUTHORIZED)
-                .body(ruma_common::serde::json_to_buf(&authentication_info)?)
+                .body(to_raw_json_value(&authentication_info)?)
                 .map_err(Into::into),
-            UiaaResponse::MatrixError(error) => error.try_into_http_response(),
+            UiaaResponse::MatrixError(error) => {
+                let (parts, body) = error.try_into_http_response()?.into_parts();
+                Ok(http::Response::from_parts(parts, to_raw_json_value(&body)?))
+            }
         }
     }
 }

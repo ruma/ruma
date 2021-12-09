@@ -64,7 +64,7 @@ pub mod v3 {
         #[cfg(feature = "server")]
         #[test]
         fn deserialize_request() {
-            use ruma_common::api::IncomingRequest as _;
+            use ruma_common::api::{IncomingRequest as _, TryFromHttpBody};
 
             use super::Request;
 
@@ -72,7 +72,7 @@ pub mod v3 {
                 http::Request::builder()
                     .method(http::Method::POST)
                     .uri("https://matrix.org/_matrix/client/r0/user/@foo:bar.com/filter")
-                    .body(b"{}" as &[u8])
+                    .body(TryFromHttpBody::from_buf(b"{}").unwrap())
                     .unwrap(),
                 &["@foo:bar.com"],
             )
@@ -86,7 +86,7 @@ pub mod v3 {
         #[test]
         fn serialize_request() {
             use ruma_common::{
-                api::{MatrixVersion, OutgoingRequest, SendAccessToken},
+                api::{IntoHttpBody as _, MatrixVersion, OutgoingRequest, SendAccessToken},
                 owned_user_id,
             };
 
@@ -94,13 +94,13 @@ pub mod v3 {
 
             let req =
                 super::Request::new(owned_user_id!("@foo:bar.com"), FilterDefinition::default())
-                    .try_into_http_request::<Vec<u8>>(
+                    .try_into_http_request(
                         "https://matrix.org",
                         SendAccessToken::IfRequired("tok"),
                         &[MatrixVersion::V1_1],
                     )
                     .unwrap();
-            assert_eq!(req.body(), b"{}");
+            assert_eq!(req.body().to_buf::<Vec<u8>>().unwrap(), b"{}");
         }
     }
 }

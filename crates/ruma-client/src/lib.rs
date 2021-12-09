@@ -102,7 +102,7 @@
 use std::{any::type_name, future::Future};
 
 use ruma_common::{
-    api::{MatrixVersion, OutgoingRequest, SendAccessToken},
+    api::{IntoHttpBody, MatrixVersion, OutgoingRequest, SendAccessToken, TryFromHttpBody},
     UserId,
 };
 use tracing::{info_span, Instrument};
@@ -145,7 +145,9 @@ where
             request
                 .try_into_http_request(homeserver_url, send_access_token, for_versions)
                 .map_err(ResponseError::<C, R>::from)
-                .and_then(|mut req| {
+                .and_then(|req| {
+                    let (parts, body) = req.into_parts();
+                    let mut req = http::Request::from_parts(parts, body.to_buf()?);
                     customize(&mut req)?;
                     Ok(req)
                 })
@@ -159,16 +161,22 @@ where
     );
 
     async move {
-        let http_res = http_client
+        let (parts, body) = http_client
             .send_http_request(http_req?)
             .instrument(send_span)
             .await
-            .map_err(Error::Response)?;
+            .map_err(Error::Response)?
+            .into_parts();
 
         let res =
             info_span!("deserialize_response", response_type = type_name::<R::IncomingResponse>())
                 .in_scope(move || {
-                    ruma_common::api::IncomingResponse::try_from_http_response(http_res)
+                    ruma_common::api::IncomingResponse::try_from_http_response(
+                        http::Response::from_parts(
+                            parts,
+                            TryFromHttpBody::from_buf(body.as_ref())?,
+                        ),
+                    )
                 })?;
 
         Ok(res)

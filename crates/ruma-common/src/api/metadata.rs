@@ -4,7 +4,6 @@ use std::{
     str::FromStr,
 };
 
-use bytes::BufMut;
 use http::{
     header::{self, HeaderName, HeaderValue},
     Method,
@@ -14,9 +13,9 @@ use tracing::warn;
 
 use super::{
     error::{IntoHttpError, UnknownVersionError},
-    AuthScheme, SendAccessToken,
+    AuthScheme, RawHttpBody, SendAccessToken,
 };
-use crate::{percent_encode::PATH_PERCENT_ENCODE_SET, serde::slice_to_buf, RoomVersionId};
+use crate::{percent_encode::PATH_PERCENT_ENCODE_SET, RoomVersionId};
 
 /// Metadata about an API endpoint.
 #[derive(Clone, Debug)]
@@ -38,16 +37,13 @@ pub struct Metadata {
 impl Metadata {
     /// Returns an empty request body for this Matrix request.
     ///
-    /// For `GET` requests, it returns an entirely empty buffer, for others it returns an empty JSON
-    /// object (`{}`).
-    pub fn empty_request_body<B>(&self) -> B
-    where
-        B: Default + BufMut,
-    {
+    /// For `GET` requests, it returns an entirely empty `RawHttpBody`, for others it returns an
+    /// empty JSON object (`{}`).
+    pub fn empty_request_body(&self) -> RawHttpBody {
         if self.method == Method::GET {
-            Default::default()
+            RawHttpBody(vec![])
         } else {
-            slice_to_buf(b"{}")
+            RawHttpBody(vec![b'{', b'}'])
         }
     }
 
