@@ -4,6 +4,7 @@ use ruma_api::ruma_api;
 use ruma_events::{AnyStateEventContent, EventType};
 use ruma_identifiers::RoomId;
 use ruma_serde::{Outgoing, Raw};
+use serde::Serialize;
 
 ruma_api! {
     metadata: {
@@ -51,6 +52,11 @@ impl<'a> Request<'a> {
     }
 }
 
+#[derive(Serialize)]
+#[doc(hidden)]
+#[non_exhaustive]
+pub struct RequestBody {}
+
 impl Response {
     /// Creates a new `Response` with the given content.
     pub fn new(content: Raw<AnyStateEventContent>) -> Self {
@@ -60,16 +66,17 @@ impl Response {
 
 #[cfg(feature = "client")]
 impl<'a> ruma_api::OutgoingRequest for Request<'a> {
+    type OutgoingBody = RequestBody; // impl IntoHttpBody;
     type EndpointError = crate::Error;
     type IncomingResponse = <Response as ruma_serde::Outgoing>::Incoming;
 
     const METADATA: ruma_api::Metadata = METADATA;
 
-    fn try_into_http_request<T: Default + bytes::BufMut>(
+    fn try_into_http_request(
         self,
         base_url: &str,
         access_token: ruma_api::SendAccessToken<'_>,
-    ) -> Result<http::Request<T>, ruma_api::error::IntoHttpError> {
+    ) -> Result<http::Request<Self::OutgoingBody>, ruma_api::error::IntoHttpError> {
         use std::borrow::Cow;
 
         use http::header;
@@ -100,20 +107,21 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
                         .ok_or(ruma_api::error::IntoHttpError::NeedsAuthentication)?,
                 ),
             )
-            .body(T::default())
+            .body(RequestBody {})
             .map_err(Into::into)
     }
 }
 
 #[cfg(feature = "server")]
 impl ruma_api::IncomingRequest for IncomingRequest {
+    type IncomingBody = ruma_api::IncomingRawHttpBody; // impl FromHttpBody<FromHttpRequestError>;
     type EndpointError = crate::Error;
     type OutgoingResponse = Response;
 
     const METADATA: ruma_api::Metadata = METADATA;
 
-    fn try_from_http_request<T: AsRef<[u8]>>(
-        request: http::Request<T>,
+    fn try_from_http_request(
+        request: http::Request<Self::IncomingBody>,
     ) -> Result<Self, ruma_api::error::FromHttpRequestError> {
         use std::convert::TryFrom;
 
@@ -141,6 +149,8 @@ impl ruma_api::IncomingRequest for IncomingRequest {
             }
             None => "".into(),
         };
+
+        let _body: ruma_api::IncomingRawHttpBody = request.into_body();
 
         Ok(Self { room_id, event_type, state_key })
     }

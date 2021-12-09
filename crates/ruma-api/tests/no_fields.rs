@@ -1,4 +1,8 @@
-use ruma_api::{ruma_api, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken};
+// #![feature(type_alias_impl_trait)]
+
+use ruma_api::{
+    ruma_api, IntoHttpBody as _, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken,
+};
 
 ruma_api! {
     metadata: {
@@ -17,17 +21,20 @@ ruma_api! {
 #[test]
 fn empty_request_http_repr() {
     let req = Request {};
-    let http_req = req
-        .try_into_http_request::<Vec<u8>>("https://homeserver.tld", SendAccessToken::None)
+    let http_body = req
+        .try_into_http_request("https://homeserver.tld", SendAccessToken::None)
+        .unwrap()
+        .body()
+        .to_buf::<Vec<u8>>()
         .unwrap();
 
-    assert!(http_req.body().is_empty());
+    assert!(http_body.is_empty());
 }
 
 #[test]
 fn empty_response_http_repr() {
     let res = Response {};
-    let http_res = res.try_into_http_response::<Vec<u8>>().unwrap();
+    let http_body = res.try_into_http_response().unwrap().body().to_buf::<Vec<u8>>().unwrap();
 
-    assert_eq!(http_res.body(), b"{}");
+    assert_eq!(http_body, b"{}");
 }

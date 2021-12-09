@@ -10,7 +10,6 @@ impl Request {
         let http = quote! { #ruma_api::exports::http };
         let percent_encoding = quote! { #ruma_api::exports::percent_encoding };
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
-        let serde_json = quote! { #ruma_api::exports::serde_json };
 
         let method = &self.method;
         let error_ty = &self.error_ty;
@@ -19,6 +18,14 @@ impl Request {
             quote! { IncomingRequest }
         } else {
             quote! { Request }
+        };
+
+        let incoming_body_type = if !self.has_body_fields() || self.has_raw_body() {
+            quote! { #ruma_api::IncomingRawHttpBody }
+        } else if self.lifetimes.body.is_empty() {
+            quote! { RequestBody }
+        } else {
+            quote! { IncomingRequestBody }
         };
 
         // FIXME: the rest of the field initializer expansions are gated `cfg(...)`
@@ -171,42 +178,23 @@ impl Request {
         };
 
         let extract_body = self.has_body_fields().then(|| {
-            let body_lifetimes = (!self.lifetimes.body.is_empty()).then(|| {
-                // duplicate the anonymous lifetime as many times as needed
-                let lifetimes = std::iter::repeat(quote! { '_ }).take(self.lifetimes.body.len());
-                quote! { < #( #lifetimes, )* > }
-            });
-
             quote! {
-                let request_body: <
-                    RequestBody #body_lifetimes
-                    as #ruma_serde::Outgoing
-                >::Incoming = {
-                    let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
-                        request.body(),
-                    );
-
-                    #serde_json::from_slice(match body {
-                        // If the request body is completely empty, pretend it is an empty JSON
-                        // object instead. This allows requests with only optional body parameters
-                        // to be deserialized in that case.
-                        [] => b"{}",
-                        b => b,
-                    })?
-                };
+                let request_body: #incoming_body_type = request.into_body();
             }
         });
 
         let (parse_body, body_vars) = if let Some(field) = self.raw_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let parse = quote! {
-                let #field_name =
-                    ::std::convert::AsRef::<[u8]>::as_ref(request.body()).to_vec();
+                let #field_name = request.into_body().0;
             };
 
             (parse, quote! { #field_name, })
-        } else {
+        } else if self.has_body_fields() {
             vars(self.body_fields(), quote! { request_body })
+        } else {
+            // FIXME: Add body type assertion once TAIT is used
+            (quote! {}, quote! {})
         };
 
         let non_auth_impl = matches!(self.authentication, AuthScheme::None(_)).then(|| {
@@ -221,13 +209,15 @@ impl Request {
             #[automatically_derived]
             #[cfg(feature = "server")]
             impl #ruma_api::IncomingRequest for #incoming_request_type {
+                type IncomingBody = #incoming_body_type;
+                    //impl #ruma_api::FromHttpBody<#ruma_api::error::FromHttpRequestError>;
                 type EndpointError = #error_ty;
                 type OutgoingResponse = Response;
 
-                const METADATA: #ruma_api::Metadata = self::METADATA;
+                const METADATA: #ruma_api::Metadata = METADATA;
 
-                fn try_from_http_request<T: ::std::convert::AsRef<[::std::primitive::u8]>>(
-                    request: #http::Request<T>,
+                fn try_from_http_request(
+                    request: #http::Request<Self::IncomingBody>,
                 ) -> ::std::result::Result<Self, #ruma_api::error::FromHttpRequestError> {
                     if request.method() != #http::Method::#method {
                         return Err(#ruma_api::error::FromHttpRequestError::MethodMismatch {

@@ -97,7 +97,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use ruma_api::{OutgoingRequest, SendAccessToken};
+use ruma_api::{FromHttpBody, IntoHttpBody, OutgoingRequest, SendAccessToken};
 use ruma_identifiers::UserId;
 
 // "Undo" rename from `Cargo.toml` that only serves to make crate names available as a Cargo
@@ -237,14 +237,20 @@ where
     let http_req = request
         .try_into_http_request(homeserver_url, send_access_token)
         .map_err(ResponseError::<C, R>::from)
-        .and_then(|mut req| {
+        .and_then(|req| {
+            let (parts, body) = req.into_parts();
+            let mut req = http::Request::from_parts(parts, body.to_buf()?);
             customize(&mut req)?;
             Ok(req)
         });
 
     async move {
-        let http_res = http_client.send_http_request(http_req?).await.map_err(Error::Response)?;
-        Ok(ruma_api::IncomingResponse::try_from_http_response(http_res)?)
+        let (parts, body) =
+            http_client.send_http_request(http_req?).await.map_err(Error::Response)?.into_parts();
+        Ok(ruma_api::IncomingResponse::try_from_http_response(http::Response::from_parts(
+            parts,
+            FromHttpBody::from_buf(body.as_ref())?,
+        ))?)
     }
 }
 

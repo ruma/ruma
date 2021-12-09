@@ -7,8 +7,12 @@ use super::{Response, ResponseField};
 impl Response {
     pub fn expand_incoming(&self, error_ty: &Type, ruma_api: &TokenStream) -> TokenStream {
         let http = quote! { #ruma_api::exports::http };
-        let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
-        let serde_json = quote! { #ruma_api::exports::serde_json };
+
+        let incoming_body_type = if !self.has_body_fields() || self.has_raw_body() {
+            quote! { #ruma_api::IncomingRawHttpBody }
+        } else {
+            quote! { ResponseBody }
+        };
 
         let extract_response_headers = self.has_header_fields().then(|| {
             quote! {
@@ -16,24 +20,9 @@ impl Response {
             }
         });
 
-        let typed_response_body_decl = self.has_body_fields().then(|| {
+        let extract_body = self.has_body_fields().then(|| {
             quote! {
-                let response_body: <
-                    ResponseBody
-                    as #ruma_serde::Outgoing
-                >::Incoming = {
-                    let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
-                        response.body(),
-                    );
-
-                    #serde_json::from_slice(match body {
-                        // If the response body is completely empty, pretend it is an empty
-                        // JSON object instead. This allows responses with only optional body
-                        // parameters to be deserialized in that case.
-                        [] => b"{}",
-                        b => b,
-                    })?
-                };
+                let response_body: ResponseBody = response.into_body();
             }
         });
 
@@ -88,12 +77,7 @@ impl Response {
                     ResponseField::RawBody(_) => {
                         raw_body = Some(quote! {
                             #( #cfg_attrs )*
-                            #field_name: {
-                                ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
-                                    response.body(),
-                                )
-                                .to_vec()
-                            }
+                            #field_name: response.into_body().0
                         });
                         // skip adding to the vec
                         continue;
@@ -104,7 +88,7 @@ impl Response {
             fields.extend(raw_body);
 
             quote! {
-                #(#fields,)*
+                #(#fields),*
             }
         };
 
@@ -112,33 +96,22 @@ impl Response {
             #[automatically_derived]
             #[cfg(feature = "client")]
             impl #ruma_api::IncomingResponse for Response {
+                type IncomingBody = #incoming_body_type;
+                // impl #ruma_api::FromHttpBody<
+                //     #ruma_api::error::FromHttpResponseError<Self::EndpointError>,
+                // >;
                 type EndpointError = #error_ty;
 
-                fn try_from_http_response<T: ::std::convert::AsRef<[::std::primitive::u8]>>(
-                    response: #http::Response<T>,
+                fn try_from_http_response(
+                    response: #http::Response<Self::IncomingBody>,
                 ) -> ::std::result::Result<
                     Self,
                     #ruma_api::error::FromHttpResponseError<#error_ty>,
                 > {
-                    if response.status().as_u16() < 400 {
-                        #extract_response_headers
-                        #typed_response_body_decl
+                    #extract_response_headers
+                    #extract_body
 
-                        ::std::result::Result::Ok(Self {
-                            #response_init_fields
-                        })
-                    } else {
-                        match <#error_ty as #ruma_api::EndpointError>::try_from_http_response(
-                            response
-                        ) {
-                            ::std::result::Result::Ok(err) => {
-                                Err(#ruma_api::error::ServerError::Known(err).into())
-                            }
-                            ::std::result::Result::Err(response_err) => {
-                                Err(#ruma_api::error::ServerError::Unknown(response_err).into())
-                            }
-                        }
-                    }
+                    ::std::result::Result::Ok(Self { #response_init_fields })
                 }
             }
         }

@@ -1,7 +1,8 @@
-use bytes::BufMut;
+// #![feature(type_alias_impl_trait)]
+
 use ruma_api::{
     error::{FromHttpResponseError, IntoHttpError, MatrixError},
-    ruma_api, IncomingResponse, OutgoingResponse,
+    ruma_api, IncomingRawHttpBody, IncomingResponse, OutgoingResponse, RawHttpBody,
 };
 use ruma_serde::Outgoing;
 
@@ -26,19 +27,20 @@ ruma_api! {
 pub struct Response;
 
 impl IncomingResponse for Response {
+    type IncomingBody = IncomingRawHttpBody;
     type EndpointError = MatrixError;
 
-    fn try_from_http_response<T: AsRef<[u8]>>(
-        _: http::Response<T>,
+    fn try_from_http_response(
+        _: http::Response<IncomingRawHttpBody>,
     ) -> Result<Self, FromHttpResponseError<MatrixError>> {
         todo!()
     }
 }
 
 impl OutgoingResponse for Response {
-    fn try_into_http_response<T: Default + BufMut>(
-        self,
-    ) -> Result<http::Response<T>, IntoHttpError> {
+    type OutgoingBody = RawHttpBody<'static>;
+
+    fn try_into_http_response(self) -> Result<http::Response<RawHttpBody<'static>>, IntoHttpError> {
         todo!()
     }
 }

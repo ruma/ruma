@@ -63,13 +63,6 @@ struct Response {
 }
 
 impl Response {
-    /// Whether or not this request has any data in the HTTP body.
-    fn has_body_fields(&self) -> bool {
-        self.fields
-            .iter()
-            .any(|f| matches!(f, ResponseField::Body(_) | &ResponseField::NewtypeBody(_)))
-    }
-
     /// Whether or not this request has a single newtype body field.
     fn has_newtype_body(&self) -> bool {
         self.fields.iter().any(|f| matches!(f, ResponseField::NewtypeBody(_)))
@@ -78,6 +71,12 @@ impl Response {
     /// Whether or not this request has a single raw body field.
     fn has_raw_body(&self) -> bool {
         self.fields.iter().any(|f| matches!(f, ResponseField::RawBody(_)))
+    }
+
+    fn has_body_fields(&self) -> bool {
+        self.fields
+            .iter()
+            .any(|f| matches!(f, ResponseField::Body(_) | ResponseField::NewtypeBody(_)))
     }
 
     /// Whether or not this request has any data in the URL path.
@@ -91,21 +90,43 @@ impl Response {
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
         let serde = quote! { #ruma_api::exports::serde };
 
-        let response_body_struct = (!self.has_raw_body()).then(|| {
+        let response_body_struct = self.has_body_fields().then(|| {
             let serde_attr = self.has_newtype_body().then(|| quote! { #[serde(transparent)] });
-            let fields = self.fields.iter().filter_map(ResponseField::as_body_field);
+            let fields: Vec<_> =
+                self.fields.iter().filter_map(ResponseField::as_body_field).collect();
+
+            // Only derive `Deserialize` if there are any fields,
+            let derive_deserialize = (!fields.is_empty()).then(|| {
+                quote! { #serde::Deserialize }
+            });
+
+            // … otherwise `FromHttpBody` will be implemented directly.
+            let from_http_body_impl = fields.is_empty().then(|| {
+                quote! {
+                    #[automatically_derived]
+                    impl<Error> #ruma_api::FromHttpBody<Error> for ResponseBody {
+                        fn from_buf(_body: &[::std::primitive::u8]) -> Result<Self, Error> {
+                            Ok(Self {})
+                        }
+                    }
+                }
+            });
 
             quote! {
                 /// Data in the response body.
+                #[doc(hidden)] // until type_alias_impl_trait works well enough
+                #[non_exhaustive]
                 #[derive(
                     Debug,
                     #ruma_api_macros::_FakeDeriveRumaApi,
                     #ruma_serde::Outgoing,
-                    #serde::Deserialize,
                     #serde::Serialize,
+                    #derive_deserialize
                 )]
                 #serde_attr
-                struct ResponseBody { #(#fields),* }
+                pub struct ResponseBody { #(#fields),* }
+
+                #from_http_body_impl
             }
         });
 

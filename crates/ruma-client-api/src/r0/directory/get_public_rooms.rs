@@ -84,10 +84,7 @@ mod tests {
             since: Some("hello"),
             server: Some(server_name!("test.tld")),
         }
-        .try_into_http_request::<Vec<u8>>(
-            "https://homeserver.tld",
-            SendAccessToken::IfRequired("auth_tok"),
-        )
+        .try_into_http_request("https://homeserver.tld", SendAccessToken::IfRequired("auth_tok"))
         .unwrap();
 
         let uri = req.uri();
@@ -102,7 +99,7 @@ mod tests {
     #[cfg(feature = "server")]
     #[test]
     fn construct_response_from_refs() {
-        use ruma_api::OutgoingResponse as _;
+        use ruma_api::{IntoHttpBody, OutgoingResponse as _};
 
         let res = super::Response {
             chunk: vec![],
@@ -110,12 +107,12 @@ mod tests {
             prev_batch: Some("prev_batch_token".into()),
             total_room_count_estimate: Some(uint!(10)),
         }
-        .try_into_http_response::<Vec<u8>>()
+        .try_into_http_response()
         .unwrap();
 
         assert_eq!(
-            String::from_utf8_lossy(res.body()),
-            r#"{"chunk":[],"next_batch":"next_batch_token","prev_batch":"prev_batch_token","total_room_count_estimate":10}"#
+            res.into_body().to_buf::<Vec<u8>>().unwrap(),
+            br#"{"chunk":[],"next_batch":"next_batch_token","prev_batch":"prev_batch_token","total_room_count_estimate":10}"#
         );
     }
 }

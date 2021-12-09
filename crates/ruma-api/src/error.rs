@@ -4,8 +4,7 @@
 
 use std::{error::Error as StdError, fmt};
 
-use bytes::BufMut;
-use serde_json::{from_slice as from_json_slice, Value as JsonValue};
+use serde_json::Value as JsonValue;
 use thiserror::Error;
 
 use crate::{EndpointError, OutgoingResponse};
@@ -33,25 +32,24 @@ impl fmt::Display for MatrixError {
 impl StdError for MatrixError {}
 
 impl OutgoingResponse for MatrixError {
-    fn try_into_http_response<T: Default + BufMut>(
-        self,
-    ) -> Result<http::Response<T>, IntoHttpError> {
+    type OutgoingBody = JsonValue;
+
+    fn try_into_http_response(self) -> Result<http::Response<Self::OutgoingBody>, IntoHttpError> {
         http::Response::builder()
             .header(http::header::CONTENT_TYPE, "application/json")
             .status(self.status_code)
-            .body(ruma_serde::json_to_buf(&self.body)?)
+            .body(self.body)
             .map_err(Into::into)
     }
 }
 
 impl EndpointError for MatrixError {
-    fn try_from_http_response<T: AsRef<[u8]>>(
-        response: http::Response<T>,
+    type IncomingBody = JsonValue;
+
+    fn try_from_http_response(
+        response: http::Response<Self::IncomingBody>,
     ) -> Result<Self, DeserializationError> {
-        Ok(Self {
-            status_code: response.status(),
-            body: from_json_slice(response.body().as_ref())?,
-        })
+        Ok(Self { status_code: response.status(), body: response.into_body() })
     }
 }
 
