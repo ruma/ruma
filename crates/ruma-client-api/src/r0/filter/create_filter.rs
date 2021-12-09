@@ -65,7 +65,7 @@ mod tests {
                 http::Request::builder()
                     .method(http::Method::POST)
                     .uri("https://matrix.org/_matrix/client/r0/user/@foo:bar.com/filter")
-                    .body(b"{}" as &[u8])
+                    .body(serde_json::from_str("{}").unwrap())
                     .unwrap(),
             ),
             Ok(IncomingRequest { user_id, filter })
@@ -76,18 +76,18 @@ mod tests {
     #[cfg(feature = "client")]
     #[test]
     fn serialize_request() {
-        use ruma_api::{OutgoingRequest, SendAccessToken};
+        use ruma_api::{IntoHttpBody, OutgoingRequest, SendAccessToken};
         use ruma_identifiers::user_id;
 
         use crate::r0::filter::FilterDefinition;
 
         assert_matches!(
             super::Request::new(user_id!("@foo:bar.com"), FilterDefinition::default())
-                .try_into_http_request::<Vec<u8>>(
+                .try_into_http_request(
                     "https://matrix.org",
                     SendAccessToken::IfRequired("tok"),
                 ),
-            Ok(res) if res.body() == b"{}"
+            Ok(res) if res.body().to_buf::<Vec<u8>>().unwrap() == b"{}"
         );
     }
 }

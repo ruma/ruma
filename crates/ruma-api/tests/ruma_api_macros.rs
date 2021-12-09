@@ -1,3 +1,4 @@
+// #![feature(type_alias_impl_trait)]
 #![allow(clippy::exhaustive_structs)]
 
 pub mod some_endpoint {

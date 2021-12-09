@@ -172,12 +172,12 @@ mod tests {
         let events = vec![dummy_event];
 
         let req = Request { events: &events, txn_id: "any_txn_id" }
-            .try_into_http_request::<Vec<u8>>(
+            .try_into_http_request(
                 "https://homeserver.tld",
                 SendAccessToken::IfRequired("auth_tok"),
             )
             .unwrap();
-        let json_body: serde_json::Value = serde_json::from_slice(req.body()).unwrap();
+        let json_body = json!(req.body());
 
         assert_eq!(
             1,

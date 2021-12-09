@@ -84,16 +84,17 @@ impl Response {
 
 #[cfg(feature = "client")]
 impl<'a> ruma_api::OutgoingRequest for Request<'a> {
+    type OutgoingBody = Raw<AnyStateEventContent>;
     type EndpointError = crate::Error;
     type IncomingResponse = Response;
 
     const METADATA: ruma_api::Metadata = METADATA;
 
-    fn try_into_http_request<T: Default + bytes::BufMut>(
+    fn try_into_http_request(
         self,
         base_url: &str,
         access_token: ruma_api::SendAccessToken<'_>,
-    ) -> Result<http::Request<T>, ruma_api::error::IntoHttpError> {
+    ) -> Result<http::Request<Raw<AnyStateEventContent>>, ruma_api::error::IntoHttpError> {
         use std::borrow::Cow;
 
         use http::header::{self, HeaderValue};
@@ -125,7 +126,7 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
                         .ok_or(ruma_api::error::IntoHttpError::NeedsAuthentication)?
                 ))?,
             )
-            .body(ruma_serde::json_to_buf(&self.body)?)?;
+            .body(self.body)?;
 
         Ok(http_request)
     }
@@ -133,13 +134,14 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
 
 #[cfg(feature = "server")]
 impl ruma_api::IncomingRequest for IncomingRequest {
+    type IncomingBody = Raw<AnyStateEventContent>;
     type EndpointError = crate::Error;
     type OutgoingResponse = Response;
 
     const METADATA: ruma_api::Metadata = METADATA;
 
-    fn try_from_http_request<T: AsRef<[u8]>>(
-        request: http::Request<T>,
+    fn try_from_http_request(
+        request: http::Request<Raw<AnyStateEventContent>>,
     ) -> Result<Self, ruma_api::error::FromHttpRequestError> {
         use std::{borrow::Cow, convert::TryFrom};
 
@@ -164,7 +166,7 @@ impl ruma_api::IncomingRequest for IncomingRequest {
             .unwrap_or(Cow::Borrowed(""))
             .into_owned();
 
-        let body = serde_json::from_slice(request.body().as_ref())?;
+        let body = request.into_body();
 
         Ok(Self { room_id, event_type, state_key, body })
     }

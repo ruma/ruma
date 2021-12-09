@@ -5,9 +5,15 @@ use super::{Response, ResponseField};
 
 impl Response {
     pub fn expand_outgoing(&self, ruma_api: &TokenStream) -> TokenStream {
-        let bytes = quote! { #ruma_api::exports::bytes };
         let http = quote! { #ruma_api::exports::http };
-        let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
+
+        let outgoing_body_type = if self.has_raw_body() {
+            quote! { #ruma_api::IncomingRawHttpBody }
+        } else if self.has_body_fields() {
+            quote! { ResponseBody }
+        } else {
+            quote! { #ruma_api::RawHttpBody<'static> }
+        };
 
         let serialize_response_headers = self.fields.iter().filter_map(|response_field| {
             response_field.as_header_field().map(|(field, header_name)| {
@@ -41,8 +47,8 @@ impl Response {
             self.fields.iter().find_map(ResponseField::as_raw_body_field)
         {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-            quote! { #ruma_serde::slice_to_buf(&self.#field_name) }
-        } else {
+            quote! { #ruma_api::IncomingRawHttpBody(self.#field_name) }
+        } else if self.has_body_fields() {
             let fields = self.fields.iter().filter_map(|response_field| {
                 response_field.as_body_field().map(|field| {
                     let field_name =
@@ -57,7 +63,11 @@ impl Response {
             });
 
             quote! {
-                #ruma_serde::json_to_buf(&ResponseBody { #(#fields)* })?
+                ResponseBody { #(#fields)* }
+            }
+        } else {
+            quote! {
+                #ruma_api::RawHttpBody(b"{}")
             }
         };
 
@@ -65,9 +75,14 @@ impl Response {
             #[automatically_derived]
             #[cfg(feature = "server")]
             impl #ruma_api::OutgoingResponse for Response {
-                fn try_into_http_response<T: ::std::default::Default + #bytes::BufMut>(
+                type OutgoingBody = #outgoing_body_type; // impl #ruma_api::IntoHttpBody;
+
+                fn try_into_http_response(
                     self,
-                ) -> ::std::result::Result<#http::Response<T>, #ruma_api::error::IntoHttpError> {
+                ) -> ::std::result::Result<
+                    #http::Response<Self::OutgoingBody>,
+                    #ruma_api::error::IntoHttpError,
+                > {
                     let mut resp_builder = #http::Response::builder()
                         .header(#http::header::CONTENT_TYPE, "application/json");
 

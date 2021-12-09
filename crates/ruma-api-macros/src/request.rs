@@ -129,6 +129,10 @@ impl Request {
         self.fields.iter().any(|f| matches!(f, RequestField::NewtypeBody(_)))
     }
 
+    fn has_raw_body(&self) -> bool {
+        self.fields.iter().any(|f| matches!(f, RequestField::RawBody(_)))
+    }
+
     fn has_header_fields(&self) -> bool {
         self.fields.iter().any(|f| matches!(f, RequestField::Header(..)))
     }
@@ -172,17 +176,40 @@ impl Request {
 
         let request_body_struct = self.has_body_fields().then(|| {
             let serde_attr = self.has_newtype_body().then(|| quote! { #[serde(transparent)] });
-            let fields = self.fields.iter().filter_map(RequestField::as_body_field);
+            let fields: Vec<_> =
+                self.fields.iter().filter_map(RequestField::as_body_field).collect();
 
             // Though we don't track the difference between newtype body and body
             // for lifetimes, the outer check and the macro failing if it encounters
             // an illegal combination of field attributes, is enough to guarantee
             // `body_lifetimes` correctness.
             let lifetimes = &self.lifetimes.body;
-            let derive_deserialize = lifetimes.is_empty().then(|| quote! { #serde::Deserialize });
+
+            // If there are fields but they all have no lifetimes, don't derive `Deserialize`
+            // because it will be derived for the incoming struct instead.
+            let derive_deserialize = (!fields.is_empty() && lifetimes.is_empty())
+                .then(|| quote! { #serde::Deserialize });
+
+            // If there are no fields, don't derive `Deserialize`
+            let incoming_derive =
+                fields.is_empty().then(|| quote! { #[incoming_derive(!Deserialize)] });
+
+            // … and also add a `FromHttpBody` impl.
+            let from_http_body_impl = fields.is_empty().then(|| {
+                quote! {
+                    #[automatically_derived]
+                    impl<Error> #ruma_api::FromHttpBody<Error> for RequestBody {
+                        fn from_buf(_body: &[::std::primitive::u8]) -> Result<Self, Error> {
+                            Ok(Self {})
+                        }
+                    }
+                }
+            });
 
             quote! {
                 /// Data in the request body.
+                #[doc(hidden)] // until type_alias_impl_trait works well enough
+                #[non_exhaustive]
                 #[derive(
                     Debug,
                     #ruma_api_macros::_FakeDeriveRumaApi,
@@ -191,7 +218,10 @@ impl Request {
                     #derive_deserialize
                 )]
                 #serde_attr
-                struct RequestBody< #(#lifetimes),* > { #(#fields),* }
+                #incoming_derive
+                pub struct RequestBody< #(#lifetimes),* > { #(#fields),* }
+
+                #from_http_body_impl
             }
         });
 

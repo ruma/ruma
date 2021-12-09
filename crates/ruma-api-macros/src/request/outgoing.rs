@@ -8,7 +8,6 @@ use super::{Request, RequestField};
 
 impl Request {
     pub fn expand_outgoing(&self, ruma_api: &TokenStream) -> TokenStream {
-        let bytes = quote! { #ruma_api::exports::bytes };
         let http = quote! { #ruma_api::exports::http };
         let percent_encoding = quote! { #ruma_api::exports::percent_encoding };
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
@@ -45,7 +44,7 @@ impl Request {
                 format_args!(#format_string, #(#format_args),*)
             }
         } else {
-            quote! { metadata.path.to_owned() }
+            quote! { METADATA.path.to_owned() }
         };
 
         let request_query_string = if let Some(field) = self.query_map_field() {
@@ -169,20 +168,31 @@ impl Request {
 
         let request_body = if let Some(field) = self.raw_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-            quote! { #ruma_serde::slice_to_buf(&self.#field_name) }
+            quote! { #ruma_api::RawHttpBody(self.#field_name) }
         } else if self.has_body_fields() {
             let initializers = struct_init_fields(self.body_fields(), quote! { self });
 
             quote! {
-                #ruma_serde::json_to_buf(&RequestBody { #initializers })?
+                RequestBody { #initializers }
             }
         } else if method == "GET" {
-            quote! { <T as ::std::default::Default>::default() }
+            quote! { #ruma_api::RawHttpBody(b"") }
         } else {
-            quote! { #ruma_serde::slice_to_buf(b"{}") }
+            quote! { #ruma_api::RawHttpBody(b"{}") }
         };
 
         let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
+
+        let body_lifetimes = &self.lifetimes.body;
+        let outgoing_body_type = if self.has_raw_body() {
+            assert_eq!(body_lifetimes.len(), 1);
+            let lt = body_lifetimes.iter().next().unwrap();
+            quote! { #ruma_api::RawHttpBody<#lt> }
+        } else if self.has_body_fields() {
+            quote! { RequestBody < #(#body_lifetimes),* > }
+        } else {
+            quote! { #ruma_api::RawHttpBody<'static> }
+        };
 
         let non_auth_impl = matches!(self.authentication, AuthScheme::None(_)).then(|| {
             quote! {
@@ -197,18 +207,20 @@ impl Request {
             #[automatically_derived]
             #[cfg(feature = "client")]
             impl #impl_generics #ruma_api::OutgoingRequest for Request #ty_generics #where_clause {
+                type OutgoingBody = #outgoing_body_type; // impl #ruma_api::IntoHttpBody;
                 type EndpointError = #error_ty;
                 type IncomingResponse = <Response as #ruma_serde::Outgoing>::Incoming;
 
-                const METADATA: #ruma_api::Metadata = self::METADATA;
+                const METADATA: #ruma_api::Metadata = METADATA;
 
-                fn try_into_http_request<T: ::std::default::Default + #bytes::BufMut>(
+                fn try_into_http_request(
                     self,
                     base_url: &::std::primitive::str,
                     access_token: #ruma_api::SendAccessToken<'_>,
-                ) -> ::std::result::Result<#http::Request<T>, #ruma_api::error::IntoHttpError> {
-                    let metadata = self::METADATA;
-
+                ) -> ::std::result::Result<
+                    #http::Request<Self::OutgoingBody>,
+                    #ruma_api::error::IntoHttpError,
+                > {
                     let mut req_builder = #http::Request::builder()
                         .method(#http::Method::#method)
                         .uri(::std::format!(

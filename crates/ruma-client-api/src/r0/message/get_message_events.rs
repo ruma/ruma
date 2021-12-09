@@ -164,7 +164,7 @@ mod tests {
             filter: Some(filter),
         };
 
-        let request: http::Request<Vec<u8>> = req
+        let request = req
             .try_into_http_request(
                 "https://homeserver.tld",
                 SendAccessToken::IfRequired("auth_tok"),
@@ -193,7 +193,7 @@ mod tests {
         };
 
         let request = req
-            .try_into_http_request::<Vec<u8>>(
+            .try_into_http_request(
                 "https://homeserver.tld",
                 SendAccessToken::IfRequired("auth_tok"),
             )
@@ -213,7 +213,7 @@ mod tests {
             filter: Some(RoomEventFilter::default()),
         };
 
-        let request: http::Request<Vec<u8>> = req
+        let request = req
             .try_into_http_request(
                 "https://homeserver.tld",
                 SendAccessToken::IfRequired("auth_tok"),

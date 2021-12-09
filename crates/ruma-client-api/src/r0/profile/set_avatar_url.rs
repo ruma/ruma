@@ -76,6 +76,7 @@ impl Response {
 mod tests {
     use matches::assert_matches;
     use ruma_api::IncomingRequest as _;
+    use serde_json::from_str as from_json_str;
 
     use super::IncomingRequest;
 
@@ -86,7 +87,8 @@ mod tests {
                 http::Request::builder()
                     .method("PUT")
                     .uri("https://bar.org/_matrix/client/r0/profile/@foo:bar.org/avatar_url")
-                    .body(&[] as &[u8]).unwrap(),
+                    .body(from_json_str("{}").unwrap())
+                    .unwrap(),
             ).unwrap(),
             IncomingRequest { user_id, avatar_url: None, .. } if user_id == "@foo:bar.org"
         );
@@ -97,7 +99,7 @@ mod tests {
                 http::Request::builder()
                     .method("PUT")
                     .uri("https://bar.org/_matrix/client/r0/profile/@foo:bar.org/avatar_url")
-                    .body(serde_json::to_vec(&serde_json::json!({ "avatar_url": "" })).unwrap())
+                    .body(from_json_str(r#"{ "avatar_url": "" }"#).unwrap())
                     .unwrap(),
             ).unwrap(),
             IncomingRequest { user_id, avatar_url: None, .. } if user_id == "@foo:bar.org"

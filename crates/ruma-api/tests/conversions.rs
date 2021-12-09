@@ -1,3 +1,4 @@
+// #![feature(type_alias_impl_trait)]
 #![allow(clippy::exhaustive_structs)]
 
 use ruma_api::{
@@ -50,10 +51,8 @@ fn request_serde() {
         user: user_id!("@bazme:ruma.io").to_owned(),
     };
 
-    let http_req = req
-        .clone()
-        .try_into_http_request::<Vec<u8>>("https://homeserver.tld", SendAccessToken::None)
-        .unwrap();
+    let http_req =
+        req.clone().try_into_http_request("https://homeserver.tld", SendAccessToken::None).unwrap();
     let req2 = Request::try_from_http_request(http_req).unwrap();
 
     assert_eq!(req.hello, req2.hello);
@@ -75,7 +74,7 @@ fn invalid_uri_should_not_panic() {
         user: user_id!("@bazme:ruma.io").to_owned(),
     };
 
-    let result = req.try_into_http_request::<Vec<u8>>("invalid uri", SendAccessToken::None);
+    let result = req.try_into_http_request("invalid uri", SendAccessToken::None);
     assert!(result.is_err());
 }
 
@@ -92,7 +91,7 @@ fn request_with_user_id_serde() {
 
     let user_id = user_id!("@_virtual_:ruma.io");
     let http_req = req
-        .try_into_http_request_with_user_id::<Vec<u8>>(
+        .try_into_http_request_with_user_id(
             "https://homeserver.tld",
             SendAccessToken::None,
             user_id,
@@ -150,7 +149,7 @@ mod without_query {
 
         let user_id = user_id!("@_virtual_:ruma.io");
         let http_req = req
-            .try_into_http_request_with_user_id::<Vec<u8>>(
+            .try_into_http_request_with_user_id(
                 "https://homeserver.tld",
                 SendAccessToken::None,
                 user_id,

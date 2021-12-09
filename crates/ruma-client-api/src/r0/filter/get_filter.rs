@@ -56,10 +56,11 @@ mod tests {
     #[test]
     fn deserialize_response() {
         use ruma_api::IncomingResponse;
+        use serde_json::from_str as from_json_str;
 
         assert_matches!(
             super::Response::try_from_http_response(
-                http::Response::builder().body(b"{}" as &[u8]).unwrap(),
+                http::Response::builder().body(from_json_str("{}").unwrap()).unwrap(),
             ),
             Ok(super::Response { filter }) if filter.is_empty()
         );
@@ -68,14 +69,14 @@ mod tests {
     #[cfg(feature = "server")]
     #[test]
     fn serialize_response() {
-        use ruma_api::OutgoingResponse;
+        use ruma_api::{IntoHttpBody, OutgoingResponse};
 
         use crate::r0::filter::IncomingFilterDefinition;
 
         assert_matches!(
             super::Response::new(IncomingFilterDefinition::default())
-                .try_into_http_response::<Vec<u8>>(),
-            Ok(res) if res.body() == b"{}"
+                .try_into_http_response(),
+            Ok(res) if res.body().to_buf::<Vec<u8>>().unwrap() == b"{}"
         );
     }
 }

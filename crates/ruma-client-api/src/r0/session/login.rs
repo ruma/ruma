@@ -319,12 +319,11 @@ mod tests {
     fn serialize_login_request_body() {
         use ruma_api::{OutgoingRequest, SendAccessToken};
         use ruma_common::thirdparty::Medium;
-        use serde_json::Value as JsonValue;
 
         use super::{LoginInfo, Password, Request, Token};
         use crate::r0::uiaa::UserIdentifier;
 
-        let req: http::Request<Vec<u8>> = Request {
+        let req = Request {
             login_info: LoginInfo::Token(Token { token: "0xdeadbeef" }),
             device_id: None,
             initial_device_display_name: Some("test"),
@@ -332,9 +331,8 @@ mod tests {
         .try_into_http_request("https://homeserver.tld", SendAccessToken::None)
         .unwrap();
 
-        let req_body_value: JsonValue = serde_json::from_slice(req.body()).unwrap();
         assert_eq!(
-            req_body_value,
+            json!(req.body()),
             json!({
                 "type": "m.login.token",
                 "token": "0xdeadbeef",
@@ -342,7 +340,7 @@ mod tests {
             })
         );
 
-        let req: http::Request<Vec<u8>> = Request {
+        let req = Request {
             login_info: LoginInfo::Password(Password {
                 identifier: UserIdentifier::ThirdPartyId {
                     address: "hello@example.com",
@@ -356,9 +354,8 @@ mod tests {
         .try_into_http_request("https://homeserver.tld", SendAccessToken::None)
         .unwrap();
 
-        let req_body_value: JsonValue = serde_json::from_slice(req.body()).unwrap();
         assert_eq!(
-            req_body_value,
+            json!(req.body()),
             json!({
                 "identifier": {
                     "type": "m.id.thirdparty",

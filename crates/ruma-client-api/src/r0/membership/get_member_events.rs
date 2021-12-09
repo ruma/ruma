@@ -103,7 +103,7 @@ impl MembershipEventFilter {
 #[cfg(all(test, feature = "server"))]
 mod tests {
     use matches::assert_matches;
-    use ruma_api::IncomingRequest as _;
+    use ruma_api::{IncomingRawHttpBody, IncomingRequest as _};
 
     use super::{IncomingRequest, MembershipEventFilter};
 
@@ -121,7 +121,7 @@ mod tests {
             .unwrap();
 
         let req = IncomingRequest::try_from_http_request(
-            http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
+            http::Request::builder().uri(uri).body(IncomingRawHttpBody(vec![])).unwrap(),
         );
 
         assert_matches!(

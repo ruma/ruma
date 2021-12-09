@@ -1,3 +1,5 @@
+// #![feature(type_alias_impl_trait)]
+
 use ruma_api::ruma_api;
 
 ruma_api! {
