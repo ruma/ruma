@@ -25,6 +25,10 @@ pub struct PublicRoomsChunk {
 
     /// The canonical alias of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(
+        feature = "compat",
+        serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
+    )]
     pub canonical_alias: Option<Box<RoomAliasId>>,
 
     /// The name of the room, if any.
