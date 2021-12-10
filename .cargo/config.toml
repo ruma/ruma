@@ -13,7 +13,7 @@ rustflags = [
     "-Wclippy::branches_sharing_code",
     "-Wclippy::cloned_instead_of_copied",
     "-Wclippy::dbg_macro",
-    "-Wclippy::disallowed_type",
+    "-Wclippy::disallowed_types",
     "-Wclippy::empty_line_after_outer_attr",
     "-Wclippy::exhaustive_enums",
     "-Wclippy::exhaustive_structs",
