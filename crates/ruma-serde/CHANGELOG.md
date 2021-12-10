@@ -4,6 +4,7 @@ Breaking changes:
 
 * Remove `From<T>` implementation for `Raw<T>`
   * Replaced by the new fallible constructor `Raw::new`
+* Remove `json_to_buf`, `slice_to_buf`
 
 # 0.5.0
 

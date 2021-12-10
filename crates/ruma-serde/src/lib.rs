@@ -6,7 +6,6 @@
 
 use serde_json::Value as JsonValue;
 
-mod buf;
 pub mod can_be_empty;
 mod canonical_json;
 mod cow;
@@ -19,7 +18,6 @@ mod strings;
 pub mod test;
 pub mod urlencoded;
 
-pub use buf::{json_to_buf, slice_to_buf};
 pub use can_be_empty::{is_empty, CanBeEmpty};
 pub use canonical_json::{
     to_canonical_value, try_from_json_map,
