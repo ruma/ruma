@@ -1,4 +1,5 @@
 // #![feature(type_alias_impl_trait)]
+#![feature(generic_associated_types)]
 #![allow(clippy::exhaustive_structs)]
 
 #[derive(Copy, Clone, Debug, ruma_serde::Outgoing, serde::Serialize)]

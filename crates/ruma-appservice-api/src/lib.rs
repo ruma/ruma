@@ -6,6 +6,7 @@
 //! [appservice-api]: https://matrix.org/docs/spec/application_service/r0.1.2.html
 
 // #![feature(type_alias_impl_trait)]
+#![feature(generic_associated_types)]
 #![warn(missing_docs)]
 
 use serde::{Deserialize, Serialize};

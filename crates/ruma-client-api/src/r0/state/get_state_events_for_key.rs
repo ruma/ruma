@@ -116,7 +116,7 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
 impl ruma_api::IncomingRequest for IncomingRequest {
     type IncomingBody = ruma_api::IncomingRawHttpBody; // impl FromHttpBody<FromHttpRequestError>;
     type EndpointError = crate::Error;
-    type OutgoingResponse = Response;
+    type OutgoingResponse<'a> = Response;
 
     const METADATA: ruma_api::Metadata = METADATA;
 

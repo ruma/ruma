@@ -6,6 +6,7 @@
 //! [client-api]: https://matrix.org/docs/spec/client_server/r0.6.1.html
 
 // #![feature(type_alias_impl_trait)]
+#![feature(generic_associated_types)]
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 

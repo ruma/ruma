@@ -6,6 +6,7 @@
 //! [push-api]: https://matrix.org/docs/spec/push_gateway/r0.1.1.html
 
 // #![feature(type_alias_impl_trait)]
+#![feature(generic_associated_types)]
 #![warn(missing_docs)]
 
 pub mod send_event_notification;

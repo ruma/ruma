@@ -13,6 +13,7 @@
 //!
 //! [apis]: https://matrix.org/docs/spec/#matrix-apis
 
+#![feature(generic_associated_types)]
 #![warn(missing_docs)]
 
 #[cfg(not(all(feature = "client", feature = "server")))]
@@ -339,7 +340,7 @@ pub trait IncomingRequest: Sized {
     type EndpointError: EndpointError;
 
     /// Response type to return when the request is successful.
-    type OutgoingResponse: OutgoingResponse;
+    type OutgoingResponse<'a>: OutgoingResponse;
 
     /// Metadata about the endpoint.
     const METADATA: Metadata;

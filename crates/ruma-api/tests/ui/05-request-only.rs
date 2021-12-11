@@ -1,4 +1,5 @@
 // #![feature(type_alias_impl_trait)]
+#![feature(generic_associated_types)]
 
 use ruma_api::{
     error::{FromHttpResponseError, IntoHttpError, MatrixError},

@@ -5,6 +5,7 @@
 //!
 //! [identity-api]: https://matrix.org/docs/spec/identity_service/r0.3.0.html
 
+#![feature(generic_associated_types)]
 #![warn(missing_docs)]
 
 pub mod association;

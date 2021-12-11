@@ -1,6 +1,7 @@
 //! PUT /_matrix/client/r0/directory/room/:room_alias
 
 // #![feature(type_alias_impl_trait)]
+#![feature(generic_associated_types)]
 #![allow(clippy::exhaustive_structs)]
 
 use std::convert::TryFrom;
@@ -67,7 +68,7 @@ impl OutgoingRequest for Request {
 impl IncomingRequest for Request {
     type IncomingBody = RequestBody; // impl FromHttpBody<FromHttpRequestError>;
     type EndpointError = MatrixError;
-    type OutgoingResponse = Response;
+    type OutgoingResponse<'a> = Response;
 
     const METADATA: Metadata = METADATA;
 

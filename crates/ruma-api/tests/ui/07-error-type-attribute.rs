@@ -1,3 +1,5 @@
+#![feature(generic_associated_types)]
+
 use ruma_api::ruma_api;
 
 ruma_api! {

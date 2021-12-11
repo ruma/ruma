@@ -212,7 +212,7 @@ impl Request {
                 type IncomingBody = #incoming_body_type;
                     //impl #ruma_api::FromHttpBody<#ruma_api::error::FromHttpRequestError>;
                 type EndpointError = #error_ty;
-                type OutgoingResponse = Response;
+                type OutgoingResponse<'a> = Response;
 
                 const METADATA: #ruma_api::Metadata = METADATA;
 

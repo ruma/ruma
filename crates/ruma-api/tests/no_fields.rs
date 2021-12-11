@@ -1,4 +1,5 @@
 // #![feature(type_alias_impl_trait)]
+#![feature(generic_associated_types)]
 
 use ruma_api::{IntoHttpBody as _, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken};
 
