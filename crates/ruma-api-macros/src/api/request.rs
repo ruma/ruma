@@ -1,16 +1,11 @@
 //! Details of the `request` section of the procedural macro.
 
-use std::collections::btree_map::{BTreeMap, Entry};
-
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{
-    parse_quote, punctuated::Punctuated, spanned::Spanned, visit::Visit, Attribute, Field, Ident,
-    Lifetime, Token,
-};
+use syn::{punctuated::Punctuated, spanned::Spanned, Attribute, Field, Ident, Token};
 
 use super::{kw, metadata::Metadata};
-use crate::util::{all_cfgs, all_cfgs_expr, extract_cfg};
+use crate::util::{all_cfgs_expr, all_lifetimes};
 
 /// The result of processing the `request` section of the macro.
 pub(crate) struct Request {
@@ -25,45 +20,6 @@ pub(crate) struct Request {
 }
 
 impl Request {
-    /// The combination of every fields unique lifetime annotation.
-    fn all_lifetimes(&self) -> BTreeMap<Lifetime, Option<Attribute>> {
-        let mut lifetimes = BTreeMap::new();
-
-        struct Visitor<'lt> {
-            field_cfg: Option<Attribute>,
-            lifetimes: &'lt mut BTreeMap<Lifetime, Option<Attribute>>,
-        }
-
-        impl<'ast> Visit<'ast> for Visitor<'_> {
-            fn visit_lifetime(&mut self, lt: &'ast Lifetime) {
-                match self.lifetimes.entry(lt.clone()) {
-                    Entry::Vacant(v) => {
-                        v.insert(self.field_cfg.clone());
-                    }
-                    Entry::Occupied(mut o) => {
-                        let lifetime_cfg = o.get_mut();
-
-                        // If at least one field uses this lifetime and has no cfg attribute, we
-                        // don't need a cfg attribute for the lifetime either.
-                        *lifetime_cfg = Option::zip(lifetime_cfg.as_ref(), self.field_cfg.as_ref())
-                            .map(|(a, b)| {
-                                let expr_a = extract_cfg(a);
-                                let expr_b = extract_cfg(b);
-                                parse_quote! { #[cfg( any( #expr_a, #expr_b ) )] }
-                            });
-                    }
-                }
-            }
-        }
-
-        for field in &self.fields {
-            let field_cfg = if field.attrs.is_empty() { None } else { all_cfgs(&field.attrs) };
-            Visitor { lifetimes: &mut lifetimes, field_cfg }.visit_type(&field.ty);
-        }
-
-        lifetimes
-    }
-
     pub(super) fn expand(
         &self,
         metadata: &Metadata,
@@ -93,8 +49,8 @@ impl Request {
         });
 
         let request_ident = Ident::new("Request", self.request_kw.span());
-        let lifetimes = self.all_lifetimes();
-        let lifetimes = lifetimes.iter().map(|(lt, attr)| quote! { #attr #lt });
+        let lifetimes =
+            all_lifetimes(&self.fields).into_iter().map(|(lt, attr)| quote! { #attr #lt });
         let fields = &self.fields;
 
         quote! {

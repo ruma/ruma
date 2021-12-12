@@ -38,7 +38,7 @@ ruma_api! {
         /// pushkeys and remove the associated pushers. It may not necessarily be the notification
         /// in the request that failed: it could be that a previous notification to the same pushkey
         /// failed. May be empty.
-        pub rejected: Vec<String>,
+        pub rejected: &'a [String],
     }
 }
 

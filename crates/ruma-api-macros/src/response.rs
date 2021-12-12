@@ -1,4 +1,5 @@
 use std::{
+    collections::BTreeSet,
     convert::{TryFrom, TryInto},
     mem,
 };
@@ -8,13 +9,12 @@ use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
-    visit::Visit,
     DeriveInput, Field, Generics, Ident, Lifetime, Token, Type,
 };
 
 use crate::{
     attribute::{Meta, MetaNameValue, MetaValue},
-    util,
+    util::{self, collect_lifetime_idents},
 };
 
 mod incoming;
@@ -26,7 +26,23 @@ pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
         _ => panic!("This derive macro only works on structs"),
     };
 
-    let fields = fields.into_iter().map(ResponseField::try_from).collect::<syn::Result<_>>()?;
+    let mut lifetimes = ResponseLifetimes::default();
+    let fields = fields
+        .into_iter()
+        .map(|f| {
+            let f = ResponseField::try_from(f)?;
+            let ty = &f.field().ty;
+
+            match &f {
+                ResponseField::Body(_) => collect_lifetime_idents(&mut lifetimes.body, ty),
+                ResponseField::NewtypeBody(_) => collect_lifetime_idents(&mut lifetimes.body, ty),
+                ResponseField::RawBody(_) => collect_lifetime_idents(&mut lifetimes.body, ty),
+                ResponseField::Header(..) => collect_lifetime_idents(&mut lifetimes.header, ty),
+            }
+
+            Ok(f)
+        })
+        .collect::<syn::Result<_>>()?;
     let mut error_ty = None;
     for attr in input.attrs {
         if !attr.path.is_ident("ruma_api") {
@@ -53,6 +69,12 @@ pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
 
     response.check()?;
     Ok(response.expand_all())
+}
+
+#[derive(Default)]
+struct ResponseLifetimes {
+    pub body: BTreeSet<Lifetime>,
+    pub header: BTreeSet<Lifetime>,
 }
 
 struct Response {
@@ -232,13 +254,6 @@ impl TryFrom<Field> for ResponseField {
     type Error = syn::Error;
 
     fn try_from(mut field: Field) -> syn::Result<Self> {
-        if has_lifetime(&field.ty) {
-            return Err(syn::Error::new_spanned(
-                field.ident,
-                "Lifetimes on Response fields cannot be supported until GAT are stable",
-            ));
-        }
-
         let mut field_kind = None;
         let mut header = None;
 
@@ -312,20 +327,4 @@ enum ResponseFieldKind {
     Header,
     NewtypeBody,
     RawBody,
-}
-
-fn has_lifetime(ty: &Type) -> bool {
-    struct Visitor {
-        found_lifetime: bool,
-    }
-
-    impl<'ast> Visit<'ast> for Visitor {
-        fn visit_lifetime(&mut self, _lt: &'ast Lifetime) {
-            self.found_lifetime = true;
-        }
-    }
-
-    let mut vis = Visitor { found_lifetime: false };
-    vis.visit_type(ty);
-    vis.found_lifetime
 }
