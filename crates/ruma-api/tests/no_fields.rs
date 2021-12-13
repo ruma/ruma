@@ -21,7 +21,7 @@ fn empty_request_http_repr() {
         .try_into_http_request::<Vec<u8>>("https://homeserver.tld", SendAccessToken::None)
         .unwrap();
 
-    assert!(http_req.body().is_empty());
+    assert_eq!(http_req.body(), b"{}");
 }
 
 #[test]

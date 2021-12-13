@@ -177,7 +177,7 @@ impl Request {
                 #ruma_serde::json_to_buf(&RequestBody { #initializers })?
             }
         } else {
-            quote! { <T as ::std::default::Default>::default() }
+            quote! { #ruma_serde::slice_to_buf(b"{}") }
         };
 
         let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
