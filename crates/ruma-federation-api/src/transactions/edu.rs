@@ -228,7 +228,7 @@ pub struct DeviceListUpdateContent {
 
     /// The updated identity keys (if any) for this device.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub keys: Option<DeviceKeys>,
+    pub keys: Option<Raw<DeviceKeys>>,
 }
 
 impl DeviceListUpdateContent {

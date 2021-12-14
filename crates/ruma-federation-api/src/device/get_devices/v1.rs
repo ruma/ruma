@@ -4,6 +4,7 @@ use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_common::encryption::DeviceKeys;
 use ruma_identifiers::{DeviceId, UserId};
+use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
@@ -63,7 +64,7 @@ pub struct UserDevice {
     pub device_id: Box<DeviceId>,
 
     /// Identity keys for the device.
-    pub keys: DeviceKeys,
+    pub keys: Raw<DeviceKeys>,
 
     /// Optional display name for the device
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -72,7 +73,7 @@ pub struct UserDevice {
 
 impl UserDevice {
     /// Creates a new `UserDevice` with the given device id and keys.
-    pub fn new(device_id: Box<DeviceId>, keys: DeviceKeys) -> Self {
+    pub fn new(device_id: Box<DeviceId>, keys: Raw<DeviceKeys>) -> Self {
         Self { device_id, keys, device_display_name: None }
     }
 }

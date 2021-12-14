@@ -6,6 +6,7 @@ use std::collections::BTreeMap;
 use ruma_api::ruma_api;
 use ruma_common::encryption::OneTimeKey;
 use ruma_identifiers::{DeviceId, DeviceKeyAlgorithm, DeviceKeyId, UserId};
+use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
@@ -48,7 +49,7 @@ pub type OneTimeKeyClaims = BTreeMap<Box<UserId>, BTreeMap<Box<DeviceId>, Device
 
 /// One time keys for use in pre-key messages
 pub type OneTimeKeys =
-    BTreeMap<Box<UserId>, BTreeMap<Box<DeviceId>, BTreeMap<Box<DeviceKeyId>, OneTimeKey>>>;
+    BTreeMap<Box<UserId>, BTreeMap<Box<DeviceId>, BTreeMap<Box<DeviceKeyId>, Raw<OneTimeKey>>>>;
 
 /// A key and its signature
 #[derive(Debug, Clone, Serialize, Deserialize)]
