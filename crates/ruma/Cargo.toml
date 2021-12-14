@@ -113,6 +113,7 @@ unstable-pre-spec = [
     "ruma-events/unstable-pre-spec",
     "ruma-federation-api/unstable-pre-spec",
     "ruma-identifiers/unstable-pre-spec",
+    "ruma-signatures/unstable-pre-spec",
     "ruma-state-res/unstable-pre-spec"
     #"ruma-identity-service-api/unstable-pre-spec",
     #"ruma-push-gateway-api/unstable-pre-spec",
