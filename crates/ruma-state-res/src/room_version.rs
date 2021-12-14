@@ -98,7 +98,6 @@ impl RoomVersion {
         ..Self::V5
     };
 
-    #[cfg(feature = "unstable-pre-spec")]
     pub const V7: Self = Self {
         // FIXME: once room version 7 is stabilized move this to version 8
         disposition: RoomDisposition::Unstable,
@@ -120,7 +119,6 @@ impl RoomVersion {
             RoomVersionId::V4 => Self::V4,
             RoomVersionId::V5 => Self::V5,
             RoomVersionId::V6 => Self::V6,
-            #[cfg(feature = "unstable-pre-spec")]
             RoomVersionId::V7 => Self::V7,
             #[cfg(feature = "unstable-pre-spec")]
             RoomVersionId::V8 => Self::V8,

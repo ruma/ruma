@@ -43,7 +43,6 @@ pub enum RoomVersionId {
     V6,
 
     /// A version 7 room.
-    #[cfg(feature = "unstable-pre-spec")]
     V7,
 
     /// A version 8 room.
@@ -70,7 +69,6 @@ impl RoomVersionId {
             Self::V4 => "4",
             Self::V5 => "5",
             Self::V6 => "6",
-            #[cfg(feature = "unstable-pre-spec")]
             Self::V7 => "7",
             #[cfg(feature = "unstable-pre-spec")]
             Self::V8 => "8",
@@ -95,7 +93,6 @@ impl From<RoomVersionId> for String {
             RoomVersionId::V4 => "4".to_owned(),
             RoomVersionId::V5 => "5".to_owned(),
             RoomVersionId::V6 => "6".to_owned(),
-            #[cfg(feature = "unstable-pre-spec")]
             RoomVersionId::V7 => "7".to_owned(),
             #[cfg(feature = "unstable-pre-spec")]
             RoomVersionId::V8 => "8".to_owned(),
@@ -166,7 +163,6 @@ where
         "4" => RoomVersionId::V4,
         "5" => RoomVersionId::V5,
         "6" => RoomVersionId::V6,
-        #[cfg(feature = "unstable-pre-spec")]
         "7" => RoomVersionId::V7,
         #[cfg(feature = "unstable-pre-spec")]
         "8" => RoomVersionId::V8,
