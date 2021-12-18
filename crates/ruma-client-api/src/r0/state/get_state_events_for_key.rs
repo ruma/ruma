@@ -78,8 +78,8 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
         let mut url = format!(
             "{}/_matrix/client/r0/rooms/{}/state/{}",
             base_url.strip_suffix('/').unwrap_or(base_url),
-            utf8_percent_encode(&self.room_id.to_string(), NON_ALPHANUMERIC),
-            utf8_percent_encode(&self.event_type.to_string(), NON_ALPHANUMERIC)
+            utf8_percent_encode(self.room_id.as_str(), NON_ALPHANUMERIC),
+            utf8_percent_encode(self.event_type.as_str(), NON_ALPHANUMERIC)
         );
 
         if !self.state_key.is_empty() {
