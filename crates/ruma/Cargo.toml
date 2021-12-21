@@ -63,6 +63,7 @@ markdown = ["ruma-events/markdown"]
 full = [
     "api",
     "client",
+    "client-ext-client-api",
     "events",
     "signatures",
     "state-res",
