@@ -67,7 +67,7 @@ impl CiTask {
     fn build_stable(&self) -> Result<()> {
         // 1. Make sure everything compiles
         cmd!("rustup run stable cargo check --workspace --all-features").run()?;
-        cmd!("rustup run stable cargo check -p ruma-client --no-default-features --features client-api").run()?;
+        cmd!("rustup run stable cargo check -p ruma-client --no-default-features").run()?;
         cmd!("rustup run stable cargo check -p ruma-identifiers --no-default-features").run()?;
 
         // 2. Run tests
