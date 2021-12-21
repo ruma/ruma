@@ -86,7 +86,7 @@ impl<C: HttpClient> Client<C> {
     /// use std::time::Duration;
     ///
     /// # type MatrixClient = ruma_client::Client<ruma_client::http_client::Dummy>;
-    /// # use ruma::presence::PresenceState;
+    /// # use ruma_common::presence::PresenceState;
     /// # use tokio_stream::{StreamExt as _};
     /// # let homeserver_url = "https://example.com".parse().unwrap();
     /// # let client = MatrixClient::new(homeserver_url, None);
