@@ -452,7 +452,6 @@ fn iterative_auth_check<E: Event + Clone>(
 
         debug!("event to check {:?}", event.event_id());
 
-        #[allow(clippy::redundant_closure)]
         let most_recent_prev_event =
             event.prev_events().filter_map(|id| fetch_event(id.borrow())).next_back();
 
