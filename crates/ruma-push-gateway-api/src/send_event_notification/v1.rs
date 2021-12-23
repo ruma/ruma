@@ -29,15 +29,13 @@ ruma_api! {
 
     #[derive(Default)]
     response: {
-        /// A list of all pushkeys given in the notification request that are
-        /// not valid.
+        /// A list of all pushkeys given in the notification request that are not valid.
         ///
-        /// These could have been rejected by an upstream gateway because they
-        /// have expired or have never been valid. Homeservers must cease
-        /// sending notification requests for these pushkeys and remove the
-        /// associated pushers. It may not necessarily be the notification in
-        /// the request that failed: it could be that a previous notification to
-        /// the same pushkey failed. May be empty.
+        /// These could have been rejected by an upstream gateway because they have expired or have
+        /// never been valid. Homeservers must cease sending notification requests for these
+        /// pushkeys and remove the associated pushers. It may not necessarily be the notification
+        /// in the request that failed: it could be that a previous notification to the same pushkey
+        /// failed. May be empty.
         pub rejected: Vec<String>,
     }
 }
