@@ -25,6 +25,7 @@ const SPLITS: &[(&str, VersionFn)] = &[
     ("https://matrix.org/docs/spec/push_gateway/", |s| {
         s.starts_with("r0.1.1") || s.starts_with("unstable#")
     }),
+    ("https://spec.matrix.org/", |s| s.starts_with("v1.1") || s.starts_with("unstable")),
 ];
 
 pub(crate) fn check_spec_links(path: &Path) -> Result<()> {
