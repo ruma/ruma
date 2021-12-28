@@ -1,4 +1,6 @@
-//! Types for the `m.forwarded_room_key` event.
+//! Types for the [`m.forwarded_room_key`] event.
+//!
+//! [`m.forwarded_room_key`]: https://spec.matrix.org/v1.1/client-server-api/#mforwarded_room_key
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::{EventEncryptionAlgorithm, RoomId};

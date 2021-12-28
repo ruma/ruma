@@ -1,4 +1,6 @@
-//! Types for the `m.room.member` event.
+//! Types for the [`m.room.member`] event.
+//!
+//! [`m.room.member`]: https://spec.matrix.org/v1.1/client-server-api/#mroommember
 
 use std::collections::BTreeMap;
 

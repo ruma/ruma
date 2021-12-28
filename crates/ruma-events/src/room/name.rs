@@ -1,4 +1,6 @@
-//! Types for the `m.room.name` event.
+//! Types for the [`m.room.name`] event.
+//!
+//! [`m.room.name`]: https://spec.matrix.org/v1.1/client-server-api/#mroomname
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::RoomName;

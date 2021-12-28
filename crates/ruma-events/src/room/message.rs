@@ -1,4 +1,6 @@
-//! Types for the `m.room.message` event.
+//! Types for the [`m.room.message`] event.
+//!
+//! [`m.room.message`]: https://spec.matrix.org/v1.1/client-server-api/#mroommessage
 
 use std::{borrow::Cow, fmt};
 

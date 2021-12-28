@@ -1,4 +1,6 @@
-//! Types for the `m.room.tombstone` event.
+//! Types for the [`m.room.tombstone`] event.
+//!
+//! [`m.room.tombstone`]: https://spec.matrix.org/v1.1/client-server-api/#mroomtombstone
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::RoomId;

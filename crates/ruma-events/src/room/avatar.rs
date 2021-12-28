@@ -1,4 +1,6 @@
-//! Types for the `m.room.avatar` event.
+//! Types for the [`m.room.avatar`] event.
+//!
+//! [`m.room.avatar`]: https://spec.matrix.org/v1.1/client-server-api/#mroomavatar
 
 use js_int::UInt;
 use ruma_events_macros::EventContent;

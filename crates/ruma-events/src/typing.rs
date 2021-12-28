@@ -1,4 +1,6 @@
-//! Types for the `m.typing` event.
+//! Types for the [`m.typing`] event.
+//!
+//! [`m.typing`]: https://spec.matrix.org/v1.1/client-server-api/#mtyping
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::UserId;

@@ -1,4 +1,6 @@
-//! Types for the `m.room.third_party_invite` event.
+//! Types for the [`m.room.third_party_invite`] event.
+//!
+//! [`m.room.third_party_invite`]: https://spec.matrix.org/v1.1/client-server-api/#mroomthird_party_invite
 
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};

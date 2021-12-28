@@ -1,4 +1,6 @@
-//! Types for the `m.room.history_visibility` event.
+//! Types for the [`m.room.history_visibility`] event.
+//!
+//! [`m.room.history_visibility`]: https://spec.matrix.org/v1.1/client-server-api/#mroomhistory_visibility
 
 use ruma_events_macros::EventContent;
 use ruma_serde::StringEnum;

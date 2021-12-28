@@ -1,4 +1,6 @@
-//! Types for the `m.room.join_rules` event.
+//! Types for the [`m.room.join_rules`] event.
+//!
+//! [`m.room.join_rules`]: https://spec.matrix.org/v1.1/client-server-api/#mroomjoin_rules
 
 use ruma_events_macros::EventContent;
 #[cfg(feature = "unstable-pre-spec")]

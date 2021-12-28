@@ -1,4 +1,6 @@
-//! Types for the `m.room.message.feedback` event.
+//! Types for the [`m.room.message.feedback`] event.
+//!
+//! [`m.room.message.feedback`]: https://spec.matrix.org/v1.1/client-server-api/#mroommessagefeedback
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::EventId;

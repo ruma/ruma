@@ -1,4 +1,6 @@
-//! Types for the `m.room.pinned_events` event.
+//! Types for the [`m.room.pinned_events`] event.
+//!
+//! [`m.room.pinned_events`]: https://spec.matrix.org/v1.1/client-server-api/#mroompinned_events
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::EventId;
