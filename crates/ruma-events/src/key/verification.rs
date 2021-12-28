@@ -3,7 +3,9 @@
 //! This module also contains types shared by events in its child namespaces.
 //!
 //! The MSC for the in-room variants of the `m.key.verification.*` events can be found
-//! [here](https://github.com/matrix-org/matrix-doc/pull/2241).
+//! [on GitHub][github-matrix-doc-2214].
+//!
+//! [github-matrix-doc-2214]: https://github.com/matrix-org/matrix-doc/pull/2241
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_identifiers::EventId;
 use ruma_serde::StringEnum;

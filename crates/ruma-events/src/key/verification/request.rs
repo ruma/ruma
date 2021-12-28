@@ -1,4 +1,6 @@
-//! Types for the `m.key.verification.request` event.
+//! Types for the [`m.key.verification.request`] event.
+//!
+//! [`m.key.verification.request`]: https://spec.matrix.org/v1.1/client-server-api/#mkeyverificationrequest
 
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events_macros::EventContent;

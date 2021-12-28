@@ -1,4 +1,6 @@
-//! Types for the `m.tag` event.
+//! Types for the [`m.tag`] event.
+//!
+//! [`m.tag`]: https://spec.matrix.org/v1.1/client-server-api/#mtag
 
 use std::{collections::BTreeMap, error::Error, fmt, str::FromStr};
 

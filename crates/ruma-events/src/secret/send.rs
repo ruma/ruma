@@ -1,4 +1,6 @@
-//! Types for the `m.secret.send` event.
+//! Types for the [`m.secret.send`] event.
+//!
+//! [`m.secret.send`]: https://spec.matrix.org/v1.1/client-server-api/#msecretsend
 
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};

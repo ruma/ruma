@@ -1,4 +1,6 @@
-//! Types for the `m.room.server_acl` event.
+//! Types for the [`m.room.server_acl`] event.
+//!
+//! [`m.room.server_acl`]: https://spec.matrix.org/v1.1/client-server-api/#mroomserver_acl
 
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};

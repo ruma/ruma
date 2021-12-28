@@ -1,4 +1,6 @@
-//! Types for the `m.room.power_levels` event.
+//! Types for the [`m.room.power_levels`] event.
+//!
+//! [`m.room.power_levels`]: https://spec.matrix.org/v1.1/client-server-api/#mroompower_levels
 
 use std::collections::BTreeMap;
 

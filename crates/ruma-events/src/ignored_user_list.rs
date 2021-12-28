@@ -1,4 +1,6 @@
-//! Types for the `m.ignored_user_list` event.
+//! Types for the [`m.ignored_user_list`] event.
+//!
+//! [`m.ignored_user_list`]: https://spec.matrix.org/v1.1/client-server-api/#mignored_user_list
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::UserId;

@@ -1,4 +1,6 @@
-//! Types for the `m.receipt` event.
+//! Types for the [`m.receipt`] event.
+//!
+//! [`m.receipt`]: https://spec.matrix.org/v1.1/client-server-api/#mreceipt
 
 use std::{
     collections::BTreeMap,

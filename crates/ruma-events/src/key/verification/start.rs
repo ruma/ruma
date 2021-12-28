@@ -1,4 +1,6 @@
-//! Types for the `m.key.verification.start` event.
+//! Types for the [`m.key.verification.start`] event.
+//!
+//! [`m.key.verification.start`]: https://spec.matrix.org/v1.1/client-server-api/#mkeyverificationstart
 
 use std::collections::BTreeMap;
 
