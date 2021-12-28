@@ -164,9 +164,8 @@ for more information on writing good commit messages.)
 
 ### Matrix Spec Version
 
-Use the latest r0.x.x documentation when adding or modifying code. We target
-the latest minor version of the Matrix specification. (Note: We might
-reconsider this when the Client-Server API hits r1.0.0.)
+Use the [latest v1.x documentation](https://spec.matrix.org/latest/) when adding or modifying code. We target
+the latest minor version of the Matrix specification.
 
 ### Endpoint Documentation Header
 
@@ -175,7 +174,7 @@ and a link to the documentation of the spec. You can use the latest
 version at the time of the commit. For example:
 
 ```rust
-//! [GET /.well-known/matrix/client](https://matrix.org/docs/spec/client_server/r0.4.0#get-well-known-matrix-client)
+//! [GET /.well-known/matrix/client](https://spec.matrix.org/v1.1/client-server-api/#getwell-knownmatrixclient)
 ```
 
 ### Naming Endpoints
