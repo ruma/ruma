@@ -7,6 +7,7 @@ use ruma_client_api::r0::{
     account::register::{self, RegistrationKind},
     session::login::{self, LoginInfo},
     sync::sync_events,
+    sync::syncv3_events,
     uiaa::UserIdentifier,
 };
 use ruma_common::presence::PresenceState;
@@ -128,4 +129,27 @@ impl<C: HttpClient> Client<C> {
             }
         }
     }
+
+    /// Convenience method that represents repeated calls to the syncv3_events endpoint as a stream.
+    pub fn syncv3<'a>(
+        &'a self,
+        mut pos: String,
+        timeout: Option<Duration>,
+    ) -> impl Stream<Item = Result<syncv3_events::Response, Error<C::Error, ruma_client_api::Error>>> + 'a
+    {
+        try_stream! {
+            loop {
+                let response = self
+                    .send_request(assign!(syncv3_events::Request::new(), {
+                        pos: Some(&since),
+                        timeout,
+                    }))
+                    .await?;
+
+                pos = response.pos.clone();
+                yield response;
+            }
+        }
+    }
+
 }
