@@ -1,5 +1,9 @@
 # [unreleased]
 
+Bug fixes:
+
+* Fix deserialization of `r0::session::get_login_types::CustomLoginType`.
+
 Breaking changes:
 
 * Use an enum for user-interactive auth stage type (used to be `&str` / `String`)

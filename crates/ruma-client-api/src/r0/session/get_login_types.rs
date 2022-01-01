@@ -242,7 +242,7 @@ pub struct CustomLoginType {
     ///
     /// This field is named `type_` instead of `type` because the latter is a reserved
     /// keyword in Rust.
-    #[serde(rename = "override")]
+    #[serde(rename = "type")]
     pub type_: String,
 
     /// Remaining type content
@@ -260,9 +260,9 @@ mod tests {
     use serde_json::to_value as to_json_value;
     use serde_json::{from_value as from_json_value, json};
 
+    use super::{CustomLoginType, LoginType, PasswordLoginType};
     #[cfg(feature = "unstable-pre-spec")]
     use super::{IdentityProvider, IdentityProviderBrand, SsoLoginType, TokenLoginType};
-    use super::{LoginType, PasswordLoginType};
 
     #[derive(Debug, Deserialize, Serialize)]
     struct Wrapper {
@@ -280,6 +280,28 @@ mod tests {
             Ok(Wrapper { flows })
             if flows.len() == 1
                 && matches!(flows[0], LoginType::Password(PasswordLoginType {}))
+        );
+    }
+
+    #[test]
+    fn deserialize_custom_login_type() {
+        assert_matches!(
+            from_json_value::<Wrapper>(json!({
+                "flows": [
+                    {
+                        "type": "io.ruma.custom",
+                        "color": "green",
+                    }
+                ],
+            })),
+            Ok(Wrapper { flows })
+            if flows.len() == 1
+                && matches!(
+                    &flows[0],
+                    LoginType::_Custom(CustomLoginType { type_, data })
+                        if type_ == "io.ruma.custom"
+                        && data == json!({ "color": "green" }).as_object().unwrap()
+                )
         );
     }
 
