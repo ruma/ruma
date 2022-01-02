@@ -66,7 +66,7 @@
 //! clicking **Feature flags** in the toolbar at the top.
 
 #![warn(missing_docs)]
-#![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
 
 #[doc(no_inline)]
 pub use assign::assign;

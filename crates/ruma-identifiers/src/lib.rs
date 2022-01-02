@@ -6,7 +6,7 @@
 #![warn(missing_docs)]
 // FIXME: Remove once lint doesn't trigger on std::convert::TryFrom in macros.rs anymore
 #![allow(unused_qualifications)]
-#![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 // Renamed in `Cargo.toml` so we can have a serde feature.
 // Rename it back here because `serde1` is ugly.

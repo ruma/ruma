@@ -3,7 +3,7 @@
 //! Common types for other ruma crates.
 
 #![warn(missing_docs)]
-#![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 pub mod authentication;
 pub mod directory;
