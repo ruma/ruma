@@ -85,7 +85,6 @@ async fn run() -> Result<(), Box<dyn Error>> {
     ));
     println!("Listening...");
     while let Some(response) = sync_stream.try_next().await? {
-        println!("{}", response.next_batch);
         for (room_id, room_info) in response.rooms.join {
             for e in &room_info.timeline.events {
                 match handle_messages(&http_client, &matrix_client, e, &room_id, user_id).await {
@@ -174,7 +173,7 @@ async fn handle_invitations(
     matrix_client.send_request(join_room_by_id::Request::new(room_id)).await?;
 
     let greeting = "Hello! My name is Mr. Bot! I like to tell jokes. Like this one: ";
-    let joke = get_joke(http_client).await.map_or_else(|_| "err... never mind.".to_owned(), |j| j);
+    let joke = get_joke(http_client).await.unwrap_or_else(|_| "err... never mind.".to_owned());
     let content = RoomMessageEventContent::text_plain(format!("{}\n{}", greeting, joke));
     let txn_id = generate_txn_id();
     let message = send_message_event::Request::new(room_id, &txn_id, &content)?;
@@ -198,9 +197,7 @@ async fn get_joke(client: &HttpClient) -> Result<String, Box<dyn Error>> {
         .parse::<hyper::Uri>()?;
     let rsp = client.get(uri).await?;
     let bytes = hyper::body::to_bytes(rsp).await?;
-    let json = String::from_utf8(bytes.to_vec())
-        .map_err(|_| "invalid UTF-8 data returned from joke API")?;
-    let joke_obj = serde_json::from_str::<JsonValue>(&json)
+    let joke_obj = serde_json::from_slice::<JsonValue>(&bytes)
         .map_err(|_| "invalid JSON returned from joke API")?;
     let joke = joke_obj["joke"].as_str().ok_or("joke field missing from joke API response")?;
     Ok(joke.to_owned())
