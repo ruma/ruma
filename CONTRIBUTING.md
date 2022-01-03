@@ -97,24 +97,6 @@ use ruma_api::ruma_api;
 use super::MyType;
 ```
 
-Also, group imports by module. For example, do this:
-
-```rust
-use std::{
-    collections::BTreeMap,
-    convert::TryFrom,
-    fmt::{self, Debug, Display, Formatter},
-};
-```
-
-as opposed to:
-
-```rust
-use std::collections::BTreeMap;
-use std::convert::TryFrom;
-use std::fmt::{self, Debug, Display, Formatter};
-```
-
 ### Serde Imports
 
 When importing methods and types from `serde_json`, methods should be such as
