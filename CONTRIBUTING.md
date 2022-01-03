@@ -130,23 +130,6 @@ use ruma_api::ruma_api;
 use super::MyType;
 ```
 
-### Serde Imports
-
-When importing methods and types from `serde_json`, methods should be such as
-`serde_json::{from,to}_{slice,string,value,vec}` should be imported as
-`{from,to}_json_{slice,string,value,vec}`.
-
-For example:
-
-```rust
-use serde_json::{
-  from_value as from_json_value,
-  to_str as to_json_str,
-};
-```
-
-Also, `serde_json::Value` should be imported as `JsonValue`.
-
 ### Commit Messages
 
 Write commit messages using the imperative mood, as if completing the sentence:
