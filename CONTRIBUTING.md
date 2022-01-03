@@ -62,6 +62,39 @@ Specification type | Rust type
 `[…]`              | `Vec<…>`
 `{string: …}`      | `BTreeMap<String, …>` (or `BTreeMap<SomeId, …>`)
 
+### Code Formatting and Linting
+
+We use [rustfmt] to ensure consistent formatting code and [clippy] to catch
+common mistakes not caught by the compiler as well as enforcing a few custom
+code style choices.
+
+```sh
+# if you don't have them installed, install or update the nightly toolchain
+rustup install nightly
+# … and install prebuilt rustfmt and clippy executables (available for most platforms)
+rustup component add rustfmt clippy
+```
+
+Before committing your changes, run `cargo +nightly fmt` to format the code (if
+your editor / IDE isn't set up to run it automatically) and
+`cargo +nightly clippy --workspace`¹ to run lints.
+
+You can also run all of the tests the same way CI does through `cargo xtask ci`.
+This will take a while to complete since it runs all of the tests on stable
+Rust, formatting and lint checks on nightly Rust, as well as some basic checks
+on our minimum supported Rust version. It requires [rustup] to be installed and
+the toolchains for those three versions to be set up (in case of a missing
+toolchain, rustup will tell you what to do though). There are also
+`cargo xtask ci stable|nightly|msrv` subcommands for only running one of the CI
+jobs.
+
+¹ If you modified feature-gated code (`#[cfg(feature = "something")]`), you
+have to pass `--all-features` or `--features something` to clippy for it to
+check that code
+
+[rustfmt]: https://github.com/rust-lang/rustfmt#readme
+[clippy]: https://github.com/rust-lang/rust-clippy#readme
+
 ### (Type) Privacy and Forwards Compatibility
 
 Generally, all `struct`s that are mirroring types defined in the Matrix specification should have
@@ -113,24 +146,6 @@ use serde_json::{
 ```
 
 Also, `serde_json::Value` should be imported as `JsonValue`.
-
-### Code Formatting and Linting
-
-Use `rustfmt` to format your code and `clippy` to lint your code¹. Before
-committing your changes, go ahead and run `cargo fmt` and `cargo clippy`² on the
-repository to make sure that the formatting and linting checks pass in CI.
-
-To run all of the tests the same way CI does, run `cargo xtask ci`. This will
-run some checks for Rust stable, Rust nightly, and our minimum supported Rust
-version. It requires `rustup` to be installed and the toolchains for those three
-versions to be set up (in case of a toolchain issue, `rustup` will tell you what
-to do though). There are also `cargo xtask ci stable|nightly|msrv` subcommands
-for only running one of the CI jobs.
-
-¹ To install the tools, run `rustup component add rustfmt clippy`.  
-² If you modified feature-gated code (`#[cfg(feature = "something")]`), you will
-have to pass `--all-features` or `--features something` to clippy for it to
-check that code.
 
 ### Commit Messages
 
