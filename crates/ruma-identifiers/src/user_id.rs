@@ -49,6 +49,7 @@ impl UserId {
         if id_str.starts_with('@') {
             Self::parse(id)
         } else {
+            let _ = localpart_is_fully_conforming(id_str)?;
             Ok(Self::from_owned(format!("@{}:{}", id_str, server_name).into()))
         }
     }
@@ -65,6 +66,7 @@ impl UserId {
         if id_str.starts_with('@') {
             Self::parse_rc(id)
         } else {
+            let _ = localpart_is_fully_conforming(id_str)?;
             Ok(Self::from_rc(format!("@{}:{}", id_str, server_name).into()))
         }
     }
@@ -81,6 +83,7 @@ impl UserId {
         if id_str.starts_with('@') {
             Self::parse_arc(id)
         } else {
+            let _ = localpart_is_fully_conforming(id_str)?;
             Ok(Self::from_arc(format!("@{}:{}", id_str, server_name).into()))
         }
     }
@@ -162,6 +165,23 @@ mod tests {
         assert_eq!(user_id.localpart(), "carl");
         assert_eq!(user_id.server_name(), "example.com");
         assert!(!user_id.is_historical());
+    }
+
+    #[test]
+    fn invalid_user_id() {
+        let localpart = "τ";
+        let user_id = "@τ:example.com";
+        let server_name = server_name!("example.com");
+
+        assert!(<&UserId>::try_from(user_id).is_err());
+        assert!(UserId::parse_with_server_name(user_id, server_name).is_err());
+        assert!(UserId::parse_with_server_name(localpart, server_name).is_err());
+        assert!(UserId::parse_with_server_name_rc(user_id, server_name).is_err());
+        assert!(UserId::parse_with_server_name_rc(localpart, server_name).is_err());
+        assert!(UserId::parse_with_server_name_arc(user_id, server_name).is_err());
+        assert!(UserId::parse_with_server_name_arc(localpart, server_name).is_err());
+        assert!(UserId::parse_rc(user_id).is_err());
+        assert!(UserId::parse_arc(user_id).is_err());
     }
 
     #[test]
