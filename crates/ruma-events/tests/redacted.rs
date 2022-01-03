@@ -16,7 +16,8 @@ use ruma_events::{
 };
 use ruma_identifiers::{event_id, room_id, user_id, RoomVersionId};
 use serde_json::{
-    from_value as from_json_value, json, to_value as to_json_value, value::to_raw_value,
+    from_value as from_json_value, json, to_value as to_json_value,
+    value::to_raw_value as to_raw_json_value,
 };
 
 fn unsigned() -> RedactedUnsigned {
@@ -320,7 +321,7 @@ fn redact_message_content() {
         "url": "mxc://example.com/AuDi0",
     });
 
-    let raw_json = to_raw_value(&json).unwrap();
+    let raw_json = to_raw_json_value(&json).unwrap();
     let content = RoomMessageEventContent::from_parts("m.room.message", &raw_json).unwrap();
 
     assert_matches!(content.redact(&RoomVersionId::V6), RedactedRoomMessageEventContent { .. });
@@ -334,7 +335,7 @@ fn redact_state_content() {
         "room_version": "4",
     });
 
-    let raw_json = to_raw_value(&json).unwrap();
+    let raw_json = to_raw_json_value(&json).unwrap();
     let content = RoomCreateEventContent::from_parts("m.room.create", &raw_json).unwrap();
 
     assert_matches!(
