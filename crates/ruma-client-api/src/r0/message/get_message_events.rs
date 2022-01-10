@@ -73,7 +73,7 @@ ruma_api! {
         pub end: Option<String>,
 
         /// A list of room events.
-        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        #[serde(default)]
         pub chunk: Vec<Raw<AnyRoomEvent>>,
 
         /// A list of state events relevant to showing the `chunk`.
