@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/rooms/{roomId}/messages](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-rooms-roomid-messages)
+//! [GET /_matrix/client/r0/rooms/{roomId}/messages](https://spec.matrix.org/v1.1/client-server-api/#get_matrixclientv3roomsroomidmessages)
 
 use js_int::{uint, UInt};
 use ruma_api::ruma_api;
@@ -65,8 +65,7 @@ ruma_api! {
     #[derive(Default)]
     response: {
         /// The token the pagination starts from.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub start: Option<String>,
+        pub start: String,
 
         /// The token the pagination ends at.
         #[serde(skip_serializing_if = "Option::is_none")]
