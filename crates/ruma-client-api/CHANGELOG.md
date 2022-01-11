@@ -18,6 +18,8 @@ Breaking changes:
     `r0::account::request_3pid_management_token_via_email`
   * `get_contacts` has been can now be found at `r0::account::get_3pids`
 * Move `r0::uiaa::authorize_fallback` to `r0::uiaa::get_uiaa_fallback_page`
+* Change type of field `start` of `r0::message::get_message_events::Response` to
+  `String` in accordance with the updated specification.
 
 Improvements:
 
