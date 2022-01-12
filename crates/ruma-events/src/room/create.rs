@@ -7,6 +7,8 @@ use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
+use crate::PrivOwnedStr;
+
 /// The content of an `m.room.create` event.
 ///
 /// This is the first event in a room and cannot be changed.
@@ -72,9 +74,10 @@ pub enum RoomType {
     /// Defines the room as a space.
     #[ruma_enum(rename = "m.space")]
     Space,
+
     /// Defines the room as a custom type.
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl RoomType {

@@ -7,6 +7,8 @@ use ruma_identifiers::EventId;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
+use crate::PrivOwnedStr;
+
 /// The content of an `m.room.message.feedback` event.
 ///
 /// An acknowledgement of a message.
@@ -47,7 +49,7 @@ pub enum FeedbackType {
     Read,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl FeedbackType {

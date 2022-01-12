@@ -14,7 +14,8 @@ use serde::{
 };
 use serde_json::from_value as from_json_value;
 
-use super::ErrorKind;
+use super::{ErrorKind, Extra};
+use crate::PrivOwnedStr;
 
 enum Field<'de> {
     ErrCode,
@@ -147,6 +148,8 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
         }
 
         let errcode = errcode.ok_or_else(|| de::Error::missing_field("errcode"))?;
+        let extra = Extra(extra);
+
         Ok(match errcode {
             ErrCode::Forbidden => ErrorKind::Forbidden,
             ErrCode::UnknownToken => ErrorKind::UnknownToken {
@@ -243,7 +246,7 @@ enum ErrCode {
     Exclusive,
     ResourceLimitExceeded,
     CannotLeaveServerNoticeRoom,
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl<'de> Deserialize<'de> for ErrorKind {
@@ -279,7 +282,7 @@ impl Serialize for ErrorKind {
                 st.serialize_entry("admin_contact", admin_contact)?;
             }
             Self::_Custom { extra, .. } => {
-                for (k, v) in extra {
+                for (k, v) in &extra.0 {
                     st.serialize_entry(k, v)?;
                 }
             }

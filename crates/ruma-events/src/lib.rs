@@ -399,3 +399,10 @@ where
 {
     serde_json::from_str(val.get()).map_err(E::custom)
 }
+
+// Wrapper around `Box<str>` that cannot be used in a meaningful way outside of
+// this crate. Used for string enums because their `_Custom` variant can't be
+// truly private (only `#[doc(hidden)]`).
+#[doc(hidden)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct PrivOwnedStr(Box<str>);

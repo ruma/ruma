@@ -16,6 +16,7 @@ use serde_json::Value as JsonValue;
 use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
 #[cfg(feature = "unstable-pre-spec")]
 use crate::key::verification::VerificationMethod;
+use crate::PrivOwnedStr;
 
 mod content_serde;
 pub mod feedback;
@@ -738,7 +739,7 @@ pub enum ServerNoticeType {
     UsageLimitReached,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl ServerNoticeType {
@@ -763,7 +764,7 @@ pub enum LimitType {
     MonthlyActiveUser,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl LimitType {
@@ -785,7 +786,7 @@ pub enum MessageFormat {
     Html,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl MessageFormat {

@@ -11,6 +11,9 @@ use ruma_serde::StringEnum;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
+#[cfg(feature = "unstable-pre-spec")]
+use crate::PrivOwnedStr;
+
 ruma_api! {
     metadata: {
         description: "Gets the homeserver's supported login types to authenticate users. Clients should pick one of these and supply it as the type when logging in.",
@@ -230,7 +233,7 @@ pub enum IdentityProviderBrand {
 
     /// A custom brand.
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 /// A custom login payload.

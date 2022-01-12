@@ -8,7 +8,7 @@ use ruma_identifiers::{RoomAliasId, UserId};
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::MilliSecondsSinceUnixEpoch;
+use crate::{MilliSecondsSinceUnixEpoch, PrivOwnedStr};
 
 /// Metadata about a third party protocol.
 ///
@@ -229,7 +229,7 @@ pub enum Medium {
     Msisdn,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl Medium {

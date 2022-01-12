@@ -8,6 +8,8 @@ use ruma_common::push::{
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
+use crate::PrivOwnedStr;
+
 pub mod delete_pushrule;
 pub mod get_notifications;
 pub mod get_pushers;
@@ -184,7 +186,7 @@ pub enum RuleKind {
     Content,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl RuleKind {
@@ -209,7 +211,7 @@ pub enum PusherKind {
     Email,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl PusherKind {

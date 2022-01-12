@@ -5,6 +5,8 @@ use ruma_events::room::member::RoomMemberEvent;
 use ruma_identifiers::RoomId;
 use ruma_serde::{Raw, StringEnum};
 
+use crate::PrivOwnedStr;
+
 ruma_api! {
     metadata: {
         description: "Get membership events for a room.",
@@ -88,7 +90,7 @@ pub enum MembershipEventFilter {
     Ban,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl MembershipEventFilter {

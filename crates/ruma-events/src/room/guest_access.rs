@@ -6,6 +6,8 @@ use ruma_events_macros::EventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
+use crate::PrivOwnedStr;
+
 /// The content of an `m.room.guest_access` event.
 ///
 /// Controls whether guest users are allowed to join rooms.
@@ -42,7 +44,7 @@ pub enum GuestAccess {
     Forbidden,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl GuestAccess {

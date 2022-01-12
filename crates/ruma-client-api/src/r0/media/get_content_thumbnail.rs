@@ -5,6 +5,8 @@ use ruma_api::ruma_api;
 use ruma_identifiers::{Error, MxcUri, ServerName};
 use ruma_serde::StringEnum;
 
+use crate::PrivOwnedStr;
+
 ruma_api! {
     metadata: {
         description: "Get a thumbnail of content from the media store.",
@@ -100,7 +102,7 @@ pub enum Method {
     Scale,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl Method {

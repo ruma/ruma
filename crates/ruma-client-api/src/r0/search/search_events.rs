@@ -9,7 +9,10 @@ use ruma_identifiers::{EventId, MxcUri, RoomId, UserId};
 use ruma_serde::{Outgoing, Raw, StringEnum};
 use serde::{Deserialize, Serialize};
 
-use crate::r0::filter::{IncomingRoomEventFilter, RoomEventFilter};
+use crate::{
+    r0::filter::{IncomingRoomEventFilter, RoomEventFilter},
+    PrivOwnedStr,
+};
 
 ruma_api! {
     metadata: {
@@ -252,7 +255,7 @@ pub enum GroupingKey {
     Sender,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl GroupingKey {
@@ -304,7 +307,7 @@ pub enum SearchKeys {
     ContentTopic,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl SearchKeys {
@@ -327,7 +330,7 @@ pub enum OrderBy {
     Rank,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 /// Categories of events that can be searched for.

@@ -20,7 +20,10 @@ use serde_json::{
     from_slice as from_json_slice, value::RawValue as RawJsonValue, Value as JsonValue,
 };
 
-use crate::error::{Error as MatrixError, ErrorBody};
+use crate::{
+    error::{Error as MatrixError, ErrorBody},
+    PrivOwnedStr,
+};
 
 pub mod get_uiaa_fallback_page;
 mod user_serde;
@@ -85,7 +88,7 @@ impl<'a> AuthData<'a> {
             #[cfg(feature = "unstable-pre-spec")]
             Self::RegistrationToken(_) => Some(AuthType::RegistrationToken),
             Self::FallbackAcknowledgement(_) => None,
-            Self::_Custom(c) => Some(AuthType::_Custom(c.auth_type.to_owned())),
+            Self::_Custom(c) => Some(AuthType::_Custom(PrivOwnedStr(c.auth_type.into()))),
         }
     }
 
@@ -212,7 +215,7 @@ impl IncomingAuthData {
             #[cfg(feature = "unstable-pre-spec")]
             Self::RegistrationToken(_) => Some(AuthType::RegistrationToken),
             Self::FallbackAcknowledgement(_) => None,
-            Self::_Custom(c) => Some(AuthType::_Custom(c.auth_type.clone())),
+            Self::_Custom(c) => Some(AuthType::_Custom(PrivOwnedStr(c.auth_type.as_str().into()))),
         }
     }
 
@@ -384,7 +387,7 @@ pub enum AuthType {
     RegistrationToken,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 /// Data for password-based UIAA flow.

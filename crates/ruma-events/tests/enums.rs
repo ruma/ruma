@@ -378,5 +378,4 @@ fn serialize_and_deserialize_from_display_form() {
     serde_json_eq(EventType::Tag, json!("m.tag"));
     serde_json_eq(EventType::Typing, json!("m.typing"));
     serde_json_eq(EphemeralRoomEventType::Typing, json!("m.typing"));
-    serde_json_eq(EventType::_Custom("io.ruma.test".into()), json!("io.ruma.test"));
 }

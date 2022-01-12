@@ -14,3 +14,10 @@ pub mod keys;
 pub mod lookup;
 pub mod status;
 pub mod tos;
+
+// Wrapper around `Box<str>` that cannot be used in a meaningful way outside of
+// this crate. Used for string enums because their `_Custom` variant can't be
+// truly private (only `#[doc(hidden)]`).
+#[doc(hidden)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct PrivOwnedStr(Box<str>);

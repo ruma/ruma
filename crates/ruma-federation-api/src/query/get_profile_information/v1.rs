@@ -4,6 +4,8 @@ use ruma_api::ruma_api;
 use ruma_identifiers::{MxcUri, UserId};
 use ruma_serde::StringEnum;
 
+use crate::PrivOwnedStr;
+
 ruma_api! {
     metadata: {
         description: "Get profile information, such as a display name or avatar, for a given user.",
@@ -82,7 +84,7 @@ pub enum ProfileField {
     AvatarUrl,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl ProfileField {

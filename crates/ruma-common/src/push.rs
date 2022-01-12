@@ -16,6 +16,8 @@
 
 use std::hash::{Hash, Hasher};
 
+use crate::PrivOwnedStr;
+
 use indexmap::{Equivalent, IndexSet};
 use ruma_serde::{Raw, StringEnum};
 use serde::{Deserialize, Serialize};
@@ -450,7 +452,7 @@ pub enum PushFormat {
     EventIdOnly,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl PushFormat {

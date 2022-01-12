@@ -2,6 +2,8 @@
 
 use ruma_serde::{OrdAsRefStr, PartialEqAsRefStr, PartialOrdAsRefStr, StringEnum};
 
+use crate::PrivOwnedStr;
+
 /// The type of receipt.
 ///
 /// This type can hold an arbitrary string. To check for formats that are not available as a
@@ -14,7 +16,7 @@ pub enum ReceiptType {
     Read,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl ReceiptType {

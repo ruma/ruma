@@ -3,6 +3,8 @@
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
+use crate::PrivOwnedStr;
+
 pub mod room;
 pub mod server;
 pub mod user;
@@ -43,7 +45,7 @@ pub enum Recommendation {
     Ban,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl Recommendation {

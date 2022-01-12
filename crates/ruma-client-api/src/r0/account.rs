@@ -23,6 +23,8 @@ pub mod whoami;
 use ruma_serde::{Outgoing, StringEnum};
 use serde::Serialize;
 
+use crate::PrivOwnedStr;
+
 /// Additional authentication information for requestToken endpoints.
 #[derive(Clone, Debug, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -58,7 +60,7 @@ pub enum ThirdPartyIdRemovalStatus {
     Success,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl ThirdPartyIdRemovalStatus {

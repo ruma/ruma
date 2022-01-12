@@ -10,6 +10,8 @@ use serde_json::{from_value as from_json_value, to_value as to_json_value, Value
 
 use iter::{CapabilitiesIter, CapabilityRef};
 
+use crate::PrivOwnedStr;
+
 pub mod get_capabilities;
 pub mod iter;
 
@@ -176,7 +178,7 @@ pub enum RoomVersionStability {
     Unstable,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl RoomVersionStability {

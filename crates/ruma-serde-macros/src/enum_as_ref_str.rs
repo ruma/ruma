@@ -32,7 +32,7 @@ pub fn expand_enum_as_ref_str(input: &ItemEnum) -> syn::Result<TokenStream> {
                         None => quote! { (inner) },
                     };
 
-                    (Some(capture), quote! { inner })
+                    (Some(capture), quote! { &inner.0 })
                 }
                 (Some(_), _) => {
                     return Err(syn::Error::new_spanned(

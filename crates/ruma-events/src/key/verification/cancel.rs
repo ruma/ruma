@@ -6,6 +6,8 @@ use ruma_events_macros::EventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
+use crate::PrivOwnedStr;
+
 #[cfg(feature = "unstable-pre-spec")]
 use super::Relation;
 
@@ -130,7 +132,7 @@ pub enum CancelCode {
     MismatchedSas,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl CancelCode {
@@ -153,10 +155,7 @@ mod tests {
 
     #[test]
     fn custom_cancel_codes_serialize_to_display_form() {
-        assert_eq!(
-            to_json_value(&CancelCode::_Custom("io.ruma.test".into())).unwrap(),
-            json!("io.ruma.test")
-        );
+        assert_eq!(to_json_value(CancelCode::from("io.ruma.test")).unwrap(), json!("io.ruma.test"));
     }
 
     #[test]
@@ -168,7 +167,7 @@ mod tests {
     fn custom_cancel_codes_deserialize_from_display_form() {
         assert_eq!(
             from_json_value::<CancelCode>(json!("io.ruma.test")).unwrap(),
-            CancelCode::_Custom("io.ruma.test".into())
-        )
+            "io.ruma.test".into()
+        );
     }
 }
