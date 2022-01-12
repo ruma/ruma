@@ -121,6 +121,14 @@ pub enum CancelCode {
     #[ruma_enum(rename = "m.accepted")]
     Accepted,
 
+    /// The device receiving this error can ignore the verification request.
+    #[ruma_enum(rename = "m.mismatched_commitment")]
+    MismatchedCommitment,
+
+    /// The SAS did not match.
+    #[ruma_enum(rename = "m.mismatched_sas")]
+    MismatchedSas,
+
     #[doc(hidden)]
     _Custom(String),
 }
