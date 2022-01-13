@@ -9,7 +9,7 @@ pub struct Base64<B = Vec<u8>> {
     bytes: B,
 }
 
-// See https://github.com/matrix-org/matrix-doc/issues/3211.
+// See https://github.com/matrix-org/matrix-doc/issues/3211
 const BASE64_CONFIG: base64::Config = base64::STANDARD_NO_PAD.decode_allow_trailing_bits(true);
 
 impl<B: AsRef<[u8]>> Base64<B> {
