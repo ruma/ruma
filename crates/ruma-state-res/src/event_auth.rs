@@ -902,36 +902,38 @@ fn verify_third_party_invite(
         return false;
     }
 
-    // If there is no m.room.third_party_invite event in the current room state
-    // with state_key matching token, reject
-    if let Some(current_tpid) = current_third_party_invite {
-        if current_tpid.state_key() != Some(&tp_id.signed.token) {
-            return false;
-        }
+    // If there is no m.room.third_party_invite event in the current room state with state_key
+    // matching token, reject
+    let current_tpid = match current_third_party_invite {
+        Some(id) => id,
+        None => return false,
+    };
 
-        if sender != current_tpid.sender() {
-            return false;
-        }
-
-        // If any signature in signed matches any public key in the m.room.third_party_invite event,
-        // allow
-        if let Ok(tpid_ev) =
-            from_json_str::<RoomThirdPartyInviteEventContent>(current_tpid.content().get())
-        {
-            // A list of public keys in the public_keys field
-            for key in tpid_ev.public_keys.unwrap_or_default() {
-                if key.public_key == tp_id.signed.token {
-                    return true;
-                }
-            }
-            // A single public key in the public_key field
-            tpid_ev.public_key == tp_id.signed.token
-        } else {
-            false
-        }
-    } else {
-        false
+    if current_tpid.state_key() != Some(&tp_id.signed.token) {
+        return false;
     }
+
+    if sender != current_tpid.sender() {
+        return false;
+    }
+
+    // If any signature in signed matches any public key in the m.room.third_party_invite event,
+    // allow
+    let tpid_ev =
+        match from_json_str::<RoomThirdPartyInviteEventContent>(current_tpid.content().get()) {
+            Ok(ev) => ev,
+            Err(_) => return false,
+        };
+
+    // A list of public keys in the public_keys field
+    for key in tpid_ev.public_keys.unwrap_or_default() {
+        if key.public_key == tp_id.signed.token {
+            return true;
+        }
+    }
+
+    // A single public key in the public_key field
+    tpid_ev.public_key == tp_id.signed.token
 }
 
 #[cfg(test)]
