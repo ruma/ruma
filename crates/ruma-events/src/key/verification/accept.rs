@@ -5,6 +5,7 @@
 use std::collections::BTreeMap;
 
 use ruma_events_macros::EventContent;
+use ruma_identifiers::TransactionId;
 use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
@@ -25,7 +26,7 @@ pub struct ToDeviceKeyVerificationAcceptEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the `m.key.verification.start` message.
-    pub transaction_id: String,
+    pub transaction_id: Box<TransactionId>,
 
     /// The method specific content.
     #[serde(flatten)]
@@ -35,7 +36,7 @@ pub struct ToDeviceKeyVerificationAcceptEventContent {
 impl ToDeviceKeyVerificationAcceptEventContent {
     /// Creates a new `ToDeviceKeyVerificationAcceptEventContent` with the given transaction ID and
     /// method-specific content.
-    pub fn new(transaction_id: String, method: AcceptMethod) -> Self {
+    pub fn new(transaction_id: Box<TransactionId>, method: AcceptMethod) -> Self {
         Self { transaction_id, method }
     }
 }

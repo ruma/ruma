@@ -1,10 +1,4 @@
-use std::{
-    convert::TryInto,
-    error::Error,
-    io,
-    process::exit,
-    time::{Duration, SystemTime},
-};
+use std::{convert::TryInto, error::Error, io, process::exit, time::Duration};
 
 use ruma::{
     api::client::r0::{
@@ -16,6 +10,7 @@ use ruma::{
         room::message::{MessageType, RoomMessageEventContent},
         AnySyncMessageEvent, AnySyncRoomEvent,
     },
+    identifiers::TransactionId,
     presence::PresenceState,
     serde::Raw,
     RoomId, UserId,
@@ -154,7 +149,7 @@ async fn handle_messages(
                 };
                 let joke_content = RoomMessageEventContent::text_plain(joke);
 
-                let txn_id = generate_txn_id();
+                let txn_id = TransactionId::new();
                 let req = send_message_event::Request::new(room_id, &txn_id, &joke_content)?;
                 // Do nothing if we can't send the message.
                 let _ = matrix_client.send_request(req).await;
@@ -175,21 +170,10 @@ async fn handle_invitations(
     let greeting = "Hello! My name is Mr. Bot! I like to tell jokes. Like this one: ";
     let joke = get_joke(http_client).await.unwrap_or_else(|_| "err... never mind.".to_owned());
     let content = RoomMessageEventContent::text_plain(format!("{}\n{}", greeting, joke));
-    let txn_id = generate_txn_id();
+    let txn_id = TransactionId::new();
     let message = send_message_event::Request::new(room_id, &txn_id, &content)?;
     matrix_client.send_request(message).await?;
     Ok(())
-}
-
-// Each message needs a unique transaction ID, otherwise the server thinks that the message is
-// being retransmitted. We could use a random value, or a counter, but to avoid having to store
-// the state, we'll just use the current time as a transaction ID.
-fn generate_txn_id() -> String {
-    SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .expect("current time is earlier than Unix epoch")
-        .as_millis()
-        .to_string()
 }
 
 async fn get_joke(client: &HttpClient) -> Result<String, Box<dyn Error>> {

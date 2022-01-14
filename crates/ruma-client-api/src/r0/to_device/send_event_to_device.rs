@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use ruma_api::ruma_api;
 use ruma_common::to_device::DeviceIdOrAllDevices;
 use ruma_events::AnyToDeviceEventContent;
-use ruma_identifiers::UserId;
+use ruma_identifiers::{TransactionId, UserId};
 use ruma_serde::Raw;
 
 ruma_api! {
@@ -25,7 +25,7 @@ ruma_api! {
 
         /// A request identifier unique to the access token used to send the request.
         #[ruma_api(path)]
-        pub txn_id: &'a str,
+        pub txn_id: &'a TransactionId,
 
         /// Messages to send.
         ///
@@ -42,7 +42,7 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given event type, transaction ID and raw messages.
-    pub fn new_raw(event_type: &'a str, txn_id: &'a str, messages: Messages) -> Self {
+    pub fn new_raw(event_type: &'a str, txn_id: &'a TransactionId, messages: Messages) -> Self {
         Self { event_type, txn_id, messages }
     }
 }

@@ -1,4 +1,5 @@
 use js_int::Int;
+use ruma_identifiers::TransactionId;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "unstable-pre-spec")]
@@ -20,7 +21,7 @@ pub struct Unsigned {
     /// The client-supplied transaction ID, if the client being given the event is the same one
     /// which sent it.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub transaction_id: Option<String>,
+    pub transaction_id: Option<Box<TransactionId>>,
 
     /// Server-compiled information from other events relating to this event.
     #[cfg(feature = "unstable-pre-spec")]
@@ -82,7 +83,7 @@ pub struct UnsignedWithPrevContent {
     age: Option<Int>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    transaction_id: Option<String>,
+    transaction_id: Option<Box<TransactionId>>,
 
     #[cfg(feature = "unstable-pre-spec")]
     #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]

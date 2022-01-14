@@ -2,6 +2,7 @@
 
 use ruma_api::ruma_api;
 use ruma_events::AnyRoomEvent;
+use ruma_identifiers::TransactionId;
 use ruma_serde::Raw;
 
 ruma_api! {
@@ -19,7 +20,7 @@ ruma_api! {
         ///
         /// Homeservers generate these IDs and they are used to ensure idempotency of results.
         #[ruma_api(path)]
-        pub txn_id: &'a str,
+        pub txn_id: &'a TransactionId,
 
         /// A list of events.
         pub events: &'a [Raw<AnyRoomEvent>],
@@ -31,14 +32,14 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given transaction ID and list of events.
-    pub fn new(txn_id: &'a str, events: &'a [Raw<AnyRoomEvent>]) -> Self {
+    pub fn new(txn_id: &'a TransactionId, events: &'a [Raw<AnyRoomEvent>]) -> Self {
         Self { txn_id, events }
     }
 }
 
 impl IncomingRequest {
     /// Creates an `IncomingRequest` with the given transaction ID and list of events.
-    pub fn new(txn_id: String, events: Vec<Raw<AnyRoomEvent>>) -> IncomingRequest {
+    pub fn new(txn_id: Box<TransactionId>, events: Vec<Raw<AnyRoomEvent>>) -> IncomingRequest {
         IncomingRequest { txn_id, events }
     }
 
@@ -171,7 +172,7 @@ mod tests {
         let dummy_event = Raw::new(&dummy_event).unwrap();
         let events = vec![dummy_event];
 
-        let req = Request { events: &events, txn_id: "any_txn_id" }
+        let req = Request { events: &events, txn_id: "any_txn_id".into() }
             .try_into_http_request::<Vec<u8>>(
                 "https://homeserver.tld",
                 SendAccessToken::IfRequired("auth_tok"),

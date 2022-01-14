@@ -5,6 +5,7 @@ use ruma::{
     events::room::message::RoomMessageEventContent,
     RoomAliasId,
 };
+use ruma_identifiers::TransactionId;
 
 type MatrixClient = ruma_client::Client<ruma_client::http_client::HyperNativeTls>;
 
@@ -22,7 +23,7 @@ async fn hello_world(
     client
         .send_request(send_message_event::Request::new(
             &room_id,
-            "1",
+            &TransactionId::new(),
             &RoomMessageEventContent::text_plain("Hello World!"),
         )?)
         .await?;
