@@ -149,7 +149,7 @@ tokio-stream = { version = "0.1.1", default-features = false }
 
 [[example]]
 name = "hello_world"
-required-features = ["client-api-c", "client-ext-client-api", "client-hyper-native-tls"]
+required-features = ["client-api-c", "client-ext-client-api", "client-hyper-native-tls", "rand"]
 
 [[example]]
 name = "hello_isahc"

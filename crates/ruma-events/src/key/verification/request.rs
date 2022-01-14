@@ -4,7 +4,7 @@
 
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events_macros::EventContent;
-use ruma_identifiers::DeviceId;
+use ruma_identifiers::{DeviceId, TransactionId};
 use serde::{Deserialize, Serialize};
 
 use super::VerificationMethod;
@@ -20,7 +20,7 @@ pub struct ToDeviceKeyVerificationRequestEventContent {
     /// An opaque identifier for the verification request.
     ///
     /// Must be unique with respect to the devices involved.
-    pub transaction_id: String,
+    pub transaction_id: Box<TransactionId>,
 
     /// The verification methods supported by the sender.
     pub methods: Vec<VerificationMethod>,
@@ -37,7 +37,7 @@ impl ToDeviceKeyVerificationRequestEventContent {
     /// transaction ID, methods and timestamp.
     pub fn new(
         from_device: Box<DeviceId>,
-        transaction_id: String,
+        transaction_id: Box<TransactionId>,
         methods: Vec<VerificationMethod>,
         timestamp: MilliSecondsSinceUnixEpoch,
     ) -> Self {

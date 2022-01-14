@@ -5,6 +5,7 @@
 use std::collections::BTreeMap;
 
 use ruma_events_macros::EventContent;
+use ruma_identifiers::TransactionId;
 use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
 
@@ -21,7 +22,7 @@ pub struct ToDeviceKeyVerificationMacEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the `m.key.verification.start` message.
-    pub transaction_id: String,
+    pub transaction_id: Box<TransactionId>,
 
     /// A map of the key ID to the MAC of the key, using the algorithm in the verification process.
     ///
@@ -36,7 +37,11 @@ pub struct ToDeviceKeyVerificationMacEventContent {
 impl ToDeviceKeyVerificationMacEventContent {
     /// Creates a new `ToDeviceKeyVerificationMacEventContent` with the given transaction ID, key ID
     /// to MAC map and key MAC.
-    pub fn new(transaction_id: String, mac: BTreeMap<String, Base64>, keys: Base64) -> Self {
+    pub fn new(
+        transaction_id: Box<TransactionId>,
+        mac: BTreeMap<String, Base64>,
+        keys: Base64,
+    ) -> Self {
         Self { transaction_id, mac, keys }
     }
 }

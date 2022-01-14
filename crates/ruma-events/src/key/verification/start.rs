@@ -5,7 +5,7 @@
 use std::collections::BTreeMap;
 
 use ruma_events_macros::EventContent;
-use ruma_identifiers::DeviceId;
+use ruma_identifiers::{DeviceId, TransactionId};
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
@@ -32,7 +32,7 @@ pub struct ToDeviceKeyVerificationStartEventContent {
     /// Must be unique with respect to the devices involved. Must be the same as the
     /// `transaction_id` given in the `m.key.verification.request` if this process is originating
     /// from a request.
-    pub transaction_id: String,
+    pub transaction_id: Box<TransactionId>,
 
     /// Method specific content.
     #[serde(flatten)]
@@ -42,7 +42,11 @@ pub struct ToDeviceKeyVerificationStartEventContent {
 impl ToDeviceKeyVerificationStartEventContent {
     /// Creates a new `ToDeviceKeyVerificationStartEventContent` with the given device ID,
     /// transaction ID and method specific content.
-    pub fn new(from_device: Box<DeviceId>, transaction_id: String, method: StartMethod) -> Self {
+    pub fn new(
+        from_device: Box<DeviceId>,
+        transaction_id: Box<TransactionId>,
+        method: StartMethod,
+    ) -> Self {
         Self { from_device, transaction_id, method }
     }
 }

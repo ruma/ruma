@@ -30,7 +30,7 @@ fn deserialize_user_identifier() {
 #[test]
 fn serialize_auth_data_token() {
     let auth_data = AuthData::Token(
-        assign!(uiaa::Token::new("mytoken", "txn123"), { session: Some("session") }),
+        assign!(uiaa::Token::new("mytoken", "txn123".into()), { session: Some("session") }),
     );
 
     assert_matches!(

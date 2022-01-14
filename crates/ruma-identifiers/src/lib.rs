@@ -8,10 +8,13 @@
 #![allow(unused_qualifications)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
-// Renamed in `Cargo.toml` so we can have a serde feature.
-// Rename it back here because `serde1` is ugly.
+// Renamed in `Cargo.toml` so we can features with the same name as the package.
+// Rename them back here because the `Cargo.toml` names are ugly.
 #[cfg(feature = "serde")]
 extern crate serde1 as serde;
+
+#[cfg(feature = "rand")]
+extern crate rand_crate as rand;
 
 #[cfg(feature = "serde")]
 use std::convert::TryFrom;
@@ -38,6 +41,7 @@ pub use crate::{
     server_name::ServerName,
     session_id::SessionId,
     signatures::{DeviceSignatures, EntitySignatures, ServerSignatures, Signatures},
+    transaction_id::TransactionId,
     user_id::UserId,
 };
 #[doc(inline)]
@@ -65,6 +69,7 @@ mod room_version_id;
 mod server_name;
 mod session_id;
 mod signatures;
+mod transaction_id;
 
 /// Generates a random identifier localpart.
 #[cfg(feature = "rand")]
