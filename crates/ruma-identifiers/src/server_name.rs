@@ -16,7 +16,7 @@ impl ServerName {
             &self.0[0..=end_of_ipv6]
         } else {
             // It's not ipv6, so ':' means the port starts
-            let end_of_host = self.0.find(':').unwrap_or_else(|| self.0.len());
+            let end_of_host = self.0.find(':').unwrap_or(self.0.len());
             &self.0[0..end_of_host]
         }
     }
