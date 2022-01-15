@@ -25,6 +25,7 @@ unstable-pre-spec = ["ruma-identifiers/unstable-pre-spec"]
 
 [dependencies]
 criterion = { version = "0.3.3", optional = true }
+glob = "0.3.0"
 indoc = "1.0"
 js_int = { version = "0.2.0", features = ["serde"] }
 pulldown-cmark = { version = "0.8", default-features = false, optional = true }
