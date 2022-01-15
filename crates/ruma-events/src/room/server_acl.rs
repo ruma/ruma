@@ -54,18 +54,32 @@ impl RoomServerAclEventContent {
         }
 
         for deny in &self.deny {
-            if let Ok(d) = glob::Pattern::new(deny) {
-                if d.matches(server_name.as_str()) {
-                    return false;
+            if !deny.contains('[') {
+                if let Ok(d) = glob::Pattern::new(deny) {
+                    if d.matches(server_name.as_str()) {
+                        return false;
+                    }
                 }
+            }
+            // Do a raw comparison as well for IPv6 addresses and in case the Pattern fails to
+            // compile
+            if server_name == deny {
+                return false;
             }
         }
 
         for allow in &self.allow {
-            if let Ok(a) = glob::Pattern::new(allow) {
-                if a.matches(server_name.as_str()) {
-                    return true;
+            if !allow.contains('[') {
+                if let Ok(a) = glob::Pattern::new(allow) {
+                    if a.matches(server_name.as_str()) {
+                        return true;
+                    }
                 }
+            }
+            // Do a raw comparison as well for IPv6 addresses and in case the Pattern fails to
+            // compile
+            if server_name == allow {
+                return true;
             }
         }
 
@@ -163,5 +177,16 @@ mod tests {
         };
         assert!(!acl_event.is_allowed(server_name!("matrix1.org")));
         assert!(acl_event.is_allowed(server_name!("matrix02.org")));
+    }
+
+    #[test]
+    fn acl_ipv6_glob() {
+        let acl_event = RoomServerAclEventContent {
+            allow_ip_literals: true,
+            allow: vec!["[2001:db8:1234::1]".to_owned()],
+            deny: Vec::new(),
+        };
+        assert!(!acl_event.is_allowed(server_name!("[2001:db8:1234::2]")));
+        assert!(acl_event.is_allowed(server_name!("[2001:db8:1234::1]")));
     }
 }
