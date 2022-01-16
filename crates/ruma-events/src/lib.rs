@@ -121,7 +121,7 @@ use ruma_identifiers::{EventEncryptionAlgorithm, RoomVersionId};
 use ruma_serde::Raw;
 use serde::{
     de::{self, IgnoredAny},
-    Deserialize, Serialize,
+    Deserialize, Serialize, Serializer,
 };
 use serde_json::value::RawValue as RawJsonValue;
 
@@ -406,3 +406,16 @@ where
 #[doc(hidden)]
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PrivOwnedStr(Box<str>);
+
+/// Helper function for erroring when trying to serialize an event enum _Custom
+/// variant that can only be created by deserializing from an unknown event
+/// type.
+#[doc(hidden)]
+#[allow(clippy::ptr_arg)]
+fn serialize_custom_event_error<S: Serializer>(_: &String, _: S) -> Result<S::Ok, S::Error> {
+    Err(serde::ser::Error::custom(
+        "Failed to serialize event [content] enum: Unknown event type.\n\
+         To send custom events, turn them into `Raw<EnumType>` by going through
+         `serde_json::value::to_raw_value` and `Raw::from_json`.",
+    ))
+}
