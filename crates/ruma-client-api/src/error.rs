@@ -136,6 +136,9 @@ pub enum ErrorKind {
     /// M_CANNOT_LEAVE_SERVER_NOTICE_ROOM
     CannotLeaveServerNoticeRoom,
 
+    /// M_WEAK_PASSWORD
+    WeakPassword,
+
     #[doc(hidden)]
     _Custom { errcode: PrivOwnedStr, extra: Extra },
 }
@@ -179,6 +182,7 @@ impl AsRef<str> for ErrorKind {
             Self::Exclusive => "M_EXCLUSIVE",
             Self::ResourceLimitExceeded { .. } => "M_RESOURCE_LIMIT_EXCEEDED",
             Self::CannotLeaveServerNoticeRoom => "M_CANNOT_LEAVE_SERVER_NOTICE_ROOM",
+            Self::WeakPassword => "M_WEAK_PASSWORD",
             Self::_Custom { errcode, .. } => &errcode.0,
         }
     }

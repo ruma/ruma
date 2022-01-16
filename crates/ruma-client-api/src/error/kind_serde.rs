@@ -206,6 +206,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
                 .map_err(de::Error::custom)?,
             },
             ErrCode::CannotLeaveServerNoticeRoom => ErrorKind::CannotLeaveServerNoticeRoom,
+            ErrCode::WeakPassword => ErrorKind::WeakPassword,
             ErrCode::_Custom(errcode) => ErrorKind::_Custom { errcode, extra },
         })
     }
@@ -246,6 +247,7 @@ enum ErrCode {
     Exclusive,
     ResourceLimitExceeded,
     CannotLeaveServerNoticeRoom,
+    WeakPassword,
     _Custom(PrivOwnedStr),
 }
 
