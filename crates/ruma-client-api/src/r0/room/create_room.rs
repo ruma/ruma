@@ -16,7 +16,10 @@ use ruma_serde::{Raw, StringEnum};
 use serde::{Deserialize, Serialize};
 
 use super::Visibility;
-use crate::r0::membership::{IncomingInvite3pid, Invite3pid};
+use crate::{
+    r0::membership::{IncomingInvite3pid, Invite3pid},
+    PrivOwnedStr,
+};
 
 ruma_api! {
     metadata: {
@@ -213,7 +216,7 @@ pub enum RoomPreset {
     TrustedPrivateChat,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl RoomPreset {

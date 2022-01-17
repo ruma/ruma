@@ -339,11 +339,8 @@ fn verification_request_serialization() {
     let device_id: Box<DeviceId> = "XOWLHHFSWM".into();
     let body = "@example:localhost is requesting to verify your key, ...".to_owned();
 
-    let methods = vec![
-        VerificationMethod::SasV1,
-        VerificationMethod::_Custom("m.qr_code.show.v1".to_owned()),
-        VerificationMethod::_Custom("m.reciprocate.v1".to_owned()),
-    ];
+    let methods =
+        vec![VerificationMethod::SasV1, "m.qr_code.show.v1".into(), "m.reciprocate.v1".into()];
 
     let json_data = json!({
         "body": body,

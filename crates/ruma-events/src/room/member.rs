@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
-    EventContent, HasDeserializeFields, RedactContent, RedactedEventContent,
+    EventContent, HasDeserializeFields, PrivOwnedStr, RedactContent, RedactedEventContent,
     RedactedStateEventContent, StrippedStateEvent, SyncStateEvent,
 };
 
@@ -222,7 +222,7 @@ pub enum MembershipState {
     Leave,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl MembershipState {

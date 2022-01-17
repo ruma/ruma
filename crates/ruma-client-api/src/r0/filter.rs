@@ -14,6 +14,8 @@ use ruma_identifiers::{RoomId, UserId};
 use ruma_serde::{Outgoing, StringEnum};
 use serde::Serialize;
 
+use crate::PrivOwnedStr;
+
 /// Format to use for returned events.
 ///
 /// This type can hold an arbitrary string. To check for formats that are not available as a
@@ -29,7 +31,7 @@ pub enum EventFormat {
     Federation,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl EventFormat {

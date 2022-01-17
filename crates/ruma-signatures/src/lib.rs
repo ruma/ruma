@@ -17,7 +17,7 @@
 //! are also required to contain hashes of their content, which are similarly stored within the
 //! hashed JSON object under a `hashes` key.
 //!
-//! In JSON representations, both signatures and hashes appear as Base64-encoded strings, using the
+//! In JSON representations, both signatures and hashes appear as base64-encoded strings, using the
 //! standard character set, without padding.
 //!
 //! # Signing and hashing
@@ -104,9 +104,10 @@ fn split_id(id: &str) -> Result<(Algorithm, String), SplitError> {
 mod tests {
     use std::collections::BTreeMap;
 
-    use base64::{decode_config, encode_config, STANDARD_NO_PAD};
+    use base64::{decode_config, STANDARD_NO_PAD};
     use pkcs8::{der::Decodable, PrivateKeyInfo};
     use ruma_identifiers::RoomVersionId;
+    use ruma_serde::Base64;
     use serde_json::{from_str as from_json_str, to_string as to_json_string};
 
     use super::{
@@ -119,13 +120,13 @@ mod tests {
     ";
 
     /// Convenience method for getting the public key as a string
-    fn public_key_string() -> String {
-        encode_config(
-            &PrivateKeyInfo::from_der(&decode_config(PKCS8, STANDARD_NO_PAD).unwrap())
+    fn public_key_string() -> Base64 {
+        Base64::new(
+            PrivateKeyInfo::from_der(&decode_config(PKCS8, STANDARD_NO_PAD).unwrap())
                 .unwrap()
                 .public_key
-                .unwrap(),
-            STANDARD_NO_PAD,
+                .unwrap()
+                .to_owned(),
         )
     }
 

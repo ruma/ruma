@@ -303,6 +303,9 @@ fn expand_content_enum(
     let marker_trait_impl = expand_marker_trait_impl(kind, ruma_events);
     let from_impl = expand_from_impl(&ident, &content, variants);
 
+    let serialize_custom_event_error_path =
+        quote! { #ruma_events::serialize_custom_event_error }.to_string();
+
     quote! {
         #( #attrs )*
         #[derive(Clone, Debug, #serde::Serialize)]
@@ -315,8 +318,8 @@ fn expand_content_enum(
                 #variant_decls(#content),
             )*
             #[doc(hidden)]
+            #[serde(serialize_with = #serialize_custom_event_error_path)]
             _Custom {
-                #[serde(skip)]
                 event_type: ::std::string::String,
             },
         }

@@ -12,6 +12,8 @@ use ruma_serde::StringEnum;
 #[cfg(feature = "unstable-pre-spec")]
 use serde::{Deserialize, Serialize};
 
+use crate::PrivOwnedStr;
+
 pub mod accept;
 pub mod cancel;
 #[cfg(feature = "unstable-pre-spec")]
@@ -35,7 +37,7 @@ pub enum HashAlgorithm {
     Sha256,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl HashAlgorithm {
@@ -60,7 +62,7 @@ pub enum KeyAgreementProtocol {
     Curve25519HkdfSha256,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl KeyAgreementProtocol {
@@ -85,7 +87,7 @@ pub enum MessageAuthenticationCode {
     HmacSha256,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl MessageAuthenticationCode {
@@ -110,7 +112,7 @@ pub enum ShortAuthenticationString {
     Emoji,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl ShortAuthenticationString {
@@ -165,7 +167,7 @@ pub enum VerificationMethod {
     ReciprocateV1,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl VerificationMethod {

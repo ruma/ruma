@@ -12,6 +12,8 @@ use ruma_serde::{Outgoing, StringEnum};
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
+use crate::PrivOwnedStr;
+
 ruma_api! {
     metadata: {
         description: "Notify a push gateway about an event or update the number of unread notifications a user has",
@@ -145,7 +147,7 @@ pub enum NotificationPriority {
     Low,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl NotificationPriority {

@@ -11,6 +11,8 @@ use ruma_identifiers::RoomVersionId;
 use serde::{Deserialize, Serialize};
 use serde_json::{from_slice as from_json_slice, Value as JsonValue};
 
+use crate::PrivOwnedStr;
+
 /// Deserialize and Serialize implementations for ErrorKind.
 /// Separate module because it's a lot of code.
 mod kind_serde;
@@ -18,7 +20,7 @@ mod kind_serde;
 /// An enum for the error kind.
 ///
 /// Items may contain additional information.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ErrorKind {
     /// M_FORBIDDEN
@@ -138,8 +140,12 @@ pub enum ErrorKind {
     WeakPassword,
 
     #[doc(hidden)]
-    _Custom { errcode: String, extra: BTreeMap<String, JsonValue> },
+    _Custom { errcode: PrivOwnedStr, extra: Extra },
 }
+
+#[doc(hidden)]
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Extra(BTreeMap<String, JsonValue>);
 
 impl AsRef<str> for ErrorKind {
     fn as_ref(&self) -> &str {
@@ -177,7 +183,7 @@ impl AsRef<str> for ErrorKind {
             Self::ResourceLimitExceeded { .. } => "M_RESOURCE_LIMIT_EXCEEDED",
             Self::CannotLeaveServerNoticeRoom => "M_CANNOT_LEAVE_SERVER_NOTICE_ROOM",
             Self::WeakPassword => "M_WEAK_PASSWORD",
-            Self::_Custom { errcode, .. } => errcode,
+            Self::_Custom { errcode, .. } => &errcode.0,
         }
     }
 }

@@ -275,6 +275,7 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                         || last_seg.ident == "RoomName"
                         || last_seg.ident == "ServerSigningKeyId"
                         || last_seg.ident == "SigningKeyId"
+                        || last_seg.ident == "TransactionId"
                         || last_seg.ident == "UserId"
                     {
                         // The identifiers that need to be boxed `Box<T>` since they are DST's.

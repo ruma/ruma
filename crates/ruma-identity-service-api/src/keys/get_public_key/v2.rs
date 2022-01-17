@@ -2,6 +2,7 @@
 
 use ruma_api::ruma_api;
 use ruma_identifiers::ServerSigningKeyId;
+use ruma_serde::Base64;
 
 ruma_api! {
     metadata: {
@@ -20,8 +21,8 @@ ruma_api! {
     }
 
     response: {
-        /// Unpadded Base64 encoded public key.
-        pub public_key: String,
+        /// Unpadded base64-encoded public key.
+        pub public_key: Base64,
     }
 }
 
@@ -34,7 +35,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Create a `Response` with the given base64-encoded (unpadded) public key.
-    pub fn new(public_key: String) -> Self {
+    pub fn new(public_key: Base64) -> Self {
         Self { public_key }
     }
 }

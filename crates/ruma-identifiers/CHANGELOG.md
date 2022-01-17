@@ -12,6 +12,10 @@ Breaking changes:
 * Rename `RoomVersionId::Version{X}` variants to `RoomVersionId::V{X}`
 * Rename `RoomIdOrAliasId` to `RoomOrAliasId`
 
+Improvements:
+
+* Add `host`, `port` and `is_ip_literal` methods to `ServerName`
+
 Bug fixes:
 
 * Properly validate localpart when building a `UserId` via `parse_with_server_name` (and its

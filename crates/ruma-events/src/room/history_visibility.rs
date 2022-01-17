@@ -6,6 +6,8 @@ use ruma_events_macros::EventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
+use crate::PrivOwnedStr;
+
 /// The content of an `m.room.history_visibility` event.
 ///
 /// This event controls whether a member of a room can see the events that happened in a room from
@@ -58,7 +60,7 @@ pub enum HistoryVisibility {
     WorldReadable,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl HistoryVisibility {

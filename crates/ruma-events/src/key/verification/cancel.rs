@@ -3,8 +3,11 @@
 //! [`m.key.verification.cancel`]: https://spec.matrix.org/v1.1/client-server-api/#mkeyverificationcancel
 
 use ruma_events_macros::EventContent;
+use ruma_identifiers::TransactionId;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
+
+use crate::PrivOwnedStr;
 
 #[cfg(feature = "unstable-pre-spec")]
 use super::Relation;
@@ -17,7 +20,7 @@ use super::Relation;
 #[ruma_event(type = "m.key.verification.cancel", kind = ToDevice)]
 pub struct ToDeviceKeyVerificationCancelEventContent {
     /// The opaque identifier for the verification process/request.
-    pub transaction_id: String,
+    pub transaction_id: Box<TransactionId>,
 
     /// A human readable description of the `code`.
     ///
@@ -31,7 +34,7 @@ pub struct ToDeviceKeyVerificationCancelEventContent {
 impl ToDeviceKeyVerificationCancelEventContent {
     /// Creates a new `ToDeviceKeyVerificationCancelEventContent` with the given transaction ID,
     /// reason and code.
-    pub fn new(transaction_id: String, reason: String, code: CancelCode) -> Self {
+    pub fn new(transaction_id: Box<TransactionId>, reason: String, code: CancelCode) -> Self {
         Self { transaction_id, reason, code }
     }
 }
@@ -130,7 +133,7 @@ pub enum CancelCode {
     MismatchedSas,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl CancelCode {
@@ -153,10 +156,7 @@ mod tests {
 
     #[test]
     fn custom_cancel_codes_serialize_to_display_form() {
-        assert_eq!(
-            to_json_value(&CancelCode::_Custom("io.ruma.test".into())).unwrap(),
-            json!("io.ruma.test")
-        );
+        assert_eq!(to_json_value(CancelCode::from("io.ruma.test")).unwrap(), json!("io.ruma.test"));
     }
 
     #[test]
@@ -168,7 +168,7 @@ mod tests {
     fn custom_cancel_codes_deserialize_from_display_form() {
         assert_eq!(
             from_json_value::<CancelCode>(json!("io.ruma.test")).unwrap(),
-            CancelCode::_Custom("io.ruma.test".into())
-        )
+            "io.ruma.test".into()
+        );
     }
 }

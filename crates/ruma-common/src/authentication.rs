@@ -2,6 +2,8 @@
 
 use ruma_serde::StringEnum;
 
+use crate::PrivOwnedStr;
+
 /// Access token types.
 ///
 /// This type can hold an arbitrary string. To check for formats that are not available as a
@@ -13,7 +15,7 @@ pub enum TokenType {
     Bearer,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl TokenType {

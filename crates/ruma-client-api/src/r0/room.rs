@@ -8,6 +8,8 @@ pub mod upgrade_room;
 
 use ruma_serde::StringEnum;
 
+use crate::PrivOwnedStr;
+
 /// Whether or not a newly created room will be listed in the room directory.
 ///
 /// This type can hold an arbitrary string. To check for formats that are not available as a
@@ -23,7 +25,7 @@ pub enum Visibility {
     Private,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl Visibility {

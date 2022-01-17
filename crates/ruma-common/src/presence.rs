@@ -4,6 +4,8 @@
 
 use ruma_serde::StringEnum;
 
+use crate::PrivOwnedStr;
+
 /// A description of a user's connectivity and availability for chat.
 ///
 /// This type can hold an arbitrary string. To check for formats that are not available as a
@@ -22,7 +24,7 @@ pub enum PresenceState {
     Unavailable,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl Default for PresenceState {

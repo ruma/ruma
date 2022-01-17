@@ -5,7 +5,9 @@
 use std::collections::BTreeMap;
 
 use ruma_events_macros::EventContent;
-use ruma_identifiers::DeviceId;
+use ruma_identifiers::{DeviceId, TransactionId};
+#[cfg(feature = "unstable-pre-spec")]
+use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
@@ -30,7 +32,7 @@ pub struct ToDeviceKeyVerificationStartEventContent {
     /// Must be unique with respect to the devices involved. Must be the same as the
     /// `transaction_id` given in the `m.key.verification.request` if this process is originating
     /// from a request.
-    pub transaction_id: String,
+    pub transaction_id: Box<TransactionId>,
 
     /// Method specific content.
     #[serde(flatten)]
@@ -40,7 +42,11 @@ pub struct ToDeviceKeyVerificationStartEventContent {
 impl ToDeviceKeyVerificationStartEventContent {
     /// Creates a new `ToDeviceKeyVerificationStartEventContent` with the given device ID,
     /// transaction ID and method specific content.
-    pub fn new(from_device: Box<DeviceId>, transaction_id: String, method: StartMethod) -> Self {
+    pub fn new(
+        from_device: Box<DeviceId>,
+        transaction_id: Box<TransactionId>,
+        method: StartMethod,
+    ) -> Self {
         Self { from_device, transaction_id, method }
     }
 }
@@ -115,7 +121,7 @@ pub struct _CustomContent {
 #[serde(rename = "m.reciprocate.v1", tag = "method")]
 pub struct ReciprocateV1Content {
     /// The shared secret from the QR code, encoded using unpadded base64.
-    pub secret: String,
+    pub secret: Base64,
 }
 
 #[cfg(feature = "unstable-pre-spec")]
@@ -123,7 +129,7 @@ impl ReciprocateV1Content {
     /// Create a new `ReciprocateV1Content` with the given shared secret.
     ///
     /// The shared secret needs to come from the scanned QR code, encoded using unpadded base64.
-    pub fn new(secret: String) -> Self {
+    pub fn new(secret: Base64) -> Self {
         Self { secret }
     }
 }
@@ -205,6 +211,8 @@ mod tests {
     #[cfg(feature = "unstable-pre-spec")]
     use ruma_identifiers::event_id;
     use ruma_identifiers::user_id;
+    #[cfg(feature = "unstable-pre-spec")]
+    use ruma_serde::Base64;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
@@ -288,7 +296,7 @@ mod tests {
 
         #[cfg(feature = "unstable-pre-spec")]
         {
-            let secret = "This is a secret to everybody".to_owned();
+            let secret = Base64::new(b"This is a secret to everybody".to_vec());
 
             let key_verification_start_content = ToDeviceKeyVerificationStartEventContent {
                 from_device: "123".into(),
@@ -341,7 +349,7 @@ mod tests {
 
         assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
 
-        let secret = "This is a secret to everybody".to_owned();
+        let secret = Base64::new(b"This is a secret to everybody".to_vec());
 
         let key_verification_start_content = KeyVerificationStartEventContent {
             from_device: "123".into(),
@@ -468,7 +476,7 @@ mod tests {
                 "content": {
                     "from_device": "123",
                     "method": "m.reciprocate.v1",
-                    "secret": "It's a secret to everybody",
+                    "secret": "c2VjcmV0Cg",
                     "transaction_id": "456",
                 },
                 "type": "m.key.verification.start",
@@ -487,7 +495,7 @@ mod tests {
                 } if from_device == "123"
                     && sender == user_id!("@example:localhost")
                     && transaction_id == "456"
-                    && secret == "It's a secret to everybody"
+                    && secret.encode() == "c2VjcmV0Cg"
             );
         }
     }
@@ -533,7 +541,7 @@ mod tests {
         let json = json!({
             "from_device": "123",
             "method": "m.reciprocate.v1",
-            "secret": "It's a secret to everybody",
+            "secret": "c2VjcmV0Cg",
             "m.relates_to": {
                 "rel_type": "m.reference",
                 "event_id": id,
@@ -548,7 +556,7 @@ mod tests {
                 method: StartMethod::ReciprocateV1(ReciprocateV1Content { secret }),
             } if from_device == "123"
                 && event_id == id
-                && secret == "It's a secret to everybody"
+                && secret.encode() == "c2VjcmV0Cg"
         );
     }
 }

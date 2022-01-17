@@ -1,7 +1,7 @@
 //! [PUT /_matrix/client/r0/rooms/{roomId}/redact/{eventId}/{txnId}](https://matrix.org/docs/spec/client_server/r0.6.1#put-matrix-client-r0-rooms-roomid-redact-eventid-txnid)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::{EventId, RoomId};
+use ruma_identifiers::{EventId, RoomId, TransactionId};
 
 ruma_api! {
     metadata: {
@@ -27,7 +27,7 @@ ruma_api! {
         /// Clients should generate a unique ID; it will be used by the server to ensure idempotency
         /// of requests.
         #[ruma_api(path)]
-        pub txn_id: &'a str,
+        pub txn_id: &'a TransactionId,
 
         /// The reason for the redaction.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -44,7 +44,7 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given room ID, event ID and transaction ID.
-    pub fn new(room_id: &'a RoomId, event_id: &'a EventId, txn_id: &'a str) -> Self {
+    pub fn new(room_id: &'a RoomId, event_id: &'a EventId, txn_id: &'a TransactionId) -> Self {
         Self { room_id, event_id, txn_id, reason: None }
     }
 }

@@ -18,6 +18,8 @@ use std::borrow::Cow;
 #[cfg(feature = "unstable-pre-spec")]
 use std::collections::BTreeMap;
 
+use crate::PrivOwnedStr;
+
 /// The content of an `m.room.join_rules` event.
 ///
 /// Describes how users are allowed to join the room.
@@ -88,7 +90,7 @@ pub enum JoinRule {
 
     #[doc(hidden)]
     #[serde(skip_serializing)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl JoinRule {
@@ -101,7 +103,7 @@ impl JoinRule {
             #[cfg(feature = "unstable-pre-spec")]
             JoinRule::Restricted(_) => "restricted",
             JoinRule::Public => "public",
-            JoinRule::_Custom(rule) => rule,
+            JoinRule::_Custom(rule) => &rule.0,
         }
     }
 }
@@ -135,7 +137,7 @@ impl<'de> Deserialize<'de> for JoinRule {
             #[cfg(feature = "unstable-pre-spec")]
             "restricted" => from_raw_json_value(&json).map(Self::Restricted),
             "public" => Ok(Self::Public),
-            _ => Ok(Self::_Custom(join_rule.into_owned())),
+            _ => Ok(Self::_Custom(PrivOwnedStr(join_rule.into()))),
         }
     }
 }

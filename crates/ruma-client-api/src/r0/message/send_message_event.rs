@@ -2,7 +2,7 @@
 
 use ruma_api::ruma_api;
 use ruma_events::{AnyMessageEventContent, MessageEventContent};
-use ruma_identifiers::{EventId, RoomId};
+use ruma_identifiers::{EventId, RoomId, TransactionId};
 use ruma_serde::Raw;
 use serde_json::value::to_raw_value as to_raw_json_value;
 
@@ -31,7 +31,7 @@ ruma_api! {
         /// same access token; it will be used by the server to ensure
         /// idempotency of requests.
         #[ruma_api(path)]
-        pub txn_id: &'a str,
+        pub txn_id: &'a TransactionId,
 
         /// The event content to send.
         #[ruma_api(body)]
@@ -55,7 +55,7 @@ impl<'a> Request<'a> {
     /// [`Serialize`][serde::Serialize] implementation can fail.
     pub fn new<T: MessageEventContent>(
         room_id: &'a RoomId,
-        txn_id: &'a str,
+        txn_id: &'a TransactionId,
         content: &'a T,
     ) -> serde_json::Result<Self> {
         Ok(Self {
@@ -70,7 +70,7 @@ impl<'a> Request<'a> {
     /// content.
     pub fn new_raw(
         room_id: &'a RoomId,
-        txn_id: &'a str,
+        txn_id: &'a TransactionId,
         event_type: &'a str,
         body: Raw<AnyMessageEventContent>,
     ) -> Self {

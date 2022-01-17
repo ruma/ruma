@@ -7,6 +7,8 @@ use ruma_events_macros::EventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
+use crate::PrivOwnedStr;
+
 /// The content of an `m.call.hangup` event.
 ///
 /// Sent by either party to signal their termination of the call. This can be sent either once the
@@ -52,7 +54,7 @@ pub enum Reason {
     InviteTimeout,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl Reason {

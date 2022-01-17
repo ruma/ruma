@@ -10,7 +10,7 @@ use ruma_api::{
     EndpointError, OutgoingResponse,
 };
 use ruma_common::thirdparty::Medium;
-use ruma_identifiers::{ClientSecret, SessionId};
+use ruma_identifiers::{ClientSecret, SessionId, TransactionId};
 use ruma_serde::{JsonObject, Outgoing, StringEnum};
 use serde::{
     de::{self, DeserializeOwned},
@@ -20,7 +20,10 @@ use serde_json::{
     from_slice as from_json_slice, value::RawValue as RawJsonValue, Value as JsonValue,
 };
 
-use crate::error::{Error as MatrixError, ErrorBody};
+use crate::{
+    error::{Error as MatrixError, ErrorBody},
+    PrivOwnedStr,
+};
 
 pub mod get_uiaa_fallback_page;
 mod user_serde;
@@ -85,7 +88,7 @@ impl<'a> AuthData<'a> {
             #[cfg(feature = "unstable-pre-spec")]
             Self::RegistrationToken(_) => Some(AuthType::RegistrationToken),
             Self::FallbackAcknowledgement(_) => None,
-            Self::_Custom(c) => Some(AuthType::_Custom(c.auth_type.to_owned())),
+            Self::_Custom(c) => Some(AuthType::_Custom(PrivOwnedStr(c.auth_type.into()))),
         }
     }
 
@@ -212,7 +215,7 @@ impl IncomingAuthData {
             #[cfg(feature = "unstable-pre-spec")]
             Self::RegistrationToken(_) => Some(AuthType::RegistrationToken),
             Self::FallbackAcknowledgement(_) => None,
-            Self::_Custom(c) => Some(AuthType::_Custom(c.auth_type.clone())),
+            Self::_Custom(c) => Some(AuthType::_Custom(PrivOwnedStr(c.auth_type.as_str().into()))),
         }
     }
 
@@ -384,7 +387,7 @@ pub enum AuthType {
     RegistrationToken,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 /// Data for password-based UIAA flow.
@@ -467,7 +470,7 @@ pub struct Token<'a> {
     pub token: &'a str,
 
     /// The transaction ID.
-    pub txn_id: &'a str,
+    pub txn_id: &'a TransactionId,
 
     /// The value of the session key given by the homeserver, if any.
     pub session: Option<&'a str>,
@@ -475,7 +478,7 @@ pub struct Token<'a> {
 
 impl<'a> Token<'a> {
     /// Creates a new `Token` with the given token and transaction ID.
-    pub fn new(token: &'a str, txn_id: &'a str) -> Self {
+    pub fn new(token: &'a str, txn_id: &'a TransactionId) -> Self {
         Self { token, txn_id, session: None }
     }
 }

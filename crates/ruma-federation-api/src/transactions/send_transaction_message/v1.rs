@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
 use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_identifiers::{EventId, ServerName};
+use ruma_identifiers::{EventId, ServerName, TransactionId};
 use ruma_serde::Raw;
 use serde_json::value::RawValue as RawJsonValue;
 
@@ -23,7 +23,7 @@ ruma_api! {
     request: {
         /// A transaction ID unique between sending and receiving homeservers.
         #[ruma_api(path)]
-        pub transaction_id: &'a str,
+        pub transaction_id: &'a TransactionId,
 
         /// The server_name of the homeserver sending this transaction.
         pub origin: &'a ServerName,
@@ -48,6 +48,8 @@ ruma_api! {
     #[derive(Default)]
     response: {
         /// Map of event IDs and response for each PDU given in the request.
+        // https://github.com/matrix-org/matrix-doc/pull/3618 makes returning `pdus` optional.
+        #[cfg_attr(feature = "unstable-pre-spec", serde(default))]
         #[serde(with = "crate::serde::pdu_process_response")]
         pub pdus: BTreeMap<Box<EventId>, Result<(), String>>,
     }
@@ -58,7 +60,7 @@ impl<'a> Request<'a> {
     ///
     /// The PDU and EDU lists will start off empty.
     pub fn new(
-        transaction_id: &'a str,
+        transaction_id: &'a TransactionId,
         origin: &'a ServerName,
         origin_server_ts: MilliSecondsSinceUnixEpoch,
     ) -> Self {
