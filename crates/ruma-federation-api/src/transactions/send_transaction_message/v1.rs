@@ -48,7 +48,7 @@ ruma_api! {
     #[derive(Default)]
     response: {
         /// Map of event IDs and response for each PDU given in the request.
-        // MSC3618 makes returning `pdus` optional.
+        // https://github.com/matrix-org/matrix-doc/pull/3618 makes returning `pdus` optional.
         #[cfg_attr(feature = "unstable-pre-spec", serde(default))]
         #[serde(with = "crate::serde::pdu_process_response")]
         pub pdus: BTreeMap<Box<EventId>, Result<(), String>>,
