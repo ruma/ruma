@@ -56,19 +56,8 @@ impl RoomServerAclEventContent {
 
         let host = server_name.host();
 
-        for deny in &self.deny {
-            if WildMatch::new(deny).matches(host) {
-                return false;
-            }
-        }
-
-        for allow in &self.allow {
-            if WildMatch::new(allow).matches(host) {
-                return true;
-            }
-        }
-
-        false
+        self.deny.iter().all(|d| !WildMatch::new(d).matches(host))
+            && self.allow.iter().any(|a| WildMatch::new(a).matches(host))
     }
 }
 
