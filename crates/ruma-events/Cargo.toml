@@ -25,7 +25,6 @@ unstable-pre-spec = ["ruma-identifiers/unstable-pre-spec"]
 
 [dependencies]
 criterion = { version = "0.3.3", optional = true }
-glob = "0.3.0"
 indoc = "1.0"
 js_int = { version = "0.2.0", features = ["serde"] }
 pulldown-cmark = { version = "0.8", default-features = false, optional = true }
@@ -36,6 +35,7 @@ ruma-serde = { version = "0.5.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = { version = "1.0.60", features = ["raw_value"] }
 thiserror = "1.0.26"
+wildmatch = "2.0.0"
 
 [dev-dependencies]
 assign = "1.1.1"

@@ -5,6 +5,7 @@
 use ruma_events_macros::EventContent;
 use ruma_identifiers::ServerName;
 use serde::{Deserialize, Serialize};
+use wildmatch::WildMatch;
 
 /// The content of an `m.room.server_acl` event.
 ///
@@ -56,31 +57,13 @@ impl RoomServerAclEventContent {
         let host = server_name.host();
 
         for deny in &self.deny {
-            if !deny.contains('[') {
-                if let Ok(d) = glob::Pattern::new(deny) {
-                    if d.matches(host) {
-                        return false;
-                    }
-                }
-            }
-            // Do a raw comparison as well for IPv6 addresses and in case the Pattern fails to
-            // compile
-            if host == deny {
+            if WildMatch::new(deny).matches(host) {
                 return false;
             }
         }
 
         for allow in &self.allow {
-            if !allow.contains('[') {
-                if let Ok(a) = glob::Pattern::new(allow) {
-                    if a.matches(host) {
-                        return true;
-                    }
-                }
-            }
-            // Do a raw comparison as well for IPv6 addresses and in case the Pattern fails to
-            // compile
-            if host == allow {
+            if WildMatch::new(allow).matches(host) {
                 return true;
             }
         }
@@ -91,11 +74,11 @@ impl RoomServerAclEventContent {
 
 #[cfg(test)]
 mod tests {
+    use ruma_identifiers::server_name;
     use serde_json::{from_value as from_json_value, json};
 
-    use super::*;
+    use super::RoomServerAclEventContent;
     use crate::StateEvent;
-    use ruma_identifiers::server_name;
 
     #[test]
     fn default_values() {
