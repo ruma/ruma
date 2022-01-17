@@ -14,7 +14,7 @@ Breaking changes:
 
 Improvements:
 
-* Add `without_port` and `is_ip_literal` methods to `ServerName`
+* Add `host` and `is_ip_literal` methods to `ServerName`
 
 Bug fixes:
 

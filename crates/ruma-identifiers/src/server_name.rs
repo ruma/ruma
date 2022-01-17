@@ -11,7 +11,7 @@ opaque_identifier_validated!(ServerName, ruma_identifiers_validation::server_nam
 
 impl ServerName {
     /// Returns the server name without the port.
-    pub fn without_port(&self) -> &str {
+    pub fn host(&self) -> &str {
         if let Some(end_of_ipv6) = self.0.find(']') {
             &self.0[0..=end_of_ipv6]
         } else {
@@ -23,7 +23,7 @@ impl ServerName {
 
     /// Returns true if and only if the server name is an IPv4 or IPv6 address.
     pub fn is_ip_literal(&self) -> bool {
-        self.without_port().parse::<Ipv4Addr>().is_ok() || self.0.starts_with('[')
+        self.host().parse::<Ipv4Addr>().is_ok() || self.0.starts_with('[')
     }
 }
 
@@ -93,41 +93,41 @@ mod tests {
     fn parse_ipv4_host() {
         let server_name = <&ServerName>::try_from("127.0.0.1").unwrap();
         assert!(server_name.is_ip_literal());
-        assert_eq!(server_name.without_port(), "127.0.0.1");
+        assert_eq!(server_name.host(), "127.0.0.1");
     }
 
     #[test]
     fn parse_ipv4_host_and_port() {
         let server_name = <&ServerName>::try_from("1.1.1.1:12000").unwrap();
         assert!(server_name.is_ip_literal());
-        assert_eq!(server_name.without_port(), "1.1.1.1");
+        assert_eq!(server_name.host(), "1.1.1.1");
     }
 
     #[test]
     fn parse_ipv6() {
         let server_name = <&ServerName>::try_from("[::1]").unwrap();
         assert!(server_name.is_ip_literal());
-        assert_eq!(server_name.without_port(), "[::1]");
+        assert_eq!(server_name.host(), "[::1]");
     }
 
     #[test]
     fn parse_ipv6_with_port() {
         let server_name = <&ServerName>::try_from("[1234:5678::abcd]:5678").unwrap();
         assert!(server_name.is_ip_literal());
-        assert_eq!(server_name.without_port(), "[1234:5678::abcd]");
+        assert_eq!(server_name.host(), "[1234:5678::abcd]");
     }
 
     #[test]
     fn parse_dns_name() {
         let server_name = <&ServerName>::try_from("example.com").unwrap();
         assert!(!server_name.is_ip_literal());
-        assert_eq!(server_name.without_port(), "example.com");
+        assert_eq!(server_name.host(), "example.com");
     }
 
     #[test]
     fn parse_dns_name_with_port() {
         let server_name = <&ServerName>::try_from("ruma.io:8080").unwrap();
         assert!(!server_name.is_ip_literal());
-        assert_eq!(server_name.without_port(), "ruma.io");
+        assert_eq!(server_name.host(), "ruma.io");
     }
 }
