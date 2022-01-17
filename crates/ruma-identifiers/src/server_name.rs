@@ -26,6 +26,22 @@ impl ServerName {
         }
     }
 
+    /// Returns the port of the server name, if any.
+    pub fn port(&self) -> Option<u16> {
+        #[allow(clippy::unnecessary_lazy_evaluations)]
+        let end_of_host = self
+            .0
+            .find(']')
+            .map(|i| i + 1)
+            .or_else(|| self.0.find(':'))
+            .unwrap_or_else(|| self.0.len());
+
+        (self.0.len() != end_of_host).then(|| {
+            assert!(self.as_bytes()[end_of_host] == b':');
+            self.0[end_of_host + 1..].parse().unwrap()
+        })
+    }
+
     /// Returns true if and only if the server name is an IPv4 or IPv6 address.
     pub fn is_ip_literal(&self) -> bool {
         self.host().parse::<Ipv4Addr>().is_ok() || self.0.starts_with('[')
