@@ -53,17 +53,19 @@ impl RoomServerAclEventContent {
             return false;
         }
 
+        let host = server_name.host();
+
         for deny in &self.deny {
             if !deny.contains('[') {
                 if let Ok(d) = glob::Pattern::new(deny) {
-                    if d.matches(server_name.as_str()) {
+                    if d.matches(host) {
                         return false;
                     }
                 }
             }
             // Do a raw comparison as well for IPv6 addresses and in case the Pattern fails to
             // compile
-            if server_name == deny {
+            if host == deny {
                 return false;
             }
         }
@@ -71,14 +73,14 @@ impl RoomServerAclEventContent {
         for allow in &self.allow {
             if !allow.contains('[') {
                 if let Ok(a) = glob::Pattern::new(allow) {
-                    if a.matches(server_name.as_str()) {
+                    if a.matches(host) {
                         return true;
                     }
                 }
             }
             // Do a raw comparison as well for IPv6 addresses and in case the Pattern fails to
             // compile
-            if server_name == allow {
+            if host == allow {
                 return true;
             }
         }
@@ -113,6 +115,16 @@ mod tests {
         assert!(server_acl_event.content.allow_ip_literals);
         assert!(server_acl_event.content.allow.is_empty());
         assert!(server_acl_event.content.deny.is_empty());
+    }
+
+    #[test]
+    fn acl_ignores_port() {
+        let acl_event = RoomServerAclEventContent {
+            allow_ip_literals: true,
+            allow: vec!["*".to_owned()],
+            deny: vec!["1.1.1.1".to_owned()],
+        };
+        assert!(!acl_event.is_allowed(server_name!("1.1.1.1:8000")));
     }
 
     #[test]
