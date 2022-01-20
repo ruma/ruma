@@ -3,6 +3,7 @@
 Bug fixes:
 
 * Fix deserialization of `r0::session::get_login_types::CustomLoginType`.
+* Make fields of `r0::session::get_login_types::IdentityProvider` public.
 
 Breaking changes:
 
@@ -38,6 +39,10 @@ Improvements:
   `IncomingAuthData::to_outgoing` on it.
 * Add custom variant to `LoginInfo` which can be constructed with `IncomingLoginInfo::new` and
   then call `IncomingLoginInfo::to_outgoing` on it.
+* Move MSC2858 - Multiple SSO Identity Providers out of the `unstable-pre-spec` feature flag, this
+  includes:
+  * The `r0::session::get_login_types::{IdentityProvider, IdentityProviderBrand}` types
+  * The `session::sso_login_with_provider::v3` endpoint
 
 # 0.12.3
 
