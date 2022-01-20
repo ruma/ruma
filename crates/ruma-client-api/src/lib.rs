@@ -10,6 +10,7 @@
 
 pub mod error;
 pub mod r0;
+pub mod session;
 pub mod unversioned;
 
 pub use error::Error;
