@@ -3,6 +3,7 @@
 Bug fixes:
 
 * Fix deserialization of `r0::session::get_login_types::CustomLoginType`.
+* Make fields of `r0::session::get_login_types::IdentityProvider` public.
 
 Breaking changes:
 

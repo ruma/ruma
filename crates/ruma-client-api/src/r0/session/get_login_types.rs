@@ -163,16 +163,16 @@ impl SsoLoginType {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct IdentityProvider {
     /// The ID of the provider.
-    id: String,
+    pub id: String,
 
     /// The display name of the provider.
-    name: String,
+    pub name: String,
 
     /// The icon for the provider.
-    icon: Option<Box<MxcUri>>,
+    pub icon: Option<Box<MxcUri>>,
 
     /// The brand identifier for the provider.
-    brand: Option<IdentityProviderBrand>,
+    pub brand: Option<IdentityProviderBrand>,
 }
 
 impl IdentityProvider {
