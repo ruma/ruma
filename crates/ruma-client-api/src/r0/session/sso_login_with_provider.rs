@@ -1,6 +1,4 @@
-//! [GET /_matrix/client/r0/login/sso/redirect/{idp_id}](https://github.com/matrix-org/matrix-doc/blob/master/proposals/2858-Multiple-SSO-Identity-Providers.md)
-//!
-//! This uses the unstable prefix in [MSC2858](https://github.com/matrix-org/matrix-doc/pull/2858).
+//! [GET /_matrix/client/r0/login/sso/redirect/{idp_id}](https://spec.matrix.org/v1.1/client-server-api/#get_matrixclientv3loginssoredirectidpid)
 
 use ruma_api::ruma_api;
 
@@ -9,7 +7,7 @@ ruma_api! {
         description: "Get the SSO login identity provider url.",
         method: GET,
         name: "sso_login_with_provider",
-        path: "/_matrix/client/unstable/org.matrix.msc2858/login/sso/redirect/:idp_id",
+        path: "/_matrix/client/v3/login/sso/redirect/:idp_id",
         rate_limited: false,
         authentication: None,
     }
@@ -63,7 +61,7 @@ mod tests {
 
         assert_eq!(
             req.uri().to_string(),
-            "https://homeserver.tld/_matrix/client/unstable/org.matrix.msc2858/login/sso/redirect/provider?redirectUrl=https%3A%2F%2Fexample.com%2Fsso"
+            "https://homeserver.tld/_matrix/client/v3/login/sso/redirect/provider?redirectUrl=https%3A%2F%2Fexample.com%2Fsso"
         );
     }
 }

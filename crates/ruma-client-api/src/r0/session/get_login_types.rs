@@ -3,11 +3,8 @@
 use std::borrow::Cow;
 
 use ruma_api::ruma_api;
-#[cfg(feature = "unstable-pre-spec")]
 use ruma_identifiers::MxcUri;
-use ruma_serde::JsonObject;
-#[cfg(feature = "unstable-pre-spec")]
-use ruma_serde::StringEnum;
+use ruma_serde::{JsonObject, StringEnum};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
@@ -150,15 +147,7 @@ impl TokenLoginType {
 #[serde(tag = "type", rename = "m.login.sso")]
 pub struct SsoLoginType {
     /// The identity provider choices.
-    ///
-    /// This uses the unstable prefix in
-    /// [MSC2858](https://github.com/matrix-org/matrix-doc/pull/2858).
-    #[cfg(feature = "unstable-pre-spec")]
-    #[serde(
-        default,
-        rename = "org.matrix.msc2858.identity_providers",
-        skip_serializing_if = "Vec::is_empty"
-    )]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub identity_providers: Vec<IdentityProvider>,
 }
 
@@ -170,7 +159,6 @@ impl SsoLoginType {
 }
 
 /// An SSO login identity provider.
-#[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct IdentityProvider {
@@ -187,7 +175,6 @@ pub struct IdentityProvider {
     brand: Option<IdentityProviderBrand>,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
 impl IdentityProvider {
     /// Creates an `IdentityProvider` with the given `id` and `name`.
     pub fn new(id: String, name: String) -> Self {
@@ -196,10 +183,6 @@ impl IdentityProvider {
 }
 
 /// An SSO login identity provider brand identifier.
-///
-/// This uses the unstable prefix in
-/// [MSC2858](https://github.com/matrix-org/matrix-doc/pull/2858).
-#[cfg(feature = "unstable-pre-spec")]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum IdentityProviderBrand {
@@ -259,13 +242,12 @@ mod login_type_serde;
 mod tests {
     use matches::assert_matches;
     use serde::{Deserialize, Serialize};
-    #[cfg(feature = "unstable-pre-spec")]
-    use serde_json::to_value as to_json_value;
-    use serde_json::{from_value as from_json_value, json};
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{CustomLoginType, LoginType, PasswordLoginType};
-    #[cfg(feature = "unstable-pre-spec")]
-    use super::{IdentityProvider, IdentityProviderBrand, SsoLoginType, TokenLoginType};
+    use super::{
+        CustomLoginType, IdentityProvider, IdentityProviderBrand, LoginType, PasswordLoginType,
+        SsoLoginType, TokenLoginType,
+    };
 
     #[derive(Debug, Deserialize, Serialize)]
     struct Wrapper {
@@ -309,13 +291,12 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "unstable-pre-spec")]
     fn deserialize_sso_login_type() {
         let mut wrapper = from_json_value::<Wrapper>(json!({
             "flows": [
                 {
                     "type": "m.login.sso",
-                    "org.matrix.msc2858.identity_providers": [
+                    "identity_providers": [
                         {
                             "id": "oidc-gitlab",
                             "name": "GitLab",
@@ -367,7 +348,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "unstable-pre-spec")]
     fn serialize_sso_login_type() {
         let wrapper = to_json_value(Wrapper {
             flows: vec![
@@ -393,7 +373,7 @@ mod tests {
                     },
                     {
                         "type": "m.login.sso",
-                        "org.matrix.msc2858.identity_providers": [
+                        "identity_providers": [
                             {
                                 "id": "oidc-github",
                                 "name": "GitHub",
