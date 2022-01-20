@@ -8,7 +8,6 @@ use ruma_serde::{JsonObject, StringEnum};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
-#[cfg(feature = "unstable-pre-spec")]
 use crate::PrivOwnedStr;
 
 ruma_api! {
