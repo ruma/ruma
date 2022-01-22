@@ -7,7 +7,7 @@ use ruma_identifiers::RoomId;
 ruma_api! {
     metadata: {
         description: "Delete keys from the backup for a given room.",
-        method: GET,
+        method: DELETE,
         name: "delete_backup_key_sessions",
         path: "/_matrix/client/r0/room_keys/keys/:room_id",
         rate_limited: true,

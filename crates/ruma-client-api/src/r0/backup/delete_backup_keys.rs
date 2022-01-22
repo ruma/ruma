@@ -6,7 +6,7 @@ use ruma_api::ruma_api;
 ruma_api! {
     metadata: {
         description: "Delete all keys in a backup.",
-        method: PUT,
+        method: DELETE,
         name: "delete_backup_keys",
         path: "/_matrix/client/r0/room_keys/keys",
         rate_limited: true,
