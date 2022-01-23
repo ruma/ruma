@@ -5,7 +5,7 @@
 use std::convert::TryFrom;
 
 use ruma_events_macros::EventContent;
-use ruma_identifiers::{DeviceId, SecretRequestId};
+use ruma_identifiers::DeviceId;
 use ruma_serde::StringEnum;
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 
@@ -32,7 +32,7 @@ pub struct ToDeviceSecretRequestEventContent {
     ///
     /// If the secret is requested from multiple devices at the same time, the same ID may be used
     /// for every target. The same ID is also used in order to cancel a previous request.
-    pub request_id: Box<SecretRequestId>,
+    pub request_id: String,
 }
 
 impl ToDeviceSecretRequestEventContent {
@@ -41,7 +41,7 @@ impl ToDeviceSecretRequestEventContent {
     pub fn new(
         action: RequestAction,
         requesting_device_id: Box<DeviceId>,
-        request_id: Box<SecretRequestId>,
+        request_id: String,
     ) -> Self {
         Self { action, requesting_device_id, request_id }
     }

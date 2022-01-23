@@ -3,7 +3,6 @@
 //! [`m.secret.send`]: https://spec.matrix.org/v1.1/client-server-api/#msecretsend
 
 use ruma_events_macros::EventContent;
-use ruma_identifiers::SecretRequestId;
 use serde::{Deserialize, Serialize};
 
 /// The content of an `m.secret.send` event.
@@ -17,7 +16,7 @@ use serde::{Deserialize, Serialize};
 #[ruma_event(type = "m.secret.send", kind = ToDevice)]
 pub struct ToDeviceSecretSendEventContent {
     /// The ID of the request that this is a response to.
-    pub request_id: Box<SecretRequestId>,
+    pub request_id: String,
 
     /// The contents of the secret.
     pub secret: String,
@@ -25,7 +24,7 @@ pub struct ToDeviceSecretSendEventContent {
 
 impl ToDeviceSecretSendEventContent {
     /// Creates a new `SecretSendEventContent` with the given request ID and secret.
-    pub fn new(request_id: Box<SecretRequestId>, secret: String) -> Self {
+    pub fn new(request_id: String, secret: String) -> Self {
         Self { request_id, secret }
     }
 }

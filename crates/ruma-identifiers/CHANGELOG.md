@@ -14,7 +14,6 @@ Breaking changes:
 
 Improvements:
 
-* Add `TransactionId` and `SecretRequestId`
 * Add `host`, `port` and `is_ip_literal` methods to `ServerName`
 
 Bug fixes:
