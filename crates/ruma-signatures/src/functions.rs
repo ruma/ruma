@@ -9,7 +9,7 @@ use std::{
 
 use base64::{encode_config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
 use ruma_identifiers::{EventId, RoomVersionId, ServerName, UserId};
-use ruma_serde::{Base64, CanonicalJsonObject, CanonicalJsonValue};
+use ruma_serde::{base64::Standard, Base64, CanonicalJsonObject, CanonicalJsonValue};
 use serde_json::{from_str as from_json_str, to_string as to_json_string};
 use sha2::{digest::Digest, Sha256};
 
@@ -291,7 +291,7 @@ pub fn verify_json(
                 )
             })?;
 
-            let signature = Base64::parse(signature)
+            let signature = Base64::<Standard>::parse(signature)
                 .map_err(|e| ParseError::base64("signature", signature, e))?;
 
             verify_json_with(
@@ -332,8 +332,6 @@ where
 
 /// Creates a *content hash* for an event.
 ///
-/// Returns the hash as a base64-encoded string, using the standard character set, without padding.
-///
 /// The content hash of an event covers the complete event including the unredacted contents. It is
 /// used during federation and is described in the Matrix server-server specification.
 ///
@@ -344,7 +342,7 @@ where
 /// # Errors
 ///
 /// Returns an error if the event is too large.
-pub fn content_hash(object: &CanonicalJsonObject) -> Result<Base64<[u8; 32]>, Error> {
+pub fn content_hash(object: &CanonicalJsonObject) -> Result<Base64<Standard, [u8; 32]>, Error> {
     let json = canonical_json_with_fields_to_remove(object, CONTENT_HASH_FIELDS_TO_REMOVE)?;
     if json.len() > MAX_PDU_BYTES {
         return Err(Error::PduSize);
@@ -656,8 +654,8 @@ pub fn verify_event(
 
         let public_key = signature_and_pubkey.public_key;
 
-        let signature =
-            Base64::parse(signature).map_err(|e| ParseError::base64("signature", signature, e))?;
+        let signature = Base64::<Standard>::parse(signature)
+            .map_err(|e| ParseError::base64("signature", signature, e))?;
 
         verify_json_with(
             &Ed25519Verifier,
@@ -669,7 +667,7 @@ pub fn verify_event(
 
     let calculated_hash = content_hash(object)?;
 
-    if let Ok(hash) = Base64::parse(hash) {
+    if let Ok(hash) = Base64::<Standard>::parse(hash) {
         if hash.as_bytes() == calculated_hash.as_bytes() {
             return Ok(Verified::All);
         }
