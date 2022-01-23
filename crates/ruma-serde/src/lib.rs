@@ -6,7 +6,7 @@
 
 use serde_json::Value as JsonValue;
 
-mod base64;
+pub mod base64;
 mod buf;
 pub mod can_be_empty;
 mod canonical_json;

@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_identifiers::MxcUri;
-use ruma_serde::Base64;
+use ruma_serde::{base64::UrlSafe, Base64};
 use serde::{Deserialize, Serialize};
 
 pub mod aliases;
@@ -193,7 +193,7 @@ pub struct JsonWebKey {
     pub alg: String,
 
     /// The key, encoded as url-safe unpadded base64.
-    pub k: Base64,
+    pub k: Base64<UrlSafe>,
 
     /// Extractable.
     ///
@@ -225,7 +225,7 @@ pub struct JsonWebKeyInit {
     pub alg: String,
 
     /// The key, encoded as url-safe unpadded base64.
-    pub k: Base64,
+    pub k: Base64<UrlSafe>,
 
     /// Extractable.
     ///

@@ -2,15 +2,39 @@ use std::fmt;
 
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
-/// DOCS
-// generic?
+/// A wrapper around `B` (usually `Vec<u8>`) that (de)serializes from / to a base64 string.
+///
+/// The base64 character set (and miscellaneous other encoding / decoding options) can be customized
+/// through the generic parameter `C`.
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Base64<B = Vec<u8>> {
+pub struct Base64<C = Standard, B = Vec<u8>> {
     bytes: B,
 }
 
-// See https://github.com/matrix-org/matrix-doc/issues/3211
-const BASE64_CONFIG: base64::Config = base64::STANDARD_NO_PAD.decode_allow_trailing_bits(true);
+pub trait Base64Config {
+    const CONF: base64::Config;
+}
+
+/// Standard base64 character set without padding.
+///
+/// Allows trailing bits in decoding for maximum compatibility.
+#[non_exhaustive]
+pub struct Standard;
+
+impl Base64Config for Standard {
+    // See https://github.com/matrix-org/matrix-doc/issues/3211
+    const CONF: base64::Config = base64::STANDARD_NO_PAD.decode_allow_trailing_bits(true);
+}
+
+/// Url-safe base64 character set without padding.
+///
+/// Allows trailing bits in decoding for maximum compatibility.
+#[non_exhaustive]
+pub struct UrlSafe;
+
+impl Base64Config for UrlSafe {
+    const CONF: base64::Config = base64::URL_SAFE_NO_PAD.decode_allow_trailing_bits(true);
+}
 
 impl<B: AsRef<[u8]>> Base64<B> {
     /// Create a `Base64` instance from raw bytes, to be base64-encoded in serialialization.
