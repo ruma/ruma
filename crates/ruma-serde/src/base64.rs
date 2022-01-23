@@ -18,7 +18,7 @@ impl<B: AsRef<[u8]>> Base64<B> {
         Self { bytes }
     }
 
-    /// Get the raw bytes held by this `Base64` instance.
+    /// Get a reference to the raw bytes held by this `Base64` instance.
     pub fn as_bytes(&self) -> &[u8] {
         self.bytes.as_ref()
     }
@@ -26,6 +26,13 @@ impl<B: AsRef<[u8]>> Base64<B> {
     /// Encode the bytes contained in this `Base64` instance to unpadded base64.
     pub fn encode(&self) -> String {
         base64::encode_config(&self.bytes, BASE64_CONFIG)
+    }
+}
+
+impl<B> Base64<B> {
+    /// Get the raw bytes held by this `Base64` instance.
+    pub fn into_inner(self) -> B {
+        self.bytes
     }
 }
 
