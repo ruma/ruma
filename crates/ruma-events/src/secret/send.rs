@@ -3,6 +3,7 @@
 //! [`m.secret.send`]: https://spec.matrix.org/v1.1/client-server-api/#msecretsend
 
 use ruma_events_macros::EventContent;
+use ruma_identifiers::TransactionId;
 use serde::{Deserialize, Serialize};
 
 /// The content of an `m.secret.send` event.
