@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 #[ruma_event(type = "m.secret.send", kind = ToDevice)]
 pub struct ToDeviceSecretSendEventContent {
     /// The ID of the request that this is a response to.
-    pub request_id: String,
+    pub request_id: Box<TransactionId>,
 
     /// The contents of the secret.
     pub secret: String,
@@ -24,7 +24,7 @@ pub struct ToDeviceSecretSendEventContent {
 
 impl ToDeviceSecretSendEventContent {
     /// Creates a new `SecretSendEventContent` with the given request ID and secret.
-    pub fn new(request_id: String, secret: String) -> Self {
+    pub fn new(request_id: Box<TransactionId>, secret: String) -> Self {
         Self { request_id, secret }
     }
 }
