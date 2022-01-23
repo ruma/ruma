@@ -38,6 +38,7 @@ pub use crate::{
     room_name::RoomName,
     room_or_room_alias_id::RoomOrAliasId,
     room_version_id::RoomVersionId,
+    secret_request_id::SecretRequestId,
     server_name::ServerName,
     session_id::SessionId,
     signatures::{DeviceSignatures, EntitySignatures, ServerSignatures, Signatures},
@@ -66,6 +67,7 @@ mod room_id;
 mod room_name;
 mod room_or_room_alias_id;
 mod room_version_id;
+mod secret_request_id;
 mod server_name;
 mod session_id;
 mod signatures;
