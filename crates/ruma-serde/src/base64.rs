@@ -11,7 +11,8 @@ use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Base64<C = Standard, B = Vec<u8>> {
     bytes: B,
-    _phantom_conf: PhantomData<*mut C>,
+    // Invariant PhantomData, Send + Sync
+    _phantom_conf: PhantomData<fn(C) -> C>,
 }
 
 /// Config used for the [`Base64`] type.
