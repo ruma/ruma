@@ -26,7 +26,7 @@ ruma_api! {
         pub version: &'a str,
 
         /// A map from room IDs to session IDs to key data.
-        pub rooms: BTreeMap<Box<RoomId>, RoomKeyBackup>,
+        pub rooms: BTreeMap<Box<RoomId>, Raw<RoomKeyBackup>>,
     }
 
     response: {
@@ -45,7 +45,7 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given version and room key backups.
-    pub fn new(version: &'a str, rooms: BTreeMap<Box<RoomId>, RoomKeyBackup>) -> Self {
+    pub fn new(version: &'a str, rooms: BTreeMap<Box<RoomId>, Raw<RoomKeyBackup>>) -> Self {
         Self { version, rooms }
     }
 }
