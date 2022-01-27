@@ -5,6 +5,7 @@ use std::collections::BTreeMap;
 use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
+use ruma_serde::Raw;
 
 use super::RoomKeyBackup;
 
