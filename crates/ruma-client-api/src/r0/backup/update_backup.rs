@@ -21,7 +21,7 @@ ruma_api! {
         pub version: &'a str,
 
         /// The algorithm used for storing backups.
-        #[serde(flatten)]
+        #[ruma_api(body)]
         pub algorithm: Raw<BackupAlgorithm>,
     }
 
