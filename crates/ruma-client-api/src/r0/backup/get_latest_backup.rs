@@ -3,8 +3,13 @@
 use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_serde::Raw;
+use serde::{ser, Deserialize, Deserializer, Serialize};
+use serde_json::value::to_raw_value as to_raw_json_value;
 
-use super::BackupAlgorithm;
+use super::{
+    get_backup::{AlgorithmWithData, RefResponseBodyRepr, ResponseBodyRepr},
+    BackupAlgorithm,
+};
 
 ruma_api! {
     metadata: {
@@ -19,9 +24,9 @@ ruma_api! {
     #[derive(Default)]
     request: {}
 
+    #[ruma_api(manual_body_serde)]
     response: {
         /// The algorithm used for storing backups.
-        #[serde(flatten)]
         pub algorithm: Raw<BackupAlgorithm>,
 
         /// The number of keys stored in the backup.
@@ -56,5 +61,41 @@ impl Response {
         version: String,
     ) -> Self {
         Self { algorithm, count, etag, version }
+    }
+}
+
+impl<'de> Deserialize<'de> for ResponseBody {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let ResponseBodyRepr { algorithm, auth_data, count, etag, version } =
+            ResponseBodyRepr::deserialize(deserializer)?;
+
+        let algorithm =
+            Raw::from_json(to_raw_json_value(&AlgorithmWithData { algorithm, auth_data }).unwrap());
+
+        Ok(Self { algorithm, count, etag, version })
+    }
+}
+
+impl Serialize for ResponseBody {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let ResponseBody { algorithm, count, etag, version } = self;
+        let AlgorithmWithData { algorithm, auth_data } =
+            algorithm.deserialize_as().map_err(ser::Error::custom)?;
+
+        let repr = RefResponseBodyRepr {
+            algorithm: &algorithm,
+            auth_data: &auth_data,
+            count: *count,
+            etag,
+            version,
+        };
+
+        repr.serialize(serializer)
     }
 }
