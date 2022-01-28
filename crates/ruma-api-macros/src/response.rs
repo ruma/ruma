@@ -1,6 +1,7 @@
 use std::{
     convert::{TryFrom, TryInto},
     mem,
+    ops::Not,
 };
 
 use proc_macro2::TokenStream;
@@ -13,7 +14,7 @@ use syn::{
 };
 
 use crate::{
-    attribute::{Meta, MetaNameValue, MetaValue},
+    attribute::{Meta, MetaNameValue},
     util,
 };
 
@@ -27,19 +28,25 @@ pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
     };
 
     let fields = fields.into_iter().map(ResponseField::try_from).collect::<syn::Result<_>>()?;
+    let mut manual_body_serde = false;
     let mut error_ty = None;
     for attr in input.attrs {
         if !attr.path.is_ident("ruma_api") {
             continue;
         }
 
-        let meta = attr.parse_args_with(Punctuated::<_, Token![,]>::parse_terminated)?;
-        for MetaNameValue { name, value } in meta {
-            match value {
-                MetaValue::Type(t) if name == "error_ty" => {
-                    error_ty = Some(t);
+        let metas = attr.parse_args_with(Punctuated::<Meta<Type>, Token![,]>::parse_terminated)?;
+        for meta in metas {
+            match meta {
+                Meta::Word(w) if w == "manual_body_serde" => {
+                    manual_body_serde = true;
                 }
-                _ => unreachable!("invalid ruma_api({}) attribute", name),
+                Meta::NameValue(MetaNameValue { name, value }) if name == "error_ty" => {
+                    error_ty = Some(value);
+                }
+                Meta::Word(name) | Meta::NameValue(MetaNameValue { name, .. }) => {
+                    unreachable!("invalid ruma_api({}) attribute", name);
+                }
             }
         }
     }
@@ -48,6 +55,7 @@ pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
         ident: input.ident,
         generics: input.generics,
         fields,
+        manual_body_serde,
         error_ty: error_ty.unwrap(),
     };
 
@@ -59,6 +67,7 @@ struct Response {
     ident: Ident,
     generics: Generics,
     fields: Vec<ResponseField>,
+    manual_body_serde: bool,
     error_ty: Type,
 }
 
@@ -92,6 +101,10 @@ impl Response {
         let serde = quote! { #ruma_api::exports::serde };
 
         let response_body_struct = (!self.has_raw_body()).then(|| {
+            let serde_derives = self.manual_body_serde.not().then(|| {
+                quote! { #serde::Deserialize, #serde::Serialize }
+            });
+
             let serde_attr = self.has_newtype_body().then(|| quote! { #[serde(transparent)] });
             let fields = self.fields.iter().filter_map(ResponseField::as_body_field);
 
@@ -101,8 +114,7 @@ impl Response {
                     Debug,
                     #ruma_api_macros::_FakeDeriveRumaApi,
                     #ruma_serde::Outgoing,
-                    #serde::Deserialize,
-                    #serde::Serialize,
+                    #serde_derives
                 )]
                 #serde_attr
                 struct ResponseBody { #(#fields),* }
