@@ -320,7 +320,7 @@ fn expand_content_enum(
             #[doc(hidden)]
             #[serde(serialize_with = #serialize_custom_event_error_path)]
             _Custom {
-                event_type: ::std::string::String,
+                event_type: crate::PrivOwnedStr,
             },
         }
 
@@ -329,7 +329,7 @@ fn expand_content_enum(
             fn event_type(&self) -> &::std::primitive::str {
                 match self {
                     #( #variant_arms(content) => content.event_type(), )*
-                    Self::_Custom { event_type } => &event_type,
+                    Self::_Custom { event_type } => &event_type.0,
                 }
             }
 
@@ -345,7 +345,9 @@ fn expand_content_enum(
                         }
                     )*
                     ty => {
-                        ::std::result::Result::Ok(Self::_Custom { event_type: ty.to_owned() })
+                        ::std::result::Result::Ok(Self::_Custom {
+                            event_type: crate::PrivOwnedStr(ty.into()),
+                        })
                     }
                 }
             }
@@ -483,7 +485,9 @@ fn expand_accessor_methods(
                         )*
                         Self::_Custom(event) => {
                             event.prev_content.as_ref().map(|c| #content_enum::_Custom {
-                                event_type: #ruma_events::EventContent::event_type(c).to_owned(),
+                                event_type: crate::PrivOwnedStr(
+                                    #ruma_events::EventContent::event_type(c).into(),
+                                ),
                             })
                         },
                     }
@@ -497,8 +501,9 @@ fn expand_accessor_methods(
                 match self {
                     #( #self_variants(event) => #content_variants(event.content.clone()), )*
                     Self::_Custom(event) => #content_enum::_Custom {
-                        event_type: #ruma_events::EventContent::event_type(&event.content)
-                            .to_owned(),
+                        event_type: crate::PrivOwnedStr(
+                            #ruma_events::EventContent::event_type(&event.content).into(),
+                        ),
                     },
                 }
             }
