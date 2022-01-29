@@ -71,21 +71,6 @@ fn expand_event_enum(
     let variant_decls = variants.iter().map(|v| v.decl());
     let content: Vec<_> =
         events.iter().map(|event| to_event_path(event, kind, var, ruma_events)).collect();
-    let custom_variant = if var.is_redacted() {
-        quote! {
-            /// A redacted event not defined by the Matrix specification
-            #[doc(hidden)]
-            _Custom(
-                #ruma_events::#event_struct<#ruma_events::custom::RedactedCustomEventContent>,
-            ),
-        }
-    } else {
-        quote! {
-            /// An event not defined by the Matrix specification
-            #[doc(hidden)]
-            _Custom(#ruma_events::#event_struct<#ruma_events::custom::CustomEventContent>),
-        }
-    };
 
     let deserialize_impl = expand_deserialize_impl(kind, var, events, variants, ruma_events);
     let field_accessor_impl = expand_accessor_methods(kind, var, variants, ruma_events);
@@ -102,7 +87,9 @@ fn expand_event_enum(
                 #[doc = #events]
                 #variant_decls(#content),
             )*
-            #custom_variant
+            /// An event not defined by the Matrix specification
+            #[doc(hidden)]
+            _Custom(#ruma_events::#event_struct<#ruma_events::custom::_CustomEventContent>),
         }
 
         #deserialize_impl
@@ -122,7 +109,6 @@ fn expand_deserialize_impl(
     let serde_json = quote! { #ruma_events::exports::serde_json };
 
     let ident = kind.to_event_enum_ident(var);
-    let event_struct = kind.to_event_ident(var);
 
     let variant_attrs = variants.iter().map(|v| {
         let attrs = &v.attrs;
@@ -130,31 +116,6 @@ fn expand_deserialize_impl(
     });
     let self_variants = variants.iter().map(|v| v.ctor(quote! { Self }));
     let content = events.iter().map(|event| to_event_path(event, kind, var, ruma_events));
-
-    let custom_deserialize = if var.is_redacted() {
-        quote! {
-            event => {
-                let event = #serde_json::from_str::<#ruma_events::#event_struct<
-                    #ruma_events::custom::RedactedCustomEventContent,
-                >>(json.get())
-                .map_err(D::Error::custom)?;
-
-                Ok(Self::_Custom(event))
-            },
-        }
-    } else {
-        quote! {
-            event => {
-                let event =
-                    #serde_json::from_str::<
-                        #ruma_events::#event_struct<#ruma_events::custom::CustomEventContent>
-                    >(json.get())
-                    .map_err(D::Error::custom)?;
-
-                Ok(Self::_Custom(event))
-            },
-        }
-    };
 
     quote! {
         impl<'de> #serde::de::Deserialize<'de> for #ident {
@@ -176,7 +137,10 @@ fn expand_deserialize_impl(
                             Ok(#self_variants(event))
                         },
                     )*
-                    #custom_deserialize
+                    _ => {
+                        let event = #serde_json::from_str(json.get()).map_err(D::Error::custom)?;
+                        Ok(Self::_Custom(event))
+                    },
                 }
             }
         }

@@ -97,3 +97,54 @@ impl RedactedEventContent for RedactedCustomEventContent {
 impl RedactedMessageEventContent for RedactedCustomEventContent {}
 
 impl RedactedStateEventContent for RedactedCustomEventContent {}
+
+/// A custom event's type. Used for event enum `_Custom` variants.
+#[doc(hidden)]
+// FIXME: Serialize shouldn't be required here, but it's currently a supertrait of EventContent
+#[derive(Clone, Debug, Serialize)]
+#[allow(clippy::exhaustive_structs)]
+pub struct _CustomEventContent {
+    #[serde(skip)]
+    event_type: Box<str>,
+}
+
+impl RedactContent for _CustomEventContent {
+    type Redacted = Self;
+
+    fn redact(self, _: &RoomVersionId) -> Self {
+        self
+    }
+}
+
+impl EventContent for _CustomEventContent {
+    fn event_type(&self) -> &str {
+        &self.event_type
+    }
+
+    fn from_parts(event_type: &str, _content: &RawJsonValue) -> serde_json::Result<Self> {
+        Ok(Self { event_type: event_type.into() })
+    }
+}
+
+impl RedactedEventContent for _CustomEventContent {
+    fn empty(event_type: &str) -> serde_json::Result<Self> {
+        Ok(Self { event_type: event_type.into() })
+    }
+
+    fn has_serialize_fields(&self) -> bool {
+        false
+    }
+
+    fn has_deserialize_fields() -> HasDeserializeFields {
+        HasDeserializeFields::False
+    }
+}
+
+impl GlobalAccountDataEventContent for _CustomEventContent {}
+impl RoomAccountDataEventContent for _CustomEventContent {}
+impl ToDeviceEventContent for _CustomEventContent {}
+impl EphemeralRoomEventContent for _CustomEventContent {}
+impl MessageEventContent for _CustomEventContent {}
+impl StateEventContent for _CustomEventContent {}
+impl RedactedMessageEventContent for _CustomEventContent {}
+impl RedactedStateEventContent for _CustomEventContent {}

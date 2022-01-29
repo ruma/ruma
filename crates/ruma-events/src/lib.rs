@@ -411,10 +411,7 @@ pub struct PrivOwnedStr(Box<str>);
 /// only be created by deserializing from an unknown event type.
 #[doc(hidden)]
 #[allow(clippy::ptr_arg)]
-pub fn serialize_custom_event_error<S: Serializer>(
-    _: &PrivOwnedStr,
-    _: S,
-) -> Result<S::Ok, S::Error> {
+pub fn serialize_custom_event_error<T, S: Serializer>(_: &T, _: S) -> Result<S::Ok, S::Error> {
     Err(serde::ser::Error::custom(
         "Failed to serialize event [content] enum: Unknown event type.\n\
          To send custom events, turn them into `Raw<EnumType>` by going through
