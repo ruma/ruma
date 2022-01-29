@@ -768,9 +768,9 @@ pub fn redact_in_place(
 pub fn redact_content(
     object: &mut CanonicalJsonObject,
     version: &RoomVersionId,
-    event_type: &str,
+    event_type: impl AsRef<str>,
 )  {
-    let allowed_content_keys = allowed_content_keys_for(event_type, version);
+    let allowed_content_keys = allowed_content_keys_for(event_type.as_ref(), version);
 
     let mut old_content = mem::take(object);
 
