@@ -13,7 +13,10 @@ pub struct NotificationPowerLevels {
     ///
     /// If you activate the `compat` feature, deserialization will work for stringified
     /// integers too.
-    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
+    #[cfg_attr(
+        feature = "compat",
+        serde(deserialize_with = "ruma_serde::deserialize_v1_powerlevel")
+    )]
     #[serde(default = "default_power_level")]
     pub room: Int,
 }
