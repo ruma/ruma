@@ -38,7 +38,7 @@ them. Check out the documentation [on docs.rs][docs] (or on
 
 ## Status
 
-As of 2021-02-10, we support all events and REST endpoints of the v1 version of
+As of 2022-01-31, we support all events and REST endpoints of the v1 version of
 the Matrix specification, with v1.1 coverage in progress.
 
 Various changes from the unreleased version of the specification are also
