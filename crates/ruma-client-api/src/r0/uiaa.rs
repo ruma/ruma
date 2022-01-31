@@ -60,6 +60,7 @@ pub enum AuthData<'a> {
     Dummy(Dummy<'a>),
 
     /// Registration token-based authentication (`m.login.registration_token`).
+    #[cfg(feature = "unstable-spec")] // todo: v1.2
     RegistrationToken(RegistrationToken<'a>),
 
     /// Fallback acknowledgement.
@@ -85,6 +86,7 @@ impl<'a> AuthData<'a> {
             Self::EmailIdentity(_) => Some(AuthType::EmailIdentity),
             Self::Msisdn(_) => Some(AuthType::Msisdn),
             Self::Dummy(_) => Some(AuthType::Dummy),
+            #[cfg(feature = "unstable-spec")] // todo: v1.2
             Self::RegistrationToken(_) => Some(AuthType::RegistrationToken),
             Self::FallbackAcknowledgement(_) => None,
             Self::_Custom(c) => Some(AuthType::_Custom(PrivOwnedStr(c.auth_type.into()))),
@@ -101,6 +103,7 @@ impl<'a> AuthData<'a> {
             Self::EmailIdentity(x) => x.session,
             Self::Msisdn(x) => x.session,
             Self::Dummy(x) => x.session,
+            #[cfg(feature = "unstable-spec")] // todo: v1.2
             Self::RegistrationToken(x) => x.session,
             Self::FallbackAcknowledgement(x) => Some(x.session),
             Self::_Custom(x) => x.session,
@@ -143,6 +146,7 @@ impl<'a> AuthData<'a> {
                 thirdparty_id_creds: x.thirdparty_id_creds,
                 session: None,
             })),
+            #[cfg(feature = "unstable-spec")] // todo: v1.2
             Self::RegistrationToken(x) => {
                 Cow::Owned(serialize(RegistrationToken { token: x.token, session: None }))
             }
@@ -187,6 +191,7 @@ impl IncomingAuthData {
             "m.login.email.identity" => Self::EmailIdentity(deserialize_variant(session, data)?),
             "m.login.msisdn" => Self::Msisdn(deserialize_variant(session, data)?),
             "m.login.dummy" => Self::Dummy(deserialize_variant(session, data)?),
+            #[cfg(feature = "unstable-spec")] // todo: v1.2
             "m.registration_token" => Self::RegistrationToken(deserialize_variant(session, data)?),
             _ => Self::_Custom(IncomingCustomAuthData {
                 auth_type: auth_type.into(),
@@ -206,6 +211,7 @@ impl IncomingAuthData {
             Self::EmailIdentity(_) => Some(AuthType::EmailIdentity),
             Self::Msisdn(_) => Some(AuthType::Msisdn),
             Self::Dummy(_) => Some(AuthType::Dummy),
+            #[cfg(feature = "unstable-spec")]  // todo: v1.2
             Self::RegistrationToken(_) => Some(AuthType::RegistrationToken),
             Self::FallbackAcknowledgement(_) => None,
             Self::_Custom(c) => Some(AuthType::_Custom(PrivOwnedStr(c.auth_type.as_str().into()))),
@@ -222,6 +228,7 @@ impl IncomingAuthData {
             Self::EmailIdentity(x) => x.session.as_deref(),
             Self::Msisdn(x) => x.session.as_deref(),
             Self::Dummy(x) => x.session.as_deref(),
+            #[cfg(feature = "unstable-spec")]  // todo: v1.2
             Self::RegistrationToken(x) => x.session.as_deref(),
             Self::FallbackAcknowledgement(x) => Some(&x.session),
             Self::_Custom(x) => x.session.as_deref(),
@@ -264,6 +271,7 @@ impl IncomingAuthData {
                 thirdparty_id_creds: &x.thirdparty_id_creds,
                 session: None,
             })),
+            #[cfg(feature = "unstable-spec")]  // todo: v1.2
             Self::RegistrationToken(x) => {
                 Cow::Owned(serialize(RegistrationToken { token: &x.token, session: None }))
             }
@@ -283,6 +291,7 @@ impl IncomingAuthData {
             Self::EmailIdentity(a) => AuthData::EmailIdentity(a.to_outgoing()),
             Self::Msisdn(a) => AuthData::Msisdn(a.to_outgoing()),
             Self::Dummy(a) => AuthData::Dummy(a.to_outgoing()),
+            #[cfg(feature = "unstable-spec")] // todo: v1.2
             Self::RegistrationToken(a) => AuthData::RegistrationToken(a.to_outgoing()),
             Self::FallbackAcknowledgement(a) => AuthData::FallbackAcknowledgement(a.to_outgoing()),
             Self::_Custom(a) => AuthData::_Custom(CustomAuthData {
@@ -325,6 +334,7 @@ impl<'de> Deserialize<'de> for IncomingAuthData {
             Some("m.login.email.identity") => from_raw_json_value(&json).map(Self::EmailIdentity),
             Some("m.login.msisdn") => from_raw_json_value(&json).map(Self::Msisdn),
             Some("m.login.dummy") => from_raw_json_value(&json).map(Self::Dummy),
+            #[cfg(feature = "unstable-spec")] // todo: v1.2
             Some("m.login.registration_token") => {
                 from_raw_json_value(&json).map(Self::RegistrationToken)
             }
@@ -372,6 +382,7 @@ pub enum AuthType {
 
     /// Registration token-based authentication (`m.login.registration_token`).
     #[ruma_enum(rename = "m.login.registration_token")]
+    #[cfg(feature = "unstable-spec")] // todo: v1.2
     RegistrationToken,
 
     #[doc(hidden)]
@@ -602,6 +613,7 @@ impl IncomingDummy {
 #[derive(Clone, Debug, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.registration_token")]
+#[cfg(feature = "unstable-spec")] // todo: v1.2
 pub struct RegistrationToken<'a> {
     /// The registration token.
     pub token: &'a str,
@@ -610,6 +622,7 @@ pub struct RegistrationToken<'a> {
     pub session: Option<&'a str>,
 }
 
+#[cfg(feature = "unstable-spec")] // todo: v1.2
 impl<'a> RegistrationToken<'a> {
     /// Creates a new `RegistrationToken` with the given token.
     pub fn new(token: &'a str) -> Self {
@@ -617,6 +630,7 @@ impl<'a> RegistrationToken<'a> {
     }
 }
 
+#[cfg(feature = "unstable-spec")] // todo: v1.2
 impl IncomingRegistrationToken {
     /// Convert from `IncomingRegistrationToken` to `RegistrationToken`.
     fn to_outgoing(&self) -> RegistrationToken<'_> {

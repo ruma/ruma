@@ -119,6 +119,9 @@ unstable-pre-spec = [
     #"ruma-identity-service-api/unstable-pre-spec",
     #"ruma-push-gateway-api/unstable-pre-spec",
 ]
+unstable-spec = [
+    "ruma-client-api/unstable-spec"
+]
 
 [dependencies]
 assign = "1.1.1"
