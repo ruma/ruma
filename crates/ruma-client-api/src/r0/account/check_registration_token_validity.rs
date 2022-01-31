@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/unstable/org.matrix.msc3231/register/org.matrix.msc3231.login.registration_token/validity](https://github.com/matrix-org/matrix-doc/blob/main/proposals/3231-token-authenticated-registration.md#checking-the-validity-of-a-token)
+//! [GET /_matrix/client/v1/register/m.login.registration_token/validity](https://spec.matrix.org/unstable/client-server-api/#get_matrixclientv1registermloginregistration_tokenvalidity)
 
 use ruma_api::ruma_api;
 
@@ -7,7 +7,7 @@ ruma_api! {
         description: "Checks to see if the given registration token is valid.",
         method: GET,
         name: "check_registration_token_validity",
-        path: "/_matrix/client/unstable/org.matrix.msc3231/register/org.matrix.msc3231.login.registration_token/validity",
+        path: "/_matrix/client/v1/register/m.login.registration_token/validity",
         rate_limited: true,
         authentication: None,
     }

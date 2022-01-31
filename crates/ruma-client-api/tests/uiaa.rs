@@ -74,7 +74,7 @@ fn serialize_auth_data_registration_token() {
     assert_matches!(
         to_json_value(auth_data),
         Ok(val) if val == json!({
-            "type": "org.matrix.msc3231.login.registration_token",
+            "type": "m.login.registration_token",
             "token": "mytoken",
             "session": "session",
         })
@@ -85,7 +85,7 @@ fn serialize_auth_data_registration_token() {
 #[cfg(feature = "unstable-pre-spec")]
 fn deserialize_auth_data_registration_token() {
     let json = json!({
-        "type": "org.matrix.msc3231.login.registration_token",
+        "type": "m.login.registration_token",
         "token": "mytoken",
         "session": "session",
     });
