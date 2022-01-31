@@ -210,7 +210,7 @@ impl IncomingAuthData {
             Self::EmailIdentity(_) => Some(AuthType::EmailIdentity),
             Self::Msisdn(_) => Some(AuthType::Msisdn),
             Self::Dummy(_) => Some(AuthType::Dummy),
-            #[cfg(feature = "unstable-spec")]  // todo: v1.2
+            #[cfg(feature = "unstable-spec")] // todo: v1.2
             Self::RegistrationToken(_) => Some(AuthType::RegistrationToken),
             Self::FallbackAcknowledgement(_) => None,
             Self::_Custom(c) => Some(AuthType::_Custom(PrivOwnedStr(c.auth_type.as_str().into()))),
@@ -227,7 +227,7 @@ impl IncomingAuthData {
             Self::EmailIdentity(x) => x.session.as_deref(),
             Self::Msisdn(x) => x.session.as_deref(),
             Self::Dummy(x) => x.session.as_deref(),
-            #[cfg(feature = "unstable-spec")]  // todo: v1.2
+            #[cfg(feature = "unstable-spec")] // todo: v1.2
             Self::RegistrationToken(x) => x.session.as_deref(),
             Self::FallbackAcknowledgement(x) => Some(&x.session),
             Self::_Custom(x) => x.session.as_deref(),
@@ -270,7 +270,7 @@ impl IncomingAuthData {
                 thirdparty_id_creds: &x.thirdparty_id_creds,
                 session: None,
             })),
-            #[cfg(feature = "unstable-spec")]  // todo: v1.2
+            #[cfg(feature = "unstable-spec")] // todo: v1.2
             Self::RegistrationToken(x) => {
                 Cow::Owned(serialize(RegistrationToken { token: &x.token, session: None }))
             }

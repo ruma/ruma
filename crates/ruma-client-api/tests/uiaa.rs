@@ -65,7 +65,7 @@ fn deserialize_auth_data_direct_request() {
 }
 
 #[test]
-#[cfg(feature = "unstable-spec")]  // todo: v1.2
+#[cfg(feature = "unstable-spec")] // todo: v1.2
 fn serialize_auth_data_registration_token() {
     let auth_data = AuthData::RegistrationToken(
         assign!(uiaa::RegistrationToken::new("mytoken"), { session: Some("session") }),
@@ -82,7 +82,7 @@ fn serialize_auth_data_registration_token() {
 }
 
 #[test]
-#[cfg(feature = "unstable-spec")]  // todo: v1.2
+#[cfg(feature = "unstable-spec")] // todo: v1.2
 fn deserialize_auth_data_registration_token() {
     let json = json!({
         "type": "m.login.registration_token",
