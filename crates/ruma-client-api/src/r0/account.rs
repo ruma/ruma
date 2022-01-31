@@ -3,7 +3,7 @@
 pub mod add_3pid;
 pub mod bind_3pid;
 pub mod change_password;
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-spec")]  // todo: v1.2
 pub mod check_registration_token_validity;
 pub mod deactivate;
 pub mod delete_3pid;
