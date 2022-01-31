@@ -123,6 +123,10 @@ where
                 next = &trimmed[1..]
             }
 
+            if trimmed.len() == 0 {
+                return Err(E::custom("string only contained plus/minus, no number"))
+            }
+
             let mut reduced = next.trim_start_matches('0');
 
             if reduced.len() == 0 {
