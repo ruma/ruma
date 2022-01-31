@@ -7,7 +7,6 @@ use ruma_identifiers::TransactionId;
 use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "unstable-pre-spec")]
 use super::Relation;
 
 /// The content of a to-device `m.key.verification.key` event.
@@ -38,7 +37,6 @@ impl ToDeviceKeyVerificationKeyEventContent {
 ///
 /// Sends the ephemeral public key for a device to the partner device.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.key", kind = Message)]
 pub struct KeyVerificationKeyEventContent {
@@ -50,7 +48,6 @@ pub struct KeyVerificationKeyEventContent {
     pub relates_to: Relation,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
 impl KeyVerificationKeyEventContent {
     /// Creates a new `KeyVerificationKeyEventContent` with the given key and relation.
     pub fn new(key: Base64, relates_to: Relation) -> Self {

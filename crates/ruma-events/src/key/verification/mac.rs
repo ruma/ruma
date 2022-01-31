@@ -9,7 +9,6 @@ use ruma_identifiers::TransactionId;
 use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "unstable-pre-spec")]
 use super::Relation;
 
 /// The content of a to-device `m.key.verification.` event.
@@ -50,7 +49,6 @@ impl ToDeviceKeyVerificationMacEventContent {
 ///
 /// Sends the MAC of a device's key to the partner device.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.mac", kind = Message)]
 pub struct KeyVerificationMacEventContent {
@@ -68,7 +66,6 @@ pub struct KeyVerificationMacEventContent {
     pub relates_to: Relation,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
 impl KeyVerificationMacEventContent {
     /// Creates a new `KeyVerificationMacEventContent` with the given key ID to MAC map, key MAC and
     /// relation.

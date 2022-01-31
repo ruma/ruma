@@ -6,15 +6,13 @@ use std::collections::BTreeMap;
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::{DeviceId, TransactionId};
-#[cfg(feature = "unstable-pre-spec")]
 use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
-#[cfg(feature = "unstable-pre-spec")]
-use super::Relation;
 use super::{
-    HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
+    HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, Relation,
+    ShortAuthenticationString,
 };
 
 /// The content of a to-device `m.key.verification.start` event.
@@ -55,7 +53,6 @@ impl ToDeviceKeyVerificationStartEventContent {
 ///
 /// Begins an SAS key verification process.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.start", kind = Message)]
 pub struct KeyVerificationStartEventContent {
@@ -71,7 +68,6 @@ pub struct KeyVerificationStartEventContent {
     pub relates_to: Relation,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
 impl KeyVerificationStartEventContent {
     /// Creates a new `KeyVerificationStartEventContent` with the given device ID, method and
     /// relation.
@@ -93,7 +89,6 @@ pub enum StartMethod {
     /// The spec entry for this method can be found [here][1].
     ///
     /// [1]: https://spec.matrix.org/unstable/client-server-api/#mkeyverificationstartmreciprocatev1
-    #[cfg(feature = "unstable-pre-spec")]
     ReciprocateV1(ReciprocateV1Content),
 
     /// Any unknown start method.
@@ -116,7 +111,6 @@ pub struct _CustomContent {
 
 /// The payload of an `m.key.verification.start` event using the `m.sas.v1` method.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename = "m.reciprocate.v1", tag = "method")]
 pub struct ReciprocateV1Content {
@@ -124,7 +118,6 @@ pub struct ReciprocateV1Content {
     pub secret: Base64,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
 impl ReciprocateV1Content {
     /// Create a new `ReciprocateV1Content` with the given shared secret.
     ///
@@ -208,25 +201,19 @@ mod tests {
     use std::collections::BTreeMap;
 
     use matches::assert_matches;
-    #[cfg(feature = "unstable-pre-spec")]
-    use ruma_identifiers::event_id;
-    use ruma_identifiers::user_id;
-    #[cfg(feature = "unstable-pre-spec")]
+    use ruma_identifiers::{event_id, user_id};
     use ruma_serde::Base64;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
 
     use super::{
-        HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, SasV1Content,
-        SasV1ContentInit, ShortAuthenticationString, StartMethod,
-        ToDeviceKeyVerificationStartEventContent, _CustomContent,
+        HashAlgorithm, KeyAgreementProtocol, KeyVerificationStartEventContent,
+        MessageAuthenticationCode, ReciprocateV1Content, SasV1Content, SasV1ContentInit,
+        ShortAuthenticationString, StartMethod, ToDeviceKeyVerificationStartEventContent,
+        _CustomContent,
     };
-    #[cfg(feature = "unstable-pre-spec")]
-    use super::{KeyVerificationStartEventContent, ReciprocateV1Content};
-    #[cfg(feature = "unstable-pre-spec")]
-    use crate::key::verification::Relation;
-    use crate::ToDeviceEvent;
+    use crate::{key::verification::Relation, ToDeviceEvent};
 
     #[test]
     fn serialization() {
@@ -294,7 +281,6 @@ mod tests {
 
         assert_eq!(to_json_value(&key_verification_start).unwrap(), json_data);
 
-        #[cfg(feature = "unstable-pre-spec")]
         {
             let secret = Base64::new(b"This is a secret to everybody".to_vec());
 
@@ -316,7 +302,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "unstable-pre-spec")]
     fn in_room_serialization() {
         let event_id = event_id!("$1598361704261elfgc:localhost");
 
@@ -470,7 +455,6 @@ mod tests {
                 && data.get("test").unwrap() == &JsonValue::from("field")
         );
 
-        #[cfg(feature = "unstable-pre-spec")]
         {
             let json = json!({
                 "content": {
@@ -501,7 +485,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "unstable-pre-spec")]
     fn in_room_deserialization() {
         let id = event_id!("$1598361704261elfgc:localhost");
 

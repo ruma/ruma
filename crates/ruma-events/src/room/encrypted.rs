@@ -6,9 +6,7 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_events_macros::EventContent;
-use ruma_identifiers::DeviceId;
-#[cfg(feature = "unstable-pre-spec")]
-use ruma_identifiers::EventId;
+use ruma_identifiers::{DeviceId, EventId};
 use serde::{Deserialize, Serialize};
 
 use crate::room::message::InReplyTo;
@@ -99,7 +97,6 @@ pub enum Relation {
     Replacement(Replacement),
 
     /// A reference to another event.
-    #[cfg(feature = "unstable-pre-spec")]
     Reference(Reference),
 
     /// An annotation to an event.
@@ -124,14 +121,12 @@ pub struct Replacement {
 
 /// A reference to another event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Reference {
     /// The event we are referencing.
     pub event_id: Box<EventId>,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
 impl Reference {
     /// Creates a new `Reference` with the given event ID.
     pub fn new(event_id: Box<EventId>) -> Self {

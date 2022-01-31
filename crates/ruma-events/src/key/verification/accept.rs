@@ -10,10 +10,9 @@ use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
-#[cfg(feature = "unstable-pre-spec")]
-use super::Relation;
 use super::{
-    HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
+    HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, Relation,
+    ShortAuthenticationString,
 };
 
 /// The content of a to-device `m.key.verification.accept` event.
@@ -46,7 +45,6 @@ impl ToDeviceKeyVerificationAcceptEventContent {
 /// Accepts a previously sent `m.key.verification.start` message.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.key.verification.accept", kind = Message)]
-#[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct KeyVerificationAcceptEventContent {
     /// The method specific content.
@@ -58,7 +56,6 @@ pub struct KeyVerificationAcceptEventContent {
     pub relates_to: Relation,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
 impl KeyVerificationAcceptEventContent {
     /// Creates a new `ToDeviceKeyVerificationAcceptEventContent` with the given method-specific
     /// content and relation.
@@ -169,23 +166,18 @@ mod tests {
     use std::collections::BTreeMap;
 
     use matches::assert_matches;
-    #[cfg(feature = "unstable-pre-spec")]
-    use ruma_identifiers::event_id;
-    use ruma_identifiers::user_id;
+    use ruma_identifiers::{event_id, user_id};
     use ruma_serde::Base64;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
 
-    #[cfg(feature = "unstable-pre-spec")]
-    use super::KeyVerificationAcceptEventContent;
     use super::{
-        AcceptMethod, HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, SasV1Content,
-        ShortAuthenticationString, ToDeviceKeyVerificationAcceptEventContent, _CustomContent,
+        AcceptMethod, HashAlgorithm, KeyAgreementProtocol, KeyVerificationAcceptEventContent,
+        MessageAuthenticationCode, SasV1Content, ShortAuthenticationString,
+        ToDeviceKeyVerificationAcceptEventContent, _CustomContent,
     };
-    #[cfg(feature = "unstable-pre-spec")]
-    use crate::key::verification::Relation;
-    use crate::ToDeviceEvent;
+    use crate::{key::verification::Relation, ToDeviceEvent};
 
     #[test]
     fn serialization() {
@@ -250,7 +242,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "unstable-pre-spec")]
     fn in_room_serialization() {
         let event_id = event_id!("$1598361704261elfgc:localhost");
 
@@ -384,7 +375,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "unstable-pre-spec")]
     fn in_room_deserialization() {
         let id = event_id!("$1598361704261elfgc:localhost");
 

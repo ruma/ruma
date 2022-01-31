@@ -7,10 +7,8 @@ use ruma_identifiers::TransactionId;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::PrivOwnedStr;
-
-#[cfg(feature = "unstable-pre-spec")]
 use super::Relation;
+use crate::PrivOwnedStr;
 
 /// The content of a to-device `m.key.verification.cancel` event.
 ///
@@ -43,7 +41,6 @@ impl ToDeviceKeyVerificationCancelEventContent {
 ///
 /// Cancels a key verification process/request.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.cancel", kind = Message)]
 pub struct KeyVerificationCancelEventContent {
@@ -60,7 +57,6 @@ pub struct KeyVerificationCancelEventContent {
     pub relates_to: Relation,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
 impl KeyVerificationCancelEventContent {
     /// Creates a new `KeyVerificationCancelEventContent` with the given reason, code and relation.
     pub fn new(reason: String, code: CancelCode, relates_to: Relation) -> Self {

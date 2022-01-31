@@ -6,17 +6,13 @@ use std::{borrow::Cow, fmt};
 
 use js_int::UInt;
 use ruma_events_macros::EventContent;
-#[cfg(feature = "unstable-pre-spec")]
-use ruma_identifiers::{DeviceId, UserId};
-use ruma_identifiers::{EventId, MxcUri};
+use ruma_identifiers::{DeviceId, EventId, MxcUri, UserId};
 use ruma_serde::{JsonObject, StringEnum};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
-#[cfg(feature = "unstable-pre-spec")]
-use crate::key::verification::VerificationMethod;
-use crate::PrivOwnedStr;
+use crate::{key::verification::VerificationMethod, PrivOwnedStr};
 
 mod content_serde;
 pub mod feedback;
@@ -215,7 +211,6 @@ pub enum MessageType {
     Video(VideoMessageEventContent),
 
     /// A request to initiate a key verification.
-    #[cfg(feature = "unstable-pre-spec")]
     VerificationRequest(KeyVerificationRequestEventContent),
 
     /// A custom message.
@@ -253,7 +248,6 @@ impl MessageType {
             "m.server_notice" => Self::ServerNotice(deserialize_variant(body, data)?),
             "m.text" => Self::Text(deserialize_variant(body, data)?),
             "m.video" => Self::Video(deserialize_variant(body, data)?),
-            #[cfg(feature = "unstable-pre-spec")]
             "m.key.verification.request" => {
                 Self::VerificationRequest(deserialize_variant(body, data)?)
             }
@@ -273,7 +267,6 @@ impl MessageType {
             Self::ServerNotice(_) => "m.server_notice",
             Self::Text(_) => "m.text",
             Self::Video(_) => "m.video",
-            #[cfg(feature = "unstable-pre-spec")]
             Self::VerificationRequest(_) => "m.key.verification.request",
             Self::_Custom(c) => &c.msgtype,
         }
@@ -291,7 +284,6 @@ impl MessageType {
             MessageType::ServerNotice(m) => &m.body,
             MessageType::Text(m) => &m.body,
             MessageType::Video(m) => &m.body,
-            #[cfg(feature = "unstable-pre-spec")]
             MessageType::VerificationRequest(m) => &m.body,
             MessageType::_Custom(m) => &m.body,
         }
@@ -325,7 +317,6 @@ impl MessageType {
             Self::ServerNotice(d) => Cow::Owned(serialize(d)),
             Self::Text(d) => Cow::Owned(serialize(d)),
             Self::Video(d) => Cow::Owned(serialize(d)),
-            #[cfg(feature = "unstable-pre-spec")]
             Self::VerificationRequest(d) => Cow::Owned(serialize(d)),
             Self::_Custom(c) => Cow::Borrowed(&c.data),
         }
@@ -959,7 +950,6 @@ impl VideoInfo {
 
 /// The payload for a key verification request message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.key.verification.request")]
 pub struct KeyVerificationRequestEventContent {
@@ -981,7 +971,6 @@ pub struct KeyVerificationRequestEventContent {
     pub to: Box<UserId>,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
 impl KeyVerificationRequestEventContent {
     /// Creates a new `RoomKeyVerificationRequestEventContent` with the given body, method, device
     /// and user ID.

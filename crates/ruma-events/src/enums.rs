@@ -5,7 +5,7 @@ use serde::{de, Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
-    from_raw_json_value,
+    from_raw_json_value, key,
     room::{encrypted, message, redaction::SyncRoomRedactionEvent},
     Redact, UnsignedDeHelper,
 };
@@ -36,19 +36,12 @@ event_enum! {
         "m.call.invite",
         "m.call.hangup",
         "m.call.candidates",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.key.verification.ready",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.key.verification.start",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.key.verification.cancel",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.key.verification.accept",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.key.verification.key",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.key.verification.mac",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.key.verification.done",
         #[cfg(feature = "unstable-pre-spec")]
         "m.reaction",
@@ -93,14 +86,12 @@ event_enum! {
         "m.room_key_request",
         "m.forwarded_room_key",
         "m.key.verification.request",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.key.verification.ready",
         "m.key.verification.start",
         "m.key.verification.cancel",
         "m.key.verification.accept",
         "m.key.verification.key",
         "m.key.verification.mac",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.key.verification.done",
         "m.room.encrypted",
         #[cfg(feature = "unstable-pre-spec")]
@@ -331,23 +322,14 @@ impl AnyMessageEventContent {
     /// This is a helper function intended for encryption. There should not be a reason to access
     /// `m.relates_to` without first destructuring an `AnyMessageEventContent` otherwise.
     pub fn relation(&self) -> Option<encrypted::Relation> {
-        #[cfg(feature = "unstable-pre-spec")]
-        use crate::{
-            key::{
-                self,
-                verification::{
-                    accept::KeyVerificationAcceptEventContent,
-                    cancel::KeyVerificationCancelEventContent,
-                    done::KeyVerificationDoneEventContent, key::KeyVerificationKeyEventContent,
-                    mac::KeyVerificationMacEventContent, ready::KeyVerificationReadyEventContent,
-                    start::KeyVerificationStartEventContent,
-                },
-            },
-            reaction,
+        use crate::key::verification::{
+            accept::KeyVerificationAcceptEventContent, cancel::KeyVerificationCancelEventContent,
+            done::KeyVerificationDoneEventContent, key::KeyVerificationKeyEventContent,
+            mac::KeyVerificationMacEventContent, ready::KeyVerificationReadyEventContent,
+            start::KeyVerificationStartEventContent,
         };
 
         match self {
-            #[cfg(feature = "unstable-pre-spec")]
             #[rustfmt::skip]
             Self::KeyVerificationReady(KeyVerificationReadyEventContent { relates_to, .. })
             | Self::KeyVerificationStart(KeyVerificationStartEventContent { relates_to, .. })
@@ -363,6 +345,8 @@ impl AnyMessageEventContent {
             }
             #[cfg(feature = "unstable-pre-spec")]
             Self::Reaction(ev) => {
+                use crate::reaction;
+
                 let reaction::Relation { event_id, emoji } = &ev.relates_to;
                 Some(encrypted::Relation::Annotation(encrypted::Annotation {
                     event_id: event_id.clone(),

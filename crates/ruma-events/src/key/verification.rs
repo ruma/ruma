@@ -6,21 +6,18 @@
 //! [on GitHub][github-matrix-doc-2214].
 //!
 //! [github-matrix-doc-2214]: https://github.com/matrix-org/matrix-doc/pull/2241
-#[cfg(feature = "unstable-pre-spec")]
+
 use ruma_identifiers::EventId;
 use ruma_serde::StringEnum;
-#[cfg(feature = "unstable-pre-spec")]
 use serde::{Deserialize, Serialize};
 
 use crate::PrivOwnedStr;
 
 pub mod accept;
 pub mod cancel;
-#[cfg(feature = "unstable-pre-spec")]
 pub mod done;
 pub mod key;
 pub mod mac;
-#[cfg(feature = "unstable-pre-spec")]
 pub mod ready;
 pub mod request;
 pub mod start;
@@ -124,7 +121,6 @@ impl ShortAuthenticationString {
 
 /// A relation which associates an `m.key.verification.request` with another key verification event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "rel_type", rename = "m.reference")]
 pub struct Relation {
@@ -132,7 +128,6 @@ pub struct Relation {
     pub event_id: Box<EventId>,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
 impl Relation {
     /// Creates a new `Relation` with the given event ID.
     pub fn new(event_id: Box<EventId>) -> Self {
@@ -152,17 +147,14 @@ pub enum VerificationMethod {
     SasV1,
 
     /// The `m.qr_code.scan.v1` verification method.
-    #[cfg(feature = "unstable-pre-spec")]
     #[ruma_enum(rename = "m.qr_code.scan.v1")]
     QrCodeScanV1,
 
     /// The `m.qr_code.show.v1` verification method.
-    #[cfg(feature = "unstable-pre-spec")]
     #[ruma_enum(rename = "m.qr_code.show.v1")]
     QrCodeShowV1,
 
     /// The `m.reciprocate.v1` verification method.
-    #[cfg(feature = "unstable-pre-spec")]
     #[ruma_enum(rename = "m.reciprocate.v1")]
     ReciprocateV1,
 
