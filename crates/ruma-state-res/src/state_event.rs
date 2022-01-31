@@ -95,42 +95,42 @@ impl<T: Event> Event for Arc<T> {
     type Id = T::Id;
 
     fn event_id(&self) -> &Self::Id {
-        (&**self).event_id()
+        (**self).event_id()
     }
 
     fn room_id(&self) -> &RoomId {
-        (&**self).room_id()
+        (**self).room_id()
     }
 
     fn sender(&self) -> &UserId {
-        (&**self).sender()
+        (**self).sender()
     }
 
     fn origin_server_ts(&self) -> MilliSecondsSinceUnixEpoch {
-        (&**self).origin_server_ts()
+        (**self).origin_server_ts()
     }
 
     fn event_type(&self) -> &EventType {
-        (&**self).event_type()
+        (**self).event_type()
     }
 
     fn content(&self) -> &RawJsonValue {
-        (&**self).content()
+        (**self).content()
     }
 
     fn state_key(&self) -> Option<&str> {
-        (&**self).state_key()
+        (**self).state_key()
     }
 
     fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
-        (&**self).prev_events()
+        (**self).prev_events()
     }
 
     fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
-        (&**self).auth_events()
+        (**self).auth_events()
     }
 
     fn redacts(&self) -> Option<&Self::Id> {
-        (&**self).redacts()
+        (**self).redacts()
     }
 }
