@@ -11,9 +11,7 @@ use ruma_identifiers::DeviceId;
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
 
-use crate::room::message::{self, InReplyTo};
-#[cfg(feature = "unstable-pre-spec")]
-use crate::{key::verification, reaction};
+use crate::room::message::InReplyTo;
 
 mod relation_serde;
 
@@ -245,36 +243,6 @@ impl From<MegolmV1AesSha2ContentInit> for MegolmV1AesSha2Content {
     fn from(init: MegolmV1AesSha2ContentInit) -> Self {
         let MegolmV1AesSha2ContentInit { ciphertext, sender_key, device_id, session_id } = init;
         Self { ciphertext, sender_key, device_id, session_id }
-    }
-}
-
-// FIXME: Remove on next breaking change release
-impl From<message::Relation> for Relation {
-    fn from(rel: message::Relation) -> Self {
-        match rel {
-            message::Relation::Reply { in_reply_to } => Self::Reply { in_reply_to },
-            #[cfg(feature = "unstable-pre-spec")]
-            message::Relation::Replacement(re) => {
-                Self::Replacement(Replacement { event_id: re.event_id })
-            }
-            message::Relation::_Custom => Self::_Custom,
-        }
-    }
-}
-
-#[cfg(feature = "unstable-pre-spec")]
-impl From<reaction::Relation> for Relation {
-    fn from(rel: reaction::Relation) -> Self {
-        let reaction::Relation { event_id, emoji } = rel;
-        Self::Annotation(Annotation { event_id, key: emoji })
-    }
-}
-
-#[cfg(feature = "unstable-pre-spec")]
-impl From<verification::Relation> for Relation {
-    fn from(rel: verification::Relation) -> Self {
-        let verification::Relation { event_id } = rel;
-        Self::Reference(Reference { event_id })
     }
 }
 

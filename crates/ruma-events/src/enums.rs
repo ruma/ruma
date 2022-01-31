@@ -5,7 +5,9 @@ use serde::{de, Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
-    from_raw_json_value, room::redaction::SyncRoomRedactionEvent, Redact, UnsignedDeHelper,
+    from_raw_json_value,
+    room::{encrypted, message, redaction::SyncRoomRedactionEvent},
+    Redact, UnsignedDeHelper,
 };
 
 event_enum! {
@@ -328,13 +330,20 @@ impl AnyMessageEventContent {
     ///
     /// This is a helper function intended for encryption. There should not be a reason to access
     /// `m.relates_to` without first destructuring an `AnyMessageEventContent` otherwise.
-    pub fn relation(&self) -> Option<crate::room::encrypted::Relation> {
+    pub fn relation(&self) -> Option<encrypted::Relation> {
         #[cfg(feature = "unstable-pre-spec")]
-        use crate::key::verification::{
-            accept::KeyVerificationAcceptEventContent, cancel::KeyVerificationCancelEventContent,
-            done::KeyVerificationDoneEventContent, key::KeyVerificationKeyEventContent,
-            mac::KeyVerificationMacEventContent, ready::KeyVerificationReadyEventContent,
-            start::KeyVerificationStartEventContent,
+        use crate::{
+            key::{
+                self,
+                verification::{
+                    accept::KeyVerificationAcceptEventContent,
+                    cancel::KeyVerificationCancelEventContent,
+                    done::KeyVerificationDoneEventContent, key::KeyVerificationKeyEventContent,
+                    mac::KeyVerificationMacEventContent, ready::KeyVerificationReadyEventContent,
+                    start::KeyVerificationStartEventContent,
+                },
+            },
+            reaction,
         };
 
         match self {
@@ -347,12 +356,32 @@ impl AnyMessageEventContent {
             | Self::KeyVerificationKey(KeyVerificationKeyEventContent { relates_to, .. })
             | Self::KeyVerificationMac(KeyVerificationMacEventContent { relates_to, .. })
             | Self::KeyVerificationDone(KeyVerificationDoneEventContent { relates_to, .. }) => {
-                Some(relates_to.clone().into())
-            },
+                let key::verification::Relation { event_id } = relates_to;
+                Some(encrypted::Relation::Reference(encrypted::Reference {
+                    event_id: event_id.clone(),
+                }))
+            }
             #[cfg(feature = "unstable-pre-spec")]
-            Self::Reaction(ev) => Some(ev.relates_to.clone().into()),
+            Self::Reaction(ev) => {
+                let reaction::Relation { event_id, emoji } = &ev.relates_to;
+                Some(encrypted::Relation::Annotation(encrypted::Annotation {
+                    event_id: event_id.clone(),
+                    key: emoji.clone(),
+                }))
+            }
             Self::RoomEncrypted(ev) => ev.relates_to.clone(),
-            Self::RoomMessage(ev) => ev.relates_to.clone().map(Into::into),
+            Self::RoomMessage(ev) => ev.relates_to.clone().map(|rel| match rel {
+                message::Relation::Reply { in_reply_to } => {
+                    encrypted::Relation::Reply { in_reply_to }
+                }
+                #[cfg(feature = "unstable-pre-spec")]
+                message::Relation::Replacement(re) => {
+                    encrypted::Relation::Replacement(encrypted::Replacement {
+                        event_id: re.event_id,
+                    })
+                }
+                message::Relation::_Custom => encrypted::Relation::_Custom,
+            }),
             Self::CallAnswer(_)
             | Self::CallInvite(_)
             | Self::CallHangup(_)
