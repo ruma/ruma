@@ -142,21 +142,24 @@ impl ruma_api::IncomingRequest for IncomingRequest {
         request: http::Request<T>,
         path_args: &[S],
     ) -> Result<Self, ruma_api::error::FromHttpRequestError> {
-        let (room_id, event_type, state_key): (Box::<RoomId>, String, String) = if path_args.len() == 3 {
-            serde::Deserialize::deserialize(
-                serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(
-                    path_args.iter().map(::std::convert::AsRef::as_ref)
-                )
-            )?
-        } else {
-            let (a, b) = serde::Deserialize::deserialize(
-                serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(
-                    path_args.iter().map(::std::convert::AsRef::as_ref)
-                )
-            )?;
+        let (room_id, event_type, state_key): (Box<RoomId>, String, String) =
+            if path_args.len() == 3 {
+                serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
+                    _,
+                    serde::de::value::Error,
+                >::new(
+                    path_args.iter().map(::std::convert::AsRef::as_ref),
+                ))?
+            } else {
+                let (a, b) = serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
+                    _,
+                    serde::de::value::Error,
+                >::new(
+                    path_args.iter().map(::std::convert::AsRef::as_ref),
+                ))?;
 
-            (a, b, "".into())
-        };
+                (a, b, "".into())
+            };
 
         let body = serde_json::from_slice(request.body().as_ref())?;
 
