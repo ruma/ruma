@@ -46,11 +46,11 @@ pub enum RoomVersionId {
     V7,
 
     /// A version 8 room.
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-spec")]
     V8,
 
     /// A version 9 room.
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-spec")]
     V9,
 
     #[doc(hidden)]
@@ -70,9 +70,9 @@ impl RoomVersionId {
             Self::V5 => "5",
             Self::V6 => "6",
             Self::V7 => "7",
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             Self::V8 => "8",
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             Self::V9 => "9",
             Self::_Custom(version) => version.as_str(),
         }
@@ -94,9 +94,9 @@ impl From<RoomVersionId> for String {
             RoomVersionId::V5 => "5".to_owned(),
             RoomVersionId::V6 => "6".to_owned(),
             RoomVersionId::V7 => "7".to_owned(),
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             RoomVersionId::V8 => "8".to_owned(),
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             RoomVersionId::V9 => "9".to_owned(),
             RoomVersionId::_Custom(version) => version.into(),
         }
@@ -164,9 +164,9 @@ where
         "5" => RoomVersionId::V5,
         "6" => RoomVersionId::V6,
         "7" => RoomVersionId::V7,
-        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg(feature = "unstable-spec")]
         "8" => RoomVersionId::V8,
-        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg(feature = "unstable-spec")]
         "9" => RoomVersionId::V9,
         custom => {
             ruma_identifiers_validation::room_version_id::validate(custom)?;

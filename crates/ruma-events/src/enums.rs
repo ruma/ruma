@@ -94,9 +94,7 @@ event_enum! {
         "m.key.verification.mac",
         "m.key.verification.done",
         "m.room.encrypted",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.secret.request",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.secret.send",
     }
 }

@@ -113,14 +113,16 @@ unstable-pre-spec = [
     "ruma-client-api/unstable-pre-spec",
     "ruma-events/unstable-pre-spec",
     "ruma-federation-api/unstable-pre-spec",
-    "ruma-identifiers/unstable-pre-spec",
     "ruma-signatures/unstable-pre-spec",
-    "ruma-state-res/unstable-pre-spec"
-    #"ruma-identity-service-api/unstable-pre-spec",
-    #"ruma-push-gateway-api/unstable-pre-spec",
+    "ruma-state-res/unstable-pre-spec",
+    # If you enable bleeding-edge pre-spec features, you
+    # probably want things from the unstable spec too
+    "unstable-spec",
 ]
 unstable-spec = [
-    "ruma-client-api/unstable-spec"
+    "ruma-client-api/unstable-spec",
+    "ruma-events/unstable-spec",
+    "ruma-identifiers/unstable-spec",
 ]
 
 [dependencies]

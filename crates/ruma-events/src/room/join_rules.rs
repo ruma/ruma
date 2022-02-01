@@ -3,19 +3,19 @@
 //! [`m.room.join_rules`]: https://spec.matrix.org/v1.1/client-server-api/#mroomjoin_rules
 
 use ruma_events_macros::EventContent;
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-spec")]
 use ruma_identifiers::RoomId;
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-spec")]
 use serde::de::DeserializeOwned;
 use serde::{
     de::{Deserializer, Error},
     Deserialize, Serialize,
 };
 use serde_json::value::RawValue as RawJsonValue;
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-spec")]
 use serde_json::Value as JsonValue;
 use std::borrow::Cow;
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-spec")]
 use std::collections::BTreeMap;
 
 use crate::PrivOwnedStr;
@@ -41,7 +41,7 @@ impl RoomJoinRulesEventContent {
 
     /// Creates a new `RoomJoinRulesEventContent` with the restricted rule and the given set of
     /// allow rules.
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-spec")]
     pub fn restricted(allow: Vec<AllowRule>) -> Self {
         Self { join_rule: JoinRule::Restricted(Restricted::new(allow)) }
     }
@@ -80,7 +80,7 @@ pub enum JoinRule {
 
     /// Users can join the room if they are invited, or if they meet any of the conditions
     /// described in a set of [`AllowRule`]s.
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-spec")]
     #[serde(rename = "restricted")]
     Restricted(Restricted),
 
@@ -100,7 +100,7 @@ impl JoinRule {
             JoinRule::Invite => "invite",
             JoinRule::Knock => "knock",
             JoinRule::Private => "private",
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             JoinRule::Restricted(_) => "restricted",
             JoinRule::Public => "public",
             JoinRule::_Custom(rule) => &rule.0,
@@ -113,7 +113,7 @@ impl<'de> Deserialize<'de> for JoinRule {
     where
         D: Deserializer<'de>,
     {
-        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg(feature = "unstable-spec")]
         fn from_raw_json_value<T: DeserializeOwned, E: Error>(raw: &RawJsonValue) -> Result<T, E> {
             serde_json::from_str(raw.get()).map_err(E::custom)
         }
@@ -134,7 +134,7 @@ impl<'de> Deserialize<'de> for JoinRule {
             "invite" => Ok(Self::Invite),
             "knock" => Ok(Self::Knock),
             "private" => Ok(Self::Private),
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             "restricted" => from_raw_json_value(&json).map(Self::Restricted),
             "public" => Ok(Self::Public),
             _ => Ok(Self::_Custom(PrivOwnedStr(join_rule.into()))),
@@ -143,7 +143,7 @@ impl<'de> Deserialize<'de> for JoinRule {
 }
 
 /// Configuration of the `Restricted` join rule.
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-spec")]
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Restricted {
@@ -151,7 +151,7 @@ pub struct Restricted {
     allow: Vec<AllowRule>,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-spec")]
 impl Restricted {
     /// Constructs a new rule set for restricted rooms with the given rules.
     pub fn new(allow: Vec<AllowRule>) -> Self {
@@ -160,7 +160,7 @@ impl Restricted {
 }
 
 /// An allow rule which defines a condition that allows joining a room.
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-spec")]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type")]
@@ -173,7 +173,7 @@ pub enum AllowRule {
     _Custom(CustomAllowRule),
 }
 
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-spec")]
 impl AllowRule {
     /// Constructs an `AllowRule` with membership of the room with the given id as its predicate.
     pub fn room_membership(room_id: Box<RoomId>) -> Self {
@@ -182,7 +182,7 @@ impl AllowRule {
 }
 
 /// Allow rule which grants permission to join based on the membership of another room.
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-spec")]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomMembership {
@@ -190,7 +190,7 @@ pub struct RoomMembership {
     pub room_id: Box<RoomId>,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-spec")]
 impl RoomMembership {
     /// Constructs a new room membership rule for the given room id.
     pub fn new(room_id: Box<RoomId>) -> Self {
@@ -198,7 +198,7 @@ impl RoomMembership {
     }
 }
 
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-spec")]
 #[doc(hidden)]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -209,7 +209,7 @@ pub struct CustomAllowRule {
     extra: BTreeMap<String, JsonValue>,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-spec")]
 impl<'de> Deserialize<'de> for AllowRule {
     fn deserialize<D>(deserializer: D) -> Result<AllowRule, D::Error>
     where
@@ -244,10 +244,10 @@ impl<'de> Deserialize<'de> for AllowRule {
 #[cfg(test)]
 mod tests {
     use matches::assert_matches;
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-spec")]
     use ruma_identifiers::room_id;
 
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-spec")]
     use super::AllowRule;
     use super::{JoinRule, RoomJoinRulesEventContent, SyncRoomJoinRulesEvent};
 
@@ -258,9 +258,9 @@ mod tests {
         assert_matches!(event, RoomJoinRulesEventContent { join_rule: JoinRule::Public });
     }
 
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-spec")]
     #[test]
-    fn deserialize_unstable() {
+    fn deserialize_restricted() {
         let json = r#"{
             "join_rule": "restricted",
             "allow": [

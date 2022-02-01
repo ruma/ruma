@@ -21,7 +21,8 @@ markdown = ["pulldown-cmark"]
 
 unstable-exhaustive-types = []
 unstable-pdu = []
-unstable-pre-spec = ["ruma-identifiers/unstable-pre-spec"]
+unstable-pre-spec = ["unstable-spec"]
+unstable-spec = ["ruma-identifiers/unstable-spec"]
 
 [dependencies]
 criterion = { version = "0.3.3", optional = true }
