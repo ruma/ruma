@@ -372,9 +372,9 @@ pub fn reference_hash(
     value: &CanonicalJsonObject,
     version: &RoomVersionId,
 ) -> Result<String, Error> {
-    let redacted = redact(value, version)?;
+    let redacted_value = redact(value, version)?;
 
-    let json = canonical_json_with_fields_to_remove(&redacted, REFERENCE_HASH_FIELDS_TO_REMOVE)?;
+    let json = canonical_json_with_fields_to_remove(&redacted_value, REFERENCE_HASH_FIELDS_TO_REMOVE)?;
     if json.len() > MAX_PDU_BYTES {
         return Err(Error::PduSize);
     }
