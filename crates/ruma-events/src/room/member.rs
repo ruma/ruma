@@ -94,7 +94,6 @@ pub struct RoomMemberEventContent {
     /// Clients are not recommended to show this reason to users when receiving an invite due to
     /// the potential for spam and abuse. Hiding the reason behind a button or other component
     /// is recommended.
-    #[cfg(feature = "unstable-pre-spec")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
 
@@ -116,7 +115,6 @@ impl RoomMemberEventContent {
             third_party_invite: None,
             #[cfg(feature = "unstable-pre-spec")]
             blurhash: None,
-            #[cfg(feature = "unstable-pre-spec")]
             reason: None,
             #[cfg(feature = "unstable-pre-spec")]
             join_authorized_via_users_server: None,
@@ -354,7 +352,6 @@ fn membership_change(
             third_party_invite: None,
             #[cfg(feature = "unstable-pre-spec")]
             blurhash: None,
-            #[cfg(feature = "unstable-pre-spec")]
             reason: None,
             #[cfg(feature = "unstable-pre-spec")]
             join_authorized_via_users_server: None,
