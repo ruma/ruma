@@ -631,7 +631,6 @@ fn valid_membership_change(
                 allow
             }
         }
-        #[cfg(feature = "unstable-pre-spec")]
         MembershipState::Knock if room_version.allow_knocking => {
             // 1. If the `join_rule` is anything other than `knock`, reject.
             if join_rules != JoinRule::Knock {
@@ -949,20 +948,20 @@ mod tests {
     use crate::{
         event_auth::valid_membership_change,
         test_utils::{
-            alice, charlie, member_content_ban, to_pdu_event, StateEvent, INITIAL_EVENTS,
+            alice, charlie, ella, event_id, member_content_ban, to_pdu_event, StateEvent,
+            INITIAL_EVENTS,
         },
         Event, RoomVersion, StateMap,
     };
+    use ruma_events::room::{
+        join_rules::{JoinRule, RoomJoinRulesEventContent},
+        member::{MembershipState, RoomMemberEventContent},
+    };
+    use serde_json::value::to_raw_value as to_raw_json_value;
     #[cfg(feature = "unstable-pre-spec")]
     use {
-        crate::test_utils::{bob, ella, event_id, room_id},
-        ruma_events::room::{
-            join_rules::{
-                AllowRule, JoinRule, Restricted, RoomJoinRulesEventContent, RoomMembership,
-            },
-            member::{MembershipState, RoomMemberEventContent},
-        },
-        serde_json::value::to_raw_value as to_raw_json_value,
+        crate::test_utils::{bob, room_id},
+        ruma_events::room::join_rules::{AllowRule, Restricted, RoomMembership},
     };
 
     use ruma_events::EventType;
@@ -1012,7 +1011,7 @@ mod tests {
             #[cfg(feature = "unstable-pre-spec")]
             None,
             #[cfg(feature = "unstable-pre-spec")]
-            None
+            None,
         )
         .unwrap());
     }
@@ -1062,7 +1061,7 @@ mod tests {
             #[cfg(feature = "unstable-pre-spec")]
             None,
             #[cfg(feature = "unstable-pre-spec")]
-            None
+            None,
         )
         .unwrap());
     }
@@ -1160,7 +1159,6 @@ mod tests {
         .unwrap());
     }
 
-    #[cfg(feature = "unstable-pre-spec")]
     #[test]
     fn test_knock() {
         let _ =
@@ -1211,7 +1209,9 @@ mod tests {
             None::<StateEvent>,
             fetch_state(EventType::RoomPowerLevels, "".to_owned()),
             fetch_state(EventType::RoomJoinRules, "".to_owned()),
+            #[cfg(feature = "unstable-pre-spec")]
             None,
+            #[cfg(feature = "unstable-pre-spec")]
             None,
         )
         .unwrap());
