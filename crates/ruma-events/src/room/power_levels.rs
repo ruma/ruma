@@ -25,7 +25,10 @@ pub struct RoomPowerLevelsEventContent {
     ///
     /// If you activate the `compat` feature, deserialization will work for stringified
     /// integers too.
-    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
+    #[cfg_attr(
+        feature = "compat",
+        serde(deserialize_with = "ruma_serde::deserialize_v1_powerlevel")
+    )]
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     #[ruma_event(skip_redaction)]
     pub ban: Int,
@@ -38,7 +41,7 @@ pub struct RoomPowerLevelsEventContent {
     /// integers too.
     #[cfg_attr(
         feature = "compat",
-        serde(deserialize_with = "ruma_serde::btreemap_int_or_string_to_int_values")
+        serde(deserialize_with = "ruma_serde::btreemap_deserialize_v1_powerlevel_values")
     )]
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     #[ruma_event(skip_redaction)]
@@ -48,7 +51,10 @@ pub struct RoomPowerLevelsEventContent {
     ///
     /// If you activate the `compat` feature, deserialization will work for stringified
     /// integers too.
-    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
+    #[cfg_attr(
+        feature = "compat",
+        serde(deserialize_with = "ruma_serde::deserialize_v1_powerlevel")
+    )]
     #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
     #[ruma_event(skip_redaction)]
     pub events_default: Int,
@@ -57,7 +63,10 @@ pub struct RoomPowerLevelsEventContent {
     ///
     /// If you activate the `compat` feature, deserialization will work for stringified
     /// integers too.
-    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
+    #[cfg_attr(
+        feature = "compat",
+        serde(deserialize_with = "ruma_serde::deserialize_v1_powerlevel")
+    )]
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     pub invite: Int,
 
@@ -65,7 +74,10 @@ pub struct RoomPowerLevelsEventContent {
     ///
     /// If you activate the `compat` feature, deserialization will work for stringified
     /// integers too.
-    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
+    #[cfg_attr(
+        feature = "compat",
+        serde(deserialize_with = "ruma_serde::deserialize_v1_powerlevel")
+    )]
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     #[ruma_event(skip_redaction)]
     pub kick: Int,
@@ -74,7 +86,10 @@ pub struct RoomPowerLevelsEventContent {
     ///
     /// If you activate the `compat` feature, deserialization will work for stringified
     /// integers too.
-    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
+    #[cfg_attr(
+        feature = "compat",
+        serde(deserialize_with = "ruma_serde::deserialize_v1_powerlevel")
+    )]
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     #[ruma_event(skip_redaction)]
     pub redact: Int,
@@ -83,7 +98,10 @@ pub struct RoomPowerLevelsEventContent {
     ///
     /// If you activate the `compat` feature, deserialization will work for stringified
     /// integers too.
-    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
+    #[cfg_attr(
+        feature = "compat",
+        serde(deserialize_with = "ruma_serde::deserialize_v1_powerlevel")
+    )]
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     #[ruma_event(skip_redaction)]
     pub state_default: Int,
@@ -96,7 +114,7 @@ pub struct RoomPowerLevelsEventContent {
     /// integers too.
     #[cfg_attr(
         feature = "compat",
-        serde(deserialize_with = "ruma_serde::btreemap_int_or_string_to_int_values")
+        serde(deserialize_with = "ruma_serde::btreemap_deserialize_v1_powerlevel_values")
     )]
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     #[ruma_event(skip_redaction)]
@@ -106,7 +124,10 @@ pub struct RoomPowerLevelsEventContent {
     ///
     /// If you activate the `compat` feature, deserialization will work for stringified
     /// integers too.
-    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
+    #[cfg_attr(
+        feature = "compat",
+        serde(deserialize_with = "ruma_serde::deserialize_v1_powerlevel")
+    )]
     #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
     #[ruma_event(skip_redaction)]
     pub users_default: Int,
