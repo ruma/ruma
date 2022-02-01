@@ -1,6 +1,6 @@
 use std::{collections::BTreeMap, convert::TryInto, fmt, marker::PhantomData};
 
-use js_int::Int;
+use js_int::{Int, UInt};
 use serde::{
     de::{self, Deserializer, IntoDeserializer as _, MapAccess, Visitor},
     ser::Serializer,
@@ -109,38 +109,10 @@ where
         fn visit_str<E: de::Error>(self, v: &str) -> Result<Self::Value, E> {
             let trimmed = v.trim();
 
-            let start = trimmed
-                .chars()
-                .next()
-                .ok_or_else(|| E::custom("unexpected end of string value"))?;
-            let mut minus = false;
-            let mut next = trimmed;
-
-            if start == '+' || start == '-' {
-                if start == '-' {
-                    minus = true;
-                }
-                next = &trimmed[1..]
+            match trimmed.strip_prefix('+') {
+                Some(without) => without.parse::<UInt>().map(|u| u.into()).map_err(E::custom),
+                None => trimmed.parse().map_err(E::custom),
             }
-
-            if trimmed.len() == 0 {
-                return Err(E::custom("string only contained plus/minus, no number"))
-            }
-
-            let mut reduced = next.trim_start_matches('0');
-
-            if reduced.len() == 0 {
-                // deal with all-zero string
-                reduced = &next[next.len() - 1..]
-            }
-
-            let mut parsed: Self::Value = reduced.parse().map_err(E::custom)?;
-
-            if minus {
-                parsed = -parsed;
-            }
-
-            Ok(parsed)
         }
     }
 
@@ -232,7 +204,7 @@ mod tests {
     #[test]
     fn weird_plus_string() -> serde_json::Result<()> {
         assert_matches!(
-            serde_json::from_value::<Test>(serde_json::json!({ "num": "  +01000   " }))?,
+            serde_json::from_value::<Test>(serde_json::json!({ "num": "  +0000000001000   " }))?,
             Test { num } if num == int!(1000)
         );
 
@@ -242,7 +214,7 @@ mod tests {
     #[test]
     fn weird_minus_string() -> serde_json::Result<()> {
         assert_matches!(
-            serde_json::from_value::<Test>(serde_json::json!({ "num": "  -0001000   " }))?,
+            serde_json::from_value::<Test>(serde_json::json!({ "num": "  \n\n-0000000000000001000   " }))?,
             Test { num } if num == int!(-1000)
         );
 
