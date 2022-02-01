@@ -401,7 +401,7 @@ pub fn to_init_pdu_event(
             content,
             redacts: None,
             unsigned: BTreeMap::new(),
-            #[cfg(not(feature = "unstable-pre-spec"))]
+            #[cfg(not(feature = "__unstable-pre-spec"))]
             origin: "foo".into(),
             auth_events: vec![],
             prev_events: vec![],
@@ -441,7 +441,7 @@ where
             content,
             redacts: None,
             unsigned: BTreeMap::new(),
-            #[cfg(not(feature = "unstable-pre-spec"))]
+            #[cfg(not(feature = "__unstable-pre-spec"))]
             origin: "foo".into(),
             auth_events,
             prev_events,

@@ -28,7 +28,7 @@ struct GetMembership {
 #[derive(Deserialize)]
 struct RoomMemberContentFields {
     membership: Option<Raw<MembershipState>>,
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-spec")]
     join_authorised_via_users_server: Option<Raw<Box<UserId>>>,
 }
 
@@ -242,10 +242,10 @@ pub fn auth_check<E: Event>(
         let target_user =
             <&UserId>::try_from(state_key).map_err(|e| Error::InvalidPdu(format!("{}", e)))?;
 
-        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg(feature = "unstable-spec")]
         let join_authed_user =
             content.join_authorised_via_users_server.as_ref().and_then(|u| u.deserialize().ok());
-        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg(feature = "unstable-spec")]
         let join_authed_user_membership = if let Some(auth_user) = &join_authed_user {
             fetch_state(&EventType::RoomMember, auth_user.as_str())
                 .and_then(|mem| from_json_str::<GetMembership>(mem.content().get()).ok())
@@ -264,9 +264,9 @@ pub fn auth_check<E: Event>(
             current_third_party_invite,
             power_levels_event.as_ref(),
             fetch_state(&EventType::RoomJoinRules, "").as_ref(),
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             join_authed_user.as_deref(),
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             join_authed_user_membership,
         )? {
             return Ok(false);
@@ -409,8 +409,8 @@ fn valid_membership_change(
     current_third_party_invite: Option<impl Event>,
     power_levels_event: Option<impl Event>,
     join_rules_event: Option<impl Event>,
-    #[cfg(feature = "unstable-pre-spec")] authed_user_id: Option<&UserId>,
-    #[cfg(feature = "unstable-pre-spec")] auth_user_membership: Option<MembershipState>,
+    #[cfg(feature = "unstable-spec")] authed_user_id: Option<&UserId>,
+    #[cfg(feature = "unstable-spec")] auth_user_membership: Option<MembershipState>,
 ) -> Result<bool> {
     #[derive(Deserialize)]
     struct GetThirdPartyInvite {
@@ -462,26 +462,26 @@ fn valid_membership_change(
     let target_user_membership_event_id =
         target_user_membership_event.as_ref().map(|e| e.event_id());
 
-    #[cfg(not(feature = "unstable-pre-spec"))]
+    #[cfg(not(feature = "unstable-spec"))]
     let restricted = false;
 
-    #[cfg(not(feature = "unstable-pre-spec"))]
+    #[cfg(not(feature = "unstable-spec"))]
     let allow_based_on_membership = false;
 
-    #[cfg(not(feature = "unstable-pre-spec"))]
+    #[cfg(not(feature = "unstable-spec"))]
     let restricted_join_rules_auth = false;
     // FIXME: `JoinRule::Restricted(_)` can contain conditions that allow a user to join if
     // they are met. So far the spec talks about roomId based auth inheritance, the problem with
     // this is that ruma-state-res can only request events from one room at a time :(
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-spec")]
     let restricted = matches!(join_rules, JoinRule::Restricted(_));
 
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-spec")]
     let allow_based_on_membership =
         matches!(target_user_current_membership, MembershipState::Invite | MembershipState::Join)
             || authed_user_id.is_none();
 
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-spec")]
     let restricted_join_rules_auth = if let Some(authed_user_id) = authed_user_id {
         // Is the authorised user allowed to invite users into this rooom
         let (auth_user_pl, invite_level) = if let Some(pl) = &power_levels_event {
@@ -958,7 +958,7 @@ mod tests {
         member::{MembershipState, RoomMemberEventContent},
     };
     use serde_json::value::to_raw_value as to_raw_json_value;
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-spec")]
     use {
         crate::test_utils::{bob, room_id},
         ruma_events::room::join_rules::{AllowRule, Restricted, RoomMembership},
@@ -966,7 +966,6 @@ mod tests {
 
     use ruma_events::EventType;
 
-    // #[cfg(not(feature = "unstable-pre-spec"))]
     #[test]
     fn test_ban_pass() {
         let _ =
@@ -1008,15 +1007,14 @@ mod tests {
             None::<StateEvent>,
             fetch_state(EventType::RoomPowerLevels, "".to_owned()),
             fetch_state(EventType::RoomJoinRules, "".to_owned()),
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             None,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             None,
         )
         .unwrap());
     }
 
-    // #[cfg(not(feature = "unstable-pre-spec"))]
     #[test]
     fn test_ban_fail() {
         let _ =
@@ -1058,15 +1056,15 @@ mod tests {
             None::<StateEvent>,
             fetch_state(EventType::RoomPowerLevels, "".to_owned()),
             fetch_state(EventType::RoomJoinRules, "".to_owned()),
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             None,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             None,
         )
         .unwrap());
     }
 
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-spec")]
     #[test]
     fn test_restricted_join_rule() {
         let _ =
@@ -1209,9 +1207,9 @@ mod tests {
             None::<StateEvent>,
             fetch_state(EventType::RoomPowerLevels, "".to_owned()),
             fetch_state(EventType::RoomJoinRules, "".to_owned()),
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             None,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             None,
         )
         .unwrap());
