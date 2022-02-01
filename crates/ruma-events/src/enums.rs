@@ -73,9 +73,9 @@ event_enum! {
         "m.room.third_party_invite",
         "m.room.tombstone",
         "m.room.topic",
-        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg(feature = "unstable-spec")]
         "m.space.child",
-        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg(feature = "unstable-spec")]
         "m.space.parent",
     }
 

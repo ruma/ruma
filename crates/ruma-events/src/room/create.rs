@@ -45,7 +45,7 @@ pub struct RoomCreateEventContent {
     /// The room type.
     ///
     /// This is currently only used for spaces.
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-spec")]
     #[serde(skip_serializing_if = "Option::is_none", rename = "type")]
     pub room_type: Option<RoomType>,
 }
@@ -58,7 +58,7 @@ impl RoomCreateEventContent {
             federate: true,
             room_version: default_room_version_id(),
             predecessor: None,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             room_type: None,
         }
     }
@@ -69,6 +69,7 @@ impl RoomCreateEventContent {
 /// This type can hold an arbitrary string. To check for formats that are not available as a
 /// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[cfg(feature = "unstable-spec")]
 #[non_exhaustive]
 pub enum RoomType {
     /// Defines the room as a space.
@@ -118,7 +119,7 @@ mod tests {
 
     use super::RoomCreateEventContent;
 
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-spec")]
     use super::RoomType;
 
     #[test]
@@ -128,7 +129,7 @@ mod tests {
             federate: false,
             room_version: RoomVersionId::V4,
             predecessor: None,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             room_type: None,
         };
 
@@ -141,7 +142,7 @@ mod tests {
         assert_eq!(to_json_value(&content).unwrap(), json);
     }
 
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-spec")]
     #[test]
     fn space_serialization() {
         let content = RoomCreateEventContent {
@@ -177,7 +178,7 @@ mod tests {
                 federate: true,
                 room_version: RoomVersionId::V4,
                 predecessor: None,
-                #[cfg(feature = "unstable-pre-spec")]
+                #[cfg(feature = "unstable-spec")]
                 room_type: None,
             } if creator == "@carl:example.com"
         );
