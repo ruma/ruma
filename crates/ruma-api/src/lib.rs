@@ -336,10 +336,17 @@ pub trait IncomingRequest: Sized {
     /// Metadata about the endpoint.
     const METADATA: Metadata;
 
-    /// Tries to turn the given `http::Request` into this request type.
-    fn try_from_http_request<T: AsRef<[u8]>>(
-        req: http::Request<T>,
-    ) -> Result<Self, FromHttpRequestError>;
+    /// Tries to turn the given `http::Request` into this request type,
+    /// together with the corresponding path arguments.
+    ///
+    /// Note: The strings in path_args need to be percent-decoded.
+    fn try_from_http_request<B, S>(
+        req: http::Request<B>,
+        path_args: &[S],
+    ) -> Result<Self, FromHttpRequestError>
+    where
+        B: AsRef<[u8]>,
+        S: AsRef<str>;
 }
 
 /// A request type for a Matrix API endpoint, used for sending responses.

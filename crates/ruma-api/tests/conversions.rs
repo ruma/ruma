@@ -54,7 +54,7 @@ fn request_serde() {
         .clone()
         .try_into_http_request::<Vec<u8>>("https://homeserver.tld", SendAccessToken::None)
         .unwrap();
-    let req2 = Request::try_from_http_request(http_req).unwrap();
+    let req2 = Request::try_from_http_request(http_req, &["barVal", "@bazme:ruma.io"]).unwrap();
 
     assert_eq!(req.hello, req2.hello);
     assert_eq!(req.world, req2.world);

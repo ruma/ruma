@@ -87,6 +87,7 @@ mod tests {
                     .method("PUT")
                     .uri("https://bar.org/_matrix/client/r0/profile/@foo:bar.org/avatar_url")
                     .body(&[] as &[u8]).unwrap(),
+                &["@foo:bar.org"],
             ).unwrap(),
             IncomingRequest { user_id, avatar_url: None, .. } if user_id == "@foo:bar.org"
         );
@@ -99,6 +100,7 @@ mod tests {
                     .uri("https://bar.org/_matrix/client/r0/profile/@foo:bar.org/avatar_url")
                     .body(serde_json::to_vec(&serde_json::json!({ "avatar_url": "" })).unwrap())
                     .unwrap(),
+                &["@foo:bar.org"],
             ).unwrap(),
             IncomingRequest { user_id, avatar_url: None, .. } if user_id == "@foo:bar.org"
         );

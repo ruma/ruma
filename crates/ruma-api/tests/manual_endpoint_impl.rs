@@ -69,16 +69,15 @@ impl IncomingRequest for Request {
 
     const METADATA: Metadata = METADATA;
 
-    fn try_from_http_request<T: AsRef<[u8]>>(
+    fn try_from_http_request<T: AsRef<[u8]>, S: AsRef<str>>(
         request: http::Request<T>,
+        path_args: &[S],
     ) -> Result<Self, FromHttpRequestError> {
-        let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
-        let room_alias = {
-            let decoded =
-                percent_encoding::percent_decode(path_segments[5].as_bytes()).decode_utf8()?;
-
-            TryFrom::try_from(&*decoded)?
-        };
+        let (room_alias, ) = serde::Deserialize::deserialize(
+            serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(
+                path_args.iter().map(::std::convert::AsRef::as_ref)
+            )
+        )?;
 
         let request_body: RequestBody = serde_json::from_slice(request.body().as_ref())?;
 

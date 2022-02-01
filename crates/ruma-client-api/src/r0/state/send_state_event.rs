@@ -138,31 +138,25 @@ impl ruma_api::IncomingRequest for IncomingRequest {
 
     const METADATA: ruma_api::Metadata = METADATA;
 
-    fn try_from_http_request<T: AsRef<[u8]>>(
+    fn try_from_http_request<T: AsRef<[u8]>, S: AsRef<str>>(
         request: http::Request<T>,
+        path_args: &[S],
     ) -> Result<Self, ruma_api::error::FromHttpRequestError> {
-        use std::{borrow::Cow, convert::TryFrom};
+        let (room_id, event_type, state_key): (Box::<RoomId>, String, String) = if path_args.len() == 3 {
+            serde::Deserialize::deserialize(
+                serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(
+                    path_args.iter().map(::std::convert::AsRef::as_ref)
+                )
+            )?
+        } else {
+            let (a, b) = serde::Deserialize::deserialize(
+                serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(
+                    path_args.iter().map(::std::convert::AsRef::as_ref)
+                )
+            )?;
 
-        let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
-
-        let room_id = {
-            let decoded =
-                percent_encoding::percent_decode(path_segments[4].as_bytes()).decode_utf8()?;
-
-            Box::<RoomId>::try_from(&*decoded)?
+            (a, b, "".into())
         };
-
-        let event_type = percent_encoding::percent_decode(path_segments[6].as_bytes())
-            .decode_utf8()?
-            .into_owned();
-
-        let state_key = path_segments
-            .get(7)
-            .map(|segment| percent_encoding::percent_decode(segment.as_bytes()).decode_utf8())
-            .transpose()?
-            // Last URL segment is optional, but not present is the same semantically as empty
-            .unwrap_or(Cow::Borrowed(""))
-            .into_owned();
 
         let body = serde_json::from_slice(request.body().as_ref())?;
 

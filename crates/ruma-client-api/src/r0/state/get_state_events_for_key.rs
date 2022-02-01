@@ -112,35 +112,28 @@ impl ruma_api::IncomingRequest for IncomingRequest {
 
     const METADATA: ruma_api::Metadata = METADATA;
 
-    fn try_from_http_request<T: AsRef<[u8]>>(
-        request: http::Request<T>,
+    fn try_from_http_request<T: AsRef<[u8]>, S: AsRef<str>>(
+        _request: http::Request<T>,
+        path_args: &[S],
     ) -> Result<Self, ruma_api::error::FromHttpRequestError> {
-        use std::convert::TryFrom;
+        let (room_id, event_type, state_key): (Box<RoomId>, EventType, String) =
+            if path_args.len() == 3 {
+                serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
+                    _,
+                    serde::de::value::Error,
+                >::new(
+                    path_args.iter().map(::std::convert::AsRef::as_ref),
+                ))?
+            } else {
+                let (a, b) = serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
+                    _,
+                    serde::de::value::Error,
+                >::new(
+                    path_args.iter().map(::std::convert::AsRef::as_ref),
+                ))?;
 
-        let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
-
-        let room_id = {
-            let decoded =
-                percent_encoding::percent_decode(path_segments[4].as_bytes()).decode_utf8()?;
-
-            Box::<RoomId>::try_from(&*decoded)?
-        };
-
-        let event_type = {
-            let decoded =
-                percent_encoding::percent_decode(path_segments[6].as_bytes()).decode_utf8()?;
-
-            EventType::try_from(&*decoded)?
-        };
-
-        let state_key = match path_segments.get(7) {
-            Some(segment) => {
-                let decoded = percent_encoding::percent_decode(segment.as_bytes()).decode_utf8()?;
-
-                String::try_from(&*decoded)?
-            }
-            None => "".into(),
-        };
+                (a, b, "".into())
+            };
 
         Ok(Self { room_id, event_type, state_key })
     }
