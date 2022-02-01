@@ -375,8 +375,7 @@ pub fn reference_hash(
     let mut redacted = value.clone();
     redact(&mut redacted, version)?;
 
-    let json =
-        canonical_json_with_fields_to_remove(&redacted, REFERENCE_HASH_FIELDS_TO_REMOVE)?;
+    let json = canonical_json_with_fields_to_remove(&redacted, REFERENCE_HASH_FIELDS_TO_REMOVE)?;
     if json.len() > MAX_PDU_BYTES {
         return Err(Error::PduSize);
     }
@@ -508,8 +507,7 @@ where
         _ => return Err(JsonError::not_of_type("hashes", JsonType::Object)),
     };
 
-    let mut redacted = object.clone();
-    redact(&mut redacted, version)?;
+    let mut redacted = redact(object, version)?;
 
     sign_json(entity_id, key_pair, &mut redacted)?;
 
@@ -590,8 +588,7 @@ pub fn verify_event(
     object: &CanonicalJsonObject,
     version: &RoomVersionId,
 ) -> Result<Verified, Error> {
-    let mut redacted = object.clone();
-    redact(&mut redacted, version)?;
+    let redacted = redact(object, version)?;
 
     let hash = match object.get("hashes") {
         Some(hashes_value) => match hashes_value {
@@ -707,21 +704,34 @@ fn canonical_json_with_fields_to_remove(
 /// Redaction is also suggested when a verifying an event with `verify_event` returns
 /// `Verified::Signatures`. See the documentation for `Verified` for details.
 ///
+/// Returns a new JSON object with all applicable fields redacted.
+///
 /// # Parameters
 ///
-/// * event: A JSON object to redact. This will be redacted in-place.
+/// * object: A JSON object to redact.
 ///
 /// # Errors
 ///
 /// Returns an error if:
 ///
-/// * `event` contains a field called `content` that is not a JSON object.
-/// * `event` contains a field called `hashes` that is not a JSON object.
-/// * `event` contains a field called `signatures` that is not a JSON object.
-/// * `event` is missing the `type` field or the field is not a JSON string.
-///
-/// The `event` is not touched if this returns an error.
+/// * `object` contains a field called `content` that is not a JSON object.
+/// * `object` contains a field called `hashes` that is not a JSON object.
+/// * `object` contains a field called `signatures` that is not a JSON object.
+/// * `object` is missing the `type` field or the field is not a JSON string.
 pub fn redact(
+    object: &CanonicalJsonObject,
+    version: &RoomVersionId,
+) -> Result<CanonicalJsonObject, Error> {
+    let mut val = object.clone();
+    redact_in_place(&mut val, version).map(|_| val)
+}
+
+/// Redacts an event using the rules specified in the Matrix client-server specification.
+///
+/// Functionally equivalent to `redact`, only;
+/// * upon error, the event is not touched.
+/// * this'll redact the event in-place.
+pub fn redact_in_place(
     event: &mut CanonicalJsonObject,
     version: &RoomVersionId,
 ) -> Result<(), Error> {
