@@ -98,7 +98,7 @@ pub struct RoomMemberEventContent {
     pub reason: Option<String>,
 
     /// Arbitrarily chosen `UserId` (MxID) of a local user who can send an invite.
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-spec")]
     #[serde(rename = "join_authorised_via_users_server")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub join_authorized_via_users_server: Option<Box<UserId>>,
@@ -116,7 +116,7 @@ impl RoomMemberEventContent {
             #[cfg(feature = "unstable-pre-spec")]
             blurhash: None,
             reason: None,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             join_authorized_via_users_server: None,
         }
     }
@@ -128,9 +128,8 @@ impl RedactContent for RoomMemberEventContent {
     fn redact(self, _version: &RoomVersionId) -> RedactedRoomMemberEventContent {
         RedactedRoomMemberEventContent {
             membership: self.membership,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             join_authorized_via_users_server: match _version {
-                #[cfg(feature = "unstable-pre-spec")]
                 RoomVersionId::V9 => self.join_authorized_via_users_server,
                 _ => None,
             },
@@ -149,7 +148,7 @@ pub struct RedactedRoomMemberEventContent {
     ///
     /// This is redacted in room versions 8 and below. It is used for validating
     /// joins when the join rule is restricted.
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-spec")]
     #[serde(rename = "join_authorised_via_users_server")]
     pub join_authorized_via_users_server: Option<Box<UserId>>,
 }
@@ -159,7 +158,7 @@ impl RedactedRoomMemberEventContent {
     pub fn new(membership: MembershipState) -> Self {
         Self {
             membership,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             join_authorized_via_users_server: None,
         }
     }
@@ -353,7 +352,7 @@ fn membership_change(
             #[cfg(feature = "unstable-pre-spec")]
             blurhash: None,
             reason: None,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-spec")]
             join_authorized_via_users_server: None,
         }
     };
@@ -747,7 +746,7 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-spec")]
     #[test]
     fn serde_with_join_authorized() {
         let json = json!({
