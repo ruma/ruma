@@ -722,7 +722,8 @@ pub fn redact(
     version: &RoomVersionId,
 ) -> Result<CanonicalJsonObject, Error> {
     let mut val = object.clone();
-    redact_in_place(&mut val, version).map(|_| val)
+    redact_in_place(&mut val, version)?;
+    Ok(val)
 }
 
 /// Redacts an event using the rules specified in the Matrix client-server specification.
