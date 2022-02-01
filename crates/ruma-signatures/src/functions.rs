@@ -722,8 +722,20 @@ pub fn redact(
     object: &CanonicalJsonObject,
     version: &RoomVersionId,
 ) -> Result<CanonicalJsonObject, Error> {
-    let mut event = object.clone();
+    let mut val = object.clone();
+    redact_in_place(&mut val, version)?;
+    Ok(val)
+}
 
+/// Redacts an event using the rules specified in the Matrix client-server specification.
+///
+/// Functionally equivalent to `redact`, only;
+/// * upon error, the event is not touched.
+/// * this'll redact the event in-place.
+pub fn redact_in_place(
+    event: &mut CanonicalJsonObject,
+    version: &RoomVersionId,
+) -> Result<(), Error> {
     let event_type_value = match event.get("type") {
         Some(event_type_value) => event_type_value,
         None => return Err(JsonError::field_missing_from_object("type")),
@@ -749,7 +761,7 @@ pub fn redact(
         }
     }
 
-    let mut old_event = mem::take(&mut event);
+    let mut old_event = mem::take(event);
 
     for &key in ALLOWED_KEYS {
         if let Some(value) = old_event.remove(key) {
@@ -757,7 +769,7 @@ pub fn redact(
         }
     }
 
-    Ok(event)
+    Ok(())
 }
 
 /// Extracts the server names to check signatures for given event.
