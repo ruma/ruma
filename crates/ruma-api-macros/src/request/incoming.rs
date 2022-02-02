@@ -9,8 +9,8 @@ impl Request {
     pub fn expand_incoming(&self, ruma_api: &TokenStream) -> TokenStream {
         let http = quote! { #ruma_api::exports::http };
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
-        let serde_json = quote! { #ruma_api::exports::serde_json };
         let serde = quote! { #ruma_api::exports::serde };
+        let serde_json = quote! { #ruma_api::exports::serde_json };
 
         let method = &self.method;
         let error_ty = &self.error_ty;
