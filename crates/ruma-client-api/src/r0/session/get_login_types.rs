@@ -306,7 +306,7 @@ mod tests {
                             "id": "oidc-gitlab",
                             "name": "GitLab",
                             "icon": "mxc://localhost/gitlab-icon",
-                            "brand": "org.matrix.gitlab"
+                            "brand": "gitlab"
                         },
                         {
                             "id": "custom",
@@ -383,7 +383,7 @@ mod tests {
                                 "id": "oidc-github",
                                 "name": "GitHub",
                                 "icon": "mxc://localhost/github-icon",
-                                "brand": "org.matrix.github"
+                                "brand": "github"
                             },
                         ]
                     }
