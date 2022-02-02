@@ -122,7 +122,6 @@ unstable-pre-spec = [
 unstable-spec = [
     "ruma-client-api/unstable-spec",
     "ruma-events/unstable-spec",
-    "ruma-identifiers/unstable-spec",
 ]
 
 [dependencies]

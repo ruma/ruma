@@ -17,7 +17,7 @@ all-features = true
 [features]
 compat = []
 unstable-exhaustive-types = []
-unstable-spec = ["ruma-events/unstable-spec", "ruma-identifiers/unstable-spec"]
+unstable-spec = ["ruma-events/unstable-spec"]
 
 # Private, only used in test / benchmarking code
 __unstable-pre-spec = ["ruma-events/unstable-pre-spec", "unstable-spec"]

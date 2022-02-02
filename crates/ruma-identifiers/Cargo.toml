@@ -23,7 +23,6 @@ default = ["serde"]
 compat = ["ruma-identifiers-validation/compat"]
 rand = ["rand_crate", "uuid"]
 serde = ["ruma-serde", "serde1"]
-unstable-spec = []
 
 [dependencies]
 either = { version = "1.6.1", optional = true }

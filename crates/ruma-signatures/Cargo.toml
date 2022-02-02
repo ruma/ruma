@@ -17,7 +17,7 @@ all-features = true
 [features]
 compat = ["tracing"]
 unstable-exhaustive-types = []
-unstable-pre-spec = ["ruma-identifiers/unstable-spec"]
+unstable-pre-spec = []
 
 [dependencies]
 base64 = "0.13.0"
