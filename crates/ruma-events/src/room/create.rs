@@ -4,9 +4,11 @@
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
+#[cfg(feature = "unstable-spec")]
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "unstable-spec")]
 use crate::PrivOwnedStr;
 
 /// The content of an `m.room.create` event.
@@ -81,6 +83,7 @@ pub enum RoomType {
     _Custom(PrivOwnedStr),
 }
 
+#[cfg(feature = "unstable-spec")]
 impl RoomType {
     /// Creates a string slice from this `RoomType`.
     pub fn as_str(&self) -> &str {
