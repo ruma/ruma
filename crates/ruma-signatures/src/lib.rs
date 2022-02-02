@@ -48,8 +48,8 @@ use ruma_serde::{AsRefStr, DisplayAsRefStr};
 
 pub use error::{Error, JsonError, JsonType, ParseError, SplitError, VerificationError};
 pub use functions::{
-    canonical_json, content_hash, hash_and_sign_event, redact, reference_hash, sign_json,
-    verify_event, verify_json,
+    canonical_json, content_hash, hash_and_sign_event, redact, redact_content_in_place,
+    redact_in_place, reference_hash, sign_json, verify_event, verify_json,
 };
 pub use keys::{Ed25519KeyPair, KeyPair, PublicKeyMap, PublicKeySet};
 pub use ruma_serde::{CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue};
