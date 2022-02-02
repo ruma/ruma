@@ -105,10 +105,8 @@ impl RoomVersion {
         ..Self::V6
     };
 
-    #[cfg(feature = "unstable-spec")]
     pub const V8: Self = Self { restricted_join_rules: true, ..Self::V7 };
 
-    #[cfg(feature = "unstable-spec")]
     pub const V9: Self = Self::V8;
 
     pub fn new(version: &RoomVersionId) -> Result<Self> {
@@ -120,9 +118,7 @@ impl RoomVersion {
             RoomVersionId::V5 => Self::V5,
             RoomVersionId::V6 => Self::V6,
             RoomVersionId::V7 => Self::V7,
-            #[cfg(feature = "unstable-spec")]
             RoomVersionId::V8 => Self::V8,
-            #[cfg(feature = "unstable-spec")]
             RoomVersionId::V9 => Self::V9,
             ver => return Err(Error::Unsupported(format!("found version `{}`", ver.as_str()))),
         })
