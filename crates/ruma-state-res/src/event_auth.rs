@@ -174,6 +174,7 @@ pub fn auth_check<E: Event>(
     }
 
     /*
+    // TODO: Debug
     // 2. Reject if auth_events
     // a. auth_events cannot have duplicate keys since it's a BTree
     // b. All entries are valid auth events according to spec
@@ -195,34 +196,43 @@ pub fn auth_check<E: Event>(
     }
     */
 
-    // 3. If event does not have m.room.create in auth_events reject
     let room_create_event = match fetch_state(&EventType::RoomCreate, "") {
-        Some(event) => event,
         None => {
             warn!("no m.room.create event in auth chain");
-
             return Ok(false);
         }
+        Some(e) => e,
     };
+
+    // 3. If event does not have m.room.create in auth_events reject
+    if !incoming_event.auth_events().any(|id| id.borrow() == room_create_event.event_id().borrow())
+    {
+        warn!("no m.room.create event in auth events");
+        return Ok(false);
+    }
 
     // [synapse] checks for federation here
 
-    // 4. If type is m.room.aliases
-    if *incoming_event.event_type() == EventType::RoomAliases
-        && room_version.special_case_aliases_auth
-    {
-        info!("starting m.room.aliases check");
+    // Only in some room versions 6 and below
+    if room_version.has_aliases {
+        // 4. If type is m.room.aliases
+        if *incoming_event.event_type() == EventType::RoomAliases
+            && room_version.special_case_aliases_auth
+        {
+            info!("starting m.room.aliases check");
 
-        // If sender's domain doesn't matches state_key, reject
-        if incoming_event.state_key() != Some(sender.server_name().as_str()) {
-            warn!("state_key does not match sender");
-            return Ok(false);
+            // If sender's domain doesn't matches state_key, reject
+            if incoming_event.state_key() != Some(sender.server_name().as_str()) {
+                warn!("state_key does not match sender");
+                return Ok(false);
+            }
+
+            info!("m.room.aliases event was allowed");
+            return Ok(true);
         }
-
-        info!("m.room.aliases event was allowed");
-        return Ok(true);
     }
 
+    // If type is m.room.member
     let power_levels_event = fetch_state(&EventType::RoomPowerLevels, "");
     let sender_member_event = fetch_state(&EventType::RoomMember, sender.as_str());
 
@@ -245,15 +255,16 @@ pub fn auth_check<E: Event>(
         let target_user =
             <&UserId>::try_from(state_key).map_err(|e| Error::InvalidPdu(format!("{}", e)))?;
 
-        let join_authed_user =
+        let user_for_join_auth =
             content.join_authorised_via_users_server.as_ref().and_then(|u| u.deserialize().ok());
-        let join_authed_user_membership = if let Some(auth_user) = &join_authed_user {
-            fetch_state(&EventType::RoomMember, auth_user.as_str())
-                .and_then(|mem| from_json_str::<GetMembership>(mem.content().get()).ok())
-                .map(|mem| mem.membership)
-        } else {
-            None
-        };
+
+        let user_for_join_auth_membership = user_for_join_auth
+            .as_ref()
+            .and_then(|auth_user| fetch_state(&EventType::RoomMember, auth_user.as_str()))
+            .and_then(|mem| from_json_str::<GetMembership>(mem.content().get()).ok())
+            .map(|mem| mem.membership)
+            .unwrap_or(MembershipState::Leave);
+
         if !valid_membership_change(
             room_version,
             target_user,
@@ -266,6 +277,8 @@ pub fn auth_check<E: Event>(
             fetch_state(&EventType::RoomJoinRules, "").as_ref(),
             join_authed_user.as_deref(),
             join_authed_user_membership,
+            user_for_join_auth.as_deref(),
+            &user_for_join_auth_membership,
             room_create_event,
         )? {
             return Ok(false);
@@ -296,6 +309,7 @@ pub fn auth_check<E: Event>(
         return Ok(false);
     }
 
+    // If type is m.room.third_party_invite
     let sender_power_level = if let Some(pl) = &power_levels_event {
         if let Ok(content) = from_json_str::<PowerLevelsContentFields>(pl.content().get()) {
             if let Some(level) = content.users.get(sender) {
@@ -337,6 +351,7 @@ pub fn auth_check<E: Event>(
         return Ok(false);
     }
 
+    // If type is m.room.power_levels
     if *incoming_event.event_type() == EventType::RoomPowerLevels {
         info!("starting m.room.power_levels check");
 
@@ -406,8 +421,8 @@ fn valid_membership_change(
     current_third_party_invite: Option<impl Event>,
     power_levels_event: Option<impl Event>,
     join_rules_event: Option<impl Event>,
-    authed_user_id: Option<&UserId>,
-    auth_user_membership: Option<MembershipState>,
+    user_for_join_auth: Option<&UserId>,
+    user_for_join_auth_membership: &MembershipState,
     create_room: impl Event,
 ) -> Result<bool> {
     #[derive(Deserialize)]
@@ -455,25 +470,17 @@ fn valid_membership_change(
     let target_user_membership_event_id =
         target_user_membership_event.as_ref().map(|e| e.event_id());
 
-    // FIXME: `JoinRule::Restricted(_)` can contain conditions that allow a user to join if
-    // they are met. So far the spec talks about roomId based auth inheritance, the problem with
-    // this is that ruma-state-res can only request events from one room at a time :(
-    let restricted = matches!(join_rules, JoinRule::Restricted(_));
-
-    let allow_based_on_membership =
-        matches!(target_user_current_membership, MembershipState::Invite | MembershipState::Join)
-            || authed_user_id.is_none();
-
-    let restricted_join_rules_auth = if let Some(authed_user_id) = authed_user_id {
-        // Is the authorised user allowed to invite users into this rooom
+    let user_for_join_auth_is_valid = if let Some(user_for_join_auth) = user_for_join_auth {
+        // Is the authorised user allowed to invite users into this room
         let (auth_user_pl, invite_level) = if let Some(pl) = &power_levels_event {
+            // TODO Refactor all powerlevel parsing
             let invite = match from_json_str::<PowerLevelsContentInvite>(pl.content().get()) {
                 Ok(power_levels) => power_levels.invite,
                 _ => int!(50),
             };
 
             if let Ok(content) = from_json_str::<PowerLevelsContentFields>(pl.content().get()) {
-                let user_pl = if let Some(level) = content.users.get(authed_user_id) {
+                let user_pl = if let Some(level) = content.users.get(user_for_join_auth) {
                     *level
                 } else {
                     content.users_default
@@ -486,14 +493,16 @@ fn valid_membership_change(
         } else {
             (int!(0), int!(0))
         };
-        (auth_user_membership == Some(MembershipState::Join)) && (auth_user_pl >= invite_level)
+        (user_for_join_auth_membership == &MembershipState::Join) && (auth_user_pl >= invite_level)
     } else {
-        // If the `join_authorised_via_users_server` was empty we treat the target user as invited
-        true
+        // No auth user was given
+        false
     };
 
     Ok(match target_membership {
         MembershipState::Join => {
+            // 1. If the only previous event is an m.room.create and the state_key is the creator,
+            // allow
             let mut prev_events = current_event.prev_events();
 
             let prev_event_is_create_event = prev_events
@@ -512,39 +521,43 @@ fn valid_membership_change(
             }
 
             if sender != target_user {
+                // If the sender does not match state_key, reject.
                 warn!("Can't make other user join");
                 false
             } else if let MembershipState::Ban = target_user_current_membership {
+                // If the sender is banned, reject.
                 warn!(?target_user_membership_event_id, "Banned user can't join");
                 false
-            } else {
-                let invite_allowed = (join_rules == JoinRule::Invite
+            } else if (join_rules == JoinRule::Invite
                     || room_version.allow_knocking && join_rules == JoinRule::Knock)
+                // If the join_rule is invite then allow if membership state is invite or join
                     && (target_user_current_membership == MembershipState::Join
-                        || target_user_current_membership == MembershipState::Invite);
-
-                if invite_allowed {
-                    return Ok(true);
+                        || target_user_current_membership == MembershipState::Invite)
+            {
+                true
+            } else if room_version.restricted_join_rules
+                && matches!(join_rules, JoinRule::Restricted(_))
+            {
+                // If the join_rule is restricted
+                if matches!(
+                    target_user_current_membership,
+                    MembershipState::Invite | MembershipState::Join
+                ) {
+                    // If membership state is join or invite, allow.
+                    true
+                } else if !user_for_join_auth_is_valid {
+                    // If the join_authorised_via_users_server key in content is not a user with
+                    // sufficient permission to invite other users, reject.
+                    false
+                } else {
+                    // Otherwise, allow.
+                    true
                 }
-
-                if room_version.restricted_join_rules
-                    && restricted
-                    && allow_based_on_membership
-                    && restricted_join_rules_auth
-                {
-                    return Ok(true);
-                }
-
-                if join_rules == JoinRule::Public {
-                    return Ok(true);
-                }
-
-                warn!(
-                    join_rules_event_id = ?join_rules_event.as_ref().map(|e| e.event_id()),
-                    ?target_user_membership_event_id,
-                    "Can't join if join rules is not public and user is not invited / joined",
-                );
-
+            } else if join_rules == JoinRule::Public {
+                // If the join_rule is public, allow.
+                true
+            } else {
+                // Otherwise, reject.
                 false
             }
         }
