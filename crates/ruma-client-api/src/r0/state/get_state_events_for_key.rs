@@ -112,10 +112,15 @@ impl ruma_api::IncomingRequest for IncomingRequest {
 
     const METADATA: ruma_api::Metadata = METADATA;
 
-    fn try_from_http_request<T: AsRef<[u8]>, S: AsRef<str>>(
-        _request: http::Request<T>,
+    fn try_from_http_request<B, S>(
+        _request: http::Request<B>,
         path_args: &[S],
-    ) -> Result<Self, ruma_api::error::FromHttpRequestError> {
+    ) -> Result<Self, ruma_api::error::FromHttpRequestError>
+    where
+        B: AsRef<[u8]>,
+        S: AsRef<str>,
+    {
+        // FIXME: find a way to make this if-else collapse with serde recognizing trailing Option
         let (room_id, event_type, state_key): (Box<RoomId>, EventType, String) =
             if path_args.len() == 3 {
                 serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<

@@ -67,10 +67,10 @@ impl IncomingRequest for Request {
 
     const METADATA: Metadata = METADATA;
 
-    fn try_from_http_request<T: AsRef<[u8]>, S: AsRef<str>>(
-        request: http::Request<T>,
+    fn try_from_http_request<B, S>(
+        request: http::Request<B>,
         path_args: &[S],
-    ) -> Result<Self, FromHttpRequestError> {
+    ) -> Result<Self, FromHttpRequestError> where B: AsRef<[u8]>, S: AsRef<str> {
         let (room_alias,) = serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
             _,
             serde::de::value::Error,
