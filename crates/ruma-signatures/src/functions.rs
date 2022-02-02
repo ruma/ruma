@@ -736,14 +736,14 @@ pub fn redact_in_place(
     event: &mut CanonicalJsonObject,
     version: &RoomVersionId,
 ) -> Result<(), Error> {
-    let event_type_value = match event.get("type") {
-        Some(event_type_value) => event_type_value,
+    // Get the content keys here instead of the event type, because we cant teach rust that this is
+    // a disjoint borrow.
+    let allowed_content_keys: &[&str] = match event.get("type") {
+        Some(CanonicalJsonValue::String(event_type)) => {
+            allowed_content_keys_for(event_type, version)
+        }
+        Some(_) => return Err(JsonError::not_of_type("type", JsonType::String)),
         None => return Err(JsonError::field_missing_from_object("type")),
-    };
-
-    let allowed_content_keys = match event_type_value {
-        CanonicalJsonValue::String(event_type) => allowed_content_keys_for(event_type, version),
-        _ => return Err(JsonError::not_of_type("type", JsonType::String)),
     };
 
     if let Some(content_value) = event.get_mut("content") {
@@ -752,13 +752,7 @@ pub fn redact_in_place(
             _ => return Err(JsonError::not_of_type("content", JsonType::Object)),
         };
 
-        let mut old_content = mem::take(content);
-
-        for &key in allowed_content_keys {
-            if let Some(value) = old_content.remove(key) {
-                content.insert(key.to_owned(), value);
-            }
-        }
+        object_retain_keys(content, allowed_content_keys);
     }
 
     let mut old_event = mem::take(event);
@@ -770,6 +764,27 @@ pub fn redact_in_place(
     }
 
     Ok(())
+}
+
+/// Redacts event content using the rules specified in the Matrix client-server specification.
+///
+/// Edits the `object` in-place.
+pub fn redact_content_in_place(
+    object: &mut CanonicalJsonObject,
+    version: &RoomVersionId,
+    event_type: impl AsRef<str>,
+) {
+    object_retain_keys(object, allowed_content_keys_for(event_type.as_ref(), version))
+}
+
+fn object_retain_keys(object: &mut CanonicalJsonObject, keys: &[&str]) {
+    let mut old_content = mem::take(object);
+
+    for &key in keys {
+        if let Some(value) = old_content.remove(key) {
+            object.insert(key.to_owned(), value);
+        }
+    }
 }
 
 /// Extracts the server names to check signatures for given event.
