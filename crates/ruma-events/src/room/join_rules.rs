@@ -5,6 +5,7 @@
 use ruma_events_macros::EventContent;
 #[cfg(feature = "unstable-spec")]
 use ruma_identifiers::RoomId;
+#[cfg(feature = "unstable-spec")]
 use ruma_serde::from_raw_json_value;
 use serde::{
     de::{Deserializer, Error},
