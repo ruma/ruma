@@ -182,35 +182,41 @@ impl IdentityProvider {
 }
 
 /// An SSO login identity provider brand identifier.
+///
+/// The predefined ones can be found in the matrix-doc repo in a [separate document][matrix-doc].
+/// To use a custom brand string, simply use `IdentityProviderBrand::from("custom-brand")` or
+/// `"custom-brand".into()` (if the type is known from the surrounding context).
+///
+/// [matrix-doc]: https://github.com/matrix-org/matrix-doc/blob/v1.1/informal/idp-brands.md
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum IdentityProviderBrand {
     /// The [Apple] brand.
     ///
     /// [Apple]: https://developer.apple.com/design/human-interface-guidelines/sign-in-with-apple/overview/buttons/
-    #[ruma_enum(rename = "org.matrix.apple")]
+    #[ruma_enum(rename = "apple")]
     Apple,
 
     /// The [Facebook](https://developers.facebook.com/docs/facebook-login/web/login-button/) brand.
-    #[ruma_enum(rename = "org.matrix.facebook")]
+    #[ruma_enum(rename = "facebook")]
     Facebook,
 
     /// The [GitHub](https://github.com/logos) brand.
-    #[ruma_enum(rename = "org.matrix.github")]
+    #[ruma_enum(rename = "github")]
     GitHub,
 
     /// The [GitLab](https://about.gitlab.com/press/press-kit/) brand.
-    #[ruma_enum(rename = "org.matrix.gitlab")]
+    #[ruma_enum(rename = "gitlab")]
     GitLab,
 
     /// The [Google](https://developers.google.com/identity/branding-guidelines) brand.
-    #[ruma_enum(rename = "org.matrix.google")]
+    #[ruma_enum(rename = "google")]
     Google,
 
     /// The [Twitter] brand.
     ///
     /// [Twitter]: https://developer.twitter.com/en/docs/authentication/guides/log-in-with-twitter#tab1
-    #[ruma_enum(rename = "org.matrix.twitter")]
+    #[ruma_enum(rename = "twitter")]
     Twitter,
 
     /// A custom brand.
