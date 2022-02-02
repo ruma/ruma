@@ -736,8 +736,12 @@ pub fn redact_in_place(
     event: &mut CanonicalJsonObject,
     version: &RoomVersionId,
 ) -> Result<(), Error> {
-    let event_type: String = match event.get("type") {
-        Some(CanonicalJsonValue::String(event_type)) => event_type.clone(),
+    // Get the content keys here instead of the event type, because we cant teach rust that this is
+    // a disjoint borrow.
+    let allowed_content_keys: &[&str] = match event.get("type") {
+        Some(CanonicalJsonValue::String(event_type)) => {
+            allowed_content_keys_for(event_type.as_ref(), version)
+        }
         Some(_) => return Err(JsonError::not_of_type("type", JsonType::String)),
         None => return Err(JsonError::field_missing_from_object("type")),
     };
@@ -748,7 +752,7 @@ pub fn redact_in_place(
             _ => return Err(JsonError::not_of_type("content", JsonType::Object)),
         };
 
-        redact_content_in_place(content, version, &event_type);
+        object_retain_keys(content, allowed_content_keys);
     }
 
     let mut old_event = mem::take(event);
@@ -770,11 +774,13 @@ pub fn redact_content_in_place(
     version: &RoomVersionId,
     event_type: impl AsRef<str>,
 ) {
-    let allowed_content_keys = allowed_content_keys_for(event_type.as_ref(), version);
+    object_retain_keys(object, allowed_content_keys_for(event_type.as_ref(), version))
+}
 
+fn object_retain_keys(object: &mut CanonicalJsonObject, keys: &[&str]) {
     let mut old_content = mem::take(object);
 
-    for &key in allowed_content_keys {
+    for &key in keys {
         if let Some(value) = old_content.remove(key) {
             object.insert(key.to_owned(), value);
         }
