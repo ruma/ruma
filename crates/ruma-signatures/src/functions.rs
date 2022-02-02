@@ -740,7 +740,7 @@ pub fn redact_in_place(
     // a disjoint borrow.
     let allowed_content_keys: &[&str] = match event.get("type") {
         Some(CanonicalJsonValue::String(event_type)) => {
-            allowed_content_keys_for(event_type.as_ref(), version)
+            allowed_content_keys_for(event_type, version)
         }
         Some(_) => return Err(JsonError::not_of_type("type", JsonType::String)),
         None => return Err(JsonError::field_missing_from_object("type")),
