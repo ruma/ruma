@@ -41,7 +41,15 @@ impl Unsigned {
     /// events. Do not use it to determine whether an incoming `unsigned` field was present - it
     /// could still have been present but contained none of the known fields.
     pub fn is_empty(&self) -> bool {
-        self.age.is_none() && self.transaction_id.is_none()
+        #[cfg(not(feature = "unstable-pre-spec"))]
+        {
+            self.age.is_none() && self.transaction_id.is_none()
+        }
+
+        #[cfg(feature = "unstable-pre-spec")]
+        {
+            self.age.is_none() && self.transaction_id.is_none() && self.relations.is_none()
+        }
     }
 }
 
