@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/keys/upload](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-keys-upload)
+//! [POST /_matrix/client/r0/keys/upload](https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3keysupload)
 
 use std::collections::BTreeMap;
 
@@ -31,7 +31,6 @@ ruma_api! {
         pub one_time_keys: BTreeMap<Box<DeviceKeyId>, Raw<OneTimeKey>>,
 
         /// Fallback public keys for "pre-key" messages.
-        #[cfg(feature = "unstable-pre-spec")]
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty", rename = "org.matrix.msc2732.fallback_keys")]
         pub fallback_keys: BTreeMap<Box<DeviceKeyId>, Raw<OneTimeKey>>,
     }

@@ -1,6 +1,4 @@
-//! POST /_matrix/client/r0/keys/device_signing/upload
-//!
-//! Defined in [MSC 1756](https://github.com/matrix-org/matrix-doc/blob/master/proposals/1756-cross-signing.md#uploading-signing-keys)
+//! [POST /_matrix/client/r0/keys/device_signing/upload](https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3keysdevice_signingupload)
 
 use ruma_api::ruma_api;
 use ruma_common::encryption::CrossSigningKey;

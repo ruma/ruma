@@ -11,7 +11,6 @@ pub mod device;
 pub mod directory;
 pub mod filter;
 pub mod keys;
-#[cfg(feature = "unstable-pre-spec")]
 pub mod knock;
 pub mod media;
 pub mod membership;

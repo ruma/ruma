@@ -86,7 +86,6 @@ pub struct SignedKey {
     pub signatures: SignedKeySignatures,
 
     /// Is this key considered to be a fallback key, defaults to false.
-    #[cfg(feature = "unstable-pre-spec")]
     #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
     pub fallback: bool,
 }

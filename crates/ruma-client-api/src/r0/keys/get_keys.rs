@@ -3,13 +3,10 @@
 use std::{collections::BTreeMap, time::Duration};
 
 use ruma_api::ruma_api;
-use ruma_common::encryption::DeviceKeys;
+use ruma_common::encryption::{CrossSigningKey, DeviceKeys};
 use ruma_identifiers::{DeviceId, UserId};
 use ruma_serde::Raw;
 use serde_json::Value as JsonValue;
-
-#[cfg(feature = "unstable-pre-spec")]
-use ruma_common::encryption::CrossSigningKey;
 
 ruma_api! {
     metadata: {
@@ -60,17 +57,14 @@ ruma_api! {
         pub device_keys: BTreeMap<Box<UserId>, BTreeMap<Box<DeviceId>, Raw<DeviceKeys>>>,
 
         /// Information on the master cross-signing keys of the queried users.
-        #[cfg(feature = "unstable-pre-spec")]
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
         pub master_keys: BTreeMap<Box<UserId>, Raw<CrossSigningKey>>,
 
         /// Information on the self-signing keys of the queried users.
-        #[cfg(feature = "unstable-pre-spec")]
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
         pub self_signing_keys: BTreeMap<Box<UserId>, Raw<CrossSigningKey>>,
 
         /// Information on the user-signing keys of the queried users.
-        #[cfg(feature = "unstable-pre-spec")]
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
         pub user_signing_keys: BTreeMap<Box<UserId>, Raw<CrossSigningKey>>,
     }

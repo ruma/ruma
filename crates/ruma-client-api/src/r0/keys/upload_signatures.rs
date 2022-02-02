@@ -1,6 +1,4 @@
-//! POST /_matrix/client/r0/keys/signatures/upload
-//!
-//! Defined in [MSC 1756](https://github.com/matrix-org/matrix-doc/blob/master/proposals/1756-cross-signing.md#uploading-signing-keys)
+//! [POST /_matrix/client/r0/keys/signatures/upload](https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3keyssignaturesupload)
 
 use std::collections::BTreeMap;
 
