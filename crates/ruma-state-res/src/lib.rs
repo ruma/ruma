@@ -82,8 +82,7 @@ where
     // `all_conflicted` contains unique items
     // synapse says `full_set = {eid for eid in full_conflicted_set if eid in event_map}`
     let all_conflicted: HashSet<_> = get_auth_chain_diff(auth_chain_sets)
-        // FIXME: Use into_values() once MSRV >= 1.54
-        .chain(conflicting.into_iter().flat_map(|(_k, v)| v))
+        .chain(conflicting.into_values().flatten())
         // Don't honor events we cannot "verify"
         .filter(|id| fetch_event(id.borrow()).is_some())
         .collect();
