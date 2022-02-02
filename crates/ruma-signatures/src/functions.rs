@@ -748,7 +748,7 @@ pub fn redact_in_place(
             _ => return Err(JsonError::not_of_type("content", JsonType::Object)),
         };
 
-        redact_content(content, version, &event_type);
+        redact_content_in_place(content, version, &event_type);
     }
 
     let mut old_event = mem::take(event);
@@ -765,7 +765,7 @@ pub fn redact_in_place(
 /// Redacts event content using the rules specified in the Matrix client-server specification.
 ///
 /// Edits the `object` in-place.
-pub fn redact_content(
+pub fn redact_content_in_place(
     object: &mut CanonicalJsonObject,
     version: &RoomVersionId,
     event_type: impl AsRef<str>,
