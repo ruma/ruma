@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/room_keys/keys/{roomId}](https://matrix.org/docs/spec/client_server/unstable#get-matrix-client-r0-room-keys-keys-roomid)
+//! [GET /_matrix/client/r0/room_keys/keys/{roomId}](https://spec.matrix.org/v1.1/client-server-api/#get_matrixclientv3room_keyskeysroomid)
 
 use std::collections::BTreeMap;
 

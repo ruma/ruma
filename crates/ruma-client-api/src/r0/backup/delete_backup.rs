@@ -1,4 +1,4 @@
-//! [DELETE /_matrix/client/r0/room_keys/version/{version}](https://matrix.org/docs/spec/client_server/unstable#delete-matrix-client-r0-room-keys-version-version)
+//! [DELETE /_matrix/client/r0/room_keys/version/{version}](https://spec.matrix.org/v1.1/client-server-api/#delete_matrixclientv3room_keysversionversion)
 
 use ruma_api::ruma_api;
 

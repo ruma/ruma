@@ -1,4 +1,4 @@
-//! [DELETE /_matrix/client/r0/room_keys/keys/{roomId}/{sessionId}](https://matrix.org/docs/spec/client_server/unstable#delete-matrix-client-r0-room-keys-keys-roomid-sessionid)
+//! [DELETE /_matrix/client/r0/room_keys/keys/{roomId}/{sessionId}](https://spec.matrix.org/v1.1/client-server-api/#delete_matrixclientv3room_keyskeysroomidsessionid)
 
 use js_int::UInt;
 use ruma_api::ruma_api;

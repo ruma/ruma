@@ -1,4 +1,4 @@
-//! [PUT /_matrix/client/r0/room_keys/keys](https://matrix.org/docs/spec/client_server/unstable#put-matrix-client-r0-room-keys-keys)
+//! [PUT /_matrix/client/r0/room_keys/keys](https://spec.matrix.org/v1.1/client-server-api/#put_matrixclientv3room_keyskeys)
 
 use std::collections::BTreeMap;
 

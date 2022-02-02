@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/room_keys/version](https://matrix.org/docs/spec/client_server/unstable#post-matrix-client-r0-room-keys-version)
+//! [GET /_matrix/client/r0/room_keys/version](https://spec.matrix.org/v1.1/client-server-api/#get_matrixclientv3room_keysversion)
 
 use js_int::UInt;
 use ruma_api::ruma_api;

@@ -1,4 +1,4 @@
-//! [PUT /_matrix/client/r0/room_keys/keys/{roomId}/{sessionId}](https://matrix.org/docs/spec/client_server/unstable#put-matrix-client-r0-room-keys-keys-roomid-sessionid)
+//! [PUT /_matrix/client/r0/room_keys/keys/{roomId}/{sessionId}](https://spec.matrix.org/v1.1/client-server-api/#put_matrixclientv3room_keyskeysroomidsessionid)
 
 use js_int::UInt;
 use ruma_api::ruma_api;
