@@ -67,6 +67,7 @@ mod tests {
                     .uri("https://matrix.org/_matrix/client/r0/user/@foo:bar.com/filter")
                     .body(b"{}" as &[u8])
                     .unwrap(),
+                &["@foo:bar.com"]
             ),
             Ok(IncomingRequest { user_id, filter })
             if user_id == "@foo:bar.com" && filter.is_empty()

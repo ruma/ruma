@@ -122,6 +122,7 @@ mod tests {
 
         let req = IncomingRequest::try_from_http_request(
             http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
+            &["!dummy:example.org"],
         );
 
         assert_matches!(
