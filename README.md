@@ -39,14 +39,10 @@ them. Check out the documentation [on docs.rs][docs] (or on
 ## Status
 
 As of 2022-01-31, we support all events and REST endpoints of the v1 version of
-the Matrix specification, with v1.1 coverage in progress.
+the Matrix specification, with v1.1 and v1.2 coverage in progress.
 
-Various changes from the unreleased version of the specification are also
-implemented, gated behind the `unstable-spec` Cargo feature.
-
-Various changes from in-progress MSCs, finished MSCs,
-and (often) unreleased versions of the specification are also implemented,
-gated behind the `unstable-pre-spec` Cargo feature.
+Various changes from in-progress MSCs, finished MSCs, and a few less formalized
+things are also implemented, gated behind the `unstable-pre-spec` Cargo feature.
 
 ## Contributing
 

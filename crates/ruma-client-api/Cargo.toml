@@ -24,7 +24,6 @@ compat = []
 unstable-exhaustive-types = []
 # feature dependency required for r0::room::create_room::CreationContent::into_event_content
 unstable-pre-spec = ["ruma-events/unstable-pre-spec"]
-unstable-spec = []
 client = []
 server = []
 
