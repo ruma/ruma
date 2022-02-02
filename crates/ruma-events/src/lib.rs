@@ -172,7 +172,6 @@ pub mod room;
 pub mod room_key;
 pub mod room_key_request;
 pub mod secret;
-#[cfg(feature = "unstable-spec")]
 pub mod space;
 pub mod sticker;
 pub mod tag;
