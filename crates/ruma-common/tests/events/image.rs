@@ -16,7 +16,7 @@ use ruma_common::{
             message::{InReplyTo, Relation},
             JsonWebKeyInit,
         },
-        AnyMessageLikeEvent, MessageLikeEvent, Unsigned,
+        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned,
     },
     mxc_uri, room_id,
     serde::Base64,
@@ -138,7 +138,7 @@ fn image_event_serialization() {
         sender: user_id!("@user:notareal.hs").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
         room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: Unsigned::default(),
+        unsigned: MessageLikeUnsigned::default(),
     };
 
     assert_eq!(

@@ -1,7 +1,6 @@
 #![cfg(feature = "events")]
 
 mod audio;
-mod compat;
 mod enums;
 mod ephemeral_event;
 mod event;

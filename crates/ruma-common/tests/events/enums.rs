@@ -13,8 +13,8 @@ use ruma_common::{
         AnyEphemeralRoomEvent, AnyMessageLikeEvent, AnyRoomEvent, AnyStateEvent,
         AnyStateEventContent, AnySyncMessageLikeEvent, AnySyncRoomEvent, AnySyncStateEvent,
         EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEvent, MessageLikeEventType,
-        RoomAccountDataEventType, StateEvent, StateEventType, SyncMessageLikeEvent, SyncStateEvent,
-        ToDeviceEventType, Unsigned,
+        MessageLikeUnsigned, RoomAccountDataEventType, StateEvent, StateEventType,
+        SyncMessageLikeEvent, SyncStateEvent, ToDeviceEventType,
     },
     MilliSecondsSinceUnixEpoch,
 };
@@ -208,7 +208,7 @@ fn message_event_serialization() {
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(0)),
         room_id: room_id!("!roomid:example.com").to_owned(),
         sender: user_id!("@test:example.com").to_owned(),
-        unsigned: Unsigned::default(),
+        unsigned: MessageLikeUnsigned::default(),
     };
 
     assert_eq!(

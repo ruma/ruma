@@ -27,7 +27,7 @@ mod tests {
         event_id,
         events::{
             policy::rule::{PolicyRuleEventContent, Recommendation},
-            Unsigned,
+            StateUnsigned,
         },
         room_id,
         serde::Raw,
@@ -42,13 +42,7 @@ mod tests {
             origin_server_ts: MilliSecondsSinceUnixEpoch(1_432_735_824_653_u64.try_into().unwrap()),
             room_id: room_id!("!jEsUZKDJdhlrceRyVU:example.org").to_owned(),
             state_key: "rule:#*:example.org".into(),
-            prev_content: None,
-            unsigned: Unsigned {
-                age: Some(int!(1234)),
-                transaction_id: None,
-                #[cfg(feature = "unstable-msc2675")]
-                relations: None,
-            },
+            unsigned: StateUnsigned { age: Some(int!(1234)), ..StateUnsigned::default() },
             content: PolicyRuleRoomEventContent(PolicyRuleEventContent {
                 entity: "#*:example.org".into(),
                 reason: "undesirable content".into(),

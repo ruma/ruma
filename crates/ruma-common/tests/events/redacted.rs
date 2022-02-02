@@ -10,9 +10,9 @@ use ruma_common::{
             redaction::{RoomRedactionEventContent, SyncRoomRedactionEvent},
         },
         AnyMessageLikeEvent, AnyRedactedMessageLikeEvent, AnyRedactedSyncMessageLikeEvent,
-        AnyRedactedSyncStateEvent, AnyRoomEvent, AnySyncRoomEvent, EventContent, Redact,
-        RedactContent, RedactedMessageLikeEvent, RedactedSyncMessageLikeEvent,
-        RedactedSyncStateEvent, RedactedUnsigned, Unsigned,
+        AnyRedactedSyncStateEvent, AnyRoomEvent, AnySyncRoomEvent, EventContent,
+        MessageLikeUnsigned, Redact, RedactContent, RedactedMessageLikeEvent,
+        RedactedSyncMessageLikeEvent, RedactedSyncStateEvent, RedactedUnsigned,
     },
     room_id, user_id, MilliSecondsSinceUnixEpoch, RoomVersionId,
 };
@@ -29,7 +29,7 @@ fn unsigned() -> RedactedUnsigned {
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         sender: user_id!("@carl:example.com").to_owned(),
-        unsigned: Unsigned::default(),
+        unsigned: MessageLikeUnsigned::default(),
     }));
 
     unsigned
@@ -166,7 +166,7 @@ fn redacted_deserialize_any_room_sync() {
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         sender: user_id!("@carl:example.com").to_owned(),
-        unsigned: Unsigned::default(),
+        unsigned: MessageLikeUnsigned::default(),
     }));
 
     let redacted = json!({
@@ -266,7 +266,7 @@ fn redact_method_properly_redacts() {
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         sender: user_id!("@carl:example.com").to_owned(),
-        unsigned: Unsigned::default(),
+        unsigned: MessageLikeUnsigned::default(),
     };
 
     let event: AnyMessageLikeEvent = from_json_value(ev).unwrap();

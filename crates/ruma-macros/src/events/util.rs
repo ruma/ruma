@@ -11,7 +11,7 @@ pub(crate) fn is_non_stripped_room_event(kind: EventKind, var: EventKindVariatio
         )
 }
 
-pub(crate) fn has_prev_content_field(kind: EventKind, var: EventKindVariation) -> bool {
+pub(crate) fn has_prev_content(kind: EventKind, var: EventKindVariation) -> bool {
     matches!(kind, EventKind::State)
         && matches!(var, EventKindVariation::Full | EventKindVariation::Sync)
 }
@@ -34,5 +34,4 @@ pub(crate) const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
             && var != EventKindVariation::Initial
     }),
     ("state_key", |kind, _| matches!(kind, EventKind::State)),
-    ("unsigned", is_non_stripped_room_event),
 ];

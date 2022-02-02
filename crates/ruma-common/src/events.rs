@@ -188,13 +188,10 @@ pub mod video;
 
 #[cfg(feature = "unstable-msc2675")]
 pub use self::relation::Relations;
-#[doc(hidden)]
-#[cfg(feature = "compat")]
-pub use self::unsigned::{RedactedUnsignedWithPrevContent, UnsignedWithPrevContent};
 pub use self::{
     enums::*,
     event_kinds::*,
-    unsigned::{RedactedUnsigned, Unsigned},
+    unsigned::{MessageLikeUnsigned, RedactedUnsigned, StateUnsigned},
 };
 
 /// The base trait that all event content types implement.

@@ -4,7 +4,7 @@ use ruma_common::{
     event_id,
     events::{
         room::redaction::{RoomRedactionEvent, RoomRedactionEventContent},
-        AnyMessageLikeEvent, Unsigned,
+        AnyMessageLikeEvent, MessageLikeUnsigned,
     },
     room_id, user_id, MilliSecondsSinceUnixEpoch,
 };
@@ -35,7 +35,7 @@ fn serialize_redaction() {
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         room_id: room_id!("!roomid:room.com").to_owned(),
         sender: user_id!("@carl:example.com").to_owned(),
-        unsigned: Unsigned::default(),
+        unsigned: MessageLikeUnsigned::default(),
     };
 
     let actual = to_json_value(&aliases_event).unwrap();

@@ -9,7 +9,7 @@ use syn::{
 
 use super::{
     event_parse::{to_kind_variation, EventKind, EventKindVariation},
-    util::is_non_stripped_room_event,
+    util::{has_prev_content, is_non_stripped_room_event},
 };
 use crate::{import_ruma_common, util::to_camel_case};
 
@@ -135,7 +135,7 @@ fn expand_serialize_event(
 
 fn expand_deserialize_event(
     input: &DeriveInput,
-    _kind: EventKind,
+    kind: EventKind,
     var: EventKindVariation,
     fields: &[Field],
     ruma_common: &TokenStream,
@@ -168,32 +168,14 @@ fn expand_deserialize_event(
         .map(|field| {
             let name = field.ident.as_ref().unwrap();
             let ty = &field.ty;
-            if name == "content" || name == "prev_content" {
+            if name == "content" || (name == "unsigned" && has_prev_content(kind, var)) {
                 if is_generic {
                     quote! { ::std::boxed::Box<#serde_json::value::RawValue> }
                 } else {
                     quote! { #content_type }
                 }
             } else {
-                #[allow(unused_mut)]
-                let mut ty = quote! { #ty };
-
-                #[cfg(feature = "compat")]
-                if matches!(_kind, EventKind::State) && name == "unsigned" {
-                    match var {
-                        EventKindVariation::Full | EventKindVariation::Sync => {
-                            ty = quote! { #ruma_common::events::UnsignedWithPrevContent };
-                        }
-                        EventKindVariation::Redacted | EventKindVariation::RedactedSync => {
-                            ty = quote! { #ruma_common::events::RedactedUnsignedWithPrevContent };
-                        }
-                        EventKindVariation::Stripped | EventKindVariation::Initial => {
-                            unreachable!()
-                        }
-                    }
-                }
-
-                ty
+                quote! { #ty }
             }
         })
         .collect();
@@ -239,45 +221,13 @@ fn expand_deserialize_event(
                         )?;
                     }
                 }
-            } else if name == "prev_content" {
-                if is_generic {
-                    #[allow(unused_mut)]
-                    let mut res = quote! {
-                        let prev_content = prev_content.map(|json| {
-                            C::from_parts(&event_type, &json).map_err(A::Error::custom)
-                        }).transpose()?;
-                    };
-
-                    #[cfg(feature = "compat")]
-                    if let EventKind::State = _kind {
-                        res = quote! {
-                            let prev_content = prev_content
-                                .or_else(|| unsigned.as_mut().and_then(|u| u.prev_content.take()));
-                            #res
-                        };
-                    };
-
-                    res
-                } else {
-                    TokenStream::new()
+            } else if name == "unsigned" && has_prev_content(kind, var) {
+                quote! {
+                    let unsigned = unsigned.map(|json| {
+                        #ruma_common::events::StateUnsigned::_from_parts(&event_type, &json)
+                            .map_err(A::Error::custom)
+                    }).transpose()?.unwrap_or_default();
                 }
-            } else if name == "unsigned" {
-                #[allow(unused_mut)]
-                let mut res = quote! {
-                    let unsigned = unsigned.unwrap_or_default();
-                };
-
-                #[cfg(feature = "compat")]
-                if matches!(_kind, EventKind::State) {
-                    res = quote! {
-                        let unsigned = unsigned.map_or_else(
-                            ::std::default::Default::default,
-                            ::std::convert::From::from,
-                        );
-                    };
-                }
-
-                res
             } else {
                 let attrs: Vec<_> = field
                     .attrs
@@ -296,7 +246,7 @@ fn expand_deserialize_event(
                     )
                 });
 
-                if has_default_attr {
+                if has_default_attr || name == "unsigned" {
                     quote! {
                         let #name = #name.unwrap_or_default();
                     }

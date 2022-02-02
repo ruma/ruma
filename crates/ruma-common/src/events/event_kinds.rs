@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     EphemeralRoomEventType, EventContent, GlobalAccountDataEventType, MessageLikeEventType,
-    RedactedEventContent, RedactedUnsigned, RoomAccountDataEventType, StateEventType,
-    ToDeviceEventType, Unsigned,
+    MessageLikeUnsigned, RedactedEventContent, RedactedUnsigned, RoomAccountDataEventType,
+    StateEventType, StateUnsigned, ToDeviceEventType,
 };
 use crate::{EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId};
 
@@ -63,7 +63,7 @@ pub struct MessageLikeEvent<C: EventContent<EventType = MessageLikeEventType>> {
     pub room_id: Box<RoomId>,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: Unsigned,
+    pub unsigned: MessageLikeUnsigned,
 }
 
 /// A message-like event without a `room_id`.
@@ -85,7 +85,7 @@ pub struct SyncMessageLikeEvent<C: EventContent<EventType = MessageLikeEventType
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: Unsigned,
+    pub unsigned: MessageLikeUnsigned,
 }
 
 /// A redacted message-like event.
@@ -166,11 +166,8 @@ pub struct StateEvent<C: EventContent<EventType = StateEventType>> {
     /// affects.
     pub state_key: String,
 
-    /// Optional previous content for this event.
-    pub prev_content: Option<C>,
-
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: Unsigned,
+    pub unsigned: StateUnsigned<C>,
 }
 
 /// A state event without a `room_id`.
@@ -197,11 +194,8 @@ pub struct SyncStateEvent<C: EventContent<EventType = StateEventType>> {
     /// affects.
     pub state_key: String,
 
-    /// Optional previous content for this event.
-    pub prev_content: Option<C>,
-
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: Unsigned,
+    pub unsigned: StateUnsigned<C>,
 }
 
 /// A stripped-down state event, used for previews of rooms the user has been invited to.

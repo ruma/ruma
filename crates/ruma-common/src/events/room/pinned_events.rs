@@ -32,7 +32,7 @@ mod tests {
     use crate::{server_name, EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId};
 
     use super::RoomPinnedEventsEventContent;
-    use crate::events::{StateEvent, Unsigned};
+    use crate::events::{StateEvent, StateUnsigned};
 
     #[test]
     fn serialization_deserialization() {
@@ -47,11 +47,10 @@ mod tests {
             content: content.clone(),
             event_id: EventId::new(server_name),
             origin_server_ts: MilliSecondsSinceUnixEpoch(1_432_804_485_886_u64.try_into().unwrap()),
-            prev_content: None,
             room_id: RoomId::new(server_name),
             sender: UserId::new(server_name),
             state_key: "".into(),
-            unsigned: Unsigned::default(),
+            unsigned: StateUnsigned::default(),
         };
 
         let serialized_event = serde_json::to_string(&event).unwrap();

@@ -11,7 +11,7 @@ use ruma_common::{
             AudioMessageEventContent, InReplyTo, KeyVerificationRequestEventContent, MessageType,
             Relation, RoomMessageEvent, RoomMessageEventContent, TextMessageEventContent,
         },
-        Unsigned,
+        MessageLikeUnsigned,
     },
     mxc_uri, room_id, user_id, DeviceId, MilliSecondsSinceUnixEpoch,
 };
@@ -41,7 +41,7 @@ fn serialization() {
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
         room_id: room_id!("!testroomid:example.org").to_owned(),
         sender: user_id!("@user:example.org").to_owned(),
-        unsigned: Unsigned::default(),
+        unsigned: MessageLikeUnsigned::default(),
     };
 
     assert_eq!(

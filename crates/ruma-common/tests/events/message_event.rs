@@ -8,7 +8,7 @@ use ruma_common::{
         room::{ImageInfo, ThumbnailInfo},
         sticker::StickerEventContent,
         AnyMessageLikeEvent, AnyMessageLikeEventContent, AnySyncMessageLikeEvent, MessageLikeEvent,
-        MessageLikeEventType, Unsigned,
+        MessageLikeEventType, MessageLikeUnsigned,
     },
     mxc_uri, room_id,
     serde::Raw,
@@ -40,7 +40,7 @@ fn message_serialize_sticker() {
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         room_id: room_id!("!roomid:room.com").to_owned(),
         sender: user_id!("@carl:example.com").to_owned(),
-        unsigned: Unsigned::default(),
+        unsigned: MessageLikeUnsigned::default(),
     };
 
     let actual = to_json_value(&aliases_event).unwrap();

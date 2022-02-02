@@ -36,7 +36,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::RoomNameEventContent;
-    use crate::events::{StateEvent, Unsigned};
+    use crate::events::{StateEvent, StateUnsigned};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
@@ -44,11 +44,10 @@ mod tests {
             content: RoomNameEventContent { name: "The room name".try_into().ok() },
             event_id: event_id!("$h29iv0s8:example.com").to_owned(),
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-            prev_content: None,
             room_id: room_id!("!n8f893n9:example.com").to_owned(),
             sender: user_id!("@carl:example.com").to_owned(),
             state_key: "".into(),
-            unsigned: Unsigned::default(),
+            unsigned: StateUnsigned::default(),
         };
 
         let actual = to_json_value(&name_event).unwrap();
@@ -73,11 +72,14 @@ mod tests {
             content: RoomNameEventContent { name: "The room name".try_into().ok() },
             event_id: event_id!("$h29iv0s8:example.com").to_owned(),
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-            prev_content: Some(RoomNameEventContent { name: "The old name".try_into().ok() }),
             room_id: room_id!("!n8f893n9:example.com").to_owned(),
             sender: user_id!("@carl:example.com").to_owned(),
             state_key: "".into(),
-            unsigned: Unsigned { age: Some(int!(100)), ..Unsigned::default() },
+            unsigned: StateUnsigned {
+                age: Some(int!(100)),
+                prev_content: Some(RoomNameEventContent { name: "The old name".try_into().ok() }),
+                ..StateUnsigned::default()
+            },
         };
 
         let actual = to_json_value(&name_event).unwrap();
@@ -87,13 +89,13 @@ mod tests {
             },
             "event_id": "$h29iv0s8:example.com",
             "origin_server_ts": 1,
-            "prev_content": { "name": "The old name" },
             "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
             "state_key": "",
             "type": "m.room.name",
             "unsigned": {
-                "age": 100
+                "age": 100,
+                "prev_content": { "name": "The old name" },
             }
         });
 

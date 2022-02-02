@@ -387,7 +387,12 @@ impl RoomMemberEvent {
     ///
     /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
     pub fn membership_change(&self) -> MembershipChange {
-        membership_change(&self.content, self.prev_content.as_ref(), &self.sender, &self.state_key)
+        membership_change(
+            &self.content,
+            self.unsigned.prev_content.as_ref(),
+            &self.sender,
+            &self.state_key,
+        )
     }
 }
 
@@ -398,7 +403,12 @@ impl SyncStateEvent<RoomMemberEventContent> {
     ///
     /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
     pub fn membership_change(&self) -> MembershipChange {
-        membership_change(&self.content, self.prev_content.as_ref(), &self.sender, &self.state_key)
+        membership_change(
+            &self.content,
+            self.unsigned.prev_content.as_ref(),
+            &self.sender,
+            &self.state_key,
+        )
     }
 }
 
@@ -422,7 +432,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json};
 
     use super::{MembershipState, RoomMemberEventContent, SignedContent, ThirdPartyInvite};
-    use crate::events::StateEvent;
+    use crate::events::{StateEvent, StateUnsigned};
 
     #[test]
     fn serde_with_no_prev_content() {
@@ -455,7 +465,6 @@ mod tests {
                 sender,
                 state_key,
                 unsigned,
-                prev_content: None,
             } if event_id == "$h29iv0s8:example.com"
                 && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
                 && room_id == "!n8f893n9:example.com"
@@ -474,12 +483,14 @@ mod tests {
             },
             "event_id": "$h29iv0s8:example.com",
             "origin_server_ts": 1,
-            "prev_content": {
-                "membership": "join"
-            },
             "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
-            "state_key": "example.com"
+            "state_key": "example.com",
+            "unsigned": {
+                "prev_content": {
+                    "membership": "join"
+                },
+            },
         });
 
         assert_matches!(
@@ -498,21 +509,22 @@ mod tests {
                 room_id,
                 sender,
                 state_key,
-                unsigned,
-                prev_content: Some(RoomMemberEventContent {
-                    avatar_url: None,
-                    displayname: None,
-                    is_direct: None,
-                    membership: MembershipState::Join,
-                    third_party_invite: None,
+                unsigned: StateUnsigned {
+                    prev_content: Some(RoomMemberEventContent {
+                        avatar_url: None,
+                        displayname: None,
+                        is_direct: None,
+                        membership: MembershipState::Join,
+                        third_party_invite: None,
+                        ..
+                    }),
                     ..
-                }),
+                },
             } if event_id == "$h29iv0s8:example.com"
                 && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
                 && room_id == "!n8f893n9:example.com"
                 && sender == "@carl:example.com"
                 && state_key == "example.com"
-                && unsigned.is_empty()
         );
     }
 
@@ -565,7 +577,6 @@ mod tests {
                 sender,
                 state_key,
                 unsigned,
-                prev_content: None,
             } if avatar_url == "mxc://example.org/SEsfnsuifSDFSSEF"
                 && displayname == "Alice Margatroid"
                 && third_party_displayname == "alice"
@@ -590,31 +601,33 @@ mod tests {
         let json = json!({
             "type": "m.room.member",
             "content": {
-                "membership": "join"
+                "membership": "join",
             },
             "event_id": "$143273582443PhrSn:example.org",
             "origin_server_ts": 233,
-            "prev_content": {
-                "avatar_url": "mxc://example.org/SEsfnsuifSDFSSEF",
-                "displayname": "Alice Margatroid",
-                "is_direct": true,
-                "membership": "invite",
-                "third_party_invite": {
-                    "display_name": "alice",
-                    "signed": {
-                        "mxid": "@alice:example.org",
-                        "signatures": {
-                            "magic.forest": {
-                                "ed25519:3": "foobar"
-                            }
-                        },
-                        "token": "abc123"
-                    }
-                }
-            },
             "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
             "sender": "@alice:example.org",
-            "state_key": "@alice:example.org"
+            "state_key": "@alice:example.org",
+            "unsigned": {
+                "prev_content": {
+                    "avatar_url": "mxc://example.org/SEsfnsuifSDFSSEF",
+                    "displayname": "Alice Margatroid",
+                    "is_direct": true,
+                    "membership": "invite",
+                    "third_party_invite": {
+                        "display_name": "alice",
+                        "signed": {
+                            "mxid": "@alice:example.org",
+                            "signatures": {
+                                "magic.forest": {
+                                    "ed25519:3": "foobar",
+                                },
+                            },
+                            "token": "abc123"
+                        },
+                    },
+                },
+            },
         });
 
         assert_matches!(
@@ -633,99 +646,26 @@ mod tests {
                 room_id,
                 sender,
                 state_key,
-                unsigned,
-                prev_content: Some(RoomMemberEventContent {
-                    avatar_url: Some(avatar_url),
-                    displayname: Some(displayname),
-                    is_direct: Some(true),
-                    membership: MembershipState::Invite,
-                    third_party_invite: Some(ThirdPartyInvite {
-                        display_name: third_party_displayname,
-                        signed: SignedContent { mxid, signatures, token },
+                unsigned: StateUnsigned {
+                    prev_content: Some(RoomMemberEventContent {
+                        avatar_url: Some(avatar_url),
+                        displayname: Some(displayname),
+                        is_direct: Some(true),
+                        membership: MembershipState::Invite,
+                        third_party_invite: Some(ThirdPartyInvite {
+                            display_name: third_party_displayname,
+                            signed: SignedContent { mxid, signatures, token },
+                        }),
+                        ..
                     }),
                     ..
-                }),
+                },
             } if event_id == "$143273582443PhrSn:example.org"
                 && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(233))
                 && room_id == "!jEsUZKDJdhlrceRyVU:example.org"
                 && sender == "@alice:example.org"
                 && state_key == "@alice:example.org"
-                && unsigned.is_empty()
                 && avatar_url == "mxc://example.org/SEsfnsuifSDFSSEF"
-                && displayname == "Alice Margatroid"
-                && third_party_displayname == "alice"
-                && mxid == "@alice:example.org"
-                && signatures == btreemap! {
-                    server_name!("magic.forest").to_owned() => btreemap! {
-                        server_signing_key_id!("ed25519:3").to_owned() => "foobar".to_owned()
-                    }
-                }
-                && token == "abc123"
-        );
-
-        #[cfg(feature = "compat")]
-        assert_matches!(
-            from_json_value::<StateEvent<RoomMemberEventContent>>(json!({
-                "type": "m.room.member",
-                "content": {
-                    "membership": "join"
-                },
-                "event_id": "$143273582443PhrSn:example.org",
-                "origin_server_ts": 233,
-                "prev_content": {
-                    "avatar_url": "",
-                    "displayname": "Alice Margatroid",
-                    "is_direct": true,
-                    "membership": "invite",
-                    "third_party_invite": {
-                        "display_name": "alice",
-                        "signed": {
-                            "mxid": "@alice:example.org",
-                            "signatures": {
-                                "magic.forest": {
-                                    "ed25519:3": "foobar"
-                                }
-                            },
-                            "token": "abc123"
-                        }
-                    }
-                },
-                "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
-                "sender": "@alice:example.org",
-                "state_key": "@alice:example.org"
-            })).unwrap(),
-            StateEvent {
-                content: RoomMemberEventContent {
-                    avatar_url: None,
-                    displayname: None,
-                    is_direct: None,
-                    membership: MembershipState::Join,
-                    third_party_invite: None,
-                    ..
-                },
-                event_id,
-                origin_server_ts,
-                room_id,
-                sender,
-                state_key,
-                unsigned,
-                prev_content: Some(RoomMemberEventContent {
-                    avatar_url: None,
-                    displayname: Some(displayname),
-                    is_direct: Some(true),
-                    membership: MembershipState::Invite,
-                    third_party_invite: Some(ThirdPartyInvite {
-                        display_name: third_party_displayname,
-                        signed: SignedContent { mxid, signatures, token },
-                    }),
-                    ..
-                }),
-            } if event_id == "$143273582443PhrSn:example.org"
-                && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(233))
-                && room_id == "!jEsUZKDJdhlrceRyVU:example.org"
-                && sender == "@alice:example.org"
-                && state_key == "@alice:example.org"
-                && unsigned.is_empty()
                 && displayname == "Alice Margatroid"
                 && third_party_displayname == "alice"
                 && mxid == "@alice:example.org"
@@ -771,7 +711,6 @@ mod tests {
                 sender,
                 state_key,
                 unsigned,
-                prev_content: None,
             } if event_id == "$h29iv0s8:example.com"
                 && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
                 && room_id == "!n8f893n9:example.com"

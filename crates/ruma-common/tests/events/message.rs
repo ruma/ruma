@@ -10,7 +10,7 @@ use ruma_common::{
         message::MessageEventContent,
         notice::NoticeEventContent,
         room::message::{InReplyTo, Relation},
-        AnyMessageLikeEvent, MessageLikeEvent, Unsigned,
+        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned,
     },
     room_id, user_id, MilliSecondsSinceUnixEpoch,
 };
@@ -114,7 +114,7 @@ fn message_event_serialization() {
         sender: user_id!("@user:notareal.hs").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
         room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: Unsigned::default(),
+        unsigned: MessageLikeUnsigned::default(),
     };
 
     assert_eq!(
@@ -232,7 +232,7 @@ fn notice_event_serialization() {
         sender: user_id!("@user:notareal.hs").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
         room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: Unsigned::default(),
+        unsigned: MessageLikeUnsigned::default(),
     };
 
     assert_eq!(
@@ -299,7 +299,7 @@ fn emote_event_serialization() {
         sender: user_id!("@user:notareal.hs").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
         room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: Unsigned::default(),
+        unsigned: MessageLikeUnsigned::default(),
     };
 
     assert_eq!(

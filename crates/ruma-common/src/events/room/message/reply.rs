@@ -299,7 +299,9 @@ fn formatted_or_plain_body<'a>(formatted: &'a Option<FormattedBody>, body: &'a s
 
 #[cfg(test)]
 mod tests {
-    use crate::{event_id, room_id, user_id};
+    use crate::{
+        event_id, events::MessageLikeUnsigned, room_id, user_id, MilliSecondsSinceUnixEpoch,
+    };
 
     use super::{RoomMessageEvent, RoomMessageEventContent};
 
@@ -310,9 +312,9 @@ mod tests {
                 content: RoomMessageEventContent::text_plain("multi\nline"),
                 event_id: event_id!("$1598361704261elfgc:localhost").to_owned(),
                 sender: user_id!("@alice:example.com").to_owned(),
-                origin_server_ts: crate::MilliSecondsSinceUnixEpoch::now(),
+                origin_server_ts: MilliSecondsSinceUnixEpoch::now(),
                 room_id: room_id!("!n8f893n9:example.com").to_owned(),
-                unsigned: crate::events::Unsigned::new(),
+                unsigned: MessageLikeUnsigned::new(),
             }),
             "> <@alice:example.com> multi\n> line"
         );
