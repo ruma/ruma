@@ -5,8 +5,7 @@
 use ruma_events_macros::EventContent;
 #[cfg(feature = "unstable-spec")]
 use ruma_identifiers::RoomId;
-#[cfg(feature = "unstable-spec")]
-use serde::de::DeserializeOwned;
+use ruma_serde::from_raw_json_value;
 use serde::{
     de::{Deserializer, Error},
     Deserialize, Serialize,
@@ -113,11 +112,6 @@ impl<'de> Deserialize<'de> for JoinRule {
     where
         D: Deserializer<'de>,
     {
-        #[cfg(feature = "unstable-spec")]
-        fn from_raw_json_value<T: DeserializeOwned, E: Error>(raw: &RawJsonValue) -> Result<T, E> {
-            serde_json::from_str(raw.get()).map_err(E::custom)
-        }
-
         let json: Box<RawJsonValue> = Box::deserialize(deserializer)?;
 
         #[derive(Deserialize)]
@@ -215,10 +209,6 @@ impl<'de> Deserialize<'de> for AllowRule {
     where
         D: Deserializer<'de>,
     {
-        fn from_raw_json_value<T: DeserializeOwned, E: Error>(raw: &RawJsonValue) -> Result<T, E> {
-            serde_json::from_str(raw.get()).map_err(E::custom)
-        }
-
         let json: Box<RawJsonValue> = Box::deserialize(deserializer)?;
 
         // Extracts the `type` value.

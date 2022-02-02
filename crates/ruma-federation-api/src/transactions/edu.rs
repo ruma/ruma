@@ -6,9 +6,9 @@ use js_int::UInt;
 use ruma_common::{
     encryption::DeviceKeys, presence::PresenceState, to_device::DeviceIdOrAllDevices,
 };
-use ruma_events::{from_raw_json_value, receipt::Receipt, AnyToDeviceEventContent, EventType};
+use ruma_events::{receipt::Receipt, AnyToDeviceEventContent, EventType};
 use ruma_identifiers::{DeviceId, EventId, RoomId, TransactionId, UserId};
-use ruma_serde::Raw;
+use ruma_serde::{from_raw_json_value, Raw};
 use serde::{de, Deserialize, Serialize};
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 

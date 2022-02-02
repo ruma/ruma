@@ -11,7 +11,7 @@ use ruma_api::{
 };
 use ruma_common::thirdparty::Medium;
 use ruma_identifiers::{ClientSecret, SessionId, TransactionId};
-use ruma_serde::{JsonObject, Outgoing, StringEnum};
+use ruma_serde::{from_raw_json_value, JsonObject, Outgoing, StringEnum};
 use serde::{
     de::{self, DeserializeOwned},
     Deserialize, Deserializer, Serialize,
@@ -307,12 +307,6 @@ impl<'de> Deserialize<'de> for IncomingAuthData {
     where
         D: Deserializer<'de>,
     {
-        fn from_raw_json_value<T: DeserializeOwned, E: de::Error>(
-            raw: &RawJsonValue,
-        ) -> Result<T, E> {
-            serde_json::from_str(raw.get()).map_err(E::custom)
-        }
-
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
 
         #[derive(Deserialize)]

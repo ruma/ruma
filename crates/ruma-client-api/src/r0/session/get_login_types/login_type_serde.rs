@@ -1,7 +1,6 @@
+use ruma_serde::from_raw_json_value;
 use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
-
-use ruma_events::from_raw_json_value;
 
 use super::LoginType;
 

@@ -119,10 +119,7 @@ use std::fmt::Debug;
 
 use ruma_identifiers::{EventEncryptionAlgorithm, RoomVersionId};
 use ruma_serde::Raw;
-use serde::{
-    de::{self, IgnoredAny},
-    Deserialize, Serialize, Serializer,
-};
+use serde::{de::IgnoredAny, Deserialize, Serialize, Serializer};
 use serde_json::value::RawValue as RawJsonValue;
 
 use self::room::redaction::SyncRoomRedactionEvent;
@@ -387,16 +384,6 @@ pub struct RedactionDeHelper {
 pub struct UnsignedDeHelper {
     /// This is the field that signals an event has been redacted.
     pub redacted_because: Option<IgnoredAny>,
-}
-
-/// Helper function for `serde_json::value::RawValue` deserialization.
-#[doc(hidden)]
-pub fn from_raw_json_value<'a, T, E>(val: &'a RawJsonValue) -> Result<T, E>
-where
-    T: Deserialize<'a>,
-    E: de::Error,
-{
-    serde_json::from_str(val.get()).map_err(E::custom)
 }
 
 // Wrapper around `Box<str>` that cannot be used in a meaningful way outside of

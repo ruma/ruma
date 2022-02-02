@@ -4,7 +4,8 @@
 
 #![warn(missing_docs)]
 
-use serde_json::Value as JsonValue;
+use serde::{de, Deserialize};
+use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
 pub mod base64;
 mod buf;
@@ -59,6 +60,15 @@ pub fn default_true() -> bool {
 #[allow(clippy::trivially_copy_pass_by_ref)]
 pub fn is_true(b: &bool) -> bool {
     *b
+}
+
+/// Helper function for `serde_json::value::RawValue` deserialization.
+pub fn from_raw_json_value<'a, T, E>(val: &'a RawJsonValue) -> Result<T, E>
+where
+    T: Deserialize<'a>,
+    E: de::Error,
+{
+    serde_json::from_str(val.get()).map_err(E::custom)
 }
 
 /// A type that can be sent to another party that understands the matrix protocol.
