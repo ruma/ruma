@@ -93,12 +93,7 @@ pub struct SignedKey {
 impl SignedKey {
     /// Creates a new `SignedKey` with the given key and signatures.
     pub fn new(key: Base64, signatures: SignedKeySignatures) -> Self {
-        Self {
-            key,
-            signatures,
-            #[cfg(feature = "unstable-pre-spec")]
-            fallback: false,
-        }
+        Self { key, signatures, fallback: false }
     }
 
     /// Creates a new fallback `SignedKey` with the given key and signatures.
