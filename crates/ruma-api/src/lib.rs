@@ -18,7 +18,11 @@
 #[cfg(not(all(feature = "client", feature = "server")))]
 compile_error!("ruma_api's Cargo features only exist as a workaround are not meant to be disabled");
 
-use std::{convert::TryInto as _, error::Error as StdError};
+use std::{
+    convert::TryInto,
+    error::Error as StdError,
+    fmt::{self, Display},
+};
 
 use bytes::BufMut;
 use http::Method;
@@ -420,4 +424,130 @@ pub struct Metadata {
 
     /// What authentication scheme the server uses for this endpoint.
     pub authentication: AuthScheme,
+}
+
+/// The matrix versions ruma currently understands to exist.
+///
+/// Matrix, since fall 2021, has a quarterly release schedule, using a global `vX.Y` versioning
+/// scheme.
+///
+/// Every new minor version denotes stable support for endpoints in a *relatively*
+/// backwards-compatible manner.
+///
+/// Matrix has a deprecation policy, read more about it here; https://spec.matrix.org/v1.2/#deprecation-policy
+// TODO add the following once `EndpointPath` and added/deprecated/removed macros are in place;
+// Ruma keeps track of when endpoints are added, deprecated, and removed. It'll automatically
+// select the right endpoint stability variation to use depending on which matrix version you pass
+// it with [`EndpointPath`], see its respective documentation for more.
+#[derive(PartialEq, Eq, Hash, Debug)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub enum MatrixVersion {
+    /// Version 1.0 of the matrix specification
+    ///
+    /// Retroactively defined as https://spec.matrix.org/v1.1/#legacy-versioning
+    V1_0,
+
+    /// Version 1.1 of the matrix specification.
+    ///
+    /// See https://spec.matrix.org/v1.1/
+    V1_1,
+
+    /// Version 1.2 of the matrix specification.
+    ///
+    /// See https://spec.matrix.org/v1.2/
+    V1_2,
+}
+
+/// An error that happens when ruma cannot understand a matrix version.
+#[derive(Debug)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct UnknownVersionError;
+
+impl Display for UnknownVersionError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Version string was unknown.")
+    }
+}
+
+impl StdError for UnknownVersionError {}
+
+impl TryInto<MatrixVersion> for &str {
+    type Error = UnknownVersionError;
+
+    fn try_into(self) -> Result<MatrixVersion, Self::Error> {
+        use MatrixVersion::*;
+
+        Ok(match self {
+            // FIXME: these are likely not entirely correct; https://github.com/ruma/ruma/issues/852
+            "v1.0" |
+            // Additional definitions according to https://spec.matrix.org/v1.2/#legacy-versioning
+            "r0.5.0" | "r0.6.0" | "r0.6.1" => V1_0,
+            "v1.1" => V1_1,
+            "v1.2" => V1_2,
+            _ => return Err(UnknownVersionError),
+        })
+    }
+}
+
+impl Display for MatrixVersion {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let r = self.repr();
+
+        f.write_str(&format!("v{}.{}", r.major, r.minor))
+    }
+}
+
+// Internal-only structure to abstract away version representations into Major-Minor bits.
+//
+// This is not represented on MatrixVersion due to the major footguns it exposes,
+// maybe in the future this'll be merged into it, but not now.
+#[derive(PartialEq)]
+struct VersionRepr {
+    major: u8,
+    minor: u8,
+}
+
+impl VersionRepr {
+    fn new(major: u8, minor: u8) -> Self {
+        VersionRepr { major, minor }
+    }
+}
+
+// We don't expose this on MatrixVersion due to the subtleties of non-total ordering semantics
+// the matrix versions have; we cannot guarantee ordering between major versions, and only between
+// minor versions of the same major one.
+//
+// This means that V2_0 > V1_0 returns false, and V2_0 < V1_0 too.
+//
+// This sort of behavior has to be pre-emptively known by the programmer, which is the definition of
+// a gotcha/footgun.
+//
+// As such, we're not including it in the public API (only using it via `MatrixVersion::compatible`)
+// until we find a way to introduce it in a way that exposes the ambiguities to the programmer.
+impl PartialOrd for VersionRepr {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        if self.major != other.major {
+            // Ordering between major versions is non-total.
+            return None;
+        }
+        self.minor.partial_cmp(&other.minor)
+    }
+}
+
+impl MatrixVersion {
+    /// Checks wether a version is compatible with another.
+    ///
+    /// This (considering if major versions are the same) is equivalent to a <= check.
+    pub fn compatible(&self, with: &Self) -> bool {
+        self.repr() <= with.repr()
+    }
+
+    // Internal function to desugar the enum to a version repr
+    fn repr(&self) -> VersionRepr {
+        match self {
+            MatrixVersion::V1_0 => VersionRepr::new(1, 0),
+            MatrixVersion::V1_1 => VersionRepr::new(1, 1),
+            MatrixVersion::V1_2 => VersionRepr::new(1, 2),
+        }
+    }
 }
