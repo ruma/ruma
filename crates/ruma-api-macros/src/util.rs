@@ -31,7 +31,7 @@ pub fn is_valid_endpoint_path(string: &str) -> bool {
 }
 
 pub fn parse_matrix_version_from_literal_float(lf: &LitFloat) -> syn::Result<(u8, u8)> {
-    if lf.suffix().len() > 0 {
+    if lf.suffix().is_empty() {
         return Err(syn::Error::new_spanned(
             lf,
             "matrix version variable contained invalid float suffix",

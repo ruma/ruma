@@ -117,11 +117,13 @@ impl Parse for Metadata {
         let missing_field =
             |name| syn::Error::new_spanned(metadata_kw, format!("missing field `{}`", name));
 
-        if deprecated.is_some() && added.is_none() {
-            return Err(syn::Error::new_spanned(
-                deprecated.unwrap(),
-                "deprecated version is defined while added version is not defined",
-            ));
+        if let Some(deprecated) = &deprecated {
+            if added.is_none() {
+                return Err(syn::Error::new_spanned(
+                    deprecated,
+                    "deprecated version is defined while added version is not defined",
+                ));
+            }
         }
 
         // note: It is possible that matrix will remove endpoints in a single version, while not
@@ -130,11 +132,13 @@ impl Parse for Metadata {
         // removal one.
         //
         // If matrix does so anyways, we can just alter this.
-        if removed.is_some() && deprecated.is_none() {
-            return Err(syn::Error::new_spanned(
-                deprecated.unwrap(),
-                "removed version is defined while deprecated version is not defined",
-            ));
+        if let Some(removed) = &removed {
+            if deprecated.is_none() {
+                return Err(syn::Error::new_spanned(
+                    removed,
+                    "removed version is defined while deprecated version is not defined",
+                ));
+            }
         }
 
         Ok(Self {
