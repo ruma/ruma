@@ -424,6 +424,25 @@ pub struct Metadata {
 
     /// What authentication scheme the server uses for this endpoint.
     pub authentication: AuthScheme,
+
+    /// The matrix version that this endpoint was added in.
+    ///
+    /// Is None when this endpoint is unstable/unreleased.
+    pub added: Option<MatrixVersion>,
+
+    /// The matrix version that deprecated this endpoint.
+    ///
+    /// Deprecation often precedes one matrix version before removal.
+    // TODO add once try_into_http_request has been altered;
+    // This will make `try_into_http_request` emit a warning,
+    // see the corresponding documentation for more information.
+    pub deprecated: Option<MatrixVersion>,
+
+    /// The matrix version that removed this endpoint.
+    // TODO add once try_into_http_request has been altered;
+    // This will make `try_into_http_request` emit an error,
+    // see the corresponding documentation for more information.
+    pub removed: Option<MatrixVersion>,
 }
 
 /// The Matrix versions Ruma currently understands to exist.

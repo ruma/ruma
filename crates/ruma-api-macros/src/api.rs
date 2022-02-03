@@ -5,7 +5,7 @@ use quote::quote;
 use syn::{
     braced,
     parse::{Parse, ParseStream},
-    Attribute, Field, Token, Type,
+    Attribute, Field, LitFloat, Token, Type,
 };
 
 mod metadata;
@@ -73,6 +73,9 @@ impl Api {
                 }
             })
             .collect();
+        let added = map_matrix_version(&self.metadata.added);
+        let deprecated = map_matrix_version(&self.metadata.deprecated);
+        let removed = map_matrix_version(&self.metadata.removed);
 
         let error_ty = self
             .error_ty
@@ -90,6 +93,9 @@ impl Api {
                 method: #http::Method::#method,
                 name: #name,
                 path: #path,
+                added: #added,
+                deprecated: #deprecated,
+                removed: #removed,
                 #rate_limited
                 #authentication
             };
@@ -140,6 +146,16 @@ impl Parse for Api {
             .transpose()?;
 
         Ok(Self { metadata, request, response, error_ty })
+    }
+}
+
+fn map_matrix_version(lt: &Option<LitFloat>) -> TokenStream {
+    match lt {
+        Some(lt) => {
+            let ver = util::matrix_version_to_tokenstream(lt).expect("token stream to be valid");
+            quote! { Some(#ver) }
+        }
+        None => quote! { None },
     }
 }
 

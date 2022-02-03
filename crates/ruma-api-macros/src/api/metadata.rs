@@ -4,7 +4,7 @@ use quote::ToTokens;
 use syn::{
     braced,
     parse::{Parse, ParseStream},
-    Attribute, Ident, LitBool, LitStr, Token,
+    Attribute, Ident, LitBool, LitFloat, LitStr, Token,
 };
 
 use crate::{auth_scheme::AuthScheme, util};
@@ -17,6 +17,9 @@ mod kw {
     syn::custom_keyword!(path);
     syn::custom_keyword!(rate_limited);
     syn::custom_keyword!(authentication);
+    syn::custom_keyword!(added);
+    syn::custom_keyword!(deprecated);
+    syn::custom_keyword!(removed);
 }
 
 /// A field of Metadata that contains attribute macros
@@ -47,6 +50,15 @@ pub struct Metadata {
 
     /// The authentication field.
     pub authentication: Vec<MetadataField<AuthScheme>>,
+
+    /// The added field.
+    pub added: Option<LitFloat>,
+
+    /// The deprecated field.
+    pub deprecated: Option<LitFloat>,
+
+    /// The removed field.
+    pub removed: Option<LitFloat>,
 }
 
 fn set_field<T: ToTokens>(field: &mut Option<T>, value: T) -> syn::Result<()> {
@@ -80,6 +92,9 @@ impl Parse for Metadata {
         let mut path = None;
         let mut rate_limited = vec![];
         let mut authentication = vec![];
+        let mut added = None;
+        let mut deprecated = None;
+        let mut removed = None;
 
         for field_value in field_values {
             match field_value {
@@ -93,11 +108,34 @@ impl Parse for Metadata {
                 FieldValue::Authentication(value, attrs) => {
                     authentication.push(MetadataField { attrs, value });
                 }
+                FieldValue::Added(v) => set_field(&mut added, v)?,
+                FieldValue::Deprecated(v) => set_field(&mut deprecated, v)?,
+                FieldValue::Removed(v) => set_field(&mut removed, v)?,
             }
         }
 
         let missing_field =
             |name| syn::Error::new_spanned(metadata_kw, format!("missing field `{}`", name));
+
+        if deprecated.is_some() && added.is_none() {
+            return Err(syn::Error::new_spanned(
+                deprecated.unwrap(),
+                "deprecated version is defined while added version is not defined",
+            ));
+        }
+
+        // note: It is possible that matrix will remove endpoints in a single version, while not
+        // having a deprecation version inbetween, but that would not be allowed by their own
+        // deprecation policy, so lets just assume there's always a deprecation version before a
+        // removal one.
+        //
+        // If matrix does so anyways, we can just alter this.
+        if removed.is_some() && deprecated.is_none() {
+            return Err(syn::Error::new_spanned(
+                deprecated.unwrap(),
+                "removed version is defined while deprecated version is not defined",
+            ));
+        }
 
         Ok(Self {
             description: description.ok_or_else(|| missing_field("description"))?,
@@ -114,6 +152,9 @@ impl Parse for Metadata {
             } else {
                 authentication
             },
+            added,
+            deprecated,
+            removed,
         })
     }
 }
@@ -125,32 +166,43 @@ enum Field {
     Path,
     RateLimited,
     Authentication,
+    Added,
+    Deprecated,
+    Removed,
+}
+
+macro_rules! map_kw {
+    ($input:ident, $kw:path => $el:expr, $($next_kw:path => $next_el:expr,)*) => {
+        let lookahead = $input.lookahead1();
+
+        if lookahead.peek($kw) {
+            let _: $kw = $input.parse()?;
+            Ok($el)
+        }
+        $(
+            else if lookahead.peek($next_kw) {
+                let _: $next_kw = $input.parse()?;
+                Ok($next_el)
+            }
+        )*
+        else {
+            Err(lookahead.error())
+        }
+    };
 }
 
 impl Parse for Field {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let lookahead = input.lookahead1();
-
-        if lookahead.peek(kw::description) {
-            let _: kw::description = input.parse()?;
-            Ok(Self::Description)
-        } else if lookahead.peek(kw::method) {
-            let _: kw::method = input.parse()?;
-            Ok(Self::Method)
-        } else if lookahead.peek(kw::name) {
-            let _: kw::name = input.parse()?;
-            Ok(Self::Name)
-        } else if lookahead.peek(kw::path) {
-            let _: kw::path = input.parse()?;
-            Ok(Self::Path)
-        } else if lookahead.peek(kw::rate_limited) {
-            let _: kw::rate_limited = input.parse()?;
-            Ok(Self::RateLimited)
-        } else if lookahead.peek(kw::authentication) {
-            let _: kw::authentication = input.parse()?;
-            Ok(Self::Authentication)
-        } else {
-            Err(lookahead.error())
+        map_kw! { input,
+            kw::description => Self::Description,
+            kw::method => Self::Method,
+            kw::name => Self::Name,
+            kw::path => Self::Path,
+            kw::rate_limited => Self::RateLimited,
+            kw::authentication => Self::Authentication,
+            kw::added => Self::Added,
+            kw::deprecated => Self::Deprecated,
+            kw::removed => Self::Removed,
         }
     }
 }
@@ -162,6 +214,9 @@ enum FieldValue {
     Path(LitStr),
     RateLimited(LitBool, Vec<Attribute>),
     Authentication(AuthScheme, Vec<Attribute>),
+    Added(LitFloat),
+    Deprecated(LitFloat),
+    Removed(LitFloat),
 }
 
 impl Parse for FieldValue {
@@ -177,6 +232,14 @@ impl Parse for FieldValue {
         }
         let field: Field = input.parse()?;
         let _: Token![:] = input.parse()?;
+
+        fn valid_version(input: ParseStream<'_>) -> syn::Result<LitFloat> {
+            let ver: LitFloat = input.parse()?;
+
+            let _ = util::parse_matrix_version_from_literal_float(&ver)?;
+
+            Ok(ver)
+        }
 
         Ok(match field {
             Field::Description => Self::Description(input.parse()?),
@@ -196,6 +259,9 @@ impl Parse for FieldValue {
             }
             Field::RateLimited => Self::RateLimited(input.parse()?, attrs),
             Field::Authentication => Self::Authentication(input.parse()?, attrs),
+            Field::Added => Self::Added(valid_version(input)?),
+            Field::Deprecated => Self::Deprecated(valid_version(input)?),
+            Field::Removed => Self::Removed(valid_version(input)?),
         })
     }
 }
