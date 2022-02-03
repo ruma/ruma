@@ -1,6 +1,6 @@
 use ruma_api::ruma_api;
-use ruma_serde::Raw;
 use ruma_events::{tag::TagEvent, AnyRoomEvent};
+use ruma_serde::Raw;
 
 ruma_api! {
     metadata: {
@@ -10,6 +10,9 @@ ruma_api! {
         path: "/_matrix/some/endpoint/:baz",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
+        deprecated: 1.1,
+        removed: 1.2,
     }
 
     request: {

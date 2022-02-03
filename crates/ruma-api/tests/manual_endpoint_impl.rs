@@ -31,6 +31,9 @@ const METADATA: Metadata = Metadata {
     path: "/_matrix/client/r0/directory/room/:room_alias",
     rate_limited: false,
     authentication: AuthScheme::None,
+    added: None,
+    deprecated: None,
+    removed: None,
 };
 
 impl OutgoingRequest for Request {

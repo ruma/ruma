@@ -61,7 +61,7 @@ pub fn parse_matrix_version_from_literal_float(lf: &LitFloat) -> syn::Result<(u8
 pub fn matrix_version_to_tokenstream(lt: &LitFloat) -> Option<TokenStream> {
     let (maj, min) = parse_matrix_version_from_literal_float(lt).ok()?;
 
-    TokenStream::from_str(&format!("MatrixVersion::V{}_{}", maj, min)).ok()
+    TokenStream::from_str(&format!("::ruma_api::MatrixVersion::V{}_{}", maj, min)).ok()
 }
 
 pub fn collect_lifetime_idents(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
