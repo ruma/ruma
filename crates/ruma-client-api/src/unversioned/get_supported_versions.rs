@@ -1,9 +1,6 @@
 //! [GET /_matrix/client/versions](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-versions)
 
-use std::{
-    collections::{BTreeMap, HashSet},
-    convert::TryInto as _,
-};
+use std::{collections::BTreeMap, convert::TryInto as _};
 
 use ruma_api::{ruma_api, MatrixVersion};
 
@@ -49,12 +46,14 @@ impl Response {
     ///
     /// Matrix versions that ruma cannot parse, or does not know about, are discarded.
     pub fn known_versions(&self) -> Vec<MatrixVersion> {
-        let mut set = HashSet::<MatrixVersion>::new();
+        let mut versions = vec![];
         for s in &self.versions {
             if let Ok(ver) = s.as_str().try_into() {
-                set.insert(ver);
+                if !versions.contains(&ver) {
+                    versions.push(ver)
+                }
             }
         }
-        set.into_iter().collect()
+        versions
     }
 }
