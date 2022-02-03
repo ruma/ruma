@@ -439,7 +439,7 @@ pub struct Metadata {
 // Ruma keeps track of when endpoints are added, deprecated, and removed. It'll automatically
 // select the right endpoint stability variation to use depending on which matrix version you pass
 // it with [`EndpointPath`], see its respective documentation for more.
-#[derive(PartialEq, Eq, Hash, Debug)]
+#[derive(PartialEq, Eq, Hash, Debug, Clone)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum MatrixVersion {
     /// Version 1.0 of the matrix specification
