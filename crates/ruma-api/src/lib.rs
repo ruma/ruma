@@ -434,12 +434,12 @@ pub struct Metadata {
 /// Every new minor version denotes stable support for endpoints in a *relatively*
 /// backwards-compatible manner.
 ///
-/// Matrix has a deprecation policy, read more about it here; https://spec.matrix.org/v1.2/#deprecation-policy
+/// Matrix has a deprecation policy, read more about it here: <https://spec.matrix.org/v1.2/#deprecation-policy>.
 // TODO add the following once `EndpointPath` and added/deprecated/removed macros are in place;
 // Ruma keeps track of when endpoints are added, deprecated, and removed. It'll automatically
 // select the right endpoint stability variation to use depending on which matrix version you pass
 // it with [`EndpointPath`], see its respective documentation for more.
-#[derive(PartialEq, Eq, Hash, Debug, Clone)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum MatrixVersion {
     /// Version 1.0 of the matrix specification
