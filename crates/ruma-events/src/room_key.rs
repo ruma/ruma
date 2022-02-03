@@ -6,6 +6,8 @@ use ruma_events_macros::EventContent;
 use ruma_identifiers::{EventEncryptionAlgorithm, RoomId};
 use serde::{Deserialize, Serialize};
 
+pub mod withheld;
+
 /// The content of an `m.room_key` event.
 ///
 /// Typically encrypted as an `m.room.encrypted` event, then sent as a to-device event.
