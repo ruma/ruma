@@ -442,17 +442,17 @@ pub struct Metadata {
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum MatrixVersion {
-    /// Version 1.0 of the Matrix specification
+    /// Version 1.0 of the Matrix specification.
     ///
     /// Retroactively defined as <https://spec.matrix.org/v1.1/#legacy-versioning>.
     V1_0,
 
-    /// Version 1.1 of the Matrix specification.
+    /// Version 1.1 of the Matrix specification, released in Q4 2021.
     ///
     /// See <https://spec.matrix.org/v1.1/>.
     V1_1,
 
-    /// Version 1.2 of the Matrix specification.
+    /// Version 1.2 of the Matrix specification, released in Q1 2022.
     ///
     /// See <https://spec.matrix.org/v1.2/>.
     V1_2,
