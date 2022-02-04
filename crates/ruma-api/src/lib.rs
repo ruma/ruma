@@ -549,8 +549,8 @@ impl MatrixVersion {
     /// differences, and versions too new for `self`.
     ///
     /// This (considering if major versions are the same) is equivalent to a `self >= other` check.
-    pub fn is_superset_version_of(&self, other: &Self) -> bool {
-        self.repr() >= other.repr()
+    pub fn is_superset_version_of(&self, other: impl AsRef<Self>) -> bool {
+        self.repr() >= other.as_ref().repr()
     }
 
     // Internal function to desugar the enum to a version repr
