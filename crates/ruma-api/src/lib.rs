@@ -537,9 +537,20 @@ impl PartialOrd for VersionRepr {
 impl MatrixVersion {
     /// Checks wether a version is compatible with another.
     ///
-    /// This (considering if major versions are the same) is equivalent to a <= check.
-    pub fn compatible(&self, with: &Self) -> bool {
-        self.repr() <= with.repr()
+    /// A is compatible with B as long as B is equal or less, so long as A and B have the same major
+    /// versions.
+    ///
+    /// For example, v1.2 is compatible with v1.1, as it is likely only some additions of endpoints
+    /// on top of v1.1, but v1.1 would not be compatible with v1.2, as v1.1 cannot represent all of
+    /// v1.2, in a manner similar to set theory.
+    ///
+    /// Warning: Matrix has a deprecation policy, and Matrix versioning is not as straight-forward
+    /// as this function makes it out to be. This function only exists to prune major version
+    /// differences, and versions too new for `self`.
+    ///
+    /// This (considering if major versions are the same) is equivalent to a `self >= with` check.
+    pub fn is_superset_version_of(&self, other: &Self) -> bool {
+        self.repr() >= other.repr()
     }
 
     // Internal function to desugar the enum to a version repr
