@@ -175,38 +175,39 @@ enum Field {
     Removed,
 }
 
-macro_rules! map_kw {
-    ($input:ident, $kw:path => $el:expr, $($next_kw:path => $next_el:expr,)*) => {
-        let lookahead = $input.lookahead1();
-
-        if lookahead.peek($kw) {
-            let _: $kw = $input.parse()?;
-            Ok($el)
-        }
-        $(
-            else if lookahead.peek($next_kw) {
-                let _: $next_kw = $input.parse()?;
-                Ok($next_el)
-            }
-        )*
-        else {
-            Err(lookahead.error())
-        }
-    };
-}
-
 impl Parse for Field {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        map_kw! { input,
-            kw::description => Self::Description,
-            kw::method => Self::Method,
-            kw::name => Self::Name,
-            kw::path => Self::Path,
-            kw::rate_limited => Self::RateLimited,
-            kw::authentication => Self::Authentication,
-            kw::added => Self::Added,
-            kw::deprecated => Self::Deprecated,
-            kw::removed => Self::Removed,
+        let lookahead = input.lookahead1();
+
+        if lookahead.peek(kw::description) {
+            let _: kw::description = input.parse()?;
+            Ok(Self::Description)
+        } else if lookahead.peek(kw::method) {
+            let _: kw::method = input.parse()?;
+            Ok(Self::Method)
+        } else if lookahead.peek(kw::name) {
+            let _: kw::name = input.parse()?;
+            Ok(Self::Name)
+        } else if lookahead.peek(kw::path) {
+            let _: kw::path = input.parse()?;
+            Ok(Self::Path)
+        } else if lookahead.peek(kw::rate_limited) {
+            let _: kw::rate_limited = input.parse()?;
+            Ok(Self::RateLimited)
+        } else if lookahead.peek(kw::authentication) {
+            let _: kw::authentication = input.parse()?;
+            Ok(Self::Authentication)
+        } else if lookahead.peek(kw::added) {
+            let _: kw::added = input.parse()?;
+            Ok(Self::Added)
+        } else if lookahead.peek(kw::deprecated) {
+            let _: kw::deprecated = input.parse()?;
+            Ok(Self::Deprecated)
+        } else if lookahead.peek(kw::removed) {
+            let _: kw::removed = input.parse()?;
+            Ok(Self::Removed)
+        } else {
+            Err(lookahead.error())
         }
     }
 }
