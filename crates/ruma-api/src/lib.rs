@@ -19,7 +19,7 @@
 compile_error!("ruma_api's Cargo features only exist as a workaround are not meant to be disabled");
 
 use std::{
-    convert::TryInto,
+    convert::{TryFrom, TryInto as _},
     error::Error as StdError,
     fmt::{self, Display},
 };
@@ -426,7 +426,7 @@ pub struct Metadata {
     pub authentication: AuthScheme,
 }
 
-/// The matrix versions ruma currently understands to exist.
+/// The Matrix versions Ruma currently understands to exist.
 ///
 /// Matrix, since fall 2021, has a quarterly release schedule, using a global `vX.Y` versioning
 /// scheme.
@@ -437,28 +437,28 @@ pub struct Metadata {
 /// Matrix has a deprecation policy, read more about it here: <https://spec.matrix.org/v1.2/#deprecation-policy>.
 // TODO add the following once `EndpointPath` and added/deprecated/removed macros are in place;
 // Ruma keeps track of when endpoints are added, deprecated, and removed. It'll automatically
-// select the right endpoint stability variation to use depending on which matrix version you pass
+// select the right endpoint stability variation to use depending on which Matrix version you pass
 // it with [`EndpointPath`], see its respective documentation for more.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum MatrixVersion {
-    /// Version 1.0 of the matrix specification
+    /// Version 1.0 of the Matrix specification
     ///
-    /// Retroactively defined as https://spec.matrix.org/v1.1/#legacy-versioning
+    /// Retroactively defined as <https://spec.matrix.org/v1.1/#legacy-versioning>.
     V1_0,
 
-    /// Version 1.1 of the matrix specification.
+    /// Version 1.1 of the Matrix specification.
     ///
-    /// See https://spec.matrix.org/v1.1/
+    /// See <https://spec.matrix.org/v1.1/>.
     V1_1,
 
-    /// Version 1.2 of the matrix specification.
+    /// Version 1.2 of the Matrix specification.
     ///
-    /// See https://spec.matrix.org/v1.2/
+    /// See <https://spec.matrix.org/v1.2/>.
     V1_2,
 }
 
-/// An error that happens when ruma cannot understand a matrix version.
+/// An error that happens when Ruma cannot understand a Matrix version.
 #[derive(Debug)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct UnknownVersionError;
@@ -471,13 +471,13 @@ impl Display for UnknownVersionError {
 
 impl StdError for UnknownVersionError {}
 
-impl TryInto<MatrixVersion> for &str {
+impl TryFrom<&str> for MatrixVersion {
     type Error = UnknownVersionError;
 
-    fn try_into(self) -> Result<MatrixVersion, Self::Error> {
+    fn try_from(value: &str) -> Result<MatrixVersion, Self::Error> {
         use MatrixVersion::*;
 
-        Ok(match self {
+        Ok(match value {
             // FIXME: these are likely not entirely correct; https://github.com/ruma/ruma/issues/852
             "v1.0" |
             // Additional definitions according to https://spec.matrix.org/v1.2/#legacy-versioning
@@ -514,7 +514,7 @@ impl VersionRepr {
 }
 
 // We don't expose this on MatrixVersion due to the subtleties of non-total ordering semantics
-// the matrix versions have; we cannot guarantee ordering between major versions, and only between
+// the Matrix versions have; we cannot guarantee ordering between major versions, and only between
 // minor versions of the same major one.
 //
 // This means that V2_0 > V1_0 returns false, and V2_0 < V1_0 too.
