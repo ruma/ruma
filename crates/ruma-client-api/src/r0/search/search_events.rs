@@ -87,8 +87,8 @@ pub struct Criteria<'a> {
     pub keys: Option<&'a [SearchKeys]>,
 
     /// A `Filter` to apply to the search.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub filter: Option<RoomEventFilter<'a>>,
+    #[serde(skip_serializing_if = "RoomEventFilter::is_empty")]
+    pub filter: RoomEventFilter<'a>,
 
     /// The order in which to search for results.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -113,7 +113,7 @@ impl<'a> Criteria<'a> {
         Self {
             search_term,
             keys: None,
-            filter: None,
+            filter: RoomEventFilter::default(),
             order_by: None,
             event_context: Default::default(),
             include_state: None,

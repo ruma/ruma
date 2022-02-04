@@ -39,9 +39,9 @@ ruma_api! {
         #[serde(
             with = "ruma_serde::json_string",
             default,
-            skip_serializing_if = "Option::is_none"
+            skip_serializing_if = "RoomEventFilter::is_empty"
         )]
-        pub filter: Option<RoomEventFilter<'a>>,
+        pub filter: RoomEventFilter<'a>,
     }
 
     #[derive(Default)]
@@ -79,7 +79,7 @@ ruma_api! {
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given room id and event id.
     pub fn new(room_id: &'a RoomId, event_id: &'a EventId) -> Self {
-        Self { room_id, event_id, limit: default_limit(), filter: None }
+        Self { room_id, event_id, limit: default_limit(), filter: RoomEventFilter::default() }
     }
 }
 

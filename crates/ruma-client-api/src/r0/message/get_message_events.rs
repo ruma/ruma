@@ -57,9 +57,9 @@ ruma_api! {
         #[serde(
             with = "ruma_serde::json_string",
             default,
-            skip_serializing_if = "Option::is_none"
+            skip_serializing_if = "RoomEventFilter::is_empty"
         )]
-        pub filter: Option<RoomEventFilter<'a>>,
+        pub filter: RoomEventFilter<'a>,
     }
 
     #[derive(Default)]
@@ -88,7 +88,14 @@ impl<'a> Request<'a> {
     ///
     /// All other parameters will be defaulted.
     pub fn new(room_id: &'a RoomId, from: &'a str, dir: Direction) -> Self {
-        Self { room_id, from, to: None, dir, limit: default_limit(), filter: None }
+        Self {
+            room_id,
+            from,
+            to: None,
+            dir,
+            limit: default_limit(),
+            filter: RoomEventFilter::default(),
+        }
     }
 
     /// Creates a new `Request` with the given room ID and from token, and `dir` set to `Backward`.
@@ -161,7 +168,7 @@ mod tests {
             to: Some("token2"),
             dir: Direction::Backward,
             limit: uint!(0),
-            filter: Some(filter),
+            filter,
         };
 
         let request: http::Request<Vec<u8>> = req
@@ -181,7 +188,7 @@ mod tests {
     }
 
     #[test]
-    fn serialize_none_room_event_filter() {
+    fn serialize_default_room_event_filter() {
         let room_id = room_id!("!roomid:example.org");
         let req = Request {
             room_id,
@@ -189,7 +196,7 @@ mod tests {
             to: Some("token2"),
             dir: Direction::Backward,
             limit: uint!(0),
-            filter: None,
+            filter: RoomEventFilter::default(),
         };
 
         let request = req
@@ -199,29 +206,5 @@ mod tests {
             )
             .unwrap();
         assert_eq!("from=token&to=token2&dir=b&limit=0", request.uri().query().unwrap(),);
-    }
-
-    #[test]
-    fn serialize_default_room_event_filter() {
-        let room_id = room_id!("!roomid:example.org");
-        let req = Request {
-            room_id,
-            from: "token",
-            to: Some("token2"),
-            dir: Direction::Backward,
-            limit: uint!(0),
-            filter: Some(RoomEventFilter::default()),
-        };
-
-        let request: http::Request<Vec<u8>> = req
-            .try_into_http_request(
-                "https://homeserver.tld",
-                SendAccessToken::IfRequired("auth_tok"),
-            )
-            .unwrap();
-        assert_eq!(
-            "from=token&to=token2&dir=b&limit=0&filter=%7B%7D",
-            request.uri().query().unwrap(),
-        );
     }
 }
