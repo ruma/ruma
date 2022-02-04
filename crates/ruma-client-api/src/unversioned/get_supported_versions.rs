@@ -42,7 +42,7 @@ impl Response {
         Self { versions, unstable_features: BTreeMap::new() }
     }
 
-    /// Extracts known Ruma versions from this response.
+    /// Extracts known Matrix versions from this response.
     ///
     /// Matrix versions that Ruma cannot parse, or does not know about, are discarded.
     pub fn known_versions(&self) -> Vec<MatrixVersion> {
