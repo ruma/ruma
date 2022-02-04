@@ -439,7 +439,7 @@ pub struct Metadata {
 // Ruma keeps track of when endpoints are added, deprecated, and removed. It'll automatically
 // select the right endpoint stability variation to use depending on which Matrix version you pass
 // it with [`EndpointPath`], see its respective documentation for more.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum MatrixVersion {
     /// Version 1.0 of the Matrix specification.
@@ -549,8 +549,8 @@ impl MatrixVersion {
     /// differences, and versions too new for `self`.
     ///
     /// This (considering if major versions are the same) is equivalent to a `self >= other` check.
-    pub fn is_superset_version_of(&self, other: impl AsRef<Self>) -> bool {
-        self.repr() >= other.as_ref().repr()
+    pub fn is_superset_version_of(&self, other: Self) -> bool {
+        self.repr() >= other.repr()
     }
 
     // Internal function to desugar the enum to a version repr
