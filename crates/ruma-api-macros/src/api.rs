@@ -60,8 +60,7 @@ impl Api {
                 }
             })
             .collect();
-        let authentication: TokenStream = self
-            .metadata
+        let authentication: TokenStream = metadata
             .authentication
             .iter()
             .map(|r| {
@@ -73,9 +72,9 @@ impl Api {
                 }
             })
             .collect();
-        let added = util::map(&self.metadata.added);
-        let deprecated = util::map(&self.metadata.deprecated);
-        let removed = util::map(&self.metadata.removed);
+        let added = util::map(&metadata.added);
+        let deprecated = util::map(&metadata.deprecated);
+        let removed = util::map(&metadata.removed);
 
         let error_ty = self
             .error_ty
