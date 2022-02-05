@@ -53,4 +53,10 @@ ruma_api! {
     }
 }
 
-fn main() {}
+fn main() {
+    use ruma_api::MatrixVersion;
+
+    assert_eq!(METADATA.added, Some(MatrixVersion::V1_0));
+    assert_eq!(METADATA.deprecated, Some(MatrixVersion::V1_1));
+    assert_eq!(METADATA.removed, Some(MatrixVersion::V1_2));
+}
