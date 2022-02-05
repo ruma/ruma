@@ -4,7 +4,7 @@ use std::collections::BTreeSet;
 
 use proc_macro2::TokenStream;
 use proc_macro_crate::{crate_name, FoundCrate};
-use quote::{format_ident, quote};
+use quote::{format_ident, quote, ToTokens};
 use syn::{parse_quote, visit::Visit, AttrStyle, Attribute, Lifetime, NestedMeta, Type};
 
 pub fn import_ruma_api() -> TokenStream {
@@ -22,6 +22,13 @@ pub fn import_ruma_api() -> TokenStream {
         quote! { ::#import::ruma::api }
     } else {
         quote! { ::ruma_api }
+    }
+}
+
+pub fn map<T: ToTokens>(ver: &Option<T>) -> TokenStream {
+    match ver {
+        Some(v) => quote! { Some(#v) },
+        None => quote! { None },
     }
 }
 

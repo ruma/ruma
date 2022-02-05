@@ -13,7 +13,7 @@ mod request;
 mod response;
 
 use self::{metadata::Metadata, request::Request, response::Response};
-use crate::{util, version::MatrixVersionLiteral};
+use crate::util;
 
 mod kw {
     use syn::custom_keyword;
@@ -73,9 +73,9 @@ impl Api {
                 }
             })
             .collect();
-        let added = map_matrix_version(&self.metadata.added);
-        let deprecated = map_matrix_version(&self.metadata.deprecated);
-        let removed = map_matrix_version(&self.metadata.removed);
+        let added = util::map(&self.metadata.added);
+        let deprecated = util::map(&self.metadata.deprecated);
+        let removed = util::map(&self.metadata.removed);
 
         let error_ty = self
             .error_ty
@@ -146,13 +146,6 @@ impl Parse for Api {
             .transpose()?;
 
         Ok(Self { metadata, request, response, error_ty })
-    }
-}
-
-fn map_matrix_version(ver: &Option<MatrixVersionLiteral>) -> TokenStream {
-    match ver {
-        Some(v) => quote! { Some(#v) },
-        None => quote! { None },
     }
 }
 
