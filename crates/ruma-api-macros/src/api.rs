@@ -5,7 +5,7 @@ use quote::quote;
 use syn::{
     braced,
     parse::{Parse, ParseStream},
-    Attribute, Field, LitFloat, Token, Type,
+    Attribute, Field, Token, Type,
 };
 
 mod metadata;
@@ -13,7 +13,7 @@ mod request;
 mod response;
 
 use self::{metadata::Metadata, request::Request, response::Response};
-use crate::util;
+use crate::{util, version::MatrixVersionLiteral};
 
 mod kw {
     use syn::custom_keyword;
@@ -149,12 +149,9 @@ impl Parse for Api {
     }
 }
 
-fn map_matrix_version(lt: &Option<LitFloat>) -> TokenStream {
-    match lt {
-        Some(lt) => {
-            let ver = util::matrix_version_to_tokenstream(lt).expect("token stream to be valid");
-            quote! { Some(#ver) }
-        }
+fn map_matrix_version(ver: &Option<MatrixVersionLiteral>) -> TokenStream {
+    match ver {
+        Some(v) => quote! { Some(#v) },
         None => quote! { None },
     }
 }

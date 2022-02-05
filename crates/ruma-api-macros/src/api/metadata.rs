@@ -4,10 +4,10 @@ use quote::ToTokens;
 use syn::{
     braced,
     parse::{Parse, ParseStream},
-    Attribute, Ident, LitBool, LitFloat, LitStr, Token,
+    Attribute, Ident, LitBool, LitStr, Token,
 };
 
-use crate::{auth_scheme::AuthScheme, util};
+use crate::{auth_scheme::AuthScheme, util, version::MatrixVersionLiteral};
 
 mod kw {
     syn::custom_keyword!(metadata);
@@ -52,13 +52,13 @@ pub struct Metadata {
     pub authentication: Vec<MetadataField<AuthScheme>>,
 
     /// The added field.
-    pub added: Option<LitFloat>,
+    pub added: Option<MatrixVersionLiteral>,
 
     /// The deprecated field.
-    pub deprecated: Option<LitFloat>,
+    pub deprecated: Option<MatrixVersionLiteral>,
 
     /// The removed field.
-    pub removed: Option<LitFloat>,
+    pub removed: Option<MatrixVersionLiteral>,
 }
 
 fn set_field<T: ToTokens>(field: &mut Option<T>, value: T) -> syn::Result<()> {
@@ -219,9 +219,9 @@ enum FieldValue {
     Path(LitStr),
     RateLimited(LitBool, Vec<Attribute>),
     Authentication(AuthScheme, Vec<Attribute>),
-    Added(LitFloat),
-    Deprecated(LitFloat),
-    Removed(LitFloat),
+    Added(MatrixVersionLiteral),
+    Deprecated(MatrixVersionLiteral),
+    Removed(MatrixVersionLiteral),
 }
 
 impl Parse for FieldValue {
@@ -237,14 +237,6 @@ impl Parse for FieldValue {
         }
         let field: Field = input.parse()?;
         let _: Token![:] = input.parse()?;
-
-        fn valid_version(input: ParseStream<'_>) -> syn::Result<LitFloat> {
-            let ver: LitFloat = input.parse()?;
-
-            let _ = util::parse_matrix_version_from_literal_float(&ver)?;
-
-            Ok(ver)
-        }
 
         Ok(match field {
             Field::Description => Self::Description(input.parse()?),
@@ -264,9 +256,9 @@ impl Parse for FieldValue {
             }
             Field::RateLimited => Self::RateLimited(input.parse()?, attrs),
             Field::Authentication => Self::Authentication(input.parse()?, attrs),
-            Field::Added => Self::Added(valid_version(input)?),
-            Field::Deprecated => Self::Deprecated(valid_version(input)?),
-            Field::Removed => Self::Removed(valid_version(input)?),
+            Field::Added => Self::Added(input.parse()?),
+            Field::Deprecated => Self::Deprecated(input.parse()?),
+            Field::Removed => Self::Removed(input.parse()?),
         })
     }
 }
