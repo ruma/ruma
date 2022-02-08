@@ -7,7 +7,7 @@ use syn::{
     Attribute, Ident, LitBool, LitStr, Token,
 };
 
-use crate::{auth_scheme::AuthScheme, util};
+use crate::{auth_scheme::AuthScheme, util, version::MatrixVersionLiteral};
 
 mod kw {
     syn::custom_keyword!(metadata);
@@ -17,6 +17,9 @@ mod kw {
     syn::custom_keyword!(path);
     syn::custom_keyword!(rate_limited);
     syn::custom_keyword!(authentication);
+    syn::custom_keyword!(added);
+    syn::custom_keyword!(deprecated);
+    syn::custom_keyword!(removed);
 }
 
 /// A field of Metadata that contains attribute macros
@@ -47,6 +50,15 @@ pub struct Metadata {
 
     /// The authentication field.
     pub authentication: Vec<MetadataField<AuthScheme>>,
+
+    /// The added field.
+    pub added: Option<MatrixVersionLiteral>,
+
+    /// The deprecated field.
+    pub deprecated: Option<MatrixVersionLiteral>,
+
+    /// The removed field.
+    pub removed: Option<MatrixVersionLiteral>,
 }
 
 fn set_field<T: ToTokens>(field: &mut Option<T>, value: T) -> syn::Result<()> {
@@ -80,6 +92,9 @@ impl Parse for Metadata {
         let mut path = None;
         let mut rate_limited = vec![];
         let mut authentication = vec![];
+        let mut added = None;
+        let mut deprecated = None;
+        let mut removed = None;
 
         for field_value in field_values {
             match field_value {
@@ -93,11 +108,38 @@ impl Parse for Metadata {
                 FieldValue::Authentication(value, attrs) => {
                     authentication.push(MetadataField { attrs, value });
                 }
+                FieldValue::Added(v) => set_field(&mut added, v)?,
+                FieldValue::Deprecated(v) => set_field(&mut deprecated, v)?,
+                FieldValue::Removed(v) => set_field(&mut removed, v)?,
             }
         }
 
         let missing_field =
             |name| syn::Error::new_spanned(metadata_kw, format!("missing field `{}`", name));
+
+        if let Some(deprecated) = &deprecated {
+            if added.is_none() {
+                return Err(syn::Error::new_spanned(
+                    deprecated,
+                    "deprecated version is defined while added version is not defined",
+                ));
+            }
+        }
+
+        // note: It is possible that matrix will remove endpoints in a single version, while not
+        // having a deprecation version inbetween, but that would not be allowed by their own
+        // deprecation policy, so lets just assume there's always a deprecation version before a
+        // removal one.
+        //
+        // If matrix does so anyways, we can just alter this.
+        if let Some(removed) = &removed {
+            if deprecated.is_none() {
+                return Err(syn::Error::new_spanned(
+                    removed,
+                    "removed version is defined while deprecated version is not defined",
+                ));
+            }
+        }
 
         Ok(Self {
             description: description.ok_or_else(|| missing_field("description"))?,
@@ -114,6 +156,9 @@ impl Parse for Metadata {
             } else {
                 authentication
             },
+            added,
+            deprecated,
+            removed,
         })
     }
 }
@@ -125,6 +170,9 @@ enum Field {
     Path,
     RateLimited,
     Authentication,
+    Added,
+    Deprecated,
+    Removed,
 }
 
 impl Parse for Field {
@@ -149,6 +197,15 @@ impl Parse for Field {
         } else if lookahead.peek(kw::authentication) {
             let _: kw::authentication = input.parse()?;
             Ok(Self::Authentication)
+        } else if lookahead.peek(kw::added) {
+            let _: kw::added = input.parse()?;
+            Ok(Self::Added)
+        } else if lookahead.peek(kw::deprecated) {
+            let _: kw::deprecated = input.parse()?;
+            Ok(Self::Deprecated)
+        } else if lookahead.peek(kw::removed) {
+            let _: kw::removed = input.parse()?;
+            Ok(Self::Removed)
         } else {
             Err(lookahead.error())
         }
@@ -162,6 +219,9 @@ enum FieldValue {
     Path(LitStr),
     RateLimited(LitBool, Vec<Attribute>),
     Authentication(AuthScheme, Vec<Attribute>),
+    Added(MatrixVersionLiteral),
+    Deprecated(MatrixVersionLiteral),
+    Removed(MatrixVersionLiteral),
 }
 
 impl Parse for FieldValue {
@@ -196,6 +256,9 @@ impl Parse for FieldValue {
             }
             Field::RateLimited => Self::RateLimited(input.parse()?, attrs),
             Field::Authentication => Self::Authentication(input.parse()?, attrs),
+            Field::Added => Self::Added(input.parse()?),
+            Field::Deprecated => Self::Deprecated(input.parse()?),
+            Field::Removed => Self::Removed(input.parse()?),
         })
     }
 }
