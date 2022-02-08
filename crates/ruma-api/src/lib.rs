@@ -214,7 +214,7 @@ pub mod exports {
     pub use serde_json;
 }
 
-use error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
+use error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, UnknownVersionError};
 
 /// An enum to control whether an access token should be added to outgoing requests
 #[derive(Clone, Copy, Debug)]
@@ -486,19 +486,6 @@ pub enum MatrixVersion {
     /// See <https://spec.matrix.org/v1.2/>.
     V1_2,
 }
-
-/// An error that happens when Ruma cannot understand a Matrix version.
-#[derive(Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct UnknownVersionError;
-
-impl Display for UnknownVersionError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Version string was unknown.")
-    }
-}
-
-impl StdError for UnknownVersionError {}
 
 impl TryFrom<&str> for MatrixVersion {
     type Error = UnknownVersionError;
