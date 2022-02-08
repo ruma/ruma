@@ -529,27 +529,6 @@ impl VersionRepr {
     }
 }
 
-// We don't expose this on MatrixVersion due to the subtleties of non-total ordering semantics
-// the Matrix versions have; we cannot guarantee ordering between major versions, and only between
-// minor versions of the same major one.
-//
-// This means that V2_0 > V1_0 returns false, and V2_0 < V1_0 too.
-//
-// This sort of behavior has to be pre-emptively known by the programmer, which is the definition of
-// a gotcha/footgun.
-//
-// As such, we're not including it in the public API (only using it via `MatrixVersion::compatible`)
-// until we find a way to introduce it in a way that exposes the ambiguities to the programmer.
-impl PartialOrd for VersionRepr {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        if self.major != other.major {
-            // Ordering between major versions is non-total.
-            return None;
-        }
-        self.minor.partial_cmp(&other.minor)
-    }
-}
-
 impl MatrixVersion {
     /// Checks wether a version is compatible with another.
     ///
@@ -566,7 +545,14 @@ impl MatrixVersion {
     ///
     /// This (considering if major versions are the same) is equivalent to a `self >= other` check.
     pub fn is_superset_of(self, other: Self) -> bool {
-        self.repr() >= other.repr()
+        let repr_l = self.repr();
+        let repr_r = other.repr();
+
+        if repr_l.major != repr_r.major {
+            false
+        } else {
+            repr_l.minor >= repr_r.minor
+        }
     }
 
     // Internal function to desugar the enum to a version repr
