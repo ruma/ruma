@@ -598,6 +598,7 @@ impl MatrixVersion {
 
 /// A specifier for what path variant of an endpoint to request.
 #[derive(Clone, PartialEq, Eq, Debug)]
+#[allow(clippy::exhaustive_enums)]
 pub enum EndpointPath {
     /// Select an appropriate path version for a particular matrix version.
     ///
@@ -671,5 +672,5 @@ pub fn select_path<'a>(
         }
     }
 
-    return unstable.ok_or(IntoHttpError::NoUnstablePath);
+    unstable.ok_or(IntoHttpError::NoUnstablePath)
 }
