@@ -2,7 +2,6 @@ use js_int::uint;
 use matches::assert_matches;
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
-    custom::RedactedCustomEventContent,
     room::{
         aliases::RedactedRoomAliasesEventContent,
         create::{RedactedRoomCreateEventContent, RoomCreateEventContent},
@@ -242,32 +241,6 @@ fn redacted_custom_event_serialize() {
 
     let x = from_json_value::<AnyRedactedSyncStateEvent>(redacted).unwrap();
     assert_eq!(x.event_id(), event_id!("$h29iv0s8:example.com"))
-}
-
-#[test]
-fn redacted_custom_event_deserialize() {
-    let unsigned = unsigned();
-
-    let redacted = RedactedSyncStateEvent {
-        content: RedactedCustomEventContent { event_type: "m.made.up".into() },
-        event_id: event_id!("$h29iv0s8:example.com").to_owned(),
-        sender: user_id!("@carl:example.com").to_owned(),
-        state_key: "hello there".into(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-        unsigned: unsigned.clone(),
-    };
-
-    let expected = json!({
-      "event_id": "$h29iv0s8:example.com",
-      "origin_server_ts": 1,
-      "sender": "@carl:example.com",
-      "state_key": "hello there",
-      "unsigned": unsigned,
-      "type": "m.made.up",
-    });
-
-    let actual = to_json_value(&redacted).unwrap();
-    assert_eq!(actual, expected);
 }
 
 #[test]
