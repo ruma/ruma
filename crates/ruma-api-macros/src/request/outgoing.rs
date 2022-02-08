@@ -26,17 +26,19 @@ impl Request {
             };
 
             (
-                self.unstable.as_ref().map(mapper),
-                self.r0.as_ref().map(mapper),
-                self.stable.as_ref().map(mapper),
+                self.unstable_path.as_ref().map(mapper),
+                self.r0_path.as_ref().map(mapper),
+                self.stable_path.as_ref().map(mapper),
             )
         } else {
             (
-                self.unstable
+                self.unstable_path
                     .as_ref()
                     .map(|_| quote! { format_args!("{}", metadata.unstable_path.unwrap()) }),
-                self.r0.as_ref().map(|_| quote! { format_args!("{}", metadata.r0_path.unwrap()) }),
-                self.stable
+                self.r0_path
+                    .as_ref()
+                    .map(|_| quote! { format_args!("{}", metadata.r0_path.unwrap()) }),
+                self.stable_path
                     .as_ref()
                     .map(|_| quote! { format_args!("{}", metadata.stable_path.unwrap()) }),
             )
