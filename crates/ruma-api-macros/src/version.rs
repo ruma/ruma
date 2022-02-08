@@ -1,13 +1,13 @@
-use std::{convert::TryInto, num::NonZeroU8, str::FromStr};
+use std::{convert::TryInto, num::NonZeroU8};
 
 use proc_macro2::TokenStream;
-use quote::ToTokens;
+use quote::{format_ident, quote, ToTokens};
 use syn::{parse::Parse, Error, LitFloat};
 
 #[derive(Clone)]
 pub struct MatrixVersionLiteral {
-    maj: NonZeroU8,
-    min: u8,
+    major: NonZeroU8,
+    minor: u8,
 }
 
 impl Parse for MatrixVersionLiteral {
@@ -17,35 +17,30 @@ impl Parse for MatrixVersionLiteral {
         if !fl.suffix().is_empty() {
             return Err(Error::new_spanned(
                 fl,
-                "matrix version variable contained invalid float suffix",
+                "matrix version has to be only two positive numbers separated by a `.`",
             ));
         }
 
-        let ver_vec: Vec<&str> = fl.base10_digits().split('.').collect();
+        let ver_vec: Vec<String> = fl.to_string().split('.').map(&str::to_owned).collect();
 
-        let ver: [&str; 2] = ver_vec.try_into().map_err(|_| {
+        let ver: [String; 2] = ver_vec.try_into().map_err(|_| {
             Error::new_spanned(&fl, "did not contain only both an X and Y value like X.Y")
         })?;
 
-        let maj: NonZeroU8 = ver[0].parse().map_err(|e| {
+        let major: NonZeroU8 = ver[0].parse().map_err(|e| {
             Error::new_spanned(&fl, format!("major number failed to parse as >0 number: {}", e))
         })?;
-        let min: u8 = ver[1]
+        let minor: u8 = ver[1]
             .parse()
             .map_err(|e| Error::new_spanned(&fl, format!("minor number failed to parse: {}", e)))?;
 
-        Ok(Self { maj, min })
+        Ok(Self { major, minor })
     }
 }
 
 impl ToTokens for MatrixVersionLiteral {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.extend(
-            TokenStream::from_str(&format!(
-                "::ruma_api::MatrixVersion::V{}_{}",
-                self.maj, self.min
-            ))
-            .expect("is statically defined"),
-        );
+        let variant = format_ident!("V{}_{}", u8::from(self.major), self.minor);
+        tokens.extend(quote! { ::ruma_api::MatrixVersion::#variant });
     }
 }

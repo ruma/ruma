@@ -72,9 +72,9 @@ impl Api {
                 }
             })
             .collect();
-        let added = util::map(&metadata.added);
-        let deprecated = util::map(&metadata.deprecated);
-        let removed = util::map(&metadata.removed);
+        let added = util::map_option_literal(&metadata.added);
+        let deprecated = util::map_option_literal(&metadata.deprecated);
+        let removed = util::map_option_literal(&metadata.removed);
 
         let error_ty = self
             .error_ty

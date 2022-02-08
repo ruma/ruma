@@ -25,10 +25,10 @@ pub fn import_ruma_api() -> TokenStream {
     }
 }
 
-pub fn map<T: ToTokens>(ver: &Option<T>) -> TokenStream {
+pub fn map_option_literal<T: ToTokens>(ver: &Option<T>) -> TokenStream {
     match ver {
-        Some(v) => quote! { Some(#v) },
-        None => quote! { None },
+        Some(v) => quote! { ::std::option::Option::Some(#v) },
+        None => quote! { ::std::option::Option::None },
     }
 }
 
