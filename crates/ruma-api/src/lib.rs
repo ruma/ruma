@@ -415,9 +415,19 @@ pub struct Metadata {
     /// A unique identifier for this endpoint.
     pub name: &'static str,
 
+    /// (DEPRECATED)
+    pub path: &'static str,
+
+    /// The unstable path of this endpoint's URL, often `None`, used for developmental purposes.
+    pub unstable_path: Option<&'static str>,
+
+    /// The pre-v1.1 version of this endpoint's URL, `None` for post-v1.1 endpoints, supplemental
+    /// to `stable_path`.
+    pub r0_path: Option<&'static str>,
+
     /// The path of this endpoint's URL, with variable names where path parameters should be filled
     /// in during a request.
-    pub path: &'static str,
+    pub stable_path: Option<&'static str>,
 
     /// Whether or not this endpoint is rate limited by the server.
     pub rate_limited: bool,
