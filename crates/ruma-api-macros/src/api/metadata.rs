@@ -102,9 +102,9 @@ impl Parse for Metadata {
         let mut method = None;
         let mut name = None;
         let mut path = None;
-        let mut unstable = None;
-        let mut r0 = None;
-        let mut stable = None;
+        let mut unstable_path = None;
+        let mut r0_path = None;
+        let mut stable_path = None;
         let mut rate_limited = vec![];
         let mut authentication = vec![];
         let mut added = None;
@@ -117,9 +117,9 @@ impl Parse for Metadata {
                 FieldValue::Method(m) => set_field(&mut method, m)?,
                 FieldValue::Name(n) => set_field(&mut name, n)?,
                 FieldValue::Path(p) => set_field(&mut path, p)?,
-                FieldValue::Unstable(p) => set_field(&mut unstable, p)?,
-                FieldValue::R0(p) => set_field(&mut r0, p)?,
-                FieldValue::Stable(p) => set_field(&mut stable, p)?,
+                FieldValue::Unstable(p) => set_field(&mut unstable_path, p)?,
+                FieldValue::R0(p) => set_field(&mut r0_path, p)?,
+                FieldValue::Stable(p) => set_field(&mut stable_path, p)?,
                 FieldValue::RateLimited(value, attrs) => {
                     rate_limited.push(MetadataField { attrs, value });
                 }
@@ -160,7 +160,7 @@ impl Parse for Metadata {
         }
 
         if let Some(added) = &added {
-            if stable.is_none() {
+            if stable_path.is_none() {
                 return Err(syn::Error::new_spanned(
                     added,
                     "added version is defined, but no stable path exists",
@@ -168,10 +168,10 @@ impl Parse for Metadata {
             }
         }
 
-        if unstable.is_none() && r0.is_none() && stable.is_none() {
+        if unstable_path.is_none() && r0_path.is_none() && stable_path.is_none() {
             // TODO replace with error
             // return Err(syn::Error::new_spanned(metadata_kw, "no path is defined"));
-            r0 = path.clone();
+            r0_path = path.clone();
         }
 
         Ok(Self {
@@ -179,9 +179,9 @@ impl Parse for Metadata {
             method: method.ok_or_else(|| missing_field("method"))?,
             name: name.ok_or_else(|| missing_field("name"))?,
             path: path.ok_or_else(|| missing_field("path"))?,
-            unstable_path: unstable,
-            r0_path: r0,
-            stable_path: stable,
+            unstable_path,
+            r0_path,
+            stable_path,
             rate_limited: if rate_limited.is_empty() {
                 return Err(missing_field("rate_limited"));
             } else {
