@@ -268,8 +268,10 @@ pub trait OutgoingRequest: Sized {
 
     /// Tries to convert this request into an `http::Request`.
     ///
-    /// This method should only fail when called on endpoints that require authentication. It may
-    /// also fail with a serialization error in case of bugs in Ruma though.
+    /// On endpoints with authentication, when adequate information isn't provided through
+    /// access_token, this could result in an error. It may also fail with a serialization error
+    /// in case of bugs in Ruma though. Finally, it may also fail if the path requested (through
+    /// `path` is not available for this endpoint.)
     ///
     /// The endpoints path will be appended to the given `base_url`, for example
     /// `https://matrix.org`. Since all paths begin with a slash, it is not necessary for the
@@ -278,6 +280,7 @@ pub trait OutgoingRequest: Sized {
         self,
         base_url: &str,
         access_token: SendAccessToken<'_>,
+        path: EndpointPath,
     ) -> Result<http::Request<T>, IntoHttpError>;
 }
 
@@ -303,8 +306,9 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
         base_url: &str,
         access_token: SendAccessToken<'_>,
         user_id: &UserId,
+        path: EndpointPath,
     ) -> Result<http::Request<T>, IntoHttpError> {
-        let mut http_request = self.try_into_http_request(base_url, access_token)?;
+        let mut http_request = self.try_into_http_request(base_url, access_token, path)?;
         let user_id_query = ruma_serde::urlencoded::to_string(&[("user_id", user_id)])?;
 
         let uri = http_request.uri().to_owned();
@@ -449,9 +453,9 @@ pub struct Metadata {
     pub deprecated: Option<MatrixVersion>,
 
     /// The matrix version that removed this endpoint.
-    // TODO add once try_into_http_request has been altered;
-    // This will make `try_into_http_request` emit an error,
-    // see the corresponding documentation for more information.
+    ///
+    /// This will make `try_into_http_request` emit an error,
+    /// see the corresponding documentation for more information.
     pub removed: Option<MatrixVersion>,
 }
 
@@ -590,4 +594,82 @@ impl MatrixVersion {
             MatrixVersion::V1_2 => VersionRepr::new(1, 2),
         }
     }
+}
+
+/// A specifier for what path variant of an endpoint to request.
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub enum EndpointPath {
+    /// Select an appropriate path version for a particular matrix version.
+    ///
+    /// Note: When using
+    /// [`try_into_http_request`](OutgoingRequest::try_into_http_request) with this variant, it can
+    /// emit additional errors;
+    /// - [`NoUnstablePath`](IntoHttpError::NoUnstablePath), if the matrix version is too new, and
+    ///   the endpoint has no defined `unstable` path (for maintenance or legacy reasons.)
+    /// - [`EndpointRemoved`](IntoHttpError::EndpointRemoved), if the matrix version is too old,
+    ///   and the endpoint is known to be removed in the same or a newer version.
+    ForMatrixVersion(MatrixVersion),
+
+    /// Select any path, preferring stable.
+    ///
+    /// Note: This does not emit any errors like
+    /// [`ForMatrixVersion`](EndpointPath::ForMatrixVersion) does, if the server's lowest matrix
+    /// version has removed the endpoint, or it has not yet stabilized the endpoint, this may
+    /// result in runtime HTTP errors, it is highly recommended to fetch `/versions`, extract
+    /// Ruma-known matrix versions, and pass the preferred version through `ForMatrixVersion`.
+    PreferStable,
+}
+
+impl From<MatrixVersion> for EndpointPath {
+    fn from(ver: MatrixVersion) -> Self {
+        Self::ForMatrixVersion(ver)
+    }
+}
+
+// This function needs to be public, yet hidden, as all `try_into_http_request`s would be using it.
+// We're also using MatrixVersion::repr() here, which is crate-private.
+#[doc(hidden)]
+pub fn select_path<'a>(
+    path: EndpointPath,
+    metadata: &'_ Metadata,
+    unstable: Option<fmt::Arguments<'a>>,
+    r0: Option<fmt::Arguments<'a>>,
+    stable: Option<fmt::Arguments<'a>>,
+) -> Result<fmt::Arguments<'a>, IntoHttpError> {
+    let version = match path {
+        EndpointPath::ForMatrixVersion(v) => v,
+        EndpointPath::PreferStable => {
+            return Ok(stable.or(r0).or(unstable).expect("one of three paths to be defined"))
+        }
+    };
+
+    if let Some(removed_ver) = metadata.removed {
+        if version.repr() >= removed_ver.repr() {
+            return Err(IntoHttpError::EndpointRemoved(version, removed_ver));
+        }
+    }
+
+    if let Some(depr_ver) = metadata.deprecated {
+        if version.repr() >= depr_ver.repr() {
+            // todo: emit warning
+        }
+    }
+
+    if let Some(added_ver) = metadata.added {
+        if version.repr() >= added_ver.repr() {
+            // r0 paths are "added" in V1_0, but if this has one, and the version is V1_0, then we
+            // use this fallback path
+            if let Some(r0) = r0 {
+                if version == MatrixVersion::V1_0 {
+                    return Ok(r0);
+                }
+            }
+
+            return Ok(stable.or(r0).expect(
+                "metadata.added is defined, so stable_path or r0_path must also be defined",
+            ));
+        }
+    }
+
+    return unstable.ok_or(IntoHttpError::NoUnstablePath);
 }

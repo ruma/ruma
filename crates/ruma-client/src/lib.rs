@@ -58,10 +58,11 @@
 //!
 //! use ruma_client_api::r0::alias::get_alias;
 //! use ruma_identifiers::{room_alias_id, room_id};
+//! use ruma_api::EndpointPath::PreferStable;
 //!
 //! async {
 //!     let response = client
-//!         .send_request(get_alias::Request::new(room_alias_id!("#example_room:example.com")))
+//!         .send_request(get_alias::Request::new(room_alias_id!("#example_room:example.com")), PreferStable)
 //!         .await?;
 //!
 //!     assert_eq!(response.room_id, room_id!("!n8f893n9:example.com"));
@@ -97,7 +98,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use ruma_api::{OutgoingRequest, SendAccessToken};
+use ruma_api::{EndpointPath, OutgoingRequest, SendAccessToken};
 use ruma_identifiers::UserId;
 
 // "Undo" rename from `Cargo.toml` that only serves to make crate names available as a Cargo
@@ -179,14 +180,19 @@ impl<C: DefaultConstructibleHttpClient> Client<C> {
 
 impl<C: HttpClient> Client<C> {
     /// Makes a request to a Matrix API endpoint.
-    pub async fn send_request<R: OutgoingRequest>(&self, request: R) -> ResponseResult<C, R> {
-        self.send_customized_request(request, |_| Ok(())).await
+    pub async fn send_request<R: OutgoingRequest>(
+        &self,
+        request: R,
+        path: EndpointPath,
+    ) -> ResponseResult<C, R> {
+        self.send_customized_request(request, path, |_| Ok(())).await
     }
 
     /// Makes a request to a Matrix API endpoint including additional URL parameters.
     pub async fn send_customized_request<R, F>(
         &self,
         request: R,
+        path: EndpointPath,
         customize: F,
     ) -> ResponseResult<C, R>
     where
@@ -203,6 +209,7 @@ impl<C: HttpClient> Client<C> {
             &self.0.http_client,
             &self.0.homeserver_url,
             send_access_token,
+            path,
             request,
             customize,
         )
@@ -217,8 +224,9 @@ impl<C: HttpClient> Client<C> {
         &self,
         user_id: &UserId,
         request: R,
+        path: EndpointPath,
     ) -> ResponseResult<C, R> {
-        self.send_customized_request(request, add_user_id_to_query::<C, R>(user_id)).await
+        self.send_customized_request(request, path, add_user_id_to_query::<C, R>(user_id)).await
     }
 }
 
@@ -226,6 +234,7 @@ fn send_customized_request<'a, C, R, F>(
     http_client: &'a C,
     homeserver_url: &str,
     send_access_token: SendAccessToken<'_>,
+    path: EndpointPath,
     request: R,
     customize: F,
 ) -> impl Future<Output = ResponseResult<C, R>> + Send + 'a
@@ -235,7 +244,7 @@ where
     F: FnOnce(&mut http::Request<C::RequestBody>) -> Result<(), ResponseError<C, R>>,
 {
     let http_req = request
-        .try_into_http_request(homeserver_url, send_access_token)
+        .try_into_http_request(homeserver_url, send_access_token, path)
         .map_err(ResponseError::<C, R>::from)
         .and_then(|mut req| {
             customize(&mut req)?;

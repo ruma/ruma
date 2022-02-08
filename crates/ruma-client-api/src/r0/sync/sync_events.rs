@@ -629,7 +629,11 @@ mod client_tests {
             set_presence: &PresenceState::Offline,
             timeout: Some(Duration::from_millis(30000)),
         }
-        .try_into_http_request("https://homeserver.tld", SendAccessToken::IfRequired("auth_tok"))
+        .try_into_http_request(
+            "https://homeserver.tld",
+            SendAccessToken::IfRequired("auth_tok"),
+            ruma_api::EndpointPath::PreferStable,
+        )
         .unwrap();
 
         let uri = req.uri();

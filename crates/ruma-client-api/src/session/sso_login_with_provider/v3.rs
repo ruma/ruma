@@ -56,7 +56,11 @@ mod tests {
     #[test]
     fn serialize_sso_login_with_provider_request_uri() {
         let req = Request { idp_id: "provider", redirect_url: "https://example.com/sso" }
-            .try_into_http_request::<Vec<u8>>("https://homeserver.tld", SendAccessToken::None)
+            .try_into_http_request::<Vec<u8>>(
+                "https://homeserver.tld",
+                SendAccessToken::None,
+                ruma_api::EndpointPath::PreferStable,
+            )
             .unwrap();
 
         assert_eq!(

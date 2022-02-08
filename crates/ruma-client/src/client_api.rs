@@ -3,6 +3,7 @@ use std::time::Duration;
 use assign::assign;
 use async_stream::try_stream;
 use futures_core::stream::Stream;
+use ruma_api::EndpointPath;
 use ruma_client_api::r0::{
     account::register::{self, RegistrationKind},
     session::login::{self, LoginInfo},
@@ -33,7 +34,7 @@ impl<C: HttpClient> Client<C> {
                 device_id,
                 initial_device_display_name,
                 }
-            ))
+            ), EndpointPath::PreferStable)
             .await?;
 
         *self.0.access_token.lock().unwrap() = Some(response.access_token.clone());
@@ -49,7 +50,10 @@ impl<C: HttpClient> Client<C> {
         &self,
     ) -> Result<register::Response, Error<C::Error, ruma_client_api::r0::uiaa::UiaaResponse>> {
         let response = self
-            .send_request(assign!(register::Request::new(), { kind: RegistrationKind::Guest }))
+            .send_request(
+                assign!(register::Request::new(), { kind: RegistrationKind::Guest }),
+                EndpointPath::PreferStable,
+            )
             .await?;
 
         *self.0.access_token.lock().unwrap() = response.access_token.clone();
@@ -70,7 +74,10 @@ impl<C: HttpClient> Client<C> {
         password: &str,
     ) -> Result<register::Response, Error<C::Error, ruma_client_api::r0::uiaa::UiaaResponse>> {
         let response = self
-            .send_request(assign!(register::Request::new(), { username, password: Some(password) }))
+            .send_request(
+                assign!(register::Request::new(), { username, password: Some(password)}),
+                EndpointPath::PreferStable,
+            )
             .await?;
 
         *self.0.access_token.lock().unwrap() = response.access_token.clone();
@@ -120,7 +127,7 @@ impl<C: HttpClient> Client<C> {
                         since: Some(&since),
                         set_presence,
                         timeout,
-                    }))
+                    }), EndpointPath::PreferStable)
                     .await?;
 
                 since = response.next_batch.clone();

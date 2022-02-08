@@ -24,9 +24,12 @@ async fn log_messages(
 
     let filter = FilterDefinition::ignore_all().into();
     let initial_sync_response = client
-        .send_request(assign!(sync_events::Request::new(), {
-            filter: Some(&filter),
-        }))
+        .send_request(
+            assign!(sync_events::Request::new(), {
+                filter: Some(&filter),
+            }),
+            ruma_api::EndpointPath::PreferStable,
+        )
         .await?;
 
     let mut sync_stream = Box::pin(client.sync(

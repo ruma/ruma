@@ -329,7 +329,11 @@ mod tests {
             device_id: None,
             initial_device_display_name: Some("test"),
         }
-        .try_into_http_request("https://homeserver.tld", SendAccessToken::None)
+        .try_into_http_request(
+            "https://homeserver.tld",
+            SendAccessToken::None,
+            ruma_api::EndpointPath::PreferStable,
+        )
         .unwrap();
 
         let req_body_value: JsonValue = serde_json::from_slice(req.body()).unwrap();
@@ -353,7 +357,11 @@ mod tests {
             device_id: None,
             initial_device_display_name: Some("test"),
         }
-        .try_into_http_request("https://homeserver.tld", SendAccessToken::None)
+        .try_into_http_request(
+            "https://homeserver.tld",
+            SendAccessToken::None,
+            ruma_api::EndpointPath::PreferStable,
+        )
         .unwrap();
 
         let req_body_value: JsonValue = serde_json::from_slice(req.body()).unwrap();

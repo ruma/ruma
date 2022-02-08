@@ -6,8 +6,8 @@ use bytes::BufMut;
 use http::{header::CONTENT_TYPE, method::Method};
 use ruma_api::{
     error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError, ServerError},
-    AuthScheme, EndpointError, IncomingRequest, IncomingResponse, Metadata, OutgoingRequest,
-    OutgoingResponse, SendAccessToken,
+    AuthScheme, EndpointError, EndpointPath, IncomingRequest, IncomingResponse, Metadata,
+    OutgoingRequest, OutgoingResponse, SendAccessToken,
 };
 use ruma_identifiers::{RoomAliasId, RoomId};
 use ruma_serde::Outgoing;
@@ -49,6 +49,8 @@ impl OutgoingRequest for Request {
         self,
         base_url: &str,
         _access_token: SendAccessToken<'_>,
+        // FIXME: properly add
+        _path: EndpointPath,
     ) -> Result<http::Request<T>, IntoHttpError> {
         let url = (base_url.to_owned() + METADATA.path)
             .replace(":room_alias", &self.room_alias.to_string());

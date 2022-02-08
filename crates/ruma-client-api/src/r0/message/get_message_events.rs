@@ -175,6 +175,7 @@ mod tests {
             .try_into_http_request(
                 "https://homeserver.tld",
                 SendAccessToken::IfRequired("auth_tok"),
+                ruma_api::EndpointPath::PreferStable,
             )
             .unwrap();
         assert_eq!(
@@ -203,6 +204,7 @@ mod tests {
             .try_into_http_request::<Vec<u8>>(
                 "https://homeserver.tld",
                 SendAccessToken::IfRequired("auth_tok"),
+                ruma_api::EndpointPath::PreferStable,
             )
             .unwrap();
         assert_eq!("from=token&to=token2&dir=b&limit=0", request.uri().query().unwrap(),);

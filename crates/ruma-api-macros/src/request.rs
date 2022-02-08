@@ -52,7 +52,9 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
     let mut authentication = None;
     let mut error_ty = None;
     let mut method = None;
-    let mut path = None;
+    let mut unstable = None;
+    let mut r0 = None;
+    let mut stable = None;
 
     for attr in input.attrs {
         if !attr.path.is_ident("ruma_api") {
@@ -71,8 +73,14 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
                 MetaValue::Type(t) if name == "error_ty" => {
                     error_ty = Some(t);
                 }
-                MetaValue::Lit(Lit::Str(s)) if name == "path" => {
-                    path = Some(s);
+                MetaValue::Lit(Lit::Str(s)) if name == "unstable" => {
+                    unstable = Some(s);
+                }
+                MetaValue::Lit(Lit::Str(s)) if name == "r0" => {
+                    r0 = Some(s);
+                }
+                MetaValue::Lit(Lit::Str(s)) if name == "stable" => {
+                    stable = Some(s);
                 }
                 _ => unreachable!("invalid ruma_api({}) attribute", name),
             }
@@ -86,7 +94,9 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
         lifetimes,
         authentication: authentication.expect("missing authentication attribute"),
         method: method.expect("missing method attribute"),
-        path: path.expect("missing path attribute"),
+        unstable,
+        r0,
+        stable,
         error_ty: error_ty.expect("missing error_ty attribute"),
     };
 
@@ -110,7 +120,9 @@ struct Request {
 
     authentication: AuthScheme,
     method: Ident,
-    path: LitStr,
+    unstable: Option<LitStr>,
+    r0: Option<LitStr>,
+    stable: Option<LitStr>,
     error_ty: Type,
 }
 
@@ -133,6 +145,10 @@ impl Request {
         self.fields.iter().any(|f| matches!(f, RequestField::Header(..)))
     }
 
+    fn path_fields(&self) -> impl Iterator<Item = &Field> {
+        self.fields.iter().filter_map(RequestField::as_path_field)
+    }
+
     fn has_path_fields(&self) -> bool {
         self.fields.iter().any(|f| matches!(f, RequestField::Path(_)))
     }
@@ -150,10 +166,6 @@ impl Request {
 
     fn header_fields(&self) -> impl Iterator<Item = &RequestField> {
         self.fields.iter().filter(|f| matches!(f, RequestField::Header(..)))
-    }
-
-    fn path_field_count(&self) -> usize {
-        self.fields.iter().filter(|f| matches!(f, RequestField::Path(..))).count()
     }
 
     fn raw_body_field(&self) -> Option<&Field> {
@@ -353,6 +365,14 @@ impl RequestField {
     pub fn as_raw_body_field(&self) -> Option<&Field> {
         match self {
             RequestField::RawBody(field) => Some(field),
+            _ => None,
+        }
+    }
+
+    /// Return the contained field if this request field is a path kind.
+    pub fn as_path_field(&self) -> Option<&Field> {
+        match self {
+            RequestField::Path(field) => Some(field),
             _ => None,
         }
     }

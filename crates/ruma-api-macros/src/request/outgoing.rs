@@ -1,8 +1,8 @@
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::TokenStream;
 use quote::quote;
-use syn::Field;
+use syn::{Field, LitStr};
 
-use crate::auth_scheme::AuthScheme;
+use crate::{auth_scheme::AuthScheme, util};
 
 use super::{Request, RequestField};
 
@@ -15,38 +15,38 @@ impl Request {
 
         let method = &self.method;
         let error_ty = &self.error_ty;
-        let request_path_string = if self.has_path_fields() {
-            let mut format_string = self.path.value();
-            let mut format_args = Vec::new();
 
-            while let Some(start_of_segment) = format_string.find(':') {
-                // ':' should only ever appear at the start of a segment
-                assert_eq!(&format_string[start_of_segment - 1..start_of_segment], "/");
+        let (unstable_path, r0_path, stable_path) = if self.has_path_fields() {
+            let mapper = |s: &LitStr| -> TokenStream {
+                let (s, a) = util::convert_path_string(s.value(), &percent_encoding);
 
-                let end_of_segment = match format_string[start_of_segment..].find('/') {
-                    Some(rel_pos) => start_of_segment + rel_pos,
-                    None => format_string.len(),
-                };
+                quote! {
+                    format_args!(#s, #(#a),*)
+                }
+            };
 
-                let path_var = Ident::new(
-                    &format_string[start_of_segment + 1..end_of_segment],
-                    Span::call_site(),
-                );
-                format_args.push(quote! {
-                    #percent_encoding::utf8_percent_encode(
-                        &::std::string::ToString::to_string(&self.#path_var),
-                        #percent_encoding::NON_ALPHANUMERIC,
-                    )
-                });
-                format_string.replace_range(start_of_segment..end_of_segment, "{}");
-            }
-
-            quote! {
-                format_args!(#format_string, #(#format_args),*)
-            }
+            (
+                self.unstable.as_ref().map(mapper),
+                self.r0.as_ref().map(mapper),
+                self.stable.as_ref().map(mapper),
+            )
         } else {
-            quote! { metadata.path.to_owned() }
+            (
+                self.unstable
+                    .as_ref()
+                    .map(|_| quote! { format_args!("{}", metadata.unstable_path.unwrap()) }),
+                self.r0.as_ref().map(|_| quote! { format_args!("{}", metadata.r0_path.unwrap()) }),
+                self.stable
+                    .as_ref()
+                    .map(|_| quote! { format_args!("{}", metadata.stable_path.unwrap()) }),
+            )
         };
+
+        let unstable_path = util::map_option_literal(&unstable_path);
+        let r0_path = util::map_option_literal(&r0_path);
+        let stable_path = util::map_option_literal(&stable_path);
+
+        let request_path = quote! { #ruma_api::select_path(path, &metadata, #unstable_path, #r0_path, #stable_path)? };
 
         let request_query_string = if let Some(field) = self.query_map_field() {
             let field_name = field.ident.as_ref().expect("expected field to have identifier");
@@ -206,6 +206,7 @@ impl Request {
                     self,
                     base_url: &::std::primitive::str,
                     access_token: #ruma_api::SendAccessToken<'_>,
+                    path: #ruma_api::EndpointPath,
                 ) -> ::std::result::Result<#http::Request<T>, #ruma_api::error::IntoHttpError> {
                     let metadata = self::METADATA;
 
@@ -214,7 +215,7 @@ impl Request {
                         .uri(::std::format!(
                             "{}{}{}",
                             base_url.strip_suffix('/').unwrap_or(base_url),
-                            #request_path_string,
+                            #request_path,
                             #request_query_string,
                         ));
 

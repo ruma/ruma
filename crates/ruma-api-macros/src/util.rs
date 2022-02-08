@@ -2,7 +2,7 @@
 
 use std::collections::BTreeSet;
 
-use proc_macro2::TokenStream;
+use proc_macro2::{Ident, Span, TokenStream};
 use proc_macro_crate::{crate_name, FoundCrate};
 use quote::{format_ident, quote, ToTokens};
 use syn::{parse_quote, visit::Visit, AttrStyle, Attribute, Lifetime, NestedMeta, Type};
@@ -76,4 +76,33 @@ pub fn extract_cfg(attr: &Attribute) -> Option<NestedMeta> {
     assert_eq!(list.nested.len(), 1, "expected one item inside cfg()");
 
     Some(list.nested.pop().unwrap().into_value())
+}
+
+pub fn convert_path_string(
+    mut format_string: String,
+    percent_encoding: &TokenStream,
+) -> (String, Vec<TokenStream>) {
+    let mut format_args = Vec::new();
+
+    while let Some(start_of_segment) = format_string.find(':') {
+        // ':' should only ever appear at the start of a segment
+        assert_eq!(&format_string[start_of_segment - 1..start_of_segment], "/");
+
+        let end_of_segment = match format_string[start_of_segment..].find('/') {
+            Some(rel_pos) => start_of_segment + rel_pos,
+            None => format_string.len(),
+        };
+
+        let path_var =
+            Ident::new(&format_string[start_of_segment + 1..end_of_segment], Span::call_site());
+        format_args.push(quote! {
+            #percent_encoding::utf8_percent_encode(
+                &::std::string::ToString::to_string(&self.#path_var),
+                #percent_encoding::NON_ALPHANUMERIC,
+            )
+        });
+        format_string.replace_range(start_of_segment..end_of_segment, "{}");
+    }
+
+    (format_string, format_args)
 }

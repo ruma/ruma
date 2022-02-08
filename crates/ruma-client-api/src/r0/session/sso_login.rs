@@ -52,7 +52,11 @@ mod tests {
     #[test]
     fn serialize_sso_login_request_uri() {
         let req: http::Request<Vec<u8>> = Request { redirect_url: "https://example.com/sso" }
-            .try_into_http_request("https://homeserver.tld", SendAccessToken::None)
+            .try_into_http_request(
+                "https://homeserver.tld",
+                SendAccessToken::None,
+                ruma_api::EndpointPath::PreferStable,
+            )
             .unwrap();
 
         assert_eq!(

@@ -87,6 +87,7 @@ mod tests {
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::IfRequired("auth_tok"),
+            ruma_api::EndpointPath::PreferStable,
         )
         .unwrap();
 

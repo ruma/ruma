@@ -18,14 +18,22 @@ async fn hello_world(
     let client = MatrixClient::new(homeserver_url, None);
     client.log_in(username, password, None, Some("ruma-example-client")).await?;
 
-    let room_id = client.send_request(get_alias::Request::new(room_alias)).await?.room_id;
-    client.send_request(join_room_by_id::Request::new(&room_id)).await?;
+    let room_id = client
+        .send_request(get_alias::Request::new(room_alias), ruma_api::EndpointPath::PreferStable)
+        .await?
+        .room_id;
     client
-        .send_request(send_message_event::Request::new(
-            &room_id,
-            &TransactionId::new(),
-            &RoomMessageEventContent::text_plain("Hello World!"),
-        )?)
+        .send_request(join_room_by_id::Request::new(&room_id), ruma_api::EndpointPath::PreferStable)
+        .await?;
+    client
+        .send_request(
+            send_message_event::Request::new(
+                &room_id,
+                &TransactionId::new(),
+                &RoomMessageEventContent::text_plain("Hello World!"),
+            )?,
+            ruma_api::EndpointPath::PreferStable,
+        )
         .await?;
 
     Ok(())

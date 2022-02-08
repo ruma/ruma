@@ -1,8 +1,8 @@
 #![allow(clippy::exhaustive_structs)]
 
 use ruma_api::{
-    ruma_api, IncomingRequest as _, OutgoingRequest as _, OutgoingRequestAppserviceExt,
-    SendAccessToken,
+    ruma_api, EndpointPath::PreferStable, IncomingRequest as _, OutgoingRequest as _,
+    OutgoingRequestAppserviceExt, SendAccessToken,
 };
 use ruma_identifiers::{user_id, UserId};
 
@@ -52,7 +52,11 @@ fn request_serde() {
 
     let http_req = req
         .clone()
-        .try_into_http_request::<Vec<u8>>("https://homeserver.tld", SendAccessToken::None)
+        .try_into_http_request::<Vec<u8>>(
+            "https://homeserver.tld",
+            SendAccessToken::None,
+            PreferStable,
+        )
         .unwrap();
     let req2 = Request::try_from_http_request(http_req, &["barVal", "@bazme:ruma.io"]).unwrap();
 
@@ -75,7 +79,8 @@ fn invalid_uri_should_not_panic() {
         user: user_id!("@bazme:ruma.io").to_owned(),
     };
 
-    let result = req.try_into_http_request::<Vec<u8>>("invalid uri", SendAccessToken::None);
+    let result =
+        req.try_into_http_request::<Vec<u8>>("invalid uri", SendAccessToken::None, PreferStable);
     assert!(result.is_err());
 }
 
@@ -96,6 +101,7 @@ fn request_with_user_id_serde() {
             "https://homeserver.tld",
             SendAccessToken::None,
             user_id,
+            PreferStable,
         )
         .unwrap();
 
@@ -116,6 +122,7 @@ mod without_query {
             method: POST,
             name: "my_endpoint",
             path: "/_matrix/foo/:bar/:user",
+            stable: "/_matrix/foo/:bar/:user",
             rate_limited: false,
             authentication: None,
         }
@@ -154,6 +161,7 @@ mod without_query {
                 "https://homeserver.tld",
                 SendAccessToken::None,
                 user_id,
+                ruma_api::EndpointPath::PreferStable,
             )
             .unwrap();
 

@@ -87,6 +87,7 @@ mod tests {
                 .try_into_http_request::<Vec<u8>>(
                     "https://matrix.org",
                     SendAccessToken::IfRequired("tok"),
+                    ruma_api::EndpointPath::PreferStable
                 ),
             Ok(res) if res.body() == b"{}"
         );
