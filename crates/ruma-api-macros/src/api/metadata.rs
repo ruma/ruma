@@ -15,6 +15,9 @@ mod kw {
     syn::custom_keyword!(method);
     syn::custom_keyword!(name);
     syn::custom_keyword!(path);
+    syn::custom_keyword!(unstable);
+    syn::custom_keyword!(r0);
+    syn::custom_keyword!(stable);
     syn::custom_keyword!(rate_limited);
     syn::custom_keyword!(authentication);
     syn::custom_keyword!(added);
@@ -42,8 +45,17 @@ pub struct Metadata {
     /// The name field.
     pub name: LitStr,
 
-    /// The path field.
-    pub path: LitStr,
+    /// The path field. (deprecated)
+    pub path: EndpointPath,
+
+    /// The unstable path field.
+    pub unstable_path: Option<EndpointPath>,
+
+    /// The pre-v1.1 path field.
+    pub r0_path: Option<EndpointPath>,
+
+    /// The stable path field.
+    pub stable_path: Option<EndpointPath>,
 
     /// The rate_limited field.
     pub rate_limited: Vec<MetadataField<LitBool>>,
@@ -90,6 +102,9 @@ impl Parse for Metadata {
         let mut method = None;
         let mut name = None;
         let mut path = None;
+        let mut unstable_path = None;
+        let mut r0_path = None;
+        let mut stable_path = None;
         let mut rate_limited = vec![];
         let mut authentication = vec![];
         let mut added = None;
@@ -102,6 +117,9 @@ impl Parse for Metadata {
                 FieldValue::Method(m) => set_field(&mut method, m)?,
                 FieldValue::Name(n) => set_field(&mut name, n)?,
                 FieldValue::Path(p) => set_field(&mut path, p)?,
+                FieldValue::Unstable(p) => set_field(&mut unstable_path, p)?,
+                FieldValue::R0(p) => set_field(&mut r0_path, p)?,
+                FieldValue::Stable(p) => set_field(&mut stable_path, p)?,
                 FieldValue::RateLimited(value, attrs) => {
                     rate_limited.push(MetadataField { attrs, value });
                 }
@@ -141,11 +159,29 @@ impl Parse for Metadata {
             }
         }
 
+        if let Some(added) = &added {
+            if stable_path.is_none() {
+                return Err(syn::Error::new_spanned(
+                    added,
+                    "added version is defined, but no stable path exists",
+                ));
+            }
+        }
+
+        if unstable_path.is_none() && r0_path.is_none() && stable_path.is_none() {
+            // TODO replace with error
+            // return Err(syn::Error::new_spanned(metadata_kw, "no path is defined"));
+            r0_path = path.clone();
+        }
+
         Ok(Self {
             description: description.ok_or_else(|| missing_field("description"))?,
             method: method.ok_or_else(|| missing_field("method"))?,
             name: name.ok_or_else(|| missing_field("name"))?,
             path: path.ok_or_else(|| missing_field("path"))?,
+            unstable_path,
+            r0_path,
+            stable_path,
             rate_limited: if rate_limited.is_empty() {
                 return Err(missing_field("rate_limited"));
             } else {
@@ -168,6 +204,9 @@ enum Field {
     Method,
     Name,
     Path,
+    Unstable,
+    R0,
+    Stable,
     RateLimited,
     Authentication,
     Added,
@@ -191,6 +230,15 @@ impl Parse for Field {
         } else if lookahead.peek(kw::path) {
             let _: kw::path = input.parse()?;
             Ok(Self::Path)
+        } else if lookahead.peek(kw::unstable) {
+            let _: kw::unstable = input.parse()?;
+            Ok(Self::Unstable)
+        } else if lookahead.peek(kw::r0) {
+            let _: kw::r0 = input.parse()?;
+            Ok(Self::R0)
+        } else if lookahead.peek(kw::stable) {
+            let _: kw::stable = input.parse()?;
+            Ok(Self::Stable)
         } else if lookahead.peek(kw::rate_limited) {
             let _: kw::rate_limited = input.parse()?;
             Ok(Self::RateLimited)
@@ -216,7 +264,10 @@ enum FieldValue {
     Description(LitStr),
     Method(Ident),
     Name(LitStr),
-    Path(LitStr),
+    Path(EndpointPath),
+    Unstable(EndpointPath),
+    R0(EndpointPath),
+    Stable(EndpointPath),
     RateLimited(LitBool, Vec<Attribute>),
     Authentication(AuthScheme, Vec<Attribute>),
     Added(MatrixVersionLiteral),
@@ -242,23 +293,39 @@ impl Parse for FieldValue {
             Field::Description => Self::Description(input.parse()?),
             Field::Method => Self::Method(input.parse()?),
             Field::Name => Self::Name(input.parse()?),
-            Field::Path => {
-                let path: LitStr = input.parse()?;
-
-                if !util::is_valid_endpoint_path(&path.value()) {
-                    return Err(syn::Error::new_spanned(
-                        &path,
-                        "path may only contain printable ASCII characters with no spaces",
-                    ));
-                }
-
-                Self::Path(path)
-            }
+            Field::Path => Self::Path(input.parse()?),
+            Field::Unstable => Self::Unstable(input.parse()?),
+            Field::R0 => Self::R0(input.parse()?),
+            Field::Stable => Self::Stable(input.parse()?),
             Field::RateLimited => Self::RateLimited(input.parse()?, attrs),
             Field::Authentication => Self::Authentication(input.parse()?, attrs),
             Field::Added => Self::Added(input.parse()?),
             Field::Deprecated => Self::Deprecated(input.parse()?),
             Field::Removed => Self::Removed(input.parse()?),
         })
+    }
+}
+
+#[derive(Clone)]
+pub struct EndpointPath(LitStr);
+
+impl Parse for EndpointPath {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let path: LitStr = input.parse()?;
+
+        if util::is_valid_endpoint_path(&path.value()) {
+            Ok(Self(path))
+        } else {
+            Err(syn::Error::new_spanned(
+                &path,
+                "path may only contain printable ASCII characters with no spaces",
+            ))
+        }
+    }
+}
+
+impl ToTokens for EndpointPath {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        self.0.to_tokens(tokens)
     }
 }

@@ -8,6 +8,9 @@ ruma_api! {
         method: POST, // An `http::Method` constant. No imports required.
         name: "some_endpoint",
         path: "/_matrix/some/endpoint/:baz",
+        unstable: "/_matrix/some/msc1234/endpoint/:baz",
+        r0: "/_matrix/some/r0/endpoint/:baz",
+        stable: "/_matrix/some/v1/endpoint/:baz",
         rate_limited: false,
         authentication: None,
         added: 1.0,
@@ -55,6 +58,10 @@ ruma_api! {
 
 fn main() {
     use ruma_api::MatrixVersion;
+
+    assert_eq!(METADATA.unstable_path, Some("/_matrix/some/msc1234/endpoint/:baz"));
+    assert_eq!(METADATA.r0_path, Some("/_matrix/some/r0/endpoint/:baz"));
+    assert_eq!(METADATA.stable_path, Some("/_matrix/some/v1/endpoint/:baz"));
 
     assert_eq!(METADATA.added, Some(MatrixVersion::V1_0));
     assert_eq!(METADATA.deprecated, Some(MatrixVersion::V1_1));

@@ -48,6 +48,9 @@ impl Api {
         let method = &metadata.method;
         let name = &metadata.name;
         let path = &metadata.path;
+        let unstable_path = util::map_option_literal(&metadata.unstable_path);
+        let r0_path = util::map_option_literal(&metadata.r0_path);
+        let stable_path = util::map_option_literal(&metadata.stable_path);
         let rate_limited: TokenStream = metadata
             .rate_limited
             .iter()
@@ -92,6 +95,9 @@ impl Api {
                 method: #http::Method::#method,
                 name: #name,
                 path: #path,
+                unstable_path: #unstable_path,
+                r0_path: #r0_path,
+                stable_path: #stable_path,
                 added: #added,
                 deprecated: #deprecated,
                 removed: #removed,
