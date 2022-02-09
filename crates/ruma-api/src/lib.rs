@@ -530,7 +530,7 @@ impl VersionRepr {
 }
 
 impl MatrixVersion {
-    /// Checks wether a version is compatible with another.
+    /// Checks whether a version is compatible with another.
     ///
     /// A is compatible with B as long as B is equal or less, so long as A and B have the same major
     /// versions.
