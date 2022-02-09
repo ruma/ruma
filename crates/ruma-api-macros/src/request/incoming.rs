@@ -1,4 +1,4 @@
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Field;
 
@@ -25,20 +25,7 @@ impl Request {
         // except this one. If we get errors about missing fields in IncomingRequest for
         // a path field look here.
         let (parse_request_path, path_vars) = if self.has_path_fields() {
-            let path_string = self.path.value();
-
-            assert!(path_string.starts_with('/'), "path needs to start with '/'");
-            assert!(
-                path_string.chars().filter(|c| *c == ':').count() == self.path_field_count(),
-                "number of declared path parameters needs to match amount of placeholders in path"
-            );
-
-            let path_vars = path_string[1..]
-                .split('/')
-                .filter(|seg| seg.starts_with(':'))
-                .map(|seg| Ident::new(&seg[1..], Span::call_site()));
-
-            let vars = path_vars.clone();
+            let path_vars: Vec<_> = self.path_fields().filter_map(|f| f.ident.as_ref()).collect();
 
             let parse_request_path = quote! {
                 let (#(#path_vars,)*) = #serde::Deserialize::deserialize(
@@ -48,7 +35,7 @@ impl Request {
                 )?;
             };
 
-            (parse_request_path, quote! { #(#vars,)* })
+            (parse_request_path, quote! { #(#path_vars,)* })
         } else {
             (TokenStream::new(), TokenStream::new())
         };

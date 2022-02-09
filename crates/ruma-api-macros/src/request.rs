@@ -152,8 +152,8 @@ impl Request {
         self.fields.iter().filter(|f| matches!(f, RequestField::Header(..)))
     }
 
-    fn path_field_count(&self) -> usize {
-        self.fields.iter().filter(|f| matches!(f, RequestField::Path(..))).count()
+    fn path_fields(&self) -> impl Iterator<Item = &Field> {
+        self.fields.iter().filter_map(RequestField::as_path_field)
     }
 
     fn raw_body_field(&self) -> Option<&Field> {
@@ -353,6 +353,14 @@ impl RequestField {
     pub fn as_raw_body_field(&self) -> Option<&Field> {
         match self {
             RequestField::RawBody(field) => Some(field),
+            _ => None,
+        }
+    }
+
+    /// Return the contained field if this request field is a path kind.
+    pub fn as_path_field(&self) -> Option<&Field> {
+        match self {
+            RequestField::Path(field) => Some(field),
             _ => None,
         }
     }
