@@ -1,6 +1,7 @@
 use std::{
     convert::TryFrom,
     fmt::{self, Display},
+    str::FromStr,
 };
 
 use http::Method;
@@ -108,6 +109,14 @@ impl TryFrom<&str> for MatrixVersion {
             "v1.2" => V1_2,
             _ => return Err(UnknownVersionError),
         })
+    }
+}
+
+impl FromStr for MatrixVersion {
+    type Err = UnknownVersionError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::try_from(s)
     }
 }
 
