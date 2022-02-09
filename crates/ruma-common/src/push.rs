@@ -414,7 +414,8 @@ pub struct PusherData {
     /// [sygnal]: https://github.com/matrix-org/sygnal/blob/main/docs/applications.md#ios-applications-beware
     // Not specified, issue: https://github.com/matrix-org/matrix-doc/issues/3474
     #[cfg(feature = "unstable-pre-spec")]
-    pub default_payload: Option<JsonValue>,
+    #[serde(default, skip_serializing_if = "JsonValue::is_null")]
+    pub default_payload: JsonValue,
 }
 
 impl PusherData {
@@ -432,7 +433,7 @@ impl PusherData {
 
         #[cfg(feature = "unstable-pre-spec")]
         {
-            self.url.is_none() && self.format.is_none() && self.default_payload.is_none()
+            self.url.is_none() && self.format.is_none() && self.default_payload.is_null()
         }
     }
 }
