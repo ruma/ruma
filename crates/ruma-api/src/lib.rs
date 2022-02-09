@@ -505,30 +505,6 @@ impl TryFrom<&str> for MatrixVersion {
     }
 }
 
-impl Display for MatrixVersion {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let r = self.repr();
-
-        f.write_str(&format!("v{}.{}", r.major, r.minor))
-    }
-}
-
-// Internal-only structure to abstract away version representations into Major-Minor bits.
-//
-// This is not represented on MatrixVersion due to the major footguns it exposes,
-// maybe in the future this'll be merged into it, but not now.
-#[derive(PartialEq)]
-struct VersionRepr {
-    major: u8,
-    minor: u8,
-}
-
-impl VersionRepr {
-    fn new(major: u8, minor: u8) -> Self {
-        VersionRepr { major, minor }
-    }
-}
-
 impl MatrixVersion {
     /// Checks whether a version is compatible with another.
     ///
@@ -545,22 +521,34 @@ impl MatrixVersion {
     ///
     /// This (considering if major versions are the same) is equivalent to a `self >= other` check.
     pub fn is_superset_of(self, other: Self) -> bool {
-        let repr_l = self.repr();
-        let repr_r = other.repr();
+        let (major_l, minor_l) = self.into_parts();
+        let (major_r, minor_r) = other.into_parts();
+        major_l == major_r && minor_l >= minor_r
+    }
 
-        if repr_l.major != repr_r.major {
-            false
-        } else {
-            repr_l.minor >= repr_r.minor
+    /// Decompose the Matrix version into its major and minor number.
+    pub fn into_parts(self) -> (u8, u8) {
+        match self {
+            MatrixVersion::V1_0 => (1, 0),
+            MatrixVersion::V1_1 => (1, 1),
+            MatrixVersion::V1_2 => (1, 2),
         }
     }
 
-    // Internal function to desugar the enum to a version repr
-    fn repr(&self) -> VersionRepr {
-        match self {
-            MatrixVersion::V1_0 => VersionRepr::new(1, 0),
-            MatrixVersion::V1_1 => VersionRepr::new(1, 1),
-            MatrixVersion::V1_2 => VersionRepr::new(1, 2),
+    /// Try to turn a pair of (major, minor) version components back into a `MatrixVersion`.
+    pub fn from_parts(major: u8, minor: u8) -> Result<Self, UnknownVersionError> {
+        match (major, minor) {
+            (1, 0) => Ok(MatrixVersion::V1_0),
+            (1, 1) => Ok(MatrixVersion::V1_1),
+            (1, 2) => Ok(MatrixVersion::V1_2),
+            _ => Err(UnknownVersionError),
         }
+    }
+}
+
+impl Display for MatrixVersion {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let (major, minor) = self.into_parts();
+        f.write_str(&format!("v{}.{}", major, minor))
     }
 }
