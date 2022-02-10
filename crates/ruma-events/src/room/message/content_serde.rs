@@ -45,7 +45,6 @@ impl<'de> Deserialize<'de> for MessageType {
             "m.server_notice" => Self::ServerNotice(from_raw_json_value(&json)?),
             "m.text" => Self::Text(from_raw_json_value(&json)?),
             "m.video" => Self::Video(from_raw_json_value(&json)?),
-            #[cfg(feature = "unstable-pre-spec")]
             "m.key.verification.request" => Self::VerificationRequest(from_raw_json_value(&json)?),
             _ => Self::_Custom(from_raw_json_value(&json)?),
         })
