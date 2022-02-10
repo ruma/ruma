@@ -1,11 +1,9 @@
-//! [POST /_matrix/federation/v1/user/keys/query](https://matrix.org/docs/spec/server_server/r0.1.4#post-matrix-federation-v1-user-keys-query)
+//! [POST /_matrix/federation/v1/user/keys/query](https://spec.matrix.org/v1.1/server-server-api/#post_matrixfederationv1userkeysquery)
 
 use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
-#[cfg(feature = "unstable-pre-spec")]
-use ruma_common::encryption::CrossSigningKey;
-use ruma_common::encryption::DeviceKeys;
+use ruma_common::encryption::{CrossSigningKey, DeviceKeys};
 use ruma_identifiers::{DeviceId, UserId};
 use ruma_serde::Raw;
 
@@ -32,12 +30,10 @@ ruma_api! {
         pub device_keys: BTreeMap<Box<UserId>, BTreeMap<Box<DeviceId>, Raw<DeviceKeys>>>,
 
         /// Information on the master cross-signing keys of the queried users.
-        #[cfg(feature = "unstable-pre-spec")]
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
         pub master_keys: BTreeMap<Box<UserId>, Raw<CrossSigningKey>>,
 
         /// Information on the self-signing keys of the queried users.
-        #[cfg(feature = "unstable-pre-spec")]
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
         pub self_signing_keys: BTreeMap<Box<UserId>, Raw<CrossSigningKey>>,
     }
