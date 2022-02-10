@@ -7,6 +7,11 @@ Breaking changes:
 * Make `device_display_name` field optional in `DeviceListUpdateContent` and update constructor accordingly
 * Remove unneeded `minimum_valid_until_ts` query parameter from `get_remote_server_keys_batch` endpoint
 
+Improvements:
+
+* Move `knock` module out of `unstable-pre-spec`
+  * `knock:::send_knock::v1::Request` requires a PDU instead of the `knock_event`
+
 # 0.3.1
 
 Bug fixes:
