@@ -21,6 +21,8 @@ rustdoc-args = ["--cfg", "docsrs"]
 [features]
 unstable-exhaustive-types = []
 unstable-pre-spec = []
+unstable-msc2448 = []
+unstable-msc3618 = []
 client = []
 server = []
 

@@ -34,6 +34,7 @@ impl RoomState {
     /// Creates an empty `RoomState` with the given `origin`.
     ///
     /// With the `unstable-pre-spec` feature, this method doesn't take any parameters.
+    /// See [matrix-doc#1664](https://github.com/matrix-org/matrix-doc/issues/1664).
     pub fn new(origin: String) -> Self {
         Self { origin, auth_chain: Vec::new(), state: Vec::new() }
     }
@@ -42,7 +43,7 @@ impl RoomState {
     /// Creates an empty `RoomState` with the given `origin`.
     ///
     /// Without the `unstable-pre-spec` feature, this method takes a parameter for the origin
-    /// server.
+    /// server. See [matrix-doc#1664](https://github.com/matrix-org/matrix-doc/issues/1664).
     pub fn new() -> Self {
         Self { auth_chain: Vec::new(), state: Vec::new() }
     }

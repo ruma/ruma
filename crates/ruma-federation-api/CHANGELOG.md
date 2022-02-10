@@ -12,6 +12,11 @@ Improvements:
 * Move `knock` module out of `unstable-pre-spec`
   * `knock:::send_knock::v1::Request` requires a PDU instead of the `knock_event`
 * Move cross-signing properties of `keys::get_keys::v1::Response` out of `unstable-pre-spec`
+* Move MSC implementations from `unstable-pre-spec` to per-msc features:
+  ```
+  unstable-msc2448
+  unstable-msc3618
+  ```
 
 # 0.3.1
 

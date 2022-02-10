@@ -35,6 +35,9 @@ ruma_api! {
         /// List of persistent updates to rooms.
         ///
         /// Must not be more than 50 items.
+        ///
+        /// With the `unstable-pre-spec` feature, sending `pdus` is optional.
+        /// See [matrix-doc#2824](https://github.com/matrix-org/matrix-doc/issues/2824).
         #[cfg_attr(feature = "unstable-pre-spec", serde(default, skip_serializing_if = "<[_]>::is_empty"))]
         pub pdus: &'a [Box<RawJsonValue>],
 
@@ -48,8 +51,10 @@ ruma_api! {
     #[derive(Default)]
     response: {
         /// Map of event IDs and response for each PDU given in the request.
-        // https://github.com/matrix-org/matrix-doc/pull/3618 makes returning `pdus` optional.
-        #[cfg_attr(feature = "unstable-pre-spec", serde(default))]
+        ///
+        /// With the `unstable-msc3618` feature, returning `pdus` is optional.
+        /// See [MSC3618](https://github.com/matrix-org/matrix-doc/pull/3618).
+        #[cfg_attr(feature = "unstable-msc3618", serde(default))]
         #[serde(with = "crate::serde::pdu_process_response")]
         pub pdus: BTreeMap<Box<EventId>, Result<(), String>>,
     }
