@@ -80,7 +80,7 @@ pub struct RoomMemberEventContent {
     ///
     /// This uses the unstable prefix in
     /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-msc2448")]
     #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
     pub blurhash: Option<String>,
 
@@ -112,7 +112,7 @@ impl RoomMemberEventContent {
             displayname: None,
             is_direct: None,
             third_party_invite: None,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-msc2448")]
             blurhash: None,
             reason: None,
             join_authorized_via_users_server: None,
@@ -341,7 +341,7 @@ fn membership_change(
             is_direct: None,
             membership: St::Leave,
             third_party_invite: None,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-msc2448")]
             blurhash: None,
             reason: None,
             join_authorized_via_users_server: None,

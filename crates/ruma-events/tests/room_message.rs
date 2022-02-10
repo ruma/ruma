@@ -218,7 +218,7 @@ fn relates_to_content_serialization() {
 }
 
 #[test]
-#[cfg(not(feature = "unstable-pre-spec"))]
+#[cfg(not(feature = "unstable-msc2676"))]
 fn edit_deserialization_061() {
     let json_data = json!({
         "body": "s/foo/bar",
@@ -247,7 +247,7 @@ fn edit_deserialization_061() {
 }
 
 #[test]
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2676")]
 fn edit_deserialization_future() {
     use ruma_events::room::message::Replacement;
 

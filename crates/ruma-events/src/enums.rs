@@ -44,7 +44,7 @@ event_enum! {
         "m.key.verification.key",
         "m.key.verification.mac",
         "m.key.verification.done",
-        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg(feature = "unstable-msc2677")]
         "m.reaction",
         "m.room.encrypted",
         "m.room.message",
@@ -340,7 +340,7 @@ impl AnyMessageEventContent {
                     event_id: event_id.clone(),
                 }))
             }
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-msc2677")]
             Self::Reaction(ev) => {
                 use crate::reaction;
 
@@ -355,7 +355,7 @@ impl AnyMessageEventContent {
                 message::Relation::Reply { in_reply_to } => {
                     encrypted::Relation::Reply { in_reply_to }
                 }
-                #[cfg(feature = "unstable-pre-spec")]
+                #[cfg(feature = "unstable-msc2676")]
                 message::Relation::Replacement(re) => {
                     encrypted::Relation::Replacement(encrypted::Replacement {
                         event_id: re.event_id,

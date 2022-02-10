@@ -343,7 +343,7 @@ pub enum Relation {
     },
 
     /// An event that replaces another event.
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-msc2676")]
     Replacement(Replacement),
 
     #[doc(hidden)]
@@ -367,7 +367,7 @@ impl InReplyTo {
 
 /// The event this relation belongs to replaces another event.
 #[derive(Clone, Debug)]
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2676")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Replacement {
     /// The ID of the event being replacing.
@@ -377,7 +377,7 @@ pub struct Replacement {
     pub new_content: Box<RoomMessageEventContent>,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2676")]
 impl Replacement {
     /// Creates a new `Replacement` with the given event ID and new content.
     pub fn new(event_id: Box<EventId>, new_content: Box<RoomMessageEventContent>) -> Self {
@@ -936,7 +936,7 @@ pub struct VideoInfo {
     ///
     /// This uses the unstable prefix in
     /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-msc2448")]
     #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
     pub blurhash: Option<String>,
 }

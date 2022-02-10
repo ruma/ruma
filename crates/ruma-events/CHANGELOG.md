@@ -21,6 +21,13 @@ Improvements:
 * Implement `Redact` for event structs (in addition to `Any` event enums)
 * Add `room::message::RoomMessageEventContent::{body, msgtype}` accessor methods
 * Move `room::message::MessageType::VerificationRequest` out of `unstable-pre-spec`
+* Move MSC implementations from `unstable-pre-spec` to per-msc features:
+  ```
+  unstable-msc2448
+  unstable-msc2675
+  unstable-msc2676
+  unstable-msc2677
+  ```
 
 # 0.24.6
 
