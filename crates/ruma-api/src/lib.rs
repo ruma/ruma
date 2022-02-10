@@ -18,14 +18,9 @@
 #[cfg(not(all(feature = "client", feature = "server")))]
 compile_error!("ruma_api's Cargo features only exist as a workaround are not meant to be disabled");
 
-use std::{
-    convert::{TryFrom, TryInto as _},
-    error::Error as StdError,
-    fmt::{self, Display},
-};
+use std::{convert::TryInto as _, error::Error as StdError, fmt};
 
 use bytes::BufMut;
-use http::Method;
 use ruma_identifiers::UserId;
 
 /// Generates a `ruma_api::Endpoint` from a concise definition.
@@ -213,6 +208,10 @@ pub mod exports {
     pub use serde;
     pub use serde_json;
 }
+
+mod metadata;
+
+pub use metadata::{MatrixVersion, Metadata};
 
 use error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
 
@@ -406,196 +405,6 @@ pub enum AuthScheme {
     QueryOnlyAccessToken,
 }
 
-/// Metadata about an API endpoint.
-#[derive(Clone, Debug)]
-#[allow(clippy::exhaustive_structs)]
-pub struct Metadata {
-    /// A human-readable description of the endpoint.
-    pub description: &'static str,
-
-    /// The HTTP method used by this endpoint.
-    pub method: Method,
-
-    /// A unique identifier for this endpoint.
-    pub name: &'static str,
-
-    /// (DEPRECATED)
-    pub path: &'static str,
-
-    /// The unstable path of this endpoint's URL, often `None`, used for developmental purposes.
-    pub unstable_path: Option<&'static str>,
-
-    /// The pre-v1.1 version of this endpoint's URL, `None` for post-v1.1 endpoints, supplemental
-    /// to `stable_path`.
-    pub r0_path: Option<&'static str>,
-
-    /// The path of this endpoint's URL, with variable names where path parameters should be filled
-    /// in during a request.
-    pub stable_path: Option<&'static str>,
-
-    /// Whether or not this endpoint is rate limited by the server.
-    pub rate_limited: bool,
-
-    /// What authentication scheme the server uses for this endpoint.
-    pub authentication: AuthScheme,
-
-    /// The matrix version that this endpoint was added in.
-    ///
-    /// Is None when this endpoint is unstable/unreleased.
-    pub added: Option<MatrixVersion>,
-
-    /// The matrix version that deprecated this endpoint.
-    ///
-    /// Deprecation often precedes one matrix version before removal.
-    // TODO add once try_into_http_request has been altered;
-    // This will make `try_into_http_request` emit a warning,
-    // see the corresponding documentation for more information.
-    pub deprecated: Option<MatrixVersion>,
-
-    /// The matrix version that removed this endpoint.
-    ///
-    /// This will make `try_into_http_request` emit an error,
-    /// see the corresponding documentation for more information.
-    pub removed: Option<MatrixVersion>,
-}
-
-/// The Matrix versions Ruma currently understands to exist.
-///
-/// Matrix, since fall 2021, has a quarterly release schedule, using a global `vX.Y` versioning
-/// scheme.
-///
-/// Every new minor version denotes stable support for endpoints in a *relatively*
-/// backwards-compatible manner.
-///
-/// Matrix has a deprecation policy, read more about it here: <https://spec.matrix.org/v1.2/#deprecation-policy>.
-// TODO add the following once `EndpointPath` and added/deprecated/removed macros are in place;
-// Ruma keeps track of when endpoints are added, deprecated, and removed. It'll automatically
-// select the right endpoint stability variation to use depending on which Matrix version you pass
-// it with [`EndpointPath`], see its respective documentation for more.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub enum MatrixVersion {
-    /// Version 1.0 of the Matrix specification.
-    ///
-    /// Retroactively defined as <https://spec.matrix.org/v1.1/#legacy-versioning>.
-    V1_0,
-
-    /// Version 1.1 of the Matrix specification, released in Q4 2021.
-    ///
-    /// See <https://spec.matrix.org/v1.1/>.
-    V1_1,
-
-    /// Version 1.2 of the Matrix specification, released in Q1 2022.
-    ///
-    /// See <https://spec.matrix.org/v1.2/>.
-    V1_2,
-}
-
-/// An error that happens when Ruma cannot understand a Matrix version.
-#[derive(Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct UnknownVersionError;
-
-impl Display for UnknownVersionError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Version string was unknown.")
-    }
-}
-
-impl StdError for UnknownVersionError {}
-
-impl TryFrom<&str> for MatrixVersion {
-    type Error = UnknownVersionError;
-
-    fn try_from(value: &str) -> Result<MatrixVersion, Self::Error> {
-        use MatrixVersion::*;
-
-        Ok(match value {
-            // FIXME: these are likely not entirely correct; https://github.com/ruma/ruma/issues/852
-            "v1.0" |
-            // Additional definitions according to https://spec.matrix.org/v1.2/#legacy-versioning
-            "r0.5.0" | "r0.6.0" | "r0.6.1" => V1_0,
-            "v1.1" => V1_1,
-            "v1.2" => V1_2,
-            _ => return Err(UnknownVersionError),
-        })
-    }
-}
-
-impl Display for MatrixVersion {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let r = self.repr();
-
-        f.write_str(&format!("v{}.{}", r.major, r.minor))
-    }
-}
-
-// Internal-only structure to abstract away version representations into Major-Minor bits.
-//
-// This is not represented on MatrixVersion due to the major footguns it exposes,
-// maybe in the future this'll be merged into it, but not now.
-#[derive(PartialEq)]
-struct VersionRepr {
-    major: u8,
-    minor: u8,
-}
-
-impl VersionRepr {
-    fn new(major: u8, minor: u8) -> Self {
-        VersionRepr { major, minor }
-    }
-}
-
-// We don't expose this on MatrixVersion due to the subtleties of non-total ordering semantics
-// the Matrix versions have; we cannot guarantee ordering between major versions, and only between
-// minor versions of the same major one.
-//
-// This means that V2_0 > V1_0 returns false, and V2_0 < V1_0 too.
-//
-// This sort of behavior has to be pre-emptively known by the programmer, which is the definition of
-// a gotcha/footgun.
-//
-// As such, we're not including it in the public API (only using it via `MatrixVersion::compatible`)
-// until we find a way to introduce it in a way that exposes the ambiguities to the programmer.
-impl PartialOrd for VersionRepr {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        if self.major != other.major {
-            // Ordering between major versions is non-total.
-            return None;
-        }
-        self.minor.partial_cmp(&other.minor)
-    }
-}
-
-impl MatrixVersion {
-    /// Checks wether a version is compatible with another.
-    ///
-    /// A is compatible with B as long as B is equal or less, so long as A and B have the same major
-    /// versions.
-    ///
-    /// For example, v1.2 is compatible with v1.1, as it is likely only some additions of endpoints
-    /// on top of v1.1, but v1.1 would not be compatible with v1.2, as v1.1 cannot represent all of
-    /// v1.2, in a manner similar to set theory.
-    ///
-    /// Warning: Matrix has a deprecation policy, and Matrix versioning is not as straight-forward
-    /// as this function makes it out to be. This function only exists to prune major version
-    /// differences, and versions too new for `self`.
-    ///
-    /// This (considering if major versions are the same) is equivalent to a `self >= other` check.
-    pub fn is_superset_of(self, other: Self) -> bool {
-        self.repr() >= other.repr()
-    }
-
-    // Internal function to desugar the enum to a version repr
-    fn repr(&self) -> VersionRepr {
-        match self {
-            MatrixVersion::V1_0 => VersionRepr::new(1, 0),
-            MatrixVersion::V1_1 => VersionRepr::new(1, 1),
-            MatrixVersion::V1_2 => VersionRepr::new(1, 2),
-        }
-    }
-}
-
 /// A specifier for what path variant of an endpoint to request.
 #[derive(Clone, PartialEq, Eq, Debug)]
 #[allow(clippy::exhaustive_enums)]
@@ -645,19 +454,19 @@ pub fn select_path<'a>(
     };
 
     if let Some(removed_ver) = metadata.removed {
-        if version.repr() >= removed_ver.repr() {
+        if version.is_superset_of(removed_ver) {
             return Err(IntoHttpError::EndpointRemoved(version, removed_ver));
         }
     }
 
     if let Some(depr_ver) = metadata.deprecated {
-        if version.repr() >= depr_ver.repr() {
+        if version.is_superset_of(depr_ver) {
             // todo: emit warning
         }
     }
 
     if let Some(added_ver) = metadata.added {
-        if version.repr() >= added_ver.repr() {
+        if version.is_superset_of(added_ver) {
             // r0 paths are "added" in V1_0, but if this has one, and the version is V1_0, then we
             // use this fallback path
             if let Some(r0) = r0 {

@@ -124,6 +124,9 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use self::room::redaction::SyncRoomRedactionEvent;
 
+// Needs to be public for trybuild tests
+#[doc(hidden)]
+pub mod _custom;
 mod enums;
 mod event_kinds;
 mod unsigned;
@@ -151,7 +154,6 @@ pub mod macros {
 }
 
 pub mod call;
-pub mod custom;
 pub mod direct;
 pub mod dummy;
 pub mod forwarded_room_key;

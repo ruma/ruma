@@ -1,6 +1,6 @@
 //! [GET /_matrix/client/versions](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-versions)
 
-use std::{collections::BTreeMap, convert::TryInto as _};
+use std::collections::BTreeMap;
 
 use ruma_api::{ruma_api, MatrixVersion};
 
@@ -45,15 +45,82 @@ impl Response {
     /// Extracts known Matrix versions from this response.
     ///
     /// Matrix versions that Ruma cannot parse, or does not know about, are discarded.
-    pub fn known_versions(&self) -> Vec<MatrixVersion> {
-        let mut versions = vec![];
-        for s in &self.versions {
-            if let Ok(ver) = s.as_str().try_into() {
-                if !versions.contains(&ver) {
-                    versions.push(ver)
-                }
-            }
-        }
-        versions
+    ///
+    /// The versions returned will be sorted from oldest to latest. Use [`.find()`][Iterator::find]
+    /// or [`.rfind()`][DoubleEndedIterator::rfind] to look for a minimum or maximum version to use
+    /// given some constraint.
+    pub fn known_versions(&self) -> impl Iterator<Item = MatrixVersion> + DoubleEndedIterator {
+        self.versions
+            .iter()
+            // Parse, discard unknown versions
+            .flat_map(|s| s.parse::<MatrixVersion>())
+            // Map to key-value pairs where the key is the major-minor representation
+            // (which can be used as a BTreeMap unlike MatrixVersion itself)
+            .map(|v| (v.into_parts(), v))
+            // Collect to BTreeMap
+            .collect::<BTreeMap<_, _>>()
+            // Return an iterator over just the values (`MatrixVersion`s)
+            .into_values()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use ruma_api::MatrixVersion;
+
+    use super::Response;
+
+    #[test]
+    fn known_versions() {
+        let none = Response::new(vec![]);
+        assert_eq!(none.known_versions().next(), None);
+
+        let single_known = Response::new(vec!["r0.6.0".to_owned()]);
+        assert_eq!(single_known.known_versions().collect::<Vec<_>>(), vec![MatrixVersion::V1_0]);
+
+        let single_unknown = Response::new(vec!["v0.0".to_owned()]);
+        assert_eq!(single_unknown.known_versions().next(), None);
+    }
+
+    #[test]
+    fn known_versions_order() {
+        let sorted = Response::new(vec![
+            "r0.0.1".to_owned(),
+            "r0.5.0".to_owned(),
+            "r0.6.0".to_owned(),
+            "r0.6.1".to_owned(),
+            "v1.1".to_owned(),
+            "v1.2".to_owned(),
+        ]);
+        assert_eq!(
+            sorted.known_versions().collect::<Vec<_>>(),
+            vec![MatrixVersion::V1_0, MatrixVersion::V1_1, MatrixVersion::V1_2],
+        );
+
+        let sorted_reverse = Response::new(vec![
+            "v1.2".to_owned(),
+            "v1.1".to_owned(),
+            "r0.6.1".to_owned(),
+            "r0.6.0".to_owned(),
+            "r0.5.0".to_owned(),
+            "r0.0.1".to_owned(),
+        ]);
+        assert_eq!(
+            sorted_reverse.known_versions().collect::<Vec<_>>(),
+            vec![MatrixVersion::V1_0, MatrixVersion::V1_1, MatrixVersion::V1_2],
+        );
+
+        let random_order = Response::new(vec![
+            "v1.1".to_owned(),
+            "r0.6.1".to_owned(),
+            "r0.5.0".to_owned(),
+            "r0.6.0".to_owned(),
+            "r0.0.1".to_owned(),
+            "v1.2".to_owned(),
+        ]);
+        assert_eq!(
+            random_order.known_versions().collect::<Vec<_>>(),
+            vec![MatrixVersion::V1_0, MatrixVersion::V1_1, MatrixVersion::V1_2],
+        );
     }
 }

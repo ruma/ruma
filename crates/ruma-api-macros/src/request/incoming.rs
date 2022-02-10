@@ -27,8 +27,6 @@ impl Request {
         let (parse_request_path, path_vars) = if self.has_path_fields() {
             let path_vars: Vec<_> = self.path_fields().filter_map(|f| f.ident.as_ref()).collect();
 
-            let vars = path_vars.clone();
-
             let parse_request_path = quote! {
                 let (#(#path_vars,)*) = #serde::Deserialize::deserialize(
                     #serde::de::value::SeqDeserializer::<_, #serde::de::value::Error>::new(
@@ -37,7 +35,7 @@ impl Request {
                 )?;
             };
 
-            (parse_request_path, quote! { #(#vars,)* })
+            (parse_request_path, quote! { #(#path_vars,)* })
         } else {
             (TokenStream::new(), TokenStream::new())
         };

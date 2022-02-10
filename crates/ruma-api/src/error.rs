@@ -232,3 +232,16 @@ pub enum HeaderDeserializationError {
     #[error("Missing header `{0}`")]
     MissingHeader(String),
 }
+
+/// An error that happens when Ruma cannot understand a Matrix version.
+#[derive(Debug)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct UnknownVersionError;
+
+impl fmt::Display for UnknownVersionError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Version string was unknown.")
+    }
+}
+
+impl StdError for UnknownVersionError {}

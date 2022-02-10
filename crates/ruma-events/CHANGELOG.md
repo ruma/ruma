@@ -3,7 +3,7 @@
 Breaking changes:
 
 * Remove `RedactedStrippedStateEvent`
-  * It was not used anywhere since stripped state events are never actually redacted.
+  * It was not used anywhere since stripped state events are never actually redacted
 * Use `Box<RawJsonValue>` instead of `JsonValue` for PDU `content` field
 * Require `room::message::MessageType` to always contain a body
   * The `new` constructor now also has a body parameter
@@ -11,6 +11,8 @@ Breaking changes:
 * Remove unneeded redacted event content enums
 * Update `reply` and `html_reply` types to `impl Display` on `RoomMessageEventContent`'s reply
   constructors
+* Remove the `custom` module, which has been redundant for a while
+  * If you are still using it and are unclear on the upgrade path, please get in touch
 
 Improvements:
 

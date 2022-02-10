@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Move Room Version 9 keys out of `unstable-pre-spec` in `allowed_content_keys_for`
+
 # 0.9.0
 
 Breaking changes:
