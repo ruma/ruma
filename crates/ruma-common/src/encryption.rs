@@ -97,7 +97,6 @@ impl SignedKey {
     }
 
     /// Creates a new fallback `SignedKey` with the given key and signatures.
-    #[cfg(feature = "unstable-pre-spec")]
     pub fn new_fallback(key: Base64, signatures: SignedKeySignatures) -> Self {
         Self { key, signatures, fallback: true }
     }
