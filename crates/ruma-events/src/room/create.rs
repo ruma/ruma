@@ -175,7 +175,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "unstable-pre-spec")]
     #[test]
     fn space_deserialization() {
         let json = json!({
