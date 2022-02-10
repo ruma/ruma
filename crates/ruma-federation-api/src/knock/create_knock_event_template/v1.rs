@@ -1,4 +1,4 @@
-//! [GET /_matrix/federation/v1/make_knock/{roomId}/{userId}](https://spec.matrix.org/unstable/server-server-api/#get_matrixfederationv1make_knockroomiduserid)
+//! [GET /_matrix/federation/v1/make_knock/{roomId}/{userId}](https://spec.matrix.org/v1.1/server-server-api/#get_matrixfederationv1make_knockroomiduserid)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{RoomId, RoomVersionId, UserId};
