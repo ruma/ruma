@@ -22,6 +22,10 @@ markdown = ["pulldown-cmark"]
 unstable-exhaustive-types = []
 unstable-pdu = []
 unstable-pre-spec = []
+unstable-msc2448 = []
+unstable-msc2675 = []
+unstable-msc2676 = []
+unstable-msc2677 = []
 
 [dependencies]
 criterion = { version = "0.3.3", optional = true }

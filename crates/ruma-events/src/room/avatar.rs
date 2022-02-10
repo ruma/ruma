@@ -26,12 +26,14 @@ pub struct RoomAvatarEventContent {
     /// URL of the avatar image.
     ///
     /// With the `unstable-pre-spec` feature, this field is optional.
+    /// See [matrix-doc#2006](https://github.com/matrix-org/matrix-doc/issues/2006).
     #[cfg(not(feature = "unstable-pre-spec"))]
     pub url: Box<MxcUri>,
 
     /// URL of the avatar image.
     ///
     /// Without the `unstable-pre-spec` feature, this field is not optional.
+    /// See [matrix-doc#2006](https://github.com/matrix-org/matrix-doc/issues/2006).
     #[cfg(feature = "unstable-pre-spec")]
     pub url: Option<Box<MxcUri>>,
 }
@@ -40,6 +42,7 @@ impl RoomAvatarEventContent {
     /// Create an `RoomAvatarEventContent` from the given image URL.
     ///
     /// With the `unstable-pre-spec` feature, this method takes no parameters.
+    /// See [matrix-doc#2006](https://github.com/matrix-org/matrix-doc/issues/2006).
     #[cfg(not(feature = "unstable-pre-spec"))]
     pub fn new(url: Box<MxcUri>) -> Self {
         Self { info: None, url }
@@ -48,6 +51,7 @@ impl RoomAvatarEventContent {
     /// Create an empty `RoomAvatarEventContent`.
     ///
     /// With the `unstable-pre-spec` feature, this method takes an `MxcUri`.
+    /// See [matrix-doc#2006](https://github.com/matrix-org/matrix-doc/issues/2006).
     #[cfg(feature = "unstable-pre-spec")]
     pub fn new() -> Self {
         Self::default()
@@ -86,7 +90,7 @@ pub struct ImageInfo {
     ///
     /// This uses the unstable prefix in
     /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-msc2448")]
     #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
     pub blurhash: Option<String>,
 }

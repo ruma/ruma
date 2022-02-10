@@ -93,14 +93,14 @@ pub enum Relation {
     },
 
     /// An event that replaces another event.
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-msc2676")]
     Replacement(Replacement),
 
     /// A reference to another event.
     Reference(Reference),
 
     /// An annotation to an event.
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-msc2677")]
     Annotation(Annotation),
 
     #[doc(hidden)]
@@ -113,7 +113,7 @@ pub enum Relation {
 /// store the new content, since that is part of the encrypted content of an `m.room.encrypted`
 /// events.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2676")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Replacement {
     /// The ID of the event being replacing.
@@ -137,7 +137,7 @@ impl Reference {
 
 /// An annotation for an event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2677")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Annotation {
     /// The event that is being annotated.
@@ -147,7 +147,7 @@ pub struct Annotation {
     pub key: String,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2677")]
 impl Annotation {
     /// Creates a new `Annotation` with the given event ID and key.
     pub fn new(event_id: Box<EventId>, key: String) -> Self {

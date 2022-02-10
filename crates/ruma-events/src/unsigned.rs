@@ -2,7 +2,7 @@ use js_int::Int;
 use ruma_identifiers::TransactionId;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2675")]
 use crate::relation::Relations;
 use crate::room::redaction::SyncRoomRedactionEvent;
 
@@ -24,7 +24,7 @@ pub struct Unsigned {
     pub transaction_id: Option<Box<TransactionId>>,
 
     /// Server-compiled information from other events relating to this event.
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-msc2675")]
     #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]
     pub relations: Option<Relations>,
 }
@@ -41,12 +41,12 @@ impl Unsigned {
     /// events. Do not use it to determine whether an incoming `unsigned` field was present - it
     /// could still have been present but contained none of the known fields.
     pub fn is_empty(&self) -> bool {
-        #[cfg(not(feature = "unstable-pre-spec"))]
+        #[cfg(not(feature = "unstable-msc2675"))]
         {
             self.age.is_none() && self.transaction_id.is_none()
         }
 
-        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg(feature = "unstable-msc2675")]
         {
             self.age.is_none() && self.transaction_id.is_none() && self.relations.is_none()
         }
@@ -93,7 +93,7 @@ pub struct UnsignedWithPrevContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     transaction_id: Option<Box<TransactionId>>,
 
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-msc2675")]
     #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]
     relations: Option<Relations>,
 
@@ -106,7 +106,7 @@ impl From<UnsignedWithPrevContent> for Unsigned {
         Self {
             age: u.age,
             transaction_id: u.transaction_id,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-msc2675")]
             relations: u.relations,
         }
     }

@@ -43,7 +43,7 @@ mod tests {
             unsigned: Unsigned {
                 age: Some(int!(1234)),
                 transaction_id: None,
-                #[cfg(feature = "unstable-pre-spec")]
+                #[cfg(feature = "unstable-msc2675")]
                 relations: None,
             },
             content: PolicyRuleRoomEventContent(PolicyRuleEventContent {

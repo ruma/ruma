@@ -165,10 +165,10 @@ pub mod pdu;
 pub mod policy;
 pub mod presence;
 pub mod push_rules;
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2677")]
 pub mod reaction;
 pub mod receipt;
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2675")]
 pub mod relation;
 pub mod room;
 pub mod room_key;
@@ -179,7 +179,7 @@ pub mod sticker;
 pub mod tag;
 pub mod typing;
 
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2675")]
 pub use self::relation::Relations;
 pub use self::{
     enums::*,

@@ -115,7 +115,13 @@ unstable-pre-spec = [
     "ruma-federation-api/unstable-pre-spec",
     "ruma-state-res/__unstable-pre-spec", # for tests
 ]
-unstable-msc2448 = ["ruma-federation-api/unstable-msc2448"]
+unstable-msc2448 = [
+    "ruma-events/unstable-msc2448",
+    "ruma-federation-api/unstable-msc2448"
+]
+unstable-msc2675 = ["ruma-events/unstable-msc2675"]
+unstable-msc2676 = ["ruma-events/unstable-msc2676"]
+unstable-msc2677 = ["ruma-events/unstable-msc2677"]
 unstable-msc3618 = ["ruma-federation-api/unstable-msc3618"]
 
 [dependencies]
