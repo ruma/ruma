@@ -109,8 +109,9 @@ pub enum Relation {
 
 /// The event this relation belongs to replaces another event.
 ///
-/// In contrast to [`message::Replacement`], this struct doesn't store the new content, since that
-/// is part of the encrypted content of an `m.room.encrypted` events.
+/// In contrast to [`message::Replacement`](crate::room::message::Replacement), this struct doesn't
+/// store the new content, since that is part of the encrypted content of an `m.room.encrypted`
+/// events.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
