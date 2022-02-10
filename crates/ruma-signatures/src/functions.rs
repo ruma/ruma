@@ -44,7 +44,6 @@ static ALLOWED_KEYS: &[&str] = &[
 fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'static [&'static str] {
     match event_type {
         "m.room.member" => match version {
-            #[cfg(feature = "unstable-pre-spec")]
             RoomVersionId::V9 => &["membership", "join_authorised_via_users_server"],
             _ => &["membership"],
         },
