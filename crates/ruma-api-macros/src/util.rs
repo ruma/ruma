@@ -78,7 +78,7 @@ pub fn extract_cfg(attr: &Attribute) -> Option<NestedMeta> {
     Some(list.nested.pop().unwrap().into_value())
 }
 
-pub fn convert_path_string(
+pub fn path_format_args_call(
     mut format_string: String,
     percent_encoding: &TokenStream,
 ) -> (String, Vec<TokenStream>) {
