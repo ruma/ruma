@@ -22,7 +22,7 @@ pub mod test;
 pub mod urlencoded;
 
 pub use self::{
-    base64::Base64,
+    base64::{Base64, Base64DecodeError},
     buf::{json_to_buf, slice_to_buf},
     can_be_empty::{is_empty, CanBeEmpty},
     canonical_json::{

@@ -83,8 +83,8 @@ impl<C: Base64Config> Base64<C> {
     }
 
     /// Parse some base64-encoded data to create a `Base64` instance.
-    pub fn parse(encoded: impl AsRef<[u8]>) -> Result<Self, base64::DecodeError> {
-        base64::decode_config(encoded, C::CONF.0).map(Self::new)
+    pub fn parse(encoded: impl AsRef<[u8]>) -> Result<Self, Base64DecodeError> {
+        base64::decode_config(encoded, C::CONF.0).map(Self::new).map_err(Base64DecodeError)
     }
 }
 
@@ -118,3 +118,21 @@ impl<C: Base64Config, B: AsRef<[u8]>> Serialize for Base64<C, B> {
         serializer.serialize_str(&self.encode())
     }
 }
+
+/// An error that occurred while decoding a base64 string.
+#[derive(Clone)]
+pub struct Base64DecodeError(base64::DecodeError);
+
+impl fmt::Debug for Base64DecodeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl fmt::Display for Base64DecodeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl std::error::Error for Base64DecodeError {}

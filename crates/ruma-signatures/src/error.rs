@@ -1,4 +1,5 @@
 use ruma_identifiers::{EventId, RoomVersionId, ServerName};
+use ruma_serde::Base64DecodeError;
 use thiserror::Error;
 
 /// `ruma-signature`'s error type, wraps a number of other error types.
@@ -228,7 +229,7 @@ pub enum ParseError {
         string: String,
         /// The originating error.
         #[source]
-        source: base64::DecodeError,
+        source: Base64DecodeError,
     },
 }
 
@@ -254,7 +255,7 @@ impl ParseError {
     pub(crate) fn base64<T1: Into<String>, T2: Into<String>>(
         of_type: T1,
         string: T2,
-        source: base64::DecodeError,
+        source: Base64DecodeError,
     ) -> Error {
         Self::Base64 { of_type: of_type.into(), string: string.into(), source }.into()
     }
