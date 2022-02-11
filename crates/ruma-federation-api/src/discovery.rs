@@ -10,6 +10,8 @@ pub mod get_remote_server_keys;
 pub mod get_remote_server_keys_batch;
 pub mod get_server_keys;
 pub mod get_server_version;
+#[cfg(feature = "unstable-msc3723")]
+pub mod get_server_versions;
 
 /// Public key of the homeserver for verifying digital signatures.
 #[derive(Clone, Debug, Deserialize, Serialize)]
