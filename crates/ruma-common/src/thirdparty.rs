@@ -88,6 +88,8 @@ pub struct ProtocolInstance {
     pub network_id: String,
 
     /// A unique identifier across all instances.
+    ///
+    /// See [matrix-doc#3203](https://github.com/matrix-org/matrix-doc/issues/3203).
     #[cfg(feature = "unstable-pre-spec")]
     pub instance_id: String,
 }
@@ -109,6 +111,8 @@ pub struct ProtocolInstanceInit {
     pub network_id: String,
 
     /// A unique identifier across all instances.
+    ///
+    /// See [matrix-doc#3203](https://github.com/matrix-org/matrix-doc/issues/3203).
     #[cfg(feature = "unstable-pre-spec")]
     pub instance_id: String,
 }
