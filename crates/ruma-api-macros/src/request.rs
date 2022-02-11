@@ -145,10 +145,6 @@ impl Request {
         self.fields.iter().any(|f| matches!(f, RequestField::Header(..)))
     }
 
-    fn path_fields(&self) -> impl Iterator<Item = &Field> {
-        self.fields.iter().filter_map(RequestField::as_path_field)
-    }
-
     fn has_path_fields(&self) -> bool {
         self.fields.iter().any(|f| matches!(f, RequestField::Path(_)))
     }
@@ -166,6 +162,10 @@ impl Request {
 
     fn header_fields(&self) -> impl Iterator<Item = &RequestField> {
         self.fields.iter().filter(|f| matches!(f, RequestField::Header(..)))
+    }
+
+    fn path_fields(&self) -> impl Iterator<Item = &Field> {
+        self.fields.iter().filter_map(RequestField::as_path_field)
     }
 
     fn raw_body_field(&self) -> Option<&Field> {
