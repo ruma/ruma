@@ -46,6 +46,7 @@ Improvements:
 * Move reason support for leaving room out of `unstable-pre-spec`
 * Move room type support out of `unstable-pre-spec`
 * Move knocking support out of `unstable-pre-spec`
+* Move blurhash support to `unstable-msc2448`
 
 # 0.12.3
 

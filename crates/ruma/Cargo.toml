@@ -110,12 +110,12 @@ unstable-exhaustive-types = [
 unstable-pdu = ["ruma-events/unstable-pdu"]
 unstable-pre-spec = [
     "ruma-common/unstable-pre-spec",
-    "ruma-client-api/unstable-pre-spec",
     "ruma-events/unstable-pre-spec",
     "ruma-federation-api/unstable-pre-spec",
     "ruma-state-res/__unstable-pre-spec", # for tests
 ]
 unstable-msc2448 = [
+    "ruma-client-api/unstable-msc2448",
     "ruma-events/unstable-msc2448",
     "ruma-federation-api/unstable-msc2448"
 ]

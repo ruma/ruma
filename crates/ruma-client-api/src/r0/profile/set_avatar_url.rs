@@ -42,7 +42,7 @@ ruma_api! {
         ///
         /// This uses the unstable prefix in
         /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
-        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg(feature = "unstable-msc2448")]
         #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
         pub blurhash: Option<&'a str>,
     }
@@ -59,7 +59,7 @@ impl<'a> Request<'a> {
         Self {
             user_id,
             avatar_url,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-msc2448")]
             blurhash: None,
         }
     }

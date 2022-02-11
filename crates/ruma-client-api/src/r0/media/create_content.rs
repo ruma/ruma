@@ -32,7 +32,7 @@ ruma_api! {
         /// This uses the unstable prefix in
         /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
         #[ruma_api(query)]
-        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg(feature = "unstable-msc2448")]
         #[serde(default, skip_serializing_if = "ruma_serde::is_default", rename = "xyz.amorgan.blurhash")]
         pub generate_blurhash: bool,
     }
@@ -45,7 +45,7 @@ ruma_api! {
         ///
         /// This uses the unstable prefix in
         /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
-        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg(feature = "unstable-msc2448")]
         #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
         pub blurhash: Option<String>,
     }
@@ -60,7 +60,7 @@ impl<'a> Request<'a> {
             file,
             filename: None,
             content_type: None,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-msc2448")]
             generate_blurhash: false,
         }
     }
@@ -71,7 +71,7 @@ impl Response {
     pub fn new(content_uri: Box<MxcUri>) -> Self {
         Self {
             content_uri,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-msc2448")]
             blurhash: None,
         }
     }
