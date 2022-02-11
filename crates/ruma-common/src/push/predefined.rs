@@ -21,7 +21,7 @@ impl Ruleset {
     pub fn server_default(user_id: &UserId) -> Self {
         Self {
             content: indexset![PatternedPushRule::contains_user_name(user_id)],
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-msc2677")]
             override_: indexset![
                 ConditionalPushRule::master(),
                 ConditionalPushRule::suppress_notices(),
@@ -32,7 +32,7 @@ impl Ruleset {
                 ConditionalPushRule::roomnotif(),
                 ConditionalPushRule::reaction(),
             ],
-            #[cfg(not(feature = "unstable-pre-spec"))]
+            #[cfg(not(feature = "unstable-msc2677"))]
             override_: indexset![
                 ConditionalPushRule::master(),
                 ConditionalPushRule::suppress_notices(),
@@ -161,7 +161,7 @@ impl ConditionalPushRule {
 
     /// Matches emoji reactions to a message
     /// MSC2677: Annotations and Reactions
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-msc2677")]
     pub fn reaction() -> Self {
         Self {
             actions: vec![DontNotify],

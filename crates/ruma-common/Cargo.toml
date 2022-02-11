@@ -18,6 +18,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 compat = []
 unstable-exhaustive-types = []
 unstable-pre-spec = []
+unstable-msc2677 = []
 
 [dependencies]
 indexmap = { version = "1.6.2", features = ["serde-1"] }
