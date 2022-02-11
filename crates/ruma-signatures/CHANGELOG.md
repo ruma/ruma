@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Merge `SplitError` into `Error`
+
 Improvements:
 
 * Move Room Version 9 keys out of `unstable-pre-spec` in `allowed_content_keys_for`

@@ -22,9 +22,17 @@ pub enum Error {
     #[error("DER Parse error: {0}")]
     DerParse(pkcs8::der::Error),
 
-    /// [`SplitError`] wrapper.
-    #[error("Split error: {0}")]
-    SplitError(#[from] SplitError),
+    /// The signature's ID does not have exactly two components separated by a colon.
+    #[error("malformed signature ID: expected exactly 2 segment separated by a colon, found {0}")]
+    InvalidLength(usize),
+
+    /// The signature's ID contains invalid characters in its version.
+    #[error("malformed signature ID: expected version to contain only characters in the character set `[a-zA-Z0-9_]`, found `{0}`")]
+    InvalidVersion(String),
+
+    /// The signature uses an unsupported algorithm.
+    #[error("signature uses an unsupported algorithm: {0}")]
+    UnsupportedAlgorithm(String),
 
     /// PDU was too large
     #[error("PDU is larger than maximum of 65535 bytes")]
@@ -250,21 +258,4 @@ impl ParseError {
     ) -> Error {
         Self::Base64 { of_type: of_type.into(), string: string.into(), source }.into()
     }
-}
-
-/// An error when trying to extract the algorithm and version from a key identifier.
-#[derive(Error, Debug)]
-#[non_exhaustive]
-pub enum SplitError {
-    /// The signature's ID does not have exactly two components separated by a colon.
-    #[error("malformed signature ID: expected exactly 2 segment separated by a colon, found {0}")]
-    InvalidLength(usize),
-
-    /// The signature's ID contains invalid characters in its version.
-    #[error("malformed signature ID: expected version to contain only characters in the character set `[a-zA-Z0-9_]`, found `{0}`")]
-    InvalidVersion(String),
-
-    /// The signature uses an unsupported algorithm.
-    #[error("unsupported algorithm: {0}")]
-    UnsupportedAlgorithm(String),
 }
