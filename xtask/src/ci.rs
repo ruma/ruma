@@ -71,9 +71,7 @@ impl CiTask {
         cmd!("rustup run stable cargo check -p ruma-identifiers --no-default-features").run()?;
 
         // 2. Run tests
-        let workspace_res =
-            cmd!("rustup run stable cargo test --workspace --features full,unstable-pre-spec")
-                .run();
+        let workspace_res = cmd!("rustup run stable cargo test --workspace --features __ci").run();
         let events_compat_res =
             cmd!("rustup run stable cargo test -p ruma-events --features compat compat").run();
 
@@ -98,7 +96,7 @@ impl CiTask {
         let clippy_all_res = cmd!(
             "
             rustup run nightly cargo clippy
-                --workspace --all-targets --features=full,compat,unstable-pre-spec -- -D warnings
+                --workspace --all-targets --features=__ci,compat -- -D warnings
             "
         )
         .run();
