@@ -279,7 +279,7 @@ pub trait OutgoingRequest: Sized {
         self,
         base_url: &str,
         access_token: SendAccessToken<'_>,
-        path: EndpointPath,
+        considering_versions: &'_ [MatrixVersion],
     ) -> Result<http::Request<T>, IntoHttpError>;
 }
 
@@ -305,9 +305,10 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
         base_url: &str,
         access_token: SendAccessToken<'_>,
         user_id: &UserId,
-        path: EndpointPath,
+        considering_versions: &'_ [MatrixVersion],
     ) -> Result<http::Request<T>, IntoHttpError> {
-        let mut http_request = self.try_into_http_request(base_url, access_token, path)?;
+        let mut http_request =
+            self.try_into_http_request(base_url, access_token, considering_versions)?;
         let user_id_query = ruma_serde::urlencoded::to_string(&[("user_id", user_id)])?;
 
         let uri = http_request.uri().to_owned();
@@ -405,80 +406,64 @@ pub enum AuthScheme {
     QueryOnlyAccessToken,
 }
 
-/// A specifier for what path variant of an endpoint to request.
-#[derive(Clone, PartialEq, Eq, Debug)]
-#[allow(clippy::exhaustive_enums)]
-pub enum EndpointPath {
-    /// Select an appropriate path version for a particular matrix version.
-    ///
-    /// Note: When using
-    /// [`try_into_http_request`](OutgoingRequest::try_into_http_request) with this variant, it can
-    /// emit additional errors;
-    /// - [`NoUnstablePath`](IntoHttpError::NoUnstablePath), if the matrix version is too new, and
-    ///   the endpoint has no defined `unstable` path (for maintenance or legacy reasons.)
-    /// - [`EndpointRemoved`](IntoHttpError::EndpointRemoved), if the matrix version is too old,
-    ///   and the endpoint is known to be removed in the same or a newer version.
-    ForMatrixVersion(MatrixVersion),
-
-    /// Select any path, preferring stable.
-    ///
-    /// Note: This does not emit any errors like
-    /// [`ForMatrixVersion`](EndpointPath::ForMatrixVersion) does, if the server's lowest matrix
-    /// version has removed the endpoint, or it has not yet stabilized the endpoint, this may
-    /// result in runtime HTTP errors, it is highly recommended to fetch `/versions`, extract
-    /// Ruma-known matrix versions, and pass the preferred version through `ForMatrixVersion`.
-    PreferStable,
-}
-
-impl From<MatrixVersion> for EndpointPath {
-    fn from(ver: MatrixVersion) -> Self {
-        Self::ForMatrixVersion(ver)
-    }
-}
-
+// This function helps picks the right path (or an error) from a set of matrix versions.
+//
 // This function needs to be public, yet hidden, as all `try_into_http_request`s would be using it.
-// We're also using MatrixVersion::repr() here, which is crate-private.
+//
+// Note this assumes that `versions`;
+// - at least has 1 element
+// - have all elements sorted by its `.into_parts` representation.
 #[doc(hidden)]
 pub fn select_path<'a>(
-    path: EndpointPath,
+    versions: &'_ [MatrixVersion],
     metadata: &'_ Metadata,
     unstable: Option<fmt::Arguments<'a>>,
     r0: Option<fmt::Arguments<'a>>,
     stable: Option<fmt::Arguments<'a>>,
 ) -> Result<fmt::Arguments<'a>, IntoHttpError> {
-    let version = match path {
-        EndpointPath::ForMatrixVersion(v) => v,
-        EndpointPath::PreferStable => {
-            return Ok(stable.or(r0).or(unstable).expect("one of three paths to be defined"))
-        }
-    };
+    let greater_or_equal_any =
+        |version: MatrixVersion| versions.iter().any(|v| v.is_superset_of(version));
+    let greater_or_equal_all =
+        |version: MatrixVersion| versions.iter().all(|v| v.is_superset_of(version));
 
-    if let Some(removed_ver) = metadata.removed {
-        if version.is_superset_of(removed_ver) {
-            return Err(IntoHttpError::EndpointRemoved(version, removed_ver));
-        }
+    let is_stable_any = metadata.added.map(greater_or_equal_any).unwrap_or(false);
+
+    let is_removed_all = metadata.removed.map(greater_or_equal_all).unwrap_or(false);
+
+    // Only when all the versions (e.g. 1.6-9) are compatible with the version that added it (e.g.
+    // 1.1), yet are also "after" the version that removed it (e.g. 1.3), then we return that error.
+    // Otherwise, this all versions may fall into a different major range, such as 2.X, where
+    // "after" and "compatible" do not exist with the 1.X range, so we at least need to make sure
+    // that the versions are part of the same "range" through the `added` check.
+    if is_stable_any && is_removed_all {
+        return Err(IntoHttpError::EndpointRemoved(metadata.removed.unwrap()));
     }
 
-    if let Some(depr_ver) = metadata.deprecated {
-        if version.is_superset_of(depr_ver) {
-            // todo: emit warning
-        }
-    }
+    if is_stable_any {
+        let is_deprecated_any = metadata.deprecated.map(greater_or_equal_any).unwrap_or(false);
 
-    if let Some(added_ver) = metadata.added {
-        if version.is_superset_of(added_ver) {
-            // r0 paths are "added" in V1_0, but if this has one, and the version is V1_0, then we
-            // use this fallback path
-            if let Some(r0) = r0 {
-                if version == MatrixVersion::V1_0 {
-                    return Ok(r0);
-                }
+        if is_deprecated_any {
+            let is_removed_any = metadata.removed.map(greater_or_equal_any).unwrap_or(false);
+
+            if is_removed_any {
+                tracing::warn!("endpoint {} is deprecated, but also removed in one of more server-passed versions: {:?}", metadata.name, versions)
+            } else {
+                tracing::warn!(
+                    "endpoint {} is deprecated in one of more server-passed versions: {:?}",
+                    metadata.name,
+                    versions
+                )
             }
-
-            return Ok(stable.or(r0).expect(
-                "metadata.added is defined, so stable_path or r0_path must also be defined",
-            ));
         }
+
+        if let Some(r0) = r0 {
+            if versions.iter().all(|&v| v == MatrixVersion::V1_0) {
+                // Endpoint was added in 1.0, we return the r0 variant.
+                return Ok(r0);
+            }
+        }
+
+        return Ok(stable.expect("metadata.added enforces the stable path to exist"));
     }
 
     unstable.ok_or(IntoHttpError::NoUnstablePath)

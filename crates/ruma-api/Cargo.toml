@@ -35,6 +35,7 @@ ruma-serde = { version = "0.5.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.61"
 thiserror = "1.0.26"
+tracing = "0.1.25"
 
 [dev-dependencies]
 ruma-events = { version = "0.24.6", path = "../ruma-events" }

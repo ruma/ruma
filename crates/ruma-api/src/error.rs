@@ -75,8 +75,8 @@ pub enum IntoHttpError {
     NoUnstablePath,
 
     /// Tried to create a request with a [`MatrixVersion`] in which this endpoint was removed.
-    #[error("Tried to find an endpoint variant for matrix version {0}, but that endpoint was removed in matrix version {1}")]
-    EndpointRemoved(MatrixVersion, MatrixVersion),
+    #[error("Could not create any path variant for endpoint, as it was removed in version {0}")]
+    EndpointRemoved(MatrixVersion),
 
     /// JSON serialization failed.
     #[error("JSON serialization failed: {0}")]

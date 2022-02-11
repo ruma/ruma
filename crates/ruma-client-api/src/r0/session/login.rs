@@ -317,7 +317,7 @@ mod tests {
     #[test]
     #[cfg(feature = "client")]
     fn serialize_login_request_body() {
-        use ruma_api::{OutgoingRequest, SendAccessToken};
+        use ruma_api::{MatrixVersion, OutgoingRequest, SendAccessToken};
         use ruma_common::thirdparty::Medium;
         use serde_json::Value as JsonValue;
 
@@ -332,7 +332,7 @@ mod tests {
         .try_into_http_request(
             "https://homeserver.tld",
             SendAccessToken::None,
-            ruma_api::EndpointPath::PreferStable,
+            &[MatrixVersion::V1_0],
         )
         .unwrap();
 
@@ -360,7 +360,7 @@ mod tests {
         .try_into_http_request(
             "https://homeserver.tld",
             SendAccessToken::None,
-            ruma_api::EndpointPath::PreferStable,
+            &[MatrixVersion::V1_0],
         )
         .unwrap();
 

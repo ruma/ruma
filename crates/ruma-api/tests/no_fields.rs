@@ -1,6 +1,4 @@
-use ruma_api::{
-    EndpointPath::PreferStable, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken,
-};
+use ruma_api::{MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken};
 
 mod get {
     ruma_api::ruma_api! {
@@ -41,7 +39,7 @@ fn empty_post_request_http_repr() {
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            PreferStable,
+            &[MatrixVersion::V1_0],
         )
         .unwrap();
 
@@ -55,7 +53,7 @@ fn empty_get_request_http_repr() {
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            PreferStable,
+            &[MatrixVersion::V1_0],
         )
         .unwrap();
 

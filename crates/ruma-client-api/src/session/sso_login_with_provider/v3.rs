@@ -49,7 +49,7 @@ impl Response {
 
 #[cfg(all(test, feature = "client"))]
 mod tests {
-    use ruma_api::{OutgoingRequest as _, SendAccessToken};
+    use ruma_api::{MatrixVersion, OutgoingRequest as _, SendAccessToken};
 
     use super::Request;
 
@@ -59,7 +59,7 @@ mod tests {
             .try_into_http_request::<Vec<u8>>(
                 "https://homeserver.tld",
                 SendAccessToken::None,
-                ruma_api::EndpointPath::PreferStable,
+                &[MatrixVersion::V1_0],
             )
             .unwrap();
 

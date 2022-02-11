@@ -28,7 +28,7 @@ async fn log_messages(
             assign!(sync_events::Request::new(), {
                 filter: Some(&filter),
             }),
-            ruma_api::EndpointPath::PreferStable,
+            &[ruma_api::MatrixVersion::V1_0],
         )
         .await?;
 

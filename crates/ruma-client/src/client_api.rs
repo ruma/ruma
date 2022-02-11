@@ -3,7 +3,7 @@ use std::time::Duration;
 use assign::assign;
 use async_stream::try_stream;
 use futures_core::stream::Stream;
-use ruma_api::EndpointPath;
+use ruma_api::MatrixVersion;
 use ruma_client_api::r0::{
     account::register::{self, RegistrationKind},
     session::login::{self, LoginInfo},
@@ -34,7 +34,7 @@ impl<C: HttpClient> Client<C> {
                 device_id,
                 initial_device_display_name,
                 }
-            ), EndpointPath::PreferStable)
+            ), &[MatrixVersion::V1_0])
             .await?;
 
         *self.0.access_token.lock().unwrap() = Some(response.access_token.clone());
@@ -52,7 +52,7 @@ impl<C: HttpClient> Client<C> {
         let response = self
             .send_request(
                 assign!(register::Request::new(), { kind: RegistrationKind::Guest }),
-                EndpointPath::PreferStable,
+                &[MatrixVersion::V1_0],
             )
             .await?;
 
@@ -76,7 +76,7 @@ impl<C: HttpClient> Client<C> {
         let response = self
             .send_request(
                 assign!(register::Request::new(), { username, password: Some(password)}),
-                EndpointPath::PreferStable,
+                &[MatrixVersion::V1_0],
             )
             .await?;
 
@@ -127,7 +127,7 @@ impl<C: HttpClient> Client<C> {
                         since: Some(&since),
                         set_presence,
                         timeout,
-                    }), EndpointPath::PreferStable)
+                    }), &[MatrixVersion::V1_0])
                     .await?;
 
                 since = response.next_batch.clone();

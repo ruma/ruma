@@ -70,7 +70,7 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
         base_url: &str,
         access_token: ruma_api::SendAccessToken<'_>,
         // FIXME: properly define
-        _path: ruma_api::EndpointPath,
+        _considering_versions: &'_ [ruma_api::MatrixVersion],
     ) -> Result<http::Request<T>, ruma_api::error::IntoHttpError> {
         use std::borrow::Cow;
 

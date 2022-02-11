@@ -6,7 +6,7 @@ use ruma::{
             filter::FilterDefinition, membership::join_room_by_id, message::send_message_event,
             sync::sync_events,
         },
-        EndpointPath::PreferStable,
+        MatrixVersion,
     },
     assign, client,
     events::{
@@ -66,7 +66,7 @@ async fn run() -> Result<(), Box<dyn Error>> {
             assign!(sync_events::Request::new(), {
                 filter: Some(&filter),
             }),
-            PreferStable,
+            &[MatrixVersion::V1_0],
         )
         .await?;
     let user_id = &config.username;
@@ -158,7 +158,7 @@ async fn handle_messages(
                 let txn_id = TransactionId::new();
                 let req = send_message_event::Request::new(room_id, &txn_id, &joke_content)?;
                 // Do nothing if we can't send the message.
-                let _ = matrix_client.send_request(req, PreferStable).await;
+                let _ = matrix_client.send_request(req, &[MatrixVersion::V1_0]).await;
             }
         }
     }
@@ -171,14 +171,16 @@ async fn handle_invitations(
     room_id: &RoomId,
 ) -> Result<(), Box<dyn Error>> {
     println!("invited to {}", &room_id);
-    matrix_client.send_request(join_room_by_id::Request::new(room_id), PreferStable).await?;
+    matrix_client
+        .send_request(join_room_by_id::Request::new(room_id), &[MatrixVersion::V1_0])
+        .await?;
 
     let greeting = "Hello! My name is Mr. Bot! I like to tell jokes. Like this one: ";
     let joke = get_joke(http_client).await.unwrap_or_else(|_| "err... never mind.".to_owned());
     let content = RoomMessageEventContent::text_plain(format!("{}\n{}", greeting, joke));
     let txn_id = TransactionId::new();
     let message = send_message_event::Request::new(room_id, &txn_id, &content)?;
-    matrix_client.send_request(message, PreferStable).await?;
+    matrix_client.send_request(message, &[MatrixVersion::V1_0]).await?;
     Ok(())
 }
 

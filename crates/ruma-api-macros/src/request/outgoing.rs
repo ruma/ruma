@@ -48,7 +48,7 @@ impl Request {
         let r0_path = util::map_option_literal(&r0_path);
         let stable_path = util::map_option_literal(&stable_path);
 
-        let request_path = quote! { #ruma_api::select_path(path, &metadata, #unstable_path, #r0_path, #stable_path)? };
+        let request_path = quote! { #ruma_api::select_path(considering_versions, &metadata, #unstable_path, #r0_path, #stable_path)? };
 
         let request_query_string = if let Some(field) = self.query_map_field() {
             let field_name = field.ident.as_ref().expect("expected field to have identifier");
@@ -208,7 +208,7 @@ impl Request {
                     self,
                     base_url: &::std::primitive::str,
                     access_token: #ruma_api::SendAccessToken<'_>,
-                    path: #ruma_api::EndpointPath,
+                    considering_versions: &'_ [#ruma_api::MatrixVersion],
                 ) -> ::std::result::Result<#http::Request<T>, #ruma_api::error::IntoHttpError> {
                     let metadata = self::METADATA;
 

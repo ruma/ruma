@@ -76,7 +76,7 @@ mod tests {
     #[cfg(feature = "client")]
     #[test]
     fn construct_request_from_refs() {
-        use ruma_api::{OutgoingRequest as _, SendAccessToken};
+        use ruma_api::{MatrixVersion, OutgoingRequest as _, SendAccessToken};
         use ruma_identifiers::server_name;
 
         let req = super::Request {
@@ -87,7 +87,7 @@ mod tests {
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::IfRequired("auth_tok"),
-            ruma_api::EndpointPath::PreferStable,
+            &[MatrixVersion::V1_0],
         )
         .unwrap();
 

@@ -616,7 +616,7 @@ mod tests {
 mod client_tests {
     use std::time::Duration;
 
-    use ruma_api::{OutgoingRequest as _, SendAccessToken};
+    use ruma_api::{MatrixVersion, OutgoingRequest as _, SendAccessToken};
 
     use super::{Filter, PresenceState, Request};
 
@@ -632,7 +632,7 @@ mod client_tests {
         .try_into_http_request(
             "https://homeserver.tld",
             SendAccessToken::IfRequired("auth_tok"),
-            ruma_api::EndpointPath::PreferStable,
+            &[MatrixVersion::V1_0],
         )
         .unwrap();
 
