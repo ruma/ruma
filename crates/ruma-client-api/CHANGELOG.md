@@ -24,7 +24,7 @@ Breaking changes:
 
 Improvements:
 
-* Add unstable support for reasons in the membership endpoints:
+* Add support for reasons in the membership endpoints:
 
   ```rust
   r0::membership::{
@@ -43,6 +43,7 @@ Improvements:
   includes:
   * The `r0::session::get_login_types::{IdentityProvider, IdentityProviderBrand}` types
   * The `session::sso_login_with_provider::v3` endpoint
+* Move reason support for leaving room out of `unstable-pre-spec`
 
 # 0.12.3
 

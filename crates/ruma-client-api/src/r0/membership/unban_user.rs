@@ -22,7 +22,6 @@ ruma_api! {
         pub user_id: &'a UserId,
 
         /// Optional reason for unbanning the user.
-        #[cfg(feature = "unstable-pre-spec")]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub reason: Option<&'a str>,
     }
@@ -36,12 +35,7 @@ ruma_api! {
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given room id and room id.
     pub fn new(room_id: &'a RoomId, user_id: &'a UserId) -> Self {
-        Self {
-            room_id,
-            user_id,
-            #[cfg(feature = "unstable-pre-spec")]
-            reason: None,
-        }
+        Self { room_id, user_id, reason: None }
     }
 }
 
