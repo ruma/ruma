@@ -33,7 +33,6 @@ ruma_api! {
         pub third_party_signed: Option<ThirdPartySigned<'a>>,
 
         /// Optional reason for joining the room.
-        #[cfg(feature = "unstable-pre-spec")]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub reason: Option<&'a str>,
     }
@@ -49,13 +48,7 @@ ruma_api! {
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given room ID or alias ID.
     pub fn new(room_id_or_alias: &'a RoomOrAliasId) -> Self {
-        Self {
-            room_id_or_alias,
-            server_name: &[],
-            third_party_signed: None,
-            #[cfg(feature = "unstable-pre-spec")]
-            reason: None,
-        }
+        Self { room_id_or_alias, server_name: &[], third_party_signed: None, reason: None }
     }
 }
 
