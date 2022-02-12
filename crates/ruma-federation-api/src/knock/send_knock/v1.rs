@@ -3,6 +3,7 @@
 use ruma_api::ruma_api;
 use ruma_events::AnyStrippedStateEvent;
 use ruma_identifiers::{EventId, RoomId};
+use ruma_serde::Raw;
 use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
@@ -31,7 +32,7 @@ ruma_api! {
 
     response: {
         /// State events providing public room metadata.
-        pub knock_room_state: Vec<AnyStrippedStateEvent>,
+        pub knock_room_state: Vec<Raw<AnyStrippedStateEvent>>,
     }
 }
 
@@ -44,7 +45,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given public room metadata state events.
-    pub fn new(knock_room_state: Vec<AnyStrippedStateEvent>) -> Self {
+    pub fn new(knock_room_state: Vec<Raw<AnyStrippedStateEvent>>) -> Self {
         Self { knock_room_state }
     }
 }
