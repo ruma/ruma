@@ -100,6 +100,7 @@ mod plain {
         request: {
             pub q2: Foo,
 
+            #[ruma_api(path)]
             pub bar: String,
 
             #[ruma_api(query)]
