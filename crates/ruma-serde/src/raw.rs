@@ -2,6 +2,7 @@ use std::{
     clone::Clone,
     fmt::{self, Debug, Formatter},
     marker::PhantomData,
+    mem,
 };
 
 use serde::{
@@ -35,6 +36,7 @@ use crate::cow::MyCowStr;
 ///     .deserialize() // deserialize to the inner type
 ///     .unwrap(); // finally get to the AnyRoomEvent
 /// ```
+#[repr(transparent)]
 pub struct Raw<T> {
     json: Box<RawJsonValue>,
     _ev: PhantomData<T>,
@@ -151,6 +153,20 @@ impl<T> Raw<T> {
         U: Deserialize<'a>,
     {
         serde_json::from_str(self.json.get())
+    }
+
+    /// Turns `Raw<T>` into `Raw<U>` without changing the underlying JSON.
+    ///
+    /// This is useful for turning raw specific event types into raw event enum types.
+    pub fn cast<U>(self) -> Raw<U> {
+        Raw::from_json(self.into_json())
+    }
+
+    /// Turns `&Raw<T>` into `&Raw<U>` without changing the underlying JSON.
+    ///
+    /// This is useful for turning raw specific event types into raw event enum types.
+    pub fn cast_ref<U>(&self) -> &Raw<U> {
+        unsafe { mem::transmute(self) }
     }
 }
 
