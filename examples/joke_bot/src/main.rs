@@ -95,19 +95,17 @@ async fn run() -> Result<(), Box<dyn Error>> {
         let message_futures = response.rooms.join.iter().map(|(room_id, room_info)| async move {
             // Use a regular for loop for the messages within one room to handle them sequentially
             for e in &room_info.timeline.events {
-                match handle_messages(http_client, matrix_client, e, room_id, user_id).await {
-                    Ok(_) => {}
-                    Err(err) => {
-                        eprintln!("failed to respond to message: {}", err)
-                    }
+                if let Err(err) =
+                    handle_messages(http_client, matrix_client, e, room_id, user_id).await
+                {
+                    eprintln!("failed to respond to message: {}", err)
                 }
             }
         });
 
         let invite_futures = response.rooms.invite.iter().map(|(room_id, _)| async move {
-            match handle_invitations(http_client, matrix_client, room_id).await {
-                Ok(_) => {}
-                Err(err) => eprintln!("failed to accept invitation for room {}: {}", &room_id, err),
+            if let Err(err) = handle_invitations(http_client, matrix_client, room_id).await {
+                eprintln!("failed to accept invitation for room {}: {}", &room_id, err)
             }
         });
 
