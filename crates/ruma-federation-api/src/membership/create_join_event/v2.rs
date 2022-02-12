@@ -12,9 +12,10 @@ ruma_api! {
         description: "Send a join event to a resident server.",
         name: "create_join_event",
         method: PUT,
-        path: "/_matrix/federation/v2/send_join/:room_id/:event_id",
+        stable: "/_matrix/federation/v2/send_join/:room_id/:event_id",
         rate_limited: false,
         authentication: ServerSignatures,
+        added: 1.0,
     }
 
     request: {

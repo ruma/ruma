@@ -11,9 +11,11 @@ ruma_api! {
         description: "Request that a password change token is sent to the given email address.",
         method: POST,
         name: "request_password_change_token_via_email",
-        path: "/_matrix/client/r0/account/password/email/requestToken",
+        r0: "/_matrix/client/r0/account/password/email/requestToken",
+        stable: "/_matrix/client/v3/account/password/email/requestToken",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
     }
 
     request: {

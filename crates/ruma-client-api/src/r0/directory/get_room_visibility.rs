@@ -10,9 +10,11 @@ ruma_api! {
         description: "Get the visibility of a public room on a directory.",
         name: "get_room_visibility",
         method: GET,
-        path: "/_matrix/client/r0/directory/list/room/:room_id",
+        r0: "/_matrix/client/r0/directory/list/room/:room_id",
+        stable: "/_matrix/client/v3/directory/list/room/:room_id",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
     }
 
     request: {

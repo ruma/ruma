@@ -16,9 +16,12 @@ ruma_api! {
         description: "Get information about the latest backup.",
         method: GET,
         name: "get_latest_backup",
-        path: "/_matrix/client/unstable/room_keys/version",
+        unstable: "/_matrix/client/unstable/room_keys/version",
+        r0: "/_matrix/client/r0/room_keys/version",
+        stable: "/_matrix/client/v3/room_keys/version",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]

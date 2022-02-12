@@ -8,9 +8,11 @@ ruma_api! {
         description: "Redact an event, stripping all information not critical to the event graph integrity.",
         method: PUT,
         name: "redact_event",
-        path: "/_matrix/client/r0/rooms/:room_id/redact/:event_id/:txn_id",
+        r0: "/_matrix/client/r0/rooms/:room_id/redact/:event_id/:txn_id",
+        stable: "/_matrix/client/v3/rooms/:room_id/redact/:event_id/:txn_id",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

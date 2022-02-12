@@ -21,9 +21,6 @@ pub struct Metadata {
     /// A unique identifier for this endpoint.
     pub name: &'static str,
 
-    /// (DEPRECATED)
-    pub path: &'static str,
-
     /// The unstable path of this endpoint's URL, often `None`, used for developmental
     /// purposes.
     pub unstable_path: Option<&'static str>,

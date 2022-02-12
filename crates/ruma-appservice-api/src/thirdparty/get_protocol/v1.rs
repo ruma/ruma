@@ -8,9 +8,10 @@ ruma_api! {
         description: "Fetches the metadata from the homeserver about a particular third party protocol.",
         method: GET,
         name: "get_protocol",
-        path: "/_matrix/app/v1/thirdparty/protocol/:protocol",
+        stable: "/_matrix/app/v1/thirdparty/protocol/:protocol",
         rate_limited: false,
         authentication: QueryOnlyAccessToken,
+        added: 1.0,
     }
 
     request: {

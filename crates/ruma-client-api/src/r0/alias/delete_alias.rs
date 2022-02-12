@@ -8,9 +8,11 @@ ruma_api! {
         description: "Remove an alias from a room.",
         method: DELETE,
         name: "delete_alias",
-        path: "/_matrix/client/r0/directory/room/:room_alias",
+        r0: "/_matrix/client/r0/directory/room/:room_alias",
+        stable: "/_matrix/client/v3/directory/room/:room_alias",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

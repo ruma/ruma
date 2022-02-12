@@ -10,9 +10,11 @@ ruma_api! {
         description: "Join a room using its ID.",
         method: POST,
         name: "join_room_by_id",
-        path: "/_matrix/client/r0/rooms/:room_id/join",
+        r0: "/_matrix/client/r0/rooms/:room_id/join",
+        stable: "/_matrix/client/v3/rooms/:room_id/join",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

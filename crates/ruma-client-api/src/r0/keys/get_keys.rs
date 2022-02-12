@@ -13,9 +13,11 @@ ruma_api! {
         description: "Returns the current devices and identity keys for the given users.",
         method: POST,
         name: "get_keys",
-        path: "/_matrix/client/r0/keys/query",
+        r0: "/_matrix/client/r0/keys/query",
+        stable: "/_matrix/client/v3/keys/query",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]

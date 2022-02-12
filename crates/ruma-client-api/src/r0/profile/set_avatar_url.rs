@@ -8,9 +8,11 @@ ruma_api! {
         description: "Set the avatar URL of the user.",
         method: PUT,
         name: "set_avatar_url",
-        path: "/_matrix/client/r0/profile/:user_id/avatar_url",
+        r0: "/_matrix/client/r0/profile/:user_id/avatar_url",
+        stable: "/_matrix/client/v3/profile/:user_id/avatar_url",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

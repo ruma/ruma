@@ -9,9 +9,10 @@ ruma_api! {
         description: "Gets all the public rooms for the homeserver.",
         method: GET,
         name: "get_public_rooms",
-        path: "/_matrix/federation/v1/publicRooms",
+        stable: "/_matrix/federation/v1/publicRooms",
         rate_limited: false,
         authentication: ServerSignatures,
+        added: 1.0,
     }
 
     #[derive(Default)]

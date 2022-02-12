@@ -8,9 +8,11 @@ ruma_api! {
         description: "Retrieve all push rulesets in the global scope for this user.",
         method: GET,
         name: "get_pushrules_global_scope",
-        path: "/_matrix/client/r0/pushrules/global/",
+        r0: "/_matrix/client/r0/pushrules/global/",
+        stable: "/_matrix/client/v3/pushrules/global/",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]

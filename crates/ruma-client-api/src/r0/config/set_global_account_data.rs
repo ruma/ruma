@@ -9,9 +9,11 @@ ruma_api! {
         description: "Sets global account data.",
         method: PUT,
         name: "set_global_account_data",
-        path: "/_matrix/client/r0/user/:user_id/account_data/:event_type",
+        r0: "/_matrix/client/r0/user/:user_id/account_data/:event_type",
+        stable: "/_matrix/client/v3/user/:user_id/account_data/:event_type",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

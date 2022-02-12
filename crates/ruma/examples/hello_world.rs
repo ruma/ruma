@@ -20,10 +20,10 @@ async fn hello_world(
     client.log_in(username, password, None, Some("ruma-example-client")).await?;
 
     let room_id = client
-        .send_request(get_alias::Request::new(room_alias), &[MatrixVersion::V1_0])
+        .send_request(get_alias::Request::new(room_alias), &[MatrixVersion::V1_1])
         .await?
         .room_id;
-    client.send_request(join_room_by_id::Request::new(&room_id), &[MatrixVersion::V1_0]).await?;
+    client.send_request(join_room_by_id::Request::new(&room_id), &[MatrixVersion::V1_1]).await?;
     client
         .send_request(
             send_message_event::Request::new(
@@ -31,7 +31,7 @@ async fn hello_world(
                 &TransactionId::new(),
                 &RoomMessageEventContent::text_plain("Hello World!"),
             )?,
-            &[MatrixVersion::V1_0],
+            &[MatrixVersion::V1_1],
         )
         .await?;
 

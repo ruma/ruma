@@ -10,9 +10,11 @@ ruma_api! {
         description: "Fetches third party users for a protocol.",
         method: GET,
         name: "get_user_for_protocol",
-        path: "/_matrix/client/r0/thirdparty/user/:protocol",
+        r0: "/_matrix/client/r0/thirdparty/user/:protocol",
+        stable: "/_matrix/client/v3/thirdparty/user/:protocol",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

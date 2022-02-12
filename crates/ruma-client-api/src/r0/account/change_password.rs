@@ -9,9 +9,11 @@ ruma_api! {
         description: "Change the password of the current user's account.",
         method: POST,
         name: "change_password",
-        path: "/_matrix/client/r0/account/password",
+        r0: "/_matrix/client/r0/account/password",
+        stable: "/_matrix/client/v3/account/password",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

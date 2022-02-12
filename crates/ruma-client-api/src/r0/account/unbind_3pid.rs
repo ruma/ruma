@@ -10,9 +10,11 @@ ruma_api! {
         description: "Unbind a 3PID from a user's account on an identity server.",
         method: POST,
         name: "unbind_3pid",
-        path: "/_matrix/client/r0/account/3pid/unbind",
+        r0: "/_matrix/client/r0/account/3pid/unbind",
+        stable: "/_matrix/client/v3/account/3pid/unbind",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

@@ -135,9 +135,10 @@ use ruma_identifiers::UserId;
 ///             description: "Does something.",
 ///             method: POST,
 ///             name: "some_endpoint",
-///             path: "/_matrix/some/endpoint/:baz",
+///             stable: "/_matrix/some/endpoint/:baz",
 ///             rate_limited: false,
 ///             authentication: None,
+///             added: 1.1,
 ///         }
 ///
 ///         request: {
@@ -176,9 +177,10 @@ use ruma_identifiers::UserId;
 ///             description: "Does something.",
 ///             method: PUT,
 ///             name: "newtype_body_endpoint",
-///             path: "/_matrix/some/newtype/body/endpoint",
+///             stable: "/_matrix/some/newtype/body/endpoint",
 ///             rate_limited: false,
 ///             authentication: None,
+///             added: 1.1,
 ///         }
 ///
 ///         request: {

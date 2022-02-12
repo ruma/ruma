@@ -10,9 +10,11 @@ ruma_api! {
         description: "Gets account data room for a user for a given room",
         name: "get_room_account_data",
         method: GET,
-        path: "/_matrix/client/r0/user/:user_id/rooms/:room_id/account_data/:event_type",
+        r0: "/_matrix/client/r0/user/:user_id/rooms/:room_id/account_data/:event_type",
+        stable: "/_matrix/client/v3/user/:user_id/rooms/:room_id/account_data/:event_type",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

@@ -12,9 +12,11 @@ ruma_api! {
         description: "Get membership events for a room.",
         method: GET,
         name: "get_member_events",
-        path: "/_matrix/client/r0/rooms/:room_id/members",
+        r0: "/_matrix/client/r0/rooms/:room_id/members",
+        stable: "/_matrix/client/v3/rooms/:room_id/members",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

@@ -10,9 +10,11 @@ ruma_api! {
         description: "Delete a 3PID from a user's account on an identity server.",
         method: POST,
         name: "delete_3pid",
-        path: "/_matrix/client/r0/account/3pid/delete",
+        r0: "/_matrix/client/r0/account/3pid/delete",
+        stable: "/_matrix/client/v3/account/3pid/delete",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

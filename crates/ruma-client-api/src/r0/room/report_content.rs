@@ -9,9 +9,11 @@ ruma_api! {
         description: "Report content as inappropriate.",
         method: POST,
         name: "report_content",
-        path: "/_matrix/client/r0/rooms/:room_id/report/:event_id",
+        r0: "/_matrix/client/r0/rooms/:room_id/report/:event_id",
+        stable: "/_matrix/client/v3/rooms/:room_id/report/:event_id",
         rate_limited:  false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

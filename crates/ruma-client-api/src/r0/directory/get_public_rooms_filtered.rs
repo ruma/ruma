@@ -12,9 +12,11 @@ ruma_api! {
         description: "Get the list of rooms in this homeserver's public directory.",
         method: POST,
         name: "get_public_rooms_filtered",
-        path: "/_matrix/client/r0/publicRooms",
+        r0: "/_matrix/client/r0/publicRooms",
+        stable: "/_matrix/client/v3/publicRooms",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]

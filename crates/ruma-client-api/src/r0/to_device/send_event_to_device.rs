@@ -13,9 +13,11 @@ ruma_api! {
         description: "Send an event to a device or devices.",
         method: PUT,
         name: "send_event_to_device",
-        path: "/_matrix/client/r0/sendToDevice/:event_type/:txn_id",
+        r0: "/_matrix/client/r0/sendToDevice/:event_type/:txn_id",
+        stable: "/_matrix/client/v3/sendToDevice/:event_type/:txn_id",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

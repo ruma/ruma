@@ -13,9 +13,11 @@ ruma_api! {
         description: "Paginate through the list of events that the user has been, or would have been notified about.",
         method: GET,
         name: "get_notifications",
-        path: "/_matrix/client/r0/notifications",
+        r0: "/_matrix/client/r0/notifications",
+        stable: "/_matrix/client/v3/notifications",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]

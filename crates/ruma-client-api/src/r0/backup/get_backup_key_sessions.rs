@@ -13,9 +13,12 @@ ruma_api! {
         description: "Retrieve sessions from the backup for a given room.",
         method: GET,
         name: "get_backup_key_sessions",
-        path: "/_matrix/client/unstable/room_keys/keys/:room_id",
+        unstable: "/_matrix/client/unstable/room_keys/keys/:room_id",
+        r0: "/_matrix/client/r0/room_keys/keys/:room_id",
+        stable: "/_matrix/client/v3/room_keys/keys/:room_id",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

@@ -8,9 +8,11 @@ ruma_api! {
         description: "Resolve a room alias to a room ID.",
         method: GET,
         name: "get_alias",
-        path: "/_matrix/client/r0/directory/room/:room_alias",
+        r0: "/_matrix/client/r0/directory/room/:room_alias",
+        stable: "/_matrix/client/v3/directory/room/:room_alias",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
     }
 
     request: {

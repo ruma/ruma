@@ -8,9 +8,11 @@ ruma_api! {
         description: "Set the display name of the user.",
         method: PUT,
         name: "set_display_name",
-        path: "/_matrix/client/r0/profile/:user_id/displayname",
+        r0: "/_matrix/client/r0/profile/:user_id/displayname",
+        stable: "/_matrix/client/v3/profile/:user_id/displayname",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

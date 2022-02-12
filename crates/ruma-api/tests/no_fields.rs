@@ -6,7 +6,7 @@ mod get {
             description: "Does something.",
             method: GET,
             name: "no_fields",
-            path: "/_matrix/my/endpoint",
+            unstable: "/_matrix/my/endpoint",
             rate_limited: false,
             authentication: None,
         }
@@ -22,7 +22,7 @@ mod post {
             description: "Does something.",
             method: POST,
             name: "no_fields",
-            path: "/_matrix/my/endpoint",
+            unstable: "/_matrix/my/endpoint",
             rate_limited: false,
             authentication: None,
         }
@@ -39,7 +39,7 @@ fn empty_post_request_http_repr() {
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            &[MatrixVersion::V1_0],
+            &[MatrixVersion::V1_1],
         )
         .unwrap();
 
@@ -53,7 +53,7 @@ fn empty_get_request_http_repr() {
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            &[MatrixVersion::V1_0],
+            &[MatrixVersion::V1_1],
         )
         .unwrap();
 

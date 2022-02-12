@@ -10,9 +10,11 @@ ruma_api! {
         description: "Join a room using its ID or one of its aliases.",
         method: POST,
         name: "join_room_by_id_or_alias",
-        path: "/_matrix/client/r0/join/:room_id_or_alias",
+        r0: "/_matrix/client/r0/join/:room_id_or_alias",
+        stable: "/_matrix/client/v3/join/:room_id_or_alias",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

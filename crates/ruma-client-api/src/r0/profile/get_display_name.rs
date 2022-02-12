@@ -8,9 +8,11 @@ ruma_api! {
         description: "Get the display name of a user.",
         method: GET,
         name: "get_display_name",
-        path: "/_matrix/client/r0/profile/:user_id/displayname",
+        r0: "/_matrix/client/r0/profile/:user_id/displayname",
+        stable: "/_matrix/client/v3/profile/:user_id/displayname",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
     }
 
     request: {

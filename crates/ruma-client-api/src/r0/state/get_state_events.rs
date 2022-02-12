@@ -10,9 +10,11 @@ ruma_api! {
         description: "Get state events for a room.",
         method: GET,
         name: "get_state_events",
-        path: "/_matrix/client/r0/rooms/:room_id/state",
+        r0: "/_matrix/client/r0/rooms/:room_id/state",
+        stable: "/_matrix/client/v3/rooms/:room_id/state",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

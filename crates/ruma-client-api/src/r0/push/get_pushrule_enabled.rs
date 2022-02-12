@@ -9,9 +9,11 @@ ruma_api! {
         description: "This endpoint gets whether the specified push rule is enabled.",
         method: GET,
         name: "get_pushrule_enabled",
-        path: "/_matrix/client/r0/pushrules/:scope/:kind/:rule_id/enabled",
+        r0: "/_matrix/client/r0/pushrules/:scope/:kind/:rule_id/enabled",
+        stable: "/_matrix/client/v3/pushrules/:scope/:kind/:rule_id/enabled",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

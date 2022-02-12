@@ -8,9 +8,11 @@ ruma_api! {
         description: "Get a list of 3rd party contacts associated with the user's account.",
         method: GET,
         name: "get_3pids",
-        path: "/_matrix/client/r0/account/3pid",
+        r0: "/_matrix/client/r0/account/3pid",
+        stable: "/_matrix/client/v3/account/3pid",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]

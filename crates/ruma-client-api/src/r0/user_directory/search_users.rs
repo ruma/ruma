@@ -10,9 +10,11 @@ ruma_api! {
         description: "Performs a search for users.",
         method: POST,
         name: "search_users",
-        path: "/_matrix/client/r0/user_directory/search",
+        r0: "/_matrix/client/r0/user_directory/search",
+        stable: "/_matrix/client/v3/user_directory/search",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

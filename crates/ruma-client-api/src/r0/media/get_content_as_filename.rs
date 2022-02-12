@@ -8,9 +8,11 @@ ruma_api! {
         description: "Retrieve content from the media store, specifying a filename to return.",
         method: GET,
         name: "get_media_content_as_filename",
-        path: "/_matrix/media/r0/download/:server_name/:media_id/:filename",
+        r0: "/_matrix/media/r0/download/:server_name/:media_id/:filename",
+        stable: "/_matrix/media/v3/download/:server_name/:media_id/:filename",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
     }
 
     request: {

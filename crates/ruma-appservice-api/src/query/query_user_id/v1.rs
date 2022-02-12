@@ -8,9 +8,10 @@ ruma_api! {
         description: "This endpoint is invoked by the homeserver on an application service to query the existence of a given user ID.",
         method: GET,
         name: "query_user_id",
-        path: "/_matrix/app/v1/users/:user_id",
+        stable: "/_matrix/app/v1/users/:user_id",
         rate_limited: false,
         authentication: QueryOnlyAccessToken,
+        added: 1.0,
     }
 
     request: {

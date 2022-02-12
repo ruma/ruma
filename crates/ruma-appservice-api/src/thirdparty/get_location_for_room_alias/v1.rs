@@ -9,9 +9,10 @@ ruma_api! {
         description: "Retrieve an array of third party network locations from a Matrix room alias.",
         method: GET,
         name: "get_location_for_room_alias",
-        path: "/_matrix/app/v1/thirdparty/location",
+        stable: "/_matrix/app/v1/thirdparty/location",
         rate_limited: false,
         authentication: QueryOnlyAccessToken,
+        added: 1.0,
     }
 
     request: {

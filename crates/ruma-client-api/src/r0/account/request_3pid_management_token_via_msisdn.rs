@@ -11,9 +11,11 @@ ruma_api! {
         description: "Request a 3PID management token with a phone number.",
         method: POST,
         name: "request_3pid_management_token_via_msisdn",
-        path: "/_matrix/client/r0/account/3pid/msisdn/requestToken",
+        r0: "/_matrix/client/r0/account/3pid/msisdn/requestToken",
+        stable: "/_matrix/client/v3/account/3pid/msisdn/requestToken",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
     }
 
     request: {

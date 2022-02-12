@@ -10,9 +10,11 @@ ruma_api! {
         description: "Get state events associated with a given key.",
         method: GET,
         name: "get_state_events_for_key",
-        path: "/_matrix/client/r0/rooms/:room_id/state/:event_type/:state_key",
+        r0: "/_matrix/client/r0/rooms/:room_id/state/:event_type/:state_key",
+        stable: "/_matrix/client/v3/rooms/:room_id/state/:event_type/:state_key",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     response: {

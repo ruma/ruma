@@ -10,9 +10,11 @@ ruma_api! {
         description: "Update information about an existing backup.",
         method: POST,
         name: "update_backup",
-        path: "/_matrix/client/unstable/room_keys/version/:version",
+        unstable: "/_matrix/client/unstable/room_keys/version/:version",
+        stable: "/_matrix/client/v3/room_keys/version/:version",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.1,
     }
 
     request: {

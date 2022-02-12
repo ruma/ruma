@@ -11,9 +11,11 @@ ruma_api! {
         description: "Request a registration token with a 3rd party email.",
         method: POST,
         name: "request_registration_token_via_email",
-        path: "/_matrix/client/r0/register/email/requestToken",
+        r0: "/_matrix/client/r0/register/email/requestToken",
+        stable: "/_matrix/client/v3/register/email/requestToken",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
     }
 
     request: {

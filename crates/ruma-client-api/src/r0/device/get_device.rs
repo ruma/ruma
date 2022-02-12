@@ -10,9 +10,11 @@ ruma_api! {
         description: "Get a device for authenticated user.",
         method: GET,
         name: "get_device",
-        path: "/_matrix/client/r0/devices/:device_id",
+        r0: "/_matrix/client/r0/devices/:device_id",
+        stable: "/_matrix/client/v3/devices/:device_id",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

@@ -1,5 +1,7 @@
 //! Details of the `metadata` section of the procedural macro.
 
+use std::convert::TryInto;
+
 use quote::ToTokens;
 use syn::{
     braced,
@@ -44,9 +46,6 @@ pub struct Metadata {
 
     /// The name field.
     pub name: LitStr,
-
-    /// The path field. (deprecated)
-    pub path: EndpointPath,
 
     /// The unstable path field.
     pub unstable_path: Option<EndpointPath>,
@@ -135,6 +134,17 @@ impl Parse for Metadata {
         let missing_field =
             |name| syn::Error::new_spanned(metadata_kw, format!("missing field `{}`", name));
 
+        let stable_or_r0 = stable_path.as_ref().or(r0_path.as_ref());
+
+        if let Some(path) = stable_or_r0 {
+            if added.is_none() {
+                return Err(syn::Error::new_spanned(
+                    path,
+                    "stable path was defined, while `added` version was not defined",
+                ));
+            }
+        }
+
         if let Some(deprecated) = &deprecated {
             if added.is_none() {
                 return Err(syn::Error::new_spanned(
@@ -160,26 +170,50 @@ impl Parse for Metadata {
         }
 
         if let Some(added) = &added {
-            if stable_path.is_none() {
+            if stable_or_r0.is_none() {
                 return Err(syn::Error::new_spanned(
                     added,
-                    "added version is defined, but no stable path exists",
+                    "added version is defined, but no stable or r0 path exists",
+                ));
+            }
+        }
+
+        if let Some(r0) = &r0_path {
+            let added = added.as_ref().expect("we error if r0 or stable is defined without added");
+
+            if added.major == 1.try_into().unwrap() && added.minor > 0 {
+                return Err(syn::Error::new_spanned(
+                    r0,
+                    "r0 defined while added version is newer than v1.0",
+                ));
+            }
+
+            if stable_path.is_none() {
+                return Err(syn::Error::new_spanned(r0, "r0 defined without stable path"));
+            }
+
+            if !r0.0.value().contains("/r0/") {
+                return Err(syn::Error::new_spanned(r0, "r0 endpoint does not contain /r0/"));
+            }
+        }
+
+        if let Some(stable) = &stable_path {
+            if stable.0.value().contains("/r0/") {
+                return Err(syn::Error::new_spanned(
+                    stable,
+                    "stable endpoint contains /r0/ (did you make a copy-paste error?)",
                 ));
             }
         }
 
         if unstable_path.is_none() && r0_path.is_none() && stable_path.is_none() {
-            // TODO replace with error
-            // return Err(syn::Error::new_spanned(metadata_kw, "no path is defined"));
-            r0_path = path.clone();
-            unstable_path = path.clone();
+            return Err(syn::Error::new_spanned(metadata_kw, "no path is defined"));
         }
 
         Ok(Self {
             description: description.ok_or_else(|| missing_field("description"))?,
             method: method.ok_or_else(|| missing_field("method"))?,
             name: name.ok_or_else(|| missing_field("name"))?,
-            path: path.ok_or_else(|| missing_field("path"))?,
             unstable_path,
             r0_path,
             stable_path,
@@ -308,7 +342,7 @@ impl Parse for FieldValue {
 }
 
 #[derive(Clone)]
-pub struct EndpointPath(LitStr);
+pub struct EndpointPath(pub LitStr);
 
 impl Parse for EndpointPath {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {

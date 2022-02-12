@@ -9,9 +9,11 @@ ruma_api! {
         description: "Send a request for a knock event template to a resident server.",
         name: "create_knock_event_template",
         method: GET,
-        path: "/_matrix/federation/v1/make_knock/:room_id/:user_id",
+        unstable: "/_matrix/federation/unstable/xyz.amorgan.knock/make_knock/:user_id",
+        stable: "/_matrix/federation/v1/make_knock/:room_id/:user_id",
         rate_limited: false,
         authentication: ServerSignatures,
+        added: 1.1,
     }
 
     request: {

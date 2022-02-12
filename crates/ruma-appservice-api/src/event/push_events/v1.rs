@@ -10,9 +10,10 @@ ruma_api! {
         description: "This API is called by the homeserver when it wants to push an event (or batch of events) to the application service.",
         method: PUT,
         name: "push_events",
-        path: "/_matrix/app/v1/transactions/:txn_id",
+        stable: "/_matrix/app/v1/transactions/:txn_id",
         rate_limited: false,
         authentication: QueryOnlyAccessToken,
+        added: 1.0,
     }
 
     request: {
@@ -173,7 +174,7 @@ mod tests {
             .try_into_http_request::<Vec<u8>>(
                 "https://homeserver.tld",
                 SendAccessToken::IfRequired("auth_tok"),
-                &[ruma_api::MatrixVersion::V1_0],
+                &[ruma_api::MatrixVersion::V1_1],
             )
             .unwrap();
         let json_body: serde_json::Value = serde_json::from_slice(req.body()).unwrap();

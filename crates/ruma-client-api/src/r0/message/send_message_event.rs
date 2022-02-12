@@ -11,9 +11,11 @@ ruma_api! {
         description: "Send a message event to a room.",
         method: PUT,
         name: "create_message_event",
-        path: "/_matrix/client/r0/rooms/:room_id/send/:event_type/:txn_id",
+        r0: "/_matrix/client/r0/rooms/:room_id/send/:event_type/:txn_id",
+        stable: "/_matrix/client/v3/rooms/:room_id/send/:event_type/:txn_id",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

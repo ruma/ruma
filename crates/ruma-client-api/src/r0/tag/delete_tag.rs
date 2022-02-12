@@ -8,9 +8,11 @@ ruma_api! {
         description: "Remove a tag from a room.",
         method: DELETE,
         name: "delete_tag",
-        path: "/_matrix/client/r0/user/:user_id/rooms/:room_id/tags/:tag",
+        r0: "/_matrix/client/r0/user/:user_id/rooms/:room_id/tags/:tag",
+        stable: "/_matrix/client/v3/user/:user_id/rooms/:room_id/tags/:tag",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

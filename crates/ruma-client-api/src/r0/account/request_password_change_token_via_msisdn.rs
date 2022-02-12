@@ -9,9 +9,11 @@ ruma_api! {
         description: "Request that a password change token is sent to the given phone number.",
         method: POST,
         name: "request_password_change_token_via_msisdn",
-        path: "/_matrix/client/r0/account/password/msisdn/requestToken",
+        r0: "/_matrix/client/r0/account/password/msisdn/requestToken",
+        stable: "/_matrix/client/v3/account/password/msisdn/requestToken",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
     }
 
     request: {

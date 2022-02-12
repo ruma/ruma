@@ -11,9 +11,10 @@ ruma_api! {
         description: "Get the list of rooms in this homeserver's public directory.",
         method: POST,
         name: "get_public_rooms_filtered",
-        path: "/_matrix/federation/v1/publicRooms",
+        stable: "/_matrix/federation/v1/publicRooms",
         rate_limited: false,
         authentication: ServerSignatures,
+        added: 1.0,
     }
 
     #[derive(Default)]

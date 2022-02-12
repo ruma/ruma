@@ -14,9 +14,10 @@ ruma_api! {
         description: "Claims one-time keys for use in pre-key messages.",
         method: POST,
         name: "claim_keys",
-        path: "/_matrix/federation/v1/user/keys/claim",
+        stable: "/_matrix/federation/v1/user/keys/claim",
         rate_limited: false,
         authentication: ServerSignatures,
+        added: 1.0,
     }
 
     request: {

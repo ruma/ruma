@@ -10,9 +10,11 @@ ruma_api! {
         description: "Retrieve a previously created filter.",
         method: GET,
         name: "get_filter",
-        path: "/_matrix/client/r0/user/:user_id/filter/:filter_id",
+        r0: "/_matrix/client/r0/user/:user_id/filter/:filter_id",
+        stable: "/_matrix/client/v3/user/:user_id/filter/:filter_id",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

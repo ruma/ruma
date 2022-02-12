@@ -8,9 +8,11 @@ ruma_api! {
         description: "Sets the position of the read marker for a given room, and optionally the read receipt's location.",
         method: POST,
         name: "set_read_marker",
-        path: "/_matrix/client/r0/rooms/:room_id/read_markers",
+        r0: "/_matrix/client/r0/rooms/:room_id/read_markers",
+        stable: "/_matrix/client/v3/rooms/:room_id/read_markers",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

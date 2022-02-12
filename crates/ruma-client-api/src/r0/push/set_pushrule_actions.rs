@@ -10,9 +10,11 @@ ruma_api! {
         description: "This endpoint allows clients to change the actions of a push rule. This can be used to change the actions of builtin rules.",
         method: PUT,
         name: "set_pushrule_actions",
-        path: "/_matrix/client/r0/pushrules/:scope/:kind/:rule_id/actions",
+        r0: "/_matrix/client/r0/pushrules/:scope/:kind/:rule_id/actions",
+        stable: "/_matrix/client/v3/pushrules/:scope/:kind/:rule_id/actions",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

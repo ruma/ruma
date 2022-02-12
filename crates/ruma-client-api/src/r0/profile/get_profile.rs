@@ -8,9 +8,11 @@ ruma_api! {
         description: "Get all profile information of an user.",
         method: GET,
         name: "get_profile",
-        path: "/_matrix/client/r0/profile/:user_id",
+        r0: "/_matrix/client/r0/profile/:user_id",
+        stable: "/_matrix/client/v3/profile/:user_id",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
     }
 
     request: {

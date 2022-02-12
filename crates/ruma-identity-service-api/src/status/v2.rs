@@ -7,9 +7,10 @@ ruma_api! {
         description: "Checks that an identity server is available at this API endpoint.",
         method: GET,
         name: "status",
-        path: "/_matrix/identity/v2",
+        stable: "/_matrix/identity/v2",
         authentication: None,
         rate_limited: false,
+        added: 1.0,
     }
 
     #[derive(Default)]

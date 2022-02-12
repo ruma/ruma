@@ -10,9 +10,11 @@ ruma_api! {
         description: "Fetches the overall metadata about protocols supported by the homeserver.",
         method: GET,
         name: "get_protocols",
-        path: "/_matrix/client/r0/thirdparty/protocols",
+        r0: "/_matrix/client/r0/thirdparty/protocols",
+        stable: "/_matrix/client/v3/thirdparty/protocols",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]

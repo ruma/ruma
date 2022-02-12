@@ -14,9 +14,11 @@ ruma_api! {
         description: "Get message events for a room.",
         method: GET,
         name: "get_message_events",
-        path: "/_matrix/client/r0/rooms/:room_id/messages",
+        r0: "/_matrix/client/r0/rooms/:room_id/messages",
+        stable: "/_matrix/client/v3/rooms/:room_id/messages",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {
@@ -175,7 +177,7 @@ mod tests {
             .try_into_http_request(
                 "https://homeserver.tld",
                 SendAccessToken::IfRequired("auth_tok"),
-                &[MatrixVersion::V1_0],
+                &[MatrixVersion::V1_1],
             )
             .unwrap();
         assert_eq!(
@@ -204,7 +206,7 @@ mod tests {
             .try_into_http_request::<Vec<u8>>(
                 "https://homeserver.tld",
                 SendAccessToken::IfRequired("auth_tok"),
-                &[MatrixVersion::V1_0],
+                &[MatrixVersion::V1_1],
             )
             .unwrap();
         assert_eq!("from=token&to=token2&dir=b&limit=0", request.uri().query().unwrap(),);

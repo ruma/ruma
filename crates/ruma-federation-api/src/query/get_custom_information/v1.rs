@@ -10,9 +10,10 @@ ruma_api! {
         description: "Performs a single query request on the receiving homeserver. The query string arguments are dependent on which type of query is being made.",
         method: GET,
         name: "get_custom_information",
-        path: "/_matrix/federation/v1/query/:query_type",
+        stable: "/_matrix/federation/v1/query/:query_type",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

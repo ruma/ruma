@@ -9,9 +9,10 @@ ruma_api! {
         description: "Retrieves the complete auth chain for a given event.",
         name: "get_event_authorization",
         method: GET,
-        path: "/_matrix/federation/v1/event_auth/:room_id/:event_id",
+        stable: "/_matrix/federation/v1/event_auth/:room_id/:event_id",
         rate_limited: false,
         authentication: ServerSignatures,
+        added: 1.0,
     }
 
     request: {

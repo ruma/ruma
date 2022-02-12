@@ -9,9 +9,10 @@ ruma_api! {
         description: "Creates a session for validating an email address.",
         method: POST,
         name: "create_email_validation_session",
-        path: "/_matrix/identity/v2/validate/email/requestToken",
+        stable: "/_matrix/identity/v2/validate/email/requestToken",
         authentication: AccessToken,
         rate_limited: false,
+        added: 1.0,
     }
 
     request: {

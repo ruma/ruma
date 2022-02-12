@@ -8,9 +8,11 @@ ruma_api! {
         description: "Forget a room.",
         method: POST,
         name: "forget_room",
-        path: "/_matrix/client/r0/rooms/:room_id/forget",
+        r0: "/_matrix/client/r0/rooms/:room_id/forget",
+        stable: "/_matrix/client/v3/rooms/:room_id/forget",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

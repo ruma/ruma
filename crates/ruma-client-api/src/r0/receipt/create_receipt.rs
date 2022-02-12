@@ -9,9 +9,11 @@ ruma_api! {
         description: "Send a receipt event to a room.",
         method: POST,
         name: "create_receipt",
-        path: "/_matrix/client/r0/rooms/:room_id/receipt/:receipt_type/:event_id",
+        r0: "/_matrix/client/r0/rooms/:room_id/receipt/:receipt_type/:event_id",
+        stable: "/_matrix/client/v3/rooms/:room_id/receipt/:receipt_type/:event_id",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

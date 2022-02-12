@@ -13,9 +13,11 @@ ruma_api! {
         description: "Get information about an existing backup.",
         method: GET,
         name: "get_backup",
-        path: "/_matrix/client/unstable/room_keys/version/:version",
+        unstable: "/_matrix/client/unstable/room_keys/version/:version",
+        stable: "/_matrix/client/v3/room_keys/version/:version",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.1,
     }
 
     request: {

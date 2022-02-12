@@ -15,9 +15,11 @@ ruma_api! {
         description: "Gets the homeserver's supported login types to authenticate users. Clients should pick one of these and supply it as the type when logging in.",
         method: GET,
         name: "get_login_types",
-        path: "/_matrix/client/r0/login",
+        r0: "/_matrix/client/r0/login",
+        stable: "/_matrix/client/v3/login",
         rate_limited: true,
         authentication: None,
+        added: 1.0,
     }
 
     #[derive(Default)]

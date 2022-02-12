@@ -21,9 +21,11 @@ ruma_api! {
         description: "Get all new events from all rooms since the last sync or a given point of time.",
         method: GET,
         name: "sync",
-        path: "/_matrix/client/r0/sync",
+        r0: "/_matrix/client/r0/sync",
+        stable: "/_matrix/client/v3/sync",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]
@@ -626,14 +628,14 @@ mod client_tests {
         .try_into_http_request(
             "https://homeserver.tld",
             SendAccessToken::IfRequired("auth_tok"),
-            &[MatrixVersion::V1_0],
+            &[MatrixVersion::V1_1],
         )
         .unwrap();
 
         let uri = req.uri();
         let query = uri.query().unwrap();
 
-        assert_eq!(uri.path(), "/_matrix/client/r0/sync");
+        assert_eq!(uri.path(), "/_matrix/client/v3/sync");
         assert!(query.contains("filter=66696p746572"));
         assert!(query.contains("since=s72594_4483_1934"));
         assert!(query.contains("full_state=true"));

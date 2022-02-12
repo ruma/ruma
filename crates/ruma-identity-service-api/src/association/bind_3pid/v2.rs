@@ -9,9 +9,10 @@ ruma_api! {
         description: "Publish an association between a session and a Matrix user ID.",
         method: POST,
         name: "bind_3pid",
-        path: "/_matrix/identity/v2/3pid/bind",
+        stable: "/_matrix/identity/v2/3pid/bind",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

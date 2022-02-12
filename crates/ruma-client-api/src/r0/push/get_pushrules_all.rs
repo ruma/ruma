@@ -8,9 +8,11 @@ ruma_api! {
         description: "Retrieve all push rulesets for this user.",
         method: GET,
         name: "get_pushrules_all",
-        path: "/_matrix/client/r0/pushrules/",
+        r0: "/_matrix/client/r0/pushrules/",
+        stable: "/_matrix/client/v3/pushrules/",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]

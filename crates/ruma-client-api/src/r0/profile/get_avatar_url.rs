@@ -8,9 +8,11 @@ ruma_api! {
         description: "Get the avatar URL of a user.",
         method: GET,
         name: "get_avatar_url",
-        path: "/_matrix/client/r0/profile/:user_id/avatar_url",
+        r0: "/_matrix/client/r0/profile/:user_id/avatar_url",
+        stable: "/_matrix/client/v3/profile/:user_id/avatar_url",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
     }
 
     request: {

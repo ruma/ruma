@@ -7,9 +7,11 @@ ruma_api! {
         description: "Get UIAA fallback web page.",
         method: GET,
         name: "authorize_fallback",
-        path: "/_matrix/client/r0/auth/:auth_type/fallback/web",
+        r0: "/_matrix/client/r0/auth/:auth_type/fallback/web",
+        stable: "/_matrix/client/v3/auth/:auth_type/fallback/web",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
     }
 
     request: {

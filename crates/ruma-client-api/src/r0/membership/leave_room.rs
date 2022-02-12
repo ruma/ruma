@@ -8,9 +8,11 @@ ruma_api! {
         description: "Leave a room.",
         method: POST,
         name: "leave_room",
-        path: "/_matrix/client/r0/rooms/:room_id/leave",
+        r0: "/_matrix/client/r0/rooms/:room_id/leave",
+        stable: "/_matrix/client/v3/rooms/:room_id/leave",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

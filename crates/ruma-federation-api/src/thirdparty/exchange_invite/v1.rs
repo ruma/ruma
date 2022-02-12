@@ -9,9 +9,10 @@ ruma_api! {
         description: "The receiving server will verify the partial m.room.member event given in the request body.",
         method: PUT,
         name: "exchange_invite",
-        path: "/_matrix/federation/v1/exchange_third_party_invite/:room_id",
+        stable: "/_matrix/federation/v1/exchange_third_party_invite/:room_id",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

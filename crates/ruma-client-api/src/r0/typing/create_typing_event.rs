@@ -9,11 +9,13 @@ use serde::{de::Error, Deserialize, Deserializer, Serialize};
 ruma_api! {
     metadata: {
         method: PUT,
-        path: "/_matrix/client/r0/rooms/:room_id/typing/:user_id",
+        r0: "/_matrix/client/r0/rooms/:room_id/typing/:user_id",
+        stable: "/_matrix/client/v3/rooms/:room_id/typing/:user_id",
         name: "create_typing_event",
         description: "Send a typing event to a room.",
         authentication: AccessToken,
         rate_limited: true,
+        added: 1.0,
     }
 
     request: {

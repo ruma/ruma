@@ -9,9 +9,11 @@ ruma_api! {
         description: "Set presence status for this user.",
         method: PUT,
         name: "set_presence",
-        path: "/_matrix/client/r0/presence/:user_id/status",
+        r0: "/_matrix/client/r0/presence/:user_id/status",
+        stable: "/_matrix/client/v3/presence/:user_id/status",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

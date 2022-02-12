@@ -7,9 +7,11 @@ ruma_api! {
         description: "Log out of the homeserver.",
         method: POST,
         name: "logout",
-        path: "/_matrix/client/r0/logout",
+        r0: "/_matrix/client/r0/logout",
+        stable: "/_matrix/client/v3/logout",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]
