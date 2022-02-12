@@ -271,14 +271,9 @@ pub struct FlattenedJson {
 
 impl FlattenedJson {
     /// Create a `FlattenedJson` from `Raw`.
-    pub fn from_raw<T>(raw: &Raw<T>) -> Self
-    where
-        T: Serialize,
-    {
+    pub fn from_raw<T>(raw: &Raw<T>) -> Self {
         let mut s = Self { map: BTreeMap::new() };
-
         s.flatten_value(to_json_value(raw).unwrap(), "".into());
-
         s
     }
 
