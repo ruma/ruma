@@ -50,15 +50,15 @@ pub struct Metadata {
     /// The matrix version that deprecated this endpoint.
     ///
     /// Deprecation often precedes one matrix version before removal.
-    // TODO add once try_into_http_request has been altered;
-    // This will make `try_into_http_request` emit a warning,
-    // see the corresponding documentation for more information.
+    ///
+    /// This will make [`try_into_http_request`](crate::OutgoingRequest::try_into_http_request)
+    /// emit a warning, see the corresponding documentation for more information.
     pub deprecated: Option<MatrixVersion>,
 
     /// The matrix version that removed this endpoint.
-    // TODO add once try_into_http_request has been altered;
-    // This will make `try_into_http_request` emit an error,
-    // see the corresponding documentation for more information.
+    ///
+    /// This will make [`try_into_http_request`](crate::OutgoingRequest::try_into_http_request)
+    /// emit an error, see the corresponding documentation for more information.
     pub removed: Option<MatrixVersion>,
 }
 
@@ -71,10 +71,11 @@ pub struct Metadata {
 /// backwards-compatible manner.
 ///
 /// Matrix has a deprecation policy, read more about it here: <https://spec.matrix.org/v1.2/#deprecation-policy>.
-// TODO add the following once `EndpointPath` and added/deprecated/removed macros are in place;
-// Ruma keeps track of when endpoints are added, deprecated, and removed. It'll automatically
-// select the right endpoint stability variation to use depending on which Matrix version you
-// pass it with [`EndpointPath`], see its respective documentation for more.
+///
+/// Ruma keeps track of when endpoints are added, deprecated, and removed. It'll automatically
+/// select the right endpoint stability variation to use depending on which Matrix versions you
+/// pass to [`try_into_http_request`](crate::OutgoingRequest::try_into_http_request), see its
+/// respective documentation for more information.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum MatrixVersion {

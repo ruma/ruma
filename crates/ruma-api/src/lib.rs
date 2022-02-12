@@ -269,8 +269,16 @@ pub trait OutgoingRequest: Sized {
     ///
     /// On endpoints with authentication, when adequate information isn't provided through
     /// access_token, this could result in an error. It may also fail with a serialization error
-    /// in case of bugs in Ruma though. Finally, it may also fail if the path requested (through
-    /// `path` is not available for this endpoint.)
+    /// in case of bugs in Ruma though.
+    ///
+    /// Finally, it may also fail if, for all in `considering_versions`;
+    /// - The endpoint is too old, and has been removed in all versions.
+    ///   ([`EndpointRemoved`](error::IntoHttpError::EndpointRemoved))
+    /// - The endpoint is too new, and no unstable path is known for this endpoint.
+    ///   ([`NoUnstablePath`](error::IntoHttpError::NoUnstablePath))
+    ///
+    /// Finally, this will emit a warning through `tracing` if it detects if any version in
+    /// `considering_versions` has deprecated this endpoint.
     ///
     /// The endpoints path will be appended to the given `base_url`, for example
     /// `https://matrix.org`. Since all paths begin with a slash, it is not necessary for the

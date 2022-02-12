@@ -81,7 +81,7 @@ pub fn extract_cfg(attr: &Attribute) -> Option<NestedMeta> {
 pub fn path_format_args_call(
     mut format_string: String,
     percent_encoding: &TokenStream,
-) -> (String, Vec<TokenStream>) {
+) -> TokenStream {
     let mut format_args = Vec::new();
 
     while let Some(start_of_segment) = format_string.find(':') {
@@ -104,5 +104,7 @@ pub fn path_format_args_call(
         format_string.replace_range(start_of_segment..end_of_segment, "{}");
     }
 
-    (format_string, format_args)
+    quote! {
+        format_args!(#format_string, #(#format_args),*)
+    }
 }

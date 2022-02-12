@@ -18,11 +18,7 @@ impl Request {
 
         let (unstable_path, r0_path, stable_path) = if self.has_path_fields() {
             let path_format_args_call_with_percent_encoding = |s: &LitStr| -> TokenStream {
-                let (s, a) = util::path_format_args_call(s.value(), &percent_encoding);
-
-                quote! {
-                    format_args!(#s, #(#a),*)
-                }
+                util::path_format_args_call(s.value(), &percent_encoding)
             };
 
             (

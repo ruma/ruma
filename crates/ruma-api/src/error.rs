@@ -71,10 +71,11 @@ pub enum IntoHttpError {
     /// exists.
     ///
     /// This is also a fallback error for if the version is too new for this endpoint.
-    #[error("Tried to fall back to unstable path, but it did not exist for this endpoint.")]
+    #[error("Endpoint was not supported by server-reported versions, but ruma knew no unstable path to fall back to.")]
     NoUnstablePath,
 
-    /// Tried to create a request with a [`MatrixVersion`] in which this endpoint was removed.
+    /// Tried to create a request with [`MatrixVersion`]s for all of which this endpoint was
+    /// removed.
     #[error("Could not create any path variant for endpoint, as it was removed in version {0}")]
     EndpointRemoved(MatrixVersion),
 
