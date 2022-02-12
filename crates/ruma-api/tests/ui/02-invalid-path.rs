@@ -5,7 +5,7 @@ ruma_api! {
         description: "This will fail.",
         method: GET,
         name: "invalid_path",
-        path: "µ/°/§/€",
+        unstable_path: "µ/°/§/€",
         rate_limited: false,
         authentication: None,
     }
@@ -23,7 +23,7 @@ ruma_api! {
         description: "This will fail.",
         method: GET,
         name: "invalid_path",
-        path: "path/to/invalid space/endpoint",
+        unstable_path: "path/to/invalid space/endpoint",
         rate_limited: false,
         authentication: None,
     }
