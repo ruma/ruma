@@ -25,7 +25,8 @@ impl Request {
         // except this one. If we get errors about missing fields in IncomingRequest for
         // a path field look here.
         let (parse_request_path, path_vars) = if self.has_path_fields() {
-            let path_vars: Vec<_> = self.path_fields().filter_map(|f| f.ident.as_ref()).collect();
+            let path_vars: Vec<_> =
+                self.path_fields_ordered().filter_map(|f| f.ident.as_ref()).collect();
 
             let parse_request_path = quote! {
                 let (#(#path_vars,)*) = #serde::Deserialize::deserialize(

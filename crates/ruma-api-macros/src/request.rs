@@ -1,5 +1,5 @@
 use std::{
-    collections::BTreeSet,
+    collections::{BTreeMap, BTreeSet},
     convert::{TryFrom, TryInto},
     mem,
 };
@@ -164,8 +164,27 @@ impl Request {
         self.fields.iter().filter(|f| matches!(f, RequestField::Header(..)))
     }
 
-    fn path_fields(&self) -> impl Iterator<Item = &Field> {
-        self.fields.iter().filter_map(RequestField::as_path_field)
+    fn path_fields_ordered(&self) -> impl Iterator<Item = &Field> {
+        let map: BTreeMap<String, &Field> = self
+            .fields
+            .iter()
+            .filter_map(RequestField::as_path_field)
+            .map(|f| (f.ident.as_ref().unwrap().to_string(), f))
+            .collect();
+
+        self.stable_path
+            .as_ref()
+            .or(self.r0_path.as_ref())
+            .or(self.unstable_path.as_ref())
+            .expect("one of the paths to be defined")
+            .value()
+            .split('/')
+            .filter_map(|s| {
+                s.strip_prefix(':')
+                    .map(|s| *map.get(s).expect("path args have already been checked"))
+            })
+            .collect::<Vec<_>>()
+            .into_iter()
     }
 
     fn raw_body_field(&self) -> Option<&Field> {
@@ -249,6 +268,13 @@ impl Request {
     pub(super) fn check(&self) -> syn::Result<()> {
         // TODO: highlight problematic fields
 
+        let path_fields: Vec<_> =
+            self.fields.iter().filter_map(RequestField::as_path_field).collect();
+
+        self.check_path(&path_fields, self.unstable_path.as_ref())?;
+        self.check_path(&path_fields, self.r0_path.as_ref())?;
+        self.check_path(&path_fields, self.stable_path.as_ref())?;
+
         let newtype_body_fields = self.fields.iter().filter(|field| {
             matches!(field, RequestField::NewtypeBody(_) | RequestField::RawBody(_))
         });
@@ -307,6 +333,48 @@ impl Request {
                 &self.ident,
                 "GET endpoints can't have body fields",
             ));
+        }
+
+        Ok(())
+    }
+
+    fn check_path(&self, fields: &[&Field], path: Option<&LitStr>) -> syn::Result<()> {
+        let path = if let Some(lit) = path { lit } else { return Ok(()) };
+
+        let path_args: Vec<_> = path
+            .value()
+            .split('/')
+            .filter_map(|s| s.strip_prefix(':').map(&str::to_string))
+            .collect();
+
+        let field_map: BTreeMap<_, _> =
+            fields.iter().map(|&f| (f.ident.as_ref().unwrap().to_string(), f)).collect();
+
+        // test if all macro fields exist in the path
+        for (name, field) in field_map.iter() {
+            if !path_args.contains(name) {
+                return Err({
+                    let mut err = syn::Error::new_spanned(
+                        field,
+                        "this path argument field is not defined in...",
+                    );
+                    err.combine(syn::Error::new_spanned(path, "...this path."));
+                    err
+                });
+            }
+        }
+
+        // test if all path fields exists in macro fields
+        for arg in &path_args {
+            if !field_map.contains_key(arg) {
+                return Err(syn::Error::new_spanned(
+                    path,
+                    format!(
+                        "a corresponding request path argument field for \"{}\" does not exist",
+                        arg
+                    ),
+                ));
+            }
         }
 
         Ok(())
