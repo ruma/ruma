@@ -178,13 +178,10 @@ impl Request {
             .or(self.unstable_path.as_ref())
             .expect("one of the paths to be defined")
             .value()
-            .split("/")
+            .split('/')
             .filter_map(|s| {
-                if s.starts_with(":") {
-                    Some(*map.get(&s[1..]).expect("path args and macro path fields are the same"))
-                } else {
-                    None
-                }
+                s.strip_prefix(':')
+                    .map(|s| *map.get(s).expect("path args have already been checked"))
             })
             .collect::<Vec<_>>()
             .into_iter()
@@ -346,7 +343,7 @@ impl Request {
 
         let path_args: Vec<_> = path
             .value()
-            .split("/")
+            .split('/')
             .filter_map(|s| s.strip_prefix(':').map(&str::to_string))
             .collect();
 
