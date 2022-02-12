@@ -181,7 +181,7 @@ impl Parse for Metadata {
         if let Some(r0) = &r0_path {
             let added = added.as_ref().expect("we error if r0 or stable is defined without added");
 
-            if added.major == 1.try_into().unwrap() && added.minor > 0 {
+            if added.major.get() == 1 && added.minor > 0 {
                 return Err(syn::Error::new_spanned(
                     r0,
                     "r0 defined while added version is newer than v1.0",
@@ -207,7 +207,7 @@ impl Parse for Metadata {
         }
 
         if unstable_path.is_none() && r0_path.is_none() && stable_path.is_none() {
-            return Err(syn::Error::new_spanned(metadata_kw, "no path is defined"));
+            return Err(syn::Error::new_spanned(metadata_kw, "need to define one of [r0_path, stable_path, unstable_path]"));
         }
 
         Ok(Self {
