@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/keys/signatures/upload](https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3keyssignaturesupload)
+//! [POST /_matrix/client/v3/keys/signatures/upload](https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3keyssignaturesupload)
 
 use std::collections::BTreeMap;
 
@@ -11,7 +11,7 @@ ruma_api! {
         description: "Publishes cross-signing signatures for the user.",
         method: POST,
         name: "upload_signatures",
-        path: "/_matrix/client/r0/keys/signatures/upload",
+        path: "/_matrix/client/unstable/keys/signatures/upload",
         rate_limited: false,
         authentication: AccessToken,
     }

@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/room_keys/keys/{roomId}](https://spec.matrix.org/v1.1/client-server-api/#get_matrixclientv3room_keyskeysroomid)
+//! [GET /_matrix/client/v3/room_keys/keys/{roomId}](https://spec.matrix.org/v1.1/client-server-api/#get_matrixclientv3room_keyskeysroomid)
 
 use std::collections::BTreeMap;
 
@@ -13,7 +13,7 @@ ruma_api! {
         description: "Retrieve sessions from the backup for a given room.",
         method: GET,
         name: "get_backup_key_sessions",
-        path: "/_matrix/client/r0/room_keys/keys/:room_id",
+        path: "/_matrix/client/unstable/room_keys/keys/:room_id",
         rate_limited: true,
         authentication: AccessToken,
     }

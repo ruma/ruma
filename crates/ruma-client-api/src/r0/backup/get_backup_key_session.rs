@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/room_keys/keys/{roomId}/{sessionId}](https://spec.matrix.org/v1.1/client-server-api/#get_matrixclientv3room_keyskeysroomidsessionid)
+//! [GET /_matrix/client/v3/room_keys/keys/{roomId}/{sessionId}](https://spec.matrix.org/v1.1/client-server-api/#get_matrixclientv3room_keyskeysroomidsessionid)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
@@ -11,7 +11,7 @@ ruma_api! {
         description: "Retrieve a key from the backup",
         method: GET,
         name: "get_backup_key_session",
-        path: "/_matrix/client/r0/room_keys/keys/:room_id/:session_id",
+        path: "/_matrix/client/unstable/room_keys/keys/:room_id/:session_id",
         rate_limited: true,
         authentication: AccessToken,
     }

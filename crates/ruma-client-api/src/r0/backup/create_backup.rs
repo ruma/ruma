@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/room_keys/version](https://spec.matrix.org/v1.1/client-server-api/#post_matrixclientv3room_keysversion)
+//! [POST /_matrix/client/v3/room_keys/version](https://spec.matrix.org/v1.1/client-server-api/#post_matrixclientv3room_keysversion)
 
 use ruma_api::ruma_api;
 use ruma_serde::Raw;
@@ -10,7 +10,7 @@ ruma_api! {
         description: "Creates a new backup.",
         method: POST,
         name: "create_backup",
-        path: "/_matrix/client/r0/room_keys/version",
+        path: "/_matrix/client/unstable/room_keys/version",
         rate_limited: true,
         authentication: AccessToken,
     }

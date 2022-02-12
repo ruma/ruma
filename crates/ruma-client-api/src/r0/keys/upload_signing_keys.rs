@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/keys/device_signing/upload](https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3keysdevice_signingupload)
+//! [POST /_matrix/client/v3/keys/device_signing/upload](https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3keysdevice_signingupload)
 
 use ruma_api::ruma_api;
 use ruma_common::encryption::CrossSigningKey;

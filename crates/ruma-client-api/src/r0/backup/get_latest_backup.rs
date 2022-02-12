@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/room_keys/version](https://spec.matrix.org/v1.1/client-server-api/#get_matrixclientv3room_keysversion)
+//! [GET /_matrix/client/v3/room_keys/version](https://spec.matrix.org/v1.1/client-server-api/#get_matrixclientv3room_keysversion)
 
 use js_int::UInt;
 use ruma_api::ruma_api;
@@ -16,7 +16,7 @@ ruma_api! {
         description: "Get information about the latest backup.",
         method: GET,
         name: "get_latest_backup",
-        path: "/_matrix/client/r0/room_keys/version",
+        path: "/_matrix/client/unstable/room_keys/version",
         rate_limited: true,
         authentication: AccessToken,
     }

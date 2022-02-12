@@ -1,4 +1,4 @@
-//! [DELETE /_matrix/client/r0/room_keys/keys/{roomId}/{sessionId}](https://spec.matrix.org/v1.1/client-server-api/#delete_matrixclientv3room_keyskeysroomidsessionid)
+//! [DELETE /_matrix/client/v3/room_keys/keys/{roomId}/{sessionId}](https://spec.matrix.org/v1.1/client-server-api/#delete_matrixclientv3room_keyskeysroomidsessionid)
 
 use js_int::UInt;
 use ruma_api::ruma_api;
@@ -9,7 +9,7 @@ ruma_api! {
         description: "Delete a key from the backup",
         method: DELETE,
         name: "delete_backup_key_session",
-        path: "/_matrix/client/r0/room_keys/keys/:room_id/:session_id",
+        path: "/_matrix/client/unstable/room_keys/keys/:room_id/:session_id",
         rate_limited: true,
         authentication: AccessToken,
     }

@@ -1,4 +1,4 @@
-//! [PUT /_matrix/client/r0/room_keys/keys](https://spec.matrix.org/v1.1/client-server-api/#put_matrixclientv3room_keyskeys)
+//! [PUT /_matrix/client/v3/room_keys/keys](https://spec.matrix.org/v1.1/client-server-api/#put_matrixclientv3room_keyskeys)
 
 use std::collections::BTreeMap;
 
@@ -13,7 +13,7 @@ ruma_api! {
         description: "Store several keys in the backup.",
         method: PUT,
         name: "add_backup_keys",
-        path: "/_matrix/client/r0/room_keys/keys",
+        path: "/_matrix/client/unstable/room_keys/keys",
         rate_limited: true,
         authentication: AccessToken,
     }
