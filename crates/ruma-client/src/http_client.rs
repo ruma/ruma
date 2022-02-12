@@ -5,7 +5,7 @@ use std::{future::Future, pin::Pin};
 
 use async_trait::async_trait;
 use bytes::BufMut;
-use ruma_api::{OutgoingRequest, SendAccessToken};
+use ruma_api::{MatrixVersion, OutgoingRequest, SendAccessToken};
 use ruma_identifiers::UserId;
 
 use crate::{add_user_id_to_query, ResponseError, ResponseResult};
@@ -64,9 +64,16 @@ pub trait HttpClientExt: HttpClient {
         &'a self,
         homeserver_url: &str,
         access_token: SendAccessToken<'_>,
+        for_versions: &[MatrixVersion],
         request: R,
     ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>> {
-        self.send_customized_matrix_request(homeserver_url, access_token, request, |_| Ok(()))
+        self.send_customized_matrix_request(
+            homeserver_url,
+            access_token,
+            for_versions,
+            request,
+            |_| Ok(()),
+        )
     }
 
     /// Turn a strongly-typed matrix request into an `http::Request`, customize it and send it to
@@ -76,6 +83,7 @@ pub trait HttpClientExt: HttpClient {
         &'a self,
         homeserver_url: &str,
         access_token: SendAccessToken<'_>,
+        for_versions: &[MatrixVersion],
         request: R,
         customize: F,
     ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>>
@@ -87,6 +95,7 @@ pub trait HttpClientExt: HttpClient {
             self,
             homeserver_url,
             access_token,
+            for_versions,
             request,
             customize,
         ))
@@ -101,12 +110,14 @@ pub trait HttpClientExt: HttpClient {
         &'a self,
         homeserver_url: &str,
         access_token: SendAccessToken<'_>,
+        for_versions: &[MatrixVersion],
         user_id: &'a UserId,
         request: R,
     ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>> {
         self.send_customized_matrix_request(
             homeserver_url,
             access_token,
+            for_versions,
             request,
             add_user_id_to_query::<Self, R>(user_id),
         )

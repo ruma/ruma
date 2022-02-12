@@ -1,7 +1,9 @@
 #![allow(clippy::exhaustive_structs)]
 
 use http::header::{Entry, CONTENT_TYPE};
-use ruma_api::{ruma_api, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken};
+use ruma_api::{
+    ruma_api, MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken,
+};
 
 ruma_api! {
     metadata: {
@@ -48,7 +50,11 @@ fn response_content_type_override() {
 fn request_content_type_override() {
     let req = Request { location: None, stuff: "magic".into() };
     let mut http_req = req
-        .try_into_http_request::<Vec<u8>>("https://homeserver.tld", SendAccessToken::None)
+        .try_into_http_request::<Vec<u8>>(
+            "https://homeserver.tld",
+            SendAccessToken::None,
+            &[MatrixVersion::V1_0],
+        )
         .unwrap();
 
     assert_eq!(

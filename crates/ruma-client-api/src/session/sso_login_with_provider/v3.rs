@@ -49,14 +49,18 @@ impl Response {
 
 #[cfg(all(test, feature = "client"))]
 mod tests {
-    use ruma_api::{OutgoingRequest as _, SendAccessToken};
+    use ruma_api::{MatrixVersion, OutgoingRequest as _, SendAccessToken};
 
     use super::Request;
 
     #[test]
     fn serialize_sso_login_with_provider_request_uri() {
         let req = Request { idp_id: "provider", redirect_url: "https://example.com/sso" }
-            .try_into_http_request::<Vec<u8>>("https://homeserver.tld", SendAccessToken::None)
+            .try_into_http_request::<Vec<u8>>(
+                "https://homeserver.tld",
+                SendAccessToken::None,
+                &[MatrixVersion::V1_0],
+            )
             .unwrap();
 
         assert_eq!(

@@ -18,7 +18,7 @@
 #[cfg(not(all(feature = "client", feature = "server")))]
 compile_error!("ruma_api's Cargo features only exist as a workaround are not meant to be disabled");
 
-use std::{convert::TryInto as _, error::Error as StdError};
+use std::{convert::TryInto as _, error::Error as StdError, fmt};
 
 use bytes::BufMut;
 use ruma_identifiers::UserId;
@@ -267,8 +267,18 @@ pub trait OutgoingRequest: Sized {
 
     /// Tries to convert this request into an `http::Request`.
     ///
-    /// This method should only fail when called on endpoints that require authentication. It may
-    /// also fail with a serialization error in case of bugs in Ruma though.
+    /// On endpoints with authentication, when adequate information isn't provided through
+    /// access_token, this could result in an error. It may also fail with a serialization error
+    /// in case of bugs in Ruma though.
+    ///
+    /// It may also fail if, for every version in `considering_versions`;
+    /// - The endpoint is too old, and has been removed in all versions.
+    ///   ([`EndpointRemoved`](error::IntoHttpError::EndpointRemoved))
+    /// - The endpoint is too new, and no unstable path is known for this endpoint.
+    ///   ([`NoUnstablePath`](error::IntoHttpError::NoUnstablePath))
+    ///
+    /// Finally, this will emit a warning through `tracing` if it detects if any version in
+    /// `considering_versions` has deprecated this endpoint.
     ///
     /// The endpoints path will be appended to the given `base_url`, for example
     /// `https://matrix.org`. Since all paths begin with a slash, it is not necessary for the
@@ -277,6 +287,7 @@ pub trait OutgoingRequest: Sized {
         self,
         base_url: &str,
         access_token: SendAccessToken<'_>,
+        considering_versions: &'_ [MatrixVersion],
     ) -> Result<http::Request<T>, IntoHttpError>;
 }
 
@@ -302,8 +313,10 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
         base_url: &str,
         access_token: SendAccessToken<'_>,
         user_id: &UserId,
+        considering_versions: &'_ [MatrixVersion],
     ) -> Result<http::Request<T>, IntoHttpError> {
-        let mut http_request = self.try_into_http_request(base_url, access_token)?;
+        let mut http_request =
+            self.try_into_http_request(base_url, access_token, considering_versions)?;
         let user_id_query = ruma_serde::urlencoded::to_string(&[("user_id", user_id)])?;
 
         let uri = http_request.uri().to_owned();
@@ -399,4 +412,67 @@ pub enum AuthScheme {
 
     /// Authentication is performed by setting the `access_token` query parameter.
     QueryOnlyAccessToken,
+}
+
+// This function helps picks the right path (or an error) from a set of matrix versions.
+//
+// This function needs to be public, yet hidden, as all `try_into_http_request`s would be using it.
+//
+// Note this assumes that `versions`;
+// - at least has 1 element
+// - have all elements sorted by its `.into_parts` representation.
+#[doc(hidden)]
+pub fn select_path<'a>(
+    versions: &'_ [MatrixVersion],
+    metadata: &'_ Metadata,
+    unstable: Option<fmt::Arguments<'a>>,
+    r0: Option<fmt::Arguments<'a>>,
+    stable: Option<fmt::Arguments<'a>>,
+) -> Result<fmt::Arguments<'a>, IntoHttpError> {
+    let greater_or_equal_any =
+        |version: MatrixVersion| versions.iter().any(|v| v.is_superset_of(version));
+    let greater_or_equal_all =
+        |version: MatrixVersion| versions.iter().all(|v| v.is_superset_of(version));
+
+    let is_stable_any = metadata.added.map(greater_or_equal_any).unwrap_or(false);
+
+    let is_removed_all = metadata.removed.map(greater_or_equal_all).unwrap_or(false);
+
+    // Only when all the versions (e.g. 1.6-9) are compatible with the version that added it (e.g.
+    // 1.1), yet are also "after" the version that removed it (e.g. 1.3), then we return that error.
+    // Otherwise, this all versions may fall into a different major range, such as 2.X, where
+    // "after" and "compatible" do not exist with the 1.X range, so we at least need to make sure
+    // that the versions are part of the same "range" through the `added` check.
+    if is_stable_any && is_removed_all {
+        return Err(IntoHttpError::EndpointRemoved(metadata.removed.unwrap()));
+    }
+
+    if is_stable_any {
+        let is_deprecated_any = metadata.deprecated.map(greater_or_equal_any).unwrap_or(false);
+
+        if is_deprecated_any {
+            let is_removed_any = metadata.removed.map(greater_or_equal_any).unwrap_or(false);
+
+            if is_removed_any {
+                tracing::warn!("endpoint {} is deprecated, but also removed in one of more server-passed versions: {:?}", metadata.name, versions)
+            } else {
+                tracing::warn!(
+                    "endpoint {} is deprecated in one of more server-passed versions: {:?}",
+                    metadata.name,
+                    versions
+                )
+            }
+        }
+
+        if let Some(r0) = r0 {
+            if versions.iter().all(|&v| v == MatrixVersion::V1_0) {
+                // Endpoint was added in 1.0, we return the r0 variant.
+                return Ok(r0);
+            }
+        }
+
+        return Ok(stable.expect("metadata.added enforces the stable path to exist"));
+    }
+
+    unstable.ok_or(IntoHttpError::NoUnstablePath)
 }

@@ -173,6 +173,7 @@ mod tests {
             .try_into_http_request::<Vec<u8>>(
                 "https://homeserver.tld",
                 SendAccessToken::IfRequired("auth_tok"),
+                &[ruma_api::MatrixVersion::V1_0],
             )
             .unwrap();
         let json_body: serde_json::Value = serde_json::from_slice(req.body()).unwrap();

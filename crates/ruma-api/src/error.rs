@@ -8,7 +8,7 @@ use bytes::BufMut;
 use serde_json::{from_slice as from_json_slice, Value as JsonValue};
 use thiserror::Error;
 
-use crate::{EndpointError, OutgoingResponse};
+use crate::{EndpointError, MatrixVersion, OutgoingResponse};
 
 /// A general-purpose Matrix error type consisting of an HTTP status code and a JSON body.
 ///
@@ -66,6 +66,18 @@ pub enum IntoHttpError {
          try_into_authenticated_http_request"
     )]
     NeedsAuthentication,
+
+    /// Tried to create a request with an old enough version, for which no unstable endpoint
+    /// exists.
+    ///
+    /// This is also a fallback error for if the version is too new for this endpoint.
+    #[error("Endpoint was not supported by server-reported versions, but no unstable path to fall back to was defined.")]
+    NoUnstablePath,
+
+    /// Tried to create a request with [`MatrixVersion`]s for all of which this endpoint was
+    /// removed.
+    #[error("Could not create any path variant for endpoint, as it was removed in version {0}")]
+    EndpointRemoved(MatrixVersion),
 
     /// JSON serialization failed.
     #[error("JSON serialization failed: {0}")]

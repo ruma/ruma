@@ -172,6 +172,7 @@ impl Parse for Metadata {
             // TODO replace with error
             // return Err(syn::Error::new_spanned(metadata_kw, "no path is defined"));
             r0_path = path.clone();
+            unstable_path = path.clone();
         }
 
         Ok(Self {

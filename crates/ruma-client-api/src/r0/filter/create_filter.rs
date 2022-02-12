@@ -77,7 +77,7 @@ mod tests {
     #[cfg(feature = "client")]
     #[test]
     fn serialize_request() {
-        use ruma_api::{OutgoingRequest, SendAccessToken};
+        use ruma_api::{MatrixVersion, OutgoingRequest, SendAccessToken};
         use ruma_identifiers::user_id;
 
         use crate::r0::filter::FilterDefinition;
@@ -87,6 +87,7 @@ mod tests {
                 .try_into_http_request::<Vec<u8>>(
                     "https://matrix.org",
                     SendAccessToken::IfRequired("tok"),
+                    &[MatrixVersion::V1_0]
                 ),
             Ok(res) if res.body() == b"{}"
         );

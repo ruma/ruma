@@ -81,7 +81,9 @@ impl Request {
         let struct_attributes = &self.attributes;
 
         let method = &metadata.method;
-        let path = &metadata.path;
+        let unstable_attr = metadata.unstable_path.as_ref().map(|p| quote! { unstable = #p, });
+        let r0_attr = metadata.r0_path.as_ref().map(|p| quote! { r0 = #p, });
+        let stable_attr = metadata.stable_path.as_ref().map(|p| quote! { stable = #p, });
         let auth_attributes = metadata.authentication.iter().map(|field| {
             let cfg_expr = all_cfgs_expr(&field.attrs);
             let value = &field.value;
@@ -110,7 +112,9 @@ impl Request {
             #[incoming_derive(!Deserialize, #ruma_api_macros::_FakeDeriveRumaApi)]
             #[ruma_api(
                 method = #method,
-                path = #path,
+                #unstable_attr
+                #r0_attr
+                #stable_attr
                 error_ty = #error_ty,
             )]
             #( #auth_attributes )*

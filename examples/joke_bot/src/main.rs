@@ -1,9 +1,12 @@
 use std::{convert::TryInto, error::Error, io, process::exit, time::Duration};
 
 use ruma::{
-    api::client::r0::{
-        filter::FilterDefinition, membership::join_room_by_id, message::send_message_event,
-        sync::sync_events,
+    api::{
+        client::r0::{
+            filter::FilterDefinition, membership::join_room_by_id, message::send_message_event,
+            sync::sync_events,
+        },
+        MatrixVersion,
     },
     assign, client,
     events::{
@@ -59,9 +62,12 @@ async fn run() -> Result<(), Box<dyn Error>> {
 
     let filter = FilterDefinition::ignore_all().into();
     let initial_sync_response = matrix_client
-        .send_request(assign!(sync_events::Request::new(), {
-            filter: Some(&filter),
-        }))
+        .send_request(
+            assign!(sync_events::Request::new(), {
+                filter: Some(&filter),
+            }),
+            &[MatrixVersion::V1_0],
+        )
         .await?;
     let user_id = &config.username;
     let not_senders = &[user_id.clone()];
@@ -152,7 +158,7 @@ async fn handle_messages(
                 let txn_id = TransactionId::new();
                 let req = send_message_event::Request::new(room_id, &txn_id, &joke_content)?;
                 // Do nothing if we can't send the message.
-                let _ = matrix_client.send_request(req).await;
+                let _ = matrix_client.send_request(req, &[MatrixVersion::V1_0]).await;
             }
         }
     }
@@ -165,14 +171,16 @@ async fn handle_invitations(
     room_id: &RoomId,
 ) -> Result<(), Box<dyn Error>> {
     println!("invited to {}", &room_id);
-    matrix_client.send_request(join_room_by_id::Request::new(room_id)).await?;
+    matrix_client
+        .send_request(join_room_by_id::Request::new(room_id), &[MatrixVersion::V1_0])
+        .await?;
 
     let greeting = "Hello! My name is Mr. Bot! I like to tell jokes. Like this one: ";
     let joke = get_joke(http_client).await.unwrap_or_else(|_| "err... never mind.".to_owned());
     let content = RoomMessageEventContent::text_plain(format!("{}\n{}", greeting, joke));
     let txn_id = TransactionId::new();
     let message = send_message_event::Request::new(room_id, &txn_id, &content)?;
-    matrix_client.send_request(message).await?;
+    matrix_client.send_request(message, &[MatrixVersion::V1_0]).await?;
     Ok(())
 }
 

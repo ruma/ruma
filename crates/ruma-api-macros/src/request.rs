@@ -52,7 +52,9 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
     let mut authentication = None;
     let mut error_ty = None;
     let mut method = None;
-    let mut path = None;
+    let mut unstable_path = None;
+    let mut r0_path = None;
+    let mut stable_path = None;
 
     for attr in input.attrs {
         if !attr.path.is_ident("ruma_api") {
@@ -71,8 +73,14 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
                 MetaValue::Type(t) if name == "error_ty" => {
                     error_ty = Some(t);
                 }
-                MetaValue::Lit(Lit::Str(s)) if name == "path" => {
-                    path = Some(s);
+                MetaValue::Lit(Lit::Str(s)) if name == "unstable" => {
+                    unstable_path = Some(s);
+                }
+                MetaValue::Lit(Lit::Str(s)) if name == "r0" => {
+                    r0_path = Some(s);
+                }
+                MetaValue::Lit(Lit::Str(s)) if name == "stable" => {
+                    stable_path = Some(s);
                 }
                 _ => unreachable!("invalid ruma_api({}) attribute", name),
             }
@@ -86,7 +94,9 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
         lifetimes,
         authentication: authentication.expect("missing authentication attribute"),
         method: method.expect("missing method attribute"),
-        path: path.expect("missing path attribute"),
+        unstable_path,
+        r0_path,
+        stable_path,
         error_ty: error_ty.expect("missing error_ty attribute"),
     };
 
@@ -110,7 +120,9 @@ struct Request {
 
     authentication: AuthScheme,
     method: Ident,
-    path: LitStr,
+    unstable_path: Option<LitStr>,
+    r0_path: Option<LitStr>,
+    stable_path: Option<LitStr>,
     error_ty: Type,
 }
 

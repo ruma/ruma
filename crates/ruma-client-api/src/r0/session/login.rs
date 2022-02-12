@@ -317,7 +317,7 @@ mod tests {
     #[test]
     #[cfg(feature = "client")]
     fn serialize_login_request_body() {
-        use ruma_api::{OutgoingRequest, SendAccessToken};
+        use ruma_api::{MatrixVersion, OutgoingRequest, SendAccessToken};
         use ruma_common::thirdparty::Medium;
         use serde_json::Value as JsonValue;
 
@@ -329,7 +329,11 @@ mod tests {
             device_id: None,
             initial_device_display_name: Some("test"),
         }
-        .try_into_http_request("https://homeserver.tld", SendAccessToken::None)
+        .try_into_http_request(
+            "https://homeserver.tld",
+            SendAccessToken::None,
+            &[MatrixVersion::V1_0],
+        )
         .unwrap();
 
         let req_body_value: JsonValue = serde_json::from_slice(req.body()).unwrap();
@@ -353,7 +357,11 @@ mod tests {
             device_id: None,
             initial_device_display_name: Some("test"),
         }
-        .try_into_http_request("https://homeserver.tld", SendAccessToken::None)
+        .try_into_http_request(
+            "https://homeserver.tld",
+            SendAccessToken::None,
+            &[MatrixVersion::V1_0],
+        )
         .unwrap();
 
         let req_body_value: JsonValue = serde_json::from_slice(req.body()).unwrap();
