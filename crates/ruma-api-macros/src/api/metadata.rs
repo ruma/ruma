@@ -187,13 +187,13 @@ impl Parse for Metadata {
                 return Err(syn::Error::new_spanned(r0, "r0 defined without stable path"));
             }
 
-            if !r0.0.value().contains("/r0/") {
+            if !r0.value().contains("/r0/") {
                 return Err(syn::Error::new_spanned(r0, "r0 endpoint does not contain /r0/"));
             }
         }
 
         if let Some(stable) = &stable_path {
-            if stable.0.value().contains("/r0/") {
+            if stable.value().contains("/r0/") {
                 return Err(syn::Error::new_spanned(
                     stable,
                     "stable endpoint contains /r0/ (did you make a copy-paste error?)",
@@ -334,7 +334,13 @@ impl Parse for FieldValue {
 }
 
 #[derive(Clone)]
-pub struct EndpointPath(pub LitStr);
+pub struct EndpointPath(LitStr);
+
+impl EndpointPath {
+    pub fn value(&self) -> String {
+        self.0.value()
+    }
+}
 
 impl Parse for EndpointPath {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
