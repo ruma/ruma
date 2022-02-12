@@ -1,7 +1,5 @@
 //! Details of the `metadata` section of the procedural macro.
 
-use std::convert::TryInto;
-
 use quote::ToTokens;
 use syn::{
     braced,
@@ -16,7 +14,6 @@ mod kw {
     syn::custom_keyword!(description);
     syn::custom_keyword!(method);
     syn::custom_keyword!(name);
-    syn::custom_keyword!(path);
     syn::custom_keyword!(unstable_path);
     syn::custom_keyword!(r0_path);
     syn::custom_keyword!(stable_path);
@@ -100,7 +97,6 @@ impl Parse for Metadata {
         let mut description = None;
         let mut method = None;
         let mut name = None;
-        let mut path = None;
         let mut unstable_path = None;
         let mut r0_path = None;
         let mut stable_path = None;
@@ -115,7 +111,6 @@ impl Parse for Metadata {
                 FieldValue::Description(d) => set_field(&mut description, d)?,
                 FieldValue::Method(m) => set_field(&mut method, m)?,
                 FieldValue::Name(n) => set_field(&mut name, n)?,
-                FieldValue::Path(p) => set_field(&mut path, p)?,
                 FieldValue::UnstablePath(p) => set_field(&mut unstable_path, p)?,
                 FieldValue::R0Path(p) => set_field(&mut r0_path, p)?,
                 FieldValue::StablePath(p) => set_field(&mut stable_path, p)?,
@@ -207,7 +202,10 @@ impl Parse for Metadata {
         }
 
         if unstable_path.is_none() && r0_path.is_none() && stable_path.is_none() {
-            return Err(syn::Error::new_spanned(metadata_kw, "need to define one of [r0_path, stable_path, unstable_path]"));
+            return Err(syn::Error::new_spanned(
+                metadata_kw,
+                "need to define one of [r0_path, stable_path, unstable_path]",
+            ));
         }
 
         Ok(Self {
@@ -238,7 +236,6 @@ enum Field {
     Description,
     Method,
     Name,
-    Path,
     UnstablePath,
     R0Path,
     StablePath,
@@ -262,9 +259,6 @@ impl Parse for Field {
         } else if lookahead.peek(kw::name) {
             let _: kw::name = input.parse()?;
             Ok(Self::Name)
-        } else if lookahead.peek(kw::path) {
-            let _: kw::path = input.parse()?;
-            Ok(Self::Path)
         } else if lookahead.peek(kw::unstable_path) {
             let _: kw::unstable_path = input.parse()?;
             Ok(Self::UnstablePath)
@@ -299,7 +293,6 @@ enum FieldValue {
     Description(LitStr),
     Method(Ident),
     Name(LitStr),
-    Path(EndpointPath),
     UnstablePath(EndpointPath),
     R0Path(EndpointPath),
     StablePath(EndpointPath),
@@ -328,7 +321,6 @@ impl Parse for FieldValue {
             Field::Description => Self::Description(input.parse()?),
             Field::Method => Self::Method(input.parse()?),
             Field::Name => Self::Name(input.parse()?),
-            Field::Path => Self::Path(input.parse()?),
             Field::UnstablePath => Self::UnstablePath(input.parse()?),
             Field::R0Path => Self::R0Path(input.parse()?),
             Field::StablePath => Self::StablePath(input.parse()?),
