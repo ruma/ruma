@@ -175,9 +175,21 @@ macro_rules! opaque_identifier {
             }
         }
 
+        impl From<Box<str>> for Box<$id> {
+            fn from(s: Box<str>) -> Self {
+                $id::from_owned(s)
+            }
+        }
+
         impl From<String> for Box<$id> {
             fn from(s: String) -> Self {
                 $id::from_owned(s.into())
+            }
+        }
+
+        impl From<Box<$id>> for Box<str> {
+            fn from(id: Box<$id>) -> Self {
+                id.into_owned()
             }
         }
 
