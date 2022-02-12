@@ -42,7 +42,7 @@ mod nested_types {
             description: "Add an alias to a room.",
             method: PUT,
             name: "create_alias",
-            unstable_path: "/_matrix/client/r0/directory/room/:room_alias",
+            unstable_path: "/_matrix/client/r0/directory/room",
             rate_limited: false,
             authentication: AccessToken,
         }
