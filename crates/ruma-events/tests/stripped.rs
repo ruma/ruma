@@ -29,26 +29,6 @@ fn serialize_stripped_state_event_any_content() {
 }
 
 #[test]
-fn serialize_stripped_state_event_any_event() {
-    let event = AnyStrippedStateEvent::RoomTopic(StrippedStateEvent {
-        content: RoomTopicEventContent::new("Testing room".into()),
-        state_key: "".into(),
-        sender: user_id!("@example:localhost").to_owned(),
-    });
-
-    let json_data = json!({
-        "content": {
-            "topic": "Testing room"
-        },
-        "type": "m.room.topic",
-        "state_key": "",
-        "sender": "@example:localhost"
-    });
-
-    assert_eq!(to_json_value(&event).unwrap(), json_data);
-}
-
-#[test]
 fn deserialize_stripped_state_events() {
     let name_event = json!({
         "type": "m.room.name",

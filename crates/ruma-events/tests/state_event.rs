@@ -287,12 +287,8 @@ fn deserialize_full_event_convert_to_sync() {
 
     let full_ev: AnyStateEvent = from_json_value(json_data).unwrap();
 
-    // Test conversion to sync event (without room_id field)
-    let sync: AnySyncStateEvent = full_ev.into();
-    let sync_json = to_json_value(sync).unwrap();
-
     assert_matches!(
-        from_json_value::<AnySyncStateEvent>(sync_json).unwrap(),
+        AnySyncStateEvent::from(full_ev),
         AnySyncStateEvent::RoomAliases(SyncStateEvent {
             content,
             event_id,

@@ -63,8 +63,6 @@ fn expand_event_enum(
     variants: &[EventEnumVariant],
     ruma_events: &TokenStream,
 ) -> TokenStream {
-    let serde = quote! { #ruma_events::exports::serde };
-
     let event_struct = kind.to_event_ident(var);
     let ident = kind.to_event_enum_ident(var);
 
@@ -78,8 +76,7 @@ fn expand_event_enum(
 
     quote! {
         #( #attrs )*
-        #[derive(Clone, Debug, #serde::Serialize)]
-        #[serde(untagged)]
+        #[derive(Clone, Debug)]
         #[allow(clippy::large_enum_variant)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
         pub enum #ident {
@@ -377,8 +374,7 @@ fn expand_possibly_redacted_enum(
 
     quote! {
         /// An enum that holds either regular un-redacted events or redacted events.
-        #[derive(Clone, Debug, #serde::Serialize)]
-        #[serde(untagged)]
+        #[derive(Clone, Debug)]
         #[allow(clippy::exhaustive_enums)]
         pub enum #ident {
             /// An un-redacted event.

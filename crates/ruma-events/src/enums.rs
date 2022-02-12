@@ -2,7 +2,7 @@ use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events_macros::{event_enum, EventEnumFromEvent};
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use ruma_serde::from_raw_json_value;
-use serde::{de, Deserialize, Serialize};
+use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
@@ -123,8 +123,7 @@ macro_rules! room_ev_accessor {
 
 /// Any room event.
 #[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
-#[derive(Clone, Debug, Serialize, EventEnumFromEvent)]
-#[serde(untagged)]
+#[derive(Clone, Debug, EventEnumFromEvent)]
 pub enum AnyRoomEvent {
     /// Any message event.
     Message(AnyMessageEvent),
@@ -150,8 +149,7 @@ impl AnyRoomEvent {
 ///
 /// Sync room events are room event without a `room_id`, as returned in `/sync` responses.
 #[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
-#[derive(Clone, Debug, Serialize, EventEnumFromEvent)]
-#[serde(untagged)]
+#[derive(Clone, Debug, EventEnumFromEvent)]
 pub enum AnySyncRoomEvent {
     /// Any sync message event.
     Message(AnySyncMessageEvent),
