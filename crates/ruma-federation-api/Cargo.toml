@@ -1,8 +1,4 @@
 [package]
-authors = [
-    "Jonas Platte <jplatte+git@posteo.de>",
-    "Isaiah Inuwa <isaiah.inuwa@gmail.com>",
-]
 categories = ["api-bindings", "web-programming"]
 description = "Types for the endpoints in the Matrix server-server API."
 edition = "2018"

@@ -1,7 +1,6 @@
 [package]
 name = "ruma-common"
 version = "0.6.0"
-authors = ["Jonas Platte <jplatte@posteo.de>"]
 description = "Common types for other ruma crates."
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]

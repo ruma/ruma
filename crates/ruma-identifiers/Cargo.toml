@@ -1,8 +1,4 @@
 [package]
-authors = [
-    "Jimmy Cuadra <jimmy@jimmycuadra.com>",
-    "Jonas Platte <jplatte@posteo.de>",
-]
 categories = ["api-bindings"]
 description = "Resource identifiers for Matrix."
 homepage = "https://www.ruma.io/"

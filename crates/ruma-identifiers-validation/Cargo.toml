@@ -3,10 +3,6 @@ name = "ruma-identifiers-validation"
 description = "Validation logic for ruma-identifiers and ruma-identifiers-macros"
 homepage = "https://www.ruma.io/"
 repository = "https://github.com/ruma/ruma"
-authors = [
-    "Jimmy Cuadra <jimmy@jimmycuadra.com>",
-    "Jonas Platte <jplatte@posteo.de>",
-]
 license = "MIT"
 version = "0.5.0"
 edition = "2018"

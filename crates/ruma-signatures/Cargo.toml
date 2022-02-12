@@ -1,5 +1,4 @@
 [package]
-authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
 categories = ["api-bindings", "cryptography"]
 description = "Digital signatures according to the Matrix specification."
 edition = "2018"

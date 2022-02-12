@@ -1,6 +1,5 @@
 [package]
 name = "ruma"
-authors = ["Jonas Platte <jplatte@posteo.de>"]
 categories = ["api-bindings", "web-programming"]
 keywords = ["matrix", "chat", "messaging", "ruma"]
 description = "Types and traits for working with the Matrix protocol."
@@ -135,7 +134,7 @@ __ci = [
     "unstable-msc2676",
     "unstable-msc2677",
     "unstable-msc3618",
-    "ruma-state-res/__ci", 
+    "ruma-state-res/__ci",
 ]
 
 [dependencies]

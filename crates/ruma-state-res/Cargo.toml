@@ -1,6 +1,5 @@
 [package]
 name = "ruma-state-res"
-authors = ["Devin R <devin.ragotzy@gmail.com>"]
 categories = ["api-bindings", "web-programming"]
 keywords = ["matrix", "chat", "ruma"]
 description = "An abstraction for Matrix state resolution."

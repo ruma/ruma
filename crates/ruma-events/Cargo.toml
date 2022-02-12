@@ -1,5 +1,4 @@
 [package]
-authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
 categories = ["api-bindings"]
 description = "Serializable types for the events in the Matrix specification."
 homepage = "https://www.ruma.io/"

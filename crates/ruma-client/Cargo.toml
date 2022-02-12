@@ -1,8 +1,4 @@
 [package]
-authors = [
-    "Jimmy Cuadra <jimmy@jimmycuadra.com>",
-    "Jonas Platte <jplatte@posteo.de>",
-]
 categories = ["api-bindings", "web-programming"]
 description = "A Matrix client library."
 edition = "2018"

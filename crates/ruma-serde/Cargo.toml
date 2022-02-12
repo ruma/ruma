@@ -2,11 +2,6 @@
 name = "ruma-serde"
 description = "De-/serialization helpers for other ruma crates"
 license = "MIT"
-authors = [
-    "Jonas Platte <jplatte@posteo.de>",
-    "Isaiah Inuwa <isaiah.inuwa@gmail.com>",
-    "Anthony Ramine <n.oxyde@gmail.com>",
-]
 homepage = "https://www.ruma.io/"
 repository = "https://github.com/ruma/ruma"
 version = "0.5.0"

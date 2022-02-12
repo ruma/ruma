@@ -1,5 +1,4 @@
 [package]
-authors = ["Jonas Platte <jplatte@posteo.de>"]
 description = "Procedural macros for creating Matrix identifiers."
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
