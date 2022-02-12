@@ -289,7 +289,7 @@ pub struct KnockedRoom {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct KnockState {
     /// The list of events.
-    pub events: Vec<AnyStrippedStateEvent>,
+    pub events: Vec<Raw<AnyStrippedStateEvent>>,
 }
 
 /// Unread notifications count.
