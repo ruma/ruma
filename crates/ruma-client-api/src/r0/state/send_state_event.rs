@@ -93,19 +93,29 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
         self,
         base_url: &str,
         access_token: ruma_api::SendAccessToken<'_>,
-        // FIXME: properly define
-        _considering_versions: &'_ [ruma_api::MatrixVersion],
+        considering_versions: &'_ [ruma_api::MatrixVersion],
     ) -> Result<http::Request<T>, ruma_api::error::IntoHttpError> {
         use std::borrow::Cow;
 
         use http::header::{self, HeaderValue};
         use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 
+        let room_id_percent = utf8_percent_encode(self.room_id.as_str(), NON_ALPHANUMERIC);
+        let event_type_percent = utf8_percent_encode(self.event_type, NON_ALPHANUMERIC);
+
         let mut url = format!(
-            "{}/_matrix/client/r0/rooms/{}/state/{}",
+            "{}{}",
             base_url.strip_suffix('/').unwrap_or(base_url),
-            utf8_percent_encode(self.room_id.as_str(), NON_ALPHANUMERIC),
-            utf8_percent_encode(self.event_type, NON_ALPHANUMERIC),
+            ruma_api::select_path(
+                considering_versions,
+                &METADATA,
+                None,
+                Some(format_args!(
+                    "/_matrix/client/r0/rooms/{}/state/{}",
+                    room_id_percent, event_type_percent
+                )),
+                None,
+            )?
         );
 
         // Last URL segment is optional, that is why this trait impl is not generated.
