@@ -271,7 +271,7 @@ pub trait OutgoingRequest: Sized {
     /// access_token, this could result in an error. It may also fail with a serialization error
     /// in case of bugs in Ruma though.
     ///
-    /// Finally, it may also fail if, for all in `considering_versions`;
+    /// It may also fail if, for every version in `considering_versions`;
     /// - The endpoint is too old, and has been removed in all versions.
     ///   ([`EndpointRemoved`](error::IntoHttpError::EndpointRemoved))
     /// - The endpoint is too new, and no unstable path is known for this endpoint.
