@@ -149,15 +149,13 @@ mod helper_tests {
 #[cfg(test)]
 mod tests {
     use ruma_api::{OutgoingRequest, SendAccessToken};
-    use ruma_events::AnyRoomEvent;
-    use ruma_serde::Raw;
     use serde_json::json;
 
     use super::Request;
 
     #[test]
     fn decode_request_contains_events_field() {
-        let dummy_event: AnyRoomEvent = serde_json::from_value(json!({
+        let dummy_event = serde_json::from_value(json!({
             "type": "m.room.message",
             "event_id": "$143273582443PhrSn:example.com",
             "origin_server_ts": 1,
@@ -169,7 +167,6 @@ mod tests {
             },
         }))
         .unwrap();
-        let dummy_event = Raw::new(&dummy_event).unwrap();
         let events = vec![dummy_event];
 
         let req = Request { events: &events, txn_id: "any_txn_id".into() }
