@@ -103,10 +103,7 @@ impl Ruleset {
         &self,
         event: &Raw<T>,
         context: &PushConditionRoomCtx,
-    ) -> Option<AnyPushRuleRef<'_>>
-    where
-        T: Serialize,
-    {
+    ) -> Option<AnyPushRuleRef<'_>> {
         let event = FlattenedJson::from_raw(event);
         self.iter().find(|rule| rule.applies(&event, context))
     }
@@ -119,10 +116,7 @@ impl Ruleset {
     ///
     /// * `event` - The raw JSON of a room message event.
     /// * `context` - The context of the message and room at the time of the event.
-    pub fn get_actions<T>(&self, event: &Raw<T>, context: &PushConditionRoomCtx) -> &[Action]
-    where
-        T: Serialize,
-    {
+    pub fn get_actions<T>(&self, event: &Raw<T>, context: &PushConditionRoomCtx) -> &[Action] {
         self.get_match(event, context).map(|rule| rule.actions()).unwrap_or(&[])
     }
 }
