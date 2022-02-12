@@ -10,7 +10,7 @@ ruma_api! {
         description: "Store pending invitations to a user's 3PID.",
         method: POST,
         name: "store_invitation",
-        stable: "/_matrix/identity/v2/store-invite",
+        stable_path: "/_matrix/identity/v2/store-invite",
         authentication: AccessToken,
         rate_limited: false,
         added: 1.0,

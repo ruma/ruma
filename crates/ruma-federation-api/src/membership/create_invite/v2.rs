@@ -11,7 +11,7 @@ ruma_api! {
         description: "Invites a remote user to a room.",
         method: PUT,
         name: "create_invite",
-        stable: "/_matrix/federation/v2/invite/:room_id/:event_id",
+        stable_path: "/_matrix/federation/v2/invite/:room_id/:event_id",
         rate_limited: false,
         authentication: ServerSignatures,
         added: 1.0,

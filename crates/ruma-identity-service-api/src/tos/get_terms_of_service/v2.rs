@@ -10,7 +10,7 @@ ruma_api! {
         description: "Gets all the terms of service offered by the server.",
         method: GET,
         name: "get_terms_of_service",
-        stable: "/_matrix/identity/v2/terms",
+        stable_path: "/_matrix/identity/v2/terms",
         authentication: None,
         rate_limited: false,
         added: 1.0,

@@ -9,8 +9,8 @@ ruma_api! {
     metadata: {
         description: "Delete specified devices.",
         method: POST,
-        r0: "/_matrix/client/r0/delete_devices",
-        stable: "/_matrix/client/v3/delete_devices",
+        r0_path: "/_matrix/client/r0/delete_devices",
+        stable_path: "/_matrix/client/v3/delete_devices",
         name: "delete_devices",
         rate_limited: false,
         authentication: AccessToken,

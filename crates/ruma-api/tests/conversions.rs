@@ -11,7 +11,7 @@ ruma_api! {
         description: "Does something.",
         method: POST,
         name: "my_endpoint",
-        unstable: "/_matrix/foo/:bar/:user",
+        unstable_path: "/_matrix/foo/:bar/:user",
         rate_limited: false,
         authentication: None,
     }
@@ -126,7 +126,7 @@ mod without_query {
             description: "Does something without query.",
             method: POST,
             name: "my_endpoint",
-            unstable: "/_matrix/foo/:bar/:user",
+            unstable_path: "/_matrix/foo/:bar/:user",
             rate_limited: false,
             authentication: None,
         }

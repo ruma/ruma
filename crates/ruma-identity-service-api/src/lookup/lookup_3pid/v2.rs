@@ -12,7 +12,7 @@ ruma_api! {
         description: "Looks up the set of Matrix User IDs which have bound the 3PIDs given, if bindings are available.",
         method: POST,
         name: "lookup_3pid",
-        stable: "/_matrix/identity/v2/lookup",
+        stable_path: "/_matrix/identity/v2/lookup",
         authentication: AccessToken,
         rate_limited: false,
         added: 1.0,

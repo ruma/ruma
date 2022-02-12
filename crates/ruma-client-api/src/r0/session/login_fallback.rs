@@ -8,7 +8,7 @@ ruma_api! {
         description: "Get login fallback web page.",
         method: GET,
         name: "login_fallback",
-        stable: "/_matrix/static/client/login/",
+        stable_path: "/_matrix/static/client/login/",
         rate_limited: false,
         authentication: None,
         added: 1.0,

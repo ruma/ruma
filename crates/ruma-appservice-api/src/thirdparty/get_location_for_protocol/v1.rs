@@ -10,7 +10,7 @@ ruma_api! {
         description: "Fetches third party locations for a protocol.",
         method: GET,
         name: "get_location_for_protocol",
-        stable: "/_matrix/app/v1/thirdparty/location/:protocol",
+        stable_path: "/_matrix/app/v1/thirdparty/location/:protocol",
         rate_limited: false,
         authentication: QueryOnlyAccessToken,
         added: 1.0,

@@ -10,7 +10,7 @@ ruma_api! {
         description: "Asks the receiving server to return information that the sending server will need to prepare a leave event to get out of the room.",
         name: "get_leave_event",
         method: GET,
-        stable: "/_matrix/federation/v1/make_leave/:room_id/:user_id",
+        stable_path: "/_matrix/federation/v1/make_leave/:room_id/:user_id",
         rate_limited: false,
         authentication: ServerSignatures,
         added: 1.0,

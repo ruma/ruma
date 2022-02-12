@@ -12,7 +12,7 @@ ruma_api! {
         description: "Used by identity servers to notify the homeserver that one of its users has bound a third party identifier successfully",
         method: PUT,
         name: "bind_callback",
-        stable: "/_matrix/federation/v1/3pid/onbind",
+        stable_path: "/_matrix/federation/v1/3pid/onbind",
         rate_limited: false,
         authentication: None,
         added: 1.0,

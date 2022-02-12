@@ -10,7 +10,7 @@ ruma_api! {
         description: "This API is called by the homeserver when it wants to push an event (or batch of events) to the application service.",
         method: PUT,
         name: "push_events",
-        stable: "/_matrix/app/v1/transactions/:txn_id",
+        stable_path: "/_matrix/app/v1/transactions/:txn_id",
         rate_limited: false,
         authentication: QueryOnlyAccessToken,
         added: 1.0,

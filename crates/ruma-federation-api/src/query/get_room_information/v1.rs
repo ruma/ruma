@@ -8,7 +8,7 @@ ruma_api! {
         description: "Get mapped room ID and resident homeservers for a given room alias.",
         name: "get_room_information",
         method: GET,
-        stable: "/_matrix/federation/v1/query/directory",
+        stable_path: "/_matrix/federation/v1/query/directory",
         rate_limited: false,
         authentication: ServerSignatures,
         added: 1.0,

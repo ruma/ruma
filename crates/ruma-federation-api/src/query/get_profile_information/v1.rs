@@ -11,7 +11,7 @@ ruma_api! {
         description: "Get profile information, such as a display name or avatar, for a given user.",
         name: "get_profile_information",
         method: GET,
-        stable: "/_matrix/federation/v1/query/profile",
+        stable_path: "/_matrix/federation/v1/query/profile",
         rate_limited: false,
         authentication: ServerSignatures,
         added: 1.0,

@@ -12,7 +12,7 @@ ruma_api! {
         description: "Returns the current devices and identity keys for the given users.",
         method: POST,
         name: "get_keys",
-        stable: "/_matrix/federation/v1/user/keys/query",
+        stable_path: "/_matrix/federation/v1/user/keys/query",
         rate_limited: false,
         authentication: ServerSignatures,
         added: 1.0,

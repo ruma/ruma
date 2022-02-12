@@ -17,9 +17,9 @@ mod kw {
     syn::custom_keyword!(method);
     syn::custom_keyword!(name);
     syn::custom_keyword!(path);
-    syn::custom_keyword!(unstable);
-    syn::custom_keyword!(r0);
-    syn::custom_keyword!(stable);
+    syn::custom_keyword!(unstable_path);
+    syn::custom_keyword!(r0_path);
+    syn::custom_keyword!(stable_path);
     syn::custom_keyword!(rate_limited);
     syn::custom_keyword!(authentication);
     syn::custom_keyword!(added);
@@ -116,9 +116,9 @@ impl Parse for Metadata {
                 FieldValue::Method(m) => set_field(&mut method, m)?,
                 FieldValue::Name(n) => set_field(&mut name, n)?,
                 FieldValue::Path(p) => set_field(&mut path, p)?,
-                FieldValue::Unstable(p) => set_field(&mut unstable_path, p)?,
-                FieldValue::R0(p) => set_field(&mut r0_path, p)?,
-                FieldValue::Stable(p) => set_field(&mut stable_path, p)?,
+                FieldValue::UnstablePath(p) => set_field(&mut unstable_path, p)?,
+                FieldValue::R0Path(p) => set_field(&mut r0_path, p)?,
+                FieldValue::StablePath(p) => set_field(&mut stable_path, p)?,
                 FieldValue::RateLimited(value, attrs) => {
                     rate_limited.push(MetadataField { attrs, value });
                 }
@@ -239,9 +239,9 @@ enum Field {
     Method,
     Name,
     Path,
-    Unstable,
-    R0,
-    Stable,
+    UnstablePath,
+    R0Path,
+    StablePath,
     RateLimited,
     Authentication,
     Added,
@@ -265,15 +265,15 @@ impl Parse for Field {
         } else if lookahead.peek(kw::path) {
             let _: kw::path = input.parse()?;
             Ok(Self::Path)
-        } else if lookahead.peek(kw::unstable) {
-            let _: kw::unstable = input.parse()?;
-            Ok(Self::Unstable)
-        } else if lookahead.peek(kw::r0) {
-            let _: kw::r0 = input.parse()?;
-            Ok(Self::R0)
-        } else if lookahead.peek(kw::stable) {
-            let _: kw::stable = input.parse()?;
-            Ok(Self::Stable)
+        } else if lookahead.peek(kw::unstable_path) {
+            let _: kw::unstable_path = input.parse()?;
+            Ok(Self::UnstablePath)
+        } else if lookahead.peek(kw::r0_path) {
+            let _: kw::r0_path = input.parse()?;
+            Ok(Self::R0Path)
+        } else if lookahead.peek(kw::stable_path) {
+            let _: kw::stable_path = input.parse()?;
+            Ok(Self::StablePath)
         } else if lookahead.peek(kw::rate_limited) {
             let _: kw::rate_limited = input.parse()?;
             Ok(Self::RateLimited)
@@ -300,9 +300,9 @@ enum FieldValue {
     Method(Ident),
     Name(LitStr),
     Path(EndpointPath),
-    Unstable(EndpointPath),
-    R0(EndpointPath),
-    Stable(EndpointPath),
+    UnstablePath(EndpointPath),
+    R0Path(EndpointPath),
+    StablePath(EndpointPath),
     RateLimited(LitBool, Vec<Attribute>),
     Authentication(AuthScheme, Vec<Attribute>),
     Added(MatrixVersionLiteral),
@@ -329,9 +329,9 @@ impl Parse for FieldValue {
             Field::Method => Self::Method(input.parse()?),
             Field::Name => Self::Name(input.parse()?),
             Field::Path => Self::Path(input.parse()?),
-            Field::Unstable => Self::Unstable(input.parse()?),
-            Field::R0 => Self::R0(input.parse()?),
-            Field::Stable => Self::Stable(input.parse()?),
+            Field::UnstablePath => Self::UnstablePath(input.parse()?),
+            Field::R0Path => Self::R0Path(input.parse()?),
+            Field::StablePath => Self::StablePath(input.parse()?),
             Field::RateLimited => Self::RateLimited(input.parse()?, attrs),
             Field::Authentication => Self::Authentication(input.parse()?, attrs),
             Field::Added => Self::Added(input.parse()?),

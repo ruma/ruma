@@ -12,7 +12,7 @@ ruma_api! {
         description: "Request more history from another homeserver",
         name: "get_backfill",
         method: GET,
-        stable: "/_matrix/federation/v1/backfill/:room_id",
+        stable_path: "/_matrix/federation/v1/backfill/:room_id",
         rate_limited: false,
         authentication: ServerSignatures,
         added: 1.0,

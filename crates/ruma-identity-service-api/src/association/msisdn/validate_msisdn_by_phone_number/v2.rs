@@ -8,7 +8,7 @@ ruma_api! {
         description: "Validate ownership of an email address.",
         method: GET,
         name: "validate_email_by_end_user",
-        stable: "/_matrix/identity/v2/validate/msisdn/submitToken",
+        stable_path: "/_matrix/identity/v2/validate/msisdn/submitToken",
         authentication: AccessToken,
         rate_limited: false,
         added: 1.0,

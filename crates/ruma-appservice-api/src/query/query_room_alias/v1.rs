@@ -8,7 +8,7 @@ ruma_api! {
         description: "This endpoint is invoked by the homeserver on an application service to query the existence of a given room alias.",
         method: GET,
         name: "query_room_alias",
-        stable: "/_matrix/app/v1/rooms/:room_alias",
+        stable_path: "/_matrix/app/v1/rooms/:room_alias",
         rate_limited: false,
         authentication: QueryOnlyAccessToken,
         added: 1.0,

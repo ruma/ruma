@@ -8,7 +8,7 @@ ruma_api! {
         description: "Validate ownership of an email address.",
         method: POST,
         name: "validate_email",
-        stable: "/_matrix/identity/v2/validate/email/submitToken",
+        stable_path: "/_matrix/identity/v2/validate/email/submitToken",
         authentication: AccessToken,
         rate_limited: false,
         added: 1.0,

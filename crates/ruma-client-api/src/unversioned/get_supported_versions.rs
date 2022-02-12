@@ -9,7 +9,7 @@ ruma_api! {
         description: "Get the versions of the client-server API supported by this homeserver.",
         method: GET,
         name: "api_versions",
-        stable: "/_matrix/client/versions",
+        stable_path: "/_matrix/client/versions",
         rate_limited: false,
         authentication: None,
         added: 1.0,

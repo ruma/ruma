@@ -9,7 +9,7 @@ ruma_api! {
         description: "Retrieve an array of third party users from a Matrix User ID.",
         method: GET,
         name: "get_user_for_user_id",
-        stable: "/_matrix/app/v1/thirdparty/user",
+        stable_path: "/_matrix/app/v1/thirdparty/user",
         rate_limited: false,
         authentication: QueryOnlyAccessToken,
         added: 1.0,

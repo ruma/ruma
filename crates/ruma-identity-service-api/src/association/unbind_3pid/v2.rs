@@ -10,7 +10,7 @@ ruma_api! {
         description: "Remove an association between a session and a Matrix user ID.",
         method: POST,
         name: "unbind_3pid",
-        stable: "/_matrix/identity/v2/3pid/unbind",
+        stable_path: "/_matrix/identity/v2/3pid/unbind",
         rate_limited: false,
         authentication: AccessToken,
         added: 1.0,

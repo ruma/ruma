@@ -10,7 +10,7 @@ ruma_api! {
         description: "Does something.",
         method: GET,
         name: "no_fields",
-        unstable: "/_matrix/my/endpoint",
+        unstable_path: "/_matrix/my/endpoint",
         rate_limited: false,
         authentication: None,
     }

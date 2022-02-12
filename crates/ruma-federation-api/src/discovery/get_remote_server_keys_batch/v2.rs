@@ -14,7 +14,7 @@ ruma_api! {
         description: "Query for keys from multiple servers in a batch format.",
         method: POST,
         name: "get_remote_server_keys_batch",
-        stable: "/_matrix/key/v2/query",
+        stable_path: "/_matrix/key/v2/query",
         rate_limited: false,
         authentication: None,
         added: 1.0,

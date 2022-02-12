@@ -15,7 +15,7 @@ ruma_api! {
         description: "Send transaction messages to another server",
         name: "send_transaction_message",
         method: PUT,
-        stable: "/_matrix/federation/v1/send/:transaction_id",
+        stable_path: "/_matrix/federation/v1/send/:transaction_id",
         rate_limited: false,
         authentication: ServerSignatures,
         added: 1.0,

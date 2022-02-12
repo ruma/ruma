@@ -9,7 +9,7 @@ ruma_api! {
         description: "Sign invitation details.",
         method: POST,
         name: "sign_invitation_ed25519",
-        stable: "/_matrix/identity/v2/sign-ed25519",
+        stable_path: "/_matrix/identity/v2/sign-ed25519",
         authentication: AccessToken,
         rate_limited: false,
         added: 1.0,

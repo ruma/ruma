@@ -8,7 +8,7 @@ ruma_api! {
         description: "Check whether a short-term public key is valid.",
         method: GET,
         name: "validate_ephemeral_key",
-        stable: "/_matrix/identity/v2/pubkey/ephemeral/isvalid",
+        stable_path: "/_matrix/identity/v2/pubkey/ephemeral/isvalid",
         authentication: None,
         rate_limited: false,
         added: 1.0,

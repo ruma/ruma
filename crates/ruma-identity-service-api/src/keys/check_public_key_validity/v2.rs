@@ -8,7 +8,7 @@ ruma_api! {
         description: "Check whether a long-term public key is valid. The response should always be the same, provided the key exists.",
         method: GET,
         name: "check_public_key_validity",
-        stable: "/_matrix/identity/v2/pubkey/isvalid",
+        stable_path: "/_matrix/identity/v2/pubkey/isvalid",
         authentication: None,
         rate_limited: false,
         added: 1.0,

@@ -8,7 +8,7 @@ ruma_api! {
         description: "Exchanges an OpenID access token for information about the user who generated the token.",
         method: GET,
         name: "get_openid_userinfo",
-        stable: "/_matrix/federation/v1/openid/userinfo",
+        stable_path: "/_matrix/federation/v1/openid/userinfo",
         rate_limited: false,
         authentication: None,
         added: 1.0,

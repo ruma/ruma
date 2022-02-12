@@ -8,7 +8,7 @@ ruma_api! {
         description: "Gets information about what user owns the access token used in the request.",
         method: POST,
         name: "get_account_information",
-        stable: "/_matrix/identity/v2/account",
+        stable_path: "/_matrix/identity/v2/account",
         authentication: AccessToken,
         rate_limited: false,
         added: 1.0,

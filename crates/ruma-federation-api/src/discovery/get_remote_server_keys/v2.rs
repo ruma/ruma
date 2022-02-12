@@ -13,7 +13,7 @@ ruma_api! {
         name: "get_remote_server_keys",
         // Note: The spec has an additional, deprecated path parameter on this. We may want to
         // support an additional parameter at the end, even if it is ignored.
-        stable: "/_matrix/key/v2/query/:server_name",
+        stable_path: "/_matrix/key/v2/query/:server_name",
         rate_limited: false,
         authentication: None,
         added: 1.0,

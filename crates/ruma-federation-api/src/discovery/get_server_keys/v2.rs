@@ -9,7 +9,7 @@ ruma_api! {
         description: "Gets the homeserver's published signing keys.",
         method: GET,
         name: "get_server_keys",
-        stable: "/_matrix/key/v2/server",
+        stable_path: "/_matrix/key/v2/server",
         rate_limited: false,
         authentication: None,
         added: 1.0,

@@ -8,7 +8,7 @@ ruma_api! {
         description: "Get discovery information about the domain.",
         method: GET,
         name: "discover_homeserver",
-        stable: "/.well-known/matrix/client",
+        stable_path: "/.well-known/matrix/client",
         rate_limited: false,
         authentication: None,
         added: 1.0,

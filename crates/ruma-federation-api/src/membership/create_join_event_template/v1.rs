@@ -10,7 +10,7 @@ ruma_api! {
         description: "Send a request for a join event template to a resident server.",
         name: "create_join_event_template",
         method: GET,
-        stable: "/_matrix/federation/v1/make_join/:room_id/:user_id",
+        stable_path: "/_matrix/federation/v1/make_join/:room_id/:user_id",
         rate_limited: false,
         authentication: ServerSignatures,
         added: 1.0,

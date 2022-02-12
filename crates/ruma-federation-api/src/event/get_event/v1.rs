@@ -11,7 +11,7 @@ ruma_api! {
         description: "Retrieves a single event.",
         method: GET,
         name: "get_event",
-        stable: "/_matrix/federation/v1/event/:event_id",
+        stable_path: "/_matrix/federation/v1/event/:event_id",
         rate_limited: false,
         authentication: ServerSignatures,
         added: 1.0,

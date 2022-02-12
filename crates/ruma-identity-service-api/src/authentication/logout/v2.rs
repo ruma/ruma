@@ -7,7 +7,7 @@ ruma_api! {
         description: "Logs out the access token, preventing it from being used to authenticate future requests to the server.",
         method: POST,
         name: "logout",
-        stable: "/_matrix/identity/v2/account/logout",
+        stable_path: "/_matrix/identity/v2/account/logout",
         authentication: AccessToken,
         rate_limited: false,
         added: 1.0,

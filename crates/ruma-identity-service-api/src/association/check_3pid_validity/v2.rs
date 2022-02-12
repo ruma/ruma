@@ -10,7 +10,7 @@ ruma_api! {
         description: "Determines if a given 3PID has been validated by a user.",
         method: GET,
         name: "check_3pid_validity",
-        stable: "/_matrix/identity/v2/3pid/getValidated3pid/",
+        stable_path: "/_matrix/identity/v2/3pid/getValidated3pid/",
         rate_limited: false,
         authentication: AccessToken,
         added: 1.0,
