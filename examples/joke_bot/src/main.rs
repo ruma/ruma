@@ -1,5 +1,6 @@
 use std::{convert::TryInto, error::Error, io, process::exit, time::Duration};
 
+use futures_util::future::{join, join_all};
 use ruma::{
     api::{
         client::r0::{
@@ -84,26 +85,36 @@ async fn run() -> Result<(), Box<dyn Error>> {
         &PresenceState::Online,
         Some(Duration::from_secs(30)),
     ));
+
+    // Prevent the clients being moved by `async move` blocks
+    let http_client = &http_client;
+    let matrix_client = &matrix_client;
+
     println!("Listening...");
     while let Some(response) = sync_stream.try_next().await? {
-        for (room_id, room_info) in response.rooms.join {
+        let message_futures = response.rooms.join.iter().map(|(room_id, room_info)| async move {
+            // Use a regular for loop for the messages within one room to handle them sequentially
             for e in &room_info.timeline.events {
-                match handle_messages(&http_client, &matrix_client, e, &room_id, user_id).await {
+                match handle_messages(http_client, matrix_client, e, room_id, user_id).await {
                     Ok(_) => {}
                     Err(err) => {
                         eprintln!("failed to respond to message: {}", err)
                     }
                 }
             }
-        }
+        });
 
-        for (room_id, _) in response.rooms.invite {
-            match handle_invitations(&http_client, &matrix_client, &room_id).await {
+        let invite_futures = response.rooms.invite.iter().map(|(room_id, _)| async move {
+            match handle_invitations(http_client, matrix_client, room_id).await {
                 Ok(_) => {}
                 Err(err) => eprintln!("failed to accept invitation for room {}: {}", &room_id, err),
             }
-        }
+        });
+
+        // Handle messages from different rooms as well as invites concurrently
+        join(join_all(message_futures), join_all(invite_futures)).await;
     }
+
     Ok(())
 }
 
