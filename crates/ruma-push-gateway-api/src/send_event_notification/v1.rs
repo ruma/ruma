@@ -19,9 +19,10 @@ ruma_api! {
         description: "Notify a push gateway about an event or update the number of unread notifications a user has",
         name: "send_event_notification",
         method: POST,
-        path: "/_matrix/push/v1/notify",
+        stable_path: "/_matrix/push/v1/notify",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
     }
 
     request: {
