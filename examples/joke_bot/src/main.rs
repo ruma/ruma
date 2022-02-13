@@ -96,7 +96,7 @@ async fn run() -> Result<(), Box<dyn Error>> {
             // Use a regular for loop for the messages within one room to handle them sequentially
             for e in &room_info.timeline.events {
                 if let Err(err) =
-                    handle_messages(http_client, matrix_client, e, room_id, user_id).await
+                    handle_message(http_client, matrix_client, e, room_id, user_id).await
                 {
                     eprintln!("failed to respond to message: {}", err)
                 }
@@ -142,7 +142,7 @@ async fn create_matrix_session(
     }
 }
 
-async fn handle_messages(
+async fn handle_message(
     http_client: &HttpClient,
     matrix_client: &MatrixClient,
     e: &Raw<AnySyncRoomEvent>,
