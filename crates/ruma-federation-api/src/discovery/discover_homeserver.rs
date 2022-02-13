@@ -1,4 +1,6 @@
-//! [GET /.well-known/matrix/server](https://matrix.org/docs/spec/server_server/r0.1.4#get-well-known-matrix-server)
+//! `GET /.well-known/matrix/server` ([spec])
+//!
+//! [spec]: https://spec.matrix.org/v1.2/server-server-api/#getwell-knownmatrixserver
 
 use ruma_api::ruma_api;
 use ruma_identifiers::ServerName;

@@ -1,3 +1,5 @@
+//! `PUT /_matrix/federation/*/send_join/{roomId}/{eventId}`
+//!
 //! Endpoint to send join events to remote homeservers.
 
 pub mod v1;
