@@ -3,7 +3,7 @@
 //! (De)serializable types for the [Matrix Push Gateway API][push-api].
 //! These types can be shared by push gateway and server code.
 //!
-//! [push-api]: https://matrix.org/docs/spec/push_gateway/r0.1.1.html
+//! [push-api]: https://spec.matrix.org/v1.2/push-gateway-api/
 
 #![warn(missing_docs)]
 
