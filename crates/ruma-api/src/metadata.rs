@@ -22,7 +22,7 @@ pub struct Metadata {
     pub name: &'static str,
 
     /// (DEPRECATED)
-    pub path: &'static str,
+    pub path: Option<&'static str>,
 
     /// The unstable path of this endpoint's URL, often `None`, used for developmental
     /// purposes.

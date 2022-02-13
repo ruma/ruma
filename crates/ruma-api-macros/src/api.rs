@@ -47,7 +47,6 @@ impl Api {
         let description = &metadata.description;
         let method = &metadata.method;
         let name = &metadata.name;
-        let path = &metadata.path;
         let unstable_path = util::map_option_literal(&metadata.unstable_path);
         let r0_path = util::map_option_literal(&metadata.r0_path);
         let stable_path = util::map_option_literal(&metadata.stable_path);
@@ -75,6 +74,7 @@ impl Api {
                 }
             })
             .collect();
+        let path = util::map_option_literal(&metadata.path);
         let added = util::map_option_literal(&metadata.added);
         let deprecated = util::map_option_literal(&metadata.deprecated);
         let removed = util::map_option_literal(&metadata.removed);

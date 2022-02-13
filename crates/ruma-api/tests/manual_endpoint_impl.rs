@@ -28,7 +28,7 @@ const METADATA: Metadata = Metadata {
     description: "Add an alias to a room.",
     method: Method::PUT,
     name: "create_alias",
-    path: "/_matrix/client/r0/directory/room/:room_alias",
+    path: Some("/_matrix/client/r0/directory/room/:room_alias"),
     unstable_path: None,
     r0_path: None,
     stable_path: None,
@@ -52,7 +52,7 @@ impl OutgoingRequest for Request {
         // FIXME: properly integrate
         _considering_versions: &'_ [MatrixVersion],
     ) -> Result<http::Request<T>, IntoHttpError> {
-        let url = (base_url.to_owned() + METADATA.path)
+        let url = (base_url.to_owned() + METADATA.path.unwrap())
             .replace(":room_alias", &self.room_alias.to_string());
 
         let request_body = RequestBody { room_id: self.room_id };

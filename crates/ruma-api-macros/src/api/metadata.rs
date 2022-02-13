@@ -46,7 +46,7 @@ pub struct Metadata {
     pub name: LitStr,
 
     /// The path field. (deprecated)
-    pub path: EndpointPath,
+    pub path: Option<EndpointPath>,
 
     /// The unstable path field.
     pub unstable_path: Option<EndpointPath>,
@@ -179,7 +179,7 @@ impl Parse for Metadata {
             description: description.ok_or_else(|| missing_field("description"))?,
             method: method.ok_or_else(|| missing_field("method"))?,
             name: name.ok_or_else(|| missing_field("name"))?,
-            path: path.ok_or_else(|| missing_field("path"))?,
+            path,
             unstable_path,
             r0_path,
             stable_path,
