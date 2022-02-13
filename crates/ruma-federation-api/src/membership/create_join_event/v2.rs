@@ -1,4 +1,6 @@
-//! [PUT /_matrix/federation/v2/send_join/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v2-send-join-roomid-eventid)
+//! `/v2/` ([spec])
+//!
+//! [spec]: https://spec.matrix.org/v1.2/server-server-api/#put_matrixfederationv2send_joinroomideventid
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{EventId, RoomId};
