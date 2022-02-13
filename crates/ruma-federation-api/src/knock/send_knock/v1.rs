@@ -11,9 +11,11 @@ ruma_api! {
         description: "Submits a signed knock event to the resident homeserver for it to accept into the room's graph.",
         name: "send_knock",
         method: PUT,
-        path: "/_matrix/federation/v1/send_knock/:room_id/:event_id",
+        unstable_path: "/_matrix/federation/unstable/xyz.amorgan.knock/send_knock/:room_id/:event_id",
+        stable_path: "/_matrix/federation/v1/send_knock/:room_id/:event_id",
         rate_limited: false,
         authentication: ServerSignatures,
+        added: 1.1,
     }
 
     request: {

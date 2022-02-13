@@ -11,9 +11,10 @@ ruma_api! {
         description: "Retrieves previous events that the sender is missing.",
         method: POST,
         name: "get_missing_events",
-        path: "/_matrix/federation/v1/get_missing_events/:room_id",
+        stable_path: "/_matrix/federation/v1/get_missing_events/:room_id",
         rate_limited: false,
         authentication: ServerSignatures,
+        added: 1.0,
     }
 
     request: {

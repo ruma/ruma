@@ -12,9 +12,10 @@ ruma_api! {
         description: "Gets information on all of the user's devices.",
         name: "get_devices",
         method: GET,
-        path: "/_matrix/federation/v1/user/devices/:user_id",
+        stable_path: "/_matrix/federation/v1/user/devices/:user_id",
         rate_limited: false,
         authentication: ServerSignatures,
+        added: 1.0,
     }
 
     request: {

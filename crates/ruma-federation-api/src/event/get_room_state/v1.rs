@@ -10,9 +10,10 @@ ruma_api! {
         description: "Retrieves a snapshot of a room's state at a given event.",
         method: GET,
         name: "get_room_state",
-        path: "/_matrix/federation/v1/state/:room_id",
+        stable_path: "/_matrix/federation/v1/state/:room_id",
         rate_limited: false,
         authentication: ServerSignatures,
+        added: 1.0,
     }
 
     request: {

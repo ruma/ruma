@@ -8,9 +8,10 @@ ruma_api! {
         description: "Get the implementation name and version of this homeserver.",
         method: GET,
         name: "get_server_version",
-        path: "/_matrix/federation/v1/version",
+        stable_path: "/_matrix/federation/v1/version",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
     }
 
     #[derive(Default)]
