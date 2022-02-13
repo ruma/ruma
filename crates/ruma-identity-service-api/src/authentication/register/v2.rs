@@ -11,9 +11,10 @@ ruma_api! {
         description: "Exchanges an OpenID token from the homeserver for an access token to access the identity server.",
         method: POST,
         name: "register_account",
-        path: "/_matrix/identity/v2/account/register",
+        stable_path: "/_matrix/identity/v2/account/register",
         authentication: None,
         rate_limited: false,
+        added: 1.0,
     }
 
     request: {

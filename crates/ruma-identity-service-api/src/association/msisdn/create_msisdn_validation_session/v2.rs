@@ -9,9 +9,10 @@ ruma_api! {
         description: "Creates a session for validating a phone number.",
         method: POST,
         name: "create_msisdn_validation_session",
-        path: "/_matrix/identity/v2/validate/msisdn/requestToken",
+        stable_path: "/_matrix/identity/v2/validate/msisdn/requestToken",
         authentication: AccessToken,
         rate_limited: false,
+        added: 1.0,
     }
 
     request: {

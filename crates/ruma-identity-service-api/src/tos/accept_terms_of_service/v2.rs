@@ -7,9 +7,10 @@ ruma_api! {
         description: "Called by a client to indicate that the user has accepted/agreed to the included set of URLs.",
         method: POST,
         name: "accept_terms_of_service",
-        path: "/_matrix/identity/v2/terms",
+        stable_path: "/_matrix/identity/v2/terms",
         authentication: AccessToken,
         rate_limited: false,
+        added: 1.0,
     }
 
     request: {

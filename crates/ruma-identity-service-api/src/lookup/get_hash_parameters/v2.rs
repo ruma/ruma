@@ -9,9 +9,10 @@ ruma_api! {
         description: "Gets parameters for hashing identifiers from the server. This can include any of the algorithms defined in the spec.",
         method: GET,
         name: "get_hash_parameters",
-        path: "/_matrix/identity/v2/hash_details",
+        stable_path: "/_matrix/identity/v2/hash_details",
         authentication: AccessToken,
         rate_limited: false,
+        added: 1.0,
     }
 
     #[derive(Default)]

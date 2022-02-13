@@ -9,9 +9,10 @@ ruma_api! {
         description: "Get the public key for the given key ID.",
         method: GET,
         name: "get_public_key",
-        path: "/_matrix/identity/v2/pubkey/:key_id",
+        stable_path: "/_matrix/identity/v2/pubkey/:key_id",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
     }
 
     request: {

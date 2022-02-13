@@ -8,9 +8,10 @@ ruma_api! {
         description: "Validate ownership of an phone number.",
         method: POST,
         name: "validate_msisdn",
-        path: "/_matrix/identity/v2/validate/msisdn/submitToken",
+        stable_path: "/_matrix/identity/v2/validate/msisdn/submitToken",
         authentication: AccessToken,
         rate_limited: false,
+        added: 1.0,
     }
 
     request: {
