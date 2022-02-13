@@ -12,9 +12,11 @@ ruma_api! {
         description: "Get a thumbnail of content from the media store.",
         method: GET,
         name: "get_content_thumbnail",
-        path: "/_matrix/media/r0/thumbnail/:server_name/:media_id",
+        r0_path: "/_matrix/media/r0/thumbnail/:server_name/:media_id",
+        stable_path: "/_matrix/media/v3/thumbnail/:server_name/:media_id",
         rate_limited: true,
         authentication: None,
+        added: 1.0,
     }
 
     request: {

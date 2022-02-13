@@ -9,9 +9,11 @@ ruma_api! {
         description: "Get registered devices for authenticated user.",
         method: GET,
         name: "get_devices",
-        path: "/_matrix/client/r0/devices",
+        r0_path: "/_matrix/client/r0/devices",
+        stable_path: "/_matrix/client/v3/devices",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]

@@ -8,9 +8,11 @@ ruma_api! {
         description: "Upload content to the media store.",
         method: POST,
         name: "create_media_content",
-        path: "/_matrix/media/r0/upload",
+        r0_path: "/_matrix/media/r0/upload",
+        stable_path: "/_matrix/media/v3/upload",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

@@ -13,9 +13,11 @@ ruma_api! {
         description: "Claims one-time keys for use in pre-key messages.",
         method: POST,
         name: "claim_keys",
-        path: "/_matrix/client/r0/keys/claim",
+        r0_path: "/_matrix/client/r0/keys/claim",
+        stable_path: "/_matrix/client/v3/keys/claim",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

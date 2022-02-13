@@ -12,9 +12,11 @@ ruma_api! {
         description: "Get information about a particular user.",
         method: GET,
         name: "get_user_info",
-        path: "/_matrix/client/r0/admin/whois/:user_id",
+        r0_path: "/_matrix/client/r0/admin/whois/:user_id",
+        stable_path: "/_matrix/client/v3/admin/whois/:user_id",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

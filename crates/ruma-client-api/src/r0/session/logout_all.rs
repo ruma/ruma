@@ -7,9 +7,11 @@ ruma_api! {
         description: "Invalidates all access tokens for a user, so that they can no longer be used for authorization.",
         method: POST,
         name: "logout_all",
-        path: "/_matrix/client/r0/logout/all",
+        r0_path: "/_matrix/client/r0/logout/all",
+        stable_path: "/_matrix/client/v3/logout/all",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]

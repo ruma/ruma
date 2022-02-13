@@ -7,9 +7,11 @@ ruma_api! {
         description: "",
         method: GET,
         name: "sso_login",
-        path: "/_matrix/client/r0/login/sso/redirect",
+        unstable_path: "/_matrix/client/unstable/org.matrix.msc2858/login/sso/redirect",
+        stable_path: "/_matrix/client/v3/login/sso/redirect",
         rate_limited: false,
         authentication: None,
+        added: 1.1,
     }
 
     request: {
@@ -55,13 +57,13 @@ mod tests {
             .try_into_http_request(
                 "https://homeserver.tld",
                 SendAccessToken::None,
-                &[MatrixVersion::V1_0],
+                &[MatrixVersion::V1_1],
             )
             .unwrap();
 
         assert_eq!(
             req.uri().to_string(),
-            "https://homeserver.tld/_matrix/client/r0/login/sso/redirect?redirectUrl=https%3A%2F%2Fexample.com%2Fsso"
+            "https://homeserver.tld/_matrix/client/v3/login/sso/redirect?redirectUrl=https%3A%2F%2Fexample.com%2Fsso"
         );
     }
 }

@@ -11,9 +11,11 @@ ruma_api! {
         description: "Request a registration token with a phone number.",
         method: POST,
         name: "request_registration_token_via_msisdn",
-        path: "/_matrix/client/r0/register/msisdn/requestToken",
+        r0_path: "/_matrix/client/r0/register/msisdn/requestToken",
+        stable_path: "/_matrix/client/v3/register/msisdn/requestToken",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
     }
 
     request: {

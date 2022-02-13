@@ -12,10 +12,12 @@ ruma_api! {
     metadata: {
         description: "Get the events immediately preceding and following a given event.",
         method: GET,
-        path: "/_matrix/client/r0/rooms/:room_id/context/:event_id",
+        r0_path: "/_matrix/client/r0/rooms/:room_id/context/:event_id",
+        stable_path: "/_matrix/client/v3/rooms/:room_id/context/:event_id",
         name: "get_context",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

@@ -8,9 +8,11 @@ ruma_api! {
         description: "Kick a user from a room.",
         method: POST,
         name: "kick_user",
-        path: "/_matrix/client/r0/rooms/:room_id/kick",
+        r0_path: "/_matrix/client/r0/rooms/:room_id/kick",
+        stable_path: "/_matrix/client/v3/rooms/:room_id/kick",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

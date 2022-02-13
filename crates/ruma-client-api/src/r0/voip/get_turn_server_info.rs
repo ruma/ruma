@@ -9,9 +9,11 @@ ruma_api! {
         description: "Get credentials for the client to use when initiating VoIP calls.",
         method: GET,
         name: "turn_server_info",
-        path: "/_matrix/client/r0/voip/turnServer",
+        r0_path: "/_matrix/client/r0/voip/turnServer",
+        stable_path: "/_matrix/client/v3/voip/turnServer",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]

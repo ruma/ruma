@@ -8,9 +8,11 @@ ruma_api! {
         description: "Add an alias to a room.",
         method: PUT,
         name: "create_alias",
-        path: "/_matrix/client/r0/directory/room/:room_alias",
+        r0_path: "/_matrix/client/r0/directory/room/:room_alias",
+        stable_path: "/_matrix/client/v3/directory/room/:room_alias",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

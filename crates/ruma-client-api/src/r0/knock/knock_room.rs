@@ -8,9 +8,11 @@ ruma_api! {
         description: "Knock on a room.",
         method: POST,
         name: "knock_room",
-        path: "/_matrix/client/r0/knock/:room_id_or_alias",
+        unstable_path: "/_matrix/client/unstable/xyz.amorgan.knock/knock/:room_id_or_alias",
+        stable_path: "/_matrix/client/v3/knock/:room_id_or_alias",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.1,
     }
 
     request: {

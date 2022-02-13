@@ -8,9 +8,11 @@ ruma_api! {
         description: "Get a list of the user's current rooms.",
         method: GET,
         name: "joined_rooms",
-        path: "/_matrix/client/r0/joined_rooms",
+        r0_path: "/_matrix/client/r0/joined_rooms",
+        stable_path: "/_matrix/client/v3/joined_rooms",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]

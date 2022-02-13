@@ -9,9 +9,11 @@ ruma_api! {
         description: "This endpoint removes the push rule defined in the path.",
         method: DELETE,
         name: "delete_pushrule",
-        path: "/_matrix/client/r0/pushrules/:scope/:kind/:rule_id",
+        r0_path: "/_matrix/client/r0/pushrules/:scope/:kind/:rule_id",
+        stable_path: "/_matrix/client/v3/pushrules/:scope/:kind/:rule_id",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

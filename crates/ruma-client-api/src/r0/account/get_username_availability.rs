@@ -7,9 +7,11 @@ ruma_api! {
         description: "Checks to see if a username is available, and valid, for the server.",
         method: GET,
         name: "get_username_availability",
-        path: "/_matrix/client/r0/register/available",
+        r0_path: "/_matrix/client/r0/register/available",
+        stable_path: "/_matrix/client/v3/register/available",
         rate_limited: true,
         authentication: None,
+        added: 1.0,
     }
 
     request: {

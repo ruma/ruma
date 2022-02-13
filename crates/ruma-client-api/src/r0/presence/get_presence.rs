@@ -11,9 +11,11 @@ ruma_api! {
         description: "Get presence status for this user.",
         method: GET,
         name: "get_presence",
-        path: "/_matrix/client/r0/presence/:user_id/status",
+        r0_path: "/_matrix/client/r0/presence/:user_id/status",
+        stable_path: "/_matrix/client/v3/presence/:user_id/status",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

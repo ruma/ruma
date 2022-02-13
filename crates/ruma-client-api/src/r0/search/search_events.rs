@@ -19,9 +19,11 @@ ruma_api! {
         description: "Search events.",
         method: POST,
         name: "search",
-        path: "/_matrix/client/r0/search",
+        r0_path: "/_matrix/client/r0/search",
+        stable_path: "/_matrix/client/v3/search",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

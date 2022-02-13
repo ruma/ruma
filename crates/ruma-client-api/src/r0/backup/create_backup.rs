@@ -10,9 +10,11 @@ ruma_api! {
         description: "Creates a new backup.",
         method: POST,
         name: "create_backup",
-        path: "/_matrix/client/unstable/room_keys/version",
+        unstable_path: "/_matrix/client/unstable/room_keys/version",
+        stable_path: "/_matrix/client/v3/room_keys/version",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.1,
     }
 
     request: {

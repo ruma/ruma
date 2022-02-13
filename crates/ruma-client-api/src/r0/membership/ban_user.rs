@@ -8,9 +8,11 @@ ruma_api! {
         description: "Ban a user from a room.",
         method: POST,
         name: "ban_user",
-        path: "/_matrix/client/r0/rooms/:room_id/ban",
+        r0_path: "/_matrix/client/r0/rooms/:room_id/ban",
+        stable_path: "/_matrix/client/v3/rooms/:room_id/ban",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

@@ -13,9 +13,11 @@ ruma_api! {
         description: "Publishes end-to-end encryption keys for the device.",
         method: POST,
         name: "upload_keys",
-        path: "/_matrix/client/r0/keys/upload",
+        r0_path: "/_matrix/client/r0/keys/upload",
+        stable_path: "/_matrix/client/v3/keys/upload",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]

@@ -7,9 +7,11 @@ ruma_api! {
         description: "Get the SSO login identity provider url.",
         method: GET,
         name: "sso_login_with_provider",
-        path: "/_matrix/client/v3/login/sso/redirect/:idp_id",
+        unstable_path: "/_matrix/client/unstable/org.matrix.msc2858/login/sso/redirect/:idp_id",
+        stable_path: "/_matrix/client/v3/login/sso/redirect/:idp_id",
         rate_limited: false,
         authentication: None,
+        added: 1.1,
     }
 
     request: {
@@ -59,7 +61,7 @@ mod tests {
             .try_into_http_request::<Vec<u8>>(
                 "https://homeserver.tld",
                 SendAccessToken::None,
-                &[MatrixVersion::V1_0],
+                &[MatrixVersion::V1_1],
             )
             .unwrap();
 

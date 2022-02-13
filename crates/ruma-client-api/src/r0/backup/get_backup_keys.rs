@@ -12,9 +12,12 @@ ruma_api! {
         description: "Retrieve all keys from a backup.",
         method: GET,
         name: "get_backup_keys",
-        path: "/_matrix/client/unstable/room_keys/keys",
+        unstable_path: "/_matrix/client/unstable/room_keys/keys",
+        r0_path: "/_matrix/client/r0/room_keys/keys",
+        stable_path: "/_matrix/client/v3/room_keys/keys",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

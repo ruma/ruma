@@ -11,9 +11,11 @@ ruma_api! {
         description: "Get a map of user ids to member info objects for members of the room. Primarily for use in Application Services.",
         method: GET,
         name: "joined_members",
-        path: "/_matrix/client/r0/rooms/:room_id/joined_members",
+        r0_path: "/_matrix/client/r0/rooms/:room_id/joined_members",
+        stable_path: "/_matrix/client/v3/rooms/:room_id/joined_members",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

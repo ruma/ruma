@@ -19,9 +19,11 @@ ruma_api! {
         description: "Invite a user to a room.",
         method: POST,
         name: "invite_user",
-        path: "/_matrix/client/r0/rooms/:room_id/invite",
+        r0_path: "/_matrix/client/r0/rooms/:room_id/invite",
+        stable_path: "/_matrix/client/v3/rooms/:room_id/invite",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

@@ -13,9 +13,11 @@ ruma_api! {
         description: "Store several keys in the backup.",
         method: PUT,
         name: "add_backup_keys",
-        path: "/_matrix/client/unstable/room_keys/keys",
+        unstable_path: "/_matrix/client/unstable/room_keys/keys",
+        stable_path: "/_matrix/client/v3/room_keys/keys",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.1,
     }
 
     request: {

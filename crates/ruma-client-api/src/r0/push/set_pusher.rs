@@ -10,9 +10,11 @@ ruma_api! {
         description: "This endpoint allows the creation, modification and deletion of pushers for this user ID.",
         method: POST,
         name: "set_pusher",
-        path: "/_matrix/client/r0/pushers/set",
+        r0_path: "/_matrix/client/r0/pushers/set",
+        stable_path: "/_matrix/client/v3/pushers/set",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

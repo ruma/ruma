@@ -16,9 +16,11 @@ ruma_api! {
         description: "Login to the homeserver.",
         method: POST,
         name: "login",
-        path: "/_matrix/client/r0/login",
+        r0_path: "/_matrix/client/r0/login",
+        stable_path: "/_matrix/client/v3/login",
         rate_limited: true,
         authentication: None,
+        added: 1.0,
     }
 
     request: {
@@ -332,7 +334,7 @@ mod tests {
         .try_into_http_request(
             "https://homeserver.tld",
             SendAccessToken::None,
-            &[MatrixVersion::V1_0],
+            &[MatrixVersion::V1_1],
         )
         .unwrap();
 
@@ -360,7 +362,7 @@ mod tests {
         .try_into_http_request(
             "https://homeserver.tld",
             SendAccessToken::None,
-            &[MatrixVersion::V1_0],
+            &[MatrixVersion::V1_1],
         )
         .unwrap();
 

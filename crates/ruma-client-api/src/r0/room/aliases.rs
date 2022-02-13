@@ -8,9 +8,11 @@ ruma_api! {
         description: "Get a list of aliases maintained by the local server for the given room.",
         method: GET,
         name: "aliases",
-        path: "/_matrix/client/r0/rooms/:room_id/aliases",
+        r0_path: "/_matrix/client/r0/rooms/:room_id/aliases",
+        stable_path: "/_matrix/client/v3/rooms/:room_id/aliases",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

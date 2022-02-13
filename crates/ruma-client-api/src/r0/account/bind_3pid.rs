@@ -10,9 +10,11 @@ ruma_api! {
         description: "Bind a 3PID to a user's account on an identity server",
         method: POST,
         name: "bind_3pid",
-        path: "/_matrix/client/r0/account/3pid/bind",
+        r0_path: "/_matrix/client/r0/account/3pid/bind",
+        stable_path: "/_matrix/client/v3/account/3pid/bind",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

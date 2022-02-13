@@ -10,9 +10,11 @@ ruma_api! {
         description: "Gets all currently active pushers for the authenticated user.",
         method: GET,
         name: "get_pushers",
-        path: "/_matrix/client/r0/pushers",
+        r0_path: "/_matrix/client/r0/pushers",
+        stable_path: "/_matrix/client/v3/pushers",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]

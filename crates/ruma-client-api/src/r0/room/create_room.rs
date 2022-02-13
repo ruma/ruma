@@ -24,9 +24,11 @@ ruma_api! {
         description: "Create a new room.",
         method: POST,
         name: "create_room",
-        path: "/_matrix/client/r0/createRoom",
+        r0_path: "/_matrix/client/r0/createRoom",
+        stable_path: "/_matrix/client/v3/createRoom",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]

@@ -11,9 +11,11 @@ ruma_api! {
         description: "Register an account on this homeserver.",
         method: POST,
         name: "register",
-        path: "/_matrix/client/r0/register",
+        r0_path: "/_matrix/client/r0/register",
+        stable_path: "/_matrix/client/v3/register",
         rate_limited: true,
         authentication: None,
+        added: 1.0,
     }
 
     #[derive(Default)]

@@ -7,10 +7,12 @@ ruma_api! {
     metadata: {
         description: "Gets the config for the media repository.",
         method: GET,
-        path: "/_matrix/media/r0/config",
+        r0_path: "/_matrix/media/r0/config",
+        stable_path: "/_matrix/media/v3/config",
         name: "get_media_config",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]

@@ -8,9 +8,11 @@ ruma_api! {
         description: "Get information about the owner of a given access token.",
         method: GET,
         name: "whoami",
-        path: "/_matrix/client/r0/account/whoami",
+        r0_path: "/_matrix/client/r0/account/whoami",
+        stable_path: "/_matrix/client/v3/account/whoami",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]

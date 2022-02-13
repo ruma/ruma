@@ -10,9 +10,11 @@ ruma_api! {
         description: "Get the list of rooms in this homeserver's public directory.",
         method: GET,
         name: "get_public_rooms",
-        path: "/_matrix/client/r0/publicRooms",
+        r0_path: "/_matrix/client/r0/publicRooms",
+        stable_path: "/_matrix/client/v3/publicRooms",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
     }
 
     #[derive(Default)]
@@ -87,14 +89,14 @@ mod tests {
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::IfRequired("auth_tok"),
-            &[MatrixVersion::V1_0],
+            &[MatrixVersion::V1_1],
         )
         .unwrap();
 
         let uri = req.uri();
         let query = uri.query().unwrap();
 
-        assert_eq!(uri.path(), "/_matrix/client/r0/publicRooms");
+        assert_eq!(uri.path(), "/_matrix/client/v3/publicRooms");
         assert!(query.contains("since=hello"));
         assert!(query.contains("limit=10"));
         assert!(query.contains("server=test.tld"));

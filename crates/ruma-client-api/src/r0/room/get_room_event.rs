@@ -10,9 +10,11 @@ ruma_api! {
         description: "Get a single event based on roomId/eventId",
         method: GET,
         name: "get_room_event",
-        path: "/_matrix/client/r0/rooms/:room_id/event/:event_id",
+        r0_path: "/_matrix/client/r0/rooms/:room_id/event/:event_id",
+        stable_path: "/_matrix/client/v3/rooms/:room_id/event/:event_id",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

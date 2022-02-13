@@ -10,9 +10,11 @@ ruma_api! {
         description: "Deactivate the current user's account.",
         method: POST,
         name: "deactivate",
-        path: "/_matrix/client/r0/account/deactivate",
+        r0_path: "/_matrix/client/r0/account/deactivate",
+        stable_path: "/_matrix/client/v3/account/deactivate",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]

@@ -9,9 +9,11 @@ ruma_api! {
         description: "Retrieve a single specified push rule.",
         method: GET,
         name: "get_pushrule",
-        path: "/_matrix/client/r0/pushrules/:scope/:kind/:rule_id",
+        r0_path: "/_matrix/client/r0/pushrules/:scope/:kind/:rule_id",
+        stable_path: "/_matrix/client/v3/pushrules/:scope/:kind/:rule_id",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

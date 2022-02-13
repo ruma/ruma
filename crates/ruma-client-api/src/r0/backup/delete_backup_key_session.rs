@@ -9,9 +9,12 @@ ruma_api! {
         description: "Delete a key from the backup",
         method: DELETE,
         name: "delete_backup_key_session",
-        path: "/_matrix/client/unstable/room_keys/keys/:room_id/:session_id",
+        unstable_path: "/_matrix/client/unstable/room_keys/keys/:room_id/:session_id",
+        r0_path: "/_matrix/client/r0/room_keys/keys/:room_id/:session_id",
+        stable_path: "/_matrix/client/v3/room_keys/keys/:room_id/:session_id",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

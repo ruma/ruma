@@ -10,9 +10,11 @@ ruma_api! {
         description: "Create a new filter for event retrieval.",
         method: POST,
         name: "create_filter",
-        path: "/_matrix/client/r0/user/:user_id/filter",
+        r0_path: "/_matrix/client/r0/user/:user_id/filter",
+        stable_path: "/_matrix/client/v3/user/:user_id/filter",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {
@@ -87,7 +89,7 @@ mod tests {
                 .try_into_http_request::<Vec<u8>>(
                     "https://matrix.org",
                     SendAccessToken::IfRequired("tok"),
-                    &[MatrixVersion::V1_0]
+                    &[MatrixVersion::V1_1]
                 ),
             Ok(res) if res.body() == b"{}"
         );

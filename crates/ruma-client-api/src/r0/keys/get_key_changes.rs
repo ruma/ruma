@@ -8,9 +8,11 @@ ruma_api! {
         description: "Gets a list of users who have updated their device identity keys since a previous sync token.",
         method: GET,
         name: "get_key_changes",
-        path: "/_matrix/client/r0/keys/changes",
+        r0_path: "/_matrix/client/r0/keys/changes",
+        stable_path: "/_matrix/client/v3/keys/changes",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

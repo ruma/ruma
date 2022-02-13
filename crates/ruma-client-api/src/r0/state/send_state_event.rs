@@ -11,9 +11,11 @@ ruma_api! {
         description: "Send a state event to a room associated with a given state key.",
         method: PUT,
         name: "send_state_event",
-        path: "/_matrix/client/r0/rooms/:room_id/state/:event_type/:state_key",
+        r0_path: "/_matrix/client/r0/rooms/:room_id/state/:event_type/:state_key",
+        stable_path: "/_matrix/client/v3/rooms/:room_id/state/:event_type/:state_key",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     response: {

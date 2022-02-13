@@ -8,9 +8,11 @@ ruma_api! {
         description: "Update metadata for a device.",
         method: PUT,
         name: "update_device",
-        path: "/_matrix/client/r0/devices/:device_id",
+        r0_path: "/_matrix/client/r0/devices/:device_id",
+        stable_path: "/_matrix/client/v3/devices/:device_id",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

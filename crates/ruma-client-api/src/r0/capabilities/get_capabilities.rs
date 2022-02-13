@@ -9,9 +9,11 @@ ruma_api! {
         description: "Gets information about the server's supported feature set and other relevant capabilities.",
         method: GET,
         name: "get_capabilities",
-        path: "/_matrix/client/r0/capabilities",
+        r0_path: "/_matrix/client/r0/capabilities",
+        stable_path: "/_matrix/client/v3/capabilities",
         rate_limited: true,
-        authentication: AccessToken
+        authentication: AccessToken,
+        added: 1.0,
     }
 
     #[derive(Default)]

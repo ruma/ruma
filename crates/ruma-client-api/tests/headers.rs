@@ -10,7 +10,7 @@ fn get_request_headers() {
         .try_into_http_request(
             "https://homeserver.tld",
             SendAccessToken::None,
-            &[MatrixVersion::V1_0],
+            &[MatrixVersion::V1_1],
         )
         .unwrap();
 

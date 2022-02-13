@@ -10,9 +10,11 @@ ruma_api! {
         description: "Delete a device for authenticated user.",
         method: DELETE,
         name: "delete_device",
-        path: "/_matrix/client/r0/devices/:device_id",
+        r0_path: "/_matrix/client/r0/devices/:device_id",
+        stable_path: "/_matrix/client/v3/devices/:device_id",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

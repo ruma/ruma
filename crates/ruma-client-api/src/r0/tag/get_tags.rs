@@ -9,9 +9,11 @@ ruma_api! {
         description: "Get the tags associated with a room.",
         method: GET,
         name: "get_tags",
-        path: "/_matrix/client/r0/user/:user_id/rooms/:room_id/tags",
+        r0_path: "/_matrix/client/r0/user/:user_id/rooms/:room_id/tags",
+        stable_path: "/_matrix/client/v3/user/:user_id/rooms/:room_id/tags",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

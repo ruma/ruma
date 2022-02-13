@@ -10,9 +10,11 @@ ruma_api! {
         description: "Get a preview for a URL.",
         name: "get_media_preview",
         method: GET,
-        path: "/_matrix/media/r0/preview_url",
+        r0_path: "/_matrix/media/r0/preview_url",
+        stable_path: "/_matrix/media/v3/preview_url",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

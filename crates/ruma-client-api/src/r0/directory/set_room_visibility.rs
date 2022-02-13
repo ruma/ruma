@@ -10,9 +10,11 @@ ruma_api! {
         description: "Set the visibility of a public room on a directory.",
         name: "set_room_visibility",
         method: PUT,
-        path: "/_matrix/client/r0/directory/list/room/:room_id",
+        r0_path: "/_matrix/client/r0/directory/list/room/:room_id",
+        stable_path: "/_matrix/client/v3/directory/list/room/:room_id",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

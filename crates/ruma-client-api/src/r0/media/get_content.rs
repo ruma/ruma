@@ -8,9 +8,11 @@ ruma_api! {
         description: "Retrieve content from the media store.",
         method: GET,
         name: "get_media_content",
-        path: "/_matrix/media/r0/download/:server_name/:media_id",
+        r0_path: "/_matrix/media/r0/download/:server_name/:media_id",
+        stable_path: "/_matrix/media/v3/download/:server_name/:media_id",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
     }
 
     request: {

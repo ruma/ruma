@@ -10,9 +10,11 @@ ruma_api! {
         description: "Fetches third party locations for a protocol.",
         method: GET,
         name: "get_location_for_protocol",
-        path: "/_matrix/client/r0/thirdparty/location/:protocol",
+        r0_path: "/_matrix/client/r0/thirdparty/location/:protocol",
+        stable_path: "/_matrix/client/v3/thirdparty/location/:protocol",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

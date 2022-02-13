@@ -9,9 +9,11 @@ ruma_api! {
         description: "Associate account data with a room.",
         method: PUT,
         name: "set_room_account_data",
-        path: "/_matrix/client/r0/user/:user_id/rooms/:room_id/account_data/:event_type",
+        r0_path: "/_matrix/client/r0/user/:user_id/rooms/:room_id/account_data/:event_type",
+        stable_path: "/_matrix/client/v3/user/:user_id/rooms/:room_id/account_data/:event_type",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

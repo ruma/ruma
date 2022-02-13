@@ -10,9 +10,11 @@ ruma_api! {
         description: "Updates the visibility of a given room on the application service's room directory.",
         method: PUT,
         name: "set_room_visibility",
-        path: "/_matrix/client/r0/directory/list/appservice/:network_id/:room_id",
+        r0_path: "/_matrix/client/r0/directory/list/appservice/:network_id/:room_id",
+        stable_path: "/_matrix/client/v3/directory/list/appservice/:network_id/:room_id",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

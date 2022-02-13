@@ -11,9 +11,11 @@ ruma_api! {
         description: "Publishes cross-signing signatures for the user.",
         method: POST,
         name: "upload_signatures",
-        path: "/_matrix/client/unstable/keys/signatures/upload",
+        unstable_path: "/_matrix/client/unstable/keys/signatures/upload",
+        stable_path: "/_matrix/client/v3/keys/signatures/upload",
         rate_limited: false,
         authentication: AccessToken,
+        added: 1.1,
     }
 
     request: {

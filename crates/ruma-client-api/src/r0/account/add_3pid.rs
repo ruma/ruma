@@ -10,9 +10,11 @@ ruma_api! {
         description: "Add contact information to a user's account",
         method: POST,
         name: "add_3pid",
-        path: "/_matrix/client/r0/account/3pid/add",
+        r0_path: "/_matrix/client/r0/account/3pid/add",
+        stable_path: "/_matrix/client/v3/account/3pid/add",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {

@@ -7,9 +7,12 @@ ruma_api! {
         description: "Delete an existing backup.",
         method: DELETE,
         name: "delete_backup",
-        path: "/_matrix/client/unstable/room_keys/version/:version",
+        unstable_path: "/_matrix/client/unstable/room_keys/version/:version",
+        r0_path: "/_matrix/client/r0/room_keys/version/:version",
+        stable_path: "/_matrix/client/v3/room_keys/version/:version",
         rate_limited: true,
         authentication: AccessToken,
+        added: 1.0,
     }
 
     request: {
