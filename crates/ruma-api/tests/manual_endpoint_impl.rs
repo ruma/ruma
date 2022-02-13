@@ -28,15 +28,14 @@ const METADATA: Metadata = Metadata {
     description: "Add an alias to a room.",
     method: Method::PUT,
     name: "create_alias",
-    path: Some("/_matrix/client/r0/directory/room/:room_alias"),
-    unstable_path: None,
-    r0_path: None,
-    stable_path: None,
+    unstable_path: Some("/_matrix/client/unstable/directory/room/:room_alias"),
+    r0_path: Some("/_matrix/client/r0/directory/room/:room_alias"),
+    stable_path: Some("/_matrix/client/v3/directory/room/:room_alias"),
     rate_limited: false,
     authentication: AuthScheme::None,
-    added: None,
-    deprecated: None,
-    removed: None,
+    added: Some(MatrixVersion::V1_0),
+    deprecated: Some(MatrixVersion::V1_1),
+    removed: Some(MatrixVersion::V1_2),
 };
 
 impl OutgoingRequest for Request {
@@ -49,11 +48,19 @@ impl OutgoingRequest for Request {
         self,
         base_url: &str,
         _access_token: SendAccessToken<'_>,
-        // FIXME: properly integrate
-        _considering_versions: &'_ [MatrixVersion],
+        considering_versions: &'_ [MatrixVersion],
     ) -> Result<http::Request<T>, IntoHttpError> {
-        let url = (base_url.to_owned() + METADATA.path.unwrap())
-            .replace(":room_alias", &self.room_alias.to_string());
+        let url = format!(
+            "{}{}",
+            base_url,
+            ruma_api::select_path(
+                considering_versions,
+                &METADATA,
+                Some(format_args!("/_matrix/client/unstable/directory/room/{}", self.room_alias)),
+                Some(format_args!("/_matrix/client/r0/directory/room/{}", self.room_alias)),
+                Some(format_args!("/_matrix/client/v3/directory/room/{}", self.room_alias)),
+            )?
+        );
 
         let request_body = RequestBody { room_id: self.room_id };
 

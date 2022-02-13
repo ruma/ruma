@@ -5,7 +5,7 @@ ruma_api! {
         description: "Does something.",
         method: GET,
         name: "some_path_args",
-        path: "/_matrix/:one/a/:two/b/:three/c",
+        unstable_path: "/_matrix/:one/a/:two/b/:three/c",
         rate_limited: false,
         authentication: None,
     }

@@ -74,7 +74,6 @@ impl Api {
                 }
             })
             .collect();
-        let path = util::map_option_literal(&metadata.path);
         let added = util::map_option_literal(&metadata.added);
         let deprecated = util::map_option_literal(&metadata.deprecated);
         let removed = util::map_option_literal(&metadata.removed);
@@ -94,7 +93,6 @@ impl Api {
                 description: #description,
                 method: #http::Method::#method,
                 name: #name,
-                path: #path,
                 unstable_path: #unstable_path,
                 r0_path: #r0_path,
                 stable_path: #stable_path,

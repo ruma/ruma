@@ -7,7 +7,6 @@ ruma_api! {
         description: "Does something.",
         method: POST, // An `http::Method` constant. No imports required.
         name: "some_endpoint",
-        path: "/_matrix/some/endpoint/:baz",
         unstable_path: "/_matrix/some/msc1234/endpoint/:baz",
         r0_path: "/_matrix/some/r0/endpoint/:baz",
         stable_path: "/_matrix/some/v1/endpoint/:baz",

@@ -6,8 +6,8 @@ use syn::{parse::Parse, Error, LitFloat};
 
 #[derive(Clone)]
 pub struct MatrixVersionLiteral {
-    major: NonZeroU8,
-    minor: u8,
+    pub(crate) major: NonZeroU8,
+    pub(crate) minor: u8,
 }
 
 impl Parse for MatrixVersionLiteral {

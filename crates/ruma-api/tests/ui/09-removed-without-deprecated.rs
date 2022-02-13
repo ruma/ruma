@@ -5,7 +5,7 @@ ruma_api! {
         description: "This will fail.",
         method: GET,
         name: "invalid_versions",
-        path: "/a/path",
+        unstable_path: "/a/path",
         rate_limited: false,
         authentication: None,
 

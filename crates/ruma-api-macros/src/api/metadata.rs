@@ -14,7 +14,6 @@ mod kw {
     syn::custom_keyword!(description);
     syn::custom_keyword!(method);
     syn::custom_keyword!(name);
-    syn::custom_keyword!(path);
     syn::custom_keyword!(unstable_path);
     syn::custom_keyword!(r0_path);
     syn::custom_keyword!(stable_path);
@@ -44,9 +43,6 @@ pub struct Metadata {
 
     /// The name field.
     pub name: LitStr,
-
-    /// The path field. (deprecated)
-    pub path: Option<EndpointPath>,
 
     /// The unstable path field.
     pub unstable_path: Option<EndpointPath>,
@@ -101,7 +97,6 @@ impl Parse for Metadata {
         let mut description = None;
         let mut method = None;
         let mut name = None;
-        let mut path = None;
         let mut unstable_path = None;
         let mut r0_path = None;
         let mut stable_path = None;
@@ -116,7 +111,6 @@ impl Parse for Metadata {
                 FieldValue::Description(d) => set_field(&mut description, d)?,
                 FieldValue::Method(m) => set_field(&mut method, m)?,
                 FieldValue::Name(n) => set_field(&mut name, n)?,
-                FieldValue::Path(p) => set_field(&mut path, p)?,
                 FieldValue::UnstablePath(p) => set_field(&mut unstable_path, p)?,
                 FieldValue::R0Path(p) => set_field(&mut r0_path, p)?,
                 FieldValue::StablePath(p) => set_field(&mut stable_path, p)?,
@@ -134,6 +128,17 @@ impl Parse for Metadata {
 
         let missing_field =
             |name| syn::Error::new_spanned(metadata_kw, format!("missing field `{}`", name));
+
+        let stable_or_r0 = stable_path.as_ref().or(r0_path.as_ref());
+
+        if let Some(path) = stable_or_r0 {
+            if added.is_none() {
+                return Err(syn::Error::new_spanned(
+                    path,
+                    "stable path was defined, while `added` version was not defined",
+                ));
+            }
+        }
 
         if let Some(deprecated) = &deprecated {
             if added.is_none() {
@@ -160,26 +165,53 @@ impl Parse for Metadata {
         }
 
         if let Some(added) = &added {
-            if stable_path.is_none() {
+            if stable_or_r0.is_none() {
                 return Err(syn::Error::new_spanned(
                     added,
-                    "added version is defined, but no stable path exists",
+                    "added version is defined, but no stable or r0 path exists",
+                ));
+            }
+        }
+
+        if let Some(r0) = &r0_path {
+            let added = added.as_ref().expect("we error if r0 or stable is defined without added");
+
+            if added.major.get() == 1 && added.minor > 0 {
+                return Err(syn::Error::new_spanned(
+                    r0,
+                    "r0 defined while added version is newer than v1.0",
+                ));
+            }
+
+            if stable_path.is_none() {
+                return Err(syn::Error::new_spanned(r0, "r0 defined without stable path"));
+            }
+
+            if !r0.value().contains("/r0/") {
+                return Err(syn::Error::new_spanned(r0, "r0 endpoint does not contain /r0/"));
+            }
+        }
+
+        if let Some(stable) = &stable_path {
+            if stable.value().contains("/r0/") {
+                return Err(syn::Error::new_spanned(
+                    stable,
+                    "stable endpoint contains /r0/ (did you make a copy-paste error?)",
                 ));
             }
         }
 
         if unstable_path.is_none() && r0_path.is_none() && stable_path.is_none() {
-            // TODO replace with error
-            // return Err(syn::Error::new_spanned(metadata_kw, "no path is defined"));
-            r0_path = path.clone();
-            unstable_path = path.clone();
+            return Err(syn::Error::new_spanned(
+                metadata_kw,
+                "need to define one of [r0_path, stable_path, unstable_path]",
+            ));
         }
 
         Ok(Self {
             description: description.ok_or_else(|| missing_field("description"))?,
             method: method.ok_or_else(|| missing_field("method"))?,
             name: name.ok_or_else(|| missing_field("name"))?,
-            path,
             unstable_path,
             r0_path,
             stable_path,
@@ -204,7 +236,6 @@ enum Field {
     Description,
     Method,
     Name,
-    Path,
     UnstablePath,
     R0Path,
     StablePath,
@@ -228,9 +259,6 @@ impl Parse for Field {
         } else if lookahead.peek(kw::name) {
             let _: kw::name = input.parse()?;
             Ok(Self::Name)
-        } else if lookahead.peek(kw::path) {
-            let _: kw::path = input.parse()?;
-            Ok(Self::Path)
         } else if lookahead.peek(kw::unstable_path) {
             let _: kw::unstable_path = input.parse()?;
             Ok(Self::UnstablePath)
@@ -265,7 +293,6 @@ enum FieldValue {
     Description(LitStr),
     Method(Ident),
     Name(LitStr),
-    Path(EndpointPath),
     UnstablePath(EndpointPath),
     R0Path(EndpointPath),
     StablePath(EndpointPath),
@@ -294,7 +321,6 @@ impl Parse for FieldValue {
             Field::Description => Self::Description(input.parse()?),
             Field::Method => Self::Method(input.parse()?),
             Field::Name => Self::Name(input.parse()?),
-            Field::Path => Self::Path(input.parse()?),
             Field::UnstablePath => Self::UnstablePath(input.parse()?),
             Field::R0Path => Self::R0Path(input.parse()?),
             Field::StablePath => Self::StablePath(input.parse()?),
@@ -309,6 +335,12 @@ impl Parse for FieldValue {
 
 #[derive(Clone)]
 pub struct EndpointPath(LitStr);
+
+impl EndpointPath {
+    pub fn value(&self) -> String {
+        self.0.value()
+    }
+}
 
 impl Parse for EndpointPath {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {

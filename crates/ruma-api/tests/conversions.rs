@@ -11,7 +11,7 @@ ruma_api! {
         description: "Does something.",
         method: POST,
         name: "my_endpoint",
-        path: "/_matrix/foo/:bar/:user",
+        unstable_path: "/_matrix/foo/:bar/:user",
         rate_limited: false,
         authentication: None,
     }
@@ -55,7 +55,7 @@ fn request_serde() {
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            &[MatrixVersion::V1_0],
+            &[MatrixVersion::V1_1],
         )
         .unwrap();
     let req2 = Request::try_from_http_request(http_req, &["barVal", "@bazme:ruma.io"]).unwrap();
@@ -82,7 +82,7 @@ fn invalid_uri_should_not_panic() {
     let result = req.try_into_http_request::<Vec<u8>>(
         "invalid uri",
         SendAccessToken::None,
-        &[MatrixVersion::V1_0],
+        &[MatrixVersion::V1_1],
     );
     assert!(result.is_err());
 }
@@ -104,7 +104,7 @@ fn request_with_user_id_serde() {
             "https://homeserver.tld",
             SendAccessToken::None,
             user_id,
-            &[MatrixVersion::V1_0],
+            &[MatrixVersion::V1_1],
         )
         .unwrap();
 
@@ -126,7 +126,7 @@ mod without_query {
             description: "Does something without query.",
             method: POST,
             name: "my_endpoint",
-            path: "/_matrix/foo/:bar/:user",
+            unstable_path: "/_matrix/foo/:bar/:user",
             rate_limited: false,
             authentication: None,
         }
@@ -165,7 +165,7 @@ mod without_query {
                 "https://homeserver.tld",
                 SendAccessToken::None,
                 user_id,
-                &[MatrixVersion::V1_0],
+                &[MatrixVersion::V1_1],
             )
             .unwrap();
 

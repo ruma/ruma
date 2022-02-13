@@ -10,7 +10,7 @@ ruma_api! {
         description: "Does something.",
         method: GET,
         name: "no_fields",
-        path: "/_matrix/my/endpoint",
+        unstable_path: "/_matrix/my/endpoint",
         rate_limited: false,
         authentication: None,
     }
@@ -53,7 +53,7 @@ fn request_content_type_override() {
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            &[MatrixVersion::V1_0],
+            &[MatrixVersion::V1_1],
         )
         .unwrap();
 

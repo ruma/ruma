@@ -11,7 +11,6 @@ const BASE: Metadata = Metadata {
     description: "",
     method: Method::GET,
     name: "test_endpoint",
-    path: Some("/depr/path"),
     unstable_path: Some("/unstable/path"),
     r0_path: Some("/r0/path"),
     stable_path: Some("/stable/path"),

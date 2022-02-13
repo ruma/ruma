@@ -13,7 +13,7 @@ mod newtype_body {
             description: "Does something.",
             method: POST,
             name: "my_endpoint",
-            path: "/_matrix/foo/:bar/",
+            unstable_path: "/_matrix/foo/:bar/",
             rate_limited: false,
             authentication: None,
         }
@@ -51,7 +51,7 @@ mod raw_body {
             description: "Does something.",
             method: POST,
             name: "my_endpoint",
-            path: "/_matrix/foo/:bar/",
+            unstable_path: "/_matrix/foo/:bar/",
             rate_limited: false,
             authentication: None,
         }
@@ -92,7 +92,7 @@ mod plain {
             description: "Does something.",
             method: POST,
             name: "my_endpoint",
-            path: "/_matrix/foo/:bar/",
+            unstable_path: "/_matrix/foo/:bar/",
             rate_limited: false,
             authentication: None,
         }

@@ -1,11 +1,11 @@
 error: path may only contain printable ASCII characters with no spaces
- --> $DIR/02-invalid-path.rs:8:15
+ --> tests/ui/02-invalid-path.rs:8:24
   |
-8 |         path: "µ/°/§/€",
-  |               ^^^^^^^^^
+8 |         unstable_path: "µ/°/§/€",
+  |                        ^^^^^^^^^
 
 error: path may only contain printable ASCII characters with no spaces
-  --> $DIR/02-invalid-path.rs:26:15
+  --> tests/ui/02-invalid-path.rs:26:24
    |
-26 |         path: "path/to/invalid space/endpoint",
-   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+26 |         unstable_path: "path/to/invalid space/endpoint",
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -15,7 +15,7 @@ mod empty_response {
             description: "Add an alias to a room.",
             method: PUT,
             name: "create_alias",
-            path: "/_matrix/client/r0/directory/room/:room_alias",
+            unstable_path: "/_matrix/client/r0/directory/room/:room_alias",
             rate_limited: false,
             authentication: AccessToken,
         }
@@ -42,7 +42,7 @@ mod nested_types {
             description: "Add an alias to a room.",
             method: PUT,
             name: "create_alias",
-            path: "/_matrix/client/r0/directory/room",
+            unstable_path: "/_matrix/client/r0/directory/room",
             rate_limited: false,
             authentication: AccessToken,
         }
@@ -69,7 +69,7 @@ mod full_request_response {
             description: "Does something.",
             method: POST,
             name: "no_fields",
-            path: "/_matrix/my/endpoint/:thing",
+            unstable_path: "/_matrix/my/endpoint/:thing",
             rate_limited: false,
             authentication: None,
         }
@@ -101,7 +101,7 @@ mod full_request_response_with_query_map {
             description: "Does something.",
             method: GET,
             name: "no_fields",
-            path: "/_matrix/my/endpoint/:thing",
+            unstable_path: "/_matrix/my/endpoint/:thing",
             rate_limited: false,
             authentication: None,
         }
@@ -133,7 +133,7 @@ mod query_fields {
             description: "Get the list of rooms in this homeserver's public directory.",
             method: GET,
             name: "get_public_rooms",
-            path: "/_matrix/client/r0/publicRooms",
+            unstable_path: "/_matrix/client/r0/publicRooms",
             rate_limited: false,
             authentication: None,
         }
