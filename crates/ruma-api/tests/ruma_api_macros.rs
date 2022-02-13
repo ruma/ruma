@@ -12,15 +12,7 @@ pub mod some_endpoint {
             method: POST, // An `http::Method` constant. No imports required.
             name: "some_endpoint",
             unstable_path: "/_matrix/some/endpoint/:user",
-
-            #[cfg(all())]
-            rate_limited: true,
-            #[cfg(any())]
             rate_limited: false,
-
-            #[cfg(all())]
-            authentication: AccessToken,
-            #[cfg(any())]
             authentication: None,
         }
 

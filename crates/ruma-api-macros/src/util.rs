@@ -5,7 +5,7 @@ use std::collections::BTreeSet;
 use proc_macro2::{Ident, Span, TokenStream};
 use proc_macro_crate::{crate_name, FoundCrate};
 use quote::{format_ident, quote, ToTokens};
-use syn::{parse_quote, visit::Visit, AttrStyle, Attribute, Lifetime, NestedMeta, Type};
+use syn::{parse_quote, visit::Visit, Attribute, Lifetime, NestedMeta, Type};
 
 pub fn import_ruma_api() -> TokenStream {
     if let Ok(FoundCrate::Name(name)) = crate_name("ruma-api") {
@@ -45,10 +45,6 @@ pub fn collect_lifetime_idents(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
     }
 
     Visitor(lifetimes).visit_type(ty)
-}
-
-pub fn is_cfg_attribute(attr: &Attribute) -> bool {
-    matches!(attr.style, AttrStyle::Outer) && attr.path.is_ident("cfg")
 }
 
 pub fn all_cfgs_expr(cfgs: &[Attribute]) -> Option<TokenStream> {

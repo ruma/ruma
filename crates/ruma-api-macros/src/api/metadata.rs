@@ -4,7 +4,7 @@ use quote::ToTokens;
 use syn::{
     braced,
     parse::{Parse, ParseStream},
-    Attribute, Ident, LitBool, LitStr, Token,
+    Ident, LitBool, LitStr, Token,
 };
 
 use crate::{auth_scheme::AuthScheme, util, version::MatrixVersionLiteral};
@@ -22,15 +22,6 @@ mod kw {
     syn::custom_keyword!(added);
     syn::custom_keyword!(deprecated);
     syn::custom_keyword!(removed);
-}
-
-/// A field of Metadata that contains attribute macros
-pub struct MetadataField<T> {
-    /// attributes over the field
-    pub attrs: Vec<Attribute>,
-
-    /// the field itself
-    pub value: T,
 }
 
 /// The result of processing the `metadata` section of the macro.
@@ -54,10 +45,10 @@ pub struct Metadata {
     pub stable_path: Option<EndpointPath>,
 
     /// The rate_limited field.
-    pub rate_limited: Vec<MetadataField<LitBool>>,
+    pub rate_limited: LitBool,
 
     /// The authentication field.
-    pub authentication: Vec<MetadataField<AuthScheme>>,
+    pub authentication: AuthScheme,
 
     /// The added field.
     pub added: Option<MatrixVersionLiteral>,
@@ -100,8 +91,8 @@ impl Parse for Metadata {
         let mut unstable_path = None;
         let mut r0_path = None;
         let mut stable_path = None;
-        let mut rate_limited = vec![];
-        let mut authentication = vec![];
+        let mut rate_limited = None;
+        let mut authentication = None;
         let mut added = None;
         let mut deprecated = None;
         let mut removed = None;
@@ -114,12 +105,8 @@ impl Parse for Metadata {
                 FieldValue::UnstablePath(p) => set_field(&mut unstable_path, p)?,
                 FieldValue::R0Path(p) => set_field(&mut r0_path, p)?,
                 FieldValue::StablePath(p) => set_field(&mut stable_path, p)?,
-                FieldValue::RateLimited(value, attrs) => {
-                    rate_limited.push(MetadataField { attrs, value });
-                }
-                FieldValue::Authentication(value, attrs) => {
-                    authentication.push(MetadataField { attrs, value });
-                }
+                FieldValue::RateLimited(rl) => set_field(&mut rate_limited, rl)?,
+                FieldValue::Authentication(a) => set_field(&mut authentication, a)?,
                 FieldValue::Added(v) => set_field(&mut added, v)?,
                 FieldValue::Deprecated(v) => set_field(&mut deprecated, v)?,
                 FieldValue::Removed(v) => set_field(&mut removed, v)?,
@@ -215,16 +202,8 @@ impl Parse for Metadata {
             unstable_path,
             r0_path,
             stable_path,
-            rate_limited: if rate_limited.is_empty() {
-                return Err(missing_field("rate_limited"));
-            } else {
-                rate_limited
-            },
-            authentication: if authentication.is_empty() {
-                return Err(missing_field("authentication"));
-            } else {
-                authentication
-            },
+            rate_limited: rate_limited.ok_or_else(|| missing_field("rate_limited"))?,
+            authentication: authentication.ok_or_else(|| missing_field("authentication"))?,
             added,
             deprecated,
             removed,
@@ -296,8 +275,8 @@ enum FieldValue {
     UnstablePath(EndpointPath),
     R0Path(EndpointPath),
     StablePath(EndpointPath),
-    RateLimited(LitBool, Vec<Attribute>),
-    Authentication(AuthScheme, Vec<Attribute>),
+    RateLimited(LitBool),
+    Authentication(AuthScheme),
     Added(MatrixVersionLiteral),
     Deprecated(MatrixVersionLiteral),
     Removed(MatrixVersionLiteral),
@@ -305,15 +284,6 @@ enum FieldValue {
 
 impl Parse for FieldValue {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let attrs: Vec<Attribute> = input.call(Attribute::parse_outer)?;
-        for attr in attrs.iter() {
-            if !util::is_cfg_attribute(attr) {
-                return Err(syn::Error::new_spanned(
-                    &attr,
-                    "only `cfg` attributes may appear here",
-                ));
-            }
-        }
         let field: Field = input.parse()?;
         let _: Token![:] = input.parse()?;
 
@@ -324,8 +294,8 @@ impl Parse for FieldValue {
             Field::UnstablePath => Self::UnstablePath(input.parse()?),
             Field::R0Path => Self::R0Path(input.parse()?),
             Field::StablePath => Self::StablePath(input.parse()?),
-            Field::RateLimited => Self::RateLimited(input.parse()?, attrs),
-            Field::Authentication => Self::Authentication(input.parse()?, attrs),
+            Field::RateLimited => Self::RateLimited(input.parse()?),
+            Field::Authentication => Self::Authentication(input.parse()?),
             Field::Added => Self::Added(input.parse()?),
             Field::Deprecated => Self::Deprecated(input.parse()?),
             Field::Removed => Self::Removed(input.parse()?),
