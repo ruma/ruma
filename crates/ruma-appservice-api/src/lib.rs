@@ -3,7 +3,7 @@
 //! (De)serializable types for the [Matrix Application Service API][appservice-api].
 //! These types can be shared by application service and server code.
 //!
-//! [appservice-api]: https://matrix.org/docs/spec/application_service/r0.1.2.html
+//! [appservice-api]: https://spec.matrix.org/v1.2/application-service-api/
 
 #![warn(missing_docs)]
 
