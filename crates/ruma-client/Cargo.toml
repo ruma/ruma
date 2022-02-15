@@ -48,6 +48,7 @@ ruma-identifiers = { version = "0.20.0", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.5.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.61"
+tracing = { version = "0.1.30", default-features = false, features = ["std"] }
 
 [dev-dependencies]
 ruma-client-api = { version = "0.12.3", path = "../ruma-client-api", features = ["client"] }

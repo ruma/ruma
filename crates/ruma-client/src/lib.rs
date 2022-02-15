@@ -94,12 +94,14 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 use std::{
+    any::type_name,
     future::Future,
     sync::{Arc, Mutex},
 };
 
 use ruma_api::{MatrixVersion, OutgoingRequest, SendAccessToken};
 use ruma_identifiers::UserId;
+use tracing::{info_span, Instrument};
 
 // "Undo" rename from `Cargo.toml` that only serves to make crate names available as a Cargo
 // feature names.
@@ -244,17 +246,36 @@ where
     R: OutgoingRequest,
     F: FnOnce(&mut http::Request<C::RequestBody>) -> Result<(), ResponseError<C, R>>,
 {
-    let http_req = request
-        .try_into_http_request(homeserver_url, send_access_token, for_versions)
-        .map_err(ResponseError::<C, R>::from)
-        .and_then(|mut req| {
-            customize(&mut req)?;
-            Ok(req)
+    let http_req =
+        info_span!("serialize_request", request_type = type_name::<R>()).in_scope(move || {
+            request
+                .try_into_http_request(homeserver_url, send_access_token, for_versions)
+                .map_err(ResponseError::<C, R>::from)
+                .and_then(|mut req| {
+                    customize(&mut req)?;
+                    Ok(req)
+                })
         });
 
+    let send_span = info_span!(
+        "send_request",
+        request_type = type_name::<R>(),
+        http_client = type_name::<C>(),
+        homeserver_url,
+    );
+
     async move {
-        let http_res = http_client.send_http_request(http_req?).await.map_err(Error::Response)?;
-        Ok(ruma_api::IncomingResponse::try_from_http_response(http_res)?)
+        let http_res = http_client
+            .send_http_request(http_req?)
+            .instrument(send_span)
+            .await
+            .map_err(Error::Response)?;
+
+        let res =
+            info_span!("deserialize_response", response_type = type_name::<R::IncomingResponse>())
+                .in_scope(move || ruma_api::IncomingResponse::try_from_http_response(http_res))?;
+
+        Ok(res)
     }
 }
 
