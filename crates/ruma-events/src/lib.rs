@@ -115,7 +115,7 @@
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
-use std::fmt::Debug;
+use std::fmt;
 
 use ruma_identifiers::{EventEncryptionAlgorithm, RoomVersionId};
 use ruma_serde::Raw;
@@ -391,8 +391,14 @@ pub struct UnsignedDeHelper {
 // this crate. Used for string enums because their `_Custom` variant can't be
 // truly private (only `#[doc(hidden)]`).
 #[doc(hidden)]
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PrivOwnedStr(Box<str>);
+
+impl fmt::Debug for PrivOwnedStr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
 
 /// Helper function for erroring when trying to serialize an event enum _Custom variant that can
 /// only be created by deserializing from an unknown event type.
