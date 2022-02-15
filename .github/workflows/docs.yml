@@ -20,6 +20,7 @@ jobs:
           # Needed for use of unstable options
           toolchain: nightly
           override: true
+      - uses: Swatinem/rust-cache@v1
       - name: Build docs
         uses: actions-rs/cargo@v1
         env:
