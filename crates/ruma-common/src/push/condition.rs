@@ -291,12 +291,7 @@ impl FlattenedJson {
                     warn!("Duplicate path in flattened JSON: {}", path);
                 }
             }
-            JsonValue::Number(_) | JsonValue::Bool(_) => {
-                if self.map.insert(path.clone(), value.to_string()).is_some() {
-                    warn!("Duplicate path in flattened JSON: {}", path);
-                }
-            }
-            JsonValue::Array(_) | JsonValue::Null => {}
+            JsonValue::Number(_) | JsonValue::Bool(_) | JsonValue::Array(_) | JsonValue::Null => {}
         }
     }
 
@@ -572,14 +567,7 @@ mod tests {
         .unwrap();
 
         let flattened = FlattenedJson::from_raw(&raw);
-        assert_eq!(
-            flattened.map,
-            btreemap! {
-                "string".into() => "Hello World".into(),
-                "number".into() => "10".into(),
-                "boolean".into() => "true".into(),
-            },
-        );
+        assert_eq!(flattened.map, btreemap! { "string".into() => "Hello World".into() });
     }
 
     #[test]
