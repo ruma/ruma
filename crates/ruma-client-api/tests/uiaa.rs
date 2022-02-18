@@ -1,17 +1,16 @@
 use assign::assign;
 use matches::assert_matches;
 use ruma_api::{EndpointError, OutgoingResponse};
-use serde_json::{
-    from_slice as from_json_slice, from_str as from_json_str, from_value as from_json_value, json,
-    to_value as to_json_value, value::to_raw_value as to_raw_json_value, Value as JsonValue,
-};
-
 use ruma_client_api::{
     error::{ErrorBody, ErrorKind},
-    r0::uiaa::{
+    uiaa::{
         self, AuthData, AuthFlow, AuthType, IncomingAuthData, IncomingUserIdentifier, UiaaInfo,
         UiaaResponse,
     },
+};
+use serde_json::{
+    from_slice as from_json_slice, from_str as from_json_str, from_value as from_json_value, json,
+    to_value as to_json_value, value::to_raw_value as to_raw_json_value, Value as JsonValue,
 };
 
 #[test]

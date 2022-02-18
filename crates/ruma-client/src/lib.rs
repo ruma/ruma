@@ -56,13 +56,13 @@
 //! # let client = MatrixClient::new(homeserver_url, None);
 //! use std::convert::TryFrom;
 //!
-//! use ruma_client_api::r0::alias::get_alias;
+//! use ruma_client_api::alias::get_alias;
 //! use ruma_identifiers::{room_alias_id, room_id};
 //! use ruma_api::MatrixVersion;
 //!
 //! async {
 //!     let response = client
-//!         .send_request(get_alias::Request::new(room_alias_id!("#example_room:example.com")), &[MatrixVersion::V1_0])
+//!         .send_request(get_alias::v3::Request::new(room_alias_id!("#example_room:example.com")), &[MatrixVersion::V1_0])
 //!         .await?;
 //!
 //!     assert_eq!(response.room_id, room_id!("!n8f893n9:example.com"));
