@@ -1,6 +1,6 @@
 //! Matrix room identifiers.
 
-use crate::{EventId, MatrixToRef, ServerName};
+use crate::{EventId, MatrixToUri, ServerName};
 
 /// A Matrix room ID.
 ///
@@ -55,13 +55,13 @@ impl RoomId {
     pub fn matrix_to_url<'a>(
         &'a self,
         via: impl IntoIterator<Item = &'a ServerName>,
-    ) -> MatrixToRef<'a> {
-        MatrixToRef::new(self.as_str(), via.into_iter().collect())
+    ) -> MatrixToUri<'a> {
+        MatrixToUri::new(self.as_str(), via.into_iter().collect())
     }
 
     /// Create a `matrix.to` reference for an event scoped under this room ID.
-    pub fn matrix_to_event_url<'a>(&'a self, ev_id: &'a EventId) -> MatrixToRef<'a> {
-        MatrixToRef::event(self.as_str(), ev_id, Vec::new())
+    pub fn matrix_to_event_url<'a>(&'a self, ev_id: &'a EventId) -> MatrixToUri<'a> {
+        MatrixToUri::event(self.as_str(), ev_id, Vec::new())
     }
 
     fn colon_idx(&self) -> usize {
