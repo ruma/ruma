@@ -27,43 +27,6 @@ fn deserialize_user_identifier() {
 }
 
 #[test]
-fn serialize_auth_data_token() {
-    let auth_data = AuthData::Token(
-        assign!(uiaa::Token::new("mytoken", "txn123".into()), { session: Some("session") }),
-    );
-
-    assert_matches!(
-        to_json_value(auth_data),
-        Ok(val) if val == json!({
-            "type": "m.login.token",
-            "token": "mytoken",
-            "txn_id": "txn123",
-            "session": "session",
-        })
-    );
-}
-
-#[test]
-fn deserialize_auth_data_direct_request() {
-    let json = json!({
-        "type": "m.login.token",
-        "token": "mytoken",
-        "txn_id": "txn123",
-        "session": "session",
-    });
-
-    assert_matches!(
-        from_json_value(json),
-        Ok(IncomingAuthData::Token(
-            uiaa::IncomingToken { token, txn_id, session: Some(session), .. },
-        ))
-        if token == "mytoken"
-            && txn_id == "txn123"
-            && session == "session"
-    );
-}
-
-#[test]
 fn serialize_auth_data_registration_token() {
     let auth_data = AuthData::RegistrationToken(
         assign!(uiaa::RegistrationToken::new("mytoken"), { session: Some("session") }),

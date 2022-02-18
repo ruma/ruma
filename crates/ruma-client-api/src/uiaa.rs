@@ -10,7 +10,7 @@ use ruma_api::{
     EndpointError, OutgoingResponse,
 };
 use ruma_common::thirdparty::Medium;
-use ruma_identifiers::{ClientSecret, SessionId, TransactionId};
+use ruma_identifiers::{ClientSecret, SessionId};
 use ruma_serde::{from_raw_json_value, JsonObject, Outgoing, StringEnum};
 use serde::{
     de::{self, DeserializeOwned},
@@ -43,12 +43,6 @@ pub enum AuthData<'a> {
     /// Google ReCaptcha 2.0 authentication (`m.login.recaptcha`).
     ReCaptcha(ReCaptcha<'a>),
 
-    /// Token-based authentication (`m.login.token`).
-    Token(Token<'a>),
-
-    /// OAuth2-based authentication (`m.login.oauth2`).
-    OAuth2(OAuth2<'a>),
-
     /// Email-based authentication (`m.login.email.identity`).
     EmailIdentity(EmailIdentity<'a>),
 
@@ -79,8 +73,6 @@ impl<'a> AuthData<'a> {
         match self {
             Self::Password(_) => Some(AuthType::Password),
             Self::ReCaptcha(_) => Some(AuthType::ReCaptcha),
-            Self::Token(_) => Some(AuthType::Token),
-            Self::OAuth2(_) => Some(AuthType::OAuth2),
             Self::EmailIdentity(_) => Some(AuthType::EmailIdentity),
             Self::Msisdn(_) => Some(AuthType::Msisdn),
             Self::Dummy(_) => Some(AuthType::Dummy),
@@ -95,8 +87,6 @@ impl<'a> AuthData<'a> {
         match self {
             Self::Password(x) => x.session,
             Self::ReCaptcha(x) => x.session,
-            Self::Token(x) => x.session,
-            Self::OAuth2(x) => x.session,
             Self::EmailIdentity(x) => x.session,
             Self::Msisdn(x) => x.session,
             Self::Dummy(x) => x.session,
@@ -130,10 +120,6 @@ impl<'a> AuthData<'a> {
             Self::ReCaptcha(x) => {
                 Cow::Owned(serialize(ReCaptcha { response: x.response, session: None }))
             }
-            Self::Token(x) => {
-                Cow::Owned(serialize(Token { token: x.token, txn_id: x.txn_id, session: None }))
-            }
-            Self::OAuth2(x) => Cow::Owned(serialize(OAuth2 { uri: x.uri, session: None })),
             Self::EmailIdentity(x) => Cow::Owned(serialize(EmailIdentity {
                 thirdparty_id_creds: x.thirdparty_id_creds,
                 session: None,
@@ -181,8 +167,6 @@ impl IncomingAuthData {
         Ok(match auth_type {
             "m.login.password" => Self::Password(deserialize_variant(session, data)?),
             "m.login.recaptcha" => Self::ReCaptcha(deserialize_variant(session, data)?),
-            "m.login.token" => Self::Token(deserialize_variant(session, data)?),
-            "m.login.oauth2" => Self::OAuth2(deserialize_variant(session, data)?),
             "m.login.email.identity" => Self::EmailIdentity(deserialize_variant(session, data)?),
             "m.login.msisdn" => Self::Msisdn(deserialize_variant(session, data)?),
             "m.login.dummy" => Self::Dummy(deserialize_variant(session, data)?),
@@ -200,8 +184,6 @@ impl IncomingAuthData {
         match self {
             Self::Password(_) => Some(AuthType::Password),
             Self::ReCaptcha(_) => Some(AuthType::ReCaptcha),
-            Self::Token(_) => Some(AuthType::Token),
-            Self::OAuth2(_) => Some(AuthType::OAuth2),
             Self::EmailIdentity(_) => Some(AuthType::EmailIdentity),
             Self::Msisdn(_) => Some(AuthType::Msisdn),
             Self::Dummy(_) => Some(AuthType::Dummy),
@@ -216,8 +198,6 @@ impl IncomingAuthData {
         match self {
             Self::Password(x) => x.session.as_deref(),
             Self::ReCaptcha(x) => x.session.as_deref(),
-            Self::Token(x) => x.session.as_deref(),
-            Self::OAuth2(x) => x.session.as_deref(),
             Self::EmailIdentity(x) => x.session.as_deref(),
             Self::Msisdn(x) => x.session.as_deref(),
             Self::Dummy(x) => x.session.as_deref(),
@@ -251,10 +231,6 @@ impl IncomingAuthData {
             Self::ReCaptcha(x) => {
                 Cow::Owned(serialize(ReCaptcha { response: &x.response, session: None }))
             }
-            Self::Token(x) => {
-                Cow::Owned(serialize(Token { token: &x.token, txn_id: &x.txn_id, session: None }))
-            }
-            Self::OAuth2(x) => Cow::Owned(serialize(OAuth2 { uri: &x.uri, session: None })),
             Self::EmailIdentity(x) => Cow::Owned(serialize(EmailIdentity {
                 thirdparty_id_creds: &x.thirdparty_id_creds,
                 session: None,
@@ -277,8 +253,6 @@ impl IncomingAuthData {
         match self {
             Self::Password(a) => AuthData::Password(a.to_outgoing()),
             Self::ReCaptcha(a) => AuthData::ReCaptcha(a.to_outgoing()),
-            Self::Token(a) => AuthData::Token(a.to_outgoing()),
-            Self::OAuth2(a) => AuthData::OAuth2(a.to_outgoing()),
             Self::EmailIdentity(a) => AuthData::EmailIdentity(a.to_outgoing()),
             Self::Msisdn(a) => AuthData::Msisdn(a.to_outgoing()),
             Self::Dummy(a) => AuthData::Dummy(a.to_outgoing()),
@@ -313,8 +287,6 @@ impl<'de> Deserialize<'de> for IncomingAuthData {
         match auth_type.as_deref() {
             Some("m.login.password") => from_raw_json_value(&json).map(Self::Password),
             Some("m.login.recaptcha") => from_raw_json_value(&json).map(Self::ReCaptcha),
-            Some("m.login.token") => from_raw_json_value(&json).map(Self::Token),
-            Some("m.login.oauth2") => from_raw_json_value(&json).map(Self::OAuth2),
             Some("m.login.email.identity") => from_raw_json_value(&json).map(Self::EmailIdentity),
             Some("m.login.msisdn") => from_raw_json_value(&json).map(Self::Msisdn),
             Some("m.login.dummy") => from_raw_json_value(&json).map(Self::Dummy),
@@ -338,14 +310,6 @@ pub enum AuthType {
     /// Google ReCaptcha 2.0 authentication (`m.login.recaptcha`).
     #[ruma_enum(rename = "m.login.recaptcha")]
     ReCaptcha,
-
-    /// Token-based authentication (`m.login.token`).
-    #[ruma_enum(rename = "m.login.token")]
-    Token,
-
-    /// OAuth2-based authentication (`m.login.oauth2`).
-    #[ruma_enum(rename = "m.login.oauth2")]
-    OAuth2,
 
     /// Email-based authentication (`m.login.email.identity`).
     #[ruma_enum(rename = "m.login.email.identity")]
@@ -435,69 +399,6 @@ impl IncomingReCaptcha {
     /// Convert `IncomingReCaptcha` to `ReCaptcha`.
     fn to_outgoing(&self) -> ReCaptcha<'_> {
         ReCaptcha { response: &self.response, session: self.session.as_deref() }
-    }
-}
-
-/// Data for token-based UIAA flow.
-///
-/// See [the spec] for how to use this.
-///
-/// [the spec]: https://matrix.org/docs/spec/client_server/r0.6.1#token-based
-#[derive(Clone, Debug, Outgoing, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(tag = "type", rename = "m.login.token")]
-pub struct Token<'a> {
-    /// The login token.
-    pub token: &'a str,
-
-    /// The transaction ID.
-    pub txn_id: &'a TransactionId,
-
-    /// The value of the session key given by the homeserver, if any.
-    pub session: Option<&'a str>,
-}
-
-impl<'a> Token<'a> {
-    /// Creates a new `Token` with the given token and transaction ID.
-    pub fn new(token: &'a str, txn_id: &'a TransactionId) -> Self {
-        Self { token, txn_id, session: None }
-    }
-}
-
-impl IncomingToken {
-    /// Convert `IncomingToken` to `Token`.
-    fn to_outgoing(&self) -> Token<'_> {
-        Token { token: &self.token, txn_id: &self.txn_id, session: self.session.as_deref() }
-    }
-}
-
-/// Data for OAuth2-based UIAA flow.
-///
-/// See [the spec] for how to use this.
-///
-/// [the spec]: https://matrix.org/docs/spec/client_server/r0.6.1#oauth2-based
-#[derive(Clone, Debug, Outgoing, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(tag = "type", rename = "m.login.oauth2")]
-pub struct OAuth2<'a> {
-    /// Authorization Request URI or service selection URI.
-    pub uri: &'a str,
-
-    /// The value of the session key given by the homeserver, if any.
-    pub session: Option<&'a str>,
-}
-
-impl<'a> OAuth2<'a> {
-    /// Creates a new `OAuth2` with the given URI.
-    pub fn new(uri: &'a str) -> Self {
-        Self { uri, session: None }
-    }
-}
-
-impl IncomingOAuth2 {
-    /// Convert `IncomingOAuth2` to `OAuth2`.
-    fn to_outgoing(&self) -> OAuth2<'_> {
-        OAuth2 { uri: &self.uri, session: self.session.as_deref() }
     }
 }
 
