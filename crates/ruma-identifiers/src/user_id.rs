@@ -12,10 +12,7 @@ use crate::{MatrixToRef, ServerName};
 /// ```
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::UserId;
-/// assert_eq!(
-///     <&UserId>::try_from("@carl:example.com").unwrap(),
-///     "@carl:example.com"
-/// );
+/// assert_eq!(<&UserId>::try_from("@carl:example.com").unwrap(), "@carl:example.com");
 /// ```
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -115,7 +112,8 @@ impl UserId {
     ///
     /// let message = format!(
     ///     r#"Thanks for the update <a href="{link}">{display_name}</a>."#,
-    ///     link = user_id!("@jplatte:notareal.hs").matrix_to_url(), display_name = "jplatte",
+    ///     link = user_id!("@jplatte:notareal.hs").matrix_to_url(),
+    ///     display_name = "jplatte",
     /// );
     /// ```
     pub fn matrix_to_url(&self) -> MatrixToRef<'_> {

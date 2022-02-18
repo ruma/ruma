@@ -9,7 +9,7 @@ use crate::generate_localpart;
 /// # Example
 ///
 /// ```
-/// use ruma_identifiers::{DeviceId, device_id};
+/// use ruma_identifiers::{device_id, DeviceId};
 ///
 /// let random_id = DeviceId::new();
 /// assert_eq!(random_id.as_str().len(), 8);

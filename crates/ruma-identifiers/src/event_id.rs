@@ -20,10 +20,7 @@ use crate::ServerName;
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::EventId;
 /// // Original format
-/// assert_eq!(
-///     <&EventId>::try_from("$h29iv0s8:example.com").unwrap(),
-///     "$h29iv0s8:example.com"
-/// );
+/// assert_eq!(<&EventId>::try_from("$h29iv0s8:example.com").unwrap(), "$h29iv0s8:example.com");
 /// // Room version 3 format
 /// assert_eq!(
 ///     <&EventId>::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk").unwrap(),

@@ -10,10 +10,7 @@ use crate::{server_name::ServerName, EventId, MatrixToRef};
 /// ```
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::RoomAliasId;
-/// assert_eq!(
-///     <&RoomAliasId>::try_from("#ruma:example.com").unwrap(),
-///     "#ruma:example.com"
-/// );
+/// assert_eq!(<&RoomAliasId>::try_from("#ruma:example.com").unwrap(), "#ruma:example.com");
 /// ```
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]

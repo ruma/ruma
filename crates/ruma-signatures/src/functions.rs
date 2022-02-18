@@ -116,7 +116,8 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "uns
 /// let key_pair = ruma_signatures::Ed25519KeyPair::from_der(
 ///     &document,
 ///     "1".into(), // The "version" of the key.
-/// ).unwrap();
+/// )
+/// .unwrap();
 ///
 /// // Deserialize some JSON.
 /// let mut value = serde_json::from_str("{}").unwrap();
@@ -191,11 +192,10 @@ where
 /// # Examples
 ///
 /// ```rust
-/// let input =
-///     r#"{
-///         "本": 2,
-///         "日": 1
-///     }"#;
+/// let input = r#"{
+///     "本": 2,
+///     "日": 1
+/// }"#;
 ///
 /// let object = serde_json::from_str(input).unwrap();
 /// let canonical = ruma_signatures::canonical_json(&object).unwrap();
@@ -430,7 +430,8 @@ pub fn reference_hash(
 /// let key_pair = Ed25519KeyPair::from_der(
 ///     &document,
 ///     "1".into(), // The "version" of the key.
-/// ).unwrap();
+/// )
+/// .unwrap();
 ///
 /// // Deserialize an event from JSON.
 /// let mut object = serde_json::from_str(
@@ -449,8 +450,9 @@ pub fn reference_hash(
 ///         "unsigned": {
 ///             "age_ts": 1000000
 ///         }
-///     }"#
-/// ).unwrap();
+///     }"#,
+/// )
+/// .unwrap();
 ///
 /// // Hash and sign the JSON with the key pair.
 /// assert!(hash_and_sign_event("domain", &key_pair, &mut object, &RoomVersionId::V1).is_ok());

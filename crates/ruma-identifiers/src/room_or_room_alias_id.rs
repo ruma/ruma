@@ -13,10 +13,7 @@ use crate::{server_name::ServerName, RoomAliasId, RoomId};
 /// ```
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::RoomOrAliasId;
-/// assert_eq!(
-///     <&RoomOrAliasId>::try_from("#ruma:example.com").unwrap(),
-///     "#ruma:example.com"
-/// );
+/// assert_eq!(<&RoomOrAliasId>::try_from("#ruma:example.com").unwrap(), "#ruma:example.com");
 ///
 /// assert_eq!(
 ///     <&RoomOrAliasId>::try_from("!n8f893n9:example.com").unwrap(),
