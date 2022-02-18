@@ -15,6 +15,7 @@ Breaking changes:
 Improvements:
 
 * Add `host`, `port` and `is_ip_literal` methods to `ServerName`
+* Add `matrix_uri::MatrixToUri` to build `matrix.to` URIs
 
 Bug fixes:
 
