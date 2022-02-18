@@ -4,10 +4,11 @@
 use std::{convert::TryFrom, env, process::exit};
 
 use ruma::{
-    api::client::r0::{alias::get_alias, membership::join_room_by_id, message::send_message_event},
+    api::client::{alias::get_alias, membership::join_room_by_id, message::send_message_event},
     events::room::message::RoomMessageEventContent,
     RoomAliasId,
 };
+use ruma_api::MatrixVersion;
 
 type MatrixClient = ruma_client::Client<ruma_client::http_client::Isahc>;
 
@@ -21,14 +22,22 @@ async fn hello_world(
     let client = MatrixClient::with_http_client(http_client, homeserver_url, None);
     client.log_in(username, password, None, Some("ruma-example-client")).await?;
 
-    let room_id = client.send_request(get_alias::Request::new(room_alias)).await?.room_id;
-    client.send_request(join_room_by_id::Request::new(&room_id)).await?;
+    let room_id = client
+        .send_request(get_alias::v3::Request::new(room_alias), &[MatrixVersion::V1_0])
+        .await?
+        .room_id;
     client
-        .send_request(send_message_event::Request::new(
-            &room_id,
-            "1",
-            &RoomMessageEventContent::text_plain("Hello World!"),
-        )?)
+        .send_request(join_room_by_id::v3::Request::new(&room_id), &[MatrixVersion::V1_0])
+        .await?;
+    client
+        .send_request(
+            send_message_event::Request::new(
+                &room_id,
+                "1",
+                &RoomMessageEventContent::text_plain("Hello World!"),
+            )?,
+            &[MatrixVersion::V1_0],
+        )
         .await?;
 
     Ok(())

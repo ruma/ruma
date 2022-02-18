@@ -70,8 +70,8 @@ pub mod v1 {
         pub fn try_into_sync_response(
             self,
             next_batch: impl Into<String>,
-        ) -> serde_json::Result<ruma_client_api::r0::sync::sync_events::Response> {
-            use ruma_client_api::r0::sync::sync_events;
+        ) -> serde_json::Result<ruma_client_api::sync::sync_events::v3::Response> {
+            use ruma_client_api::sync::sync_events;
             use ruma_identifiers::RoomId;
             use serde::Deserialize;
             use tracing::warn;
@@ -81,7 +81,7 @@ pub mod v1 {
                 room_id: Option<Box<RoomId>>,
             }
 
-            let mut response = sync_events::Response::new(next_batch.into());
+            let mut response = sync_events::v3::Response::new(next_batch.into());
 
             for raw_event in self.events {
                 let helper = raw_event.deserialize_as::<EventDeHelper>()?;
@@ -110,7 +110,7 @@ pub mod v1 {
     #[cfg(test)]
     mod helper_tests {
         use super::{AnyRoomEvent, IncomingRequest, Raw};
-        use ruma_client_api::r0::sync::sync_events;
+        use ruma_client_api::sync::sync_events;
         use ruma_identifiers::room_id;
         use serde_json::json;
 

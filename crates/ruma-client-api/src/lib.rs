@@ -3,15 +3,47 @@
 //! (De)serializable types for the [Matrix Client-Server API][client-api].
 //! These types can be shared by client and server code.
 //!
-//! [client-api]: https://matrix.org/docs/spec/client_server/r0.6.1.html
+//! [client-api]: https://spec.matrix.org/v1.2/client-server-api/
 
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
+pub mod account;
+pub mod alias;
+pub mod appservice;
+pub mod backup;
+pub mod capabilities;
+pub mod config;
+pub mod context;
+pub mod device;
+pub mod directory;
+pub mod discover;
 pub mod error;
-pub mod r0;
+pub mod filter;
+pub mod keys;
+pub mod knock;
+pub mod media;
+pub mod membership;
+pub mod message;
+pub mod presence;
+pub mod profile;
+pub mod push;
+pub mod read_marker;
+pub mod receipt;
+pub mod redact;
+pub mod room;
+pub mod search;
+pub mod server;
 pub mod session;
-pub mod unversioned;
+pub mod state;
+pub mod sync;
+pub mod tag;
+pub mod thirdparty;
+pub mod to_device;
+pub mod typing;
+pub mod uiaa;
+pub mod user_directory;
+pub mod voip;
 
 use std::fmt;
 

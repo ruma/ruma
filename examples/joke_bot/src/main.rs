@@ -3,7 +3,7 @@ use std::{convert::TryInto, error::Error, io, process::exit, time::Duration};
 use futures_util::future::{join, join_all};
 use ruma::{
     api::{
-        client::r0::{
+        client::{
             filter::FilterDefinition, membership::join_room_by_id, message::send_message_event,
             sync::sync_events,
         },
@@ -64,7 +64,7 @@ async fn run() -> Result<(), Box<dyn Error>> {
     let filter = FilterDefinition::ignore_all().into();
     let initial_sync_response = matrix_client
         .send_request(
-            assign!(sync_events::Request::new(), {
+            assign!(sync_events::v3::Request::new(), {
                 filter: Some(&filter),
             }),
             &[MatrixVersion::V1_0],
@@ -165,7 +165,7 @@ async fn handle_message(
                 let joke_content = RoomMessageEventContent::text_plain(joke);
 
                 let txn_id = TransactionId::new();
-                let req = send_message_event::Request::new(room_id, &txn_id, &joke_content)?;
+                let req = send_message_event::v3::Request::new(room_id, &txn_id, &joke_content)?;
                 // Do nothing if we can't send the message.
                 let _ = matrix_client.send_request(req, &[MatrixVersion::V1_0]).await;
             }
@@ -181,14 +181,14 @@ async fn handle_invitations(
 ) -> Result<(), Box<dyn Error>> {
     println!("invited to {}", &room_id);
     matrix_client
-        .send_request(join_room_by_id::Request::new(room_id), &[MatrixVersion::V1_0])
+        .send_request(join_room_by_id::v3::Request::new(room_id), &[MatrixVersion::V1_0])
         .await?;
 
     let greeting = "Hello! My name is Mr. Bot! I like to tell jokes. Like this one: ";
     let joke = get_joke(http_client).await.unwrap_or_else(|_| "err... never mind.".to_owned());
     let content = RoomMessageEventContent::text_plain(format!("{}\n{}", greeting, joke));
     let txn_id = TransactionId::new();
-    let message = send_message_event::Request::new(room_id, &txn_id, &content)?;
+    let message = send_message_event::v3::Request::new(room_id, &txn_id, &content)?;
     matrix_client.send_request(message, &[MatrixVersion::V1_0]).await?;
     Ok(())
 }

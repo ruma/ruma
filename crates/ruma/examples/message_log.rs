@@ -2,7 +2,7 @@ use std::{env, process::exit, time::Duration};
 
 use assign::assign;
 use ruma::{
-    api::client::r0::{filter::FilterDefinition, sync::sync_events},
+    api::client::{filter::FilterDefinition, sync::sync_events},
     events::{
         room::message::{MessageType, RoomMessageEventContent, TextMessageEventContent},
         AnySyncMessageEvent, AnySyncRoomEvent, SyncMessageEvent,
@@ -25,7 +25,7 @@ async fn log_messages(
     let filter = FilterDefinition::ignore_all().into();
     let initial_sync_response = client
         .send_request(
-            assign!(sync_events::Request::new(), {
+            assign!(sync_events::v3::Request::new(), {
                 filter: Some(&filter),
             }),
             &[ruma_api::MatrixVersion::V1_0],

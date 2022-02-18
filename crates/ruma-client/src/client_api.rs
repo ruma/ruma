@@ -4,9 +4,9 @@ use assign::assign;
 use async_stream::try_stream;
 use futures_core::stream::Stream;
 use ruma_api::MatrixVersion;
-use ruma_client_api::r0::{
+use ruma_client_api::{
     account::register::{self, RegistrationKind},
-    session::login::{self, LoginInfo},
+    session::login::{self, v3::LoginInfo},
     sync::sync_events,
     uiaa::UserIdentifier,
 };
@@ -27,10 +27,10 @@ impl<C: HttpClient> Client<C> {
         password: &str,
         device_id: Option<&DeviceId>,
         initial_device_display_name: Option<&str>,
-    ) -> Result<login::Response, Error<C::Error, ruma_client_api::Error>> {
+    ) -> Result<login::v3::Response, Error<C::Error, ruma_client_api::Error>> {
         let response = self
-            .send_request(assign!(login::Request::new(
-                LoginInfo::Password(login::Password::new(UserIdentifier::MatrixId(user), password))), {
+            .send_request(assign!(login::v3::Request::new(
+                LoginInfo::Password(login::v3::Password::new(UserIdentifier::MatrixId(user), password))), {
                 device_id,
                 initial_device_display_name,
                 }
@@ -48,10 +48,10 @@ impl<C: HttpClient> Client<C> {
     /// returned by the endpoint in this client, in addition to returning it.
     pub async fn register_guest(
         &self,
-    ) -> Result<register::Response, Error<C::Error, ruma_client_api::r0::uiaa::UiaaResponse>> {
+    ) -> Result<register::v3::Response, Error<C::Error, ruma_client_api::uiaa::UiaaResponse>> {
         let response = self
             .send_request(
-                assign!(register::Request::new(), { kind: RegistrationKind::Guest }),
+                assign!(register::v3::Request::new(), { kind: RegistrationKind::Guest }),
                 &[MatrixVersion::V1_0],
             )
             .await?;
@@ -72,10 +72,10 @@ impl<C: HttpClient> Client<C> {
         &self,
         username: Option<&str>,
         password: &str,
-    ) -> Result<register::Response, Error<C::Error, ruma_client_api::r0::uiaa::UiaaResponse>> {
+    ) -> Result<register::v3::Response, Error<C::Error, ruma_client_api::uiaa::UiaaResponse>> {
         let response = self
             .send_request(
-                assign!(register::Request::new(), { username, password: Some(password)}),
+                assign!(register::v3::Request::new(), { username, password: Some(password)}),
                 &[MatrixVersion::V1_0],
             )
             .await?;
@@ -113,16 +113,16 @@ impl<C: HttpClient> Client<C> {
     /// ```
     pub fn sync<'a>(
         &'a self,
-        filter: Option<&'a sync_events::Filter<'a>>,
+        filter: Option<&'a sync_events::v3::Filter<'a>>,
         mut since: String,
         set_presence: &'a PresenceState,
         timeout: Option<Duration>,
-    ) -> impl Stream<Item = Result<sync_events::Response, Error<C::Error, ruma_client_api::Error>>> + 'a
-    {
+    ) -> impl Stream<Item = Result<sync_events::v3::Response, Error<C::Error, ruma_client_api::Error>>>
+           + 'a {
         try_stream! {
             loop {
                 let response = self
-                    .send_request(assign!(sync_events::Request::new(), {
+                    .send_request(assign!(sync_events::v3::Request::new(), {
                         filter,
                         since: Some(&since),
                         set_presence,
