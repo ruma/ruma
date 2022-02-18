@@ -30,13 +30,13 @@ impl RoomAliasId {
     }
 
     /// Create a `matrix.to` reference for this room alias ID.
-    pub fn matrix_to_url(&self) -> MatrixToUri<'_> {
-        MatrixToUri::new(self.as_str(), Vec::new())
+    pub fn matrix_to_url(&self) -> MatrixToUri {
+        MatrixToUri::new(self.into(), Vec::new())
     }
 
     /// Create a `matrix.to` reference for an event scoped under this room alias ID.
-    pub fn matrix_to_event_url<'a>(&'a self, ev_id: &'a EventId) -> MatrixToUri<'a> {
-        MatrixToUri::event(self.as_str(), ev_id, Vec::new())
+    pub fn matrix_to_event_url(&self, ev_id: &EventId) -> MatrixToUri {
+        MatrixToUri::new((self, ev_id).into(), Vec::new())
     }
 
     fn colon_idx(&self) -> usize {
