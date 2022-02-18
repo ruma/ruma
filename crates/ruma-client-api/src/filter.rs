@@ -7,13 +7,13 @@ mod lazy_load;
 mod url;
 
 use js_int::UInt;
-pub use lazy_load::LazyLoadOptions;
 use ruma_identifiers::{RoomId, UserId};
 use ruma_serde::{Outgoing, StringEnum};
 use serde::Serialize;
-pub use url::UrlFilter;
 
 use crate::PrivOwnedStr;
+
+pub use self::{lazy_load::LazyLoadOptions, url::UrlFilter};
 
 /// Format to use for returned events.
 ///

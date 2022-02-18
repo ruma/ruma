@@ -2,13 +2,13 @@
 
 use std::{borrow::Cow, collections::BTreeMap};
 
-use iter::{CapabilitiesIter, CapabilityRef};
 use maplit::btreemap;
 use ruma_identifiers::RoomVersionId;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 use serde_json::{from_value as from_json_value, to_value as to_json_value, Value as JsonValue};
 
+use self::iter::{CapabilitiesIter, CapabilityRef};
 use crate::PrivOwnedStr;
 
 pub mod get_capabilities;
