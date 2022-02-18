@@ -16,6 +16,8 @@ pub mod v3 {
 
     use crate::PrivOwnedStr;
 
+    pub use super::iter::SignedKeysIter;
+
     ruma_api! {
         metadata: {
             description: "Publishes cross-signing signatures for the user.",
@@ -81,6 +83,11 @@ pub mod v3 {
         ) {
             self.0.insert(cross_signing_key_id, cross_signing_keys.into_json());
         }
+
+        /// Returns an iterator over the keys.
+        pub fn iter(&self) -> SignedKeysIter<'_> {
+            SignedKeysIter(self.0.iter())
+        }
     }
 
     /// A failure to process a signed key.
@@ -105,3 +112,5 @@ pub mod v3 {
         _Custom(PrivOwnedStr),
     }
 }
+
+mod iter;
