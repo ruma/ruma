@@ -10,7 +10,7 @@ pub(crate) fn check_spec_links(path: &Path) -> Result<()> {
     println!("Checking Matrix Spec links are up-to-date...");
     walk_dirs(path, "https://matrix.org/docs/spec/", |_| false)?;
     walk_dirs(path, "https://spec.matrix.org/", |s| {
-        s.starts_with("v1.2") || s.starts_with("unstable")
+        s.starts_with("v1.1") || s.starts_with("v1.2") || s.starts_with("unstable")
     })?;
     Ok(())
 }
