@@ -5,14 +5,12 @@
 use std::collections::BTreeMap;
 
 use js_int::{int, Int};
-use ruma_common::power_levels::default_power_level;
+use ruma_common::power_levels::{default_power_level, NotificationPowerLevels};
 use ruma_events_macros::EventContent;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
 use crate::EventType;
-
-use ruma_common::power_levels::NotificationPowerLevels;
 
 /// The content of an `m.room.power_levels` event.
 ///

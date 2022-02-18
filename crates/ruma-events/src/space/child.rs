@@ -52,9 +52,10 @@ impl SpaceChildEventContent {
 
 #[cfg(test)]
 mod tests {
-    use super::SpaceChildEventContent;
     use ruma_identifiers::server_name;
     use serde_json::{json, to_value as to_json_value};
+
+    use super::SpaceChildEventContent;
 
     #[test]
     fn space_child_serialization() {

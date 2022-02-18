@@ -181,15 +181,14 @@ pub mod typing;
 
 #[cfg(feature = "unstable-msc2675")]
 pub use self::relation::Relations;
+#[doc(hidden)]
+#[cfg(feature = "compat")]
+pub use self::unsigned::{RedactedUnsignedWithPrevContent, UnsignedWithPrevContent};
 pub use self::{
     enums::*,
     event_kinds::*,
     unsigned::{RedactedUnsigned, Unsigned},
 };
-
-#[doc(hidden)]
-#[cfg(feature = "compat")]
-pub use unsigned::{RedactedUnsignedWithPrevContent, UnsignedWithPrevContent};
 
 /// The base trait that all event content types implement.
 ///

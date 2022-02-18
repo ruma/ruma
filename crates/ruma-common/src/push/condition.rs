@@ -314,9 +314,8 @@ mod tests {
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
 
-    use crate::power_levels::NotificationPowerLevels;
-
     use super::{FlattenedJson, PushCondition, PushConditionRoomCtx, RoomMemberCountIs, StrExt};
+    use crate::power_levels::NotificationPowerLevels;
 
     #[test]
     fn serialize_event_match_condition() {

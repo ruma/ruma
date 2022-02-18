@@ -40,9 +40,10 @@ impl SpaceParentEventContent {
 
 #[cfg(test)]
 mod tests {
-    use super::SpaceParentEventContent;
     use ruma_identifiers::server_name;
     use serde_json::{json, to_value as to_json_value};
+
+    use super::SpaceParentEventContent;
 
     #[test]
     fn space_parent_serialization() {

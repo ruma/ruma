@@ -8,7 +8,6 @@ pub mod v1 {
 
     use ruma_api::ruma_api;
     use ruma_identifiers::{RoomId, RoomVersionId, UserId};
-
     use serde_json::value::RawValue as RawJsonValue;
 
     ruma_api! {

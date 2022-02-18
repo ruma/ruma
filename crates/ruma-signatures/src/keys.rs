@@ -6,7 +6,6 @@ use std::{
 };
 
 use ed25519_dalek::{ExpandedSecretKey, PublicKey, SecretKey};
-
 use pkcs8::{
     der::{Decodable, Encodable},
     AlgorithmIdentifier, ObjectIdentifier, PrivateKeyInfo,

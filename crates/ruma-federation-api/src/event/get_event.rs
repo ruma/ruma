@@ -10,7 +10,6 @@ pub mod v1 {
     use ruma_api::ruma_api;
     use ruma_common::MilliSecondsSinceUnixEpoch;
     use ruma_identifiers::{EventId, ServerName};
-
     use serde_json::value::RawValue as RawJsonValue;
 
     ruma_api! {

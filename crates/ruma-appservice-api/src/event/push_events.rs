@@ -109,10 +109,11 @@ pub mod v1 {
     #[cfg(feature = "helper")]
     #[cfg(test)]
     mod helper_tests {
-        use super::{AnyRoomEvent, IncomingRequest, Raw};
         use ruma_client_api::sync::sync_events;
         use ruma_identifiers::room_id;
         use serde_json::json;
+
+        use super::{AnyRoomEvent, IncomingRequest, Raw};
 
         #[test]
         fn convert_incoming_request_to_sync_response() {

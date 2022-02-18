@@ -4,7 +4,6 @@
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{EventId, RoomId};
-
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::RoomState;

@@ -10,7 +10,6 @@ pub mod v1 {
     use js_int::{uint, UInt};
     use ruma_api::ruma_api;
     use ruma_identifiers::{EventId, RoomId};
-
     use serde_json::value::RawValue as RawJsonValue;
 
     ruma_api! {

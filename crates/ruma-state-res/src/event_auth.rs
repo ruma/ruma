@@ -929,6 +929,17 @@ fn verify_third_party_invite(
 mod tests {
     use std::sync::Arc;
 
+    use ruma_events::{
+        room::{
+            join_rules::{
+                AllowRule, JoinRule, Restricted, RoomJoinRulesEventContent, RoomMembership,
+            },
+            member::{MembershipState, RoomMemberEventContent},
+        },
+        EventType,
+    };
+    use serde_json::value::to_raw_value as to_raw_json_value;
+
     use crate::{
         event_auth::valid_membership_change,
         test_utils::{
@@ -937,13 +948,6 @@ mod tests {
         },
         Event, RoomVersion, StateMap,
     };
-    use ruma_events::room::{
-        join_rules::{AllowRule, JoinRule, Restricted, RoomJoinRulesEventContent, RoomMembership},
-        member::{MembershipState, RoomMemberEventContent},
-    };
-    use serde_json::value::to_raw_value as to_raw_json_value;
-
-    use ruma_events::EventType;
 
     #[test]
     fn test_ban_pass() {

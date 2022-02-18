@@ -2,9 +2,8 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{Field, LitStr};
 
-use crate::{auth_scheme::AuthScheme, util};
-
 use super::{Request, RequestField};
+use crate::{auth_scheme::AuthScheme, util};
 
 impl Request {
     pub fn expand_outgoing(&self, ruma_api: &TokenStream) -> TokenStream {

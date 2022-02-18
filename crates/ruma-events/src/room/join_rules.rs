@@ -2,6 +2,8 @@
 //!
 //! [`m.room.join_rules`]: https://spec.matrix.org/v1.1/client-server-api/#mroomjoin_rules
 
+use std::{borrow::Cow, collections::BTreeMap};
+
 use ruma_events_macros::EventContent;
 use ruma_identifiers::RoomId;
 use ruma_serde::from_raw_json_value;
@@ -10,7 +12,6 @@ use serde::{
     Deserialize, Serialize,
 };
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
-use std::{borrow::Cow, collections::BTreeMap};
 
 use crate::PrivOwnedStr;
 
