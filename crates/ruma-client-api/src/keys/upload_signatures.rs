@@ -12,7 +12,7 @@ pub mod v3 {
     use ruma_identifiers::{DeviceId, UserId};
     use ruma_serde::{Raw, StringEnum};
     use serde::{Deserialize, Serialize};
-    use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
+    use serde_json::value::RawValue as RawJsonValue;
 
     use crate::PrivOwnedStr;
 
