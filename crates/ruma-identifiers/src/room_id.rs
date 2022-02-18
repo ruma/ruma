@@ -52,16 +52,13 @@ impl RoomId {
     ///     "https://matrix.to/#/%21somewhere%3Aexample.org?via=example.org&via=alt.example.org"
     /// );
     /// ```
-    pub fn matrix_to_url<'a>(
-        &'a self,
-        via: impl IntoIterator<Item = &'a ServerName>,
-    ) -> MatrixToUri<'a> {
-        MatrixToUri::new(self.as_str(), via.into_iter().collect())
+    pub fn matrix_to_url<'a>(&self, via: impl IntoIterator<Item = &'a ServerName>) -> MatrixToUri {
+        MatrixToUri::new(self.into(), via.into_iter().collect())
     }
 
     /// Create a `matrix.to` reference for an event scoped under this room ID.
-    pub fn matrix_to_event_url<'a>(&'a self, ev_id: &'a EventId) -> MatrixToUri<'a> {
-        MatrixToUri::event(self.as_str(), ev_id, Vec::new())
+    pub fn matrix_to_event_url(&self, ev_id: &EventId) -> MatrixToUri {
+        MatrixToUri::new((self, ev_id).into(), Vec::new())
     }
 
     fn colon_idx(&self) -> usize {
