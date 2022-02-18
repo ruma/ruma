@@ -78,7 +78,7 @@ pub struct Metadata {
 pub enum MatrixVersion {
     /// Version 1.0 of the Matrix specification.
     ///
-    /// Retroactively defined as <https://spec.matrix.org/v1.1/#legacy-versioning>.
+    /// Retroactively defined as <https://spec.matrix.org/v1.2/#legacy-versioning>.
     V1_0,
 
     /// Version 1.1 of the Matrix specification, released in Q4 2021.
