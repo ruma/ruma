@@ -6,37 +6,12 @@ use std::{
 
 use crate::Result;
 
-type VersionFn = fn(&str) -> bool;
-const SPLITS: &[(&str, VersionFn)] = &[
-    ("https://matrix.org/docs/spec/client_server/", |s| {
-        // We cannot include the `#` because for every lib.rs file with spec docs the
-        // URL is `../rx.x.x.html`
-        s.starts_with("r0.6.1") || s.starts_with("unstable#")
-    }),
-    ("https://matrix.org/docs/spec/server_server/", |s| {
-        s.starts_with("r0.1.4") || s.starts_with("unstable#")
-    }),
-    ("https://matrix.org/docs/spec/application_service/", |s| {
-        s.starts_with("r0.1.2") || s.starts_with("unstable#")
-    }),
-    ("https://matrix.org/docs/spec/identity_service/", |s| {
-        s.starts_with("r0.3.0") || s.starts_with("unstable#")
-    }),
-    ("https://matrix.org/docs/spec/push_gateway/", |s| {
-        s.starts_with("r0.1.1") || s.starts_with("unstable#")
-    }),
-    ("https://spec.matrix.org/", |s| {
-        s.starts_with("v1.1") || s.starts_with("v1.2") || s.starts_with("unstable")
-    }),
-];
-
 pub(crate) fn check_spec_links(path: &Path) -> Result<()> {
-    println!("Checking all Matrix Spec links point to same version...");
-    // This is WAY overkill but since there are a few mixed in ruma-common
-    // and this would catch any wrong version anywhere it's probably ok
-    for (split, version_fn) in SPLITS {
-        walk_dirs(path, split, *version_fn)?;
-    }
+    println!("Checking Matrix Spec links are up-to-date...");
+    walk_dirs(path, "https://matrix.org/docs/spec/", |_| false)?;
+    walk_dirs(path, "https://spec.matrix.org/", |s| {
+        s.starts_with("v1.2") || s.starts_with("unstable")
+    })?;
     Ok(())
 }
 
