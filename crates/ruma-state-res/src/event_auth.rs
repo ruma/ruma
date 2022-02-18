@@ -65,6 +65,7 @@ pub fn auth_types_for_event(
         struct RoomMemberContentFields {
             membership: Option<Raw<MembershipState>>,
             third_party_invite: Option<Raw<ThirdPartyInvite>>,
+            join_authorised_via_users_server: Option<Raw<Box<UserId>>>,
         }
 
         if let Some(state_key) = state_key {
@@ -77,6 +78,15 @@ pub fn auth_types_for_event(
                     let key = (EventType::RoomJoinRules, "".to_owned());
                     if !auth_types.contains(&key) {
                         auth_types.push(key);
+                    }
+
+                    if let Some(Ok(u)) =
+                        content.join_authorised_via_users_server.map(|m| m.deserialize())
+                    {
+                        let key = (EventType::RoomMember, u.to_string());
+                        if !auth_types.contains(&key) {
+                            auth_types.push(key);
+                        }
                     }
                 }
 
