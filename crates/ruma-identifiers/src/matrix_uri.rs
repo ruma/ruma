@@ -1,3 +1,5 @@
+//! Matrix URIs.
+
 use std::fmt;
 
 use percent_encoding::{percent_encode, AsciiSet, CONTROLS};
@@ -33,13 +35,13 @@ const TO_ENCODE: &AsciiSet = &CONTROLS
 /// Turn it into a `matrix.to` URL through its `Display` implementation (i.e. by
 /// interpolating it in a formatting macro or via `.to_string()`).
 #[derive(Debug, PartialEq, Eq)]
-pub struct MatrixToRef<'a> {
+pub struct MatrixToUri<'a> {
     id: &'a str,
     event_id: Option<&'a EventId>,
     via: Vec<&'a ServerName>,
 }
 
-impl<'a> MatrixToRef<'a> {
+impl<'a> MatrixToUri<'a> {
     pub(crate) fn new(id: &'a str, via: Vec<&'a ServerName>) -> Self {
         Self { id, event_id: None, via }
     }
@@ -49,7 +51,7 @@ impl<'a> MatrixToRef<'a> {
     }
 }
 
-impl<'a> fmt::Display for MatrixToRef<'a> {
+impl<'a> fmt::Display for MatrixToUri<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(BASE_URL)?;
         write!(f, "{}", percent_encode(self.id.as_bytes(), TO_ENCODE))?;
@@ -75,7 +77,7 @@ mod tests {
     use crate::user_id;
 
     #[test]
-    fn matrix_to_ref() {
+    fn matrix_to_uri() {
         assert_eq!(
             user_id!("@jplatte:notareal.hs").matrix_to_url().to_string(),
             "https://matrix.to/#/%40jplatte%3Anotareal.hs"

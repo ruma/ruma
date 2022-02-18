@@ -32,7 +32,7 @@ pub use crate::{
     event_id::EventId,
     key_id::{DeviceSigningKeyId, KeyId, ServerSigningKeyId, SigningKeyId},
     key_name::KeyName,
-    matrix_to::MatrixToRef,
+    matrix_uri::MatrixToUri,
     mxc_uri::MxcUri,
     room_alias_id::RoomAliasId,
     room_id::RoomId,
@@ -51,6 +51,7 @@ pub use ruma_identifiers_validation::error::Error;
 #[macro_use]
 mod macros;
 
+pub mod matrix_uri;
 pub mod user_id;
 
 mod client_secret;
@@ -60,7 +61,6 @@ mod device_key_id;
 mod event_id;
 mod key_id;
 mod key_name;
-mod matrix_to;
 mod mxc_uri;
 mod room_alias_id;
 mod room_id;

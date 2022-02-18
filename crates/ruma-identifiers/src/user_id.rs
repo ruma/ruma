@@ -2,7 +2,7 @@
 
 use std::{rc::Rc, sync::Arc};
 
-use crate::{MatrixToRef, ServerName};
+use crate::{MatrixToUri, ServerName};
 
 /// A Matrix user ID.
 ///
@@ -116,8 +116,8 @@ impl UserId {
     ///     display_name = "jplatte",
     /// );
     /// ```
-    pub fn matrix_to_url(&self) -> MatrixToRef<'_> {
-        MatrixToRef::new(self.as_str(), Vec::new())
+    pub fn matrix_to_url(&self) -> MatrixToUri<'_> {
+        MatrixToUri::new(self.as_str(), Vec::new())
     }
 
     fn colon_idx(&self) -> usize {
