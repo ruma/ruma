@@ -19,10 +19,6 @@ use serde_json::Value as JsonValue;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct PublicRoomsChunk {
-    /// Aliases of the room.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub aliases: Vec<Box<RoomAliasId>>,
-
     /// The canonical alias of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
@@ -93,7 +89,6 @@ impl From<PublicRoomsChunkInit> for PublicRoomsChunk {
             init;
 
         Self {
-            aliases: Vec::new(),
             canonical_alias: None,
             name: None,
             num_joined_members,
