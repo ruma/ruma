@@ -1,6 +1,6 @@
 //! Types for the [`m.space.parent`] event.
 //!
-//! [`m.space.parent`]: https://spec.matrix.org/unstable/client-server-api/#mspaceparent
+//! [`m.space.parent`]: https://spec.matrix.org/v1.2/client-server-api/#mspaceparent
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::ServerName;

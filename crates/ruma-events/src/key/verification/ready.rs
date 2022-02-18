@@ -1,6 +1,6 @@
 //! Types for the [`m.key.verification.ready`] event.
 //!
-//! [`m.key.verification.ready`]: https://spec.matrix.org/v1.1/client-server-api/#mkeyverificationready
+//! [`m.key.verification.ready`]: https://spec.matrix.org/v1.2/client-server-api/#mkeyverificationready
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::{DeviceId, TransactionId};

@@ -1,6 +1,6 @@
 //! A URI that should be a Matrix-spec compliant [MXC URI].
 //!
-//! [MXC URI]: https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri
+//! [MXC URI]: https://spec.matrix.org/v1.2/client-server-api/#matrix-content-mxc-uris
 
 use std::num::NonZeroU8;
 
@@ -12,7 +12,7 @@ type Result<T, E = MxcUriError> = std::result::Result<T, E>;
 
 /// A URI that should be a Matrix-spec compliant [MXC URI].
 ///
-/// [MXC URI]: https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri
+/// [MXC URI]: https://spec.matrix.org/v1.2/client-server-api/#matrix-content-mxc-uris
 
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]

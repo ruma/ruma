@@ -1,6 +1,6 @@
 //! Types for the [`m.key.verification.done`] event.
 //!
-//! [`m.key.verification.done`]: https://spec.matrix.org/v1.1/client-server-api/#mkeyverificationdone
+//! [`m.key.verification.done`]: https://spec.matrix.org/v1.2/client-server-api/#mkeyverificationdone
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::TransactionId;

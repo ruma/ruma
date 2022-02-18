@@ -1,6 +1,6 @@
 //! Types for the [`m.room.topic`] event.
 //!
-//! [`m.room.topic`]: https://spec.matrix.org/v1.1/client-server-api/#mroomtopic
+//! [`m.room.topic`]: https://spec.matrix.org/v1.2/client-server-api/#mroomtopic
 
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};

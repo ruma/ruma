@@ -1,6 +1,6 @@
 //! Types for the [`m.key.verification.accept`] event.
 //!
-//! [`m.key.verification.accept`]: https://spec.matrix.org/v1.1/client-server-api/#mkeyverificationaccept
+//! [`m.key.verification.accept`]: https://spec.matrix.org/v1.2/client-server-api/#mkeyverificationaccept
 
 use std::collections::BTreeMap;
 

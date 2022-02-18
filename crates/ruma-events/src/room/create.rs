@@ -1,6 +1,6 @@
 //! Types for the [`m.room.create`] event.
 //!
-//! [`m.room.create`]: https://spec.matrix.org/v1.1/client-server-api/#mroomcreate
+//! [`m.room.create`]: https://spec.matrix.org/v1.2/client-server-api/#mroomcreate
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};

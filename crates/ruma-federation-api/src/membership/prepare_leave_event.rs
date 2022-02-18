@@ -4,7 +4,9 @@
 //! to prepare a leave event to get out of the room.
 
 pub mod v1 {
-    //! [GET /_matrix/federation/v1/make_leave/{roomId}/{userId}](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-federation-v1-make-leave-roomid-userid)
+    //! `/v1/` ([spec])
+    //!
+    //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixfederationv1make_leaveroomiduserid
 
     use ruma_api::ruma_api;
     use ruma_identifiers::{RoomId, RoomVersionId, UserId};

@@ -1,6 +1,6 @@
 //! Types for the [`m.room.member`] event.
 //!
-//! [`m.room.member`]: https://spec.matrix.org/v1.1/client-server-api/#mroommember
+//! [`m.room.member`]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
 
 use std::collections::BTreeMap;
 
@@ -383,7 +383,7 @@ impl RoomMemberEvent {
     ///
     /// Check [the specification][spec] for details.
     ///
-    /// [spec]: https://matrix.org/docs/spec/client_server/r0.6.1#m-room-member
+    /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
     pub fn membership_change(&self) -> MembershipChange {
         membership_change(&self.content, self.prev_content.as_ref(), &self.sender, &self.state_key)
     }
@@ -394,7 +394,7 @@ impl SyncStateEvent<RoomMemberEventContent> {
     ///
     /// Check [the specification][spec] for details.
     ///
-    /// [spec]: https://matrix.org/docs/spec/client_server/r0.6.1#m-room-member
+    /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
     pub fn membership_change(&self) -> MembershipChange {
         membership_change(&self.content, self.prev_content.as_ref(), &self.sender, &self.state_key)
     }
@@ -405,7 +405,7 @@ impl StrippedStateEvent<RoomMemberEventContent> {
     ///
     /// Check [the specification][spec] for details.
     ///
-    /// [spec]: https://matrix.org/docs/spec/client_server/r0.6.1#m-room-member
+    /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
     pub fn membership_change(&self) -> MembershipChange {
         membership_change(&self.content, None, &self.sender, &self.state_key)
     }

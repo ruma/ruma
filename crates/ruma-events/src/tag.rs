@@ -1,6 +1,6 @@
 //! Types for the [`m.tag`] event.
 //!
-//! [`m.tag`]: https://spec.matrix.org/v1.1/client-server-api/#mtag
+//! [`m.tag`]: https://spec.matrix.org/v1.2/client-server-api/#mtag
 
 use std::{collections::BTreeMap, error::Error, fmt, str::FromStr};
 
@@ -88,7 +88,7 @@ pub enum TagName {
     LowPriority,
 
     /// `m.server_notice`: Used to identify
-    /// [Server Notice Rooms](https://matrix.org/docs/spec/client_server/r0.6.1#module-server-notices).
+    /// [Server Notice Rooms](https://spec.matrix.org/v1.2/client-server-api/#server-notices).
     ServerNotice,
 
     /// `u.*`: User-defined tag
