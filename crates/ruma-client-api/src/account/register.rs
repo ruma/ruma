@@ -79,7 +79,7 @@ pub mod v3 {
             /// Appservices can [bypass the registration flows][admin] entirely by providing their
             /// token in the header and setting this login `type` to `m.login.application_service`.
             ///
-            /// [admin]: https://matrix.org/docs/spec/application_service/r0.1.2#server-admin-style-permissions
+            /// [admin]: https://spec.matrix.org/v1.2/application-service-api/#server-admin-style-permissions
             #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
             pub login_type: Option<&'a LoginType>,
         }

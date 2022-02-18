@@ -1,6 +1,6 @@
 //! Module for [User-Interactive Authentication API][uiaa] types.
 //!
-//! [uiaa]: https://matrix.org/docs/spec/client_server/r0.6.1#user-interactive-authentication-api
+//! [uiaa]: https://spec.matrix.org/v1.2/client-server-api/#user-interactive-authentication-api
 
 use std::{borrow::Cow, fmt};
 
@@ -339,7 +339,7 @@ pub enum AuthType {
 ///
 /// See [the spec] for how to use this.
 ///
-/// [the spec]: https://matrix.org/docs/spec/client_server/r0.6.1#password-based
+/// [the spec]: https://spec.matrix.org/v1.2/client-server-api/#password-based
 #[derive(Clone, Debug, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.password")]
@@ -376,7 +376,7 @@ impl IncomingPassword {
 ///
 /// See [the spec] for how to use this.
 ///
-/// [the spec]: https://matrix.org/docs/spec/client_server/r0.6.1#google-recaptcha
+/// [the spec]: https://spec.matrix.org/v1.2/client-server-api/#google-recaptcha
 #[derive(Clone, Debug, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.recaptcha")]
@@ -406,7 +406,7 @@ impl IncomingReCaptcha {
 ///
 /// See [the spec] for how to use this.
 ///
-/// [the spec]: https://matrix.org/docs/spec/client_server/r0.6.1#email-based-identity-homeserver
+/// [the spec]: https://spec.matrix.org/v1.2/client-server-api/#email-based-identity--homeserver
 #[derive(Clone, Debug, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.email.identity")]
@@ -437,7 +437,7 @@ impl IncomingEmailIdentity {
 ///
 /// See [the spec] for how to use this.
 ///
-/// [the spec]: https://matrix.org/docs/spec/client_server/r0.6.1#phone-number-msisdn-based-identity-homeserver
+/// [the spec]: https://spec.matrix.org/v1.2/client-server-api/#phone-numbermsisdn-based-identity--homeserver
 #[derive(Clone, Debug, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.msisdn")]
@@ -465,7 +465,7 @@ impl IncomingMsisdn {
 ///
 /// See [the spec] for how to use this.
 ///
-/// [the spec]: https://matrix.org/docs/spec/client_server/r0.6.1#dummy-auth
+/// [the spec]: https://spec.matrix.org/v1.2/client-server-api/#dummy-auth
 #[derive(Clone, Debug, Default, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.dummy")]
@@ -492,7 +492,7 @@ impl IncomingDummy {
 ///
 /// See [the spec] for how to use this.
 ///
-/// [the spec]: https://spec.matrix.org/unstable/client-server-api/#token-authenticated-registration
+/// [the spec]: https://spec.matrix.org/v1.2/client-server-api/#token-authenticated-registration
 #[derive(Clone, Debug, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.registration_token")]
@@ -522,7 +522,7 @@ impl IncomingRegistrationToken {
 ///
 /// See [the spec] for how to use this.
 ///
-/// [the spec]: https://matrix.org/docs/spec/client_server/r0.6.1#fallback
+/// [the spec]: https://spec.matrix.org/v1.2/client-server-api/#fallback
 #[derive(Clone, Debug, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct FallbackAcknowledgement<'a> {

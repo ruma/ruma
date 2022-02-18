@@ -1,6 +1,6 @@
 //! Common types for the [push notifications module][push].
 //!
-//! [push]: https://matrix.org/docs/spec/client_server/r0.6.1#id89
+//! [push]: https://spec.matrix.org/v1.2/client-server-api/#push-notifications
 //!
 //! ## Understanding the types of this module
 //!
@@ -438,7 +438,7 @@ impl PusherData {
 /// This type can hold an arbitrary string. To check for formats that are not available as a
 /// documented variant here, use its string representation, obtained through `.as_str()`.
 ///
-/// [spec]: https://matrix.org/docs/spec/push_gateway/r0.1.1#homeserver-behaviour
+/// [spec]: https://spec.matrix.org/v1.2/push-gateway-api/#homeserver-behaviour
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]

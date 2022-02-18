@@ -1,6 +1,6 @@
 //! Types for the [`m.room.encrypted`] event.
 //!
-//! [`m.room.encrypted`]: https://spec.matrix.org/v1.1/client-server-api/#mroomencrypted
+//! [`m.room.encrypted`]: https://spec.matrix.org/v1.2/client-server-api/#mroomencrypted
 
 use std::collections::BTreeMap;
 
@@ -24,7 +24,7 @@ pub struct RoomEncryptedEventContent {
 
     /// Information about related messages for [rich replies].
     ///
-    /// [rich replies]: https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies
+    /// [rich replies]: https://spec.matrix.org/v1.2/client-server-api/#rich-replies
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation>,
 }

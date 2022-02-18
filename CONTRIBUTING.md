@@ -20,7 +20,7 @@ Here is a list of helpful resources you can consult:
 
 ## Documentation
 
-- [Matrix spec Documentation](https://matrix.org/docs/spec/)
+- [Matrix spec Documentation](https://spec.matrix.org/v1.2/)
 
 ## Chat Rooms
 

@@ -11,7 +11,7 @@
 //! Such types can then be used by client code to make requests, and by server code to fulfill
 //! those requests.
 //!
-//! [apis]: https://matrix.org/docs/spec/#matrix-apis
+//! [apis]: https://spec.matrix.org/v1.2/#matrix-apis
 
 #![warn(missing_docs)]
 
@@ -309,7 +309,7 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
     /// Tries to convert this request into an `http::Request` and appends a virtual `user_id` to
     /// [assert Appservice identity][id_assert].
     ///
-    /// [id_assert]: https://matrix.org/docs/spec/application_service/r0.1.2#identity-assertion
+    /// [id_assert]: https://spec.matrix.org/v1.2/application-service-api/#identity-assertion
     fn try_into_http_request_with_user_id<T: Default + BufMut>(
         self,
         base_url: &str,

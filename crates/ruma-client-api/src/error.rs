@@ -33,7 +33,7 @@ pub enum ErrorKind {
         ///
         /// For more information, see [the spec].
         ///
-        /// [the spec]: https://matrix.org/docs/spec/client_server/r0.6.1#soft-logout
+        /// [the spec]: https://spec.matrix.org/v1.2/client-server-api/#soft-logout
         soft_logout: bool,
     },
 

@@ -1,6 +1,6 @@
 //! Types for the [`m.call.hangup`] event.
 //!
-//! [`m.call.hangup`]: https://spec.matrix.org/v1.1/client-server-api/#mcallhangup
+//! [`m.call.hangup`]: https://spec.matrix.org/v1.2/client-server-api/#mcallhangup
 
 use js_int::UInt;
 use ruma_events_macros::EventContent;

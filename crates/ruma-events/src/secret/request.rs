@@ -1,6 +1,6 @@
 //! Types for the [`m.secret.request`] event.
 //!
-//! [`m.secret.request`]: https://spec.matrix.org/v1.1/client-server-api/#msecretrequest
+//! [`m.secret.request`]: https://spec.matrix.org/v1.2/client-server-api/#msecretrequest
 
 use std::convert::TryFrom;
 

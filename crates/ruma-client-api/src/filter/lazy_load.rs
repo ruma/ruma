@@ -3,7 +3,7 @@ use serde::{ser::SerializeStruct as _, Deserialize, Serialize, Serializer};
 /// Specifies options for [lazy-loading membership events][lazy-loading] on
 /// supported endpoints
 ///
-/// [lazy-loading]: https://matrix.org/docs/spec/client_server/r0.6.1#lazy-loading-room-members
+/// [lazy-loading]: https://spec.matrix.org/v1.2/client-server-api/#lazy-loading-room-members
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize)]
 #[serde(from = "LazyLoadJsonRepr")]
 #[allow(clippy::exhaustive_enums)]

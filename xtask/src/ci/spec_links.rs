@@ -8,23 +8,11 @@ use crate::Result;
 
 type VersionFn = fn(&str) -> bool;
 const SPLITS: &[(&str, VersionFn)] = &[
-    ("https://matrix.org/docs/spec/client_server/", |s| {
-        // We cannot include the `#` because for every lib.rs file with spec docs the
-        // URL is `../rx.x.x.html`
-        s.starts_with("r0.6.1") || s.starts_with("unstable#")
-    }),
-    ("https://matrix.org/docs/spec/server_server/", |s| {
-        s.starts_with("r0.1.4") || s.starts_with("unstable#")
-    }),
-    ("https://matrix.org/docs/spec/application_service/", |s| {
-        s.starts_with("r0.1.2") || s.starts_with("unstable#")
-    }),
-    ("https://matrix.org/docs/spec/identity_service/", |s| {
-        s.starts_with("r0.3.0") || s.starts_with("unstable#")
-    }),
-    ("https://matrix.org/docs/spec/push_gateway/", |s| {
-        s.starts_with("r0.1.1") || s.starts_with("unstable#")
-    }),
+    ("https://matrix.org/docs/spec/client_server/", |_| false),
+    ("https://matrix.org/docs/spec/server_server/", |_| false),
+    ("https://matrix.org/docs/spec/application_service/", |_| false),
+    ("https://matrix.org/docs/spec/identity_service/", |_| false),
+    ("https://matrix.org/docs/spec/push_gateway/", |_| false),
     ("https://spec.matrix.org/", |s| {
         s.starts_with("v1.1") || s.starts_with("v1.2") || s.starts_with("unstable")
     }),

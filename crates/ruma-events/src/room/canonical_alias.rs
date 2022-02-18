@@ -1,6 +1,6 @@
 //! Types for the [`m.room.canonical_alias`] event.
 //!
-//! [`m.room.canonical_alias`]: https://spec.matrix.org/v1.1/client-server-api/#mroomcanonical_alias
+//! [`m.room.canonical_alias`]: https://spec.matrix.org/v1.2/client-server-api/#mroomcanonical_alias
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::RoomAliasId;

@@ -1,6 +1,6 @@
 ///! Constructors for [predefined push rules].
 ///!
-///! [predefined push rules]: https://matrix.org/docs/spec/client_server/r0.6.1#predefined-rules
+///! [predefined push rules]: https://spec.matrix.org/v1.2/client-server-api/#predefined-rules
 use indexmap::indexset;
 use ruma_identifiers::UserId;
 
@@ -12,7 +12,7 @@ use super::{
 impl Ruleset {
     /// The list of all [predefined push rules].
     ///
-    /// [predefined push rules]: https://matrix.org/docs/spec/client_server/r0.6.1#predefined-rules
+    /// [predefined push rules]: https://spec.matrix.org/v1.2/client-server-api/#predefined-rules
     ///
     /// # Parameters
     ///
