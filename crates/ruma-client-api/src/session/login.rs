@@ -310,7 +310,7 @@ pub mod v3 {
                     "password": "ilovebananas"
                 }))
                 .unwrap(),
-                IncomingLoginInfo::Password(IncomingPassword { identifier: IncomingUserIdentifier::MatrixId(user), password })
+                IncomingLoginInfo::Password(IncomingPassword { identifier: IncomingUserIdentifier::UserIdOrLocalpart(user), password })
                 if user == "cheeky_monkey" && password == "ilovebananas"
             );
 

@@ -30,7 +30,7 @@ impl<C: HttpClient> Client<C> {
     ) -> Result<login::v3::Response, Error<C::Error, ruma_client_api::Error>> {
         let response = self
             .send_request(assign!(login::v3::Request::new(
-                LoginInfo::Password(login::v3::Password::new(UserIdentifier::MatrixId(user), password))), {
+                LoginInfo::Password(login::v3::Password::new(UserIdentifier::UserIdOrLocalpart(user), password))), {
                 device_id,
                 initial_device_display_name,
                 }

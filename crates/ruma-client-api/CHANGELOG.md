@@ -21,6 +21,7 @@ Breaking changes:
 * Move `r0::uiaa::authorize_fallback` to `r0::uiaa::get_uiaa_fallback_page`
 * Change type of field `start` of `r0::message::get_message_events::Response` to
   `String` in accordance with the updated specification.
+* Rename `uiaa::UserIdentifier::MatrixId` variant to `uiaa::UserIdentifier::UserIdOrLocalpart`
 
 Improvements:
 

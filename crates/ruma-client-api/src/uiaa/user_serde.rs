@@ -11,7 +11,7 @@ use serde::Serialize;
 #[serde(tag = "type")]
 pub(crate) enum UserIdentifier<'a> {
     #[serde(rename = "m.id.user")]
-    MatrixId { user: &'a str },
+    UserIdOrLocalpart { user: &'a str },
     #[serde(rename = "m.id.thirdparty")]
     ThirdPartyId { medium: Medium, address: &'a str },
     #[serde(rename = "m.id.phone")]
@@ -25,7 +25,7 @@ impl<'a> From<super::UserIdentifier<'a>> for UserIdentifier<'a> {
         use super::UserIdentifier as SuperId;
 
         match id {
-            SuperId::MatrixId(user) => SerdeId::MatrixId { user },
+            SuperId::UserIdOrLocalpart(user) => SerdeId::UserIdOrLocalpart { user },
             SuperId::ThirdPartyId { address, medium } => SerdeId::ThirdPartyId { address, medium },
             SuperId::PhoneNumber { country, phone } => SerdeId::PhoneNumber { country, phone },
         }
@@ -39,7 +39,7 @@ impl From<IncomingUserIdentifier> for super::IncomingUserIdentifier {
         use super::IncomingUserIdentifier as SuperId;
 
         match id {
-            SerdeId::MatrixId { user } => SuperId::MatrixId(user),
+            SerdeId::UserIdOrLocalpart { user } => SuperId::UserIdOrLocalpart(user),
             SerdeId::ThirdPartyId { address, medium } => SuperId::ThirdPartyId { address, medium },
             SerdeId::PhoneNumber { country, phone } => SuperId::PhoneNumber { country, phone },
         }
