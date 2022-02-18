@@ -5,10 +5,9 @@ use ruma::{
     events::room::message::RoomMessageEventContent,
     RoomAliasId,
 };
-use ruma_api::MatrixVersion;
 use ruma_identifiers::TransactionId;
 
-type MatrixClient = ruma::Client<ruma_client::http_client::HyperNativeTls>;
+type HttpClient = ruma::client::http_client::HyperNativeTls;
 
 async fn hello_world(
     homeserver_url: String,
@@ -16,25 +15,18 @@ async fn hello_world(
     password: &str,
     room_alias: &RoomAliasId,
 ) -> anyhow::Result<()> {
-    let client = MatrixClient::new(homeserver_url, None);
+    let client =
+        ruma::Client::builder().homeserver_url(homeserver_url).build::<HttpClient>().await?;
     client.log_in(username, password, None, Some("ruma-example-client")).await?;
 
-    let room_id = client
-        .send_request(get_alias::v3::Request::new(room_alias), &[MatrixVersion::V1_0])
-        .await?
-        .room_id;
+    let room_id = client.send_request(get_alias::v3::Request::new(room_alias)).await?.room_id;
+    client.send_request(join_room_by_id::v3::Request::new(&room_id)).await?;
     client
-        .send_request(join_room_by_id::v3::Request::new(&room_id), &[MatrixVersion::V1_0])
-        .await?;
-    client
-        .send_request(
-            send_message_event::v3::Request::new(
-                &room_id,
-                &TransactionId::new(),
-                &RoomMessageEventContent::text_plain("Hello World!"),
-            )?,
-            &[MatrixVersion::V1_0],
-        )
+        .send_request(send_message_event::v3::Request::new(
+            &room_id,
+            &TransactionId::new(),
+            &RoomMessageEventContent::text_plain("Hello World!"),
+        )?)
         .await?;
 
     Ok(())

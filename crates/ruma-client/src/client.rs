@@ -17,9 +17,12 @@ use ruma_common::presence::PresenceState;
 use ruma_identifiers::{DeviceId, UserId};
 
 use crate::{
-    add_user_id_to_query, send_customized_request, DefaultConstructibleHttpClient, Error,
-    HttpClient, ResponseError, ResponseResult,
+    add_user_id_to_query, send_customized_request, Error, HttpClient, ResponseError, ResponseResult,
 };
+
+mod builder;
+
+pub use self::builder::ClientBuilder;
 
 /// A client for the Matrix client-server API.
 #[derive(Clone, Debug)]
@@ -34,26 +37,21 @@ struct ClientData<C> {
     /// The underlying HTTP client.
     http_client: C,
 
-    /// User session data.
+    /// The access token, if logged in.
     access_token: Mutex<Option<String>>,
+
+    /// The (known) Matrix versions the homeserver supports.
+    supported_matrix_versions: Vec<MatrixVersion>,
+}
+
+impl Client<()> {
+    /// Creates a new client builder.
+    pub fn builder() -> ClientBuilder {
+        ClientBuilder::new()
+    }
 }
 
 impl<C> Client<C> {
-    /// Creates a new client using the given underlying HTTP client.
-    ///
-    /// This allows the user to configure the details of HTTP as desired.
-    pub fn with_http_client(
-        http_client: C,
-        homeserver_url: String,
-        access_token: Option<String>,
-    ) -> Self {
-        Self(Arc::new(ClientData {
-            homeserver_url,
-            http_client,
-            access_token: Mutex::new(access_token),
-        }))
-    }
-
     /// Get a copy of the current `access_token`, if any.
     ///
     /// Useful for serializing and persisting the session to be restored later.
@@ -62,32 +60,16 @@ impl<C> Client<C> {
     }
 }
 
-impl<C: DefaultConstructibleHttpClient> Client<C> {
-    /// Creates a new client based on a default-constructed hyper HTTP client.
-    pub fn new(homeserver_url: String, access_token: Option<String>) -> Self {
-        Self(Arc::new(ClientData {
-            homeserver_url,
-            http_client: DefaultConstructibleHttpClient::default(),
-            access_token: Mutex::new(access_token),
-        }))
-    }
-}
-
 impl<C: HttpClient> Client<C> {
     /// Makes a request to a Matrix API endpoint.
-    pub async fn send_request<R: OutgoingRequest>(
-        &self,
-        request: R,
-        for_versions: &[MatrixVersion],
-    ) -> ResponseResult<C, R> {
-        self.send_customized_request(request, for_versions, |_| Ok(())).await
+    pub async fn send_request<R: OutgoingRequest>(&self, request: R) -> ResponseResult<C, R> {
+        self.send_customized_request(request, |_| Ok(())).await
     }
 
     /// Makes a request to a Matrix API endpoint including additional URL parameters.
     pub async fn send_customized_request<R, F>(
         &self,
         request: R,
-        for_versions: &[MatrixVersion],
         customize: F,
     ) -> ResponseResult<C, R>
     where
@@ -104,7 +86,7 @@ impl<C: HttpClient> Client<C> {
             &self.0.http_client,
             &self.0.homeserver_url,
             send_access_token,
-            for_versions,
+            &self.0.supported_matrix_versions,
             request,
             customize,
         )
@@ -119,10 +101,8 @@ impl<C: HttpClient> Client<C> {
         &self,
         user_id: &UserId,
         request: R,
-        for_versions: &[MatrixVersion],
     ) -> ResponseResult<C, R> {
-        self.send_customized_request(request, for_versions, add_user_id_to_query::<C, R>(user_id))
-            .await
+        self.send_customized_request(request, add_user_id_to_query::<C, R>(user_id)).await
     }
 
     /// Log in with a username and password.
@@ -142,7 +122,7 @@ impl<C: HttpClient> Client<C> {
                 device_id,
                 initial_device_display_name,
                 }
-            ), &[MatrixVersion::V1_0])
+            ))
             .await?;
 
         *self.0.access_token.lock().unwrap() = Some(response.access_token.clone());
@@ -158,10 +138,7 @@ impl<C: HttpClient> Client<C> {
         &self,
     ) -> Result<register::v3::Response, Error<C::Error, ruma_client_api::uiaa::UiaaResponse>> {
         let response = self
-            .send_request(
-                assign!(register::v3::Request::new(), { kind: RegistrationKind::Guest }),
-                &[MatrixVersion::V1_0],
-            )
+            .send_request(assign!(register::v3::Request::new(), { kind: RegistrationKind::Guest }))
             .await?;
 
         *self.0.access_token.lock().unwrap() = response.access_token.clone();
@@ -182,10 +159,9 @@ impl<C: HttpClient> Client<C> {
         password: &str,
     ) -> Result<register::v3::Response, Error<C::Error, ruma_client_api::uiaa::UiaaResponse>> {
         let response = self
-            .send_request(
-                assign!(register::v3::Request::new(), { username, password: Some(password)}),
-                &[MatrixVersion::V1_0],
-            )
+            .send_request(assign!(register::v3::Request::new(), {
+                username, password: Some(password)
+            }))
             .await?;
 
         *self.0.access_token.lock().unwrap() = response.access_token.clone();
@@ -200,13 +176,15 @@ impl<C: HttpClient> Client<C> {
     /// ```no_run
     /// use std::time::Duration;
     ///
-    /// # type MatrixClient = ruma_client::Client<ruma_client::http_client::Dummy>;
     /// # use ruma_common::presence::PresenceState;
     /// # use tokio_stream::{StreamExt as _};
     /// # let homeserver_url = "https://example.com".parse().unwrap();
-    /// # let client = MatrixClient::new(homeserver_url, None);
-    /// # let next_batch_token = String::new();
     /// # async {
+    /// # let client = ruma_client::Client::builder()
+    /// #     .homeserver_url(homeserver_url)
+    /// #     .build::<ruma_client::http_client::Dummy>()
+    /// #     .await?;
+    /// # let next_batch_token = String::new();
     /// let mut sync_stream = Box::pin(client.sync(
     ///     None,
     ///     next_batch_token,
@@ -235,7 +213,7 @@ impl<C: HttpClient> Client<C> {
                         since: Some(&since),
                         set_presence,
                         timeout,
-                    }), &[MatrixVersion::V1_0])
+                    }))
                     .await?;
 
                 since = response.next_batch.clone();

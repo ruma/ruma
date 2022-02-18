@@ -2,12 +2,9 @@ use std::{convert::TryInto, error::Error, io, process::exit, time::Duration};
 
 use futures_util::future::{join, join_all};
 use ruma::{
-    api::{
-        client::{
-            filter::FilterDefinition, membership::join_room_by_id, message::send_message_event,
-            sync::sync_events,
-        },
-        MatrixVersion,
+    api::client::{
+        filter::FilterDefinition, membership::join_room_by_id, message::send_message_event,
+        sync::sync_events,
     },
     assign, client,
     events::{
@@ -41,11 +38,11 @@ async fn run() -> Result<(), Box<dyn Error>> {
     let http_client =
         hyper::Client::builder().build::<_, hyper::Body>(hyper_tls::HttpsConnector::new());
     let matrix_client = if let Some(state) = read_state().await.ok().flatten() {
-        MatrixClient::with_http_client(
-            http_client.clone(),
-            config.homeserver.to_owned(),
-            Some(state.access_token),
-        )
+        ruma::Client::builder()
+            .homeserver_url(config.homeserver.clone())
+            .access_token(Some(state.access_token))
+            .http_client(http_client.clone())
+            .await?
     } else if config.password.is_some() {
         let client = create_matrix_session(http_client.clone(), &config).await?;
 
@@ -63,12 +60,9 @@ async fn run() -> Result<(), Box<dyn Error>> {
 
     let filter = FilterDefinition::ignore_all().into();
     let initial_sync_response = matrix_client
-        .send_request(
-            assign!(sync_events::v3::Request::new(), {
-                filter: Some(&filter),
-            }),
-            &[MatrixVersion::V1_0],
-        )
+        .send_request(assign!(sync_events::v3::Request::new(), {
+            filter: Some(&filter),
+        }))
         .await?;
     let user_id = &config.username;
     let not_senders = &[user_id.clone()];
@@ -121,8 +115,11 @@ async fn create_matrix_session(
     config: &Config,
 ) -> Result<MatrixClient, Box<dyn Error>> {
     if let Some(password) = &config.password {
-        let client =
-            MatrixClient::with_http_client(http_client, config.homeserver.to_owned(), None);
+        let client = ruma::Client::builder()
+            .homeserver_url(config.homeserver.clone())
+            .http_client(http_client)
+            .await?;
+
         if let Err(e) = client.log_in(config.username.as_ref(), password, None, None).await {
             let reason = match e {
                 client::Error::AuthenticationRequired => "invalid credentials specified".to_owned(),
@@ -136,6 +133,7 @@ async fn create_matrix_session(
             };
             return Err(format!("Failed to log in: {}", reason).into());
         }
+
         Ok(client)
     } else {
         Err("Failed to create session: no password stored in config".to_owned().into())
@@ -167,10 +165,11 @@ async fn handle_message(
                 let txn_id = TransactionId::new();
                 let req = send_message_event::v3::Request::new(room_id, &txn_id, &joke_content)?;
                 // Do nothing if we can't send the message.
-                let _ = matrix_client.send_request(req, &[MatrixVersion::V1_0]).await;
+                let _ = matrix_client.send_request(req).await;
             }
         }
     }
+
     Ok(())
 }
 
@@ -180,16 +179,14 @@ async fn handle_invitations(
     room_id: &RoomId,
 ) -> Result<(), Box<dyn Error>> {
     println!("invited to {}", &room_id);
-    matrix_client
-        .send_request(join_room_by_id::v3::Request::new(room_id), &[MatrixVersion::V1_0])
-        .await?;
+    matrix_client.send_request(join_room_by_id::v3::Request::new(room_id)).await?;
 
     let greeting = "Hello! My name is Mr. Bot! I like to tell jokes. Like this one: ";
     let joke = get_joke(http_client).await.unwrap_or_else(|_| "err... never mind.".to_owned());
     let content = RoomMessageEventContent::text_plain(format!("{}\n{}", greeting, joke));
     let txn_id = TransactionId::new();
     let message = send_message_event::v3::Request::new(room_id, &txn_id, &content)?;
-    matrix_client.send_request(message, &[MatrixVersion::V1_0]).await?;
+    matrix_client.send_request(message).await?;
     Ok(())
 }
 
