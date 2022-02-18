@@ -71,7 +71,9 @@ pub fn auth_types_for_event(
             let content: RoomMemberContentFields = from_json_str(content.get())?;
 
             if let Some(Ok(membership)) = content.membership.map(|m| m.deserialize()) {
-                if [MembershipState::Join, MembershipState::Invite].contains(&membership) {
+                if [MembershipState::Join, MembershipState::Invite, MembershipState::Knock]
+                    .contains(&membership)
+                {
                     let key = (EventType::RoomJoinRules, "".to_owned());
                     if !auth_types.contains(&key) {
                         auth_types.push(key);
