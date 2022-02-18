@@ -70,27 +70,10 @@
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
 
-#[doc(no_inline)]
-pub use assign::assign;
-#[doc(no_inline)]
-pub use js_int::{int, uint, Int, UInt};
-
-pub use ruma_common::*;
 #[doc(inline)]
 pub use ruma_identifiers as identifiers;
 #[doc(inline)]
 pub use ruma_serde as serde;
-
-pub use ruma_serde::Outgoing;
-
-pub use ruma_identifiers::{
-    device_id, device_key_id, event_id, matrix_uri, mxc_uri, room_alias_id, room_id,
-    room_version_id, server_name, server_signing_key_id, user_id, ClientSecret, DeviceId,
-    DeviceKeyAlgorithm, DeviceKeyId, DeviceSignatures, DeviceSigningKeyId, EntitySignatures,
-    EventEncryptionAlgorithm, EventId, KeyId, KeyName, MatrixToUri, MxcUri, RoomAliasId, RoomId,
-    RoomOrAliasId, RoomVersionId, ServerName, ServerSignatures, ServerSigningKeyId, SessionId,
-    Signatures, SigningKeyAlgorithm, TransactionId, UserId,
-};
 
 #[cfg(feature = "client")]
 #[doc(inline)]
@@ -169,3 +152,18 @@ pub mod api {
     #[doc(inline)]
     pub use ruma_push_gateway_api as push_gateway;
 }
+
+#[doc(no_inline)]
+pub use assign::assign;
+#[doc(no_inline)]
+pub use js_int::{int, uint, Int, UInt};
+pub use ruma_common::*;
+pub use ruma_identifiers::{
+    device_id, device_key_id, event_id, matrix_uri, mxc_uri, room_alias_id, room_id,
+    room_version_id, server_name, server_signing_key_id, user_id, ClientSecret, DeviceId,
+    DeviceKeyAlgorithm, DeviceKeyId, DeviceSignatures, DeviceSigningKeyId, EntitySignatures,
+    EventEncryptionAlgorithm, EventId, KeyId, KeyName, MatrixToUri, MxcUri, RoomAliasId, RoomId,
+    RoomOrAliasId, RoomVersionId, ServerName, ServerSignatures, ServerSigningKeyId, SessionId,
+    Signatures, SigningKeyAlgorithm, TransactionId, UserId,
+};
+pub use ruma_serde::Outgoing;
