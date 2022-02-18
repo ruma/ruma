@@ -21,7 +21,7 @@ fn deserialize_user_identifier() {
             "user": "cheeky_monkey"
         }))
         .unwrap(),
-        IncomingUserIdentifier::MatrixId(id)
+        IncomingUserIdentifier::UserIdOrLocalpart(id)
         if id == "cheeky_monkey"
     );
 }

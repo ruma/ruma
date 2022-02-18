@@ -577,7 +577,7 @@ impl Outgoing for CustomAuthData<'_> {
 pub enum UserIdentifier<'a> {
     /// Either a fully qualified Matrix user ID, or just the localpart (as part of the 'identifier'
     /// field).
-    MatrixId(&'a str),
+    UserIdOrLocalpart(&'a str),
 
     /// Third party identifier (as part of the 'identifier' field).
     ThirdPartyId {
@@ -602,7 +602,7 @@ pub enum UserIdentifier<'a> {
 impl IncomingUserIdentifier {
     pub(crate) fn to_outgoing(&self) -> UserIdentifier<'_> {
         match self {
-            Self::MatrixId(id) => UserIdentifier::MatrixId(id),
+            Self::UserIdOrLocalpart(id) => UserIdentifier::UserIdOrLocalpart(id),
             Self::ThirdPartyId { address, medium } => {
                 UserIdentifier::ThirdPartyId { address, medium: medium.clone() }
             }
