@@ -10,7 +10,7 @@ use ruma::{
 };
 use ruma_api::MatrixVersion;
 
-type MatrixClient = ruma_client::Client<ruma_client::http_client::Isahc>;
+type MatrixClient = ruma::Client<ruma_client::http_client::Isahc>;
 
 async fn hello_world(
     homeserver_url: String,

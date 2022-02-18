@@ -8,7 +8,7 @@ use ruma::{
 use ruma_api::MatrixVersion;
 use ruma_identifiers::TransactionId;
 
-type MatrixClient = ruma_client::Client<ruma_client::http_client::HyperNativeTls>;
+type MatrixClient = ruma::Client<ruma_client::http_client::HyperNativeTls>;
 
 async fn hello_world(
     homeserver_url: String,

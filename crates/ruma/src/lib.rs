@@ -157,6 +157,8 @@ pub mod api {
 pub use assign::assign;
 #[doc(no_inline)]
 pub use js_int::{int, uint, Int, UInt};
+#[cfg(feature = "client-ext-client-api")]
+pub use ruma_client::Client;
 pub use ruma_common::*;
 pub use ruma_identifiers::{
     device_id, device_key_id, event_id, matrix_uri, mxc_uri, room_alias_id, room_id,

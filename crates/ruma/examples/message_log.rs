@@ -11,7 +11,7 @@ use ruma::{
 };
 use tokio_stream::StreamExt as _;
 
-type MatrixClient = ruma_client::Client<ruma_client::http_client::HyperNativeTls>;
+type MatrixClient = ruma::Client<ruma_client::http_client::HyperNativeTls>;
 
 async fn log_messages(
     homeserver_url: String,
