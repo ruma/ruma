@@ -11,6 +11,7 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixkeyv2serverkeyid
 
     use ruma_api::ruma_api;
+    use ruma_serde::Raw;
 
     use crate::discovery::ServerSigningKeys;
 
@@ -31,7 +32,7 @@ pub mod v2 {
         response: {
             /// Queried server key, signed by the notary server.
             #[ruma_api(body)]
-            pub server_key: ServerSigningKeys,
+            pub server_key: Raw<ServerSigningKeys>,
         }
     }
 
@@ -44,13 +45,13 @@ pub mod v2 {
 
     impl Response {
         /// Creates a new `Response` with the given server key.
-        pub fn new(server_key: ServerSigningKeys) -> Self {
+        pub fn new(server_key: Raw<ServerSigningKeys>) -> Self {
             Self { server_key }
         }
     }
 
-    impl From<ServerSigningKeys> for Response {
-        fn from(server_key: ServerSigningKeys) -> Self {
+    impl From<Raw<ServerSigningKeys>> for Response {
+        fn from(server_key: Raw<ServerSigningKeys>) -> Self {
             Self::new(server_key)
         }
     }

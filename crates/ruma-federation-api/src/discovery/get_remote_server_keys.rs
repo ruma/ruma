@@ -11,6 +11,7 @@ pub mod v2 {
     use ruma_api::ruma_api;
     use ruma_common::MilliSecondsSinceUnixEpoch;
     use ruma_identifiers::ServerName;
+    use ruma_serde::Raw;
 
     use crate::discovery::ServerSigningKeys;
 
@@ -43,7 +44,7 @@ pub mod v2 {
 
         response: {
             /// The queried server's keys, signed by the notary server.
-            pub server_keys: Vec<ServerSigningKeys>,
+            pub server_keys: Vec<Raw<ServerSigningKeys>>,
         }
     }
 
@@ -59,7 +60,7 @@ pub mod v2 {
 
     impl Response {
         /// Creates a new `Response` with the given keys.
-        pub fn new(server_keys: Vec<ServerSigningKeys>) -> Self {
+        pub fn new(server_keys: Vec<Raw<ServerSigningKeys>>) -> Self {
             Self { server_keys }
         }
     }
