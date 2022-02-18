@@ -1,5 +1,7 @@
 //! Error conditions.
 
+use std::str::Utf8Error;
+
 /// An error encountered when trying to parse an invalid ID string.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, thiserror::Error)]
 #[non_exhaustive]
@@ -30,6 +32,14 @@ pub enum Error {
     #[error("key ID version contains invalid characters")]
     InvalidKeyVersion,
 
+    /// The string isn't a valid Matrix ID.
+    #[error("invalid matrix ID: {0}")]
+    InvalidMatrixId(#[from] MatrixIdError),
+
+    /// The string isn't a valid Matrix.to URI.
+    #[error("invalid matrix.to URI: {0}")]
+    InvalidMatrixToRef(#[from] MatrixToError),
+
     /// The mxc:// isn't a valid Matrix Content URI.
     #[error("invalid Matrix Content URI: {0}")]
     InvalidMxcUri(#[from] MxcUriError),
@@ -37,6 +47,14 @@ pub enum Error {
     /// The server name part of the the ID string is not a valid server name.
     #[error("server name is not a valid IP address or domain name")]
     InvalidServerName,
+
+    /// The string isn't a valid URI.
+    #[error("invalid URI")]
+    InvalidUri,
+
+    /// The string isn't valid UTF-8.
+    #[error("invalid UTF-8")]
+    InvalidUtf8,
 
     /// The ID exceeds 255 bytes (or 32 codepoints for a room version ID).
     #[error("ID exceeds 255 bytes")]
@@ -50,6 +68,18 @@ pub enum Error {
     /// The ID is missing the correct leading sigil.
     #[error("leading sigil is incorrect or missing")]
     MissingLeadingSigil,
+}
+
+impl From<Utf8Error> for Error {
+    fn from(_: Utf8Error) -> Self {
+        Self::InvalidUtf8
+    }
+}
+
+impl From<url::ParseError> for Error {
+    fn from(_: url::ParseError) -> Self {
+        Self::InvalidUri
+    }
 }
 
 /// An error occurred while validating an MXC URI.
@@ -74,4 +104,42 @@ pub enum MxcUriError {
     /// Server identifier malformed: invalid IP or domain name.
     #[error("invalid Server Name")]
     ServerNameMalformed,
+}
+
+/// An error occurred while validating a `MatrixId`.
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, thiserror::Error)]
+#[non_exhaustive]
+pub enum MatrixIdError {
+    /// The string is missing a room ID or alias.
+    #[error("missing room ID or alias")]
+    MissingRoom,
+
+    /// The string contains no identifier.
+    #[error("no identifier")]
+    NoIdentifier,
+
+    /// The string contains too many identifiers.
+    #[error("too many identifiers")]
+    TooManyIdentifiers,
+
+    /// The string contains an unknown identifier.
+    #[error("unknown identifier")]
+    UnknownIdentifier,
+
+    /// The string contains two identifiers that cannot be paired.
+    #[error("unknown identifier pair")]
+    UnknownIdentifierPair,
+}
+
+/// An error occurred while validating an MXC URI.
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, thiserror::Error)]
+#[non_exhaustive]
+pub enum MatrixToError {
+    /// String did not start with `https://matrix.to/#/`.
+    #[error("base URL is not https://matrix.to/#/")]
+    WrongBaseUrl,
+
+    /// String has an unknown additional argument.
+    #[error("unknown additional argument")]
+    UnknownArgument,
 }

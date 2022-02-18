@@ -30,6 +30,7 @@ ruma-serde = { version = "0.5.0", path = "../ruma-serde", optional = true }
 ruma-serde-macros = { version = "0.5.0", path = "../ruma-serde-macros" }
 # Renamed so we can have a serde feature.
 serde1 = { package = "serde", version = "1.0.126", optional = true, features = ["derive"] }
+url = "2.2.2"
 uuid = { version = "0.8.2", optional = true, features = ["v4"] }
 
 [dev-dependencies]
