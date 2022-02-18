@@ -41,6 +41,7 @@ impl From<Box<DeviceId>> for DeviceIdOrAllDevices {
 
 impl TryFrom<&str> for DeviceIdOrAllDevices {
     type Error = &'static str;
+
     fn try_from(device_id_or_all_devices: &str) -> Result<Self, Self::Error> {
         if device_id_or_all_devices.is_empty() {
             Err("Device identifier cannot be empty")

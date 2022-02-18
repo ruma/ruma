@@ -93,6 +93,7 @@ impl<A, K: ?Sized> Clone for Box<KeyId<A, K>> {
 
 impl<A, K: ?Sized> ToOwned for KeyId<A, K> {
     type Owned = Box<KeyId<A, K>>;
+
     fn to_owned(&self) -> Self::Owned {
         Self::from_owned(self.1.into())
     }
@@ -232,6 +233,7 @@ where
 
 impl<'a, A, K: ?Sized> TryFrom<&'a str> for &'a KeyId<A, K> {
     type Error = crate::Error;
+
     fn try_from(s: &'a str) -> Result<Self, Self::Error> {
         (ruma_identifiers_validation::key_id::validate)(s)?;
         Ok(KeyId::from_borrowed(s))
@@ -240,6 +242,7 @@ impl<'a, A, K: ?Sized> TryFrom<&'a str> for &'a KeyId<A, K> {
 
 impl<A, K: ?Sized> FromStr for Box<KeyId<A, K>> {
     type Err = crate::Error;
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         try_from(s)
     }
@@ -247,6 +250,7 @@ impl<A, K: ?Sized> FromStr for Box<KeyId<A, K>> {
 
 impl<A, K: ?Sized> TryFrom<&str> for Box<KeyId<A, K>> {
     type Error = crate::Error;
+
     fn try_from(s: &str) -> Result<Self, Self::Error> {
         try_from(s)
     }
@@ -254,6 +258,7 @@ impl<A, K: ?Sized> TryFrom<&str> for Box<KeyId<A, K>> {
 
 impl<A, K: ?Sized> TryFrom<String> for Box<KeyId<A, K>> {
     type Error = crate::Error;
+
     fn try_from(s: String) -> Result<Self, Self::Error> {
         try_from(s)
     }
