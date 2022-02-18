@@ -50,7 +50,10 @@ fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'stat
             _ => &["membership"],
         },
         "m.room.create" => &["creator"],
-        "m.room.join_rules" => &["join_rule"],
+        "m.room.join_rules" => match version {
+            RoomVersionId::V8 | RoomVersionId::V9 => &["join_rule", "allow"],
+            _ => &["join_rule"],
+        },
         "m.room.power_levels" => &[
             "ban",
             "events",
