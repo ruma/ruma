@@ -273,4 +273,4 @@ Breaking changes:
 Improvements:
 
 * Remove the dependency on `lazy_static` and `regex`
-* We now support [historical user IDs](https://matrix.org/docs/spec/appendices#historical-user-ids)
+* We now support [historical user IDs](https://spec.matrix.org/v1.2/appendices/#historical-user-ids)
