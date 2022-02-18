@@ -169,7 +169,7 @@ mod v1 {
 }
 ```
 
-This happens if the endpoint either has a single version, or a few versions of sufficient small size.
+This happens if the endpoint either has a single version, or a few versions of sufficiently small size.
 
 ### Endpoint Documentation Header
 
