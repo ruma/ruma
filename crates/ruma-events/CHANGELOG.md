@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.25.0
+
 Breaking changes:
 
 * Remove `RedactedStrippedStateEvent`

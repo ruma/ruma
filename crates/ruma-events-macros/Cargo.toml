@@ -8,7 +8,7 @@ license = "MIT"
 name = "ruma-events-macros"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.24.6"
+version = "0.25.0"
 
 [lib]
 proc-macro = true

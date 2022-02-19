@@ -7,7 +7,7 @@ license = "MIT"
 name = "ruma-events"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.24.6"
+version = "0.25.0"
 edition = "2018"
 
 [package.metadata.docs.rs]
@@ -32,7 +32,7 @@ indoc = "1.0"
 js_int = { version = "0.2.0", features = ["serde"] }
 pulldown-cmark = { version = "0.8", default-features = false, optional = true }
 ruma-common = { version = "0.7.0", path = "../ruma-common" }
-ruma-events-macros = { version = "=0.24.6", path = "../ruma-events-macros" }
+ruma-events-macros = { version = "=0.25.0", path = "../ruma-events-macros" }
 ruma-identifiers = { version = "0.21.0", path = "../ruma-identifiers", features = ["serde"] }
 ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }

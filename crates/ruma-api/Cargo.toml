@@ -35,5 +35,5 @@ tracing = "0.1.25"
 
 [dev-dependencies]
 matches = "0.1.8"
-ruma-events = { version = "0.24.6", path = "../ruma-events" }
+ruma-events = { version = "0.25.0", path = "../ruma-events" }
 trybuild = "1.0.38"
