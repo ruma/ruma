@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.13.0
+
 Bug fixes:
 
 * Fix deserialization of `r0::session::get_login_types::CustomLoginType`.
