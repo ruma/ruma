@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.10.0
+
 Breaking changes:
 
 * Merge `SplitError` into `Error`
