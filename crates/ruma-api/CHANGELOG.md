@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.20.0
+
+Breaking changes:
+
+* Bump dependencies
+
 # 0.19.0
 
 Breaking changes:
