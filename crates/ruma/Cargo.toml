@@ -141,7 +141,7 @@ __ci = [
 assign = "1.1.1"
 js_int = "0.2.0"
 
-ruma-common = { version = "0.7.0", path = "../ruma-common" }
+ruma-common = { version = "0.8.0", path = "../ruma-common" }
 ruma-identifiers = { version = "0.22.0", path = "../ruma-identifiers", features = ["serde"] }
 ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 

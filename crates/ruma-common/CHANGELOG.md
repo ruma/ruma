@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.8.0
+
+Breaking changes:
+
+* Update `ruma-identifiers` dependency
+
 # 0.7.0
 
 Breaking changes:
