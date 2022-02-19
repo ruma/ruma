@@ -131,7 +131,7 @@ pub enum MatrixIdError {
     UnknownIdentifierPair,
 }
 
-/// An error occurred while validating an MXC URI.
+/// An error occurred while validating a `matrix.to` URI.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, thiserror::Error)]
 #[non_exhaustive]
 pub enum MatrixToError {
