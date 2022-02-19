@@ -2,9 +2,11 @@
 
 use std::net::Ipv4Addr;
 
-/// A Matrix-spec compliant server name.
+/// A Matrix-spec compliant [server name].
 ///
 /// It consists of a host and an optional port (separated by a colon if present).
+///
+/// [server name]: https://spec.matrix.org/v1.2/appendices/#server-name
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ServerName(str);

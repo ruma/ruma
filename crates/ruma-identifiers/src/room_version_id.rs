@@ -6,7 +6,7 @@ use ruma_serde_macros::DisplayAsRefStr;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-/// A Matrix room version ID.
+/// A Matrix [room version] ID.
 ///
 /// A `RoomVersionId` can be or converted or deserialized from a string slice, and can be converted
 /// or serialized back into a string as needed.
@@ -21,6 +21,8 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 /// Custom room versions or ones that were introduced into the specification after this code was
 /// written are represented by a hidden enum variant. You can still construct them the same, and
 /// check for them using one of `RoomVersionId`s `PartialEq` implementations or through `.as_str()`.
+///
+/// [room version]: https://spec.matrix.org/v1.2/rooms/
 #[derive(Clone, Debug, PartialEq, Eq, Hash, DisplayAsRefStr)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum RoomVersionId {

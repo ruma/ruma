@@ -159,10 +159,12 @@ impl From<(&RoomAliasId, &EventId)> for MatrixId {
     }
 }
 
-/// The `matrix.to` URI representation of a user, room or event.
+/// The [`matrix.to` URI] representation of a user, room or event.
 ///
 /// Get the URI through its `Display` implementation (i.e. by interpolating it
 /// in a formatting macro or via `.to_string()`).
+///
+/// [`matrix.to` URI]: https://spec.matrix.org/v1.2/appendices/#matrixto-navigation
 #[derive(Debug, PartialEq, Eq)]
 pub struct MatrixToUri {
     id: MatrixId,

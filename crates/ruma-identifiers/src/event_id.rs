@@ -2,7 +2,7 @@
 
 use crate::ServerName;
 
-/// A Matrix event ID.
+/// A Matrix [event ID].
 ///
 /// An `EventId` is generated randomly or converted from a string slice, and can be converted back
 /// into a string as needed.
@@ -32,6 +32,8 @@ use crate::ServerName;
 ///     "$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg"
 /// );
 /// ```
+///
+/// [event ID]: https://spec.matrix.org/v1.2/appendices/#room-ids-and-event-ids
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct EventId(str);

@@ -2,7 +2,7 @@
 
 use crate::{server_name::ServerName, EventId, MatrixToUri};
 
-/// A Matrix room alias ID.
+/// A Matrix [room alias ID].
 ///
 /// A `RoomAliasId` is converted from a string slice, and can be converted back into a string as
 /// needed.
@@ -12,6 +12,8 @@ use crate::{server_name::ServerName, EventId, MatrixToUri};
 /// # use ruma_identifiers::RoomAliasId;
 /// assert_eq!(<&RoomAliasId>::try_from("#ruma:example.com").unwrap(), "#ruma:example.com");
 /// ```
+///
+/// [room alias ID]: https://spec.matrix.org/v1.2/appendices/#room-aliases
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct RoomAliasId(str);

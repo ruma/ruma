@@ -2,7 +2,7 @@
 
 use crate::{EventId, MatrixToUri, ServerName};
 
-/// A Matrix room ID.
+/// A Matrix [room ID].
 ///
 /// A `RoomId` is generated randomly or converted from a string slice, and can be converted back
 /// into a string as needed.
@@ -12,6 +12,8 @@ use crate::{EventId, MatrixToUri, ServerName};
 /// # use ruma_identifiers::RoomId;
 /// assert_eq!(<&RoomId>::try_from("!n8f893n9:example.com").unwrap(), "!n8f893n9:example.com");
 /// ```
+///
+/// [room ID]: https://spec.matrix.org/v1.2/appendices/#room-ids-and-event-ids
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct RoomId(str);

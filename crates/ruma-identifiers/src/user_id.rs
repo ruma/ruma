@@ -4,7 +4,7 @@ use std::{rc::Rc, sync::Arc};
 
 use crate::{MatrixToUri, ServerName};
 
-/// A Matrix user ID.
+/// A Matrix [user ID].
 ///
 /// A `UserId` is generated randomly or converted from a string slice, and can be converted back
 /// into a string as needed.
@@ -14,6 +14,8 @@ use crate::{MatrixToUri, ServerName};
 /// # use ruma_identifiers::UserId;
 /// assert_eq!(<&UserId>::try_from("@carl:example.com").unwrap(), "@carl:example.com");
 /// ```
+///
+/// [user ID]: https://spec.matrix.org/v1.2/appendices/#user-identifiers
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct UserId(str);
