@@ -1,11 +1,21 @@
 # [unreleased]
 
-Breaking changes:
+# 0.5.0
 
-* Update `send_{message,state}_event::Request::new`'s `content` parameters to be
-  generic, such that custom events can easily be sent
-  * To migrate, simply stop wrapping content structs in `AnyMessageEventContent`
-    before passing them to those constructors
+Please refer to the changelogs of:
+
+* ruma-identifiers 0.21.0 and 0.22.0
+* ruma-common 0.7.0 and 0.8.0
+* ruma-events 0.25.0 and 0.26.0
+* ruma-appservice-api 0.5.0
+* ruma-client-api 0.13.0
+* ruma-federation-api 0.4.0
+* ruma-identity-service-api 0.4.0
+* ruma-push-gateway-api 0.4.0
+* ruma-client 0.8.0
+* ruma-serde 0.6.0
+* ruma-signatures 0.10.0
+* ruma-state-res 0.6.0
 
 # 0.4.0
 
