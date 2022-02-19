@@ -41,7 +41,7 @@ hyper-rustls-crate = { package = "hyper-rustls", version = "0.22.1", optional = 
 hyper-tls = { version = "0.5.0", optional = true }
 isahc-crate = { package = "isahc", version = "1.3.1", optional = true }
 reqwest = { version = "0.11.4", optional = true, default-features = false }
-ruma-api = { version = "0.18.5", path = "../ruma-api" }
+ruma-api = { version = "0.19.0", path = "../ruma-api" }
 ruma-client-api = { version = "0.12.3", path = "../ruma-client-api", optional = true, features = ["client"] }
 ruma-common = { version = "0.7.0", path = "../ruma-common" }
 ruma-identifiers = { version = "0.21.0", path = "../ruma-identifiers" }
