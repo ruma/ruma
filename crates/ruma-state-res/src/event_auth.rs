@@ -982,7 +982,7 @@ mod tests {
     use crate::{
         event_auth::valid_membership_change,
         test_utils::{
-            alice, bob, charlie, ella, event_id, member_content_ban, member_content_join, room_id,
+            alice, charlie, ella, event_id, member_content_ban, member_content_join, room_id,
             to_pdu_event, StateEvent, INITIAL_EVENTS, INITIAL_EVENTS_CREATE_ROOM,
         },
         Event, RoomVersion, StateMap,
@@ -1184,20 +1184,8 @@ mod tests {
             &["IPOWER"],
         );
 
-        let mut member = RoomMemberEventContent::new(MembershipState::Invite);
+        let mut member = RoomMemberEventContent::new(MembershipState::Join);
         member.join_authorized_via_users_server = Some(alice());
-        events.insert(
-            event_id("new"),
-            to_pdu_event(
-                "new",
-                bob(),
-                EventType::RoomMember,
-                Some(ella().as_str()),
-                to_raw_json_value(&member).unwrap(),
-                &["CREATE", "IJR", "IPOWER"],
-                &["IMC"],
-            ),
-        );
 
         let auth_events = events
             .values()
