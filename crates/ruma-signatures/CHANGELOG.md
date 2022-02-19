@@ -3,6 +3,7 @@
 Breaking changes:
 
 * Merge `SplitError` into `Error`
+* Update some function signatures to use the new `Base64` type
 
 Improvements:
 
