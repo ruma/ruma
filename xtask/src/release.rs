@@ -416,6 +416,8 @@ impl VersionExt for Version {
                 return true;
             }
 
+            next.pre = semver::Prerelease::EMPTY;
+            next.patch = 0;
             next.minor += 1;
             if next == *version {
                 return true;
@@ -426,6 +428,8 @@ impl VersionExt for Version {
                 return true;
             }
 
+            next.pre = semver::Prerelease::EMPTY;
+            next.minor = 0;
             next.major += 1;
             if next == *version {
                 return true;
@@ -433,6 +437,7 @@ impl VersionExt for Version {
 
             next.add_pre_release();
         }
+
         next == *version
     }
 }
