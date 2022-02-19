@@ -20,7 +20,7 @@ unstable-exhaustive-types = []
 [dependencies]
 base64 = "0.13.0"
 ed25519-dalek = "1.0.1"
-pkcs8 = { version = "0.7.0", features = ["alloc"] }
+pkcs8 = { version = "0.8.0", features = ["alloc"] }
 # because dalek uses an older version of rand_core
 rand = { version = "0.7", features = ["getrandom"] }
 ruma-identifiers = { version = "0.21.0", path = "../ruma-identifiers" }

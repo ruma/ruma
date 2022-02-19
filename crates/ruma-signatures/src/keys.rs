@@ -58,8 +58,8 @@ impl Ed25519KeyPair {
 
             if oak_key != derived_pubkey.as_bytes() {
                 return Err(ParseError::derived_vs_parsed_mismatch(
-                    oak_key,
-                    derived_pubkey.as_bytes().to_vec(),
+                    oak_key.into(),
+                    (*derived_pubkey.as_bytes()).into(),
                 ));
             }
         }
@@ -139,7 +139,6 @@ impl Ed25519KeyPair {
         let pkinfo = PrivateKeyInfo {
             algorithm: AlgorithmIdentifier { oid: ED25519_OID, parameters: None },
             private_key: private.as_ref(),
-            attributes: None,
             public_key: Some(public.as_bytes()),
         };
 

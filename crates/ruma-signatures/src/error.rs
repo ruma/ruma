@@ -241,15 +241,8 @@ impl ParseError {
         Self::ServerNameFromEventIdByRoomVersion(event_id.to_owned(), room_version.clone()).into()
     }
 
-    pub(crate) fn derived_vs_parsed_mismatch<P: Into<Vec<u8>>, D: Into<Vec<u8>>>(
-        parsed: P,
-        derived: D,
-    ) -> Error {
-        Self::DerivedPublicKeyDoesNotMatchParsedKey {
-            parsed_key: parsed.into(),
-            derived_key: derived.into(),
-        }
-        .into()
+    pub(crate) fn derived_vs_parsed_mismatch(parsed_key: Vec<u8>, derived_key: Vec<u8>) -> Error {
+        Self::DerivedPublicKeyDoesNotMatchParsedKey { parsed_key, derived_key }.into()
     }
 
     pub(crate) fn base64<T1: Into<String>, T2: Into<String>>(
