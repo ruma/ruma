@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.7.0
+
+Improvements:
+
+* Add more `Error` variants
+
 # 0.6.0
 
 Breaking changes:
