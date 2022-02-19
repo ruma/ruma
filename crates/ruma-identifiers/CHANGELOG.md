@@ -7,6 +7,7 @@ Breaking changes:
 Improvements:
 
 * Add `MatrixUri` to build `matrix:` URIs
+* Add `ClientSecret::new()` with the `rand` feature to generate a random client secret
 
 # 0.21.0
 
