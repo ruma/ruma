@@ -31,7 +31,7 @@ criterion = { version = "0.3.3", optional = true }
 indoc = "1.0"
 js_int = { version = "0.2.0", features = ["serde"] }
 pulldown-cmark = { version = "0.8", default-features = false, optional = true }
-ruma-common = { version = "0.6.0", path = "../ruma-common" }
+ruma-common = { version = "0.7.0", path = "../ruma-common" }
 ruma-events-macros = { version = "=0.24.6", path = "../ruma-events-macros" }
 ruma-identifiers = { version = "0.21.0", path = "../ruma-identifiers", features = ["serde"] }
 ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
