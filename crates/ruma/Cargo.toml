@@ -143,7 +143,7 @@ js_int = "0.2.0"
 
 ruma-common = { version = "0.6.0", path = "../ruma-common" }
 ruma-identifiers = { version = "0.20.0", path = "../ruma-identifiers", features = ["serde"] }
-ruma-serde = { version = "0.5.0", path = "../ruma-serde" }
+ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 
 ruma-client = { version = "0.7.0", path = "../ruma-client", optional = true }
 ruma-events = { version = "0.24.6", path = "../ruma-events", optional = true }

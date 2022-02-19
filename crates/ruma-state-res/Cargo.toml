@@ -26,7 +26,7 @@ js_int = "0.2.0"
 ruma-common = { version = "0.6.0", path = "../ruma-common" }
 ruma-events = { version = "0.24.6", path = "../ruma-events" }
 ruma-identifiers = { version = "0.20.0", path = "../ruma-identifiers" }
-ruma-serde = { version = "0.5.0", path = "../ruma-serde" }
+ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.60"
 thiserror = "1.0.26"

@@ -34,7 +34,7 @@ pulldown-cmark = { version = "0.8", default-features = false, optional = true }
 ruma-common = { version = "0.6.0", path = "../ruma-common" }
 ruma-events-macros = { version = "=0.24.6", path = "../ruma-events-macros" }
 ruma-identifiers = { version = "0.20.0", path = "../ruma-identifiers", features = ["serde"] }
-ruma-serde = { version = "0.5.0", path = "../ruma-serde" }
+ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = { version = "1.0.60", features = ["raw_value"] }
 thiserror = "1.0.26"
