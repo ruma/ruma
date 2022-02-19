@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.5.0
+
 Breaking changes:
 
 * Remove some trait methods from `Event`
