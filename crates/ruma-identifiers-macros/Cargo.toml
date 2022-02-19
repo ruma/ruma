@@ -5,7 +5,7 @@ keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"
 name = "ruma-identifiers-macros"
 repository = "https://github.com/ruma/ruma"
-version = "0.20.0"
+version = "0.21.0"
 edition = "2018"
 
 [lib]

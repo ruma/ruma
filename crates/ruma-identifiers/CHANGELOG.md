@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.21.0
+
 Breaking changes:
 
 * Make almost all identifier types dynamically-sized types that wrap `str`
@@ -15,7 +17,7 @@ Breaking changes:
 Improvements:
 
 * Add `host`, `port` and `is_ip_literal` methods to `ServerName`
-* Add `matrix_uri::MatrixToUri` to build `matrix.to` URIs
+* Add `MatrixToUri` to build `matrix.to` URIs
 
 Bug fixes:
 

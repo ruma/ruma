@@ -142,7 +142,7 @@ assign = "1.1.1"
 js_int = "0.2.0"
 
 ruma-common = { version = "0.6.0", path = "../ruma-common" }
-ruma-identifiers = { version = "0.20.0", path = "../ruma-identifiers", features = ["serde"] }
+ruma-identifiers = { version = "0.21.0", path = "../ruma-identifiers", features = ["serde"] }
 ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 
 ruma-client = { version = "0.7.0", path = "../ruma-client", optional = true }
