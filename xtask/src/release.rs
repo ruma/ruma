@@ -416,6 +416,7 @@ impl VersionExt for Version {
                 return true;
             }
 
+            next.patch = 0;
             next.minor += 1;
             if next == *version {
                 return true;
@@ -426,6 +427,7 @@ impl VersionExt for Version {
                 return true;
             }
 
+            next.minor = 0;
             next.major += 1;
             if next == *version {
                 return true;
