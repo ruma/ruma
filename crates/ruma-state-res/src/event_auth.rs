@@ -518,7 +518,8 @@ fn valid_membership_change(
                 warn!(?target_user_membership_event_id, "Banned user can't join");
                 false
             } else {
-                let invite_allowed = join_rules == JoinRule::Invite
+                let invite_allowed = (join_rules == JoinRule::Invite
+                    || room_version.allow_knocking && join_rules == JoinRule::Knock)
                     && (target_user_current_membership == MembershipState::Join
                         || target_user_current_membership == MembershipState::Invite);
 
