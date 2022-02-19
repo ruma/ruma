@@ -24,7 +24,7 @@ dependencies:
 
 ```toml
 # crates.io release
-ruma = { version = "0.4.0", features = ["..."] }
+ruma = { version = "0.5.0", features = ["..."] }
 # git dependency
 ruma = { git = "https://github.com/ruma/ruma", branch = "main", features = ["..."] }
 ```
