@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.26.0
+
+Breaking changes:
+
+* Bump versions of `ruma-common`, `ruma-idenfiers`
+
 # 0.25.0
 
 Breaking changes:
