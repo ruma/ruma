@@ -32,7 +32,7 @@ pub use crate::{
     event_id::EventId,
     key_id::{DeviceSigningKeyId, KeyId, ServerSigningKeyId, SigningKeyId},
     key_name::KeyName,
-    matrix_uri::MatrixToUri,
+    matrix_uri::{MatrixToUri, MatrixUri},
     mxc_uri::MxcUri,
     room_alias_id::RoomAliasId,
     room_id::RoomId,

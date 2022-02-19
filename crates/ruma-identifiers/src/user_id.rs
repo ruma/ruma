@@ -2,7 +2,7 @@
 
 use std::{rc::Rc, sync::Arc};
 
-use crate::{MatrixToUri, ServerName};
+use crate::{matrix_uri::UriAction, MatrixToUri, MatrixUri, ServerName};
 
 /// A Matrix user ID.
 ///
@@ -118,6 +118,26 @@ impl UserId {
     /// ```
     pub fn matrix_to_uri(&self) -> MatrixToUri {
         MatrixToUri::new(self.into(), Vec::new())
+    }
+
+    /// Create a `matrix:` URI for this user ID.
+    ///
+    /// If `chat` is `true`, a click on the URI should start a direct message
+    /// with the user.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ruma_identifiers::user_id;
+    ///
+    /// let message = format!(
+    ///     r#"Thanks for the update <a href="{link}">{display_name}</a>."#,
+    ///     link = user_id!("@jplatte:notareal.hs").matrix_uri(false),
+    ///     display_name = "jplatte",
+    /// );
+    /// ```
+    pub fn matrix_uri(&self, chat: bool) -> MatrixUri {
+        MatrixUri::new(self.into(), Vec::new(), Some(UriAction::Chat).filter(|_| chat))
     }
 
     fn colon_idx(&self) -> usize {

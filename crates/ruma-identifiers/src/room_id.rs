@@ -1,6 +1,6 @@
 //! Matrix room identifiers.
 
-use crate::{EventId, MatrixToUri, ServerName};
+use crate::{matrix_uri::UriAction, EventId, MatrixToUri, MatrixUri, ServerName};
 
 /// A Matrix room ID.
 ///
@@ -59,6 +59,43 @@ impl RoomId {
     /// Create a `matrix.to` URI for an event scoped under this room ID.
     pub fn matrix_to_event_uri(&self, ev_id: &EventId) -> MatrixToUri {
         MatrixToUri::new((self, ev_id).into(), Vec::new())
+    }
+
+    /// Create a `matrix:` URI for this room ID.
+    ///
+    /// If `join` is `true`, a click on the URI should join the room.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ruma_identifiers::{room_id, server_name};
+    ///
+    /// assert_eq!(
+    ///     room_id!("!somewhere:example.org")
+    ///         .matrix_uri([&*server_name!("example.org"), &*server_name!("alt.example.org")], true)
+    ///         .to_string(),
+    ///     "matrix:roomid/somewhere:example.org?via=example.org&via=alt.example.org&action=join"
+    /// );
+    /// ```
+    pub fn matrix_uri<'a>(
+        &self,
+        via: impl IntoIterator<Item = &'a ServerName>,
+        join: bool,
+    ) -> MatrixUri {
+        MatrixUri::new(
+            self.into(),
+            via.into_iter().collect(),
+            Some(UriAction::Join).filter(|_| join),
+        )
+    }
+
+    /// Create a `matrix:` URI for an event scoped under this room ID.
+    pub fn matrix_event_uri<'a>(
+        &self,
+        ev_id: &EventId,
+        via: impl IntoIterator<Item = &'a ServerName>,
+    ) -> MatrixUri {
+        MatrixUri::new((self, ev_id).into(), via.into_iter().collect(), None)
     }
 
     fn colon_idx(&self) -> usize {
