@@ -4,6 +4,10 @@ Breaking changes:
 
 * Rename `matrix_to_(event_)url` methods to `matrix_to_(event_)uri`
 
+Improvements:
+
+* Add `MatrixUri` to build `matrix:` URIs
+
 # 0.21.0
 
 Breaking changes:

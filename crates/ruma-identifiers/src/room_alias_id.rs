@@ -1,6 +1,6 @@
 //! Matrix room alias identifiers.
 
-use crate::{server_name::ServerName, EventId, MatrixToUri};
+use crate::{matrix_uri::UriAction, server_name::ServerName, EventId, MatrixToUri, MatrixUri};
 
 /// A Matrix [room alias ID].
 ///
@@ -39,6 +39,18 @@ impl RoomAliasId {
     /// Create a `matrix.to` URI for an event scoped under this room alias ID.
     pub fn matrix_to_event_uri(&self, ev_id: &EventId) -> MatrixToUri {
         MatrixToUri::new((self, ev_id).into(), Vec::new())
+    }
+
+    /// Create a `matrix:` URI for this room alias ID.
+    ///
+    /// If `join` is `true`, a click on the URI should join the room.
+    pub fn matrix_uri(&self, join: bool) -> MatrixUri {
+        MatrixUri::new(self.into(), Vec::new(), Some(UriAction::Join).filter(|_| join))
+    }
+
+    /// Create a `matrix:` URI for an event scoped under this room alias ID.
+    pub fn matrix_event_uri(&self, ev_id: &EventId) -> MatrixUri {
+        MatrixUri::new((self, ev_id).into(), Vec::new(), None)
     }
 
     fn colon_idx(&self) -> usize {

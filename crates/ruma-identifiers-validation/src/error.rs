@@ -40,6 +40,10 @@ pub enum Error {
     #[error("invalid matrix.to URI: {0}")]
     InvalidMatrixToRef(#[from] MatrixToError),
 
+    /// The string isn't a valid Matrix URI.
+    #[error("invalid matrix URI: {0}")]
+    InvalidMatrixUri(#[from] MatrixUriError),
+
     /// The mxc:// isn't a valid Matrix Content URI.
     #[error("invalid Matrix Content URI: {0}")]
     InvalidMxcUri(#[from] MxcUriError),
@@ -110,6 +114,10 @@ pub enum MxcUriError {
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, thiserror::Error)]
 #[non_exhaustive]
 pub enum MatrixIdError {
+    /// The string contains an invalid number of parts.
+    #[error("invalid number of parts")]
+    InvalidPartsNumber,
+
     /// The string is missing a room ID or alias.
     #[error("missing room ID or alias")]
     MissingRoom,
@@ -129,6 +137,10 @@ pub enum MatrixIdError {
     /// The string contains two identifiers that cannot be paired.
     #[error("unknown identifier pair")]
     UnknownIdentifierPair,
+
+    /// The string contains an unknown identifier type.
+    #[error("unknown identifier type")]
+    UnknownType,
 }
 
 /// An error occurred while validating a `matrix.to` URI.
@@ -142,4 +154,21 @@ pub enum MatrixToError {
     /// String has an unknown additional argument.
     #[error("unknown additional argument")]
     UnknownArgument,
+}
+
+/// An error occurred while validating a `MatrixURI`.
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, thiserror::Error)]
+#[non_exhaustive]
+pub enum MatrixUriError {
+    /// The string does not start with `matrix:`.
+    #[error("scheme is not 'matrix:'")]
+    WrongScheme,
+
+    /// The string contains too many actions.
+    #[error("too many actions")]
+    TooManyActions,
+
+    /// The string contains an unknown query item.
+    #[error("unknown query item")]
+    UnknownQueryItem,
 }

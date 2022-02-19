@@ -4,18 +4,23 @@ use std::{convert::TryFrom, fmt};
 
 use percent_encoding::{percent_decode_str, percent_encode, AsciiSet, CONTROLS};
 use ruma_identifiers_validation::{
-    error::{MatrixIdError, MatrixToError},
+    error::{MatrixIdError, MatrixToError, MatrixUriError},
     Error,
 };
 use url::Url;
 
-use crate::{EventId, RoomAliasId, RoomId, RoomOrAliasId, ServerName, UserId};
+use crate::{EventId, PrivOwnedStr, RoomAliasId, RoomId, RoomOrAliasId, ServerName, UserId};
 
 const MATRIX_TO_BASE_URL: &str = "https://matrix.to/#/";
+const MATRIX_SCHEME: &str = "matrix";
+// Controls + Space + non-path characters from RFC 3986. In practice only the
+// non-path characters will be encountered most likely, but better be safe.
+// https://datatracker.ietf.org/doc/html/rfc3986/#page-23
+const NON_PATH: &AsciiSet = &CONTROLS.add(b'/').add(b'?').add(b'#').add(b'[').add(b']');
 // Controls + Space + reserved characters from RFC 3986. In practice only the
 // reserved characters will be encountered most likely, but better be safe.
 // https://datatracker.ietf.org/doc/html/rfc3986/#page-13
-const TO_ENCODE: &AsciiSet = &CONTROLS
+const RESERVED: &AsciiSet = &CONTROLS
     .add(b':')
     .add(b'/')
     .add(b'?')
@@ -101,6 +106,41 @@ impl MatrixId {
         }
     }
 
+    /// Try parsing a `&str` with types into a `MatrixId`.
+    ///
+    /// The identifiers are expected to be in the format
+    /// `type/identifier_without_sigil` and the identifier part is expected to
+    /// be percent encoded. Slashes at the beginning and the end are stripped.
+    ///
+    /// For events, the room ID or alias and the event ID should be separated by
+    /// a slash and they can be in any order.
+    pub(crate) fn parse_with_type(s: &str) -> Result<Self, Error> {
+        let s = if let Some(stripped) = s.strip_prefix('/') { stripped } else { s };
+        let s = if let Some(stripped) = s.strip_suffix('/') { stripped } else { s };
+        if s.is_empty() {
+            return Err(MatrixIdError::NoIdentifier.into());
+        }
+
+        if ![1, 3].contains(&s.matches('/').count()) {
+            return Err(MatrixIdError::InvalidPartsNumber.into());
+        }
+
+        let mut id = String::new();
+        let mut split = s.split('/');
+        while let (Some(type_), Some(id_without_sigil)) = (split.next(), split.next()) {
+            let sigil = match type_ {
+                "u" | "user" => '@',
+                "r" | "room" => '#',
+                "e" | "event" => '$',
+                "roomid" => '!',
+                _ => return Err(MatrixIdError::UnknownType.into()),
+            };
+            id = format!("{}/{}{}", id, sigil, id_without_sigil);
+        }
+
+        Self::parse_with_sigil(&id)
+    }
+
     /// Construct a string with sigils from `self`.
     ///
     /// The identifiers will start with a sigil and be percent encoded.
@@ -109,16 +149,46 @@ impl MatrixId {
     /// a slash.
     pub(crate) fn to_string_with_sigil(&self) -> String {
         match self {
-            Self::Room(room_id) => percent_encode(room_id.as_bytes(), TO_ENCODE).to_string(),
+            Self::Room(room_id) => percent_encode(room_id.as_bytes(), RESERVED).to_string(),
             Self::RoomAlias(room_alias) => {
-                percent_encode(room_alias.as_bytes(), TO_ENCODE).to_string()
+                percent_encode(room_alias.as_bytes(), RESERVED).to_string()
             }
-            Self::User(user_id) => percent_encode(user_id.as_bytes(), TO_ENCODE).to_string(),
+            Self::User(user_id) => percent_encode(user_id.as_bytes(), RESERVED).to_string(),
             Self::Event(room_id, event_id) => format!(
                 "{}/{}",
-                percent_encode(room_id.as_bytes(), TO_ENCODE),
-                percent_encode(event_id.as_bytes(), TO_ENCODE),
+                percent_encode(room_id.as_bytes(), RESERVED),
+                percent_encode(event_id.as_bytes(), RESERVED),
             ),
+        }
+    }
+
+    /// Construct a string with types from `self`.
+    ///
+    /// The identifiers will be in the format `type/identifier_without_sigil`
+    /// and the identifier part will be percent encoded.
+    ///
+    /// For events, the room ID or alias and the event ID will be separated by
+    /// a slash.
+    pub(crate) fn to_string_with_type(&self) -> String {
+        match self {
+            Self::Room(room_id) => {
+                format!("roomid/{}", percent_encode(&room_id.as_bytes()[1..], NON_PATH))
+            }
+            Self::RoomAlias(room_alias) => {
+                format!("r/{}", percent_encode(&room_alias.as_bytes()[1..], NON_PATH))
+            }
+            Self::User(user_id) => {
+                format!("u/{}", percent_encode(&user_id.as_bytes()[1..], NON_PATH))
+            }
+            Self::Event(room_id, event_id) => {
+                let room_type = if room_id.is_room_id() { "roomid" } else { "r" };
+                format!(
+                    "{}/{}/e/{}",
+                    room_type,
+                    percent_encode(&room_id.as_bytes()[1..], NON_PATH),
+                    percent_encode(&event_id.as_bytes()[1..], NON_PATH),
+                )
+            }
         }
     }
 }
@@ -236,16 +306,187 @@ impl TryFrom<&str> for MatrixToUri {
     }
 }
 
+/// The intent of a Matrix URI.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum UriAction {
+    /// Join the room referenced by the URI.
+    ///
+    /// The client should prompt for confirmation prior to joining the room, if
+    /// the user isn’t already part of the room.
+    Join,
+
+    /// Start a direct chat with the user referenced by the URI.
+    ///
+    /// Clients supporting a form of Canonical DMs should reuse existing DMs
+    /// instead of creating new ones if available. The client should prompt for
+    /// confirmation prior to creating the DM, if the user isn’t being
+    /// redirected to an existing canonical DM.
+    Chat,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}
+
+impl UriAction {
+    /// Creates a string slice from this `UriAction`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
+
+    fn from<T>(s: T) -> Self
+    where
+        T: AsRef<str> + Into<Box<str>>,
+    {
+        match s.as_ref() {
+            "join" => UriAction::Join,
+            "chat" => UriAction::Chat,
+            _ => UriAction::_Custom(PrivOwnedStr(s.into())),
+        }
+    }
+}
+
+impl AsRef<str> for UriAction {
+    fn as_ref(&self) -> &str {
+        match self {
+            UriAction::Join => "join",
+            UriAction::Chat => "chat",
+            UriAction::_Custom(s) => s.0.as_ref(),
+        }
+    }
+}
+
+impl fmt::Display for UriAction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_ref())?;
+        Ok(())
+    }
+}
+
+impl From<&str> for UriAction {
+    fn from(s: &str) -> Self {
+        Self::from(s)
+    }
+}
+
+impl From<String> for UriAction {
+    fn from(s: String) -> Self {
+        Self::from(s)
+    }
+}
+
+impl From<Box<str>> for UriAction {
+    fn from(s: Box<str>) -> Self {
+        Self::from(s)
+    }
+}
+
+/// The [`matrix:` URI] representation of a user, room or event.
+///
+/// Get the URI through its `Display` implementation (i.e. by interpolating it
+/// in a formatting macro or via `.to_string()`).
+///
+/// [`matrix:` URI]: https://spec.matrix.org/v1.2/appendices/#matrix-uri-scheme
+#[derive(Debug, PartialEq, Eq)]
+pub struct MatrixUri {
+    id: MatrixId,
+    via: Vec<Box<ServerName>>,
+    action: Option<UriAction>,
+}
+
+impl MatrixUri {
+    pub(crate) fn new(id: MatrixId, via: Vec<&ServerName>, action: Option<UriAction>) -> Self {
+        Self { id, via: via.into_iter().map(ToOwned::to_owned).collect(), action }
+    }
+
+    /// The identifier represented by this `matrix:` URI.
+    pub fn id(&self) -> &MatrixId {
+        &self.id
+    }
+
+    /// Matrix servers usable to route a `RoomId`.
+    pub fn via(&self) -> &[Box<ServerName>] {
+        &self.via
+    }
+
+    /// The intent of this URI.
+    pub fn action(&self) -> Option<&UriAction> {
+        self.action.as_ref()
+    }
+
+    /// Try parsing a `&str` into a `MatrixUri`.
+    pub fn parse(s: &str) -> Result<Self, Error> {
+        let url = Url::parse(s)?;
+
+        if url.scheme() != MATRIX_SCHEME {
+            return Err(MatrixUriError::WrongScheme.into());
+        }
+
+        let id = MatrixId::parse_with_type(url.path())?;
+
+        let mut via = vec![];
+        let mut action = None;
+
+        for (key, value) in url.query_pairs() {
+            if key.as_ref() == "via" {
+                via.push(ServerName::parse(value)?);
+            } else if key.as_ref() == "action" {
+                if action.is_some() {
+                    return Err(MatrixUriError::TooManyActions.into());
+                };
+
+                action = Some(value.as_ref().into());
+            } else {
+                return Err(MatrixUriError::UnknownQueryItem.into());
+            }
+        }
+
+        Ok(Self { id, via, action })
+    }
+}
+
+impl fmt::Display for MatrixUri {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}:{}", MATRIX_SCHEME, self.id().to_string_with_type())?;
+
+        let mut first = true;
+        for server_name in &self.via {
+            f.write_str(if first { "?via=" } else { "&via=" })?;
+            f.write_str(server_name.as_str())?;
+
+            first = false;
+        }
+
+        if let Some(action) = self.action() {
+            f.write_str(if first { "?action=" } else { "&action=" })?;
+            f.write_str(action.as_str())?;
+        }
+
+        Ok(())
+    }
+}
+
+impl TryFrom<&str> for MatrixUri {
+    type Error = Error;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        Self::parse(s)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use matches::assert_matches;
     use ruma_identifiers_validation::{
-        error::{MatrixIdError, MatrixToError},
+        error::{MatrixIdError, MatrixToError, MatrixUriError},
         Error,
     };
 
-    use super::{MatrixId, MatrixToUri};
-    use crate::{event_id, room_alias_id, room_id, server_name, user_id, RoomOrAliasId};
+    use super::{MatrixId, MatrixToUri, MatrixUri};
+    use crate::{
+        event_id, matrix_uri::UriAction, room_alias_id, room_id, server_name, user_id,
+        RoomOrAliasId,
+    };
 
     #[test]
     fn display_matrixtouri() {
@@ -475,5 +716,258 @@ mod tests {
             .unwrap_err(),
             MatrixToError::UnknownArgument.into()
         )
+    }
+
+    #[test]
+    fn display_matrixuri() {
+        assert_eq!(
+            user_id!("@jplatte:notareal.hs").matrix_uri(false).to_string(),
+            "matrix:u/jplatte:notareal.hs"
+        );
+        assert_eq!(
+            user_id!("@jplatte:notareal.hs").matrix_uri(true).to_string(),
+            "matrix:u/jplatte:notareal.hs?action=chat"
+        );
+        assert_eq!(
+            room_alias_id!("#ruma:notareal.hs").matrix_uri(false).to_string(),
+            "matrix:r/ruma:notareal.hs"
+        );
+        assert_eq!(
+            room_alias_id!("#ruma:notareal.hs").matrix_uri(true).to_string(),
+            "matrix:r/ruma:notareal.hs?action=join"
+        );
+        assert_eq!(
+            room_id!("!ruma:notareal.hs")
+                .matrix_uri(vec![server_name!("notareal.hs")], false)
+                .to_string(),
+            "matrix:roomid/ruma:notareal.hs?via=notareal.hs"
+        );
+        assert_eq!(
+            room_id!("!ruma:notareal.hs")
+                .matrix_uri(
+                    vec![server_name!("notareal.hs"), server_name!("anotherunreal.hs")],
+                    true
+                )
+                .to_string(),
+            "matrix:roomid/ruma:notareal.hs?via=notareal.hs&via=anotherunreal.hs&action=join"
+        );
+        assert_eq!(
+            room_alias_id!("#ruma:notareal.hs")
+                .matrix_event_uri(event_id!("$event:notareal.hs"))
+                .to_string(),
+            "matrix:r/ruma:notareal.hs/e/event:notareal.hs"
+        );
+        assert_eq!(
+            room_id!("!ruma:notareal.hs")
+                .matrix_event_uri(event_id!("$event:notareal.hs"), vec![])
+                .to_string(),
+            "matrix:roomid/ruma:notareal.hs/e/event:notareal.hs"
+        );
+    }
+
+    #[test]
+    fn parse_valid_matrixid_with_type() {
+        assert_eq!(
+            MatrixId::parse_with_type("u/user:imaginary.hs").expect("Failed to create MatrixId."),
+            MatrixId::User(user_id!("@user:imaginary.hs").into())
+        );
+        assert_eq!(
+            MatrixId::parse_with_type("user/user:imaginary.hs")
+                .expect("Failed to create MatrixId."),
+            MatrixId::User(user_id!("@user:imaginary.hs").into())
+        );
+        assert_eq!(
+            MatrixId::parse_with_type("roomid/roomid:imaginary.hs")
+                .expect("Failed to create MatrixId."),
+            MatrixId::Room(room_id!("!roomid:imaginary.hs").into())
+        );
+        assert_eq!(
+            MatrixId::parse_with_type("r/roomalias:imaginary.hs")
+                .expect("Failed to create MatrixId."),
+            MatrixId::RoomAlias(room_alias_id!("#roomalias:imaginary.hs").into())
+        );
+        assert_eq!(
+            MatrixId::parse_with_type("room/roomalias:imaginary.hs")
+                .expect("Failed to create MatrixId."),
+            MatrixId::RoomAlias(room_alias_id!("#roomalias:imaginary.hs").into())
+        );
+        assert_eq!(
+            MatrixId::parse_with_type("roomid/roomid:imaginary.hs/e/event:imaginary.hs")
+                .expect("Failed to create MatrixId."),
+            MatrixId::Event(
+                <&RoomOrAliasId>::from(room_id!("!roomid:imaginary.hs")).into(),
+                event_id!("$event:imaginary.hs").into()
+            )
+        );
+        assert_eq!(
+            MatrixId::parse_with_type("r/roomalias:imaginary.hs/e/event:imaginary.hs")
+                .expect("Failed to create MatrixId."),
+            MatrixId::Event(
+                <&RoomOrAliasId>::from(room_alias_id!("#roomalias:imaginary.hs")).into(),
+                event_id!("$event:imaginary.hs").into()
+            )
+        );
+        assert_eq!(
+            MatrixId::parse_with_type("room/roomalias:imaginary.hs/event/event:imaginary.hs")
+                .expect("Failed to create MatrixId."),
+            MatrixId::Event(
+                <&RoomOrAliasId>::from(room_alias_id!("#roomalias:imaginary.hs")).into(),
+                event_id!("$event:imaginary.hs").into()
+            )
+        );
+        // Invert the order of the event and the room.
+        assert_eq!(
+            MatrixId::parse_with_type("e/event:imaginary.hs/roomid/roomid:imaginary.hs")
+                .expect("Failed to create MatrixId."),
+            MatrixId::Event(
+                <&RoomOrAliasId>::from(room_id!("!roomid:imaginary.hs")).into(),
+                event_id!("$event:imaginary.hs").into()
+            )
+        );
+        assert_eq!(
+            MatrixId::parse_with_type("e/event:imaginary.hs/r/roomalias:imaginary.hs")
+                .expect("Failed to create MatrixId."),
+            MatrixId::Event(
+                <&RoomOrAliasId>::from(room_alias_id!("#roomalias:imaginary.hs")).into(),
+                event_id!("$event:imaginary.hs").into()
+            )
+        );
+        // Starting with a slash
+        assert_eq!(
+            MatrixId::parse_with_type("/u/user:imaginary.hs").expect("Failed to create MatrixId."),
+            MatrixId::User(user_id!("@user:imaginary.hs").into())
+        );
+        // Ending with a slash
+        assert_eq!(
+            MatrixId::parse_with_type("roomid/roomid:imaginary.hs/")
+                .expect("Failed to create MatrixId."),
+            MatrixId::Room(room_id!("!roomid:imaginary.hs").into())
+        );
+        // Starting and ending with a slash
+        assert_eq!(
+            MatrixId::parse_with_type("/r/roomalias:imaginary.hs/")
+                .expect("Failed to create MatrixId."),
+            MatrixId::RoomAlias(room_alias_id!("#roomalias:imaginary.hs").into())
+        );
+    }
+
+    #[test]
+    fn parse_matrixid_type_no_identifier() {
+        assert_eq!(MatrixId::parse_with_type("").unwrap_err(), MatrixIdError::NoIdentifier.into());
+        assert_eq!(MatrixId::parse_with_type("/").unwrap_err(), MatrixIdError::NoIdentifier.into());
+    }
+
+    #[test]
+    fn parse_matrixid_invalid_parts_number() {
+        assert_eq!(
+            MatrixId::parse_with_type("u/user:imaginary.hs/r/room:imaginary.hs/e").unwrap_err(),
+            MatrixIdError::InvalidPartsNumber.into()
+        );
+    }
+
+    #[test]
+    fn parse_matrixid_unknown_type() {
+        assert_eq!(
+            MatrixId::parse_with_type("notatype/fake:notareal.hs").unwrap_err(),
+            MatrixIdError::UnknownType.into()
+        );
+    }
+
+    #[test]
+    fn parse_matrixuri_valid_uris() {
+        let matrix_uri =
+            MatrixUri::parse("matrix:u/jplatte:notareal.hs").expect("Failed to create MatrixUri.");
+        assert_eq!(matrix_uri.id(), &user_id!("@jplatte:notareal.hs").into());
+        assert!(matrix_uri.action().is_none());
+
+        let matrix_uri = MatrixUri::parse("matrix:u/jplatte:notareal.hs?action=chat")
+            .expect("Failed to create MatrixUri.");
+        assert_eq!(matrix_uri.id(), &user_id!("@jplatte:notareal.hs").into());
+        assert_eq!(matrix_uri.action(), Some(&UriAction::Chat));
+
+        let matrix_uri =
+            MatrixUri::parse("matrix:r/ruma:notareal.hs").expect("Failed to create MatrixToUri.");
+        assert_eq!(matrix_uri.id(), &room_alias_id!("#ruma:notareal.hs").into());
+
+        let matrix_uri = MatrixUri::parse("matrix:roomid/ruma:notareal.hs?via=notareal.hs")
+            .expect("Failed to create MatrixToUri.");
+        assert_eq!(matrix_uri.id(), &room_id!("!ruma:notareal.hs").into());
+        assert_eq!(matrix_uri.via(), &vec![server_name!("notareal.hs").to_owned()]);
+        assert!(matrix_uri.action().is_none());
+
+        let matrix_uri = MatrixUri::parse("matrix:r/ruma:notareal.hs/e/event:notareal.hs")
+            .expect("Failed to create MatrixToUri.");
+        assert_eq!(
+            matrix_uri.id(),
+            &(room_alias_id!("#ruma:notareal.hs"), event_id!("$event:notareal.hs")).into()
+        );
+
+        let matrix_uri = MatrixUri::parse("matrix:roomid/ruma:notareal.hs/e/event:notareal.hs")
+            .expect("Failed to create MatrixToUri.");
+        assert_eq!(
+            matrix_uri.id(),
+            &(room_id!("!ruma:notareal.hs"), event_id!("$event:notareal.hs")).into()
+        );
+        assert!(matrix_uri.via().is_empty());
+        assert!(matrix_uri.action().is_none());
+
+        let matrix_uri =
+            MatrixUri::parse("matrix:roomid/ruma:notareal.hs/e/event:notareal.hs?via=notareal.hs&action=join&via=anotherinexistant.hs")
+                .expect("Failed to create MatrixToUri.");
+        assert_eq!(
+            matrix_uri.id(),
+            &(room_id!("!ruma:notareal.hs"), event_id!("$event:notareal.hs")).into()
+        );
+        assert_eq!(
+            matrix_uri.via(),
+            &vec![
+                server_name!("notareal.hs").to_owned(),
+                server_name!("anotherinexistant.hs").to_owned()
+            ]
+        );
+        assert_eq!(matrix_uri.action(), Some(&UriAction::Join));
+    }
+
+    #[test]
+    fn parse_matrixuri_invalid_uri() {
+        assert_eq!(MatrixUri::parse("").unwrap_err(), Error::InvalidUri);
+    }
+
+    #[test]
+    fn parse_matrixuri_wrong_scheme() {
+        assert_eq!(
+            MatrixUri::parse("unknown:u/user:notareal.hs").unwrap_err(),
+            MatrixUriError::WrongScheme.into()
+        );
+    }
+
+    #[test]
+    fn parse_matrixuri_too_many_actions() {
+        assert_eq!(
+            MatrixUri::parse("matrix:u/user:notareal.hs?action=chat&action=join").unwrap_err(),
+            MatrixUriError::TooManyActions.into()
+        );
+    }
+
+    #[test]
+    fn parse_matrixuri_unknown_query_item() {
+        assert_eq!(
+            MatrixUri::parse("matrix:roomid/roomid:notareal.hs?via=notareal.hs&fake=data")
+                .unwrap_err(),
+            MatrixUriError::UnknownQueryItem.into()
+        );
+    }
+
+    #[test]
+    fn parse_matrixuri_wrong_identifier() {
+        assert_matches!(
+            MatrixUri::parse("matrix:notanidentifier").unwrap_err(),
+            Error::InvalidMatrixId(_)
+        );
+        assert_matches!(MatrixUri::parse("matrix:").unwrap_err(), Error::InvalidMatrixId(_));
+        assert_matches!(
+            MatrixUri::parse("matrix:u/jplatte:notareal.hs/e/event:notareal.hs").unwrap_err(),
+            Error::InvalidMatrixId(_)
+        );
     }
 }
