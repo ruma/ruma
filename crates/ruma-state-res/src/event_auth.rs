@@ -285,8 +285,6 @@ pub fn auth_check<E: Event>(
             current_third_party_invite,
             power_levels_event.as_ref(),
             fetch_state(&EventType::RoomJoinRules, "").as_ref(),
-            join_authed_user.as_deref(),
-            join_authed_user_membership,
             user_for_join_auth.as_deref(),
             &user_for_join_auth_membership,
             room_create_event,
@@ -555,20 +553,16 @@ fn valid_membership_change(
                 ) {
                     // If membership state is join or invite, allow.
                     true
-                } else if !user_for_join_auth_is_valid {
+                } else {
                     // If the join_authorised_via_users_server key in content is not a user with
                     // sufficient permission to invite other users, reject.
-                    false
-                } else {
                     // Otherwise, allow.
-                    true
+                    user_for_join_auth_is_valid
                 }
-            } else if join_rules == JoinRule::Public {
-                // If the join_rule is public, allow.
-                true
             } else {
+                // If the join_rule is public, allow.
                 // Otherwise, reject.
-                false
+                join_rules == JoinRule::Public
             }
         }
         MembershipState::Invite => {
@@ -1032,7 +1026,7 @@ mod tests {
             fetch_state(EventType::RoomPowerLevels, "".to_owned()),
             fetch_state(EventType::RoomJoinRules, "".to_owned()),
             None,
-            None,
+            &MembershipState::Leave,
             fetch_state(EventType::RoomCreate, "".to_owned()).unwrap(),
         )
         .unwrap());
@@ -1076,7 +1070,7 @@ mod tests {
             fetch_state(EventType::RoomPowerLevels, "".to_owned()),
             fetch_state(EventType::RoomJoinRules, "".to_owned()),
             None,
-            None,
+            &MembershipState::Leave,
             fetch_state(EventType::RoomCreate, "".to_owned()).unwrap(),
         )
         .unwrap());
@@ -1120,7 +1114,7 @@ mod tests {
             fetch_state(EventType::RoomPowerLevels, "".to_owned()),
             fetch_state(EventType::RoomJoinRules, "".to_owned()),
             None,
-            None,
+            &MembershipState::Leave,
             fetch_state(EventType::RoomCreate, "".to_owned()).unwrap(),
         )
         .unwrap());
@@ -1164,7 +1158,7 @@ mod tests {
             fetch_state(EventType::RoomPowerLevels, "".to_owned()),
             fetch_state(EventType::RoomJoinRules, "".to_owned()),
             None,
-            None,
+            &MembershipState::Leave,
             fetch_state(EventType::RoomCreate, "".to_owned()).unwrap(),
         )
         .unwrap());
@@ -1237,7 +1231,7 @@ mod tests {
             fetch_state(EventType::RoomPowerLevels, "".to_owned()),
             fetch_state(EventType::RoomJoinRules, "".to_owned()),
             Some(&alice()),
-            Some(MembershipState::Join),
+            &MembershipState::Join,
             fetch_state(EventType::RoomCreate, "".to_owned()).unwrap(),
         )
         .unwrap());
@@ -1253,7 +1247,7 @@ mod tests {
             fetch_state(EventType::RoomPowerLevels, "".to_owned()),
             fetch_state(EventType::RoomJoinRules, "".to_owned()),
             Some(&ella()),
-            Some(MembershipState::Join),
+            &MembershipState::Leave,
             fetch_state(EventType::RoomCreate, "".to_owned()).unwrap(),
         )
         .unwrap());
@@ -1306,7 +1300,7 @@ mod tests {
             fetch_state(EventType::RoomPowerLevels, "".to_owned()),
             fetch_state(EventType::RoomJoinRules, "".to_owned()),
             None,
-            None,
+            &MembershipState::Leave,
             fetch_state(EventType::RoomCreate, "".to_owned()).unwrap(),
         )
         .unwrap());
