@@ -8,7 +8,7 @@ license = "MIT"
 name = "ruma-client"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.7.0"
+version = "0.8.0"
 
 [package.metadata.docs.rs]
 all-features = true

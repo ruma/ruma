@@ -1,5 +1,19 @@
 # [unreleased]
 
+# 0.8.0
+
+Breaking changes:
+
+* Upgrade dependencies
+* The whole `Client` is now feature-gated (`client-api` feature).
+  We may introduce a separate `FederationClient` and possibly other types like
+  that in the future.
+
+Improvements:
+
+* Rewrite `Client` initialization and store server-supported Matrix versions in
+  it, to determine whether to use stable, unstable or r0 paths for endpoints
+
 # 0.7.0
 
 Breaking changes:
