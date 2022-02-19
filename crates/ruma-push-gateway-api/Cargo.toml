@@ -22,7 +22,7 @@ js_int = { version = "0.2.0", features = ["serde"] }
 ruma-api = { version = "0.19.0", path = "../ruma-api" }
 ruma-common = { version = "0.7.0", path = "../ruma-common" }
 ruma-events = { version = "0.25.0", path = "../ruma-events" }
-ruma-identifiers = { version = "0.21.0", path = "../ruma-identifiers" }
+ruma-identifiers = { version = "0.22.0", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.61"
