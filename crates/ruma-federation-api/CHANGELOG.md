@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.4.0
+
 Breaking changes:
 
 * Replace `Raw<Pdu>` with `Box<RawJsonValue>` or `&RawJsonValue`
