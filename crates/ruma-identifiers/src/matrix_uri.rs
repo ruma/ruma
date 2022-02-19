@@ -226,6 +226,14 @@ impl fmt::Display for MatrixToUri {
     }
 }
 
+impl TryFrom<&str> for MatrixToUri {
+    type Error = Error;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        Self::parse(s)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use matches::assert_matches;
