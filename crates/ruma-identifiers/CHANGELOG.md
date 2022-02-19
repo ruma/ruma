@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Rename `matrix_to_(event_)url` methods to `matrix_to_(event_)uri`
+
 # 0.21.0
 
 Breaking changes:

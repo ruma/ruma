@@ -38,7 +38,7 @@ impl RoomId {
         ServerName::from_borrowed(&self.as_str()[self.colon_idx() + 1..])
     }
 
-    /// Create a `matrix.to` reference for this room ID.
+    /// Create a `matrix.to` URI for this room ID.
     ///
     /// # Example
     ///
@@ -47,17 +47,17 @@ impl RoomId {
     ///
     /// assert_eq!(
     ///     room_id!("!somewhere:example.org")
-    ///         .matrix_to_url([&*server_name!("example.org"), &*server_name!("alt.example.org")])
+    ///         .matrix_to_uri([&*server_name!("example.org"), &*server_name!("alt.example.org")])
     ///         .to_string(),
     ///     "https://matrix.to/#/%21somewhere%3Aexample.org?via=example.org&via=alt.example.org"
     /// );
     /// ```
-    pub fn matrix_to_url<'a>(&self, via: impl IntoIterator<Item = &'a ServerName>) -> MatrixToUri {
+    pub fn matrix_to_uri<'a>(&self, via: impl IntoIterator<Item = &'a ServerName>) -> MatrixToUri {
         MatrixToUri::new(self.into(), via.into_iter().collect())
     }
 
-    /// Create a `matrix.to` reference for an event scoped under this room ID.
-    pub fn matrix_to_event_url(&self, ev_id: &EventId) -> MatrixToUri {
+    /// Create a `matrix.to` URI for an event scoped under this room ID.
+    pub fn matrix_to_event_uri(&self, ev_id: &EventId) -> MatrixToUri {
         MatrixToUri::new((self, ev_id).into(), Vec::new())
     }
 

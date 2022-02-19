@@ -29,13 +29,13 @@ impl RoomAliasId {
         ServerName::from_borrowed(&self.as_str()[self.colon_idx() + 1..])
     }
 
-    /// Create a `matrix.to` reference for this room alias ID.
-    pub fn matrix_to_url(&self) -> MatrixToUri {
+    /// Create a `matrix.to` URI for this room alias ID.
+    pub fn matrix_to_uri(&self) -> MatrixToUri {
         MatrixToUri::new(self.into(), Vec::new())
     }
 
-    /// Create a `matrix.to` reference for an event scoped under this room alias ID.
-    pub fn matrix_to_event_url(&self, ev_id: &EventId) -> MatrixToUri {
+    /// Create a `matrix.to` URI for an event scoped under this room alias ID.
+    pub fn matrix_to_event_uri(&self, ev_id: &EventId) -> MatrixToUri {
         MatrixToUri::new((self, ev_id).into(), Vec::new())
     }
 

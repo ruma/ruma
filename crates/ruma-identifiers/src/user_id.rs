@@ -103,7 +103,7 @@ impl UserId {
         !localpart_is_fully_conforming(self.localpart()).unwrap()
     }
 
-    /// Create a `matrix.to` reference for this user ID.
+    /// Create a `matrix.to` URI for this user ID.
     ///
     /// # Example
     ///
@@ -112,11 +112,11 @@ impl UserId {
     ///
     /// let message = format!(
     ///     r#"Thanks for the update <a href="{link}">{display_name}</a>."#,
-    ///     link = user_id!("@jplatte:notareal.hs").matrix_to_url(),
+    ///     link = user_id!("@jplatte:notareal.hs").matrix_to_uri(),
     ///     display_name = "jplatte",
     /// );
     /// ```
-    pub fn matrix_to_url(&self) -> MatrixToUri {
+    pub fn matrix_to_uri(&self) -> MatrixToUri {
         MatrixToUri::new(self.into(), Vec::new())
     }
 

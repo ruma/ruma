@@ -240,28 +240,28 @@ mod tests {
     #[test]
     fn display_matrixtouri() {
         assert_eq!(
-            user_id!("@jplatte:notareal.hs").matrix_to_url().to_string(),
+            user_id!("@jplatte:notareal.hs").matrix_to_uri().to_string(),
             "https://matrix.to/#/%40jplatte%3Anotareal.hs"
         );
         assert_eq!(
-            room_alias_id!("#ruma:notareal.hs").matrix_to_url().to_string(),
+            room_alias_id!("#ruma:notareal.hs").matrix_to_uri().to_string(),
             "https://matrix.to/#/%23ruma%3Anotareal.hs"
         );
         assert_eq!(
             room_id!("!ruma:notareal.hs")
-                .matrix_to_url(vec![server_name!("notareal.hs")])
+                .matrix_to_uri(vec![server_name!("notareal.hs")])
                 .to_string(),
             "https://matrix.to/#/%21ruma%3Anotareal.hs?via=notareal.hs"
         );
         assert_eq!(
             room_alias_id!("#ruma:notareal.hs")
-                .matrix_to_event_url(event_id!("$event:notareal.hs"))
+                .matrix_to_event_uri(event_id!("$event:notareal.hs"))
                 .to_string(),
             "https://matrix.to/#/%23ruma%3Anotareal.hs/%24event%3Anotareal.hs"
         );
         assert_eq!(
             room_id!("!ruma:notareal.hs")
-                .matrix_to_event_url(event_id!("$event:notareal.hs"))
+                .matrix_to_event_uri(event_id!("$event:notareal.hs"))
                 .to_string(),
             "https://matrix.to/#/%21ruma%3Anotareal.hs/%24event%3Anotareal.hs"
         );
