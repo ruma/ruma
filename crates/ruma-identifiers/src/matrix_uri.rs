@@ -331,6 +331,17 @@ impl UriAction {
     pub fn as_str(&self) -> &str {
         self.as_ref()
     }
+
+    fn from<T>(s: T) -> Self
+    where
+        T: AsRef<str> + Into<Box<str>>,
+    {
+        match s.as_ref() {
+            "join" => UriAction::Join,
+            "chat" => UriAction::Chat,
+            _ => UriAction::_Custom(PrivOwnedStr(s.into())),
+        }
+    }
 }
 
 impl AsRef<str> for UriAction {
@@ -350,16 +361,21 @@ impl fmt::Display for UriAction {
     }
 }
 
-impl<T> From<T> for UriAction
-where
-    T: AsRef<str> + Into<Box<str>>,
-{
-    fn from(s: T) -> Self {
-        match s.as_ref() {
-            "join" => UriAction::Join,
-            "chat" => UriAction::Chat,
-            _ => UriAction::_Custom(PrivOwnedStr(s.into())),
-        }
+impl From<&str> for UriAction {
+    fn from(s: &str) -> Self {
+        Self::from(s)
+    }
+}
+
+impl From<String> for UriAction {
+    fn from(s: String) -> Self {
+        Self::from(s)
+    }
+}
+
+impl From<Box<str>> for UriAction {
+    fn from(s: Box<str>) -> Self {
+        Self::from(s)
     }
 }
 
