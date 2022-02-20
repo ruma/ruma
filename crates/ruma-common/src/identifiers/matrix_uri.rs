@@ -244,7 +244,7 @@ pub struct MatrixToUri {
 
 impl MatrixToUri {
     pub(crate) fn new(id: MatrixId, via: Vec<&ServerName>) -> Self {
-        Self { id, via: via.into_iter().map(ToOwned::to_owned).collect() }
+        Self { id, via: via.into_iter().map(Into::into).collect() }
     }
 
     /// The identifier represented by this `matrix.to` URI.
@@ -405,7 +405,7 @@ pub struct MatrixUri {
 
 impl MatrixUri {
     pub(crate) fn new(id: MatrixId, via: Vec<&ServerName>, action: Option<UriAction>) -> Self {
-        Self { id, via: via.into_iter().map(ToOwned::to_owned).collect(), action }
+        Self { id, via: via.into_iter().map(Into::into).collect(), action }
     }
 
     /// The identifier represented by this `matrix:` URI.
@@ -502,7 +502,7 @@ mod tests {
     use super::{MatrixId, MatrixToUri, MatrixUri};
     use crate::{
         event_id, matrix_uri::UriAction, room_alias_id, room_id, server_name, user_id,
-        RoomOrAliasId,
+        RoomOrAliasId, ServerName,
     };
 
     #[test]
@@ -676,7 +676,10 @@ mod tests {
             MatrixToUri::parse("https://matrix.to/#/%21ruma%3Anotareal.hs?via=notareal.hs")
                 .expect("Failed to create MatrixToUri.");
         assert_eq!(matrix_to.id(), &room_id!("!ruma:notareal.hs").into());
-        assert_eq!(matrix_to.via(), &vec![server_name!("notareal.hs").to_owned()]);
+        assert_eq!(
+            matrix_to.via(),
+            &vec![Into::<Box<ServerName>>::into(server_name!("notareal.hs"))]
+        );
 
         let matrix_to =
             MatrixToUri::parse("https://matrix.to/#/%23ruma%3Anotareal.hs/%24event%3Anotareal.hs")
@@ -909,7 +912,10 @@ mod tests {
         let matrix_uri = MatrixUri::parse("matrix:roomid/ruma:notareal.hs?via=notareal.hs")
             .expect("Failed to create MatrixToUri.");
         assert_eq!(matrix_uri.id(), &room_id!("!ruma:notareal.hs").into());
-        assert_eq!(matrix_uri.via(), &vec![server_name!("notareal.hs").to_owned()]);
+        assert_eq!(
+            matrix_uri.via(),
+            &vec![Into::<Box<ServerName>>::into(server_name!("notareal.hs"))]
+        );
         assert!(matrix_uri.action().is_none());
 
         let matrix_uri = MatrixUri::parse("matrix:r/ruma:notareal.hs/e/event:notareal.hs")
@@ -938,8 +944,8 @@ mod tests {
         assert_eq!(
             matrix_uri.via(),
             &vec![
-                server_name!("notareal.hs").to_owned(),
-                server_name!("anotherinexistant.hs").to_owned()
+                Into::<Box<ServerName>>::into(server_name!("notareal.hs")),
+                Into::<Box<ServerName>>::into(server_name!("anotherinexistant.hs"))
             ]
         );
         assert_eq!(matrix_uri.action(), Some(&UriAction::Join));

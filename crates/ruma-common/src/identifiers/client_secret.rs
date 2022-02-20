@@ -24,7 +24,13 @@ impl ClientSecret {
     }
 }
 
-opaque_identifier_validated!(ClientSecret, ruma_identifiers_validation::client_secret::validate);
+owned_identifier!(OwnedClientSecret, ClientSecret);
+
+opaque_identifier_validated!(
+    ClientSecret,
+    OwnedClientSecret,
+    ruma_identifiers_validation::client_secret::validate
+);
 
 #[cfg(test)]
 mod tests {

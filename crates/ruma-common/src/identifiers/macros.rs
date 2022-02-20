@@ -24,8 +24,63 @@ macro_rules! partial_eq_string {
     }
 }
 
+macro_rules! owned_identifier {
+    ($owned:ident, $id:ident) => {
+        #[doc = concat!("Owned variant of ", stringify!($id))]
+        #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+        pub struct $owned {
+            #[cfg(not(ruma_identifiers_storage))]
+            inner: Box<$id>,
+            #[cfg(ruma_identifiers_storage = "Arc")]
+            inner: std::sync::Arc<$id>,
+        }
+
+        impl AsRef<$id> for $owned {
+            fn as_ref(&self) -> &$id {
+                &self.inner
+            }
+        }
+
+        impl std::borrow::Borrow<$id> for $owned {
+            fn borrow(&self) -> &$id {
+                self.as_ref()
+            }
+        }
+
+        impl From<&'_ $id> for $owned {
+            fn from(id: &$id) -> $owned {
+                let boxed: Box<$id> = id.into();
+
+                boxed.into()
+            }
+        }
+
+        impl From<Box<$id>> for $owned {
+            fn from(b: Box<$id>) -> $owned {
+                Self {
+                    #[cfg(not(ruma_identifiers_storage))]
+                    inner: b,
+                    #[cfg(ruma_identifiers_storage = "Arc")]
+                    inner: std::sync::Arc::from(b),
+                }
+            }
+        }
+
+        impl From<std::sync::Arc<$id>> for $owned {
+            fn from(a: std::sync::Arc<$id>) -> $owned {
+                Self {
+                    #[cfg(not(ruma_identifiers_storage))]
+                    inner: a.as_ref().into(),
+                    #[cfg(ruma_identifiers_storage = "Arc")]
+                    inner: a,
+                }
+            }
+        }
+    };
+}
+
 macro_rules! opaque_identifier_common_impls {
-    ($id:ty) => {
+    ($id:ident, $owned:ident) => {
         impl $id {
             pub(super) fn from_borrowed(s: &str) -> &Self {
                 unsafe { std::mem::transmute(s) }
@@ -64,15 +119,15 @@ macro_rules! opaque_identifier_common_impls {
 
         impl Clone for Box<$id> {
             fn clone(&self) -> Self {
-                (**self).to_owned()
+                (**self).into()
             }
         }
 
         impl ToOwned for $id {
-            type Owned = Box<$id>;
+            type Owned = $owned;
 
             fn to_owned(&self) -> Self::Owned {
-                Self::from_owned(self.0.into())
+                Self::from_owned(self.0.into()).into()
             }
         }
 
@@ -90,7 +145,7 @@ macro_rules! opaque_identifier_common_impls {
 
         impl From<&$id> for Box<$id> {
             fn from(id: &$id) -> Self {
-                id.to_owned()
+                $id::from_owned(id.0.into())
             }
         }
 
@@ -159,8 +214,8 @@ macro_rules! opaque_identifier_common_impls {
 }
 
 macro_rules! opaque_identifier {
-    ($id:ident) => {
-        opaque_identifier_common_impls!($id);
+    ($id:ident, $owned:ident) => {
+        opaque_identifier_common_impls!($id, $owned);
 
         impl<'a> From<&'a str> for &'a $id {
             fn from(s: &'a str) -> Self {
@@ -210,7 +265,7 @@ macro_rules! opaque_identifier {
 }
 
 macro_rules! opaque_identifier_validated {
-    ($id:ident, $validate_id:expr) => {
+    ($id:ident, $owned:ident, $validate_id:expr) => {
         impl $id {
             #[rustfmt::skip]
             doc_concat! {
@@ -249,7 +304,7 @@ macro_rules! opaque_identifier_validated {
             }
         }
 
-        opaque_identifier_common_impls!($id);
+        opaque_identifier_common_impls!($id, $owned);
 
         impl From<Box<$id>> for String {
             fn from(id: Box<$id>) -> Self {

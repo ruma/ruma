@@ -18,7 +18,9 @@ use super::{matrix_uri::UriAction, EventId, MatrixToUri, MatrixUri, ServerName};
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct RoomId(str);
 
-opaque_identifier_validated!(RoomId, ruma_identifiers_validation::room_id::validate);
+owned_identifier!(OwnedRoomId, RoomId);
+
+opaque_identifier_validated!(RoomId, OwnedRoomId, ruma_identifiers_validation::room_id::validate);
 
 impl RoomId {
     /// Attempts to generate a `RoomId` for the given origin server with a localpart consisting of

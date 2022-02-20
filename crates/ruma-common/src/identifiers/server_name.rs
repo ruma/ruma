@@ -11,7 +11,13 @@ use std::net::Ipv4Addr;
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ServerName(str);
 
-opaque_identifier_validated!(ServerName, ruma_identifiers_validation::server_name::validate);
+owned_identifier!(OwnedServerName, ServerName);
+
+opaque_identifier_validated!(
+    ServerName,
+    OwnedServerName,
+    ruma_identifiers_validation::server_name::validate
+);
 
 impl ServerName {
     /// Returns the host of the server name.

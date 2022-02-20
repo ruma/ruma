@@ -18,7 +18,13 @@ use super::{matrix_uri::UriAction, server_name::ServerName, EventId, MatrixToUri
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct RoomAliasId(str);
 
-opaque_identifier_validated!(RoomAliasId, ruma_identifiers_validation::room_alias_id::validate);
+owned_identifier!(OwnedRoomAliasId, RoomAliasId);
+
+opaque_identifier_validated!(
+    RoomAliasId,
+    OwnedRoomAliasId,
+    ruma_identifiers_validation::room_alias_id::validate
+);
 
 impl RoomAliasId {
     /// Returns the room's alias.

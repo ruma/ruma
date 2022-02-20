@@ -7,4 +7,10 @@
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct RoomName(str);
 
-opaque_identifier_validated!(RoomName, ruma_identifiers_validation::room_name::validate);
+owned_identifier!(OwnedRoomName, RoomName);
+
+opaque_identifier_validated!(
+    RoomName,
+    OwnedRoomName,
+    ruma_identifiers_validation::room_name::validate
+);

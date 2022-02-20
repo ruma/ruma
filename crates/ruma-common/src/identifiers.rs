@@ -33,6 +33,18 @@ pub use self::{
 #[doc(inline)]
 pub use ruma_identifiers_validation::error::Error;
 
+/// Provides owned variants for opaque identifiers.
+pub mod owned {
+    pub use crate::{
+        client_secret::OwnedClientSecret, device_id::OwnedDeviceId,
+        device_key_id::OwnedDeviceKeyId, event_id::OwnedEventId, key_name::OwnedKeyName,
+        mxc_uri::OwnedMxcUri, room_alias_id::OwnedRoomAliasId, room_id::OwnedRoomId,
+        room_name::OwnedRoomName, room_or_room_alias_id::OwnedRoomOrAliasId,
+        server_name::OwnedServerName, session_id::OwnedSessionId,
+        transaction_id::OwnedTransactionId, user_id::OwnedUserId,
+    };
+}
+
 #[macro_use]
 mod macros;
 
