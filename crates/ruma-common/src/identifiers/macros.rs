@@ -133,11 +133,21 @@ macro_rules! opaque_identifier_common_impls {
             }
         }
 
+        // impl ToOwned for $id {
+        //     type Owned = $owned;
+
+        //     fn to_owned(&self) -> Self::Owned {
+        //         Self::from_owned(self.0.into()).into()
+        //     }
+        // }
+
+        // TODO swap below with above after codebase has been converted
+        //  to not use `to_owned` as equivalent to "into Box"
         impl ToOwned for $id {
-            type Owned = $owned;
+            type Owned = Box<$id>;
 
             fn to_owned(&self) -> Self::Owned {
-                Self::from_owned(self.0.into()).into()
+                Self::from_owned(self.0.into())
             }
         }
 
