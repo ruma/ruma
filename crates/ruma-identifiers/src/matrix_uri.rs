@@ -306,6 +306,14 @@ impl TryFrom<&str> for MatrixToUri {
     }
 }
 
+impl FromStr for MatrixToUri {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::parse(s)
+    }
+}
+
 /// The intent of a Matrix URI.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
