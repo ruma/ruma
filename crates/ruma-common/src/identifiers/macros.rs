@@ -76,6 +76,16 @@ macro_rules! owned_identifier {
                 }
             }
         }
+
+        #[cfg(feature = "serde")]
+        impl serde::Serialize for $owned {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                serializer.serialize_str(self.as_ref().as_str())
+            }
+        }
     };
 }
 
@@ -261,6 +271,16 @@ macro_rules! opaque_identifier {
                 Box::<str>::deserialize(deserializer).map($id::from_owned)
             }
         }
+
+        #[cfg(feature = "serde")]
+        impl<'de> serde::Deserialize<'de> for $owned {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                Box::<str>::deserialize(deserializer).map($id::from_owned).map(Into::into)
+            }
+        }
     };
 }
 
@@ -323,6 +343,23 @@ macro_rules! opaque_identifier_validated {
 
                 match $id::parse(s) {
                     Ok(o) => Ok(o),
+                    Err(e) => Err(D::Error::custom(e)),
+                }
+            }
+        }
+
+        #[cfg(feature = "serde")]
+        impl<'de> serde::Deserialize<'de> for $owned {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                use serde::de::Error;
+
+                let s = String::deserialize(deserializer)?;
+
+                match $id::parse(s) {
+                    Ok(o) => Ok(o.into()),
                     Err(e) => Err(D::Error::custom(e)),
                 }
             }
