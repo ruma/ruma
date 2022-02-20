@@ -31,9 +31,25 @@
 //!
 //! # Extending Ruma with custom events
 //!
-//! For our example we will create a reaction message event. This can be used with ruma-events
-//! structs, for this event we will use a `SyncMessageEvent` struct but any `MessageEvent` struct
-//! would work.
+//! For our examples we will start with a simple custom state event. `ruma_event`
+//! specifies the state event's `type` and it's [`kind`](crate::EventKind).
+//!
+//! ```rust
+//! use ruma_events::macros::EventContent;
+//! use serde::{Deserialize, Serialize};
+//!
+//! #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+//! #[ruma_event(type = "org.example.event", kind = State)]
+//! pub struct ExampleContent {
+//!     field: String,
+//! }
+//! ```
+//!
+//! This can be used with ruma-events structs, such as passing it into
+//! `ruma::api::client::state::send_state_event`'s `Request`.
+//!
+//! As a more advanced example we create a reaction message event. For this event we will use a
+//! `SyncMessageEvent` struct but any `MessageEvent` struct would work.
 //!
 //! ```rust
 //! use ruma_events::{macros::EventContent, SyncMessageEvent};
