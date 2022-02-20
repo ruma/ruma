@@ -1,6 +1,6 @@
 //! Matrix URIs.
 
-use std::{convert::TryFrom, fmt};
+use std::{convert::TryFrom, fmt, str::FromStr};
 
 use percent_encoding::{percent_decode_str, percent_encode, AsciiSet, CONTROLS};
 use ruma_identifiers_validation::{
@@ -306,6 +306,14 @@ impl TryFrom<&str> for MatrixToUri {
     }
 }
 
+impl FromStr for MatrixToUri {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::parse(s)
+    }
+}
+
 /// The intent of a Matrix URI.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
@@ -470,6 +478,14 @@ impl TryFrom<&str> for MatrixUri {
     type Error = Error;
 
     fn try_from(s: &str) -> Result<Self, Self::Error> {
+        Self::parse(s)
+    }
+}
+
+impl FromStr for MatrixUri {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         Self::parse(s)
     }
 }
