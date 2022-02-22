@@ -4,7 +4,7 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
     EphemeralRoomEventContent, EventContent, GlobalAccountDataEventContent, HasDeserializeFields,
-    MessageEventContent, RedactContent, RedactedEventContent, RedactedMessageEventContent,
+    MessageLikeEventContent, RedactContent, RedactedEventContent, RedactedMessageLikeEventContent,
     RedactedStateEventContent, RoomAccountDataEventContent, StateEventContent,
     ToDeviceEventContent,
 };
@@ -54,7 +54,7 @@ impl GlobalAccountDataEventContent for CustomEventContent {}
 impl RoomAccountDataEventContent for CustomEventContent {}
 impl ToDeviceEventContent for CustomEventContent {}
 impl EphemeralRoomEventContent for CustomEventContent {}
-impl MessageEventContent for CustomEventContent {}
+impl MessageLikeEventContent for CustomEventContent {}
 impl StateEventContent for CustomEventContent {}
-impl RedactedMessageEventContent for CustomEventContent {}
+impl RedactedMessageLikeEventContent for CustomEventContent {}
 impl RedactedStateEventContent for CustomEventContent {}

@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 /// purpose is to give the other party additional ICE candidates to try using to communicate.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.call.candidates", kind = Message)]
+#[ruma_event(type = "m.call.candidates", kind = MessageLike)]
 pub struct CallCandidatesEventContent {
     /// The ID of the call this event relates to.
     pub call_id: String,

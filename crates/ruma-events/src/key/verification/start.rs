@@ -54,7 +54,7 @@ impl ToDeviceKeyVerificationStartEventContent {
 /// Begins an SAS key verification process.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.key.verification.start", kind = Message)]
+#[ruma_event(type = "m.key.verification.start", kind = MessageLike)]
 pub struct KeyVerificationStartEventContent {
     /// The device ID which is initiating the process.
     pub from_device: Box<DeviceId>,

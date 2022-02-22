@@ -17,7 +17,7 @@ use crate::PrivOwnedStr;
 /// not recognize this event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.message.feedback", kind = Message)]
+#[ruma_event(type = "m.room.message.feedback", kind = MessageLike)]
 pub struct RoomMessageFeedbackEventContent {
     /// The event that this feedback is related to.
     pub target_event_id: Box<EventId>,

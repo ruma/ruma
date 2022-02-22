@@ -50,7 +50,7 @@ impl ToDeviceKeyVerificationMacEventContent {
 /// Sends the MAC of a device's key to the partner device.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.key.verification.mac", kind = Message)]
+#[ruma_event(type = "m.key.verification.mac", kind = MessageLike)]
 pub struct KeyVerificationMacEventContent {
     /// A map of the key ID to the MAC of the key, using the algorithm in the verification process.
     ///

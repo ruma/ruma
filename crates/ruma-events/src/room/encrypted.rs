@@ -16,7 +16,7 @@ mod relation_serde;
 /// The content of an `m.room.encrypted` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.encrypted", kind = Message, kind = ToDevice)]
+#[ruma_event(type = "m.room.encrypted", kind = MessageLike, kind = ToDevice)]
 pub struct RoomEncryptedEventContent {
     /// Algorithm-specific fields.
     #[serde(flatten)]

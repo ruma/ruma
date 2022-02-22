@@ -6,8 +6,8 @@ use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    EphemeralRoomEventContent, GlobalAccountDataEventContent, MessageEventContent,
-    RedactedMessageEventContent, RedactedStateEventContent, RedactedUnsigned,
+    EphemeralRoomEventContent, GlobalAccountDataEventContent, MessageLikeEventContent,
+    RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
     RoomAccountDataEventContent, StateEventContent, ToDeviceEventContent, Unsigned,
 };
 
@@ -42,12 +42,12 @@ pub struct SyncEphemeralRoomEvent<C: EphemeralRoomEventContent> {
     pub content: C,
 }
 
-/// A message event.
+/// A message-like event.
 ///
-/// `MessageEvent` implements the comparison traits using only the `event_id` field, a sorted list
-/// would be sorted lexicographically based on the event's `EventId`.
+/// `MessageLikeEvent` implements the comparison traits using only the `event_id` field, a sorted
+/// list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct MessageEvent<C: MessageEventContent> {
+pub struct MessageLikeEvent<C: MessageLikeEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -67,12 +67,12 @@ pub struct MessageEvent<C: MessageEventContent> {
     pub unsigned: Unsigned,
 }
 
-/// A message event without a `room_id`.
+/// A message-like event without a `room_id`.
 ///
-/// `SyncMessageEvent` implements the comparison traits using only the `event_id` field, a sorted
-/// list would be sorted lexicographically based on the event's `EventId`.
+/// `SyncMessageLikeEvent` implements the comparison traits using only the `event_id` field, a
+/// sorted list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct SyncMessageEvent<C: MessageEventContent> {
+pub struct SyncMessageLikeEvent<C: MessageLikeEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -89,12 +89,12 @@ pub struct SyncMessageEvent<C: MessageEventContent> {
     pub unsigned: Unsigned,
 }
 
-/// A redacted message event.
+/// A redacted message-like event.
 ///
-/// `RedactedMessageEvent` implements the comparison traits using only the `event_id` field, a
+/// `RedactedMessageLikeEvent` implements the comparison traits using only the `event_id` field, a
 /// sorted list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct RedactedMessageEvent<C: RedactedMessageEventContent> {
+pub struct RedactedMessageLikeEvent<C: RedactedMessageLikeEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -114,12 +114,12 @@ pub struct RedactedMessageEvent<C: RedactedMessageEventContent> {
     pub unsigned: RedactedUnsigned,
 }
 
-/// A redacted message event without a `room_id`.
+/// A redacted message-like event without a `room_id`.
 ///
-/// `RedactedSyncMessageEvent` implements the comparison traits using only the `event_id` field, a
-/// sorted list would be sorted lexicographically based on the event's `EventId`.
+/// `RedactedSyncMessageLikeEvent` implements the comparison traits using only the `event_id` field,
+/// a sorted list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct RedactedSyncMessageEvent<C: RedactedMessageEventContent> {
+pub struct RedactedSyncMessageLikeEvent<C: RedactedMessageLikeEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -304,7 +304,7 @@ pub struct ToDeviceEvent<C: ToDeviceEventContent> {
 
 /// The decrypted payload of an `m.olm.v1.curve25519-aes-sha2` event.
 #[derive(Clone, Debug, Event)]
-pub struct DecryptedOlmV1Event<C: MessageEventContent> {
+pub struct DecryptedOlmV1Event<C: MessageLikeEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -330,7 +330,7 @@ pub struct OlmV1Keys {
 
 /// The decrypted payload of an `m.megolm.v1.aes-sha2` event.
 #[derive(Clone, Debug, Event)]
-pub struct DecryptedMegolmV1Event<C: MessageEventContent> {
+pub struct DecryptedMegolmV1Event<C: MessageLikeEventContent> {
     /// Data specific to the event type.
     pub content: C,
 

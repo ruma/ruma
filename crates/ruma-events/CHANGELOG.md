@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Rename `MessageEvent` and the associated types and traits to `MessageLikeEvent`
+
 # 0.26.0
 
 Breaking changes:

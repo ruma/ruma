@@ -13,7 +13,7 @@ use crate::room::ImageInfo;
 /// A sticker message.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.sticker", kind = Message)]
+#[ruma_event(type = "m.sticker", kind = MessageLike)]
 pub struct StickerEventContent {
     /// A textual representation or associated description of the sticker image.
     ///

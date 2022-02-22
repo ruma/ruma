@@ -31,8 +31,8 @@ event_enum! {
         "m.typing",
     }
 
-    /// Any message event.
-    enum Message {
+    /// Any message-like event.
+    enum MessageLike {
         "m.call.answer",
         "m.call.invite",
         "m.call.hangup",
@@ -111,9 +111,9 @@ macro_rules! room_ev_accessor {
             #[doc = concat!("Returns this event's `", stringify!($field), "` field.")]
             pub fn $field(&self) -> $ty {
                 match self {
-                    Self::Message(ev) => ev.$field(),
+                    Self::MessageLike(ev) => ev.$field(),
                     Self::State(ev) => ev.$field(),
-                    Self::RedactedMessage(ev) => ev.$field(),
+                    Self::RedactedMessageLike(ev) => ev.$field(),
                     Self::RedactedState(ev) => ev.$field(),
                 }
             }
@@ -125,14 +125,14 @@ macro_rules! room_ev_accessor {
 #[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
 #[derive(Clone, Debug, EventEnumFromEvent)]
 pub enum AnyRoomEvent {
-    /// Any message event.
-    Message(AnyMessageEvent),
+    /// Any message-like event.
+    MessageLike(AnyMessageLikeEvent),
 
     /// Any state event.
     State(AnyStateEvent),
 
-    /// Any message event that has been redacted.
-    RedactedMessage(AnyRedactedMessageEvent),
+    /// Any message-like event that has been redacted.
+    RedactedMessageLike(AnyRedactedMessageLikeEvent),
 
     /// Any state event that has been redacted.
     RedactedState(AnyRedactedStateEvent),
@@ -151,14 +151,14 @@ impl AnyRoomEvent {
 #[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
 #[derive(Clone, Debug, EventEnumFromEvent)]
 pub enum AnySyncRoomEvent {
-    /// Any sync message event.
-    Message(AnySyncMessageEvent),
+    /// Any sync message-like event.
+    MessageLike(AnySyncMessageLikeEvent),
 
     /// Any sync state event.
     State(AnySyncStateEvent),
 
-    /// Any sync message event that has been redacted.
-    RedactedMessage(AnyRedactedSyncMessageEvent),
+    /// Any sync message-like event that has been redacted.
+    RedactedMessageLike(AnyRedactedSyncMessageLikeEvent),
 
     /// Any sync state event that has been redacted.
     RedactedState(AnyRedactedSyncStateEvent),
@@ -172,9 +172,11 @@ impl AnySyncRoomEvent {
     /// Converts `self` to an `AnyRoomEvent` by adding the given a room ID.
     pub fn into_full_event(self, room_id: Box<RoomId>) -> AnyRoomEvent {
         match self {
-            Self::Message(ev) => AnyRoomEvent::Message(ev.into_full_event(room_id)),
+            Self::MessageLike(ev) => AnyRoomEvent::MessageLike(ev.into_full_event(room_id)),
             Self::State(ev) => AnyRoomEvent::State(ev.into_full_event(room_id)),
-            Self::RedactedMessage(ev) => AnyRoomEvent::RedactedMessage(ev.into_full_event(room_id)),
+            Self::RedactedMessageLike(ev) => {
+                AnyRoomEvent::RedactedMessageLike(ev.into_full_event(room_id))
+            }
             Self::RedactedState(ev) => AnyRoomEvent::RedactedState(ev.into_full_event(room_id)),
         }
     }
@@ -205,9 +207,9 @@ impl<'de> Deserialize<'de> for AnyRoomEvent {
         } else {
             Ok(match unsigned {
                 Some(unsigned) if unsigned.redacted_because.is_some() => {
-                    AnyRoomEvent::RedactedMessage(from_raw_json_value(&json)?)
+                    AnyRoomEvent::RedactedMessageLike(from_raw_json_value(&json)?)
                 }
-                _ => AnyRoomEvent::Message(from_raw_json_value(&json)?),
+                _ => AnyRoomEvent::MessageLike(from_raw_json_value(&json)?),
             })
         }
     }
@@ -231,9 +233,9 @@ impl<'de> Deserialize<'de> for AnySyncRoomEvent {
         } else {
             Ok(match unsigned {
                 Some(unsigned) if unsigned.redacted_because.is_some() => {
-                    AnySyncRoomEvent::RedactedMessage(from_raw_json_value(&json)?)
+                    AnySyncRoomEvent::RedactedMessageLike(from_raw_json_value(&json)?)
                 }
-                _ => AnySyncRoomEvent::Message(from_raw_json_value(&json)?),
+                _ => AnySyncRoomEvent::MessageLike(from_raw_json_value(&json)?),
             })
         }
     }
@@ -243,8 +245,8 @@ impl<'de> Deserialize<'de> for AnySyncRoomEvent {
 #[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
 #[derive(Clone, Debug, EventEnumFromEvent)]
 pub enum AnyRedactedRoomEvent {
-    /// Any message event that has been redacted.
-    Message(AnyRedactedMessageEvent),
+    /// Any message-like event that has been redacted.
+    MessageLike(AnyRedactedMessageLikeEvent),
 
     /// Any state event that has been redacted.
     State(AnyRedactedStateEvent),
@@ -258,9 +260,9 @@ impl Redact for AnyRoomEvent {
     /// Does nothing for events that are already redacted.
     fn redact(self, redaction: SyncRoomRedactionEvent, version: &RoomVersionId) -> Self::Redacted {
         match self {
-            Self::Message(ev) => Self::Redacted::Message(ev.redact(redaction, version)),
+            Self::MessageLike(ev) => Self::Redacted::MessageLike(ev.redact(redaction, version)),
             Self::State(ev) => Self::Redacted::State(ev.redact(redaction, version)),
-            Self::RedactedMessage(ev) => Self::Redacted::Message(ev),
+            Self::RedactedMessageLike(ev) => Self::Redacted::MessageLike(ev),
             Self::RedactedState(ev) => Self::Redacted::State(ev),
         }
     }
@@ -269,7 +271,7 @@ impl Redact for AnyRoomEvent {
 impl From<AnyRedactedRoomEvent> for AnyRoomEvent {
     fn from(ev: AnyRedactedRoomEvent) -> Self {
         match ev {
-            AnyRedactedRoomEvent::Message(ev) => Self::RedactedMessage(ev),
+            AnyRedactedRoomEvent::MessageLike(ev) => Self::RedactedMessageLike(ev),
             AnyRedactedRoomEvent::State(ev) => Self::RedactedState(ev),
         }
     }
@@ -279,8 +281,8 @@ impl From<AnyRedactedRoomEvent> for AnyRoomEvent {
 #[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
 #[derive(Clone, Debug, EventEnumFromEvent)]
 pub enum AnyRedactedSyncRoomEvent {
-    /// Any sync message event that has been redacted.
-    Message(AnyRedactedSyncMessageEvent),
+    /// Any sync message-like event that has been redacted.
+    MessageLike(AnyRedactedSyncMessageLikeEvent),
 
     /// Any sync state event that has been redacted.
     State(AnyRedactedSyncStateEvent),
@@ -294,9 +296,9 @@ impl Redact for AnySyncRoomEvent {
     /// Does nothing for events that are already redacted.
     fn redact(self, redaction: SyncRoomRedactionEvent, version: &RoomVersionId) -> Self::Redacted {
         match self {
-            Self::Message(ev) => Self::Redacted::Message(ev.redact(redaction, version)),
+            Self::MessageLike(ev) => Self::Redacted::MessageLike(ev.redact(redaction, version)),
             Self::State(ev) => Self::Redacted::State(ev.redact(redaction, version)),
-            Self::RedactedMessage(ev) => Self::Redacted::Message(ev),
+            Self::RedactedMessageLike(ev) => Self::Redacted::MessageLike(ev),
             Self::RedactedState(ev) => Self::Redacted::State(ev),
         }
     }
@@ -305,17 +307,17 @@ impl Redact for AnySyncRoomEvent {
 impl From<AnyRedactedSyncRoomEvent> for AnySyncRoomEvent {
     fn from(ev: AnyRedactedSyncRoomEvent) -> Self {
         match ev {
-            AnyRedactedSyncRoomEvent::Message(ev) => Self::RedactedMessage(ev),
+            AnyRedactedSyncRoomEvent::MessageLike(ev) => Self::RedactedMessageLike(ev),
             AnyRedactedSyncRoomEvent::State(ev) => Self::RedactedState(ev),
         }
     }
 }
 
-impl AnyMessageEventContent {
+impl AnyMessageLikeEventContent {
     /// Get a copy of the event's `m.relates_to` field, if any.
     ///
     /// This is a helper function intended for encryption. There should not be a reason to access
-    /// `m.relates_to` without first destructuring an `AnyMessageEventContent` otherwise.
+    /// `m.relates_to` without first destructuring an `AnyMessageLikeEventContent` otherwise.
     pub fn relation(&self) -> Option<encrypted::Relation> {
         use crate::key::verification::{
             accept::KeyVerificationAcceptEventContent, cancel::KeyVerificationCancelEventContent,

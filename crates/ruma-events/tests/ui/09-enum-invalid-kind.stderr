@@ -1,4 +1,4 @@
-error: valid event kinds are GlobalAccountData, RoomAccountData, EphemeralRoom, Message, State, ToDevice found `NotReal`
+error: valid event kinds are GlobalAccountData, RoomAccountData, EphemeralRoom, MessageLike, State, ToDevice found `NotReal`
  --> $DIR/09-enum-invalid-kind.rs:4:10
   |
 4 |     enum NotReal {

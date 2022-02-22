@@ -6,7 +6,8 @@ use ruma_events::{
     call::{answer::CallAnswerEventContent, SessionDescription, SessionDescriptionType},
     room::{ImageInfo, ThumbnailInfo},
     sticker::StickerEventContent,
-    AnyMessageEvent, AnyMessageEventContent, AnySyncMessageEvent, MessageEvent, RawExt, Unsigned,
+    AnyMessageLikeEvent, AnyMessageLikeEventContent, AnySyncMessageLikeEvent, MessageLikeEvent,
+    RawExt, Unsigned,
 };
 use ruma_identifiers::{event_id, mxc_uri, room_id, user_id};
 use ruma_serde::Raw;
@@ -14,7 +15,7 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 
 #[test]
 fn message_serialize_sticker() {
-    let aliases_event = MessageEvent {
+    let aliases_event = MessageLikeEvent {
         content: StickerEventContent::new(
             "Hello".into(),
             assign!(ImageInfo::new(), {
@@ -80,11 +81,11 @@ fn deserialize_message_call_answer_content() {
     });
 
     assert_matches!(
-        from_json_value::<Raw<AnyMessageEventContent>>(json_data)
+        from_json_value::<Raw<AnyMessageLikeEventContent>>(json_data)
             .unwrap()
             .deserialize_content("m.call.answer")
             .unwrap(),
-        AnyMessageEventContent::CallAnswer(CallAnswerEventContent {
+        AnyMessageLikeEventContent::CallAnswer(CallAnswerEventContent {
             answer: SessionDescription {
                 session_type: SessionDescriptionType::Answer,
                 sdp,
@@ -116,8 +117,8 @@ fn deserialize_message_call_answer() {
     });
 
     assert_matches!(
-        from_json_value::<AnyMessageEvent>(json_data).unwrap(),
-        AnyMessageEvent::CallAnswer(MessageEvent {
+        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
+        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent {
             content: CallAnswerEventContent {
                 answer: SessionDescription {
                     session_type: SessionDescriptionType::Answer,
@@ -170,8 +171,8 @@ fn deserialize_message_sticker() {
     });
 
     assert_matches!(
-        from_json_value::<AnyMessageEvent>(json_data).unwrap(),
-        AnyMessageEvent::Sticker(MessageEvent {
+        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
+        AnyMessageLikeEvent::Sticker(MessageLikeEvent {
             content: StickerEventContent {
                 body,
                 info: ImageInfo {
@@ -240,11 +241,11 @@ fn deserialize_message_then_convert_to_full() {
         "type": "m.call.answer"
     });
 
-    let sync_ev: AnySyncMessageEvent = from_json_value(json_data).unwrap();
+    let sync_ev: AnySyncMessageLikeEvent = from_json_value(json_data).unwrap();
 
     assert_matches!(
         sync_ev.into_full_event(rid.to_owned()),
-        AnyMessageEvent::CallAnswer(MessageEvent {
+        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent {
             content: CallAnswerEventContent {
                 answer: SessionDescription {
                     session_type: SessionDescriptionType::Answer,

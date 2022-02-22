@@ -1,4 +1,4 @@
-//! Implementations of the MessageEventContent and StateEventContent derive macro.
+//! Implementations of the MessageLikeEventContent and StateEventContent derive macro.
 
 use std::borrow::Cow;
 
@@ -145,7 +145,7 @@ pub fn expand_event_content(
         }
     };
 
-    // We only generate redacted content structs for state and message events
+    // We only generate redacted content structs for state and message-like events
     let redacted_event_content = needs_redacted(&content_attr, event_kind)
         .then(|| generate_redacted_event_content(input, event_type, ruma_events, event_kind))
         .transpose()?;
@@ -262,9 +262,9 @@ fn generate_redacted_event_content(
         generate_event_content_impl(&redacted_ident, event_type, ruma_events);
 
     let marker_trait_impl = match event_kind {
-        Some(EventKind::Message) => quote! {
+        Some(EventKind::MessageLike) => quote! {
             #[automatically_derived]
-            impl #ruma_events::RedactedMessageEventContent for #redacted_ident {}
+            impl #ruma_events::RedactedMessageLikeEventContent for #redacted_ident {}
         },
         Some(EventKind::State) => quote! {
             #[automatically_derived]
@@ -391,14 +391,14 @@ fn generate_marker_trait_impl(
         EventKind::GlobalAccountData => quote! { GlobalAccountDataEventContent },
         EventKind::RoomAccountData => quote! { RoomAccountDataEventContent },
         EventKind::Ephemeral => quote! { EphemeralRoomEventContent },
-        EventKind::Message => quote! { MessageEventContent },
+        EventKind::MessageLike => quote! { MessageLikeEventContent },
         EventKind::State => quote! { StateEventContent },
         EventKind::ToDevice => quote! { ToDeviceEventContent },
         EventKind::RoomRedaction | EventKind::Presence | EventKind::Decrypted => {
             return Err(syn::Error::new_spanned(
                 ident,
                 "valid event kinds are GlobalAccountData, RoomAccountData, \
-                 EphemeralRoom, Message, State, ToDevice",
+                 EphemeralRoom, MessageLike, State, ToDevice",
             ));
         }
     };
@@ -451,7 +451,7 @@ fn generate_static_event_content_impl(
         EventKind::GlobalAccountData => quote! { GlobalAccountData },
         EventKind::RoomAccountData => quote! { RoomAccountData },
         EventKind::Ephemeral => quote! { EphemeralRoomData },
-        EventKind::Message => quote! { Message { redacted: #redacted } },
+        EventKind::MessageLike => quote! { MessageLike { redacted: #redacted } },
         EventKind::State => quote! { State { redacted: #redacted } },
         EventKind::ToDevice => quote! { ToDevice },
         EventKind::RoomRedaction | EventKind::Presence | EventKind::Decrypted => {
@@ -472,5 +472,5 @@ fn needs_redacted(input: &[MetaAttrs], event_kind: Option<EventKind>) -> bool {
     // redacted struct also. If no `custom_redacted` attrs are found the content
     // needs a redacted struct generated.
     !input.iter().any(|a| a.is_custom())
-        && matches!(event_kind, Some(EventKind::Message) | Some(EventKind::State))
+        && matches!(event_kind, Some(EventKind::MessageLike) | Some(EventKind::State))
 }

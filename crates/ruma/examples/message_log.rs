@@ -5,7 +5,7 @@ use ruma::{
     api::client::{filter::FilterDefinition, sync::sync_events},
     events::{
         room::message::{MessageType, RoomMessageEventContent, TextMessageEventContent},
-        AnySyncMessageEvent, AnySyncRoomEvent, SyncMessageEvent,
+        AnySyncMessageLikeEvent, AnySyncRoomEvent, SyncMessageLikeEvent,
     },
     presence::PresenceState,
 };
@@ -42,8 +42,8 @@ async fn log_messages(
         for (room_id, room) in res.rooms.join {
             for event in room.timeline.events.into_iter().flat_map(|r| r.deserialize()) {
                 // Filter out the text messages
-                if let AnySyncRoomEvent::Message(AnySyncMessageEvent::RoomMessage(
-                    SyncMessageEvent {
+                if let AnySyncRoomEvent::MessageLike(AnySyncMessageLikeEvent::RoomMessage(
+                    SyncMessageLikeEvent {
                         content:
                             RoomMessageEventContent {
                                 msgtype:
