@@ -1,9 +1,9 @@
-//! `POST /_matrix/client/*/room_keys/version`
+//! `PUT /_matrix/client/*/room_keys/version/{version}`
 
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3room_keysversion
+    //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#put_matrixclientv3room_keysversionversion
 
     use ruma_api::ruma_api;
     use ruma_serde::Raw;
@@ -13,7 +13,7 @@ pub mod v3 {
     ruma_api! {
         metadata: {
             description: "Update information about an existing backup.",
-            method: POST,
+            method: PUT,
             name: "update_backup",
             unstable_path: "/_matrix/client/unstable/room_keys/version/:version",
             stable_path: "/_matrix/client/v3/room_keys/version/:version",
