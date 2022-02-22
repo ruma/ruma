@@ -30,6 +30,10 @@ pub mod v3 {
             /// The device ID associated with the access token, if any.
             #[serde(skip_serializing_if = "Option::is_none")]
             pub device_id: Option<Box<DeviceId>>,
+
+            /// If `true`, the user is a guest user.
+            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+            pub is_guest: bool,
         }
 
         error: crate::Error
@@ -44,8 +48,8 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given user ID.
-        pub fn new(user_id: Box<UserId>) -> Self {
-            Self { user_id, device_id: None }
+        pub fn new(user_id: Box<UserId>, is_guest: bool) -> Self {
+            Self { user_id, device_id: None, is_guest }
         }
     }
 }
