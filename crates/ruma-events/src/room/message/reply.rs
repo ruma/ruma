@@ -7,8 +7,9 @@ use super::{
 
 /// An event that can be replied to.
 ///
-/// This trait only exists to allow the plain-text `reply` constructors on `MessageEventContent` to
-/// use either a [`RoomMessageEvent`] or a [`SyncRoomMessageEvent`] as the event being replied to.
+/// This trait only exists to allow the plain-text `reply` constructors on `MessageLikeEventContent`
+/// to use either a [`RoomMessageEvent`] or a [`SyncRoomMessageEvent`] as the event being replied
+/// to.
 pub trait ReplyBaseEvent {
     #[doc(hidden)]
     fn event_id(&self) -> &EventId;

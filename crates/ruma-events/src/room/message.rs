@@ -28,7 +28,7 @@ pub use reply::ReplyBaseEvent;
 /// Messages are not limited to be text.
 #[derive(Clone, Debug, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.message", kind = Message)]
+#[ruma_event(type = "m.room.message", kind = MessageLike)]
 pub struct RoomMessageEventContent {
     /// A key which identifies the type of message being sent.
     ///
@@ -103,7 +103,7 @@ impl RoomMessageEventContent {
     /// Different from `text_reply_plain`, this constructor requires specifically a
     /// [`RoomMessageEvent`] since it creates a permalink to the previous message, for which the
     /// room ID is required. If you want to reply to a [`SyncRoomMessageEvent`], you have to convert
-    /// it first by calling [`.into_full_event()`][crate::SyncMessageEvent::into_full_event].
+    /// it first by calling [`.into_full_event()`][crate::SyncMessageLikeEvent::into_full_event].
     pub fn text_reply_html(
         reply: impl fmt::Display,
         html_reply: impl fmt::Display,
@@ -144,7 +144,7 @@ impl RoomMessageEventContent {
     /// Different from `notice_reply_plain`, this constructor requires specifically a
     /// [`RoomMessageEvent`] since it creates a permalink to the previous message, for which the
     /// room ID is required. If you want to reply to a [`SyncRoomMessageEvent`], you have to convert
-    /// it first by calling [`.into_full_event()`][crate::SyncMessageEvent::into_full_event].
+    /// it first by calling [`.into_full_event()`][crate::SyncMessageLikeEvent::into_full_event].
     pub fn notice_reply_html(
         reply: impl fmt::Display,
         html_reply: impl fmt::Display,

@@ -15,7 +15,7 @@ use crate::PrivOwnedStr;
 /// call has has been established or before to abort the call.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.call.hangup", kind = Message)]
+#[ruma_event(type = "m.call.hangup", kind = MessageLike)]
 pub struct CallHangupEventContent {
     /// The ID of the call this event relates to.
     pub call_id: String,

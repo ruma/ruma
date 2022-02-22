@@ -13,7 +13,7 @@ use super::SessionDescription;
 /// This event is sent by the callee when they wish to answer the call.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.call.answer", kind = Message)]
+#[ruma_event(type = "m.call.answer", kind = MessageLike)]
 pub struct CallAnswerEventContent {
     /// The VoIP session description object.
     ///

@@ -30,7 +30,7 @@ pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
     res.extend(expand_event_enum(kind, V::Full, events, attrs, variants, ruma_events));
     res.extend(expand_content_enum(kind, events, attrs, variants, ruma_events));
 
-    if matches!(kind, EventKind::Ephemeral | EventKind::Message | EventKind::State) {
+    if matches!(kind, EventKind::Ephemeral | EventKind::MessageLike | EventKind::State) {
         res.extend(expand_event_enum(kind, V::Sync, events, attrs, variants, ruma_events));
         res.extend(expand_from_full_event(kind, V::Full, variants));
         res.extend(expand_into_full_event(kind, V::Sync, variants, ruma_events));
@@ -41,7 +41,7 @@ pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
         res.extend(expand_event_enum(kind, V::Initial, events, attrs, variants, ruma_events));
     }
 
-    if matches!(kind, EventKind::Message | EventKind::State) {
+    if matches!(kind, EventKind::MessageLike | EventKind::State) {
         res.extend(expand_event_enum(kind, V::Redacted, events, attrs, variants, ruma_events));
         res.extend(expand_event_enum(kind, V::RedactedSync, events, attrs, variants, ruma_events));
         res.extend(expand_redact(kind, V::Full, variants, ruma_events));
@@ -407,7 +407,7 @@ fn expand_possibly_redacted_enum(
 fn expand_marker_trait_impl(kind: EventKind, ruma_events: &TokenStream) -> TokenStream {
     let marker_trait = match kind {
         EventKind::State => quote! { StateEventContent },
-        EventKind::Message => quote! { MessageEventContent },
+        EventKind::MessageLike => quote! { MessageLikeEventContent },
         EventKind::Ephemeral => quote! { EphemeralRoomEventContent },
         EventKind::GlobalAccountData => quote! { GlobalAccountDataEventContent },
         EventKind::RoomAccountData => quote! { RoomAccountDataEventContent },

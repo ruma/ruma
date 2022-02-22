@@ -44,7 +44,7 @@ impl ToDeviceKeyVerificationAcceptEventContent {
 ///
 /// Accepts a previously sent `m.key.verification.start` message.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.key.verification.accept", kind = Message)]
+#[ruma_event(type = "m.key.verification.accept", kind = MessageLike)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct KeyVerificationAcceptEventContent {
     /// The method specific content.

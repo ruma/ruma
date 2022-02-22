@@ -25,7 +25,7 @@
 //! ruma-events includes Rust types for every one of the event types in the Matrix specification.
 //! To better organize the crate, these types live in separate modules with a hierarchy that
 //! matches the reverse domain name notation of the event type.
-//! For example, the `m.room.message` event lives at `ruma_events::room::message::MessageEvent`.
+//! For example, the `m.room.message` event lives at `ruma_events::room::message::MessageLikeEvent`.
 //! Each type's module also contains a Rust type for that event type's `content` field, and any
 //! other supporting types required by the event's other fields.
 //!
@@ -49,10 +49,10 @@
 //! `ruma::api::client::state::send_state_event`'s `Request`.
 //!
 //! As a more advanced example we create a reaction message event. For this event we will use a
-//! `SyncMessageEvent` struct but any `MessageEvent` struct would work.
+//! `SyncMessageLikeEvent` struct but any `MessageLikeEvent` struct would work.
 //!
 //! ```rust
-//! use ruma_events::{macros::EventContent, SyncMessageEvent};
+//! use ruma_events::{macros::EventContent, SyncMessageLikeEvent};
 //! use ruma_identifiers::EventId;
 //! use serde::{Deserialize, Serialize};
 //!
@@ -75,7 +75,7 @@
 //!
 //! /// The payload for our reaction event.
 //! #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-//! #[ruma_event(type = "m.reaction", kind = Message)]
+//! #[ruma_event(type = "m.reaction", kind = MessageLike)]
 //! pub struct ReactionEventContent {
 //!     #[serde(rename = "m.relates_to")]
 //!     pub relates_to: RelatesTo,
@@ -101,8 +101,8 @@
 //! // The downside of this event is we cannot use it with event enums,
 //! // but could be deserialized from a `Raw<_>` that has failed to deserialize.
 //! matches::assert_matches!(
-//!     serde_json::from_value::<SyncMessageEvent<ReactionEventContent>>(json),
-//!     Ok(SyncMessageEvent {
+//!     serde_json::from_value::<SyncMessageLikeEvent<ReactionEventContent>>(json),
+//!     Ok(SyncMessageLikeEvent {
 //!         content: ReactionEventContent {
 //!             relates_to: RelatesTo::Annotation { key, .. },
 //!         },
@@ -267,8 +267,8 @@ pub trait RoomAccountDataEventContent: EventContent {}
 /// Marker trait for the content of a to device event.
 pub trait ToDeviceEventContent: EventContent {}
 
-/// Marker trait for the content of a message event.
-pub trait MessageEventContent: EventContent {}
+/// Marker trait for the content of a message-like event.
+pub trait MessageLikeEventContent: EventContent {}
 
 /// Marker trait for the content of a state event.
 pub trait StateEventContent: EventContent {}
@@ -277,7 +277,7 @@ pub trait StateEventContent: EventContent {}
 ///
 /// This trait's associated functions and methods should not be used to build
 /// redacted events, prefer the `redact` method on `AnyStateEvent` and
-/// `AnyMessageEvent` and their "sync" and "stripped" counterparts. The
+/// `AnyMessageLikeEvent` and their "sync" and "stripped" counterparts. The
 /// `RedactedEventContent` trait is an implementation detail, ruma makes no
 /// API guarantees.
 pub trait RedactedEventContent: EventContent {
@@ -298,8 +298,8 @@ pub trait RedactedEventContent: EventContent {
     fn has_deserialize_fields() -> HasDeserializeFields;
 }
 
-/// Marker trait for the content of a redacted message event.
-pub trait RedactedMessageEventContent: RedactedEventContent {}
+/// Marker trait for the content of a redacted message-like event.
+pub trait RedactedMessageLikeEventContent: RedactedEventContent {}
 
 /// Marker trait for the content of a redacted state event.
 pub trait RedactedStateEventContent: RedactedEventContent {}
@@ -333,11 +333,12 @@ pub enum EventKind {
     /// Ephemeral room event kind.
     EphemeralRoomData,
 
-    /// Message event kind.
+    /// Message-like event kind.
     ///
-    /// Since redacted / non-redacted message events are used in the same places bu have different
-    /// sets of fields, these two variations are treated as two closely-related event kinds.
-    Message {
+    /// Since redacted / non-redacted message-like events are used in the same places bu have
+    /// different sets of fields, these two variations are treated as two closely-related event
+    /// kinds.
+    MessageLike {
         /// Redacted variation?
         redacted: bool,
     },

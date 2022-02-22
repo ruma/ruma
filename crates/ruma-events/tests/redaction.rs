@@ -3,7 +3,7 @@ use matches::assert_matches;
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
     room::redaction::{RoomRedactionEvent, RoomRedactionEventContent},
-    AnyMessageEvent, Unsigned,
+    AnyMessageLikeEvent, Unsigned,
 };
 use ruma_identifiers::{event_id, room_id, user_id};
 use serde_json::{
@@ -47,8 +47,8 @@ fn deserialize_redaction() {
     let json_data = redaction();
 
     assert_matches!(
-        from_json_value::<AnyMessageEvent>(json_data).unwrap(),
-        AnyMessageEvent::RoomRedaction(RoomRedactionEvent {
+        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
+        AnyMessageLikeEvent::RoomRedaction(RoomRedactionEvent {
             content: RoomRedactionEventContent { reason: Some(reas), .. },
             redacts,
             event_id,

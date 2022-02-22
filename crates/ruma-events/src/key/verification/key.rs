@@ -38,7 +38,7 @@ impl ToDeviceKeyVerificationKeyEventContent {
 /// Sends the ephemeral public key for a device to the partner device.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.key.verification.key", kind = Message)]
+#[ruma_event(type = "m.key.verification.key", kind = MessageLike)]
 pub struct KeyVerificationKeyEventContent {
     /// The device's ephemeral public key, encoded as unpadded base64.
     pub key: Base64,

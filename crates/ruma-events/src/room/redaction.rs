@@ -151,7 +151,7 @@ pub struct RedactedSyncRoomRedactionEvent {
 /// A redaction of an event.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.redaction", kind = Message)]
+#[ruma_event(type = "m.room.redaction", kind = MessageLike)]
 pub struct RoomRedactionEventContent {
     /// The reason for the redaction, if any.
     #[serde(skip_serializing_if = "Option::is_none")]

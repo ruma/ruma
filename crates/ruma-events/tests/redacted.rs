@@ -8,10 +8,10 @@ use ruma_events::{
         message::{RedactedRoomMessageEventContent, RoomMessageEventContent},
         redaction::{RoomRedactionEventContent, SyncRoomRedactionEvent},
     },
-    AnyMessageEvent, AnyRedactedMessageEvent, AnyRedactedSyncMessageEvent,
+    AnyMessageLikeEvent, AnyRedactedMessageLikeEvent, AnyRedactedSyncMessageLikeEvent,
     AnyRedactedSyncStateEvent, AnyRoomEvent, AnySyncRoomEvent, EventContent, Redact, RedactContent,
-    RedactedMessageEvent, RedactedSyncMessageEvent, RedactedSyncStateEvent, RedactedUnsigned,
-    Unsigned,
+    RedactedMessageLikeEvent, RedactedSyncMessageLikeEvent, RedactedSyncStateEvent,
+    RedactedUnsigned, Unsigned,
 };
 use ruma_identifiers::{event_id, room_id, user_id, RoomVersionId};
 use serde_json::{
@@ -35,7 +35,7 @@ fn unsigned() -> RedactedUnsigned {
 
 #[test]
 fn redacted_message_event_serialize() {
-    let redacted = RedactedSyncMessageEvent {
+    let redacted = RedactedSyncMessageLikeEvent {
         content: RedactedRoomMessageEventContent::new(),
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
@@ -144,7 +144,7 @@ fn redacted_deserialize_any_room() {
 
     assert_matches!(
         from_json_value::<AnyRoomEvent>(actual).unwrap(),
-        AnyRoomEvent::RedactedMessage(AnyRedactedMessageEvent::RoomMessage(RedactedMessageEvent {
+        AnyRoomEvent::RedactedMessageLike(AnyRedactedMessageLikeEvent::RoomMessage(RedactedMessageLikeEvent {
             content: RedactedRoomMessageEventContent { .. },
             event_id, room_id, ..
         })) if event_id == event_id!("$h29iv0s8:example.com")
@@ -179,8 +179,8 @@ fn redacted_deserialize_any_room_sync() {
 
     assert_matches!(
         from_json_value::<AnySyncRoomEvent>(actual).unwrap(),
-        AnySyncRoomEvent::RedactedMessage(AnyRedactedSyncMessageEvent::RoomMessage(
-            RedactedSyncMessageEvent {
+        AnySyncRoomEvent::RedactedMessageLike(AnyRedactedSyncMessageLikeEvent::RoomMessage(
+            RedactedSyncMessageLikeEvent {
                 content: RedactedRoomMessageEventContent { .. },
                 event_id,
                 ..
@@ -267,11 +267,11 @@ fn redact_method_properly_redacts() {
         unsigned: Unsigned::default(),
     };
 
-    let event: AnyMessageEvent = from_json_value(ev).unwrap();
+    let event: AnyMessageLikeEvent = from_json_value(ev).unwrap();
 
     assert_matches!(
         event.redact(redaction, &RoomVersionId::V6),
-        AnyRedactedMessageEvent::RoomMessage(RedactedMessageEvent {
+        AnyRedactedMessageLikeEvent::RoomMessage(RedactedMessageLikeEvent {
             content: RedactedRoomMessageEventContent { .. },
             event_id,
             room_id,

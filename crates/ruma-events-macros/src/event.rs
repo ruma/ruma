@@ -51,7 +51,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         res.extend(expand_sync_from_into_full(&input, kind, var, &fields, &ruma_events));
     }
 
-    if matches!(kind, EventKind::Message | EventKind::State)
+    if matches!(kind, EventKind::MessageLike | EventKind::State)
         && matches!(var, EventKindVariation::Full | EventKindVariation::Sync)
     {
         res.extend(expand_redact_event(&input, kind, var, &fields, &ruma_events));

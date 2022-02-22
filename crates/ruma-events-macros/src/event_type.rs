@@ -22,7 +22,7 @@ pub fn expand_event_type_enum(
             EventKind::GlobalAccountData => global_account.push(&event.events),
             EventKind::RoomAccountData => room_account.push(&event.events),
             EventKind::Ephemeral => ephemeral.push(&event.events),
-            EventKind::Message => {
+            EventKind::MessageLike => {
                 message.push(&event.events);
                 room.push(&event.events);
             }
@@ -62,7 +62,7 @@ pub fn expand_event_type_enum(
 
     let (message_event_types, message_str_ev_types) = generate_variants(&message)?;
     let message = generate_enum(
-        format_ident!("MessageEventType"),
+        format_ident!("MessageLikeEventType"),
         message_str_ev_types,
         message_event_types,
         &ruma_serde,

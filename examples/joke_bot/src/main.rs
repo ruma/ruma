@@ -9,7 +9,7 @@ use ruma::{
     assign, client,
     events::{
         room::message::{MessageType, RoomMessageEventContent},
-        AnySyncMessageEvent, AnySyncRoomEvent,
+        AnySyncMessageLikeEvent, AnySyncRoomEvent,
     },
     identifiers::TransactionId,
     presence::PresenceState,
@@ -147,7 +147,9 @@ async fn handle_message(
     room_id: &RoomId,
     bot_user_id: &UserId,
 ) -> Result<(), Box<dyn Error>> {
-    if let Ok(AnySyncRoomEvent::Message(AnySyncMessageEvent::RoomMessage(m))) = e.deserialize() {
+    if let Ok(AnySyncRoomEvent::MessageLike(AnySyncMessageLikeEvent::RoomMessage(m))) =
+        e.deserialize()
+    {
         // workaround because Conduit does not implement filtering.
         if m.sender == bot_user_id {
             return Ok(());

@@ -42,7 +42,7 @@ impl ToDeviceKeyVerificationCancelEventContent {
 /// Cancels a key verification process/request.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.key.verification.cancel", kind = Message)]
+#[ruma_event(type = "m.key.verification.cancel", kind = MessageLike)]
 pub struct KeyVerificationCancelEventContent {
     /// A human readable description of the `code`.
     ///

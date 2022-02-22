@@ -6,7 +6,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#put_matrixclientv3roomsroomidsendeventtypetxnid
 
     use ruma_api::ruma_api;
-    use ruma_events::{AnyMessageEventContent, MessageEventContent};
+    use ruma_events::{AnyMessageLikeEventContent, MessageLikeEventContent};
     use ruma_identifiers::{EventId, RoomId, TransactionId};
     use ruma_serde::Raw;
     use serde_json::value::to_raw_value as to_raw_json_value;
@@ -42,7 +42,7 @@ pub mod v3 {
 
             /// The event content to send.
             #[ruma_api(body)]
-            pub body: Raw<AnyMessageEventContent>,
+            pub body: Raw<AnyMessageLikeEventContent>,
         }
 
         response: {
@@ -60,7 +60,7 @@ pub mod v3 {
         ///
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
-        pub fn new<T: MessageEventContent>(
+        pub fn new<T: MessageLikeEventContent>(
             room_id: &'a RoomId,
             txn_id: &'a TransactionId,
             content: &'a T,
@@ -79,7 +79,7 @@ pub mod v3 {
             room_id: &'a RoomId,
             txn_id: &'a TransactionId,
             event_type: &'a str,
-            body: Raw<AnyMessageEventContent>,
+            body: Raw<AnyMessageLikeEventContent>,
         ) -> Self {
             Self { room_id, event_type, txn_id, body }
         }

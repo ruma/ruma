@@ -11,10 +11,11 @@ use ruma_events::{
         message::{MessageType, RoomMessageEventContent, TextMessageEventContent},
         power_levels::RoomPowerLevelsEventContent,
     },
-    AnyEphemeralRoomEvent, AnyMessageEvent, AnyRoomEvent, AnyStateEvent, AnyStateEventContent,
-    AnySyncMessageEvent, AnySyncRoomEvent, AnySyncStateEvent, EphemeralRoomEventType, EventType,
-    GlobalAccountDataEventType, MessageEvent, MessageEventType, RoomAccountDataEventType,
-    StateEvent, StateEventType, SyncMessageEvent, SyncStateEvent, ToDeviceEventType, Unsigned,
+    AnyEphemeralRoomEvent, AnyMessageLikeEvent, AnyRoomEvent, AnyStateEvent, AnyStateEventContent,
+    AnySyncMessageLikeEvent, AnySyncRoomEvent, AnySyncStateEvent, EphemeralRoomEventType,
+    EventType, GlobalAccountDataEventType, MessageLikeEvent, MessageLikeEventType,
+    RoomAccountDataEventType, StateEvent, StateEventType, SyncMessageLikeEvent, SyncStateEvent,
+    ToDeviceEventType, Unsigned,
 };
 
 fn message_event() -> JsonValue {
@@ -139,8 +140,8 @@ fn message_event_sync_deserialization() {
 
     assert_matches!(
         from_json_value::<AnySyncRoomEvent>(json_data),
-        Ok(AnySyncRoomEvent::Message(
-            AnySyncMessageEvent::RoomMessage(SyncMessageEvent {
+        Ok(AnySyncRoomEvent::MessageLike(
+            AnySyncMessageLikeEvent::RoomMessage(SyncMessageLikeEvent {
                 content: RoomMessageEventContent {
                     msgtype: MessageType::Text(TextMessageEventContent {
                         body,
@@ -181,8 +182,8 @@ fn message_room_event_deserialization() {
 
     assert_matches!(
         from_json_value::<AnyRoomEvent>(json_data),
-        Ok(AnyRoomEvent::Message(
-            AnyMessageEvent::RoomMessage(MessageEvent {
+        Ok(AnyRoomEvent::MessageLike(
+            AnyMessageLikeEvent::RoomMessage(MessageLikeEvent {
                 content: RoomMessageEventContent {
                     msgtype: MessageType::Text(TextMessageEventContent {
                         body,
@@ -200,7 +201,7 @@ fn message_room_event_deserialization() {
 
 #[test]
 fn message_event_serialization() {
-    let event = MessageEvent {
+    let event = MessageLikeEvent {
         content: RoomMessageEventContent::text_plain("test"),
         event_id: event_id!("$1234:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(0)),
@@ -240,8 +241,8 @@ fn message_event_deserialization() {
 
     assert_matches!(
         from_json_value::<AnyRoomEvent>(json_data),
-        Ok(AnyRoomEvent::Message(
-            AnyMessageEvent::RoomMessage(MessageEvent {
+        Ok(AnyRoomEvent::MessageLike(
+            AnyMessageLikeEvent::RoomMessage(MessageLikeEvent {
                 content: RoomMessageEventContent {
                     msgtype: MessageType::Text(TextMessageEventContent {
                         body,
@@ -323,7 +324,7 @@ fn ephemeral_event_deserialization() {
 #[test]
 fn serialize_and_deserialize_from_display_form() {
     serde_json_eq(EventType::CallAnswer, json!("m.call.answer"));
-    serde_json_eq(MessageEventType::CallAnswer, json!("m.call.answer"));
+    serde_json_eq(MessageLikeEventType::CallAnswer, json!("m.call.answer"));
     serde_json_eq(EventType::CallCandidates, json!("m.call.candidates"));
     serde_json_eq(EventType::CallHangup, json!("m.call.hangup"));
     serde_json_eq(EventType::CallInvite, json!("m.call.invite"));

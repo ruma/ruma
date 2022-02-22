@@ -80,7 +80,7 @@ pub enum EventKind {
     GlobalAccountData,
     RoomAccountData,
     Ephemeral,
-    Message,
+    MessageLike,
     State,
     ToDevice,
     RoomRedaction,
@@ -94,7 +94,7 @@ impl fmt::Display for EventKind {
             EventKind::GlobalAccountData => write!(f, "GlobalAccountDataEvent"),
             EventKind::RoomAccountData => write!(f, "RoomAccountDataEvent"),
             EventKind::Ephemeral => write!(f, "EphemeralRoomEvent"),
-            EventKind::Message => write!(f, "MessageEvent"),
+            EventKind::MessageLike => write!(f, "MessageLikeEvent"),
             EventKind::State => write!(f, "StateEvent"),
             EventKind::ToDevice => write!(f, "ToDeviceEvent"),
             EventKind::RoomRedaction => write!(f, "RoomRedactionEvent"),
@@ -130,8 +130,11 @@ impl EventKind {
 
         match (self, var) {
             (_, V::Full)
-            | (Self::Message | Self::RoomRedaction | Self::State | Self::Ephemeral, V::Sync)
-            | (Self::Message | Self::RoomRedaction | Self::State, V::Redacted | V::RedactedSync)
+            | (Self::MessageLike | Self::RoomRedaction | Self::State | Self::Ephemeral, V::Sync)
+            | (
+                Self::MessageLike | Self::RoomRedaction | Self::State,
+                V::Redacted | V::RedactedSync,
+            )
             | (Self::State, V::Stripped | V::Initial) => Some(format_ident!("{}{}", var, self)),
             _ => None,
         }
@@ -160,7 +163,7 @@ impl Parse for EventKind {
             "GlobalAccountData" => EventKind::GlobalAccountData,
             "RoomAccountData" => EventKind::RoomAccountData,
             "EphemeralRoom" => EventKind::Ephemeral,
-            "Message" => EventKind::Message,
+            "MessageLike" => EventKind::MessageLike,
             "State" => EventKind::State,
             "ToDevice" => EventKind::ToDevice,
             id => {
@@ -168,7 +171,7 @@ impl Parse for EventKind {
                     ident,
                     format!(
                         "valid event kinds are GlobalAccountData, RoomAccountData, EphemeralRoom, \
-                        Message, State, ToDevice found `{}`",
+                        MessageLike, State, ToDevice found `{}`",
                         id
                     ),
                 ));
@@ -187,10 +190,12 @@ pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation
         "RoomAccountDataEvent" => Some((EventKind::RoomAccountData, EventKindVariation::Full)),
         "EphemeralRoomEvent" => Some((EventKind::Ephemeral, EventKindVariation::Full)),
         "SyncEphemeralRoomEvent" => Some((EventKind::Ephemeral, EventKindVariation::Sync)),
-        "MessageEvent" => Some((EventKind::Message, EventKindVariation::Full)),
-        "SyncMessageEvent" => Some((EventKind::Message, EventKindVariation::Sync)),
-        "RedactedMessageEvent" => Some((EventKind::Message, EventKindVariation::Redacted)),
-        "RedactedSyncMessageEvent" => Some((EventKind::Message, EventKindVariation::RedactedSync)),
+        "MessageLikeEvent" => Some((EventKind::MessageLike, EventKindVariation::Full)),
+        "SyncMessageLikeEvent" => Some((EventKind::MessageLike, EventKindVariation::Sync)),
+        "RedactedMessageLikeEvent" => Some((EventKind::MessageLike, EventKindVariation::Redacted)),
+        "RedactedSyncMessageLikeEvent" => {
+            Some((EventKind::MessageLike, EventKindVariation::RedactedSync))
+        }
         "StateEvent" => Some((EventKind::State, EventKindVariation::Full)),
         "SyncStateEvent" => Some((EventKind::State, EventKindVariation::Sync)),
         "StrippedStateEvent" => Some((EventKind::State, EventKindVariation::Stripped)),

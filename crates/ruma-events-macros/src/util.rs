@@ -1,7 +1,7 @@
 use crate::event_parse::{EventKind, EventKindVariation};
 
 pub(crate) fn is_non_stripped_room_event(kind: EventKind, var: EventKindVariation) -> bool {
-    matches!(kind, EventKind::Message | EventKind::State)
+    matches!(kind, EventKind::MessageLike | EventKind::State)
         && matches!(
             var,
             EventKindVariation::Full
@@ -24,12 +24,12 @@ pub(crate) type EventKindFn = fn(EventKind, EventKindVariation) -> bool;
 pub(crate) const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
     ("origin_server_ts", is_non_stripped_room_event),
     ("room_id", |kind, var| {
-        matches!(kind, EventKind::Message | EventKind::State | EventKind::Ephemeral)
+        matches!(kind, EventKind::MessageLike | EventKind::State | EventKind::Ephemeral)
             && matches!(var, EventKindVariation::Full | EventKindVariation::Redacted)
     }),
     ("event_id", is_non_stripped_room_event),
     ("sender", |kind, var| {
-        matches!(kind, EventKind::Message | EventKind::State | EventKind::ToDevice)
+        matches!(kind, EventKind::MessageLike | EventKind::State | EventKind::ToDevice)
             && var != EventKindVariation::Initial
     }),
     ("state_key", |kind, _| matches!(kind, EventKind::State)),

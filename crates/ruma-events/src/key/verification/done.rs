@@ -33,7 +33,7 @@ impl ToDeviceKeyVerificationDoneEventContent {
 /// Event signaling that the interactive key verification has successfully concluded.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.key.verification.done", kind = Message)]
+#[ruma_event(type = "m.key.verification.done", kind = MessageLike)]
 pub struct KeyVerificationDoneEventContent {
     /// Relation signaling which verification request this event is responding to.
     #[serde(rename = "m.relates_to")]
