@@ -13,9 +13,9 @@ pub mod v3 {
 
     ruma_api! {
         metadata: {
-            description: "Retrieve a key from the backup",
+            description: "Retrieve a key from the backup for a given session.",
             method: GET,
-            name: "get_backup_keys_for_room_session",
+            name: "get_backup_keys_for_session",
             unstable_path: "/_matrix/client/unstable/room_keys/keys/:room_id/:session_id",
             r0_path: "/_matrix/client/r0/room_keys/keys/:room_id/:session_id",
             stable_path: "/_matrix/client/v3/room_keys/keys/:room_id/:session_id",

@@ -2,16 +2,16 @@
 
 pub mod add_backup_keys;
 pub mod add_backup_keys_for_room;
-pub mod add_backup_keys_for_room_session;
+pub mod add_backup_keys_for_session;
 pub mod create_backup_version;
 pub mod delete_backup_keys;
 pub mod delete_backup_keys_for_room;
-pub mod delete_backup_keys_for_room_session;
+pub mod delete_backup_keys_for_session;
 pub mod delete_backup_version;
 pub mod get_backup_info;
 pub mod get_backup_keys;
 pub mod get_backup_keys_for_room;
-pub mod get_backup_keys_for_room_session;
+pub mod get_backup_keys_for_session;
 pub mod get_latest_backup_info;
 pub mod update_backup_version;
 
