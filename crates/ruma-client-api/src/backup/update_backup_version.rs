@@ -14,12 +14,11 @@ pub mod v3 {
         metadata: {
             description: "Update information about an existing backup.",
             method: PUT,
-            name: "update_backup",
-            unstable_path: "/_matrix/client/unstable/room_keys/version/:version",
+            name: "update_backup_version",
             stable_path: "/_matrix/client/v3/room_keys/version/:version",
             rate_limited: true,
             authentication: AccessToken,
-            added: 1.1,
+            added: 1.0,
         }
 
         request: {

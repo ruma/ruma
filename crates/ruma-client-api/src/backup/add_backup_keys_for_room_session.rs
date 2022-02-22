@@ -14,9 +14,9 @@ pub mod v3 {
 
     ruma_api! {
         metadata: {
-            description: "Store several keys in the backup.",
+            description: "Store keys in the backup for a room session.",
             method: PUT,
-            name: "add_backup_key_session",
+            name: "add_backup_keys_for_room_session",
             unstable_path: "/_matrix/client/unstable/room_keys/keys/:room_id/:session_id",
             r0_path: "/_matrix/client/r0/room_keys/keys/:room_id/:session_id",
             stable_path: "/_matrix/client/v3/room_keys/keys/:room_id/:session_id",
@@ -26,21 +26,21 @@ pub mod v3 {
         }
 
         request: {
-            /// The backup version.
+            /// The backup version to add keys to.
             ///
             /// Must be the current backup.
             #[ruma_api(query)]
             pub version: &'a str,
 
-            /// The ID of the room that the requested key is for.
+            /// The ID of the room to add keys to.
             #[ruma_api(path)]
             pub room_id: &'a RoomId,
 
-            /// The ID of the megolm session whose key is requested.
+            /// The ID of the megolm session to add keys to.
             #[ruma_api(path)]
             pub session_id: &'a str,
 
-            /// The key information to backup.
+            /// The key information to store.
             #[ruma_api(body)]
             pub session_data: Raw<KeyBackupData>,
         }
