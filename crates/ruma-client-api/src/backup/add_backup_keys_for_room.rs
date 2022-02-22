@@ -16,9 +16,9 @@ pub mod v3 {
 
     ruma_api! {
         metadata: {
-            description: "Store several sessions in the backup.",
+            description: "Store keys in the backup for a room.",
             method: PUT,
-            name: "add_backup_key_sessions",
+            name: "add_backup_keys_for_room",
             unstable_path: "/_matrix/client/unstable/room_keys/keys/:room_id",
             r0_path: "/_matrix/client/r0/room_keys/keys/:room_id",
             stable_path: "/_matrix/client/v3/room_keys/keys/:room_id",
@@ -28,17 +28,17 @@ pub mod v3 {
         }
 
         request: {
-            /// The backup version.
+            /// The backup version to add keys to.
             ///
             /// Must be the current backup.
             #[ruma_api(query)]
             pub version: &'a str,
 
-            /// The ID of the room that the requested key is for.
+            /// The ID of the room to add keys to.
             #[ruma_api(path)]
             pub room_id: &'a RoomId,
 
-            /// A map from session IDs to key data.
+            /// A map of session IDs to key data to store.
             pub sessions: BTreeMap<String, Raw<KeyBackupData>>,
         }
 

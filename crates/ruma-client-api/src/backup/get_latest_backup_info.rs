@@ -12,7 +12,7 @@ pub mod v3 {
     use serde_json::value::to_raw_value as to_raw_json_value;
 
     use crate::backup::{
-        get_backup::v3::{AlgorithmWithData, RefResponseBodyRepr, ResponseBodyRepr},
+        get_backup_info::v3::{AlgorithmWithData, RefResponseBodyRepr, ResponseBodyRepr},
         BackupAlgorithm,
     };
 
@@ -20,7 +20,7 @@ pub mod v3 {
         metadata: {
             description: "Get information about the latest backup.",
             method: GET,
-            name: "get_latest_backup",
+            name: "get_latest_backup_info",
             unstable_path: "/_matrix/client/unstable/room_keys/version",
             r0_path: "/_matrix/client/r0/room_keys/version",
             stable_path: "/_matrix/client/v3/room_keys/version",

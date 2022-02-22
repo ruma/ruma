@@ -12,9 +12,9 @@ pub mod v3 {
 
     ruma_api! {
         metadata: {
-            description: "Creates a new backup.",
+            description: "Create a new backup version.",
             method: POST,
-            name: "create_backup",
+            name: "create_backup_version",
             unstable_path: "/_matrix/client/unstable/room_keys/version",
             stable_path: "/_matrix/client/v3/room_keys/version",
             rate_limited: true,

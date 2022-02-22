@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/room_keys/version/{version}`
+//!
+//! Get information about a specific backup.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -15,9 +17,9 @@ pub mod v3 {
 
     ruma_api! {
         metadata: {
-            description: "Get information about an existing backup.",
+            description: "Get information about a specific backup.",
             method: GET,
-            name: "get_backup",
+            name: "get_backup_info",
             unstable_path: "/_matrix/client/unstable/room_keys/version/:version",
             stable_path: "/_matrix/client/v3/room_keys/version/:version",
             rate_limited: true,
@@ -26,7 +28,7 @@ pub mod v3 {
         }
 
         request: {
-            /// The backup version.
+            /// The backup version to retrieve info from.
             #[ruma_api(path)]
             pub version: &'a str,
         }

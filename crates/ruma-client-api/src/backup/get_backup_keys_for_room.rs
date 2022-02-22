@@ -17,7 +17,7 @@ pub mod v3 {
         metadata: {
             description: "Retrieve sessions from the backup for a given room.",
             method: GET,
-            name: "get_backup_key_sessions",
+            name: "get_backup_keys_for_room",
             unstable_path: "/_matrix/client/unstable/room_keys/keys/:room_id",
             r0_path: "/_matrix/client/r0/room_keys/keys/:room_id",
             stable_path: "/_matrix/client/v3/room_keys/keys/:room_id",
@@ -27,9 +27,7 @@ pub mod v3 {
         }
 
         request: {
-            /// The backup version
-            ///
-            /// Must be the current backup.
+            /// The backup version to retrieve keys from.
             #[ruma_api(query)]
             pub version: &'a str,
 

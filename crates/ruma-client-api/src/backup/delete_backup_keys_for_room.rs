@@ -11,9 +11,9 @@ pub mod v3 {
 
     ruma_api! {
         metadata: {
-            description: "Delete keys from the backup for a given room.",
+            description: "Delete keys from a backup for a given room.",
             method: DELETE,
-            name: "delete_backup_key_sessions",
+            name: "delete_backup_keys_for_room",
             unstable_path: "/_matrix/client/unstable/room_keys/keys/:room_id",
             r0_path: "/_matrix/client/r0/room_keys/keys/:room_id",
             stable_path: "/_matrix/client/v3/room_keys/keys/:room_id",
@@ -23,13 +23,11 @@ pub mod v3 {
         }
 
         request: {
-            /// The backup version.
-            ///
-            /// Must be the current backup.
+            /// The backup version from which to delete keys.
             #[ruma_api(query)]
             pub version: &'a str,
 
-            /// The ID of the room that the requested key is for.
+            /// The ID of the room to delete keys from.
             #[ruma_api(path)]
             pub room_id: &'a RoomId,
         }
