@@ -31,12 +31,12 @@ pub mod v3 {
             pub event_id: &'a EventId,
 
             /// Integer between -100 and 0 rating offensivness.
-            pub score: Int,
+            pub score: Option<Int>,
 
             /// Reason to report content.
             ///
             /// May be blank.
-            pub reason: &'a str,
+            pub reason: Option<&'a str>,
         }
 
         #[derive(Default)]
@@ -50,8 +50,8 @@ pub mod v3 {
         pub fn new(
             room_id: &'a RoomId,
             event_id: &'a EventId,
-            score: Int,
-            reason: &'a str,
+            score: Option<Int>,
+            reason: Option<&'a str>,
         ) -> Self {
             Self { room_id, event_id, score, reason }
         }
