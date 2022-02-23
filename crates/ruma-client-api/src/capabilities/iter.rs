@@ -62,6 +62,18 @@ impl<'a> Iterator for CapabilitiesIter<'a> {
                 self.pos += 1;
                 Some(CapabilityRef { name: "m.room_versions", value: None, caps: self.caps })
             }
+            2 => {
+                self.pos += 1;
+                Some(CapabilityRef { name: "m.set_displayname", value: None, caps: self.caps })
+            }
+            3 => {
+                self.pos += 1;
+                Some(CapabilityRef { name: "m.set_avatar_url", value: None, caps: self.caps })
+            }
+            4 => {
+                self.pos += 1;
+                Some(CapabilityRef { name: "m.3pid_changes", value: None, caps: self.caps })
+            }
             _ => self.custom_caps_iterator.next().map(|(name, value)| CapabilityRef {
                 name,
                 value: Some(value),

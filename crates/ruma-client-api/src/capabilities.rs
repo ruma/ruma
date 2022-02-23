@@ -34,6 +34,31 @@ pub struct Capabilities {
     )]
     pub room_versions: RoomVersionsCapability,
 
+    /// Capability to indicate if the user can change their display name.
+    #[serde(
+        rename = "m.set_displayname",
+        default,
+        skip_serializing_if = "SetDisplayNameCapability::is_default"
+    )]
+    pub set_displayname: SetDisplayNameCapability,
+
+    /// Capability to indicate if the user can change their avatar.
+    #[serde(
+        rename = "m.set_avatar_url",
+        default,
+        skip_serializing_if = "SetAvatarUrlCapability::is_default"
+    )]
+    pub set_avatar_url: SetAvatarUrlCapability,
+
+    /// Capability to indicate if the user can change the third-party identifiers associated with
+    /// their account.
+    #[serde(
+        rename = "m.3pid_changes",
+        default,
+        skip_serializing_if = "ThirdPartyIdChangesCapability::is_default"
+    )]
+    pub thirdparty_id_changes: ThirdPartyIdChangesCapability,
+
     /// Any other custom capabilities that the server supports outside of the specification,
     /// labeled using the Java package naming convention and stored as arbitrary JSON values.
     #[serde(flatten)]
@@ -58,6 +83,9 @@ impl Capabilities {
         match capability {
             "m.change_password" => Some(Cow::Owned(serialize(&self.change_password))),
             "m.room_versions" => Some(Cow::Owned(serialize(&self.room_versions))),
+            "m.set_displayname" => Some(Cow::Owned(serialize(&self.set_displayname))),
+            "m.set_avatar_url" => Some(Cow::Owned(serialize(&self.set_avatar_url))),
+            "m.3pid_changes" => Some(Cow::Owned(serialize(&self.thirdparty_id_changes))),
             _ => self.custom_capabilities.get(capability).map(Cow::Borrowed),
         }
     }
@@ -71,6 +99,9 @@ impl Capabilities {
         match capability {
             "m.change_password" => self.change_password = from_json_value(value)?,
             "m.room_versions" => self.room_versions = from_json_value(value)?,
+            "m.set_displayname" => self.set_displayname = from_json_value(value)?,
+            "m.set_avatar_url" => self.set_avatar_url = from_json_value(value)?,
+            "m.3pid_changes" => self.thirdparty_id_changes = from_json_value(value)?,
             _ => {
                 self.custom_capabilities.insert(capability.to_owned(), value);
             }
@@ -187,6 +218,85 @@ impl RoomVersionStability {
     }
 }
 
+/// Information about the `m.set_displayname` capability
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct SetDisplayNameCapability {
+    /// `true` if the user can change their display name, `false` otherwise.
+    pub enabled: bool,
+}
+
+impl SetDisplayNameCapability {
+    /// Creates a new `SetDisplayNameCapability` with the given enabled flag.
+    pub fn new(enabled: bool) -> Self {
+        Self { enabled }
+    }
+
+    /// Returns whether all fields have their default value.
+    pub fn is_default(&self) -> bool {
+        self.enabled
+    }
+}
+
+impl Default for SetDisplayNameCapability {
+    fn default() -> Self {
+        Self { enabled: true }
+    }
+}
+
+/// Information about the `m.set_avatar_url` capability
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct SetAvatarUrlCapability {
+    /// `true` if the user can change their avatar, `false` otherwise.
+    pub enabled: bool,
+}
+
+impl SetAvatarUrlCapability {
+    /// Creates a new `SetAvatarUrlCapability` with the given enabled flag.
+    pub fn new(enabled: bool) -> Self {
+        Self { enabled }
+    }
+
+    /// Returns whether all fields have their default value.
+    pub fn is_default(&self) -> bool {
+        self.enabled
+    }
+}
+
+impl Default for SetAvatarUrlCapability {
+    fn default() -> Self {
+        Self { enabled: true }
+    }
+}
+
+/// Information about the `m.3pid_changes` capability
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct ThirdPartyIdChangesCapability {
+    /// `true` if the user can change the third-party identifiers associated with their account,
+    /// `false` otherwise.
+    pub enabled: bool,
+}
+
+impl ThirdPartyIdChangesCapability {
+    /// Creates a new `ThirdPartyIdChangesCapability` with the given enabled flag.
+    pub fn new(enabled: bool) -> Self {
+        Self { enabled }
+    }
+
+    /// Returns whether all fields have their default value.
+    pub fn is_default(&self) -> bool {
+        self.enabled
+    }
+}
+
+impl Default for ThirdPartyIdChangesCapability {
+    fn default() -> Self {
+        Self { enabled: true }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::borrow::Cow;
@@ -214,6 +324,18 @@ mod tests {
             iter_res.value(),
             Cow::Borrowed(&json!({ "available": { "1": "stable" },"default" :"1" }))
         );
+
+        let iter_res = caps_iter.next().unwrap();
+        assert_eq!(iter_res.name(), "m.set_displayname");
+        assert_eq!(iter_res.value(), Cow::Borrowed(&json!({ "enabled": true })));
+
+        let iter_res = caps_iter.next().unwrap();
+        assert_eq!(iter_res.name(), "m.set_avatar_url");
+        assert_eq!(iter_res.value(), Cow::Borrowed(&json!({ "enabled": true })));
+
+        let iter_res = caps_iter.next().unwrap();
+        assert_eq!(iter_res.name(), "m.3pid_changes");
+        assert_eq!(iter_res.value(), Cow::Borrowed(&json!({ "enabled": true })));
 
         let iter_res = caps_iter.next().unwrap();
         assert_eq!(iter_res.name(), "m.some_random_capability");
