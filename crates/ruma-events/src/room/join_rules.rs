@@ -64,7 +64,9 @@ pub enum JoinRule {
     #[serde(rename = "invite")]
     Invite,
 
-    /// Reserved but not yet implemented by the Matrix specification.
+    /// Users can join the room if they are invited, or they can request an invite to the room.
+    ///
+    /// They can be allowed (invited) or denied (kicked/banned) access.
     #[serde(rename = "knock")]
     Knock,
 
