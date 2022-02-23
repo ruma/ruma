@@ -7,9 +7,10 @@ pub mod v3 {
 
     use assign::assign;
     use ruma_api::ruma_api;
+    use ruma_common::room::RoomType;
     use ruma_events::{
         room::{
-            create::{PreviousRoom, RoomCreateEventContent, RoomType},
+            create::{PreviousRoom, RoomCreateEventContent},
             power_levels::RoomPowerLevelsEventContent,
         },
         AnyInitialStateEvent,
