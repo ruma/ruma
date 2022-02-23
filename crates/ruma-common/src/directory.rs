@@ -4,13 +4,15 @@ use std::fmt;
 
 use js_int::UInt;
 use ruma_identifiers::{MxcUri, RoomAliasId, RoomId, RoomName};
-use ruma_serde::Outgoing;
+use ruma_serde::{Outgoing, StringEnum};
 use serde::{
     de::{Error, MapAccess, Visitor},
     ser::SerializeStruct,
     Deserialize, Deserializer, Serialize, Serializer,
 };
 use serde_json::Value as JsonValue;
+
+use crate::PrivOwnedStr;
 
 /// A chunk of a room list response, describing one room.
 ///
@@ -230,19 +232,27 @@ impl<'de> Visitor<'de> for RoomNetworkVisitor {
 
 /// The rule used for users wishing to join a public room.
 ///
-/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// This type can hold an arbitrary string. To check for join rules that are not available as a
 /// documented variant here, use its string representation, obtained through `.as_str()`.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(tag = "join_rule")]
 pub enum PublicRoomJoinRule {
     /// Users can request an invite to the room.
-    #[serde(rename = "knock")]
     Knock,
 
     /// Anyone can join the room without any prior action.
-    #[serde(rename = "public")]
     Public,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}
+
+impl PublicRoomJoinRule {
+    /// Returns the string name of this `PublicRoomJoinRule`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }
 
 impl Default for PublicRoomJoinRule {
