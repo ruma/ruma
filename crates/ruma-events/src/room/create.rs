@@ -2,12 +2,10 @@
 //!
 //! [`m.room.create`]: https://spec.matrix.org/v1.2/client-server-api/#mroomcreate
 
+use ruma_common::room::RoomType;
 use ruma_events_macros::EventContent;
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
-use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
-
-use crate::PrivOwnedStr;
 
 /// The content of an `m.room.create` event.
 ///
@@ -59,29 +57,6 @@ impl RoomCreateEventContent {
             predecessor: None,
             room_type: None,
         }
-    }
-}
-
-/// An enum of possible room types.
-///
-/// This type can hold an arbitrary string. To check for formats that are not available as a
-/// documented variant here, use its string representation, obtained through `.as_str()`.
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
-#[non_exhaustive]
-pub enum RoomType {
-    /// Defines the room as a space.
-    #[ruma_enum(rename = "m.space")]
-    Space,
-
-    /// Defines the room as a custom type.
-    #[doc(hidden)]
-    _Custom(PrivOwnedStr),
-}
-
-impl RoomType {
-    /// Creates a string slice from this `RoomType`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
     }
 }
 
