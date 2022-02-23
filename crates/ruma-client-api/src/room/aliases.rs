@@ -15,6 +15,7 @@ pub mod v3 {
             name: "aliases",
             r0_path: "/_matrix/client/r0/rooms/:room_id/aliases",
             stable_path: "/_matrix/client/v3/rooms/:room_id/aliases",
+            unstable_path: "/_matrix/client/unstable/org.matrix.msc2432/rooms/:room_id/aliases",
             rate_limited: true,
             authentication: AccessToken,
             added: 1.0,
