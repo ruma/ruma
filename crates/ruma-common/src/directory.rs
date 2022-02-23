@@ -59,6 +59,10 @@ pub struct PublicRoomsChunk {
         serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
     )]
     pub avatar_url: Option<Box<MxcUri>>,
+
+    /// The join rule of the room.
+    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    pub join_rule: PublicRoomJoinRule,
 }
 
 /// Initial set of mandatory fields of `PublicRoomsChunk`.
@@ -97,6 +101,7 @@ impl From<PublicRoomsChunkInit> for PublicRoomsChunk {
             world_readable,
             guest_can_join,
             avatar_url: None,
+            join_rule: PublicRoomJoinRule::default(),
         }
     }
 }
@@ -220,6 +225,29 @@ impl<'de> Visitor<'de> for RoomNetworkVisitor {
                 None => IncomingRoomNetwork::Matrix,
             })
         }
+    }
+}
+
+/// The rule used for users wishing to join a public room.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(tag = "join_rule")]
+pub enum PublicRoomJoinRule {
+    /// Users can request an invite to the room.
+    #[serde(rename = "knock")]
+    Knock,
+
+    /// Anyone can join the room without any prior action.
+    #[serde(rename = "public")]
+    Public,
+}
+
+impl Default for PublicRoomJoinRule {
+    fn default() -> Self {
+        Self::Public
     }
 }
 
