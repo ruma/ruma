@@ -9,7 +9,7 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_api::ruma_api;
-    use ruma_common::encryption::DeviceKeys;
+    use ruma_common::encryption::{CrossSigningKey, DeviceKeys};
     use ruma_identifiers::{DeviceId, UserId};
     use ruma_serde::Raw;
     use serde::{Deserialize, Serialize};
@@ -45,6 +45,14 @@ pub mod v1 {
 
             /// The user's devices.
             pub devices: Vec<UserDevice>,
+
+            /// The user's master key.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub master_key: Option<Raw<CrossSigningKey>>,
+
+            /// The users's self-signing key.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub self_signing_key: Option<Raw<CrossSigningKey>>,
         }
     }
 
@@ -60,7 +68,13 @@ pub mod v1 {
         ///
         /// The device list will be empty.
         pub fn new(user_id: Box<UserId>, stream_id: UInt) -> Self {
-            Self { user_id, stream_id, devices: Vec::new() }
+            Self {
+                user_id,
+                stream_id,
+                devices: Vec::new(),
+                master_key: None,
+                self_signing_key: None,
+            }
         }
     }
 
