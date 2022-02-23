@@ -103,6 +103,9 @@ pub mod v3 {
         /// Token-based login.
         Token(Token<'a>),
 
+        /// Application Service-specific login.
+        ApplicationService(ApplicationService<'a>),
+
         #[doc(hidden)]
         _Custom(CustomLoginInfo<'a>),
     }
@@ -124,6 +127,9 @@ pub mod v3 {
                     Self::Password(serde_json::from_value(JsonValue::Object(data))?)
                 }
                 "m.login.token" => Self::Token(serde_json::from_value(JsonValue::Object(data))?),
+                "m.login.application_service" => {
+                    Self::ApplicationService(serde_json::from_value(JsonValue::Object(data))?)
+                }
                 _ => Self::_Custom(IncomingCustomLoginInfo {
                     login_type: login_type.into(),
                     extra: data,
@@ -136,6 +142,7 @@ pub mod v3 {
             match self {
                 Self::Password(a) => LoginInfo::Password(a.to_outgoing()),
                 Self::Token(a) => LoginInfo::Token(a.to_outgoing()),
+                Self::ApplicationService(a) => LoginInfo::ApplicationService(a.to_outgoing()),
                 Self::_Custom(a) => LoginInfo::_Custom(CustomLoginInfo {
                     login_type: &a.login_type,
                     extra: &a.extra,
@@ -213,6 +220,29 @@ pub mod v3 {
         /// Convert `IncomingToken` to `Token`.
         fn to_outgoing(&self) -> Token<'_> {
             Token { token: &self.token }
+        }
+    }
+
+    /// An identifier to supply for Application Service authentication.
+    #[derive(Clone, Debug, Outgoing, Serialize)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[serde(tag = "type", rename = "m.login.application_service")]
+    pub struct ApplicationService<'a> {
+        /// Identification information for the user.
+        pub identifier: UserIdentifier<'a>,
+    }
+
+    impl<'a> ApplicationService<'a> {
+        /// Creates a new `ApplicationService` with the given identifier.
+        pub fn new(identifier: UserIdentifier<'a>) -> Self {
+            Self { identifier }
+        }
+    }
+
+    impl IncomingApplicationService {
+        /// Convert `IncomingApplicationService` to `ApplicationService`.
+        fn to_outgoing(&self) -> ApplicationService<'_> {
+            ApplicationService { identifier: self.identifier.to_outgoing() }
         }
     }
 
