@@ -4,7 +4,9 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_common::{
-    encryption::DeviceKeys, presence::PresenceState, to_device::DeviceIdOrAllDevices,
+    encryption::{CrossSigningKey, DeviceKeys},
+    presence::PresenceState,
+    to_device::DeviceIdOrAllDevices,
 };
 use ruma_events::{receipt::Receipt, AnyToDeviceEventContent, EventType};
 use ruma_identifiers::{DeviceId, EventId, RoomId, TransactionId, UserId};
@@ -45,6 +47,11 @@ pub enum Edu {
     #[serde(rename = "m.direct_to_device")]
     DirectToDevice(DirectDeviceContent),
 
+    /// An EDU that lets servers push details to each other when one of their users updates their
+    /// cross-signing keys.
+    #[serde(rename = "m.signing_key_update")]
+    SigningKeyUpdate(SigningKeyUpdateContent),
+
     #[doc(hidden)]
     _Custom(JsonValue),
 }
@@ -70,6 +77,7 @@ impl<'de> Deserialize<'de> for Edu {
             "m.typing" => Self::Typing(from_raw_json_value(&content)?),
             "m.device_list_update" => Self::DeviceListUpdate(from_raw_json_value(&content)?),
             "m.direct_to_device" => Self::DirectToDevice(from_raw_json_value(&content)?),
+            "m.signing_key_update" => Self::SigningKeyUpdate(from_raw_json_value(&content)?),
             _ => Self::_Custom(from_raw_json_value(&content)?),
         })
     }
@@ -281,6 +289,29 @@ impl DirectDeviceContent {
 pub type DirectDeviceMessages =
     BTreeMap<Box<UserId>, BTreeMap<DeviceIdOrAllDevices, Raw<AnyToDeviceEventContent>>>;
 
+/// The content for an `m.signing_key_update` EDU.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct SigningKeyUpdateContent {
+    /// The user ID whose cross-signing keys have changed.
+    pub user_id: Box<UserId>,
+
+    /// The user's master key, if it was updated.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub master_key: Option<Raw<CrossSigningKey>>,
+
+    /// The users's self-signing key, if it was updated.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub self_signing_key: Option<Raw<CrossSigningKey>>,
+}
+
+impl SigningKeyUpdateContent {
+    /// Creates a new `SigningKeyUpdateContent`.
+    pub fn new(user_id: Box<UserId>) -> Self {
+        Self { user_id, master_key: None, self_signing_key: None }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use js_int::uint;
@@ -461,6 +492,59 @@ mod test {
                 && *ev_type == EventType::RoomKeyRequest
                 && message_id == "hiezohf6Hoo7kaev"
                 && messages.get(user_id!("@alice:example.org")).is_some()
+        );
+
+        assert_eq!(serde_json::to_value(&edu).unwrap(), json);
+    }
+
+    #[test]
+    fn signing_key_update_edu() {
+        let json = json!({
+            "content": {
+                "master_key": {
+                    "keys": {
+                        "ed25519:alice+base64+public+key": "alice+base64+public+key",
+                        "ed25519:base64+master+public+key": "base64+master+public+key"
+                    },
+                    "signatures": {
+                        "@alice:example.com": {
+                            "ed25519:alice+base64+master+key": "signature+of+key"
+                        }
+                    },
+                    "usage": [
+                        "master"
+                    ],
+                    "user_id": "@alice:example.com"
+                },
+                "self_signing_key": {
+                    "keys": {
+                        "ed25519:alice+base64+public+key": "alice+base64+public+key",
+                        "ed25519:base64+self+signing+public+key": "base64+self+signing+master+public+key"
+                    },
+                    "signatures": {
+                        "@alice:example.com": {
+                            "ed25519:alice+base64+master+key": "signature+of+key",
+                            "ed25519:base64+master+public+key": "signature+of+self+signing+key"
+                        }
+                    },
+                    "usage": [
+                        "self_signing"
+                    ],
+                    "user_id": "@alice:example.com"
+                  },
+                "user_id": "@alice:example.com"
+            },
+            "edu_type": "m.signing_key_update"
+        });
+
+        let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
+        assert_matches!(
+            &edu,
+            Edu::SigningKeyUpdate(SigningKeyUpdateContent {
+                user_id,
+                master_key: Some(_),
+                self_signing_key: Some(_),
+            }) if user_id == "@alice:example.com"
         );
 
         assert_eq!(serde_json::to_value(&edu).unwrap(), json);
