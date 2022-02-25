@@ -394,7 +394,10 @@ fn generate_marker_trait_impl(
         EventKind::MessageLike => quote! { MessageLikeEventContent },
         EventKind::State => quote! { StateEventContent },
         EventKind::ToDevice => quote! { ToDeviceEventContent },
-        EventKind::RoomRedaction | EventKind::Presence | EventKind::Decrypted => {
+        EventKind::RoomRedaction
+        | EventKind::Presence
+        | EventKind::Decrypted
+        | EventKind::HierarchySpaceChild => {
             return Err(syn::Error::new_spanned(
                 ident,
                 "valid event kinds are GlobalAccountData, RoomAccountData, \
@@ -454,7 +457,10 @@ fn generate_static_event_content_impl(
         EventKind::MessageLike => quote! { MessageLike { redacted: #redacted } },
         EventKind::State => quote! { State { redacted: #redacted } },
         EventKind::ToDevice => quote! { ToDevice },
-        EventKind::RoomRedaction | EventKind::Presence | EventKind::Decrypted => {
+        EventKind::RoomRedaction
+        | EventKind::Presence
+        | EventKind::Decrypted
+        | EventKind::HierarchySpaceChild => {
             unreachable!("not a valid event content kind")
         }
     };

@@ -35,6 +35,7 @@ pub mod room;
 pub mod search;
 pub mod server;
 pub mod session;
+pub mod space;
 pub mod state;
 pub mod sync;
 pub mod tag;

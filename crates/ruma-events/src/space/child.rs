@@ -2,8 +2,9 @@
 //!
 //! [`m.space.child`]: https://spec.matrix.org/v1.2/client-server-api/#mspacechild
 
-use ruma_identifiers::ServerName;
-use ruma_macros::EventContent;
+use ruma_common::MilliSecondsSinceUnixEpoch;
+use ruma_identifiers::{ServerName, UserId};
+use ruma_macros::{Event, EventContent};
 use serde::{Deserialize, Serialize};
 
 /// The content of an `m.space.child` event.
@@ -50,12 +51,33 @@ impl SpaceChildEventContent {
     }
 }
 
+/// An `m.space.child` event represented as a Stripped State Event with an added `origin_server_ts`
+/// key.
+#[derive(Clone, Debug, Event)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct HierarchySpaceChildStateEvent {
+    /// The content of the space child event.
+    pub content: SpaceChildEventContent,
+
+    /// The fully-qualified ID of the user who sent this event.
+    pub sender: Box<UserId>,
+
+    /// The room ID of the child.
+    pub state_key: String,
+
+    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
+}
+
 #[cfg(test)]
 mod tests {
-    use ruma_identifiers::server_name;
-    use serde_json::{json, to_value as to_json_value};
+    use js_int::uint;
+    use matches::assert_matches;
+    use ruma_common::MilliSecondsSinceUnixEpoch;
+    use ruma_identifiers::{server_name, user_id};
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::SpaceChildEventContent;
+    use super::{HierarchySpaceChildStateEvent, SpaceChildEventContent};
 
     #[test]
     fn space_child_serialization() {
@@ -81,5 +103,64 @@ mod tests {
         let json = json!({});
 
         assert_eq!(to_json_value(&content).unwrap(), json);
+    }
+
+    #[test]
+    fn hierarchy_space_child_serialization() {
+        let event = HierarchySpaceChildStateEvent {
+            content: SpaceChildEventContent {
+                via: Some(vec![server_name!("example.com").to_owned()]),
+                order: Some("uwu".to_owned()),
+                suggested: None,
+            },
+            sender: user_id!("@example:localhost").to_owned(),
+            state_key: "!child:localhost".to_owned(),
+            origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1_629_413_349)),
+        };
+
+        let json = json!({
+            "content": {
+                "via": ["example.com"],
+                "order": "uwu",
+            },
+            "sender": "@example:localhost",
+            "state_key": "!child:localhost",
+            "origin_server_ts": 1_629_413_349,
+            "type": "m.space.child",
+        });
+
+        assert_eq!(to_json_value(&event).unwrap(), json);
+    }
+
+    #[test]
+    fn hierarchy_space_child_deserialization() {
+        let json = json!({
+            "content": {
+                "via": [
+                    "example.org"
+                ]
+            },
+            "origin_server_ts": 1_629_413_349,
+            "sender": "@alice:example.org",
+            "state_key": "!a:example.org",
+            "type": "m.space.child"
+        });
+
+        assert_matches!(
+            from_json_value::<HierarchySpaceChildStateEvent>(json).unwrap(),
+            HierarchySpaceChildStateEvent {
+                content: SpaceChildEventContent {
+                    via: Some(via),
+                    order: None,
+                    suggested: None,
+                },
+                origin_server_ts,
+                sender,
+                state_key,
+            } if via[0] == "example.org"
+                && origin_server_ts.get() == uint!(1_629_413_349)
+                && sender == "@alice:example.org"
+                && state_key == "!a:example.org"
+        );
     }
 }

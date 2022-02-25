@@ -85,6 +85,7 @@ pub enum EventKind {
     ToDevice,
     RoomRedaction,
     Presence,
+    HierarchySpaceChild,
     Decrypted,
 }
 
@@ -99,6 +100,7 @@ impl fmt::Display for EventKind {
             EventKind::ToDevice => write!(f, "ToDeviceEvent"),
             EventKind::RoomRedaction => write!(f, "RoomRedactionEvent"),
             EventKind::Presence => write!(f, "PresenceEvent"),
+            EventKind::HierarchySpaceChild => write!(f, "HierarchySpaceChildStateEvent"),
             EventKind::Decrypted => unreachable!(),
         }
     }
@@ -204,6 +206,9 @@ pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation
         "RedactedSyncStateEvent" => Some((EventKind::State, EventKindVariation::RedactedSync)),
         "ToDeviceEvent" => Some((EventKind::ToDevice, EventKindVariation::Full)),
         "PresenceEvent" => Some((EventKind::Presence, EventKindVariation::Full)),
+        "HierarchySpaceChildStateEvent" => {
+            Some((EventKind::HierarchySpaceChild, EventKindVariation::Stripped))
+        }
         "RoomRedactionEvent" => Some((EventKind::RoomRedaction, EventKindVariation::Full)),
         "SyncRoomRedactionEvent" => Some((EventKind::RoomRedaction, EventKindVariation::Sync)),
         "RedactedRoomRedactionEvent" => {
