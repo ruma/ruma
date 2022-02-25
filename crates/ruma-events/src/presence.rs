@@ -4,8 +4,8 @@
 
 use js_int::UInt;
 use ruma_common::presence::PresenceState;
-use ruma_events_macros::{Event, EventContent};
 use ruma_identifiers::{MxcUri, UserId};
+use ruma_macros::{Event, EventContent};
 use serde::{Deserialize, Serialize};
 
 use crate::{EventKind, StaticEventContent};

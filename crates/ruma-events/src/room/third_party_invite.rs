@@ -2,7 +2,7 @@
 //!
 //! [`m.room.third_party_invite`]: https://spec.matrix.org/v1.2/client-server-api/#mroomthird_party_invite
 
-use ruma_events_macros::EventContent;
+use ruma_macros::EventContent;
 use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
 

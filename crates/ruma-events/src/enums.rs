@@ -1,6 +1,6 @@
 use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_events_macros::{event_enum, EventEnumFromEvent};
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
+use ruma_macros::{event_enum, EventEnumFromEvent};
 use ruma_serde::from_raw_json_value;
 use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;

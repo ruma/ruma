@@ -6,8 +6,8 @@ use std::collections::BTreeMap;
 
 use js_int::{int, Int};
 use ruma_common::power_levels::{default_power_level, NotificationPowerLevels};
-use ruma_events_macros::EventContent;
 use ruma_identifiers::UserId;
+use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::EventType;

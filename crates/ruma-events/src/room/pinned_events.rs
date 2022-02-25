@@ -2,8 +2,8 @@
 //!
 //! [`m.room.pinned_events`]: https://spec.matrix.org/v1.2/client-server-api/#mroompinned_events
 
-use ruma_events_macros::EventContent;
 use ruma_identifiers::EventId;
+use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 /// The content of an `m.room.pinned_events` event.

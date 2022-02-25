@@ -2,7 +2,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::{Ident, LitStr};
 
-use crate::event_parse::{EventEnumEntry, EventEnumInput, EventKind};
+use super::event_parse::{EventEnumEntry, EventEnumInput, EventKind};
 
 pub fn expand_event_type_enum(
     input: EventEnumInput,

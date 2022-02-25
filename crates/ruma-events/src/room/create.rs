@@ -3,8 +3,8 @@
 //! [`m.room.create`]: https://spec.matrix.org/v1.2/client-server-api/#mroomcreate
 
 use ruma_common::room::RoomType;
-use ruma_events_macros::EventContent;
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
+use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 /// The content of an `m.room.create` event.

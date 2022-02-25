@@ -1,14 +1,14 @@
 [package]
 categories = ["api-bindings", "web-programming"]
-description = "A procedural macro used by the ruma-events crate."
+description = "Procedural macros used by the Ruma crates."
 edition = "2018"
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"
-name = "ruma-events-macros"
+name = "ruma-macros"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.26.0"
+version = "0.1.0"
 
 [lib]
 proc-macro = true

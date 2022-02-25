@@ -2,8 +2,8 @@
 //!
 //! [`m.room.canonical_alias`]: https://spec.matrix.org/v1.2/client-server-api/#mroomcanonical_alias
 
-use ruma_events_macros::EventContent;
 use ruma_identifiers::RoomAliasId;
+use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 /// The content of an `m.room.canonical_alias` event.

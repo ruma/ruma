@@ -7,11 +7,11 @@ use syn::{
     Meta, MetaList, NestedMeta,
 };
 
-use crate::{
+use super::{
     event_parse::{to_kind_variation, EventKind, EventKindVariation},
-    import_ruma_events,
     util::is_non_stripped_room_event,
 };
+use crate::import_ruma_events;
 
 /// Derive `Event` macro code generation.
 pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {

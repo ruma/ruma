@@ -2,7 +2,7 @@
 //!
 //! [`m.policy.rule.room`]: https://spec.matrix.org/v1.2/client-server-api/#mpolicyruleroom
 
-use ruma_events_macros::EventContent;
+use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::policy::rule::PolicyRuleEventContent;

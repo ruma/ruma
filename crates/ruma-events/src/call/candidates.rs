@@ -3,7 +3,7 @@
 //! [`m.call.candidates`]: https://spec.matrix.org/v1.2/client-server-api/#mcallcandidates
 
 use js_int::UInt;
-use ruma_events_macros::EventContent;
+use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 /// The content of an `m.call.candidates` event.

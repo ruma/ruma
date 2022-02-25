@@ -5,8 +5,8 @@
 use std::{borrow::Cow, fmt};
 
 use js_int::UInt;
-use ruma_events_macros::EventContent;
 use ruma_identifiers::{DeviceId, EventId, MxcUri, UserId};
+use ruma_macros::EventContent;
 use ruma_serde::{JsonObject, StringEnum};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;

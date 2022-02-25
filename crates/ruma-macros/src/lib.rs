@@ -1,33 +1,26 @@
 #![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
-//! A procedural macro for generating [ruma-events] events.
+//! Procedural macros used by ruma crates.
 //!
 //! See the documentation for the individual macros for usage details.
-//!
-//! [ruma-events]: https://github.com/ruma/ruma/tree/main/ruma-events
 
 #![warn(missing_docs)]
 
-use event_parse::EventEnumInput;
 use proc_macro::TokenStream;
 use proc_macro2 as pm2;
 use proc_macro_crate::{crate_name, FoundCrate};
 use quote::{format_ident, quote};
 use syn::{parse_macro_input, DeriveInput};
 
-use self::{
+use self::events::{
     event::expand_event,
     event_content::expand_event_content,
     event_enum::{expand_event_enums, expand_from_impls_derived},
+    event_parse::EventEnumInput,
     event_type::expand_event_type_enum,
 };
 
-mod event;
-mod event_content;
-mod event_enum;
-mod event_parse;
-mod event_type;
-mod util;
+mod events;
 
 /// Generates an enum to represent the various Matrix event types.
 ///
@@ -38,7 +31,7 @@ mod util;
 ///
 /// ```ignore
 /// # // HACK: This is "ignore" because of cyclical dependency drama.
-/// use ruma_events_macros::event_enum;
+/// use ruma_macros::event_enum;
 ///
 /// event_enum! {
 ///     enum ToDevice {

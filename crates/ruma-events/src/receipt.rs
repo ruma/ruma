@@ -8,8 +8,8 @@ use std::{
 };
 
 use ruma_common::{receipt::ReceiptType, MilliSecondsSinceUnixEpoch};
-use ruma_events_macros::EventContent;
 use ruma_identifiers::{EventId, UserId};
+use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 /// The content of an `m.receipt` event.

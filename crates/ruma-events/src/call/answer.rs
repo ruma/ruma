@@ -3,7 +3,7 @@
 //! [`m.call.answer`]: https://spec.matrix.org/v1.2/client-server-api/#mcallanswer
 
 use js_int::UInt;
-use ruma_events_macros::EventContent;
+use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::SessionDescription;

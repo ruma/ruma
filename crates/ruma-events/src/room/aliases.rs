@@ -1,7 +1,7 @@
 //! Types for the `m.room.aliases` event.
 
-use ruma_events_macros::EventContent;
 use ruma_identifiers::{RoomAliasId, RoomVersionId};
+use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 

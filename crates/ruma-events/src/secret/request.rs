@@ -4,8 +4,8 @@
 
 use std::convert::TryFrom;
 
-use ruma_events_macros::EventContent;
 use ruma_identifiers::{DeviceId, TransactionId};
+use ruma_macros::EventContent;
 use ruma_serde::StringEnum;
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 

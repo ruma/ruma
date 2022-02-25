@@ -4,7 +4,7 @@
 
 use std::fmt;
 
-use ruma_events_macros::EventContent;
+use ruma_macros::EventContent;
 use serde::{
     de::{self, Deserialize, Deserializer},
     ser::{Serialize, SerializeStruct as _, Serializer},

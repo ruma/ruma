@@ -2,8 +2,8 @@
 //!
 //! [`m.room.server_acl`]: https://spec.matrix.org/v1.2/client-server-api/#mroomserver_acl
 
-use ruma_events_macros::EventContent;
 use ruma_identifiers::ServerName;
+use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 use wildmatch::WildMatch;
 

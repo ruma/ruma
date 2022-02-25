@@ -9,7 +9,7 @@ use syn::{
     DeriveInput, Ident, LitStr, Token,
 };
 
-use crate::event_parse::{EventKind, EventKindVariation};
+use super::event_parse::{EventKind, EventKindVariation};
 
 mod kw {
     // This `content` field is kept when the event is redacted.

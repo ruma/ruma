@@ -2,8 +2,8 @@
 //!
 //! [`m.ignored_user_list`]: https://spec.matrix.org/v1.2/client-server-api/#mignored_user_list
 
-use ruma_events_macros::EventContent;
 use ruma_identifiers::UserId;
+use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 /// The content of an `m.ignored_user_list` event.

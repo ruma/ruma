@@ -4,8 +4,8 @@
 
 use std::{borrow::Cow, collections::BTreeMap};
 
-use ruma_events_macros::EventContent;
 use ruma_identifiers::RoomId;
+use ruma_macros::EventContent;
 use ruma_serde::from_raw_json_value;
 use serde::{
     de::{Deserializer, Error},

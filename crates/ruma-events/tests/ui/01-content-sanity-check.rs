@@ -1,4 +1,4 @@
-use ruma_events_macros::EventContent;
+use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]

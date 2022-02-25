@@ -2,8 +2,8 @@
 //!
 //! [`m.room_key_request`]: https://spec.matrix.org/v1.2/client-server-api/#mroom_key_request
 
-use ruma_events_macros::EventContent;
 use ruma_identifiers::{DeviceId, EventEncryptionAlgorithm, RoomId, TransactionId};
+use ruma_macros::EventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
