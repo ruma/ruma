@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Add support for the space summary API in `space::get_hierarchy` according to MSC2946.
+
 # 0.4.0
 
 Breaking changes:
