@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Use `Raw` for `config::set_*_account_data::Request::data`.
+
 # 0.13.0
 
 Bug fixes:
