@@ -58,10 +58,13 @@ pub mod v3 {
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
         pub fn new<T: GlobalAccountDataEventContent>(
             data: &'a T,
-            event_type: &'a str,
             user_id: &'a UserId,
         ) -> serde_json::Result<Self> {
-            Ok(Self { user_id, event_type, data: Raw::from_json(to_raw_json_value(data)?) })
+            Ok(Self {
+                user_id,
+                event_type: data.event_type(),
+                data: Raw::from_json(to_raw_json_value(data)?),
+            })
         }
 
         /// Creates a new `Request` with the given raw data, event type and user ID.

@@ -62,13 +62,12 @@ pub mod v3 {
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
         pub fn new<T: RoomAccountDataEventContent>(
             data: &'a T,
-            event_type: &'a str,
             room_id: &'a RoomId,
             user_id: &'a UserId,
         ) -> serde_json::Result<Self> {
             Ok(Self {
                 data: Raw::from_json(to_raw_json_value(data)?),
-                event_type,
+                event_type: data.event_type(),
                 room_id,
                 user_id,
             })
