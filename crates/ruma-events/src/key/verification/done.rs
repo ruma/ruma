@@ -2,8 +2,8 @@
 //!
 //! [`m.key.verification.done`]: https://spec.matrix.org/v1.2/client-server-api/#mkeyverificationdone
 
-use ruma_events_macros::EventContent;
 use ruma_identifiers::TransactionId;
+use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::Relation;

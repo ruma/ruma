@@ -1,4 +1,4 @@
-use ruma_events_macros::event_enum;
+use ruma_macros::event_enum;
 
 event_enum! {
     /// Any global account data event.

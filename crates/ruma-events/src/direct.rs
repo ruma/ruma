@@ -7,8 +7,8 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use ruma_events_macros::EventContent;
 use ruma_identifiers::{RoomId, UserId};
+use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 /// The content of an `m.direct` event.

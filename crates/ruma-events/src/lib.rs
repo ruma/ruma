@@ -166,7 +166,7 @@ pub mod exports {
 
 /// Re-export of all the derives needed to create your own event types.
 pub mod macros {
-    pub use ruma_events_macros::{Event, EventContent};
+    pub use ruma_macros::{Event, EventContent};
 }
 
 pub mod call;

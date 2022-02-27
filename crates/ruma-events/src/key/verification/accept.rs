@@ -4,8 +4,8 @@
 
 use std::collections::BTreeMap;
 
-use ruma_events_macros::EventContent;
 use ruma_identifiers::TransactionId;
+use ruma_macros::EventContent;
 use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;

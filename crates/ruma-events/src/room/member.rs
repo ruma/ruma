@@ -4,8 +4,8 @@
 
 use std::collections::BTreeMap;
 
-use ruma_events_macros::EventContent;
 use ruma_identifiers::{MxcUri, RoomVersionId, ServerName, ServerSigningKeyId, UserId};
+use ruma_macros::EventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;

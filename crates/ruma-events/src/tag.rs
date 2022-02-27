@@ -4,7 +4,7 @@
 
 use std::{collections::BTreeMap, error::Error, fmt, str::FromStr};
 
-use ruma_events_macros::EventContent;
+use ruma_macros::EventContent;
 use ruma_serde::deserialize_cow_str;
 use serde::{Deserialize, Serialize};
 

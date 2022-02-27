@@ -5,8 +5,8 @@
 use std::collections::BTreeMap;
 
 use js_int::UInt;
-use ruma_events_macros::EventContent;
 use ruma_identifiers::{DeviceId, EventId};
+use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::room::message::InReplyTo;

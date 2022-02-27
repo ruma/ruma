@@ -1,7 +1,7 @@
 //! Types for the `m.reaction` event.
 
-use ruma_events_macros::EventContent;
 use ruma_identifiers::EventId;
+use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 /// The payload for a `m.reaction` event.

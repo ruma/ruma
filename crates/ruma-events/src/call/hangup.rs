@@ -3,7 +3,7 @@
 //! [`m.call.hangup`]: https://spec.matrix.org/v1.2/client-server-api/#mcallhangup
 
 use js_int::UInt;
-use ruma_events_macros::EventContent;
+use ruma_macros::EventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 

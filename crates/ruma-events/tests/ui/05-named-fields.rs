@@ -1,5 +1,5 @@
 use ruma_events::StateEventContent;
-use ruma_events_macros::Event;
+use ruma_macros::Event;
 
 /// State event.
 #[derive(Clone, Debug, Event)]

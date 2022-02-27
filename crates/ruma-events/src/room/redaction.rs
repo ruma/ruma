@@ -3,8 +3,8 @@
 //! [`m.room.redaction`]: https://spec.matrix.org/v1.2/client-server-api/#mroomredaction
 
 use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_events_macros::{Event, EventContent};
 use ruma_identifiers::{EventId, RoomId, UserId};
+use ruma_macros::{Event, EventContent};
 use serde::{Deserialize, Serialize};
 
 use crate::{Redact, RedactContent, RedactedUnsigned, Unsigned};

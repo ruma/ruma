@@ -2,8 +2,8 @@
 //!
 //! [`m.room.name`]: https://spec.matrix.org/v1.2/client-server-api/#mroomname
 
-use ruma_events_macros::EventContent;
 use ruma_identifiers::RoomName;
+use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 /// The content of an `m.room.name` event.

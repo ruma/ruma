@@ -4,7 +4,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::{Attribute, Data, DataEnum, DeriveInput, Ident, LitStr};
 
-use crate::{
+use super::{
     event_parse::{EventEnumDecl, EventEnumEntry, EventKind, EventKindVariation},
     util::{has_prev_content_field, EVENT_FIELDS},
 };
@@ -618,7 +618,7 @@ fn field_return_type(
                 quote! { #ruma_events::Unsigned }
             }
         }
-        _ => panic!("the `ruma_events_macros::event_enum::EVENT_FIELD` const was changed"),
+        _ => panic!("the `ruma_macros::event_enum::EVENT_FIELD` const was changed"),
     }
 }
 
