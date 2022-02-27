@@ -335,7 +335,7 @@ pub enum EventKind {
 
     /// Message-like event kind.
     ///
-    /// Since redacted / non-redacted message-like events are used in the same places bu have
+    /// Since redacted / non-redacted message-like events are used in the same places but have
     /// different sets of fields, these two variations are treated as two closely-related event
     /// kinds.
     MessageLike {
@@ -345,7 +345,7 @@ pub enum EventKind {
 
     /// State event kind.
     ///
-    /// Since redacted / non-redacted state events are used in the same places bu have different
+    /// Since redacted / non-redacted state events are used in the same places but have different
     /// sets of fields, these two variations are treated as two closely-related event kinds.
     State {
         /// Redacted variation?
