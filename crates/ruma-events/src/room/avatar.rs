@@ -50,7 +50,7 @@ impl RoomAvatarEventContent {
 
     /// Create an empty `RoomAvatarEventContent`.
     ///
-    /// With the `unstable-pre-spec` feature, this method takes an `MxcUri`.
+    /// Without the `unstable-pre-spec` feature, this method takes an `MxcUri`.
     /// See [matrix-doc#2006](https://github.com/matrix-org/matrix-doc/issues/2006).
     #[cfg(feature = "unstable-pre-spec")]
     pub fn new() -> Self {
