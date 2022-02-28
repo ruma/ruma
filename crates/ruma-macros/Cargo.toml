@@ -20,4 +20,5 @@ compat = []
 proc-macro-crate = "1.0.0"
 proc-macro2 = "1.0.24"
 quote = "1.0.8"
+ruma-identifiers-validation = { version = "0.7.0", path = "../ruma-identifiers-validation", default-features = false }
 syn = { version = "1.0.57", features = ["extra-traits", "full"] }

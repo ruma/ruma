@@ -110,7 +110,10 @@ macro_rules! device_id {
 // Bug report: https://github.com/rust-lang/rust/issues/83939
 #[doc(hidden)]
 pub mod _macros {
-    pub use ruma_identifiers_macros::*;
+    pub use ruma_macros::{
+        device_key_id, event_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
+        server_signing_key_id, user_id,
+    };
 }
 
 /// Compile-time checked `DeviceKeyId` construction.

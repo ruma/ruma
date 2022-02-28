@@ -10,17 +10,25 @@ use proc_macro::TokenStream;
 use proc_macro2 as pm2;
 use proc_macro_crate::{crate_name, FoundCrate};
 use quote::{format_ident, quote};
+use ruma_identifiers_validation::{
+    device_key_id, event_id, key_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
+    user_id,
+};
 use syn::{parse_macro_input, DeriveInput};
 
-use self::events::{
-    event::expand_event,
-    event_content::expand_event_content,
-    event_enum::{expand_event_enums, expand_from_impls_derived},
-    event_parse::EventEnumInput,
-    event_type::expand_event_type_enum,
+use self::{
+    events::{
+        event::expand_event,
+        event_content::expand_event_content,
+        event_enum::{expand_event_enums, expand_from_impls_derived},
+        event_parse::EventEnumInput,
+        event_type::expand_event_type_enum,
+    },
+    identifiers::IdentifierInput,
 };
 
 mod events;
+mod identifiers;
 
 /// Generates an enum to represent the various Matrix event types.
 ///
@@ -109,4 +117,121 @@ pub(crate) fn import_ruma_events() -> pm2::TokenStream {
 pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     expand_from_impls_derived(input).into()
+}
+
+/// Compile-time checked `DeviceKeyId` construction.
+#[proc_macro]
+pub fn device_key_id(input: TokenStream) -> TokenStream {
+    let IdentifierInput { dollar_crate, id } = parse_macro_input!(input as IdentifierInput);
+    assert!(device_key_id::validate(&id.value()).is_ok(), "Invalid device key id");
+
+    let output = quote! {
+        <&#dollar_crate::DeviceKeyId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
+    };
+
+    output.into()
+}
+
+/// Compile-time checked `EventId` construction.
+#[proc_macro]
+pub fn event_id(input: TokenStream) -> TokenStream {
+    let IdentifierInput { dollar_crate, id } = parse_macro_input!(input as IdentifierInput);
+    assert!(event_id::validate(&id.value()).is_ok(), "Invalid event id");
+
+    let output = quote! {
+        <&#dollar_crate::EventId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
+    };
+
+    output.into()
+}
+
+/// Compile-time checked `RoomAliasId` construction.
+#[proc_macro]
+pub fn room_alias_id(input: TokenStream) -> TokenStream {
+    let IdentifierInput { dollar_crate, id } = parse_macro_input!(input as IdentifierInput);
+    assert!(room_alias_id::validate(&id.value()).is_ok(), "Invalid room_alias_id");
+
+    let output = quote! {
+        <&#dollar_crate::RoomAliasId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
+    };
+
+    output.into()
+}
+
+/// Compile-time checked `RoomId` construction.
+#[proc_macro]
+pub fn room_id(input: TokenStream) -> TokenStream {
+    let IdentifierInput { dollar_crate, id } = parse_macro_input!(input as IdentifierInput);
+    assert!(room_id::validate(&id.value()).is_ok(), "Invalid room_id");
+
+    let output = quote! {
+        <&#dollar_crate::RoomId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
+    };
+
+    output.into()
+}
+
+/// Compile-time checked `RoomVersionId` construction.
+#[proc_macro]
+pub fn room_version_id(input: TokenStream) -> TokenStream {
+    let IdentifierInput { dollar_crate, id } = parse_macro_input!(input as IdentifierInput);
+    assert!(room_version_id::validate(&id.value()).is_ok(), "Invalid room_version_id");
+
+    let output = quote! {
+        <#dollar_crate::RoomVersionId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
+    };
+
+    output.into()
+}
+
+/// Compile-time checked `ServerSigningKeyId` construction.
+#[proc_macro]
+pub fn server_signing_key_id(input: TokenStream) -> TokenStream {
+    let IdentifierInput { dollar_crate, id } = parse_macro_input!(input as IdentifierInput);
+    assert!(key_id::validate(&id.value()).is_ok(), "Invalid server_signing_key_id");
+
+    let output = quote! {
+        <&#dollar_crate::ServerSigningKeyId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
+    };
+
+    output.into()
+}
+
+/// Compile-time checked `ServerName` construction.
+#[proc_macro]
+pub fn server_name(input: TokenStream) -> TokenStream {
+    let IdentifierInput { dollar_crate, id } = parse_macro_input!(input as IdentifierInput);
+    assert!(server_name::validate(&id.value()).is_ok(), "Invalid server_name");
+
+    let output = quote! {
+        <&#dollar_crate::ServerName as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
+    };
+
+    output.into()
+}
+
+/// Compile-time checked `MxcUri` construction.
+#[proc_macro]
+pub fn mxc_uri(input: TokenStream) -> TokenStream {
+    let IdentifierInput { dollar_crate, id } = parse_macro_input!(input as IdentifierInput);
+    assert!(mxc_uri::validate(&id.value()).is_ok(), "Invalid mxc://");
+
+    let output = quote! {
+        <&#dollar_crate::MxcUri as ::std::convert::From<&str>>::from(#id)
+    };
+
+    output.into()
+}
+
+/// Compile-time checked `UserId` construction.
+#[proc_macro]
+pub fn user_id(input: TokenStream) -> TokenStream {
+    let IdentifierInput { dollar_crate, id } = parse_macro_input!(input as IdentifierInput);
+    assert!(user_id::validate(&id.value()).is_ok(), "Invalid user_id");
+
+    let output = quote! {
+        <&#dollar_crate::UserId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
+    };
+
+    output.into()
 }
