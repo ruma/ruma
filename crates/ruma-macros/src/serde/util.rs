@@ -3,7 +3,7 @@ use proc_macro_crate::{crate_name, FoundCrate};
 use quote::{format_ident, quote};
 use syn::{ItemEnum, LitStr, Variant};
 
-use crate::{
+use super::{
     attr::{RenameAllAttr, RenameAttr},
     case::RenameRule,
 };

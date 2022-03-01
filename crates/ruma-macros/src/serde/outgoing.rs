@@ -9,7 +9,7 @@ use syn::{
     PathArguments, Token, Type, TypeGenerics, TypePath, TypeReference, TypeSlice, Variant,
 };
 
-use crate::util::import_ruma_serde;
+use super::util::import_ruma_serde;
 
 enum StructKind {
     Struct,

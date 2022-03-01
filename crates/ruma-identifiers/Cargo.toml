@@ -27,7 +27,6 @@ rand_crate = { package = "rand", version = "0.8.3", optional = true }
 ruma-identifiers-validation = { version = "0.7.0", path = "../ruma-identifiers-validation", default-features = false }
 ruma-macros = { version = "=0.1.0", path = "../ruma-macros" }
 ruma-serde = { version = "0.6.0", path = "../ruma-serde", optional = true }
-ruma-serde-macros = { version = "0.6.0", path = "../ruma-serde-macros" }
 # Renamed so we can have a serde feature.
 serde1 = { package = "serde", version = "1.0.126", optional = true, features = ["derive"] }
 url = "2.2.2"

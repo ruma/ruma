@@ -14,7 +14,7 @@ use ruma_identifiers_validation::{
     device_key_id, event_id, key_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
     user_id,
 };
-use syn::{parse_macro_input, DeriveInput};
+use syn::{parse_macro_input, DeriveInput, ItemEnum};
 
 use self::{
     events::{
@@ -25,10 +25,21 @@ use self::{
         event_type::expand_event_type_enum,
     },
     identifiers::IdentifierInput,
+    serde::{
+        deserialize_from_cow_str::expand_deserialize_from_cow_str,
+        display_as_ref_str::expand_display_as_ref_str,
+        enum_as_ref_str::expand_enum_as_ref_str,
+        enum_from_string::expand_enum_from_string,
+        eq_as_ref_str::expand_partial_eq_as_ref_str,
+        ord_as_ref_str::{expand_ord_as_ref_str, expand_partial_ord_as_ref_str},
+        outgoing::expand_derive_outgoing,
+        serialize_as_ref_str::expand_serialize_as_ref_str,
+    },
 };
 
 mod events;
 mod identifiers;
+mod serde;
 
 /// Generates an enum to represent the various Matrix event types.
 ///
@@ -234,4 +245,151 @@ pub fn user_id(input: TokenStream) -> TokenStream {
     };
 
     output.into()
+}
+
+/// Derive the `Outgoing` trait, possibly generating an 'Incoming' version of the struct this
+/// derive macro is used on.
+///
+/// Specifically, if no lifetime variables are used on any of the fields of the struct, this simple
+/// implementation will be generated:
+///
+/// ```ignore
+/// # // TODO: "ignore" this doctest until it is more extensively documented. (See #541)
+/// impl Outgoing for MyType {
+///     type Incoming = Self;
+/// }
+/// ```
+/*
+
+TODO: Extend docs. Previously:
+
+If, however, `#[wrap_incoming]` is used (which is the only reason you should ever use this
+derive macro manually), a new struct `IncomingT` (where `T` is the type this derive is used on)
+is generated, with all of the fields with `#[wrap_incoming]` replaced:
+
+```ignore
+#[derive(Outgoing)]
+struct MyType {
+    pub foo: Foo,
+    #[wrap_incoming]
+    pub bar: Bar,
+    #[wrap_incoming(Baz)]
+    pub baz: Option<Baz>,
+    #[wrap_incoming(with EventResult)]
+    pub x: XEvent,
+    #[wrap_incoming(YEvent with EventResult)]
+    pub ys: Vec<YEvent>,
+}
+
+// generated
+struct IncomingMyType {
+    pub foo: Foo,
+    pub bar: IncomingBar,
+    pub baz: Option<IncomingBaz>,
+    pub x: EventResult<XEvent>,
+    pub ys: Vec<EventResult<YEvent>>,
+}
+```
+
+*/
+#[proc_macro_derive(Outgoing, attributes(incoming_derive))]
+pub fn derive_outgoing(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_derive_outgoing(input).unwrap_or_else(syn::Error::into_compile_error).into()
+}
+
+/// Derive the `AsRef<str>` trait for an enum.
+#[proc_macro_derive(AsRefStr, attributes(ruma_enum))]
+pub fn derive_enum_as_ref_str(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as ItemEnum);
+    expand_enum_as_ref_str(&input).unwrap_or_else(syn::Error::into_compile_error).into()
+}
+
+/// Derive the `From<T: AsRef<str> + Into<Box<str>>>` trait for an enum.
+#[proc_macro_derive(FromString, attributes(ruma_enum))]
+pub fn derive_enum_from_string(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as ItemEnum);
+    expand_enum_from_string(&input).unwrap_or_else(syn::Error::into_compile_error).into()
+}
+
+// FIXME: The following macros aren't actually interested in type details beyond name (and possibly
+//        generics in the future). They probably shouldn't use `DeriveInput`.
+
+/// Derive the `fmt::Display` trait using the `AsRef<str>` implementation of the type.
+#[proc_macro_derive(DisplayAsRefStr)]
+pub fn derive_display_as_ref_str(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_display_as_ref_str(&input.ident).unwrap_or_else(syn::Error::into_compile_error).into()
+}
+
+/// Derive the `Serialize` trait using the `AsRef<str>` implementation of the type.
+#[proc_macro_derive(SerializeAsRefStr)]
+pub fn derive_serialize_as_ref_str(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_serialize_as_ref_str(&input.ident).unwrap_or_else(syn::Error::into_compile_error).into()
+}
+
+/// Derive the `Deserialize` trait using the `From<Cow<str>>` implementation of the type.
+#[proc_macro_derive(DeserializeFromCowStr)]
+pub fn derive_deserialize_from_cow_str(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_deserialize_from_cow_str(&input.ident)
+        .unwrap_or_else(syn::Error::into_compile_error)
+        .into()
+}
+
+/// Derive the `PartialOrd` trait using the `AsRef<str>` implementation of the type.
+#[proc_macro_derive(PartialOrdAsRefStr)]
+pub fn derive_partial_ord_as_ref_str(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_partial_ord_as_ref_str(&input.ident)
+        .unwrap_or_else(syn::Error::into_compile_error)
+        .into()
+}
+
+/// Derive the `Ord` trait using the `AsRef<str>` implementation of the type.
+#[proc_macro_derive(OrdAsRefStr)]
+pub fn derive_ord_as_ref_str(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_ord_as_ref_str(&input.ident).unwrap_or_else(syn::Error::into_compile_error).into()
+}
+
+/// Derive the `PartialEq` trait using the `AsRef<str>` implementation of the type.
+#[proc_macro_derive(PartialEqAsRefStr)]
+pub fn derive_partial_eq_as_ref_str(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_partial_eq_as_ref_str(&input.ident).unwrap_or_else(syn::Error::into_compile_error).into()
+}
+
+/// Shorthand for the derives `AsRefStr`, `FromString`, `DisplayAsRefStr`, `SerializeAsRefStr` and
+/// `DeserializeFromCowStr`.
+#[proc_macro_derive(StringEnum, attributes(ruma_enum))]
+pub fn derive_string_enum(input: TokenStream) -> TokenStream {
+    fn expand_all(input: ItemEnum) -> syn::Result<proc_macro2::TokenStream> {
+        let as_ref_str_impl = expand_enum_as_ref_str(&input)?;
+        let from_string_impl = expand_enum_from_string(&input)?;
+        let display_impl = expand_display_as_ref_str(&input.ident)?;
+        let serialize_impl = expand_serialize_as_ref_str(&input.ident)?;
+        let deserialize_impl = expand_deserialize_from_cow_str(&input.ident)?;
+
+        Ok(quote! {
+            #as_ref_str_impl
+            #from_string_impl
+            #display_impl
+            #serialize_impl
+            #deserialize_impl
+        })
+    }
+
+    let input = parse_macro_input!(input as ItemEnum);
+    expand_all(input).unwrap_or_else(syn::Error::into_compile_error).into()
+}
+
+/// A derive macro that generates no code, but registers the serde attribute so both `#[serde(...)]`
+/// and `#[cfg_attr(..., serde(...))]` are accepted on the type, its fields and (in case the input
+/// is an enum) variants fields.
+#[doc(hidden)]
+#[proc_macro_derive(_FakeDeriveSerde, attributes(serde))]
+pub fn fake_derive_serde(_input: TokenStream) -> TokenStream {
+    TokenStream::new()
 }

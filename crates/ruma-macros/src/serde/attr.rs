@@ -3,7 +3,7 @@ use syn::{
     LitStr, Token,
 };
 
-use crate::case::RenameRule;
+use super::case::RenameRule;
 
 mod kw {
     syn::custom_keyword!(rename);

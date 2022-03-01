@@ -87,9 +87,12 @@ pub trait Outgoing {
 
 // -- Everything below is macro-related --
 
-pub use ruma_serde_macros::*;
+pub use ruma_macros::{
+    AsRefStr, DeserializeFromCowStr, DisplayAsRefStr, FromString, OrdAsRefStr, Outgoing,
+    PartialEqAsRefStr, PartialOrdAsRefStr, SerializeAsRefStr, StringEnum, _FakeDeriveSerde,
+};
 
-/// This module is used to support the generated code from ruma-serde-macros.
+/// This module is used to support the generated code from ruma-macros.
 /// It is not considered part of ruma-serde's public API.
 #[doc(hidden)]
 pub mod exports {

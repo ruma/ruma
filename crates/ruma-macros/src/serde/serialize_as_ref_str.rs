@@ -1,7 +1,7 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 
-use crate::util::import_ruma_serde;
+use super::util::import_ruma_serde;
 
 pub fn expand_serialize_as_ref_str(ident: &Ident) -> syn::Result<TokenStream> {
     let ruma_serde = import_ruma_serde();

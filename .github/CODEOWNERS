@@ -6,6 +6,5 @@
 /crates/ruma-identifiers-validation/   @iinuwa
 /crates/ruma-identity-service-api/     @iinuwa
 /crates/ruma-macros/                   @ruma/macro-owners
-/crates/ruma-serde-macros/             @ruma/macro-owners
 /crates/ruma-signatures/               @gnieto
 /crates/ruma-state-res/                @DevinR528

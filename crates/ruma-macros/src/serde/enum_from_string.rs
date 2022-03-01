@@ -2,7 +2,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::{Fields, FieldsNamed, FieldsUnnamed, ItemEnum};
 
-use crate::util::{get_rename, get_rename_rule};
+use super::util::{get_rename, get_rename_rule};
 
 pub fn expand_enum_from_string(input: &ItemEnum) -> syn::Result<TokenStream> {
     let enum_name = &input.ident;

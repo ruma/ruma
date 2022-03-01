@@ -1,8 +1,8 @@
 //! Key algorithms used in Matrix spec.
 
+use ruma_macros::{AsRefStr, DisplayAsRefStr, FromString};
 #[cfg(feature = "serde")]
 use ruma_serde::{DeserializeFromCowStr, SerializeAsRefStr};
-use ruma_serde_macros::{AsRefStr, DisplayAsRefStr, FromString};
 
 use crate::PrivOwnedStr;
 
