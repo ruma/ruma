@@ -4,7 +4,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{punctuated::Punctuated, spanned::Spanned, Attribute, Field, Ident, Token};
 
-use super::{kw, metadata::Metadata};
+use super::{api_metadata::Metadata, kw};
 
 /// The result of processing the `response` section of the macro.
 pub(crate) struct Response {
@@ -25,7 +25,7 @@ impl Response {
         error_ty: &TokenStream,
         ruma_api: &TokenStream,
     ) -> TokenStream {
-        let ruma_api_macros = quote! { #ruma_api::exports::ruma_api_macros };
+        let ruma_macros = quote! { #ruma_api::exports::ruma_macros };
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
 
         let docs =
@@ -39,12 +39,12 @@ impl Response {
             #[derive(
                 Clone,
                 Debug,
-                #ruma_api_macros::Response,
+                #ruma_macros::Response,
                 #ruma_serde::Outgoing,
                 #ruma_serde::_FakeDeriveSerde,
             )]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-            #[incoming_derive(!Deserialize, #ruma_api_macros::_FakeDeriveRumaApi)]
+            #[incoming_derive(!Deserialize, #ruma_macros::_FakeDeriveRumaApi)]
             #[ruma_api(error_ty = #error_ty)]
             #( #struct_attributes )*
             pub struct #response_ident {

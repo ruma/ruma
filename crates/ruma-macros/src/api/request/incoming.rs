@@ -3,7 +3,7 @@ use quote::quote;
 use syn::Field;
 
 use super::{Request, RequestField};
-use crate::auth_scheme::AuthScheme;
+use crate::api::auth_scheme::AuthScheme;
 
 impl Request {
     pub fn expand_incoming(&self, ruma_api: &TokenStream) -> TokenStream {

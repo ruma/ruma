@@ -1,4 +1,6 @@
-//! Details of the `ruma_api` procedural macro.
+//! Methods and types for generating [ruma-api] endpoints.
+//!
+//! [ruma-api]: https://github.com/ruma/ruma/tree/main/ruma-api
 
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -8,12 +10,17 @@ use syn::{
     Attribute, Field, Token, Type,
 };
 
-mod metadata;
-mod request;
-mod response;
+use self::{api_metadata::Metadata, api_request::Request, api_response::Response};
 
-use self::{metadata::Metadata, request::Request, response::Response};
-use crate::util;
+mod api_metadata;
+mod api_request;
+mod api_response;
+mod attribute;
+mod auth_scheme;
+pub mod request;
+pub mod response;
+mod util;
+mod version;
 
 mod kw {
     use syn::custom_keyword;

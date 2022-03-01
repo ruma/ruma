@@ -9,8 +9,11 @@ use syn::{
     Lifetime, Token,
 };
 
-use super::{kw, metadata::Metadata};
-use crate::util::{all_cfgs, extract_cfg};
+use super::{
+    api_metadata::Metadata,
+    kw,
+    util::{all_cfgs, extract_cfg},
+};
 
 /// The result of processing the `request` section of the macro.
 pub(crate) struct Request {
@@ -70,7 +73,7 @@ impl Request {
         error_ty: &TokenStream,
         ruma_api: &TokenStream,
     ) -> TokenStream {
-        let ruma_api_macros = quote! { #ruma_api::exports::ruma_api_macros };
+        let ruma_macros = quote! { #ruma_api::exports::ruma_macros };
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
 
         let docs = format!(
@@ -96,12 +99,12 @@ impl Request {
             #[derive(
                 Clone,
                 Debug,
-                #ruma_api_macros::Request,
+                #ruma_macros::Request,
                 #ruma_serde::Outgoing,
                 #ruma_serde::_FakeDeriveSerde,
             )]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-            #[incoming_derive(!Deserialize, #ruma_api_macros::_FakeDeriveRumaApi)]
+            #[incoming_derive(!Deserialize, #ruma_macros::_FakeDeriveRumaApi)]
             #[ruma_api(
                 method = #method,
                 authentication = #authentication,

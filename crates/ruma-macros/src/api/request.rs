@@ -13,7 +13,7 @@ use syn::{
     DeriveInput, Field, Generics, Ident, Lifetime, Lit, LitStr, Token, Type,
 };
 
-use crate::{
+use super::{
     attribute::{Meta, MetaNameValue, MetaValue},
     auth_scheme::AuthScheme,
     util::{collect_lifetime_idents, import_ruma_api},
@@ -197,7 +197,7 @@ impl Request {
 
     fn expand_all(&self) -> TokenStream {
         let ruma_api = import_ruma_api();
-        let ruma_api_macros = quote! { #ruma_api::exports::ruma_api_macros };
+        let ruma_macros = quote! { #ruma_api::exports::ruma_macros };
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
         let serde = quote! { #ruma_api::exports::serde };
 
@@ -216,7 +216,7 @@ impl Request {
                 /// Data in the request body.
                 #[derive(
                     Debug,
-                    #ruma_api_macros::_FakeDeriveRumaApi,
+                    #ruma_macros::_FakeDeriveRumaApi,
                     #ruma_serde::Outgoing,
                     #serde::Serialize,
                     #derive_deserialize
@@ -244,7 +244,7 @@ impl Request {
                 /// Data in the request's query string.
                 #[derive(
                     Debug,
-                    #ruma_api_macros::_FakeDeriveRumaApi,
+                    #ruma_macros::_FakeDeriveRumaApi,
                     #ruma_serde::Outgoing,
                     #serde::Serialize,
                     #derive_deserialize

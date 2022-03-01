@@ -25,8 +25,8 @@ server = []
 bytes = "1.0.1"
 http = "0.2.2"
 percent-encoding = "2.1.0"
-ruma-api-macros = { version = "=0.20.0", path = "../ruma-api-macros" }
 ruma-identifiers = { version = "0.22.0", path = "../ruma-identifiers" }
+ruma-macros = { version = "=0.1.0", path = "../ruma-macros" }
 ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.61"
