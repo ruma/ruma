@@ -1,5 +1,8 @@
 name: Dependencies
 
+env:
+  CARGO_TERM_COLOR: always
+
 on:
   schedule:
     # every monday at 4AM (UTC?)

@@ -1,5 +1,8 @@
 name: Rust Nightly
 
+env:
+  CARGO_TERM_COLOR: always
+
 on:
   push:
     branches: [main, next]
