@@ -37,6 +37,8 @@ event_enum! {
         "m.call.invite",
         "m.call.hangup",
         "m.call.candidates",
+        #[cfg(feature = "unstable-msc1767")]
+        "m.emote",
         "m.key.verification.ready",
         "m.key.verification.start",
         "m.key.verification.cancel",
@@ -46,6 +48,8 @@ event_enum! {
         "m.key.verification.done",
         #[cfg(feature = "unstable-msc1767")]
         "m.message",
+        #[cfg(feature = "unstable-msc1767")]
+        "m.notice",
         #[cfg(feature = "unstable-msc2677")]
         "m.reaction",
         "m.room.encrypted",
@@ -356,6 +360,10 @@ impl AnyMessageLikeEventContent {
             Self::RoomMessage(ev) => ev.relates_to.clone().map(Into::into),
             #[cfg(feature = "unstable-msc1767")]
             Self::Message(ev) => ev.relates_to.clone().map(Into::into),
+            #[cfg(feature = "unstable-msc1767")]
+            Self::Notice(ev) => ev.relates_to.clone().map(Into::into),
+            #[cfg(feature = "unstable-msc1767")]
+            Self::Emote(ev) => ev.relates_to.clone().map(Into::into),
             Self::CallAnswer(_)
             | Self::CallInvite(_)
             | Self::CallHangup(_)

@@ -6,7 +6,7 @@ Breaking changes:
 
 Improvements:
 
-* Add unstable support for extensible text message events ([MSC1767](https://github.com/matrix-org/matrix-spec-proposals/pull/1767))
+* Add unstable support for extensible text, notice and emote message events ([MSC1767](https://github.com/matrix-org/matrix-spec-proposals/pull/1767))
 
 # 0.26.0
 

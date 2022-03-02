@@ -172,12 +172,16 @@ pub mod macros {
 pub mod call;
 pub mod direct;
 pub mod dummy;
+#[cfg(feature = "unstable-msc1767")]
+pub mod emote;
 pub mod forwarded_room_key;
 pub mod fully_read;
 pub mod ignored_user_list;
 pub mod key;
 #[cfg(feature = "unstable-msc1767")]
 pub mod message;
+#[cfg(feature = "unstable-msc1767")]
+pub mod notice;
 #[cfg(feature = "unstable-pdu")]
 pub mod pdu;
 pub mod policy;
