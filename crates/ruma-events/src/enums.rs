@@ -7,7 +7,7 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
     key,
-    room::{encrypted, message, redaction::SyncRoomRedactionEvent},
+    room::{encrypted, redaction::SyncRoomRedactionEvent},
     Redact, UnsignedDeHelper,
 };
 
@@ -44,6 +44,8 @@ event_enum! {
         "m.key.verification.key",
         "m.key.verification.mac",
         "m.key.verification.done",
+        #[cfg(feature = "unstable-msc1767")]
+        "m.message",
         #[cfg(feature = "unstable-msc2677")]
         "m.reaction",
         "m.room.encrypted",
@@ -351,18 +353,9 @@ impl AnyMessageLikeEventContent {
                 }))
             }
             Self::RoomEncrypted(ev) => ev.relates_to.clone(),
-            Self::RoomMessage(ev) => ev.relates_to.clone().map(|rel| match rel {
-                message::Relation::Reply { in_reply_to } => {
-                    encrypted::Relation::Reply { in_reply_to }
-                }
-                #[cfg(feature = "unstable-msc2676")]
-                message::Relation::Replacement(re) => {
-                    encrypted::Relation::Replacement(encrypted::Replacement {
-                        event_id: re.event_id,
-                    })
-                }
-                message::Relation::_Custom => encrypted::Relation::_Custom,
-            }),
+            Self::RoomMessage(ev) => ev.relates_to.clone().map(Into::into),
+            #[cfg(feature = "unstable-msc1767")]
+            Self::Message(ev) => ev.relates_to.clone().map(Into::into),
             Self::CallAnswer(_)
             | Self::CallInvite(_)
             | Self::CallHangup(_)

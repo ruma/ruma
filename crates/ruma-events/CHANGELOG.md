@@ -4,6 +4,10 @@ Breaking changes:
 
 * Rename `MessageEvent` and the associated types and traits to `MessageLikeEvent`
 
+Improvements:
+
+* Add unstable support for extensible text message events ([MSC1767](https://github.com/matrix-org/matrix-spec-proposals/pull/1767))
+
 # 0.26.0
 
 Breaking changes:
