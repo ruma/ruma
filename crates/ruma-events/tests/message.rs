@@ -5,7 +5,9 @@ use js_int::uint;
 use matches::assert_matches;
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
+    emote::EmoteEventContent,
     message::MessageEventContent,
+    notice::NoticeEventContent,
     room::message::{InReplyTo, Relation},
     AnyMessageLikeEvent, MessageLikeEvent, Unsigned,
 };
@@ -213,6 +215,137 @@ fn message_event_deserialization() {
             unsigned
         }) if event_id == event_id!("$event:notareal.hs")
             && message.find_plain().unwrap() == "Hello, World!"
+            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
+            && room_id == room_id!("!roomid:notareal.hs")
+            && sender == user_id!("@user:notareal.hs")
+            && unsigned.is_empty()
+    );
+}
+
+#[test]
+fn notice_event_serialization() {
+    let event = MessageLikeEvent {
+        content: NoticeEventContent::plain("Hello, I'm a robot!"),
+        event_id: event_id!("$event:notareal.hs").to_owned(),
+        sender: user_id!("@user:notareal.hs").to_owned(),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
+        room_id: room_id!("!roomid:notareal.hs").to_owned(),
+        unsigned: Unsigned::default(),
+    };
+
+    assert_eq!(
+        to_json_value(&event).unwrap(),
+        json!({
+            "content": {
+                "org.matrix.msc1767.text": "Hello, I'm a robot!",
+            },
+            "event_id": "$event:notareal.hs",
+            "origin_server_ts": 134_829_848,
+            "room_id": "!roomid:notareal.hs",
+            "sender": "@user:notareal.hs",
+            "type": "m.notice",
+        })
+    );
+}
+
+#[test]
+fn notice_event_deserialization() {
+    let json_data = json!({
+        "content": {
+            "org.matrix.msc1767.message": [
+                { "body": "Hello, I'm a <em>robot</em>!", "mimetype": "text/html"},
+                { "body": "Hello, I'm a robot!" },
+            ]
+        },
+        "event_id": "$event:notareal.hs",
+        "origin_server_ts": 134_829_848,
+        "room_id": "!roomid:notareal.hs",
+        "sender": "@user:notareal.hs",
+        "type": "m.notice",
+    });
+
+    assert_matches!(
+        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
+        AnyMessageLikeEvent::Notice(MessageLikeEvent {
+            content: NoticeEventContent {
+                message,
+                ..
+            },
+            event_id,
+            origin_server_ts,
+            room_id,
+            sender,
+            unsigned
+        }) if event_id == event_id!("$event:notareal.hs")
+            && message.find_plain().unwrap() == "Hello, I'm a robot!"
+            && message.find_html().unwrap() == "Hello, I'm a <em>robot</em>!"
+            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
+            && room_id == room_id!("!roomid:notareal.hs")
+            && sender == user_id!("@user:notareal.hs")
+            && unsigned.is_empty()
+    );
+}
+
+#[test]
+fn emote_event_serialization() {
+    let event = MessageLikeEvent {
+        content: EmoteEventContent::html(
+            "is testing some code…",
+            "is testing some <code>code</code>…",
+        ),
+        event_id: event_id!("$event:notareal.hs").to_owned(),
+        sender: user_id!("@user:notareal.hs").to_owned(),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
+        room_id: room_id!("!roomid:notareal.hs").to_owned(),
+        unsigned: Unsigned::default(),
+    };
+
+    assert_eq!(
+        to_json_value(&event).unwrap(),
+        json!({
+            "content": {
+                "org.matrix.msc1767.message": [
+                    { "body": "is testing some <code>code</code>…", "mimetype": "text/html" },
+                    { "body": "is testing some code…", "mimetype": "text/plain" },
+                ]
+            },
+            "event_id": "$event:notareal.hs",
+            "origin_server_ts": 134_829_848,
+            "room_id": "!roomid:notareal.hs",
+            "sender": "@user:notareal.hs",
+            "type": "m.emote",
+        })
+    );
+}
+
+#[test]
+fn emote_event_deserialization() {
+    let json_data = json!({
+        "content": {
+            "org.matrix.msc1767.text": "is testing some code…",
+        },
+        "event_id": "$event:notareal.hs",
+        "origin_server_ts": 134_829_848,
+        "room_id": "!roomid:notareal.hs",
+        "sender": "@user:notareal.hs",
+        "type": "m.emote",
+    });
+
+    assert_matches!(
+        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
+        AnyMessageLikeEvent::Emote(MessageLikeEvent {
+            content: EmoteEventContent {
+                message,
+                ..
+            },
+            event_id,
+            origin_server_ts,
+            room_id,
+            sender,
+            unsigned
+        }) if event_id == event_id!("$event:notareal.hs")
+            && message.find_plain().unwrap() == "is testing some code…"
+            && message.find_html().is_none()
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
             && room_id == room_id!("!roomid:notareal.hs")
             && sender == user_id!("@user:notareal.hs")
