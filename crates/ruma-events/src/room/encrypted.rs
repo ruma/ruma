@@ -9,7 +9,7 @@ use ruma_identifiers::{DeviceId, EventId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::room::message::InReplyTo;
+use crate::room::message::{self, InReplyTo};
 
 mod relation_serde;
 
@@ -105,6 +105,19 @@ pub enum Relation {
 
     #[doc(hidden)]
     _Custom,
+}
+
+impl From<message::Relation> for Relation {
+    fn from(rel: message::Relation) -> Self {
+        match rel {
+            message::Relation::Reply { in_reply_to } => Self::Reply { in_reply_to },
+            #[cfg(feature = "unstable-msc2676")]
+            message::Relation::Replacement(re) => {
+                Self::Replacement(Replacement { event_id: re.event_id })
+            }
+            message::Relation::_Custom => Self::_Custom,
+        }
+    }
 }
 
 /// The event this relation belongs to replaces another event.

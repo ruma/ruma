@@ -112,6 +112,7 @@ unstable-pre-spec = [
     "ruma-events/unstable-pre-spec",
     "ruma-federation-api/unstable-pre-spec",
 ]
+unstable-msc1767 = ["ruma-events/unstable-msc1767"]
 unstable-msc2448 = [
     "ruma-client-api/unstable-msc2448",
     "ruma-events/unstable-msc2448",
@@ -129,6 +130,7 @@ unstable-msc3618 = ["ruma-federation-api/unstable-msc3618"]
 __ci = [
     "full",
     "unstable-pre-spec",
+    "unstable-msc1767",
     "unstable-msc2448",
     "unstable-msc2675",
     "unstable-msc2676",
