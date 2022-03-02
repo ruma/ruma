@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#put_matrixclientv3roomsroomidstateeventtypestatekey
 
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
     use ruma_events::{AnyStateEventContent, StateEventContent};
     use ruma_identifiers::{EventId, RoomId};
     use ruma_serde::{Outgoing, Raw};
@@ -91,18 +91,18 @@ pub mod v3 {
     }
 
     #[cfg(feature = "client")]
-    impl<'a> ruma_api::OutgoingRequest for Request<'a> {
+    impl<'a> ruma_common::api::OutgoingRequest for Request<'a> {
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
 
-        const METADATA: ruma_api::Metadata = METADATA;
+        const METADATA: ruma_common::api::Metadata = METADATA;
 
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
             base_url: &str,
-            access_token: ruma_api::SendAccessToken<'_>,
-            considering_versions: &'_ [ruma_api::MatrixVersion],
-        ) -> Result<http::Request<T>, ruma_api::error::IntoHttpError> {
+            access_token: ruma_common::api::SendAccessToken<'_>,
+            considering_versions: &'_ [ruma_common::api::MatrixVersion],
+        ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use std::borrow::Cow;
 
             use http::header::{self, HeaderValue};
@@ -114,7 +114,7 @@ pub mod v3 {
             let mut url = format!(
                 "{}{}",
                 base_url.strip_suffix('/').unwrap_or(base_url),
-                ruma_api::select_path(
+                ruma_common::api::select_path(
                     considering_versions,
                     &METADATA,
                     None,
@@ -142,7 +142,7 @@ pub mod v3 {
                         "Bearer {}",
                         access_token
                             .get_required_for_endpoint()
-                            .ok_or(ruma_api::error::IntoHttpError::NeedsAuthentication)?
+                            .ok_or(ruma_common::api::error::IntoHttpError::NeedsAuthentication)?
                     ))?,
                 )
                 .body(ruma_serde::json_to_buf(&self.body)?)?;
@@ -152,16 +152,16 @@ pub mod v3 {
     }
 
     #[cfg(feature = "server")]
-    impl ruma_api::IncomingRequest for IncomingRequest {
+    impl ruma_common::api::IncomingRequest for IncomingRequest {
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
 
-        const METADATA: ruma_api::Metadata = METADATA;
+        const METADATA: ruma_common::api::Metadata = METADATA;
 
         fn try_from_http_request<B, S>(
             request: http::Request<B>,
             path_args: &[S],
-        ) -> Result<Self, ruma_api::error::FromHttpRequestError>
+        ) -> Result<Self, ruma_common::api::error::FromHttpRequestError>
         where
             B: AsRef<[u8]>,
             S: AsRef<str>,

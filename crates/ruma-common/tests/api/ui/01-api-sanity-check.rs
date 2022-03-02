@@ -1,4 +1,4 @@
-use ruma_api::ruma_api;
+use ruma_common::api::ruma_api;
 use ruma_events::{tag::TagEvent, AnyRoomEvent};
 use ruma_serde::Raw;
 
@@ -56,7 +56,7 @@ ruma_api! {
 }
 
 fn main() {
-    use ruma_api::MatrixVersion;
+    use ruma_common::api::MatrixVersion;
 
     assert_eq!(METADATA.unstable_path, Some("/_matrix/some/msc1234/endpoint/:baz"));
     assert_eq!(METADATA.r0_path, Some("/_matrix/some/r0/endpoint/:baz"));

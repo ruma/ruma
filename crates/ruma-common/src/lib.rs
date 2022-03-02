@@ -1,10 +1,17 @@
 #![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
-//! Common types for other ruma crates.
+//! Common types for the Ruma crates.
 
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
+#[cfg(not(all(feature = "client", feature = "server")))]
+compile_error!(
+    "ruma_common's Cargo features only exist as a workaround are not meant to be disabled"
+);
+
+#[cfg(feature = "api")]
+pub mod api;
 pub mod authentication;
 pub mod directory;
 pub mod encryption;

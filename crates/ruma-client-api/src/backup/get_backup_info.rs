@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3room_keysversionversion
 
     use js_int::UInt;
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
     use ruma_serde::Raw;
     use serde::{ser, Deserialize, Deserializer, Serialize};
     use serde_json::value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue};

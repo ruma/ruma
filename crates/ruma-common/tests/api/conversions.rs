@@ -1,6 +1,7 @@
 #![allow(clippy::exhaustive_structs)]
+#![cfg(feature = "api")]
 
-use ruma_api::{
+use ruma_common::api::{
     ruma_api, IncomingRequest as _, MatrixVersion, OutgoingRequest as _,
     OutgoingRequestAppserviceExt, SendAccessToken,
 };
@@ -117,7 +118,7 @@ fn request_with_user_id_serde() {
 }
 
 mod without_query {
-    use ruma_api::MatrixVersion;
+    use ruma_common::api::MatrixVersion;
 
     use super::{ruma_api, user_id, OutgoingRequestAppserviceExt, SendAccessToken, UserId};
 

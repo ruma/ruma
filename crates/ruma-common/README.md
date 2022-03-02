@@ -4,4 +4,4 @@
 [![docs.rs page](https://docs.rs/ruma-common/badge.svg)](https://docs.rs/ruma-common/)
 ![license: MIT](https://img.shields.io/crates/l/ruma-common.svg)
 
-Common types for other Ruma crates.
+Common types for Ruma crates.

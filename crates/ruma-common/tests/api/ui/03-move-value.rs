@@ -2,7 +2,7 @@
 // consume the request/response.
 
 mod newtype_body {
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
     use ruma_identifiers::UserId;
 
     #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
@@ -43,7 +43,7 @@ mod newtype_body {
 }
 
 mod raw_body {
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
     use ruma_identifiers::UserId;
 
     ruma_api! {
@@ -81,7 +81,7 @@ mod raw_body {
 }
 
 mod plain {
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
     use ruma_identifiers::UserId;
 
     #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]

@@ -8,8 +8,7 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/v1.2/identity-service-api/#get_matrixidentityv23pidgetvalidated3pid
 
     use js_int::UInt;
-    use ruma_api::ruma_api;
-    use ruma_common::thirdparty::Medium;
+    use ruma_common::{api::ruma_api, thirdparty::Medium};
     use ruma_identifiers::{ClientSecret, SessionId};
 
     ruma_api! {

@@ -11,7 +11,7 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#put_matrixfederationv1exchange_third_party_inviteroomid
 
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
     use ruma_events::{room::member::ThirdPartyInvite, EventType};
     use ruma_identifiers::{RoomId, UserId};
 

@@ -8,9 +8,9 @@ use quote::{format_ident, quote, ToTokens};
 use syn::{parse_quote, visit::Visit, Attribute, Lifetime, NestedMeta, Type};
 
 pub fn import_ruma_api() -> TokenStream {
-    if let Ok(FoundCrate::Name(name)) = crate_name("ruma-api") {
+    if let Ok(FoundCrate::Name(name)) = crate_name("ruma-common") {
         let import = format_ident!("{}", name);
-        quote! { ::#import }
+        quote! { ::#import::api }
     } else if let Ok(FoundCrate::Name(name)) = crate_name("ruma") {
         let import = format_ident!("{}", name);
         quote! { ::#import::api }
@@ -21,7 +21,7 @@ pub fn import_ruma_api() -> TokenStream {
         let import = format_ident!("{}", name);
         quote! { ::#import::ruma::api }
     } else {
-        quote! { ::ruma_api }
+        quote! { ::ruma_common::api }
     }
 }
 

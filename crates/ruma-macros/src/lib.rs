@@ -396,11 +396,12 @@ pub fn fake_derive_serde(_input: TokenStream) -> TokenStream {
     TokenStream::new()
 }
 
-/// A procedural macro for easily generating [ruma-api]-compatible endpoints.
+/// A procedural macro for easily generating API endpoints.
 ///
-/// Note that for technical reasons, the `ruma_api!` macro is only documented in ruma-api, not here.
+/// Note that for technical reasons, the `ruma_api!` macro is only documented in [ruma-common], not
+/// here.
 ///
-/// [ruma-api]: https://github.com/ruma/ruma/tree/main/ruma-api
+/// [ruma-common]: https://github.com/ruma/ruma/tree/main/ruma-common
 #[proc_macro]
 pub fn ruma_api(input: TokenStream) -> TokenStream {
     let api = parse_macro_input!(input as Api);

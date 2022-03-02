@@ -5,8 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3account3pidunbind
 
-    use ruma_api::ruma_api;
-    use ruma_common::thirdparty::Medium;
+    use ruma_common::{api::ruma_api, thirdparty::Medium};
 
     use crate::account::ThirdPartyIdRemovalStatus;
 

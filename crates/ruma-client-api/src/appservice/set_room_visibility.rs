@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/application-service-api/#put_matrixclientv3directorylistappservicenetworkidroomid
 
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
     use ruma_identifiers::RoomId;
 
     use crate::room::Visibility;

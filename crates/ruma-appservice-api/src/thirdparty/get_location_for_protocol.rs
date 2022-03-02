@@ -10,8 +10,7 @@ pub mod v1 {
 
     use std::collections::BTreeMap;
 
-    use ruma_api::ruma_api;
-    use ruma_common::thirdparty::Location;
+    use ruma_common::{api::ruma_api, thirdparty::Location};
 
     ruma_api! {
         metadata: {

@@ -7,7 +7,7 @@ pub mod v2 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/identity-service-api/#get_matrixidentityv2
 
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
 
     ruma_api! {
         metadata: {

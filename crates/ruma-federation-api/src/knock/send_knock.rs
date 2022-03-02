@@ -7,7 +7,7 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#put_matrixfederationv1send_knockroomideventid
 
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
     use ruma_events::AnyStrippedStateEvent;
     use ruma_identifiers::{EventId, RoomId};
     use ruma_serde::Raw;

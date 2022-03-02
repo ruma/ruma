@@ -67,8 +67,8 @@
 //! #     .await?;
 //! use std::convert::TryFrom;
 //!
-//! use ruma_api::MatrixVersion;
 //! use ruma_client_api::alias::get_alias;
+//! use ruma_common::api::MatrixVersion;
 //! use ruma_identifiers::{room_alias_id, room_id};
 //!
 //! let response = client
@@ -104,7 +104,7 @@
 
 use std::{any::type_name, future::Future};
 
-use ruma_api::{MatrixVersion, OutgoingRequest, SendAccessToken};
+use ruma_common::api::{MatrixVersion, OutgoingRequest, SendAccessToken};
 use ruma_identifiers::UserId;
 use tracing::{info_span, Instrument};
 
@@ -175,7 +175,9 @@ where
 
         let res =
             info_span!("deserialize_response", response_type = type_name::<R::IncomingResponse>())
-                .in_scope(move || ruma_api::IncomingResponse::try_from_http_response(http_res))?;
+                .in_scope(move || {
+                    ruma_common::api::IncomingResponse::try_from_http_response(http_res)
+                })?;
 
         Ok(res)
     }

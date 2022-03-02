@@ -1,10 +1,11 @@
 //! PUT /_matrix/client/r0/directory/room/:room_alias
 
+#![cfg(feature = "api")]
 #![allow(clippy::exhaustive_structs)]
 
 use bytes::BufMut;
 use http::{header::CONTENT_TYPE, method::Method};
-use ruma_api::{
+use ruma_common::api::{
     error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError, ServerError},
     AuthScheme, EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata,
     OutgoingRequest, OutgoingResponse, SendAccessToken,
@@ -53,7 +54,7 @@ impl OutgoingRequest for Request {
         let url = format!(
             "{}{}",
             base_url,
-            ruma_api::select_path(
+            ruma_common::api::select_path(
                 considering_versions,
                 &METADATA,
                 Some(format_args!("/_matrix/client/unstable/directory/room/{}", self.room_alias)),

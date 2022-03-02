@@ -1,5 +1,3 @@
-#![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
-#![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
 //! Core types used to define the requests and responses for each endpoint in the various
 //! [Matrix API specifications][apis].
 //!
@@ -13,17 +11,12 @@
 //!
 //! [apis]: https://spec.matrix.org/v1.2/#matrix-apis
 
-#![warn(missing_docs)]
-
-#[cfg(not(all(feature = "client", feature = "server")))]
-compile_error!("ruma_api's Cargo features only exist as a workaround are not meant to be disabled");
-
 use std::{convert::TryInto as _, error::Error as StdError, fmt};
 
 use bytes::BufMut;
 use ruma_identifiers::UserId;
 
-/// Generates a `ruma_api::Endpoint` from a concise definition.
+/// Generates a `ruma_common::api::Endpoint` from a concise definition.
 ///
 /// The macro expects the following structure as input:
 ///
@@ -35,7 +28,7 @@ use ruma_identifiers::UserId;
 ///         name: &'static str,
 ///         path: &'static str,
 ///         rate_limited: bool,
-///         authentication: ruma_api::AuthScheme,
+///         authentication: ruma_common::api::AuthScheme,
 ///     }
 ///
 ///     request: {
@@ -53,10 +46,10 @@ use ruma_identifiers::UserId;
 /// }
 /// ```
 ///
-/// This will generate a `ruma_api::Metadata` value to be used for the `ruma_api::Endpoint`'s
-/// associated constant, single `Request` and `Response` structs, and the necessary trait
-/// implementations to convert the request into a `http::Request` and to create a response from
-/// a `http::Response` and vice versa.
+/// This will generate a `ruma_common::api::Metadata` value to be used for the
+/// `ruma_common::api::Endpoint`'s associated constant, single `Request` and `Response`
+/// structs, and the necessary trait implementations to convert the request into a
+/// `http::Request` and to create a response from a `http::Response` and vice versa.
 ///
 /// The details of each of the three sections of the macros are documented below.
 ///
@@ -128,7 +121,7 @@ use ruma_identifiers::UserId;
 ///
 /// ```
 /// pub mod some_endpoint {
-///     use ruma_api::ruma_api;
+///     use ruma_common::api::ruma_api;
 ///
 ///     ruma_api! {
 ///         metadata: {
@@ -164,7 +157,7 @@ use ruma_identifiers::UserId;
 /// }
 ///
 /// pub mod newtype_body_endpoint {
-///     use ruma_api::ruma_api;
+///     use ruma_common::api::ruma_api;
 ///     use serde::{Deserialize, Serialize};
 ///
 ///     #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -199,7 +192,7 @@ pub use ruma_macros::ruma_api;
 
 pub mod error;
 /// This module is used to support the generated code from ruma-macros.
-/// It is not considered part of ruma-api's public API.
+/// It is not considered part of ruma-common's public API.
 #[doc(hidden)]
 pub mod exports {
     pub use bytes;

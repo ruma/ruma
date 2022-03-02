@@ -1,3 +1,4 @@
+#![cfg(feature = "api")]
 #![allow(clippy::exhaustive_structs)]
 
 #[derive(Copy, Clone, Debug, ruma_serde::Outgoing, serde::Serialize)]
@@ -7,7 +8,7 @@ pub struct OtherThing<'t> {
 }
 
 mod empty_response {
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
     use ruma_identifiers::{RoomAliasId, RoomId};
 
     ruma_api! {
@@ -34,7 +35,7 @@ mod empty_response {
 }
 
 mod nested_types {
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
     use ruma_identifiers::RoomAliasId;
 
     ruma_api! {
@@ -60,7 +61,7 @@ mod nested_types {
 }
 
 mod full_request_response {
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
 
     use super::{IncomingOtherThing, OtherThing};
 
@@ -94,7 +95,7 @@ mod full_request_response {
 }
 
 mod full_request_response_with_query_map {
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
 
     ruma_api! {
         metadata: {
@@ -126,7 +127,7 @@ mod full_request_response_with_query_map {
 }
 
 mod query_fields {
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
 
     ruma_api! {
         metadata: {

@@ -1,7 +1,8 @@
 #![allow(clippy::exhaustive_structs)]
+#![cfg(feature = "api")]
 
 use http::header::{Entry, CONTENT_TYPE};
-use ruma_api::{
+use ruma_common::api::{
     ruma_api, MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken,
 };
 

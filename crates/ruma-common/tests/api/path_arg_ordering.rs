@@ -1,4 +1,6 @@
-use ruma_api::{ruma_api, IncomingRequest};
+#![cfg(feature = "api")]
+
+use ruma_common::api::{ruma_api, IncomingRequest};
 
 ruma_api! {
     metadata: {

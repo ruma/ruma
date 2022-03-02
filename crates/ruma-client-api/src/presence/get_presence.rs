@@ -7,8 +7,7 @@ pub mod v3 {
 
     use std::time::Duration;
 
-    use ruma_api::ruma_api;
-    use ruma_common::presence::PresenceState;
+    use ruma_common::{api::ruma_api, presence::PresenceState};
     use ruma_identifiers::UserId;
 
     ruma_api! {

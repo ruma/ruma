@@ -8,8 +8,7 @@ pub mod v3 {
     use std::{collections::BTreeMap, time::Duration};
 
     use js_int::UInt;
-    use ruma_api::ruma_api;
-    use ruma_common::presence::PresenceState;
+    use ruma_common::{api::ruma_api, presence::PresenceState};
     use ruma_events::{
         presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
         AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncRoomEvent, AnySyncStateEvent,
@@ -618,7 +617,7 @@ pub mod v3 {
     mod client_tests {
         use std::time::Duration;
 
-        use ruma_api::{MatrixVersion, OutgoingRequest as _, SendAccessToken};
+        use ruma_common::api::{MatrixVersion, OutgoingRequest as _, SendAccessToken};
 
         use super::{Filter, PresenceState, Request};
 
@@ -655,8 +654,7 @@ pub mod v3 {
         use std::time::Duration;
 
         use matches::assert_matches;
-        use ruma_api::IncomingRequest as _;
-        use ruma_common::presence::PresenceState;
+        use ruma_common::{api::IncomingRequest as _, presence::PresenceState};
 
         use super::{IncomingFilter, IncomingRequest};
 

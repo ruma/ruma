@@ -1,5 +1,5 @@
 use bytes::BufMut;
-use ruma_api::{
+use ruma_common::api::{
     error::{FromHttpResponseError, IntoHttpError, MatrixError},
     ruma_api, IncomingResponse, OutgoingResponse,
 };

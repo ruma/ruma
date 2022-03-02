@@ -1,8 +1,8 @@
 #![cfg(feature = "client")]
 
 use http::HeaderMap;
-use ruma_api::{MatrixVersion, OutgoingRequest as _, SendAccessToken};
 use ruma_client_api::discover::discover_homeserver;
+use ruma_common::api::{MatrixVersion, OutgoingRequest as _, SendAccessToken};
 
 #[test]
 fn get_request_headers() {

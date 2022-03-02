@@ -1,7 +1,9 @@
-use ruma_api::{MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken};
+#![cfg(feature = "api")]
+
+use ruma_common::api::{MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken};
 
 mod get {
-    ruma_api::ruma_api! {
+    ruma_common::api::ruma_api! {
         metadata: {
             description: "Does something.",
             method: GET,
@@ -17,7 +19,7 @@ mod get {
 }
 
 mod post {
-    ruma_api::ruma_api! {
+    ruma_common::api::ruma_api! {
         metadata: {
             description: "Does something.",
             method: POST,

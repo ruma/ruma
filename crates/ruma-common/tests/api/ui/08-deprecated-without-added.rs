@@ -1,15 +1,15 @@
-use ruma_api::ruma_api;
+use ruma_common::api::ruma_api;
 
 ruma_api! {
     metadata: {
         description: "This will fail.",
         method: GET,
         name: "invalid_versions",
-        path: "/a/path",
+        unstable_path: "/a/path",
         rate_limited: false,
         authentication: None,
 
-        removed: 1.1,
+        deprecated: 1.1,
     }
 
     request: {

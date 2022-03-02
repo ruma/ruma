@@ -6,14 +6,16 @@ use std::{
 use assign::assign;
 use async_stream::try_stream;
 use futures_core::stream::Stream;
-use ruma_api::{MatrixVersion, OutgoingRequest, SendAccessToken};
 use ruma_client_api::{
     account::register::{self, RegistrationKind},
     session::login::{self, v3::LoginInfo},
     sync::sync_events,
     uiaa::UserIdentifier,
 };
-use ruma_common::presence::PresenceState;
+use ruma_common::{
+    api::{MatrixVersion, OutgoingRequest, SendAccessToken},
+    presence::PresenceState,
+};
 use ruma_identifiers::{DeviceId, UserId};
 
 use crate::{

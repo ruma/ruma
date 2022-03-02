@@ -6,7 +6,7 @@ use std::{
 
 use http::Method;
 
-use crate::{error::UnknownVersionError, AuthScheme};
+use super::{error::UnknownVersionError, AuthScheme};
 
 /// Metadata about an API endpoint.
 #[derive(Clone, Debug)]
@@ -48,13 +48,13 @@ pub struct Metadata {
     ///
     /// Deprecation often precedes one matrix version before removal.
     ///
-    /// This will make [`try_into_http_request`](crate::OutgoingRequest::try_into_http_request)
+    /// This will make [`try_into_http_request`](super::OutgoingRequest::try_into_http_request)
     /// emit a warning, see the corresponding documentation for more information.
     pub deprecated: Option<MatrixVersion>,
 
     /// The matrix version that removed this endpoint.
     ///
-    /// This will make [`try_into_http_request`](crate::OutgoingRequest::try_into_http_request)
+    /// This will make [`try_into_http_request`](super::OutgoingRequest::try_into_http_request)
     /// emit an error, see the corresponding documentation for more information.
     pub removed: Option<MatrixVersion>,
 }
@@ -71,7 +71,7 @@ pub struct Metadata {
 ///
 /// Ruma keeps track of when endpoints are added, deprecated, and removed. It'll automatically
 /// select the right endpoint stability variation to use depending on which Matrix versions you
-/// pass to [`try_into_http_request`](crate::OutgoingRequest::try_into_http_request), see its
+/// pass to [`try_into_http_request`](super::OutgoingRequest::try_into_http_request), see its
 /// respective documentation for more information.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]

@@ -9,7 +9,7 @@ pub mod v2 {
 
     use std::collections::BTreeMap;
 
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
     use ruma_identifiers::UserId;
 
     use crate::lookup::IdentifierHashingAlgorithm;

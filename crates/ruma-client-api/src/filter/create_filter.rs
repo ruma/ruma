@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3useruseridfilter
 
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
     use ruma_identifiers::UserId;
 
     use crate::filter::{FilterDefinition, IncomingFilterDefinition};
@@ -63,7 +63,7 @@ pub mod v3 {
         #[cfg(feature = "server")]
         #[test]
         fn deserialize_request() {
-            use ruma_api::IncomingRequest as _;
+            use ruma_common::api::IncomingRequest as _;
 
             use super::IncomingRequest;
 
@@ -84,7 +84,7 @@ pub mod v3 {
         #[cfg(feature = "client")]
         #[test]
         fn serialize_request() {
-            use ruma_api::{MatrixVersion, OutgoingRequest, SendAccessToken};
+            use ruma_common::api::{MatrixVersion, OutgoingRequest, SendAccessToken};
             use ruma_identifiers::user_id;
 
             use crate::filter::FilterDefinition;

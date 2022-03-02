@@ -2,7 +2,7 @@
 //!
 //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#put_matrixfederationv2send_leaveroomideventid
 
-use ruma_api::ruma_api;
+use ruma_common::api::ruma_api;
 use ruma_identifiers::{EventId, RoomId};
 use serde_json::value::RawValue as RawJsonValue;
 
@@ -53,7 +53,7 @@ impl Response {
 
 #[cfg(all(test, feature = "server"))]
 mod tests {
-    use ruma_api::OutgoingResponse;
+    use ruma_common::api::OutgoingResponse;
 
     use super::Response;
 

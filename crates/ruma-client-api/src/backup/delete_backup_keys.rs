@@ -8,7 +8,7 @@ pub mod v3 {
     //! This deletes keys from a backup version, but not the version itself.
 
     use js_int::UInt;
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
 
     ruma_api! {
         metadata: {

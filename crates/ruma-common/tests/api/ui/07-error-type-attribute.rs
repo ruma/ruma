@@ -1,4 +1,4 @@
-use ruma_api::ruma_api;
+use ruma_common::api::ruma_api;
 
 ruma_api! {
     metadata: {
@@ -10,15 +10,12 @@ ruma_api! {
         authentication: None,
     }
 
-    #[derive(PartialEq)] // Make sure attributes work
-    response: {
-        pub flag: bool,
-    }
+    request: {}
+
+    response: {}
+
+    #[derive(Default)]
+    error: ruma_common::api::error::MatrixError
 }
 
-fn main() {
-    let res1 = Response { flag: false };
-    let res2 = res1.clone();
-
-    assert_eq!(res1, res2);
-}
+fn main() {}

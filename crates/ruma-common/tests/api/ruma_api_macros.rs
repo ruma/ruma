@@ -1,7 +1,8 @@
+#![cfg(feature = "api")]
 #![allow(clippy::exhaustive_structs)]
 
 pub mod some_endpoint {
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
     use ruma_events::{tag::TagEvent, AnyRoomEvent};
     use ruma_identifiers::UserId;
     use ruma_serde::Raw;
@@ -56,7 +57,7 @@ pub mod some_endpoint {
 }
 
 pub mod newtype_body_endpoint {
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
 
     #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
     pub struct MyCustomType {
@@ -86,7 +87,7 @@ pub mod newtype_body_endpoint {
 }
 
 pub mod raw_body_endpoint {
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
 
     #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
     pub struct MyCustomType {
@@ -116,7 +117,7 @@ pub mod raw_body_endpoint {
 }
 
 pub mod query_map_endpoint {
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
 
     ruma_api! {
         metadata: {

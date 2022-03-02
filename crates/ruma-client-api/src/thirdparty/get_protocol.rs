@@ -5,8 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3thirdpartyprotocolprotocol
 
-    use ruma_api::ruma_api;
-    use ruma_common::thirdparty::Protocol;
+    use ruma_common::{api::ruma_api, thirdparty::Protocol};
 
     ruma_api! {
         metadata: {

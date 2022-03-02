@@ -8,8 +8,10 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixfederationv1userdevicesuserid
 
     use js_int::UInt;
-    use ruma_api::ruma_api;
-    use ruma_common::encryption::{CrossSigningKey, DeviceKeys};
+    use ruma_common::{
+        api::ruma_api,
+        encryption::{CrossSigningKey, DeviceKeys},
+    };
     use ruma_identifiers::{DeviceId, UserId};
     use ruma_serde::Raw;
     use serde::{Deserialize, Serialize};

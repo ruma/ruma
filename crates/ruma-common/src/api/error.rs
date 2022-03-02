@@ -8,7 +8,7 @@ use bytes::BufMut;
 use serde_json::{from_slice as from_json_slice, Value as JsonValue};
 use thiserror::Error;
 
-use crate::{EndpointError, MatrixVersion, OutgoingResponse};
+use super::{EndpointError, MatrixVersion, OutgoingResponse};
 
 /// A general-purpose Matrix error type consisting of an HTTP status code and a JSON body.
 ///

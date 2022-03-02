@@ -1,6 +1,8 @@
+#![cfg(feature = "api")]
+
 use http::Method;
 use matches::assert_matches;
-use ruma_api::{
+use ruma_common::api::{
     error::IntoHttpError,
     select_path,
     MatrixVersion::{V1_0, V1_1, V1_2},
@@ -15,7 +17,7 @@ const BASE: Metadata = Metadata {
     r0_path: Some("/r0/path"),
     stable_path: Some("/stable/path"),
     rate_limited: false,
-    authentication: ruma_api::AuthScheme::None,
+    authentication: ruma_common::api::AuthScheme::None,
     added: None,
     deprecated: None,
     removed: None,

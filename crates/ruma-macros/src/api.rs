@@ -1,6 +1,4 @@
-//! Methods and types for generating [ruma-api] endpoints.
-//!
-//! [ruma-api]: https://github.com/ruma/ruma/tree/main/ruma-api
+//! Methods and types for generating API endpoints.
 
 use proc_macro2::TokenStream;
 use quote::quote;
