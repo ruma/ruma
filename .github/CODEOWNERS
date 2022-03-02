@@ -1,5 +1,4 @@
 *                                      @jplatte
-/crates/ruma-api-macros/               @ruma/macro-owners
 /crates/ruma-common/                   @iinuwa
 /crates/ruma-federation-api/           @DevinR528
 /crates/ruma-identifiers/              @iinuwa

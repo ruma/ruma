@@ -30,7 +30,7 @@ jobs:
           RUSTDOCFLAGS: "--enable-index-page -Zunstable-options --cfg docsrs"
         with:
           command: doc
-          args: --no-deps --workspace --exclude ruma-api-macros --exclude ruma-macros --exclude ruma-identifiers-validation --exclude xtask --all-features -Zrustdoc-map
+          args: --no-deps --workspace --exclude ruma-macros --exclude ruma-identifiers-validation --exclude xtask --all-features -Zrustdoc-map
       - name: Deploy to docs branch
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         uses: JamesIves/github-pages-deploy-action@4.1.4

@@ -7,7 +7,7 @@ use syn::{
     Ident, LitBool, LitStr, Token,
 };
 
-use crate::{auth_scheme::AuthScheme, util, version::MatrixVersionLiteral};
+use super::{auth_scheme::AuthScheme, util, version::MatrixVersionLiteral};
 
 mod kw {
     syn::custom_keyword!(metadata);

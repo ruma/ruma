@@ -128,7 +128,7 @@ use ruma_identifiers::UserId;
 ///
 /// ```
 /// pub mod some_endpoint {
-///     use ruma_api_macros::ruma_api;
+///     use ruma_api::ruma_api;
 ///
 ///     ruma_api! {
 ///         metadata: {
@@ -164,7 +164,7 @@ use ruma_identifiers::UserId;
 /// }
 ///
 /// pub mod newtype_body_endpoint {
-///     use ruma_api_macros::ruma_api;
+///     use ruma_api::ruma_api;
 ///     use serde::{Deserialize, Serialize};
 ///
 ///     #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -195,17 +195,17 @@ use ruma_identifiers::UserId;
 ///     }
 /// }
 /// ```
-pub use ruma_api_macros::ruma_api;
+pub use ruma_macros::ruma_api;
 
 pub mod error;
-/// This module is used to support the generated code from ruma-api-macros.
+/// This module is used to support the generated code from ruma-macros.
 /// It is not considered part of ruma-api's public API.
 #[doc(hidden)]
 pub mod exports {
     pub use bytes;
     pub use http;
     pub use percent_encoding;
-    pub use ruma_api_macros;
+    pub use ruma_macros;
     pub use ruma_serde;
     pub use serde;
     pub use serde_json;

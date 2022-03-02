@@ -13,7 +13,7 @@ use syn::{
     DeriveInput, Field, Generics, Ident, Lifetime, Token, Type,
 };
 
-use crate::{
+use super::{
     attribute::{Meta, MetaNameValue},
     util,
 };
@@ -96,7 +96,7 @@ impl Response {
 
     fn expand_all(&self) -> TokenStream {
         let ruma_api = util::import_ruma_api();
-        let ruma_api_macros = quote! { #ruma_api::exports::ruma_api_macros };
+        let ruma_macros = quote! { #ruma_api::exports::ruma_macros };
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
         let serde = quote! { #ruma_api::exports::serde };
 
@@ -112,7 +112,7 @@ impl Response {
                 /// Data in the response body.
                 #[derive(
                     Debug,
-                    #ruma_api_macros::_FakeDeriveRumaApi,
+                    #ruma_macros::_FakeDeriveRumaApi,
                     #ruma_serde::Outgoing,
                     #serde_derives
                 )]
