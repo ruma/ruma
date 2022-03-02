@@ -26,6 +26,7 @@ unstable-msc2448 = []
 unstable-msc2675 = []
 unstable-msc2676 = []
 unstable-msc2677 = []
+unstable-msc3551 = ["unstable-msc1767"]
 
 [dependencies]
 criterion = { version = "0.3.3", optional = true }
