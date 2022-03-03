@@ -2,12 +2,13 @@
 //! [Matrix API specifications][apis].
 //!
 //! When implementing a new Matrix API, each endpoint has a request type which implements
-//! `Endpoint`, and a response type connected via an associated type.
+//! [`IncomingRequest`] and [`OutgoingRequest`], and a response type connected via an associated
+//! type.
 //!
-//! An implementation of `Endpoint` contains all the information about the HTTP method, the path and
-//! input parameters for requests, and the structure of a successful response.
-//! Such types can then be used by client code to make requests, and by server code to fulfill
-//! those requests.
+//! An implementation of [`IncomingRequest`] or [`OutgoingRequest`] contains all the information
+//! about the HTTP method, the path and input parameters for requests, and the structure of a
+//! successful response. Such types can then be used by client code to make requests, and by server
+//! code to fulfill those requests.
 //!
 //! [apis]: https://spec.matrix.org/v1.2/#matrix-apis
 
@@ -16,7 +17,7 @@ use std::{convert::TryInto as _, error::Error as StdError, fmt};
 use bytes::BufMut;
 use ruma_identifiers::UserId;
 
-/// Generates a `ruma_common::api::Endpoint` from a concise definition.
+/// Generates [`IncomingRequest`] and [`OutgoingRequest`] from a concise definition.
 ///
 /// The macro expects the following structure as input:
 ///
@@ -46,10 +47,10 @@ use ruma_identifiers::UserId;
 /// }
 /// ```
 ///
-/// This will generate a `ruma_common::api::Metadata` value to be used for the
-/// `ruma_common::api::Endpoint`'s associated constant, single `Request` and `Response`
-/// structs, and the necessary trait implementations to convert the request into a
-/// `http::Request` and to create a response from a `http::Response` and vice versa.
+/// This will generate a [`Metadata`] value to be used for the [`IncomingRequest`] and
+/// [`OutgoingRequest`] associated constant, single `Request` and `Response` structs, and the
+/// necessary trait implementations to convert the request into a `http::Request` and to create
+/// a response from a `http::Response` and vice versa.
 ///
 /// The details of each of the three sections of the macros are documented below.
 ///
@@ -297,7 +298,7 @@ pub trait IncomingResponse: Sized {
     ) -> Result<Self, FromHttpResponseError<Self::EndpointError>>;
 }
 
-/// An extension to `OutgoingRequest` which provides Appservice specific methods.
+/// An extension to [`OutgoingRequest`] which provides Appservice specific methods.
 pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
     /// Tries to convert this request into an `http::Request` and appends a virtual `user_id` to
     /// [assert Appservice identity][id_assert].
