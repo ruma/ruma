@@ -140,7 +140,7 @@ fn plain_text_content_deserialization() {
         from_json_value::<MessageEventContent>(json_data)
             .unwrap(),
         MessageEventContent { message, .. }
-        if message.find_plain().unwrap() == "This is my body"
+        if message.find_plain() == Some("This is my body")
             && message.find_html().is_none()
     );
 }
@@ -158,8 +158,8 @@ fn html_text_content_deserialization() {
         from_json_value::<MessageEventContent>(json_data)
             .unwrap(),
         MessageEventContent { message, .. }
-        if message.find_plain().unwrap() == "Hello, New World!"
-            && message.find_html().unwrap() == "Hello, <em>New World</em>!"
+        if message.find_plain() == Some("Hello, New World!")
+            && message.find_html() == Some("Hello, <em>New World</em>!")
     );
 }
 
@@ -182,7 +182,7 @@ fn relates_to_content_deserialization() {
             relates_to: Some(Relation::Reply { in_reply_to: InReplyTo { event_id, .. } }),
             ..
         }
-        if message.find_plain().unwrap() == "> <@test:example.com> test\n\ntest reply"
+        if message.find_plain() == Some("> <@test:example.com> test\n\ntest reply")
             && message.find_html().is_none()
             && event_id == event_id!("$15827405538098VGFWH:example.com")
     );
@@ -214,7 +214,7 @@ fn message_event_deserialization() {
             sender,
             unsigned
         }) if event_id == event_id!("$event:notareal.hs")
-            && message.find_plain().unwrap() == "Hello, World!"
+            && message.find_plain() == Some("Hello, World!")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
             && room_id == room_id!("!roomid:notareal.hs")
             && sender == user_id!("@user:notareal.hs")
@@ -277,8 +277,8 @@ fn notice_event_deserialization() {
             sender,
             unsigned
         }) if event_id == event_id!("$event:notareal.hs")
-            && message.find_plain().unwrap() == "Hello, I'm a robot!"
-            && message.find_html().unwrap() == "Hello, I'm a <em>robot</em>!"
+            && message.find_plain() == Some("Hello, I'm a robot!")
+            && message.find_html() == Some("Hello, I'm a <em>robot</em>!")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
             && room_id == room_id!("!roomid:notareal.hs")
             && sender == user_id!("@user:notareal.hs")
@@ -344,7 +344,7 @@ fn emote_event_deserialization() {
             sender,
             unsigned
         }) if event_id == event_id!("$event:notareal.hs")
-            && message.find_plain().unwrap() == "is testing some code…"
+            && message.find_plain() == Some("is testing some code…")
             && message.find_html().is_none()
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
             && room_id == room_id!("!roomid:notareal.hs")
