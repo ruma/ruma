@@ -143,12 +143,12 @@ fn expand_deserialize_event(
 
     let ident = &input.ident;
     // we know there is a content field already
-    let content_type = fields
+    let content_type = &fields
         .iter()
         // we also know that the fields are named and have an ident
         .find(|f| f.ident.as_ref().unwrap() == "content")
-        .map(|f| f.ty.clone())
-        .unwrap();
+        .unwrap()
+        .ty;
 
     let (impl_generics, ty_gen, where_clause) = input.generics.split_for_impl();
     let is_generic = !input.generics.params.is_empty();
