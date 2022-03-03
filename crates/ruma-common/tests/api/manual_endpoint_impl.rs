@@ -1,6 +1,5 @@
 //! PUT /_matrix/client/r0/directory/room/:room_alias
 
-#![cfg(feature = "api")]
 #![allow(clippy::exhaustive_structs)]
 
 use bytes::BufMut;

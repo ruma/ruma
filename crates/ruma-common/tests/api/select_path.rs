@@ -1,5 +1,3 @@
-#![cfg(feature = "api")]
-
 use http::Method;
 use matches::assert_matches;
 use ruma_common::api::{

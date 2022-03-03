@@ -1,4 +1,3 @@
-#![cfg(feature = "api")]
 #![allow(clippy::exhaustive_structs)]
 
 #[derive(Copy, Clone, Debug, ruma_serde::Outgoing, serde::Serialize)]

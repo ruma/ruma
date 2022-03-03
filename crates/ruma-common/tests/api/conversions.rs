@@ -1,5 +1,4 @@
 #![allow(clippy::exhaustive_structs)]
-#![cfg(feature = "api")]
 
 use ruma_common::api::{
     ruma_api, IncomingRequest as _, MatrixVersion, OutgoingRequest as _,

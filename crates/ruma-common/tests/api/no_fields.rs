@@ -1,6 +1,6 @@
-#![cfg(feature = "api")]
-
-use ruma_common::api::{MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken};
+use ruma_common::api::{
+    MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken,
+};
 
 mod get {
     ruma_common::api::ruma_api! {
