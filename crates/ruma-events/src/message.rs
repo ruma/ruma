@@ -104,12 +104,6 @@ impl MessageContent {
     }
 }
 
-/// Trait for messages containing a text representation.
-pub trait TextMessage {
-    /// Get the text representation of this message.
-    fn message(&self) -> &MessageContent;
-}
-
 /// The payload for an extensible text message.
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -144,11 +138,5 @@ impl MessageEventContent {
     #[cfg(feature = "markdown")]
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
         Self { message: MessageContent::markdown(body), relates_to: None }
-    }
-}
-
-impl TextMessage for MessageEventContent {
-    fn message(&self) -> &MessageContent {
-        &self.message
     }
 }
