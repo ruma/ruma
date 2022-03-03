@@ -47,10 +47,10 @@ use ruma_identifiers::UserId;
 /// }
 /// ```
 ///
-/// This will generate a [`Metadata`] value to be used for the [`IncomingRequest`] and
-/// [`OutgoingRequest`] associated constant, single `Request` and `Response` structs, and the
-/// necessary trait implementations to convert the request into a `http::Request` and to create
-/// a response from a `http::Response` and vice versa.
+/// This will generate a [`Metadata`] value to be used for the associated consntants of
+/// [`IncomingRequest`] and [`OutgoingRequest`], single `Request` and `Response` structs, and
+/// the necessary trait implementations to convert the request into a `http::Request` and to
+/// create a response from a `http::Response` and vice versa.
 ///
 /// The details of each of the three sections of the macros are documented below.
 ///
