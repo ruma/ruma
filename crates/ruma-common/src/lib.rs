@@ -7,7 +7,7 @@
 
 #[cfg(not(all(feature = "client", feature = "server")))]
 compile_error!(
-    "ruma_common's Cargo features only exist as a workaround are not meant to be disabled"
+    "ruma_common's `client` and `server` Cargo features only exist as a workaround are not meant to be disabled"
 );
 
 #[cfg(feature = "api")]
