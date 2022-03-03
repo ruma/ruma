@@ -5,10 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    message::{MessageContent, TextMessage},
-    room::message::Relation,
-};
+use crate::{message::MessageContent, room::message::Relation};
 
 /// The payload for an extensible emote message.
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
@@ -44,11 +41,5 @@ impl EmoteEventContent {
     #[cfg(feature = "markdown")]
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
         Self { message: MessageContent::markdown(body), relates_to: None }
-    }
-}
-
-impl TextMessage for EmoteEventContent {
-    fn message(&self) -> &MessageContent {
-        &self.message
     }
 }
