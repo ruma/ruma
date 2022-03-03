@@ -1,8 +1,10 @@
 //! Endpoints for spaces.
 
 use js_int::UInt;
-use ruma_common::{directory::PublicRoomJoinRule, room::RoomType};
-use ruma_events::space::child::HierarchySpaceChildStateEvent;
+use ruma_common::{
+    directory::PublicRoomJoinRule, events::space::child::HierarchySpaceChildStateEvent,
+    room::RoomType,
+};
 use ruma_identifiers::{MxcUri, RoomAliasId, RoomId, RoomName};
 use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};

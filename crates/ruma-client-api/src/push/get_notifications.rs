@@ -6,8 +6,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3notifications
 
     use js_int::UInt;
-    use ruma_common::{api::ruma_api, push::Action, MilliSecondsSinceUnixEpoch};
-    use ruma_events::AnySyncRoomEvent;
+    use ruma_common::{
+        api::ruma_api, events::AnySyncRoomEvent, push::Action, MilliSecondsSinceUnixEpoch,
+    };
     use ruma_identifiers::RoomId;
     use ruma_serde::Raw;
     use serde::{Deserialize, Serialize};

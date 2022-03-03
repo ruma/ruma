@@ -8,11 +8,14 @@ pub mod v3 {
     use std::{collections::BTreeMap, time::Duration};
 
     use js_int::UInt;
-    use ruma_common::{api::ruma_api, presence::PresenceState};
-    use ruma_events::{
-        presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
-        AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncRoomEvent, AnySyncStateEvent,
-        AnyToDeviceEvent,
+    use ruma_common::{
+        api::ruma_api,
+        events::{
+            presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
+            AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncRoomEvent, AnySyncStateEvent,
+            AnyToDeviceEvent,
+        },
+        presence::PresenceState,
     };
     use ruma_identifiers::{DeviceKeyAlgorithm, RoomId, UserId};
     use ruma_serde::{Outgoing, Raw};

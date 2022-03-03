@@ -6,13 +6,16 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3createroom
 
     use assign::assign;
-    use ruma_common::{api::ruma_api, room::RoomType};
-    use ruma_events::{
-        room::{
-            create::{PreviousRoom, RoomCreateEventContent},
-            power_levels::RoomPowerLevelsEventContent,
+    use ruma_common::{
+        api::ruma_api,
+        events::{
+            room::{
+                create::{PreviousRoom, RoomCreateEventContent},
+                power_levels::RoomPowerLevelsEventContent,
+            },
+            AnyInitialStateEvent,
         },
-        AnyInitialStateEvent,
+        room::RoomType,
     };
     use ruma_identifiers::{RoomId, RoomName, RoomVersionId, UserId};
     use ruma_serde::{Raw, StringEnum};

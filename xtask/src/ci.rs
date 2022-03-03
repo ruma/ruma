@@ -73,7 +73,7 @@ impl CiTask {
         // 2. Run tests
         let workspace_res = cmd!("rustup run stable cargo test --features __ci").run();
         let events_compat_res =
-            cmd!("rustup run stable cargo test -p ruma-events --features compat compat").run();
+            cmd!("rustup run stable cargo test -p ruma-common --features events --features compat compat").run();
 
         workspace_res.and(events_compat_res).map_err(Into::into)
     }

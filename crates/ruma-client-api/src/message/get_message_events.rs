@@ -6,8 +6,10 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3roomsroomidmessages
 
     use js_int::{uint, UInt};
-    use ruma_common::api::ruma_api;
-    use ruma_events::{AnyRoomEvent, AnyStateEvent};
+    use ruma_common::{
+        api::ruma_api,
+        events::{AnyRoomEvent, AnyStateEvent},
+    };
     use ruma_identifiers::RoomId;
     use ruma_serde::Raw;
     use serde::{Deserialize, Serialize};

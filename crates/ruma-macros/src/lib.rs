@@ -91,7 +91,7 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
         .into()
 }
 
-/// Generates an implementation of `ruma_events::EventContent`.
+/// Generates an implementation of `ruma_common::events::EventContent`.
 #[proc_macro_derive(EventContent, attributes(ruma_event))]
 pub fn derive_event_content(input: TokenStream) -> TokenStream {
     let ruma_events = import_ruma_events();
@@ -108,9 +108,9 @@ pub fn derive_event(input: TokenStream) -> TokenStream {
 }
 
 pub(crate) fn import_ruma_events() -> pm2::TokenStream {
-    if let Ok(FoundCrate::Name(name)) = crate_name("ruma-events") {
+    if let Ok(FoundCrate::Name(name)) = crate_name("ruma-common") {
         let import = format_ident!("{}", name);
-        quote! { ::#import }
+        quote! { ::#import::events }
     } else if let Ok(FoundCrate::Name(name)) = crate_name("ruma") {
         let import = format_ident!("{}", name);
         quote! { ::#import::events }
@@ -121,7 +121,7 @@ pub(crate) fn import_ruma_events() -> pm2::TokenStream {
         let import = format_ident!("{}", name);
         quote! { ::#import::ruma::events }
     } else {
-        quote! { ::ruma_events }
+        quote! { ::ruma_common::events }
     }
 }
 

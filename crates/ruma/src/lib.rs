@@ -80,7 +80,7 @@ pub use ruma_serde as serde;
 pub use ruma_client as client;
 #[cfg(feature = "events")]
 #[doc(inline)]
-pub use ruma_events as events;
+pub use ruma_common::events;
 #[cfg(feature = "signatures")]
 #[doc(inline)]
 pub use ruma_signatures as signatures;

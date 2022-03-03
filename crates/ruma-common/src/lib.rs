@@ -2,6 +2,7 @@
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
 //! Common types for the Ruma crates.
 
+#![recursion_limit = "1024"]
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
@@ -10,11 +11,17 @@ compile_error!(
     "ruma_common's `client` and `server` Cargo features only exist as a workaround are not meant to be disabled"
 );
 
+// Hack to allow both ruma-common itself and external crates (or tests) to use procedural macros
+// that expect `ruma_common` to exist in the prelude.
+extern crate self as ruma_common;
+
 #[cfg(feature = "api")]
 pub mod api;
 pub mod authentication;
 pub mod directory;
 pub mod encryption;
+#[cfg(feature = "events")]
+pub mod events;
 pub mod power_levels;
 pub mod presence;
 pub mod push;
@@ -32,7 +39,7 @@ pub use time::{MilliSecondsSinceUnixEpoch, SecondsSinceUnixEpoch};
 // this crate. Used for string enums because their `_Custom` variant can't be
 // truly private (only `#[doc(hidden)]`).
 #[doc(hidden)]
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PrivOwnedStr(Box<str>);
 
 impl fmt::Debug for PrivOwnedStr {

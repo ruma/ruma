@@ -5,10 +5,10 @@ use std::collections::BTreeMap;
 use js_int::UInt;
 use ruma_common::{
     encryption::{CrossSigningKey, DeviceKeys},
+    events::{receipt::Receipt, AnyToDeviceEventContent, EventType},
     presence::PresenceState,
     to_device::DeviceIdOrAllDevices,
 };
-use ruma_events::{receipt::Receipt, AnyToDeviceEventContent, EventType};
 use ruma_identifiers::{DeviceId, EventId, RoomId, TransactionId, UserId};
 use ruma_serde::{from_raw_json_value, Raw};
 use serde::{de, Deserialize, Serialize};
