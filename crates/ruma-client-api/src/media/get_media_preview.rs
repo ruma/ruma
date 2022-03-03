@@ -5,8 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixmediav3preview_url
 
-    use ruma_api::ruma_api;
-    use ruma_common::MilliSecondsSinceUnixEpoch;
+    use ruma_common::{api::ruma_api, MilliSecondsSinceUnixEpoch};
     use serde::Serialize;
     use serde_json::value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue};
 

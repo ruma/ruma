@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3login
 
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
     use ruma_identifiers::{DeviceId, ServerName, UserId};
     use ruma_serde::{JsonObject, Outgoing};
     use serde::{
@@ -358,8 +358,10 @@ pub mod v3 {
         #[test]
         #[cfg(feature = "client")]
         fn serialize_login_request_body() {
-            use ruma_api::{MatrixVersion, OutgoingRequest, SendAccessToken};
-            use ruma_common::thirdparty::Medium;
+            use ruma_common::{
+                api::{MatrixVersion, OutgoingRequest, SendAccessToken},
+                thirdparty::Medium,
+            };
             use serde_json::Value as JsonValue;
 
             use super::{LoginInfo, Password, Request, Token};

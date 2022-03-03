@@ -2,7 +2,7 @@
 
 use std::fmt::{self, Debug, Display, Formatter};
 
-use ruma_api::error::{FromHttpResponseError, IntoHttpError};
+use ruma_common::api::error::{FromHttpResponseError, IntoHttpError};
 
 /// An error that can occur during client operations.
 #[derive(Debug)]

@@ -3,7 +3,7 @@
 use std::{collections::BTreeMap, fmt, time::Duration};
 
 use bytes::BufMut;
-use ruma_api::{
+use ruma_common::api::{
     error::{DeserializationError, IntoHttpError},
     EndpointError, OutgoingResponse,
 };

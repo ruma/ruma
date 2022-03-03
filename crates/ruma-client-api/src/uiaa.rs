@@ -5,11 +5,13 @@
 use std::{borrow::Cow, fmt};
 
 use bytes::BufMut;
-use ruma_api::{
-    error::{DeserializationError, IntoHttpError},
-    EndpointError, OutgoingResponse,
+use ruma_common::{
+    api::{
+        error::{DeserializationError, IntoHttpError},
+        EndpointError, OutgoingResponse,
+    },
+    thirdparty::Medium,
 };
-use ruma_common::thirdparty::Medium;
 use ruma_identifiers::{ClientSecret, SessionId};
 use ruma_serde::{from_raw_json_value, JsonObject, Outgoing, StringEnum};
 use serde::{

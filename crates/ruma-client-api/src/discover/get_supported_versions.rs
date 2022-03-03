@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_api::{ruma_api, MatrixVersion};
+use ruma_common::api::{ruma_api, MatrixVersion};
 
 ruma_api! {
     metadata: {
@@ -69,7 +69,7 @@ impl Response {
 
 #[cfg(test)]
 mod tests {
-    use ruma_api::MatrixVersion;
+    use ruma_common::api::MatrixVersion;
 
     use super::Response;
 

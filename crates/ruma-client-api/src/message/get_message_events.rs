@@ -6,7 +6,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3roomsroomidmessages
 
     use js_int::{uint, UInt};
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
     use ruma_events::{AnyRoomEvent, AnyStateEvent};
     use ruma_identifiers::RoomId;
     use ruma_serde::Raw;
@@ -150,7 +150,7 @@ pub mod v3 {
     #[cfg(all(test, feature = "client"))]
     mod tests {
         use js_int::uint;
-        use ruma_api::{MatrixVersion, OutgoingRequest, SendAccessToken};
+        use ruma_common::api::{MatrixVersion, OutgoingRequest, SendAccessToken};
         use ruma_identifiers::room_id;
 
         use super::{Direction, Request};

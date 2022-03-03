@@ -14,21 +14,37 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
+# These feature gates exist only for the tests. Disabling them results in a
+# compile error.
+default = ["client", "server"]
+client = []
+server = []
+
+api = ["bytes", "http", "percent-encoding", "ruma-macros", "thiserror"]
 compat = []
 unstable-exhaustive-types = []
 unstable-pre-spec = []
 unstable-msc2677 = []
 
 [dependencies]
+bytes = { version = "1.0.1", optional = true }
+http = { version = "0.2.2", optional = true }
 indexmap = { version = "1.6.2", features = ["serde-1"] }
 js_int = { version = "0.2.0", features = ["serde"] }
+percent-encoding = { version = "2.1.0", optional = true }
 ruma-identifiers = { version = "0.22.0", path = "../ruma-identifiers" }
+ruma-macros = { version = "=0.1.0", path = "../ruma-macros", optional = true }
 ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = { version = "1.0.60", features = ["raw_value"] }
+thiserror = { version = "1.0.26", optional = true }
 tracing = "0.1.25"
 wildmatch = "2.0.0"
 
 [dev-dependencies]
+bytes = "1.0.1"
+http = "0.2.2"
 maplit = "1.0.2"
 matches = "0.1.8"
+ruma-events = { version = "0.26.0", path = "../ruma-events" }
+trybuild = "1.0.38"

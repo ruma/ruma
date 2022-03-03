@@ -7,7 +7,7 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/application-service-api/#put_matrixappv1transactionstxnid
 
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
     use ruma_events::AnyRoomEvent;
     use ruma_identifiers::TransactionId;
     use ruma_serde::Raw;
@@ -161,7 +161,7 @@ pub mod v1 {
     #[cfg(feature = "server")]
     #[cfg(test)]
     mod tests {
-        use ruma_api::{OutgoingRequest, SendAccessToken};
+        use ruma_common::api::{OutgoingRequest, SendAccessToken};
         use serde_json::json;
 
         use super::Request;
@@ -186,7 +186,7 @@ pub mod v1 {
                 .try_into_http_request::<Vec<u8>>(
                     "https://homeserver.tld",
                     SendAccessToken::IfRequired("auth_tok"),
-                    &[ruma_api::MatrixVersion::V1_1],
+                    &[ruma_common::api::MatrixVersion::V1_1],
                 )
                 .unwrap();
             let json_body: serde_json::Value = serde_json::from_slice(req.body()).unwrap();

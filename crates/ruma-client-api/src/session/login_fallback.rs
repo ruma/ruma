@@ -2,7 +2,7 @@
 //!
 //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#login-fallback
 
-use ruma_api::ruma_api;
+use ruma_common::api::ruma_api;
 use ruma_identifiers::DeviceId;
 
 ruma_api! {

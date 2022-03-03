@@ -7,8 +7,10 @@ pub mod v3 {
 
     use std::{collections::BTreeMap, time::Duration};
 
-    use ruma_api::ruma_api;
-    use ruma_common::encryption::{CrossSigningKey, DeviceKeys};
+    use ruma_common::{
+        api::ruma_api,
+        encryption::{CrossSigningKey, DeviceKeys},
+    };
     use ruma_identifiers::{DeviceId, UserId};
     use ruma_serde::Raw;
     use serde_json::Value as JsonValue;

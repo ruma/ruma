@@ -94,7 +94,7 @@ pub use ruma_state_res as state_res;
 /// [apis]: https://spec.matrix.org/v1.2/#matrix-apis
 #[cfg(feature = "api")]
 pub mod api {
-    pub use ruma_api::*;
+    pub use ruma_common::api::*;
 
     #[cfg(feature = "ruma-appservice-api")]
     #[cfg_attr(
@@ -159,7 +159,10 @@ pub use assign::assign;
 pub use js_int::{int, uint, Int, UInt};
 #[cfg(feature = "client-ext-client-api")]
 pub use ruma_client::Client;
-pub use ruma_common::*;
+pub use ruma_common::{
+    authentication, directory, encryption, power_levels, presence, push, receipt, room, thirdparty,
+    to_device, MilliSecondsSinceUnixEpoch, PrivOwnedStr, SecondsSinceUnixEpoch,
+};
 pub use ruma_identifiers::{
     device_id, device_key_id, event_id, matrix_uri, mxc_uri, room_alias_id, room_id,
     room_version_id, server_name, server_signing_key_id, user_id, ClientSecret, DeviceId,

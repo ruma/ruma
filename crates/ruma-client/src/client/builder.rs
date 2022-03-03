@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
-use ruma_api::{MatrixVersion, SendAccessToken};
 use ruma_client_api::discover::get_supported_versions;
+use ruma_common::api::{MatrixVersion, SendAccessToken};
 
 use super::{Client, ClientData};
 use crate::{DefaultConstructibleHttpClient, Error, HttpClient, HttpClientExt};

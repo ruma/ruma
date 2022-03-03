@@ -7,8 +7,7 @@ pub mod v3 {
 
     use std::collections::BTreeMap;
 
-    use ruma_api::ruma_api;
-    use ruma_common::to_device::DeviceIdOrAllDevices;
+    use ruma_common::{api::ruma_api, to_device::DeviceIdOrAllDevices};
     use ruma_events::AnyToDeviceEventContent;
     use ruma_identifiers::{TransactionId, UserId};
     use ruma_serde::Raw;

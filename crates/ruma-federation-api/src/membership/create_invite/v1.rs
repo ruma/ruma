@@ -2,8 +2,7 @@
 //!
 //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#put_matrixfederationv1inviteroomideventid
 
-use ruma_api::ruma_api;
-use ruma_common::MilliSecondsSinceUnixEpoch;
+use ruma_common::{api::ruma_api, MilliSecondsSinceUnixEpoch};
 use ruma_events::{room::member::RoomMemberEventContent, AnyStrippedStateEvent, EventType};
 use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
 use ruma_serde::Raw;

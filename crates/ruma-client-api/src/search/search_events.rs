@@ -8,7 +8,7 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use js_int::{uint, UInt};
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
     use ruma_events::{AnyRoomEvent, AnyStateEvent};
     use ruma_identifiers::{EventId, MxcUri, RoomId, UserId};
     use ruma_serde::{Outgoing, Raw, StringEnum};

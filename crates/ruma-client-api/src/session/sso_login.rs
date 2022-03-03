@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3loginssoredirect
 
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
 
     ruma_api! {
         metadata: {
@@ -52,7 +52,7 @@ pub mod v3 {
 
     #[cfg(all(test, feature = "client"))]
     mod tests {
-        use ruma_api::{MatrixVersion, OutgoingRequest, SendAccessToken};
+        use ruma_common::api::{MatrixVersion, OutgoingRequest, SendAccessToken};
 
         use super::Request;
 

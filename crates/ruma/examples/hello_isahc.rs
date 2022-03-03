@@ -8,7 +8,7 @@ use ruma::{
     events::room::message::RoomMessageEventContent,
     RoomAliasId,
 };
-use ruma_api::MatrixVersion;
+use ruma_common::api::MatrixVersion;
 
 async fn hello_world(
     homeserver_url: String,

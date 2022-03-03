@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#put_matrixclientv3profileuseridavatar_url
 
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
     use ruma_identifiers::{MxcUri, UserId};
 
     ruma_api! {
@@ -82,7 +82,7 @@ pub mod v3 {
     #[cfg(all(test, feature = "server"))]
     mod tests {
         use matches::assert_matches;
-        use ruma_api::IncomingRequest as _;
+        use ruma_common::api::IncomingRequest as _;
 
         use super::IncomingRequest;
 

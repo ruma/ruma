@@ -41,6 +41,6 @@ impl Parse for MatrixVersionLiteral {
 impl ToTokens for MatrixVersionLiteral {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let variant = format_ident!("V{}_{}", u8::from(self.major), self.minor);
-        tokens.extend(quote! { ::ruma_api::MatrixVersion::#variant });
+        tokens.extend(quote! { ::ruma_common::api::MatrixVersion::#variant });
     }
 }

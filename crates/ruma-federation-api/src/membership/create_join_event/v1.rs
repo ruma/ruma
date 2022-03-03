@@ -2,7 +2,7 @@
 //!
 //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#put_matrixfederationv1send_joinroomideventid
 
-use ruma_api::ruma_api;
+use ruma_common::api::ruma_api;
 use ruma_identifiers::{EventId, RoomId};
 use serde_json::value::RawValue as RawJsonValue;
 
@@ -59,7 +59,7 @@ impl Response {
 
 #[cfg(all(test, feature = "server", not(feature = "unstable-pre-spec")))]
 mod tests {
-    use ruma_api::OutgoingResponse;
+    use ruma_common::api::OutgoingResponse;
     use serde_json::{from_slice as from_json_slice, json, Value as JsonValue};
 
     use super::{super::RoomState, Response};
