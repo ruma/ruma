@@ -17,13 +17,14 @@ rustdoc-args = ["--cfg", "docsrs"]
 # These feature gates exist only for the tests. Disabling them results in a
 # compile error.
 default = ["client", "server"]
-api = ["bytes", "http", "percent-encoding", "ruma-macros", "thiserror"]
 client = []
+server = []
+
+api = ["bytes", "http", "percent-encoding", "ruma-macros", "thiserror"]
 compat = []
 unstable-exhaustive-types = []
 unstable-pre-spec = []
 unstable-msc2677 = []
-server = []
 
 [dependencies]
 bytes = { version = "1.0.1", optional = true }
