@@ -4,6 +4,7 @@
 // To pass args to criterion, use this form
 // `cargo bench --features criterion --bench <name of the bench> -- --save-baseline <name>`.
 
+#![cfg(feature = "events")]
 #![allow(unused_imports, dead_code)]
 
 #[cfg(feature = "criterion")]
