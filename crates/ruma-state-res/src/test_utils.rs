@@ -545,8 +545,9 @@ pub fn INITIAL_EDGES() -> Vec<Box<EventId>> {
 }
 
 pub mod event {
-    use ruma_common::events::{
-        exports::ruma_common::MilliSecondsSinceUnixEpoch, pdu::Pdu, EventType,
+    use ruma_common::{
+        events::{pdu::Pdu, EventType},
+        MilliSecondsSinceUnixEpoch,
     };
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde::{Deserialize, Serialize};
