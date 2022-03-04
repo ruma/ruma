@@ -351,10 +351,10 @@ fn generate_event_type_aliases(
     ]
     .iter()
     .filter_map(|&var| Some((var, event_kind.try_to_event_ident(var)?)))
-    .map(|(kind, ev_struct)| {
-        let ev_type = format_ident!("{}{}", kind, ev_type_s);
+    .map(|(var, ev_struct)| {
+        let ev_type = format_ident!("{}{}", var, ev_type_s);
 
-        let doc_text = match kind {
+        let doc_text = match var {
             EventKindVariation::Full => "",
             EventKindVariation::Sync => " from a `sync_events` response",
             EventKindVariation::Stripped => " from an invited room preview",
@@ -366,7 +366,7 @@ fn generate_event_type_aliases(
         };
         let ev_type_doc = format!("An `{}` event{}.", event_type, doc_text);
 
-        let content_struct = if kind.is_redacted() {
+        let content_struct = if var.is_redacted() {
             Cow::Owned(format_ident!("Redacted{}", ident))
         } else {
             Cow::Borrowed(ident)
