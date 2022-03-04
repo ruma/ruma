@@ -5,8 +5,10 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3roomsroomidstateeventtypestatekey
 
-    use ruma_common::api::ruma_api;
-    use ruma_events::{AnyStateEventContent, EventType};
+    use ruma_common::{
+        api::ruma_api,
+        events::{AnyStateEventContent, EventType},
+    };
     use ruma_identifiers::RoomId;
     use ruma_serde::{Outgoing, Raw};
 
@@ -26,7 +28,7 @@ pub mod v3 {
             /// The content of the state event.
             ///
             /// Since the inner type of the `Raw` does not implement `Deserialize`, you need to use
-            /// `ruma_events::RawExt` to deserialize it.
+            /// `ruma_common::events::RawExt` to deserialize it.
             #[ruma_api(body)]
             pub content: Raw<AnyStateEventContent>,
         }

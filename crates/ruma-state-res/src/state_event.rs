@@ -5,8 +5,7 @@ use std::{
     sync::Arc,
 };
 
-use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_events::EventType;
+use ruma_common::{events::EventType, MilliSecondsSinceUnixEpoch};
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde_json::value::RawValue as RawJsonValue;
 

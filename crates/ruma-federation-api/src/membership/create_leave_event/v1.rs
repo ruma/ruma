@@ -3,8 +3,11 @@
 //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#put_matrixfederationv1send_leaveroomideventid
 
 use js_int::UInt;
-use ruma_common::{api::ruma_api, MilliSecondsSinceUnixEpoch};
-use ruma_events::{room::member::RoomMemberEventContent, EventType};
+use ruma_common::{
+    api::ruma_api,
+    events::{room::member::RoomMemberEventContent, EventType},
+    MilliSecondsSinceUnixEpoch,
+};
 use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
 use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};

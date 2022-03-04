@@ -1,6 +1,4 @@
-//! Methods and types for generating [ruma-events] events.
-//!
-//! [ruma-events]: https://github.com/ruma/ruma/tree/main/ruma-events
+//! Methods and types for generating events.
 
 pub mod event;
 pub mod event_content;

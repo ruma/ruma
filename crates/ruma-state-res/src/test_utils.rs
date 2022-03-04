@@ -9,14 +9,16 @@ use std::{
 };
 
 use js_int::{int, uint};
-use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_events::{
-    pdu::{EventHash, Pdu, RoomV3Pdu},
-    room::{
-        join_rules::{JoinRule, RoomJoinRulesEventContent},
-        member::{MembershipState, RoomMemberEventContent},
+use ruma_common::{
+    events::{
+        pdu::{EventHash, Pdu, RoomV3Pdu},
+        room::{
+            join_rules::{JoinRule, RoomJoinRulesEventContent},
+            member::{MembershipState, RoomMemberEventContent},
+        },
+        EventType,
     },
-    EventType,
+    MilliSecondsSinceUnixEpoch,
 };
 use ruma_identifiers::{event_id, room_id, user_id, EventId, RoomId, RoomVersionId, UserId};
 use serde_json::{
@@ -543,7 +545,9 @@ pub fn INITIAL_EDGES() -> Vec<Box<EventId>> {
 }
 
 pub mod event {
-    use ruma_events::{exports::ruma_common::MilliSecondsSinceUnixEpoch, pdu::Pdu, EventType};
+    use ruma_common::events::{
+        exports::ruma_common::MilliSecondsSinceUnixEpoch, pdu::Pdu, EventType,
+    };
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;

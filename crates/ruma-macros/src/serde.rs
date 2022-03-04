@@ -1,6 +1,6 @@
 //! Methods and types for [ruma-serde].
 //!
-//! [ruma-events]: https://github.com/ruma/ruma/tree/main/ruma-serde
+//! [ruma-serde]: https://github.com/ruma/ruma/tree/main/ruma-serde
 
 pub mod attr;
 pub mod case;

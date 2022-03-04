@@ -21,17 +21,28 @@ client = []
 server = []
 
 api = ["bytes", "http", "percent-encoding", "ruma-macros", "thiserror"]
-compat = []
+compat = ["ruma-macros/compat"]
+events = ["indoc", "ruma-macros", "ruma-identifiers/serde", "thiserror"]
+markdown = ["pulldown-cmark"]
 unstable-exhaustive-types = []
+unstable-pdu = []
 unstable-pre-spec = []
+unstable-msc1767 = []
+unstable-msc2448 = []
+unstable-msc2675 = []
+unstable-msc2676 = []
 unstable-msc2677 = []
+unstable-msc3551 = ["unstable-msc1767"]
 
 [dependencies]
 bytes = { version = "1.0.1", optional = true }
+criterion = { version = "0.3.3", optional = true }
 http = { version = "0.2.2", optional = true }
 indexmap = { version = "1.6.2", features = ["serde-1"] }
+indoc = { version = "1.0", optional = true }
 js_int = { version = "0.2.0", features = ["serde"] }
 percent-encoding = { version = "2.1.0", optional = true }
+pulldown-cmark = { version = "0.8", default-features = false, optional = true }
 ruma-identifiers = { version = "0.22.0", path = "../ruma-identifiers" }
 ruma-macros = { version = "=0.1.0", path = "../ruma-macros", optional = true }
 ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
@@ -42,9 +53,15 @@ tracing = "0.1.25"
 wildmatch = "2.0.0"
 
 [dev-dependencies]
+assign = "1.1.1"
 bytes = "1.0.1"
 http = "0.2.2"
 maplit = "1.0.2"
 matches = "0.1.8"
-ruma-events = { version = "0.26.0", path = "../ruma-events" }
+ruma-identifiers = { version = "0.22.0", path = "../ruma-identifiers", features = ["rand", "serde"] }
+ruma-macros = { version = "=0.1.0", path = "../ruma-macros" }
 trybuild = "1.0.38"
+
+[[bench]]
+name = "event_deserialize"
+harness = false

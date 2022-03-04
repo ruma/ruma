@@ -20,7 +20,8 @@ pub(crate) type EventKindFn = fn(EventKind, EventKindVariation) -> bool;
 
 /// This const is used to generate the accessor methods for the `Any*Event` enums.
 ///
-/// DO NOT alter the field names unless the structs in `ruma_events::event_kinds` have changed.
+/// DO NOT alter the field names unless the structs in `ruma_common::events::event_kinds` have
+/// changed.
 pub(crate) const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
     ("origin_server_ts", is_non_stripped_room_event),
     ("room_id", |kind, var| {

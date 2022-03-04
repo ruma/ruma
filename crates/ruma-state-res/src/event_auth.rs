@@ -1,7 +1,7 @@
 use std::{borrow::Borrow, collections::BTreeSet, convert::TryFrom};
 
 use js_int::{int, Int};
-use ruma_events::{
+use ruma_common::events::{
     room::{
         create::RoomCreateEventContent,
         join_rules::{JoinRule, RoomJoinRulesEventContent},
@@ -929,7 +929,7 @@ fn verify_third_party_invite(
 mod tests {
     use std::sync::Arc;
 
-    use ruma_events::{
+    use ruma_common::events::{
         room::{
             join_rules::{
                 AllowRule, JoinRule, Restricted, RoomJoinRulesEventContent, RoomMembership,

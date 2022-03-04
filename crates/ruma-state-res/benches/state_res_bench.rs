@@ -21,14 +21,16 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use event::StateEvent;
 use js_int::{int, uint};
 use maplit::{btreemap, hashmap, hashset};
-use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_events::{
-    pdu::{EventHash, Pdu, RoomV3Pdu},
-    room::{
-        join_rules::{JoinRule, RoomJoinRulesEventContent},
-        member::{MembershipState, RoomMemberEventContent},
+use ruma_common::{
+    events::{
+        pdu::{EventHash, Pdu, RoomV3Pdu},
+        room::{
+            join_rules::{JoinRule, RoomJoinRulesEventContent},
+            member::{MembershipState, RoomMemberEventContent},
+        },
+        EventType,
     },
-    EventType,
+    MilliSecondsSinceUnixEpoch,
 };
 use ruma_identifiers::{room_id, user_id, EventId, RoomId, RoomVersionId, UserId};
 use ruma_state_res::{self as state_res, Error, Event, Result, StateMap};
@@ -534,8 +536,10 @@ fn BAN_STATE_SET() -> HashMap<Box<EventId>, Arc<StateEvent>> {
 }
 
 mod event {
-    use ruma_common::MilliSecondsSinceUnixEpoch;
-    use ruma_events::{pdu::Pdu, EventType};
+    use ruma_common::{
+        events::{pdu::Pdu, EventType},
+        MilliSecondsSinceUnixEpoch,
+    };
     use ruma_identifiers::{EventId, RoomId, UserId};
     use ruma_state_res::Event;
     use serde::{Deserialize, Serialize};

@@ -1,8 +1,10 @@
 #![allow(clippy::exhaustive_structs)]
 
 pub mod some_endpoint {
-    use ruma_common::api::ruma_api;
-    use ruma_events::{tag::TagEvent, AnyRoomEvent};
+    use ruma_common::{
+        api::ruma_api,
+        events::{tag::TagEvent, AnyRoomEvent},
+    };
     use ruma_identifiers::UserId;
     use ruma_serde::Raw;
 

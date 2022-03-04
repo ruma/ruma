@@ -103,7 +103,7 @@ should generally be implemented by creating or using a more constrained type tha
 that field – for example, we have a number of identifier types but the Matrix spec uses `string` for
 fields that hold user IDs / room IDs and so on.
 
-Almost all types in `ruma-events` and the API crates use the `#[non_exhaustive]` attribute, to allow
+Almost all types in `ruma-common` and the API crates use the `#[non_exhaustive]` attribute, to allow
 us to adapt to new minor releases of the Matrix specification without having a major release of our
 crates. You can generally just apply `#[non_exhaustive]` to everything – it's a backwards compatible
 change to remove it in the rare case it is not warranted.

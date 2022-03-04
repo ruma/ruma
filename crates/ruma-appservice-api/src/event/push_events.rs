@@ -7,8 +7,7 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/application-service-api/#put_matrixappv1transactionstxnid
 
-    use ruma_common::api::ruma_api;
-    use ruma_events::AnyRoomEvent;
+    use ruma_common::{api::ruma_api, events::AnyRoomEvent};
     use ruma_identifiers::TransactionId;
     use ruma_serde::Raw;
 
