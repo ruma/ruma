@@ -109,43 +109,47 @@ pub mod v1 {
     #[cfg(test)]
     mod helper_tests {
         use ruma_client_api::sync::sync_events;
-        use ruma_identifiers::room_id;
-        use serde_json::json;
+        use ruma_identifiers::{room_id, TransactionId};
+        use serde_json::{json, value::to_raw_value as to_raw_json_value};
 
-        use super::{AnyRoomEvent, IncomingRequest, Raw};
+        use super::{IncomingRequest, Raw};
 
         #[test]
         fn convert_incoming_request_to_sync_response() {
-            let txn_id = "any_txn_id".to_owned();
-            let state_event: AnyRoomEvent = serde_json::from_value(json!({
-                "content": {},
-                "event_id": "$h29iv0s8:example.com",
-                "origin_server_ts": 1,
-                "room_id": "!roomid:room.com",
-                "sender": "@carl:example.com",
-                "state_key": "",
-                "type": "m.room.name"
-            }))
-            .unwrap();
-            let message_event: AnyRoomEvent = serde_json::from_value(json!({
-                "type": "m.room.message",
-                "event_id": "$143273582443PhrSn:example.com",
-                "origin_server_ts": 1,
-                "room_id": "!roomid:room.com",
-                "sender": "@user:example.com",
-                "content": {
-                    "body": "test",
-                    "msgtype": "m.audio",
-                    "url": "mxc://example.com/AuDi0",
-                }
-            }))
-            .unwrap();
+            let txn_id = <&TransactionId>::from("any_txn_id");
+            let state_event = Raw::from_json(
+                to_raw_json_value(&json!({
+                    "content": {},
+                    "event_id": "$h29iv0s8:example.com",
+                    "origin_server_ts": 1,
+                    "room_id": "!roomid:room.com",
+                    "sender": "@carl:example.com",
+                    "state_key": "",
+                    "type": "m.room.name"
+                }))
+                .unwrap(),
+            );
+            let message_event = Raw::from_json(
+                to_raw_json_value(&json!({
+                    "type": "m.room.message",
+                    "event_id": "$143273582443PhrSn:example.com",
+                    "origin_server_ts": 1,
+                    "room_id": "!roomid:room.com",
+                    "sender": "@user:example.com",
+                    "content": {
+                        "body": "test",
+                        "msgtype": "m.audio",
+                        "url": "mxc://example.com/AuDi0",
+                    }
+                }))
+                .unwrap(),
+            );
 
-            let events = vec![Raw::new(&state_event).unwrap(), Raw::new(&message_event).unwrap()];
-            let incoming_request = IncomingRequest { txn_id: txn_id.clone(), events };
+            let events = vec![state_event, message_event];
+            let incoming_request = IncomingRequest { txn_id: txn_id.into(), events };
 
-            let response: sync_events::Response =
-                incoming_request.try_into_sync_response(txn_id).unwrap();
+            let response: sync_events::v3::Response =
+                incoming_request.try_into_sync_response("token").unwrap();
 
             let response_rooms_join = response
                 .rooms
