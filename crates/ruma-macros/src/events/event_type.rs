@@ -6,9 +6,9 @@ use super::event_parse::{EventEnumEntry, EventEnumInput, EventKind};
 
 pub fn expand_event_type_enum(
     input: EventEnumInput,
-    ruma_events: TokenStream,
+    ruma_common: TokenStream,
 ) -> syn::Result<TokenStream> {
-    let ruma_serde = quote! { #ruma_events::exports::ruma_serde };
+    let ruma_serde = quote! { #ruma_common::exports::ruma_serde };
 
     let mut room: Vec<&Vec<EventEnumEntry>> = vec![];
     let mut state: Vec<&Vec<EventEnumEntry>> = vec![];

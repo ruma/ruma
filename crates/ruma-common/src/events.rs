@@ -140,19 +140,6 @@ mod enums;
 mod event_kinds;
 mod unsigned;
 
-/// Re-exports to allow users to declare their own event types using the
-/// macros used internally.
-///
-/// It is not considered part of this module's public API.
-#[doc(hidden)]
-pub mod exports {
-    pub use crate as ruma_common;
-    pub use ruma_identifiers;
-    pub use ruma_serde;
-    pub use serde;
-    pub use serde_json;
-}
-
 /// Re-export of all the derives needed to create your own event types.
 pub mod macros {
     pub use ruma_macros::{Event, EventContent};

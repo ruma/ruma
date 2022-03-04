@@ -71,7 +71,7 @@ mod serde;
 //// supported:  https://github.com/rust-lang/rust/issues/74563
 #[proc_macro]
 pub fn event_enum(input: TokenStream) -> TokenStream {
-    let ruma_events = import_ruma_events();
+    let ruma_common = import_ruma_common();
 
     let event_enum_input = syn::parse_macro_input!(input as EventEnumInput);
     let enums = event_enum_input
@@ -79,7 +79,7 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
         .iter()
         .map(expand_event_enums)
         .collect::<syn::Result<pm2::TokenStream>>();
-    let event_types = expand_event_type_enum(event_enum_input, ruma_events);
+    let event_types = expand_event_type_enum(event_enum_input, ruma_common);
     event_types
         .and_then(|types| {
             enums.map(|mut enums| {
@@ -94,10 +94,10 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 /// Generates an implementation of `ruma_common::events::EventContent`.
 #[proc_macro_derive(EventContent, attributes(ruma_event))]
 pub fn derive_event_content(input: TokenStream) -> TokenStream {
-    let ruma_events = import_ruma_events();
+    let ruma_common = import_ruma_common();
     let input = parse_macro_input!(input as DeriveInput);
 
-    expand_event_content(&input, &ruma_events).unwrap_or_else(syn::Error::into_compile_error).into()
+    expand_event_content(&input, &ruma_common).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
 /// Generates implementations needed to serialize and deserialize Matrix events.
@@ -107,21 +107,21 @@ pub fn derive_event(input: TokenStream) -> TokenStream {
     expand_event(input).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
-pub(crate) fn import_ruma_events() -> pm2::TokenStream {
+pub(crate) fn import_ruma_common() -> pm2::TokenStream {
     if let Ok(FoundCrate::Name(name)) = crate_name("ruma-common") {
         let import = format_ident!("{}", name);
-        quote! { ::#import::events }
+        quote! { ::#import }
     } else if let Ok(FoundCrate::Name(name)) = crate_name("ruma") {
         let import = format_ident!("{}", name);
-        quote! { ::#import::events }
+        quote! { ::#import }
     } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk") {
         let import = format_ident!("{}", name);
-        quote! { ::#import::ruma::events }
+        quote! { ::#import::ruma }
     } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk-appservice") {
         let import = format_ident!("{}", name);
-        quote! { ::#import::ruma::events }
+        quote! { ::#import::ruma }
     } else {
-        quote! { ::ruma_common::events }
+        quote! { ::ruma_common }
     }
 }
 

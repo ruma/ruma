@@ -103,7 +103,7 @@ impl Parse for MetaAttrs {
 /// Create an `EventContent` implementation for a struct.
 pub fn expand_event_content(
     input: &DeriveInput,
-    ruma_events: &TokenStream,
+    ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let content_attr = input
         .attrs
@@ -147,17 +147,17 @@ pub fn expand_event_content(
 
     // We only generate redacted content structs for state and message-like events
     let redacted_event_content = needs_redacted(&content_attr, event_kind)
-        .then(|| generate_redacted_event_content(input, event_type, ruma_events, event_kind))
+        .then(|| generate_redacted_event_content(input, event_type, ruma_common, event_kind))
         .transpose()?;
 
-    let event_content_impl = generate_event_content_impl(&input.ident, event_type, ruma_events);
+    let event_content_impl = generate_event_content_impl(&input.ident, event_type, ruma_common);
     let static_event_content_impl = event_kind.map(|k| {
-        generate_static_event_content_impl(&input.ident, k, false, event_type, ruma_events)
+        generate_static_event_content_impl(&input.ident, k, false, event_type, ruma_common)
     });
     let marker_trait_impl =
-        event_kind.map(|k| generate_marker_trait_impl(k, &input.ident, ruma_events)).transpose()?;
+        event_kind.map(|k| generate_marker_trait_impl(k, &input.ident, ruma_common)).transpose()?;
     let type_aliases = event_kind
-        .map(|k| generate_event_type_aliases(k, &input.ident, &event_type.value(), ruma_events))
+        .map(|k| generate_event_type_aliases(k, &input.ident, &event_type.value(), ruma_common))
         .transpose()?;
 
     Ok(quote! {
@@ -172,12 +172,12 @@ pub fn expand_event_content(
 fn generate_redacted_event_content(
     input: &DeriveInput,
     event_type: &LitStr,
-    ruma_events: &TokenStream,
+    ruma_common: &TokenStream,
     event_kind: Option<EventKind>,
 ) -> Result<TokenStream, syn::Error> {
-    let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
-    let serde = quote! { #ruma_events::exports::serde };
-    let serde_json = quote! { #ruma_events::exports::serde_json };
+    let ruma_identifiers = quote! { #ruma_common::exports::ruma_identifiers };
+    let serde = quote! { #ruma_common::exports::serde };
+    let serde_json = quote! { #ruma_common::exports::serde_json };
 
     let ident = &input.ident;
     let doc = format!("Redacted form of [`{}`]", ident);
@@ -241,9 +241,9 @@ fn generate_redacted_event_content(
     };
 
     let (has_deserialize_fields, has_serialize_fields) = if kept_redacted_fields.is_empty() {
-        (quote! { #ruma_events::HasDeserializeFields::False }, quote! { false })
+        (quote! { #ruma_common::events::HasDeserializeFields::False }, quote! { false })
     } else {
-        (quote! { #ruma_events::HasDeserializeFields::True }, quote! { true })
+        (quote! { #ruma_common::events::HasDeserializeFields::True }, quote! { true })
     };
 
     let constructor = kept_redacted_fields.is_empty().then(|| {
@@ -259,28 +259,28 @@ fn generate_redacted_event_content(
     });
 
     let redacted_event_content =
-        generate_event_content_impl(&redacted_ident, event_type, ruma_events);
+        generate_event_content_impl(&redacted_ident, event_type, ruma_common);
 
     let marker_trait_impl = match event_kind {
         Some(EventKind::MessageLike) => quote! {
             #[automatically_derived]
-            impl #ruma_events::RedactedMessageLikeEventContent for #redacted_ident {}
+            impl #ruma_common::events::RedactedMessageLikeEventContent for #redacted_ident {}
         },
         Some(EventKind::State) => quote! {
             #[automatically_derived]
-            impl #ruma_events::RedactedStateEventContent for #redacted_ident {}
+            impl #ruma_common::events::RedactedStateEventContent for #redacted_ident {}
         },
         _ => TokenStream::new(),
     };
 
     let static_event_content_impl = event_kind.map(|k| {
-        generate_static_event_content_impl(&redacted_ident, k, true, event_type, ruma_events)
+        generate_static_event_content_impl(&redacted_ident, k, true, event_type, ruma_common)
     });
 
     Ok(quote! {
         // this is the non redacted event content's impl
         #[automatically_derived]
-        impl #ruma_events::RedactContent for #ident {
+        impl #ruma_common::events::RedactContent for #ident {
             type Redacted = #redacted_ident;
 
             fn redact(self, version: &#ruma_identifiers::RoomVersionId) -> #redacted_ident {
@@ -300,7 +300,7 @@ fn generate_redacted_event_content(
         #redacted_event_content
 
         #[automatically_derived]
-        impl #ruma_events::RedactedEventContent for #redacted_ident {
+        impl #ruma_common::events::RedactedEventContent for #redacted_ident {
             fn empty(ev_type: &str) -> #serde_json::Result<Self> {
                 if ev_type != #event_type {
                     return Err(#serde::de::Error::custom(
@@ -315,7 +315,7 @@ fn generate_redacted_event_content(
                 #has_serialize_fields
             }
 
-            fn has_deserialize_fields() -> #ruma_events::HasDeserializeFields {
+            fn has_deserialize_fields() -> #ruma_common::events::HasDeserializeFields {
                 #has_deserialize_fields
             }
         }
@@ -329,7 +329,7 @@ fn generate_event_type_aliases(
     event_kind: EventKind,
     ident: &Ident,
     event_type: &str,
-    ruma_events: &TokenStream,
+    ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
     // The redaction module has its own event types.
     if ident == "RoomRedactionEventContent" {
@@ -374,7 +374,7 @@ fn generate_event_type_aliases(
 
         quote! {
             #[doc = #ev_type_doc]
-            pub type #ev_type = #ruma_events::#ev_struct<#content_struct>;
+            pub type #ev_type = #ruma_common::events::#ev_struct<#content_struct>;
         }
     })
     .collect();
@@ -385,7 +385,7 @@ fn generate_event_type_aliases(
 fn generate_marker_trait_impl(
     event_kind: EventKind,
     ident: &Ident,
-    ruma_events: &TokenStream,
+    ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let marker_trait = match event_kind {
         EventKind::GlobalAccountData => quote! { GlobalAccountDataEventContent },
@@ -408,21 +408,21 @@ fn generate_marker_trait_impl(
 
     Ok(quote! {
         #[automatically_derived]
-        impl #ruma_events::#marker_trait for #ident {}
+        impl #ruma_common::events::#marker_trait for #ident {}
     })
 }
 
 fn generate_event_content_impl(
     ident: &Ident,
     event_type: &LitStr,
-    ruma_events: &TokenStream,
+    ruma_common: &TokenStream,
 ) -> TokenStream {
-    let serde = quote! { #ruma_events::exports::serde };
-    let serde_json = quote! { #ruma_events::exports::serde_json };
+    let serde = quote! { #ruma_common::exports::serde };
+    let serde_json = quote! { #ruma_common::exports::serde_json };
 
     quote! {
         #[automatically_derived]
-        impl #ruma_events::EventContent for #ident {
+        impl #ruma_common::events::EventContent for #ident {
             fn event_type(&self) -> &str {
                 #event_type
             }
@@ -448,7 +448,7 @@ fn generate_static_event_content_impl(
     event_kind: EventKind,
     redacted: bool,
     event_type: &LitStr,
-    ruma_events: &TokenStream,
+    ruma_common: &TokenStream,
 ) -> TokenStream {
     let event_kind = match event_kind {
         EventKind::GlobalAccountData => quote! { GlobalAccountData },
@@ -466,8 +466,9 @@ fn generate_static_event_content_impl(
     };
 
     quote! {
-        impl #ruma_events::StaticEventContent for #ident {
-            const KIND: #ruma_events::EventKind = #ruma_events::EventKind::#event_kind;
+        impl #ruma_common::events::StaticEventContent for #ident {
+            const KIND: #ruma_common::events::EventKind =
+                #ruma_common::events::EventKind::#event_kind;
             const TYPE: &'static ::std::primitive::str = #event_type;
         }
     }

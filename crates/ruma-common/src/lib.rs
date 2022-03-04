@@ -47,3 +47,14 @@ impl fmt::Debug for PrivOwnedStr {
         self.0.fmt(f)
     }
 }
+
+/// Re-exports used by macro-generated code.
+///
+/// It is not considered part of this module's public API.
+#[doc(hidden)]
+pub mod exports {
+    pub use ruma_identifiers;
+    pub use ruma_serde;
+    pub use serde;
+    pub use serde_json;
+}
