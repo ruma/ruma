@@ -3,15 +3,15 @@
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::{
-    parse_quote, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, GenericParam, Ident,
-    Meta, MetaList, NestedMeta,
+    parse_quote, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, GenericParam, Meta,
+    MetaList, NestedMeta,
 };
 
 use super::{
     event_parse::{to_kind_variation, EventKind, EventKindVariation},
     util::is_non_stripped_room_event,
 };
-use crate::import_ruma_common;
+use crate::{import_ruma_common, util::to_camel_case};
 
 /// Derive `Event` macro code generation.
 pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
@@ -555,16 +555,4 @@ fn expand_eq_ord_event(input: &DeriveInput) -> TokenStream {
             }
         }
     }
-}
-
-/// CamelCase's a field ident like "foo_bar" to "FooBar".
-fn to_camel_case(name: &Ident) -> Ident {
-    let span = name.span();
-    let name = name.to_string();
-
-    let s: String = name
-        .split('_')
-        .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
-        .collect();
-    Ident::new(&s, span)
 }

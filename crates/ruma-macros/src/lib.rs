@@ -8,13 +8,18 @@
 
 use proc_macro::TokenStream;
 use proc_macro2 as pm2;
-use proc_macro_crate::{crate_name, FoundCrate};
-use quote::{format_ident, quote};
+use quote::quote;
 use ruma_identifiers_validation::{
     device_key_id, event_id, key_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
     user_id,
 };
 use syn::{parse_macro_input, DeriveInput, ItemEnum};
+
+mod api;
+mod events;
+mod identifiers;
+mod serde;
+mod util;
 
 use self::{
     api::{request::expand_derive_request, response::expand_derive_response, Api},
@@ -36,12 +41,8 @@ use self::{
         outgoing::expand_derive_outgoing,
         serialize_as_ref_str::expand_serialize_as_ref_str,
     },
+    util::import_ruma_common,
 };
-
-mod api;
-mod events;
-mod identifiers;
-mod serde;
 
 /// Generates an enum to represent the various Matrix event types.
 ///
@@ -105,24 +106,6 @@ pub fn derive_event_content(input: TokenStream) -> TokenStream {
 pub fn derive_event(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     expand_event(input).unwrap_or_else(syn::Error::into_compile_error).into()
-}
-
-pub(crate) fn import_ruma_common() -> pm2::TokenStream {
-    if let Ok(FoundCrate::Name(name)) = crate_name("ruma-common") {
-        let import = format_ident!("{}", name);
-        quote! { ::#import }
-    } else if let Ok(FoundCrate::Name(name)) = crate_name("ruma") {
-        let import = format_ident!("{}", name);
-        quote! { ::#import }
-    } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk") {
-        let import = format_ident!("{}", name);
-        quote! { ::#import::ruma }
-    } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk-appservice") {
-        let import = format_ident!("{}", name);
-        quote! { ::#import::ruma }
-    } else {
-        quote! { ::ruma_common }
-    }
 }
 
 /// Generates `From` implementations for event enums.
