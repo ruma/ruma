@@ -5,8 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3profileuserid
 
-    use ruma_common::api::ruma_api;
-    use ruma_identifiers::{MxcUri, UserId};
+    use ruma_common::{api::ruma_api, MxcUri, UserId};
 
     ruma_api! {
         metadata: {

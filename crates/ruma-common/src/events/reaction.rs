@@ -1,6 +1,6 @@
 //! Types for the `m.reaction` event.
 
-use ruma_identifiers::EventId;
+use ruma_common::EventId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -54,7 +54,7 @@ impl Relation {
 #[cfg(test)]
 mod tests {
     use matches::assert_matches;
-    use ruma_identifiers::event_id;
+    use ruma_common::event_id;
     use serde_json::{from_value as from_json_value, json};
 
     use super::{ReactionEventContent, Relation};

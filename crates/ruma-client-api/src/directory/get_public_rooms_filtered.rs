@@ -9,8 +9,8 @@ pub mod v3 {
     use ruma_common::{
         api::ruma_api,
         directory::{Filter, IncomingFilter, IncomingRoomNetwork, PublicRoomsChunk, RoomNetwork},
+        ServerName,
     };
-    use ruma_identifiers::ServerName;
 
     ruma_api! {
         metadata: {

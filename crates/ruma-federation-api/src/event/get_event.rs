@@ -7,8 +7,7 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixfederationv1eventeventid
 
-    use ruma_common::{api::ruma_api, MilliSecondsSinceUnixEpoch};
-    use ruma_identifiers::{EventId, ServerName};
+    use ruma_common::{api::ruma_api, EventId, MilliSecondsSinceUnixEpoch, ServerName};
     use serde_json::value::RawValue as RawJsonValue;
 
     ruma_api! {

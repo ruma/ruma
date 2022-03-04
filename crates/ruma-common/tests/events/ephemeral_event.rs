@@ -1,8 +1,7 @@
 use js_int::uint;
 use maplit::btreemap;
 use matches::assert_matches;
-use ruma_common::{receipt::ReceiptType, MilliSecondsSinceUnixEpoch};
-use ruma_identifiers::{event_id, room_id, user_id};
+use ruma_common::{event_id, receipt::ReceiptType, room_id, user_id, MilliSecondsSinceUnixEpoch};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 use ruma_common::events::{

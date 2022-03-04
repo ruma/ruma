@@ -14,8 +14,8 @@ pub mod v1 {
     use ruma_common::{
         api::ruma_api,
         events::{room::member::ThirdPartyInvite, EventType},
+        RoomId, UserId,
     };
-    use ruma_identifiers::{RoomId, UserId};
 
     ruma_api! {
         metadata: {

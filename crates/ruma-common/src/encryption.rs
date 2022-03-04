@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_identifiers::{DeviceId, DeviceKeyId, EventEncryptionAlgorithm, UserId};
+use ruma_common::{DeviceId, DeviceKeyId, EventEncryptionAlgorithm, UserId};
 use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
 

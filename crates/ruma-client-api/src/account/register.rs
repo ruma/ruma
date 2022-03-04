@@ -7,8 +7,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3register
 
-    use ruma_common::api::ruma_api;
-    use ruma_identifiers::{DeviceId, UserId};
+    use ruma_common::{api::ruma_api, DeviceId, UserId};
 
     use super::{LoginType, RegistrationKind};
     use crate::uiaa::{AuthData, IncomingAuthData, UiaaResponse};

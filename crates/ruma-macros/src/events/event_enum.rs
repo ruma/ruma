@@ -208,8 +208,6 @@ fn expand_into_full_event(
     variants: &[EventEnumVariant],
     ruma_common: &TokenStream,
 ) -> TokenStream {
-    let ruma_identifiers = quote! { #ruma_common::exports::ruma_identifiers };
-
     let ident = kind.to_event_enum_ident(var);
     let full = kind.to_event_enum_ident(var.to_full());
 
@@ -222,7 +220,7 @@ fn expand_into_full_event(
             /// Convert this sync event into a full event (one with a `room_id` field).
             pub fn into_full_event(
                 self,
-                room_id: ::std::boxed::Box<#ruma_identifiers::RoomId>,
+                room_id: ::std::boxed::Box<#ruma_common::RoomId>,
             ) -> #full {
                 match self {
                     #(
@@ -330,8 +328,6 @@ fn expand_redact(
     variants: &[EventEnumVariant],
     ruma_common: &TokenStream,
 ) -> TokenStream {
-    let ruma_identifiers = quote! { #ruma_common::exports::ruma_identifiers };
-
     let ident = kind.to_event_enum_ident(var);
     let redacted_enum = kind.to_event_enum_ident(var.to_redacted());
 
@@ -346,7 +342,7 @@ fn expand_redact(
             fn redact(
                 self,
                 redaction: #ruma_common::events::room::redaction::SyncRoomRedactionEvent,
-                version: &#ruma_identifiers::RoomVersionId,
+                version: &#ruma_common::RoomVersionId,
             ) -> #redacted_enum {
                 match self {
                     #(
@@ -606,13 +602,11 @@ fn field_return_type(
     var: EventKindVariation,
     ruma_common: &TokenStream,
 ) -> TokenStream {
-    let ruma_identifiers = quote! { #ruma_common::exports::ruma_identifiers };
-
     match name {
         "origin_server_ts" => quote! { #ruma_common::MilliSecondsSinceUnixEpoch },
-        "room_id" => quote! { #ruma_identifiers::RoomId },
-        "event_id" => quote! { #ruma_identifiers::EventId },
-        "sender" => quote! { #ruma_identifiers::UserId },
+        "room_id" => quote! { #ruma_common::RoomId },
+        "event_id" => quote! { #ruma_common::EventId },
+        "sender" => quote! { #ruma_common::UserId },
         "state_key" => quote! { ::std::primitive::str },
         "unsigned" => {
             if var.is_redacted() {

@@ -4,7 +4,7 @@
 
 use std::{borrow::Cow, collections::BTreeMap};
 
-use ruma_identifiers::RoomId;
+use ruma_common::RoomId;
 use ruma_macros::EventContent;
 use ruma_serde::from_raw_json_value;
 use serde::{
@@ -220,7 +220,7 @@ impl<'de> Deserialize<'de> for AllowRule {
 #[cfg(test)]
 mod tests {
     use matches::assert_matches;
-    use ruma_identifiers::room_id;
+    use ruma_common::room_id;
 
     use super::{AllowRule, JoinRule, RoomJoinRulesEventContent, SyncRoomJoinRulesEvent};
 

@@ -1,5 +1,7 @@
-use ruma_common::events::{room_key::ToDeviceRoomKeyEventContent, ToDeviceEvent};
-use ruma_identifiers::{room_id, user_id, EventEncryptionAlgorithm};
+use ruma_common::{
+    events::{room_key::ToDeviceRoomKeyEventContent, ToDeviceEvent},
+    room_id, user_id, EventEncryptionAlgorithm,
+};
 use serde_json::{json, to_value as to_json_value};
 
 #[test]

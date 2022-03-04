@@ -1,4 +1,4 @@
-use ruma_identifiers::{EventId, RoomVersionId, ServerName};
+use ruma_common::{EventId, RoomVersionId, ServerName};
 use ruma_serde::Base64DecodeError;
 use thiserror::Error;
 
@@ -176,11 +176,11 @@ impl VerificationError {
 pub enum ParseError {
     /// For user ID parsing errors.
     #[error("Could not parse User ID: {0}")]
-    UserId(#[source] ruma_identifiers::Error),
+    UserId(#[source] ruma_common::Error),
 
     /// For event ID parsing errors.
     #[error("Could not parse Event ID: {0}")]
-    EventId(#[source] ruma_identifiers::Error),
+    EventId(#[source] ruma_common::Error),
 
     /// For when an event ID, coupled with a specific room version, doesn't have a server name
     /// embedded.

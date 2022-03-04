@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_identifiers::{MxcUri, RoomVersionId, ServerName, ServerSigningKeyId, UserId};
+use ruma_common::{MxcUri, RoomVersionId, ServerName, ServerSigningKeyId, UserId};
 use ruma_macros::EventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
@@ -419,8 +419,7 @@ mod tests {
     use js_int::uint;
     use maplit::btreemap;
     use matches::assert_matches;
-    use ruma_common::MilliSecondsSinceUnixEpoch;
-    use ruma_identifiers::{server_name, server_signing_key_id};
+    use ruma_common::{server_name, server_signing_key_id, MilliSecondsSinceUnixEpoch};
     use serde_json::{from_value as from_json_value, json};
 
     use super::{MembershipState, RoomMemberEventContent, SignedContent, ThirdPartyInvite};

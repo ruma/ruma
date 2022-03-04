@@ -30,9 +30,8 @@ use ruma_common::{
         },
         EventType,
     },
-    MilliSecondsSinceUnixEpoch,
+    room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, RoomId, RoomVersionId, UserId,
 };
-use ruma_identifiers::{room_id, user_id, EventId, RoomId, RoomVersionId, UserId};
 use ruma_state_res::{self as state_res, Error, Event, Result, StateMap};
 use serde_json::{
     json,
@@ -538,9 +537,8 @@ fn BAN_STATE_SET() -> HashMap<Box<EventId>, Arc<StateEvent>> {
 mod event {
     use ruma_common::{
         events::{pdu::Pdu, EventType},
-        MilliSecondsSinceUnixEpoch,
+        EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId,
     };
-    use ruma_identifiers::{EventId, RoomId, UserId};
     use ruma_state_res::Event;
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;

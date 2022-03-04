@@ -19,4 +19,4 @@ serde_json = { version = "1.0.61", features = ["raw_value"] }
 
 [dev-dependencies]
 matches = "0.1.8"
-ruma-identifiers = { path = "../ruma-identifiers" , version = "0.22.0"}
+ruma-common = { path = "../ruma-common" , version = "0.8.0"}

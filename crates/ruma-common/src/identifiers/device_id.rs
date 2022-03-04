@@ -1,5 +1,5 @@
 #[cfg(feature = "rand")]
-use crate::generate_localpart;
+use super::generate_localpart;
 
 /// A Matrix key ID.
 ///
@@ -9,7 +9,7 @@ use crate::generate_localpart;
 /// # Example
 ///
 /// ```
-/// use ruma_identifiers::{device_id, DeviceId};
+/// use ruma_common::{device_id, DeviceId};
 ///
 /// let random_id = DeviceId::new();
 /// assert_eq!(random_id.as_str().len(), 8);

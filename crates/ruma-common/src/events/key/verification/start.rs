@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_identifiers::{DeviceId, TransactionId};
+use ruma_common::{DeviceId, TransactionId};
 use ruma_macros::EventContent;
 use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
@@ -201,7 +201,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     use matches::assert_matches;
-    use ruma_identifiers::{event_id, user_id};
+    use ruma_common::{event_id, user_id};
     use ruma_serde::Base64;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,

@@ -15,7 +15,7 @@
 use std::{convert::TryInto as _, error::Error as StdError, fmt};
 
 use bytes::BufMut;
-use ruma_identifiers::UserId;
+use ruma_common::UserId;
 
 /// Generates [`IncomingRequest`] and [`OutgoingRequest`] from a concise definition.
 ///

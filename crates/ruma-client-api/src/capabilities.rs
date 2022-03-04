@@ -3,7 +3,7 @@
 use std::{borrow::Cow, collections::BTreeMap};
 
 use maplit::btreemap;
-use ruma_identifiers::RoomVersionId;
+use ruma_common::RoomVersionId;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 use serde_json::{from_value as from_json_value, to_value as to_json_value, Value as JsonValue};

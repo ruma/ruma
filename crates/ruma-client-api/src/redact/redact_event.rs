@@ -5,8 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#put_matrixclientv3roomsroomidredacteventidtxnid
 
-    use ruma_common::api::ruma_api;
-    use ruma_identifiers::{EventId, RoomId, TransactionId};
+    use ruma_common::{api::ruma_api, EventId, RoomId, TransactionId};
 
     ruma_api! {
         metadata: {

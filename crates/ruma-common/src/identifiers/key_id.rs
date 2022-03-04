@@ -9,7 +9,7 @@ use std::{
     sync::Arc,
 };
 
-use crate::{crypto_algorithms::SigningKeyAlgorithm, DeviceId, KeyName};
+use super::{crypto_algorithms::SigningKeyAlgorithm, DeviceId, KeyName};
 
 /// A key algorithm and key name delimited by a colon.
 #[repr(transparent)]
@@ -192,7 +192,7 @@ impl<A, K: ?Sized> Hash for KeyId<A, K> {
         self.as_str().hash(state);
     }
 }
-#[cfg(feature = "serde")]
+
 impl<A, K: ?Sized> serde::Serialize for KeyId<A, K> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -208,7 +208,6 @@ impl<A, K: ?Sized> From<Box<KeyId<A, K>>> for String {
     }
 }
 
-#[cfg(feature = "serde")]
 impl<'de, A, K: ?Sized> serde::Deserialize<'de> for Box<KeyId<A, K>> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where

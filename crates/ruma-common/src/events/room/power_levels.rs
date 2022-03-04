@@ -5,8 +5,10 @@
 use std::collections::BTreeMap;
 
 use js_int::{int, Int};
-use ruma_common::power_levels::{default_power_level, NotificationPowerLevels};
-use ruma_identifiers::UserId;
+use ruma_common::{
+    power_levels::{default_power_level, NotificationPowerLevels},
+    UserId,
+};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -176,8 +178,7 @@ mod tests {
     use assign::assign;
     use js_int::{int, uint};
     use maplit::btreemap;
-    use ruma_common::MilliSecondsSinceUnixEpoch;
-    use ruma_identifiers::{event_id, room_id, user_id};
+    use ruma_common::{event_id, room_id, user_id, MilliSecondsSinceUnixEpoch};
     use serde_json::{json, to_value as to_json_value};
 
     use super::{default_power_level, NotificationPowerLevels, RoomPowerLevelsEventContent};

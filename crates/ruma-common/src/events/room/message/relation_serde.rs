@@ -1,5 +1,5 @@
 #[cfg(feature = "unstable-msc2676")]
-use ruma_identifiers::EventId;
+use ruma_common::EventId;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[cfg(feature = "unstable-msc2676")]

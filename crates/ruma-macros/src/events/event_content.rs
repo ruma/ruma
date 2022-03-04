@@ -175,7 +175,6 @@ fn generate_redacted_event_content(
     ruma_common: &TokenStream,
     event_kind: Option<EventKind>,
 ) -> Result<TokenStream, syn::Error> {
-    let ruma_identifiers = quote! { #ruma_common::exports::ruma_identifiers };
     let serde = quote! { #ruma_common::exports::serde };
     let serde_json = quote! { #ruma_common::exports::serde_json };
 
@@ -283,7 +282,7 @@ fn generate_redacted_event_content(
         impl #ruma_common::events::RedactContent for #ident {
             type Redacted = #redacted_ident;
 
-            fn redact(self, version: &#ruma_identifiers::RoomVersionId) -> #redacted_ident {
+            fn redact(self, version: &#ruma_common::RoomVersionId) -> #redacted_ident {
                 #redacted_ident {
                     #( #redaction_struct_fields: self.#redaction_struct_fields, )*
                 }

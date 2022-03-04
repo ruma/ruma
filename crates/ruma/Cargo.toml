@@ -54,8 +54,8 @@ push-gateway-api-s = ["api", "ruma-push-gateway-api/server"]
 push-gateway-api = ["push-gateway-api-c", "push-gateway-api-s"]
 
 # Convenience features
-either = ["ruma-identifiers/either"]
-rand = ["ruma-identifiers/rand"]
+either = ["ruma-common/either"]
+rand = ["ruma-common/rand"]
 markdown = ["ruma-common/markdown"]
 
 # Everything except compat and unstable features
@@ -83,7 +83,6 @@ full = [
 # missing with this feature.
 compat = [
     "ruma-common/compat",
-    "ruma-identifiers/compat",
     "ruma-client-api/compat",
     "ruma-signatures/compat",
     "ruma-state-res/compat",
@@ -140,7 +139,6 @@ assign = "1.1.1"
 js_int = "0.2.0"
 
 ruma-common = { version = "0.8.0", path = "../ruma-common" }
-ruma-identifiers = { version = "0.22.0", path = "../ruma-identifiers", features = ["serde"] }
 ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 
 ruma-client = { version = "0.8.0", path = "../ruma-client", optional = true }

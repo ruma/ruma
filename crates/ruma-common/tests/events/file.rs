@@ -4,6 +4,7 @@ use assign::assign;
 use js_int::uint;
 use matches::assert_matches;
 use ruma_common::{
+    event_id,
     events::{
         file::{EncryptedContentInit, FileContent, FileContentInfo, FileEventContent},
         message::MessageContent,
@@ -13,9 +14,8 @@ use ruma_common::{
         },
         AnyMessageLikeEvent, MessageLikeEvent, Unsigned,
     },
-    MilliSecondsSinceUnixEpoch,
+    mxc_uri, room_id, user_id, MilliSecondsSinceUnixEpoch,
 };
-use ruma_identifiers::{event_id, mxc_uri, room_id, user_id};
 use ruma_serde::Base64;
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

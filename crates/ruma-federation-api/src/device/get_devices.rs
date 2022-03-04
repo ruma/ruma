@@ -11,8 +11,8 @@ pub mod v1 {
     use ruma_common::{
         api::ruma_api,
         encryption::{CrossSigningKey, DeviceKeys},
+        DeviceId, UserId,
     };
-    use ruma_identifiers::{DeviceId, UserId};
     use ruma_serde::Raw;
     use serde::{Deserialize, Serialize};
 

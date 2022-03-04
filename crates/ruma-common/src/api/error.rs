@@ -202,7 +202,7 @@ pub enum DeserializationError {
 
     /// Got an invalid identifier.
     #[error("{0}")]
-    Ident(#[from] ruma_identifiers::Error),
+    Ident(#[from] ruma_common::Error),
 
     /// Header value deserialization failed.
     #[error("{0}")]

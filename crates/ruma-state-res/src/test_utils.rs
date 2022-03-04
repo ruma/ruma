@@ -10,6 +10,7 @@ use std::{
 
 use js_int::{int, uint};
 use ruma_common::{
+    event_id,
     events::{
         pdu::{EventHash, Pdu, RoomV3Pdu},
         room::{
@@ -18,9 +19,8 @@ use ruma_common::{
         },
         EventType,
     },
-    MilliSecondsSinceUnixEpoch,
+    room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, RoomId, RoomVersionId, UserId,
 };
-use ruma_identifiers::{event_id, room_id, user_id, EventId, RoomId, RoomVersionId, UserId};
 use serde_json::{
     json,
     value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue},
@@ -547,9 +547,8 @@ pub fn INITIAL_EDGES() -> Vec<Box<EventId>> {
 pub mod event {
     use ruma_common::{
         events::{pdu::Pdu, EventType},
-        MilliSecondsSinceUnixEpoch,
+        EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId,
     };
-    use ruma_identifiers::{EventId, RoomId, UserId};
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
 

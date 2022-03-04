@@ -2,7 +2,7 @@
 //!
 //! [`m.room_key`]: https://spec.matrix.org/v1.2/client-server-api/#mroom_key
 
-use ruma_identifiers::{EventEncryptionAlgorithm, RoomId};
+use ruma_common::{EventEncryptionAlgorithm, RoomId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -43,7 +43,7 @@ impl ToDeviceRoomKeyEventContent {
 
 #[cfg(test)]
 mod tests {
-    use ruma_identifiers::{room_id, user_id, EventEncryptionAlgorithm};
+    use ruma_common::{room_id, user_id, EventEncryptionAlgorithm};
     use serde_json::{json, to_value as to_json_value};
 
     use super::ToDeviceRoomKeyEventContent;

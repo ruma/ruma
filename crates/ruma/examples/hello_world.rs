@@ -5,7 +5,7 @@ use ruma::{
     events::room::message::RoomMessageEventContent,
     RoomAliasId,
 };
-use ruma_identifiers::TransactionId;
+use ruma_common::TransactionId;
 
 type HttpClient = ruma::client::http_client::HyperNativeTls;
 

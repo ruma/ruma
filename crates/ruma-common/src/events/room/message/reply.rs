@@ -1,5 +1,5 @@
 use indoc::formatdoc;
-use ruma_identifiers::{EventId, UserId};
+use ruma_common::{EventId, UserId};
 
 use super::{
     FormattedBody, MessageType, RoomMessageEvent, RoomMessageEventContent, SyncRoomMessageEvent,
@@ -299,7 +299,7 @@ fn formatted_or_plain_body<'a>(formatted: &'a Option<FormattedBody>, body: &'a s
 
 #[cfg(test)]
 mod tests {
-    use ruma_identifiers::{event_id, room_id, user_id};
+    use ruma_common::{event_id, room_id, user_id};
 
     use super::{RoomMessageEvent, RoomMessageEventContent};
 

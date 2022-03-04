@@ -5,8 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3room_keyskeysroomidsessionid
 
-    use ruma_common::api::ruma_api;
-    use ruma_identifiers::RoomId;
+    use ruma_common::{api::ruma_api, RoomId};
     use ruma_serde::Raw;
 
     use crate::backup::KeyBackupData;

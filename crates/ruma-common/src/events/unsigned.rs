@@ -1,5 +1,5 @@
 use js_int::Int;
-use ruma_identifiers::TransactionId;
+use ruma_common::TransactionId;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "unstable-msc2675")]

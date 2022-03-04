@@ -1,6 +1,6 @@
 use std::{collections::BTreeMap, fmt};
 
-use ruma_identifiers::EventId;
+use ruma_common::EventId;
 use serde::{
     de::{Deserializer, MapAccess, Visitor},
     ser::{SerializeMap, Serializer},
@@ -73,7 +73,7 @@ where
 mod tests {
     use std::collections::BTreeMap;
 
-    use ruma_identifiers::{event_id, EventId};
+    use ruma_common::{event_id, EventId};
     use serde_json::{json, value::Serializer as JsonSerializer};
 
     use super::{deserialize, serialize};

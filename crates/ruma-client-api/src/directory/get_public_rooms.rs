@@ -6,8 +6,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3publicrooms
 
     use js_int::UInt;
-    use ruma_common::{api::ruma_api, directory::PublicRoomsChunk};
-    use ruma_identifiers::ServerName;
+    use ruma_common::{api::ruma_api, directory::PublicRoomsChunk, ServerName};
 
     ruma_api! {
         metadata: {
@@ -82,8 +81,10 @@ pub mod v3 {
         #[cfg(feature = "client")]
         #[test]
         fn construct_request_from_refs() {
-            use ruma_common::api::{MatrixVersion, OutgoingRequest as _, SendAccessToken};
-            use ruma_identifiers::server_name;
+            use ruma_common::{
+                api::{MatrixVersion, OutgoingRequest as _, SendAccessToken},
+                server_name,
+            };
 
             let req = super::Request {
                 limit: Some(uint!(10)),

@@ -1,7 +1,6 @@
 //! Key algorithms used in Matrix spec.
 
 use ruma_macros::{AsRefStr, DisplayAsRefStr, FromString};
-#[cfg(feature = "serde")]
 use ruma_serde::{DeserializeFromCowStr, SerializeAsRefStr};
 
 use crate::PrivOwnedStr;
@@ -10,10 +9,21 @@ use crate::PrivOwnedStr;
 ///
 /// This type can hold an arbitrary string. To check for algorithms that are not available as a
 /// documented variant here, use its string representation, obtained through `.as_str()`.
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, AsRefStr, DisplayAsRefStr, FromString)]
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    AsRefStr,
+    DisplayAsRefStr,
+    FromString,
+    DeserializeFromCowStr,
+    SerializeAsRefStr,
+)]
 #[non_exhaustive]
 #[ruma_enum(rename_all = "snake_case")]
-#[cfg_attr(feature = "serde", derive(DeserializeFromCowStr, SerializeAsRefStr))]
 pub enum DeviceKeyAlgorithm {
     /// The Ed25519 signature algorithm.
     Ed25519,
@@ -32,10 +42,21 @@ pub enum DeviceKeyAlgorithm {
 ///
 /// This type can hold an arbitrary string. To check for algorithms that are not available as a
 /// documented variant here, use its string representation, obtained through `.as_str()`.
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, AsRefStr, DisplayAsRefStr, FromString)]
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    AsRefStr,
+    DisplayAsRefStr,
+    FromString,
+    DeserializeFromCowStr,
+    SerializeAsRefStr,
+)]
 #[non_exhaustive]
 #[ruma_enum(rename_all = "snake_case")]
-#[cfg_attr(feature = "serde", derive(DeserializeFromCowStr, SerializeAsRefStr))]
 pub enum SigningKeyAlgorithm {
     /// The Ed25519 signature algorithm.
     Ed25519,
@@ -48,9 +69,20 @@ pub enum SigningKeyAlgorithm {
 ///
 /// This type can hold an arbitrary string. To check for algorithms that are not available as a
 /// documented variant here, use its string representation, obtained through `.as_str()`.
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, AsRefStr, DisplayAsRefStr, FromString)]
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    AsRefStr,
+    DisplayAsRefStr,
+    FromString,
+    DeserializeFromCowStr,
+    SerializeAsRefStr,
+)]
 #[non_exhaustive]
-#[cfg_attr(feature = "serde", derive(DeserializeFromCowStr, SerializeAsRefStr))]
 pub enum EventEncryptionAlgorithm {
     /// Olm version 1 using Curve25519, AES-256, and SHA-256.
     #[ruma_enum(rename = "m.olm.v1.curve25519-aes-sha2")]
@@ -84,7 +116,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "serde")]
     fn event_encryption_algorithm_serde() {
         use ruma_serde::test::serde_json_eq;
         use serde_json::json;

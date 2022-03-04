@@ -3,7 +3,6 @@
 use std::{cmp::Ordering, convert::TryFrom, str::FromStr};
 
 use ruma_macros::DisplayAsRefStr;
-#[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// A Matrix [room version] ID.
@@ -13,7 +12,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 ///
 /// ```
 /// # use std::convert::TryFrom;
-/// # use ruma_identifiers::RoomVersionId;
+/// # use ruma_common::RoomVersionId;
 /// assert_eq!(RoomVersionId::try_from("1").unwrap().as_ref(), "1");
 /// ```
 ///
@@ -127,7 +126,6 @@ impl Ord for RoomVersionId {
     }
 }
 
-#[cfg(feature = "serde")]
 impl Serialize for RoomVersionId {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -137,13 +135,12 @@ impl Serialize for RoomVersionId {
     }
 }
 
-#[cfg(feature = "serde")]
 impl<'de> Deserialize<'de> for RoomVersionId {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        crate::deserialize_id(deserializer, "a Matrix room version ID as a string")
+        super::deserialize_id(deserializer, "a Matrix room version ID as a string")
     }
 }
 
@@ -174,7 +171,7 @@ where
 impl FromStr for RoomVersionId {
     type Err = crate::Error;
 
-    fn from_str(s: &str) -> Result<Self, crate::Error> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         try_from(s)
     }
 }
@@ -182,7 +179,7 @@ impl FromStr for RoomVersionId {
 impl TryFrom<&str> for RoomVersionId {
     type Error = crate::Error;
 
-    fn try_from(s: &str) -> Result<Self, crate::Error> {
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
         try_from(s)
     }
 }
@@ -190,7 +187,7 @@ impl TryFrom<&str> for RoomVersionId {
 impl TryFrom<String> for RoomVersionId {
     type Error = crate::Error;
 
-    fn try_from(s: String) -> Result<Self, crate::Error> {
+    fn try_from(s: String) -> Result<Self, Self::Error> {
         try_from(s)
     }
 }
@@ -321,7 +318,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn serialize_official_room_id() {
         assert_eq!(
@@ -333,7 +329,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_official_room_id() {
         let deserialized = serde_json::from_str::<RoomVersionId>(r#""1""#)
@@ -347,7 +342,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn serialize_custom_room_id() {
         assert_eq!(
@@ -359,7 +353,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_custom_room_id() {
         let deserialized = serde_json::from_str::<RoomVersionId>(r#""io.ruma.1""#)

@@ -8,8 +8,8 @@ pub mod v3 {
     use ruma_common::{
         api::ruma_api,
         events::{AnyStateEventContent, EventType},
+        RoomId,
     };
-    use ruma_identifiers::RoomId;
     use ruma_serde::{Outgoing, Raw};
 
     ruma_api! {

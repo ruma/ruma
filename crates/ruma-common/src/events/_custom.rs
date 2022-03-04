@@ -1,4 +1,4 @@
-use ruma_identifiers::RoomVersionId;
+use ruma_common::RoomVersionId;
 use serde::Serialize;
 use serde_json::value::RawValue as RawJsonValue;
 

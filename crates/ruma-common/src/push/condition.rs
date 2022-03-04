@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, convert::TryFrom, ops::RangeBounds, str::FromStr};
 
 use js_int::{Int, UInt};
-use ruma_identifiers::{RoomId, UserId};
+use ruma_common::{RoomId, UserId};
 use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};
 use serde_json::{to_value as to_json_value, value::Value as JsonValue};
@@ -308,7 +308,7 @@ mod tests {
     use js_int::uint;
     use maplit::btreemap;
     use matches::assert_matches;
-    use ruma_identifiers::{room_id, user_id};
+    use ruma_common::{room_id, user_id};
     use ruma_serde::Raw;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,

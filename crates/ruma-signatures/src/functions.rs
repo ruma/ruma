@@ -8,7 +8,7 @@ use std::{
 };
 
 use base64::{encode_config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
-use ruma_identifiers::{EventId, RoomVersionId, ServerName, UserId};
+use ruma_common::{EventId, RoomVersionId, ServerName, UserId};
 use ruma_serde::{base64::Standard, Base64, CanonicalJsonObject, CanonicalJsonValue};
 use serde_json::{from_str as from_json_str, to_string as to_json_string};
 use sha2::{digest::Digest, Sha256};
@@ -416,7 +416,7 @@ pub fn reference_hash(
 /// # Examples
 ///
 /// ```rust
-/// # use ruma_identifiers::RoomVersionId;
+/// # use ruma_common::RoomVersionId;
 /// # use ruma_signatures::{hash_and_sign_event, Ed25519KeyPair};
 /// #
 /// const PKCS8: &str = "\
@@ -541,7 +541,7 @@ where
 ///
 /// ```rust
 /// # use std::collections::BTreeMap;
-/// # use ruma_identifiers::RoomVersionId;
+/// # use ruma_common::RoomVersionId;
 /// # use ruma_serde::Base64;
 /// # use ruma_signatures::{verify_event, Verified};
 /// #
@@ -848,7 +848,7 @@ mod tests {
         convert::{TryFrom, TryInto},
     };
 
-    use ruma_identifiers::{RoomVersionId, ServerSigningKeyId, SigningKeyAlgorithm};
+    use ruma_common::{RoomVersionId, ServerSigningKeyId, SigningKeyAlgorithm};
     use ruma_serde::{Base64, CanonicalJsonValue};
     use serde_json::json;
 

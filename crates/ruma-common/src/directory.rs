@@ -3,7 +3,7 @@
 use std::fmt;
 
 use js_int::UInt;
-use ruma_identifiers::{MxcUri, RoomAliasId, RoomId, RoomName};
+use ruma_common::{MxcUri, RoomAliasId, RoomId, RoomName};
 use ruma_serde::{Outgoing, StringEnum};
 use serde::{
     de::{Error, MapAccess, Visitor},

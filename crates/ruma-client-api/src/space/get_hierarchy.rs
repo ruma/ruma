@@ -6,8 +6,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv1roomsroomidhierarchy
 
     use js_int::UInt;
-    use ruma_common::api::ruma_api;
-    use ruma_identifiers::RoomId;
+    use ruma_common::{api::ruma_api, RoomId};
 
     use crate::space::SpaceHierarchyRoomsChunk;
 

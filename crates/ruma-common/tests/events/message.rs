@@ -4,6 +4,7 @@ use assign::assign;
 use js_int::uint;
 use matches::assert_matches;
 use ruma_common::{
+    event_id,
     events::{
         emote::EmoteEventContent,
         message::MessageEventContent,
@@ -11,9 +12,8 @@ use ruma_common::{
         room::message::{InReplyTo, Relation},
         AnyMessageLikeEvent, MessageLikeEvent, Unsigned,
     },
-    MilliSecondsSinceUnixEpoch,
+    room_id, user_id, MilliSecondsSinceUnixEpoch,
 };
-use ruma_identifiers::{event_id, room_id, user_id};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 #[test]

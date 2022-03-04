@@ -43,7 +43,6 @@ isahc-crate = { package = "isahc", version = "1.3.1", optional = true }
 reqwest = { version = "0.11.4", optional = true, default-features = false }
 ruma-client-api = { version = "0.13.0", path = "../ruma-client-api", optional = true, features = ["client"] }
 ruma-common = { version = "0.8.0", path = "../ruma-common", features = ["api"] }
-ruma-identifiers = { version = "0.22.0", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.61"

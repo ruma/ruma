@@ -2,7 +2,7 @@
 //!
 //! [`m.ignored_user_list`]: https://spec.matrix.org/v1.2/client-server-api/#mignored_user_list
 
-use ruma_identifiers::UserId;
+use ruma_common::UserId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -28,7 +28,7 @@ impl IgnoredUserListEventContent {
 #[cfg(test)]
 mod tests {
     use matches::assert_matches;
-    use ruma_identifiers::user_id;
+    use ruma_common::user_id;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{IgnoredUserListEvent, IgnoredUserListEventContent};

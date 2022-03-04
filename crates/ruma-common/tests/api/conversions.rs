@@ -1,10 +1,12 @@
 #![allow(clippy::exhaustive_structs)]
 
-use ruma_common::api::{
-    ruma_api, IncomingRequest as _, MatrixVersion, OutgoingRequest as _,
-    OutgoingRequestAppserviceExt, SendAccessToken,
+use ruma_common::{
+    api::{
+        ruma_api, IncomingRequest as _, MatrixVersion, OutgoingRequest as _,
+        OutgoingRequestAppserviceExt, SendAccessToken,
+    },
+    user_id, UserId,
 };
-use ruma_identifiers::{user_id, UserId};
 
 ruma_api! {
     metadata: {

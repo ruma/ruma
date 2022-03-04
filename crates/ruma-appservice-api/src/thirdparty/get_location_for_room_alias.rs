@@ -7,8 +7,7 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/application-service-api/#get_matrixappv1thirdpartylocation
 
-    use ruma_common::{api::ruma_api, thirdparty::Location};
-    use ruma_identifiers::RoomAliasId;
+    use ruma_common::{api::ruma_api, thirdparty::Location, RoomAliasId};
 
     ruma_api! {
         metadata: {

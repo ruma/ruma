@@ -2,8 +2,7 @@
 //!
 //! [`m.key.verification.request`]: https://spec.matrix.org/v1.2/client-server-api/#mkeyverificationrequest
 
-use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_identifiers::{DeviceId, TransactionId};
+use ruma_common::{DeviceId, MilliSecondsSinceUnixEpoch, TransactionId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 

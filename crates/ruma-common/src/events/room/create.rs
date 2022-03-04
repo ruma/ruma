@@ -2,8 +2,7 @@
 //!
 //! [`m.room.create`]: https://spec.matrix.org/v1.2/client-server-api/#mroomcreate
 
-use ruma_common::room::RoomType;
-use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
+use ruma_common::{room::RoomType, EventId, RoomId, RoomVersionId, UserId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -86,7 +85,7 @@ fn default_room_version_id() -> RoomVersionId {
 #[cfg(test)]
 mod tests {
     use matches::assert_matches;
-    use ruma_identifiers::{user_id, RoomVersionId};
+    use ruma_common::{user_id, RoomVersionId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{RoomCreateEventContent, RoomType};

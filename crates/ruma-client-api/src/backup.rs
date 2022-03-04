@@ -18,7 +18,7 @@ pub mod update_backup_version;
 use std::collections::BTreeMap;
 
 use js_int::UInt;
-use ruma_identifiers::{DeviceKeyId, UserId};
+use ruma_common::{DeviceKeyId, UserId};
 use ruma_serde::{Base64, Raw};
 use serde::{Deserialize, Serialize};
 

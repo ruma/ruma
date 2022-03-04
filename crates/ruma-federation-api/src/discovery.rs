@@ -2,8 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_identifiers::{ServerName, ServerSigningKeyId};
+use ruma_common::{MilliSecondsSinceUnixEpoch, ServerName, ServerSigningKeyId};
 use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
 

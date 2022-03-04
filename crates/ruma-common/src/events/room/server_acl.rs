@@ -2,7 +2,7 @@
 //!
 //! [`m.room.server_acl`]: https://spec.matrix.org/v1.2/client-server-api/#mroomserver_acl
 
-use ruma_identifiers::ServerName;
+use ruma_common::ServerName;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 use wildmatch::WildMatch;
@@ -63,7 +63,7 @@ impl RoomServerAclEventContent {
 
 #[cfg(test)]
 mod tests {
-    use ruma_identifiers::server_name;
+    use ruma_common::server_name;
     use serde_json::{from_value as from_json_value, json};
 
     use super::RoomServerAclEventContent;

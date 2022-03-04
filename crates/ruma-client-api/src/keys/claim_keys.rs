@@ -7,8 +7,9 @@ pub mod v3 {
 
     use std::{collections::BTreeMap, time::Duration};
 
-    use ruma_common::{api::ruma_api, encryption::OneTimeKey};
-    use ruma_identifiers::{DeviceId, DeviceKeyAlgorithm, DeviceKeyId, UserId};
+    use ruma_common::{
+        api::ruma_api, encryption::OneTimeKey, DeviceId, DeviceKeyAlgorithm, DeviceKeyId, UserId,
+    };
     use ruma_serde::Raw;
     use serde_json::Value as JsonValue;
 

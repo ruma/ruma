@@ -1,6 +1,8 @@
 use std::{borrow::Borrow, collections::BTreeMap};
 
-use crate::{DeviceId, KeyName, ServerName, SigningKeyId, UserId};
+use serde::{Deserialize, Serialize};
+
+use super::{DeviceId, KeyName, ServerName, SigningKeyId, UserId};
 
 /// Map of key identifier to signature values.
 pub type EntitySignatures<K> = BTreeMap<Box<SigningKeyId<K>>, String>;
@@ -8,7 +10,7 @@ pub type EntitySignatures<K> = BTreeMap<Box<SigningKeyId<K>>, String>;
 /// Map of all signatures, grouped by entity
 ///
 /// ```
-/// # use ruma_identifiers::{server_name, KeyId, Signatures, SigningKeyAlgorithm};
+/// # use ruma_common::{server_name,  {KeyId, Signatures, SigningKeyAlgorithm}};
 /// let key_identifier = KeyId::from_parts(SigningKeyAlgorithm::Ed25519, "1");
 /// let mut signatures = Signatures::new();
 /// let server_name = server_name!("example.org");
@@ -16,12 +18,8 @@ pub type EntitySignatures<K> = BTreeMap<Box<SigningKeyId<K>>, String>;
 ///     "YbJva03ihSj5mPk+CHMJKUKlCXCPFXjXOK6VqBnN9nA2evksQcTGn6hwQfrgRHIDDXO2le49x7jnWJHMJrJoBQ";
 /// signatures.insert(server_name, key_identifier, signature.into());
 /// ```
-#[derive(Clone, Debug, Default)]
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    serde(transparent, crate = "serde")
-)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[serde(transparent)]
 pub struct Signatures<E: Ord, K: ?Sized>(BTreeMap<E, EntitySignatures<K>>);
 
 impl<E: Ord, K: ?Sized> Signatures<E, K> {

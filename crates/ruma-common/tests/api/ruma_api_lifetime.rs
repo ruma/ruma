@@ -7,8 +7,7 @@ pub struct OtherThing<'t> {
 }
 
 mod empty_response {
-    use ruma_common::api::ruma_api;
-    use ruma_identifiers::{RoomAliasId, RoomId};
+    use ruma_common::{api::ruma_api, RoomAliasId, RoomId};
 
     ruma_api! {
         metadata: {
@@ -34,8 +33,7 @@ mod empty_response {
 }
 
 mod nested_types {
-    use ruma_common::api::ruma_api;
-    use ruma_identifiers::RoomAliasId;
+    use ruma_common::{api::ruma_api, RoomAliasId};
 
     ruma_api! {
         metadata: {
@@ -52,7 +50,7 @@ mod nested_types {
             pub room_alias: &'a [Option<&'a RoomAliasId>],
 
             /// The room ID to set.
-            pub room_id: &'b [Option<Option<&'a ruma_identifiers::DeviceId>>],
+            pub room_id: &'b [Option<Option<&'a ruma_common::DeviceId>>],
         }
 
         response: {}

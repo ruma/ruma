@@ -8,8 +8,8 @@ use ruma_common::{
     events::{receipt::Receipt, AnyToDeviceEventContent, EventType},
     presence::PresenceState,
     to_device::DeviceIdOrAllDevices,
+    DeviceId, EventId, RoomId, TransactionId, UserId,
 };
-use ruma_identifiers::{DeviceId, EventId, RoomId, TransactionId, UserId};
 use ruma_serde::{from_raw_json_value, Raw};
 use serde::{de, Deserialize, Serialize};
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
@@ -316,7 +316,7 @@ impl SigningKeyUpdateContent {
 mod test {
     use js_int::uint;
     use matches::assert_matches;
-    use ruma_identifiers::{room_id, user_id};
+    use ruma_common::{room_id, user_id};
     use serde_json::json;
 
     use super::*;

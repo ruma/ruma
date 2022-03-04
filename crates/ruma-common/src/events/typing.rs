@@ -2,7 +2,7 @@
 //!
 //! [`m.typing`]: https://spec.matrix.org/v1.2/client-server-api/#mtyping
 
-use ruma_identifiers::UserId;
+use ruma_common::UserId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 

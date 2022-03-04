@@ -3,13 +3,13 @@
 use std::{collections::BTreeMap, convert::TryInto};
 
 use ruma_common::{
+    event_id,
     events::{
         pdu::{EventHash, Pdu, RoomV1Pdu, RoomV3Pdu},
         EventType,
     },
-    MilliSecondsSinceUnixEpoch,
+    room_id, server_name, server_signing_key_id, user_id, MilliSecondsSinceUnixEpoch,
 };
-use ruma_identifiers::{event_id, room_id, server_name, server_signing_key_id, user_id};
 use serde_json::{
     from_value as from_json_value, json, to_value as to_json_value,
     value::to_raw_value as to_raw_json_value,

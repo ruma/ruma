@@ -2,7 +2,7 @@
 //!
 //! [`m.room.tombstone`]: https://spec.matrix.org/v1.2/client-server-api/#mroomtombstone
 
-use ruma_identifiers::RoomId;
+use ruma_common::RoomId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 

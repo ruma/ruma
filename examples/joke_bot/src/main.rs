@@ -11,10 +11,9 @@ use ruma::{
         room::message::{MessageType, RoomMessageEventContent},
         AnySyncMessageLikeEvent, AnySyncRoomEvent,
     },
-    identifiers::TransactionId,
     presence::PresenceState,
     serde::Raw,
-    RoomId, UserId,
+    RoomId, TransactionId, UserId,
 };
 use serde_json::Value as JsonValue;
 use tokio::fs;

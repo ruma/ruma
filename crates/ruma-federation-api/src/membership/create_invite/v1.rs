@@ -5,9 +5,8 @@
 use ruma_common::{
     api::ruma_api,
     events::{room::member::RoomMemberEventContent, AnyStrippedStateEvent, EventType},
-    MilliSecondsSinceUnixEpoch,
+    EventId, MilliSecondsSinceUnixEpoch, RoomId, ServerName, UserId,
 };
-use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
 use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;

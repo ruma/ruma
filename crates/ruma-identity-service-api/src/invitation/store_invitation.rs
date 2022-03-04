@@ -7,8 +7,10 @@ pub mod v2 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/identity-service-api/#post_matrixidentityv2store-invite
 
-    use ruma_common::{api::ruma_api, room::RoomType, thirdparty::Medium};
-    use ruma_identifiers::{MxcUri, RoomAliasId, RoomId, RoomName, UserId};
+    use ruma_common::{
+        api::ruma_api, room::RoomType, thirdparty::Medium, MxcUri, RoomAliasId, RoomId, RoomName,
+        UserId,
+    };
     use serde::{ser::SerializeSeq, Deserialize, Serialize};
 
     ruma_api! {

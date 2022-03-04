@@ -2,7 +2,7 @@
 //!
 //! [`m.fully_read`]: https://spec.matrix.org/v1.2/client-server-api/#mfully_read
 
-use ruma_identifiers::EventId;
+use ruma_common::EventId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 

@@ -7,7 +7,7 @@
 //!
 //! [github-matrix-doc-2214]: https://github.com/matrix-org/matrix-doc/pull/2241
 
-use ruma_identifiers::EventId;
+use ruma_common::EventId;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 

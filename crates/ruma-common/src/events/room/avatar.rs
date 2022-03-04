@@ -3,7 +3,7 @@
 //! [`m.room.avatar`]: https://spec.matrix.org/v1.2/client-server-api/#mroomavatar
 
 use js_int::UInt;
-use ruma_identifiers::MxcUri;
+use ruma_common::MxcUri;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
