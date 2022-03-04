@@ -6,9 +6,8 @@ use std::{convert::TryFrom, env, process::exit};
 use ruma::{
     api::client::{alias::get_alias, membership::join_room_by_id, message::send_message_event},
     events::room::message::RoomMessageEventContent,
-    RoomAliasId,
+    RoomAliasId, TransactionId,
 };
-use ruma_common::api::MatrixVersion;
 
 async fn hello_world(
     homeserver_url: String,
@@ -24,9 +23,9 @@ async fn hello_world(
     let room_id = client.send_request(get_alias::v3::Request::new(room_alias)).await?.room_id;
     client.send_request(join_room_by_id::v3::Request::new(&room_id)).await?;
     client
-        .send_request(send_message_event::Request::new(
+        .send_request(send_message_event::v3::Request::new(
             &room_id,
-            "1",
+            &TransactionId::new(),
             &RoomMessageEventContent::text_plain("Hello World!"),
         )?)
         .await?;

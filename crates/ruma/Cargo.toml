@@ -166,7 +166,7 @@ required-features = ["client-api-c", "client-ext-client-api", "client-hyper-nati
 
 [[example]]
 name = "hello_isahc"
-required-features = ["client-api-c", "client-ext-client-api", "client-isahc"]
+required-features = ["client-api-c", "client-ext-client-api", "client-isahc", "rand"]
 
 [[example]]
 name = "message_log"
