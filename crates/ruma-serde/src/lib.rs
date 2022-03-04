@@ -75,7 +75,7 @@ where
 ///
 /// If any of the fields of `Self` don't implement serde's `Deserialize`, you can derive this trait
 /// to generate a corresponding 'Incoming' type that supports deserialization. This is useful for
-/// things like ruma_common::events::' `EventResult` type. For more details, see the
+/// things like `ruma_common::events::EventResult`. For more details, see the
 /// [derive macro's documentation][doc].
 ///
 /// [doc]: derive.Outgoing.html
