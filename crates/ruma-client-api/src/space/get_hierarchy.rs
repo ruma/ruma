@@ -63,7 +63,7 @@ pub mod v1 {
             pub next_batch: Option<String>,
 
             /// A paginated chunk of the space children.
-            pub chunk: Vec<SpaceHierarchyRoomsChunk>,
+            pub rooms: Vec<SpaceHierarchyRoomsChunk>,
         }
 
         error: crate::Error
