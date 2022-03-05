@@ -2,7 +2,7 @@
 
 use js_int::UInt;
 use ruma_common::{
-    directory::PublicRoomJoinRule, events::space::child::HierarchySpaceChildStateEvent,
+    events::{room::join_rules::JoinRule, space::child::HierarchySpaceChildStateEvent},
     room::RoomType,
 };
 use ruma_identifiers::{MxcUri, RoomAliasId, RoomId, RoomName};
@@ -61,7 +61,7 @@ pub struct SpaceHierarchyRoomsChunk {
 
     /// The join rule of the room.
     #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
-    pub join_rule: PublicRoomJoinRule,
+    pub join_rule: Option<JoinRule>,
 
     /// The type of room from `m.room.create`, if any.
     pub room_type: Option<RoomType>,
@@ -94,7 +94,7 @@ pub struct SpaceHierarchyRoomsChunkInit {
     pub guest_can_join: bool,
 
     /// The join rule of the room.
-    pub join_rule: PublicRoomJoinRule,
+    pub join_rule: JoinRule,
 
     /// The stripped `m.space.child` events of the space-room.
     ///
@@ -122,7 +122,7 @@ impl From<SpaceHierarchyRoomsChunkInit> for SpaceHierarchyRoomsChunk {
             world_readable,
             guest_can_join,
             avatar_url: None,
-            join_rule,
+            join_rule: Some(join_rule),
             room_type: None,
             children_state,
         }
