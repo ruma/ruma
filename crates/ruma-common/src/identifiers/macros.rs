@@ -29,7 +29,7 @@ macro_rules! owned_identifier {
         #[doc = concat!("Owned variant of ", stringify!($id))]
         #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
         pub struct $owned {
-            #[cfg(not(ruma_identifiers_storage))]
+            #[cfg(not(any(ruma_identifiers_storage = "Arc")))]
             inner: Box<$id>,
             #[cfg(ruma_identifiers_storage = "Arc")]
             inner: std::sync::Arc<$id>,
@@ -49,16 +49,14 @@ macro_rules! owned_identifier {
 
         impl From<&'_ $id> for $owned {
             fn from(id: &$id) -> $owned {
-                let boxed: Box<$id> = id.into();
-
-                boxed.into()
+                $owned { inner: id.into() }
             }
         }
 
         impl From<Box<$id>> for $owned {
             fn from(b: Box<$id>) -> $owned {
                 Self {
-                    #[cfg(not(ruma_identifiers_storage))]
+                    #[cfg(not(any(ruma_identifiers_storage = "Arc")))]
                     inner: b,
                     #[cfg(ruma_identifiers_storage = "Arc")]
                     inner: std::sync::Arc::from(b),
@@ -69,7 +67,7 @@ macro_rules! owned_identifier {
         impl From<std::sync::Arc<$id>> for $owned {
             fn from(a: std::sync::Arc<$id>) -> $owned {
                 Self {
-                    #[cfg(not(ruma_identifiers_storage))]
+                    #[cfg(not(any(ruma_identifiers_storage = "Arc")))]
                     inner: a.as_ref().into(),
                     #[cfg(ruma_identifiers_storage = "Arc")]
                     inner: a,
