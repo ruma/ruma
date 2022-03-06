@@ -536,6 +536,23 @@ pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<StateEvent>> {
     .collect()
 }
 
+// all graphs start with these input events
+#[allow(non_snake_case)]
+pub fn INITIAL_EVENTS_CREATE_ROOM() -> HashMap<Box<EventId>, Arc<StateEvent>> {
+    vec![to_pdu_event::<&EventId>(
+        "CREATE",
+        alice(),
+        EventType::RoomCreate,
+        Some(""),
+        to_raw_json_value(&json!({ "creator": alice() })).unwrap(),
+        &[],
+        &[],
+    )]
+    .into_iter()
+    .map(|ev| (ev.event_id().to_owned(), ev))
+    .collect()
+}
+
 #[allow(non_snake_case)]
 pub fn INITIAL_EDGES() -> Vec<Box<EventId>> {
     vec!["START", "IMC", "IMB", "IJR", "IPOWER", "IMA", "CREATE"]

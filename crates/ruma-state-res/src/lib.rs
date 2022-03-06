@@ -456,22 +456,15 @@ fn iterative_auth_check<E: Event + Clone>(
 
         debug!("event to check {:?}", event.event_id());
 
-        let most_recent_prev_event =
-            event.prev_events().filter_map(|id| fetch_event(id.borrow())).next_back();
-
         // The key for this is (eventType + a state_key of the signed token not sender) so
         // search for it
         let current_third_party = auth_events.iter().find_map(|(_, pdu)| {
             (*pdu.event_type() == EventType::RoomThirdPartyInvite).then(|| pdu)
         });
 
-        if auth_check(
-            room_version,
-            &event,
-            most_recent_prev_event.as_ref(),
-            current_third_party,
-            |ty, key| auth_events.get(&(ty.clone(), key.to_owned())),
-        )? {
+        if auth_check(room_version, &event, current_third_party, |ty, key| {
+            auth_events.get(&(ty.clone(), key.to_owned()))
+        })? {
             // add event to resolved state map
             resolved_state
                 .insert((event.event_type().to_owned(), state_key.to_owned()), event_id.clone());
