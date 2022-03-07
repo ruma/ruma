@@ -6,7 +6,7 @@
 //!
 //! For more information, see this [GitHub issue][issue].
 //!
-//! [issue]: https://github.com/matrix-org/matrix-doc/issues/2541
+//! [issue]: https://github.com/matrix-org/matrix-spec-proposals/issues/2541
 
 use std::{fmt, marker::PhantomData};
 

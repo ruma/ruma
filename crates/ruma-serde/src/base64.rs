@@ -36,7 +36,7 @@ pub struct Conf(base64::Config);
 pub struct Standard;
 
 impl Base64Config for Standard {
-    // See https://github.com/matrix-org/matrix-doc/issues/3211
+    // See https://github.com/matrix-org/matrix-spec/issues/838
     const CONF: Conf = Conf(base64::STANDARD_NO_PAD.decode_allow_trailing_bits(true));
 }
 

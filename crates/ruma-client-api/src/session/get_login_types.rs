@@ -190,12 +190,12 @@ pub mod v3 {
 
     /// An SSO login identity provider brand identifier.
     ///
-    /// The predefined ones can be found in the matrix-doc repo in a [separate
-    /// document][matrix-doc]. To use a custom brand string, simply use
+    /// The predefined ones can be found in the matrix-spec-proposals repo in a [separate
+    /// document][matrix-spec-proposals]. To use a custom brand string, simply use
     /// `IdentityProviderBrand::from("custom-brand")` or `"custom-brand".into()` (if the type is
     /// known from the surrounding context).
     ///
-    /// [matrix-doc]: https://github.com/matrix-org/matrix-doc/blob/v1.1/informal/idp-brands.md
+    /// [matrix-spec-proposals]: https://github.com/matrix-org/matrix-spec-proposals/blob/v1.1/informal/idp-brands.md
     #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub enum IdentityProviderBrand {

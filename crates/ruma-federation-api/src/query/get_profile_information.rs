@@ -55,7 +55,7 @@ pub mod v1 {
             /// The [BlurHash](https://blurha.sh) for the avatar pointed to by `avatar_url`.
             ///
             /// This uses the unstable prefix in
-            /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
+            /// [MSC2448](https://github.com/matrix-org/matrix-spec-proposals/pull/2448).
             #[cfg(feature = "unstable-msc2448")]
             #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
             pub blurhash: Option<String>,

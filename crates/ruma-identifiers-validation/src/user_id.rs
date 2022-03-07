@@ -16,7 +16,7 @@ pub fn validate(s: &str) -> Result<(), Error> {
 /// With the `compat` feature enabled, this will also return `Ok(false)` for invalid user ID
 /// localparts. User IDs that don't even meet the historical user ID restrictions exist in the wild
 /// due to Synapse allowing them over federation. This will likely be fixed in an upcoming room
-/// version; see <https://github.com/matrix-org/matrix-doc/pull/2828>.
+/// version; see [MSC2828](https://github.com/matrix-org/matrix-spec-proposals/pull/2828).
 pub fn localpart_is_fully_conforming(localpart: &str) -> Result<bool, Error> {
     // See https://spec.matrix.org/v1.2/appendices/#user-identifiers
     let is_fully_conforming = localpart

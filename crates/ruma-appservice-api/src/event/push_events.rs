@@ -64,7 +64,7 @@ pub mod v1 {
         /// [MSC2409] regarding supporting EDUs in the future, though it seems to be planned to put
         /// EDUs into a different JSON key than `events` to stay backwards compatible.
         ///
-        /// [MSC2409]: https://github.com/matrix-org/matrix-doc/pull/2409
+        /// [MSC2409]: https://github.com/matrix-org/matrix-spec-proposals/pull/2409
         #[cfg(feature = "helper")]
         pub fn try_into_sync_response(
             self,

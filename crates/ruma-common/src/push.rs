@@ -406,7 +406,7 @@ pub struct PusherData {
     /// For more information, see [Sygnal docs][sygnal].
     ///
     /// [sygnal]: https://github.com/matrix-org/sygnal/blob/main/docs/applications.md#ios-applications-beware
-    // Not specified, issue: https://github.com/matrix-org/matrix-doc/issues/3474
+    // Not specified, issue: https://github.com/matrix-org/matrix-spec/issues/921
     #[cfg(feature = "unstable-pre-spec")]
     #[serde(default, skip_serializing_if = "JsonValue::is_null")]
     pub default_payload: JsonValue,

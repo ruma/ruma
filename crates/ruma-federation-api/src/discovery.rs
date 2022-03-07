@@ -46,7 +46,7 @@ impl OldVerifyKey {
     }
 }
 
-// Spec is wrong, all fields are required (see https://github.com/matrix-org/matrix-doc/issues/2508)
+// Spec is wrong, all fields are required (see https://github.com/matrix-org/matrix-spec/issues/613)
 /// Queried server key, signed by the notary server.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
