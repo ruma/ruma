@@ -221,7 +221,11 @@ pub enum MessageType {
 }
 
 impl MessageType {
-    /// Creates a new `MessageType` with the given `msgtype` string and data.
+    /// Creates a new `MessageType`.
+    ///
+    /// The `msgtype` and `body` are required fields as defined by [the `m.room.message` spec](https://spec.matrix.org/v1.2/client-server-api/#mroommessage).
+    /// Additionally it's possible to add arbitrary key/value pairs to the event content for custom
+    /// events through the `data` map.
     ///
     /// Prefer to use the public variants of `MessageType` where possible; this constructor is meant
     /// be used for unsupported message types only and does not allow setting arbitrary data for
