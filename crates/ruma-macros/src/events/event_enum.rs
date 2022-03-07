@@ -8,6 +8,7 @@ use super::{
     event_parse::{EventEnumDecl, EventEnumEntry, EventKind, EventKindVariation},
     util::{has_prev_content_field, EVENT_FIELDS},
 };
+use crate::util::m_prefix_name_to_type_name;
 
 /// Create a content enum from `EventEnumInput`.
 pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
@@ -580,27 +581,6 @@ fn to_event_content_path(
     }
 }
 
-/// Splits the given `event_type` string on `.` and `_` removing the `m.room.` then
-/// camel casing to give the `Event` struct name.
-fn to_camel_case(name: &LitStr) -> syn::Result<Ident> {
-    let span = name.span();
-    let name = name.value();
-
-    if &name[..2] != "m." {
-        return Err(syn::Error::new(
-            span,
-            format!("well-known matrix events have to start with `m.` found `{}`", name),
-        ));
-    }
-
-    let s: String = name[2..]
-        .split(&['.', '_'] as &[char])
-        .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
-        .collect();
-
-    Ok(Ident::new(&s, span))
-}
-
 fn field_return_type(
     name: &str,
     var: EventKindVariation,
@@ -665,7 +645,7 @@ impl EventEnumVariant {
 impl EventEnumEntry {
     pub(crate) fn to_variant(&self) -> syn::Result<EventEnumVariant> {
         let attrs = self.attrs.clone();
-        let ident = to_camel_case(&self.ev_type)?;
+        let ident = m_prefix_name_to_type_name(&self.ev_type)?;
         Ok(EventEnumVariant { attrs, ident })
     }
 }

@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use proc_macro_crate::{crate_name, FoundCrate};
 use quote::{format_ident, quote};
-use syn::Ident;
+use syn::{Ident, LitStr};
 
 pub(crate) fn import_ruma_common() -> TokenStream {
     if let Ok(FoundCrate::Name(name)) = crate_name("ruma-common") {
@@ -31,4 +31,25 @@ pub(crate) fn to_camel_case(name: &Ident) -> Ident {
         .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
         .collect();
     Ident::new(&s, span)
+}
+
+/// Splits the given string on `.` and `_` removing the `m.` then camel casing to give a Rust type
+/// name.
+pub(crate) fn m_prefix_name_to_type_name(name: &LitStr) -> syn::Result<Ident> {
+    let span = name.span();
+    let name = name.value();
+
+    if &name[..2] != "m." {
+        return Err(syn::Error::new(
+            span,
+            format!("well-known matrix events have to start with `m.` found `{}`", name),
+        ));
+    }
+
+    let s: String = name[2..]
+        .split(&['.', '_'] as &[char])
+        .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
+        .collect();
+
+    Ok(Ident::new(&s, span))
 }
