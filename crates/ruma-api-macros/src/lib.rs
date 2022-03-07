@@ -19,6 +19,7 @@ mod auth_scheme;
 mod request;
 mod response;
 mod util;
+mod version;
 
 use api::Api;
 use request::expand_derive_request;

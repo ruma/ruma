@@ -5,14 +5,16 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput, ItemEnum};
 
-use deserialize_from_cow_str::expand_deserialize_from_cow_str;
-use display_as_ref_str::expand_display_as_ref_str;
-use enum_as_ref_str::expand_enum_as_ref_str;
-use enum_from_string::expand_enum_from_string;
-use eq_as_ref_str::expand_partial_eq_as_ref_str;
-use ord_as_ref_str::{expand_ord_as_ref_str, expand_partial_ord_as_ref_str};
-use outgoing::expand_derive_outgoing;
-use serialize_as_ref_str::expand_serialize_as_ref_str;
+use self::{
+    deserialize_from_cow_str::expand_deserialize_from_cow_str,
+    display_as_ref_str::expand_display_as_ref_str,
+    enum_as_ref_str::expand_enum_as_ref_str,
+    enum_from_string::expand_enum_from_string,
+    eq_as_ref_str::expand_partial_eq_as_ref_str,
+    ord_as_ref_str::{expand_ord_as_ref_str, expand_partial_ord_as_ref_str},
+    outgoing::expand_derive_outgoing,
+    serialize_as_ref_str::expand_serialize_as_ref_str,
+};
 
 mod attr;
 mod case;

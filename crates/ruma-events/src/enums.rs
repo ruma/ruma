@@ -1,11 +1,14 @@
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events_macros::{event_enum, EventEnumFromEvent};
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
-use serde::{de, Deserialize, Serialize};
+use ruma_serde::from_raw_json_value;
+use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
-    from_raw_json_value, room::redaction::SyncRoomRedactionEvent, Redact, UnsignedDeHelper,
+    key,
+    room::{encrypted, message, redaction::SyncRoomRedactionEvent},
+    Redact, UnsignedDeHelper,
 };
 
 event_enum! {
@@ -34,21 +37,14 @@ event_enum! {
         "m.call.invite",
         "m.call.hangup",
         "m.call.candidates",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.key.verification.ready",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.key.verification.start",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.key.verification.cancel",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.key.verification.accept",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.key.verification.key",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.key.verification.mac",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.key.verification.done",
-        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg(feature = "unstable-msc2677")]
         "m.reaction",
         "m.room.encrypted",
         "m.room.message",
@@ -78,9 +74,7 @@ event_enum! {
         "m.room.third_party_invite",
         "m.room.tombstone",
         "m.room.topic",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.space.child",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.space.parent",
     }
 
@@ -91,19 +85,15 @@ event_enum! {
         "m.room_key_request",
         "m.forwarded_room_key",
         "m.key.verification.request",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.key.verification.ready",
         "m.key.verification.start",
         "m.key.verification.cancel",
         "m.key.verification.accept",
         "m.key.verification.key",
         "m.key.verification.mac",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.key.verification.done",
         "m.room.encrypted",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.secret.request",
-        #[cfg(feature = "unstable-pre-spec")]
         "m.secret.send",
     }
 }
@@ -133,8 +123,7 @@ macro_rules! room_ev_accessor {
 
 /// Any room event.
 #[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
-#[derive(Clone, Debug, Serialize, EventEnumFromEvent)]
-#[serde(untagged)]
+#[derive(Clone, Debug, EventEnumFromEvent)]
 pub enum AnyRoomEvent {
     /// Any message event.
     Message(AnyMessageEvent),
@@ -160,8 +149,7 @@ impl AnyRoomEvent {
 ///
 /// Sync room events are room event without a `room_id`, as returned in `/sync` responses.
 #[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
-#[derive(Clone, Debug, Serialize, EventEnumFromEvent)]
-#[serde(untagged)]
+#[derive(Clone, Debug, EventEnumFromEvent)]
 pub enum AnySyncRoomEvent {
     /// Any sync message event.
     Message(AnySyncMessageEvent),
@@ -328,8 +316,7 @@ impl AnyMessageEventContent {
     ///
     /// This is a helper function intended for encryption. There should not be a reason to access
     /// `m.relates_to` without first destructuring an `AnyMessageEventContent` otherwise.
-    pub fn relation(&self) -> Option<crate::room::encrypted::Relation> {
-        #[cfg(feature = "unstable-pre-spec")]
+    pub fn relation(&self) -> Option<encrypted::Relation> {
         use crate::key::verification::{
             accept::KeyVerificationAcceptEventContent, cancel::KeyVerificationCancelEventContent,
             done::KeyVerificationDoneEventContent, key::KeyVerificationKeyEventContent,
@@ -338,7 +325,6 @@ impl AnyMessageEventContent {
         };
 
         match self {
-            #[cfg(feature = "unstable-pre-spec")]
             #[rustfmt::skip]
             Self::KeyVerificationReady(KeyVerificationReadyEventContent { relates_to, .. })
             | Self::KeyVerificationStart(KeyVerificationStartEventContent { relates_to, .. })
@@ -347,12 +333,34 @@ impl AnyMessageEventContent {
             | Self::KeyVerificationKey(KeyVerificationKeyEventContent { relates_to, .. })
             | Self::KeyVerificationMac(KeyVerificationMacEventContent { relates_to, .. })
             | Self::KeyVerificationDone(KeyVerificationDoneEventContent { relates_to, .. }) => {
-                Some(relates_to.clone().into())
-            },
-            #[cfg(feature = "unstable-pre-spec")]
-            Self::Reaction(ev) => Some(ev.relates_to.clone().into()),
+                let key::verification::Relation { event_id } = relates_to;
+                Some(encrypted::Relation::Reference(encrypted::Reference {
+                    event_id: event_id.clone(),
+                }))
+            }
+            #[cfg(feature = "unstable-msc2677")]
+            Self::Reaction(ev) => {
+                use crate::reaction;
+
+                let reaction::Relation { event_id, emoji } = &ev.relates_to;
+                Some(encrypted::Relation::Annotation(encrypted::Annotation {
+                    event_id: event_id.clone(),
+                    key: emoji.clone(),
+                }))
+            }
             Self::RoomEncrypted(ev) => ev.relates_to.clone(),
-            Self::RoomMessage(ev) => ev.relates_to.clone().map(Into::into),
+            Self::RoomMessage(ev) => ev.relates_to.clone().map(|rel| match rel {
+                message::Relation::Reply { in_reply_to } => {
+                    encrypted::Relation::Reply { in_reply_to }
+                }
+                #[cfg(feature = "unstable-msc2676")]
+                message::Relation::Replacement(re) => {
+                    encrypted::Relation::Replacement(encrypted::Replacement {
+                        event_id: re.event_id,
+                    })
+                }
+                message::Relation::_Custom => encrypted::Relation::_Custom,
+            }),
             Self::CallAnswer(_)
             | Self::CallInvite(_)
             | Self::CallHangup(_)

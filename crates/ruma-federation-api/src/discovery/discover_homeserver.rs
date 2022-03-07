@@ -1,4 +1,6 @@
-//! [GET /.well-known/matrix/server](https://matrix.org/docs/spec/server_server/r0.1.4#get-well-known-matrix-server)
+//! `GET /.well-known/matrix/server` ([spec])
+//!
+//! [spec]: https://spec.matrix.org/v1.2/server-server-api/#getwell-knownmatrixserver
 
 use ruma_api::ruma_api;
 use ruma_identifiers::ServerName;
@@ -8,9 +10,10 @@ ruma_api! {
         description: "Get discovery information about the domain.",
         method: GET,
         name: "discover_homeserver",
-        path: "/.well-known/matrix/server",
+        stable_path: "/.well-known/matrix/server",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
     }
 
     #[derive(Default)]

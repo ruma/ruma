@@ -1,7 +1,6 @@
 [package]
 name = "ruma-push-gateway-api"
-version = "0.3.0"
-authors = ["Jonas Platte <jplatte@posteo.de>"]
+version = "0.4.0"
 description = "Types for the endpoints in the Matrix push gateway API."
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
@@ -20,10 +19,10 @@ server = []
 
 [dependencies]
 js_int = { version = "0.2.0", features = ["serde"] }
-ruma-api = { version = "0.18.5", path = "../ruma-api" }
-ruma-common = { version = "0.6.0", path = "../ruma-common" }
-ruma-events = { version = "0.24.6", path = "../ruma-events" }
-ruma-identifiers = { version = "0.20.0", path = "../ruma-identifiers" }
-ruma-serde = { version = "0.5.0", path = "../ruma-serde" }
+ruma-api = { version = "0.20.0", path = "../ruma-api" }
+ruma-common = { version = "0.8.0", path = "../ruma-common" }
+ruma-events = { version = "0.26.0", path = "../ruma-events" }
+ruma-identifiers = { version = "0.22.0", path = "../ruma-identifiers" }
+ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.61"

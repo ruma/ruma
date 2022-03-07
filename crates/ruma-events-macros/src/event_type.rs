@@ -136,7 +136,7 @@ fn generate_enum(
                 #variants,
             )*
             #[doc(hidden)]
-            _Custom(String),
+            _Custom(crate::PrivOwnedStr),
         }
 
         impl #ident {

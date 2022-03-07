@@ -4,6 +4,8 @@
 use ruma_serde::{DeserializeFromCowStr, SerializeAsRefStr};
 use ruma_serde_macros::{AsRefStr, DisplayAsRefStr, FromString};
 
+use crate::PrivOwnedStr;
+
 /// The basic key algorithms in the specification.
 ///
 /// This type can hold an arbitrary string. To check for algorithms that are not available as a
@@ -23,7 +25,7 @@ pub enum DeviceKeyAlgorithm {
     SignedCurve25519,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 /// The signing key algorithms defined in the Matrix spec.
@@ -39,7 +41,7 @@ pub enum SigningKeyAlgorithm {
     Ed25519,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 /// An encryption algorithm to be used to encrypt messages sent to a room.
@@ -59,7 +61,7 @@ pub enum EventEncryptionAlgorithm {
     MegolmV1AesSha2,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 #[cfg(test)]
@@ -94,9 +96,6 @@ mod tests {
             EventEncryptionAlgorithm::OlmV1Curve25519AesSha2,
             json!("m.olm.v1.curve25519-aes-sha2"),
         );
-        serde_json_eq(
-            EventEncryptionAlgorithm::_Custom("io.ruma.test".into()),
-            json!("io.ruma.test"),
-        );
+        serde_json_eq(EventEncryptionAlgorithm::from("io.ruma.test"), json!("io.ruma.test"));
     }
 }

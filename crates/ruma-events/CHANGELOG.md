@@ -1,9 +1,17 @@
 # [unreleased]
 
+# 0.26.0
+
+Breaking changes:
+
+* Bump versions of `ruma-common`, `ruma-idenfiers`
+
+# 0.25.0
+
 Breaking changes:
 
 * Remove `RedactedStrippedStateEvent`
-  * It was not used anywhere since stripped state events are never actually redacted.
+  * It was not used anywhere since stripped state events are never actually redacted
 * Use `Box<RawJsonValue>` instead of `JsonValue` for PDU `content` field
 * Require `room::message::MessageType` to always contain a body
   * The `new` constructor now also has a body parameter
@@ -11,12 +19,23 @@ Breaking changes:
 * Remove unneeded redacted event content enums
 * Update `reply` and `html_reply` types to `impl Display` on `RoomMessageEventContent`'s reply
   constructors
+* Remove the `custom` module, which has been redundant for a while
+  * If you are still using it and are unclear on the upgrade path, please get in touch
 
 Improvements:
 
+* Add `is_allowed` to `RoomServerAclEventContent`
 * Add `room::message::MessageType::body` accessor method
 * Implement `Redact` for event structs (in addition to `Any` event enums)
 * Add `room::message::RoomMessageEventContent::{body, msgtype}` accessor methods
+* Move `room::message::MessageType::VerificationRequest` out of `unstable-pre-spec`
+* Move MSC implementations from `unstable-pre-spec` to per-msc features:
+  ```
+  unstable-msc2448
+  unstable-msc2675
+  unstable-msc2676
+  unstable-msc2677
+  ```
 
 # 0.24.6
 

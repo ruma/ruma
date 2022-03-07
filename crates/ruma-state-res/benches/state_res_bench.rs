@@ -394,7 +394,7 @@ where
             content,
             redacts: None,
             unsigned: btreemap! {},
-            #[cfg(not(feature = "unstable-pre-spec"))]
+            #[cfg(not(feature = "__ci"))]
             origin: "foo".into(),
             auth_events,
             prev_events,

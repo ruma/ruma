@@ -1,7 +1,7 @@
-use super::HttpClient;
-
 use async_trait::async_trait;
 use futures_lite::AsyncReadExt;
+
+use super::HttpClient;
 
 /// The `isahc` crate's `HttpClient`.
 pub type Isahc = isahc::HttpClient;

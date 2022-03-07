@@ -3,12 +3,8 @@ name = "ruma-identifiers-validation"
 description = "Validation logic for ruma-identifiers and ruma-identifiers-macros"
 homepage = "https://www.ruma.io/"
 repository = "https://github.com/ruma/ruma"
-authors = [
-    "Jimmy Cuadra <jimmy@jimmycuadra.com>",
-    "Jonas Platte <jplatte@posteo.de>",
-]
 license = "MIT"
-version = "0.5.0"
+version = "0.7.0"
 edition = "2018"
 
 [package.metadata.docs.rs]
@@ -19,3 +15,4 @@ compat = []
 
 [dependencies]
 thiserror = "1.0.26"
+url = "2.2.2"

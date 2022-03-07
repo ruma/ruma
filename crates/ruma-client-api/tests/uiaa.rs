@@ -1,17 +1,16 @@
 use assign::assign;
 use matches::assert_matches;
 use ruma_api::{EndpointError, OutgoingResponse};
-use serde_json::{
-    from_slice as from_json_slice, from_str as from_json_str, from_value as from_json_value, json,
-    to_value as to_json_value, value::to_raw_value as to_raw_json_value, Value as JsonValue,
-};
-
 use ruma_client_api::{
     error::{ErrorBody, ErrorKind},
-    r0::uiaa::{
+    uiaa::{
         self, AuthData, AuthFlow, AuthType, IncomingAuthData, IncomingUserIdentifier, UiaaInfo,
         UiaaResponse,
     },
+};
+use serde_json::{
+    from_slice as from_json_slice, from_str as from_json_str, from_value as from_json_value, json,
+    to_value as to_json_value, value::to_raw_value as to_raw_json_value, Value as JsonValue,
 };
 
 #[test]
@@ -22,50 +21,12 @@ fn deserialize_user_identifier() {
             "user": "cheeky_monkey"
         }))
         .unwrap(),
-        IncomingUserIdentifier::MatrixId(id)
+        IncomingUserIdentifier::UserIdOrLocalpart(id)
         if id == "cheeky_monkey"
     );
 }
 
 #[test]
-fn serialize_auth_data_token() {
-    let auth_data = AuthData::Token(
-        assign!(uiaa::Token::new("mytoken", "txn123"), { session: Some("session") }),
-    );
-
-    assert_matches!(
-        to_json_value(auth_data),
-        Ok(val) if val == json!({
-            "type": "m.login.token",
-            "token": "mytoken",
-            "txn_id": "txn123",
-            "session": "session",
-        })
-    );
-}
-
-#[test]
-fn deserialize_auth_data_direct_request() {
-    let json = json!({
-        "type": "m.login.token",
-        "token": "mytoken",
-        "txn_id": "txn123",
-        "session": "session",
-    });
-
-    assert_matches!(
-        from_json_value(json),
-        Ok(IncomingAuthData::Token(
-            uiaa::IncomingToken { token, txn_id, session: Some(session), .. },
-        ))
-        if token == "mytoken"
-            && txn_id == "txn123"
-            && session == "session"
-    );
-}
-
-#[test]
-#[cfg(feature = "unstable-pre-spec")]
 fn serialize_auth_data_registration_token() {
     let auth_data = AuthData::RegistrationToken(
         assign!(uiaa::RegistrationToken::new("mytoken"), { session: Some("session") }),
@@ -74,7 +35,7 @@ fn serialize_auth_data_registration_token() {
     assert_matches!(
         to_json_value(auth_data),
         Ok(val) if val == json!({
-            "type": "org.matrix.msc3231.login.registration_token",
+            "type": "m.login.registration_token",
             "token": "mytoken",
             "session": "session",
         })
@@ -82,10 +43,9 @@ fn serialize_auth_data_registration_token() {
 }
 
 #[test]
-#[cfg(feature = "unstable-pre-spec")]
 fn deserialize_auth_data_registration_token() {
     let json = json!({
-        "type": "org.matrix.msc3231.login.registration_token",
+        "type": "m.login.registration_token",
         "token": "mytoken",
         "session": "session",
     });

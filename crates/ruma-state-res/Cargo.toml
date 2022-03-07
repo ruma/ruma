@@ -1,6 +1,5 @@
 [package]
 name = "ruma-state-res"
-authors = ["Devin R <devin.ragotzy@gmail.com>"]
 categories = ["api-bindings", "web-programming"]
 keywords = ["matrix", "chat", "ruma"]
 description = "An abstraction for Matrix state resolution."
@@ -8,7 +7,7 @@ homepage = "https://www.ruma.io/"
 repository = "https://github.com/ruma/ruma"
 readme = "README.md"
 license = "MIT"
-version = "0.4.1"
+version = "0.6.0"
 edition = "2018"
 
 [package.metadata.docs.rs]
@@ -16,16 +15,18 @@ all-features = true
 
 [features]
 compat = []
-unstable-pre-spec = ["ruma-events/unstable-pre-spec", "ruma-identifiers/unstable-pre-spec"]
 unstable-exhaustive-types = []
+
+# Private, only used in test / benchmarking code
+__ci = ["ruma-events/unstable-pre-spec"]
 
 [dependencies]
 itertools = "0.10.0"
 js_int = "0.2.0"
-ruma-common = { version = "0.6.0", path = "../ruma-common" }
-ruma-events = { version = "0.24.6", path = "../ruma-events" }
-ruma-identifiers = { version = "0.20.0", path = "../ruma-identifiers" }
-ruma-serde = { version = "0.5.0", path = "../ruma-serde" }
+ruma-common = { version = "0.8.0", path = "../ruma-common" }
+ruma-events = { version = "0.26.0", path = "../ruma-events" }
+ruma-identifiers = { version = "0.22.0", path = "../ruma-identifiers" }
+ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.60"
 thiserror = "1.0.26"
@@ -35,7 +36,7 @@ tracing = "0.1.26"
 criterion = "0.3.3"
 maplit = "1.0.2"
 rand = "0.8.3"
-ruma-events = { version = "0.24.5", path = "../ruma-events", features = ["unstable-pdu"] }
+ruma-events = { version = "0.26.0", path = "../ruma-events", features = ["unstable-pdu"] }
 tracing-subscriber = "0.3.3"
 
 [[bench]]

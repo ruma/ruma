@@ -1,8 +1,4 @@
 [package]
-authors = [
-    "Jimmy Cuadra <jimmy@jimmycuadra.com>",
-    "Jonas Platte <jplatte@posteo.de>",
-]
 categories = ["api-bindings"]
 description = "Resource identifiers for Matrix."
 homepage = "https://www.ruma.io/"
@@ -11,7 +7,7 @@ license = "MIT"
 name = "ruma-identifiers"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.20.0"
+version = "0.22.0"
 edition = "2018"
 
 [package.metadata.docs.rs]
@@ -21,19 +17,21 @@ rustdoc-args = ["--cfg", "docsrs"]
 [features]
 default = ["serde"]
 compat = ["ruma-identifiers-validation/compat"]
+rand = ["rand_crate", "uuid"]
 serde = ["ruma-serde", "serde1"]
-unstable-pre-spec = []
 
 [dependencies]
 either = { version = "1.6.1", optional = true }
 percent-encoding = "2.1.0"
-rand = { version = "0.8.3", optional = true }
-ruma-identifiers-macros = { version = "=0.20.0", path = "../ruma-identifiers-macros" }
-ruma-identifiers-validation = { version = "0.5.0", path = "../ruma-identifiers-validation", default-features = false }
-ruma-serde = { version = "0.5.0", path = "../ruma-serde", optional = true }
-ruma-serde-macros = { version = "0.5.0", path = "../ruma-serde-macros" }
+rand_crate = { package = "rand", version = "0.8.3", optional = true }
+ruma-identifiers-macros = { version = "=0.22.0", path = "../ruma-identifiers-macros" }
+ruma-identifiers-validation = { version = "0.7.0", path = "../ruma-identifiers-validation", default-features = false }
+ruma-serde = { version = "0.6.0", path = "../ruma-serde", optional = true }
+ruma-serde-macros = { version = "0.6.0", path = "../ruma-serde-macros" }
 # Renamed so we can have a serde feature.
 serde1 = { package = "serde", version = "1.0.126", optional = true, features = ["derive"] }
+url = "2.2.2"
+uuid = { version = "0.8.2", optional = true, features = ["v4"] }
 
 [dev-dependencies]
 matches = "0.1.8"

@@ -1,9 +1,16 @@
 # [unreleased]
 
+# 0.6.0
+
 Breaking changes:
 
 * Remove `From<T>` implementation for `Raw<T>`
   * Replaced by the new fallible constructor `Raw::new`
+
+Improvements:
+
+* Add `Base64` type
+* Add `Raw::{cast, cast_ref}`
 
 # 0.5.0
 

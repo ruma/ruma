@@ -4,6 +4,7 @@ use std::collections::BTreeMap;
 
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_identifiers::{ServerName, ServerSigningKeyId};
+use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
 
 pub mod discover_homeserver;
@@ -16,13 +17,13 @@ pub mod get_server_version;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct VerifyKey {
-    /// The Unpadded Base64 encoded key.
-    pub key: String,
+    /// The unpadded base64-encoded key.
+    pub key: Base64,
 }
 
 impl VerifyKey {
     /// Creates a new `VerifyKey` from the given key.
-    pub fn new(key: String) -> Self {
+    pub fn new(key: Base64) -> Self {
         Self { key }
     }
 }
@@ -34,13 +35,13 @@ pub struct OldVerifyKey {
     /// Timestamp when this key expired.
     pub expired_ts: MilliSecondsSinceUnixEpoch,
 
-    /// The Unpadded Base64 encoded key.
-    pub key: String,
+    /// The unpadded base64-encoded key.
+    pub key: Base64,
 }
 
 impl OldVerifyKey {
     /// Creates a new `OldVerifyKey` with the given expiry time and key.
-    pub fn new(expired_ts: MilliSecondsSinceUnixEpoch, key: String) -> Self {
+    pub fn new(expired_ts: MilliSecondsSinceUnixEpoch, key: Base64) -> Self {
         Self { expired_ts, key }
     }
 }

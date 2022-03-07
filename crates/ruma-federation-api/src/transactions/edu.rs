@@ -6,9 +6,9 @@ use js_int::UInt;
 use ruma_common::{
     encryption::DeviceKeys, presence::PresenceState, to_device::DeviceIdOrAllDevices,
 };
-use ruma_events::{from_raw_json_value, receipt::Receipt, AnyToDeviceEventContent, EventType};
-use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
-use ruma_serde::Raw;
+use ruma_events::{receipt::Receipt, AnyToDeviceEventContent, EventType};
+use ruma_identifiers::{DeviceId, EventId, RoomId, TransactionId, UserId};
+use ruma_serde::{from_raw_json_value, Raw};
 use serde::{de, Deserialize, Serialize};
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
@@ -259,7 +259,7 @@ pub struct DirectDeviceContent {
     pub ev_type: EventType,
 
     /// Unique utf8 string ID for the message, used for idempotency.
-    pub message_id: String,
+    pub message_id: Box<TransactionId>,
 
     /// The contents of the messages to be sent.
     ///
@@ -270,7 +270,7 @@ pub struct DirectDeviceContent {
 
 impl DirectDeviceContent {
     /// Creates a new `DirectDeviceContent` with the given `sender, `ev_type` and `message_id`.
-    pub fn new(sender: Box<UserId>, ev_type: EventType, message_id: String) -> Self {
+    pub fn new(sender: Box<UserId>, ev_type: EventType, message_id: Box<TransactionId>) -> Self {
         Self { sender, ev_type, message_id, messages: DirectDeviceMessages::new() }
     }
 }

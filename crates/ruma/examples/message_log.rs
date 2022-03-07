@@ -2,7 +2,7 @@ use std::{env, process::exit, time::Duration};
 
 use assign::assign;
 use ruma::{
-    api::client::r0::{filter::FilterDefinition, sync::sync_events},
+    api::client::{filter::FilterDefinition, sync::sync_events},
     events::{
         room::message::{MessageType, RoomMessageEventContent, TextMessageEventContent},
         AnySyncMessageEvent, AnySyncRoomEvent, SyncMessageEvent,
@@ -11,20 +11,21 @@ use ruma::{
 };
 use tokio_stream::StreamExt as _;
 
-type MatrixClient = ruma_client::Client<ruma_client::http_client::HyperNativeTls>;
+type HttpClient = ruma::client::http_client::HyperNativeTls;
 
 async fn log_messages(
     homeserver_url: String,
     username: &str,
     password: &str,
 ) -> anyhow::Result<()> {
-    let client = MatrixClient::new(homeserver_url, None);
+    let client =
+        ruma::Client::builder().homeserver_url(homeserver_url).build::<HttpClient>().await?;
 
     client.log_in(username, password, None, None).await?;
 
     let filter = FilterDefinition::ignore_all().into();
     let initial_sync_response = client
-        .send_request(assign!(sync_events::Request::new(), {
+        .send_request(assign!(sync_events::v3::Request::new(), {
             filter: Some(&filter),
         }))
         .await?;

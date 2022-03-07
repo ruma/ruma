@@ -1,9 +1,13 @@
-//! Types for the `m.room.create` event.
+//! Types for the [`m.room.create`] event.
+//!
+//! [`m.room.create`]: https://spec.matrix.org/v1.2/client-server-api/#mroomcreate
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
+
+use crate::PrivOwnedStr;
 
 /// The content of an `m.room.create` event.
 ///
@@ -41,7 +45,6 @@ pub struct RoomCreateEventContent {
     /// The room type.
     ///
     /// This is currently only used for spaces.
-    #[cfg(feature = "unstable-pre-spec")]
     #[serde(skip_serializing_if = "Option::is_none", rename = "type")]
     pub room_type: Option<RoomType>,
 }
@@ -54,7 +57,6 @@ impl RoomCreateEventContent {
             federate: true,
             room_version: default_room_version_id(),
             predecessor: None,
-            #[cfg(feature = "unstable-pre-spec")]
             room_type: None,
         }
     }
@@ -70,9 +72,10 @@ pub enum RoomType {
     /// Defines the room as a space.
     #[ruma_enum(rename = "m.space")]
     Space,
+
     /// Defines the room as a custom type.
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl RoomType {
@@ -111,10 +114,7 @@ mod tests {
     use ruma_identifiers::{user_id, RoomVersionId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::RoomCreateEventContent;
-
-    #[cfg(feature = "unstable-pre-spec")]
-    use super::RoomType;
+    use super::{RoomCreateEventContent, RoomType};
 
     #[test]
     fn serialization() {
@@ -123,7 +123,6 @@ mod tests {
             federate: false,
             room_version: RoomVersionId::V4,
             predecessor: None,
-            #[cfg(feature = "unstable-pre-spec")]
             room_type: None,
         };
 
@@ -136,7 +135,6 @@ mod tests {
         assert_eq!(to_json_value(&content).unwrap(), json);
     }
 
-    #[cfg(feature = "unstable-pre-spec")]
     #[test]
     fn space_serialization() {
         let content = RoomCreateEventContent {
@@ -172,13 +170,11 @@ mod tests {
                 federate: true,
                 room_version: RoomVersionId::V4,
                 predecessor: None,
-                #[cfg(feature = "unstable-pre-spec")]
                 room_type: None,
             } if creator == "@carl:example.com"
         );
     }
 
-    #[cfg(feature = "unstable-pre-spec")]
     #[test]
     fn space_deserialization() {
         let json = json!({

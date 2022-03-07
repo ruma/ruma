@@ -1,9 +1,10 @@
-use js_int::{uint, UInt};
-use serde::{Deserialize, Serialize};
 use std::{
     convert::TryInto,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
+
+use js_int::{uint, UInt};
+use serde::{Deserialize, Serialize};
 
 /// A timestamp represented as the number of milliseconds since the unix epoch.
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]

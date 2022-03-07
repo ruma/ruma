@@ -82,8 +82,7 @@ where
     // `all_conflicted` contains unique items
     // synapse says `full_set = {eid for eid in full_conflicted_set if eid in event_map}`
     let all_conflicted: HashSet<_> = get_auth_chain_diff(auth_chain_sets)
-        // FIXME: Use into_values() once MSRV >= 1.54
-        .chain(conflicting.into_iter().flat_map(|(_k, v)| v))
+        .chain(conflicting.into_values().flatten())
         // Don't honor events we cannot "verify"
         .filter(|id| fetch_event(id.borrow()).is_some())
         .collect();
@@ -339,12 +338,15 @@ where
 struct PowerLevelsContentFields {
     #[cfg_attr(
         feature = "compat",
-        serde(deserialize_with = "ruma_serde::btreemap_int_or_string_to_int_values")
+        serde(deserialize_with = "ruma_serde::btreemap_deserialize_v1_powerlevel_values")
     )]
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     users: BTreeMap<Box<UserId>, Int>,
 
-    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
+    #[cfg_attr(
+        feature = "compat",
+        serde(deserialize_with = "ruma_serde::deserialize_v1_powerlevel")
+    )]
     #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
     users_default: Int,
 }

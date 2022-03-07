@@ -1,17 +1,15 @@
-//! Types for the `m.room.encrypted` event.
+//! Types for the [`m.room.encrypted`] event.
+//!
+//! [`m.room.encrypted`]: https://spec.matrix.org/v1.2/client-server-api/#mroomencrypted
 
 use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_events_macros::EventContent;
-use ruma_identifiers::DeviceId;
-#[cfg(feature = "unstable-pre-spec")]
-use ruma_identifiers::EventId;
+use ruma_identifiers::{DeviceId, EventId};
 use serde::{Deserialize, Serialize};
 
-use crate::room::message::{self, InReplyTo};
-#[cfg(feature = "unstable-pre-spec")]
-use crate::{key::verification, reaction};
+use crate::room::message::InReplyTo;
 
 mod relation_serde;
 
@@ -26,7 +24,7 @@ pub struct RoomEncryptedEventContent {
 
     /// Information about related messages for [rich replies].
     ///
-    /// [rich replies]: https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies
+    /// [rich replies]: https://spec.matrix.org/v1.2/client-server-api/#rich-replies
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation>,
 }
@@ -95,15 +93,14 @@ pub enum Relation {
     },
 
     /// An event that replaces another event.
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-msc2676")]
     Replacement(Replacement),
 
     /// A reference to another event.
-    #[cfg(feature = "unstable-pre-spec")]
     Reference(Reference),
 
     /// An annotation to an event.
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-msc2677")]
     Annotation(Annotation),
 
     #[doc(hidden)]
@@ -112,10 +109,11 @@ pub enum Relation {
 
 /// The event this relation belongs to replaces another event.
 ///
-/// In contrast to [`message::Replacement`], this struct doesn't store the new content, since that
-/// is part of the encrypted content of an `m.room.encrypted` events.
+/// In contrast to [`message::Replacement`](crate::room::message::Replacement), this struct doesn't
+/// store the new content, since that is part of the encrypted content of an `m.room.encrypted`
+/// events.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2676")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Replacement {
     /// The ID of the event being replacing.
@@ -124,14 +122,12 @@ pub struct Replacement {
 
 /// A reference to another event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Reference {
     /// The event we are referencing.
     pub event_id: Box<EventId>,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
 impl Reference {
     /// Creates a new `Reference` with the given event ID.
     pub fn new(event_id: Box<EventId>) -> Self {
@@ -141,7 +137,7 @@ impl Reference {
 
 /// An annotation for an event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2677")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Annotation {
     /// The event that is being annotated.
@@ -151,7 +147,7 @@ pub struct Annotation {
     pub key: String,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2677")]
 impl Annotation {
     /// Creates a new `Annotation` with the given event ID and key.
     pub fn new(event_id: Box<EventId>, key: String) -> Self {
@@ -246,39 +242,10 @@ impl From<MegolmV1AesSha2ContentInit> for MegolmV1AesSha2Content {
     }
 }
 
-// FIXME: Remove on next breaking change release
-impl From<message::Relation> for Relation {
-    fn from(rel: message::Relation) -> Self {
-        match rel {
-            message::Relation::Reply { in_reply_to } => Self::Reply { in_reply_to },
-            #[cfg(feature = "unstable-pre-spec")]
-            message::Relation::Replacement(re) => {
-                Self::Replacement(Replacement { event_id: re.event_id })
-            }
-            message::Relation::_Custom => Self::_Custom,
-        }
-    }
-}
-
-#[cfg(feature = "unstable-pre-spec")]
-impl From<reaction::Relation> for Relation {
-    fn from(rel: reaction::Relation) -> Self {
-        let reaction::Relation { event_id, emoji } = rel;
-        Self::Annotation(Annotation { event_id, key: emoji })
-    }
-}
-
-#[cfg(feature = "unstable-pre-spec")]
-impl From<verification::Relation> for Relation {
-    fn from(rel: verification::Relation) -> Self {
-        let verification::Relation { event_id } = rel;
-        Self::Reference(Reference { event_id })
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use matches::assert_matches;
+    use ruma_identifiers::event_id;
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -286,7 +253,6 @@ mod tests {
         EncryptedEventScheme, MegolmV1AesSha2Content, Relation, RoomEncryptedEventContent,
     };
     use crate::room::message::InReplyTo;
-    use ruma_identifiers::event_id;
 
     #[test]
     fn serialization() {

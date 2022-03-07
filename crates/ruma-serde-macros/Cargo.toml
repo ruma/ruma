@@ -1,5 +1,4 @@
 [package]
-authors = ["Jonas Platte <jplatte@posteo.de>"]
 categories = ["api-bindings", "web-programming"]
 description = "Procedural macros for ruma-serde."
 homepage = "https://www.ruma.io/"
@@ -7,7 +6,7 @@ keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"
 name = "ruma-serde-macros"
 repository = "https://github.com/ruma/ruma"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2018"
 
 [lib]

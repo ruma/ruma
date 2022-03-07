@@ -1,5 +1,18 @@
 # [unreleased]
 
+# 0.22.0
+
+Breaking changes:
+
+* Rename `matrix_to_(event_)url` methods to `matrix_to_(event_)uri`
+
+Improvements:
+
+* Add `MatrixUri` to build `matrix:` URIs
+* Add `ClientSecret::new()` with the `rand` feature to generate a random client secret
+
+# 0.21.0
+
 Breaking changes:
 
 * Make almost all identifier types dynamically-sized types that wrap `str`
@@ -11,6 +24,18 @@ Breaking changes:
     owned values now – use `.to_owned()` to get an owned copy
 * Rename `RoomVersionId::Version{X}` variants to `RoomVersionId::V{X}`
 * Rename `RoomIdOrAliasId` to `RoomOrAliasId`
+
+Improvements:
+
+* Add `host`, `port` and `is_ip_literal` methods to `ServerName`
+* Add `MatrixToUri` to build `matrix.to` URIs
+
+Bug fixes:
+
+* Properly validate localpart when building a `UserId` via `parse_with_server_name` (and its
+  variants). This function was accepting localparts which were violating the
+  `localpart_is_fully_conforming` validation. If an invalid user was built, it would panic when
+  calling `is_historical`.
 
 # 0.20.0
 
@@ -261,4 +286,4 @@ Breaking changes:
 Improvements:
 
 * Remove the dependency on `lazy_static` and `regex`
-* We now support [historical user IDs](https://matrix.org/docs/spec/appendices#historical-user-ids)
+* We now support [historical user IDs](https://spec.matrix.org/v1.2/appendices/#historical-user-ids)

@@ -1,10 +1,14 @@
-//! Types for the `m.tag` event.
+//! Types for the [`m.tag`] event.
+//!
+//! [`m.tag`]: https://spec.matrix.org/v1.2/client-server-api/#mtag
 
 use std::{collections::BTreeMap, error::Error, fmt, str::FromStr};
 
 use ruma_events_macros::EventContent;
 use ruma_serde::deserialize_cow_str;
 use serde::{Deserialize, Serialize};
+
+use crate::PrivOwnedStr;
 
 /// Map of tag names to tag info.
 pub type Tags = BTreeMap<TagName, TagInfo>;
@@ -84,7 +88,7 @@ pub enum TagName {
     LowPriority,
 
     /// `m.server_notice`: Used to identify
-    /// [Server Notice Rooms](https://matrix.org/docs/spec/client_server/r0.6.1#module-server-notices).
+    /// [Server Notice Rooms](https://spec.matrix.org/v1.2/client-server-api/#server-notices).
     ServerNotice,
 
     /// `u.*`: User-defined tag
@@ -92,7 +96,7 @@ pub enum TagName {
 
     /// A custom tag
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl TagName {
@@ -103,7 +107,7 @@ impl TagName {
     pub fn display_name(&self) -> &str {
         match self {
             Self::_Custom(s) => {
-                let start = s.rfind('.').map(|p| p + 1).unwrap_or(0);
+                let start = s.0.rfind('.').map(|p| p + 1).unwrap_or(0);
                 &self.as_ref()[start..]
             }
             _ => &self.as_ref()[2..],
@@ -118,7 +122,7 @@ impl AsRef<str> for TagName {
             Self::LowPriority => "m.lowpriority",
             Self::ServerNotice => "m.server_notice",
             Self::User(tag) => tag.as_ref(),
-            Self::_Custom(s) => s,
+            Self::_Custom(s) => &s.0,
         }
     }
 }
@@ -133,7 +137,7 @@ where
             "m.lowpriority" => Self::LowPriority,
             "m.server_notice" => Self::ServerNotice,
             s if s.starts_with("u.") => Self::User(UserTagName { name: s.into() }),
-            s => Self::_Custom(s.into()),
+            s => Self::_Custom(PrivOwnedStr(s.into())),
         }
     }
 }

@@ -1,5 +1,18 @@
 # [unreleased]
 
+# 0.8.0
+
+Breaking changes:
+
+* Update `ruma-identifiers` dependency
+
+# 0.7.0
+
+Breaking changes:
+
+* Update `ruma-identifiers` dependency
+* Use new `Base64` type for `key` field of `SignedKey`
+
 # 0.6.0
 
 Breaking changes:

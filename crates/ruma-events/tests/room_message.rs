@@ -4,20 +4,15 @@ use assign::assign;
 use js_int::uint;
 use matches::assert_matches;
 use ruma_common::MilliSecondsSinceUnixEpoch;
-#[cfg(feature = "unstable-pre-spec")]
 use ruma_events::{
-    key::verification::VerificationMethod, room::message::KeyVerificationRequestEventContent,
-};
-use ruma_events::{
+    key::verification::VerificationMethod,
     room::message::{
-        AudioMessageEventContent, InReplyTo, MessageType, Relation, RoomMessageEvent,
-        RoomMessageEventContent, TextMessageEventContent,
+        AudioMessageEventContent, InReplyTo, KeyVerificationRequestEventContent, MessageType,
+        Relation, RoomMessageEvent, RoomMessageEventContent, TextMessageEventContent,
     },
     Unsigned,
 };
-#[cfg(feature = "unstable-pre-spec")]
-use ruma_identifiers::DeviceId;
-use ruma_identifiers::{event_id, mxc_uri, room_id, user_id};
+use ruma_identifiers::{event_id, mxc_uri, room_id, user_id, DeviceId};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 macro_rules! json_object {
@@ -223,7 +218,7 @@ fn relates_to_content_serialization() {
 }
 
 #[test]
-#[cfg(not(feature = "unstable-pre-spec"))]
+#[cfg(not(feature = "unstable-msc2676"))]
 fn edit_deserialization_061() {
     let json_data = json!({
         "body": "s/foo/bar",
@@ -252,7 +247,7 @@ fn edit_deserialization_061() {
 }
 
 #[test]
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2676")]
 fn edit_deserialization_future() {
     use ruma_events::room::message::Replacement;
 
@@ -297,7 +292,6 @@ fn edit_deserialization_future() {
 }
 
 #[test]
-#[cfg(feature = "unstable-pre-spec")]
 fn verification_request_deserialization() {
     let user_id = user_id!("@example2:localhost");
     let device_id: Box<DeviceId> = "XOWLHHFSWM".into();
@@ -333,17 +327,13 @@ fn verification_request_deserialization() {
 }
 
 #[test]
-#[cfg(feature = "unstable-pre-spec")]
 fn verification_request_serialization() {
     let user_id = user_id!("@example2:localhost").to_owned();
     let device_id: Box<DeviceId> = "XOWLHHFSWM".into();
     let body = "@example:localhost is requesting to verify your key, ...".to_owned();
 
-    let methods = vec![
-        VerificationMethod::SasV1,
-        VerificationMethod::_Custom("m.qr_code.show.v1".to_owned()),
-        VerificationMethod::_Custom("m.reciprocate.v1".to_owned()),
-    ];
+    let methods =
+        vec![VerificationMethod::SasV1, "m.qr_code.show.v1".into(), "m.reciprocate.v1".into()];
 
     let json_data = json!({
         "body": body,

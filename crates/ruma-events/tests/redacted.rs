@@ -2,7 +2,6 @@ use js_int::uint;
 use matches::assert_matches;
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{
-    custom::RedactedCustomEventContent,
     room::{
         aliases::RedactedRoomAliasesEventContent,
         create::{RedactedRoomCreateEventContent, RoomCreateEventContent},
@@ -16,7 +15,8 @@ use ruma_events::{
 };
 use ruma_identifiers::{event_id, room_id, user_id, RoomVersionId};
 use serde_json::{
-    from_value as from_json_value, json, to_value as to_json_value, value::to_raw_value,
+    from_value as from_json_value, json, to_value as to_json_value,
+    value::to_raw_value as to_raw_json_value,
 };
 
 fn unsigned() -> RedactedUnsigned {
@@ -244,32 +244,6 @@ fn redacted_custom_event_serialize() {
 }
 
 #[test]
-fn redacted_custom_event_deserialize() {
-    let unsigned = unsigned();
-
-    let redacted = RedactedSyncStateEvent {
-        content: RedactedCustomEventContent { event_type: "m.made.up".into() },
-        event_id: event_id!("$h29iv0s8:example.com").to_owned(),
-        sender: user_id!("@carl:example.com").to_owned(),
-        state_key: "hello there".into(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-        unsigned: unsigned.clone(),
-    };
-
-    let expected = json!({
-      "event_id": "$h29iv0s8:example.com",
-      "origin_server_ts": 1,
-      "sender": "@carl:example.com",
-      "state_key": "hello there",
-      "unsigned": unsigned,
-      "type": "m.made.up",
-    });
-
-    let actual = to_json_value(&redacted).unwrap();
-    assert_eq!(actual, expected);
-}
-
-#[test]
 fn redact_method_properly_redacts() {
     let ev = json!({
         "type": "m.room.message",
@@ -320,7 +294,7 @@ fn redact_message_content() {
         "url": "mxc://example.com/AuDi0",
     });
 
-    let raw_json = to_raw_value(&json).unwrap();
+    let raw_json = to_raw_json_value(&json).unwrap();
     let content = RoomMessageEventContent::from_parts("m.room.message", &raw_json).unwrap();
 
     assert_matches!(content.redact(&RoomVersionId::V6), RedactedRoomMessageEventContent { .. });
@@ -334,7 +308,7 @@ fn redact_state_content() {
         "room_version": "4",
     });
 
-    let raw_json = to_raw_value(&json).unwrap();
+    let raw_json = to_raw_json_value(&json).unwrap();
     let content = RoomCreateEventContent::from_parts("m.room.create", &raw_json).unwrap();
 
     assert_matches!(

@@ -45,7 +45,9 @@
 //! * `unstable-exhaustive-types` -- Most types in Ruma are marked as non-exhaustive to avoid
 //!   breaking changes when new fields are added in the specification. This feature compiles all
 //!   types as exhaustive.
-//! * `unstable-pre-spec` -- Upcoming Matrix features that may be subject to change or removal.
+//! * `unstable-mscXXXX`, where `XXXX` is the MSC number -- Upcoming Matrix features that may be
+//!   subject to change or removal.
+//! * `unstable-pre-spec` -- Undocumented Matrix features that may be subject to change or removal.
 //!
 //! # Common features
 //!
@@ -66,28 +68,12 @@
 //! clicking **Feature flags** in the toolbar at the top.
 
 #![warn(missing_docs)]
-#![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
 
-#[doc(no_inline)]
-pub use assign::assign;
-#[doc(no_inline)]
-pub use js_int::{int, uint, Int, UInt};
-
-pub use ruma_common::*;
 #[doc(inline)]
 pub use ruma_identifiers as identifiers;
 #[doc(inline)]
 pub use ruma_serde as serde;
-
-pub use ruma_serde::Outgoing;
-
-pub use ruma_identifiers::{
-    device_id, device_key_id, event_id, mxc_uri, room_alias_id, room_id, room_version_id,
-    server_name, server_signing_key_id, user_id, ClientSecret, DeviceId, DeviceKeyAlgorithm,
-    DeviceKeyId, DeviceSignatures, DeviceSigningKeyId, EntitySignatures, EventEncryptionAlgorithm,
-    EventId, KeyId, KeyName, MxcUri, RoomAliasId, RoomId, RoomOrAliasId, RoomVersionId, ServerName,
-    ServerSignatures, ServerSigningKeyId, SessionId, Signatures, SigningKeyAlgorithm, UserId,
-};
 
 #[cfg(feature = "client")]
 #[doc(inline)]
@@ -105,7 +91,7 @@ pub use ruma_state_res as state_res;
 /// (De)serializable types for various [Matrix APIs][apis] requests and responses and abstractions
 /// for them.
 ///
-/// [apis]: https://matrix.org/docs/spec/#matrix-apis
+/// [apis]: https://spec.matrix.org/v1.2/#matrix-apis
 #[cfg(feature = "api")]
 pub mod api {
     pub use ruma_api::*;
@@ -166,3 +152,20 @@ pub mod api {
     #[doc(inline)]
     pub use ruma_push_gateway_api as push_gateway;
 }
+
+#[doc(no_inline)]
+pub use assign::assign;
+#[doc(no_inline)]
+pub use js_int::{int, uint, Int, UInt};
+#[cfg(feature = "client-ext-client-api")]
+pub use ruma_client::Client;
+pub use ruma_common::*;
+pub use ruma_identifiers::{
+    device_id, device_key_id, event_id, matrix_uri, mxc_uri, room_alias_id, room_id,
+    room_version_id, server_name, server_signing_key_id, user_id, ClientSecret, DeviceId,
+    DeviceKeyAlgorithm, DeviceKeyId, DeviceSignatures, DeviceSigningKeyId, EntitySignatures,
+    EventEncryptionAlgorithm, EventId, KeyId, KeyName, MatrixToUri, MxcUri, RoomAliasId, RoomId,
+    RoomOrAliasId, RoomVersionId, ServerName, ServerSignatures, ServerSigningKeyId, SessionId,
+    Signatures, SigningKeyAlgorithm, TransactionId, UserId,
+};
+pub use ruma_serde::Outgoing;

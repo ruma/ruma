@@ -1,9 +1,4 @@
 [package]
-authors = [
-    "Jimmy Cuadra <jimmy@jimmycuadra.com>",
-    "Jonas Platte <jplatte@posteo.de>",
-    "Isaiah Inuwa <isaiah.inuwa@gmail.com>",
-]
 categories = ["api-bindings", "web-programming"]
 description = "Types for the endpoints in the Matrix client-server API."
 homepage = "https://www.ruma.io/"
@@ -12,7 +7,7 @@ license = "MIT"
 name = "ruma-client-api"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.12.3"
+version = "0.13.0"
 edition = "2018"
 
 [package.metadata.docs.rs]
@@ -22,8 +17,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 [features]
 compat = []
 unstable-exhaustive-types = []
-# feature dependency required for r0::room::create_room::CreationContent::into_event_content
-unstable-pre-spec = ["ruma-events/unstable-pre-spec"]
+unstable-msc2448 = []
 client = []
 server = []
 
@@ -34,11 +28,11 @@ http = "0.2.2"
 js_int = { version = "0.2.0", features = ["serde"] }
 maplit = "1.0.2"
 percent-encoding = "2.1.0"
-ruma-api = { version = "0.18.5", path = "../ruma-api" }
-ruma-common = { version = "0.6.0", path = "../ruma-common" }
-ruma-events = { version = "0.24.6", path = "../ruma-events" }
-ruma-identifiers = { version = "0.20.0", path = "../ruma-identifiers" }
-ruma-serde = { version = "0.5.0", path = "../ruma-serde" }
+ruma-api = { version = "0.20.0", path = "../ruma-api" }
+ruma-common = { version = "0.8.0", path = "../ruma-common" }
+ruma-events = { version = "0.26.0", path = "../ruma-events" }
+ruma-identifiers = { version = "0.22.0", path = "../ruma-identifiers" }
+ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.61"
 

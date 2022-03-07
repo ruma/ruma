@@ -10,7 +10,7 @@ ruma_api! {
         description: "Does something.",
         method: POST, // An `http::Method` constant. No imports required.
         name: "some_endpoint",
-        path: "/_matrix/some/endpoint/:baz",
+        unstable_path: "/_matrix/some/endpoint/:foo",
         rate_limited: false,
         authentication: None,
     }
@@ -18,6 +18,7 @@ ruma_api! {
     #[derive(PartialEq)] // Make sure attributes work
     request: {
         // With no attribute on the field, it will be put into the body of the request.
+        #[ruma_api(path)]
         pub foo: String,
     }
 }

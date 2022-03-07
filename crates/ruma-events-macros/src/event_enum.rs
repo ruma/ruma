@@ -63,29 +63,12 @@ fn expand_event_enum(
     variants: &[EventEnumVariant],
     ruma_events: &TokenStream,
 ) -> TokenStream {
-    let serde = quote! { #ruma_events::exports::serde };
-
     let event_struct = kind.to_event_ident(var);
     let ident = kind.to_event_enum_ident(var);
 
     let variant_decls = variants.iter().map(|v| v.decl());
     let content: Vec<_> =
         events.iter().map(|event| to_event_path(event, kind, var, ruma_events)).collect();
-    let custom_variant = if var.is_redacted() {
-        quote! {
-            /// A redacted event not defined by the Matrix specification
-            #[doc(hidden)]
-            _Custom(
-                #ruma_events::#event_struct<#ruma_events::custom::RedactedCustomEventContent>,
-            ),
-        }
-    } else {
-        quote! {
-            /// An event not defined by the Matrix specification
-            #[doc(hidden)]
-            _Custom(#ruma_events::#event_struct<#ruma_events::custom::CustomEventContent>),
-        }
-    };
 
     let deserialize_impl = expand_deserialize_impl(kind, var, events, variants, ruma_events);
     let field_accessor_impl = expand_accessor_methods(kind, var, variants, ruma_events);
@@ -93,8 +76,7 @@ fn expand_event_enum(
 
     quote! {
         #( #attrs )*
-        #[derive(Clone, Debug, #serde::Serialize)]
-        #[serde(untagged)]
+        #[derive(Clone, Debug)]
         #[allow(clippy::large_enum_variant)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
         pub enum #ident {
@@ -102,7 +84,9 @@ fn expand_event_enum(
                 #[doc = #events]
                 #variant_decls(#content),
             )*
-            #custom_variant
+            /// An event not defined by the Matrix specification
+            #[doc(hidden)]
+            _Custom(#ruma_events::#event_struct<#ruma_events::_custom::CustomEventContent>),
         }
 
         #deserialize_impl
@@ -118,11 +102,11 @@ fn expand_deserialize_impl(
     variants: &[EventEnumVariant],
     ruma_events: &TokenStream,
 ) -> TokenStream {
+    let ruma_serde = quote! { #ruma_events::exports::ruma_serde };
     let serde = quote! { #ruma_events::exports::serde };
     let serde_json = quote! { #ruma_events::exports::serde_json };
 
     let ident = kind.to_event_enum_ident(var);
-    let event_struct = kind.to_event_ident(var);
 
     let variant_attrs = variants.iter().map(|v| {
         let attrs = &v.attrs;
@@ -130,31 +114,6 @@ fn expand_deserialize_impl(
     });
     let self_variants = variants.iter().map(|v| v.ctor(quote! { Self }));
     let content = events.iter().map(|event| to_event_path(event, kind, var, ruma_events));
-
-    let custom_deserialize = if var.is_redacted() {
-        quote! {
-            event => {
-                let event = #serde_json::from_str::<#ruma_events::#event_struct<
-                    #ruma_events::custom::RedactedCustomEventContent,
-                >>(json.get())
-                .map_err(D::Error::custom)?;
-
-                Ok(Self::_Custom(event))
-            },
-        }
-    } else {
-        quote! {
-            event => {
-                let event =
-                    #serde_json::from_str::<
-                        #ruma_events::#event_struct<#ruma_events::custom::CustomEventContent>
-                    >(json.get())
-                    .map_err(D::Error::custom)?;
-
-                Ok(Self::_Custom(event))
-            },
-        }
-    };
 
     quote! {
         impl<'de> #serde::de::Deserialize<'de> for #ident {
@@ -166,7 +125,7 @@ fn expand_deserialize_impl(
 
                 let json = Box::<#serde_json::value::RawValue>::deserialize(deserializer)?;
                 let #ruma_events::EventTypeDeHelper { ev_type, .. } =
-                    #ruma_events::from_raw_json_value(&json)?;
+                    #ruma_serde::from_raw_json_value(&json)?;
 
                 match &*ev_type {
                     #(
@@ -176,7 +135,10 @@ fn expand_deserialize_impl(
                             Ok(#self_variants(event))
                         },
                     )*
-                    #custom_deserialize
+                    _ => {
+                        let event = #serde_json::from_str(json.get()).map_err(D::Error::custom)?;
+                        Ok(Self::_Custom(event))
+                    },
                 }
             }
         }
@@ -303,6 +265,9 @@ fn expand_content_enum(
     let marker_trait_impl = expand_marker_trait_impl(kind, ruma_events);
     let from_impl = expand_from_impl(&ident, &content, variants);
 
+    let serialize_custom_event_error_path =
+        quote! { #ruma_events::serialize_custom_event_error }.to_string();
+
     quote! {
         #( #attrs )*
         #[derive(Clone, Debug, #serde::Serialize)]
@@ -315,9 +280,9 @@ fn expand_content_enum(
                 #variant_decls(#content),
             )*
             #[doc(hidden)]
+            #[serde(serialize_with = #serialize_custom_event_error_path)]
             _Custom {
-                #[serde(skip)]
-                event_type: ::std::string::String,
+                event_type: crate::PrivOwnedStr,
             },
         }
 
@@ -326,7 +291,7 @@ fn expand_content_enum(
             fn event_type(&self) -> &::std::primitive::str {
                 match self {
                     #( #variant_arms(content) => content.event_type(), )*
-                    Self::_Custom { event_type } => &event_type,
+                    Self::_Custom { event_type } => &event_type.0,
                 }
             }
 
@@ -342,7 +307,9 @@ fn expand_content_enum(
                         }
                     )*
                     ty => {
-                        ::std::result::Result::Ok(Self::_Custom { event_type: ty.to_owned() })
+                        ::std::result::Result::Ok(Self::_Custom {
+                            event_type: crate::PrivOwnedStr(ty.into()),
+                        })
                     }
                 }
             }
@@ -397,6 +364,7 @@ fn expand_possibly_redacted_enum(
     var: EventKindVariation,
     ruma_events: &TokenStream,
 ) -> TokenStream {
+    let ruma_serde = quote! { #ruma_events::exports::ruma_serde };
     let serde = quote! { #ruma_events::exports::serde };
     let serde_json = quote! { #ruma_events::exports::serde_json };
 
@@ -406,8 +374,7 @@ fn expand_possibly_redacted_enum(
 
     quote! {
         /// An enum that holds either regular un-redacted events or redacted events.
-        #[derive(Clone, Debug, #serde::Serialize)]
-        #[serde(untagged)]
+        #[derive(Clone, Debug)]
         #[allow(clippy::exhaustive_enums)]
         pub enum #ident {
             /// An un-redacted event.
@@ -424,13 +391,13 @@ fn expand_possibly_redacted_enum(
             {
                 let json = Box::<#serde_json::value::RawValue>::deserialize(deserializer)?;
                 let #ruma_events::RedactionDeHelper { unsigned } =
-                    #ruma_events::from_raw_json_value(&json)?;
+                    #ruma_serde::from_raw_json_value(&json)?;
 
                 Ok(match unsigned {
                     Some(unsigned) if unsigned.redacted_because.is_some() => {
-                        Self::Redacted(#ruma_events::from_raw_json_value(&json)?)
+                        Self::Redacted(#ruma_serde::from_raw_json_value(&json)?)
                     }
-                    _ => Self::Regular(#ruma_events::from_raw_json_value(&json)?),
+                    _ => Self::Regular(#ruma_serde::from_raw_json_value(&json)?),
                 })
             }
         }
@@ -480,7 +447,9 @@ fn expand_accessor_methods(
                         )*
                         Self::_Custom(event) => {
                             event.prev_content.as_ref().map(|c| #content_enum::_Custom {
-                                event_type: #ruma_events::EventContent::event_type(c).to_owned(),
+                                event_type: crate::PrivOwnedStr(
+                                    #ruma_events::EventContent::event_type(c).into(),
+                                ),
                             })
                         },
                     }
@@ -494,8 +463,9 @@ fn expand_accessor_methods(
                 match self {
                     #( #self_variants(event) => #content_variants(event.content.clone()), )*
                     Self::_Custom(event) => #content_enum::_Custom {
-                        event_type: #ruma_events::EventContent::event_type(&event.content)
-                            .to_owned(),
+                        event_type: crate::PrivOwnedStr(
+                            #ruma_events::EventContent::event_type(&event.content).into(),
+                        ),
                     },
                 }
             }

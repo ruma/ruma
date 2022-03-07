@@ -6,15 +6,19 @@
 #![warn(missing_docs)]
 // FIXME: Remove once lint doesn't trigger on std::convert::TryFrom in macros.rs anymore
 #![allow(unused_qualifications)]
-#![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
-// Renamed in `Cargo.toml` so we can have a serde feature.
-// Rename it back here because `serde1` is ugly.
+// Renamed in `Cargo.toml` so we can features with the same name as the package.
+// Rename them back here because the `Cargo.toml` names are ugly.
 #[cfg(feature = "serde")]
 extern crate serde1 as serde;
 
+#[cfg(feature = "rand")]
+extern crate rand_crate as rand;
+
 #[cfg(feature = "serde")]
 use std::convert::TryFrom;
+use std::fmt;
 
 #[cfg(feature = "serde")]
 use serde::de::{self, Deserializer, Unexpected};
@@ -28,7 +32,7 @@ pub use crate::{
     event_id::EventId,
     key_id::{DeviceSigningKeyId, KeyId, ServerSigningKeyId, SigningKeyId},
     key_name::KeyName,
-    matrix_to::MatrixToRef,
+    matrix_uri::{MatrixToUri, MatrixUri},
     mxc_uri::MxcUri,
     room_alias_id::RoomAliasId,
     room_id::RoomId,
@@ -38,6 +42,7 @@ pub use crate::{
     server_name::ServerName,
     session_id::SessionId,
     signatures::{DeviceSignatures, EntitySignatures, ServerSignatures, Signatures},
+    transaction_id::TransactionId,
     user_id::UserId,
 };
 #[doc(inline)]
@@ -46,6 +51,7 @@ pub use ruma_identifiers_validation::error::Error;
 #[macro_use]
 mod macros;
 
+pub mod matrix_uri;
 pub mod user_id;
 
 mod client_secret;
@@ -55,7 +61,6 @@ mod device_key_id;
 mod event_id;
 mod key_id;
 mod key_name;
-mod matrix_to;
 mod mxc_uri;
 mod room_alias_id;
 mod room_id;
@@ -65,6 +70,7 @@ mod room_version_id;
 mod server_name;
 mod session_id;
 mod signatures;
+mod transaction_id;
 
 /// Generates a random identifier localpart.
 #[cfg(feature = "rand")]
@@ -177,4 +183,17 @@ macro_rules! user_id {
     ($s:literal) => {
         $crate::_macros::user_id!($crate, $s)
     };
+}
+
+// Wrapper around `Box<str>` that cannot be used in a meaningful way outside of
+// this crate. Used for string enums because their `_Custom` variant can't be
+// truly private (only `#[doc(hidden)]`).
+#[doc(hidden)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct PrivOwnedStr(Box<str>);
+
+impl fmt::Debug for PrivOwnedStr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
 }

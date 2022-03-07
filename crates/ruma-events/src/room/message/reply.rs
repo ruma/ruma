@@ -82,7 +82,6 @@ pub fn get_plain_quote_fallback(original_message: &impl ReplyBaseEvent) -> Strin
         MessageType::_Custom(content) => {
             format!("> <{}> {}", sender, content.body)
         }
-        #[cfg(feature = "unstable-pre-spec")]
         MessageType::VerificationRequest(content) => {
             format!("> <{}> {}", sender, content.body)
         }
@@ -268,7 +267,6 @@ pub fn get_html_quote_fallback(original_message: &RoomMessageEvent) -> String {
                 body = content.body,
             )
         }
-        #[cfg(feature = "unstable-pre-spec")]
         MessageType::VerificationRequest(content) => {
             formatdoc!(
                 "

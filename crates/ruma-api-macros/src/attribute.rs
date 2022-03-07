@@ -43,15 +43,15 @@ impl<V: Parse> Parse for MetaNameValue<V> {
 }
 
 /// Like syn::Meta, but only parses ruma_api attributes
-pub enum Meta {
+pub enum Meta<T> {
     /// A single word, like `query` in `#[ruma_api(query)]`
     Word(Ident),
 
     /// A name-value pair, like `header = CONTENT_TYPE` in `#[ruma_api(header = CONTENT_TYPE)]`
-    NameValue(MetaNameValue<Ident>),
+    NameValue(MetaNameValue<T>),
 }
 
-impl Meta {
+impl<T: Parse> Meta<T> {
     /// Check if the given attribute is a ruma_api attribute.
     ///
     /// If it is, parse it.
@@ -64,7 +64,7 @@ impl Meta {
     }
 }
 
-impl Parse for Meta {
+impl<T: Parse> Parse for Meta<T> {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let ident = input.parse()?;
 

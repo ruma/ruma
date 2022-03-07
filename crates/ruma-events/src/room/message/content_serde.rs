@@ -1,10 +1,10 @@
 //! `Deserialize` implementation for RoomMessageEventContent and MessageType.
 
+use ruma_serde::from_raw_json_value;
 use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{MessageType, Relation, RoomMessageEventContent};
-use crate::from_raw_json_value;
 
 impl<'de> Deserialize<'de> for RoomMessageEventContent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -45,7 +45,6 @@ impl<'de> Deserialize<'de> for MessageType {
             "m.server_notice" => Self::ServerNotice(from_raw_json_value(&json)?),
             "m.text" => Self::Text(from_raw_json_value(&json)?),
             "m.video" => Self::Video(from_raw_json_value(&json)?),
-            #[cfg(feature = "unstable-pre-spec")]
             "m.key.verification.request" => Self::VerificationRequest(from_raw_json_value(&json)?),
             _ => Self::_Custom(from_raw_json_value(&json)?),
         })

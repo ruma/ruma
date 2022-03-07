@@ -1,6 +1,6 @@
 //! Common types for the [`m.room.power_levels` event][power_levels].
 //!
-//! [power_levels]: https://matrix.org/docs/spec/client_server/r0.6.1#m-room-power-levels
+//! [power_levels]: https://spec.matrix.org/v1.2/client-server-api/#mroompower_levels
 
 use js_int::{int, Int};
 use serde::{Deserialize, Serialize};
@@ -13,7 +13,10 @@ pub struct NotificationPowerLevels {
     ///
     /// If you activate the `compat` feature, deserialization will work for stringified
     /// integers too.
-    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
+    #[cfg_attr(
+        feature = "compat",
+        serde(deserialize_with = "ruma_serde::deserialize_v1_powerlevel")
+    )]
     #[serde(default = "default_power_level")]
     pub room: Int,
 }

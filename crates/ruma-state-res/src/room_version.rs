@@ -60,11 +60,11 @@ pub struct RoomVersion {
     pub extra_redaction_checks: bool,
     /// Allow knocking in event authentication.
     ///
-    /// See: https://spec.matrix.org/unstable/rooms/v7/ for more information.
+    /// See [room v7 specification](https://spec.matrix.org/v1.2/rooms/v7/) for more information.
     pub allow_knocking: bool,
     /// Adds support for the restricted join rule.
     ///
-    /// See: https://github.com/matrix-org/matrix-doc/pull/3289 for more information.
+    /// See: <https://github.com/matrix-org/matrix-doc/pull/3289> for more information.
     pub restricted_join_rules: bool,
 }
 
@@ -105,10 +105,8 @@ impl RoomVersion {
         ..Self::V6
     };
 
-    #[cfg(feature = "unstable-pre-spec")]
     pub const V8: Self = Self { restricted_join_rules: true, ..Self::V7 };
 
-    #[cfg(feature = "unstable-pre-spec")]
     pub const V9: Self = Self::V8;
 
     pub fn new(version: &RoomVersionId) -> Result<Self> {
@@ -120,9 +118,7 @@ impl RoomVersion {
             RoomVersionId::V5 => Self::V5,
             RoomVersionId::V6 => Self::V6,
             RoomVersionId::V7 => Self::V7,
-            #[cfg(feature = "unstable-pre-spec")]
             RoomVersionId::V8 => Self::V8,
-            #[cfg(feature = "unstable-pre-spec")]
             RoomVersionId::V9 => Self::V9,
             ver => return Err(Error::Unsupported(format!("found version `{}`", ver.as_str()))),
         })

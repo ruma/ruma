@@ -2,14 +2,14 @@
 
 use crate::ServerName;
 
-/// A Matrix event ID.
+/// A Matrix [event ID].
 ///
 /// An `EventId` is generated randomly or converted from a string slice, and can be converted back
 /// into a string as needed.
 ///
 /// # Room versions
 ///
-/// Matrix specifies multiple [room versions](https://matrix.org/docs/spec/#room-versions) and the
+/// Matrix specifies multiple [room versions](https://spec.matrix.org/v1.2/#room-versions) and the
 /// format of event identifiers differ between them. The original format used by room versions 1 and
 /// 2 uses a short pseudorandom "localpart" followed by the hostname and port of the originating
 /// homeserver. Later room versions change event identifiers to be a hash of the event encoded with
@@ -20,10 +20,7 @@ use crate::ServerName;
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::EventId;
 /// // Original format
-/// assert_eq!(
-///     <&EventId>::try_from("$h29iv0s8:example.com").unwrap(),
-///     "$h29iv0s8:example.com"
-/// );
+/// assert_eq!(<&EventId>::try_from("$h29iv0s8:example.com").unwrap(), "$h29iv0s8:example.com");
 /// // Room version 3 format
 /// assert_eq!(
 ///     <&EventId>::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk").unwrap(),
@@ -35,6 +32,8 @@ use crate::ServerName;
 ///     "$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg"
 /// );
 /// ```
+///
+/// [event ID]: https://spec.matrix.org/v1.2/appendices/#room-ids-and-event-ids
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct EventId(str);

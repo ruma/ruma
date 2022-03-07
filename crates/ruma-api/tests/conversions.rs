@@ -1,8 +1,8 @@
 #![allow(clippy::exhaustive_structs)]
 
 use ruma_api::{
-    ruma_api, IncomingRequest as _, OutgoingRequest as _, OutgoingRequestAppserviceExt,
-    SendAccessToken,
+    ruma_api, IncomingRequest as _, MatrixVersion, OutgoingRequest as _,
+    OutgoingRequestAppserviceExt, SendAccessToken,
 };
 use ruma_identifiers::{user_id, UserId};
 
@@ -11,7 +11,7 @@ ruma_api! {
         description: "Does something.",
         method: POST,
         name: "my_endpoint",
-        path: "/_matrix/foo/:bar/:user",
+        unstable_path: "/_matrix/foo/:bar/:user",
         rate_limited: false,
         authentication: None,
     }
@@ -52,9 +52,13 @@ fn request_serde() {
 
     let http_req = req
         .clone()
-        .try_into_http_request::<Vec<u8>>("https://homeserver.tld", SendAccessToken::None)
+        .try_into_http_request::<Vec<u8>>(
+            "https://homeserver.tld",
+            SendAccessToken::None,
+            &[MatrixVersion::V1_1],
+        )
         .unwrap();
-    let req2 = Request::try_from_http_request(http_req).unwrap();
+    let req2 = Request::try_from_http_request(http_req, &["barVal", "@bazme:ruma.io"]).unwrap();
 
     assert_eq!(req.hello, req2.hello);
     assert_eq!(req.world, req2.world);
@@ -75,7 +79,11 @@ fn invalid_uri_should_not_panic() {
         user: user_id!("@bazme:ruma.io").to_owned(),
     };
 
-    let result = req.try_into_http_request::<Vec<u8>>("invalid uri", SendAccessToken::None);
+    let result = req.try_into_http_request::<Vec<u8>>(
+        "invalid uri",
+        SendAccessToken::None,
+        &[MatrixVersion::V1_1],
+    );
     assert!(result.is_err());
 }
 
@@ -96,6 +104,7 @@ fn request_with_user_id_serde() {
             "https://homeserver.tld",
             SendAccessToken::None,
             user_id,
+            &[MatrixVersion::V1_1],
         )
         .unwrap();
 
@@ -108,6 +117,8 @@ fn request_with_user_id_serde() {
 }
 
 mod without_query {
+    use ruma_api::MatrixVersion;
+
     use super::{ruma_api, user_id, OutgoingRequestAppserviceExt, SendAccessToken, UserId};
 
     ruma_api! {
@@ -115,7 +126,7 @@ mod without_query {
             description: "Does something without query.",
             method: POST,
             name: "my_endpoint",
-            path: "/_matrix/foo/:bar/:user",
+            unstable_path: "/_matrix/foo/:bar/:user",
             rate_limited: false,
             authentication: None,
         }
@@ -154,6 +165,7 @@ mod without_query {
                 "https://homeserver.tld",
                 SendAccessToken::None,
                 user_id,
+                &[MatrixVersion::V1_1],
             )
             .unwrap();
 

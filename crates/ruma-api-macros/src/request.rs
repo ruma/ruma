@@ -1,5 +1,5 @@
 use std::{
-    collections::BTreeSet,
+    collections::{BTreeMap, BTreeSet},
     convert::{TryFrom, TryInto},
     mem,
 };
@@ -52,7 +52,9 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
     let mut authentication = None;
     let mut error_ty = None;
     let mut method = None;
-    let mut path = None;
+    let mut unstable_path = None;
+    let mut r0_path = None;
+    let mut stable_path = None;
 
     for attr in input.attrs {
         if !attr.path.is_ident("ruma_api") {
@@ -71,8 +73,14 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
                 MetaValue::Type(t) if name == "error_ty" => {
                     error_ty = Some(t);
                 }
-                MetaValue::Lit(Lit::Str(s)) if name == "path" => {
-                    path = Some(s);
+                MetaValue::Lit(Lit::Str(s)) if name == "unstable" => {
+                    unstable_path = Some(s);
+                }
+                MetaValue::Lit(Lit::Str(s)) if name == "r0" => {
+                    r0_path = Some(s);
+                }
+                MetaValue::Lit(Lit::Str(s)) if name == "stable" => {
+                    stable_path = Some(s);
                 }
                 _ => unreachable!("invalid ruma_api({}) attribute", name),
             }
@@ -86,7 +94,9 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
         lifetimes,
         authentication: authentication.expect("missing authentication attribute"),
         method: method.expect("missing method attribute"),
-        path: path.expect("missing path attribute"),
+        unstable_path,
+        r0_path,
+        stable_path,
         error_ty: error_ty.expect("missing error_ty attribute"),
     };
 
@@ -110,7 +120,9 @@ struct Request {
 
     authentication: AuthScheme,
     method: Ident,
-    path: LitStr,
+    unstable_path: Option<LitStr>,
+    r0_path: Option<LitStr>,
+    stable_path: Option<LitStr>,
     error_ty: Type,
 }
 
@@ -152,8 +164,27 @@ impl Request {
         self.fields.iter().filter(|f| matches!(f, RequestField::Header(..)))
     }
 
-    fn path_field_count(&self) -> usize {
-        self.fields.iter().filter(|f| matches!(f, RequestField::Path(..))).count()
+    fn path_fields_ordered(&self) -> impl Iterator<Item = &Field> {
+        let map: BTreeMap<String, &Field> = self
+            .fields
+            .iter()
+            .filter_map(RequestField::as_path_field)
+            .map(|f| (f.ident.as_ref().unwrap().to_string(), f))
+            .collect();
+
+        self.stable_path
+            .as_ref()
+            .or(self.r0_path.as_ref())
+            .or(self.unstable_path.as_ref())
+            .expect("one of the paths to be defined")
+            .value()
+            .split('/')
+            .filter_map(|s| {
+                s.strip_prefix(':')
+                    .map(|s| *map.get(s).expect("path args have already been checked"))
+            })
+            .collect::<Vec<_>>()
+            .into_iter()
     }
 
     fn raw_body_field(&self) -> Option<&Field> {
@@ -237,6 +268,13 @@ impl Request {
     pub(super) fn check(&self) -> syn::Result<()> {
         // TODO: highlight problematic fields
 
+        let path_fields: Vec<_> =
+            self.fields.iter().filter_map(RequestField::as_path_field).collect();
+
+        self.check_path(&path_fields, self.unstable_path.as_ref())?;
+        self.check_path(&path_fields, self.r0_path.as_ref())?;
+        self.check_path(&path_fields, self.stable_path.as_ref())?;
+
         let newtype_body_fields = self.fields.iter().filter(|field| {
             matches!(field, RequestField::NewtypeBody(_) | RequestField::RawBody(_))
         });
@@ -299,6 +337,48 @@ impl Request {
 
         Ok(())
     }
+
+    fn check_path(&self, fields: &[&Field], path: Option<&LitStr>) -> syn::Result<()> {
+        let path = if let Some(lit) = path { lit } else { return Ok(()) };
+
+        let path_args: Vec<_> = path
+            .value()
+            .split('/')
+            .filter_map(|s| s.strip_prefix(':').map(&str::to_string))
+            .collect();
+
+        let field_map: BTreeMap<_, _> =
+            fields.iter().map(|&f| (f.ident.as_ref().unwrap().to_string(), f)).collect();
+
+        // test if all macro fields exist in the path
+        for (name, field) in field_map.iter() {
+            if !path_args.contains(name) {
+                return Err({
+                    let mut err = syn::Error::new_spanned(
+                        field,
+                        "this path argument field is not defined in...",
+                    );
+                    err.combine(syn::Error::new_spanned(path, "...this path."));
+                    err
+                });
+            }
+        }
+
+        // test if all path fields exists in macro fields
+        for arg in &path_args {
+            if !field_map.contains_key(arg) {
+                return Err(syn::Error::new_spanned(
+                    path,
+                    format!(
+                        "a corresponding request path argument field for \"{}\" does not exist",
+                        arg
+                    ),
+                ));
+            }
+        }
+
+        Ok(())
+    }
 }
 
 /// The types of fields that a request can have.
@@ -353,6 +433,14 @@ impl RequestField {
     pub fn as_raw_body_field(&self) -> Option<&Field> {
         match self {
             RequestField::RawBody(field) => Some(field),
+            _ => None,
+        }
+    }
+
+    /// Return the contained field if this request field is a path kind.
+    pub fn as_path_field(&self) -> Option<&Field> {
+        match self {
+            RequestField::Path(field) => Some(field),
             _ => None,
         }
     }

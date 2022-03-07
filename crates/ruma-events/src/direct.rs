@@ -1,4 +1,6 @@
-//! Types for the `m.direct` event.
+//! Types for the [`m.direct`] event.
+//!
+//! [`m.direct`]: https://spec.matrix.org/v1.2/client-server-api/#mdirect
 
 use std::{
     collections::BTreeMap,

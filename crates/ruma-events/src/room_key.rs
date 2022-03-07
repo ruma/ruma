@@ -1,4 +1,6 @@
-//! Types for the `m.room_key` event.
+//! Types for the [`m.room_key`] event.
+//!
+//! [`m.room_key`]: https://spec.matrix.org/v1.2/client-server-api/#mroom_key
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::{EventEncryptionAlgorithm, RoomId};

@@ -1,4 +1,4 @@
-use ruma_api::{OutgoingRequest as _, OutgoingResponse as _, SendAccessToken};
+use ruma_api::{MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken};
 
 mod get {
     ruma_api::ruma_api! {
@@ -6,7 +6,7 @@ mod get {
             description: "Does something.",
             method: GET,
             name: "no_fields",
-            path: "/_matrix/my/endpoint",
+            unstable_path: "/_matrix/my/endpoint",
             rate_limited: false,
             authentication: None,
         }
@@ -22,7 +22,7 @@ mod post {
             description: "Does something.",
             method: POST,
             name: "no_fields",
-            path: "/_matrix/my/endpoint",
+            unstable_path: "/_matrix/my/endpoint",
             rate_limited: false,
             authentication: None,
         }
@@ -36,7 +36,11 @@ mod post {
 fn empty_post_request_http_repr() {
     let req = post::Request {};
     let http_req = req
-        .try_into_http_request::<Vec<u8>>("https://homeserver.tld", SendAccessToken::None)
+        .try_into_http_request::<Vec<u8>>(
+            "https://homeserver.tld",
+            SendAccessToken::None,
+            &[MatrixVersion::V1_1],
+        )
         .unwrap();
 
     // Empty POST requests should contain an empty dictionary as a body...
@@ -46,7 +50,11 @@ fn empty_post_request_http_repr() {
 fn empty_get_request_http_repr() {
     let req = get::Request {};
     let http_req = req
-        .try_into_http_request::<Vec<u8>>("https://homeserver.tld", SendAccessToken::None)
+        .try_into_http_request::<Vec<u8>>(
+            "https://homeserver.tld",
+            SendAccessToken::None,
+            &[MatrixVersion::V1_1],
+        )
         .unwrap();
 
     // ... but GET requests' bodies should be empty.

@@ -1,10 +1,10 @@
 #![allow(dead_code)] // silence never-used warning for from_vec in generated code
 
-#[cfg(feature = "default")]
-use semver::Version;
-
 #[cfg(not(feature = "default"))]
 use std::string::String as Version;
+
+#[cfg(feature = "default")]
+use semver::Version;
 
 xflags::xflags! {
     src "./src/flags.rs"

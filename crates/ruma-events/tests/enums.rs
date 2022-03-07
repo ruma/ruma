@@ -335,13 +335,11 @@ fn serialize_and_deserialize_from_display_form() {
     serde_json_eq(RoomAccountDataEventType::FullyRead, json!("m.fully_read"));
     serde_json_eq(EventType::KeyVerificationAccept, json!("m.key.verification.accept"));
     serde_json_eq(EventType::KeyVerificationCancel, json!("m.key.verification.cancel"));
-    // m.key.verification.ready is unstable-pre-spec
-    // serde_json_eq(EventType::KeyVerificationDone, json!("m.key.verification.done"));
+    serde_json_eq(EventType::KeyVerificationDone, json!("m.key.verification.done"));
     serde_json_eq(EventType::KeyVerificationKey, json!("m.key.verification.key"));
     serde_json_eq(ToDeviceEventType::KeyVerificationKey, json!("m.key.verification.key"));
     serde_json_eq(EventType::KeyVerificationMac, json!("m.key.verification.mac"));
-    // m.key.verification.ready is unstable-pre-spec
-    // serde_json_eq(EventType::KeyVerificationReady, json!("m.key.verification.ready"));
+    serde_json_eq(EventType::KeyVerificationReady, json!("m.key.verification.ready"));
     serde_json_eq(EventType::KeyVerificationRequest, json!("m.key.verification.request"));
     serde_json_eq(EventType::KeyVerificationStart, json!("m.key.verification.start"));
     serde_json_eq(EventType::IgnoredUserList, json!("m.ignored_user_list"));
@@ -378,5 +376,4 @@ fn serialize_and_deserialize_from_display_form() {
     serde_json_eq(EventType::Tag, json!("m.tag"));
     serde_json_eq(EventType::Typing, json!("m.typing"));
     serde_json_eq(EphemeralRoomEventType::Typing, json!("m.typing"));
-    serde_json_eq(EventType::_Custom("io.ruma.test".into()), json!("io.ruma.test"));
 }

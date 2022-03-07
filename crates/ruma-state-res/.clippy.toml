@@ -1,7 +1,19 @@
 msrv = "1.55"
 avoid-breaking-exported-api = false
+disallowed-methods = [
+    # https://github.com/serde-rs/json/issues/160
+    "serde_json::from_reader",
+]
 disallowed-types = []
-enforced-import-renames = [ { path = "serde_json::Value", rename = "JsonValue" } ]
+enforced-import-renames = [
+    { path = "serde_json::from_slice", rename = "from_json_slice" },
+    { path = "serde_json::from_str", rename = "from_json_str" },
+    { path = "serde_json::from_value", rename = "from_json_value" },
+    { path = "serde_json::to_value", rename = "to_json_value" },
+    { path = "serde_json::value::to_raw_value", rename = "to_raw_json_value" },
+    { path = "serde_json::value::RawValue", rename = "RawJsonValue" },
+    { path = "serde_json::Value", rename = "JsonValue" },
+]
 standard-macro-braces = [
     { name = "btreeset", brace = "[" },
     { name = "btreemap", brace = "{" },

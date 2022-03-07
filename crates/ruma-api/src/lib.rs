@@ -11,17 +11,16 @@
 //! Such types can then be used by client code to make requests, and by server code to fulfill
 //! those requests.
 //!
-//! [apis]: https://matrix.org/docs/spec/#matrix-apis
+//! [apis]: https://spec.matrix.org/v1.2/#matrix-apis
 
 #![warn(missing_docs)]
 
 #[cfg(not(all(feature = "client", feature = "server")))]
 compile_error!("ruma_api's Cargo features only exist as a workaround are not meant to be disabled");
 
-use std::{convert::TryInto as _, error::Error as StdError};
+use std::{convert::TryInto as _, error::Error as StdError, fmt};
 
 use bytes::BufMut;
-use http::Method;
 use ruma_identifiers::UserId;
 
 /// Generates a `ruma_api::Endpoint` from a concise definition.
@@ -136,9 +135,10 @@ use ruma_identifiers::UserId;
 ///             description: "Does something.",
 ///             method: POST,
 ///             name: "some_endpoint",
-///             path: "/_matrix/some/endpoint/:baz",
+///             stable_path: "/_matrix/some/endpoint/:baz",
 ///             rate_limited: false,
 ///             authentication: None,
+///             added: 1.1,
 ///         }
 ///
 ///         request: {
@@ -177,9 +177,10 @@ use ruma_identifiers::UserId;
 ///             description: "Does something.",
 ///             method: PUT,
 ///             name: "newtype_body_endpoint",
-///             path: "/_matrix/some/newtype/body/endpoint",
+///             stable_path: "/_matrix/some/newtype/body/endpoint",
 ///             rate_limited: false,
 ///             authentication: None,
+///             added: 1.1,
 ///         }
 ///
 ///         request: {
@@ -209,6 +210,10 @@ pub mod exports {
     pub use serde;
     pub use serde_json;
 }
+
+mod metadata;
+
+pub use metadata::{MatrixVersion, Metadata};
 
 use error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
 
@@ -264,8 +269,18 @@ pub trait OutgoingRequest: Sized {
 
     /// Tries to convert this request into an `http::Request`.
     ///
-    /// This method should only fail when called on endpoints that require authentication. It may
-    /// also fail with a serialization error in case of bugs in Ruma though.
+    /// On endpoints with authentication, when adequate information isn't provided through
+    /// access_token, this could result in an error. It may also fail with a serialization error
+    /// in case of bugs in Ruma though.
+    ///
+    /// It may also fail if, for every version in `considering_versions`;
+    /// - The endpoint is too old, and has been removed in all versions.
+    ///   ([`EndpointRemoved`](error::IntoHttpError::EndpointRemoved))
+    /// - The endpoint is too new, and no unstable path is known for this endpoint.
+    ///   ([`NoUnstablePath`](error::IntoHttpError::NoUnstablePath))
+    ///
+    /// Finally, this will emit a warning through `tracing` if it detects if any version in
+    /// `considering_versions` has deprecated this endpoint.
     ///
     /// The endpoints path will be appended to the given `base_url`, for example
     /// `https://matrix.org`. Since all paths begin with a slash, it is not necessary for the
@@ -274,6 +289,7 @@ pub trait OutgoingRequest: Sized {
         self,
         base_url: &str,
         access_token: SendAccessToken<'_>,
+        considering_versions: &'_ [MatrixVersion],
     ) -> Result<http::Request<T>, IntoHttpError>;
 }
 
@@ -293,14 +309,16 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
     /// Tries to convert this request into an `http::Request` and appends a virtual `user_id` to
     /// [assert Appservice identity][id_assert].
     ///
-    /// [id_assert]: https://matrix.org/docs/spec/application_service/r0.1.2#identity-assertion
+    /// [id_assert]: https://spec.matrix.org/v1.2/application-service-api/#identity-assertion
     fn try_into_http_request_with_user_id<T: Default + BufMut>(
         self,
         base_url: &str,
         access_token: SendAccessToken<'_>,
         user_id: &UserId,
+        considering_versions: &'_ [MatrixVersion],
     ) -> Result<http::Request<T>, IntoHttpError> {
-        let mut http_request = self.try_into_http_request(base_url, access_token)?;
+        let mut http_request =
+            self.try_into_http_request(base_url, access_token, considering_versions)?;
         let user_id_query = ruma_serde::urlencoded::to_string(&[("user_id", user_id)])?;
 
         let uri = http_request.uri().to_owned();
@@ -336,10 +354,17 @@ pub trait IncomingRequest: Sized {
     /// Metadata about the endpoint.
     const METADATA: Metadata;
 
-    /// Tries to turn the given `http::Request` into this request type.
-    fn try_from_http_request<T: AsRef<[u8]>>(
-        req: http::Request<T>,
-    ) -> Result<Self, FromHttpRequestError>;
+    /// Tries to turn the given `http::Request` into this request type,
+    /// together with the corresponding path arguments.
+    ///
+    /// Note: The strings in path_args need to be percent-decoded.
+    fn try_from_http_request<B, S>(
+        req: http::Request<B>,
+        path_args: &[S],
+    ) -> Result<Self, FromHttpRequestError>
+    where
+        B: AsRef<[u8]>,
+        S: AsRef<str>;
 }
 
 /// A request type for a Matrix API endpoint, used for sending responses.
@@ -391,26 +416,65 @@ pub enum AuthScheme {
     QueryOnlyAccessToken,
 }
 
-/// Metadata about an API endpoint.
-#[derive(Clone, Debug)]
-#[allow(clippy::exhaustive_structs)]
-pub struct Metadata {
-    /// A human-readable description of the endpoint.
-    pub description: &'static str,
+// This function helps picks the right path (or an error) from a set of matrix versions.
+//
+// This function needs to be public, yet hidden, as all `try_into_http_request`s would be using it.
+//
+// Note this assumes that `versions`;
+// - at least has 1 element
+// - have all elements sorted by its `.into_parts` representation.
+#[doc(hidden)]
+pub fn select_path<'a>(
+    versions: &'_ [MatrixVersion],
+    metadata: &'_ Metadata,
+    unstable: Option<fmt::Arguments<'a>>,
+    r0: Option<fmt::Arguments<'a>>,
+    stable: Option<fmt::Arguments<'a>>,
+) -> Result<fmt::Arguments<'a>, IntoHttpError> {
+    let greater_or_equal_any =
+        |version: MatrixVersion| versions.iter().any(|v| v.is_superset_of(version));
+    let greater_or_equal_all =
+        |version: MatrixVersion| versions.iter().all(|v| v.is_superset_of(version));
 
-    /// The HTTP method used by this endpoint.
-    pub method: Method,
+    let is_stable_any = metadata.added.map(greater_or_equal_any).unwrap_or(false);
 
-    /// A unique identifier for this endpoint.
-    pub name: &'static str,
+    let is_removed_all = metadata.removed.map(greater_or_equal_all).unwrap_or(false);
 
-    /// The path of this endpoint's URL, with variable names where path parameters should be filled
-    /// in during a request.
-    pub path: &'static str,
+    // Only when all the versions (e.g. 1.6-9) are compatible with the version that added it (e.g.
+    // 1.1), yet are also "after" the version that removed it (e.g. 1.3), then we return that error.
+    // Otherwise, this all versions may fall into a different major range, such as 2.X, where
+    // "after" and "compatible" do not exist with the 1.X range, so we at least need to make sure
+    // that the versions are part of the same "range" through the `added` check.
+    if is_stable_any && is_removed_all {
+        return Err(IntoHttpError::EndpointRemoved(metadata.removed.unwrap()));
+    }
 
-    /// Whether or not this endpoint is rate limited by the server.
-    pub rate_limited: bool,
+    if is_stable_any {
+        let is_deprecated_any = metadata.deprecated.map(greater_or_equal_any).unwrap_or(false);
 
-    /// What authentication scheme the server uses for this endpoint.
-    pub authentication: AuthScheme,
+        if is_deprecated_any {
+            let is_removed_any = metadata.removed.map(greater_or_equal_any).unwrap_or(false);
+
+            if is_removed_any {
+                tracing::warn!("endpoint {} is deprecated, but also removed in one of more server-passed versions: {:?}", metadata.name, versions)
+            } else {
+                tracing::warn!(
+                    "endpoint {} is deprecated in one of more server-passed versions: {:?}",
+                    metadata.name,
+                    versions
+                )
+            }
+        }
+
+        if let Some(r0) = r0 {
+            if versions.iter().all(|&v| v == MatrixVersion::V1_0) {
+                // Endpoint was added in 1.0, we return the r0 variant.
+                return Ok(r0);
+            }
+        }
+
+        return Ok(stable.expect("metadata.added enforces the stable path to exist"));
+    }
+
+    unstable.ok_or(IntoHttpError::NoUnstablePath)
 }

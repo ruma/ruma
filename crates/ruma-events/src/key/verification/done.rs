@@ -1,6 +1,9 @@
-//! Types for the `m.key.verification.done` event.
+//! Types for the [`m.key.verification.done`] event.
+//!
+//! [`m.key.verification.done`]: https://spec.matrix.org/v1.2/client-server-api/#mkeyverificationdone
 
 use ruma_events_macros::EventContent;
+use ruma_identifiers::TransactionId;
 use serde::{Deserialize, Serialize};
 
 use super::Relation;
@@ -15,12 +18,12 @@ pub struct ToDeviceKeyVerificationDoneEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the `m.key.verification.start` message.
-    pub transaction_id: String,
+    pub transaction_id: Box<TransactionId>,
 }
 
 impl ToDeviceKeyVerificationDoneEventContent {
     /// Creates a new `ToDeviceKeyVerificationDoneEventContent` with the given transaction ID.
-    pub fn new(transaction_id: String) -> Self {
+    pub fn new(transaction_id: Box<TransactionId>) -> Self {
         Self { transaction_id }
     }
 }

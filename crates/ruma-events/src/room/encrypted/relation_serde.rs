@@ -1,8 +1,10 @@
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-#[cfg(feature = "unstable-pre-spec")]
-use super::{Annotation, Reference, Replacement};
-use super::{InReplyTo, Relation};
+#[cfg(feature = "unstable-msc2677")]
+use super::Annotation;
+#[cfg(feature = "unstable-msc2676")]
+use super::Replacement;
+use super::{InReplyTo, Reference, Relation};
 
 impl<'de> Deserialize<'de> for Relation {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -14,11 +16,12 @@ impl<'de> Deserialize<'de> for Relation {
                 return Relation::Reply { in_reply_to };
             }
 
-            #[cfg(feature = "unstable-pre-spec")]
             if let Some(relation) = ev.relates_to.relation {
                 return match relation {
+                    #[cfg(feature = "unstable-msc2677")]
                     RelationJsonRepr::Annotation(a) => Relation::Annotation(a),
                     RelationJsonRepr::Reference(r) => Relation::Reference(r),
+                    #[cfg(feature = "unstable-msc2676")]
                     RelationJsonRepr::Replacement(Replacement { event_id }) => {
                         Relation::Replacement(Replacement { event_id })
                     }
@@ -42,17 +45,16 @@ impl Serialize for Relation {
     {
         #[allow(clippy::needless_update)]
         let relates_to = match self {
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-msc2677")]
             Relation::Annotation(r) => RelatesToJsonRepr {
                 relation: Some(RelationJsonRepr::Annotation(r.clone())),
                 ..Default::default()
             },
-            #[cfg(feature = "unstable-pre-spec")]
             Relation::Reference(r) => RelatesToJsonRepr {
                 relation: Some(RelationJsonRepr::Reference(r.clone())),
                 ..Default::default()
             },
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-msc2676")]
             Relation::Replacement(r) => RelatesToJsonRepr {
                 relation: Some(RelationJsonRepr::Replacement(r.clone())),
                 ..Default::default()
@@ -80,31 +82,22 @@ struct RelatesToJsonRepr {
     #[serde(rename = "m.in_reply_to", skip_serializing_if = "Option::is_none")]
     in_reply_to: Option<InReplyTo>,
 
-    #[cfg(feature = "unstable-pre-spec")]
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     relation: Option<RelationJsonRepr>,
 }
 
 impl RelatesToJsonRepr {
     fn is_empty(&self) -> bool {
-        #[cfg(not(feature = "unstable-pre-spec"))]
-        {
-            self.in_reply_to.is_none()
-        }
-
-        #[cfg(feature = "unstable-pre-spec")]
-        {
-            self.in_reply_to.is_none() && self.relation.is_none()
-        }
+        self.in_reply_to.is_none() && self.relation.is_none()
     }
 }
 
 /// A relation, which associates new information to an existing event.
 #[derive(Clone, Deserialize, Serialize)]
-#[cfg(feature = "unstable-pre-spec")]
 #[serde(tag = "rel_type")]
 enum RelationJsonRepr {
     /// An annotation to an event.
+    #[cfg(feature = "unstable-msc2677")]
     #[serde(rename = "m.annotation")]
     Annotation(Annotation),
 
@@ -113,6 +106,7 @@ enum RelationJsonRepr {
     Reference(Reference),
 
     /// An event that replaces another event.
+    #[cfg(feature = "unstable-msc2676")]
     #[serde(rename = "m.replace")]
     Replacement(Replacement),
 

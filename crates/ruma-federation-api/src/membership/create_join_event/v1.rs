@@ -1,8 +1,9 @@
-//! [PUT /_matrix/federation/v1/send_join/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v1-send-join-roomid-eventid)
+//! `/v1/` ([spec])
+//!
+//! [spec]: https://spec.matrix.org/v1.2/server-server-api/#put_matrixfederationv1send_joinroomideventid
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{EventId, RoomId};
-
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::RoomState;
@@ -12,9 +13,10 @@ ruma_api! {
         description: "Send a join event to a resident server.",
         name: "create_join_event",
         method: PUT,
-        path: "/_matrix/federation/v1/send_join/:room_id/:event_id",
+        stable_path: "/_matrix/federation/v1/send_join/:room_id/:event_id",
         rate_limited: false,
         authentication: ServerSignatures,
+        added: 1.0,
     }
 
     request: {

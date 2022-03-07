@@ -1,6 +1,6 @@
 use std::{collections::BTreeMap, convert::TryInto, fmt, marker::PhantomData};
 
-use js_int::Int;
+use js_int::{Int, UInt};
 use serde::{
     de::{self, Deserializer, IntoDeserializer as _, MapAccess, Visitor},
     ser::Serializer,
@@ -52,8 +52,8 @@ where
 /// Take either an integer number or a string and deserialize to an integer number.
 ///
 /// To be used like this:
-/// `#[serde(deserialize_with = "int_or_string_to_int")]`
-pub fn int_or_string_to_int<'de, D>(de: D) -> Result<Int, D::Error>
+/// `#[serde(deserialize_with = "deserialize_v1_powerlevel")]`
+pub fn deserialize_v1_powerlevel<'de, D>(de: D) -> Result<Int, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -107,7 +107,12 @@ where
         }
 
         fn visit_str<E: de::Error>(self, v: &str) -> Result<Self::Value, E> {
-            v.parse().map_err(E::custom)
+            let trimmed = v.trim();
+
+            match trimmed.strip_prefix('+') {
+                Some(without) => without.parse::<UInt>().map(|u| u.into()).map_err(E::custom),
+                None => trimmed.parse().map_err(E::custom),
+            }
         }
     }
 
@@ -118,8 +123,10 @@ where
 /// those to integer numbers.
 ///
 /// To be used like this:
-/// `#[serde(deserialize_with = "btreemap_int_or_string_to_int_values")]`
-pub fn btreemap_int_or_string_to_int_values<'de, D, T>(de: D) -> Result<BTreeMap<T, Int>, D::Error>
+/// `#[serde(deserialize_with = "btreemap_deserialize_v1_powerlevel_values")]`
+pub fn btreemap_deserialize_v1_powerlevel_values<'de, D, T>(
+    de: D,
+) -> Result<BTreeMap<T, Int>, D::Error>
 where
     D: Deserializer<'de>,
     T: Deserialize<'de> + Ord,
@@ -132,7 +139,7 @@ where
         where
             D: Deserializer<'de>,
         {
-            int_or_string_to_int(deserializer).map(IntWrap)
+            deserialize_v1_powerlevel(deserializer).map(IntWrap)
         }
     }
 
@@ -176,19 +183,39 @@ mod tests {
     use matches::assert_matches;
     use serde::Deserialize;
 
-    use super::int_or_string_to_int;
+    use super::deserialize_v1_powerlevel;
+
+    #[derive(Debug, Deserialize)]
+    struct Test {
+        #[serde(deserialize_with = "deserialize_v1_powerlevel")]
+        num: Int,
+    }
 
     #[test]
     fn int_or_string() -> serde_json::Result<()> {
-        #[derive(Debug, Deserialize)]
-        struct Test {
-            #[serde(deserialize_with = "int_or_string_to_int")]
-            num: Int,
-        }
-
         assert_matches!(
             serde_json::from_value::<Test>(serde_json::json!({ "num": "0" }))?,
             Test { num } if num == int!(0)
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn weird_plus_string() -> serde_json::Result<()> {
+        assert_matches!(
+            serde_json::from_value::<Test>(serde_json::json!({ "num": "  +0000000001000   " }))?,
+            Test { num } if num == int!(1000)
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn weird_minus_string() -> serde_json::Result<()> {
+        assert_matches!(
+            serde_json::from_value::<Test>(serde_json::json!({ "num": "  \n\n-0000000000000001000   " }))?,
+            Test { num } if num == int!(-1000)
         );
 
         Ok(())

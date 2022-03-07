@@ -12,7 +12,7 @@ use ruma_events::{
     EventType,
 };
 use ruma_identifiers::{RoomVersionId, UserId};
-use ruma_serde::Raw;
+use ruma_serde::{Base64, Raw};
 use serde::{de::IgnoredAny, Deserialize};
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 use tracing::{debug, error, info, warn};
@@ -28,7 +28,6 @@ struct GetMembership {
 #[derive(Deserialize)]
 struct RoomMemberContentFields {
     membership: Option<Raw<MembershipState>>,
-    #[cfg(feature = "unstable-pre-spec")]
     join_authorised_via_users_server: Option<Raw<Box<UserId>>>,
 }
 
@@ -129,7 +128,7 @@ pub fn auth_check<E: Event>(
 
     let sender = incoming_event.sender();
 
-    // Implementation of https://matrix.org/docs/spec/rooms/v1#authorization-rules
+    // Implementation of https://spec.matrix.org/v1.2/rooms/v1/#authorization-rules
     //
     // 1. If type is m.room.create:
     if *incoming_event.event_type() == EventType::RoomCreate {
@@ -242,10 +241,8 @@ pub fn auth_check<E: Event>(
         let target_user =
             <&UserId>::try_from(state_key).map_err(|e| Error::InvalidPdu(format!("{}", e)))?;
 
-        #[cfg(feature = "unstable-pre-spec")]
         let join_authed_user =
             content.join_authorised_via_users_server.as_ref().and_then(|u| u.deserialize().ok());
-        #[cfg(feature = "unstable-pre-spec")]
         let join_authed_user_membership = if let Some(auth_user) = &join_authed_user {
             fetch_state(&EventType::RoomMember, auth_user.as_str())
                 .and_then(|mem| from_json_str::<GetMembership>(mem.content().get()).ok())
@@ -264,9 +261,7 @@ pub fn auth_check<E: Event>(
             current_third_party_invite,
             power_levels_event.as_ref(),
             fetch_state(&EventType::RoomJoinRules, "").as_ref(),
-            #[cfg(feature = "unstable-pre-spec")]
             join_authed_user.as_deref(),
-            #[cfg(feature = "unstable-pre-spec")]
             join_authed_user_membership,
         )? {
             return Ok(false);
@@ -409,8 +404,8 @@ fn valid_membership_change(
     current_third_party_invite: Option<impl Event>,
     power_levels_event: Option<impl Event>,
     join_rules_event: Option<impl Event>,
-    #[cfg(feature = "unstable-pre-spec")] authed_user_id: Option<&UserId>,
-    #[cfg(feature = "unstable-pre-spec")] auth_user_membership: Option<MembershipState>,
+    authed_user_id: Option<&UserId>,
+    auth_user_membership: Option<MembershipState>,
 ) -> Result<bool> {
     #[derive(Deserialize)]
     struct GetThirdPartyInvite {
@@ -462,26 +457,15 @@ fn valid_membership_change(
     let target_user_membership_event_id =
         target_user_membership_event.as_ref().map(|e| e.event_id());
 
-    #[cfg(not(feature = "unstable-pre-spec"))]
-    let restricted = false;
-
-    #[cfg(not(feature = "unstable-pre-spec"))]
-    let allow_based_on_membership = false;
-
-    #[cfg(not(feature = "unstable-pre-spec"))]
-    let restricted_join_rules_auth = false;
     // FIXME: `JoinRule::Restricted(_)` can contain conditions that allow a user to join if
     // they are met. So far the spec talks about roomId based auth inheritance, the problem with
     // this is that ruma-state-res can only request events from one room at a time :(
-    #[cfg(feature = "unstable-pre-spec")]
     let restricted = matches!(join_rules, JoinRule::Restricted(_));
 
-    #[cfg(feature = "unstable-pre-spec")]
     let allow_based_on_membership =
         matches!(target_user_current_membership, MembershipState::Invite | MembershipState::Join)
             || authed_user_id.is_none();
 
-    #[cfg(feature = "unstable-pre-spec")]
     let restricted_join_rules_auth = if let Some(authed_user_id) = authed_user_id {
         // Is the authorised user allowed to invite users into this rooom
         let (auth_user_pl, invite_level) = if let Some(pl) = &power_levels_event {
@@ -631,7 +615,6 @@ fn valid_membership_change(
                 allow
             }
         }
-        #[cfg(feature = "unstable-pre-spec")]
         MembershipState::Knock if room_version.allow_knocking => {
             // 1. If the `join_rule` is anything other than `knock`, reject.
             if join_rules != JoinRule::Knock {
@@ -902,64 +885,70 @@ fn verify_third_party_invite(
         return false;
     }
 
-    // If there is no m.room.third_party_invite event in the current room state
-    // with state_key matching token, reject
-    if let Some(current_tpid) = current_third_party_invite {
-        if current_tpid.state_key() != Some(&tp_id.signed.token) {
-            return false;
-        }
+    // If there is no m.room.third_party_invite event in the current room state with state_key
+    // matching token, reject
+    let current_tpid = match current_third_party_invite {
+        Some(id) => id,
+        None => return false,
+    };
 
-        if sender != current_tpid.sender() {
-            return false;
-        }
-
-        // If any signature in signed matches any public key in the m.room.third_party_invite event,
-        // allow
-        if let Ok(tpid_ev) =
-            from_json_str::<RoomThirdPartyInviteEventContent>(current_tpid.content().get())
-        {
-            // A list of public keys in the public_keys field
-            for key in tpid_ev.public_keys.unwrap_or_default() {
-                if key.public_key == tp_id.signed.token {
-                    return true;
-                }
-            }
-            // A single public key in the public_key field
-            tpid_ev.public_key == tp_id.signed.token
-        } else {
-            false
-        }
-    } else {
-        false
+    if current_tpid.state_key() != Some(&tp_id.signed.token) {
+        return false;
     }
+
+    if sender != current_tpid.sender() {
+        return false;
+    }
+
+    // If any signature in signed matches any public key in the m.room.third_party_invite event,
+    // allow
+    let tpid_ev =
+        match from_json_str::<RoomThirdPartyInviteEventContent>(current_tpid.content().get()) {
+            Ok(ev) => ev,
+            Err(_) => return false,
+        };
+
+    let decoded_invite_token = match Base64::parse(&tp_id.signed.token) {
+        Ok(tok) => tok,
+        // FIXME: Log a warning?
+        Err(_) => return false,
+    };
+
+    // A list of public keys in the public_keys field
+    for key in tpid_ev.public_keys.unwrap_or_default() {
+        if key.public_key == decoded_invite_token {
+            return true;
+        }
+    }
+
+    // A single public key in the public_key field
+    tpid_ev.public_key == decoded_invite_token
 }
 
 #[cfg(test)]
 mod tests {
     use std::sync::Arc;
 
-    use crate::{
-        event_auth::valid_membership_change,
-        test_utils::{
-            alice, charlie, member_content_ban, to_pdu_event, StateEvent, INITIAL_EVENTS,
-        },
-        Event, RoomVersion, StateMap,
-    };
-    #[cfg(feature = "unstable-pre-spec")]
-    use {
-        crate::test_utils::{bob, ella, event_id, room_id},
-        ruma_events::room::{
+    use ruma_events::{
+        room::{
             join_rules::{
                 AllowRule, JoinRule, Restricted, RoomJoinRulesEventContent, RoomMembership,
             },
             member::{MembershipState, RoomMemberEventContent},
         },
-        serde_json::value::to_raw_value as to_raw_json_value,
+        EventType,
+    };
+    use serde_json::value::to_raw_value as to_raw_json_value;
+
+    use crate::{
+        event_auth::valid_membership_change,
+        test_utils::{
+            alice, bob, charlie, ella, event_id, member_content_ban, room_id, to_pdu_event,
+            StateEvent, INITIAL_EVENTS,
+        },
+        Event, RoomVersion, StateMap,
     };
 
-    use ruma_events::EventType;
-
-    // #[cfg(not(feature = "unstable-pre-spec"))]
     #[test]
     fn test_ban_pass() {
         let _ =
@@ -1001,15 +990,12 @@ mod tests {
             None::<StateEvent>,
             fetch_state(EventType::RoomPowerLevels, "".to_owned()),
             fetch_state(EventType::RoomJoinRules, "".to_owned()),
-            #[cfg(feature = "unstable-pre-spec")]
             None,
-            #[cfg(feature = "unstable-pre-spec")]
-            None
+            None,
         )
         .unwrap());
     }
 
-    // #[cfg(not(feature = "unstable-pre-spec"))]
     #[test]
     fn test_ban_fail() {
         let _ =
@@ -1051,15 +1037,12 @@ mod tests {
             None::<StateEvent>,
             fetch_state(EventType::RoomPowerLevels, "".to_owned()),
             fetch_state(EventType::RoomJoinRules, "".to_owned()),
-            #[cfg(feature = "unstable-pre-spec")]
             None,
-            #[cfg(feature = "unstable-pre-spec")]
-            None
+            None,
         )
         .unwrap());
     }
 
-    #[cfg(feature = "unstable-pre-spec")]
     #[test]
     fn test_restricted_join_rule() {
         let _ =
@@ -1152,7 +1135,6 @@ mod tests {
         .unwrap());
     }
 
-    #[cfg(feature = "unstable-pre-spec")]
     #[test]
     fn test_knock() {
         let _ =

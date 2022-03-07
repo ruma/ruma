@@ -1,15 +1,20 @@
 use ruma_api::ruma_api;
-use ruma_serde::Raw;
 use ruma_events::{tag::TagEvent, AnyRoomEvent};
+use ruma_serde::Raw;
 
 ruma_api! {
     metadata: {
         description: "Does something.",
         method: POST, // An `http::Method` constant. No imports required.
         name: "some_endpoint",
-        path: "/_matrix/some/endpoint/:baz",
+        unstable_path: "/_matrix/some/msc1234/endpoint/:baz",
+        r0_path: "/_matrix/some/r0/endpoint/:baz",
+        stable_path: "/_matrix/some/v1/endpoint/:baz",
         rate_limited: false,
         authentication: None,
+        added: 1.0,
+        deprecated: 1.1,
+        removed: 1.2,
     }
 
     request: {
@@ -50,4 +55,14 @@ ruma_api! {
     }
 }
 
-fn main() {}
+fn main() {
+    use ruma_api::MatrixVersion;
+
+    assert_eq!(METADATA.unstable_path, Some("/_matrix/some/msc1234/endpoint/:baz"));
+    assert_eq!(METADATA.r0_path, Some("/_matrix/some/r0/endpoint/:baz"));
+    assert_eq!(METADATA.stable_path, Some("/_matrix/some/v1/endpoint/:baz"));
+
+    assert_eq!(METADATA.added, Some(MatrixVersion::V1_0));
+    assert_eq!(METADATA.deprecated, Some(MatrixVersion::V1_1));
+    assert_eq!(METADATA.removed, Some(MatrixVersion::V1_2));
+}

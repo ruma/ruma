@@ -1,5 +1,4 @@
 [package]
-authors = ["Wim de With <wf@dewith.io>"]
 categories = ["api-bindings", "web-programming"]
 description = "Types for the endpoints in the Matrix application service API."
 homepage = "https://www.ruma.io/"
@@ -8,7 +7,7 @@ license = "MIT"
 name = "ruma-appservice-api"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2018"
 
 [package.metadata.docs.rs]
@@ -21,12 +20,12 @@ client = []
 server = []
 
 [dependencies]
-ruma-api = { version = "0.18.5", path = "../ruma-api" }
-ruma-client-api = { version = "0.12.3", path = "../ruma-client-api", features = ["client"], optional = true }
-ruma-common = { version = "0.6.0", path = "../ruma-common" }
-ruma-events = { version = "0.24.6", path = "../ruma-events" }
-ruma-identifiers = { version = "0.20.0", path = "../ruma-identifiers" }
-ruma-serde = { version = "0.5.0", path = "../ruma-serde" }
+ruma-api = { version = "0.20.0", path = "../ruma-api" }
+ruma-client-api = { version = "0.13.0", path = "../ruma-client-api", features = ["client"], optional = true }
+ruma-common = { version = "0.8.0", path = "../ruma-common" }
+ruma-events = { version = "0.26.0", path = "../ruma-events" }
+ruma-identifiers = { version = "0.22.0", path = "../ruma-identifiers" }
+ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.61"
 tracing = { version = "0.1.25", optional = true }

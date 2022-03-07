@@ -1,9 +1,13 @@
-//! Types for the `m.room.message.feedback` event.
+//! Types for the [`m.room.message.feedback`] event.
+//!
+//! [`m.room.message.feedback`]: https://spec.matrix.org/v1.2/client-server-api/#mroommessagefeedback
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::EventId;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
+
+use crate::PrivOwnedStr;
 
 /// The content of an `m.room.message.feedback` event.
 ///
@@ -45,7 +49,7 @@ pub enum FeedbackType {
     Read,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl FeedbackType {

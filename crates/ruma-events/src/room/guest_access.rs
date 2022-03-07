@@ -1,8 +1,12 @@
-//! Types for the `m.room.guest_access` event.
+//! Types for the [`m.room.guest_access`] event.
+//!
+//! [`m.room.guest_access`]: https://spec.matrix.org/v1.2/client-server-api/#mroomguest_access
 
 use ruma_events_macros::EventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
+
+use crate::PrivOwnedStr;
 
 /// The content of an `m.room.guest_access` event.
 ///
@@ -40,7 +44,7 @@ pub enum GuestAccess {
     Forbidden,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl GuestAccess {

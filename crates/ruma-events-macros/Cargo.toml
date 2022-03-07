@@ -1,9 +1,4 @@
 [package]
-authors = [
-    "Jimmy Cuadra <jimmy@jimmycuadra.com>",
-    "Jonas Platte <jplatte@posteo.de>",
-    "Devin Ragotzy <devin.ragotzy@gmail.com>",
-]
 categories = ["api-bindings", "web-programming"]
 description = "A procedural macro used by the ruma-events crate."
 edition = "2018"
@@ -13,7 +8,7 @@ license = "MIT"
 name = "ruma-events-macros"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.24.6"
+version = "0.26.0"
 
 [lib]
 proc-macro = true

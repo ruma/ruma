@@ -2,14 +2,12 @@
 
 #![allow(clippy::exhaustive_structs)]
 
-use std::convert::TryFrom;
-
 use bytes::BufMut;
 use http::{header::CONTENT_TYPE, method::Method};
 use ruma_api::{
     error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError, ServerError},
-    AuthScheme, EndpointError, IncomingRequest, IncomingResponse, Metadata, OutgoingRequest,
-    OutgoingResponse, SendAccessToken,
+    AuthScheme, EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata,
+    OutgoingRequest, OutgoingResponse, SendAccessToken,
 };
 use ruma_identifiers::{RoomAliasId, RoomId};
 use ruma_serde::Outgoing;
@@ -30,9 +28,14 @@ const METADATA: Metadata = Metadata {
     description: "Add an alias to a room.",
     method: Method::PUT,
     name: "create_alias",
-    path: "/_matrix/client/r0/directory/room/:room_alias",
+    unstable_path: Some("/_matrix/client/unstable/directory/room/:room_alias"),
+    r0_path: Some("/_matrix/client/r0/directory/room/:room_alias"),
+    stable_path: Some("/_matrix/client/v3/directory/room/:room_alias"),
     rate_limited: false,
     authentication: AuthScheme::None,
+    added: Some(MatrixVersion::V1_0),
+    deprecated: Some(MatrixVersion::V1_1),
+    removed: Some(MatrixVersion::V1_2),
 };
 
 impl OutgoingRequest for Request {
@@ -45,9 +48,19 @@ impl OutgoingRequest for Request {
         self,
         base_url: &str,
         _access_token: SendAccessToken<'_>,
+        considering_versions: &'_ [MatrixVersion],
     ) -> Result<http::Request<T>, IntoHttpError> {
-        let url = (base_url.to_owned() + METADATA.path)
-            .replace(":room_alias", &self.room_alias.to_string());
+        let url = format!(
+            "{}{}",
+            base_url,
+            ruma_api::select_path(
+                considering_versions,
+                &METADATA,
+                Some(format_args!("/_matrix/client/unstable/directory/room/{}", self.room_alias)),
+                Some(format_args!("/_matrix/client/r0/directory/room/{}", self.room_alias)),
+                Some(format_args!("/_matrix/client/v3/directory/room/{}", self.room_alias)),
+            )?
+        );
 
         let request_body = RequestBody { room_id: self.room_id };
 
@@ -69,16 +82,20 @@ impl IncomingRequest for Request {
 
     const METADATA: Metadata = METADATA;
 
-    fn try_from_http_request<T: AsRef<[u8]>>(
-        request: http::Request<T>,
-    ) -> Result<Self, FromHttpRequestError> {
-        let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
-        let room_alias = {
-            let decoded =
-                percent_encoding::percent_decode(path_segments[5].as_bytes()).decode_utf8()?;
-
-            TryFrom::try_from(&*decoded)?
-        };
+    fn try_from_http_request<B, S>(
+        request: http::Request<B>,
+        path_args: &[S],
+    ) -> Result<Self, FromHttpRequestError>
+    where
+        B: AsRef<[u8]>,
+        S: AsRef<str>,
+    {
+        let (room_alias,) = serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
+            _,
+            serde::de::value::Error,
+        >::new(
+            path_args.iter().map(::std::convert::AsRef::as_ref),
+        ))?;
 
         let request_body: RequestBody = serde_json::from_slice(request.body().as_ref())?;
 

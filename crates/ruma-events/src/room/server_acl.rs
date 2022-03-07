@@ -1,7 +1,11 @@
-//! Types for the `m.room.server_acl` event.
+//! Types for the [`m.room.server_acl`] event.
+//!
+//! [`m.room.server_acl`]: https://spec.matrix.org/v1.2/client-server-api/#mroomserver_acl
 
 use ruma_events_macros::EventContent;
+use ruma_identifiers::ServerName;
 use serde::{Deserialize, Serialize};
+use wildmatch::WildMatch;
 
 /// The content of an `m.room.server_acl` event.
 ///
@@ -43,10 +47,23 @@ impl RoomServerAclEventContent {
     pub fn new(allow_ip_literals: bool, allow: Vec<String>, deny: Vec<String>) -> Self {
         Self { allow_ip_literals, allow, deny }
     }
+
+    /// Returns true if and only if the server is allowed by the ACL rules.
+    pub fn is_allowed(&self, server_name: &ServerName) -> bool {
+        if !self.allow_ip_literals && server_name.is_ip_literal() {
+            return false;
+        }
+
+        let host = server_name.host();
+
+        self.deny.iter().all(|d| !WildMatch::new(d).matches(host))
+            && self.allow.iter().any(|a| WildMatch::new(a).matches(host))
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use ruma_identifiers::server_name;
     use serde_json::{from_value as from_json_value, json};
 
     use super::RoomServerAclEventContent;
@@ -70,5 +87,90 @@ mod tests {
         assert!(server_acl_event.content.allow_ip_literals);
         assert!(server_acl_event.content.allow.is_empty());
         assert!(server_acl_event.content.deny.is_empty());
+    }
+
+    #[test]
+    fn acl_ignores_port() {
+        let acl_event = RoomServerAclEventContent {
+            allow_ip_literals: true,
+            allow: vec!["*".to_owned()],
+            deny: vec!["1.1.1.1".to_owned()],
+        };
+        assert!(!acl_event.is_allowed(server_name!("1.1.1.1:8000")));
+    }
+
+    #[test]
+    fn acl_allow_ip_literal() {
+        let acl_event = RoomServerAclEventContent {
+            allow_ip_literals: true,
+            allow: vec!["*".to_owned()],
+            deny: Vec::new(),
+        };
+        assert!(acl_event.is_allowed(server_name!("1.1.1.1")));
+    }
+
+    #[test]
+    fn acl_deny_ip_literal() {
+        let acl_event = RoomServerAclEventContent {
+            allow_ip_literals: false,
+            allow: vec!["*".to_owned()],
+            deny: Vec::new(),
+        };
+        assert!(!acl_event.is_allowed(server_name!("1.1.1.1")));
+    }
+
+    #[test]
+    fn acl_deny() {
+        let acl_event = RoomServerAclEventContent {
+            allow_ip_literals: false,
+            allow: vec!["*".to_owned()],
+            deny: vec!["matrix.org".to_owned()],
+        };
+        assert!(!acl_event.is_allowed(server_name!("matrix.org")));
+        assert!(acl_event.is_allowed(server_name!("conduit.rs")));
+    }
+
+    #[test]
+    fn acl_explicit_allow() {
+        let acl_event = RoomServerAclEventContent {
+            allow_ip_literals: false,
+            allow: vec!["conduit.rs".to_owned()],
+            deny: Vec::new(),
+        };
+        assert!(!acl_event.is_allowed(server_name!("matrix.org")));
+        assert!(acl_event.is_allowed(server_name!("conduit.rs")));
+    }
+
+    #[test]
+    fn acl_explicit_glob_1() {
+        let acl_event = RoomServerAclEventContent {
+            allow_ip_literals: false,
+            allow: vec!["*.matrix.org".to_owned()],
+            deny: Vec::new(),
+        };
+        assert!(!acl_event.is_allowed(server_name!("matrix.org")));
+        assert!(acl_event.is_allowed(server_name!("server.matrix.org")));
+    }
+
+    #[test]
+    fn acl_explicit_glob_2() {
+        let acl_event = RoomServerAclEventContent {
+            allow_ip_literals: false,
+            allow: vec!["matrix??.org".to_owned()],
+            deny: Vec::new(),
+        };
+        assert!(!acl_event.is_allowed(server_name!("matrix1.org")));
+        assert!(acl_event.is_allowed(server_name!("matrix02.org")));
+    }
+
+    #[test]
+    fn acl_ipv6_glob() {
+        let acl_event = RoomServerAclEventContent {
+            allow_ip_literals: true,
+            allow: vec!["[2001:db8:1234::1]".to_owned()],
+            deny: Vec::new(),
+        };
+        assert!(!acl_event.is_allowed(server_name!("[2001:db8:1234::2]")));
+        assert!(acl_event.is_allowed(server_name!("[2001:db8:1234::1]")));
     }
 }

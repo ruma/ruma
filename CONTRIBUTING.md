@@ -20,7 +20,7 @@ Here is a list of helpful resources you can consult:
 
 ## Documentation
 
-- [Matrix spec Documentation](https://matrix.org/docs/spec/)
+- [Matrix spec Documentation](https://spec.matrix.org/v1.2/)
 
 ## Chat Rooms
 
@@ -62,6 +62,39 @@ Specification type | Rust type
 `[…]`              | `Vec<…>`
 `{string: …}`      | `BTreeMap<String, …>` (or `BTreeMap<SomeId, …>`)
 
+### Code Formatting and Linting
+
+We use [rustfmt] to ensure consistent formatting code and [clippy] to catch
+common mistakes not caught by the compiler as well as enforcing a few custom
+code style choices.
+
+```sh
+# if you don't have them installed, install or update the nightly toolchain
+rustup install nightly
+# … and install prebuilt rustfmt and clippy executables (available for most platforms)
+rustup component add rustfmt clippy
+```
+
+Before committing your changes, run `cargo +nightly fmt` to format the code (if
+your editor / IDE isn't set up to run it automatically) and
+`cargo +nightly clippy --workspace`¹ to run lints.
+
+You can also run all of the tests the same way CI does through `cargo xtask ci`.
+This will take a while to complete since it runs all of the tests on stable
+Rust, formatting and lint checks on nightly Rust, as well as some basic checks
+on our minimum supported Rust version. It requires [rustup] to be installed and
+the toolchains for those three versions to be set up (in case of a missing
+toolchain, rustup will tell you what to do though). There are also
+`cargo xtask ci stable|nightly|msrv` subcommands for only running one of the CI
+jobs.
+
+¹ If you modified feature-gated code (`#[cfg(feature = "something")]`), you
+have to pass `--all-features` or `--features something` to clippy for it to
+check that code
+
+[rustfmt]: https://github.com/rust-lang/rustfmt#readme
+[clippy]: https://github.com/rust-lang/rust-clippy#readme
+
 ### (Type) Privacy and Forwards Compatibility
 
 Generally, all `struct`s that are mirroring types defined in the Matrix specification should have
@@ -97,59 +130,6 @@ use ruma_api::ruma_api;
 use super::MyType;
 ```
 
-Also, group imports by module. For example, do this:
-
-```rust
-use std::{
-    collections::BTreeMap,
-    convert::TryFrom,
-    fmt::{self, Debug, Display, Formatter},
-};
-```
-
-as opposed to:
-
-```rust
-use std::collections::BTreeMap;
-use std::convert::TryFrom;
-use std::fmt::{self, Debug, Display, Formatter};
-```
-
-### Serde Imports
-
-When importing methods and types from `serde_json`, methods should be such as
-`serde_json::{from,to}_{slice,string,value,vec}` should be imported as
-`{from,to}_json_{slice,string,value,vec}`.
-
-For example:
-
-```rust
-use serde_json::{
-  from_value as from_json_value,
-  to_str as to_json_str,
-};
-```
-
-Also, `serde_json::Value` should be imported as `JsonValue`.
-
-### Code Formatting and Linting
-
-Use `rustfmt` to format your code and `clippy` to lint your code¹. Before
-committing your changes, go ahead and run `cargo fmt` and `cargo clippy`² on the
-repository to make sure that the formatting and linting checks pass in CI.
-
-To run all of the tests the same way CI does, run `cargo xtask ci`. This will
-run some checks for Rust stable, Rust nightly, and our minimum supported Rust
-version. It requires `rustup` to be installed and the toolchains for those three
-versions to be set up (in case of a toolchain issue, `rustup` will tell you what
-to do though). There are also `cargo xtask ci stable|nightly|msrv` subcommands
-for only running one of the CI jobs.
-
-¹ To install the tools, run `rustup component add rustfmt clippy`.  
-² If you modified feature-gated code (`#[cfg(feature = "something")]`), you will
-have to pass `--all-features` or `--features something` to clippy for it to
-check that code.
-
 ### Commit Messages
 
 Write commit messages using the imperative mood, as if completing the sentence:
@@ -164,9 +144,8 @@ for more information on writing good commit messages.)
 
 ### Matrix Spec Version
 
-Use the latest r0.x.x documentation when adding or modifying code. We target
-the latest minor version of the Matrix specification. (Note: We might
-reconsider this when the Client-Server API hits r1.0.0.)
+Use the [latest v1.x documentation](https://spec.matrix.org/latest/) when adding or modifying code. We target
+the latest minor version of the Matrix specification.
 
 ### Endpoint Documentation Header
 
@@ -175,7 +154,7 @@ and a link to the documentation of the spec. You can use the latest
 version at the time of the commit. For example:
 
 ```rust
-//! [GET /.well-known/matrix/client](https://matrix.org/docs/spec/client_server/r0.4.0#get-well-known-matrix-client)
+//! [GET /.well-known/matrix/client](https://spec.matrix.org/v1.1/client-server-api/#getwell-knownmatrixclient)
 ```
 
 ### Naming Endpoints

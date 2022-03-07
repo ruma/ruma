@@ -1,9 +1,13 @@
-//! Types for the `m.room_key_request` event.
+//! Types for the [`m.room_key_request`] event.
+//!
+//! [`m.room_key_request`]: https://spec.matrix.org/v1.2/client-server-api/#mroom_key_request
 
 use ruma_events_macros::EventContent;
-use ruma_identifiers::{DeviceId, EventEncryptionAlgorithm, RoomId};
+use ruma_identifiers::{DeviceId, EventEncryptionAlgorithm, RoomId, TransactionId};
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
+
+use crate::PrivOwnedStr;
 
 /// The content of an `m.room_key_request` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
@@ -25,7 +29,7 @@ pub struct ToDeviceRoomKeyRequestEventContent {
     ///
     /// If the key is requested multiple times, it should be reused. It should also reused
     /// in order to cancel a request.
-    pub request_id: String,
+    pub request_id: Box<TransactionId>,
 }
 
 impl ToDeviceRoomKeyRequestEventContent {
@@ -35,7 +39,7 @@ impl ToDeviceRoomKeyRequestEventContent {
         action: Action,
         body: Option<RequestedKeyInfo>,
         requesting_device_id: Box<DeviceId>,
-        request_id: String,
+        request_id: Box<TransactionId>,
     ) -> Self {
         Self { action, body, requesting_device_id, request_id }
     }
@@ -57,7 +61,7 @@ pub enum Action {
     CancelRequest,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl Action {

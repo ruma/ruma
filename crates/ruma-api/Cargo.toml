@@ -1,8 +1,4 @@
 [package]
-authors = [
-    "Jimmy Cuadra <jimmy@jimmycuadra.com>",
-    "Jonas Platte <jplatte@posteo.de>",
-]
 categories = ["api-bindings", "web-programming"]
 description = "An abstraction for Matrix API endpoints."
 homepage = "https://www.ruma.io/"
@@ -11,7 +7,7 @@ license = "MIT"
 name = "ruma-api"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.18.5"
+version = "0.20.0"
 edition = "2018"
 
 [package.metadata.docs.rs]
@@ -29,13 +25,15 @@ server = []
 bytes = "1.0.1"
 http = "0.2.2"
 percent-encoding = "2.1.0"
-ruma-api-macros = { version = "=0.18.5", path = "../ruma-api-macros" }
-ruma-identifiers = { version = "0.20.0", path = "../ruma-identifiers" }
-ruma-serde = { version = "0.5.0", path = "../ruma-serde" }
+ruma-api-macros = { version = "=0.20.0", path = "../ruma-api-macros" }
+ruma-identifiers = { version = "0.22.0", path = "../ruma-identifiers" }
+ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.61"
 thiserror = "1.0.26"
+tracing = "0.1.25"
 
 [dev-dependencies]
-ruma-events = { version = "0.24.6", path = "../ruma-events" }
+matches = "0.1.8"
+ruma-events = { version = "0.26.0", path = "../ruma-events" }
 trybuild = "1.0.38"

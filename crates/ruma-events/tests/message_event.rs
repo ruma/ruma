@@ -182,7 +182,7 @@ fn deserialize_message_sticker() {
                     thumbnail_info: Some(thumbnail_info),
                     thumbnail_url: Some(thumbnail_url),
                     thumbnail_file: None,
-                    #[cfg(feature = "unstable-pre-spec")]
+                    #[cfg(feature = "unstable-msc2448")]
                     blurhash: None,
                     ..
                 },
@@ -242,12 +242,8 @@ fn deserialize_message_then_convert_to_full() {
 
     let sync_ev: AnySyncMessageEvent = from_json_value(json_data).unwrap();
 
-    // Test conversion method
-    let full = sync_ev.into_full_event(rid.to_owned());
-    let full_json = to_json_value(full).unwrap();
-
     assert_matches!(
-        from_json_value::<AnyMessageEvent>(full_json).unwrap(),
+        sync_ev.into_full_event(rid.to_owned()),
         AnyMessageEvent::CallAnswer(MessageEvent {
             content: CallAnswerEventContent {
                 answer: SessionDescription {

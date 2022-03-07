@@ -1,7 +1,9 @@
-//! Types for the `m.key.verification.ready` event.
+//! Types for the [`m.key.verification.ready`] event.
+//!
+//! [`m.key.verification.ready`]: https://spec.matrix.org/v1.2/client-server-api/#mkeyverificationready
 
 use ruma_events_macros::EventContent;
-use ruma_identifiers::DeviceId;
+use ruma_identifiers::{DeviceId, TransactionId};
 use serde::{Deserialize, Serialize};
 
 use super::{Relation, VerificationMethod};
@@ -24,7 +26,7 @@ pub struct ToDeviceKeyVerificationReadyEventContent {
     /// Must be unique with respect to the devices involved. Must be the same as the
     /// `transaction_id` given in the `m.key.verification.request` from a
     /// request.
-    pub transaction_id: String,
+    pub transaction_id: Box<TransactionId>,
 }
 
 impl ToDeviceKeyVerificationReadyEventContent {
@@ -33,7 +35,7 @@ impl ToDeviceKeyVerificationReadyEventContent {
     pub fn new(
         from_device: Box<DeviceId>,
         methods: Vec<VerificationMethod>,
-        transaction_id: String,
+        transaction_id: Box<TransactionId>,
     ) -> Self {
         Self { from_device, methods, transaction_id }
     }
@@ -109,7 +111,7 @@ mod tests {
 
         let content = ToDeviceKeyVerificationReadyEventContent {
             from_device: device,
-            transaction_id: "456".to_owned(),
+            transaction_id: "456".into(),
             methods: vec![VerificationMethod::SasV1],
         };
 

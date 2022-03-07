@@ -13,3 +13,7 @@ event_enum! {
 }
 
 fn main() {}
+
+#[doc(hidden)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct PrivOwnedStr(Box<str>);

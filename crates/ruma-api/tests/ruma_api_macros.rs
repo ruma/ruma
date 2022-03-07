@@ -11,16 +11,8 @@ pub mod some_endpoint {
             description: "Does something.",
             method: POST, // An `http::Method` constant. No imports required.
             name: "some_endpoint",
-            path: "/_matrix/some/endpoint/:user",
-
-            #[cfg(all())]
-            rate_limited: true,
-            #[cfg(any())]
+            unstable_path: "/_matrix/some/endpoint/:user",
             rate_limited: false,
-
-            #[cfg(all())]
-            authentication: AccessToken,
-            #[cfg(any())]
             authentication: None,
         }
 
@@ -76,7 +68,7 @@ pub mod newtype_body_endpoint {
             description: "Does something.",
             method: PUT,
             name: "newtype_body_endpoint",
-            path: "/_matrix/some/newtype/body/endpoint",
+            unstable_path: "/_matrix/some/newtype/body/endpoint",
             rate_limited: false,
             authentication: None,
         }
@@ -106,7 +98,7 @@ pub mod raw_body_endpoint {
             description: "Does something.",
             method: PUT,
             name: "newtype_body_endpoint",
-            path: "/_matrix/some/newtype/body/endpoint",
+            unstable_path: "/_matrix/some/newtype/body/endpoint",
             rate_limited: false,
             authentication: None,
         }
@@ -131,7 +123,7 @@ pub mod query_map_endpoint {
             description: "Does something.",
             method: GET,
             name: "newtype_body_endpoint",
-            path: "/_matrix/some/query/map/endpoint",
+            unstable_path: "/_matrix/some/query/map/endpoint",
             rate_limited: false,
             authentication: None,
         }

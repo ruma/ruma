@@ -1,8 +1,9 @@
-//! [PUT /_matrix/federation/v2/send_leave/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v2-send-leave-roomid-eventid)
+//! `/v2/` ([spec])
+//!
+//! [spec]: https://spec.matrix.org/v1.2/server-server-api/#put_matrixfederationv2send_leaveroomideventid
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{EventId, RoomId};
-
 use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
@@ -10,9 +11,10 @@ ruma_api! {
         description: "Submits a signed leave event to the receiving server for it to accept it into the room's graph.",
         name: "create_leave_event",
         method: PUT,
-        path: "/_matrix/federation/v1/send_leave/:room_id/:event_id",
+        stable_path: "/_matrix/federation/v1/send_leave/:room_id/:event_id",
         rate_limited: false,
         authentication: ServerSignatures,
+        added: 1.0,
     }
 
     request: {

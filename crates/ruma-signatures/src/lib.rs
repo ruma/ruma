@@ -17,7 +17,7 @@
 //! are also required to contain hashes of their content, which are similarly stored within the
 //! hashed JSON object under a `hashes` key.
 //!
-//! In JSON representations, both signatures and hashes appear as Base64-encoded strings, using the
+//! In JSON representations, both signatures and hashes appear as base64-encoded strings, using the
 //! standard character set, without padding.
 //!
 //! # Signing and hashing
@@ -46,10 +46,10 @@
 
 use ruma_serde::{AsRefStr, DisplayAsRefStr};
 
-pub use error::{Error, JsonError, JsonType, ParseError, SplitError, VerificationError};
+pub use error::{Error, JsonError, JsonType, ParseError, VerificationError};
 pub use functions::{
-    canonical_json, content_hash, hash_and_sign_event, redact, reference_hash, sign_json,
-    verify_event, verify_json,
+    canonical_json, content_hash, hash_and_sign_event, redact, redact_content_in_place,
+    redact_in_place, reference_hash, sign_json, verify_event, verify_json,
 };
 pub use keys::{Ed25519KeyPair, KeyPair, PublicKeyMap, PublicKeySet};
 pub use ruma_serde::{CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue};
@@ -72,7 +72,7 @@ pub enum Algorithm {
 }
 
 /// Extract the algorithm and version from a key identifier.
-fn split_id(id: &str) -> Result<(Algorithm, String), SplitError> {
+fn split_id(id: &str) -> Result<(Algorithm, String), Error> {
     /// The length of a valid signature ID.
     const SIGNATURE_ID_LENGTH: usize = 2;
 
@@ -81,20 +81,20 @@ fn split_id(id: &str) -> Result<(Algorithm, String), SplitError> {
     let signature_id_length = signature_id.len();
 
     if signature_id_length != SIGNATURE_ID_LENGTH {
-        return Err(SplitError::InvalidLength(signature_id_length));
+        return Err(Error::InvalidLength(signature_id_length));
     }
 
     let version = signature_id[1];
 
     if !version.bytes().all(|ch| ch.is_ascii_alphanumeric() || ch == b'_') {
-        return Err(SplitError::InvalidVersion(version.into()));
+        return Err(Error::InvalidVersion(version.into()));
     }
 
     let algorithm_input = signature_id[0];
 
     let algorithm = match algorithm_input {
         "ed25519" => Algorithm::Ed25519,
-        algorithm => return Err(SplitError::UnsupportedAlgorithm(algorithm.into())),
+        algorithm => return Err(Error::UnsupportedAlgorithm(algorithm.into())),
     };
 
     Ok((algorithm, signature_id[1].to_owned()))
@@ -104,9 +104,10 @@ fn split_id(id: &str) -> Result<(Algorithm, String), SplitError> {
 mod tests {
     use std::collections::BTreeMap;
 
-    use base64::{decode_config, encode_config, STANDARD_NO_PAD};
+    use base64::{decode_config, STANDARD_NO_PAD};
     use pkcs8::{der::Decodable, PrivateKeyInfo};
     use ruma_identifiers::RoomVersionId;
+    use ruma_serde::Base64;
     use serde_json::{from_str as from_json_str, to_string as to_json_string};
 
     use super::{
@@ -119,13 +120,13 @@ mod tests {
     ";
 
     /// Convenience method for getting the public key as a string
-    fn public_key_string() -> String {
-        encode_config(
-            &PrivateKeyInfo::from_der(&decode_config(PKCS8, STANDARD_NO_PAD).unwrap())
+    fn public_key_string() -> Base64 {
+        Base64::new(
+            PrivateKeyInfo::from_der(&decode_config(PKCS8, STANDARD_NO_PAD).unwrap())
                 .unwrap()
                 .public_key
-                .unwrap(),
-            STANDARD_NO_PAD,
+                .unwrap()
+                .to_owned(),
         )
     }
 

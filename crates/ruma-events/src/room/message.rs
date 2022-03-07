@@ -1,19 +1,18 @@
-//! Types for the `m.room.message` event.
+//! Types for the [`m.room.message`] event.
+//!
+//! [`m.room.message`]: https://spec.matrix.org/v1.2/client-server-api/#mroommessage
 
 use std::{borrow::Cow, fmt};
 
 use js_int::UInt;
 use ruma_events_macros::EventContent;
-#[cfg(feature = "unstable-pre-spec")]
-use ruma_identifiers::{DeviceId, UserId};
-use ruma_identifiers::{EventId, MxcUri};
+use ruma_identifiers::{DeviceId, EventId, MxcUri, UserId};
 use ruma_serde::{JsonObject, StringEnum};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
-#[cfg(feature = "unstable-pre-spec")]
-use crate::key::verification::VerificationMethod;
+use crate::{key::verification::VerificationMethod, PrivOwnedStr};
 
 mod content_serde;
 pub mod feedback;
@@ -39,7 +38,7 @@ pub struct RoomMessageEventContent {
 
     /// Information about related messages for [rich replies].
     ///
-    /// [rich replies]: https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies
+    /// [rich replies]: https://spec.matrix.org/v1.2/client-server-api/#rich-replies
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation>,
 }
@@ -212,7 +211,6 @@ pub enum MessageType {
     Video(VideoMessageEventContent),
 
     /// A request to initiate a key verification.
-    #[cfg(feature = "unstable-pre-spec")]
     VerificationRequest(KeyVerificationRequestEventContent),
 
     /// A custom message.
@@ -250,7 +248,6 @@ impl MessageType {
             "m.server_notice" => Self::ServerNotice(deserialize_variant(body, data)?),
             "m.text" => Self::Text(deserialize_variant(body, data)?),
             "m.video" => Self::Video(deserialize_variant(body, data)?),
-            #[cfg(feature = "unstable-pre-spec")]
             "m.key.verification.request" => {
                 Self::VerificationRequest(deserialize_variant(body, data)?)
             }
@@ -270,7 +267,6 @@ impl MessageType {
             Self::ServerNotice(_) => "m.server_notice",
             Self::Text(_) => "m.text",
             Self::Video(_) => "m.video",
-            #[cfg(feature = "unstable-pre-spec")]
             Self::VerificationRequest(_) => "m.key.verification.request",
             Self::_Custom(c) => &c.msgtype,
         }
@@ -288,7 +284,6 @@ impl MessageType {
             MessageType::ServerNotice(m) => &m.body,
             MessageType::Text(m) => &m.body,
             MessageType::Video(m) => &m.body,
-            #[cfg(feature = "unstable-pre-spec")]
             MessageType::VerificationRequest(m) => &m.body,
             MessageType::_Custom(m) => &m.body,
         }
@@ -322,7 +317,6 @@ impl MessageType {
             Self::ServerNotice(d) => Cow::Owned(serialize(d)),
             Self::Text(d) => Cow::Owned(serialize(d)),
             Self::Video(d) => Cow::Owned(serialize(d)),
-            #[cfg(feature = "unstable-pre-spec")]
             Self::VerificationRequest(d) => Cow::Owned(serialize(d)),
             Self::_Custom(c) => Cow::Borrowed(&c.data),
         }
@@ -349,7 +343,7 @@ pub enum Relation {
     },
 
     /// An event that replaces another event.
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-msc2676")]
     Replacement(Replacement),
 
     #[doc(hidden)]
@@ -373,7 +367,7 @@ impl InReplyTo {
 
 /// The event this relation belongs to replaces another event.
 #[derive(Clone, Debug)]
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2676")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Replacement {
     /// The ID of the event being replacing.
@@ -383,7 +377,7 @@ pub struct Replacement {
     pub new_content: Box<RoomMessageEventContent>,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2676")]
 impl Replacement {
     /// Creates a new `Replacement` with the given event ID and new content.
     pub fn new(event_id: Box<EventId>, new_content: Box<RoomMessageEventContent>) -> Self {
@@ -736,7 +730,7 @@ pub enum ServerNoticeType {
     UsageLimitReached,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl ServerNoticeType {
@@ -761,7 +755,7 @@ pub enum LimitType {
     MonthlyActiveUser,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl LimitType {
@@ -783,7 +777,7 @@ pub enum MessageFormat {
     Html,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl MessageFormat {
@@ -942,7 +936,7 @@ pub struct VideoInfo {
     ///
     /// This uses the unstable prefix in
     /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-msc2448")]
     #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
     pub blurhash: Option<String>,
 }
@@ -956,7 +950,6 @@ impl VideoInfo {
 
 /// The payload for a key verification request message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.key.verification.request")]
 pub struct KeyVerificationRequestEventContent {
@@ -978,7 +971,6 @@ pub struct KeyVerificationRequestEventContent {
     pub to: Box<UserId>,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
 impl KeyVerificationRequestEventContent {
     /// Creates a new `RoomKeyVerificationRequestEventContent` with the given body, method, device
     /// and user ID.

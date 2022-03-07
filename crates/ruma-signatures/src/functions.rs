@@ -7,9 +7,9 @@ use std::{
     mem,
 };
 
-use base64::{decode_config, encode_config, Config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
+use base64::{encode_config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
 use ruma_identifiers::{EventId, RoomVersionId, ServerName, UserId};
-use ruma_serde::{CanonicalJsonObject, CanonicalJsonValue};
+use ruma_serde::{base64::Standard, Base64, CanonicalJsonObject, CanonicalJsonValue};
 use serde_json::{from_str as from_json_str, to_string as to_json_string};
 use sha2::{digest::Digest, Sha256};
 
@@ -44,7 +44,6 @@ static ALLOWED_KEYS: &[&str] = &[
 fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'static [&'static str] {
     match event_type {
         "m.room.member" => match version {
-            #[cfg(feature = "unstable-pre-spec")]
             RoomVersionId::V9 => &["membership", "join_authorised_via_users_server"],
             _ => &["membership"],
         },
@@ -117,7 +116,8 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "uns
 /// let key_pair = ruma_signatures::Ed25519KeyPair::from_der(
 ///     &document,
 ///     "1".into(), // The "version" of the key.
-/// ).unwrap();
+/// )
+/// .unwrap();
 ///
 /// // Deserialize some JSON.
 /// let mut value = serde_json::from_str("{}").unwrap();
@@ -183,7 +183,7 @@ where
 
 /// Converts an event into the [canonical] string form.
 ///
-/// [canonical]: https://matrix.org/docs/spec/appendices#canonical-json
+/// [canonical]: https://spec.matrix.org/v1.2/appendices/#canonical-json
 ///
 /// # Parameters
 ///
@@ -192,11 +192,10 @@ where
 /// # Examples
 ///
 /// ```rust
-/// let input =
-///     r#"{
-///         "本": 2,
-///         "日": 1
-///     }"#;
+/// let input = r#"{
+///     "本": 2,
+///     "日": 1
+/// }"#;
 ///
 /// let object = serde_json::from_str(input).unwrap();
 /// let canonical = ruma_signatures::canonical_json(&object).unwrap();
@@ -230,7 +229,9 @@ pub fn canonical_json(object: &CanonicalJsonObject) -> Result<String, Error> {
 /// ```rust
 /// use std::collections::BTreeMap;
 ///
-/// const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
+/// use ruma_serde::Base64;
+///
+/// const PUBLIC_KEY: &[u8] = b"XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
 ///
 /// // Deserialize the signed JSON.
 /// let object = serde_json::from_str(
@@ -245,7 +246,7 @@ pub fn canonical_json(object: &CanonicalJsonObject) -> Result<String, Error> {
 ///
 /// // Create the `PublicKeyMap` that will inform `verify_json` which signatures to verify.
 /// let mut public_key_set = BTreeMap::new();
-/// public_key_set.insert("ed25519:1".into(), PUBLIC_KEY.to_owned());
+/// public_key_set.insert("ed25519:1".into(), Base64::parse(PUBLIC_KEY.to_owned()).unwrap());
 /// let mut public_key_map = BTreeMap::new();
 /// public_key_map.insert("domain".into(), public_key_set);
 ///
@@ -289,20 +290,15 @@ pub fn verify_json(
                 )
             })?;
 
-            let verify = |config: Config| {
-                let signature_bytes = decode_config(signature, config)
-                    .map_err(|e| ParseError::base64("signature", signature, e))?;
+            let signature = Base64::<Standard>::parse(signature)
+                .map_err(|e| ParseError::base64("signature", signature, e))?;
 
-                let public_key_bytes = decode_config(&public_key, config)
-                    .map_err(|e| ParseError::base64("public key", public_key, e))?;
-
-                verify_json_with(&Ed25519Verifier, &public_key_bytes, &signature_bytes, object)
-            };
-
-            #[cfg(feature = "compat")]
-            also_try_forgiving_base64(STANDARD_NO_PAD, verify)?;
-            #[cfg(not(feature = "compat"))]
-            verify(STANDARD_NO_PAD)?;
+            verify_json_with(
+                &Ed25519Verifier,
+                public_key.as_bytes(),
+                signature.as_bytes(),
+                object,
+            )?;
         }
     }
 
@@ -335,8 +331,6 @@ where
 
 /// Creates a *content hash* for an event.
 ///
-/// Returns the hash as a Base64-encoded string, using the standard character set, without padding.
-///
 /// The content hash of an event covers the complete event including the unredacted contents. It is
 /// used during federation and is described in the Matrix server-server specification.
 ///
@@ -347,7 +341,7 @@ where
 /// # Errors
 ///
 /// Returns an error if the event is too large.
-pub fn content_hash(object: &CanonicalJsonObject) -> Result<String, Error> {
+pub fn content_hash(object: &CanonicalJsonObject) -> Result<Base64<Standard, [u8; 32]>, Error> {
     let json = canonical_json_with_fields_to_remove(object, CONTENT_HASH_FIELDS_TO_REMOVE)?;
     if json.len() > MAX_PDU_BYTES {
         return Err(Error::PduSize);
@@ -355,12 +349,12 @@ pub fn content_hash(object: &CanonicalJsonObject) -> Result<String, Error> {
 
     let hash = Sha256::digest(json.as_bytes());
 
-    Ok(encode_config(&hash, STANDARD_NO_PAD))
+    Ok(Base64::new(hash.into()))
 }
 
 /// Creates a *reference hash* for an event.
 ///
-/// Returns the hash as a Base64-encoded string, using the standard character set, without padding.
+/// Returns the hash as a base64-encoded string, using the standard character set, without padding.
 ///
 /// The reference hash of an event covers the essential fields of an event, including content
 /// hashes. It is used to generate event identifiers and is described in the Matrix server-server
@@ -436,7 +430,8 @@ pub fn reference_hash(
 /// let key_pair = Ed25519KeyPair::from_der(
 ///     &document,
 ///     "1".into(), // The "version" of the key.
-/// ).unwrap();
+/// )
+/// .unwrap();
 ///
 /// // Deserialize an event from JSON.
 /// let mut object = serde_json::from_str(
@@ -455,8 +450,9 @@ pub fn reference_hash(
 ///         "unsigned": {
 ///             "age_ts": 1000000
 ///         }
-///     }"#
-/// ).unwrap();
+///     }"#,
+/// )
+/// .unwrap();
 ///
 /// // Hash and sign the JSON with the key pair.
 /// assert!(hash_and_sign_event("domain", &key_pair, &mut object, &RoomVersionId::V1).is_ok());
@@ -507,7 +503,7 @@ where
 
     match hashes_value {
         CanonicalJsonValue::Object(hashes) => {
-            hashes.insert("sha256".into(), CanonicalJsonValue::String(hash))
+            hashes.insert("sha256".into(), CanonicalJsonValue::String(hash.encode()))
         }
         _ => return Err(JsonError::not_of_type("hashes", JsonType::Object)),
     };
@@ -546,10 +542,10 @@ where
 /// ```rust
 /// # use std::collections::BTreeMap;
 /// # use ruma_identifiers::RoomVersionId;
-/// # use ruma_signatures::verify_event;
-/// # use ruma_signatures::Verified;
+/// # use ruma_serde::Base64;
+/// # use ruma_signatures::{verify_event, Verified};
 /// #
-/// const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
+/// const PUBLIC_KEY: &[u8] = b"XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
 ///
 /// // Deserialize an event from JSON.
 /// let object = serde_json::from_str(
@@ -579,14 +575,14 @@ where
 ///
 /// // Create the `PublicKeyMap` that will inform `verify_json` which signatures to verify.
 /// let mut public_key_set = BTreeMap::new();
-/// public_key_set.insert("ed25519:1".into(), PUBLIC_KEY.to_owned());
+/// public_key_set.insert("ed25519:1".into(), Base64::parse(PUBLIC_KEY.to_owned()).unwrap());
 /// let mut public_key_map = BTreeMap::new();
 /// public_key_map.insert("domain".into(), public_key_set);
 ///
 /// // Verify at least one signature for each entity in `public_key_map`.
 /// let verification_result = verify_event(&public_key_map, &object, &RoomVersionId::V6);
 /// assert!(verification_result.is_ok());
-/// assert!(matches!(verification_result.unwrap(), Verified::All));
+/// assert_eq!(verification_result.unwrap(), Verified::All);
 /// ```
 pub fn verify_event(
     public_key_map: &PublicKeyMap,
@@ -659,34 +655,31 @@ pub fn verify_event(
 
         let public_key = signature_and_pubkey.public_key;
 
-        let verify = |config: Config| {
-            let signature_bytes = decode_config(signature, config)
-                .map_err(|e| ParseError::base64("signature", signature, e))?;
+        let signature = Base64::<Standard>::parse(signature)
+            .map_err(|e| ParseError::base64("signature", signature, e))?;
 
-            let public_key_bytes = decode_config(&public_key, config)
-                .map_err(|e| ParseError::base64("public key", public_key, e))?;
-
-            verify_json_with(&Ed25519Verifier, &public_key_bytes, &signature_bytes, &canonical_json)
-        };
-
-        #[cfg(feature = "compat")]
-        also_try_forgiving_base64(STANDARD_NO_PAD, verify)?;
-        #[cfg(not(feature = "compat"))]
-        verify(STANDARD_NO_PAD)?;
+        verify_json_with(
+            &Ed25519Verifier,
+            public_key.as_bytes(),
+            signature.as_bytes(),
+            &canonical_json,
+        )?;
     }
 
     let calculated_hash = content_hash(object)?;
 
-    if *hash == calculated_hash {
-        Ok(Verified::All)
-    } else {
-        Ok(Verified::Signatures)
+    if let Ok(hash) = Base64::<Standard>::parse(hash) {
+        if hash.as_bytes() == calculated_hash.as_bytes() {
+            return Ok(Verified::All);
+        }
     }
+
+    Ok(Verified::Signatures)
 }
 
 struct SignatureAndPubkey<'a> {
     signature: &'a CanonicalJsonValue,
-    public_key: &'a String,
+    public_key: &'a Base64,
 }
 
 /// Internal implementation detail of the canonical JSON algorithm.
@@ -730,16 +723,28 @@ pub fn redact(
     object: &CanonicalJsonObject,
     version: &RoomVersionId,
 ) -> Result<CanonicalJsonObject, Error> {
-    let mut event = object.clone();
+    let mut val = object.clone();
+    redact_in_place(&mut val, version)?;
+    Ok(val)
+}
 
-    let event_type_value = match event.get("type") {
-        Some(event_type_value) => event_type_value,
+/// Redacts an event using the rules specified in the Matrix client-server specification.
+///
+/// Functionally equivalent to `redact`, only;
+/// * upon error, the event is not touched.
+/// * this'll redact the event in-place.
+pub fn redact_in_place(
+    event: &mut CanonicalJsonObject,
+    version: &RoomVersionId,
+) -> Result<(), Error> {
+    // Get the content keys here instead of the event type, because we cant teach rust that this is
+    // a disjoint borrow.
+    let allowed_content_keys: &[&str] = match event.get("type") {
+        Some(CanonicalJsonValue::String(event_type)) => {
+            allowed_content_keys_for(event_type, version)
+        }
+        Some(_) => return Err(JsonError::not_of_type("type", JsonType::String)),
         None => return Err(JsonError::field_missing_from_object("type")),
-    };
-
-    let allowed_content_keys = match event_type_value {
-        CanonicalJsonValue::String(event_type) => allowed_content_keys_for(event_type, version),
-        _ => return Err(JsonError::not_of_type("type", JsonType::String)),
     };
 
     if let Some(content_value) = event.get_mut("content") {
@@ -748,16 +753,10 @@ pub fn redact(
             _ => return Err(JsonError::not_of_type("content", JsonType::Object)),
         };
 
-        let mut old_content = mem::take(content);
-
-        for &key in allowed_content_keys {
-            if let Some(value) = old_content.remove(key) {
-                content.insert(key.to_owned(), value);
-            }
-        }
+        object_retain_keys(content, allowed_content_keys);
     }
 
-    let mut old_event = mem::take(&mut event);
+    let mut old_event = mem::take(event);
 
     for &key in ALLOWED_KEYS {
         if let Some(value) = old_event.remove(key) {
@@ -765,7 +764,28 @@ pub fn redact(
         }
     }
 
-    Ok(event)
+    Ok(())
+}
+
+/// Redacts event content using the rules specified in the Matrix client-server specification.
+///
+/// Edits the `object` in-place.
+pub fn redact_content_in_place(
+    object: &mut CanonicalJsonObject,
+    version: &RoomVersionId,
+    event_type: impl AsRef<str>,
+) {
+    object_retain_keys(object, allowed_content_keys_for(event_type.as_ref(), version))
+}
+
+fn object_retain_keys(object: &mut CanonicalJsonObject, keys: &[&str]) {
+    let mut old_content = mem::take(object);
+
+    for &key in keys {
+        if let Some(value) = old_content.remove(key) {
+            object.insert(key.to_owned(), value);
+        }
+    }
 }
 
 /// Extracts the server names to check signatures for given event.
@@ -821,41 +841,6 @@ fn is_third_party_invite(object: &CanonicalJsonObject) -> Result<bool, Error> {
     }
 }
 
-#[cfg(feature = "compat")]
-// see https://github.com/ruma/ruma/issues/591
-// synapse allows this, so we must allow it too.
-// shouldn't lose data, but when it does, it'll make verification fail instead.
-pub(crate) fn also_try_forgiving_base64<T, E>(
-    config: Config,
-    twice: impl Fn(Config) -> Result<T, E>,
-) -> Result<T, E>
-where
-    E: std::fmt::Display,
-{
-    use tracing::{debug, warn};
-
-    let first_try = match twice(config) {
-        Ok(t) => return Ok(t),
-        Err(e) => e,
-    };
-
-    let adjusted = config.decode_allow_trailing_bits(true);
-
-    match twice(adjusted) {
-        Ok(t) => {
-            warn!(
-                "Usage of base64 config only worked after allowing trailing bits, first error: {}",
-                first_try
-            );
-            Ok(t)
-        }
-        Err(e) => {
-            debug!("Second error when trying to allow trailing bits: {}", e);
-            Err(first_try)
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::{
@@ -863,9 +848,8 @@ mod tests {
         convert::{TryFrom, TryInto},
     };
 
-    use base64::{encode_config, STANDARD_NO_PAD};
     use ruma_identifiers::{RoomVersionId, ServerSigningKeyId, SigningKeyAlgorithm};
-    use ruma_serde::CanonicalJsonValue;
+    use ruma_serde::{Base64, CanonicalJsonValue};
     use serde_json::json;
 
     use super::canonical_json;
@@ -939,20 +923,6 @@ mod tests {
         assert!(verification_result.is_ok());
         let verification = verification_result.unwrap();
         assert!(matches!(verification, Verified::Signatures));
-    }
-
-    #[cfg(feature = "compat")]
-    #[test]
-    fn fallback_invalid_base64() {
-        use base64::{decode_config, Config};
-
-        const SLIGHTLY_MALFORMED_BASE64: &str = "3UmJnEIzUr2xWyaUnJg5fXwRybwG5FVC6GqMHverEUn0ztuIsvVxX89JXX2pvdTsOBbLQx+4TVL02l4Cp5wPCm";
-
-        let verify = |config: Config| decode_config(SLIGHTLY_MALFORMED_BASE64, config);
-
-        assert!(verify(STANDARD_NO_PAD).is_err());
-
-        assert!(super::also_try_forgiving_base64(STANDARD_NO_PAD, verify).is_ok());
     }
 
     #[test]
@@ -1062,8 +1032,7 @@ mod tests {
         let mut public_key_map = PublicKeyMap::new();
         let mut sender_key_map = PublicKeySet::new();
         let newly_generated_key_pair = generate_key_pair();
-        let encoded_public_key =
-            encode_config(newly_generated_key_pair.public_key(), STANDARD_NO_PAD);
+        let encoded_public_key = Base64::new(newly_generated_key_pair.public_key().to_owned());
         let version = ServerSigningKeyId::from_parts(
             SigningKeyAlgorithm::Ed25519,
             key_pair_sender.version().try_into().unwrap(),
@@ -1092,7 +1061,7 @@ mod tests {
 
     fn add_key_to_map(public_key_map: &mut PublicKeyMap, name: &str, pair: &Ed25519KeyPair) {
         let mut sender_key_map = PublicKeySet::new();
-        let encoded_public_key = encode_config(pair.public_key(), STANDARD_NO_PAD);
+        let encoded_public_key = Base64::new(pair.public_key().to_owned());
         let version = ServerSigningKeyId::from_parts(
             SigningKeyAlgorithm::Ed25519,
             pair.version().try_into().unwrap(),

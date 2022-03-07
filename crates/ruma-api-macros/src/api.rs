@@ -47,32 +47,14 @@ impl Api {
         let description = &metadata.description;
         let method = &metadata.method;
         let name = &metadata.name;
-        let path = &metadata.path;
-        let rate_limited: TokenStream = metadata
-            .rate_limited
-            .iter()
-            .map(|r| {
-                let attrs = &r.attrs;
-                let value = &r.value;
-                quote! {
-                    #( #attrs )*
-                    rate_limited: #value,
-                }
-            })
-            .collect();
-        let authentication: TokenStream = self
-            .metadata
-            .authentication
-            .iter()
-            .map(|r| {
-                let attrs = &r.attrs;
-                let value = &r.value;
-                quote! {
-                    #( #attrs )*
-                    authentication: #ruma_api::AuthScheme::#value,
-                }
-            })
-            .collect();
+        let unstable_path = util::map_option_literal(&metadata.unstable_path);
+        let r0_path = util::map_option_literal(&metadata.r0_path);
+        let stable_path = util::map_option_literal(&metadata.stable_path);
+        let rate_limited = &self.metadata.rate_limited;
+        let authentication = &self.metadata.authentication;
+        let added = util::map_option_literal(&metadata.added);
+        let deprecated = util::map_option_literal(&metadata.deprecated);
+        let removed = util::map_option_literal(&metadata.removed);
 
         let error_ty = self
             .error_ty
@@ -89,9 +71,14 @@ impl Api {
                 description: #description,
                 method: #http::Method::#method,
                 name: #name,
-                path: #path,
-                #rate_limited
-                #authentication
+                unstable_path: #unstable_path,
+                r0_path: #r0_path,
+                stable_path: #stable_path,
+                added: #added,
+                deprecated: #deprecated,
+                removed: #removed,
+                rate_limited: #rate_limited,
+                authentication: #ruma_api::AuthScheme::#authentication,
             };
 
             #request

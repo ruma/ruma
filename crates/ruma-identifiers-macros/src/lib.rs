@@ -2,7 +2,6 @@
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
 
 use proc_macro::TokenStream;
-
 use quote::quote;
 use ruma_identifiers_validation::{
     device_key_id, event_id, key_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,

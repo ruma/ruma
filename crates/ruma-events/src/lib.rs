@@ -113,20 +113,20 @@
 
 #![recursion_limit = "1024"]
 #![warn(missing_docs)]
-#![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
-use std::fmt::Debug;
+use std::fmt;
 
 use ruma_identifiers::{EventEncryptionAlgorithm, RoomVersionId};
 use ruma_serde::Raw;
-use serde::{
-    de::{self, IgnoredAny},
-    Deserialize, Serialize,
-};
+use serde::{de::IgnoredAny, Deserialize, Serialize, Serializer};
 use serde_json::value::RawValue as RawJsonValue;
 
 use self::room::redaction::SyncRoomRedactionEvent;
 
+// Needs to be public for trybuild tests
+#[doc(hidden)]
+pub mod _custom;
 mod enums;
 mod event_kinds;
 mod unsigned;
@@ -154,7 +154,6 @@ pub mod macros {
 }
 
 pub mod call;
-pub mod custom;
 pub mod direct;
 pub mod dummy;
 pub mod forwarded_room_key;
@@ -166,33 +165,30 @@ pub mod pdu;
 pub mod policy;
 pub mod presence;
 pub mod push_rules;
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2677")]
 pub mod reaction;
 pub mod receipt;
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2675")]
 pub mod relation;
 pub mod room;
 pub mod room_key;
 pub mod room_key_request;
-#[cfg(feature = "unstable-pre-spec")]
 pub mod secret;
-#[cfg(feature = "unstable-pre-spec")]
 pub mod space;
 pub mod sticker;
 pub mod tag;
 pub mod typing;
 
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2675")]
 pub use self::relation::Relations;
+#[doc(hidden)]
+#[cfg(feature = "compat")]
+pub use self::unsigned::{RedactedUnsignedWithPrevContent, UnsignedWithPrevContent};
 pub use self::{
     enums::*,
     event_kinds::*,
     unsigned::{RedactedUnsigned, Unsigned},
 };
-
-#[doc(hidden)]
-#[cfg(feature = "compat")]
-pub use unsigned::{RedactedUnsignedWithPrevContent, UnsignedWithPrevContent};
 
 /// The base trait that all event content types implement.
 ///
@@ -390,12 +386,27 @@ pub struct UnsignedDeHelper {
     pub redacted_because: Option<IgnoredAny>,
 }
 
-/// Helper function for `serde_json::value::RawValue` deserialization.
+// Wrapper around `Box<str>` that cannot be used in a meaningful way outside of
+// this crate. Used for string enums because their `_Custom` variant can't be
+// truly private (only `#[doc(hidden)]`).
 #[doc(hidden)]
-pub fn from_raw_json_value<'a, T, E>(val: &'a RawJsonValue) -> Result<T, E>
-where
-    T: Deserialize<'a>,
-    E: de::Error,
-{
-    serde_json::from_str(val.get()).map_err(E::custom)
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct PrivOwnedStr(Box<str>);
+
+impl fmt::Debug for PrivOwnedStr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+/// Helper function for erroring when trying to serialize an event enum _Custom variant that can
+/// only be created by deserializing from an unknown event type.
+#[doc(hidden)]
+#[allow(clippy::ptr_arg)]
+pub fn serialize_custom_event_error<T, S: Serializer>(_: &T, _: S) -> Result<S::Ok, S::Error> {
+    Err(serde::ser::Error::custom(
+        "Failed to serialize event [content] enum: Unknown event type.\n\
+         To send custom events, turn them into `Raw<EnumType>` by going through
+         `serde_json::value::to_raw_value` and `Raw::from_json`.",
+    ))
 }

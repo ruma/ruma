@@ -6,6 +6,7 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_identifiers::MxcUri;
+use ruma_serde::{base64::UrlSafe, Base64};
 use serde::{Deserialize, Serialize};
 
 pub mod aliases;
@@ -68,7 +69,7 @@ pub struct ImageInfo {
     ///
     /// This uses the unstable prefix in
     /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-msc2448")]
     #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
     pub blurhash: Option<String>,
 }
@@ -122,12 +123,12 @@ pub struct EncryptedFile {
     pub key: JsonWebKey,
 
     /// The 128-bit unique counter block used by AES-CTR, encoded as unpadded base64.
-    pub iv: String,
+    pub iv: Base64,
 
     /// A map from an algorithm name to a hash of the ciphertext, encoded as unpadded base64.
     ///
     /// Clients should support the SHA-256 hash, which uses the key sha256.
-    pub hashes: BTreeMap<String, String>,
+    pub hashes: BTreeMap<String, Base64>,
 
     /// Version of the encrypted attachments protocol.
     ///
@@ -149,12 +150,12 @@ pub struct EncryptedFileInit {
     pub key: JsonWebKey,
 
     /// The 128-bit unique counter block used by AES-CTR, encoded as unpadded base64.
-    pub iv: String,
+    pub iv: Base64,
 
     /// A map from an algorithm name to a hash of the ciphertext, encoded as unpadded base64.
     ///
     /// Clients should support the SHA-256 hash, which uses the key sha256.
-    pub hashes: BTreeMap<String, String>,
+    pub hashes: BTreeMap<String, Base64>,
 
     /// Version of the encrypted attachments protocol.
     ///
@@ -192,7 +193,7 @@ pub struct JsonWebKey {
     pub alg: String,
 
     /// The key, encoded as url-safe unpadded base64.
-    pub k: String,
+    pub k: Base64<UrlSafe>,
 
     /// Extractable.
     ///
@@ -224,7 +225,7 @@ pub struct JsonWebKeyInit {
     pub alg: String,
 
     /// The key, encoded as url-safe unpadded base64.
-    pub k: String,
+    pub k: Base64<UrlSafe>,
 
     /// Extractable.
     ///

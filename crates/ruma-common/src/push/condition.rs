@@ -271,14 +271,9 @@ pub struct FlattenedJson {
 
 impl FlattenedJson {
     /// Create a `FlattenedJson` from `Raw`.
-    pub fn from_raw<T>(raw: &Raw<T>) -> Self
-    where
-        T: Serialize,
-    {
+    pub fn from_raw<T>(raw: &Raw<T>) -> Self {
         let mut s = Self { map: BTreeMap::new() };
-
         s.flatten_value(to_json_value(raw).unwrap(), "".into());
-
         s
     }
 
@@ -296,12 +291,7 @@ impl FlattenedJson {
                     warn!("Duplicate path in flattened JSON: {}", path);
                 }
             }
-            JsonValue::Number(_) | JsonValue::Bool(_) => {
-                if self.map.insert(path.clone(), value.to_string()).is_some() {
-                    warn!("Duplicate path in flattened JSON: {}", path);
-                }
-            }
-            JsonValue::Array(_) | JsonValue::Null => {}
+            JsonValue::Number(_) | JsonValue::Bool(_) | JsonValue::Array(_) | JsonValue::Null => {}
         }
     }
 
@@ -324,9 +314,8 @@ mod tests {
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
 
-    use crate::power_levels::NotificationPowerLevels;
-
     use super::{FlattenedJson, PushCondition, PushConditionRoomCtx, RoomMemberCountIs, StrExt};
+    use crate::power_levels::NotificationPowerLevels;
 
     #[test]
     fn serialize_event_match_condition() {
@@ -577,14 +566,7 @@ mod tests {
         .unwrap();
 
         let flattened = FlattenedJson::from_raw(&raw);
-        assert_eq!(
-            flattened.map,
-            btreemap! {
-                "string".into() => "Hello World".into(),
-                "number".into() => "10".into(),
-                "boolean".into() => "true".into(),
-            },
-        );
+        assert_eq!(flattened.map, btreemap! { "string".into() => "Hello World".into() });
     }
 
     #[test]

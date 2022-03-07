@@ -1,8 +1,12 @@
-//! Types for the `m.room.history_visibility` event.
+//! Types for the [`m.room.history_visibility`] event.
+//!
+//! [`m.room.history_visibility`]: https://spec.matrix.org/v1.2/client-server-api/#mroomhistory_visibility
 
 use ruma_events_macros::EventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
+
+use crate::PrivOwnedStr;
 
 /// The content of an `m.room.history_visibility` event.
 ///
@@ -56,7 +60,7 @@ pub enum HistoryVisibility {
     WorldReadable,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl HistoryVisibility {

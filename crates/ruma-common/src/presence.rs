@@ -1,8 +1,10 @@
 //! Common types for the [presence module][presence].
 //!
-//! [presence]: https://matrix.org/docs/spec/client_server/r0.6.1#id62
+//! [presence]: https://spec.matrix.org/v1.2/client-server-api/#presence
 
 use ruma_serde::StringEnum;
+
+use crate::PrivOwnedStr;
 
 /// A description of a user's connectivity and availability for chat.
 ///
@@ -22,7 +24,7 @@ pub enum PresenceState {
     Unavailable,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl Default for PresenceState {

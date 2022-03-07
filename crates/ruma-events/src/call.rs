@@ -5,6 +5,8 @@
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
+use crate::PrivOwnedStr;
+
 pub mod answer;
 pub mod candidates;
 pub mod hangup;
@@ -44,7 +46,7 @@ pub enum SessionDescriptionType {
     Offer,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl SessionDescriptionType {

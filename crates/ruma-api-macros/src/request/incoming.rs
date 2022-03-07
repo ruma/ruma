@@ -1,4 +1,4 @@
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Field;
 
@@ -8,8 +8,8 @@ use crate::auth_scheme::AuthScheme;
 impl Request {
     pub fn expand_incoming(&self, ruma_api: &TokenStream) -> TokenStream {
         let http = quote! { #ruma_api::exports::http };
-        let percent_encoding = quote! { #ruma_api::exports::percent_encoding };
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
+        let serde = quote! { #ruma_api::exports::serde };
         let serde_json = quote! { #ruma_api::exports::serde_json };
 
         let method = &self.method;
@@ -25,42 +25,16 @@ impl Request {
         // except this one. If we get errors about missing fields in IncomingRequest for
         // a path field look here.
         let (parse_request_path, path_vars) = if self.has_path_fields() {
-            let path_string = self.path.value();
-
-            assert!(path_string.starts_with('/'), "path needs to start with '/'");
-            assert!(
-                path_string.chars().filter(|c| *c == ':').count() == self.path_field_count(),
-                "number of declared path parameters needs to match amount of placeholders in path"
-            );
-
-            let path_var_decls = path_string[1..]
-                .split('/')
-                .enumerate()
-                .filter(|(_, seg)| seg.starts_with(':'))
-                .map(|(i, seg)| {
-                    let path_var = Ident::new(&seg[1..], Span::call_site());
-                    quote! {
-                        let #path_var = {
-                            let segment = path_segments[#i].as_bytes();
-                            let decoded =
-                                #percent_encoding::percent_decode(segment).decode_utf8()?;
-
-                            ::std::convert::TryFrom::try_from(&*decoded)?
-                        };
-                    }
-                });
+            let path_vars: Vec<_> =
+                self.path_fields_ordered().filter_map(|f| f.ident.as_ref()).collect();
 
             let parse_request_path = quote! {
-                let path_segments: ::std::vec::Vec<&::std::primitive::str> =
-                    request.uri().path()[1..].split('/').collect();
-
-                #(#path_var_decls)*
+                let (#(#path_vars,)*) = #serde::Deserialize::deserialize(
+                    #serde::de::value::SeqDeserializer::<_, #serde::de::value::Error>::new(
+                        path_args.iter().map(::std::convert::AsRef::as_ref)
+                    )
+                )?;
             };
-
-            let path_vars = path_string[1..]
-                .split('/')
-                .filter(|seg| seg.starts_with(':'))
-                .map(|seg| Ident::new(&seg[1..], Span::call_site()));
 
             (parse_request_path, quote! { #(#path_vars,)* })
         } else {
@@ -226,9 +200,14 @@ impl Request {
 
                 const METADATA: #ruma_api::Metadata = self::METADATA;
 
-                fn try_from_http_request<T: ::std::convert::AsRef<[::std::primitive::u8]>>(
-                    request: #http::Request<T>,
-                ) -> ::std::result::Result<Self, #ruma_api::error::FromHttpRequestError> {
+                fn try_from_http_request<B, S>(
+                    request: #http::Request<B>,
+                    path_args: &[S],
+                ) -> ::std::result::Result<Self, #ruma_api::error::FromHttpRequestError>
+                where
+                    B: ::std::convert::AsRef<[::std::primitive::u8]>,
+                    S: ::std::convert::AsRef<::std::primitive::str>,
+                {
                     if request.method() != #http::Method::#method {
                         return Err(#ruma_api::error::FromHttpRequestError::MethodMismatch {
                             expected: #http::Method::#method,

@@ -1,6 +1,6 @@
 //! Common types for the Send-To-Device Messaging
 //!
-//! [send-to-device]: https://matrix.org/docs/spec/client_server/r0.6.1#id70
+//! [send-to-device]: https://spec.matrix.org/v1.2/client-server-api/#send-to-device-messaging
 
 use std::{
     convert::TryFrom,
@@ -41,6 +41,7 @@ impl From<Box<DeviceId>> for DeviceIdOrAllDevices {
 
 impl TryFrom<&str> for DeviceIdOrAllDevices {
     type Error = &'static str;
+
     fn try_from(device_id_or_all_devices: &str) -> Result<Self, Self::Error> {
         if device_id_or_all_devices.is_empty() {
             Err("Device identifier cannot be empty")

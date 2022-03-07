@@ -1,11 +1,11 @@
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2676")]
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2676")]
 use super::Replacement;
 use super::{InReplyTo, Relation};
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2676")]
 use crate::room::message::RoomMessageEventContent;
 
 impl<'de> Deserialize<'de> for Relation {
@@ -19,7 +19,7 @@ impl<'de> Deserialize<'de> for Relation {
             return Ok(Relation::Reply { in_reply_to });
         }
 
-        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg(feature = "unstable-msc2676")]
         if let Some(relation) = ev.relates_to.relation {
             return Ok(match relation {
                 RelationJsonRepr::Replacement(ReplacementJsonRepr { event_id }) => {
@@ -49,7 +49,7 @@ impl Serialize for Relation {
                 in_reply_to: Some(in_reply_to.clone()),
                 ..Default::default()
             }),
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-msc2676")]
             Relation::Replacement(Replacement { event_id, new_content }) => {
                 EventWithRelatesToJsonRepr {
                     relates_to: RelatesToJsonRepr {
@@ -73,7 +73,7 @@ struct EventWithRelatesToJsonRepr {
     #[serde(rename = "m.relates_to", default, skip_serializing_if = "RelatesToJsonRepr::is_empty")]
     relates_to: RelatesToJsonRepr,
 
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-msc2676")]
     #[serde(rename = "m.new_content", skip_serializing_if = "Option::is_none")]
     new_content: Option<Box<RoomMessageEventContent>>,
 }
@@ -82,7 +82,7 @@ impl EventWithRelatesToJsonRepr {
     fn new(relates_to: RelatesToJsonRepr) -> Self {
         Self {
             relates_to,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-msc2676")]
             new_content: None,
         }
     }
@@ -95,19 +95,19 @@ struct RelatesToJsonRepr {
     #[serde(rename = "m.in_reply_to", skip_serializing_if = "Option::is_none")]
     in_reply_to: Option<InReplyTo>,
 
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-msc2676")]
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     relation: Option<RelationJsonRepr>,
 }
 
 impl RelatesToJsonRepr {
     fn is_empty(&self) -> bool {
-        #[cfg(not(feature = "unstable-pre-spec"))]
+        #[cfg(not(feature = "unstable-msc2676"))]
         {
             self.in_reply_to.is_none()
         }
 
-        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg(feature = "unstable-msc2676")]
         {
             self.in_reply_to.is_none() && self.relation.is_none()
         }
@@ -116,7 +116,7 @@ impl RelatesToJsonRepr {
 
 /// A relation, which associates new information to an existing event.
 #[derive(Clone, Deserialize, Serialize)]
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2676")]
 #[serde(tag = "rel_type")]
 enum RelationJsonRepr {
     /// An event that replaces another event.
@@ -132,7 +132,7 @@ enum RelationJsonRepr {
 }
 
 #[derive(Clone, Deserialize, Serialize)]
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-msc2676")]
 struct ReplacementJsonRepr {
     event_id: Box<EventId>,
 }

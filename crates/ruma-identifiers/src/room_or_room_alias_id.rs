@@ -4,7 +4,7 @@ use std::{convert::TryFrom, hint::unreachable_unchecked};
 
 use crate::{server_name::ServerName, RoomAliasId, RoomId};
 
-/// A Matrix room ID or a Matrix room alias ID.
+/// A Matrix [room ID] or a Matrix [room alias ID].
 ///
 /// `RoomOrAliasId` is useful for APIs that accept either kind of room identifier. It is converted
 /// from a string slice, and can be converted back into a string as needed. When converted from a
@@ -13,16 +13,16 @@ use crate::{server_name::ServerName, RoomAliasId, RoomId};
 /// ```
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::RoomOrAliasId;
-/// assert_eq!(
-///     <&RoomOrAliasId>::try_from("#ruma:example.com").unwrap(),
-///     "#ruma:example.com"
-/// );
+/// assert_eq!(<&RoomOrAliasId>::try_from("#ruma:example.com").unwrap(), "#ruma:example.com");
 ///
 /// assert_eq!(
 ///     <&RoomOrAliasId>::try_from("!n8f893n9:example.com").unwrap(),
 ///     "!n8f893n9:example.com"
 /// );
 /// ```
+///
+/// [room ID]: https://spec.matrix.org/v1.2/appendices/#room-ids-and-event-ids
+/// [room alias ID]: https://spec.matrix.org/v1.2/appendices/#room-aliases
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct RoomOrAliasId(str);

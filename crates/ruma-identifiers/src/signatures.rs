@@ -12,7 +12,8 @@ pub type EntitySignatures<K> = BTreeMap<Box<SigningKeyId<K>>, String>;
 /// let key_identifier = KeyId::from_parts(SigningKeyAlgorithm::Ed25519, "1");
 /// let mut signatures = Signatures::new();
 /// let server_name = server_name!("example.org");
-/// let signature = "YbJva03ihSj5mPk+CHMJKUKlCXCPFXjXOK6VqBnN9nA2evksQcTGn6hwQfrgRHIDDXO2le49x7jnWJHMJrJoBQ";
+/// let signature =
+///     "YbJva03ihSj5mPk+CHMJKUKlCXCPFXjXOK6VqBnN9nA2evksQcTGn6hwQfrgRHIDDXO2le49x7jnWJHMJrJoBQ";
 /// signatures.insert(server_name, key_identifier, signature.into());
 /// ```
 #[derive(Clone, Debug, Default)]

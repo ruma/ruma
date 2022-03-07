@@ -1,4 +1,6 @@
-//! Types for the `m.dummy` event.
+//! Types for the [`m.dummy`] event.
+//!
+//! [`m.dummy`]: https://spec.matrix.org/v1.2/client-server-api/#mdummy
 
 use std::fmt;
 

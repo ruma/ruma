@@ -1,4 +1,6 @@
-//! Types for the `m.call.invite` event.
+//! Types for the [`m.call.invite`] event.
+//!
+//! [`m.call.invite`]: https://spec.matrix.org/v1.2/client-server-api/#mcallinvite
 
 use js_int::UInt;
 use ruma_events_macros::EventContent;

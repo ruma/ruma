@@ -1,11 +1,24 @@
 # [unreleased]
 
+# 0.4.0
+
 Breaking changes:
 
 * Replace `Raw<Pdu>` with `Box<RawJsonValue>` or `&RawJsonValue`
 * Borrow more request fields
 * Make `device_display_name` field optional in `DeviceListUpdateContent` and update constructor accordingly
 * Remove unneeded `minimum_valid_until_ts` query parameter from `get_remote_server_keys_batch` endpoint
+
+Improvements:
+
+* Move `knock` module out of `unstable-pre-spec`
+  * `knock:::send_knock::v1::Request` requires a PDU instead of the `knock_event`
+* Move cross-signing properties of `keys::get_keys::v1::Response` out of `unstable-pre-spec`
+* Move MSC implementations from `unstable-pre-spec` to per-msc features:
+  ```
+  unstable-msc2448
+  unstable-msc3618
+  ```
 
 # 0.3.1
 

@@ -1,5 +1,4 @@
 [package]
-authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
 categories = ["api-bindings", "cryptography"]
 description = "Digital signatures according to the Matrix specification."
 edition = "2018"
@@ -9,7 +8,7 @@ license = "MIT"
 name = "ruma-signatures"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.9.0"
+version = "0.10.0"
 
 [package.metadata.docs.rs]
 all-features = true
@@ -17,7 +16,6 @@ all-features = true
 [features]
 compat = ["tracing"]
 unstable-exhaustive-types = []
-unstable-pre-spec = ["ruma-identifiers/unstable-pre-spec"]
 
 [dependencies]
 base64 = "0.13.0"
@@ -25,8 +23,8 @@ ed25519-dalek = "1.0.1"
 pkcs8 = { version = "0.7.0", features = ["alloc"] }
 # because dalek uses an older version of rand_core
 rand = { version = "0.7", features = ["getrandom"] }
-ruma-identifiers = { version = "0.20.0", path = "../ruma-identifiers" }
-ruma-serde = { version = "0.5.0", path = "../ruma-serde" }
+ruma-identifiers = { version = "0.22.0", path = "../ruma-identifiers" }
+ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 serde_json = "1.0.60"
 sha2 = "0.9.5"
 thiserror = "1.0.26"

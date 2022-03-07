@@ -24,7 +24,7 @@ dependencies:
 
 ```toml
 # crates.io release
-ruma = { version = "0.3.0", features = ["..."] }
+ruma = { version = "0.4.0", features = ["..."] }
 # git dependency
 ruma = { git = "https://github.com/ruma/ruma", branch = "main", features = ["..."] }
 ```
@@ -38,10 +38,14 @@ them. Check out the documentation [on docs.rs][docs] (or on
 
 ## Status
 
-As of 2021-02-10, we support all events and REST endpoints the latest released
-versions of the various Matrix APIs. Various changes from the unstable version
-of the specifications and some MSCs are also implemented, gated behind the
-`unstable-pre-spec` Cargo feature.
+As of 2022-01-31, we support all events and REST endpoints of the v1 version of
+the Matrix specification, with v1.1 and v1.2 coverage in progress.
+
+Various changes from in-progress or finished MSCs are also implemented, gated
+behind the `unstable-mscXXXX` (where `XXXX` is the MSC number) Cargo features.
+
+A few less formalized things are gated behind the `unstable-pre-spec` Cargo
+feature.
 
 ## Contributing
 

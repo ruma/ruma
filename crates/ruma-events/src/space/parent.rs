@@ -1,4 +1,6 @@
-//! Types for the `m.space.child` event.
+//! Types for the [`m.space.parent`] event.
+//!
+//! [`m.space.parent`]: https://spec.matrix.org/v1.2/client-server-api/#mspaceparent
 
 use ruma_events_macros::EventContent;
 use ruma_identifiers::ServerName;
@@ -38,9 +40,10 @@ impl SpaceParentEventContent {
 
 #[cfg(test)]
 mod tests {
-    use super::SpaceParentEventContent;
     use ruma_identifiers::server_name;
     use serde_json::{json, to_value as to_json_value};
+
+    use super::SpaceParentEventContent;
 
     #[test]
     fn space_parent_serialization() {

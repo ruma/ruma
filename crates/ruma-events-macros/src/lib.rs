@@ -15,10 +15,10 @@ use proc_macro_crate::{crate_name, FoundCrate};
 use quote::{format_ident, quote};
 use syn::{parse_macro_input, DeriveInput};
 
-use crate::event_enum::expand_from_impls_derived;
-
 use self::{
-    event::expand_event, event_content::expand_event_content, event_enum::expand_event_enums,
+    event::expand_event,
+    event_content::expand_event_content,
+    event_enum::{expand_event_enums, expand_from_impls_derived},
     event_type::expand_event_type_enum,
 };
 

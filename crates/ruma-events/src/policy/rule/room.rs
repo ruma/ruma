@@ -1,4 +1,6 @@
-//! Types for the `m.policy.rule.room` event.
+//! Types for the [`m.policy.rule.room`] event.
+//!
+//! [`m.policy.rule.room`]: https://spec.matrix.org/v1.2/client-server-api/#mpolicyruleroom
 
 use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -41,7 +43,7 @@ mod tests {
             unsigned: Unsigned {
                 age: Some(int!(1234)),
                 transaction_id: None,
-                #[cfg(feature = "unstable-pre-spec")]
+                #[cfg(feature = "unstable-msc2675")]
                 relations: None,
             },
             content: PolicyRuleRoomEventContent(PolicyRuleEventContent {

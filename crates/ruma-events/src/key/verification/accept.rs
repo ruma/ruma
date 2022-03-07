@@ -1,15 +1,18 @@
-//! Types for the `m.key.verification.accept` event.
+//! Types for the [`m.key.verification.accept`] event.
+//!
+//! [`m.key.verification.accept`]: https://spec.matrix.org/v1.2/client-server-api/#mkeyverificationaccept
 
 use std::collections::BTreeMap;
 
 use ruma_events_macros::EventContent;
+use ruma_identifiers::TransactionId;
+use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
-#[cfg(feature = "unstable-pre-spec")]
-use super::Relation;
 use super::{
-    HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
+    HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, Relation,
+    ShortAuthenticationString,
 };
 
 /// The content of a to-device `m.key.verification.accept` event.
@@ -22,7 +25,7 @@ pub struct ToDeviceKeyVerificationAcceptEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the `m.key.verification.start` message.
-    pub transaction_id: String,
+    pub transaction_id: Box<TransactionId>,
 
     /// The method specific content.
     #[serde(flatten)]
@@ -32,7 +35,7 @@ pub struct ToDeviceKeyVerificationAcceptEventContent {
 impl ToDeviceKeyVerificationAcceptEventContent {
     /// Creates a new `ToDeviceKeyVerificationAcceptEventContent` with the given transaction ID and
     /// method-specific content.
-    pub fn new(transaction_id: String, method: AcceptMethod) -> Self {
+    pub fn new(transaction_id: Box<TransactionId>, method: AcceptMethod) -> Self {
         Self { transaction_id, method }
     }
 }
@@ -42,7 +45,6 @@ impl ToDeviceKeyVerificationAcceptEventContent {
 /// Accepts a previously sent `m.key.verification.start` message.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.key.verification.accept", kind = Message)]
-#[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct KeyVerificationAcceptEventContent {
     /// The method specific content.
@@ -54,7 +56,6 @@ pub struct KeyVerificationAcceptEventContent {
     pub relates_to: Relation,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
 impl KeyVerificationAcceptEventContent {
     /// Creates a new `ToDeviceKeyVerificationAcceptEventContent` with the given method-specific
     /// content and relation.
@@ -116,7 +117,7 @@ pub struct SasV1Content {
     /// The hash (encoded as unpadded base64) of the concatenation of the
     /// device's ephemeral public key (encoded as unpadded base64) and the
     /// canonical JSON representation of the `m.key.verification.start` message.
-    pub commitment: String,
+    pub commitment: Base64,
 }
 
 /// Mandatory initial set of fields for creating an accept `SasV1Content`.
@@ -144,7 +145,7 @@ pub struct SasV1ContentInit {
     /// The hash (encoded as unpadded base64) of the concatenation of the
     /// device's ephemeral public key (encoded as unpadded base64) and the
     /// canonical JSON representation of the `m.key.verification.start` message.
-    pub commitment: String,
+    pub commitment: Base64,
 }
 
 impl From<SasV1ContentInit> for SasV1Content {
@@ -165,22 +166,18 @@ mod tests {
     use std::collections::BTreeMap;
 
     use matches::assert_matches;
-    #[cfg(feature = "unstable-pre-spec")]
-    use ruma_identifiers::event_id;
-    use ruma_identifiers::user_id;
+    use ruma_identifiers::{event_id, user_id};
+    use ruma_serde::Base64;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
 
-    #[cfg(feature = "unstable-pre-spec")]
-    use super::KeyVerificationAcceptEventContent;
     use super::{
-        AcceptMethod, HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, SasV1Content,
-        ShortAuthenticationString, ToDeviceKeyVerificationAcceptEventContent, _CustomContent,
+        AcceptMethod, HashAlgorithm, KeyAgreementProtocol, KeyVerificationAcceptEventContent,
+        MessageAuthenticationCode, SasV1Content, ShortAuthenticationString,
+        ToDeviceKeyVerificationAcceptEventContent, _CustomContent,
     };
-    #[cfg(feature = "unstable-pre-spec")]
-    use crate::key::verification::Relation;
-    use crate::ToDeviceEvent;
+    use crate::{key::verification::Relation, ToDeviceEvent};
 
     #[test]
     fn serialization() {
@@ -191,7 +188,7 @@ mod tests {
                 key_agreement_protocol: KeyAgreementProtocol::Curve25519,
                 message_authentication_code: MessageAuthenticationCode::HkdfHmacSha256,
                 short_authentication_string: vec![ShortAuthenticationString::Decimal],
-                commitment: "test_commitment".into(),
+                commitment: Base64::new(b"hello".to_vec()),
             }),
         };
 
@@ -201,7 +198,7 @@ mod tests {
             "content": {
                 "transaction_id": "456",
                 "method": "m.sas.v1",
-                "commitment": "test_commitment",
+                "commitment": "aGVsbG8",
                 "key_agreement_protocol": "curve25519",
                 "hash": "sha256",
                 "message_authentication_code": "hkdf-hmac-sha256",
@@ -245,7 +242,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "unstable-pre-spec")]
     fn in_room_serialization() {
         let event_id = event_id!("$1598361704261elfgc:localhost");
 
@@ -256,13 +252,13 @@ mod tests {
                 key_agreement_protocol: KeyAgreementProtocol::Curve25519,
                 message_authentication_code: MessageAuthenticationCode::HkdfHmacSha256,
                 short_authentication_string: vec![ShortAuthenticationString::Decimal],
-                commitment: "test_commitment".into(),
+                commitment: Base64::new(b"hello".to_vec()),
             }),
         };
 
         let json_data = json!({
             "method": "m.sas.v1",
-            "commitment": "test_commitment",
+            "commitment": "aGVsbG8",
             "key_agreement_protocol": "curve25519",
             "hash": "sha256",
             "message_authentication_code": "hkdf-hmac-sha256",
@@ -280,7 +276,7 @@ mod tests {
     fn deserialization() {
         let json = json!({
             "transaction_id": "456",
-            "commitment": "test_commitment",
+            "commitment": "aGVsbG8",
             "method": "m.sas.v1",
             "hash": "sha256",
             "key_agreement_protocol": "curve25519",
@@ -300,7 +296,7 @@ mod tests {
                     message_authentication_code,
                     short_authentication_string,
                 })
-            } if commitment == "test_commitment"
+            } if commitment.encode() == "aGVsbG8"
                 && transaction_id == "456"
                 && hash == HashAlgorithm::Sha256
                 && key_agreement_protocol == KeyAgreementProtocol::Curve25519
@@ -312,7 +308,7 @@ mod tests {
 
         let json = json!({
             "content": {
-                "commitment": "test_commitment",
+                "commitment": "aGVsbG8",
                 "transaction_id": "456",
                 "method": "m.sas.v1",
                 "key_agreement_protocol": "curve25519",
@@ -338,7 +334,7 @@ mod tests {
                         short_authentication_string,
                     })
                 }
-            } if commitment == "test_commitment"
+            } if commitment.encode() == "aGVsbG8"
                 && sender == user_id!("@example:localhost")
                 && transaction_id == "456"
                 && hash == HashAlgorithm::Sha256
@@ -379,12 +375,11 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "unstable-pre-spec")]
     fn in_room_deserialization() {
         let id = event_id!("$1598361704261elfgc:localhost");
 
         let json = json!({
-            "commitment": "test_commitment",
+            "commitment": "aGVsbG8",
             "method": "m.sas.v1",
             "hash": "sha256",
             "key_agreement_protocol": "curve25519",
@@ -410,7 +405,7 @@ mod tests {
                     message_authentication_code,
                     short_authentication_string,
                 })
-            } if commitment == "test_commitment"
+            } if commitment.encode() == "aGVsbG8"
                 && *event_id == *id
                 && hash == HashAlgorithm::Sha256
                 && key_agreement_protocol == KeyAgreementProtocol::Curve25519

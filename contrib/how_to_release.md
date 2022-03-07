@@ -29,4 +29,4 @@ all dependents.
 
 ![crate dependencies](./workspace_deps.png)
 
-<small><code>cargo depgraph --all-features --exclude syn,quote,js_int,trybuild,criterion,proc-macro2,serde,http,serde_json,proc-macro-crate,rand,either,base64,itoa,hyper,hyper-tls,hyper-rustls,thiserror,paste,assign,maplit,percent-encoding,xtask,itertools,isahc,reqwest,async-stream,async-trait,futures-core,futures-lite,pkcs8,ed25519-dalek,pulldown-cmark,tracing,indoc,wildmatch,indexmap,sha2,bytes,form_urlencoded --dedup-transitive-deps | dot -Tpng</code></small>
+<small><code>cargo depgraph --all-features --exclude assign,async-stream,async-trait,base64,bytes,criterion,ed25519-dalek,either,form_urlencoded,futures-core,futures-lite,joke_bot,js_int,http,hyper,hyper-rustls,hyper-tls,indexmap,indoc,isahc,itertools,itoa,maplit,percent-encoding,pkcs8,proc-macro2,proc-macro-crate,pulldown-cmark,quote,rand,reqwest,ryu,serde,serde_json,sha2,syn,thiserror,tokio,tracing,url,uuid,wildmatch,xflags,xshell,xtask --dedup-transitive-deps | dot -Tpng</code></small>

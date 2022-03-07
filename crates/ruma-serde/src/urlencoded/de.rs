@@ -31,8 +31,10 @@ use val_or_vec::ValOrVec;
 ///
 /// assert_eq!(
 ///     ruma_serde::urlencoded::from_bytes::<Vec<(String, String)>>(
-///         b"bread=baguette&cheese=comt%C3%A9&meat=ham&fat=butter"),
-///     Ok(meal));
+///         b"bread=baguette&cheese=comt%C3%A9&meat=ham&fat=butter"
+///     ),
+///     Ok(meal)
+/// );
 /// ```
 pub fn from_bytes<'de, T>(input: &'de [u8]) -> Result<T, Error>
 where
@@ -53,8 +55,10 @@ where
 ///
 /// assert_eq!(
 ///     ruma_serde::urlencoded::from_str::<Vec<(String, String)>>(
-///         "bread=baguette&cheese=comt%C3%A9&meat=ham&fat=butter"),
-///     Ok(meal));
+///         "bread=baguette&cheese=comt%C3%A9&meat=ham&fat=butter"
+///     ),
+///     Ok(meal)
+/// );
 /// ```
 pub fn from_str<'de, T>(input: &'de str) -> Result<T, Error>
 where

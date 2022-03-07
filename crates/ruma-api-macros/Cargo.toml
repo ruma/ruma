@@ -1,8 +1,4 @@
 [package]
-authors = [
-    "Jimmy Cuadra <jimmy@jimmycuadra.com>",
-    "Jonas Platte <jplatte@posteo.de>",
-]
 categories = ["api-bindings", "web-programming"]
 description = "A procedural macro for generating ruma-api Endpoints."
 homepage = "https://www.ruma.io/"
@@ -11,7 +7,7 @@ license = "MIT"
 name = "ruma-api-macros"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.18.5"
+version = "0.20.0"
 edition = "2018"
 
 [lib]

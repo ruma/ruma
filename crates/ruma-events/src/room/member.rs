@@ -1,4 +1,6 @@
-//! Types for the `m.room.member` event.
+//! Types for the [`m.room.member`] event.
+//!
+//! [`m.room.member`]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
 
 use std::collections::BTreeMap;
 
@@ -9,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
-    EventContent, HasDeserializeFields, RedactContent, RedactedEventContent,
+    EventContent, HasDeserializeFields, PrivOwnedStr, RedactContent, RedactedEventContent,
     RedactedStateEventContent, StrippedStateEvent, SyncStateEvent,
 };
 
@@ -78,7 +80,7 @@ pub struct RoomMemberEventContent {
     ///
     /// This uses the unstable prefix in
     /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-msc2448")]
     #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
     pub blurhash: Option<String>,
 
@@ -92,12 +94,10 @@ pub struct RoomMemberEventContent {
     /// Clients are not recommended to show this reason to users when receiving an invite due to
     /// the potential for spam and abuse. Hiding the reason behind a button or other component
     /// is recommended.
-    #[cfg(feature = "unstable-pre-spec")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
 
     /// Arbitrarily chosen `UserId` (MxID) of a local user who can send an invite.
-    #[cfg(feature = "unstable-pre-spec")]
     #[serde(rename = "join_authorised_via_users_server")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub join_authorized_via_users_server: Option<Box<UserId>>,
@@ -112,11 +112,9 @@ impl RoomMemberEventContent {
             displayname: None,
             is_direct: None,
             third_party_invite: None,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-msc2448")]
             blurhash: None,
-            #[cfg(feature = "unstable-pre-spec")]
             reason: None,
-            #[cfg(feature = "unstable-pre-spec")]
             join_authorized_via_users_server: None,
         }
     }
@@ -128,9 +126,7 @@ impl RedactContent for RoomMemberEventContent {
     fn redact(self, _version: &RoomVersionId) -> RedactedRoomMemberEventContent {
         RedactedRoomMemberEventContent {
             membership: self.membership,
-            #[cfg(feature = "unstable-pre-spec")]
             join_authorized_via_users_server: match _version {
-                #[cfg(feature = "unstable-pre-spec")]
                 RoomVersionId::V9 => self.join_authorized_via_users_server,
                 _ => None,
             },
@@ -149,7 +145,6 @@ pub struct RedactedRoomMemberEventContent {
     ///
     /// This is redacted in room versions 8 and below. It is used for validating
     /// joins when the join rule is restricted.
-    #[cfg(feature = "unstable-pre-spec")]
     #[serde(rename = "join_authorised_via_users_server")]
     pub join_authorized_via_users_server: Option<Box<UserId>>,
 }
@@ -157,11 +152,7 @@ pub struct RedactedRoomMemberEventContent {
 impl RedactedRoomMemberEventContent {
     /// Create a `RedactedRoomMemberEventContent` with the given membership.
     pub fn new(membership: MembershipState) -> Self {
-        Self {
-            membership,
-            #[cfg(feature = "unstable-pre-spec")]
-            join_authorized_via_users_server: None,
-        }
+        Self { membership, join_authorized_via_users_server: None }
     }
 }
 
@@ -220,7 +211,7 @@ pub enum MembershipState {
     Leave,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl MembershipState {
@@ -350,11 +341,9 @@ fn membership_change(
             is_direct: None,
             membership: St::Leave,
             third_party_invite: None,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-msc2448")]
             blurhash: None,
-            #[cfg(feature = "unstable-pre-spec")]
             reason: None,
-            #[cfg(feature = "unstable-pre-spec")]
             join_authorized_via_users_server: None,
         }
     };
@@ -394,7 +383,7 @@ impl RoomMemberEvent {
     ///
     /// Check [the specification][spec] for details.
     ///
-    /// [spec]: https://matrix.org/docs/spec/client_server/r0.6.1#m-room-member
+    /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
     pub fn membership_change(&self) -> MembershipChange {
         membership_change(&self.content, self.prev_content.as_ref(), &self.sender, &self.state_key)
     }
@@ -405,7 +394,7 @@ impl SyncStateEvent<RoomMemberEventContent> {
     ///
     /// Check [the specification][spec] for details.
     ///
-    /// [spec]: https://matrix.org/docs/spec/client_server/r0.6.1#m-room-member
+    /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
     pub fn membership_change(&self) -> MembershipChange {
         membership_change(&self.content, self.prev_content.as_ref(), &self.sender, &self.state_key)
     }
@@ -416,7 +405,7 @@ impl StrippedStateEvent<RoomMemberEventContent> {
     ///
     /// Check [the specification][spec] for details.
     ///
-    /// [spec]: https://matrix.org/docs/spec/client_server/r0.6.1#m-room-member
+    /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
     pub fn membership_change(&self) -> MembershipChange {
         membership_change(&self.content, None, &self.sender, &self.state_key)
     }
@@ -748,7 +737,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "unstable-pre-spec")]
     #[test]
     fn serde_with_join_authorized() {
         let json = json!({

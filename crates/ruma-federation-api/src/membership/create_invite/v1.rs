@@ -1,4 +1,6 @@
-//! [PUT /_matrix/federation/v1/invite/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v1-invite-roomid-eventid)
+//! `/v1/` ([spec])
+//!
+//! [spec]: https://spec.matrix.org/v1.2/server-server-api/#put_matrixfederationv1inviteroomideventid
 
 use ruma_api::ruma_api;
 use ruma_common::MilliSecondsSinceUnixEpoch;
@@ -13,9 +15,10 @@ ruma_api! {
         description: "Invites a remote user to a room.",
         method: PUT,
         name: "create_invite",
-        path: "/_matrix/federation/v1/invite/:room_id/:event_id",
+        stable_path: "/_matrix/federation/v1/invite/:room_id/:event_id",
         rate_limited: false,
         authentication: ServerSignatures,
+        added: 1.0,
     }
 
     request: {

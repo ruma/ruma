@@ -1,6 +1,6 @@
 //! Common types for the [third party networks module][thirdparty].
 //!
-//! [thirdparty]: https://matrix.org/docs/spec/client_server/r0.6.1#id153
+//! [thirdparty]: https://spec.matrix.org/v1.2/client-server-api/#third-party-networks
 
 use std::collections::BTreeMap;
 
@@ -8,7 +8,7 @@ use ruma_identifiers::{RoomAliasId, UserId};
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::MilliSecondsSinceUnixEpoch;
+use crate::{MilliSecondsSinceUnixEpoch, PrivOwnedStr};
 
 /// Metadata about a third party protocol.
 ///
@@ -88,6 +88,8 @@ pub struct ProtocolInstance {
     pub network_id: String,
 
     /// A unique identifier across all instances.
+    ///
+    /// See [matrix-doc#3203](https://github.com/matrix-org/matrix-doc/issues/3203).
     #[cfg(feature = "unstable-pre-spec")]
     pub instance_id: String,
 }
@@ -109,6 +111,8 @@ pub struct ProtocolInstanceInit {
     pub network_id: String,
 
     /// A unique identifier across all instances.
+    ///
+    /// See [matrix-doc#3203](https://github.com/matrix-org/matrix-doc/issues/3203).
     #[cfg(feature = "unstable-pre-spec")]
     pub instance_id: String,
 }
@@ -229,7 +233,7 @@ pub enum Medium {
     Msisdn,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl Medium {

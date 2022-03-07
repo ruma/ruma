@@ -1,5 +1,21 @@
 # [unreleased]
 
+# 0.7.0
+
+Improvements:
+
+* Add more `Error` variants
+
+# 0.6.0
+
+Breaking changes:
+
+* Most validation functions no longer return the colon position on success
+
+Improvements:
+
+* Add `mxc_uri` validation
+
 # 0.5.0
 
 Breaking changes:

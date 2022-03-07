@@ -1,6 +1,6 @@
 //! Common types for the [push notifications module][push].
 //!
-//! [push]: https://matrix.org/docs/spec/client_server/r0.6.1#id89
+//! [push]: https://spec.matrix.org/v1.2/client-server-api/#push-notifications
 //!
 //! ## Understanding the types of this module
 //!
@@ -21,6 +21,8 @@ use ruma_serde::{Raw, StringEnum};
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "unstable-pre-spec")]
 use serde_json::Value as JsonValue;
+
+use crate::PrivOwnedStr;
 
 mod action;
 mod condition;
@@ -101,10 +103,7 @@ impl Ruleset {
         &self,
         event: &Raw<T>,
         context: &PushConditionRoomCtx,
-    ) -> Option<AnyPushRuleRef<'_>>
-    where
-        T: Serialize,
-    {
+    ) -> Option<AnyPushRuleRef<'_>> {
         let event = FlattenedJson::from_raw(event);
         self.iter().find(|rule| rule.applies(&event, context))
     }
@@ -117,10 +116,7 @@ impl Ruleset {
     ///
     /// * `event` - The raw JSON of a room message event.
     /// * `context` - The context of the message and room at the time of the event.
-    pub fn get_actions<T>(&self, event: &Raw<T>, context: &PushConditionRoomCtx) -> &[Action]
-    where
-        T: Serialize,
-    {
+    pub fn get_actions<T>(&self, event: &Raw<T>, context: &PushConditionRoomCtx) -> &[Action] {
         self.get_match(event, context).map(|rule| rule.actions()).unwrap_or(&[])
     }
 }
@@ -412,7 +408,8 @@ pub struct PusherData {
     /// [sygnal]: https://github.com/matrix-org/sygnal/blob/main/docs/applications.md#ios-applications-beware
     // Not specified, issue: https://github.com/matrix-org/matrix-doc/issues/3474
     #[cfg(feature = "unstable-pre-spec")]
-    pub default_payload: Option<JsonValue>,
+    #[serde(default, skip_serializing_if = "JsonValue::is_null")]
+    pub default_payload: JsonValue,
 }
 
 impl PusherData {
@@ -430,7 +427,7 @@ impl PusherData {
 
         #[cfg(feature = "unstable-pre-spec")]
         {
-            self.url.is_none() && self.format.is_none() && self.default_payload.is_none()
+            self.url.is_none() && self.format.is_none() && self.default_payload.is_null()
         }
     }
 }
@@ -441,7 +438,7 @@ impl PusherData {
 /// This type can hold an arbitrary string. To check for formats that are not available as a
 /// documented variant here, use its string representation, obtained through `.as_str()`.
 ///
-/// [spec]: https://matrix.org/docs/spec/push_gateway/r0.1.1#homeserver-behaviour
+/// [spec]: https://spec.matrix.org/v1.2/push-gateway-api/#homeserver-behaviour
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
@@ -450,7 +447,7 @@ pub enum PushFormat {
     EventIdOnly,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl PushFormat {
@@ -473,13 +470,12 @@ mod tests {
         value::RawValue as RawJsonValue, Value as JsonValue,
     };
 
-    use crate::power_levels::NotificationPowerLevels;
-
     use super::{
         action::{Action, Tweak},
         condition::{PushCondition, PushConditionRoomCtx, RoomMemberCountIs},
         AnyPushRule, ConditionalPushRule, PatternedPushRule, Ruleset, SimplePushRule,
     };
+    use crate::power_levels::NotificationPowerLevels;
 
     fn example_ruleset() -> Ruleset {
         let mut set = Ruleset::new();

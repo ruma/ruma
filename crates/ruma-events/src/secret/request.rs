@@ -1,11 +1,15 @@
-//! Types for the `m.secret.request` event.
+//! Types for the [`m.secret.request`] event.
+//!
+//! [`m.secret.request`]: https://spec.matrix.org/v1.2/client-server-api/#msecretrequest
 
 use std::convert::TryFrom;
 
 use ruma_events_macros::EventContent;
-use ruma_identifiers::DeviceId;
+use ruma_identifiers::{DeviceId, TransactionId};
 use ruma_serde::StringEnum;
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
+
+use crate::PrivOwnedStr;
 
 /// The content of an `m.secret.request` event.
 ///
@@ -28,7 +32,7 @@ pub struct ToDeviceSecretRequestEventContent {
     ///
     /// If the secret is requested from multiple devices at the same time, the same ID may be used
     /// for every target. The same ID is also used in order to cancel a previous request.
-    pub request_id: String,
+    pub request_id: Box<TransactionId>,
 }
 
 impl ToDeviceSecretRequestEventContent {
@@ -37,7 +41,7 @@ impl ToDeviceSecretRequestEventContent {
     pub fn new(
         action: RequestAction,
         requesting_device_id: Box<DeviceId>,
-        request_id: String,
+        request_id: Box<TransactionId>,
     ) -> Self {
         Self { action, requesting_device_id, request_id }
     }
@@ -55,7 +59,7 @@ pub enum RequestAction {
     RequestCancellation,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 impl Serialize for RequestAction {
@@ -76,7 +80,7 @@ impl Serialize for RequestAction {
                 st.end()
             }
             RequestAction::_Custom(custom) => {
-                st.serialize_field("action", custom)?;
+                st.serialize_field("action", &custom.0)?;
                 st.end()
             }
         }
@@ -102,7 +106,7 @@ impl TryFrom<RequestActionJsonRepr> for RequestAction {
                 }
             }
             "request_cancellation" => Ok(RequestAction::RequestCancellation),
-            _ => Ok(RequestAction::_Custom(value.action)),
+            _ => Ok(RequestAction::_Custom(PrivOwnedStr(value.action.into()))),
         }
     }
 }
@@ -128,14 +132,16 @@ pub enum SecretName {
     RecoveryKey,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 #[cfg(test)]
 mod test {
-    use super::{RequestAction, SecretName, ToDeviceSecretRequestEventContent};
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+
+    use super::{RequestAction, SecretName, ToDeviceSecretRequestEventContent};
+    use crate::PrivOwnedStr;
 
     #[test]
     fn secret_request_serialization() {
@@ -176,7 +182,7 @@ mod test {
     #[test]
     fn secret_custom_action_serialization() {
         let content = ToDeviceSecretRequestEventContent::new(
-            RequestAction::_Custom("my_custom_action".into()),
+            RequestAction::_Custom(PrivOwnedStr("my_custom_action".into())),
             "XYZxyz".into(),
             "this_is_a_request_id".into(),
         );
@@ -289,9 +295,9 @@ mod test {
                 requesting_device_id,
                 request_id,
             }
-            if action == RequestAction::_Custom("my_custom_action".into())
-                    && requesting_device_id == "XYZxyz"
-                    && request_id == "this_is_a_request_id"
+            if action == RequestAction::_Custom(PrivOwnedStr("my_custom_action".into()))
+                && requesting_device_id == "XYZxyz"
+                && request_id == "this_is_a_request_id"
         )
     }
 }

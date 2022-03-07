@@ -4,8 +4,10 @@
 
 #![warn(missing_docs)]
 
-use serde_json::Value as JsonValue;
+use serde::{de, Deserialize};
+use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
+pub mod base64;
 mod buf;
 pub mod can_be_empty;
 mod canonical_json;
@@ -19,19 +21,22 @@ mod strings;
 pub mod test;
 pub mod urlencoded;
 
-pub use buf::{json_to_buf, slice_to_buf};
-pub use can_be_empty::{is_empty, CanBeEmpty};
-pub use canonical_json::{
-    to_canonical_value, try_from_json_map,
-    value::{CanonicalJsonValue, Object as CanonicalJsonObject},
-    Error as CanonicalJsonError,
-};
-pub use cow::deserialize_cow_str;
-pub use empty::vec_as_map_of_empty;
-pub use raw::Raw;
-pub use strings::{
-    btreemap_int_or_string_to_int_values, empty_string_as_none, int_or_string_to_int,
-    none_as_empty_string,
+pub use self::{
+    base64::{Base64, Base64DecodeError},
+    buf::{json_to_buf, slice_to_buf},
+    can_be_empty::{is_empty, CanBeEmpty},
+    canonical_json::{
+        to_canonical_value, try_from_json_map,
+        value::{CanonicalJsonValue, Object as CanonicalJsonObject},
+        Error as CanonicalJsonError,
+    },
+    cow::deserialize_cow_str,
+    empty::vec_as_map_of_empty,
+    raw::Raw,
+    strings::{
+        btreemap_deserialize_v1_powerlevel_values, deserialize_v1_powerlevel, empty_string_as_none,
+        none_as_empty_string,
+    },
 };
 
 /// The inner type of [`JsonValue::Object`].
@@ -55,6 +60,15 @@ pub fn default_true() -> bool {
 #[allow(clippy::trivially_copy_pass_by_ref)]
 pub fn is_true(b: &bool) -> bool {
     *b
+}
+
+/// Helper function for `serde_json::value::RawValue` deserialization.
+pub fn from_raw_json_value<'a, T, E>(val: &'a RawJsonValue) -> Result<T, E>
+where
+    T: Deserialize<'a>,
+    E: de::Error,
+{
+    serde_json::from_str(val.get()).map_err(E::custom)
 }
 
 /// A type that can be sent to another party that understands the matrix protocol.

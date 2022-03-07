@@ -1,9 +1,24 @@
 # [unreleased]
 
+# 0.20.0
+
+Breaking changes:
+
+* Bump dependencies
+
+# 0.19.0
+
 Breaking changes:
 
 * Remove the `RequestDeserializationError` and `ResponseDeserializationError`
   types in favor of using `DeserializationError` directly
+* Replace singular `path` metadata field with `stable_path`, `r0_path` and
+  `unstable_path`
+* Require callers of `OutgoingRequest::try_into_http_request` to pass a list of
+  server-supported matrix versions for selecting whether to use r0, unstable or
+  stable paths
+* Require callers of `IncomingRequest::try_from_http_request` to pass path
+  arguments, to avoid unnecessary extra path parsing
 
 # 0.18.5
 

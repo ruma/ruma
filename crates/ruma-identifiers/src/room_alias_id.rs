@@ -1,8 +1,8 @@
 //! Matrix room alias identifiers.
 
-use crate::{server_name::ServerName, EventId, MatrixToRef};
+use crate::{matrix_uri::UriAction, server_name::ServerName, EventId, MatrixToUri, MatrixUri};
 
-/// A Matrix room alias ID.
+/// A Matrix [room alias ID].
 ///
 /// A `RoomAliasId` is converted from a string slice, and can be converted back into a string as
 /// needed.
@@ -10,11 +10,10 @@ use crate::{server_name::ServerName, EventId, MatrixToRef};
 /// ```
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::RoomAliasId;
-/// assert_eq!(
-///     <&RoomAliasId>::try_from("#ruma:example.com").unwrap(),
-///     "#ruma:example.com"
-/// );
+/// assert_eq!(<&RoomAliasId>::try_from("#ruma:example.com").unwrap(), "#ruma:example.com");
 /// ```
+///
+/// [room alias ID]: https://spec.matrix.org/v1.2/appendices/#room-aliases
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct RoomAliasId(str);
@@ -32,14 +31,26 @@ impl RoomAliasId {
         ServerName::from_borrowed(&self.as_str()[self.colon_idx() + 1..])
     }
 
-    /// Create a `matrix.to` reference for this room alias ID.
-    pub fn matrix_to_url(&self) -> MatrixToRef<'_> {
-        MatrixToRef::new(self.as_str(), Vec::new())
+    /// Create a `matrix.to` URI for this room alias ID.
+    pub fn matrix_to_uri(&self) -> MatrixToUri {
+        MatrixToUri::new(self.into(), Vec::new())
     }
 
-    /// Create a `matrix.to` reference for an event scoped under this room alias ID.
-    pub fn matrix_to_event_url<'a>(&'a self, ev_id: &'a EventId) -> MatrixToRef<'a> {
-        MatrixToRef::event(self.as_str(), ev_id, Vec::new())
+    /// Create a `matrix.to` URI for an event scoped under this room alias ID.
+    pub fn matrix_to_event_uri(&self, ev_id: &EventId) -> MatrixToUri {
+        MatrixToUri::new((self, ev_id).into(), Vec::new())
+    }
+
+    /// Create a `matrix:` URI for this room alias ID.
+    ///
+    /// If `join` is `true`, a click on the URI should join the room.
+    pub fn matrix_uri(&self, join: bool) -> MatrixUri {
+        MatrixUri::new(self.into(), Vec::new(), Some(UriAction::Join).filter(|_| join))
+    }
+
+    /// Create a `matrix:` URI for an event scoped under this room alias ID.
+    pub fn matrix_event_uri(&self, ev_id: &EventId) -> MatrixUri {
+        MatrixUri::new((self, ev_id).into(), Vec::new(), None)
     }
 
     fn colon_idx(&self) -> usize {

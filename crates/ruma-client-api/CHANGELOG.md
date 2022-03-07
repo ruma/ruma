@@ -1,5 +1,12 @@
 # [unreleased]
 
+# 0.13.0
+
+Bug fixes:
+
+* Fix deserialization of `r0::session::get_login_types::CustomLoginType`.
+* Make fields of `r0::session::get_login_types::IdentityProvider` public.
+
 Breaking changes:
 
 * Use an enum for user-interactive auth stage type (used to be `&str` / `String`)
@@ -14,10 +21,13 @@ Breaking changes:
     `r0::account::request_3pid_management_token_via_email`
   * `get_contacts` has been can now be found at `r0::account::get_3pids`
 * Move `r0::uiaa::authorize_fallback` to `r0::uiaa::get_uiaa_fallback_page`
+* Change type of field `start` of `r0::message::get_message_events::Response` to
+  `String` in accordance with the updated specification.
+* Rename `uiaa::UserIdentifier::MatrixId` variant to `uiaa::UserIdentifier::UserIdOrLocalpart`
 
 Improvements:
 
-* Add unstable support for reasons in the membership endpoints:
+* Add support for reasons in the membership endpoints:
 
   ```rust
   r0::membership::{
@@ -32,6 +42,14 @@ Improvements:
   `IncomingAuthData::to_outgoing` on it.
 * Add custom variant to `LoginInfo` which can be constructed with `IncomingLoginInfo::new` and
   then call `IncomingLoginInfo::to_outgoing` on it.
+* Move MSC2858 - Multiple SSO Identity Providers out of the `unstable-pre-spec` feature flag, this
+  includes:
+  * The `r0::session::get_login_types::{IdentityProvider, IdentityProviderBrand}` types
+  * The `session::sso_login_with_provider::v3` endpoint
+* Move reason support for leaving room out of `unstable-pre-spec`
+* Move room type support out of `unstable-pre-spec`
+* Move knocking support out of `unstable-pre-spec`
+* Move blurhash support to `unstable-msc2448`
 
 # 0.12.3
 

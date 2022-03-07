@@ -1,4 +1,6 @@
-//! Types for the `m.room.redaction` event.
+//! Types for the [`m.room.redaction`] event.
+//!
+//! [`m.room.redaction`]: https://spec.matrix.org/v1.2/client-server-api/#mroomredaction
 
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events_macros::{Event, EventContent};

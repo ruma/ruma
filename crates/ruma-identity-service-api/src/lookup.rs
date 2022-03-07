@@ -2,6 +2,8 @@
 
 use ruma_serde::StringEnum;
 
+use crate::PrivOwnedStr;
+
 pub mod get_hash_parameters;
 pub mod lookup_3pid;
 
@@ -21,7 +23,7 @@ pub enum IdentifierHashingAlgorithm {
     None,
 
     #[doc(hidden)]
-    _Custom(String),
+    _Custom(PrivOwnedStr),
 }
 
 #[cfg(test)]

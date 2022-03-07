@@ -1,10 +1,11 @@
 //! Common types for [encryption] related tasks.
 //!
-//! [encryption]: https://matrix.org/docs/spec/client_server/r0.6.1#id76
+//! [encryption]: https://spec.matrix.org/v1.2/client-server-api/#end-to-end-encryption
 
 use std::collections::BTreeMap;
 
 use ruma_identifiers::{DeviceId, DeviceKeyId, EventEncryptionAlgorithm, UserId};
+use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
 
 /// Identity keys for a device.
@@ -79,31 +80,24 @@ pub type SignedKeySignatures = BTreeMap<Box<UserId>, BTreeMap<Box<DeviceKeyId>, 
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SignedKey {
     /// Base64-encoded 32-byte Curve25519 public key.
-    pub key: String,
+    pub key: Base64,
 
     /// Signatures for the key object.
     pub signatures: SignedKeySignatures,
 
     /// Is this key considered to be a fallback key, defaults to false.
-    #[cfg(feature = "unstable-pre-spec")]
     #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
     pub fallback: bool,
 }
 
 impl SignedKey {
     /// Creates a new `SignedKey` with the given key and signatures.
-    pub fn new(key: String, signatures: SignedKeySignatures) -> Self {
-        Self {
-            key,
-            signatures,
-            #[cfg(feature = "unstable-pre-spec")]
-            fallback: false,
-        }
+    pub fn new(key: Base64, signatures: SignedKeySignatures) -> Self {
+        Self { key, signatures, fallback: false }
     }
 
     /// Creates a new fallback `SignedKey` with the given key and signatures.
-    #[cfg(feature = "unstable-pre-spec")]
-    pub fn new_fallback(key: String, signatures: SignedKeySignatures) -> Self {
+    pub fn new_fallback(key: Base64, signatures: SignedKeySignatures) -> Self {
         Self { key, signatures, fallback: true }
     }
 }

@@ -8,7 +8,6 @@ pub fn expand_enum_from_string(input: &ItemEnum) -> syn::Result<TokenStream> {
     let enum_name = &input.ident;
     let rename_rule = get_rename_rule(input)?;
     let mut fallback = None;
-    let mut fallback_ty = None;
     let branches: Vec<_> = input
         .variants
         .iter()
@@ -40,11 +39,12 @@ pub fn expand_enum_from_string(input: &ItemEnum) -> syn::Result<TokenStream> {
                         None => quote! { 0 },
                     };
 
+                    let ty = &fields[0].ty;
                     fallback = Some(quote! {
-                        _ => #enum_name :: #variant_name { #member: s.into() }
+                        _ => #enum_name::#variant_name {
+                            #member: #ty(s.into()),
+                        }
                     });
-
-                    fallback_ty = Some(&fields[0].ty);
 
                     None
                 }
@@ -71,7 +71,7 @@ pub fn expand_enum_from_string(input: &ItemEnum) -> syn::Result<TokenStream> {
         impl<T> ::std::convert::From<T> for #enum_name
         where
             T: ::std::convert::AsRef<::std::primitive::str>
-                + ::std::convert::Into<#fallback_ty>
+                + ::std::convert::Into<::std::boxed::Box<::std::primitive::str>>
         {
             fn from(s: T) -> Self {
                 match s.as_ref() {

@@ -2,9 +2,9 @@
 
 use std::{rc::Rc, sync::Arc};
 
-use crate::{MatrixToRef, ServerName};
+use crate::{matrix_uri::UriAction, MatrixToUri, MatrixUri, ServerName};
 
-/// A Matrix user ID.
+/// A Matrix [user ID].
 ///
 /// A `UserId` is generated randomly or converted from a string slice, and can be converted back
 /// into a string as needed.
@@ -12,11 +12,10 @@ use crate::{MatrixToRef, ServerName};
 /// ```
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::UserId;
-/// assert_eq!(
-///     <&UserId>::try_from("@carl:example.com").unwrap(),
-///     "@carl:example.com"
-/// );
+/// assert_eq!(<&UserId>::try_from("@carl:example.com").unwrap(), "@carl:example.com");
 /// ```
+///
+/// [user ID]: https://spec.matrix.org/v1.2/appendices/#user-identifiers
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct UserId(str);
@@ -49,6 +48,7 @@ impl UserId {
         if id_str.starts_with('@') {
             Self::parse(id)
         } else {
+            let _ = localpart_is_fully_conforming(id_str)?;
             Ok(Self::from_owned(format!("@{}:{}", id_str, server_name).into()))
         }
     }
@@ -65,6 +65,7 @@ impl UserId {
         if id_str.starts_with('@') {
             Self::parse_rc(id)
         } else {
+            let _ = localpart_is_fully_conforming(id_str)?;
             Ok(Self::from_rc(format!("@{}:{}", id_str, server_name).into()))
         }
     }
@@ -81,6 +82,7 @@ impl UserId {
         if id_str.starts_with('@') {
             Self::parse_arc(id)
         } else {
+            let _ = localpart_is_fully_conforming(id_str)?;
             Ok(Self::from_arc(format!("@{}:{}", id_str, server_name).into()))
         }
     }
@@ -103,7 +105,7 @@ impl UserId {
         !localpart_is_fully_conforming(self.localpart()).unwrap()
     }
 
-    /// Create a `matrix.to` reference for this user ID.
+    /// Create a `matrix.to` URI for this user ID.
     ///
     /// # Example
     ///
@@ -112,11 +114,32 @@ impl UserId {
     ///
     /// let message = format!(
     ///     r#"Thanks for the update <a href="{link}">{display_name}</a>."#,
-    ///     link = user_id!("@jplatte:notareal.hs").matrix_to_url(), display_name = "jplatte",
+    ///     link = user_id!("@jplatte:notareal.hs").matrix_to_uri(),
+    ///     display_name = "jplatte",
     /// );
     /// ```
-    pub fn matrix_to_url(&self) -> MatrixToRef<'_> {
-        MatrixToRef::new(self.as_str(), Vec::new())
+    pub fn matrix_to_uri(&self) -> MatrixToUri {
+        MatrixToUri::new(self.into(), Vec::new())
+    }
+
+    /// Create a `matrix:` URI for this user ID.
+    ///
+    /// If `chat` is `true`, a click on the URI should start a direct message
+    /// with the user.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ruma_identifiers::user_id;
+    ///
+    /// let message = format!(
+    ///     r#"Thanks for the update <a href="{link}">{display_name}</a>."#,
+    ///     link = user_id!("@jplatte:notareal.hs").matrix_uri(false),
+    ///     display_name = "jplatte",
+    /// );
+    /// ```
+    pub fn matrix_uri(&self, chat: bool) -> MatrixUri {
+        MatrixUri::new(self.into(), Vec::new(), Some(UriAction::Chat).filter(|_| chat))
     }
 
     fn colon_idx(&self) -> usize {
@@ -162,6 +185,23 @@ mod tests {
         assert_eq!(user_id.localpart(), "carl");
         assert_eq!(user_id.server_name(), "example.com");
         assert!(!user_id.is_historical());
+    }
+
+    #[test]
+    fn invalid_user_id() {
+        let localpart = "τ";
+        let user_id = "@τ:example.com";
+        let server_name = server_name!("example.com");
+
+        assert!(<&UserId>::try_from(user_id).is_err());
+        assert!(UserId::parse_with_server_name(user_id, server_name).is_err());
+        assert!(UserId::parse_with_server_name(localpart, server_name).is_err());
+        assert!(UserId::parse_with_server_name_rc(user_id, server_name).is_err());
+        assert!(UserId::parse_with_server_name_rc(localpart, server_name).is_err());
+        assert!(UserId::parse_with_server_name_arc(user_id, server_name).is_err());
+        assert!(UserId::parse_with_server_name_arc(localpart, server_name).is_err());
+        assert!(UserId::parse_rc(user_id).is_err());
+        assert!(UserId::parse_arc(user_id).is_err());
     }
 
     #[test]
