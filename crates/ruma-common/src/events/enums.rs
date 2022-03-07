@@ -12,19 +12,6 @@ use super::{
 };
 
 event_enum! {
-    /// Any global account data event.
-    enum GlobalAccountData {
-        "m.direct",
-        "m.ignored_user_list",
-        "m.push_rules",
-    }
-
-    /// Any room account data event.
-    enum RoomAccountData {
-        "m.fully_read",
-        "m.tag",
-    }
-
     /// Any ephemeral room event.
     enum EphemeralRoom {
         "m.receipt",

@@ -6,6 +6,7 @@
 
 #![warn(missing_docs)]
 
+use account_data::AccountDataEnumDecl;
 use proc_macro::TokenStream;
 use proc_macro2 as pm2;
 use quote::quote;
@@ -15,6 +16,7 @@ use ruma_identifiers_validation::{
 };
 use syn::{parse_macro_input, DeriveInput, ItemEnum};
 
+mod account_data;
 mod api;
 mod events;
 mod identifiers;
@@ -22,6 +24,7 @@ mod serde;
 mod util;
 
 use self::{
+    account_data::{expand_account_data, expand_account_data_content, expand_account_data_enums},
     api::{request::expand_derive_request, response::expand_derive_response, Api},
     events::{
         event::expand_event,
@@ -43,6 +46,33 @@ use self::{
     },
     util::import_ruma_common,
 };
+
+/// Generates implementations needed to serialize and deserialize Matrix account data.
+#[proc_macro_derive(AccountData, attributes(ruma_event))]
+pub fn derive_account_data(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_account_data(input).unwrap_or_else(syn::Error::into_compile_error).into()
+}
+
+/// Generates an implementation of `ruma_common::account_data::AccountDataContent`.
+#[proc_macro_derive(AccountDataContent, attributes(account_data))]
+pub fn derive_account_data_content(input: TokenStream) -> TokenStream {
+    let ruma_common = import_ruma_common();
+    let input = parse_macro_input!(input as DeriveInput);
+
+    expand_account_data_content(&input, &ruma_common)
+        .unwrap_or_else(syn::Error::into_compile_error)
+        .into()
+}
+
+/// Generates account data enums `Any*AccountData` and `Any*AccountDataContent`.
+#[proc_macro]
+pub fn account_data_enum(input: TokenStream) -> TokenStream {
+    let account_data_enum_input = syn::parse_macro_input!(input as AccountDataEnumDecl);
+    expand_account_data_enums(&account_data_enum_input)
+        .unwrap_or_else(syn::Error::into_compile_error)
+        .into()
+}
 
 /// Generates an enum to represent the various Matrix event types.
 ///

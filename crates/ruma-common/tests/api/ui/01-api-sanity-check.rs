@@ -1,5 +1,7 @@
-use ruma_common::api::ruma_api;
-use ruma_common::events::{tag::TagEvent, AnyRoomEvent};
+use ruma_common::{
+    api::ruma_api,
+    events::{room::topic::RoomTopicEvent, AnyRoomEvent},
+};
 use ruma_serde::Raw;
 
 ruma_api! {
@@ -48,7 +50,7 @@ ruma_api! {
         pub optional_flag: Option<bool>,
 
         // Use `Raw` instead of the actual event to allow additional fields to be sent...
-        pub event: Raw<TagEvent>,
+        pub event: Raw<RoomTopicEvent>,
 
         // ... and to allow unknown events when the endpoint deals with event collections.
         pub list_of_events: Vec<Raw<AnyRoomEvent>>,

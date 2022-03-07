@@ -28,7 +28,7 @@ http = "0.2.2"
 js_int = { version = "0.2.0", features = ["serde"] }
 maplit = "1.0.2"
 percent-encoding = "2.1.0"
-ruma-common = { version = "0.8.0", path = "../ruma-common", features = ["api", "events"] }
+ruma-common = { version = "0.8.0", path = "../ruma-common", features = ["account-data", "api", "events"] }
 ruma-identifiers = { version = "0.22.0", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }

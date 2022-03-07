@@ -20,6 +20,7 @@ default = ["client", "server"]
 client = []
 server = []
 
+account-data = ["ruma-macros"]
 api = ["bytes", "http", "percent-encoding", "ruma-macros", "thiserror"]
 compat = ["ruma-macros/compat"]
 events = ["indoc", "ruma-macros", "ruma-identifiers/serde", "thiserror"]

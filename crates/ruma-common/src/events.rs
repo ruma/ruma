@@ -146,15 +146,12 @@ pub mod macros {
 }
 
 pub mod call;
-pub mod direct;
 pub mod dummy;
 #[cfg(feature = "unstable-msc1767")]
 pub mod emote;
 #[cfg(feature = "unstable-msc3551")]
 pub mod file;
 pub mod forwarded_room_key;
-pub mod fully_read;
-pub mod ignored_user_list;
 pub mod key;
 #[cfg(feature = "unstable-msc1767")]
 pub mod message;
@@ -164,7 +161,6 @@ pub mod notice;
 pub mod pdu;
 pub mod policy;
 pub mod presence;
-pub mod push_rules;
 #[cfg(feature = "unstable-msc2677")]
 pub mod reaction;
 pub mod receipt;
@@ -176,7 +172,6 @@ pub mod room_key_request;
 pub mod secret;
 pub mod space;
 pub mod sticker;
-pub mod tag;
 pub mod typing;
 
 #[cfg(feature = "unstable-msc2675")]
@@ -242,12 +237,6 @@ impl<T: EventContent> RawExt<T> for Raw<T> {
 /// Marker trait for the content of an ephemeral room event.
 pub trait EphemeralRoomEventContent: EventContent {}
 
-/// Marker trait for the content of a global account data event.
-pub trait GlobalAccountDataEventContent: EventContent {}
-
-/// Marker trait for the content of a room account data event.
-pub trait RoomAccountDataEventContent: EventContent {}
-
 /// Marker trait for the content of a to device event.
 pub trait ToDeviceEventContent: EventContent {}
 
@@ -308,12 +297,6 @@ pub trait StaticEventContent: EventContent {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[non_exhaustive]
 pub enum EventKind {
-    /// Global account data event kind.
-    GlobalAccountData,
-
-    /// Room account data event kind.
-    RoomAccountData,
-
     /// Ephemeral room event kind.
     EphemeralRoomData,
 

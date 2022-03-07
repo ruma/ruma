@@ -9,11 +9,11 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
+        account_data::{AnyGlobalAccountData, AnyRoomAccountData},
         api::ruma_api,
         events::{
-            presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
-            AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncRoomEvent, AnySyncStateEvent,
-            AnyToDeviceEvent,
+            presence::PresenceEvent, AnyStrippedStateEvent, AnySyncEphemeralRoomEvent,
+            AnySyncRoomEvent, AnySyncStateEvent, AnyToDeviceEvent,
         },
         presence::PresenceState,
     };
@@ -386,7 +386,7 @@ pub mod v3 {
     pub struct GlobalAccountData {
         /// A list of events.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub events: Vec<Raw<AnyGlobalAccountDataEvent>>,
+        pub events: Vec<Raw<AnyGlobalAccountData>>,
     }
 
     impl GlobalAccountData {
@@ -407,7 +407,7 @@ pub mod v3 {
     pub struct RoomAccountData {
         /// A list of events.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub events: Vec<Raw<AnyRoomAccountDataEvent>>,
+        pub events: Vec<Raw<AnyRoomAccountData>>,
     }
 
     impl RoomAccountData {

@@ -6,8 +6,8 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#put_matrixclientv3useruseridroomsroomidaccount_datatype
 
     use ruma_common::{
+        account_data::{AnyRoomAccountDataContent, RoomAccountDataContent},
         api::ruma_api,
-        events::{AnyRoomAccountDataEventContent, RoomAccountDataEventContent},
     };
     use ruma_identifiers::{RoomId, UserId};
     use ruma_serde::Raw;
@@ -18,8 +18,8 @@ pub mod v3 {
             description: "Associate account data with a room.",
             method: PUT,
             name: "set_room_account_data",
-            r0_path: "/_matrix/client/r0/user/:user_id/rooms/:room_id/account_data/:event_type",
-            stable_path: "/_matrix/client/v3/user/:user_id/rooms/:room_id/account_data/:event_type",
+            r0_path: "/_matrix/client/r0/user/:user_id/rooms/:room_id/account_data/:data_type",
+            stable_path: "/_matrix/client/v3/user/:user_id/rooms/:room_id/account_data/:data_type",
             rate_limited: false,
             authentication: AccessToken,
             added: 1.0,
@@ -30,13 +30,13 @@ pub mod v3 {
             ///
             /// To create a `RawJsonValue`, use `serde_json::value::to_raw_value`.
             #[ruma_api(body)]
-            pub data: Raw<AnyRoomAccountDataEventContent>,
+            pub data: Raw<AnyRoomAccountDataContent>,
 
             /// The event type of the account_data to set.
             ///
             /// Custom types should be namespaced to avoid clashes.
             #[ruma_api(path)]
-            pub event_type: &'a str,
+            pub data_type: &'a str,
 
             /// The ID of the room to set account_data on.
             #[ruma_api(path)]
@@ -62,14 +62,14 @@ pub mod v3 {
         ///
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
-        pub fn new<T: RoomAccountDataEventContent>(
+        pub fn new<T: RoomAccountDataContent>(
             data: &'a T,
             room_id: &'a RoomId,
             user_id: &'a UserId,
         ) -> serde_json::Result<Self> {
             Ok(Self {
                 data: Raw::from_json(to_raw_json_value(data)?),
-                event_type: data.event_type(),
+                data_type: data.data_type(),
                 room_id,
                 user_id,
             })
@@ -77,12 +77,12 @@ pub mod v3 {
 
         /// Creates a new `Request` with the given raw data, event type, room ID and user ID.
         pub fn new_raw(
-            data: Raw<AnyRoomAccountDataEventContent>,
-            event_type: &'a str,
+            data: Raw<AnyRoomAccountDataContent>,
+            data_type: &'a str,
             room_id: &'a RoomId,
             user_id: &'a UserId,
         ) -> Self {
-            Self { data, event_type, room_id, user_id }
+            Self { data, data_type, room_id, user_id }
         }
     }
 

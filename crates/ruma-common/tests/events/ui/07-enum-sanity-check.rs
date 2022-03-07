@@ -1,12 +1,13 @@
 use ruma_macros::event_enum;
 
 event_enum! {
-    /// Any global account data event.
-    enum GlobalAccountData {
-        "m.direct",
+    /// Any state event.
+    enum State {
+        "m.room.aliases",
         #[cfg(test)]
-        "m.ignored_user_list",
-        "m.push_rules",
+        "m.room.avatar",
+        "m.room.canonical_alias",
+        "m.room.create",
         #[cfg(any())]
         "m.ruma_test",
     }

@@ -6,8 +6,8 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#put_matrixclientv3useruseridaccount_datatype
 
     use ruma_common::{
+        account_data::{AnyGlobalAccountDataContent, GlobalAccountDataContent},
         api::ruma_api,
-        events::{AnyGlobalAccountDataEventContent, GlobalAccountDataEventContent},
     };
     use ruma_identifiers::UserId;
     use ruma_serde::Raw;
@@ -18,8 +18,8 @@ pub mod v3 {
             description: "Sets global account data.",
             method: PUT,
             name: "set_global_account_data",
-            r0_path: "/_matrix/client/r0/user/:user_id/account_data/:event_type",
-            stable_path: "/_matrix/client/v3/user/:user_id/account_data/:event_type",
+            r0_path: "/_matrix/client/r0/user/:user_id/account_data/:data_type",
+            stable_path: "/_matrix/client/v3/user/:user_id/account_data/:data_type",
             rate_limited: false,
             authentication: AccessToken,
             added: 1.0,
@@ -36,13 +36,13 @@ pub mod v3 {
             ///
             /// Custom types should be namespaced to avoid clashes.
             #[ruma_api(path)]
-            pub event_type: &'a str,
+            pub data_type: &'a str,
 
             /// Arbitrary JSON to store as config data.
             ///
             /// To create a `RawJsonValue`, use `serde_json::value::to_raw_value`.
             #[ruma_api(body)]
-            pub data: Raw<AnyGlobalAccountDataEventContent>,
+            pub data: Raw<AnyGlobalAccountDataContent>,
         }
 
         #[derive(Default)]
@@ -58,24 +58,24 @@ pub mod v3 {
         ///
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
-        pub fn new<T: GlobalAccountDataEventContent>(
+        pub fn new<T: GlobalAccountDataContent>(
             data: &'a T,
             user_id: &'a UserId,
         ) -> serde_json::Result<Self> {
             Ok(Self {
                 user_id,
-                event_type: data.event_type(),
+                data_type: data.data_type(),
                 data: Raw::from_json(to_raw_json_value(data)?),
             })
         }
 
         /// Creates a new `Request` with the given raw data, event type and user ID.
         pub fn new_raw(
-            data: Raw<AnyGlobalAccountDataEventContent>,
-            event_type: &'a str,
+            data: Raw<AnyGlobalAccountDataContent>,
+            data_type: &'a str,
             user_id: &'a UserId,
         ) -> Self {
-            Self { user_id, event_type, data }
+            Self { user_id, data_type, data }
         }
     }
 

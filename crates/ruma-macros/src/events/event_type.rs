@@ -14,13 +14,9 @@ pub fn expand_event_type_enum(
     let mut state: Vec<&Vec<EventEnumEntry>> = vec![];
     let mut message: Vec<&Vec<EventEnumEntry>> = vec![];
     let mut ephemeral: Vec<&Vec<EventEnumEntry>> = vec![];
-    let mut room_account: Vec<&Vec<EventEnumEntry>> = vec![];
-    let mut global_account: Vec<&Vec<EventEnumEntry>> = vec![];
     let mut to_device: Vec<&Vec<EventEnumEntry>> = vec![];
     for event in &input.enums {
         match event.kind {
-            EventKind::GlobalAccountData => global_account.push(&event.events),
-            EventKind::RoomAccountData => room_account.push(&event.events),
             EventKind::Ephemeral => ephemeral.push(&event.events),
             EventKind::MessageLike => {
                 message.push(&event.events);
@@ -79,23 +75,6 @@ pub fn expand_event_type_enum(
         &ruma_serde,
     );
 
-    let (room_account_event_types, room_account_str_ev_types) = generate_variants(&room_account)?;
-    let room_account = generate_enum(
-        format_ident!("RoomAccountDataEventType"),
-        room_account_str_ev_types,
-        room_account_event_types,
-        &ruma_serde,
-    );
-
-    let (global_account_event_types, global_account_str_ev_types) =
-        generate_variants(&global_account)?;
-    let global_account = generate_enum(
-        format_ident!("GlobalAccountDataEventType"),
-        global_account_str_ev_types,
-        global_account_event_types,
-        &ruma_serde,
-    );
-
     let (to_device_event_types, to_device_str_ev_types) = generate_variants(&to_device)?;
     let to_device = generate_enum(
         format_ident!("ToDeviceEventType"),
@@ -110,8 +89,6 @@ pub fn expand_event_type_enum(
         #state
         #message
         #ephemeral
-        #room_account
-        #global_account
         #to_device
     })
 }

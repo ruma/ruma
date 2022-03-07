@@ -13,9 +13,8 @@ use ruma_common::{
         },
         AnyEphemeralRoomEvent, AnyMessageLikeEvent, AnyRoomEvent, AnyStateEvent,
         AnyStateEventContent, AnySyncMessageLikeEvent, AnySyncRoomEvent, AnySyncStateEvent,
-        EphemeralRoomEventType, EventType, GlobalAccountDataEventType, MessageLikeEvent,
-        MessageLikeEventType, RoomAccountDataEventType, StateEvent, StateEventType,
-        SyncMessageLikeEvent, SyncStateEvent, ToDeviceEventType, Unsigned,
+        EphemeralRoomEventType, EventType, MessageLikeEvent, MessageLikeEventType, StateEvent,
+        StateEventType, SyncMessageLikeEvent, SyncStateEvent, ToDeviceEventType, Unsigned,
     },
     MilliSecondsSinceUnixEpoch,
 };
@@ -330,12 +329,8 @@ fn serialize_and_deserialize_from_display_form() {
     serde_json_eq(EventType::CallCandidates, json!("m.call.candidates"));
     serde_json_eq(EventType::CallHangup, json!("m.call.hangup"));
     serde_json_eq(EventType::CallInvite, json!("m.call.invite"));
-    serde_json_eq(EventType::Direct, json!("m.direct"));
-    serde_json_eq(GlobalAccountDataEventType::Direct, json!("m.direct"));
     serde_json_eq(EventType::Dummy, json!("m.dummy"));
     serde_json_eq(EventType::ForwardedRoomKey, json!("m.forwarded_room_key"));
-    serde_json_eq(EventType::FullyRead, json!("m.fully_read"));
-    serde_json_eq(RoomAccountDataEventType::FullyRead, json!("m.fully_read"));
     serde_json_eq(EventType::KeyVerificationAccept, json!("m.key.verification.accept"));
     serde_json_eq(EventType::KeyVerificationCancel, json!("m.key.verification.cancel"));
     serde_json_eq(EventType::KeyVerificationDone, json!("m.key.verification.done"));
@@ -345,12 +340,10 @@ fn serialize_and_deserialize_from_display_form() {
     serde_json_eq(EventType::KeyVerificationReady, json!("m.key.verification.ready"));
     serde_json_eq(EventType::KeyVerificationRequest, json!("m.key.verification.request"));
     serde_json_eq(EventType::KeyVerificationStart, json!("m.key.verification.start"));
-    serde_json_eq(EventType::IgnoredUserList, json!("m.ignored_user_list"));
     serde_json_eq(EventType::PolicyRuleRoom, json!("m.policy.rule.room"));
     serde_json_eq(EventType::PolicyRuleServer, json!("m.policy.rule.server"));
     serde_json_eq(EventType::PolicyRuleUser, json!("m.policy.rule.user"));
     serde_json_eq(EventType::Presence, json!("m.presence"));
-    serde_json_eq(EventType::PushRules, json!("m.push_rules"));
     serde_json_eq(EventType::Receipt, json!("m.receipt"));
     serde_json_eq(EventType::RoomAliases, json!("m.room.aliases"));
     serde_json_eq(EventType::RoomAvatar, json!("m.room.avatar"));
@@ -376,7 +369,6 @@ fn serialize_and_deserialize_from_display_form() {
     serde_json_eq(EventType::RoomKey, json!("m.room_key"));
     serde_json_eq(EventType::RoomKeyRequest, json!("m.room_key_request"));
     serde_json_eq(EventType::Sticker, json!("m.sticker"));
-    serde_json_eq(EventType::Tag, json!("m.tag"));
     serde_json_eq(EventType::Typing, json!("m.typing"));
     serde_json_eq(EphemeralRoomEventType::Typing, json!("m.typing"));
 }

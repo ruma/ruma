@@ -6,24 +6,9 @@ use ruma_macros::Event;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    EphemeralRoomEventContent, GlobalAccountDataEventContent, MessageLikeEventContent,
-    RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
-    RoomAccountDataEventContent, StateEventContent, ToDeviceEventContent, Unsigned,
+    EphemeralRoomEventContent, MessageLikeEventContent, RedactedMessageLikeEventContent,
+    RedactedStateEventContent, RedactedUnsigned, StateEventContent, ToDeviceEventContent, Unsigned,
 };
-
-/// A global account data event.
-#[derive(Clone, Debug, Event)]
-pub struct GlobalAccountDataEvent<C: GlobalAccountDataEventContent> {
-    /// Data specific to the event type.
-    pub content: C,
-}
-
-/// A room account data event.
-#[derive(Clone, Debug, Event)]
-pub struct RoomAccountDataEvent<C: RoomAccountDataEventContent> {
-    /// Data specific to the event type.
-    pub content: C,
-}
 
 /// An ephemeral room event.
 #[derive(Clone, Debug, Event)]

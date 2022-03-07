@@ -414,8 +414,6 @@ fn expand_marker_trait_impl(kind: EventKind, ruma_common: &TokenStream) -> Token
         EventKind::State => quote! { StateEventContent },
         EventKind::MessageLike => quote! { MessageLikeEventContent },
         EventKind::Ephemeral => quote! { EphemeralRoomEventContent },
-        EventKind::GlobalAccountData => quote! { GlobalAccountDataEventContent },
-        EventKind::RoomAccountData => quote! { RoomAccountDataEventContent },
         EventKind::ToDevice => quote! { ToDeviceEventContent },
         _ => return TokenStream::new(),
     };

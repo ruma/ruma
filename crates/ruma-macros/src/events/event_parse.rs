@@ -77,8 +77,6 @@ impl EventKindVariation {
 // If the variants of this enum change `to_event_path` needs to be updated as well.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum EventKind {
-    GlobalAccountData,
-    RoomAccountData,
     Ephemeral,
     MessageLike,
     State,
@@ -92,8 +90,6 @@ pub enum EventKind {
 impl fmt::Display for EventKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            EventKind::GlobalAccountData => write!(f, "GlobalAccountDataEvent"),
-            EventKind::RoomAccountData => write!(f, "RoomAccountDataEvent"),
             EventKind::Ephemeral => write!(f, "EphemeralRoomEvent"),
             EventKind::MessageLike => write!(f, "MessageLikeEvent"),
             EventKind::State => write!(f, "StateEvent"),
@@ -162,8 +158,6 @@ impl Parse for EventKind {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let ident: Ident = input.parse()?;
         Ok(match ident.to_string().as_str() {
-            "GlobalAccountData" => EventKind::GlobalAccountData,
-            "RoomAccountData" => EventKind::RoomAccountData,
             "EphemeralRoom" => EventKind::Ephemeral,
             "MessageLike" => EventKind::MessageLike,
             "State" => EventKind::State,
@@ -188,8 +182,6 @@ impl Parse for EventKind {
 pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation)> {
     let ident_str = ident.to_string();
     match ident_str.as_str() {
-        "GlobalAccountDataEvent" => Some((EventKind::GlobalAccountData, EventKindVariation::Full)),
-        "RoomAccountDataEvent" => Some((EventKind::RoomAccountData, EventKindVariation::Full)),
         "EphemeralRoomEvent" => Some((EventKind::Ephemeral, EventKindVariation::Full)),
         "SyncEphemeralRoomEvent" => Some((EventKind::Ephemeral, EventKindVariation::Sync)),
         "MessageLikeEvent" => Some((EventKind::MessageLike, EventKindVariation::Full)),

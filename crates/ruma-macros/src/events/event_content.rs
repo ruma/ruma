@@ -388,8 +388,6 @@ fn generate_marker_trait_impl(
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let marker_trait = match event_kind {
-        EventKind::GlobalAccountData => quote! { GlobalAccountDataEventContent },
-        EventKind::RoomAccountData => quote! { RoomAccountDataEventContent },
         EventKind::Ephemeral => quote! { EphemeralRoomEventContent },
         EventKind::MessageLike => quote! { MessageLikeEventContent },
         EventKind::State => quote! { StateEventContent },
@@ -451,8 +449,6 @@ fn generate_static_event_content_impl(
     ruma_common: &TokenStream,
 ) -> TokenStream {
     let event_kind = match event_kind {
-        EventKind::GlobalAccountData => quote! { GlobalAccountData },
-        EventKind::RoomAccountData => quote! { RoomAccountData },
         EventKind::Ephemeral => quote! { EphemeralRoomData },
         EventKind::MessageLike => quote! { MessageLike { redacted: #redacted } },
         EventKind::State => quote! { State { redacted: #redacted } },

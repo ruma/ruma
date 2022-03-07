@@ -3,10 +3,9 @@ use serde::Serialize;
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
-    EphemeralRoomEventContent, EventContent, GlobalAccountDataEventContent, HasDeserializeFields,
-    MessageLikeEventContent, RedactContent, RedactedEventContent, RedactedMessageLikeEventContent,
-    RedactedStateEventContent, RoomAccountDataEventContent, StateEventContent,
-    ToDeviceEventContent,
+    EphemeralRoomEventContent, EventContent, HasDeserializeFields, MessageLikeEventContent,
+    RedactContent, RedactedEventContent, RedactedMessageLikeEventContent,
+    RedactedStateEventContent, StateEventContent, ToDeviceEventContent,
 };
 
 /// A custom event's type. Used for event enum `_Custom` variants.
@@ -50,8 +49,6 @@ impl RedactedEventContent for CustomEventContent {
     }
 }
 
-impl GlobalAccountDataEventContent for CustomEventContent {}
-impl RoomAccountDataEventContent for CustomEventContent {}
 impl ToDeviceEventContent for CustomEventContent {}
 impl EphemeralRoomEventContent for CustomEventContent {}
 impl MessageLikeEventContent for CustomEventContent {}

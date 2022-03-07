@@ -1,10 +1,10 @@
-//! Types for the [`m.tag`] event.
+//! Types for the [`m.tag`] object.
 //!
 //! [`m.tag`]: https://spec.matrix.org/v1.2/client-server-api/#mtag
 
 use std::{collections::BTreeMap, error::Error, fmt, str::FromStr};
 
-use ruma_macros::EventContent;
+use ruma_macros::AccountDataContent;
 use ruma_serde::deserialize_cow_str;
 use serde::{Deserialize, Serialize};
 
@@ -13,25 +13,25 @@ use crate::PrivOwnedStr;
 /// Map of tag names to tag info.
 pub type Tags = BTreeMap<TagName, TagInfo>;
 
-/// The content of an `m.tag` event.
+/// The content of an `m.tag` object.
 ///
 /// Informs the client of tags on a room.
-#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, AccountDataContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.tag", kind = RoomAccountData)]
-pub struct TagEventContent {
+#[account_data(type = "m.tag", kind = Room)]
+pub struct TagContent {
     /// A map of tag names to tag info.
     pub tags: Tags,
 }
 
-impl TagEventContent {
-    /// Creates a new `TagEventContent` with the given `Tags`.
+impl TagContent {
+    /// Creates a new `TagContent` with the given `Tags`.
     pub fn new(tags: Tags) -> Self {
         Self { tags }
     }
 }
 
-impl From<Tags> for TagEventContent {
+impl From<Tags> for TagContent {
     fn from(tags: Tags) -> Self {
         Self::new(tags)
     }
@@ -188,7 +188,7 @@ mod tests {
     use maplit::btreemap;
     use serde_json::{json, to_value as to_json_value};
 
-    use super::{TagEventContent, TagInfo, TagName};
+    use super::{TagContent, TagInfo, TagName};
 
     #[test]
     fn serialization() {
@@ -199,7 +199,7 @@ mod tests {
             "u.custom".to_owned().into() => TagInfo { order: Some(0.9) }
         };
 
-        let content = TagEventContent { tags };
+        let content = TagContent { tags };
 
         assert_eq!(
             to_json_value(content).unwrap(),

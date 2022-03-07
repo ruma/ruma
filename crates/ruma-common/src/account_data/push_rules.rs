@@ -1,33 +1,33 @@
-//! Types for the [`m.push_rules`] event.
+//! Types for the [`m.push_rules`] object.
 //!
 //! [`m.push_rules`]: https://spec.matrix.org/v1.2/client-server-api/#mpush_rules
 
 use ruma_common::push::Ruleset;
-use ruma_macros::EventContent;
+use ruma_macros::AccountDataContent;
 use serde::{Deserialize, Serialize};
 
-/// The content of an `m.push_rules` event.
+/// The content of an `m.push_rules` object.
 ///
 /// Describes all push rules for a user.
-#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, AccountDataContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.push_rules", kind = GlobalAccountData)]
-pub struct PushRulesEventContent {
+#[account_data(type = "m.push_rules", kind = Global)]
+pub struct PushRulesContent {
     /// The global ruleset.
     pub global: Ruleset,
 }
 
-impl PushRulesEventContent {
-    /// Creates a new `PushRulesEventContent` with the given global ruleset.
+impl PushRulesContent {
+    /// Creates a new `PushRulesContent` with the given global ruleset.
     ///
-    /// You can also construct a `PushRulesEventContent` from a global ruleset using `From` /
+    /// You can also construct a `PushRulesContent` from a global ruleset using `From` /
     /// `Into`.
     pub fn new(global: Ruleset) -> Self {
         Self { global }
     }
 }
 
-impl From<Ruleset> for PushRulesEventContent {
+impl From<Ruleset> for PushRulesContent {
     fn from(global: Ruleset) -> Self {
         Self::new(global)
     }
@@ -37,11 +37,11 @@ impl From<Ruleset> for PushRulesEventContent {
 mod tests {
     use serde_json::{from_value as from_json_value, json};
 
-    use super::PushRulesEvent;
+    use super::PushRules;
 
     #[test]
     fn sanity_check() {
-        // This is a full example of a push rules event from the specification.
+        // This is a full example of a push rules object from the specification.
         let json_data = json!({
             "content": {
                 "global": {
@@ -234,6 +234,6 @@ mod tests {
             "type": "m.push_rules"
         });
 
-        assert!(from_json_value::<PushRulesEvent>(json_data).is_ok());
+        assert!(from_json_value::<PushRules>(json_data).is_ok());
     }
 }

@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3useruseridroomsroomidaccount_datatype
 
-    use ruma_common::{api::ruma_api, events::AnyRoomAccountDataEventContent};
+    use ruma_common::{account_data::AnyRoomAccountDataContent, api::ruma_api};
     use ruma_identifiers::{RoomId, UserId};
     use ruma_serde::Raw;
 
@@ -40,7 +40,7 @@ pub mod v3 {
             ///
             /// Use `ruma_common::events::RawExt` for deserialization.
             #[ruma_api(body)]
-            pub account_data: Raw<AnyRoomAccountDataEventContent>,
+            pub account_data: Raw<AnyRoomAccountDataContent>,
         }
 
         error: crate::Error
@@ -55,7 +55,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given account data.
-        pub fn new(account_data: Raw<AnyRoomAccountDataEventContent>) -> Self {
+        pub fn new(account_data: Raw<AnyRoomAccountDataContent>) -> Self {
             Self { account_data }
         }
     }

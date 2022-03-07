@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3useruseridroomsroomidtags
 
-    use ruma_common::{api::ruma_api, events::tag::Tags};
+    use ruma_common::{account_data::tag::Tags, api::ruma_api};
     use ruma_identifiers::{RoomId, UserId};
 
     ruma_api! {
@@ -56,8 +56,8 @@ pub mod v3 {
     mod server_tests {
         use assign::assign;
         use ruma_common::{
+            account_data::tag::{TagInfo, Tags},
             api::OutgoingResponse,
-            events::tag::{TagInfo, Tags},
         };
         use serde_json::json;
 

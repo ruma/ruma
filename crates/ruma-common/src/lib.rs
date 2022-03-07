@@ -15,6 +15,8 @@ compile_error!(
 // that expect `ruma_common` to exist in the prelude.
 extern crate self as ruma_common;
 
+#[cfg(feature = "account-data")]
+pub mod account_data;
 #[cfg(feature = "api")]
 pub mod api;
 pub mod authentication;
