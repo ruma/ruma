@@ -37,7 +37,7 @@ pub mod v3 {
             /// Should the server return a blurhash or not.
             ///
             /// This uses the unstable prefix in
-            /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
+            /// [MSC2448](https://github.com/matrix-org/matrix-spec-proposals/pull/2448).
             #[ruma_api(query)]
             #[cfg(feature = "unstable-msc2448")]
             #[serde(default, skip_serializing_if = "ruma_serde::is_default", rename = "xyz.amorgan.blurhash")]
@@ -51,7 +51,7 @@ pub mod v3 {
             /// The [BlurHash](https://blurha.sh) for the uploaded content.
             ///
             /// This uses the unstable prefix in
-            /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
+            /// [MSC2448](https://github.com/matrix-org/matrix-spec-proposals/pull/2448).
             #[cfg(feature = "unstable-msc2448")]
             #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
             pub blurhash: Option<String>,
