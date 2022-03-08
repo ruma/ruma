@@ -155,10 +155,10 @@ ruma_api! {
         pub ops: Option<Vec<Raw<SyncOp>>>,
 
         /// The number of available rooms(?)
-        pub counts: UInt,
+        pub counts: Vec<UInt>,
 
         /// Updates to subscribed rooms.
-        pub room_subscriptions: Option<Vec<BTreeMap<Box<RoomId>, Room>>>,
+        pub room_subscriptions: Option<BTreeMap<Box<RoomId>, Room>>,
     }
 
     error: crate::Error
@@ -184,6 +184,16 @@ impl Response {
     }
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all="UPPERCASE")]
+pub enum SlidingOp {
+    Sync,
+    Insert,
+    Delete,
+    Update,
+    Invalidate,
+}
+
 /// Updates to joined rooms.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -195,8 +205,7 @@ pub struct SyncOp {
     pub range: (UInt, UInt),
 
     /// The sync operation to apply
-    /// XXX: type this
-    pub op: String,
+    pub op: SlidingOp,
 
     /// The list of room updates to apply
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
