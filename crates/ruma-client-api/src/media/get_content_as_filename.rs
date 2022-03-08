@@ -48,7 +48,6 @@ pub mod v3 {
 
             /// The content type of the file that was previously uploaded.
             #[ruma_api(header = CONTENT_TYPE)]
-            // Potentially not actually optional – https://github.com/matrix-org/matrix-spec-proposals/pull/2818
             pub content_type: Option<String>,
 
             /// The value of the `Content-Disposition` HTTP header, possibly containing the name of the
