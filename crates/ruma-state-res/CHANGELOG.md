@@ -1,5 +1,11 @@
 # [unreleased]
 
+Breaking changes:
+
+* `auth_check` does not require `prev_event` parameter. It was only required on
+  some specific cases. Previous event is now calculated on demand only when
+  it's required. 
+
 # 0.6.0
 
 Breaking changes:
