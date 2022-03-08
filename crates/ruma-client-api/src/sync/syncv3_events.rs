@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::filter::{FilterDefinition};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SyncRequestListFilters {
     // All fields are applied with AND operators, hence if is_dm:true and is_encrypted:true
@@ -50,11 +50,11 @@ pub struct SyncRequestListFilters {
     pub is_invite: Option<bool>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SyncRequestList {
     /// The ranges of rooms we're interested in
-    pub rooms: Vec<(UInt, UInt)>,
+    pub ranges: Vec<(UInt, UInt)>,
 
     /// Sticky. The sort ordering applied to this list of rooms
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -75,7 +75,7 @@ pub struct SyncRequestList {
     pub filters: Option<Raw<SyncRequestListFilters>>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomSubscription {
     /// Sticky. Required state for each room returned. An array of event type and state key tuples.
@@ -109,7 +109,9 @@ ruma_api! {
         description: "Get all new events in a sliding window of rooms since the last sync or a given point of time.",
         method: POST,
         name: "sync",
-        unstable_path: "/_matrix/client/unstable/org.matrix.msc3575/sync",
+        added: 1.0,
+        stable_path: "/_matrix/client/v3/sync",
+        //unstable_path: "/_matrix/client/unstable/org.matrix.msc3575/sync",
         rate_limited: false,
         authentication: AccessToken,
     }
