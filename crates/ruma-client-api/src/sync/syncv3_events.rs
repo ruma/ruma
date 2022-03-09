@@ -222,9 +222,21 @@ pub struct Room {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub room_id: Option<String>,
 
-    /// Counts of unread notifications for this room.
-    #[serde(default, skip_serializing_if = "UnreadNotificationsCount::is_empty")]
-    pub unread_notifications: UnreadNotificationsCount,
+    /// The name of the room as calculated by the server
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+
+    /// Was this an initial response
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub initial: Option<bool>,
+
+    /// The number of unread notifications for this room with the highlight flag set.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub highlight_count: Option<UInt>,
+
+    /// The total number of unread notifications for this room.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub notification_count: Option<UInt>,
 
     /// The timeline of messages and state changes in the room.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -244,34 +256,9 @@ impl Room {
 
     /// Returns true if there are no updates in the room.
     pub fn is_empty(&self) -> bool {
-        self.unread_notifications.is_empty()
+        self.highlight_count.is_none()
+            && self.notification_count.is_none()
             && self.timeline.is_empty()
             && self.required_state.is_empty()
     }
 }
-
-/// Unread notifications count.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct UnreadNotificationsCount {
-    /// The number of unread notifications for this room with the highlight flag set.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub highlight_count: Option<UInt>,
-
-    /// The total number of unread notifications for this room.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub notification_count: Option<UInt>,
-}
-
-impl UnreadNotificationsCount {
-    /// Creates an empty `UnreadNotificationsCount`.
-    pub fn new() -> Self {
-        Default::default()
-    }
-
-    /// Returns true if there are no notification count updates.
-    pub fn is_empty(&self) -> bool {
-        self.highlight_count.is_none() && self.notification_count.is_none()
-    }
-}
-
