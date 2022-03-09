@@ -147,14 +147,48 @@ for more information on writing good commit messages.)
 Use the [latest v1.x documentation](https://spec.matrix.org/latest/) when adding or modifying code. We target
 the latest minor version of the Matrix specification.
 
+### Endpoint Module Structure
+
+Matrix uses [versioned endpoints](https://spec.matrix.org/v1.2/#endpoint-versioning) (with a few small exceptions),
+we follow this versioning approach in modules as well.
+
+We structure endpoints and their versions like the following;
+
+`endpoint_name::v1`
+
+All bits pertaining a specific version (that can be linked to in the spec) reside in such a module,
+some bits may be shared between endpoint versions, but this should be handled on a case-by-case basis.
+
+Endpoint files may have their version modules embedded;
+
+```rs
+// endpoint_name.rs
+
+mod v1 {
+  // (version-specific stuff)
+}
+```
+
+This happens if the endpoint either has a single version, or a few versions of sufficiently small size.
+
 ### Endpoint Documentation Header
 
 Add a comment to the top of each endpoint file that includes the path
-and a link to the documentation of the spec. You can use the latest
-version at the time of the commit. For example:
+and a link to the documentation of the spec. Replace the version
+marker (`v3`) with a `*`, like so;
 
 ```rust
-//! [GET /.well-known/matrix/client](https://spec.matrix.org/v1.1/client-server-api/#getwell-knownmatrixclient)
+//! `GET /_matrix/client/*/sync`
+```
+
+Then, in the subsequent version module, embed the version and specification link like so;
+
+```rs
+pub mod v3 {
+    //! `/v3/` ([spec])
+    //!
+    //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3sync
+}
 ```
 
 ### Naming Endpoints
