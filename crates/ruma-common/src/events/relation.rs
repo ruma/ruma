@@ -3,8 +3,9 @@
 use std::fmt::Debug;
 
 use js_int::UInt;
-use ruma_common::MilliSecondsSinceUnixEpoch;
 use serde::{Deserialize, Serialize};
+
+use crate::MilliSecondsSinceUnixEpoch;
 
 /// Summary of all reactions with the given key to an event.
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq, Serialize)]

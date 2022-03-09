@@ -7,9 +7,10 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use ruma_common::{receipt::ReceiptType, EventId, MilliSecondsSinceUnixEpoch, UserId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
+
+use crate::{receipt::ReceiptType, EventId, MilliSecondsSinceUnixEpoch, UserId};
 
 /// The content of an `m.receipt` event.
 ///

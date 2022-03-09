@@ -2,11 +2,11 @@
 //!
 //! [`m.key.verification.done`]: https://spec.matrix.org/v1.2/client-server-api/#mkeyverificationdone
 
-use ruma_common::TransactionId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::Relation;
+use crate::TransactionId;
 
 /// The content of a to-device `m.m.key.verification.done` event.
 ///
@@ -49,8 +49,8 @@ impl KeyVerificationDoneEventContent {
 
 #[cfg(test)]
 mod tests {
+    use crate::event_id;
     use matches::assert_matches;
-    use ruma_common::event_id;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::KeyVerificationDoneEventContent;

@@ -5,11 +5,11 @@
 use std::collections::BTreeMap;
 
 use js_int::UInt;
-use ruma_common::{DeviceId, EventId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::message::{self, InReplyTo};
+use crate::{DeviceId, EventId};
 
 mod relation_serde;
 
@@ -257,8 +257,8 @@ impl From<MegolmV1AesSha2ContentInit> for MegolmV1AesSha2Content {
 
 #[cfg(test)]
 mod tests {
+    use crate::event_id;
     use matches::assert_matches;
-    use ruma_common::event_id;
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

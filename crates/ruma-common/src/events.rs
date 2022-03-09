@@ -126,12 +126,12 @@
 //! type alias), allowing content to be converted to and from JSON independently of the surrounding
 //! event structure, if needed.
 
-use ruma_common::{EventEncryptionAlgorithm, RoomVersionId};
 use ruma_serde::Raw;
 use serde::{de::IgnoredAny, Deserialize, Serialize, Serializer};
 use serde_json::value::RawValue as RawJsonValue;
 
 use self::room::redaction::SyncRoomRedactionEvent;
+use crate::{EventEncryptionAlgorithm, RoomVersionId};
 
 // Needs to be public for trybuild tests
 #[doc(hidden)]

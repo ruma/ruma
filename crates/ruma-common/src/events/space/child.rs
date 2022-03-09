@@ -2,9 +2,10 @@
 //!
 //! [`m.space.child`]: https://spec.matrix.org/v1.2/client-server-api/#mspacechild
 
-use ruma_common::{MilliSecondsSinceUnixEpoch, ServerName, UserId};
 use ruma_macros::{Event, EventContent};
 use serde::{Deserialize, Serialize};
+
+use crate::{MilliSecondsSinceUnixEpoch, ServerName, UserId};
 
 /// The content of an `m.space.child` event.
 ///
@@ -70,9 +71,9 @@ pub struct HierarchySpaceChildStateEvent {
 
 #[cfg(test)]
 mod tests {
+    use crate::{server_name, user_id, MilliSecondsSinceUnixEpoch};
     use js_int::uint;
     use matches::assert_matches;
-    use ruma_common::{server_name, user_id, MilliSecondsSinceUnixEpoch};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{HierarchySpaceChildStateEvent, SpaceChildEventContent};

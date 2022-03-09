@@ -463,7 +463,6 @@ mod tests {
 
     use js_int::uint;
     use matches::assert_matches;
-    use ruma_common::{room_id, user_id};
     use ruma_serde::Raw;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value,
@@ -475,7 +474,7 @@ mod tests {
         condition::{PushCondition, PushConditionRoomCtx, RoomMemberCountIs},
         AnyPushRule, ConditionalPushRule, PatternedPushRule, Ruleset, SimplePushRule,
     };
-    use crate::power_levels::NotificationPowerLevels;
+    use crate::{power_levels::NotificationPowerLevels, room_id, user_id};
 
     fn example_ruleset() -> Ruleset {
         let mut set = Ruleset::new();

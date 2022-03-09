@@ -3,11 +3,11 @@
 //! The only content valid for this event is `PresenceEventContent`.
 
 use js_int::UInt;
-use ruma_common::{presence::PresenceState, MxcUri, UserId};
 use ruma_macros::{Event, EventContent};
 use serde::{Deserialize, Serialize};
 
 use super::{EventKind, StaticEventContent};
+use crate::{presence::PresenceState, MxcUri, UserId};
 
 /// Presence event.
 #[derive(Clone, Debug, Event)]
@@ -79,9 +79,9 @@ impl StaticEventContent for PresenceEventContent {
 
 #[cfg(test)]
 mod tests {
+    use crate::{mxc_uri, presence::PresenceState, user_id};
     use js_int::uint;
     use matches::assert_matches;
-    use ruma_common::{mxc_uri, presence::PresenceState, user_id};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{PresenceEvent, PresenceEventContent};

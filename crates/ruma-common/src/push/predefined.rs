@@ -2,12 +2,12 @@
 ///!
 ///! [predefined push rules]: https://spec.matrix.org/v1.2/client-server-api/#predefined-rules
 use indexmap::indexset;
-use ruma_common::UserId;
 
 use super::{
     Action::*, ConditionalPushRule, PatternedPushRule, PushCondition::*, RoomMemberCountIs,
     Ruleset, Tweak,
 };
+use crate::UserId;
 
 impl Ruleset {
     /// The list of all [predefined push rules].

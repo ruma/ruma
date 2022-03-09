@@ -2,11 +2,10 @@
 //!
 //! [`m.sticker`]: https://spec.matrix.org/v1.2/client-server-api/#msticker
 
-use ruma_common::MxcUri;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::events::room::ImageInfo;
+use crate::{events::room::ImageInfo, MxcUri};
 
 /// The content of an `m.sticker` event.
 ///

@@ -4,9 +4,10 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::{DeviceId, DeviceKeyId, EventEncryptionAlgorithm, UserId};
 use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
+
+use crate::{DeviceId, DeviceKeyId, EventEncryptionAlgorithm, UserId};
 
 /// Identity keys for a device.
 #[derive(Clone, Debug, Deserialize, Serialize)]

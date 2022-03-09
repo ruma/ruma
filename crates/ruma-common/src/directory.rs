@@ -3,7 +3,6 @@
 use std::fmt;
 
 use js_int::UInt;
-use ruma_common::{MxcUri, RoomAliasId, RoomId, RoomName};
 use ruma_serde::{Outgoing, StringEnum};
 use serde::{
     de::{Error, MapAccess, Visitor},
@@ -12,7 +11,7 @@ use serde::{
 };
 use serde_json::Value as JsonValue;
 
-use crate::PrivOwnedStr;
+use crate::{MxcUri, PrivOwnedStr, RoomAliasId, RoomId, RoomName};
 
 /// A chunk of a room list response, describing one room.
 ///

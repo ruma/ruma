@@ -7,9 +7,10 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use ruma_common::{RoomId, UserId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
+
+use crate::{RoomId, UserId};
 
 /// The content of an `m.direct` event.
 ///
@@ -40,7 +41,7 @@ impl DerefMut for DirectEventContent {
 mod tests {
     use std::collections::BTreeMap;
 
-    use ruma_common::{server_name, RoomId, UserId};
+    use crate::{server_name, RoomId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{DirectEvent, DirectEventContent};

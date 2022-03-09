@@ -2,9 +2,10 @@
 //!
 //! [`m.room.pinned_events`]: https://spec.matrix.org/v1.2/client-server-api/#mroompinned_events
 
-use ruma_common::EventId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
+
+use crate::EventId;
 
 /// The content of an `m.room.pinned_events` event.
 ///
@@ -28,7 +29,7 @@ impl RoomPinnedEventsEventContent {
 mod tests {
     use std::convert::TryInto;
 
-    use ruma_common::{server_name, EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId};
+    use crate::{server_name, EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId};
 
     use super::RoomPinnedEventsEventContent;
     use crate::events::{StateEvent, Unsigned};

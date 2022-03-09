@@ -2,12 +2,12 @@
 //!
 //! [`m.key.verification.key`]: https://spec.matrix.org/v1.2/client-server-api/#mkeyverificationkey
 
-use ruma_common::TransactionId;
 use ruma_macros::EventContent;
 use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
 
 use super::Relation;
+use crate::TransactionId;
 
 /// The content of a to-device `m.key.verification.key` event.
 ///

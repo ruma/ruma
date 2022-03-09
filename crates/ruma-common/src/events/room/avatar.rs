@@ -3,11 +3,11 @@
 //! [`m.room.avatar`]: https://spec.matrix.org/v1.2/client-server-api/#mroomavatar
 
 use js_int::UInt;
-use ruma_common::MxcUri;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::ThumbnailInfo;
+use crate::MxcUri;
 
 /// The content of an `m.room.avatar` event.
 ///

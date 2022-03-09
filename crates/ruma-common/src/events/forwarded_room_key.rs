@@ -2,9 +2,10 @@
 //!
 //! [`m.forwarded_room_key`]: https://spec.matrix.org/v1.2/client-server-api/#mforwarded_room_key
 
-use ruma_common::{EventEncryptionAlgorithm, RoomId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
+
+use crate::{EventEncryptionAlgorithm, RoomId};
 
 /// The content of an `m.forwarded_room_key` event.
 ///

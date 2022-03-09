@@ -4,7 +4,6 @@
 
 use std::{borrow::Cow, collections::BTreeMap};
 
-use ruma_common::RoomId;
 use ruma_macros::EventContent;
 use ruma_serde::from_raw_json_value;
 use serde::{
@@ -13,7 +12,7 @@ use serde::{
 };
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
-use crate::PrivOwnedStr;
+use crate::{PrivOwnedStr, RoomId};
 
 /// The content of an `m.room.join_rules` event.
 ///
@@ -219,8 +218,8 @@ impl<'de> Deserialize<'de> for AllowRule {
 
 #[cfg(test)]
 mod tests {
+    use crate::room_id;
     use matches::assert_matches;
-    use ruma_common::room_id;
 
     use super::{AllowRule, JoinRule, RoomJoinRulesEventContent, SyncRoomJoinRulesEvent};
 

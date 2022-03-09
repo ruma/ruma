@@ -7,11 +7,10 @@
 //!
 //! [github-matrix-doc-2214]: https://github.com/matrix-org/matrix-doc/pull/2241
 
-use ruma_common::EventId;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::PrivOwnedStr;
+use crate::{EventId, PrivOwnedStr};
 
 pub mod accept;
 pub mod cancel;
