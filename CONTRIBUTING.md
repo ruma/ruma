@@ -149,7 +149,7 @@ the latest minor version of the Matrix specification.
 
 ### Endpoint Module Structure
 
-Matrix uses [versioned endpoints](https://spec.matrix.org/v1.2/#endpoint-versioning), unless made the exception,
+Matrix uses [versioned endpoints](https://spec.matrix.org/v1.2/#endpoint-versioning) (with a few small exceptions),
 we follow this versioning approach in modules as well.
 
 We structure endpoints and their versions like the following;
