@@ -4,7 +4,7 @@ use js_int::{Int, UInt};
 use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};
 use serde_json::{to_value as to_json_value, value::Value as JsonValue};
-use tracing::warn;
+use tracing::{instrument, warn};
 use wildmatch::WildMatch;
 
 use crate::{power_levels::NotificationPowerLevels, RoomId, UserId};
@@ -277,6 +277,7 @@ impl FlattenedJson {
     }
 
     /// Flatten and insert the `value` at `path`.
+    #[instrument(skip(self, value))]
     fn flatten_value(&mut self, value: JsonValue, path: String) {
         match value {
             JsonValue::Object(fields) => {
