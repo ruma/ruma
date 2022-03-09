@@ -21,8 +21,14 @@ impl HttpClient for Reqwest {
         let req = req.map(|body| body.freeze()).try_into()?;
         let mut res = self.execute(req).await?;
 
-        let mut http_builder =
-            http::Response::builder().status(res.status()).version(res.version());
+        let mut http_builder = http::Response::builder().status(res.status());
+
+        // reqwest::Response doesn't have a version on wasm
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            http_builder = http_builder.version(res.version());
+        }
+
         mem::swap(
             http_builder.headers_mut().expect("http::response::Builder to be usable"),
             res.headers_mut(),
