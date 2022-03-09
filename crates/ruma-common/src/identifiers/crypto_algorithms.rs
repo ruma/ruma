@@ -1,7 +1,6 @@
 //! Key algorithms used in Matrix spec.
 
-use ruma_macros::{AsRefStr, DisplayAsRefStr, FromString};
-use ruma_serde::{DeserializeFromCowStr, SerializeAsRefStr};
+use ruma_macros::StringEnum;
 
 use crate::PrivOwnedStr;
 
@@ -9,19 +8,7 @@ use crate::PrivOwnedStr;
 ///
 /// This type can hold an arbitrary string. To check for algorithms that are not available as a
 /// documented variant here, use its string representation, obtained through `.as_str()`.
-#[derive(
-    Clone,
-    Debug,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    AsRefStr,
-    DisplayAsRefStr,
-    FromString,
-    DeserializeFromCowStr,
-    SerializeAsRefStr,
-)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[non_exhaustive]
 #[ruma_enum(rename_all = "snake_case")]
 pub enum DeviceKeyAlgorithm {
@@ -42,19 +29,7 @@ pub enum DeviceKeyAlgorithm {
 ///
 /// This type can hold an arbitrary string. To check for algorithms that are not available as a
 /// documented variant here, use its string representation, obtained through `.as_str()`.
-#[derive(
-    Clone,
-    Debug,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    AsRefStr,
-    DisplayAsRefStr,
-    FromString,
-    DeserializeFromCowStr,
-    SerializeAsRefStr,
-)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[non_exhaustive]
 #[ruma_enum(rename_all = "snake_case")]
 pub enum SigningKeyAlgorithm {
@@ -69,19 +44,7 @@ pub enum SigningKeyAlgorithm {
 ///
 /// This type can hold an arbitrary string. To check for algorithms that are not available as a
 /// documented variant here, use its string representation, obtained through `.as_str()`.
-#[derive(
-    Clone,
-    Debug,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    AsRefStr,
-    DisplayAsRefStr,
-    FromString,
-    DeserializeFromCowStr,
-    SerializeAsRefStr,
-)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[non_exhaustive]
 pub enum EventEncryptionAlgorithm {
     /// Olm version 1 using Curve25519, AES-256, and SHA-256.
