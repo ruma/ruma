@@ -1,6 +1,9 @@
 //! Types for [Matrix](https://matrix.org/) identifiers for devices, events, keys, rooms, servers,
 //! users and URIs.
 
+// FIXME: Remove once lint doesn't trigger on std::convert::TryFrom in identifiers/macros.rs anymore
+#![allow(unused_qualifications)]
+
 use std::convert::TryFrom;
 
 use serde::de::{self, Deserializer, Unexpected};

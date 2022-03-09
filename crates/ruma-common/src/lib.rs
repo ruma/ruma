@@ -2,8 +2,6 @@
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
 //! Common types for the Ruma crates.
 
-// FIXME: Remove once lint doesn't trigger on std::convert::TryFrom in identifiers/macros.rs anymore
-#![allow(unused_qualifications)]
 #![recursion_limit = "1024"]
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
