@@ -1,6 +1,6 @@
 //! Identifiers for device keys for end-to-end encryption.
 
-use crate::{crypto_algorithms::DeviceKeyAlgorithm, DeviceId};
+use super::{crypto_algorithms::DeviceKeyAlgorithm, DeviceId};
 
 /// A key algorithm and a device id, combined with a ':'.
 #[repr(transparent)]
@@ -43,7 +43,7 @@ mod tests {
     use std::convert::TryFrom;
 
     use super::DeviceKeyId;
-    use crate::{crypto_algorithms::DeviceKeyAlgorithm, Error};
+    use crate::identifiers::{crypto_algorithms::DeviceKeyAlgorithm, Error};
 
     #[test]
     fn convert_device_key_id() {
@@ -54,7 +54,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn serialize_device_key_id() {
         let device_key_id = <&DeviceKeyId>::try_from("ed25519:JLAFKJWSCS").unwrap();
@@ -63,7 +62,6 @@ mod tests {
         assert_eq!(serialized, serde_json::json!("ed25519:JLAFKJWSCS"));
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_device_key_id() {
         let deserialized: Box<DeviceKeyId> =

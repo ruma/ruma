@@ -1,13 +1,15 @@
 //! Types for the `m.room.aliases` event.
 
-use ruma_identifiers::{RoomAliasId, RoomVersionId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use crate::events::{
-    EventContent, HasDeserializeFields, RedactContent, RedactedEventContent,
-    RedactedStateEventContent,
+use crate::{
+    events::{
+        EventContent, HasDeserializeFields, RedactContent, RedactedEventContent,
+        RedactedStateEventContent,
+    },
+    RoomAliasId, RoomVersionId,
 };
 
 /// The content of an `m.room.aliases` event.

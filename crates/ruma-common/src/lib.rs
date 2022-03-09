@@ -11,6 +11,11 @@ compile_error!(
     "ruma_common's `client` and `server` Cargo features only exist as a workaround are not meant to be disabled"
 );
 
+// Renamed in `Cargo.toml` so we can features with the same name as the package.
+// Rename them back here because the `Cargo.toml` names are ugly.
+#[cfg(feature = "rand")]
+extern crate rand_crate as rand;
+
 // Hack to allow both ruma-common itself and external crates (or tests) to use procedural macros
 // that expect `ruma_common` to exist in the prelude.
 extern crate self as ruma_common;
@@ -22,6 +27,7 @@ pub mod directory;
 pub mod encryption;
 #[cfg(feature = "events")]
 pub mod events;
+mod identifiers;
 pub mod power_levels;
 pub mod presence;
 pub mod push;
@@ -33,6 +39,7 @@ pub mod to_device;
 
 use std::fmt;
 
+pub use identifiers::*;
 pub use time::{MilliSecondsSinceUnixEpoch, SecondsSinceUnixEpoch};
 
 // Wrapper around `Box<str>` that cannot be used in a meaningful way outside of
@@ -53,7 +60,6 @@ impl fmt::Debug for PrivOwnedStr {
 /// It is not considered part of this module's public API.
 #[doc(hidden)]
 pub mod exports {
-    pub use ruma_identifiers;
     pub use ruma_serde;
     pub use serde;
     pub use serde_json;

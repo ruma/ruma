@@ -7,11 +7,12 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
-use ruma_identifiers::DeviceId;
 use serde::{
     de::{self, Unexpected},
     Deserialize, Deserializer, Serialize, Serializer,
 };
+
+use crate::DeviceId;
 
 /// Represents one or all of a user's devices.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]

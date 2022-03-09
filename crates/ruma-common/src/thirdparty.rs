@@ -4,11 +4,10 @@
 
 use std::collections::BTreeMap;
 
-use ruma_identifiers::{RoomAliasId, UserId};
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::{MilliSecondsSinceUnixEpoch, PrivOwnedStr};
+use crate::{MilliSecondsSinceUnixEpoch, PrivOwnedStr, RoomAliasId, UserId};
 
 /// Metadata about a third party protocol.
 ///

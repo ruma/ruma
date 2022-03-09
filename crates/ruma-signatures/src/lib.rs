@@ -106,7 +106,7 @@ mod tests {
 
     use base64::{decode_config, STANDARD_NO_PAD};
     use pkcs8::{der::Decodable, PrivateKeyInfo};
-    use ruma_identifiers::RoomVersionId;
+    use ruma_common::RoomVersionId;
     use ruma_serde::Base64;
     use serde_json::{from_str as from_json_str, to_string as to_json_string};
 

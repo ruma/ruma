@@ -1,5 +1,3 @@
-use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use ruma_macros::{event_enum, EventEnumFromEvent};
 use ruma_serde::from_raw_json_value;
 use serde::{de, Deserialize};
@@ -10,6 +8,7 @@ use super::{
     room::{encrypted, redaction::SyncRoomRedactionEvent},
     Redact, UnsignedDeHelper,
 };
+use crate::{EventId, MilliSecondsSinceUnixEpoch, RoomId, RoomVersionId, UserId};
 
 event_enum! {
     /// Any global account data event.

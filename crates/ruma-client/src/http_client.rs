@@ -5,8 +5,10 @@ use std::{future::Future, pin::Pin};
 
 use async_trait::async_trait;
 use bytes::BufMut;
-use ruma_common::api::{MatrixVersion, OutgoingRequest, SendAccessToken};
-use ruma_identifiers::UserId;
+use ruma_common::{
+    api::{MatrixVersion, OutgoingRequest, SendAccessToken},
+    UserId,
+};
 
 use crate::{add_user_id_to_query, ResponseError, ResponseResult};
 

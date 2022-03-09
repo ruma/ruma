@@ -1,8 +1,9 @@
 //! Types for the `m.reaction` event.
 
-use ruma_identifiers::EventId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
+
+use crate::EventId;
 
 /// The payload for a `m.reaction` event.
 ///
@@ -53,8 +54,8 @@ impl Relation {
 
 #[cfg(test)]
 mod tests {
+    use crate::event_id;
     use matches::assert_matches;
-    use ruma_identifiers::event_id;
     use serde_json::{from_value as from_json_value, json};
 
     use super::{ReactionEventContent, Relation};

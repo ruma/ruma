@@ -4,12 +4,16 @@
 
 use bytes::BufMut;
 use http::{header::CONTENT_TYPE, method::Method};
-use ruma_common::api::{
-    error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError, ServerError},
-    AuthScheme, EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata,
-    OutgoingRequest, OutgoingResponse, SendAccessToken,
+use ruma_common::{
+    api::{
+        error::{
+            FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError, ServerError,
+        },
+        AuthScheme, EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata,
+        OutgoingRequest, OutgoingResponse, SendAccessToken,
+    },
+    RoomAliasId, RoomId,
 };
-use ruma_identifiers::{RoomAliasId, RoomId};
 use ruma_serde::Outgoing;
 use serde::{Deserialize, Serialize};
 

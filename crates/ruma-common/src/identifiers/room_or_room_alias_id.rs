@@ -2,7 +2,7 @@
 
 use std::{convert::TryFrom, hint::unreachable_unchecked};
 
-use crate::{server_name::ServerName, RoomAliasId, RoomId};
+use super::{server_name::ServerName, RoomAliasId, RoomId};
 
 /// A Matrix [room ID] or a Matrix [room alias ID].
 ///
@@ -12,7 +12,7 @@ use crate::{server_name::ServerName, RoomAliasId, RoomId};
 ///
 /// ```
 /// # use std::convert::TryFrom;
-/// # use ruma_identifiers::RoomOrAliasId;
+/// # use ruma_common::RoomOrAliasId;
 /// assert_eq!(<&RoomOrAliasId>::try_from("#ruma:example.com").unwrap(), "#ruma:example.com");
 ///
 /// assert_eq!(
@@ -187,7 +187,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn serialize_valid_room_id_or_alias_id_with_a_room_alias_id() {
         assert_eq!(
@@ -200,7 +199,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn serialize_valid_room_id_or_alias_id_with_a_room_id() {
         assert_eq!(
@@ -213,7 +211,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_valid_room_id_or_alias_id_with_a_room_alias_id() {
         assert_eq!(
@@ -223,7 +220,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_valid_room_id_or_alias_id_with_a_room_id() {
         assert_eq!(

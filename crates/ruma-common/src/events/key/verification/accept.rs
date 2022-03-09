@@ -4,7 +4,6 @@
 
 use std::collections::BTreeMap;
 
-use ruma_identifiers::TransactionId;
 use ruma_macros::EventContent;
 use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
@@ -14,6 +13,7 @@ use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, Relation,
     ShortAuthenticationString,
 };
+use crate::TransactionId;
 
 /// The content of a to-device `m.key.verification.accept` event.
 ///
@@ -165,8 +165,8 @@ impl From<SasV1ContentInit> for SasV1Content {
 mod tests {
     use std::collections::BTreeMap;
 
+    use crate::{event_id, user_id};
     use matches::assert_matches;
-    use ruma_identifiers::{event_id, user_id};
     use ruma_serde::Base64;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,

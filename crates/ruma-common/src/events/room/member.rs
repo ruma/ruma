@@ -4,7 +4,6 @@
 
 use std::collections::BTreeMap;
 
-use ruma_identifiers::{MxcUri, RoomVersionId, ServerName, ServerSigningKeyId, UserId};
 use ruma_macros::EventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
@@ -15,7 +14,7 @@ use crate::{
         EventContent, HasDeserializeFields, RedactContent, RedactedEventContent,
         RedactedStateEventContent, StrippedStateEvent, SyncStateEvent,
     },
-    PrivOwnedStr,
+    MxcUri, PrivOwnedStr, RoomVersionId, ServerName, ServerSigningKeyId, UserId,
 };
 
 /// The content of an `m.room.member` event.
@@ -416,11 +415,10 @@ impl StrippedStateEvent<RoomMemberEventContent> {
 
 #[cfg(test)]
 mod tests {
+    use crate::{server_name, server_signing_key_id, MilliSecondsSinceUnixEpoch};
     use js_int::uint;
     use maplit::btreemap;
     use matches::assert_matches;
-    use ruma_common::MilliSecondsSinceUnixEpoch;
-    use ruma_identifiers::{server_name, server_signing_key_id};
     use serde_json::{from_value as from_json_value, json};
 
     use super::{MembershipState, RoomMemberEventContent, SignedContent, ThirdPartyInvite};

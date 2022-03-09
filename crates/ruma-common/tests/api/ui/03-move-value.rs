@@ -2,8 +2,7 @@
 // consume the request/response.
 
 mod newtype_body {
-    use ruma_common::api::ruma_api;
-    use ruma_identifiers::UserId;
+    use ruma_common::{api::ruma_api, UserId};
 
     #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
     pub struct Foo;
@@ -43,8 +42,7 @@ mod newtype_body {
 }
 
 mod raw_body {
-    use ruma_common::api::ruma_api;
-    use ruma_identifiers::UserId;
+    use ruma_common::{api::ruma_api, UserId};
 
     ruma_api! {
         metadata: {
@@ -81,8 +79,7 @@ mod raw_body {
 }
 
 mod plain {
-    use ruma_common::api::ruma_api;
-    use ruma_identifiers::UserId;
+    use ruma_common::{api::ruma_api, UserId};
 
     #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
     pub struct Foo;

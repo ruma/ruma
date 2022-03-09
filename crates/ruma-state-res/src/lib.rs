@@ -12,9 +12,8 @@ use ruma_common::{
         room::member::{MembershipState, RoomMemberEventContent},
         EventType,
     },
-    MilliSecondsSinceUnixEpoch,
+    EventId, MilliSecondsSinceUnixEpoch, RoomVersionId, UserId,
 };
-use ruma_identifiers::{EventId, RoomVersionId, UserId};
 use serde::Deserialize;
 use serde_json::from_str as from_json_str;
 use tracing::{debug, info, trace, warn};
@@ -648,9 +647,8 @@ mod tests {
             room::join_rules::{JoinRule, RoomJoinRulesEventContent},
             EventType,
         },
-        MilliSecondsSinceUnixEpoch,
+        EventId, MilliSecondsSinceUnixEpoch, RoomVersionId,
     };
-    use ruma_identifiers::{EventId, RoomVersionId};
     use serde_json::{json, value::to_raw_value as to_raw_json_value};
     use tracing::debug;
 

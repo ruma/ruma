@@ -1,4 +1,3 @@
-use ruma_identifiers::RoomVersionId;
 use serde::Serialize;
 use serde_json::value::RawValue as RawJsonValue;
 
@@ -8,6 +7,7 @@ use super::{
     RedactedStateEventContent, RoomAccountDataEventContent, StateEventContent,
     ToDeviceEventContent,
 };
+use crate::RoomVersionId;
 
 /// A custom event's type. Used for event enum `_Custom` variants.
 // FIXME: Serialize shouldn't be required here, but it's currently a supertrait of EventContent

@@ -2,9 +2,10 @@
 //!
 //! [`m.push_rules`]: https://spec.matrix.org/v1.2/client-server-api/#mpush_rules
 
-use ruma_common::push::Ruleset;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
+
+use crate::push::Ruleset;
 
 /// The content of an `m.push_rules` event.
 ///

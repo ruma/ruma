@@ -5,12 +5,14 @@
 use std::collections::BTreeMap;
 
 use js_int::{int, Int};
-use ruma_common::power_levels::{default_power_level, NotificationPowerLevels};
-use ruma_identifiers::UserId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::events::EventType;
+use crate::{
+    events::EventType,
+    power_levels::{default_power_level, NotificationPowerLevels},
+    UserId,
+};
 
 /// The content of an `m.room.power_levels` event.
 ///
@@ -173,11 +175,10 @@ fn is_default_power_level(l: &Int) -> bool {
 mod tests {
     use std::collections::BTreeMap;
 
+    use crate::{event_id, room_id, user_id, MilliSecondsSinceUnixEpoch};
     use assign::assign;
     use js_int::{int, uint};
     use maplit::btreemap;
-    use ruma_common::MilliSecondsSinceUnixEpoch;
-    use ruma_identifiers::{event_id, room_id, user_id};
     use serde_json::{json, to_value as to_json_value};
 
     use super::{default_power_level, NotificationPowerLevels, RoomPowerLevelsEventContent};

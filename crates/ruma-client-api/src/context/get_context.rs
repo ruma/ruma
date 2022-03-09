@@ -9,8 +9,8 @@ pub mod v3 {
     use ruma_common::{
         api::ruma_api,
         events::{AnyRoomEvent, AnyStateEvent},
+        EventId, RoomId,
     };
-    use ruma_identifiers::{EventId, RoomId};
     use ruma_serde::Raw;
 
     use crate::filter::{IncomingRoomEventFilter, RoomEventFilter};

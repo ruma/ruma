@@ -1,6 +1,6 @@
 use js_int::uint;
 use matches::assert_matches;
-use ruma_identifiers::{event_id, room_alias_id, room_id, user_id};
+use ruma_common::{event_id, room_alias_id, room_id, user_id};
 use ruma_serde::test::serde_json_eq;
 use serde_json::{from_value as from_json_value, json, Value as JsonValue};
 

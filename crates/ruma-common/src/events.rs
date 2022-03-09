@@ -52,7 +52,7 @@
 //!
 //! ```rust
 //! use ruma_common::events::{macros::EventContent, SyncMessageLikeEvent};
-//! use ruma_identifiers::EventId;
+//! use ruma_common::EventId;
 //! use serde::{Deserialize, Serialize};
 //!
 //! #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -126,12 +126,12 @@
 //! type alias), allowing content to be converted to and from JSON independently of the surrounding
 //! event structure, if needed.
 
-use ruma_identifiers::{EventEncryptionAlgorithm, RoomVersionId};
 use ruma_serde::Raw;
 use serde::{de::IgnoredAny, Deserialize, Serialize, Serializer};
 use serde_json::value::RawValue as RawJsonValue;
 
 use self::room::redaction::SyncRoomRedactionEvent;
+use crate::{EventEncryptionAlgorithm, RoomVersionId};
 
 // Needs to be public for trybuild tests
 #[doc(hidden)]

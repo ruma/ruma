@@ -9,8 +9,7 @@ pub mod v2 {
 
     use std::time::Duration;
 
-    use ruma_common::{api::ruma_api, authentication::TokenType};
-    use ruma_identifiers::ServerName;
+    use ruma_common::{api::ruma_api, authentication::TokenType, ServerName};
 
     ruma_api! {
         metadata: {

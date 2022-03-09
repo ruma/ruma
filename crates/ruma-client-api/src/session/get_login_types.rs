@@ -7,8 +7,7 @@ pub mod v3 {
 
     use std::borrow::Cow;
 
-    use ruma_common::api::ruma_api;
-    use ruma_identifiers::MxcUri;
+    use ruma_common::{api::ruma_api, MxcUri};
     use ruma_serde::{JsonObject, StringEnum};
     use serde::{de::DeserializeOwned, Deserialize, Serialize};
     use serde_json::Value as JsonValue;

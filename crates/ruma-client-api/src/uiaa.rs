@@ -11,8 +11,8 @@ use ruma_common::{
         EndpointError, OutgoingResponse,
     },
     thirdparty::Medium,
+    ClientSecret, SessionId,
 };
-use ruma_identifiers::{ClientSecret, SessionId};
 use ruma_serde::{from_raw_json_value, JsonObject, Outgoing, StringEnum};
 use serde::{
     de::{self, DeserializeOwned},

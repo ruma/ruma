@@ -5,14 +5,15 @@
 use std::{borrow::Cow, fmt};
 
 use js_int::UInt;
-use ruma_identifiers::{DeviceId, EventId, MxcUri, UserId};
 use ruma_macros::EventContent;
 use ruma_serde::{JsonObject, StringEnum};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
-use crate::{events::key::verification::VerificationMethod, PrivOwnedStr};
+use crate::{
+    events::key::verification::VerificationMethod, DeviceId, EventId, MxcUri, PrivOwnedStr, UserId,
+};
 
 mod content_serde;
 pub mod feedback;
@@ -1007,8 +1008,8 @@ pub struct CustomEventContent {
 
 #[cfg(test)]
 mod tests {
+    use crate::event_id;
     use matches::assert_matches;
-    use ruma_identifiers::event_id;
     use serde_json::{from_value as from_json_value, json};
 
     use super::{InReplyTo, MessageType, Relation, RoomMessageEventContent};

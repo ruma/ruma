@@ -1,6 +1,6 @@
 [package]
 name = "ruma-identifiers-validation"
-description = "Validation logic for ruma-identifiers and ruma-macros"
+description = "Validation logic for ruma-common and ruma-macros"
 homepage = "https://www.ruma.io/"
 repository = "https://github.com/ruma/ruma"
 license = "MIT"

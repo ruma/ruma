@@ -3,11 +3,13 @@
 use std::{collections::BTreeMap, fmt, time::Duration};
 
 use bytes::BufMut;
-use ruma_common::api::{
-    error::{DeserializationError, IntoHttpError},
-    EndpointError, OutgoingResponse,
+use ruma_common::{
+    api::{
+        error::{DeserializationError, IntoHttpError},
+        EndpointError, OutgoingResponse,
+    },
+    RoomVersionId,
 };
-use ruma_identifiers::RoomVersionId;
 use serde::{Deserialize, Serialize};
 use serde_json::{from_slice as from_json_slice, Value as JsonValue};
 

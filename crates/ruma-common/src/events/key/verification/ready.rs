@@ -2,11 +2,11 @@
 //!
 //! [`m.key.verification.ready`]: https://spec.matrix.org/v1.2/client-server-api/#mkeyverificationready
 
-use ruma_identifiers::{DeviceId, TransactionId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{Relation, VerificationMethod};
+use crate::{DeviceId, TransactionId};
 
 /// The content of a to-device `m.m.key.verification.ready` event.
 ///
@@ -74,8 +74,8 @@ impl KeyVerificationReadyEventContent {
 
 #[cfg(test)]
 mod tests {
+    use crate::{event_id, DeviceId};
     use matches::assert_matches;
-    use ruma_identifiers::{event_id, DeviceId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{KeyVerificationReadyEventContent, ToDeviceKeyVerificationReadyEventContent};

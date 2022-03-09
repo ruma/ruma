@@ -2,9 +2,10 @@
 //!
 //! [`m.room.name`]: https://spec.matrix.org/v1.2/client-server-api/#mroomname
 
-use ruma_identifiers::RoomName;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
+
+use crate::RoomName;
 
 /// The content of an `m.room.name` event.
 ///
@@ -29,10 +30,9 @@ impl RoomNameEventContent {
 mod tests {
     use std::convert::TryInto;
 
+    use crate::{event_id, room_id, user_id, MilliSecondsSinceUnixEpoch};
     use js_int::{int, uint};
     use matches::assert_matches;
-    use ruma_common::MilliSecondsSinceUnixEpoch;
-    use ruma_identifiers::{event_id, room_id, user_id};
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

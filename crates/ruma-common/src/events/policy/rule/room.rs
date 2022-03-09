@@ -20,15 +20,17 @@ mod tests {
     use std::convert::TryInto;
 
     use js_int::int;
-    use ruma_common::MilliSecondsSinceUnixEpoch;
-    use ruma_identifiers::{event_id, room_id, user_id};
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{PolicyRuleRoomEvent, PolicyRuleRoomEventContent};
-    use crate::events::{
-        policy::rule::{PolicyRuleEventContent, Recommendation},
-        Unsigned,
+    use crate::{
+        event_id,
+        events::{
+            policy::rule::{PolicyRuleEventContent, Recommendation},
+            Unsigned,
+        },
+        room_id, user_id, MilliSecondsSinceUnixEpoch,
     };
 
     #[test]

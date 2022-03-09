@@ -1,30 +1,15 @@
-#![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
-#![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
 //! Types for [Matrix](https://matrix.org/) identifiers for devices, events, keys, rooms, servers,
 //! users and URIs.
 
-#![warn(missing_docs)]
-// FIXME: Remove once lint doesn't trigger on std::convert::TryFrom in macros.rs anymore
+// FIXME: Remove once lint doesn't trigger on std::convert::TryFrom in identifiers/macros.rs anymore
 #![allow(unused_qualifications)]
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
-// Renamed in `Cargo.toml` so we can features with the same name as the package.
-// Rename them back here because the `Cargo.toml` names are ugly.
-#[cfg(feature = "serde")]
-extern crate serde1 as serde;
-
-#[cfg(feature = "rand")]
-extern crate rand_crate as rand;
-
-#[cfg(feature = "serde")]
 use std::convert::TryFrom;
-use std::fmt;
 
-#[cfg(feature = "serde")]
 use serde::de::{self, Deserializer, Unexpected};
 
 #[doc(inline)]
-pub use crate::{
+pub use self::{
     client_secret::ClientSecret,
     crypto_algorithms::{DeviceKeyAlgorithm, EventEncryptionAlgorithm, SigningKeyAlgorithm},
     device_id::DeviceId,
@@ -84,10 +69,9 @@ fn generate_localpart(length: usize) -> Box<str> {
         .into_boxed_str()
 }
 
-/// Deserializes any type of id using the provided TryFrom implementation.
+/// Deserializes any type of id using the provided `TryFrom` implementation.
 ///
-/// This is a helper function to reduce the boilerplate of the Deserialize implementations.
-#[cfg(feature = "serde")]
+/// This is a helper function to reduce the boilerplate of the `Deserialize` implementations.
 fn deserialize_id<'de, D, T>(deserializer: D, expected_str: &str) -> Result<T, D::Error>
 where
     D: Deserializer<'de>,
@@ -186,17 +170,4 @@ macro_rules! user_id {
     ($s:literal) => {
         $crate::_macros::user_id!($crate, $s)
     };
-}
-
-// Wrapper around `Box<str>` that cannot be used in a meaningful way outside of
-// this crate. Used for string enums because their `_Custom` variant can't be
-// truly private (only `#[doc(hidden)]`).
-#[doc(hidden)]
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub struct PrivOwnedStr(Box<str>);
-
-impl fmt::Debug for PrivOwnedStr {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0.fmt(f)
-    }
 }

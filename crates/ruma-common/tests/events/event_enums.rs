@@ -1,7 +1,6 @@
 use js_int::{uint, UInt};
 use matches::assert_matches;
-use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_identifiers::{event_id, room_id, user_id};
+use ruma_common::{event_id, room_id, user_id, MilliSecondsSinceUnixEpoch};
 use serde_json::{from_value as from_json_value, json};
 
 use ruma_common::events::{

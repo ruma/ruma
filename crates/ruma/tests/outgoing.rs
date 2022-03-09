@@ -32,13 +32,13 @@ pub struct OtherThing<'t> {
 pub struct FakeRequest<'a, T> {
     pub abc: &'a str,
     pub thing: Thing<'a, T>,
-    pub device_id: &'a ::ruma_identifiers::DeviceId,
+    pub device_id: &'a ::ruma_common::DeviceId,
     pub user_id: &'a UserId,
     pub bytes: &'a [u8],
     pub recursive: &'a [Thing<'a, T>],
     pub option: Option<&'a [u8]>,
     pub depth: Option<&'a [(&'a str, &'a str)]>,
-    pub arc_type: std::sync::Arc<&'a ::ruma_identifiers::ServerName>,
+    pub arc_type: std::sync::Arc<&'a ::ruma_common::ServerName>,
     pub thing_ref: &'a Thing<'a, T>,
     pub double_ref: &'a &'a u8,
     pub triple_ref: &'a &'a &'a str,
@@ -50,7 +50,7 @@ pub struct FakeRequest<'a, T> {
 pub enum EnumThing<'a, T> {
     Abc(&'a str),
     Stuff(Thing<'a, T>),
-    Boxy(&'a ::ruma_identifiers::DeviceId),
+    Boxy(&'a ::ruma_common::DeviceId),
     Other(Option<&'a str>),
-    StructVar { stuff: &'a str, more: &'a ::ruma_identifiers::ServerName },
+    StructVar { stuff: &'a str, more: &'a ::ruma_common::ServerName },
 }

@@ -4,6 +4,7 @@ use assign::assign;
 use js_int::uint;
 use matches::assert_matches;
 use ruma_common::{
+    event_id,
     events::{
         key::verification::VerificationMethod,
         room::message::{
@@ -12,9 +13,8 @@ use ruma_common::{
         },
         Unsigned,
     },
-    MilliSecondsSinceUnixEpoch,
+    mxc_uri, room_id, user_id, DeviceId, MilliSecondsSinceUnixEpoch,
 };
-use ruma_identifiers::{event_id, mxc_uri, room_id, user_id, DeviceId};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 macro_rules! json_object {

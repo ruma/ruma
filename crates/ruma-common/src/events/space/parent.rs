@@ -2,9 +2,10 @@
 //!
 //! [`m.space.parent`]: https://spec.matrix.org/v1.2/client-server-api/#mspaceparent
 
-use ruma_identifiers::ServerName;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
+
+use crate::ServerName;
 
 /// The content of an `m.space.parent` event.
 ///
@@ -40,7 +41,7 @@ impl SpaceParentEventContent {
 
 #[cfg(test)]
 mod tests {
-    use ruma_identifiers::server_name;
+    use crate::server_name;
     use serde_json::{json, to_value as to_json_value};
 
     use super::SpaceParentEventContent;

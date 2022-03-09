@@ -1,6 +1,6 @@
 //! Matrix room alias identifiers.
 
-use crate::{matrix_uri::UriAction, server_name::ServerName, EventId, MatrixToUri, MatrixUri};
+use super::{matrix_uri::UriAction, server_name::ServerName, EventId, MatrixToUri, MatrixUri};
 
 /// A Matrix [room alias ID].
 ///
@@ -9,7 +9,7 @@ use crate::{matrix_uri::UriAction, server_name::ServerName, EventId, MatrixToUri
 ///
 /// ```
 /// # use std::convert::TryFrom;
-/// # use ruma_identifiers::RoomAliasId;
+/// # use ruma_common::RoomAliasId;
 /// assert_eq!(<&RoomAliasId>::try_from("#ruma:example.com").unwrap(), "#ruma:example.com");
 /// ```
 ///
@@ -81,7 +81,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn serialize_valid_room_alias_id() {
         assert_eq!(
@@ -94,7 +93,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_valid_room_alias_id() {
         assert_eq!(

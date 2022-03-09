@@ -1,5 +1,3 @@
-#[cfg(feature = "unstable-msc2676")]
-use ruma_identifiers::EventId;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[cfg(feature = "unstable-msc2676")]
@@ -7,6 +5,8 @@ use super::Replacement;
 #[cfg(feature = "unstable-msc2676")]
 use super::RoomMessageEventContent;
 use super::{InReplyTo, Relation};
+#[cfg(feature = "unstable-msc2676")]
+use crate::EventId;
 
 impl<'de> Deserialize<'de> for Relation {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

@@ -3,10 +3,11 @@
 #[allow(unused_extern_crates)]
 extern crate serde;
 
-use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_common::events::{StateEventContent, Unsigned};
+use ruma_common::{
+    events::{StateEventContent, Unsigned},
+    EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId,
+};
 use ruma_macros::Event;
-use ruma_identifiers::{EventId, RoomId, UserId};
 
 /// State event.
 #[derive(Clone, Debug, Event)]

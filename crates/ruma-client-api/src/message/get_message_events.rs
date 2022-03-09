@@ -9,8 +9,8 @@ pub mod v3 {
     use ruma_common::{
         api::ruma_api,
         events::{AnyRoomEvent, AnyStateEvent},
+        RoomId,
     };
-    use ruma_identifiers::RoomId;
     use ruma_serde::Raw;
     use serde::{Deserialize, Serialize};
 
@@ -152,8 +152,10 @@ pub mod v3 {
     #[cfg(all(test, feature = "client"))]
     mod tests {
         use js_int::uint;
-        use ruma_common::api::{MatrixVersion, OutgoingRequest, SendAccessToken};
-        use ruma_identifiers::room_id;
+        use ruma_common::{
+            api::{MatrixVersion, OutgoingRequest, SendAccessToken},
+            room_id,
+        };
 
         use super::{Direction, Request};
         use crate::filter::{LazyLoadOptions, RoomEventFilter};

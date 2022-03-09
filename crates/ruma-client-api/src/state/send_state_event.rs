@@ -8,8 +8,8 @@ pub mod v3 {
     use ruma_common::{
         api::ruma_api,
         events::{AnyStateEventContent, StateEventContent},
+        EventId, RoomId,
     };
-    use ruma_identifiers::{EventId, RoomId};
     use ruma_serde::{Outgoing, Raw};
     use serde_json::value::to_raw_value as to_raw_json_value;
 

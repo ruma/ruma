@@ -414,8 +414,6 @@ fn expand_redact_event(
     fields: &[Field],
     ruma_common: &TokenStream,
 ) -> TokenStream {
-    let ruma_identifiers = quote! { #ruma_common::exports::ruma_identifiers };
-
     let redacted_type = kind.to_event_ident(var.to_redacted());
     let redacted_content_trait =
         format_ident!("{}Content", kind.to_event_ident(EventKindVariation::Redacted));
@@ -469,7 +467,7 @@ fn expand_redact_event(
             fn redact(
                 self,
                 redaction: #ruma_common::events::room::redaction::SyncRoomRedactionEvent,
-                version: &#ruma_identifiers::RoomVersionId,
+                version: &#ruma_common::RoomVersionId,
             ) -> Self::Redacted {
                 let content = #ruma_common::events::RedactContent::redact(self.content, version);
                 #ruma_common::events::#redacted_type {
@@ -488,8 +486,6 @@ fn expand_sync_from_into_full(
     fields: &[Field],
     ruma_common: &TokenStream,
 ) -> TokenStream {
-    let ruma_identifiers = quote! { #ruma_common::exports::ruma_identifiers };
-
     let ident = &input.ident;
     let full_struct = kind.to_event_ident(var.to_full());
     let (impl_generics, ty_gen, where_clause) = input.generics.split_for_impl();
@@ -511,7 +507,7 @@ fn expand_sync_from_into_full(
             /// Convert this sync event into a full event, one with a room_id field.
             pub fn into_full_event(
                 self,
-                room_id: ::std::boxed::Box<#ruma_identifiers::RoomId>,
+                room_id: ::std::boxed::Box<#ruma_common::RoomId>,
             ) -> #full_struct #ty_gen {
                 let Self { #( #fields, )* } = self;
                 #full_struct {

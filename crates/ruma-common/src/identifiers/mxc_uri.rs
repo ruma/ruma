@@ -6,7 +6,7 @@ use std::num::NonZeroU8;
 
 use ruma_identifiers_validation::{error::MxcUriError, mxc_uri::validate};
 
-use crate::ServerName;
+use super::ServerName;
 
 type Result<T, E = MxcUriError> = std::result::Result<T, E>;
 
@@ -92,7 +92,6 @@ mod tests {
         assert!(!Box::<MxcUri>::from("127.0.0.1/asd32asdfasdsd").is_valid());
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn serialize_mxc_uri() {
         assert_eq!(
@@ -102,7 +101,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_mxc_uri() {
         let mxc = serde_json::from_str::<Box<MxcUri>>(r#""mxc://server/1234id""#)

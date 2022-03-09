@@ -1,17 +1,19 @@
 use std::{borrow::Borrow, collections::BTreeSet, convert::TryFrom};
 
 use js_int::{int, Int};
-use ruma_common::events::{
-    room::{
-        create::RoomCreateEventContent,
-        join_rules::{JoinRule, RoomJoinRulesEventContent},
-        member::{MembershipState, ThirdPartyInvite},
-        power_levels::RoomPowerLevelsEventContent,
-        third_party_invite::RoomThirdPartyInviteEventContent,
+use ruma_common::{
+    events::{
+        room::{
+            create::RoomCreateEventContent,
+            join_rules::{JoinRule, RoomJoinRulesEventContent},
+            member::{MembershipState, ThirdPartyInvite},
+            power_levels::RoomPowerLevelsEventContent,
+            third_party_invite::RoomThirdPartyInviteEventContent,
+        },
+        EventType,
     },
-    EventType,
+    RoomVersionId, UserId,
 };
-use ruma_identifiers::{RoomVersionId, UserId};
 use ruma_serde::{Base64, Raw};
 use serde::{de::IgnoredAny, Deserialize};
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};

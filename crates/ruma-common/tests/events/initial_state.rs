@@ -1,8 +1,10 @@
 use std::convert::TryFrom;
 
 use matches::assert_matches;
-use ruma_common::events::{AnyInitialStateEvent, InitialStateEvent};
-use ruma_identifiers::RoomName;
+use ruma_common::{
+    events::{AnyInitialStateEvent, InitialStateEvent},
+    RoomName,
+};
 use serde_json::json;
 
 #[test]

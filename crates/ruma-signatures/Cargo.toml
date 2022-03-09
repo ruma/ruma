@@ -23,7 +23,7 @@ ed25519-dalek = "1.0.1"
 pkcs8 = { version = "0.7.0", features = ["alloc"] }
 # because dalek uses an older version of rand_core
 rand = { version = "0.7", features = ["getrandom"] }
-ruma-identifiers = { version = "0.22.0", path = "../ruma-identifiers" }
+ruma-common = { version = "0.8.0", path = "../ruma-common" }
 ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 serde_json = "1.0.60"
 sha2 = "0.9.5"

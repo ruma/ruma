@@ -1,10 +1,10 @@
 use js_int::Int;
-use ruma_identifiers::TransactionId;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "unstable-msc2675")]
 use super::relation::Relations;
 use super::room::redaction::SyncRoomRedactionEvent;
+use crate::TransactionId;
 
 /// Extra information about an event that is not incorporated into the event's hash.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]

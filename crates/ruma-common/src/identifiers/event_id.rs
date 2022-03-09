@@ -1,6 +1,6 @@
 //! Matrix event identifiers.
 
-use crate::ServerName;
+use super::ServerName;
 
 /// A Matrix [event ID].
 ///
@@ -18,7 +18,7 @@ use crate::ServerName;
 ///
 /// ```
 /// # use std::convert::TryFrom;
-/// # use ruma_identifiers::EventId;
+/// # use ruma_common::EventId;
 /// // Original format
 /// assert_eq!(<&EventId>::try_from("$h29iv0s8:example.com").unwrap(), "$h29iv0s8:example.com");
 /// // Room version 3 format
@@ -48,7 +48,7 @@ impl EventId {
     /// 1 and 2.
     #[cfg(feature = "rand")]
     pub fn new(server_name: &ServerName) -> Box<Self> {
-        Self::from_owned(format!("${}:{}", crate::generate_localpart(18), server_name).into())
+        Self::from_owned(format!("${}:{}", super::generate_localpart(18), server_name).into())
     }
 
     /// Returns the event's unique ID.
@@ -118,7 +118,6 @@ mod tests {
         assert_eq!(id_str.len(), 31);
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn serialize_valid_original_event_id() {
         assert_eq!(
@@ -131,7 +130,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn serialize_valid_base64_event_id() {
         assert_eq!(
@@ -144,7 +142,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn serialize_valid_url_safe_base64_event_id() {
         assert_eq!(
@@ -157,7 +154,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_valid_original_event_id() {
         assert_eq!(
@@ -167,7 +163,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_valid_base64_event_id() {
         assert_eq!(
@@ -180,7 +175,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_valid_url_safe_base64_event_id() {
         assert_eq!(

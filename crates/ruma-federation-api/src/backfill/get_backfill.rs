@@ -8,8 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixfederationv1backfillroomid
 
     use js_int::UInt;
-    use ruma_common::{api::ruma_api, MilliSecondsSinceUnixEpoch};
-    use ruma_identifiers::{EventId, RoomId, ServerName};
+    use ruma_common::{api::ruma_api, EventId, MilliSecondsSinceUnixEpoch, RoomId, ServerName};
     use serde_json::value::RawValue as RawJsonValue;
 
     ruma_api! {

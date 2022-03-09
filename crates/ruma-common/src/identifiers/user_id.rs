@@ -2,7 +2,7 @@
 
 use std::{rc::Rc, sync::Arc};
 
-use crate::{matrix_uri::UriAction, MatrixToUri, MatrixUri, ServerName};
+use super::{matrix_uri::UriAction, MatrixToUri, MatrixUri, ServerName};
 
 /// A Matrix [user ID].
 ///
@@ -11,7 +11,7 @@ use crate::{matrix_uri::UriAction, MatrixToUri, MatrixUri, ServerName};
 ///
 /// ```
 /// # use std::convert::TryFrom;
-/// # use ruma_identifiers::UserId;
+/// # use ruma_common::UserId;
 /// assert_eq!(<&UserId>::try_from("@carl:example.com").unwrap(), "@carl:example.com");
 /// ```
 ///
@@ -28,7 +28,7 @@ impl UserId {
     #[cfg(feature = "rand")]
     pub fn new(server_name: &ServerName) -> Box<Self> {
         Self::from_owned(
-            format!("@{}:{}", crate::generate_localpart(12).to_lowercase(), server_name).into(),
+            format!("@{}:{}", super::generate_localpart(12).to_lowercase(), server_name).into(),
         )
     }
 
@@ -42,7 +42,7 @@ impl UserId {
     pub fn parse_with_server_name(
         id: impl AsRef<str> + Into<Box<str>>,
         server_name: &ServerName,
-    ) -> Result<Box<Self>, crate::Error> {
+    ) -> Result<Box<Self>, super::Error> {
         let id_str = id.as_ref();
 
         if id_str.starts_with('@') {
@@ -59,7 +59,7 @@ impl UserId {
     pub fn parse_with_server_name_rc(
         id: impl AsRef<str> + Into<Rc<str>>,
         server_name: &ServerName,
-    ) -> Result<Rc<Self>, crate::Error> {
+    ) -> Result<Rc<Self>, super::Error> {
         let id_str = id.as_ref();
 
         if id_str.starts_with('@') {
@@ -76,7 +76,7 @@ impl UserId {
     pub fn parse_with_server_name_arc(
         id: impl AsRef<str> + Into<Arc<str>>,
         server_name: &ServerName,
-    ) -> Result<Arc<Self>, crate::Error> {
+    ) -> Result<Arc<Self>, super::Error> {
         let id_str = id.as_ref();
 
         if id_str.starts_with('@') {
@@ -110,7 +110,7 @@ impl UserId {
     /// # Example
     ///
     /// ```
-    /// use ruma_identifiers::user_id;
+    /// use ruma_common::user_id;
     ///
     /// let message = format!(
     ///     r#"Thanks for the update <a href="{link}">{display_name}</a>."#,
@@ -130,7 +130,7 @@ impl UserId {
     /// # Example
     ///
     /// ```
-    /// use ruma_identifiers::user_id;
+    /// use ruma_common::user_id;
     ///
     /// let message = format!(
     ///     r#"Thanks for the update <a href="{link}">{display_name}</a>."#,
@@ -187,6 +187,7 @@ mod tests {
         assert!(!user_id.is_historical());
     }
 
+    #[cfg(not(feature = "compat"))]
     #[test]
     fn invalid_user_id() {
         let localpart = "τ";
@@ -257,7 +258,6 @@ mod tests {
         assert_eq!(id_str.len(), 25);
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn serialize_valid_user_id() {
         assert_eq!(
@@ -269,7 +269,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_valid_user_id() {
         assert_eq!(

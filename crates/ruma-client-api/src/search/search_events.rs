@@ -11,8 +11,8 @@ pub mod v3 {
     use ruma_common::{
         api::ruma_api,
         events::{AnyRoomEvent, AnyStateEvent},
+        EventId, MxcUri, RoomId, UserId,
     };
-    use ruma_identifiers::{EventId, MxcUri, RoomId, UserId};
     use ruma_serde::{Outgoing, Raw, StringEnum};
     use serde::{Deserialize, Serialize};
 

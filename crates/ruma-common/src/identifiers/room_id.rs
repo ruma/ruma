@@ -1,6 +1,6 @@
 //! Matrix room identifiers.
 
-use crate::{matrix_uri::UriAction, EventId, MatrixToUri, MatrixUri, ServerName};
+use super::{matrix_uri::UriAction, EventId, MatrixToUri, MatrixUri, ServerName};
 
 /// A Matrix [room ID].
 ///
@@ -9,7 +9,7 @@ use crate::{matrix_uri::UriAction, EventId, MatrixToUri, MatrixUri, ServerName};
 ///
 /// ```
 /// # use std::convert::TryFrom;
-/// # use ruma_identifiers::RoomId;
+/// # use ruma_common::RoomId;
 /// assert_eq!(<&RoomId>::try_from("!n8f893n9:example.com").unwrap(), "!n8f893n9:example.com");
 /// ```
 ///
@@ -27,7 +27,7 @@ impl RoomId {
     /// Fails if the given homeserver cannot be parsed as a valid host.
     #[cfg(feature = "rand")]
     pub fn new(server_name: &ServerName) -> Box<Self> {
-        Self::from_owned(format!("!{}:{}", crate::generate_localpart(18), server_name).into())
+        Self::from_owned(format!("!{}:{}", super::generate_localpart(18), server_name).into())
     }
 
     /// Returns the rooms's unique ID.
@@ -45,7 +45,7 @@ impl RoomId {
     /// # Example
     ///
     /// ```
-    /// use ruma_identifiers::{room_id, server_name};
+    /// use ruma_common::{room_id, server_name};
     ///
     /// assert_eq!(
     ///     room_id!("!somewhere:example.org")
@@ -70,7 +70,7 @@ impl RoomId {
     /// # Example
     ///
     /// ```
-    /// use ruma_identifiers::{room_id, server_name};
+    /// use ruma_common::{room_id, server_name};
     ///
     /// assert_eq!(
     ///     room_id!("!somewhere:example.org")
@@ -142,7 +142,6 @@ mod tests {
         assert_eq!(id_str.len(), 31);
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn serialize_valid_room_id() {
         assert_eq!(
@@ -154,7 +153,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_valid_room_id() {
         assert_eq!(

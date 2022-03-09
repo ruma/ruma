@@ -1,7 +1,5 @@
 #![allow(clippy::exhaustive_structs)]
 
-use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_identifiers::{EventId, RoomId, UserId};
 use ruma_macros::Event;
 use serde::{Deserialize, Serialize};
 
@@ -10,6 +8,7 @@ use super::{
     RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
     RoomAccountDataEventContent, StateEventContent, ToDeviceEventContent, Unsigned,
 };
+use crate::{EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId};
 
 /// A global account data event.
 #[derive(Clone, Debug, Event)]

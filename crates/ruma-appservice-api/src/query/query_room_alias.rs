@@ -7,8 +7,7 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/application-service-api/#get_matrixappv1roomsroomalias
 
-    use ruma_common::api::ruma_api;
-    use ruma_identifiers::RoomAliasId;
+    use ruma_common::{api::ruma_api, RoomAliasId};
 
     ruma_api! {
         metadata: {

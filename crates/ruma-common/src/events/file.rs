@@ -5,7 +5,6 @@
 use std::collections::BTreeMap;
 
 use js_int::UInt;
-use ruma_identifiers::MxcUri;
 use ruma_macros::EventContent;
 use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
@@ -14,6 +13,7 @@ use super::{
     message::MessageContent,
     room::{message::Relation, JsonWebKey},
 };
+use crate::MxcUri;
 
 /// The encryption info of a file sent to a room with end-to-end encryption enabled.
 ///

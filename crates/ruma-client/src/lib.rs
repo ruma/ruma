@@ -68,8 +68,7 @@
 //! use std::convert::TryFrom;
 //!
 //! use ruma_client_api::alias::get_alias;
-//! use ruma_common::api::MatrixVersion;
-//! use ruma_identifiers::{room_alias_id, room_id};
+//! use ruma_common::{api::MatrixVersion, room_alias_id, room_id};
 //!
 //! let response = client
 //!     .send_request(get_alias::v3::Request::new(room_alias_id!("#example_room:example.com")))
@@ -104,8 +103,10 @@
 
 use std::{any::type_name, future::Future};
 
-use ruma_common::api::{MatrixVersion, OutgoingRequest, SendAccessToken};
-use ruma_identifiers::UserId;
+use ruma_common::{
+    api::{MatrixVersion, OutgoingRequest, SendAccessToken},
+    UserId,
+};
 use tracing::{info_span, Instrument};
 
 // "Undo" rename from `Cargo.toml` that only serves to make crate names available as a Cargo

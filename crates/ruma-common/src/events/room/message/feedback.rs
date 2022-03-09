@@ -2,12 +2,11 @@
 //!
 //! [`m.room.message.feedback`]: https://spec.matrix.org/v1.2/client-server-api/#mroommessagefeedback
 
-use ruma_identifiers::EventId;
 use ruma_macros::EventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::PrivOwnedStr;
+use crate::{EventId, PrivOwnedStr};
 
 /// The content of an `m.room.message.feedback` event.
 ///

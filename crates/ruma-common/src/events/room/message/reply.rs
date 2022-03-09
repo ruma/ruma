@@ -1,9 +1,9 @@
 use indoc::formatdoc;
-use ruma_identifiers::{EventId, UserId};
 
 use super::{
     FormattedBody, MessageType, RoomMessageEvent, RoomMessageEventContent, SyncRoomMessageEvent,
 };
+use crate::{EventId, UserId};
 
 /// An event that can be replied to.
 ///
@@ -299,7 +299,7 @@ fn formatted_or_plain_body<'a>(formatted: &'a Option<FormattedBody>, body: &'a s
 
 #[cfg(test)]
 mod tests {
-    use ruma_identifiers::{event_id, room_id, user_id};
+    use crate::{event_id, room_id, user_id};
 
     use super::{RoomMessageEvent, RoomMessageEventContent};
 
@@ -310,7 +310,7 @@ mod tests {
                 content: RoomMessageEventContent::text_plain("multi\nline"),
                 event_id: event_id!("$1598361704261elfgc:localhost").to_owned(),
                 sender: user_id!("@alice:example.com").to_owned(),
-                origin_server_ts: ruma_common::MilliSecondsSinceUnixEpoch::now(),
+                origin_server_ts: crate::MilliSecondsSinceUnixEpoch::now(),
                 room_id: room_id!("!n8f893n9:example.com").to_owned(),
                 unsigned: crate::events::Unsigned::new(),
             }),

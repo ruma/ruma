@@ -16,8 +16,8 @@ pub mod v3 {
             AnyToDeviceEvent,
         },
         presence::PresenceState,
+        DeviceKeyAlgorithm, RoomId, UserId,
     };
-    use ruma_identifiers::{DeviceKeyAlgorithm, RoomId, UserId};
     use ruma_serde::{Outgoing, Raw};
     use serde::{Deserialize, Serialize};
 

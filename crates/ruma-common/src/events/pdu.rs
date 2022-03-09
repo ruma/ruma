@@ -8,8 +8,6 @@
 use std::collections::BTreeMap;
 
 use js_int::UInt;
-use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_identifiers::{EventId, RoomId, ServerName, ServerSigningKeyId, UserId};
 use serde::{
     de::{Error as _, IgnoredAny},
     Deserialize, Deserializer, Serialize,
@@ -17,6 +15,7 @@ use serde::{
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 
 use super::EventType;
+use crate::{EventId, MilliSecondsSinceUnixEpoch, RoomId, ServerName, ServerSigningKeyId, UserId};
 
 /// Enum for PDU schemas
 #[derive(Clone, Debug, Serialize)]

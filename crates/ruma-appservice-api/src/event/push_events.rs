@@ -7,8 +7,7 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/application-service-api/#put_matrixappv1transactionstxnid
 
-    use ruma_common::{api::ruma_api, events::AnyRoomEvent};
-    use ruma_identifiers::TransactionId;
+    use ruma_common::{api::ruma_api, events::AnyRoomEvent, TransactionId};
     use ruma_serde::Raw;
 
     ruma_api! {
@@ -71,7 +70,7 @@ pub mod v1 {
             next_batch: impl Into<String>,
         ) -> serde_json::Result<ruma_client_api::sync::sync_events::v3::Response> {
             use ruma_client_api::sync::sync_events;
-            use ruma_identifiers::RoomId;
+            use ruma_common::RoomId;
             use serde::Deserialize;
             use tracing::warn;
 
@@ -109,7 +108,7 @@ pub mod v1 {
     #[cfg(test)]
     mod helper_tests {
         use ruma_client_api::sync::sync_events;
-        use ruma_identifiers::{room_id, TransactionId};
+        use ruma_common::{room_id, TransactionId};
         use serde_json::{json, value::to_raw_value as to_raw_json_value};
 
         use super::{IncomingRequest, Raw};

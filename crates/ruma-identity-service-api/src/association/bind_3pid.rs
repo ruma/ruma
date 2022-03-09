@@ -7,8 +7,10 @@ pub mod v2 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/identity-service-api/#post_matrixidentityv23pidbind
 
-    use ruma_common::{api::ruma_api, thirdparty::Medium, MilliSecondsSinceUnixEpoch};
-    use ruma_identifiers::{ClientSecret, ServerSignatures, SessionId, UserId};
+    use ruma_common::{
+        api::ruma_api, thirdparty::Medium, ClientSecret, MilliSecondsSinceUnixEpoch,
+        ServerSignatures, SessionId, UserId,
+    };
 
     ruma_api! {
         metadata: {

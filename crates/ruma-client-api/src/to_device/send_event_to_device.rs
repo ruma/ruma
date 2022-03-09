@@ -9,8 +9,8 @@ pub mod v3 {
 
     use ruma_common::{
         api::ruma_api, events::AnyToDeviceEventContent, to_device::DeviceIdOrAllDevices,
+        TransactionId, UserId,
     };
-    use ruma_identifiers::{TransactionId, UserId};
     use ruma_serde::Raw;
 
     ruma_api! {

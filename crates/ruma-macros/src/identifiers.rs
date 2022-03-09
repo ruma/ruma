@@ -1,6 +1,4 @@
-//! Methods and types for generating [ruma-identifiers].
-//!
-//! [ruma-identifiers]: https://github.com/ruma/ruma/tree/main/ruma-identifiers
+//! Methods and types for generating identifiers.
 
 use syn::{parse::Parse, LitStr, Path, Token};
 

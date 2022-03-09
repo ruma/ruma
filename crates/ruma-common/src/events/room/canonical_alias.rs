@@ -2,9 +2,10 @@
 //!
 //! [`m.room.canonical_alias`]: https://spec.matrix.org/v1.2/client-server-api/#mroomcanonical_alias
 
-use ruma_identifiers::RoomAliasId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
+
+use crate::RoomAliasId;
 
 /// The content of an `m.room.canonical_alias` event.
 ///
@@ -38,9 +39,8 @@ impl RoomCanonicalAliasEventContent {
 
 #[cfg(test)]
 mod tests {
+    use crate::{event_id, room_alias_id, room_id, user_id, MilliSecondsSinceUnixEpoch};
     use js_int::uint;
-    use ruma_common::MilliSecondsSinceUnixEpoch;
-    use ruma_identifiers::{event_id, room_alias_id, room_id, user_id};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::RoomCanonicalAliasEventContent;
