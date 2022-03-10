@@ -7,10 +7,9 @@
 //!
 //! [MSC2241]: https://github.com/matrix-org/matrix-spec-proposals/pull/2241
 
-use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::{EventId, PrivOwnedStr};
+use crate::{serde::StringEnum, EventId, PrivOwnedStr};
 
 pub mod accept;
 pub mod cancel;

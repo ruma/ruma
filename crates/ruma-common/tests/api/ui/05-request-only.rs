@@ -1,9 +1,11 @@
 use bytes::BufMut;
-use ruma_common::api::{
-    error::{FromHttpResponseError, IntoHttpError, MatrixError},
-    ruma_api, IncomingResponse, OutgoingResponse,
+use ruma_common::{
+    api::{
+        error::{FromHttpResponseError, IntoHttpError, MatrixError},
+        ruma_api, IncomingResponse, OutgoingResponse,
+    },
+    serde::Outgoing,
 };
-use ruma_serde::Outgoing;
 
 ruma_api! {
     metadata: {

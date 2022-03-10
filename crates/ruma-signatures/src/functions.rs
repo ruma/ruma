@@ -8,8 +8,10 @@ use std::{
 };
 
 use base64::{encode_config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
-use ruma_common::{EventId, RoomVersionId, ServerName, UserId};
-use ruma_serde::{base64::Standard, Base64, CanonicalJsonObject, CanonicalJsonValue};
+use ruma_common::{
+    serde::{base64::Standard, Base64, CanonicalJsonObject, CanonicalJsonValue},
+    EventId, RoomVersionId, ServerName, UserId,
+};
 use serde_json::{from_str as from_json_str, to_string as to_json_string};
 use sha2::{digest::Digest, Sha256};
 
@@ -229,7 +231,7 @@ pub fn canonical_json(object: &CanonicalJsonObject) -> Result<String, Error> {
 /// ```rust
 /// use std::collections::BTreeMap;
 ///
-/// use ruma_serde::Base64;
+/// use ruma_common::serde::Base64;
 ///
 /// const PUBLIC_KEY: &[u8] = b"XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
 ///
@@ -542,7 +544,7 @@ where
 /// ```rust
 /// # use std::collections::BTreeMap;
 /// # use ruma_common::RoomVersionId;
-/// # use ruma_serde::Base64;
+/// # use ruma_common::serde::Base64;
 /// # use ruma_signatures::{verify_event, Verified};
 /// #
 /// const PUBLIC_KEY: &[u8] = b"XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
@@ -848,8 +850,10 @@ mod tests {
         convert::{TryFrom, TryInto},
     };
 
-    use ruma_common::{RoomVersionId, ServerSigningKeyId, SigningKeyAlgorithm};
-    use ruma_serde::{Base64, CanonicalJsonValue};
+    use ruma_common::{
+        serde::{Base64, CanonicalJsonValue},
+        RoomVersionId, ServerSigningKeyId, SigningKeyAlgorithm,
+    };
     use serde_json::json;
 
     use super::canonical_json;

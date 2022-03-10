@@ -36,7 +36,7 @@ pub mod v1 {
             /// The minimum depth of events to retrieve.
             ///
             /// Defaults to 0.
-            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
             pub min_depth: UInt,
 
             /// The latest event IDs that the sender already has.

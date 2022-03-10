@@ -1,6 +1,8 @@
-use ruma_common::api::ruma_api;
-use ruma_common::events::{tag::TagEvent, AnyRoomEvent};
-use ruma_serde::Raw;
+use ruma_common::{
+    api::ruma_api,
+    events::{tag::TagEvent, AnyRoomEvent},
+    serde::Raw,
+};
 
 ruma_api! {
     metadata: {

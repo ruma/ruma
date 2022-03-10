@@ -1,8 +1,9 @@
-#![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
-#![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
-//! (De)serialization helpers for other ruma crates.
-
-#![warn(missing_docs)]
+//! (De)serialization helpers for other Ruma crates.
+//!
+//! Part of that is a fork of [serde_urlencoded], with support for sequences in `Deserialize` /
+//! `Serialize` structs (e.g. `Vec<Something>`) that are (de)serialized as `field=val1&field=val2`.
+//!
+//! [serde_urlencoded]: https://github.com/nox/serde_urlencoded
 
 use serde::{de, Deserialize};
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
@@ -91,10 +92,3 @@ pub use ruma_macros::{
     AsRefStr, DeserializeFromCowStr, DisplayAsRefStr, FromString, OrdAsRefStr, Outgoing,
     PartialEqAsRefStr, PartialOrdAsRefStr, SerializeAsRefStr, StringEnum, _FakeDeriveSerde,
 };
-
-/// This module is used to support the generated code from ruma-macros.
-/// It is not considered part of ruma-serde's public API.
-#[doc(hidden)]
-pub mod exports {
-    pub use serde;
-}

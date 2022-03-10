@@ -30,7 +30,7 @@ use val_or_vec::ValOrVec;
 /// ];
 ///
 /// assert_eq!(
-///     ruma_serde::urlencoded::from_bytes::<Vec<(String, String)>>(
+///     ruma_common::serde::urlencoded::from_bytes::<Vec<(String, String)>>(
 ///         b"bread=baguette&cheese=comt%C3%A9&meat=ham&fat=butter"
 ///     ),
 ///     Ok(meal)
@@ -54,7 +54,7 @@ where
 /// ];
 ///
 /// assert_eq!(
-///     ruma_serde::urlencoded::from_str::<Vec<(String, String)>>(
+///     ruma_common::serde::urlencoded::from_str::<Vec<(String, String)>>(
 ///         "bread=baguette&cheese=comt%C3%A9&meat=ham&fat=butter"
 ///     ),
 ///     Ok(meal)

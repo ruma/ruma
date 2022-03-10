@@ -13,9 +13,9 @@ pub mod v1 {
         api::ruma_api,
         events::EventType,
         push::{PusherData, Tweak},
+        serde::{Outgoing, StringEnum},
         EventId, RoomAliasId, RoomId, RoomName, SecondsSinceUnixEpoch, UserId,
     };
-    use ruma_serde::{Outgoing, StringEnum};
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
 
@@ -104,7 +104,7 @@ pub mod v1 {
 
         /// Whether the user receiving the notification is the subject of a member event (i.e. the
         /// `state_key` of the member event is equal to the user's Matrix ID).
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub user_is_target: bool,
 
         /// The priority of the notification.
@@ -112,7 +112,7 @@ pub mod v1 {
         /// If omitted, `high` is assumed. This may be used by push gateways to deliver less
         /// time-sensitive notifications in a way that will preserve battery power on mobile
         /// devices.
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub prio: NotificationPriority,
 
         /// The `content` field from the event, if present.
@@ -124,7 +124,7 @@ pub mod v1 {
         /// Current number of unacknowledged communications for the recipient user.
         ///
         /// Counts whose value is zero should be omitted.
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub counts: NotificationCounts,
 
         /// An array of devices that the notification should be sent to.
@@ -178,12 +178,12 @@ pub mod v1 {
     pub struct NotificationCounts {
         /// The number of unread messages a user has across all of the rooms they
         /// are a member of.
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub unread: UInt,
 
         /// The number of unacknowledged missed calls a user has across all rooms of
         /// which they are a member.
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub missed_calls: UInt,
     }
 

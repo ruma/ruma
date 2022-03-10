@@ -49,7 +49,7 @@ pub mod v1 {
             ///
             /// Defaults to `false`.
             #[ruma_api(query)]
-            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
             pub suggested_only: bool,
         }
 

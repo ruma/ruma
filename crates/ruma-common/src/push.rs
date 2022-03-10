@@ -17,13 +17,15 @@
 use std::hash::{Hash, Hasher};
 
 use indexmap::{Equivalent, IndexSet};
-use ruma_serde::{Raw, StringEnum};
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "unstable-pre-spec")]
 use serde_json::Value as JsonValue;
 use tracing::instrument;
 
-use crate::PrivOwnedStr;
+use crate::{
+    serde::{Raw, StringEnum},
+    PrivOwnedStr,
+};
 
 mod action;
 mod condition;
@@ -466,7 +468,6 @@ mod tests {
 
     use js_int::uint;
     use matches::assert_matches;
-    use ruma_serde::Raw;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value,
         value::RawValue as RawJsonValue, Value as JsonValue,
@@ -477,7 +478,7 @@ mod tests {
         condition::{PushCondition, PushConditionRoomCtx, RoomMemberCountIs},
         AnyPushRule, ConditionalPushRule, PatternedPushRule, Ruleset, SimplePushRule,
     };
-    use crate::{power_levels::NotificationPowerLevels, room_id, user_id};
+    use crate::{power_levels::NotificationPowerLevels, room_id, serde::Raw, user_id};
 
     fn example_ruleset() -> Ruleset {
         let mut set = Ruleset::new();

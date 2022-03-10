@@ -10,10 +10,10 @@ use ruma_common::{
         error::{DeserializationError, IntoHttpError},
         EndpointError, OutgoingResponse,
     },
+    serde::{from_raw_json_value, JsonObject, Outgoing, StringEnum},
     thirdparty::Medium,
     ClientSecret, SessionId,
 };
-use ruma_serde::{from_raw_json_value, JsonObject, Outgoing, StringEnum};
 use serde::{
     de::{self, DeserializeOwned},
     Deserialize, Deserializer, Serialize,
@@ -734,7 +734,7 @@ impl OutgoingResponse for UiaaResponse {
             UiaaResponse::AuthResponse(authentication_info) => http::Response::builder()
                 .header(http::header::CONTENT_TYPE, "application/json")
                 .status(&http::StatusCode::UNAUTHORIZED)
-                .body(ruma_serde::json_to_buf(&authentication_info)?)
+                .body(ruma_common::serde::json_to_buf(&authentication_info)?)
                 .map_err(Into::into),
             UiaaResponse::MatrixError(error) => error.try_into_http_response(),
         }

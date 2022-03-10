@@ -80,10 +80,10 @@ mod tests {
 
     #[test]
     fn event_encryption_algorithm_serde() {
-        use ruma_serde::test::serde_json_eq;
         use serde_json::json;
 
         use super::EventEncryptionAlgorithm;
+        use crate::serde::test::serde_json_eq;
 
         serde_json_eq(EventEncryptionAlgorithm::MegolmV1AesSha2, json!("m.megolm.v1.aes-sha2"));
         serde_json_eq(

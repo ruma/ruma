@@ -8,9 +8,9 @@ pub mod v3 {
     use std::{collections::BTreeMap, time::Duration};
 
     use ruma_common::{
-        api::ruma_api, encryption::OneTimeKey, DeviceId, DeviceKeyAlgorithm, DeviceKeyId, UserId,
+        api::ruma_api, encryption::OneTimeKey, serde::Raw, DeviceId, DeviceKeyAlgorithm,
+        DeviceKeyId, UserId,
     };
-    use ruma_serde::Raw;
     use serde_json::Value as JsonValue;
 
     ruma_api! {
@@ -29,7 +29,7 @@ pub mod v3 {
             /// The time (in milliseconds) to wait when downloading keys from remote servers.
             /// 10 seconds is the recommended default.
             #[serde(
-                with = "ruma_serde::duration::opt_ms",
+                with = "ruma_common::serde::duration::opt_ms",
                 default,
                 skip_serializing_if = "Option::is_none",
             )]

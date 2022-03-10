@@ -5,8 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3room_keysversion
 
-    use ruma_common::api::ruma_api;
-    use ruma_serde::Raw;
+    use ruma_common::{api::ruma_api, serde::Raw};
 
     use crate::backup::BackupAlgorithm;
 

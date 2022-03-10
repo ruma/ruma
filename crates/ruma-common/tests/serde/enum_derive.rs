@@ -1,4 +1,4 @@
-use ruma_serde::StringEnum;
+use ruma_common::serde::StringEnum;
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 #[derive(Debug, PartialEq)]

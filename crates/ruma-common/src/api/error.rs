@@ -39,7 +39,7 @@ impl OutgoingResponse for MatrixError {
         http::Response::builder()
             .header(http::header::CONTENT_TYPE, "application/json")
             .status(self.status_code)
-            .body(ruma_serde::json_to_buf(&self.body)?)
+            .body(crate::serde::json_to_buf(&self.body)?)
             .map_err(Into::into)
     }
 }
@@ -85,7 +85,7 @@ pub enum IntoHttpError {
 
     /// Query parameter serialization failed.
     #[error("Query parameter serialization failed: {0}")]
-    Query(#[from] ruma_serde::urlencoded::ser::Error),
+    Query(#[from] crate::serde::urlencoded::ser::Error),
 
     /// Header serialization failed.
     #[error("Header serialization failed: {0}")]
@@ -198,7 +198,7 @@ pub enum DeserializationError {
 
     /// Query parameter deserialization failed.
     #[error("{0}")]
-    Query(#[from] ruma_serde::urlencoded::de::Error),
+    Query(#[from] crate::serde::urlencoded::de::Error),
 
     /// Got an invalid identifier.
     #[error("{0}")]

@@ -5,10 +5,9 @@
 use std::{collections::BTreeMap, error::Error, fmt, str::FromStr};
 
 use ruma_macros::EventContent;
-use ruma_serde::deserialize_cow_str;
 use serde::{Deserialize, Serialize};
 
-use crate::PrivOwnedStr;
+use crate::{serde::deserialize_cow_str, PrivOwnedStr};
 
 /// Map of tag names to tag info.
 pub type Tags = BTreeMap<TagName, TagInfo>;

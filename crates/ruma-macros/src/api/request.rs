@@ -199,7 +199,6 @@ impl Request {
     fn expand_all(&self) -> TokenStream {
         let ruma_common = import_ruma_common();
         let ruma_macros = quote! { #ruma_common::exports::ruma_macros };
-        let ruma_serde = quote! { #ruma_common::exports::ruma_serde };
         let serde = quote! { #ruma_common::exports::serde };
 
         let request_body_struct = self.has_body_fields().then(|| {
@@ -218,7 +217,7 @@ impl Request {
                 #[derive(
                     Debug,
                     #ruma_macros::_FakeDeriveRumaApi,
-                    #ruma_serde::Outgoing,
+                    #ruma_common::serde::Outgoing,
                     #serde::Serialize,
                     #derive_deserialize
                 )]
@@ -246,7 +245,7 @@ impl Request {
                 #[derive(
                     Debug,
                     #ruma_macros::_FakeDeriveRumaApi,
-                    #ruma_serde::Outgoing,
+                    #ruma_common::serde::Outgoing,
                     #serde::Serialize,
                     #derive_deserialize
                 )]

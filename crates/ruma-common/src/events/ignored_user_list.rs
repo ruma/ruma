@@ -15,7 +15,7 @@ use crate::UserId;
 #[ruma_event(type = "m.ignored_user_list", kind = GlobalAccountData)]
 pub struct IgnoredUserListEventContent {
     /// A list of users to ignore.
-    #[serde(with = "ruma_serde::vec_as_map_of_empty")]
+    #[serde(with = "crate::serde::vec_as_map_of_empty")]
     pub ignored_users: Vec<Box<UserId>>,
 }
 

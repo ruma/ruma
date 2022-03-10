@@ -3,10 +3,11 @@
 //! [`m.room_key_request`]: https://spec.matrix.org/v1.2/client-server-api/#mroom_key_request
 
 use ruma_macros::EventContent;
-use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::{DeviceId, EventEncryptionAlgorithm, PrivOwnedStr, RoomId, TransactionId};
+use crate::{
+    serde::StringEnum, DeviceId, EventEncryptionAlgorithm, PrivOwnedStr, RoomId, TransactionId,
+};
 
 /// The content of an `m.room_key_request` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]

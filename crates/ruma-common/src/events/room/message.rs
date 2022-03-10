@@ -6,13 +6,14 @@ use std::{borrow::Cow, fmt};
 
 use js_int::UInt;
 use ruma_macros::EventContent;
-use ruma_serde::{JsonObject, StringEnum};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
 use crate::{
-    events::key::verification::VerificationMethod, DeviceId, EventId, MxcUri, PrivOwnedStr, UserId,
+    events::key::verification::VerificationMethod,
+    serde::{JsonObject, StringEnum},
+    DeviceId, EventId, MxcUri, PrivOwnedStr, UserId,
 };
 
 mod content_serde;

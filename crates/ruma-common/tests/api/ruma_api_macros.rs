@@ -4,9 +4,9 @@ pub mod some_endpoint {
     use ruma_common::{
         api::ruma_api,
         events::{tag::TagEvent, AnyRoomEvent},
+        serde::Raw,
         UserId,
     };
-    use ruma_serde::Raw;
 
     ruma_api! {
         metadata: {

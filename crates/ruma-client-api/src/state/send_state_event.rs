@@ -8,9 +8,9 @@ pub mod v3 {
     use ruma_common::{
         api::ruma_api,
         events::{AnyStateEventContent, StateEventContent},
+        serde::{Outgoing, Raw},
         EventId, RoomId,
     };
-    use ruma_serde::{Outgoing, Raw};
     use serde_json::value::to_raw_value as to_raw_json_value;
 
     ruma_api! {
@@ -147,7 +147,7 @@ pub mod v3 {
                             .ok_or(ruma_common::api::error::IntoHttpError::NeedsAuthentication)?
                     ))?,
                 )
-                .body(ruma_serde::json_to_buf(&self.body)?)?;
+                .body(ruma_common::serde::json_to_buf(&self.body)?)?;
 
             Ok(http_request)
         }

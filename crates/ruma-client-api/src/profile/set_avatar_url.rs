@@ -34,8 +34,8 @@ pub mod v3 {
                 feature = "compat",
                 serde(
                     default,
-                    deserialize_with = "ruma_serde::empty_string_as_none",
-                    serialize_with = "ruma_serde::none_as_empty_string"
+                    deserialize_with = "ruma_common::serde::empty_string_as_none",
+                    serialize_with = "ruma_common::serde::none_as_empty_string"
                 )
             )]
             #[cfg_attr(

@@ -8,8 +8,7 @@ pub mod v2 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixkeyv2queryservernamekeyid
 
-    use ruma_common::{api::ruma_api, MilliSecondsSinceUnixEpoch, ServerName};
-    use ruma_serde::Raw;
+    use ruma_common::{api::ruma_api, serde::Raw, MilliSecondsSinceUnixEpoch, ServerName};
 
     use crate::discovery::ServerSigningKeys;
 

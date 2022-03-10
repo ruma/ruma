@@ -16,7 +16,7 @@ use serde::ser;
 /// let meal = &[("bread", "baguette"), ("cheese", "comté"), ("meat", "ham"), ("fat", "butter")];
 ///
 /// assert_eq!(
-///     ruma_serde::urlencoded::to_string(meal),
+///     ruma_common::serde::urlencoded::to_string(meal),
 ///     Ok("bread=baguette&cheese=comt%C3%A9&meat=ham&fat=butter".to_owned())
 /// );
 /// ```

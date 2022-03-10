@@ -30,7 +30,7 @@ pub mod v3 {
             /// Controls if another pusher with the same pushkey and app id should be created.
             ///
             /// Defaults to `false`. See the spec for more details.
-            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
             pub append: bool,
         }
 

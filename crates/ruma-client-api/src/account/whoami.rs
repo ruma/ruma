@@ -31,7 +31,7 @@ pub mod v3 {
             pub device_id: Option<Box<DeviceId>>,
 
             /// If `true`, the user is a guest user.
-            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
             pub is_guest: bool,
         }
 

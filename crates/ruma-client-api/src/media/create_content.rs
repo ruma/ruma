@@ -39,7 +39,7 @@ pub mod v3 {
             /// [MSC2448](https://github.com/matrix-org/matrix-spec-proposals/pull/2448).
             #[ruma_api(query)]
             #[cfg(feature = "unstable-msc2448")]
-            #[serde(default, skip_serializing_if = "ruma_serde::is_default", rename = "xyz.amorgan.blurhash")]
+            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default", rename = "xyz.amorgan.blurhash")]
             pub generate_blurhash: bool,
         }
 

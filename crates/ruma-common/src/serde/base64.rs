@@ -105,7 +105,7 @@ impl<'de, C: Base64Config> Deserialize<'de> for Base64<C> {
     where
         D: Deserializer<'de>,
     {
-        let encoded = crate::deserialize_cow_str(deserializer)?;
+        let encoded = super::deserialize_cow_str(deserializer)?;
         Self::parse(&*encoded).map_err(de::Error::custom)
     }
 }

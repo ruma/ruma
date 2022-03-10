@@ -22,7 +22,7 @@ pub enum CanonicalJsonValue {
     /// ```
     /// # use serde_json::json;
     /// # use std::convert::TryInto;
-    /// # use ruma_serde::CanonicalJsonValue;
+    /// # use ruma_common::serde::CanonicalJsonValue;
     /// let v: CanonicalJsonValue = json!(null).try_into().unwrap();
     /// ```
     Null,
@@ -32,7 +32,7 @@ pub enum CanonicalJsonValue {
     /// ```
     /// # use serde_json::json;
     /// # use std::convert::TryInto;
-    /// # use ruma_serde::CanonicalJsonValue;
+    /// # use ruma_common::serde::CanonicalJsonValue;
     /// let v: CanonicalJsonValue = json!(true).try_into().unwrap();
     /// ```
     Bool(bool),
@@ -42,7 +42,7 @@ pub enum CanonicalJsonValue {
     /// ```
     /// # use serde_json::json;
     /// # use std::convert::TryInto;
-    /// # use ruma_serde::CanonicalJsonValue;
+    /// # use ruma_common::serde::CanonicalJsonValue;
     /// let v: CanonicalJsonValue = json!(12).try_into().unwrap();
     /// ```
     Integer(Int),
@@ -52,7 +52,7 @@ pub enum CanonicalJsonValue {
     /// ```
     /// # use serde_json::json;
     /// # use std::convert::TryInto;
-    /// # use ruma_serde::CanonicalJsonValue;
+    /// # use ruma_common::serde::CanonicalJsonValue;
     /// let v: CanonicalJsonValue = json!("a string").try_into().unwrap();
     /// ```
     String(String),
@@ -62,7 +62,7 @@ pub enum CanonicalJsonValue {
     /// ```
     /// # use serde_json::json;
     /// # use std::convert::TryInto;
-    /// # use ruma_serde::CanonicalJsonValue;
+    /// # use ruma_common::serde::CanonicalJsonValue;
     /// let v: CanonicalJsonValue = json!(["an", "array"]).try_into().unwrap();
     /// ```
     Array(Vec<CanonicalJsonValue>),
@@ -74,7 +74,7 @@ pub enum CanonicalJsonValue {
     /// ```
     /// # use serde_json::json;
     /// # use std::convert::TryInto;
-    /// # use ruma_serde::CanonicalJsonValue;
+    /// # use ruma_common::serde::CanonicalJsonValue;
     /// let v: CanonicalJsonValue = json!({ "an": "object" }).try_into().unwrap();
     /// ```
     Object(Object),

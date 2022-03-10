@@ -15,7 +15,7 @@ use crate::RoomName;
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomNameEventContent {
     /// The name of the room.
-    #[serde(default, deserialize_with = "ruma_serde::empty_string_as_none")]
+    #[serde(default, deserialize_with = "crate::serde::empty_string_as_none")]
     pub name: Option<Box<RoomName>>,
 }
 
@@ -30,10 +30,9 @@ impl RoomNameEventContent {
 mod tests {
     use std::convert::TryInto;
 
-    use crate::{event_id, room_id, user_id, MilliSecondsSinceUnixEpoch};
+    use crate::{event_id, room_id, serde::Raw, user_id, MilliSecondsSinceUnixEpoch};
     use js_int::{int, uint};
     use matches::assert_matches;
-    use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::RoomNameEventContent;

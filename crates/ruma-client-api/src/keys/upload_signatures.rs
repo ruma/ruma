@@ -10,9 +10,9 @@ pub mod v3 {
     use ruma_common::{
         api::ruma_api,
         encryption::{CrossSigningKey, DeviceKeys},
+        serde::{Raw, StringEnum},
         DeviceId, UserId,
     };
-    use ruma_serde::{Raw, StringEnum};
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
 

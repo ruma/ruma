@@ -33,6 +33,7 @@ pub mod presence;
 pub mod push;
 pub mod receipt;
 pub mod room;
+pub mod serde;
 pub mod thirdparty;
 mod time;
 pub mod to_device;
@@ -66,7 +67,6 @@ pub mod exports {
     pub use http;
     pub use percent_encoding;
     pub use ruma_macros;
-    pub use ruma_serde;
     pub use serde;
     pub use serde_json;
 }

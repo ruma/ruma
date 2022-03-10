@@ -7,10 +7,10 @@ use ruma_common::{
     encryption::{CrossSigningKey, DeviceKeys},
     events::{receipt::Receipt, AnyToDeviceEventContent, EventType},
     presence::PresenceState,
+    serde::{from_raw_json_value, Raw},
     to_device::DeviceIdOrAllDevices,
     DeviceId, EventId, RoomId, TransactionId, UserId,
 };
-use ruma_serde::{from_raw_json_value, Raw};
 use serde::{de, Deserialize, Serialize};
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 

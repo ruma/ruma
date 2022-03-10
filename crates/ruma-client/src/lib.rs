@@ -189,7 +189,7 @@ fn add_user_id_to_query<C: HttpClient + ?Sized, R: OutgoingRequest>(
 ) -> impl FnOnce(&mut http::Request<C::RequestBody>) -> Result<(), ResponseError<C, R>> + '_ {
     use assign::assign;
     use http::uri::Uri;
-    use ruma_serde::urlencoded;
+    use ruma_common::serde::urlencoded;
 
     move |http_request| {
         let extra_params = urlencoded::to_string(&[("user_id", user_id)]).unwrap();

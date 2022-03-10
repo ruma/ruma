@@ -20,7 +20,6 @@ mod tests {
     use std::convert::TryInto;
 
     use js_int::int;
-    use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{PolicyRuleRoomEvent, PolicyRuleRoomEventContent};
@@ -30,7 +29,9 @@ mod tests {
             policy::rule::{PolicyRuleEventContent, Recommendation},
             Unsigned,
         },
-        room_id, user_id, MilliSecondsSinceUnixEpoch,
+        room_id,
+        serde::Raw,
+        user_id, MilliSecondsSinceUnixEpoch,
     };
 
     #[test]

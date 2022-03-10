@@ -5,10 +5,12 @@
 use std::collections::BTreeMap;
 
 use js_int::UInt;
-use ruma_serde::{base64::UrlSafe, Base64};
 use serde::{Deserialize, Serialize};
 
-use crate::MxcUri;
+use crate::{
+    serde::{base64::UrlSafe, Base64},
+    MxcUri,
+};
 
 pub mod aliases;
 pub mod avatar;

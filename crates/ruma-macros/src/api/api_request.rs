@@ -74,7 +74,6 @@ impl Request {
         ruma_common: &TokenStream,
     ) -> TokenStream {
         let ruma_macros = quote! { #ruma_common::exports::ruma_macros };
-        let ruma_serde = quote! { #ruma_common::exports::ruma_serde };
 
         let docs = format!(
             "Data for a request to the `{}` API endpoint.\n\n{}",
@@ -100,8 +99,8 @@ impl Request {
                 Clone,
                 Debug,
                 #ruma_macros::Request,
-                #ruma_serde::Outgoing,
-                #ruma_serde::_FakeDeriveSerde,
+                #ruma_common::serde::Outgoing,
+                #ruma_common::serde::_FakeDeriveSerde,
             )]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             #[incoming_derive(!Deserialize, #ruma_macros::_FakeDeriveRumaApi)]

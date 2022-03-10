@@ -77,7 +77,7 @@ where
     D: Deserializer<'de>,
     T: for<'a> TryFrom<&'a str>,
 {
-    ruma_serde::deserialize_cow_str(deserializer).and_then(|v| {
+    crate::serde::deserialize_cow_str(deserializer).and_then(|v| {
         T::try_from(&v).map_err(|_| de::Error::invalid_value(Unexpected::Str(&v), &expected_str))
     })
 }

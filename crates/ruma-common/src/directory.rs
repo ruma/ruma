@@ -2,8 +2,8 @@
 
 use std::fmt;
 
+use crate::serde::{Outgoing, StringEnum};
 use js_int::UInt;
-use ruma_serde::{Outgoing, StringEnum};
 use serde::{
     de::{Error, MapAccess, Visitor},
     ser::SerializeStruct,
@@ -24,7 +24,7 @@ pub struct PublicRoomsChunk {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
         feature = "compat",
-        serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
+        serde(default, deserialize_with = "crate::serde::empty_string_as_none")
     )]
     pub canonical_alias: Option<Box<RoomAliasId>>,
 
@@ -57,12 +57,12 @@ pub struct PublicRoomsChunk {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
         feature = "compat",
-        serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
+        serde(default, deserialize_with = "crate::serde::empty_string_as_none")
     )]
     pub avatar_url: Option<Box<MxcUri>>,
 
     /// The join rule of the room.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    #[serde(default, skip_serializing_if = "crate::serde::is_default")]
     pub join_rule: PublicRoomJoinRule,
 }
 

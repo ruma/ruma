@@ -9,9 +9,9 @@ pub mod v3 {
     use ruma_common::{
         api::ruma_api,
         events::{AnyRoomEvent, AnyStateEvent},
+        serde::Raw,
         EventId, RoomId,
     };
-    use ruma_serde::Raw;
 
     use crate::filter::{IncomingRoomEventFilter, RoomEventFilter};
 
@@ -46,7 +46,7 @@ pub mod v3 {
             /// A RoomEventFilter to filter returned events with.
             #[ruma_api(query)]
             #[serde(
-                with = "ruma_serde::json_string",
+                with = "ruma_common::serde::json_string",
                 default,
                 skip_serializing_if = "RoomEventFilter::is_empty"
             )]

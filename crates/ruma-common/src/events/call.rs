@@ -2,10 +2,9 @@
 //!
 //! This module also contains types shared by events in its child namespaces.
 
-use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::PrivOwnedStr;
+use crate::{serde::StringEnum, PrivOwnedStr};
 
 pub mod answer;
 pub mod candidates;

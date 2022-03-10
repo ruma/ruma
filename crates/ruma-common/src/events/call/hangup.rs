@@ -4,10 +4,9 @@
 
 use js_int::UInt;
 use ruma_macros::EventContent;
-use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::PrivOwnedStr;
+use crate::{serde::StringEnum, PrivOwnedStr};
 
 /// The content of an `m.call.hangup` event.
 ///

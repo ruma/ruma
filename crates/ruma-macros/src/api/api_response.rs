@@ -23,10 +23,9 @@ impl Response {
         &self,
         metadata: &Metadata,
         error_ty: &TokenStream,
-        ruma_api: &TokenStream,
+        ruma_common: &TokenStream,
     ) -> TokenStream {
-        let ruma_macros = quote! { #ruma_api::exports::ruma_macros };
-        let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
+        let ruma_macros = quote! { #ruma_common::exports::ruma_macros };
 
         let docs =
             format!("Data in the response from the `{}` API endpoint.", metadata.name.value());
@@ -40,8 +39,8 @@ impl Response {
                 Clone,
                 Debug,
                 #ruma_macros::Response,
-                #ruma_serde::Outgoing,
-                #ruma_serde::_FakeDeriveSerde,
+                #ruma_common::serde::Outgoing,
+                #ruma_common::serde::_FakeDeriveSerde,
             )]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             #[incoming_derive(!Deserialize, #ruma_macros::_FakeDeriveRumaApi)]

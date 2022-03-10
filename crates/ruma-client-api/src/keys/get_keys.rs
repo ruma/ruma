@@ -10,9 +10,9 @@ pub mod v3 {
     use ruma_common::{
         api::ruma_api,
         encryption::{CrossSigningKey, DeviceKeys},
+        serde::Raw,
         DeviceId, UserId,
     };
-    use ruma_serde::Raw;
     use serde_json::Value as JsonValue;
 
     ruma_api! {
@@ -33,7 +33,7 @@ pub mod v3 {
             ///
             /// 10 seconds is the recommended default.
             #[serde(
-                with = "ruma_serde::duration::opt_ms",
+                with = "ruma_common::serde::duration::opt_ms",
                 default,
                 skip_serializing_if = "Option::is_none",
             )]

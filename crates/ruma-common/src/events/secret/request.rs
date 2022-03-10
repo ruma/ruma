@@ -5,10 +5,9 @@
 use std::convert::TryFrom;
 
 use ruma_macros::EventContent;
-use ruma_serde::StringEnum;
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 
-use crate::{DeviceId, PrivOwnedStr, TransactionId};
+use crate::{serde::StringEnum, DeviceId, PrivOwnedStr, TransactionId};
 
 /// The content of an `m.secret.request` event.
 ///

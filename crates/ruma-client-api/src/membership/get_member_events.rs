@@ -5,8 +5,12 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3roomsroomidmembers
 
-    use ruma_common::{api::ruma_api, events::room::member::RoomMemberEvent, RoomId};
-    use ruma_serde::{Raw, StringEnum};
+    use ruma_common::{
+        api::ruma_api,
+        events::room::member::RoomMemberEvent,
+        serde::{Raw, StringEnum},
+        RoomId,
+    };
 
     use crate::PrivOwnedStr;
 

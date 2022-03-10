@@ -10,7 +10,7 @@ use pkcs8::{
     der::{Decodable, Encodable},
     AlgorithmIdentifier, ObjectIdentifier, PrivateKeyInfo,
 };
-use ruma_serde::Base64;
+use ruma_common::serde::Base64;
 
 use crate::{signatures::Signature, Algorithm, Error, ParseError};
 

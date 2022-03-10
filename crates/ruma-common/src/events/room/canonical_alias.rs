@@ -20,7 +20,7 @@ pub struct RoomCanonicalAliasEventContent {
     /// with no canonical alias.
     #[serde(
         default,
-        deserialize_with = "ruma_serde::empty_string_as_none",
+        deserialize_with = "crate::serde::empty_string_as_none",
         skip_serializing_if = "Option::is_none"
     )]
     pub alias: Option<Box<RoomAliasId>>,

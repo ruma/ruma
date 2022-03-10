@@ -1,8 +1,6 @@
 //! Common types for rooms.
 
-use ruma_serde::StringEnum;
-
-use crate::PrivOwnedStr;
+use crate::{serde::StringEnum, PrivOwnedStr};
 
 /// An enum of possible room types.
 ///

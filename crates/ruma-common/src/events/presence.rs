@@ -34,7 +34,7 @@ pub struct PresenceEventContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
         feature = "compat",
-        serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
+        serde(default, deserialize_with = "crate::serde::empty_string_as_none")
     )]
     pub avatar_url: Option<Box<MxcUri>>,
 

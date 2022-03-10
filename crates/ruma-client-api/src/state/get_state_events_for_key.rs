@@ -8,9 +8,9 @@ pub mod v3 {
     use ruma_common::{
         api::ruma_api,
         events::{AnyStateEventContent, EventType},
+        serde::{Outgoing, Raw},
         RoomId,
     };
-    use ruma_serde::{Outgoing, Raw};
 
     ruma_api! {
         metadata: {
@@ -70,7 +70,7 @@ pub mod v3 {
     #[cfg(feature = "client")]
     impl<'a> ruma_common::api::OutgoingRequest for Request<'a> {
         type EndpointError = crate::Error;
-        type IncomingResponse = <Response as ruma_serde::Outgoing>::Incoming;
+        type IncomingResponse = <Response as ruma_common::serde::Outgoing>::Incoming;
 
         const METADATA: ruma_common::api::Metadata = METADATA;
 
