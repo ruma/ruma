@@ -60,6 +60,12 @@ impl fmt::Debug for PrivOwnedStr {
 /// It is not considered part of this module's public API.
 #[doc(hidden)]
 pub mod exports {
+    #[cfg(feature = "api")]
+    pub use bytes;
+    #[cfg(feature = "api")]
+    pub use http;
+    pub use percent_encoding;
+    pub use ruma_macros;
     pub use ruma_serde;
     pub use serde;
     pub use serde_json;

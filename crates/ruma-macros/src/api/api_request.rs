@@ -71,10 +71,10 @@ impl Request {
         &self,
         metadata: &Metadata,
         error_ty: &TokenStream,
-        ruma_api: &TokenStream,
+        ruma_common: &TokenStream,
     ) -> TokenStream {
-        let ruma_macros = quote! { #ruma_api::exports::ruma_macros };
-        let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
+        let ruma_macros = quote! { #ruma_common::exports::ruma_macros };
+        let ruma_serde = quote! { #ruma_common::exports::ruma_serde };
 
         let docs = format!(
             "Data for a request to the `{}` API endpoint.\n\n{}",

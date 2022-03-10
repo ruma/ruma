@@ -16,8 +16,9 @@ use syn::{
 use super::{
     attribute::{Meta, MetaNameValue, MetaValue},
     auth_scheme::AuthScheme,
-    util::{collect_lifetime_idents, import_ruma_api},
+    util::collect_lifetime_idents,
 };
+use crate::util::import_ruma_common;
 
 mod incoming;
 mod outgoing;
@@ -196,10 +197,10 @@ impl Request {
     }
 
     fn expand_all(&self) -> TokenStream {
-        let ruma_api = import_ruma_api();
-        let ruma_macros = quote! { #ruma_api::exports::ruma_macros };
-        let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
-        let serde = quote! { #ruma_api::exports::serde };
+        let ruma_common = import_ruma_common();
+        let ruma_macros = quote! { #ruma_common::exports::ruma_macros };
+        let ruma_serde = quote! { #ruma_common::exports::ruma_serde };
+        let serde = quote! { #ruma_common::exports::serde };
 
         let request_body_struct = self.has_body_fields().then(|| {
             let serde_attr = self.has_newtype_body().then(|| quote! { #[serde(transparent)] });
@@ -253,8 +254,8 @@ impl Request {
             }
         });
 
-        let outgoing_request_impl = self.expand_outgoing(&ruma_api);
-        let incoming_request_impl = self.expand_incoming(&ruma_api);
+        let outgoing_request_impl = self.expand_outgoing(&ruma_common);
+        let incoming_request_impl = self.expand_incoming(&ruma_common);
 
         quote! {
             #request_body_struct

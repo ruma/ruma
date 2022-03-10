@@ -6,11 +6,11 @@ use super::{Request, RequestField};
 use crate::api::auth_scheme::AuthScheme;
 
 impl Request {
-    pub fn expand_incoming(&self, ruma_api: &TokenStream) -> TokenStream {
-        let http = quote! { #ruma_api::exports::http };
-        let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
-        let serde = quote! { #ruma_api::exports::serde };
-        let serde_json = quote! { #ruma_api::exports::serde_json };
+    pub fn expand_incoming(&self, ruma_common: &TokenStream) -> TokenStream {
+        let http = quote! { #ruma_common::exports::http };
+        let ruma_serde = quote! { #ruma_common::exports::ruma_serde };
+        let serde = quote! { #ruma_common::exports::serde };
+        let serde_json = quote! { #ruma_common::exports::serde_json };
 
         let method = &self.method;
         let error_ty = &self.error_ty;
@@ -104,7 +104,7 @@ impl Request {
                             quote! { str_value.to_owned() },
                             quote! {
                                 return Err(
-                                    #ruma_api::error::HeaderDeserializationError::MissingHeader(
+                                    #ruma_common::api::error::HeaderDeserializationError::MissingHeader(
                                         #header_name_string.into()
                                     ).into(),
                                 )
@@ -187,29 +187,29 @@ impl Request {
             quote! {
                 #[automatically_derived]
                 #[cfg(feature = "server")]
-                impl #ruma_api::IncomingNonAuthRequest for #incoming_request_type {}
+                impl #ruma_common::api::IncomingNonAuthRequest for #incoming_request_type {}
             }
         });
 
         quote! {
             #[automatically_derived]
             #[cfg(feature = "server")]
-            impl #ruma_api::IncomingRequest for #incoming_request_type {
+            impl #ruma_common::api::IncomingRequest for #incoming_request_type {
                 type EndpointError = #error_ty;
                 type OutgoingResponse = Response;
 
-                const METADATA: #ruma_api::Metadata = self::METADATA;
+                const METADATA: #ruma_common::api::Metadata = self::METADATA;
 
                 fn try_from_http_request<B, S>(
                     request: #http::Request<B>,
                     path_args: &[S],
-                ) -> ::std::result::Result<Self, #ruma_api::error::FromHttpRequestError>
+                ) -> ::std::result::Result<Self, #ruma_common::api::error::FromHttpRequestError>
                 where
                     B: ::std::convert::AsRef<[::std::primitive::u8]>,
                     S: ::std::convert::AsRef<::std::primitive::str>,
                 {
                     if request.method() != #http::Method::#method {
-                        return Err(#ruma_api::error::FromHttpRequestError::MethodMismatch {
+                        return Err(#ruma_common::api::error::FromHttpRequestError::MethodMismatch {
                             expected: #http::Method::#method,
                             received: request.method().clone(),
                         });

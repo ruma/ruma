@@ -3,27 +3,8 @@
 use std::collections::BTreeSet;
 
 use proc_macro2::{Ident, Span, TokenStream};
-use proc_macro_crate::{crate_name, FoundCrate};
-use quote::{format_ident, quote, ToTokens};
+use quote::{quote, ToTokens};
 use syn::{parse_quote, visit::Visit, Attribute, Lifetime, NestedMeta, Type};
-
-pub fn import_ruma_api() -> TokenStream {
-    if let Ok(FoundCrate::Name(name)) = crate_name("ruma-common") {
-        let import = format_ident!("{}", name);
-        quote! { ::#import::api }
-    } else if let Ok(FoundCrate::Name(name)) = crate_name("ruma") {
-        let import = format_ident!("{}", name);
-        quote! { ::#import::api }
-    } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk") {
-        let import = format_ident!("{}", name);
-        quote! { ::#import::ruma::api }
-    } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk-appservice") {
-        let import = format_ident!("{}", name);
-        quote! { ::#import::ruma::api }
-    } else {
-        quote! { ::ruma_common::api }
-    }
-}
 
 pub fn map_option_literal<T: ToTokens>(ver: &Option<T>) -> TokenStream {
     match ver {
