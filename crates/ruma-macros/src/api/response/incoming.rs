@@ -5,10 +5,10 @@ use syn::Type;
 use super::{Response, ResponseField};
 
 impl Response {
-    pub fn expand_incoming(&self, error_ty: &Type, ruma_api: &TokenStream) -> TokenStream {
-        let http = quote! { #ruma_api::exports::http };
-        let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
-        let serde_json = quote! { #ruma_api::exports::serde_json };
+    pub fn expand_incoming(&self, error_ty: &Type, ruma_common: &TokenStream) -> TokenStream {
+        let http = quote! { #ruma_common::exports::http };
+        let ruma_serde = quote! { #ruma_common::exports::ruma_serde };
+        let serde_json = quote! { #ruma_common::exports::serde_json };
 
         let extract_response_headers = self.has_header_fields().then(|| {
             quote! {
@@ -111,14 +111,14 @@ impl Response {
         quote! {
             #[automatically_derived]
             #[cfg(feature = "client")]
-            impl #ruma_api::IncomingResponse for Response {
+            impl #ruma_common::api::IncomingResponse for Response {
                 type EndpointError = #error_ty;
 
                 fn try_from_http_response<T: ::std::convert::AsRef<[::std::primitive::u8]>>(
                     response: #http::Response<T>,
                 ) -> ::std::result::Result<
                     Self,
-                    #ruma_api::error::FromHttpResponseError<#error_ty>,
+                    #ruma_common::api::error::FromHttpResponseError<#error_ty>,
                 > {
                     if response.status().as_u16() < 400 {
                         #extract_response_headers
@@ -128,14 +128,14 @@ impl Response {
                             #response_init_fields
                         })
                     } else {
-                        match <#error_ty as #ruma_api::EndpointError>::try_from_http_response(
+                        match <#error_ty as #ruma_common::api::EndpointError>::try_from_http_response(
                             response
                         ) {
                             ::std::result::Result::Ok(err) => {
-                                Err(#ruma_api::error::ServerError::Known(err).into())
+                                Err(#ruma_common::api::error::ServerError::Known(err).into())
                             }
                             ::std::result::Result::Err(response_err) => {
-                                Err(#ruma_api::error::ServerError::Unknown(response_err).into())
+                                Err(#ruma_common::api::error::ServerError::Unknown(response_err).into())
                             }
                         }
                     }

@@ -9,6 +9,7 @@ use syn::{
 };
 
 use self::{api_metadata::Metadata, api_request::Request, api_response::Response};
+use crate::util::import_ruma_common;
 
 mod api_metadata;
 mod api_request;
@@ -45,8 +46,8 @@ pub struct Api {
 
 impl Api {
     pub fn expand_all(self) -> TokenStream {
-        let ruma_api = util::import_ruma_api();
-        let http = quote! { #ruma_api::exports::http };
+        let ruma_common = import_ruma_common();
+        let http = quote! { #ruma_common::exports::http };
 
         let metadata = &self.metadata;
         let description = &metadata.description;
@@ -61,18 +62,19 @@ impl Api {
         let deprecated = util::map_option_literal(&metadata.deprecated);
         let removed = util::map_option_literal(&metadata.removed);
 
-        let error_ty = self
-            .error_ty
-            .map_or_else(|| quote! { #ruma_api::error::MatrixError }, |err_ty| quote! { #err_ty });
+        let error_ty = self.error_ty.map_or_else(
+            || quote! { #ruma_common::api::error::MatrixError },
+            |err_ty| quote! { #err_ty },
+        );
 
-        let request = self.request.map(|req| req.expand(metadata, &error_ty, &ruma_api));
-        let response = self.response.map(|res| res.expand(metadata, &error_ty, &ruma_api));
+        let request = self.request.map(|req| req.expand(metadata, &error_ty, &ruma_common));
+        let response = self.response.map(|res| res.expand(metadata, &error_ty, &ruma_common));
 
         let metadata_doc = format!("Metadata for the `{}` API endpoint.", name.value());
 
         quote! {
             #[doc = #metadata_doc]
-            pub const METADATA: #ruma_api::Metadata = #ruma_api::Metadata {
+            pub const METADATA: #ruma_common::api::Metadata = #ruma_common::api::Metadata {
                 description: #description,
                 method: #http::Method::#method,
                 name: #name,
@@ -83,7 +85,7 @@ impl Api {
                 deprecated: #deprecated,
                 removed: #removed,
                 rate_limited: #rate_limited,
-                authentication: #ruma_api::AuthScheme::#authentication,
+                authentication: #ruma_common::api::AuthScheme::#authentication,
             };
 
             #request

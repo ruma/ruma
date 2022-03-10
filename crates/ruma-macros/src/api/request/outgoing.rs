@@ -6,11 +6,11 @@ use super::{Request, RequestField};
 use crate::api::{auth_scheme::AuthScheme, util};
 
 impl Request {
-    pub fn expand_outgoing(&self, ruma_api: &TokenStream) -> TokenStream {
-        let bytes = quote! { #ruma_api::exports::bytes };
-        let http = quote! { #ruma_api::exports::http };
-        let percent_encoding = quote! { #ruma_api::exports::percent_encoding };
-        let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
+    pub fn expand_outgoing(&self, ruma_common: &TokenStream) -> TokenStream {
+        let bytes = quote! { #ruma_common::exports::bytes };
+        let http = quote! { #ruma_common::exports::http };
+        let percent_encoding = quote! { #ruma_common::exports::percent_encoding };
+        let ruma_serde = quote! { #ruma_common::exports::ruma_serde };
 
         let method = &self.method;
         let error_ty = &self.error_ty;
@@ -139,7 +139,7 @@ impl Request {
                         "Bearer {}",
                         access_token
                             .get_required_for_endpoint()
-                            .ok_or(#ruma_api::error::IntoHttpError::NeedsAuthentication)?,
+                            .ok_or(#ruma_common::api::error::IntoHttpError::NeedsAuthentication)?,
                     ))?,
                 );
             },
@@ -177,7 +177,7 @@ impl Request {
             quote! {
                 #[automatically_derived]
                 #[cfg(feature = "client")]
-                impl #impl_generics #ruma_api::OutgoingNonAuthRequest
+                impl #impl_generics #ruma_common::api::OutgoingNonAuthRequest
                     for Request #ty_generics #where_clause {}
             }
         });
@@ -185,18 +185,18 @@ impl Request {
         quote! {
             #[automatically_derived]
             #[cfg(feature = "client")]
-            impl #impl_generics #ruma_api::OutgoingRequest for Request #ty_generics #where_clause {
+            impl #impl_generics #ruma_common::api::OutgoingRequest for Request #ty_generics #where_clause {
                 type EndpointError = #error_ty;
                 type IncomingResponse = <Response as #ruma_serde::Outgoing>::Incoming;
 
-                const METADATA: #ruma_api::Metadata = self::METADATA;
+                const METADATA: #ruma_common::api::Metadata = self::METADATA;
 
                 fn try_into_http_request<T: ::std::default::Default + #bytes::BufMut>(
                     self,
                     base_url: &::std::primitive::str,
-                    access_token: #ruma_api::SendAccessToken<'_>,
-                    considering_versions: &'_ [#ruma_api::MatrixVersion],
-                ) -> ::std::result::Result<#http::Request<T>, #ruma_api::error::IntoHttpError> {
+                    access_token: #ruma_common::api::SendAccessToken<'_>,
+                    considering_versions: &'_ [#ruma_common::api::MatrixVersion],
+                ) -> ::std::result::Result<#http::Request<T>, #ruma_common::api::error::IntoHttpError> {
                     let metadata = self::METADATA;
 
                     let mut req_builder = #http::Request::builder()
@@ -204,7 +204,7 @@ impl Request {
                         .uri(::std::format!(
                             "{}{}{}",
                             base_url.strip_suffix('/').unwrap_or(base_url),
-                            #ruma_api::select_path(considering_versions, &metadata, #unstable_path, #r0_path, #stable_path)?,
+                            #ruma_common::api::select_path(considering_versions, &metadata, #unstable_path, #r0_path, #stable_path)?,
                             #request_query_string,
                         ));
 

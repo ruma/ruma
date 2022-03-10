@@ -13,10 +13,8 @@ use syn::{
     DeriveInput, Field, Generics, Ident, Lifetime, Token, Type,
 };
 
-use super::{
-    attribute::{Meta, MetaNameValue},
-    util,
-};
+use super::attribute::{Meta, MetaNameValue};
+use crate::util::import_ruma_common;
 
 mod incoming;
 mod outgoing;
@@ -95,10 +93,10 @@ impl Response {
     }
 
     fn expand_all(&self) -> TokenStream {
-        let ruma_api = util::import_ruma_api();
-        let ruma_macros = quote! { #ruma_api::exports::ruma_macros };
-        let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
-        let serde = quote! { #ruma_api::exports::serde };
+        let ruma_common = import_ruma_common();
+        let ruma_macros = quote! { #ruma_common::exports::ruma_macros };
+        let ruma_serde = quote! { #ruma_common::exports::ruma_serde };
+        let serde = quote! { #ruma_common::exports::serde };
 
         let response_body_struct = (!self.has_raw_body()).then(|| {
             let serde_derives = self.manual_body_serde.not().then(|| {
@@ -121,8 +119,8 @@ impl Response {
             }
         });
 
-        let outgoing_response_impl = self.expand_outgoing(&ruma_api);
-        let incoming_response_impl = self.expand_incoming(&self.error_ty, &ruma_api);
+        let outgoing_response_impl = self.expand_outgoing(&ruma_common);
+        let incoming_response_impl = self.expand_incoming(&self.error_ty, &ruma_common);
 
         quote! {
             #response_body_struct

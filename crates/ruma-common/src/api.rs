@@ -193,19 +193,6 @@ use crate::UserId;
 pub use ruma_macros::ruma_api;
 
 pub mod error;
-/// This module is used to support the generated code from ruma-macros.
-/// It is not considered part of ruma-common's public API.
-#[doc(hidden)]
-pub mod exports {
-    pub use bytes;
-    pub use http;
-    pub use percent_encoding;
-    pub use ruma_macros;
-    pub use ruma_serde;
-    pub use serde;
-    pub use serde_json;
-}
-
 mod metadata;
 
 pub use metadata::{MatrixVersion, Metadata};

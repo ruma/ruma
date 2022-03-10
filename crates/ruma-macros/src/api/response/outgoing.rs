@@ -4,10 +4,10 @@ use quote::quote;
 use super::{Response, ResponseField};
 
 impl Response {
-    pub fn expand_outgoing(&self, ruma_api: &TokenStream) -> TokenStream {
-        let bytes = quote! { #ruma_api::exports::bytes };
-        let http = quote! { #ruma_api::exports::http };
-        let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
+    pub fn expand_outgoing(&self, ruma_common: &TokenStream) -> TokenStream {
+        let bytes = quote! { #ruma_common::exports::bytes };
+        let http = quote! { #ruma_common::exports::http };
+        let ruma_serde = quote! { #ruma_common::exports::ruma_serde };
 
         let serialize_response_headers = self.fields.iter().filter_map(|response_field| {
             response_field.as_header_field().map(|(field, header_name)| {
@@ -64,10 +64,10 @@ impl Response {
         quote! {
             #[automatically_derived]
             #[cfg(feature = "server")]
-            impl #ruma_api::OutgoingResponse for Response {
+            impl #ruma_common::api::OutgoingResponse for Response {
                 fn try_into_http_response<T: ::std::default::Default + #bytes::BufMut>(
                     self,
-                ) -> ::std::result::Result<#http::Response<T>, #ruma_api::error::IntoHttpError> {
+                ) -> ::std::result::Result<#http::Response<T>, #ruma_common::api::error::IntoHttpError> {
                     let mut resp_builder = #http::Response::builder()
                         .header(#http::header::CONTENT_TYPE, "application/json");
 
