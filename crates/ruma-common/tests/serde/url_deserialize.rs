@@ -1,6 +1,6 @@
 use form_urlencoded::Serializer as Encoder;
 use matches::assert_matches;
-use ruma_serde::urlencoded;
+use ruma_common::serde::urlencoded;
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug, PartialEq)]
@@ -130,7 +130,7 @@ fn deserialize_with_serde_attributes() {
         xs: Vec<bool>,
         #[serde(default)]
         def: Option<u8>,
-        #[serde(default, deserialize_with = "ruma_serde::empty_string_as_none")]
+        #[serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")]
         str: Option<String>,
         #[serde(default)]
         flag: bool,

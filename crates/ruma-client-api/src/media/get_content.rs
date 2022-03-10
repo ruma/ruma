@@ -32,7 +32,7 @@ pub mod v3 {
             ///
             /// Used to prevent routing loops. Defaults to `true`.
             #[ruma_api(query)]
-            #[serde(default = "ruma_serde::default_true", skip_serializing_if = "ruma_serde::is_true")]
+            #[serde(default = "ruma_common::serde::default_true", skip_serializing_if = "ruma_common::serde::is_true")]
             pub allow_remote: bool,
         }
 

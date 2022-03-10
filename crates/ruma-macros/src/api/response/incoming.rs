@@ -7,7 +7,6 @@ use super::{Response, ResponseField};
 impl Response {
     pub fn expand_incoming(&self, error_ty: &Type, ruma_common: &TokenStream) -> TokenStream {
         let http = quote! { #ruma_common::exports::http };
-        let ruma_serde = quote! { #ruma_common::exports::ruma_serde };
         let serde_json = quote! { #ruma_common::exports::serde_json };
 
         let extract_response_headers = self.has_header_fields().then(|| {
@@ -20,7 +19,7 @@ impl Response {
             quote! {
                 let response_body: <
                     ResponseBody
-                    as #ruma_serde::Outgoing
+                    as #ruma_common::serde::Outgoing
                 >::Incoming = {
                     let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
                         response.body(),

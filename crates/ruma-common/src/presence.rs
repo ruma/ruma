@@ -2,9 +2,7 @@
 //!
 //! [presence]: https://spec.matrix.org/v1.2/client-server-api/#presence
 
-use ruma_serde::StringEnum;
-
-use crate::PrivOwnedStr;
+use crate::{serde::StringEnum, PrivOwnedStr};
 
 /// A description of a user's connectivity and availability for chat.
 ///

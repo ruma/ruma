@@ -10,9 +10,11 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::ruma_api, encryption::OneTimeKey, DeviceId, DeviceKeyAlgorithm, DeviceKeyId, UserId,
+        api::ruma_api,
+        encryption::OneTimeKey,
+        serde::{Base64, Raw},
+        DeviceId, DeviceKeyAlgorithm, DeviceKeyId, UserId,
     };
-    use ruma_serde::{Base64, Raw};
     use serde::{Deserialize, Serialize};
 
     ruma_api! {

@@ -3,9 +3,8 @@
 use js_int::UInt;
 use ruma_common::{
     directory::PublicRoomJoinRule, events::space::child::HierarchySpaceChildStateEvent,
-    room::RoomType, MxcUri, RoomAliasId, RoomId, RoomName,
+    room::RoomType, serde::Raw, MxcUri, RoomAliasId, RoomId, RoomName,
 };
-use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};
 
 pub mod get_hierarchy;
@@ -21,7 +20,7 @@ pub struct SpaceHierarchyRoomsChunk {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
         feature = "compat",
-        serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
+        serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
     )]
     pub canonical_alias: Option<Box<RoomAliasId>>,
 
@@ -54,12 +53,12 @@ pub struct SpaceHierarchyRoomsChunk {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
         feature = "compat",
-        serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
+        serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
     )]
     pub avatar_url: Option<Box<MxcUri>>,
 
     /// The join rule of the room.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub join_rule: PublicRoomJoinRule,
 
     /// The type of room from `m.room.create`, if any.

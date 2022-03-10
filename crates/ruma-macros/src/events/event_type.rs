@@ -8,8 +8,6 @@ pub fn expand_event_type_enum(
     input: EventEnumInput,
     ruma_common: TokenStream,
 ) -> syn::Result<TokenStream> {
-    let ruma_serde = quote! { #ruma_common::exports::ruma_serde };
-
     let mut room: Vec<&Vec<EventEnumEntry>> = vec![];
     let mut state: Vec<&Vec<EventEnumEntry>> = vec![];
     let mut message: Vec<&Vec<EventEnumEntry>> = vec![];
@@ -45,14 +43,14 @@ pub fn expand_event_type_enum(
     all.push(&presence);
     let (all_event_types, all_str_ev_types) = generate_variants(&all)?;
     let all =
-        generate_enum(format_ident!("EventType"), all_str_ev_types, all_event_types, &ruma_serde);
+        generate_enum(format_ident!("EventType"), all_str_ev_types, all_event_types, &ruma_common);
 
     let (room_event_types, room_str_ev_types) = generate_variants(&room)?;
     let room = generate_enum(
         format_ident!("RoomEventType"),
         room_str_ev_types,
         room_event_types,
-        &ruma_serde,
+        &ruma_common,
     );
 
     let (state_event_types, state_str_ev_types) = generate_variants(&state)?;
@@ -60,7 +58,7 @@ pub fn expand_event_type_enum(
         format_ident!("StateEventType"),
         state_str_ev_types,
         state_event_types,
-        &ruma_serde,
+        &ruma_common,
     );
 
     let (message_event_types, message_str_ev_types) = generate_variants(&message)?;
@@ -68,7 +66,7 @@ pub fn expand_event_type_enum(
         format_ident!("MessageLikeEventType"),
         message_str_ev_types,
         message_event_types,
-        &ruma_serde,
+        &ruma_common,
     );
 
     let (ephemeral_event_types, ephemeral_str_ev_types) = generate_variants(&ephemeral)?;
@@ -76,7 +74,7 @@ pub fn expand_event_type_enum(
         format_ident!("EphemeralRoomEventType"),
         ephemeral_str_ev_types,
         ephemeral_event_types,
-        &ruma_serde,
+        &ruma_common,
     );
 
     let (room_account_event_types, room_account_str_ev_types) = generate_variants(&room_account)?;
@@ -84,7 +82,7 @@ pub fn expand_event_type_enum(
         format_ident!("RoomAccountDataEventType"),
         room_account_str_ev_types,
         room_account_event_types,
-        &ruma_serde,
+        &ruma_common,
     );
 
     let (global_account_event_types, global_account_str_ev_types) =
@@ -93,7 +91,7 @@ pub fn expand_event_type_enum(
         format_ident!("GlobalAccountDataEventType"),
         global_account_str_ev_types,
         global_account_event_types,
-        &ruma_serde,
+        &ruma_common,
     );
 
     let (to_device_event_types, to_device_str_ev_types) = generate_variants(&to_device)?;
@@ -101,7 +99,7 @@ pub fn expand_event_type_enum(
         format_ident!("ToDeviceEventType"),
         to_device_str_ev_types,
         to_device_event_types,
-        &ruma_serde,
+        &ruma_common,
     );
 
     Ok(quote! {
@@ -120,7 +118,7 @@ fn generate_enum(
     ident: Ident,
     ev_type_strings: Vec<&LitStr>,
     variants: Vec<TokenStream>,
-    ruma_serde: &TokenStream,
+    ruma_common: &TokenStream,
 ) -> TokenStream {
     let str_doc = format!("Creates a string slice from this `{}`.", ident);
     let byte_doc = format!("Creates a byte slice from this `{}`.", ident);
@@ -130,7 +128,7 @@ fn generate_enum(
         ///
         /// This type can hold an arbitrary string. To check for events that are not available as a
         /// documented variant here, use its string representation, obtained through `.as_str()`.
-        #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, #ruma_serde::StringEnum)]
+        #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, #ruma_common::serde::StringEnum)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
         pub enum #ident {
             #(

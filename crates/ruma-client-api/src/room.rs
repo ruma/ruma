@@ -6,7 +6,7 @@ pub mod get_room_event;
 pub mod report_content;
 pub mod upgrade_room;
 
-use ruma_serde::StringEnum;
+use ruma_common::serde::StringEnum;
 
 use crate::PrivOwnedStr;
 

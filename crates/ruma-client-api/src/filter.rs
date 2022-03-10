@@ -7,8 +7,10 @@ mod lazy_load;
 mod url;
 
 use js_int::UInt;
-use ruma_common::{RoomId, UserId};
-use ruma_serde::{Outgoing, StringEnum};
+use ruma_common::{
+    serde::{Outgoing, StringEnum},
+    RoomId, UserId,
+};
 use serde::Serialize;
 
 use crate::PrivOwnedStr;
@@ -161,24 +163,24 @@ pub struct RoomFilter<'a> {
     /// Include rooms that the user has left in the sync.
     ///
     /// Defaults to `false`.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub include_leave: bool,
 
     /// The per user account data to include for rooms.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_empty")]
     pub account_data: RoomEventFilter<'a>,
 
     /// The message and state update events to include for rooms.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_empty")]
     pub timeline: RoomEventFilter<'a>,
 
     /// The events that aren't recorded in the room history, e.g. typing and receipts, to include
     /// for rooms.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_empty")]
     pub ephemeral: RoomEventFilter<'a>,
 
     /// The state events to include for rooms.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_empty")]
     pub state: RoomEventFilter<'a>,
 
     /// A list of room IDs to exclude.
@@ -325,19 +327,19 @@ pub struct FilterDefinition<'a> {
     ///
     /// 'client' will return the events in a format suitable for clients. 'federation' will return
     /// the raw event as received over federation. The default is 'client'.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub event_format: EventFormat,
 
     /// The presence updates to include.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_empty")]
     pub presence: Filter<'a>,
 
     /// The user account data that isn't associated with rooms to include.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_empty")]
     pub account_data: Filter<'a>,
 
     /// Filters to be applied to room data.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_empty")]
     pub room: RoomFilter<'a>,
 }
 
@@ -382,7 +384,7 @@ impl IncomingFilterDefinition {
 
 macro_rules! can_be_empty {
     ($ty:ident $(<$gen:tt>)?) => {
-        impl $(<$gen>)? ruma_serde::CanBeEmpty for $ty $(<$gen>)? {
+        impl $(<$gen>)? ruma_common::serde::CanBeEmpty for $ty $(<$gen>)? {
             fn is_empty(&self) -> bool {
                 self.is_empty()
             }

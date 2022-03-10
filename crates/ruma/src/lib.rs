@@ -73,7 +73,7 @@
 #[doc(inline)]
 pub use ruma_common as common;
 #[doc(inline)]
-pub use ruma_serde as serde;
+pub use ruma_common::serde;
 
 #[cfg(feature = "client")]
 #[doc(inline)]
@@ -162,11 +162,10 @@ pub use ruma_client::Client;
 pub use ruma_common::{
     authentication, device_id, device_key_id, directory, encryption, event_id, matrix_uri, mxc_uri,
     power_levels, presence, push, receipt, room, room_alias_id, room_id, room_version_id,
-    server_name, server_signing_key_id, thirdparty, to_device, user_id, ClientSecret, DeviceId,
-    DeviceKeyAlgorithm, DeviceKeyId, DeviceSignatures, DeviceSigningKeyId, EntitySignatures,
-    EventEncryptionAlgorithm, EventId, KeyId, KeyName, MatrixToUri, MilliSecondsSinceUnixEpoch,
-    MxcUri, PrivOwnedStr, RoomAliasId, RoomId, RoomOrAliasId, RoomVersionId, SecondsSinceUnixEpoch,
-    ServerName, ServerSignatures, ServerSigningKeyId, SessionId, Signatures, SigningKeyAlgorithm,
-    TransactionId, UserId,
+    serde::Outgoing, server_name, server_signing_key_id, thirdparty, to_device, user_id,
+    ClientSecret, DeviceId, DeviceKeyAlgorithm, DeviceKeyId, DeviceSignatures, DeviceSigningKeyId,
+    EntitySignatures, EventEncryptionAlgorithm, EventId, KeyId, KeyName, MatrixToUri,
+    MilliSecondsSinceUnixEpoch, MxcUri, PrivOwnedStr, RoomAliasId, RoomId, RoomOrAliasId,
+    RoomVersionId, SecondsSinceUnixEpoch, ServerName, ServerSignatures, ServerSigningKeyId,
+    SessionId, Signatures, SigningKeyAlgorithm, TransactionId, UserId,
 };
-pub use ruma_serde::Outgoing;

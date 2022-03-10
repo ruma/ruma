@@ -5,8 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3roomsroomideventeventid
 
-    use ruma_common::{api::ruma_api, events::AnyRoomEvent, EventId, RoomId};
-    use ruma_serde::Raw;
+    use ruma_common::{api::ruma_api, events::AnyRoomEvent, serde::Raw, EventId, RoomId};
 
     ruma_api! {
         metadata: {

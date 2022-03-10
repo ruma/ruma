@@ -9,10 +9,12 @@
 
 #[cfg(feature = "criterion")]
 use criterion::{criterion_group, criterion_main, Criterion};
-use ruma_common::events::{
-    room::power_levels::RoomPowerLevelsEventContent, AnyRoomEvent, AnyStateEvent, StateEvent,
+use ruma_common::{
+    events::{
+        room::power_levels::RoomPowerLevelsEventContent, AnyRoomEvent, AnyStateEvent, StateEvent,
+    },
+    serde::Raw,
 };
-use ruma_serde::Raw;
 use serde_json::json;
 
 fn power_levels() -> serde_json::Value {

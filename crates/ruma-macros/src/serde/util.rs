@@ -1,30 +1,10 @@
-use proc_macro2::{Span, TokenStream};
-use proc_macro_crate::{crate_name, FoundCrate};
-use quote::{format_ident, quote};
+use proc_macro2::Span;
 use syn::{ItemEnum, LitStr, Variant};
 
 use super::{
     attr::{RenameAllAttr, RenameAttr},
     case::RenameRule,
 };
-
-pub fn import_ruma_serde() -> TokenStream {
-    if let Ok(FoundCrate::Name(name)) = crate_name("ruma-serde") {
-        let import = format_ident!("{}", name);
-        quote! { ::#import }
-    } else if let Ok(FoundCrate::Name(name)) = crate_name("ruma") {
-        let import = format_ident!("{}", name);
-        quote! { ::#import::serde }
-    } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk") {
-        let import = format_ident!("{}", name);
-        quote! { ::#import::ruma::serde }
-    } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk-appservice") {
-        let import = format_ident!("{}", name);
-        quote! { ::#import::ruma::serde }
-    } else {
-        quote! { ::ruma_serde }
-    }
-}
 
 pub fn get_rename_rule(input: &ItemEnum) -> syn::Result<RenameRule> {
     let rules: Vec<_> = input

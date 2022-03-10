@@ -257,9 +257,8 @@ impl From<MegolmV1AesSha2ContentInit> for MegolmV1AesSha2Content {
 
 #[cfg(test)]
 mod tests {
-    use crate::event_id;
+    use crate::{event_id, serde::Raw};
     use matches::assert_matches;
-    use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{

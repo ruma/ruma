@@ -10,9 +10,10 @@ use ruma_common::{
         AnyMessageLikeEvent, AnyMessageLikeEventContent, AnySyncMessageLikeEvent, MessageLikeEvent,
         RawExt, Unsigned,
     },
-    mxc_uri, room_id, user_id, MilliSecondsSinceUnixEpoch,
+    mxc_uri, room_id,
+    serde::Raw,
+    user_id, MilliSecondsSinceUnixEpoch,
 };
-use ruma_serde::Raw;
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 #[test]

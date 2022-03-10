@@ -35,7 +35,7 @@ pub mod v3 {
             pub uris: Vec<String>,
 
             /// The time-to-live in seconds.
-            #[serde(with = "ruma_serde::duration::secs")]
+            #[serde(with = "ruma_common::serde::duration::secs")]
             pub ttl: Duration,
         }
 

@@ -42,7 +42,7 @@ pub enum Tweak {
     /// event occurred. If a `highlight` tweak is given with no value, its value is defined to be
     /// `true`. If no highlight tweak is given at all then the value of `highlight` is defined to
     /// be `false`.
-    Highlight(#[serde(default = "ruma_serde::default_true")] bool),
+    Highlight(#[serde(default = "crate::serde::default_true")] bool),
 
     /// A custom tweak
     Custom {
@@ -136,7 +136,10 @@ mod tweak_serde {
     #[derive(Clone, PartialEq, Deserialize, Serialize)]
     #[serde(tag = "set_tweak", rename = "highlight")]
     pub(crate) struct HighlightTweak {
-        #[serde(default = "ruma_serde::default_true", skip_serializing_if = "ruma_serde::is_true")]
+        #[serde(
+            default = "crate::serde::default_true",
+            skip_serializing_if = "crate::serde::is_true"
+        )]
         value: bool,
     }
 

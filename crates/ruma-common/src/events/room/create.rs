@@ -25,8 +25,8 @@ pub struct RoomCreateEventContent {
     /// Whether or not this room's data should be transferred to other homeservers.
     #[serde(
         rename = "m.federate",
-        default = "ruma_serde::default_true",
-        skip_serializing_if = "ruma_serde::is_true"
+        default = "crate::serde::default_true",
+        skip_serializing_if = "crate::serde::is_true"
     )]
     pub federate: bool,
 

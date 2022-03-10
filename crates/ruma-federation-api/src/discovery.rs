@@ -2,8 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::{MilliSecondsSinceUnixEpoch, ServerName, ServerSigningKeyId};
-use ruma_serde::Base64;
+use ruma_common::{serde::Base64, MilliSecondsSinceUnixEpoch, ServerName, ServerSigningKeyId};
 use serde::{Deserialize, Serialize};
 
 pub mod discover_homeserver;

@@ -6,8 +6,8 @@ mod string {
     struct StringStruct {
         #[serde(
             default,
-            deserialize_with = "ruma_serde::empty_string_as_none",
-            serialize_with = "ruma_serde::none_as_empty_string"
+            deserialize_with = "ruma_common::serde::empty_string_as_none",
+            serialize_with = "ruma_common::serde::none_as_empty_string"
         )]
         x: Option<String>,
     }
@@ -63,8 +63,8 @@ mod user {
     struct User {
         #[serde(
             default,
-            deserialize_with = "ruma_serde::empty_string_as_none",
-            serialize_with = "ruma_serde::none_as_empty_string"
+            deserialize_with = "ruma_common::serde::empty_string_as_none",
+            serialize_with = "ruma_common::serde::none_as_empty_string"
         )]
         x: Option<Box<UserId>>,
     }

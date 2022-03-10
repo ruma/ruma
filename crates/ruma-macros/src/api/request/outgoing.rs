@@ -10,7 +10,6 @@ impl Request {
         let bytes = quote! { #ruma_common::exports::bytes };
         let http = quote! { #ruma_common::exports::http };
         let percent_encoding = quote! { #ruma_common::exports::percent_encoding };
-        let ruma_serde = quote! { #ruma_common::exports::ruma_serde };
 
         let method = &self.method;
         let error_ty = &self.error_ty;
@@ -45,7 +44,7 @@ impl Request {
                 // the field with the query_map attribute doesn't implement
                 // `IntoIterator<Item = (String, String)>`.
                 //
-                // This is necessary because the `ruma_serde::urlencoded::to_string` call will
+                // This is necessary because the `ruma_common::serde::urlencoded::to_string` call will
                 // result in a runtime error when the type cannot be encoded as a list key-value
                 // pairs (?key1=value1&key2=value2).
                 //
@@ -63,7 +62,7 @@ impl Request {
 
                 format_args!(
                     "?{}",
-                    #ruma_serde::urlencoded::to_string(request_query)?
+                    #ruma_common::serde::urlencoded::to_string(request_query)?
                 )
             }}
         } else if self.has_query_fields() {
@@ -79,7 +78,7 @@ impl Request {
 
                 format_args!(
                     "?{}",
-                    #ruma_serde::urlencoded::to_string(request_query)?
+                    #ruma_common::serde::urlencoded::to_string(request_query)?
                 )
             }}
         } else {
@@ -158,17 +157,17 @@ impl Request {
 
         let request_body = if let Some(field) = self.raw_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-            quote! { #ruma_serde::slice_to_buf(&self.#field_name) }
+            quote! { #ruma_common::serde::slice_to_buf(&self.#field_name) }
         } else if self.has_body_fields() {
             let initializers = struct_init_fields(self.body_fields(), quote! { self });
 
             quote! {
-                #ruma_serde::json_to_buf(&RequestBody { #initializers })?
+                #ruma_common::serde::json_to_buf(&RequestBody { #initializers })?
             }
         } else if method == "GET" {
             quote! { <T as ::std::default::Default>::default() }
         } else {
-            quote! { #ruma_serde::slice_to_buf(b"{}") }
+            quote! { #ruma_common::serde::slice_to_buf(b"{}") }
         };
 
         let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
@@ -187,7 +186,7 @@ impl Request {
             #[cfg(feature = "client")]
             impl #impl_generics #ruma_common::api::OutgoingRequest for Request #ty_generics #where_clause {
                 type EndpointError = #error_ty;
-                type IncomingResponse = <Response as #ruma_serde::Outgoing>::Incoming;
+                type IncomingResponse = <Response as #ruma_common::serde::Outgoing>::Incoming;
 
                 const METADATA: #ruma_common::api::Metadata = self::METADATA;
 

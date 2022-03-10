@@ -5,14 +5,13 @@
 use std::{borrow::Cow, collections::BTreeMap};
 
 use ruma_macros::EventContent;
-use ruma_serde::from_raw_json_value;
 use serde::{
     de::{Deserializer, Error},
     Deserialize, Serialize,
 };
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
-use crate::{PrivOwnedStr, RoomId};
+use crate::{serde::from_raw_json_value, PrivOwnedStr, RoomId};
 
 /// The content of an `m.room.join_rules` event.
 ///

@@ -7,7 +7,6 @@ impl Response {
     pub fn expand_outgoing(&self, ruma_common: &TokenStream) -> TokenStream {
         let bytes = quote! { #ruma_common::exports::bytes };
         let http = quote! { #ruma_common::exports::http };
-        let ruma_serde = quote! { #ruma_common::exports::ruma_serde };
 
         let serialize_response_headers = self.fields.iter().filter_map(|response_field| {
             response_field.as_header_field().map(|(field, header_name)| {
@@ -41,7 +40,7 @@ impl Response {
             self.fields.iter().find_map(ResponseField::as_raw_body_field)
         {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-            quote! { #ruma_serde::slice_to_buf(&self.#field_name) }
+            quote! { #ruma_common::serde::slice_to_buf(&self.#field_name) }
         } else {
             let fields = self.fields.iter().filter_map(|response_field| {
                 response_field.as_body_field().map(|field| {
@@ -57,7 +56,7 @@ impl Response {
             });
 
             quote! {
-                #ruma_serde::json_to_buf(&ResponseBody { #(#fields)* })?
+                #ruma_common::serde::json_to_buf(&ResponseBody { #(#fields)* })?
             }
         };
 

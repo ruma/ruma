@@ -11,7 +11,7 @@ use serde::{
 };
 use serde_json::value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue};
 
-use crate::cow::MyCowStr;
+use super::cow::MyCowStr;
 
 /// A wrapper around `Box<RawValue>`, to be used in place of any type in the Matrix endpoint
 /// definition to allow request and response types to contain that said type represented by
@@ -25,7 +25,7 @@ use crate::cow::MyCowStr;
 ///
 /// ```no_run
 /// # use serde::Deserialize;
-/// # use ruma_serde::Raw;
+/// # use ruma_common::serde::Raw;
 /// # #[derive(Deserialize)]
 /// # struct AnyRoomEvent;
 ///
@@ -85,7 +85,7 @@ impl<T> Raw<T> {
     /// ```no_run
     /// # type CustomMatrixEvent = ();
     /// # fn foo() -> serde_json::Result<()> {
-    /// # let raw_event: ruma_serde::Raw<()> = todo!();
+    /// # let raw_event: ruma_common::serde::Raw<()> = todo!();
     /// if raw_event.get_field::<String>("type")?.as_deref() == Some("org.custom.matrix.event") {
     ///     let event = raw_event.deserialize_as::<CustomMatrixEvent>()?;
     ///     // ...

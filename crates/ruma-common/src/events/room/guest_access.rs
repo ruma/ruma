@@ -3,10 +3,9 @@
 //! [`m.room.guest_access`]: https://spec.matrix.org/v1.2/client-server-api/#mroomguest_access
 
 use ruma_macros::EventContent;
-use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::PrivOwnedStr;
+use crate::{serde::StringEnum, PrivOwnedStr};
 
 /// The content of an `m.room.guest_access` event.
 ///

@@ -22,6 +22,6 @@ where
     T: DeserializeOwned,
     D: Deserializer<'de>,
 {
-    let s = crate::deserialize_cow_str(deserializer)?;
+    let s = super::deserialize_cow_str(deserializer)?;
     serde_json::from_str(&s).map_err(D::Error::custom)
 }

@@ -4,10 +4,9 @@
 
 use std::collections::BTreeMap;
 
-use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
 
-use crate::{DeviceId, DeviceKeyId, EventEncryptionAlgorithm, UserId};
+use crate::{serde::Base64, DeviceId, DeviceKeyId, EventEncryptionAlgorithm, UserId};
 
 /// Identity keys for a device.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -87,7 +86,7 @@ pub struct SignedKey {
     pub signatures: SignedKeySignatures,
 
     /// Is this key considered to be a fallback key, defaults to false.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    #[serde(default, skip_serializing_if = "crate::serde::is_default")]
     pub fallback: bool,
 }
 

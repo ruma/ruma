@@ -14,9 +14,10 @@ use ruma_common::{
         },
         AnyMessageLikeEvent, MessageLikeEvent, Unsigned,
     },
-    mxc_uri, room_id, user_id, MilliSecondsSinceUnixEpoch,
+    mxc_uri, room_id,
+    serde::Base64,
+    user_id, MilliSecondsSinceUnixEpoch,
 };
-use ruma_serde::Base64;
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 #[test]

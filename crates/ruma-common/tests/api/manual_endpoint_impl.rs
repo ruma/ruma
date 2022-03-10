@@ -12,9 +12,9 @@ use ruma_common::{
         AuthScheme, EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata,
         OutgoingRequest, OutgoingResponse, SendAccessToken,
     },
+    serde::Outgoing,
     RoomAliasId, RoomId,
 };
-use ruma_serde::Outgoing;
 use serde::{Deserialize, Serialize};
 
 /// A request to create a new room alias.
@@ -71,7 +71,7 @@ impl OutgoingRequest for Request {
         let http_request = http::Request::builder()
             .method(METADATA.method)
             .uri(url)
-            .body(ruma_serde::json_to_buf(&request_body)?)
+            .body(ruma_common::serde::json_to_buf(&request_body)?)
             // this cannot fail because we don't give user-supplied data to any of the
             // builder methods
             .unwrap();
@@ -142,7 +142,7 @@ impl OutgoingResponse for Response {
     ) -> Result<http::Response<T>, IntoHttpError> {
         let response = http::Response::builder()
             .header(CONTENT_TYPE, "application/json")
-            .body(ruma_serde::slice_to_buf(b"{}"))
+            .body(ruma_common::serde::slice_to_buf(b"{}"))
             .unwrap();
 
         Ok(response)

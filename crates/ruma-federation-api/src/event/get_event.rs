@@ -35,7 +35,7 @@ pub mod v1 {
             pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
             /// The event.
-            #[serde(rename = "pdus", with = "ruma_serde::single_element_seq")]
+            #[serde(rename = "pdus", with = "ruma_common::serde::single_element_seq")]
             pub pdu: Box<RawJsonValue>,
         }
     }

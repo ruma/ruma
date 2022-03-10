@@ -95,7 +95,6 @@ impl Response {
     fn expand_all(&self) -> TokenStream {
         let ruma_common = import_ruma_common();
         let ruma_macros = quote! { #ruma_common::exports::ruma_macros };
-        let ruma_serde = quote! { #ruma_common::exports::ruma_serde };
         let serde = quote! { #ruma_common::exports::serde };
 
         let response_body_struct = (!self.has_raw_body()).then(|| {
@@ -111,7 +110,7 @@ impl Response {
                 #[derive(
                     Debug,
                     #ruma_macros::_FakeDeriveRumaApi,
-                    #ruma_serde::Outgoing,
+                    #ruma_common::serde::Outgoing,
                     #serde_derives
                 )]
                 #serde_attr

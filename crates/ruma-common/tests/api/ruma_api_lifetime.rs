@@ -1,6 +1,6 @@
 #![allow(clippy::exhaustive_structs)]
 
-#[derive(Copy, Clone, Debug, ruma_serde::Outgoing, serde::Serialize)]
+#[derive(Copy, Clone, Debug, ruma_common::serde::Outgoing, serde::Serialize)]
 pub struct OtherThing<'t> {
     pub some: &'t str,
     pub t: &'t [u8],

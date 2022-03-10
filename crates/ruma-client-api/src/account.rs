@@ -19,7 +19,7 @@ pub mod request_registration_token_via_msisdn;
 pub mod unbind_3pid;
 pub mod whoami;
 
-use ruma_serde::{Outgoing, StringEnum};
+use ruma_common::serde::{Outgoing, StringEnum};
 use serde::Serialize;
 
 use crate::PrivOwnedStr;

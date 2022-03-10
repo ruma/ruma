@@ -10,8 +10,7 @@ pub mod v2 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixkeyv2serverkeyid
 
-    use ruma_common::api::ruma_api;
-    use ruma_serde::Raw;
+    use ruma_common::{api::ruma_api, serde::Raw};
 
     use crate::discovery::ServerSigningKeys;
 

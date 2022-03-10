@@ -262,7 +262,7 @@ impl OutgoingResponse for Error {
         http::Response::builder()
             .header(http::header::CONTENT_TYPE, "application/json")
             .status(self.status_code)
-            .body(ruma_serde::json_to_buf(&ErrorBody::from(self))?)
+            .body(ruma_common::serde::json_to_buf(&ErrorBody::from(self))?)
             .map_err(Into::into)
     }
 }

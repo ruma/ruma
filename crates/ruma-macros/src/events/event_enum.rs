@@ -106,7 +106,6 @@ fn expand_deserialize_impl(
     variants: &[EventEnumVariant],
     ruma_common: &TokenStream,
 ) -> TokenStream {
-    let ruma_serde = quote! { #ruma_common::exports::ruma_serde };
     let serde = quote! { #ruma_common::exports::serde };
     let serde_json = quote! { #ruma_common::exports::serde_json };
 
@@ -129,7 +128,7 @@ fn expand_deserialize_impl(
 
                 let json = Box::<#serde_json::value::RawValue>::deserialize(deserializer)?;
                 let #ruma_common::events::EventTypeDeHelper { ev_type, .. } =
-                    #ruma_serde::from_raw_json_value(&json)?;
+                    #ruma_common::serde::from_raw_json_value(&json)?;
 
                 match &*ev_type {
                     #(
@@ -364,7 +363,6 @@ fn expand_possibly_redacted_enum(
     var: EventKindVariation,
     ruma_common: &TokenStream,
 ) -> TokenStream {
-    let ruma_serde = quote! { #ruma_common::exports::ruma_serde };
     let serde = quote! { #ruma_common::exports::serde };
     let serde_json = quote! { #ruma_common::exports::serde_json };
 
@@ -391,13 +389,13 @@ fn expand_possibly_redacted_enum(
             {
                 let json = Box::<#serde_json::value::RawValue>::deserialize(deserializer)?;
                 let #ruma_common::events::RedactionDeHelper { unsigned } =
-                    #ruma_serde::from_raw_json_value(&json)?;
+                    #ruma_common::serde::from_raw_json_value(&json)?;
 
                 Ok(match unsigned {
                     Some(unsigned) if unsigned.redacted_because.is_some() => {
-                        Self::Redacted(#ruma_serde::from_raw_json_value(&json)?)
+                        Self::Redacted(#ruma_common::serde::from_raw_json_value(&json)?)
                     }
-                    _ => Self::Regular(#ruma_serde::from_raw_json_value(&json)?),
+                    _ => Self::Regular(#ruma_common::serde::from_raw_json_value(&json)?),
                 })
             }
         }

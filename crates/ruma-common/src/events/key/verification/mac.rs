@@ -5,11 +5,10 @@
 use std::collections::BTreeMap;
 
 use ruma_macros::EventContent;
-use ruma_serde::Base64;
 use serde::{Deserialize, Serialize};
 
 use super::Relation;
-use crate::TransactionId;
+use crate::{serde::Base64, TransactionId};
 
 /// The content of a to-device `m.key.verification.` event.
 ///

@@ -5,7 +5,6 @@
 use std::collections::BTreeMap;
 
 use ruma_macros::EventContent;
-use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
@@ -14,6 +13,7 @@ use crate::{
         EventContent, HasDeserializeFields, RedactContent, RedactedEventContent,
         RedactedStateEventContent, StrippedStateEvent, SyncStateEvent,
     },
+    serde::StringEnum,
     MxcUri, PrivOwnedStr, RoomVersionId, ServerName, ServerSigningKeyId, UserId,
 };
 
@@ -55,7 +55,7 @@ pub struct RoomMemberEventContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
         feature = "compat",
-        serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
+        serde(default, deserialize_with = "crate::serde::empty_string_as_none")
     )]
     pub avatar_url: Option<Box<MxcUri>>,
 

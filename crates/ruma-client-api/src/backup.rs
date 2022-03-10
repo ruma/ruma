@@ -18,8 +18,10 @@ pub mod update_backup_version;
 use std::collections::BTreeMap;
 
 use js_int::UInt;
-use ruma_common::{DeviceKeyId, UserId};
-use ruma_serde::{Base64, Raw};
+use ruma_common::{
+    serde::{Base64, Raw},
+    DeviceKeyId, UserId,
+};
 use serde::{Deserialize, Serialize};
 
 /// A wrapper around a mapping of session IDs to key data.

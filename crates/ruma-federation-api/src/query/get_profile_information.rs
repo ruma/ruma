@@ -7,8 +7,7 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixfederationv1queryprofile
 
-    use ruma_common::{api::ruma_api, MxcUri, UserId};
-    use ruma_serde::StringEnum;
+    use ruma_common::{api::ruma_api, serde::StringEnum, MxcUri, UserId};
 
     use crate::PrivOwnedStr;
 
@@ -47,7 +46,7 @@ pub mod v1 {
             #[serde(skip_serializing_if = "Option::is_none")]
             #[cfg_attr(
                 feature = "compat",
-                serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
+                serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
             )]
             pub avatar_url: Option<Box<MxcUri>>,
 

@@ -7,8 +7,11 @@ pub mod v3 {
 
     use std::borrow::Cow;
 
-    use ruma_common::{api::ruma_api, MxcUri};
-    use ruma_serde::{JsonObject, StringEnum};
+    use ruma_common::{
+        api::ruma_api,
+        serde::{JsonObject, StringEnum},
+        MxcUri,
+    };
     use serde::{de::DeserializeOwned, Deserialize, Serialize};
     use serde_json::Value as JsonValue;
 
@@ -249,7 +252,7 @@ pub mod v3 {
     }
 
     mod login_type_serde {
-        use ruma_serde::from_raw_json_value;
+        use ruma_common::serde::from_raw_json_value;
         use serde::{de, Deserialize};
         use serde_json::value::RawValue as RawJsonValue;
 

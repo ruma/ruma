@@ -1,6 +1,6 @@
 use form_urlencoded::Serializer as Encoder;
 use matches::assert_matches;
-use ruma_serde::urlencoded::{self, ser::Error};
+use ruma_common::serde::urlencoded::{self, ser::Error};
 use serde::Serialize;
 
 #[derive(Serialize)]

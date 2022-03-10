@@ -16,9 +16,9 @@ pub mod v3 {
             AnyToDeviceEvent,
         },
         presence::PresenceState,
+        serde::{Outgoing, Raw},
         DeviceKeyAlgorithm, RoomId, UserId,
     };
-    use ruma_serde::{Outgoing, Raw};
     use serde::{Deserialize, Serialize};
 
     use crate::filter::{FilterDefinition, IncomingFilterDefinition};
@@ -51,20 +51,20 @@ pub mod v3 {
             pub since: Option<&'a str>,
 
             /// Controls whether to include the full state for all rooms the user is a member of.
-            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
             #[ruma_api(query)]
             pub full_state: bool,
 
             /// Controls whether the client is automatically marked as online by polling this API.
             ///
             /// Defaults to `PresenceState::Online`.
-            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
             #[ruma_api(query)]
             pub set_presence: &'a PresenceState,
 
             /// The maximum time to poll in milliseconds before returning this request.
             #[serde(
-                with = "ruma_serde::duration::opt_ms",
+                with = "ruma_common::serde::duration::opt_ms",
                 default,
                 skip_serializing_if = "Option::is_none",
             )]
@@ -154,7 +154,7 @@ pub mod v3 {
         // functionally equivalent to looking at whether the first symbol is a '{' as the spec
         // says. (there are probably some corner cases like leading whitespace)
         /// A complete filter definition serialized to JSON.
-        #[serde(with = "ruma_serde::json_string")]
+        #[serde(with = "ruma_common::serde::json_string")]
         FilterDefinition(FilterDefinition<'a>),
 
         /// The ID of a filter saved on the server.
@@ -334,7 +334,7 @@ pub mod v3 {
         /// True if the number of events returned was limited by the `limit` on the filter.
         ///
         /// Default to `false`.
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub limited: bool,
 
         /// A token that can be supplied to to the `from` parameter of the

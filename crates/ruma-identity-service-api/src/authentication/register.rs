@@ -38,7 +38,7 @@ pub mod v2 {
             pub matrix_server_name: &'a ServerName,
 
             /// The number of seconds before this token expires and a new one must be generated.
-            #[serde(with = "ruma_serde::duration::secs")]
+            #[serde(with = "ruma_common::serde::duration::secs")]
             pub expires_in: Duration,
         }
 

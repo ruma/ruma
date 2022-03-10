@@ -12,9 +12,9 @@ use ruma_common::{
         },
         EventType,
     },
+    serde::{Base64, Raw},
     RoomVersionId, UserId,
 };
-use ruma_serde::{Base64, Raw};
 use serde::{de::IgnoredAny, Deserialize};
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 use tracing::{debug, error, info, warn};

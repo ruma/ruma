@@ -8,7 +8,6 @@ use crate::api::auth_scheme::AuthScheme;
 impl Request {
     pub fn expand_incoming(&self, ruma_common: &TokenStream) -> TokenStream {
         let http = quote! { #ruma_common::exports::http };
-        let ruma_serde = quote! { #ruma_common::exports::ruma_serde };
         let serde = quote! { #ruma_common::exports::serde };
         let serde_json = quote! { #ruma_common::exports::serde_json };
 
@@ -47,7 +46,7 @@ impl Request {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let parse = quote! {
                 #( #cfg_attrs )*
-                let #field_name = #ruma_serde::urlencoded::from_str(
+                let #field_name = #ruma_common::serde::urlencoded::from_str(
                     &request.uri().query().unwrap_or(""),
                 )?;
             };
@@ -66,8 +65,8 @@ impl Request {
             );
 
             let parse = quote! {
-                let request_query: <RequestQuery as #ruma_serde::Outgoing>::Incoming =
-                    #ruma_serde::urlencoded::from_str(
+                let request_query: <RequestQuery as #ruma_common::serde::Outgoing>::Incoming =
+                    #ruma_common::serde::urlencoded::from_str(
                         &request.uri().query().unwrap_or("")
                     )?;
 
@@ -154,7 +153,7 @@ impl Request {
             quote! {
                 let request_body: <
                     RequestBody #body_lifetimes
-                    as #ruma_serde::Outgoing
+                    as #ruma_common::serde::Outgoing
                 >::Incoming = {
                     let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
                         request.body(),

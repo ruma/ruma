@@ -1,5 +1,4 @@
-use ruma_common::{EventId, RoomVersionId, ServerName};
-use ruma_serde::Base64DecodeError;
+use ruma_common::{serde::Base64DecodeError, EventId, RoomVersionId, ServerName};
 use thiserror::Error;
 
 /// `ruma-signature`'s error type, wraps a number of other error types.

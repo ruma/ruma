@@ -1,10 +1,10 @@
 //! `Deserialize` implementation for RoomMessageEventContent and MessageType.
 
-use ruma_serde::from_raw_json_value;
 use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{MessageType, Relation, RoomMessageEventContent};
+use crate::serde::from_raw_json_value;
 
 impl<'de> Deserialize<'de> for RoomMessageEventContent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

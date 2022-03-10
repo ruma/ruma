@@ -1,9 +1,8 @@
 //! Modules and types for events in the `m.policy.rule` namespace.
 
-use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::PrivOwnedStr;
+use crate::{serde::StringEnum, PrivOwnedStr};
 
 pub mod room;
 pub mod server;

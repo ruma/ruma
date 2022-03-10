@@ -5,8 +5,9 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3useruseridroomsroomidaccount_datatype
 
-    use ruma_common::{api::ruma_api, events::AnyRoomAccountDataEventContent, RoomId, UserId};
-    use ruma_serde::Raw;
+    use ruma_common::{
+        api::ruma_api, events::AnyRoomAccountDataEventContent, serde::Raw, RoomId, UserId,
+    };
 
     ruma_api! {
         metadata: {

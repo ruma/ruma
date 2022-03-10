@@ -126,12 +126,11 @@
 //! type alias), allowing content to be converted to and from JSON independently of the surrounding
 //! event structure, if needed.
 
-use ruma_serde::Raw;
 use serde::{de::IgnoredAny, Deserialize, Serialize, Serializer};
 use serde_json::value::RawValue as RawJsonValue;
 
 use self::room::redaction::SyncRoomRedactionEvent;
-use crate::{EventEncryptionAlgorithm, RoomVersionId};
+use crate::{serde::Raw, EventEncryptionAlgorithm, RoomVersionId};
 
 // Needs to be public for trybuild tests
 #[doc(hidden)]
@@ -227,7 +226,7 @@ pub trait RedactContent {
     fn redact(self, version: &RoomVersionId) -> Self::Redacted;
 }
 
-/// Extension trait for [`Raw<_>`][ruma_serde::Raw].
+/// Extension trait for [`Raw<_>`][crate::serde::Raw].
 pub trait RawExt<T: EventContent> {
     /// Try to deserialize the JSON as an event's content.
     fn deserialize_content(&self, event_type: &str) -> serde_json::Result<T>;

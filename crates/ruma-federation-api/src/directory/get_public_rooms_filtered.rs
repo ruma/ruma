@@ -39,7 +39,7 @@ pub mod v1 {
             pub filter: Filter<'a>,
 
             /// Network to fetch the public room lists from.
-            #[serde(flatten, skip_serializing_if = "ruma_serde::is_default")]
+            #[serde(flatten, skip_serializing_if = "ruma_common::serde::is_default")]
             pub room_network: RoomNetwork<'a>,
         }
 

@@ -10,8 +10,7 @@ pub mod v3 {
     //! [spec-mxid]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3roomsroomidinvite
     //! [spec-3pid]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3roomsroomidinvite-1
 
-    use ruma_common::{api::ruma_api, RoomId, UserId};
-    use ruma_serde::Outgoing;
+    use ruma_common::{api::ruma_api, serde::Outgoing, RoomId, UserId};
     use serde::Serialize;
 
     use crate::membership::{IncomingInvite3pid, Invite3pid};

@@ -11,9 +11,9 @@ pub mod v3 {
     use ruma_common::{
         api::ruma_api,
         events::{AnyRoomEvent, AnyStateEvent},
+        serde::{Outgoing, Raw, StringEnum},
         EventId, MxcUri, RoomId, UserId,
     };
-    use ruma_serde::{Outgoing, Raw, StringEnum};
     use serde::{Deserialize, Serialize};
 
     use crate::{
@@ -151,7 +151,7 @@ pub mod v3 {
 
         /// Requests that the server returns the historic profile information for the users that
         /// sent the events that were returned.
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub include_profile: bool,
     }
 
@@ -484,7 +484,7 @@ pub mod v3 {
         #[serde(skip_serializing_if = "Option::is_none")]
         #[cfg_attr(
             feature = "compat",
-            serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
+            serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
         )]
         pub avatar_url: Option<Box<MxcUri>>,
 

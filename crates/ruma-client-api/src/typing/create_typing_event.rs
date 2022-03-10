@@ -73,7 +73,7 @@ pub mod v3 {
         typing: bool,
 
         #[serde(
-            with = "ruma_serde::duration::opt_ms",
+            with = "ruma_common::serde::duration::opt_ms",
             default,
             skip_serializing_if = "Option::is_none"
         )]

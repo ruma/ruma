@@ -1,8 +1,9 @@
 //! Common types for receipts.
 
-use ruma_serde::{OrdAsRefStr, PartialEqAsRefStr, PartialOrdAsRefStr, StringEnum};
-
-use crate::PrivOwnedStr;
+use crate::{
+    serde::{OrdAsRefStr, PartialEqAsRefStr, PartialOrdAsRefStr, StringEnum},
+    PrivOwnedStr,
+};
 
 /// The type of receipt.
 ///

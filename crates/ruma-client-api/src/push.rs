@@ -1,11 +1,13 @@
 //! Endpoints for push notifications.
 use std::{convert::TryFrom, error::Error, fmt};
 
-use ruma_common::push::{
-    Action, ConditionalPushRule, ConditionalPushRuleInit, PatternedPushRule, PatternedPushRuleInit,
-    PushCondition, PusherData, SimplePushRule, SimplePushRuleInit,
+use ruma_common::{
+    push::{
+        Action, ConditionalPushRule, ConditionalPushRuleInit, PatternedPushRule,
+        PatternedPushRuleInit, PushCondition, PusherData, SimplePushRule, SimplePushRuleInit,
+    },
+    serde::StringEnum,
 };
-use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
 use crate::PrivOwnedStr;

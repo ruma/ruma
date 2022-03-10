@@ -10,9 +10,8 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::ruma_api, EventId, MilliSecondsSinceUnixEpoch, ServerName, TransactionId,
+        api::ruma_api, serde::Raw, EventId, MilliSecondsSinceUnixEpoch, ServerName, TransactionId,
     };
-    use ruma_serde::Raw;
     use serde_json::value::RawValue as RawJsonValue;
 
     use crate::transactions::edu::Edu;
