@@ -57,21 +57,19 @@ impl ReleaseTask {
 
     /// Run the task to effectively create a release.
     pub(crate) fn run(&mut self) -> Result<()> {
+        if self.package.name == "ruma-macros" {
+            return Err(
+                "The ruma-macros crate is always released together with the ruma-common crate.\n\
+                 To release both, simply run\n\
+                 \n\
+                 cargo xtask release ruma-common"
+                    .into(),
+            );
+        }
+
         let title = &self.title();
         let prerelease = !self.version.pre.is_empty();
         let publish_only = self.package.name == "ruma-identifiers-validation";
-
-        if let Some(name) = self.package.name.strip_suffix("-macros") {
-            return Err(format!(
-                "Macro crates are always released together with their parent crate.\n\
-                 To release both {main_cr} and {macro_cr}, simply run\n\
-                 \n\
-                 cargo xtask release {main_cr}",
-                main_cr = name,
-                macro_cr = self.package.name,
-            )
-            .into());
-        }
 
         println!(
             "Starting {} for {}…",
@@ -105,11 +103,15 @@ impl ReleaseTask {
             return Ok(());
         }
 
-        let mut macros = self.macros();
+        let mut macros = if self.package.name == "ruma-common" {
+            self.metadata.packages.iter().find(|p| p.name == "ruma-macros").map(ToOwned::to_owned)
+        } else {
+            None
+        };
 
         let create_commit = if self.package.version != self.version {
             if let Some(m) = macros.as_mut() {
-                println!("Found macros crate {}.", m.name);
+                println!("Updating version of ruma-macros crate…");
 
                 m.update_version(&self.version)?;
                 m.update_dependants(&self.metadata)?;
@@ -191,15 +193,6 @@ impl ReleaseTask {
         println!("Release created successfully!");
 
         Ok(())
-    }
-
-    /// Get the associated `-macros` crate of the current crate, if any.
-    fn macros(&self) -> Option<Package> {
-        self.metadata
-            .packages
-            .clone()
-            .into_iter()
-            .find(|p| p.name == format!("{}-macros", self.package.name))
     }
 
     /// Get the title of this release.
