@@ -41,6 +41,8 @@ event_enum! {
         "m.emote",
         #[cfg(feature = "unstable-msc3551")]
         "m.file",
+        #[cfg(feature = "unstable-msc3552")]
+        "m.image",
         "m.key.verification.ready",
         "m.key.verification.start",
         "m.key.verification.cancel",
@@ -368,6 +370,8 @@ impl AnyMessageLikeEventContent {
             Self::Emote(ev) => ev.relates_to.clone().map(Into::into),
             #[cfg(feature = "unstable-msc3551")]
             Self::File(ev) => ev.relates_to.clone().map(Into::into),
+            #[cfg(feature = "unstable-msc3552")]
+            Self::Image(ev) => ev.relates_to.clone().map(Into::into),
             Self::CallAnswer(_)
             | Self::CallInvite(_)
             | Self::CallHangup(_)

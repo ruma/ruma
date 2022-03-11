@@ -8,6 +8,7 @@ mod event_content;
 mod event_content_enum;
 mod event_enums;
 mod file;
+mod image;
 mod initial_state;
 mod message;
 mod message_event;
