@@ -224,11 +224,9 @@ pub fn auth_check<E: Event>(
     // [synapse] checks for federation here
 
     // Only in some room versions 6 and below
-    if room_version.has_aliases {
+    if room_version.special_case_aliases_auth {
         // 4. If type is m.room.aliases
-        if *incoming_event.event_type() == EventType::RoomAliases
-            && room_version.special_case_aliases_auth
-        {
+        if *incoming_event.event_type() == EventType::RoomAliases {
             info!("starting m.room.aliases check");
 
             // If sender's domain doesn't matches state_key, reject

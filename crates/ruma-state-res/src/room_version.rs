@@ -66,11 +66,6 @@ pub struct RoomVersion {
     ///
     /// See: [MSC3289](https://github.com/matrix-org/matrix-spec-proposals/pull/3289) for more information.
     pub restricted_join_rules: bool,
-    /// m.room.aliases is removed for room versions > 6.
-    ///
-    /// Rule 4, which related specifically to events of type m.room.aliases, is removed.
-    /// m.room.aliases events must still pass authorization checks relating to state events.
-    pub has_aliases: bool,
 }
 
 impl RoomVersion {
@@ -85,7 +80,6 @@ impl RoomVersion {
         extra_redaction_checks: false,
         allow_knocking: false,
         restricted_join_rules: false,
-        has_aliases: true,
     };
 
     pub const V2: Self = Self { state_res: StateResolutionVersion::V2, ..Self::V1 };
@@ -101,7 +95,6 @@ impl RoomVersion {
         special_case_aliases_auth: false,
         strict_canonicaljson: true,
         limit_notifications_power_levels: true,
-        has_aliases: false,
         ..Self::V5
     };
 
