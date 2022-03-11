@@ -71,7 +71,9 @@ pub fn auth_types_for_event(
             let content: RoomMemberContentFields = from_json_str(content.get())?;
 
             if let Some(Ok(membership)) = content.membership.map(|m| m.deserialize()) {
-                if [MembershipState::Join, MembershipState::Invite].contains(&membership) {
+                if [MembershipState::Join, MembershipState::Invite, MembershipState::Knock]
+                    .contains(&membership)
+                {
                     let key = (EventType::RoomJoinRules, "".to_owned());
                     if !auth_types.contains(&key) {
                         auth_types.push(key);
@@ -516,7 +518,8 @@ fn valid_membership_change(
                 warn!(?target_user_membership_event_id, "Banned user can't join");
                 false
             } else {
-                let invite_allowed = join_rules == JoinRule::Invite
+                let invite_allowed = (join_rules == JoinRule::Invite
+                    || room_version.allow_knocking && join_rules == JoinRule::Knock)
                     && (target_user_current_membership == MembershipState::Join
                         || target_user_current_membership == MembershipState::Invite);
 
