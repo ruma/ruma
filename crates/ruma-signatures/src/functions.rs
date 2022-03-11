@@ -1013,7 +1013,7 @@ mod tests {
                 "prev_events": [],
                 "room_id": "!x:domain",
                 "sender": "@name:domain-sender",
-                "type": "X",
+                "type": "m.room.member",
                 "unsigned": {
                     "age_ts": 1000000
                 }
