@@ -5,7 +5,8 @@ use std::fmt::Debug;
 use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
-use crate::{EventId, MilliSecondsSinceUnixEpoch, UserId};
+use super::AnySyncMessageLikeEvent;
+use crate::{serde::Raw, EventId, MilliSecondsSinceUnixEpoch, UserId};
 
 /// Summary of all reactions with the given key to an event.
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq, Serialize)]
@@ -91,6 +92,33 @@ impl BundledReplacement {
     }
 }
 
+/// A bundled thread.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg(feature = "unstable-msc3440")]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct BundledThread {
+    /// The latest event in the thread.
+    pub latest_event: Box<Raw<AnySyncMessageLikeEvent>>,
+
+    /// The number of events in the thread.
+    pub count: UInt,
+
+    /// Whether the current logged in user has participated in the thread.
+    pub current_user_participated: bool,
+}
+
+#[cfg(feature = "unstable-msc3440")]
+impl BundledThread {
+    /// Creates a new `BundledThread` with the given event, count and user participated flag.
+    pub fn new(
+        latest_event: Box<Raw<AnySyncMessageLikeEvent>>,
+        count: UInt,
+        current_user_participated: bool,
+    ) -> Self {
+        Self { latest_event, count, current_user_participated }
+    }
+}
+
 /// Precompiled list of relations to this event grouped by relation type.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -104,6 +132,11 @@ pub struct Relations {
     #[cfg(feature = "unstable-msc2676")]
     #[serde(rename = "m.replace")]
     pub replace: Option<BundledReplacement>,
+
+    /// Thread relation.
+    #[cfg(feature = "unstable-msc3440")]
+    #[serde(rename = "io.element.thread")]
+    pub thread: Option<BundledThread>,
 }
 
 impl Relations {
