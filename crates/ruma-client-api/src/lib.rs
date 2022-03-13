@@ -17,7 +17,7 @@ pub mod config;
 pub mod context;
 pub mod device;
 pub mod directory;
-pub mod discover;
+pub mod discovery;
 pub mod error;
 pub mod filter;
 pub mod keys;
