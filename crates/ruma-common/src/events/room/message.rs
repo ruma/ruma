@@ -378,7 +378,7 @@ impl InReplyTo {
 #[cfg(feature = "unstable-msc2676")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Replacement {
-    /// The ID of the event being replacing.
+    /// The ID of the event being replaced.
     pub event_id: Box<EventId>,
 
     /// New content.
