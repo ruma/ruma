@@ -4,8 +4,10 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use super::Replacement;
 #[cfg(feature = "unstable-msc2676")]
 use super::RoomMessageEventContent;
+#[cfg(feature = "unstable-msc3440")]
+use super::Thread;
 use super::{InReplyTo, Relation};
-#[cfg(feature = "unstable-msc2676")]
+#[cfg(any(feature = "unstable-msc2676", feature = "unstable-msc3440"))]
 use crate::EventId;
 
 impl<'de> Deserialize<'de> for Relation {
@@ -15,13 +17,22 @@ impl<'de> Deserialize<'de> for Relation {
     {
         let ev = EventWithRelatesToJsonRepr::deserialize(deserializer)?;
 
-        if let Some(in_reply_to) = ev.relates_to.in_reply_to {
-            return Ok(Relation::Reply { in_reply_to });
+        #[cfg(feature = "unstable-msc3440")]
+        if let Some(RelationJsonRepr::Thread(ThreadJsonRepr { event_id, is_falling_back })) =
+            ev.relates_to.relation
+        {
+            let in_reply_to = ev
+                .relates_to
+                .in_reply_to
+                .ok_or_else(|| serde::de::Error::missing_field("m.in_reply_to"))?;
+            return Ok(Relation::Thread(Thread { event_id, in_reply_to, is_falling_back }));
         }
 
-        #[cfg(feature = "unstable-msc2676")]
-        if let Some(relation) = ev.relates_to.relation {
-            return Ok(match relation {
+        let rel = if let Some(in_reply_to) = ev.relates_to.in_reply_to {
+            Relation::Reply { in_reply_to }
+        } else if let Some(relation) = ev.relates_to.relation {
+            match relation {
+                #[cfg(feature = "unstable-msc2676")]
                 RelationJsonRepr::Replacement(ReplacementJsonRepr { event_id }) => {
                     let new_content = ev
                         .new_content
@@ -31,10 +42,14 @@ impl<'de> Deserialize<'de> for Relation {
                 // FIXME: Maybe we should log this, though at this point we don't even have
                 // access to the rel_type of the unknown relation.
                 RelationJsonRepr::Unknown => Relation::_Custom,
-            });
-        }
+                #[cfg(feature = "unstable-msc3440")]
+                RelationJsonRepr::Thread(_) => unreachable!(),
+            }
+        } else {
+            Relation::_Custom
+        };
 
-        Ok(Relation::_Custom)
+        Ok(rel)
     }
 }
 
@@ -60,6 +75,17 @@ impl Serialize for Relation {
                     },
                     new_content: Some(new_content.clone()),
                 }
+            }
+            #[cfg(feature = "unstable-msc3440")]
+            Relation::Thread(Thread { event_id, in_reply_to, is_falling_back }) => {
+                EventWithRelatesToJsonRepr::new(RelatesToJsonRepr {
+                    in_reply_to: Some(in_reply_to.clone()),
+                    relation: Some(RelationJsonRepr::Thread(ThreadJsonRepr {
+                        event_id: event_id.clone(),
+                        is_falling_back: *is_falling_back,
+                    })),
+                    ..Default::default()
+                })
             }
             Relation::_Custom => EventWithRelatesToJsonRepr::default(),
         };
@@ -88,40 +114,36 @@ impl EventWithRelatesToJsonRepr {
     }
 }
 
-/// Enum modeling the different ways relationships can be expressed in a `m.relates_to` field of an
-/// event.
+/// Struct modeling the different ways relationships can be expressed in a `m.relates_to` field of
+/// an event.
 #[derive(Default, Deserialize, Serialize)]
 struct RelatesToJsonRepr {
     #[serde(rename = "m.in_reply_to", skip_serializing_if = "Option::is_none")]
     in_reply_to: Option<InReplyTo>,
 
-    #[cfg(feature = "unstable-msc2676")]
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     relation: Option<RelationJsonRepr>,
 }
 
 impl RelatesToJsonRepr {
     fn is_empty(&self) -> bool {
-        #[cfg(not(feature = "unstable-msc2676"))]
-        {
-            self.in_reply_to.is_none()
-        }
-
-        #[cfg(feature = "unstable-msc2676")]
-        {
-            self.in_reply_to.is_none() && self.relation.is_none()
-        }
+        self.in_reply_to.is_none() && self.relation.is_none()
     }
 }
 
 /// A relation, which associates new information to an existing event.
 #[derive(Clone, Deserialize, Serialize)]
-#[cfg(feature = "unstable-msc2676")]
 #[serde(tag = "rel_type")]
 enum RelationJsonRepr {
     /// An event that replaces another event.
+    #[cfg(feature = "unstable-msc2676")]
     #[serde(rename = "m.replace")]
     Replacement(ReplacementJsonRepr),
+
+    /// An event that belongs to a thread.
+    #[cfg(feature = "unstable-msc3440")]
+    #[serde(rename = "io.element.thread")]
+    Thread(ThreadJsonRepr),
 
     /// An unknown relation type.
     ///
@@ -135,4 +157,21 @@ enum RelationJsonRepr {
 #[cfg(feature = "unstable-msc2676")]
 struct ReplacementJsonRepr {
     event_id: Box<EventId>,
+}
+
+/// A thread relation without the reply fallback.
+#[derive(Clone, Deserialize, Serialize)]
+#[cfg(feature = "unstable-msc3440")]
+struct ThreadJsonRepr {
+    /// The ID of the root message in the thread.
+    event_id: Box<EventId>,
+
+    /// Whether the `m.in_reply_to` field is a fallback for older clients or a real reply in a
+    /// thread.
+    #[serde(
+        rename = "io.element.show_reply",
+        default,
+        skip_serializing_if = "ruma_common::serde::is_default"
+    )]
+    is_falling_back: bool,
 }
