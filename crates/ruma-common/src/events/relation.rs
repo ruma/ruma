@@ -78,20 +78,8 @@ pub struct Relations {
 }
 
 impl Relations {
-    #[cfg(feature = "unstable-msc2677")]
-    /// Creates a new `Relations` with the given annotation.
-    ///
-    /// Without the `unstable-msc-2677` feature, this method doesn't have any
-    /// parameters.
-    pub fn new(annotation: Option<AnnotationChunk>) -> Self {
-        Self { annotation }
-    }
-
-    #[cfg(not(feature = "unstable-msc2677"))]
     /// Creates a new empty `Relations`.
-    ///
-    /// With the `unstable-msc-2677` feature, this method takes an annotation.
     pub fn new() -> Self {
-        Self {}
+        Self::default()
     }
 }
