@@ -12,7 +12,7 @@ use crate::{EventId, MilliSecondsSinceUnixEpoch, UserId};
 #[cfg(feature = "unstable-msc2677")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct BundledReaction {
-    /// The key (emoji) used for reaction.
+    /// The key used for the reaction.
     pub key: String,
 
     /// Time of the bundled reaction being compiled on the server.

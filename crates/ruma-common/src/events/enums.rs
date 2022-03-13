@@ -352,10 +352,10 @@ impl AnyMessageLikeEventContent {
             Self::Reaction(ev) => {
                 use super::reaction;
 
-                let reaction::Relation { event_id, emoji } = &ev.relates_to;
+                let reaction::Relation { event_id, key } = &ev.relates_to;
                 Some(encrypted::Relation::Annotation(encrypted::Annotation {
                     event_id: event_id.clone(),
-                    key: emoji.clone(),
+                    key: key.clone(),
                 }))
             }
             Self::RoomEncrypted(ev) => ev.relates_to.clone(),
