@@ -17,6 +17,7 @@ mod message_event;
 mod pdu;
 mod redacted;
 mod redaction;
+mod relations;
 mod room_message;
 mod state_event;
 mod stripped;

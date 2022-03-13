@@ -22,9 +22,7 @@ pub struct RoomEncryptedEventContent {
     #[serde(flatten)]
     pub scheme: EncryptedEventScheme,
 
-    /// Information about related messages for [rich replies].
-    ///
-    /// [rich replies]: https://spec.matrix.org/v1.2/client-server-api/#rich-replies
+    /// Information about related events.
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation>,
 }
@@ -103,6 +101,10 @@ pub enum Relation {
     #[cfg(feature = "unstable-msc2677")]
     Annotation(Annotation),
 
+    /// An event that belongs to a thread.
+    #[cfg(feature = "unstable-msc3440")]
+    Thread(Thread),
+
     #[doc(hidden)]
     _Custom,
 }
@@ -115,6 +117,12 @@ impl From<message::Relation> for Relation {
             message::Relation::Replacement(re) => {
                 Self::Replacement(Replacement { event_id: re.event_id })
             }
+            #[cfg(feature = "unstable-msc3440")]
+            message::Relation::Thread(t) => Self::Thread(Thread {
+                event_id: t.event_id,
+                in_reply_to: t.in_reply_to,
+                is_falling_back: t.is_falling_back,
+            }),
             message::Relation::_Custom => Self::_Custom,
         }
     }
@@ -165,6 +173,44 @@ impl Annotation {
     /// Creates a new `Annotation` with the given event ID and key.
     pub fn new(event_id: Box<EventId>, key: String) -> Self {
         Self { event_id, key }
+    }
+}
+
+/// A thread relation for an event.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg(feature = "unstable-msc3440")]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct Thread {
+    /// The ID of the root message in the thread.
+    pub event_id: Box<EventId>,
+
+    /// A reply relation.
+    ///
+    /// If this event is a reply and belongs to a thread, this points to the message that is being
+    /// replied to, and `is_falling_back` must be set to `false`.
+    ///
+    /// If this event is not a reply, this is used as a fallback mechanism for clients that do not
+    /// support threads. This should point to the latest message-like event in the thread and
+    /// `is_falling_back` must be set to `true`.
+    pub in_reply_to: InReplyTo,
+
+    /// Whether the `m.in_reply_to` field is a fallback for older clients or a real reply in a
+    /// thread.
+    pub is_falling_back: bool,
+}
+
+#[cfg(feature = "unstable-msc3440")]
+impl Thread {
+    /// Convenience method to create a regular `Thread` with the given event ID and latest
+    /// message-like event ID.
+    pub fn plain(event_id: Box<EventId>, latest_event_id: Box<EventId>) -> Self {
+        Self { event_id, in_reply_to: InReplyTo::new(latest_event_id), is_falling_back: false }
+    }
+
+    /// Convenience method to create a reply `Thread` with the given event ID and replied-to event
+    /// ID.
+    pub fn reply(event_id: Box<EventId>, reply_to_event_id: Box<EventId>) -> Self {
+        Self { event_id, in_reply_to: InReplyTo::new(reply_to_event_id), is_falling_back: true }
     }
 }
 
