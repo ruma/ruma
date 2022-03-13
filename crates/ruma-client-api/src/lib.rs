@@ -12,7 +12,6 @@ pub mod account;
 pub mod alias;
 pub mod appservice;
 pub mod backup;
-pub mod capabilities;
 pub mod config;
 pub mod context;
 pub mod device;

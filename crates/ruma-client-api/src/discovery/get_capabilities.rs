@@ -1,4 +1,8 @@
-//! Endpoints for querying the server's supported feature set
+//! `GET /_matrix/client/*/capabilities`
+//!
+//! Query the capabilities of a server ([spec])
+//!
+//! [spec]: https://spec.matrix.org/unstable/client-server-api/#capabilities-negotiation
 
 use std::{borrow::Cow, collections::BTreeMap};
 
@@ -10,8 +14,8 @@ use serde_json::{from_value as from_json_value, to_value as to_json_value, Value
 use self::iter::{CapabilitiesIter, CapabilityRef};
 use crate::PrivOwnedStr;
 
-pub mod get_capabilities;
 pub mod iter;
+pub mod v3;
 
 /// Contains information about all the capabilities that the server supports.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
