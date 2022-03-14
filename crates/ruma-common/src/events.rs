@@ -154,6 +154,8 @@ pub mod file;
 pub mod forwarded_room_key;
 pub mod fully_read;
 pub mod ignored_user_list;
+#[cfg(feature = "unstable-msc3552")]
+pub mod image;
 pub mod key;
 #[cfg(feature = "unstable-msc1767")]
 pub mod message;
