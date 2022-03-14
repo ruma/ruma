@@ -31,7 +31,7 @@ enum EventMeta {
 
     /// Fields marked with `#[ruma_event(skip_redaction)]` are kept when the event is
     /// redacted.
-    SkipRedacted,
+    SkipRedaction,
 
     /// This attribute signals that the events redacted form is manually implemented and should not
     /// be generated.
@@ -67,7 +67,7 @@ impl Parse for EventMeta {
             EventKind::parse(input).map(EventMeta::Kind)
         } else if lookahead.peek(kw::skip_redaction) {
             let _: kw::skip_redaction = input.parse()?;
-            Ok(EventMeta::SkipRedacted)
+            Ok(EventMeta::SkipRedaction)
         } else if lookahead.peek(kw::custom_redacted) {
             let _: kw::custom_redacted = input.parse()?;
             Ok(EventMeta::CustomRedacted)
@@ -207,7 +207,7 @@ fn generate_redacted_event_content(
                 .filter(|f| {
                     matches!(
                         f.attrs.iter().find_map(|a| a.parse_args::<EventMeta>().ok()),
-                        Some(EventMeta::SkipRedacted)
+                        Some(EventMeta::SkipRedaction)
                     )
                 })
                 .cloned()
