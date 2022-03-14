@@ -8,7 +8,7 @@ use ruma_common::{
         room::{ImageInfo, ThumbnailInfo},
         sticker::StickerEventContent,
         AnyMessageLikeEvent, AnyMessageLikeEventContent, AnySyncMessageLikeEvent, MessageLikeEvent,
-        RawExt, Unsigned,
+        Unsigned,
     },
     mxc_uri, room_id,
     serde::Raw,

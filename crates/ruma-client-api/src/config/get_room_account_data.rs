@@ -38,7 +38,7 @@ pub mod v3 {
         response: {
             /// Account data content for the given type.
             ///
-            /// Use `ruma_common::events::RawExt` for deserialization.
+            /// Use [`Raw::deserialize_content`] for deserialization.
             #[ruma_api(body)]
             pub account_data: Raw<AnyRoomAccountDataEventContent>,
         }

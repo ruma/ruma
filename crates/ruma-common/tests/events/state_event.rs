@@ -8,7 +8,7 @@ use ruma_common::{
             avatar::{ImageInfo, RoomAvatarEventContent},
             ThumbnailInfo,
         },
-        AnyRoomEvent, AnyStateEvent, AnyStateEventContent, AnySyncStateEvent, RawExt, StateEvent,
+        AnyRoomEvent, AnyStateEvent, AnyStateEventContent, AnySyncStateEvent, StateEvent,
         SyncStateEvent, Unsigned,
     },
     mxc_uri, room_alias_id, room_id,

@@ -230,14 +230,9 @@ pub trait RedactContent {
     fn redact(self, version: &RoomVersionId) -> Self::Redacted;
 }
 
-/// Extension trait for [`Raw<_>`][crate::serde::Raw].
-pub trait RawExt<T: EventContent> {
+impl<T: EventContent> Raw<T> {
     /// Try to deserialize the JSON as an event's content.
-    fn deserialize_content(&self, event_type: &str) -> serde_json::Result<T>;
-}
-
-impl<T: EventContent> RawExt<T> for Raw<T> {
-    fn deserialize_content(&self, event_type: &str) -> serde_json::Result<T> {
+    pub fn deserialize_content(&self, event_type: &str) -> serde_json::Result<T> {
         T::from_parts(event_type, self.json())
     }
 }
