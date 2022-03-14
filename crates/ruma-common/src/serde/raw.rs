@@ -6,12 +6,10 @@ use std::{
 };
 
 use serde::{
-    de::{Deserialize, Deserializer, IgnoredAny, MapAccess, Visitor},
+    de::{self, Deserialize, DeserializeSeed, Deserializer, IgnoredAny, MapAccess, Visitor},
     ser::{Serialize, Serializer},
 };
 use serde_json::value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue};
-
-use super::cow::MyCowStr;
 
 /// A wrapper around `Box<RawValue>`, to be used in place of any type in the Matrix endpoint
 /// definition to allow request and response types to contain that said type represented by
@@ -97,6 +95,36 @@ impl<T> Raw<T> {
     where
         U: Deserialize<'a>,
     {
+        struct FieldVisitor<'b>(&'b str);
+
+        impl<'b, 'de> Visitor<'de> for FieldVisitor<'b> {
+            type Value = bool;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                write!(formatter, "`{}`", self.0)
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<bool, E>
+            where
+                E: de::Error,
+            {
+                Ok(value == self.0)
+            }
+        }
+
+        struct Field<'b>(&'b str);
+
+        impl<'b, 'de> DeserializeSeed<'de> for Field<'b> {
+            type Value = bool;
+
+            fn deserialize<D>(self, deserializer: D) -> Result<bool, D::Error>
+            where
+                D: Deserializer<'de>,
+            {
+                deserializer.deserialize_identifier(FieldVisitor(self.0))
+            }
+        }
+
         struct SingleFieldVisitor<'b, T> {
             field_name: &'b str,
             _phantom: PhantomData<T>,
@@ -123,8 +151,8 @@ impl<T> Raw<T> {
                 A: MapAccess<'de>,
             {
                 let mut res = None;
-                while let Some(key) = map.next_key::<MyCowStr<'_>>()? {
-                    if key.get() == self.field_name {
+                while let Some(is_right_field) = map.next_key_seed(Field(self.field_name))? {
+                    if is_right_field {
                         res = Some(map.next_value()?);
                     } else {
                         map.next_value::<IgnoredAny>()?;
