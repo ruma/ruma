@@ -183,13 +183,9 @@ fn generate_redacted_event_content(
     let redacted_ident = format_ident!("Redacted{}", ident);
 
     let kept_redacted_fields =
-        if let syn::Data::Struct(syn::DataStruct {
-            fields: syn::Fields::Named(syn::FieldsNamed { named, .. }),
-            ..
-        }) = &input.data
-        {
+        if let syn::Data::Struct(st) = &input.data {
             // this is to validate the `#[ruma_event(skip_redaction)]` attribute
-            named
+            st.fields
                 .iter()
                 .flat_map(|f| &f.attrs)
                 .filter(|a| a.path.is_ident("ruma_event"))
@@ -202,7 +198,8 @@ fn generate_redacted_event_content(
                 })
                 .unwrap_or(Ok(()))?;
 
-            let mut fields: Vec<_> = named
+            let mut fields: Vec<_> = st
+                .fields
                 .iter()
                 .filter(|f| {
                     matches!(
