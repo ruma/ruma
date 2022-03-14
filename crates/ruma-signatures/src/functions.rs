@@ -835,11 +835,11 @@ fn servers_to_check_signatures(
                 return Err(JsonError::field_missing_from_object("event_id"));
             }
         },
-        RoomVersionId::V3 => (),
-        RoomVersionId::V4 => (),
-        RoomVersionId::V5 => (),
-        RoomVersionId::V6 => (),
-        RoomVersionId::V7 => (),
+        RoomVersionId::V3
+        | RoomVersionId::V4
+        | RoomVersionId::V5
+        | RoomVersionId::V6
+        | RoomVersionId::V7 => {}
         // TODO: And for all future versions that have join_authorised_via_users_server
         RoomVersionId::V8 | RoomVersionId::V9 => {
             if let Some(authorized_user) = object
