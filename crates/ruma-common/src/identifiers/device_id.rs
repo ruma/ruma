@@ -11,8 +11,10 @@ use super::generate_localpart;
 /// ```
 /// use ruma_common::{device_id, DeviceId};
 ///
+/// # #[cfg(feature = "rand")] {
 /// let random_id = DeviceId::new();
 /// assert_eq!(random_id.as_str().len(), 8);
+/// # }
 ///
 /// let static_id = device_id!("01234567");
 /// assert_eq!(static_id.as_str(), "01234567");
