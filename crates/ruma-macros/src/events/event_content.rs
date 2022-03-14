@@ -182,42 +182,40 @@ fn generate_redacted_event_content(
     let doc = format!("Redacted form of [`{}`]", ident);
     let redacted_ident = format_ident!("Redacted{}", ident);
 
-    let kept_redacted_fields =
-        if let syn::Data::Struct(st) = &input.data {
-            // this is to validate the `#[ruma_event(skip_redaction)]` attribute
-            st.fields
-                .iter()
-                .flat_map(|f| &f.attrs)
-                .filter(|a| a.path.is_ident("ruma_event"))
-                .find_map(|a| {
-                    if let Err(e) = a.parse_args::<EventMeta>() {
-                        Some(Err(e))
-                    } else {
-                        None
-                    }
-                })
-                .unwrap_or(Ok(()))?;
+    let kept_redacted_fields: Vec<syn::Field> = if let syn::Data::Struct(st) = &input.data {
+        st.fields
+            .iter()
+            .map(|f| {
+                let mut keep_field = false;
+                let attrs = f
+                    .attrs
+                    .iter()
+                    .map(|a| -> syn::Result<_> {
+                        if a.path.is_ident("ruma_event") {
+                            if let EventMeta::SkipRedaction = a.parse_args()? {
+                                keep_field = true;
+                            }
 
-            let mut fields: Vec<_> = st
-                .fields
-                .iter()
-                .filter(|f| {
-                    matches!(
-                        f.attrs.iter().find_map(|a| a.parse_args::<EventMeta>().ok()),
-                        Some(EventMeta::SkipRedaction)
-                    )
-                })
-                .cloned()
-                .collect();
+                            // don't re-emit our `ruma_event` attributes
+                            Ok(None)
+                        } else {
+                            Ok(Some(a.clone()))
+                        }
+                    })
+                    .filter_map(Result::transpose)
+                    .collect::<syn::Result<_>>()?;
 
-            // don't re-emit our `ruma_event` attributes
-            for f in &mut fields {
-                f.attrs.retain(|a| !a.path.is_ident("ruma_event"));
-            }
-            fields
-        } else {
-            vec![]
-        };
+                if keep_field {
+                    Ok(Some(syn::Field { attrs, ..f.clone() }))
+                } else {
+                    Ok(None)
+                }
+            })
+            .filter_map(Result::transpose)
+            .collect::<syn::Result<_>>()?
+    } else {
+        vec![]
+    };
 
     let redaction_struct_fields = kept_redacted_fields.iter().flat_map(|f| &f.ident);
 
