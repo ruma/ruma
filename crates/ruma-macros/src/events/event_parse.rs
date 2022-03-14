@@ -127,6 +127,10 @@ impl IdentFragment for EventKindVariation {
 }
 
 impl EventKind {
+    pub fn is_account_data(self) -> bool {
+        matches!(self, Self::GlobalAccountData | Self::RoomAccountData)
+    }
+
     pub fn try_to_event_ident(self, var: EventKindVariation) -> Option<Ident> {
         use EventKindVariation as V;
 
