@@ -1,6 +1,6 @@
 use std::{
     clone::Clone,
-    fmt::{self, Debug, Formatter},
+    fmt::{self, Debug},
     marker::PhantomData,
     mem,
 };
@@ -114,7 +114,7 @@ impl<T> Raw<T> {
         {
             type Value = Option<T>;
 
-            fn expecting(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> std::fmt::Result {
                 formatter.write_str("a string")
             }
 
@@ -177,7 +177,7 @@ impl<T> Clone for Raw<T> {
 }
 
 impl<T> Debug for Raw<T> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use std::any::type_name;
         f.debug_struct(&format!("Raw::<{}>", type_name::<T>())).field("json", &self.json).finish()
     }
