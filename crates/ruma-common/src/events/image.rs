@@ -17,7 +17,7 @@ use crate::MxcUri;
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ThumbnailFileContentInfo {
-    /// The mimetype of the thumbnail, e.g. “image/png”.
+    /// The mimetype of the thumbnail, e.g. `image/png`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mimetype: Option<String>,
 
