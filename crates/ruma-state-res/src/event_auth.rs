@@ -184,7 +184,9 @@ pub fn auth_check<E: Event>(
     }
 
     /*
-    // TODO: Debug
+    // TODO: In the past this code caused problems federating with synapse, maybe this has been
+    // resolved already. Needs testing.
+    //
     // 2. Reject if auth_events
     // a. auth_events cannot have duplicate keys since it's a BTree
     // b. All entries are valid auth events according to spec
