@@ -33,6 +33,8 @@ event_enum! {
 
     /// Any message-like event.
     enum MessageLike {
+        #[cfg(feature = "unstable-msc3246")]
+        "m.audio",
         "m.call.answer",
         "m.call.invite",
         "m.call.hangup",
@@ -368,6 +370,8 @@ impl AnyMessageLikeEventContent {
             Self::Notice(ev) => ev.relates_to.clone().map(Into::into),
             #[cfg(feature = "unstable-msc1767")]
             Self::Emote(ev) => ev.relates_to.clone().map(Into::into),
+            #[cfg(feature = "unstable-msc3246")]
+            Self::Audio(ev) => ev.relates_to.clone().map(Into::into),
             #[cfg(feature = "unstable-msc3551")]
             Self::File(ev) => ev.relates_to.clone().map(Into::into),
             #[cfg(feature = "unstable-msc3552")]
