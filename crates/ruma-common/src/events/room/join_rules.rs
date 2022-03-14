@@ -109,6 +109,7 @@ impl<'de> Deserialize<'de> for JoinRule {
 
         #[derive(Deserialize)]
         struct ExtractType<'a> {
+            #[serde(borrow)]
             join_rule: Option<Cow<'a, str>>,
         }
 
