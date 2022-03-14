@@ -28,11 +28,7 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 fn plain_content_serialization() {
     let event_content = ImageEventContent::plain(
         "Upload: my_image.jpg",
-        mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
-        None,
-        None,
-        None,
-        None,
+        FileContent::plain(mxc_uri!("mxc://notareal.hs/abcdef").to_owned(), None),
     );
 
     assert_eq!(
@@ -49,31 +45,30 @@ fn plain_content_serialization() {
 
 #[test]
 fn encrypted_content_serialization() {
-    let event_content = ImageEventContent::encrypted(
+    let event_content = ImageEventContent::plain(
         "Upload: my_image.jpg",
-        mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
-        EncryptedContentInit {
-            key: JsonWebKeyInit {
-                kty: "oct".to_owned(),
-                key_ops: vec!["encrypt".to_owned(), "decrypt".to_owned()],
-                alg: "A256CTR".to_owned(),
-                k: Base64::parse("TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A").unwrap(),
-                ext: true,
+        FileContent::encrypted(
+            mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+            EncryptedContentInit {
+                key: JsonWebKeyInit {
+                    kty: "oct".to_owned(),
+                    key_ops: vec!["encrypt".to_owned(), "decrypt".to_owned()],
+                    alg: "A256CTR".to_owned(),
+                    k: Base64::parse("TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A").unwrap(),
+                    ext: true,
+                }
+                .into(),
+                iv: Base64::parse("S22dq3NAX8wAAAAAAAAAAA").unwrap(),
+                hashes: [(
+                    "sha256".to_owned(),
+                    Base64::parse("aWOHudBnDkJ9IwaR1Nd8XKoI7DOrqDTwt6xDPfVGN6Q").unwrap(),
+                )]
+                .into(),
+                v: "v2".to_owned(),
             }
             .into(),
-            iv: Base64::parse("S22dq3NAX8wAAAAAAAAAAA").unwrap(),
-            hashes: [(
-                "sha256".to_owned(),
-                Base64::parse("aWOHudBnDkJ9IwaR1Nd8XKoI7DOrqDTwt6xDPfVGN6Q").unwrap(),
-            )]
-            .into(),
-            v: "v2".to_owned(),
-        }
-        .into(),
-        None,
-        None,
-        None,
-        None,
+            None,
+        ),
     );
 
     assert_eq!(
@@ -103,13 +98,13 @@ fn encrypted_content_serialization() {
 #[test]
 fn image_event_serialization() {
     let event = MessageLikeEvent {
-        content:
-            assign!(
-                ImageEventContent::plain_message(
-                    MessageContent::html(
-                        "Upload: my_house.jpg",
-                        "Upload: <strong>my_house.jpg</strong>",
-                    ),
+        content: assign!(
+            ImageEventContent::with_message(
+                MessageContent::html(
+                    "Upload: my_house.jpg",
+                    "Upload: <strong>my_house.jpg</strong>",
+                ),
+                FileContent::plain(
                     mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
                     Some(Box::new(assign!(
                         FileContentInfo::new(),
@@ -119,25 +114,26 @@ fn image_event_serialization() {
                             size: Some(uint!(897_774)),
                         }
                     ))),
-                    Some(Box::new(ImageContent::with_size(uint!(1920), uint!(1080)))),
-                    Some(Thumbnails::new(&[ThumbnailContent::new(
-                        ThumbnailFileContent::plain(
-                            mxc_uri!("mxc://notareal.hs/thumbnail").to_owned(),
-                            Some(Box::new(assign!(ThumbnailFileContentInfo::new(), {
-                                mimetype: Some("image/jpeg".to_owned()),
-                                size: Some(uint!(334_593)),
-                            })))
-                        ),
-                        None
-                    )])),
-                    Some(Captions::plain("This is my house"))
-                ),
-                {
-                    relates_to: Some(Relation::Reply {
-                        in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
-                    }),
-                }
+                )
             ),
+            {
+                image: Box::new(ImageContent::with_size(uint!(1920), uint!(1080))),
+                thumbnail: Thumbnails::new(&[ThumbnailContent::new(
+                    ThumbnailFileContent::plain(
+                        mxc_uri!("mxc://notareal.hs/thumbnail").to_owned(),
+                        Some(Box::new(assign!(ThumbnailFileContentInfo::new(), {
+                            mimetype: Some("image/jpeg".to_owned()),
+                            size: Some(uint!(334_593)),
+                        })))
+                    ),
+                    None
+                )]),
+                caption: Captions::plain("This is my house"),
+                relates_to: Some(Relation::Reply {
+                    in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
+                }),
+            }
+        ),
         event_id: event_id!("$event:notareal.hs").to_owned(),
         sender: user_id!("@user:notareal.hs").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),

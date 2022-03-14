@@ -7,11 +7,77 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    file::{EncryptedContent, FileContent, FileContentInfo},
+    file::{EncryptedContent, FileContent},
     message::{MessageContent, Text},
     room::message::Relation,
 };
 use crate::MxcUri;
+
+/// The payload for an extensible image message.
+#[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[ruma_event(type = "m.image", kind = MessageLike)]
+pub struct ImageEventContent {
+    /// The text representation of the message.
+    #[serde(flatten)]
+    pub message: MessageContent,
+
+    /// The file content of the message.
+    #[serde(rename = "org.matrix.msc1767.file")]
+    pub file: FileContent,
+
+    /// The image content of the message.
+    #[serde(rename = "org.matrix.msc1767.image")]
+    pub image: Box<ImageContent>,
+
+    /// The thumbnails of the message.
+    #[serde(
+        rename = "org.matrix.msc1767.thumbnail",
+        default,
+        skip_serializing_if = "Thumbnails::is_empty"
+    )]
+    pub thumbnail: Thumbnails,
+
+    /// The thumbnails of the message.
+    #[serde(
+        rename = "org.matrix.msc1767.caption",
+        default,
+        skip_serializing_if = "Captions::is_empty"
+    )]
+    pub caption: Captions,
+
+    /// Information about related messages for [rich replies].
+    ///
+    /// [rich replies]: https://spec.matrix.org/v1.2/client-server-api/#rich-replies
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub relates_to: Option<Relation>,
+}
+
+impl ImageEventContent {
+    /// Creates a new `ImageEventContent` with the given plain text message and file.
+    pub fn plain(message: impl Into<String>, file: FileContent) -> Self {
+        Self {
+            message: MessageContent::plain(message),
+            file,
+            image: Default::default(),
+            thumbnail: Default::default(),
+            caption: Default::default(),
+            relates_to: None,
+        }
+    }
+
+    /// Creates a new non-encrypted `ImageEventContent` with the given message and file.
+    pub fn with_message(message: MessageContent, file: FileContent) -> Self {
+        Self {
+            message,
+            file,
+            image: Default::default(),
+            thumbnail: Default::default(),
+            caption: Default::default(),
+            relates_to: None,
+        }
+    }
+}
 
 /// Information about a thumbnail file content.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -205,129 +271,5 @@ impl ImageContent {
     /// Creates a new `ImageContent` with the given width and height.
     pub fn with_size(width: UInt, height: UInt) -> Self {
         Self { height: Some(height), width: Some(width) }
-    }
-}
-
-/// The payload for an extensible image message.
-#[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.image", kind = MessageLike)]
-pub struct ImageEventContent {
-    /// The text representation of the message.
-    #[serde(flatten)]
-    pub message: MessageContent,
-
-    /// The file content of the message.
-    #[serde(rename = "org.matrix.msc1767.file")]
-    pub file: FileContent,
-
-    /// The image content of the message.
-    #[serde(rename = "org.matrix.msc1767.image")]
-    pub image: Box<ImageContent>,
-
-    /// The thumbnails of the message.
-    #[serde(
-        rename = "org.matrix.msc1767.thumbnail",
-        default,
-        skip_serializing_if = "Thumbnails::is_empty"
-    )]
-    pub thumbnail: Thumbnails,
-
-    /// The thumbnails of the message.
-    #[serde(
-        rename = "org.matrix.msc1767.caption",
-        default,
-        skip_serializing_if = "Captions::is_empty"
-    )]
-    pub caption: Captions,
-
-    /// Information about related messages for [rich replies].
-    ///
-    /// [rich replies]: https://spec.matrix.org/v1.2/client-server-api/#rich-replies
-    #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    pub relates_to: Option<Relation>,
-}
-
-impl ImageEventContent {
-    /// Creates a new non-encrypted `ImageEventContent` with the given plain text message, url,
-    /// file info, image info, thumbnail and caption.
-    pub fn plain(
-        message: impl Into<String>,
-        url: Box<MxcUri>,
-        file_info: Option<Box<FileContentInfo>>,
-        image_info: Option<Box<ImageContent>>,
-        thumbnail: Option<Thumbnails>,
-        caption: Option<Captions>,
-    ) -> Self {
-        Self {
-            message: MessageContent::plain(message),
-            file: FileContent::plain(url, file_info),
-            image: image_info.unwrap_or_default(),
-            thumbnail: thumbnail.unwrap_or_default(),
-            caption: caption.unwrap_or_default(),
-            relates_to: None,
-        }
-    }
-
-    /// Creates a new non-encrypted `ImageEventContent` with the given message, url, file info,
-    /// image info, thumbnail and caption.
-    pub fn plain_message(
-        message: MessageContent,
-        url: Box<MxcUri>,
-        file_info: Option<Box<FileContentInfo>>,
-        image_info: Option<Box<ImageContent>>,
-        thumbnail: Option<Thumbnails>,
-        caption: Option<Captions>,
-    ) -> Self {
-        Self {
-            message,
-            file: FileContent::plain(url, file_info),
-            image: image_info.unwrap_or_default(),
-            thumbnail: thumbnail.unwrap_or_default(),
-            caption: caption.unwrap_or_default(),
-            relates_to: None,
-        }
-    }
-
-    /// Creates a new encrypted `ImageEventContent` with the given plain text message, url,
-    /// encryption info, file info, image info, thumbnail and caption.
-    pub fn encrypted(
-        message: impl Into<String>,
-        url: Box<MxcUri>,
-        encryption_info: EncryptedContent,
-        file_info: Option<Box<FileContentInfo>>,
-        image_info: Option<Box<ImageContent>>,
-        thumbnail: Option<Thumbnails>,
-        caption: Option<Captions>,
-    ) -> Self {
-        Self {
-            message: MessageContent::plain(message),
-            file: FileContent::encrypted(url, encryption_info, file_info),
-            image: image_info.unwrap_or_default(),
-            thumbnail: thumbnail.unwrap_or_default(),
-            caption: caption.unwrap_or_default(),
-            relates_to: None,
-        }
-    }
-
-    /// Creates a new encrypted `ImageEventContent` with the given message, url,
-    /// encryption info, file info, image info, thumbnail and caption.
-    pub fn encrypted_message(
-        message: MessageContent,
-        url: Box<MxcUri>,
-        encryption_info: EncryptedContent,
-        file_info: Option<Box<FileContentInfo>>,
-        image_info: Option<Box<ImageContent>>,
-        thumbnail: Option<Thumbnails>,
-        caption: Option<Captions>,
-    ) -> Self {
-        Self {
-            message,
-            file: FileContent::encrypted(url, encryption_info, file_info),
-            image: image_info.unwrap_or_default(),
-            thumbnail: thumbnail.unwrap_or_default(),
-            caption: caption.unwrap_or_default(),
-            relates_to: None,
-        }
     }
 }
