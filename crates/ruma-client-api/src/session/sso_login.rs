@@ -12,11 +12,11 @@ pub mod v3 {
             description: "",
             method: GET,
             name: "sso_login",
-            unstable_path: "/_matrix/client/unstable/org.matrix.msc2858/login/sso/redirect",
+            r0_path: "/_matrix/client/r0/login/sso/redirect",
             stable_path: "/_matrix/client/v3/login/sso/redirect",
             rate_limited: false,
             authentication: None,
-            added: 1.1,
+            added: 1.0,
         }
 
         request: {
