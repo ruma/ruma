@@ -61,6 +61,8 @@ event_enum! {
         "m.room.message.feedback",
         "m.room.redaction",
         "m.sticker",
+        #[cfg(feature = "unstable-msc3553")]
+        "m.video",
     }
 
     /// Any state event.
@@ -372,6 +374,8 @@ impl AnyMessageLikeEventContent {
             Self::File(ev) => ev.relates_to.clone().map(Into::into),
             #[cfg(feature = "unstable-msc3552")]
             Self::Image(ev) => ev.relates_to.clone().map(Into::into),
+            #[cfg(feature = "unstable-msc3553")]
+            Self::Video(ev) => ev.relates_to.clone().map(Into::into),
             Self::CallAnswer(_)
             | Self::CallInvite(_)
             | Self::CallHangup(_)
