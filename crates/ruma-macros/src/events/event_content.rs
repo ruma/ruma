@@ -145,19 +145,31 @@ pub fn expand_event_content(
         }
     };
 
+    let ident = &input.ident;
+    let fields = match &input.data {
+        syn::Data::Struct(syn::DataStruct { fields, .. }) => fields,
+        _ => {
+            return Err(syn::Error::new(
+                Span::call_site(),
+                "event content types need to be structs",
+            ));
+        }
+    };
+
     // We only generate redacted content structs for state and message-like events
     let redacted_event_content = needs_redacted(&content_attr, event_kind)
-        .then(|| generate_redacted_event_content(input, event_type, ruma_common, event_kind))
+        .then(|| {
+            generate_redacted_event_content(ident, fields, event_type, ruma_common, event_kind)
+        })
         .transpose()?;
 
-    let event_content_impl = generate_event_content_impl(&input.ident, event_type, ruma_common);
-    let static_event_content_impl = event_kind.map(|k| {
-        generate_static_event_content_impl(&input.ident, k, false, event_type, ruma_common)
-    });
+    let event_content_impl = generate_event_content_impl(ident, event_type, ruma_common);
+    let static_event_content_impl = event_kind
+        .map(|k| generate_static_event_content_impl(ident, k, false, event_type, ruma_common));
     let marker_trait_impl =
-        event_kind.map(|k| generate_marker_trait_impl(k, &input.ident, ruma_common)).transpose()?;
+        event_kind.map(|k| generate_marker_trait_impl(k, ident, ruma_common)).transpose()?;
     let type_aliases = event_kind
-        .map(|k| generate_event_type_aliases(k, &input.ident, &event_type.value(), ruma_common))
+        .map(|k| generate_event_type_aliases(k, ident, &event_type.value(), ruma_common))
         .transpose()?;
 
     Ok(quote! {
@@ -170,7 +182,8 @@ pub fn expand_event_content(
 }
 
 fn generate_redacted_event_content(
-    input: &DeriveInput,
+    ident: &Ident,
+    fields: &syn::Fields,
     event_type: &LitStr,
     ruma_common: &TokenStream,
     event_kind: Option<EventKind>,
@@ -178,44 +191,39 @@ fn generate_redacted_event_content(
     let serde = quote! { #ruma_common::exports::serde };
     let serde_json = quote! { #ruma_common::exports::serde_json };
 
-    let ident = &input.ident;
     let doc = format!("Redacted form of [`{}`]", ident);
     let redacted_ident = format_ident!("Redacted{}", ident);
 
-    let kept_redacted_fields: Vec<syn::Field> = if let syn::Data::Struct(st) = &input.data {
-        st.fields
-            .iter()
-            .map(|f| {
-                let mut keep_field = false;
-                let attrs = f
-                    .attrs
-                    .iter()
-                    .map(|a| -> syn::Result<_> {
-                        if a.path.is_ident("ruma_event") {
-                            if let EventMeta::SkipRedaction = a.parse_args()? {
-                                keep_field = true;
-                            }
-
-                            // don't re-emit our `ruma_event` attributes
-                            Ok(None)
-                        } else {
-                            Ok(Some(a.clone()))
+    let kept_redacted_fields: Vec<_> = fields
+        .iter()
+        .map(|f| {
+            let mut keep_field = false;
+            let attrs = f
+                .attrs
+                .iter()
+                .map(|a| -> syn::Result<_> {
+                    if a.path.is_ident("ruma_event") {
+                        if let EventMeta::SkipRedaction = a.parse_args()? {
+                            keep_field = true;
                         }
-                    })
-                    .filter_map(Result::transpose)
-                    .collect::<syn::Result<_>>()?;
 
-                if keep_field {
-                    Ok(Some(syn::Field { attrs, ..f.clone() }))
-                } else {
-                    Ok(None)
-                }
-            })
-            .filter_map(Result::transpose)
-            .collect::<syn::Result<_>>()?
-    } else {
-        vec![]
-    };
+                        // don't re-emit our `ruma_event` attributes
+                        Ok(None)
+                    } else {
+                        Ok(Some(a.clone()))
+                    }
+                })
+                .filter_map(Result::transpose)
+                .collect::<syn::Result<_>>()?;
+
+            if keep_field {
+                Ok(Some(syn::Field { attrs, ..f.clone() }))
+            } else {
+                Ok(None)
+            }
+        })
+        .filter_map(Result::transpose)
+        .collect::<syn::Result<_>>()?;
 
     let redaction_struct_fields = kept_redacted_fields.iter().flat_map(|f| &f.ident);
 
