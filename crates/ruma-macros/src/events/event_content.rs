@@ -159,7 +159,7 @@ pub fn expand_event_content(
     // We only generate redacted content structs for state and message-like events
     let redacted_event_content = needs_redacted(&content_attr, event_kind)
         .then(|| {
-            generate_redacted_event_content(ident, fields, event_type, ruma_common, event_kind)
+            generate_redacted_event_content(ident, fields, event_type, event_kind, ruma_common)
         })
         .transpose()?;
 
@@ -185,8 +185,8 @@ fn generate_redacted_event_content(
     ident: &Ident,
     fields: &syn::Fields,
     event_type: &LitStr,
-    ruma_common: &TokenStream,
     event_kind: Option<EventKind>,
+    ruma_common: &TokenStream,
 ) -> Result<TokenStream, syn::Error> {
     let serde = quote! { #ruma_common::exports::serde };
     let serde_json = quote! { #ruma_common::exports::serde_json };
