@@ -14,7 +14,7 @@ use serde::{
 };
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 
-use super::EventType;
+use super::RoomEventType;
 use crate::{EventId, MilliSecondsSinceUnixEpoch, RoomId, ServerName, ServerSigningKeyId, UserId};
 
 /// Enum for PDU schemas
@@ -53,7 +53,7 @@ pub struct RoomV1Pdu {
     // TODO: Encode event type as content enum variant, like event enums do
     /// The event's type.
     #[serde(rename = "type")]
-    pub kind: EventType,
+    pub kind: RoomEventType,
 
     /// The event's content.
     pub content: Box<RawJsonValue>,
@@ -112,7 +112,7 @@ pub struct RoomV3Pdu {
     // TODO: Encode event type as content enum variant, like event enums do
     /// The event's type.
     #[serde(rename = "type")]
-    pub kind: EventType,
+    pub kind: RoomEventType,
 
     /// The event's content.
     pub content: Box<RawJsonValue>,

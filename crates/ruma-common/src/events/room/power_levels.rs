@@ -9,7 +9,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    events::EventType,
+    events::RoomEventType,
     power_levels::{default_power_level, NotificationPowerLevels},
     UserId,
 };
@@ -45,7 +45,7 @@ pub struct RoomPowerLevelsEventContent {
     )]
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     #[ruma_event(skip_redaction)]
-    pub events: BTreeMap<EventType, Int>,
+    pub events: BTreeMap<RoomEventType, Int>,
 
     /// The default level required to send message events.
     ///
@@ -182,7 +182,7 @@ mod tests {
     use serde_json::{json, to_value as to_json_value};
 
     use super::{default_power_level, NotificationPowerLevels, RoomPowerLevelsEventContent};
-    use crate::events::{EventType, StateEvent, Unsigned};
+    use crate::events::{StateEvent, Unsigned};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
@@ -231,7 +231,7 @@ mod tests {
             content: RoomPowerLevelsEventContent {
                 ban: int!(23),
                 events: btreemap! {
-                    EventType::Dummy => int!(23)
+                    "m.dummy".into() => int!(23)
                 },
                 events_default: int!(23),
                 invite: int!(23),
@@ -250,7 +250,7 @@ mod tests {
                 // Make just one field different so we at least know they're two different objects.
                 ban: int!(42),
                 events: btreemap! {
-                    EventType::Dummy => int!(42)
+                    "m.dummy".into() => int!(42)
                 },
                 events_default: int!(42),
                 invite: int!(42),

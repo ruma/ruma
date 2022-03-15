@@ -6,7 +6,7 @@ use ruma_common::{
     event_id,
     events::{
         pdu::{EventHash, Pdu, RoomV1Pdu, RoomV3Pdu},
-        EventType,
+        RoomEventType,
     },
     room_id, server_name, server_signing_key_id, user_id, MilliSecondsSinceUnixEpoch,
 };
@@ -34,7 +34,7 @@ fn serialize_pdu_as_v1() {
         sender: user_id!("@sender:example.com").to_owned(),
         origin: "matrix.org".into(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(1_592_050_773_658_u64.try_into().unwrap()),
-        kind: EventType::RoomPowerLevels,
+        kind: RoomEventType::RoomPowerLevels,
         content: to_raw_json_value(&json!({ "testing": 123 })).unwrap(),
         state_key: Some("state".into()),
         prev_events: vec![(
@@ -100,7 +100,7 @@ fn serialize_pdu_as_v3() {
         sender: user_id!("@sender:example.com").to_owned(),
         origin: "matrix.org".into(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(1_592_050_773_658_u64.try_into().unwrap()),
-        kind: EventType::RoomPowerLevels,
+        kind: RoomEventType::RoomPowerLevels,
         content: to_raw_json_value(&json!({ "testing": 123 })).unwrap(),
         state_key: Some("state".into()),
         prev_events: vec![event_id!("$previousevent:matrix.org").to_owned()],
