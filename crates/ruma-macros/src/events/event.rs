@@ -120,6 +120,8 @@ fn expand_serialize_event(
                 use #serde::ser::{SerializeStruct as _, Error as _};
 
                 let event_type = #ruma_common::events::EventContent::event_type(&self.content);
+                let event_type =
+                    ::std::convert::AsRef::<::std::primitive::str>::as_ref(&event_type);
 
                 let mut state = serializer.serialize_struct(stringify!(#ident), 7)?;
 

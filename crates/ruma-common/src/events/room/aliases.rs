@@ -78,8 +78,8 @@ impl RedactedRoomAliasesEventContent {
 impl EventContent for RedactedRoomAliasesEventContent {
     type EventType = StateEventType;
 
-    fn event_type(&self) -> &str {
-        "m.room.aliases"
+    fn event_type(&self) -> StateEventType {
+        StateEventType::RoomAliases
     }
 
     fn from_parts(event_type: &str, content: &RawJsonValue) -> serde_json::Result<Self> {

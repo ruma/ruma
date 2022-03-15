@@ -44,7 +44,7 @@ pub mod v3 {
         pub room_id: &'a RoomId,
 
         /// The type of event to send.
-        pub event_type: &'a str,
+        pub event_type: StateEventType,
 
         /// The state_key for the state to send.
         pub state_key: &'a str,
@@ -80,7 +80,7 @@ pub mod v3 {
         /// content.
         pub fn new_raw(
             room_id: &'a RoomId,
-            event_type: &'a str,
+            event_type: StateEventType,
             state_key: &'a str,
             body: Raw<AnyStateEventContent>,
         ) -> Self {
@@ -114,7 +114,8 @@ pub mod v3 {
             use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 
             let room_id_percent = utf8_percent_encode(self.room_id.as_str(), NON_ALPHANUMERIC);
-            let event_type_percent = utf8_percent_encode(self.event_type, NON_ALPHANUMERIC);
+            let event_type_percent =
+                utf8_percent_encode(self.event_type.as_str(), NON_ALPHANUMERIC);
 
             let mut url = format!(
                 "{}{}",
@@ -173,25 +174,25 @@ pub mod v3 {
         {
             // FIXME: find a way to make this if-else collapse with serde recognizing trailing
             // Option
-            let (room_id, event_type, state_key): (Box<RoomId>, String, String) = if path_args.len()
-                == 3
-            {
-                serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
-                    _,
-                    serde::de::value::Error,
-                >::new(
-                    path_args.iter().map(::std::convert::AsRef::as_ref),
-                ))?
-            } else {
-                let (a, b) = serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
-                    _,
-                    serde::de::value::Error,
-                >::new(
-                    path_args.iter().map(::std::convert::AsRef::as_ref),
-                ))?;
+            let (room_id, event_type, state_key): (Box<RoomId>, StateEventType, String) =
+                if path_args.len() == 3 {
+                    serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
+                        _,
+                        serde::de::value::Error,
+                    >::new(
+                        path_args.iter().map(::std::convert::AsRef::as_ref),
+                    ))?
+                } else {
+                    let (a, b) =
+                        serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
+                            _,
+                            serde::de::value::Error,
+                        >::new(
+                            path_args.iter().map(::std::convert::AsRef::as_ref),
+                        ))?;
 
-                (a, b, "".into())
-            };
+                    (a, b, "".into())
+                };
 
             let body = serde_json::from_slice(request.body().as_ref())?;
 

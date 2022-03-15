@@ -292,10 +292,10 @@ fn expand_content_enum(
         impl #ruma_common::events::EventContent for #ident {
             type EventType = #ruma_common::events::#event_type_enum;
 
-            fn event_type(&self) -> &::std::primitive::str {
+            fn event_type(&self) -> Self::EventType {
                 match self {
                     #( #variant_arms(content) => content.event_type(), )*
-                    Self::_Custom { event_type } => &event_type.0,
+                    Self::_Custom { event_type } => ::std::convert::From::from(&event_type.0[..]),
                 }
             }
 
@@ -411,6 +411,7 @@ fn expand_accessor_methods(
     ruma_common: &TokenStream,
 ) -> TokenStream {
     let ident = kind.to_event_enum_ident(var);
+    let event_type_enum = format_ident!("{}Type", kind);
     let self_variants: Vec<_> = variants.iter().map(|v| v.match_arm(quote! { Self })).collect();
 
     let content_accessors = (!var.is_redacted()).then(|| {
@@ -430,7 +431,9 @@ fn expand_accessor_methods(
                         Self::_Custom(event) => {
                             event.prev_content.as_ref().map(|c| #content_enum::_Custom {
                                 event_type: crate::PrivOwnedStr(
-                                    #ruma_common::events::EventContent::event_type(c).into(),
+                                    ::std::convert::From::from(
+                                        #ruma_common::events::EventContent::event_type(c).as_str()
+                                    ),
                                 ),
                             })
                         },
@@ -446,7 +449,10 @@ fn expand_accessor_methods(
                     #( #self_variants(event) => #content_variants(event.content.clone()), )*
                     Self::_Custom(event) => #content_enum::_Custom {
                         event_type: crate::PrivOwnedStr(
-                            #ruma_common::events::EventContent::event_type(&event.content).into(),
+                            ::std::convert::From::from(
+                                #ruma_common::events::EventContent::event_type(&event.content)
+                                    .as_str(),
+                            ),
                         ),
                     },
                 }
@@ -479,12 +485,13 @@ fn expand_accessor_methods(
         #[automatically_derived]
         impl #ident {
             /// Returns the `type` of this event.
-            pub fn event_type(&self) -> &::std::primitive::str {
+            pub fn event_type(&self) -> #ruma_common::events::#event_type_enum {
                 match self {
                     #( #self_variants(event) =>
                         #ruma_common::events::EventContent::event_type(&event.content), )*
-                    Self::_Custom(event) =>
+                    Self::_Custom(event) => ::std::convert::From::from(
                         #ruma_common::events::EventContent::event_type(&event.content),
+                    ),
                 }
             }
 

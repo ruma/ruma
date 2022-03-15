@@ -32,7 +32,7 @@ pub mod v3 {
 
             /// The type of event to send.
             #[ruma_api(path)]
-            pub event_type: &'a str,
+            pub event_type: MessageLikeEventType,
 
             /// The transaction ID for this event.
             ///
@@ -83,7 +83,7 @@ pub mod v3 {
         pub fn new_raw(
             room_id: &'a RoomId,
             txn_id: &'a TransactionId,
-            event_type: &'a str,
+            event_type: MessageLikeEventType,
             body: Raw<AnyMessageLikeEventContent>,
         ) -> Self {
             Self { room_id, event_type, txn_id, body }

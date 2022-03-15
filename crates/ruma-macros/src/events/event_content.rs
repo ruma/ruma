@@ -9,6 +9,8 @@ use syn::{
     DeriveInput, Ident, LitStr, Token,
 };
 
+use crate::util::m_prefix_name_to_type_name;
+
 use super::event_parse::{EventKind, EventKindVariation};
 
 mod kw {
@@ -164,7 +166,7 @@ pub fn expand_event_content(
         .transpose()?;
 
     let event_content_impl =
-        generate_event_content_impl(ident, event_type, event_kind, ruma_common);
+        generate_event_content_impl(ident, event_type, event_kind, ruma_common)?;
     let static_event_content_impl = event_kind
         .map(|k| generate_static_event_content_impl(ident, k, false, event_type, ruma_common));
     let type_aliases = event_kind
@@ -259,7 +261,7 @@ fn generate_redacted_event_content(
     });
 
     let redacted_event_content =
-        generate_event_content_impl(&redacted_ident, event_type, event_kind, ruma_common);
+        generate_event_content_impl(&redacted_ident, event_type, event_kind, ruma_common)?;
 
     let static_event_content_impl = event_kind.map(|k| {
         generate_static_event_content_impl(&redacted_ident, k, true, event_type, ruma_common)
@@ -374,41 +376,66 @@ fn generate_event_content_impl(
     event_type: &LitStr,
     event_kind: Option<EventKind>,
     ruma_common: &TokenStream,
-) -> TokenStream {
+) -> syn::Result<TokenStream> {
     let serde = quote! { #ruma_common::exports::serde };
     let serde_json = quote! { #ruma_common::exports::serde_json };
 
-    let event_type_ty = match event_kind {
+    let (event_type_ty_decl, event_type_ty, event_type_fn_impl);
+
+    match event_kind {
         Some(kind) => {
             let i = kind.to_event_type_enum();
-            quote! { #ruma_common::events::#i }
+            event_type_ty_decl = None;
+            event_type_ty = quote! { #ruma_common::events::#i };
+            event_type_fn_impl = quote! { ::std::convert::From::from(#event_type) };
         }
-        None => quote! { () },
-    };
+        None => {
+            let camel_case_type_name = m_prefix_name_to_type_name(event_type)?;
+            let i = format_ident!("{}EventType", camel_case_type_name);
+            event_type_ty_decl = Some(quote! {
+                /// Implementation detail, you don't need to care about this.
+                #[doc(hidden)]
+                pub struct #i {
+                    // Set to None for intended type, Some for a different one
+                    ty: ::std::option::Option<crate::PrivOwnedStr>,
+                }
 
-    quote! {
+                impl ::std::convert::AsRef<::std::primitive::str> for #i {
+                    fn as_ref(&self) -> &::std::primitive::str {
+                        self.ty.as_ref().map(|t| &t.0[..]).unwrap_or(#event_type)
+                    }
+                }
+            });
+            event_type_ty = quote! { #i };
+            event_type_fn_impl = quote! { #event_type_ty { ty: ::std::option::Option::None } };
+        }
+    }
+
+    Ok(quote! {
+        #event_type_ty_decl
+
         #[automatically_derived]
         impl #ruma_common::events::EventContent for #ident {
             type EventType = #event_type_ty;
 
-            fn event_type(&self) -> &str {
-                #event_type
+            fn event_type(&self) -> Self::EventType {
+                #event_type_fn_impl
             }
 
             fn from_parts(
-                ev_type: &str,
+                ev_type: &::std::primitive::str,
                 content: &#serde_json::value::RawValue,
             ) -> #serde_json::Result<Self> {
                 if ev_type != #event_type {
-                    return Err(#serde::de::Error::custom(
-                        format!("expected event type `{}`, found `{}`", #event_type, ev_type)
+                    return ::std::result::Result::Err(#serde::de::Error::custom(
+                        ::std::format!("expected event type `{}`, found `{}`", #event_type, ev_type)
                     ));
                 }
 
                 #serde_json::from_str(content.get())
             }
         }
-    }
+    })
 }
 
 fn generate_static_event_content_impl(

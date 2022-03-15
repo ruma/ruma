@@ -36,7 +36,7 @@ pub mod v3 {
             ///
             /// Custom types should be namespaced to avoid clashes.
             #[ruma_api(path)]
-            pub event_type: &'a str,
+            pub event_type: GlobalAccountDataEventType,
 
             /// Arbitrary JSON to store as config data.
             ///
@@ -72,7 +72,7 @@ pub mod v3 {
         /// Creates a new `Request` with the given raw data, event type and user ID.
         pub fn new_raw(
             data: Raw<AnyGlobalAccountDataEventContent>,
-            event_type: &'a str,
+            event_type: GlobalAccountDataEventType,
             user_id: &'a UserId,
         ) -> Self {
             Self { user_id, event_type, data }
