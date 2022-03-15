@@ -159,6 +159,8 @@ pub mod ignored_user_list;
 #[cfg(feature = "unstable-msc3552")]
 pub mod image;
 pub mod key;
+#[cfg(feature = "unstable-msc3488")]
+pub mod location;
 #[cfg(feature = "unstable-msc1767")]
 pub mod message;
 #[cfg(feature = "unstable-msc1767")]

@@ -11,6 +11,7 @@ mod event_enums;
 mod file;
 mod image;
 mod initial_state;
+mod location;
 mod message;
 mod message_event;
 mod pdu;

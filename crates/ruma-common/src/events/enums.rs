@@ -52,6 +52,8 @@ event_enum! {
         "m.key.verification.key",
         "m.key.verification.mac",
         "m.key.verification.done",
+        #[cfg(feature = "unstable-msc3488")]
+        "m.location",
         #[cfg(feature = "unstable-msc1767")]
         "m.message",
         #[cfg(feature = "unstable-msc1767")]
@@ -374,6 +376,8 @@ impl AnyMessageLikeEventContent {
             Self::Emote(ev) => ev.relates_to.clone().map(Into::into),
             #[cfg(feature = "unstable-msc3246")]
             Self::Audio(ev) => ev.relates_to.clone().map(Into::into),
+            #[cfg(feature = "unstable-msc3488")]
+            Self::Location(ev) => ev.relates_to.clone().map(Into::into),
             #[cfg(feature = "unstable-msc3551")]
             Self::File(ev) => ev.relates_to.clone().map(Into::into),
             #[cfg(feature = "unstable-msc3552")]
