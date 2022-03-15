@@ -228,3 +228,32 @@ impl<T> Serialize for Raw<T> {
         self.json.serialize(serializer)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use serde::Deserialize;
+    use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
+
+    use super::Raw;
+
+    #[test]
+    fn get_field() -> serde_json::Result<()> {
+        #[derive(Debug, PartialEq, Deserialize)]
+        struct A<'a> {
+            #[serde(borrow)]
+            b: Vec<&'a str>,
+        }
+
+        const OBJ: &str = r#"{ "a": { "b": [  "c"] }, "z": 5 }"#;
+        let raw: Raw<()> = from_json_str(OBJ)?;
+
+        assert_eq!(raw.get_field::<u8>("z")?, Some(5));
+        assert_eq!(raw.get_field::<&RawJsonValue>("a")?.unwrap().get(), r#"{ "b": [  "c"] }"#);
+        assert_eq!(raw.get_field::<A<'_>>("a")?, Some(A { b: vec!["c"] }));
+
+        assert!(raw.get_field::<u8>("b")?.is_none());
+        assert!(raw.get_field::<u8>("a").is_err());
+
+        Ok(())
+    }
+}
