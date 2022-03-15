@@ -7,7 +7,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::ruma_api,
-        events::{AnyStateEventContent, EventType},
+        events::{AnyStateEventContent, StateEventType},
         serde::{Outgoing, Raw},
         RoomId,
     };
@@ -47,7 +47,7 @@ pub mod v3 {
         pub room_id: &'a RoomId,
 
         /// The type of state to look up.
-        pub event_type: EventType,
+        pub event_type: StateEventType,
 
         /// The key of the state to look up.
         pub state_key: &'a str,
@@ -55,7 +55,7 @@ pub mod v3 {
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given room ID, event type and state key.
-        pub fn new(room_id: &'a RoomId, event_type: EventType, state_key: &'a str) -> Self {
+        pub fn new(room_id: &'a RoomId, event_type: StateEventType, state_key: &'a str) -> Self {
             Self { room_id, event_type, state_key }
         }
     }
@@ -144,7 +144,7 @@ pub mod v3 {
         {
             // FIXME: find a way to make this if-else collapse with serde recognizing trailing
             // Option
-            let (room_id, event_type, state_key): (Box<RoomId>, EventType, String) =
+            let (room_id, event_type, state_key): (Box<RoomId>, StateEventType, String) =
                 if path_args.len() == 3 {
                     serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
                         _,
