@@ -1,5 +1,5 @@
 use proc_macro2::{Span, TokenStream};
-use quote::{format_ident, quote};
+use quote::quote;
 use syn::{Ident, LitStr};
 
 use super::event_parse::{EventEnumEntry, EventEnumInput, EventKind};
@@ -41,89 +41,49 @@ pub fn expand_event_type_enum(
     }];
     let mut all = input.enums.iter().map(|e| &e.events).collect::<Vec<_>>();
     all.push(&presence);
-    let (all_event_types, all_str_ev_types) = generate_variants(&all)?;
-    let all =
-        generate_enum(format_ident!("EventType"), all_str_ev_types, all_event_types, &ruma_common);
 
-    let (room_event_types, room_str_ev_types) = generate_variants(&room)?;
-    let room = generate_enum(
-        format_ident!("RoomEventType"),
-        room_str_ev_types,
-        room_event_types,
-        &ruma_common,
-    );
+    let mut res = TokenStream::new();
 
-    let (state_event_types, state_str_ev_types) = generate_variants(&state)?;
-    let state = generate_enum(
-        format_ident!("StateEventType"),
-        state_str_ev_types,
-        state_event_types,
-        &ruma_common,
-    );
+    res.extend(generate_enum("EventType", &all, &ruma_common)?);
+    res.extend(generate_enum("RoomEventType", &room, &ruma_common)?);
+    res.extend(generate_enum("StateEventType", &state, &ruma_common)?);
+    res.extend(generate_enum("MessageLikeEventType", &message, &ruma_common)?);
+    res.extend(generate_enum("EphemeralRoomEventType", &ephemeral, &ruma_common)?);
+    res.extend(generate_enum("RoomAccountDataEventType", &room_account, &ruma_common)?);
+    res.extend(generate_enum("GlobalAccountDataEventType", &global_account, &ruma_common)?);
+    res.extend(generate_enum("ToDeviceEventType", &to_device, &ruma_common)?);
 
-    let (message_event_types, message_str_ev_types) = generate_variants(&message)?;
-    let message = generate_enum(
-        format_ident!("MessageLikeEventType"),
-        message_str_ev_types,
-        message_event_types,
-        &ruma_common,
-    );
-
-    let (ephemeral_event_types, ephemeral_str_ev_types) = generate_variants(&ephemeral)?;
-    let ephemeral = generate_enum(
-        format_ident!("EphemeralRoomEventType"),
-        ephemeral_str_ev_types,
-        ephemeral_event_types,
-        &ruma_common,
-    );
-
-    let (room_account_event_types, room_account_str_ev_types) = generate_variants(&room_account)?;
-    let room_account = generate_enum(
-        format_ident!("RoomAccountDataEventType"),
-        room_account_str_ev_types,
-        room_account_event_types,
-        &ruma_common,
-    );
-
-    let (global_account_event_types, global_account_str_ev_types) =
-        generate_variants(&global_account)?;
-    let global_account = generate_enum(
-        format_ident!("GlobalAccountDataEventType"),
-        global_account_str_ev_types,
-        global_account_event_types,
-        &ruma_common,
-    );
-
-    let (to_device_event_types, to_device_str_ev_types) = generate_variants(&to_device)?;
-    let to_device = generate_enum(
-        format_ident!("ToDeviceEventType"),
-        to_device_str_ev_types,
-        to_device_event_types,
-        &ruma_common,
-    );
-
-    Ok(quote! {
-        #all
-        #room
-        #state
-        #message
-        #ephemeral
-        #room_account
-        #global_account
-        #to_device
-    })
+    Ok(res)
 }
 
 fn generate_enum(
-    ident: Ident,
-    ev_type_strings: Vec<&LitStr>,
-    variants: Vec<TokenStream>,
+    ident: &str,
+    input: &[&Vec<EventEnumEntry>],
     ruma_common: &TokenStream,
-) -> TokenStream {
+) -> syn::Result<TokenStream> {
     let str_doc = format!("Creates a string slice from this `{}`.", ident);
     let byte_doc = format!("Creates a byte slice from this `{}`.", ident);
-    let enum_doc = format!("The type of `{}` this is.", ident);
-    quote! {
+    let enum_doc = format!("The type of `{}` this is.", ident.strip_suffix("Type").unwrap());
+
+    let ident = Ident::new(ident, Span::call_site());
+
+    let mut deduped: Vec<&EventEnumEntry> = vec![];
+    for item in input.iter().copied().flatten() {
+        if let Some(idx) = deduped.iter().position(|e| e.ev_type == item.ev_type) {
+            // If there is a variant without config attributes use that
+            if deduped[idx].attrs != item.attrs && item.attrs.is_empty() {
+                deduped[idx] = item;
+            }
+        } else {
+            deduped.push(item);
+        }
+    }
+
+    let event_types = deduped.iter().map(|e| &e.ev_type);
+    let variants =
+        deduped.iter().map(|e| Ok(e.to_variant()?.decl())).collect::<syn::Result<Vec<_>>>()?;
+
+    Ok(quote! {
         #[doc = #enum_doc]
         ///
         /// This type can hold an arbitrary string. To check for events that are not available as a
@@ -132,8 +92,8 @@ fn generate_enum(
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
         pub enum #ident {
             #(
-                #[doc = #ev_type_strings]
-                #[ruma_enum(rename = #ev_type_strings)]
+                #[doc = #event_types]
+                #[ruma_enum(rename = #event_types)]
                 #variants,
             )*
             #[doc(hidden)]
@@ -151,27 +111,5 @@ fn generate_enum(
                 self.as_str().as_bytes()
             }
         }
-    }
-}
-
-fn generate_variants<'a>(
-    input: &'a [&Vec<EventEnumEntry>],
-) -> syn::Result<(Vec<TokenStream>, Vec<&'a LitStr>)> {
-    let mut deduped: Vec<&EventEnumEntry> = vec![];
-    for item in input.iter().copied().flatten() {
-        if let Some(idx) = deduped.iter().position(|e| e.ev_type == item.ev_type) {
-            // If there is a variant without config attributes use that
-            if deduped[idx].attrs != item.attrs && item.attrs.is_empty() {
-                deduped[idx] = item;
-            }
-        } else {
-            deduped.push(item);
-        }
-    }
-    let event_types = deduped.iter().map(|e| &e.ev_type).collect();
-
-    let event_types_variants =
-        deduped.iter().map(|e| Ok(e.to_variant()?.decl())).collect::<syn::Result<Vec<_>>>()?;
-
-    Ok((event_types_variants, event_types))
+    })
 }
