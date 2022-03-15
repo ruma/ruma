@@ -165,12 +165,6 @@ impl Amplitude {
     }
 }
 
-impl From<u8> for Amplitude {
-    fn from(value: u8) -> Self {
-        Self(value.into())
-    }
-}
-
 impl From<u16> for Amplitude {
     fn from(value: u16) -> Self {
         Self(value.min(Self::MAX).into())
