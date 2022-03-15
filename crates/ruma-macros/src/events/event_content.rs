@@ -185,7 +185,7 @@ fn generate_redacted_event_content(
     event_type: &LitStr,
     event_kind: Option<EventKind>,
     ruma_common: &TokenStream,
-) -> Result<TokenStream, syn::Error> {
+) -> syn::Result<TokenStream> {
     let serde = quote! { #ruma_common::exports::serde };
     let serde_json = quote! { #ruma_common::exports::serde_json };
 
