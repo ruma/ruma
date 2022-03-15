@@ -13,7 +13,7 @@ pub mod v1 {
 
     use ruma_common::{
         api::ruma_api,
-        events::{room::member::ThirdPartyInvite, EventType},
+        events::{room::member::ThirdPartyInvite, StateEventType},
         RoomId, UserId,
     };
 
@@ -35,9 +35,9 @@ pub mod v1 {
 
             /// The event type.
             ///
-            /// Must be `EventType::RoomMember`.
+            /// Must be `StateEventType::RoomMember`.
             #[serde(rename = "type")]
-            pub kind: EventType,
+            pub kind: StateEventType,
 
             /// The user ID of the user who sent the original invite event.
             pub sender: &'a UserId,
@@ -61,7 +61,7 @@ pub mod v1 {
             state_key: &'a UserId,
             content: &'a ThirdPartyInvite,
         ) -> Self {
-            Self { room_id, kind: EventType::RoomMember, sender, state_key, content }
+            Self { room_id, kind: StateEventType::RoomMember, sender, state_key, content }
         }
     }
 

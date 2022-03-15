@@ -4,7 +4,7 @@
 
 use ruma_common::{
     api::ruma_api,
-    events::{room::member::RoomMemberEventContent, AnyStrippedStateEvent, EventType},
+    events::{room::member::RoomMemberEventContent, AnyStrippedStateEvent, StateEventType},
     serde::Raw,
     EventId, MilliSecondsSinceUnixEpoch, RoomId, ServerName, UserId,
 };
@@ -42,7 +42,7 @@ ruma_api! {
 
         /// The value `m.room.member`.
         #[serde(rename = "type")]
-        pub kind: EventType,
+        pub kind: StateEventType,
 
         /// The user ID of the invited member.
         pub state_key: &'a UserId,
@@ -124,7 +124,7 @@ impl<'a> From<RequestInit<'a>> for Request<'a> {
             sender: init.sender,
             origin: init.origin,
             origin_server_ts: init.origin_server_ts,
-            kind: EventType::RoomMember,
+            kind: StateEventType::RoomMember,
             state_key: init.state_key,
             content: init.content,
             unsigned: init.unsigned,
