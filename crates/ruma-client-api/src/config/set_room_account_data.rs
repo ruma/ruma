@@ -36,7 +36,7 @@ pub mod v3 {
             ///
             /// Custom types should be namespaced to avoid clashes.
             #[ruma_api(path)]
-            pub event_type: &'a str,
+            pub event_type: RoomAccountDataEventType,
 
             /// The ID of the room to set account_data on.
             #[ruma_api(path)]
@@ -81,7 +81,7 @@ pub mod v3 {
         /// Creates a new `Request` with the given raw data, event type, room ID and user ID.
         pub fn new_raw(
             data: Raw<AnyRoomAccountDataEventContent>,
-            event_type: &'a str,
+            event_type: RoomAccountDataEventType,
             room_id: &'a RoomId,
             user_id: &'a UserId,
         ) -> Self {

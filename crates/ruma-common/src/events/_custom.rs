@@ -23,8 +23,8 @@ macro_rules! custom_event_content {
         impl EventContent for $i {
             type EventType = $evt;
 
-            fn event_type(&self) -> &str {
-                &self.event_type
+            fn event_type(&self) -> Self::EventType {
+                self.event_type[..].into()
             }
 
             fn from_parts(event_type: &str, _content: &RawJsonValue) -> serde_json::Result<Self> {

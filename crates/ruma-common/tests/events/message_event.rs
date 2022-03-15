@@ -8,7 +8,7 @@ use ruma_common::{
         room::{ImageInfo, ThumbnailInfo},
         sticker::StickerEventContent,
         AnyMessageLikeEvent, AnyMessageLikeEventContent, AnySyncMessageLikeEvent, MessageLikeEvent,
-        Unsigned,
+        MessageLikeEventType, Unsigned,
     },
     mxc_uri, room_id,
     serde::Raw,
@@ -86,7 +86,7 @@ fn deserialize_message_call_answer_content() {
     assert_matches!(
         from_json_value::<Raw<AnyMessageLikeEventContent>>(json_data)
             .unwrap()
-            .deserialize_content("m.call.answer")
+            .deserialize_content(MessageLikeEventType::CallAnswer)
             .unwrap(),
         AnyMessageLikeEventContent::CallAnswer(CallAnswerEventContent {
             answer: SessionDescription {

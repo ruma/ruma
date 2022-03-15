@@ -200,10 +200,10 @@ pub use self::{
 /// Use [`macros::EventContent`] to derive this traits. It is not meant to be implemented manually.
 pub trait EventContent: Sized + Serialize {
     /// The Rust enum for the event kind's known types.
-    type EventType;
+    type EventType: AsRef<str>;
 
     /// Get the event's type, like `m.room.message`.
-    fn event_type(&self) -> &str;
+    fn event_type(&self) -> Self::EventType;
 
     /// Constructs the given event content.
     #[doc(hidden)]
@@ -238,8 +238,8 @@ pub trait RedactContent {
 
 impl<T: EventContent> Raw<T> {
     /// Try to deserialize the JSON as an event's content.
-    pub fn deserialize_content(&self, event_type: &str) -> serde_json::Result<T> {
-        T::from_parts(event_type, self.json())
+    pub fn deserialize_content(&self, event_type: T::EventType) -> serde_json::Result<T> {
+        T::from_parts(event_type.as_ref(), self.json())
     }
 }
 

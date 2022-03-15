@@ -9,7 +9,7 @@ use ruma_common::{
             ThumbnailInfo,
         },
         AnyRoomEvent, AnyStateEvent, AnyStateEventContent, AnySyncStateEvent, StateEvent,
-        SyncStateEvent, Unsigned,
+        StateEventType, SyncStateEvent, Unsigned,
     },
     mxc_uri, room_alias_id, room_id,
     serde::Raw,
@@ -99,7 +99,7 @@ fn deserialize_aliases_content() {
     assert_matches!(
         from_json_value::<Raw<AnyStateEventContent>>(json_data)
             .unwrap()
-            .deserialize_content("m.room.aliases")
+            .deserialize_content(StateEventType::RoomAliases)
             .unwrap(),
         AnyStateEventContent::RoomAliases(content)
         if content.aliases == vec![room_alias_id!("#somewhere:localhost")]

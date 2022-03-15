@@ -161,8 +161,8 @@ impl RedactedRoomMemberEventContent {
 impl EventContent for RedactedRoomMemberEventContent {
     type EventType = StateEventType;
 
-    fn event_type(&self) -> &str {
-        "m.room.member"
+    fn event_type(&self) -> StateEventType {
+        StateEventType::RoomMember
     }
 
     fn from_parts(event_type: &str, content: &RawJsonValue) -> serde_json::Result<Self> {
