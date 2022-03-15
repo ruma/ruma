@@ -273,12 +273,16 @@ fn plain_content_deserialization() {
     assert_matches!(
         from_json_value::<AudioEventContent>(json_data)
             .unwrap(),
-        AudioEventContent { message, file, audio, .. }
+        AudioEventContent {
+            message,
+            file,
+            audio: AudioContent { duration: None, waveform: Some(waveform), .. },
+            ..
+        }
         if message.find_plain() == Some("Upload: my_new_song.webm")
             && message.find_html().is_none()
             && file.url == "mxc://notareal.hs/abcdef"
-            && audio.waveform.amplitudes().len() == 52
-            && audio.duration.is_none()
+            && waveform.amplitudes().len() == 52
     );
 }
 
@@ -307,13 +311,16 @@ fn encrypted_content_deserialization() {
     assert_matches!(
         from_json_value::<AudioEventContent>(json_data)
             .unwrap(),
-        AudioEventContent { message, file, audio, .. }
+        AudioEventContent {
+            message,
+            file,
+            audio: AudioContent { duration: None, waveform: None, .. },
+            ..
+        }
         if message.find_plain() == Some("Upload: my_file.txt")
             && message.find_html().is_none()
             && file.url == "mxc://notareal.hs/abcdef"
             && file.encryption_info.is_some()
-            && audio.waveform.is_empty()
-            && audio.duration.is_none()
     );
 }
 
@@ -365,7 +372,7 @@ fn message_event_deserialization() {
             && info.mimetype.as_deref() == Some("audio/opus")
             && info.size == Some(uint!(123_774))
             && audio.duration == Some(Duration::from_millis(5_300))
-            && audio.waveform.is_empty()
+            && audio.waveform.is_none()
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
             && room_id == room_id!("!roomid:notareal.hs")
             && sender == user_id!("@user:notareal.hs")

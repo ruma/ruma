@@ -67,8 +67,8 @@ pub struct AudioContent {
     pub duration: Option<Duration>,
 
     /// The waveform representation of the audio content.
-    #[serde(default, skip_serializing_if = "Waveform::is_empty")]
-    pub waveform: Waveform,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub waveform: Option<Waveform>,
 }
 
 impl AudioContent {
@@ -83,7 +83,7 @@ impl AudioContent {
 /// Must include between 30 and 120 `Amplitude`s.
 ///
 /// To build this, use the `TryFrom` implementations.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(try_from = "WaveformSerDeHelper")]
 pub struct Waveform(Vec<Amplitude>);
 
@@ -97,11 +97,6 @@ impl Waveform {
     /// The amplitudes of this `Waveform`.
     pub fn amplitudes(&self) -> &[Amplitude] {
         &self.0
-    }
-
-    /// Whether this `Waveform` is empty.
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
     }
 }
 
