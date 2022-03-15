@@ -5,7 +5,7 @@
 use js_int::UInt;
 use ruma_common::{
     api::ruma_api,
-    events::{room::member::RoomMemberEventContent, EventType},
+    events::{room::member::RoomMemberEventContent, StateEventType},
     serde::Raw,
     EventId, MilliSecondsSinceUnixEpoch, RoomId, ServerName, UserId,
 };
@@ -46,7 +46,7 @@ ruma_api! {
         /// The value `m.room.member`.
         #[ruma_api(query)]
         #[serde(rename = "type")]
-        pub event_type: EventType,
+        pub event_type: StateEventType,
 
         /// The user ID of the leaving member.
         #[ruma_api(query)]
@@ -95,7 +95,7 @@ pub struct RequestInit<'a> {
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The value `m.room.member`.
-    pub event_type: EventType,
+    pub event_type: StateEventType,
 
     /// The user ID of the leaving member.
     pub state_key: &'a str,

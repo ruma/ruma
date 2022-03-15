@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use js_int::UInt;
 use ruma_common::{
     encryption::{CrossSigningKey, DeviceKeys},
-    events::{receipt::Receipt, AnyToDeviceEventContent, EventType},
+    events::{receipt::Receipt, AnyToDeviceEventContent, ToDeviceEventType},
     presence::PresenceState,
     serde::{from_raw_json_value, Raw},
     to_device::DeviceIdOrAllDevices,
@@ -264,7 +264,7 @@ pub struct DirectDeviceContent {
 
     /// Event type for the message.
     #[serde(rename = "type")]
-    pub ev_type: EventType,
+    pub ev_type: ToDeviceEventType,
 
     /// Unique utf8 string ID for the message, used for idempotency.
     pub message_id: Box<TransactionId>,
@@ -278,7 +278,11 @@ pub struct DirectDeviceContent {
 
 impl DirectDeviceContent {
     /// Creates a new `DirectDeviceContent` with the given `sender, `ev_type` and `message_id`.
-    pub fn new(sender: Box<UserId>, ev_type: EventType, message_id: Box<TransactionId>) -> Self {
+    pub fn new(
+        sender: Box<UserId>,
+        ev_type: ToDeviceEventType,
+        message_id: Box<TransactionId>,
+    ) -> Self {
         Self { sender, ev_type, message_id, messages: DirectDeviceMessages::new() }
     }
 }
@@ -489,7 +493,7 @@ mod test {
             Edu::DirectToDevice(DirectDeviceContent {
                 sender, ev_type, message_id, messages
             }) if sender == "@john:example.com"
-                && *ev_type == EventType::RoomKeyRequest
+                && *ev_type == ToDeviceEventType::RoomKeyRequest
                 && message_id == "hiezohf6Hoo7kaev"
                 && messages.get(user_id!("@alice:example.org")).is_some()
         );
