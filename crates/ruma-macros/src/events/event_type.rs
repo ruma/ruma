@@ -65,6 +65,12 @@ fn generate_enum(
     let byte_doc = format!("Creates a byte slice from this `{}`.", ident);
     let enum_doc = format!("The type of `{}` this is.", ident.strip_suffix("Type").unwrap());
 
+    let deprecated_attr = (ident == "EventType").then(|| {
+        quote! {
+            #[deprecated = "use a fine-grained event type enum like RoomEventType instead"]
+        }
+    });
+
     let ident = Ident::new(ident, Span::call_site());
 
     let mut deduped: Vec<&EventEnumEntry> = vec![];
@@ -88,6 +94,7 @@ fn generate_enum(
         ///
         /// This type can hold an arbitrary string. To check for events that are not available as a
         /// documented variant here, use its string representation, obtained through `.as_str()`.
+        #deprecated_attr
         #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, #ruma_common::serde::StringEnum)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
         pub enum #ident {
@@ -100,6 +107,7 @@ fn generate_enum(
             _Custom(crate::PrivOwnedStr),
         }
 
+        #[allow(deprecated)]
         impl #ident {
             #[doc = #str_doc]
             pub fn as_str(&self) -> &str {
