@@ -508,21 +508,10 @@ fn to_event_path(
     var: EventKindVariation,
     ruma_common: &TokenStream,
 ) -> TokenStream {
-    let span = name.span();
-    let name = name.value();
+    let name_val = name.value();
+    let path = name_val.strip_prefix("m.").unwrap().split('.').map(|s| Ident::new(s, name.span()));
 
-    // There is no need to give a good compiler error as `to_camel_case` is called first.
-    assert_eq!(&name[..2], "m.");
-
-    let path: Vec<_> = name[2..].split('.').collect();
-
-    let event: String = name[2..]
-        .split(&['.', '_'] as &[char])
-        .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
-        .collect();
-
-    let path = path.iter().map(|s| Ident::new(s, span));
-
+    let event = m_prefix_name_to_type_name(name).unwrap();
     let event_name = if kind == EventKind::ToDevice {
         assert_eq!(var, EventKindVariation::Full);
         format_ident!("ToDevice{}Event", event)
@@ -538,27 +527,16 @@ fn to_event_content_path(
     prefix: Option<&str>,
     ruma_common: &TokenStream,
 ) -> TokenStream {
-    let span = name.span();
-    let name = name.value();
+    let name_val = name.value();
+    let path = name_val.strip_prefix("m.").unwrap().split('.').map(|s| Ident::new(s, name.span()));
 
-    // There is no need to give a good compiler error as `to_camel_case` is called first.
-    assert_eq!(&name[..2], "m.");
-
-    let path: Vec<_> = name[2..].split('.').collect();
-
-    let event: String = name[2..]
-        .split(&['.', '_'] as &[char])
-        .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
-        .collect();
-
+    let event = m_prefix_name_to_type_name(name).unwrap();
     let content_str = match kind {
         EventKind::ToDevice => {
             format_ident!("ToDevice{}{}EventContent", prefix.unwrap_or(""), event)
         }
         _ => format_ident!("{}{}EventContent", prefix.unwrap_or(""), event),
     };
-
-    let path = path.iter().map(|s| Ident::new(s, span));
 
     quote! {
         #ruma_common::events::#( #path )::*::#content_str
