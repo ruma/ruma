@@ -17,7 +17,7 @@ use ruma_common::{
             join_rules::{JoinRule, RoomJoinRulesEventContent},
             member::{MembershipState, RoomMemberEventContent},
         },
-        EventType,
+        RoomEventType,
     },
     room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, RoomId, RoomVersionId, UserId,
 };
@@ -198,7 +198,7 @@ pub fn do_check(
                 // Filter out the dummy messages events.
                 // These act as points in time where there should be a known state to
                 // test against.
-                && **k != (EventType::RoomMessage, "dummy".to_owned())
+                && **k != (RoomEventType::RoomMessage, "dummy".to_owned())
         })
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect::<StateMap<Box<EventId>>>();
@@ -252,7 +252,7 @@ impl TestStore<StateEvent> {
         let create_event = to_pdu_event::<&EventId>(
             "CREATE",
             alice(),
-            EventType::RoomCreate,
+            RoomEventType::RoomCreate,
             Some(""),
             to_raw_json_value(&json!({ "creator": alice() })).unwrap(),
             &[],
@@ -264,7 +264,7 @@ impl TestStore<StateEvent> {
         let alice_mem = to_pdu_event(
             "IMA",
             alice(),
-            EventType::RoomMember,
+            RoomEventType::RoomMember,
             Some(alice().to_string().as_str()),
             member_content_join(),
             &[cre.clone()],
@@ -275,7 +275,7 @@ impl TestStore<StateEvent> {
         let join_rules = to_pdu_event(
             "IJR",
             alice(),
-            EventType::RoomJoinRules,
+            RoomEventType::RoomJoinRules,
             Some(""),
             to_raw_json_value(&RoomJoinRulesEventContent::new(JoinRule::Public)).unwrap(),
             &[cre.clone(), alice_mem.event_id().to_owned()],
@@ -288,7 +288,7 @@ impl TestStore<StateEvent> {
         let bob_mem = to_pdu_event(
             "IMB",
             bob(),
-            EventType::RoomMember,
+            RoomEventType::RoomMember,
             Some(bob().to_string().as_str()),
             member_content_join(),
             &[cre.clone(), join_rules.event_id().to_owned()],
@@ -299,7 +299,7 @@ impl TestStore<StateEvent> {
         let charlie_mem = to_pdu_event(
             "IMC",
             charlie(),
-            EventType::RoomMember,
+            RoomEventType::RoomMember,
             Some(charlie().to_string().as_str()),
             member_content_join(),
             &[cre, join_rules.event_id().to_owned()],
@@ -384,7 +384,7 @@ pub fn member_content_join() -> Box<RawJsonValue> {
 pub fn to_init_pdu_event(
     id: &str,
     sender: Box<UserId>,
-    ev_type: EventType,
+    ev_type: RoomEventType,
     state_key: Option<&str>,
     content: Box<RawJsonValue>,
 ) -> Arc<StateEvent> {
@@ -417,7 +417,7 @@ pub fn to_init_pdu_event(
 pub fn to_pdu_event<S>(
     id: &str,
     sender: Box<UserId>,
-    ev_type: EventType,
+    ev_type: RoomEventType,
     state_key: Option<&str>,
     content: Box<RawJsonValue>,
     auth_events: &[S],
@@ -461,7 +461,7 @@ pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<StateEvent>> {
         to_pdu_event::<&EventId>(
             "CREATE",
             alice(),
-            EventType::RoomCreate,
+            RoomEventType::RoomCreate,
             Some(""),
             to_raw_json_value(&json!({ "creator": alice() })).unwrap(),
             &[],
@@ -470,7 +470,7 @@ pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<StateEvent>> {
         to_pdu_event(
             "IMA",
             alice(),
-            EventType::RoomMember,
+            RoomEventType::RoomMember,
             Some(alice().to_string().as_str()),
             member_content_join(),
             &["CREATE"],
@@ -479,7 +479,7 @@ pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<StateEvent>> {
         to_pdu_event(
             "IPOWER",
             alice(),
-            EventType::RoomPowerLevels,
+            RoomEventType::RoomPowerLevels,
             Some(""),
             to_raw_json_value(&json!({ "users": { alice().to_string(): 100 } })).unwrap(),
             &["CREATE", "IMA"],
@@ -488,7 +488,7 @@ pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<StateEvent>> {
         to_pdu_event(
             "IJR",
             alice(),
-            EventType::RoomJoinRules,
+            RoomEventType::RoomJoinRules,
             Some(""),
             to_raw_json_value(&RoomJoinRulesEventContent::new(JoinRule::Public)).unwrap(),
             &["CREATE", "IMA", "IPOWER"],
@@ -497,7 +497,7 @@ pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<StateEvent>> {
         to_pdu_event(
             "IMB",
             bob(),
-            EventType::RoomMember,
+            RoomEventType::RoomMember,
             Some(bob().to_string().as_str()),
             member_content_join(),
             &["CREATE", "IJR", "IPOWER"],
@@ -506,7 +506,7 @@ pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<StateEvent>> {
         to_pdu_event(
             "IMC",
             charlie(),
-            EventType::RoomMember,
+            RoomEventType::RoomMember,
             Some(charlie().to_string().as_str()),
             member_content_join(),
             &["CREATE", "IJR", "IPOWER"],
@@ -515,7 +515,7 @@ pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<StateEvent>> {
         to_pdu_event::<&EventId>(
             "START",
             charlie(),
-            EventType::RoomMessage,
+            RoomEventType::RoomMessage,
             Some("dummy"),
             to_raw_json_value(&json!({})).unwrap(),
             &[],
@@ -524,7 +524,7 @@ pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<StateEvent>> {
         to_pdu_event::<&EventId>(
             "END",
             charlie(),
-            EventType::RoomMessage,
+            RoomEventType::RoomMessage,
             Some("dummy"),
             to_raw_json_value(&json!({})).unwrap(),
             &[],
@@ -542,7 +542,7 @@ pub fn INITIAL_EVENTS_CREATE_ROOM() -> HashMap<Box<EventId>, Arc<StateEvent>> {
     vec![to_pdu_event::<&EventId>(
         "CREATE",
         alice(),
-        EventType::RoomCreate,
+        RoomEventType::RoomCreate,
         Some(""),
         to_raw_json_value(&json!({ "creator": alice() })).unwrap(),
         &[],
@@ -563,7 +563,7 @@ pub fn INITIAL_EDGES() -> Vec<Box<EventId>> {
 
 pub mod event {
     use ruma_common::{
-        events::{pdu::Pdu, EventType},
+        events::{pdu::Pdu, RoomEventType},
         EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId,
     };
     use serde::{Deserialize, Serialize};
@@ -596,7 +596,7 @@ pub mod event {
             }
         }
 
-        fn event_type(&self) -> &EventType {
+        fn event_type(&self) -> &RoomEventType {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => &ev.kind,
                 Pdu::RoomV3Pdu(ev) => &ev.kind,
