@@ -156,7 +156,7 @@ impl Amplitude {
     ///
     /// It will saturate if it is bigger than [`Amplitude::MAX`].
     pub fn new(value: u16) -> Self {
-        value.into()
+        Self(value.min(Self::MAX).into())
     }
 
     /// The value of this `Amplitude`.
@@ -167,6 +167,6 @@ impl Amplitude {
 
 impl From<u16> for Amplitude {
     fn from(value: u16) -> Self {
-        Self(value.min(Self::MAX).into())
+        Self::new(value)
     }
 }
