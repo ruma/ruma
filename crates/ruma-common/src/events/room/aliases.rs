@@ -6,8 +6,7 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
     events::{
-        EventContent, HasDeserializeFields, RedactContent, RedactedEventContent,
-        RedactedStateEventContent,
+        EventContent, HasDeserializeFields, RedactContent, RedactedEventContent, StateEventType,
     },
     RoomAliasId, RoomVersionId,
 };
@@ -77,6 +76,8 @@ impl RedactedRoomAliasesEventContent {
 }
 
 impl EventContent for RedactedRoomAliasesEventContent {
+    type EventType = StateEventType;
+
     fn event_type(&self) -> &str {
         "m.room.aliases"
     }
@@ -104,5 +105,3 @@ impl RedactedEventContent for RedactedRoomAliasesEventContent {
         HasDeserializeFields::Optional
     }
 }
-
-impl RedactedStateEventContent for RedactedRoomAliasesEventContent {}

@@ -1,7 +1,7 @@
 //! Implementation of the top level `*Event` derive macro.
 
 use proc_macro2::{Span, TokenStream};
-use quote::{format_ident, quote};
+use quote::quote;
 use syn::{
     parse_quote, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, GenericParam, Meta,
     MetaList, NestedMeta,
@@ -415,8 +415,7 @@ fn expand_redact_event(
     ruma_common: &TokenStream,
 ) -> TokenStream {
     let redacted_type = kind.to_event_ident(var.to_redacted());
-    let redacted_content_trait =
-        format_ident!("{}Content", kind.to_event_ident(EventKindVariation::Redacted));
+    let redacted_event_type_enum = kind.to_event_type_enum();
     let ident = &input.ident;
 
     let mut generics = input.generics.clone();
@@ -434,7 +433,8 @@ fn expand_redact_event(
     where_clause.predicates.push(parse_quote! { #ty_param: #ruma_common::events::RedactContent });
     where_clause.predicates.push(parse_quote! {
         <#ty_param as #ruma_common::events::RedactContent>::Redacted:
-            #ruma_common::events::#redacted_content_trait
+            #ruma_common::events::EventContent<EventType = #redacted_event_type_enum>
+                + #ruma_common::events::RedactedEventContent
     });
 
     let (impl_generics, ty_gen, where_clause) = generics.split_for_impl();

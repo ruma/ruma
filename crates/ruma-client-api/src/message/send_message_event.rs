@@ -7,7 +7,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::ruma_api,
-        events::{AnyMessageLikeEventContent, MessageLikeEventContent},
+        events::{AnyMessageLikeEventContent, EventContent, MessageLikeEventType},
         serde::Raw,
         EventId, RoomId, TransactionId,
     };
@@ -62,11 +62,14 @@ pub mod v3 {
         ///
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
-        pub fn new<T: MessageLikeEventContent>(
+        pub fn new<T>(
             room_id: &'a RoomId,
             txn_id: &'a TransactionId,
             content: &'a T,
-        ) -> serde_json::Result<Self> {
+        ) -> serde_json::Result<Self>
+        where
+            T: EventContent<EventType = MessageLikeEventType>,
+        {
             Ok(Self {
                 room_id,
                 txn_id,

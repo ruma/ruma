@@ -7,7 +7,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::ruma_api,
-        events::{AnyStateEventContent, StateEventContent},
+        events::{AnyStateEventContent, EventContent, StateEventType},
         serde::{Outgoing, Raw},
         EventId, RoomId,
     };
@@ -60,11 +60,14 @@ pub mod v3 {
         ///
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
-        pub fn new<T: StateEventContent>(
+        pub fn new<T>(
             room_id: &'a RoomId,
             state_key: &'a str,
             content: &'a T,
-        ) -> serde_json::Result<Self> {
+        ) -> serde_json::Result<Self>
+        where
+            T: EventContent<EventType = StateEventType>,
+        {
             Ok(Self {
                 room_id,
                 state_key,

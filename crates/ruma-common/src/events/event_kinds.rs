@@ -4,29 +4,29 @@ use ruma_macros::Event;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    EphemeralRoomEventContent, GlobalAccountDataEventContent, MessageLikeEventContent,
-    RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
-    RoomAccountDataEventContent, StateEventContent, ToDeviceEventContent, Unsigned,
+    EphemeralRoomEventType, EventContent, GlobalAccountDataEventType, MessageLikeEventType,
+    RedactedEventContent, RedactedUnsigned, RoomAccountDataEventType, StateEventType,
+    ToDeviceEventType, Unsigned,
 };
 use crate::{EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId};
 
 /// A global account data event.
 #[derive(Clone, Debug, Event)]
-pub struct GlobalAccountDataEvent<C: GlobalAccountDataEventContent> {
+pub struct GlobalAccountDataEvent<C: EventContent<EventType = GlobalAccountDataEventType>> {
     /// Data specific to the event type.
     pub content: C,
 }
 
 /// A room account data event.
 #[derive(Clone, Debug, Event)]
-pub struct RoomAccountDataEvent<C: RoomAccountDataEventContent> {
+pub struct RoomAccountDataEvent<C: EventContent<EventType = RoomAccountDataEventType>> {
     /// Data specific to the event type.
     pub content: C,
 }
 
 /// An ephemeral room event.
 #[derive(Clone, Debug, Event)]
-pub struct EphemeralRoomEvent<C: EphemeralRoomEventContent> {
+pub struct EphemeralRoomEvent<C: EventContent<EventType = EphemeralRoomEventType>> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -36,7 +36,7 @@ pub struct EphemeralRoomEvent<C: EphemeralRoomEventContent> {
 
 /// An ephemeral room event without a `room_id`.
 #[derive(Clone, Debug, Event)]
-pub struct SyncEphemeralRoomEvent<C: EphemeralRoomEventContent> {
+pub struct SyncEphemeralRoomEvent<C: EventContent<EventType = EphemeralRoomEventType>> {
     /// Data specific to the event type.
     pub content: C,
 }
@@ -46,7 +46,7 @@ pub struct SyncEphemeralRoomEvent<C: EphemeralRoomEventContent> {
 /// `MessageLikeEvent` implements the comparison traits using only the `event_id` field, a sorted
 /// list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct MessageLikeEvent<C: MessageLikeEventContent> {
+pub struct MessageLikeEvent<C: EventContent<EventType = MessageLikeEventType>> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -71,7 +71,7 @@ pub struct MessageLikeEvent<C: MessageLikeEventContent> {
 /// `SyncMessageLikeEvent` implements the comparison traits using only the `event_id` field, a
 /// sorted list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct SyncMessageLikeEvent<C: MessageLikeEventContent> {
+pub struct SyncMessageLikeEvent<C: EventContent<EventType = MessageLikeEventType>> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -93,7 +93,9 @@ pub struct SyncMessageLikeEvent<C: MessageLikeEventContent> {
 /// `RedactedMessageLikeEvent` implements the comparison traits using only the `event_id` field, a
 /// sorted list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct RedactedMessageLikeEvent<C: RedactedMessageLikeEventContent> {
+pub struct RedactedMessageLikeEvent<
+    C: EventContent<EventType = MessageLikeEventType> + RedactedEventContent,
+> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -118,7 +120,9 @@ pub struct RedactedMessageLikeEvent<C: RedactedMessageLikeEventContent> {
 /// `RedactedSyncMessageLikeEvent` implements the comparison traits using only the `event_id` field,
 /// a sorted list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct RedactedSyncMessageLikeEvent<C: RedactedMessageLikeEventContent> {
+pub struct RedactedSyncMessageLikeEvent<
+    C: EventContent<EventType = MessageLikeEventType> + RedactedEventContent,
+> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -140,7 +144,7 @@ pub struct RedactedSyncMessageLikeEvent<C: RedactedMessageLikeEventContent> {
 /// `StateEvent` implements the comparison traits using only the `event_id` field, a sorted list
 /// would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct StateEvent<C: StateEventContent> {
+pub struct StateEvent<C: EventContent<EventType = StateEventType>> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -174,7 +178,7 @@ pub struct StateEvent<C: StateEventContent> {
 /// `SyncStateEvent` implements the comparison traits using only the `event_id` field, a sorted list
 /// would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct SyncStateEvent<C: StateEventContent> {
+pub struct SyncStateEvent<C: EventContent<EventType = StateEventType>> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -202,7 +206,7 @@ pub struct SyncStateEvent<C: StateEventContent> {
 
 /// A stripped-down state event, used for previews of rooms the user has been invited to.
 #[derive(Clone, Debug, Event)]
-pub struct StrippedStateEvent<C: StateEventContent> {
+pub struct StrippedStateEvent<C: EventContent<EventType = StateEventType>> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -218,7 +222,7 @@ pub struct StrippedStateEvent<C: StateEventContent> {
 
 /// A minimal state event, used for creating a new room.
 #[derive(Clone, Debug, Event)]
-pub struct InitialStateEvent<C: StateEventContent> {
+pub struct InitialStateEvent<C: EventContent<EventType = StateEventType>> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -237,7 +241,7 @@ pub struct InitialStateEvent<C: StateEventContent> {
 /// `RedactedStateEvent` implements the comparison traits using only the `event_id` field, a sorted
 /// list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct RedactedStateEvent<C: RedactedStateEventContent> {
+pub struct RedactedStateEvent<C: EventContent<EventType = StateEventType> + RedactedEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -268,7 +272,9 @@ pub struct RedactedStateEvent<C: RedactedStateEventContent> {
 /// `RedactedSyncStateEvent` implements the comparison traits using only the `event_id` field, a
 /// sorted list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
+pub struct RedactedSyncStateEvent<
+    C: EventContent<EventType = StateEventType> + RedactedEventContent,
+> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -293,7 +299,7 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
 
 /// An event sent using send-to-device messaging.
 #[derive(Clone, Debug, Event)]
-pub struct ToDeviceEvent<C: ToDeviceEventContent> {
+pub struct ToDeviceEvent<C: EventContent<EventType = ToDeviceEventType>> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -303,7 +309,7 @@ pub struct ToDeviceEvent<C: ToDeviceEventContent> {
 
 /// The decrypted payload of an `m.olm.v1.curve25519-aes-sha2` event.
 #[derive(Clone, Debug, Event)]
-pub struct DecryptedOlmV1Event<C: MessageLikeEventContent> {
+pub struct DecryptedOlmV1Event<C: EventContent<EventType = MessageLikeEventType>> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -329,7 +335,7 @@ pub struct OlmV1Keys {
 
 /// The decrypted payload of an `m.megolm.v1.aes-sha2` event.
 #[derive(Clone, Debug, Event)]
-pub struct DecryptedMegolmV1Event<C: MessageLikeEventContent> {
+pub struct DecryptedMegolmV1Event<C: EventContent<EventType = MessageLikeEventType>> {
     /// Data specific to the event type.
     pub content: C,
 

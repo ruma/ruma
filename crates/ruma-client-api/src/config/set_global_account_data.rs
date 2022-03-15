@@ -7,7 +7,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::ruma_api,
-        events::{AnyGlobalAccountDataEventContent, GlobalAccountDataEventContent},
+        events::{AnyGlobalAccountDataEventContent, EventContent, GlobalAccountDataEventType},
         serde::Raw,
         UserId,
     };
@@ -58,10 +58,10 @@ pub mod v3 {
         ///
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
-        pub fn new<T: GlobalAccountDataEventContent>(
-            data: &'a T,
-            user_id: &'a UserId,
-        ) -> serde_json::Result<Self> {
+        pub fn new<T>(data: &'a T, user_id: &'a UserId) -> serde_json::Result<Self>
+        where
+            T: EventContent<EventType = GlobalAccountDataEventType>,
+        {
             Ok(Self {
                 user_id,
                 event_type: data.event_type(),
