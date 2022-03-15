@@ -80,7 +80,7 @@ impl AudioContent {
 
 /// The waveform representation of audio content.
 ///
-/// Must include between 30 and 120 `Amplitude`.
+/// Must include between 30 and 120 `Amplitude`s.
 ///
 /// To build this, use the `TryFrom` implementations.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
