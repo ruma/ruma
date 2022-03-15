@@ -144,7 +144,6 @@ impl TryFrom<&[Amplitude]> for Waveform {
 ///
 /// Must be an integer between 0 and 1024.
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Amplitude(UInt);
 
 impl Amplitude {
