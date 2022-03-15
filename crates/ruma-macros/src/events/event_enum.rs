@@ -525,9 +525,7 @@ fn to_event_path(
     var: EventKindVariation,
     ruma_common: &TokenStream,
 ) -> TokenStream {
-    let name_val = name.value();
-    let path = name_val.strip_prefix("m.").unwrap().split('.').map(|s| Ident::new(s, name.span()));
-
+    let path = event_module_path(name);
     let event = m_prefix_name_to_type_name(name).unwrap();
     let event_name = if kind == EventKind::ToDevice {
         assert_eq!(var, EventKindVariation::Full);
@@ -544,9 +542,7 @@ fn to_event_content_path(
     prefix: Option<&str>,
     ruma_common: &TokenStream,
 ) -> TokenStream {
-    let name_val = name.value();
-    let path = name_val.strip_prefix("m.").unwrap().split('.').map(|s| Ident::new(s, name.span()));
-
+    let path = event_module_path(name);
     let event = m_prefix_name_to_type_name(name).unwrap();
     let content_str = match kind {
         EventKind::ToDevice => {
@@ -558,6 +554,17 @@ fn to_event_content_path(
     quote! {
         #ruma_common::events::#( #path )::*::#content_str
     }
+}
+
+fn event_module_path(name: &LitStr) -> Vec<Ident> {
+    let value = name.value();
+    let value = value.strip_prefix("m.").unwrap();
+    value
+        .strip_suffix(".*")
+        .unwrap_or(value)
+        .split('.')
+        .map(|s| Ident::new(s, name.span()))
+        .collect()
 }
 
 fn field_return_type(
