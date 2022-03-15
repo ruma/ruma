@@ -85,7 +85,6 @@ impl AudioContent {
 /// To build this, use the `TryFrom` implementations.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(try_from = "WaveformSerDeHelper")]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Waveform(Vec<Amplitude>);
 
 impl Waveform {
