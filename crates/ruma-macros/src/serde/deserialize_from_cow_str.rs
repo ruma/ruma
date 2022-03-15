@@ -7,6 +7,7 @@ pub fn expand_deserialize_from_cow_str(ident: &Ident) -> syn::Result<TokenStream
     let ruma_common = import_ruma_common();
 
     Ok(quote! {
+        #[automatically_derived]
         impl<'de> #ruma_common::exports::serde::de::Deserialize<'de> for #ident {
             fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
             where

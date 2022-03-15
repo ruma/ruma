@@ -68,6 +68,7 @@ pub fn expand_enum_from_string(input: &ItemEnum) -> syn::Result<TokenStream> {
     }
 
     Ok(quote! {
+        #[automatically_derived]
         impl<T> ::std::convert::From<T> for #enum_name
         where
             T: ::std::convert::AsRef<::std::primitive::str>
