@@ -1,4 +1,4 @@
-//! Implementations of the MessageLikeEventContent and StateEventContent derive macro.
+//! Implementations of the EventContent derive macro.
 
 use std::borrow::Cow;
 
