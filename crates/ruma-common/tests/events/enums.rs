@@ -12,9 +12,9 @@ use ruma_common::{
         },
         AnyEphemeralRoomEvent, AnyMessageLikeEvent, AnyRoomEvent, AnyStateEvent,
         AnyStateEventContent, AnySyncMessageLikeEvent, AnySyncRoomEvent, AnySyncStateEvent,
-        EphemeralRoomEventType, EventType, GlobalAccountDataEventType, MessageLikeEvent,
-        MessageLikeEventType, RoomAccountDataEventType, StateEvent, StateEventType,
-        SyncMessageLikeEvent, SyncStateEvent, ToDeviceEventType, Unsigned,
+        EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEvent, MessageLikeEventType,
+        RoomAccountDataEventType, StateEvent, StateEventType, SyncMessageLikeEvent, SyncStateEvent,
+        ToDeviceEventType, Unsigned,
     },
     MilliSecondsSinceUnixEpoch,
 };
@@ -323,7 +323,10 @@ fn ephemeral_event_deserialization() {
 }
 
 #[test]
+#[allow(deprecated)]
 fn serialize_and_deserialize_from_display_form() {
+    use ruma_common::events::EventType;
+
     serde_json_eq(EventType::CallAnswer, json!("m.call.answer"));
     serde_json_eq(MessageLikeEventType::CallAnswer, json!("m.call.answer"));
     serde_json_eq(EventType::CallCandidates, json!("m.call.candidates"));
