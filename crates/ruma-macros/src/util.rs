@@ -39,14 +39,14 @@ pub(crate) fn m_prefix_name_to_type_name(name: &LitStr) -> syn::Result<Ident> {
     let span = name.span();
     let name = name.value();
 
-    if &name[..2] != "m." {
-        return Err(syn::Error::new(
+    let name = name.strip_prefix("m.").ok_or_else(|| {
+        syn::Error::new(
             span,
             format!("well-known matrix events have to start with `m.` found `{}`", name),
-        ));
-    }
+        )
+    })?;
 
-    let s: String = name[2..]
+    let s: String = name
         .split(&['.', '_'] as &[char])
         .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
         .collect();
