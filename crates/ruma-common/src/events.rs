@@ -199,12 +199,16 @@ pub use self::{
 
 /// The base trait that all event content types implement.
 ///
-/// Implementing this trait allows content types to be serialized as well as deserialized.
+/// Use [`macros::EventContent`] to derive this traits. It is not meant to be implemented manually.
 pub trait EventContent: Sized + Serialize {
-    /// A matrix event identifier, like `m.room.message`.
+    /// The Rust enum for the event kind's known types.
+    type EventType;
+
+    /// Get the event's type, like `m.room.message`.
     fn event_type(&self) -> &str;
 
     /// Constructs the given event content.
+    #[doc(hidden)]
     fn from_parts(event_type: &str, content: &RawJsonValue) -> serde_json::Result<Self>;
 }
 
@@ -241,24 +245,6 @@ impl<T: EventContent> Raw<T> {
     }
 }
 
-/// Marker trait for the content of an ephemeral room event.
-pub trait EphemeralRoomEventContent: EventContent {}
-
-/// Marker trait for the content of a global account data event.
-pub trait GlobalAccountDataEventContent: EventContent {}
-
-/// Marker trait for the content of a room account data event.
-pub trait RoomAccountDataEventContent: EventContent {}
-
-/// Marker trait for the content of a to device event.
-pub trait ToDeviceEventContent: EventContent {}
-
-/// Marker trait for the content of a message-like event.
-pub trait MessageLikeEventContent: EventContent {}
-
-/// Marker trait for the content of a state event.
-pub trait StateEventContent: EventContent {}
-
 /// The base trait that all redacted event content types implement.
 ///
 /// This trait's associated functions and methods should not be used to build
@@ -283,12 +269,6 @@ pub trait RedactedEventContent: EventContent {
     #[doc(hidden)]
     fn has_deserialize_fields() -> HasDeserializeFields;
 }
-
-/// Marker trait for the content of a redacted message-like event.
-pub trait RedactedMessageLikeEventContent: RedactedEventContent {}
-
-/// Marker trait for the content of a redacted state event.
-pub trait RedactedStateEventContent: RedactedEventContent {}
 
 /// Trait for abstracting over event content structs.
 ///

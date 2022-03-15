@@ -152,6 +152,10 @@ impl EventKind {
         format_ident!("Any{}", self.to_event_ident(var))
     }
 
+    pub fn to_event_type_enum(self) -> Ident {
+        format_ident!("{}Type", self)
+    }
+
     /// `Any[kind]EventContent`
     pub fn to_content_enum(self) -> Ident {
         format_ident!("Any{}Content", self)

@@ -10,8 +10,8 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
     events::{
-        EventContent, HasDeserializeFields, RedactContent, RedactedEventContent,
-        RedactedStateEventContent, StrippedStateEvent, SyncStateEvent,
+        EventContent, HasDeserializeFields, RedactContent, RedactedEventContent, StateEventType,
+        StrippedStateEvent, SyncStateEvent,
     },
     serde::StringEnum,
     MxcUri, PrivOwnedStr, RoomVersionId, ServerName, ServerSigningKeyId, UserId,
@@ -159,6 +159,8 @@ impl RedactedRoomMemberEventContent {
 }
 
 impl EventContent for RedactedRoomMemberEventContent {
+    type EventType = StateEventType;
+
     fn event_type(&self) -> &str {
         "m.room.member"
     }
@@ -186,8 +188,6 @@ impl RedactedEventContent for RedactedRoomMemberEventContent {
         HasDeserializeFields::Optional
     }
 }
-
-impl RedactedStateEventContent for RedactedRoomMemberEventContent {}
 
 /// The membership state of a user.
 ///

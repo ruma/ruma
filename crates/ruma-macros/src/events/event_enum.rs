@@ -71,6 +71,8 @@ fn expand_event_enum(
     let content: Vec<_> =
         events.iter().map(|event| to_event_path(event, kind, var, ruma_common)).collect();
 
+    let custom_ty = format_ident!("Custom{}Content", kind);
+
     let deserialize_impl = expand_deserialize_impl(kind, var, events, variants, ruma_common);
     let field_accessor_impl = expand_accessor_methods(kind, var, variants, ruma_common);
     let from_impl = expand_from_impl(&ident, &content, variants);
@@ -88,9 +90,7 @@ fn expand_event_enum(
             /// An event not defined by the Matrix specification
             #[doc(hidden)]
             _Custom(
-                #ruma_common::events::#event_struct<
-                    #ruma_common::events::_custom::CustomEventContent,
-                >,
+                #ruma_common::events::#event_struct<#ruma_common::events::_custom::#custom_ty>,
             ),
         }
 
@@ -250,6 +250,7 @@ fn expand_content_enum(
 
     let ident = kind.to_content_enum();
 
+    let event_type_enum = kind.to_event_type_enum();
     let event_type_str = events;
 
     let content: Vec<_> =
@@ -264,7 +265,6 @@ fn expand_content_enum(
     let variant_arms = variants.iter().map(|v| v.match_arm(quote! { Self })).collect::<Vec<_>>();
     let variant_ctors = variants.iter().map(|v| v.ctor(quote! { Self }));
 
-    let marker_trait_impl = expand_marker_trait_impl(kind, ruma_common);
     let from_impl = expand_from_impl(&ident, &content, variants);
 
     let serialize_custom_event_error_path =
@@ -290,6 +290,8 @@ fn expand_content_enum(
 
         #[automatically_derived]
         impl #ruma_common::events::EventContent for #ident {
+            type EventType = #ruma_common::events::#event_type_enum;
+
             fn event_type(&self) -> &::std::primitive::str {
                 match self {
                     #( #variant_arms(content) => content.event_type(), )*
@@ -317,7 +319,6 @@ fn expand_content_enum(
             }
         }
 
-        #marker_trait_impl
         #from_impl
     }
 }
@@ -400,24 +401,6 @@ fn expand_possibly_redacted_enum(
                 })
             }
         }
-    }
-}
-
-fn expand_marker_trait_impl(kind: EventKind, ruma_common: &TokenStream) -> TokenStream {
-    let marker_trait = match kind {
-        EventKind::State => quote! { StateEventContent },
-        EventKind::MessageLike => quote! { MessageLikeEventContent },
-        EventKind::Ephemeral => quote! { EphemeralRoomEventContent },
-        EventKind::GlobalAccountData => quote! { GlobalAccountDataEventContent },
-        EventKind::RoomAccountData => quote! { RoomAccountDataEventContent },
-        EventKind::ToDevice => quote! { ToDeviceEventContent },
-        _ => return TokenStream::new(),
-    };
-
-    let ident = kind.to_content_enum();
-    quote! {
-        #[automatically_derived]
-        impl #ruma_common::events::#marker_trait for #ident {}
     }
 }
 

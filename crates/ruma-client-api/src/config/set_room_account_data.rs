@@ -7,7 +7,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::ruma_api,
-        events::{AnyRoomAccountDataEventContent, RoomAccountDataEventContent},
+        events::{AnyRoomAccountDataEventContent, EventContent, RoomAccountDataEventType},
         serde::Raw,
         RoomId, UserId,
     };
@@ -62,11 +62,14 @@ pub mod v3 {
         ///
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
-        pub fn new<T: RoomAccountDataEventContent>(
+        pub fn new<T>(
             data: &'a T,
             room_id: &'a RoomId,
             user_id: &'a UserId,
-        ) -> serde_json::Result<Self> {
+        ) -> serde_json::Result<Self>
+        where
+            T: EventContent<EventType = RoomAccountDataEventType>,
+        {
             Ok(Self {
                 data: Raw::from_json(to_raw_json_value(data)?),
                 event_type: data.event_type(),
