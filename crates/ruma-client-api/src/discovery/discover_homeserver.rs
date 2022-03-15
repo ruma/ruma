@@ -27,6 +27,11 @@ ruma_api! {
         /// Information about the identity server to connect to.
         #[serde(rename = "m.identity_server")]
         pub identity_server: Option<IdentityServerInfo>,
+
+        /// Information about the tile server to use to display location data.
+        #[cfg(feature = "unstable-msc3488")]
+        #[serde(rename = "org.matrix.msc3488.tile_server")]
+        pub tile_server: Option<TileServerInfo>,
     }
 
     error: crate::Error
@@ -42,7 +47,12 @@ impl Request {
 impl Response {
     /// Creates a new `Response` with the given `HomeserverInfo`.
     pub fn new(homeserver: HomeserverInfo) -> Self {
-        Self { homeserver, identity_server: None }
+        Self {
+            homeserver,
+            identity_server: None,
+            #[cfg(feature = "unstable-msc3488")]
+            tile_server: None,
+        }
     }
 }
 
@@ -73,5 +83,24 @@ impl IdentityServerInfo {
     /// Creates an `IdentityServerInfo` with the given `base_url`.
     pub fn new(base_url: String) -> Self {
         Self { base_url }
+    }
+}
+
+/// Information about a discovered map tile server.
+#[cfg(feature = "unstable-msc3488")]
+#[derive(Clone, Debug, Deserialize, Hash, PartialEq, PartialOrd, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct TileServerInfo {
+    /// The URL of a map tile server's `style.json` file.
+    ///
+    /// See the [Mapbox Style Specification](https://docs.mapbox.com/mapbox-gl-js/style-spec/) for more details.
+    pub map_style_url: String,
+}
+
+#[cfg(feature = "unstable-msc3488")]
+impl TileServerInfo {
+    /// Creates a `TileServerInfo` with the given map style URL.
+    pub fn new(map_style_url: String) -> Self {
+        Self { map_style_url }
     }
 }
