@@ -19,3 +19,4 @@ mod room_message;
 mod state_event;
 mod stripped;
 mod to_device;
+mod video;

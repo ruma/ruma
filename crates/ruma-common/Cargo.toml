@@ -35,6 +35,7 @@ unstable-msc2676 = []
 unstable-msc2677 = []
 unstable-msc3551 = ["unstable-msc1767"]
 unstable-msc3552 = ["unstable-msc1767", "unstable-msc3551"]
+unstable-msc3553 = ["unstable-msc3552"]
 
 [dependencies]
 base64 = "0.13.0"
