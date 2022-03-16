@@ -27,15 +27,8 @@ use crate::{
 /// example, user A cannot force user B to join a room, and trying to force this state change
 /// directly will fail.
 ///
-/// The `third_party_invite` property will be set if this invite is an *invite* event and is the
-/// successor of an `m.room.third_party_invite` event, and absent otherwise.
-///
-/// This event may also include an `invite_room_state` key inside the event's unsigned data. If
-/// present, this contains an array of `StrippedState` events. These events provide information
-/// on a subset of state events such as the room name. Note that Ruma treats unsigned
-/// data on events as arbitrary JSON values, and the Ruma types for this event don't
-/// provide direct access to `invite_room_state`. If you need this data, you must extract and
-/// convert it from a `serde_json::Value` yourself.
+/// This event may also include an `invite_room_state` key inside the event's unsigned data, but
+/// Ruma doesn't currently expose this; see https://github.com/ruma/ruma/issues/998.
 ///
 /// The user for which a membership applies is represented by the `state_key`. Under some
 /// conditions, the `sender` and `state_key` may not match - this may be interpreted as the
