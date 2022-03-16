@@ -493,38 +493,39 @@ mod tests {
             },
         });
 
+        let ev = from_json_value::<StateEvent<RoomMemberEventContent>>(json).unwrap();
+
         assert_matches!(
-            from_json_value::<StateEvent<RoomMemberEventContent>>(json).unwrap(),
-            StateEvent {
-                content: RoomMemberEventContent {
+            ev.content,
+            RoomMemberEventContent {
+                avatar_url: None,
+                displayname: None,
+                is_direct: None,
+                membership: MembershipState::Join,
+                third_party_invite: None,
+                ..
+            }
+        );
+
+        assert_eq!(ev.event_id, "$h29iv0s8:example.com");
+        assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+        assert_eq!(ev.room_id, "!n8f893n9:example.com");
+        assert_eq!(ev.sender, "@carl:example.com");
+        assert_eq!(ev.state_key, "example.com");
+
+        assert_matches!(
+            ev.unsigned,
+            StateUnsigned {
+                prev_content: Some(RoomMemberEventContent {
                     avatar_url: None,
                     displayname: None,
                     is_direct: None,
                     membership: MembershipState::Join,
                     third_party_invite: None,
                     ..
-                },
-                event_id,
-                origin_server_ts,
-                room_id,
-                sender,
-                state_key,
-                unsigned: StateUnsigned {
-                    prev_content: Some(RoomMemberEventContent {
-                        avatar_url: None,
-                        displayname: None,
-                        is_direct: None,
-                        membership: MembershipState::Join,
-                        third_party_invite: None,
-                        ..
-                    }),
-                    ..
-                },
-            } if event_id == "$h29iv0s8:example.com"
-                && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
-                && room_id == "!n8f893n9:example.com"
-                && sender == "@carl:example.com"
-                && state_key == "example.com"
+                }),
+                ..
+            }
         );
     }
 
