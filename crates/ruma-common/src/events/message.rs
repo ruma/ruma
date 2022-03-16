@@ -100,6 +100,12 @@ impl MessageContent {
     }
 }
 
+impl From<Vec<Text>> for MessageContent {
+    fn from(variants: Vec<Text>) -> Self {
+        Self(variants)
+    }
+}
+
 /// Text message content.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -110,17 +116,34 @@ pub struct Text {
 
     /// The text content.
     pub body: String,
+
+    /// The language of the text.
+    ///
+    /// This must be a valid language code according to [BCP 47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt).
+    #[cfg(feature = "unstable-msc3554")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lang: Option<String>,
 }
 
 impl Text {
     /// Creates a new plain text message body.
     pub fn plain(body: impl Into<String>) -> Self {
-        Self { mimetype: "text/plain".to_owned(), body: body.into() }
+        Self {
+            mimetype: "text/plain".to_owned(),
+            body: body.into(),
+            #[cfg(feature = "unstable-msc3554")]
+            lang: None,
+        }
     }
 
     /// Creates a new HTML-formatted message body.
     pub fn html(body: impl Into<String>) -> Self {
-        Self { mimetype: "text/html".to_owned(), body: body.into() }
+        Self {
+            mimetype: "text/html".to_owned(),
+            body: body.into(),
+            #[cfg(feature = "unstable-msc3554")]
+            lang: None,
+        }
     }
 
     /// Creates a new HTML-formatted message body by parsing the Markdown in `body`.

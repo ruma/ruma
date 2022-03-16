@@ -354,3 +354,45 @@ fn emote_event_deserialization() {
             && unsigned.is_empty()
     );
 }
+
+#[test]
+#[cfg(feature = "unstable-msc3554")]
+fn lang_serialization() {
+    use ruma_common::events::message::{MessageContent, Text};
+
+    let content = MessageContent::from(vec![
+        assign!(Text::plain("Bonjour le monde !"), { lang: Some("fr".into()) }),
+        assign!(Text::plain("Hallo Welt!"), { lang: Some("de".into()) }),
+        assign!(Text::plain("Hello World!"), { lang: Some("en".into()) }),
+    ]);
+
+    assert_eq!(
+        to_json_value(&content).unwrap(),
+        json!({
+            "org.matrix.msc1767.message": [
+                { "body": "Bonjour le monde !", "mimetype": "text/plain", "lang": "fr"},
+                { "body": "Hallo Welt!", "mimetype": "text/plain", "lang": "de"},
+                { "body": "Hello World!", "mimetype": "text/plain", "lang": "en"},
+            ]
+        })
+    );
+}
+
+#[test]
+#[cfg(feature = "unstable-msc3554")]
+fn lang_deserialization() {
+    use ruma_common::events::message::MessageContent;
+
+    let json_data = json!({
+        "org.matrix.msc1767.message": [
+            { "body": "Bonjour le monde !", "mimetype": "text/plain", "lang": "fr"},
+            { "body": "Hallo Welt!", "mimetype": "text/plain", "lang": "de"},
+            { "body": "Hello World!", "mimetype": "text/plain", "lang": "en"},
+        ]
+    });
+
+    let content = from_json_value::<MessageContent>(json_data).unwrap();
+    assert_eq!(content.variants()[0].lang.as_deref(), Some("fr"));
+    assert_eq!(content.variants()[1].lang.as_deref(), Some("de"));
+    assert_eq!(content.variants()[2].lang.as_deref(), Some("en"));
+}
