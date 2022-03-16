@@ -125,6 +125,7 @@ unstable-msc3488 = [
 unstable-msc3551 = ["ruma-common/unstable-msc3551"]
 unstable-msc3552 = ["ruma-common/unstable-msc3552"]
 unstable-msc3553 = ["ruma-common/unstable-msc3553"]
+unstable-msc3554 = ["ruma-common/unstable-msc3554"]
 unstable-msc3618 = ["ruma-federation-api/unstable-msc3618"]
 unstable-msc3723 = ["ruma-federation-api/unstable-msc3723"]
 
@@ -142,6 +143,7 @@ __ci = [
     "unstable-msc3551",
     "unstable-msc3552",
     "unstable-msc3553",
+    "unstable-msc3554",
     "unstable-msc3618",
     "unstable-msc3723",
     "ruma-state-res/__ci",
