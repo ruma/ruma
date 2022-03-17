@@ -4,6 +4,7 @@ use std::{
     time::Duration,
 };
 
+use clap::Args;
 use isahc::{
     auth::{Authentication, Credentials},
     config::Configurable,
@@ -16,6 +17,15 @@ use serde_json::json;
 use crate::{cargo::Package, cmd, util::ask_yes_no, GithubConfig, Metadata, Result};
 
 const GITHUB_API_RUMA: &str = "https://api.github.com/repos/ruma/ruma";
+
+#[derive(Args)]
+pub struct ReleaseArgs {
+    /// The crate to release
+    pub package: String,
+
+    /// The new version of the crate
+    pub version: Version,
+}
 
 /// Task to create a new release of the given crate.
 #[derive(Debug)]
