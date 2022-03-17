@@ -2,7 +2,10 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{Fields, FieldsNamed, FieldsUnnamed, ItemEnum};
 
-use super::util::{get_rename, get_rename_rule};
+use super::{
+    attr::EnumAttrs,
+    util::{get_enum_attributes, get_rename_rule},
+};
 
 pub fn expand_enum_as_ref_str(input: &ItemEnum) -> syn::Result<TokenStream> {
     let enum_name = &input.ident;
@@ -12,7 +15,8 @@ pub fn expand_enum_as_ref_str(input: &ItemEnum) -> syn::Result<TokenStream> {
         .iter()
         .map(|v| {
             let variant_name = &v.ident;
-            let (field_capture, variant_str) = match (get_rename(v)?, &v.fields) {
+            let EnumAttrs { rename, .. } = get_enum_attributes(v)?;
+            let (field_capture, variant_str) = match (rename, &v.fields) {
                 (None, Fields::Unit) => (
                     None,
                     rename_rule.apply_to_variant(&variant_name.to_string()).into_token_stream(),

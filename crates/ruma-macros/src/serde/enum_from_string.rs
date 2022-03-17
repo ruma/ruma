@@ -2,7 +2,10 @@ use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::{Fields, FieldsNamed, FieldsUnnamed, ItemEnum};
 
-use super::util::{get_rename, get_rename_rule};
+use super::{
+    attr::EnumAttrs,
+    util::{get_enum_attributes, get_rename_rule},
+};
 
 pub fn expand_enum_from_string(input: &ItemEnum) -> syn::Result<TokenStream> {
     let enum_name = &input.ident;
@@ -13,7 +16,8 @@ pub fn expand_enum_from_string(input: &ItemEnum) -> syn::Result<TokenStream> {
         .iter()
         .map(|v| {
             let variant_name = &v.ident;
-            let variant_str = match (get_rename(v)?, &v.fields) {
+            let EnumAttrs { rename, aliases } = get_enum_attributes(v)?;
+            let variant_str = match (rename, &v.fields) {
                 (None, Fields::Unit) => Some(
                     rename_rule.apply_to_variant(&variant_name.to_string()).into_token_stream(),
                 ),
@@ -56,7 +60,12 @@ pub fn expand_enum_from_string(input: &ItemEnum) -> syn::Result<TokenStream> {
                 }
             };
 
-            Ok(variant_str.map(|s| quote! { #s => #enum_name :: #variant_name }))
+            Ok(variant_str.map(|s| {
+                quote! {
+                    #( #aliases => #enum_name :: #variant_name, )*
+                    #s => #enum_name :: #variant_name
+                }
+            }))
         })
         .collect::<syn::Result<_>>()?;
 
