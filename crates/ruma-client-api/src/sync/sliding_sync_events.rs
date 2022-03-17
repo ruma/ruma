@@ -101,7 +101,7 @@ pub struct SyncRequest {
 
     /// Specific rooms we no longer want to receive events from
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub unsubscribe_rooms: Option<Vec<String>>,
+    pub unsubscribe_rooms: Option<Vec<Box<RoomId>>>,
 }
 
 ruma_api! {
