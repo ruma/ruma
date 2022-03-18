@@ -13,40 +13,63 @@ const MSRV: &str = "1.55";
 
 #[derive(Args)]
 pub struct CiArgs {
-    /// Which version of Rust to test against.
     #[clap(subcommand)]
-    pub version: Option<CiVersion>,
+    pub cmd: Option<CiCmd>,
 }
 
 #[derive(Subcommand)]
-pub enum CiVersion {
+pub enum CiCmd {
+    /// Check crates compile with the MSRV
     Msrv,
-    Nightly,
+    /// Run all the tasks that use the stable version
     Stable,
+    /// Check crates compile (stable)
+    Check,
+    /// Run tests (stable)
+    Test,
+    /// Run all the tasks that use the nightly version
+    Nightly,
+    /// Check formatting (nightly)
+    Fmt,
+    /// Check ruma crate with `full` feature (nightly)
+    CheckFull,
+    /// Lint code with clippy (nightly)
+    Clippy,
+    /// Check sorting of dependencies (nightly)
+    Dependencies,
+    /// Check spec links point to a recent version (nightly)
+    SpecLinks,
 }
 
 /// Task to run CI tests.
 pub struct CiTask {
-    /// Which version of Rust to test against.
-    version: Option<CiVersion>,
+    /// Which command to run.
+    cmd: Option<CiCmd>,
 
     /// The root of the workspace.
     project_root: PathBuf,
 }
 
 impl CiTask {
-    pub(crate) fn new(version: Option<CiVersion>) -> Result<Self> {
+    pub(crate) fn new(cmd: Option<CiCmd>) -> Result<Self> {
         let project_root = Metadata::load()?.workspace_root;
-        Ok(Self { version, project_root })
+        Ok(Self { cmd, project_root })
     }
 
     pub(crate) fn run(self) -> Result<()> {
         let _p = pushd(&self.project_root)?;
 
-        match self.version {
-            Some(CiVersion::Msrv) => self.build_msrv()?,
-            Some(CiVersion::Stable) => self.build_stable()?,
-            Some(CiVersion::Nightly) => self.build_nightly()?,
+        match self.cmd {
+            Some(CiCmd::Msrv) => self.build_msrv()?,
+            Some(CiCmd::Stable) => self.build_stable()?,
+            Some(CiCmd::Check) => self.check()?,
+            Some(CiCmd::Test) => self.test()?,
+            Some(CiCmd::Nightly) => self.build_nightly()?,
+            Some(CiCmd::Fmt) => self.fmt()?,
+            Some(CiCmd::CheckFull) => self.check_full()?,
+            Some(CiCmd::Clippy) => self.clippy()?,
+            Some(CiCmd::Dependencies) => self.dependencies()?,
+            Some(CiCmd::SpecLinks) => check_spec_links(&self.project_root.join("crates"))?,
             None => {
                 self.build_msrv().and(self.build_stable()).and(self.build_nightly())?;
             }
@@ -55,6 +78,7 @@ impl CiTask {
         Ok(())
     }
 
+    /// Check that the crates compile with the MSRV.
     fn build_msrv(&self) -> Result<()> {
         // Check all crates with all features except
         // * ruma (would pull in ruma-signatures)
@@ -78,13 +102,21 @@ impl CiTask {
         cmd!("rustup run {MSRV} cargo check -p ruma").run().map_err(Into::into)
     }
 
+    /// Run all the tasks that use the stable version.
     fn build_stable(&self) -> Result<()> {
-        // 1. Make sure everything compiles
+        self.check()?;
+        self.test()
+    }
+
+    /// Check that the crates compile with the stable version.
+    fn check(&self) -> Result<()> {
         cmd!("rustup run stable cargo check --workspace --all-features").run()?;
         cmd!("rustup run stable cargo check -p ruma-client --no-default-features").run()?;
-        cmd!("rustup run stable cargo check -p ruma-common --no-default-features --features client,server").run()?;
+        cmd!("rustup run stable cargo check -p ruma-common --no-default-features --features client,server").run().map_err(Into::into)
+    }
 
-        // 2. Run tests
+    /// Run tests with the stable version.
+    fn test(&self) -> Result<()> {
         let workspace_res = cmd!("rustup run stable cargo test --features __ci").run();
         let events_compat_res =
             cmd!("rustup run stable cargo test -p ruma-common --features events --features compat compat").run();
@@ -92,12 +124,40 @@ impl CiTask {
         workspace_res.and(events_compat_res).map_err(Into::into)
     }
 
+    /// Run all the tasks that use the nightly version.
     fn build_nightly(&self) -> Result<()> {
         // Check formatting
-        let fmt_res = cmd!("rustup run nightly cargo fmt -- --check").run();
+        let fmt_res = self.fmt();
         // Check `ruma` crate with `full` feature (sometimes things only compile with an unstable
         // flag)
-        let check_full_res = cmd!("rustup run nightly cargo check -p ruma --features full").run();
+        let check_full_res = self.check_full();
+        // Lint code with clippy
+        let clippy_res = self.clippy();
+        // Check dependencies being sorted
+        let dependencies_res = self.dependencies();
+        // Check that all links point to the same version of the spec
+        let spec_links = check_spec_links(&self.project_root.join("crates"));
+
+        fmt_res
+            .and(check_full_res)
+            .and(clippy_res)
+            .and(dependencies_res)
+            .map_err(Into::into)
+            .and(spec_links)
+    }
+
+    /// Check the formatting with the nightly version.
+    fn fmt(&self) -> Result<()> {
+        cmd!("rustup run nightly cargo fmt -- --check").run().map_err(Into::into)
+    }
+
+    /// Check ruma crate with full feature with the nightly version.
+    fn check_full(&self) -> Result<()> {
+        cmd!("rustup run nightly cargo check -p ruma --features full").run().map_err(Into::into)
+    }
+
+    /// Lint the code with clippy with the nightly version.
+    fn clippy(&self) -> Result<()> {
         // Check everything with default features with clippy
         let clippy_default_res = cmd!(
             "
@@ -114,24 +174,19 @@ impl CiTask {
             "
         )
         .run();
-        // Check dependencies being sorted
-        let sort_res = cmd!(
+        clippy_default_res.and(clippy_all_res).map_err(Into::into)
+    }
+
+    /// Check the sorting of dependencies with the nightly version.
+    fn dependencies(&self) -> Result<()> {
+        cmd!(
             "
             rustup run nightly cargo sort
                 --workspace --grouped --check
                 --order package,lib,features,dependencies,dev-dependencies,build-dependencies
             "
         )
-        .run();
-        // Check that all links point to the same version of the spec
-        let spec_links = check_spec_links(&self.project_root.join("crates"));
-
-        fmt_res
-            .and(check_full_res)
-            .and(clippy_default_res)
-            .and(clippy_all_res)
-            .and(sort_res)
-            .map_err(Into::into)
-            .and(spec_links)
+        .run()
+        .map_err(Into::into)
     }
 }
