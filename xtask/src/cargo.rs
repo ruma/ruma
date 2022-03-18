@@ -29,14 +29,16 @@ pub struct Package {
 
 impl Package {
     /// Update the version of this crate.
-    pub fn update_version(&mut self, version: &Version) -> Result<()> {
+    pub fn update_version(&mut self, version: &Version, dry_run: bool) -> Result<()> {
         println!("Updating {} to version {}…", self.name, version);
 
-        let mut document = read_file(&self.manifest_path)?.parse::<Document>()?;
+        if !dry_run {
+            let mut document = read_file(&self.manifest_path)?.parse::<Document>()?;
 
-        document["package"]["version"] = value(version.to_string());
+            document["package"]["version"] = value(version.to_string());
 
-        write_file(&self.manifest_path, document.to_string())?;
+            write_file(&self.manifest_path, document.to_string())?;
+        }
 
         self.version = version.clone();
 
@@ -45,34 +47,36 @@ impl Package {
 
     /// Update the version of this crate in dependant crates' manifests, with the given version
     /// prefix.
-    pub(crate) fn update_dependants(&self, metadata: &Metadata) -> Result<()> {
+    pub(crate) fn update_dependants(&self, metadata: &Metadata, dry_run: bool) -> Result<()> {
         for package in metadata.packages.iter().filter(|p| {
             p.manifest_path.starts_with(&metadata.workspace_root)
                 && p.dependencies.iter().any(|d| d.name == self.name)
         }) {
             println!("Updating dependency in {} crate…", package.name);
 
-            let mut document = read_file(&package.manifest_path)?.parse::<Document>()?;
+            if !dry_run {
+                let mut document = read_file(&package.manifest_path)?.parse::<Document>()?;
 
-            let version = if !self.version.pre.is_empty()
-                || self.name.strip_suffix("-macros") == Some(&package.name)
-            {
-                format!("={}", self.version)
-            } else {
-                self.version.to_string()
-            };
-
-            for dependency in package.dependencies.iter().filter(|d| d.name == self.name) {
-                let kind = match dependency.kind {
-                    Some(DependencyKind::Dev) => "dev-dependencies",
-                    Some(DependencyKind::Build) => "build-dependencies",
-                    None => "dependencies",
+                let version = if !self.version.pre.is_empty()
+                    || self.name.strip_suffix("-macros") == Some(&package.name)
+                {
+                    format!("={}", self.version)
+                } else {
+                    self.version.to_string()
                 };
 
-                document[kind][&self.name]["version"] = value(version.as_str());
-            }
+                for dependency in package.dependencies.iter().filter(|d| d.name == self.name) {
+                    let kind = match dependency.kind {
+                        Some(DependencyKind::Dev) => "dev-dependencies",
+                        Some(DependencyKind::Build) => "build-dependencies",
+                        None => "dependencies",
+                    };
 
-            write_file(&package.manifest_path, document.to_string())?;
+                    document[kind][&self.name]["version"] = value(version.as_str());
+                }
+
+                write_file(&package.manifest_path, document.to_string())?;
+            }
         }
 
         Ok(())
@@ -139,7 +143,7 @@ impl Package {
     }
 
     /// Publish this package on crates.io.
-    pub fn publish(&self, client: &HttpClient) -> Result<bool> {
+    pub fn publish(&self, client: &HttpClient, dry_run: bool) -> Result<bool> {
         println!("Publishing {} {} on crates.io…", self.name, self.version);
         let _dir = pushd(&self.manifest_path.parent().unwrap())?;
 
@@ -150,7 +154,9 @@ impl Package {
                 Err("Release interrupted by user.".into())
             }
         } else {
-            cmd!("cargo publish").run()?;
+            if !dry_run {
+                cmd!("cargo publish").run()?;
+            }
             Ok(true)
         }
     }
