@@ -67,6 +67,8 @@ event_enum! {
         "m.sticker",
         #[cfg(feature = "unstable-msc3553")]
         "m.video",
+        #[cfg(feature = "unstable-msc3245")]
+        "m.voice",
     }
 
     /// Any state event.
@@ -374,6 +376,8 @@ impl AnyMessageLikeEventContent {
             Self::Notice(ev) => ev.relates_to.clone().map(Into::into),
             #[cfg(feature = "unstable-msc1767")]
             Self::Emote(ev) => ev.relates_to.clone().map(Into::into),
+            #[cfg(feature = "unstable-msc3245")]
+            Self::Voice(ev) => ev.relates_to.clone().map(Into::into),
             #[cfg(feature = "unstable-msc3246")]
             Self::Audio(ev) => ev.relates_to.clone().map(Into::into),
             #[cfg(feature = "unstable-msc3488")]

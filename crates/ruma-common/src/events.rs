@@ -185,6 +185,8 @@ pub mod tag;
 pub mod typing;
 #[cfg(feature = "unstable-msc3553")]
 pub mod video;
+#[cfg(feature = "unstable-msc3245")]
+pub mod voice;
 
 #[cfg(feature = "unstable-msc2675")]
 pub use self::relation::Relations;
