@@ -14,12 +14,14 @@ use serde_json::from_str as from_json_str;
 #[cfg(feature = "default")]
 mod cargo;
 mod ci;
+mod doc;
 #[cfg(feature = "default")]
 mod release;
 #[cfg(feature = "default")]
 mod util;
 
 use ci::{CiArgs, CiTask};
+use doc::DocTask;
 #[cfg(feature = "default")]
 use release::{ReleaseArgs, ReleaseTask};
 
@@ -35,6 +37,8 @@ struct Xtask {
 enum Command {
     /// Run continuous integration checks
     Ci(CiArgs),
+    /// Build the docs
+    Doc(DocTask),
     /// Publish a new version of a crate on crates.io, `publish` can be used as an alias
     #[cfg(feature = "default")]
     #[clap(alias = "publish")]
@@ -47,6 +51,7 @@ fn main() -> Result<()> {
             let ci = CiTask::new(args.cmd)?;
             ci.run()
         }
+        Command::Doc(doc) => doc.run(),
         #[cfg(feature = "default")]
         Command::Release(args) => {
             let mut task = ReleaseTask::new(args.package, args.version)?;
