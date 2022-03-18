@@ -96,10 +96,13 @@ impl Package {
             ..self.version.clone()
         };
 
-        if !changelog.starts_with(&format!("# {}\n", version))
-            && !changelog.starts_with(&format!("# {} (unreleased)\n", version))
-            && !changelog.starts_with("# [unreleased]\n")
+        let update = if !changelog.starts_with(&format!("# {}\n", version)) {
+            false
+        } else if changelog.starts_with(&format!("# {} (unreleased)\n", version))
+            || !changelog.starts_with("# [unreleased]\n")
         {
+            update
+        } else {
             return Err("Could not find version title in changelog".into());
         };
 
