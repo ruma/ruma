@@ -39,6 +39,8 @@ pub enum CiCmd {
     Dependencies,
     /// Check spec links point to a recent version (nightly)
     SpecLinks,
+    /// Check typos
+    Typos,
 }
 
 /// Task to run CI tests.
@@ -70,6 +72,7 @@ impl CiTask {
             Some(CiCmd::Clippy) => self.clippy()?,
             Some(CiCmd::Dependencies) => self.dependencies()?,
             Some(CiCmd::SpecLinks) => check_spec_links(&self.project_root.join("crates"))?,
+            Some(CiCmd::Typos) => self.typos()?,
             None => {
                 self.build_msrv().and(self.build_stable()).and(self.build_nightly())?;
             }
@@ -136,14 +139,9 @@ impl CiTask {
         // Check dependencies being sorted
         let dependencies_res = self.dependencies();
         // Check that all links point to the same version of the spec
-        let spec_links = check_spec_links(&self.project_root.join("crates"));
+        let spec_links_res = check_spec_links(&self.project_root.join("crates"));
 
-        fmt_res
-            .and(check_full_res)
-            .and(clippy_res)
-            .and(dependencies_res)
-            .map_err(Into::into)
-            .and(spec_links)
+        fmt_res.and(check_full_res).and(clippy_res).and(dependencies_res).and(spec_links_res)
     }
 
     /// Check the formatting with the nightly version.
@@ -188,5 +186,15 @@ impl CiTask {
         )
         .run()
         .map_err(Into::into)
+    }
+
+    /// Check the typos.
+    fn typos(&self) -> Result<()> {
+        if cmd!("typos --version").run().is_err() {
+            return Err(
+                "Could not find typos. Install it by running `cargo install typos-cli`".into()
+            );
+        }
+        cmd!("typos").run().map_err(Into::into)
     }
 }

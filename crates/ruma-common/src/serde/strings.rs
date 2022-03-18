@@ -31,8 +31,8 @@ where
     }
 }
 
-/// Serde serializiation decorator to map None to an empty String,
-/// and forward Somes to the Serialize implementation for T.
+/// Serde serializiation decorator to map `None` to an empty `String`,
+/// and forward `Some`s to the `Serialize` implementation for `T`.
 ///
 /// To be used like this:
 /// `#[serde(serialize_with = "empty_string_as_none")]`

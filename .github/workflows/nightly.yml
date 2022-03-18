@@ -33,3 +33,12 @@ jobs:
         with:
           command: run
           args: -p xtask --no-default-features ci nightly
+  
+  typos:
+    name: Spell Check with Typos
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Check the spelling of the files in our repo
+        uses: crate-ci/typos@master
