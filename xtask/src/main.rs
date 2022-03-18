@@ -54,7 +54,7 @@ fn main() -> Result<()> {
         Command::Doc(doc) => doc.run(),
         #[cfg(feature = "default")]
         Command::Release(args) => {
-            let mut task = ReleaseTask::new(args.package, args.version)?;
+            let mut task = ReleaseTask::new(args.package, args.version, args.dry_run)?;
             task.run()
         }
     }

@@ -25,6 +25,10 @@ pub struct ReleaseArgs {
 
     /// The new version of the crate
     pub version: Version,
+
+    /// List the steps but don't actually change anything
+    #[clap(long)]
+    pub dry_run: bool,
 }
 
 /// Task to create a new release of the given crate.
@@ -44,11 +48,14 @@ pub struct ReleaseTask {
 
     /// The github configuration required to publish a release.
     config: GithubConfig,
+
+    /// List the steps but don't actually change anything
+    pub dry_run: bool,
 }
 
 impl ReleaseTask {
     /// Create a new `ReleaseTask` with the given `name` and `version`.
-    pub(crate) fn new(name: String, version: Version) -> Result<Self> {
+    pub(crate) fn new(name: String, version: Version, dry_run: bool) -> Result<Self> {
         let metadata = Metadata::load()?;
 
         let package = metadata
@@ -62,17 +69,15 @@ impl ReleaseTask {
 
         let http_client = HttpClient::new()?;
 
-        Ok(Self { metadata, package, version, http_client, config })
+        Ok(Self { metadata, package, version, http_client, config, dry_run })
     }
 
     /// Run the task to effectively create a release.
     pub(crate) fn run(&mut self) -> Result<()> {
         if self.package.name == "ruma-macros" {
             return Err(
-                "The ruma-macros crate is always released together with the ruma-common crate.\n\
-                 To release both, simply run\n\
-                 \n\
-                 cargo xtask release ruma-common"
+                "The ruma-macros crate is always released together with the ruma-common crate. \
+                 To release both, simply run `cargo xtask release ruma-common`"
                     .into(),
             );
         }
@@ -123,14 +128,14 @@ impl ReleaseTask {
             if let Some(m) = macros.as_mut() {
                 println!("Updating version of ruma-macros crate…");
 
-                m.update_version(&self.version)?;
-                m.update_dependants(&self.metadata)?;
+                m.update_version(&self.version, self.dry_run)?;
+                m.update_dependants(&self.metadata, self.dry_run)?;
 
                 println!("Resuming release of {}…", self.title());
             }
 
-            self.package.update_version(&self.version)?;
-            self.package.update_dependants(&self.metadata)?;
+            self.package.update_version(&self.version, self.dry_run)?;
+            self.package.update_dependants(&self.metadata, self.dry_run)?;
             true
         } else if !ask_yes_no(&format!(
             "Package is already version {}. Skip creating a commit and continue?",
@@ -141,16 +146,16 @@ impl ReleaseTask {
             false
         };
 
-        let changes = &self.package.changes(!prerelease)?;
+        let changes = &self.package.changes(!prerelease && !self.dry_run)?;
 
         if create_commit {
             self.commit()?;
         }
 
         if let Some(m) = macros {
-            let published = m.publish(&self.http_client)?;
+            let published = m.publish(&self.http_client, self.dry_run)?;
 
-            if published {
+            if published && !self.dry_run {
                 // Crate was published, instead of publishing skipped (because release already
                 // existed).
                 println!("Waiting 20 seconds for the release to make it into the crates.io index…");
@@ -158,12 +163,14 @@ impl ReleaseTask {
             }
         }
 
-        self.package.publish(&self.http_client)?;
+        self.package.publish(&self.http_client, self.dry_run)?;
 
         let branch = cmd!("git rev-parse --abbrev-ref HEAD").read()?;
         if publish_only {
             println!("Pushing to remote repository…");
-            cmd!("git push {remote} {branch}").run()?;
+            if !self.dry_run {
+                cmd!("git push {remote} {branch}").run()?;
+            }
 
             println!("Crate published successfully!");
             return Ok(());
@@ -171,16 +178,20 @@ impl ReleaseTask {
 
         let tag = &self.tag_name();
 
-        println!("Creating git tag…");
+        println!("Creating git tag '{tag}'…");
         if cmd!("git tag -l {tag}").read()?.is_empty() {
-            cmd!("git tag -s {tag} -m {title} -m {changes}").read()?;
+            if !self.dry_run {
+                cmd!("git tag -s {tag} -m {title} -m {changes}").read()?;
+            }
         } else if !ask_yes_no("This tag already exists. Skip this step and continue?")? {
             return Ok(());
         }
 
         println!("Pushing to remote repository…");
         if cmd!("git ls-remote --tags {remote} {tag}").read()?.is_empty() {
-            cmd!("git push {remote} {branch} {tag}").run()?;
+            if !self.dry_run {
+                cmd!("git push {remote} {branch} {tag}").run()?;
+            }
         } else if !ask_yes_no("This tag has already been pushed. Skip this step and continue?")? {
             return Ok(());
         }
@@ -198,7 +209,9 @@ impl ReleaseTask {
         })
         .to_string();
 
-        self.release(request_body)?;
+        if !self.dry_run {
+            self.release(request_body)?;
+        }
 
         println!("Release created successfully!");
 
@@ -231,43 +244,48 @@ impl ReleaseTask {
     fn commit(&self) -> Result<()> {
         let stdin = stdin();
 
-        let instructions = "Ready to commit the changes. [continue/abort/diff]: ";
-        print!("{}", instructions);
-        stdout().flush()?;
-
-        let mut handle = stdin.lock();
-
-        let mut input = String::new();
-        loop {
-            let eof = handle.read_line(&mut input)? == 0;
-            if eof {
-                return Err("User aborted commit".into());
-            }
-
-            match input.trim().to_ascii_lowercase().as_str() {
-                "c" | "con" | "continue" => {
-                    break;
-                }
-                "a" | "abort" => {
-                    return Err("User aborted commit".into());
-                }
-                "d" | "diff" => {
-                    cmd!("git diff").run()?;
-                }
-                _ => {
-                    println!("Unknown command.");
-                }
-            }
+        if !self.dry_run {
+            let instructions = "Ready to commit the changes. [continue/abort/diff]: ";
             print!("{}", instructions);
             stdout().flush()?;
 
-            input.clear();
+            let mut handle = stdin.lock();
+
+            let mut input = String::new();
+            loop {
+                let eof = handle.read_line(&mut input)? == 0;
+                if eof {
+                    return Err("User aborted commit".into());
+                }
+
+                match input.trim().to_ascii_lowercase().as_str() {
+                    "c" | "con" | "continue" => {
+                        break;
+                    }
+                    "a" | "abort" => {
+                        return Err("User aborted commit".into());
+                    }
+                    "d" | "diff" => {
+                        cmd!("git diff").run()?;
+                    }
+                    _ => {
+                        println!("Unknown command.");
+                    }
+                }
+                print!("{}", instructions);
+                stdout().flush()?;
+
+                input.clear();
+            }
         }
 
         let message = format!("Release {}", self.title());
 
-        println!("Creating commit…");
-        cmd!("git commit -a -m {message}").read()?;
+        println!("Creating commit with message '{message}'…");
+
+        if !self.dry_run {
+            cmd!("git commit -a -m {message}").read()?;
+        }
 
         Ok(())
     }
