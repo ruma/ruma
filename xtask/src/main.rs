@@ -44,7 +44,7 @@ enum Command {
 fn main() -> Result<()> {
     match Xtask::parse().cmd {
         Command::Ci(args) => {
-            let ci = CiTask::new(args.version)?;
+            let ci = CiTask::new(args.cmd)?;
             ci.run()
         }
         #[cfg(feature = "default")]
