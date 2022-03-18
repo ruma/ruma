@@ -177,6 +177,12 @@ impl CiTask {
 
     /// Check the sorting of dependencies with the nightly version.
     fn dependencies(&self) -> Result<()> {
+        if cmd!("cargo sort --version").run().is_err() {
+            return Err(
+                "Could not find cargo-sort. Install it by running `cargo install cargo-sort`"
+                    .into(),
+            );
+        }
         cmd!(
             "
             rustup run nightly cargo sort
