@@ -10,8 +10,8 @@ on:
     branches: [main, next]
 
 jobs:
-  check_nightly:
-    name: Check
+  fmt:
+    name: Fmt
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -22,23 +22,71 @@ jobs:
           profile: minimal
           toolchain: nightly
           override: true
-          components: rustfmt, clippy
+          components: rustfmt
       - uses: Swatinem/rust-cache@v1
-      - name: Install cargo-sort
-        uses: actions-rs/install@v0.1
-        with:
-          crate: cargo-sort
       - name: Run checks
         uses: actions-rs/cargo@v1
         with:
           command: run
-          args: -p xtask --no-default-features ci nightly
-  
-  typos:
-    name: Spell Check with Typos
+          args: -p xtask --no-default-features ci fmt
+
+  check_full:
+    name: Check Full Features
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
-      - name: Check the spelling of the files in our repo
-        uses: crate-ci/typos@master
+      - name: Install rust nightly toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+      - uses: Swatinem/rust-cache@v1
+      - name: Run checks
+        uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: -p xtask --no-default-features ci nightly-full
+
+  clippy_default:
+    name: Clippy Default Features
+    runs-on: ubuntu-latest
+    needs: check_full
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Install rust nightly toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+          components: clippy
+      - uses: Swatinem/rust-cache@v1
+      - name: Run lints
+        uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: -p xtask --no-default-features ci clippy-default
+
+  clippy_all:
+    name: Clippy All Features
+    runs-on: ubuntu-latest
+    needs: check_full
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Install rust nightly toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+          components: clippy
+      - uses: Swatinem/rust-cache@v1
+      - name: Run lints
+        uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: -p xtask --no-default-features ci clippy-all
