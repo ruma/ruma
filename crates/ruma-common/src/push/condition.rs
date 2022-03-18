@@ -456,7 +456,7 @@ mod tests {
         assert!("foobar".matches_pattern("foo*", false));
         assert!("foo bar".matches_pattern("foo*", false));
         assert!(!"foo".matches_pattern("foo?", false));
-        assert!("foo".matches_pattern("fo?", false));
+        assert!("fooo".matches_pattern("foo?", false));
         assert!("FOO".matches_pattern("foo", false));
         assert!("".matches_pattern("", false));
         assert!("".matches_pattern("*", false));

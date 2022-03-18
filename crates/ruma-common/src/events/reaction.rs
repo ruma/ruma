@@ -37,7 +37,7 @@ impl From<Relation> for ReactionEventContent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "rel_type", rename = "m.annotation")]
 pub struct Relation {
-    /// The event that is being annoted.
+    /// The event that is being annotated.
     pub event_id: Box<EventId>,
 
     /// A string that indicates the annotation being applied.

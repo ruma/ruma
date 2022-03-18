@@ -68,7 +68,7 @@ fn empty_post_response_http_repr() {
     let res = post::Response {};
     let http_res = res.try_into_http_response::<Vec<u8>>().unwrap();
 
-    // For the reponse, the body should be an empty dict again...
+    // For the response, the body should be an empty dict again...
     assert_eq!(http_res.body(), b"{}");
 }
 

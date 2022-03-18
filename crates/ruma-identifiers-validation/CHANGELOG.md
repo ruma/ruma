@@ -26,7 +26,7 @@ Breaking changes:
 
 Breaking changes:
 
-* Fix a typo in a public function name: `user_id::localpart_is_fully_{comforming => conforming}`
+* Fix a typo in a public function name: `user_id::localpart_is_fully_conforming`
 
 # 0.3.0
 
