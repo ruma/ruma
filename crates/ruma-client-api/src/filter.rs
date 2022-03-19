@@ -67,7 +67,7 @@ pub enum RelationType {
     Replacement,
 
     /// `m.thread`, a participant to a thread.
-    #[ruma_enum(rename = "io.element.thread")]
+    #[ruma_enum(rename = "io.element.thread", alias = "m.thread")]
     Thread,
 
     #[doc(hidden)]
@@ -153,6 +153,7 @@ pub struct RoomEventFilter<'a> {
     #[cfg(feature = "unstable-msc3440")]
     #[serde(
         rename = "io.element.relation_types",
+        alias = "related_by_rel_types",
         default,
         skip_serializing_if = "<[_]>::is_empty"
     )]
@@ -165,6 +166,7 @@ pub struct RoomEventFilter<'a> {
     #[cfg(feature = "unstable-msc3440")]
     #[serde(
         rename = "io.element.relation_senders",
+        alias = "related_by_senders",
         default,
         skip_serializing_if = "<[_]>::is_empty"
     )]
