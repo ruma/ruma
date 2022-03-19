@@ -41,6 +41,14 @@ macro_rules! owned_identifier {
             }
         }
 
+        impl std::ops::Deref for $owned {
+            type Target = $id;
+
+            fn deref(&self) -> &Self::Target {
+                &self.inner
+            }
+        }
+
         impl std::borrow::Borrow<$id> for $owned {
             fn borrow(&self) -> &$id {
                 self.as_ref()

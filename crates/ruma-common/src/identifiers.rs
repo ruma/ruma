@@ -35,7 +35,7 @@ pub use ruma_identifiers_validation::error::Error;
 
 /// Provides owned variants for opaque identifiers.
 pub mod owned {
-    pub use crate::{
+    pub use super::{
         client_secret::OwnedClientSecret, device_id::OwnedDeviceId,
         device_key_id::OwnedDeviceKeyId, event_id::OwnedEventId, key_name::OwnedKeyName,
         mxc_uri::OwnedMxcUri, room_alias_id::OwnedRoomAliasId, room_id::OwnedRoomId,
