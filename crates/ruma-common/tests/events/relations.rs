@@ -182,7 +182,43 @@ fn thread_reply_serialize() {
 
 #[test]
 #[cfg(feature = "unstable-msc3440")]
-fn thread_deserialize() {
+fn thread_stable_deserialize() {
+    use ruma_common::events::room::message::Thread;
+
+    let json = json!({
+        "msgtype": "m.text",
+        "body": "<text msg>",
+        "m.relates_to": {
+            "rel_type": "m.thread",
+            "event_id": "$1598361704261elfgc",
+            "m.in_reply_to": {
+                "event_id": "$latesteventid",
+            },
+        },
+    });
+
+    assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json).unwrap(),
+        RoomMessageEventContent {
+            msgtype: MessageType::Text(_),
+            relates_to: Some(Relation::Thread(
+                Thread {
+                    event_id,
+                    in_reply_to: InReplyTo { event_id: reply_to_event_id, .. },
+                    is_falling_back,
+                    ..
+                },
+            )),
+            ..
+        } if event_id == "$1598361704261elfgc"
+          && reply_to_event_id == "$latesteventid"
+          && !is_falling_back
+    );
+}
+
+#[test]
+#[cfg(feature = "unstable-msc3440")]
+fn thread_unstable_deserialize() {
     use ruma_common::events::room::message::Thread;
 
     let json = json!({
