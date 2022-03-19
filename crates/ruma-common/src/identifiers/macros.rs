@@ -41,6 +41,12 @@ macro_rules! owned_identifier {
             }
         }
 
+        impl AsRef<str> for $owned {
+            fn as_ref(&self) -> &str {
+                &self.inner.as_ref()
+            }
+        }
+
         impl std::ops::Deref for $owned {
             type Target = $id;
 
@@ -92,6 +98,8 @@ macro_rules! owned_identifier {
                 serializer.serialize_str(self.as_ref().as_str())
             }
         }
+
+        partial_eq_string!($owned);
     };
 }
 
@@ -235,7 +243,7 @@ macro_rules! opaque_identifier_common_impls {
         }
 
         partial_eq_string!($id);
-        partial_eq_string!(Box<$id>);
+        partial_eq_string!(Box<$id>); // todo: Remove when all instances of Box have been converted to Owned
     };
 }
 
