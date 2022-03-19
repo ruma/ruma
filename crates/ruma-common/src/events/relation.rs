@@ -135,7 +135,7 @@ pub struct Relations {
 
     /// Thread relation.
     #[cfg(feature = "unstable-msc3440")]
-    #[serde(rename = "io.element.thread")]
+    #[serde(rename = "io.element.thread", alias = "m.thread")]
     pub thread: Option<BundledThread>,
 }
 

@@ -18,8 +18,10 @@ impl<'de> Deserialize<'de> for Relation {
         let ev = EventWithRelatesToJsonRepr::deserialize(deserializer)?;
 
         #[cfg(feature = "unstable-msc3440")]
-        if let Some(RelationJsonRepr::Thread(ThreadJsonRepr { event_id, is_falling_back })) =
-            ev.relates_to.relation
+        if let Some(
+            RelationJsonRepr::ThreadStable(ThreadStableJsonRepr { event_id, is_falling_back })
+            | RelationJsonRepr::ThreadUnstable(ThreadUnstableJsonRepr { event_id, is_falling_back }),
+        ) = ev.relates_to.relation
         {
             let in_reply_to = ev
                 .relates_to
@@ -43,7 +45,9 @@ impl<'de> Deserialize<'de> for Relation {
                 // access to the rel_type of the unknown relation.
                 RelationJsonRepr::Unknown => Relation::_Custom,
                 #[cfg(feature = "unstable-msc3440")]
-                RelationJsonRepr::Thread(_) => unreachable!(),
+                RelationJsonRepr::ThreadStable(_) | RelationJsonRepr::ThreadUnstable(_) => {
+                    unreachable!()
+                }
             }
         } else {
             Relation::_Custom
@@ -80,7 +84,7 @@ impl Serialize for Relation {
             Relation::Thread(Thread { event_id, in_reply_to, is_falling_back }) => {
                 EventWithRelatesToJsonRepr::new(RelatesToJsonRepr {
                     in_reply_to: Some(in_reply_to.clone()),
-                    relation: Some(RelationJsonRepr::Thread(ThreadJsonRepr {
+                    relation: Some(RelationJsonRepr::ThreadUnstable(ThreadUnstableJsonRepr {
                         event_id: event_id.clone(),
                         is_falling_back: *is_falling_back,
                     })),
@@ -140,10 +144,15 @@ enum RelationJsonRepr {
     #[serde(rename = "m.replace")]
     Replacement(ReplacementJsonRepr),
 
-    /// An event that belongs to a thread.
+    /// An event that belongs to a thread, with unstable names.
+    #[cfg(feature = "unstable-msc3440")]
+    #[serde(rename = "m.thread")]
+    ThreadStable(ThreadStableJsonRepr),
+
+    /// An event that belongs to a thread, with unstable names.
     #[cfg(feature = "unstable-msc3440")]
     #[serde(rename = "io.element.thread")]
-    Thread(ThreadJsonRepr),
+    ThreadUnstable(ThreadUnstableJsonRepr),
 
     /// An unknown relation type.
     ///
@@ -159,10 +168,23 @@ struct ReplacementJsonRepr {
     event_id: Box<EventId>,
 }
 
-/// A thread relation without the reply fallback.
+/// A thread relation without the reply fallback, with stable names.
 #[derive(Clone, Deserialize, Serialize)]
 #[cfg(feature = "unstable-msc3440")]
-struct ThreadJsonRepr {
+struct ThreadStableJsonRepr {
+    /// The ID of the root message in the thread.
+    event_id: Box<EventId>,
+
+    /// Whether the `m.in_reply_to` field is a fallback for older clients or a real reply in a
+    /// thread.
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+    is_falling_back: bool,
+}
+
+/// A thread relation without the reply fallback, with unstable names.
+#[derive(Clone, Deserialize, Serialize)]
+#[cfg(feature = "unstable-msc3440")]
+struct ThreadUnstableJsonRepr {
     /// The ID of the root message in the thread.
     event_id: Box<EventId>,
 
