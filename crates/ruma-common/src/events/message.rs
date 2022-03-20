@@ -9,7 +9,7 @@ mod content_serde;
 
 use content_serde::MessageContentSerDeHelper;
 
-use super::room::message::Relation;
+use super::room::message::{FormattedBody, MessageFormat, Relation, TextMessageEventContent};
 
 /// The payload for an extensible text message.
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
@@ -46,6 +46,20 @@ impl MessageEventContent {
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
         Self { message: MessageContent::markdown(body), relates_to: None }
     }
+
+    /// Create a new `MessageEventContent` from the given `TextMessageEventContent` and optional
+    /// relation.
+    pub fn from_text_room_message(
+        content: TextMessageEventContent,
+        relates_to: Option<Relation>,
+    ) -> Self {
+        let TextMessageEventContent { body, formatted, message, .. } = content;
+        if let Some(message) = message {
+            Self { message, relates_to }
+        } else {
+            Self { message: MessageContent::from_room_message_content(body, formatted), relates_to }
+        }
+    }
 }
 
 /// Text message content.
@@ -76,6 +90,17 @@ impl MessageContent {
         }
         message.push(Text::plain(body));
         Self(message)
+    }
+
+    /// Create a new `MessageContent` from the given body and optional formatted body.
+    pub fn from_room_message_content(body: String, formatted: Option<FormattedBody>) -> Self {
+        if let Some(FormattedBody { body: html_body, .. }) =
+            formatted.filter(|formatted| formatted.format == MessageFormat::Html)
+        {
+            Self::html(body, html_body)
+        } else {
+            Self::plain(body)
+        }
     }
 
     /// Get the plain text representation of this message.

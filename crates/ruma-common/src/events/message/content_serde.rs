@@ -9,31 +9,46 @@ use super::{MessageContent, Text};
 
 #[derive(Error, Debug)]
 pub enum MessageContentSerdeError {
-    #[error("missing field `{0}`")]
-    MissingField(String),
+    #[error("missing field `m.message` or `m.text`")]
+    MissingMessage,
 }
 
 #[derive(Debug, Default, Deserialize)]
 pub(crate) struct MessageContentSerDeHelper {
-    /// Plain text short form.
-    #[serde(rename = "org.matrix.msc1767.text", skip_serializing_if = "Option::is_none")]
-    text: Option<String>,
+    /// Plain text short form, stable name.
+    #[serde(rename = "m.text")]
+    text_stable: Option<String>,
 
-    /// Long form.
-    #[serde(rename = "org.matrix.msc1767.message", default, skip_serializing_if = "Vec::is_empty")]
-    message: Vec<Text>,
+    /// Plain text short form, unstable name.
+    #[serde(rename = "org.matrix.msc1767.text")]
+    text_unstable: Option<String>,
+
+    /// Long form, stable name.
+    #[serde(rename = "m.message")]
+    message_stable: Option<Vec<Text>>,
+
+    /// Long form, unstable name.
+    #[serde(rename = "org.matrix.msc1767.message")]
+    message_unstable: Option<Vec<Text>>,
 }
 
 impl TryFrom<MessageContentSerDeHelper> for MessageContent {
     type Error = MessageContentSerdeError;
 
     fn try_from(helper: MessageContentSerDeHelper) -> Result<Self, Self::Error> {
-        if !helper.message.is_empty() {
-            Ok(Self(helper.message))
-        } else if let Some(text) = helper.text {
+        let MessageContentSerDeHelper {
+            text_stable,
+            text_unstable,
+            message_stable,
+            message_unstable,
+        } = helper;
+
+        if let Some(message) = message_stable.or(message_unstable) {
+            Ok(Self(message))
+        } else if let Some(text) = text_stable.or(text_unstable) {
             Ok(Self::plain(text))
         } else {
-            Err(MessageContentSerdeError::MissingField("m.message".into()))
+            Err(MessageContentSerdeError::MissingMessage)
         }
     }
 }
