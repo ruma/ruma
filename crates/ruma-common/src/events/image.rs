@@ -76,23 +76,48 @@ impl ImageEventContent {
     }
 }
 
-/// Information about a thumbnail file content.
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+/// Image content.
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct ThumbnailFileContentInfo {
-    /// The mimetype of the thumbnail, e.g. `image/png`.
+pub struct ImageContent {
+    /// The height of the image in pixels.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub mimetype: Option<String>,
+    pub height: Option<UInt>,
 
-    /// The size of the thumbnail in bytes.
+    /// The width of the image in pixels.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub size: Option<UInt>,
+    pub width: Option<UInt>,
 }
 
-impl ThumbnailFileContentInfo {
-    /// Creates an empty `ThumbnailFileContentInfo`.
+impl ImageContent {
+    /// Creates a new empty `ImageContent`.
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Creates a new `ImageContent` with the given width and height.
+    pub fn with_size(width: UInt, height: UInt) -> Self {
+        Self { height: Some(height), width: Some(width) }
+    }
+}
+
+/// Thumbnail content.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct ThumbnailContent {
+    /// The file info of the thumbnail.
+    #[serde(flatten)]
+    pub file: ThumbnailFileContent,
+
+    /// The image info of the thumbnail.
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub image: Option<Box<ImageContent>>,
+}
+
+impl ThumbnailContent {
+    /// Creates a `ThumbnailContent` with the given file and image info.
+    pub fn new(file: ThumbnailFileContent, image: Option<Box<ImageContent>>) -> Self {
+        Self { file, image }
     }
 }
 
@@ -136,47 +161,22 @@ impl ThumbnailFileContent {
     }
 }
 
-/// Thumbnail content.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+/// Information about a thumbnail file content.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct ThumbnailContent {
-    /// The file info of the thumbnail.
-    #[serde(flatten)]
-    pub file: ThumbnailFileContent,
-
-    /// The image info of the thumbnail.
-    #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    pub image: Option<Box<ImageContent>>,
-}
-
-impl ThumbnailContent {
-    /// Creates a `ThumbnailContent` with the given file and image info.
-    pub fn new(file: ThumbnailFileContent, image: Option<Box<ImageContent>>) -> Self {
-        Self { file, image }
-    }
-}
-
-/// Image content.
-#[derive(Default, Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct ImageContent {
-    /// The height of the image in pixels.
+pub struct ThumbnailFileContentInfo {
+    /// The mimetype of the thumbnail, e.g. `image/png`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub height: Option<UInt>,
+    pub mimetype: Option<String>,
 
-    /// The width of the image in pixels.
+    /// The size of the thumbnail in bytes.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub width: Option<UInt>,
+    pub size: Option<UInt>,
 }
 
-impl ImageContent {
-    /// Creates a new empty `ImageContent`.
+impl ThumbnailFileContentInfo {
+    /// Creates an empty `ThumbnailFileContentInfo`.
     pub fn new() -> Self {
         Self::default()
-    }
-
-    /// Creates a new `ImageContent` with the given width and height.
-    pub fn with_size(width: UInt, height: UInt) -> Self {
-        Self { height: Some(height), width: Some(width) }
     }
 }
