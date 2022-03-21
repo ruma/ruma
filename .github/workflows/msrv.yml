@@ -10,8 +10,8 @@ on:
     branches: [main, next]
 
 jobs:
-  check_msrv:
-    name: Check
+  all_features:
+    name: Check All Features
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -38,4 +38,64 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: run
-          args: -p xtask --no-default-features ci msrv
+          args: -p xtask --no-default-features ci msrv-all
+
+  client:
+    name: Check Client
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Install rust 1.55 toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: '1.55'
+      # Used to compile xtask
+      - name: Install rust stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: Swatinem/rust-cache@v1
+        with:
+          # A stable compiler update should automatically not reuse old caches.
+          # Add the MSRV as a stable cache key too so bumping it also gets us a
+          # fresh cache.
+          sharedKey: msrv1.55
+      - name: Run checks
+        uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: -p xtask --no-default-features ci msrv-client
+
+  ruma:
+    name: Check Ruma
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Install rust 1.55 toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: '1.55'
+      # Used to compile xtask
+      - name: Install rust stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: Swatinem/rust-cache@v1
+        with:
+          # A stable compiler update should automatically not reuse old caches.
+          # Add the MSRV as a stable cache key too so bumping it also gets us a
+          # fresh cache.
+          sharedKey: msrv1.55
+      - name: Run checks
+        uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: -p xtask --no-default-features ci msrv-ruma
