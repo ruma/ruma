@@ -134,6 +134,30 @@ pub enum FromHttpResponseError<E> {
     Server(ServerError<E>),
 }
 
+impl<E> FromHttpResponseError<E> {
+    /// Map `FromHttpResponseError<E>` to `FromHttpResponseError<F>` by applying a function to a
+    /// contained `Server` value, leaving a `Deserialization` value untouched.
+    pub fn map<F>(
+        self,
+        f: impl FnOnce(ServerError<E>) -> ServerError<F>,
+    ) -> FromHttpResponseError<F> {
+        match self {
+            Self::Deserialization(d) => FromHttpResponseError::Deserialization(d),
+            Self::Server(s) => FromHttpResponseError::Server(f(s)),
+        }
+    }
+}
+
+impl<E, F> FromHttpResponseError<Result<E, F>> {
+    /// Transpose `FromHttpResponseError<Result<E, F>>` to `Result<FromHttpResponseError<E>, F>`.
+    pub fn transpose(self) -> Result<FromHttpResponseError<E>, F> {
+        match self {
+            Self::Deserialization(d) => Ok(FromHttpResponseError::Deserialization(d)),
+            Self::Server(s) => s.transpose().map(FromHttpResponseError::Server),
+        }
+    }
+}
+
 impl<E: fmt::Display> fmt::Display for FromHttpResponseError<E> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -170,6 +194,28 @@ pub enum ServerError<E> {
 
     /// An error of unexpected type of structure
     Unknown(DeserializationError),
+}
+
+impl<E> ServerError<E> {
+    /// Map `ServerError<E>` to `ServerError<F>` by applying a function to a contained `Known`
+    /// value, leaving an `Unknown` value untouched.
+    pub fn map<F>(self, f: impl FnOnce(E) -> F) -> ServerError<F> {
+        match self {
+            Self::Known(k) => ServerError::Known(f(k)),
+            Self::Unknown(u) => ServerError::Unknown(u),
+        }
+    }
+}
+
+impl<E, F> ServerError<Result<E, F>> {
+    /// Transpose `ServerError<Result<E, F>>` to `Result<ServerError<E>, F>`.
+    pub fn transpose(self) -> Result<ServerError<E>, F> {
+        match self {
+            Self::Known(Ok(k)) => Ok(ServerError::Known(k)),
+            Self::Known(Err(e)) => Err(e),
+            Self::Unknown(u) => Ok(ServerError::Unknown(u)),
+        }
+    }
 }
 
 impl<E: fmt::Display> fmt::Display for ServerError<E> {
