@@ -36,11 +36,27 @@ fn reply_serialize() {
         relates_to: Some(Relation::Reply { in_reply_to: InReplyTo::new(event_id!("$1598361704261elfgc").to_owned()) }),
     });
 
+    #[cfg(not(feature = "unstable-msc1767"))]
     assert_eq!(
         to_json_value(content).unwrap(),
         json!({
             "msgtype": "m.text",
             "body": "This is a reply",
+            "m.relates_to": {
+                "m.in_reply_to": {
+                    "event_id": "$1598361704261elfgc",
+                },
+            },
+        })
+    );
+
+    #[cfg(feature = "unstable-msc1767")]
+    assert_eq!(
+        to_json_value(content).unwrap(),
+        json!({
+            "msgtype": "m.text",
+            "body": "This is a reply",
+            "org.matrix.msc1767.text": "This is a reply",
             "m.relates_to": {
                 "m.in_reply_to": {
                     "event_id": "$1598361704261elfgc",
@@ -67,6 +83,7 @@ fn replacement_serialize() {
         }
     );
 
+    #[cfg(not(feature = "unstable-msc1767"))]
     assert_eq!(
         to_json_value(content).unwrap(),
         json!({
@@ -75,6 +92,25 @@ fn replacement_serialize() {
             "m.new_content": {
                 "body": "This is the new content.",
                 "msgtype": "m.text",
+            },
+            "m.relates_to": {
+                "rel_type": "m.replace",
+                "event_id": "$1598361704261elfgc",
+            },
+        })
+    );
+
+    #[cfg(feature = "unstable-msc1767")]
+    assert_eq!(
+        to_json_value(content).unwrap(),
+        json!({
+            "msgtype": "m.text",
+            "body": "<text msg>",
+            "org.matrix.msc1767.text": "<text msg>",
+            "m.new_content": {
+                "body": "This is the new content.",
+                "msgtype": "m.text",
+                "org.matrix.msc1767.text": "This is the new content.",
             },
             "m.relates_to": {
                 "rel_type": "m.replace",
@@ -130,11 +166,29 @@ fn thread_plain_serialize() {
         }
     );
 
+    #[cfg(not(feature = "unstable-msc1767"))]
     assert_eq!(
         to_json_value(content).unwrap(),
         json!({
             "msgtype": "m.text",
             "body": "<text msg>",
+            "m.relates_to": {
+                "rel_type": "io.element.thread",
+                "event_id": "$1598361704261elfgc",
+                "m.in_reply_to": {
+                    "event_id": "$latesteventid",
+                },
+            },
+        })
+    );
+
+    #[cfg(feature = "unstable-msc1767")]
+    assert_eq!(
+        to_json_value(content).unwrap(),
+        json!({
+            "msgtype": "m.text",
+            "body": "<text msg>",
+            "org.matrix.msc1767.text": "<text msg>",
             "m.relates_to": {
                 "rel_type": "io.element.thread",
                 "event_id": "$1598361704261elfgc",
@@ -163,11 +217,30 @@ fn thread_reply_serialize() {
         }
     );
 
+    #[cfg(not(feature = "unstable-msc1767"))]
     assert_eq!(
         to_json_value(content).unwrap(),
         json!({
             "msgtype": "m.text",
             "body": "<text msg>",
+            "m.relates_to": {
+                "rel_type": "io.element.thread",
+                "event_id": "$1598361704261elfgc",
+                "m.in_reply_to": {
+                    "event_id": "$repliedtoeventid",
+                },
+                "io.element.show_reply": true,
+            },
+        })
+    );
+
+    #[cfg(feature = "unstable-msc1767")]
+    assert_eq!(
+        to_json_value(content).unwrap(),
+        json!({
+            "msgtype": "m.text",
+            "body": "<text msg>",
+            "org.matrix.msc1767.text": "<text msg>",
             "m.relates_to": {
                 "rel_type": "io.element.thread",
                 "event_id": "$1598361704261elfgc",

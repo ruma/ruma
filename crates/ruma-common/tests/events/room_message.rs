@@ -1,15 +1,20 @@
 use std::borrow::Cow;
 
+#[cfg(not(feature = "unstable-msc1767"))]
 use assign::assign;
 use js_int::uint;
 use matches::assert_matches;
+#[cfg(not(feature = "unstable-msc1767"))]
+use ruma_common::events::room::message::InReplyTo;
+#[cfg(any(feature = "unstable-msc2676", not(feature = "unstable-msc1767")))]
+use ruma_common::events::room::message::Relation;
 use ruma_common::{
     event_id,
     events::{
         key::verification::VerificationMethod,
         room::message::{
-            AudioMessageEventContent, InReplyTo, KeyVerificationRequestEventContent, MessageType,
-            Relation, RoomMessageEvent, RoomMessageEventContent, TextMessageEventContent,
+            AudioMessageEventContent, KeyVerificationRequestEventContent, MessageType,
+            RoomMessageEvent, RoomMessageEventContent, TextMessageEventContent,
         },
         MessageLikeUnsigned,
     },
@@ -126,6 +131,7 @@ fn formatted_body_serialization() {
     let message_event_content =
         RoomMessageEventContent::text_html("Hello, World!", "Hello, <em>World</em>!");
 
+    #[cfg(not(feature = "unstable-msc1767"))]
     assert_eq!(
         to_json_value(&message_event_content).unwrap(),
         json!({
@@ -135,6 +141,21 @@ fn formatted_body_serialization() {
             "formatted_body": "Hello, <em>World</em>!",
         })
     );
+
+    #[cfg(feature = "unstable-msc1767")]
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "Hello, World!",
+            "msgtype": "m.text",
+            "format": "org.matrix.custom.html",
+            "formatted_body": "Hello, <em>World</em>!",
+            "org.matrix.msc1767.message": [
+                { "body": "Hello, <em>World</em>!", "mimetype": "text/html" },
+                { "body": "Hello, World!", "mimetype": "text/plain" },
+            ],
+        })
+    );
 }
 
 #[test]
@@ -142,11 +163,22 @@ fn plain_text_content_serialization() {
     let message_event_content =
         RoomMessageEventContent::text_plain("> <@test:example.com> test\n\ntest reply");
 
+    #[cfg(not(feature = "unstable-msc1767"))]
     assert_eq!(
         to_json_value(&message_event_content).unwrap(),
         json!({
             "body": "> <@test:example.com> test\n\ntest reply",
             "msgtype": "m.text"
+        })
+    );
+
+    #[cfg(feature = "unstable-msc1767")]
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "> <@test:example.com> test\n\ntest reply",
+            "msgtype": "m.text",
+            "org.matrix.msc1767.text": "> <@test:example.com> test\n\ntest reply",
         })
     );
 }
@@ -158,6 +190,7 @@ fn markdown_content_serialization() {
         TextMessageEventContent::markdown("Testing **bold** and _italic_!"),
     ));
 
+    #[cfg(not(feature = "unstable-msc1767"))]
     assert_eq!(
         to_json_value(&formatted_message).unwrap(),
         json!({
@@ -168,10 +201,26 @@ fn markdown_content_serialization() {
         })
     );
 
+    #[cfg(feature = "unstable-msc1767")]
+    assert_eq!(
+        to_json_value(&formatted_message).unwrap(),
+        json!({
+            "body": "Testing **bold** and _italic_!",
+            "formatted_body": "<p>Testing <strong>bold</strong> and <em>italic</em>!</p>\n",
+            "format": "org.matrix.custom.html",
+            "msgtype": "m.text",
+            "org.matrix.msc1767.message": [
+                { "body": "<p>Testing <strong>bold</strong> and <em>italic</em>!</p>\n", "mimetype": "text/html" },
+                { "body": "Testing **bold** and _italic_!", "mimetype": "text/plain" },
+            ],
+        })
+    );
+
     let plain_message_simple = RoomMessageEventContent::new(MessageType::Text(
         TextMessageEventContent::markdown("Testing a simple phrase…"),
     ));
 
+    #[cfg(not(feature = "unstable-msc1767"))]
     assert_eq!(
         to_json_value(&plain_message_simple).unwrap(),
         json!({
@@ -180,10 +229,21 @@ fn markdown_content_serialization() {
         })
     );
 
+    #[cfg(feature = "unstable-msc1767")]
+    assert_eq!(
+        to_json_value(&plain_message_simple).unwrap(),
+        json!({
+            "body": "Testing a simple phrase…",
+            "msgtype": "m.text",
+            "org.matrix.msc1767.text": "Testing a simple phrase…",
+        })
+    );
+
     let plain_message_paragraphs = RoomMessageEventContent::new(MessageType::Text(
         TextMessageEventContent::markdown("Testing\n\nSeveral\n\nParagraphs."),
     ));
 
+    #[cfg(not(feature = "unstable-msc1767"))]
     assert_eq!(
         to_json_value(&plain_message_paragraphs).unwrap(),
         json!({
@@ -193,9 +253,25 @@ fn markdown_content_serialization() {
             "msgtype": "m.text"
         })
     );
+
+    #[cfg(feature = "unstable-msc1767")]
+    assert_eq!(
+        to_json_value(&plain_message_paragraphs).unwrap(),
+        json!({
+            "body": "Testing\n\nSeveral\n\nParagraphs.",
+            "formatted_body": "<p>Testing</p>\n<p>Several</p>\n<p>Paragraphs.</p>\n",
+            "format": "org.matrix.custom.html",
+            "msgtype": "m.text",
+            "org.matrix.msc1767.message": [
+                { "body": "<p>Testing</p>\n<p>Several</p>\n<p>Paragraphs.</p>\n", "mimetype": "text/html" },
+                { "body": "Testing\n\nSeveral\n\nParagraphs.", "mimetype": "text/plain" },
+            ],
+        })
+    );
 }
 
 #[test]
+#[cfg(not(feature = "unstable-msc1767"))]
 fn relates_to_content_serialization() {
     let message_event_content =
         assign!(RoomMessageEventContent::text_plain("> <@test:example.com> test\n\ntest reply"), {

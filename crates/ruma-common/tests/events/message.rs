@@ -9,7 +9,10 @@ use ruma_common::{
         emote::EmoteEventContent,
         message::MessageEventContent,
         notice::NoticeEventContent,
-        room::message::{InReplyTo, Relation},
+        room::message::{
+            EmoteMessageEventContent, InReplyTo, MessageType, NoticeMessageEventContent, Relation,
+            RoomMessageEventContent, TextMessageEventContent,
+        },
         AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned,
     },
     room_id, user_id, MilliSecondsSinceUnixEpoch,
@@ -133,7 +136,7 @@ fn message_event_serialization() {
 }
 
 #[test]
-fn plain_text_content_deserialization() {
+fn plain_text_content_unstable_deserialization() {
     let json_data = json!({
         "org.matrix.msc1767.text": "This is my body",
     });
@@ -148,9 +151,42 @@ fn plain_text_content_deserialization() {
 }
 
 #[test]
-fn html_text_content_deserialization() {
+fn plain_text_content_stable_deserialization() {
+    let json_data = json!({
+        "m.text": "This is my body",
+    });
+
+    assert_matches!(
+        from_json_value::<MessageEventContent>(json_data)
+            .unwrap(),
+        MessageEventContent { message, .. }
+        if message.find_plain() == Some("This is my body")
+            && message.find_html().is_none()
+    );
+}
+
+#[test]
+fn html_text_content_unstable_deserialization() {
     let json_data = json!({
         "org.matrix.msc1767.message": [
+            { "body": "Hello, <em>New World</em>!", "mimetype": "text/html"},
+            { "body": "Hello, New World!" },
+        ]
+    });
+
+    assert_matches!(
+        from_json_value::<MessageEventContent>(json_data)
+            .unwrap(),
+        MessageEventContent { message, .. }
+        if message.find_plain() == Some("Hello, New World!")
+            && message.find_html() == Some("Hello, <em>New World</em>!")
+    );
+}
+
+#[test]
+fn html_text_content_stable_deserialization() {
+    let json_data = json!({
+        "m.message": [
             { "body": "Hello, <em>New World</em>!", "mimetype": "text/html"},
             { "body": "Hello, New World!" },
         ]
@@ -225,6 +261,120 @@ fn message_event_deserialization() {
 }
 
 #[test]
+fn room_message_plain_text_stable_deserialization() {
+    let json_data = json!({
+        "body": "test",
+        "msgtype": "m.text",
+        "m.text": "test",
+    });
+
+    assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data)
+            .unwrap(),
+        RoomMessageEventContent {
+            msgtype: MessageType::Text(TextMessageEventContent {
+                body,
+                formatted: None,
+                message: Some(message),
+                ..
+            }),
+            ..
+        } if body == "test"
+          && message.variants().len() == 1
+          && message.variants()[0].body == "test"
+    );
+}
+
+#[test]
+fn room_message_plain_text_unstable_deserialization() {
+    let json_data = json!({
+        "body": "test",
+        "msgtype": "m.text",
+        "org.matrix.msc1767.text": "test",
+    });
+
+    assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data)
+            .unwrap(),
+        RoomMessageEventContent {
+            msgtype: MessageType::Text(TextMessageEventContent {
+                body,
+                formatted: None,
+                message: Some(message),
+                ..
+            }),
+            ..
+        } if body == "test"
+          && message.variants().len() == 1
+          && message.variants()[0].body == "test"
+    );
+}
+
+#[test]
+fn room_message_html_text_stable_deserialization() {
+    let json_data = json!({
+        "body": "test",
+        "formatted_body": "<h1>test</h1>",
+        "format": "org.matrix.custom.html",
+        "msgtype": "m.text",
+        "m.message": [
+            { "body": "<h1>test</h1>", "mimetype": "text/html" },
+            { "body": "test", "mimetype": "text/plain" },
+        ],
+    });
+
+    assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data)
+            .unwrap(),
+        RoomMessageEventContent {
+            msgtype: MessageType::Text(TextMessageEventContent {
+                body,
+                formatted: Some(formatted),
+                message: Some(message),
+                ..
+            }),
+            ..
+        } if body == "test"
+            && formatted.body == "<h1>test</h1>"
+            && message.variants().len() == 2
+            && message.variants()[0].body == "<h1>test</h1>"
+            && message.variants()[1].body == "test"
+    );
+}
+
+#[test]
+fn room_message_html_text_unstable_deserialization() {
+    let json_data = json!({
+        "body": "test",
+        "formatted_body": "<h1>test</h1>",
+        "format": "org.matrix.custom.html",
+        "msgtype": "m.text",
+        "org.matrix.msc1767.message": [
+            { "body": "<h1>test</h1>", "mimetype": "text/html" },
+            { "body": "test", "mimetype": "text/plain" },
+        ],
+    });
+
+    assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data)
+            .unwrap(),
+        RoomMessageEventContent {
+            msgtype: MessageType::Text(TextMessageEventContent {
+                body,
+                formatted: Some(formatted),
+                message: Some(message),
+                ..
+            }),
+            ..
+        } if body == "test"
+            && formatted.body == "<h1>test</h1>"
+            && message.variants().len() == 2
+            && message.variants()[0].body == "<h1>test</h1>"
+            && message.variants()[1].body == "test"
+    );
+}
+
+#[test]
 fn notice_event_serialization() {
     let event = MessageLikeEvent {
         content: NoticeEventContent::plain("Hello, I'm a robot!"),
@@ -251,7 +401,60 @@ fn notice_event_serialization() {
 }
 
 #[test]
-fn notice_event_deserialization() {
+fn room_message_notice_serialization() {
+    let message_event_content =
+        RoomMessageEventContent::notice_plain("> <@test:example.com> test\n\ntest reply");
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "> <@test:example.com> test\n\ntest reply",
+            "msgtype": "m.notice",
+            "org.matrix.msc1767.text": "> <@test:example.com> test\n\ntest reply",
+        })
+    );
+}
+
+#[test]
+fn notice_event_stable_deserialization() {
+    let json_data = json!({
+        "content": {
+            "m.message": [
+                { "body": "Hello, I'm a <em>robot</em>!", "mimetype": "text/html"},
+                { "body": "Hello, I'm a robot!" },
+            ]
+        },
+        "event_id": "$event:notareal.hs",
+        "origin_server_ts": 134_829_848,
+        "room_id": "!roomid:notareal.hs",
+        "sender": "@user:notareal.hs",
+        "type": "m.notice",
+    });
+
+    assert_matches!(
+        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
+        AnyMessageLikeEvent::Notice(MessageLikeEvent {
+            content: NoticeEventContent {
+                message,
+                ..
+            },
+            event_id,
+            origin_server_ts,
+            room_id,
+            sender,
+            unsigned
+        }) if event_id == event_id!("$event:notareal.hs")
+            && message.find_plain() == Some("Hello, I'm a robot!")
+            && message.find_html() == Some("Hello, I'm a <em>robot</em>!")
+            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
+            && room_id == room_id!("!roomid:notareal.hs")
+            && sender == user_id!("@user:notareal.hs")
+            && unsigned.is_empty()
+    );
+}
+
+#[test]
+fn notice_event_unstable_deserialization() {
     let json_data = json!({
         "content": {
             "org.matrix.msc1767.message": [
@@ -289,6 +492,56 @@ fn notice_event_deserialization() {
 }
 
 #[test]
+fn room_message_notice_stable_deserialization() {
+    let json_data = json!({
+        "body": "test",
+        "msgtype": "m.notice",
+        "m.text": "test",
+    });
+
+    assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data)
+            .unwrap(),
+        RoomMessageEventContent {
+            msgtype: MessageType::Notice(NoticeMessageEventContent {
+                body,
+                formatted: None,
+                message: Some(message),
+                ..
+            }),
+            ..
+        } if body == "test"
+          && message.variants().len() == 1
+          && message.variants()[0].body == "test"
+    );
+}
+
+#[test]
+fn room_message_notice_unstable_deserialization() {
+    let json_data = json!({
+        "body": "test",
+        "msgtype": "m.notice",
+        "org.matrix.msc1767.text": "test",
+    });
+
+    assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data)
+            .unwrap(),
+        RoomMessageEventContent {
+            msgtype: MessageType::Notice(NoticeMessageEventContent {
+                body,
+                formatted: None,
+                message: Some(message),
+                ..
+            }),
+            ..
+        } if body == "test"
+          && message.variants().len() == 1
+          && message.variants()[0].body == "test"
+    );
+}
+
+#[test]
 fn emote_event_serialization() {
     let event = MessageLikeEvent {
         content: EmoteEventContent::html(
@@ -321,7 +574,58 @@ fn emote_event_serialization() {
 }
 
 #[test]
-fn emote_event_deserialization() {
+fn room_message_emote_serialization() {
+    let message_event_content = RoomMessageEventContent::new(MessageType::Emote(
+        EmoteMessageEventContent::plain("> <@test:example.com> test\n\ntest reply"),
+    ));
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "> <@test:example.com> test\n\ntest reply",
+            "msgtype": "m.emote",
+            "org.matrix.msc1767.text": "> <@test:example.com> test\n\ntest reply",
+        })
+    );
+}
+
+#[test]
+fn emote_event_stable_deserialization() {
+    let json_data = json!({
+        "content": {
+            "m.text": "is testing some code…",
+        },
+        "event_id": "$event:notareal.hs",
+        "origin_server_ts": 134_829_848,
+        "room_id": "!roomid:notareal.hs",
+        "sender": "@user:notareal.hs",
+        "type": "m.emote",
+    });
+
+    assert_matches!(
+        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
+        AnyMessageLikeEvent::Emote(MessageLikeEvent {
+            content: EmoteEventContent {
+                message,
+                ..
+            },
+            event_id,
+            origin_server_ts,
+            room_id,
+            sender,
+            unsigned
+        }) if event_id == event_id!("$event:notareal.hs")
+            && message.find_plain() == Some("is testing some code…")
+            && message.find_html().is_none()
+            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
+            && room_id == room_id!("!roomid:notareal.hs")
+            && sender == user_id!("@user:notareal.hs")
+            && unsigned.is_empty()
+    );
+}
+
+#[test]
+fn emote_event_unstable_deserialization() {
     let json_data = json!({
         "content": {
             "org.matrix.msc1767.text": "is testing some code…",
@@ -352,6 +656,56 @@ fn emote_event_deserialization() {
             && room_id == room_id!("!roomid:notareal.hs")
             && sender == user_id!("@user:notareal.hs")
             && unsigned.is_empty()
+    );
+}
+
+#[test]
+fn room_message_emote_stable_deserialization() {
+    let json_data = json!({
+        "body": "test",
+        "msgtype": "m.emote",
+        "m.text": "test",
+    });
+
+    assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data)
+            .unwrap(),
+        RoomMessageEventContent {
+            msgtype: MessageType::Emote(EmoteMessageEventContent {
+                body,
+                formatted: None,
+                message: Some(message),
+                ..
+            }),
+            ..
+        } if body == "test"
+          && message.variants().len() == 1
+          && message.variants()[0].body == "test"
+    );
+}
+
+#[test]
+fn room_message_emote_unstable_deserialization() {
+    let json_data = json!({
+        "body": "test",
+        "msgtype": "m.emote",
+        "org.matrix.msc1767.text": "test",
+    });
+
+    assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data)
+            .unwrap(),
+        RoomMessageEventContent {
+            msgtype: MessageType::Emote(EmoteMessageEventContent {
+                body,
+                formatted: None,
+                message: Some(message),
+                ..
+            }),
+            ..
+        } if body == "test"
+          && message.variants().len() == 1
+          && message.variants()[0].body == "test"
     );
 }
 

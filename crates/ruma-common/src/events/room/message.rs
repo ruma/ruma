@@ -10,6 +10,12 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
+#[cfg(feature = "unstable-msc1767")]
+use crate::events::{
+    emote::EmoteEventContent,
+    message::{MessageContent, MessageEventContent},
+    notice::NoticeEventContent,
+};
 use crate::{
     events::key::verification::VerificationMethod,
     serde::{JsonObject, StringEnum},
@@ -179,6 +185,33 @@ impl RoomMessageEventContent {
     /// Return a reference to the message body.
     pub fn body(&self) -> &str {
         self.msgtype.body()
+    }
+}
+
+#[cfg(feature = "unstable-msc1767")]
+impl From<EmoteEventContent> for RoomMessageEventContent {
+    fn from(content: EmoteEventContent) -> Self {
+        let EmoteEventContent { message, relates_to, .. } = content;
+
+        Self { msgtype: MessageType::Emote(message.into()), relates_to }
+    }
+}
+
+#[cfg(feature = "unstable-msc1767")]
+impl From<MessageEventContent> for RoomMessageEventContent {
+    fn from(content: MessageEventContent) -> Self {
+        let MessageEventContent { message, relates_to, .. } = content;
+
+        Self { msgtype: MessageType::Text(message.into()), relates_to }
+    }
+}
+
+#[cfg(feature = "unstable-msc1767")]
+impl From<NoticeEventContent> for RoomMessageEventContent {
+    fn from(content: NoticeEventContent) -> Self {
+        let NoticeEventContent { message, relates_to, .. } = content;
+
+        Self { msgtype: MessageType::Notice(message.into()), relates_to }
     }
 }
 
@@ -507,17 +540,37 @@ pub struct EmoteMessageEventContent {
     /// Formatted form of the message `body`.
     #[serde(flatten)]
     pub formatted: Option<FormattedBody>,
+
+    /// Extensible-event representation of the message.
+    ///
+    /// If present, this should be preferred over the other fields.
+    #[cfg(feature = "unstable-msc1767")]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub message: Option<MessageContent>,
 }
 
 impl EmoteMessageEventContent {
     /// A convenience constructor to create a plain-text emote.
     pub fn plain(body: impl Into<String>) -> Self {
-        Self { body: body.into(), formatted: None }
+        let body = body.into();
+        Self {
+            #[cfg(feature = "unstable-msc1767")]
+            message: Some(MessageContent::plain(body.clone())),
+            body,
+            formatted: None,
+        }
     }
 
     /// A convenience constructor to create an html emote message.
     pub fn html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
-        Self { formatted: Some(FormattedBody::html(html_body)), ..Self::plain(body) }
+        let body = body.into();
+        let html_body = html_body.into();
+        Self {
+            #[cfg(feature = "unstable-msc1767")]
+            message: Some(MessageContent::html(body.clone(), html_body.clone())),
+            body,
+            formatted: Some(FormattedBody::html(html_body)),
+        }
     }
 
     /// A convenience constructor to create a markdown emote.
@@ -526,7 +579,22 @@ impl EmoteMessageEventContent {
     /// plain-text emote.
     #[cfg(feature = "markdown")]
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
-        Self { formatted: FormattedBody::markdown(&body), ..Self::plain(body) }
+        if let Some(formatted) = FormattedBody::markdown(&body) {
+            Self::html(body, formatted.body)
+        } else {
+            Self::plain(body)
+        }
+    }
+}
+
+#[cfg(feature = "unstable-msc1767")]
+impl From<MessageContent> for EmoteMessageEventContent {
+    fn from(message: MessageContent) -> Self {
+        let body =
+            if let Some(body) = message.find_plain() { body } else { &message.variants()[0].body };
+        let formatted = message.find_html().map(FormattedBody::html);
+
+        Self { body: body.to_owned(), formatted, message: Some(message) }
     }
 }
 
@@ -712,17 +780,37 @@ pub struct NoticeMessageEventContent {
     /// Formatted form of the message `body`.
     #[serde(flatten)]
     pub formatted: Option<FormattedBody>,
+
+    /// Extensible-event representation of the message.
+    ///
+    /// If present, this should be preferred over the other fields.
+    #[cfg(feature = "unstable-msc1767")]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub message: Option<MessageContent>,
 }
 
 impl NoticeMessageEventContent {
     /// A convenience constructor to create a plain text notice.
     pub fn plain(body: impl Into<String>) -> Self {
-        Self { body: body.into(), formatted: None }
+        let body = body.into();
+        Self {
+            #[cfg(feature = "unstable-msc1767")]
+            message: Some(MessageContent::plain(body.clone())),
+            body,
+            formatted: None,
+        }
     }
 
     /// A convenience constructor to create an html notice.
     pub fn html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
-        Self { formatted: Some(FormattedBody::html(html_body)), ..Self::plain(body) }
+        let body = body.into();
+        let html_body = html_body.into();
+        Self {
+            #[cfg(feature = "unstable-msc1767")]
+            message: Some(MessageContent::html(body.clone(), html_body.clone())),
+            body,
+            formatted: Some(FormattedBody::html(html_body)),
+        }
     }
 
     /// A convenience constructor to create a markdown notice.
@@ -731,7 +819,22 @@ impl NoticeMessageEventContent {
     /// text notice.
     #[cfg(feature = "markdown")]
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
-        Self { formatted: FormattedBody::markdown(&body), ..Self::plain(body) }
+        if let Some(formatted) = FormattedBody::markdown(&body) {
+            Self::html(body, formatted.body)
+        } else {
+            Self::plain(body)
+        }
+    }
+}
+
+#[cfg(feature = "unstable-msc1767")]
+impl From<MessageContent> for NoticeMessageEventContent {
+    fn from(message: MessageContent) -> Self {
+        let body =
+            if let Some(body) = message.find_plain() { body } else { &message.variants()[0].body };
+        let formatted = message.find_html().map(FormattedBody::html);
+
+        Self { body: body.to_owned(), formatted, message: Some(message) }
     }
 }
 
@@ -879,17 +982,37 @@ pub struct TextMessageEventContent {
     /// Formatted form of the message `body`.
     #[serde(flatten)]
     pub formatted: Option<FormattedBody>,
+
+    /// Extensible-event representation of the message.
+    ///
+    /// If present, this should be preferred over the other fields.
+    #[cfg(feature = "unstable-msc1767")]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub message: Option<MessageContent>,
 }
 
 impl TextMessageEventContent {
     /// A convenience constructor to create a plain text message.
     pub fn plain(body: impl Into<String>) -> Self {
-        Self { body: body.into(), formatted: None }
+        let body = body.into();
+        Self {
+            #[cfg(feature = "unstable-msc1767")]
+            message: Some(MessageContent::plain(body.clone())),
+            body,
+            formatted: None,
+        }
     }
 
     /// A convenience constructor to create an html message.
     pub fn html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
-        Self { formatted: Some(FormattedBody::html(html_body)), ..Self::plain(body) }
+        let body = body.into();
+        let html_body = html_body.into();
+        Self {
+            #[cfg(feature = "unstable-msc1767")]
+            message: Some(MessageContent::html(body.clone(), html_body.clone())),
+            body,
+            formatted: Some(FormattedBody::html(html_body)),
+        }
     }
 
     /// A convenience constructor to create a markdown message.
@@ -898,7 +1021,22 @@ impl TextMessageEventContent {
     /// text message.
     #[cfg(feature = "markdown")]
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
-        Self { formatted: FormattedBody::markdown(&body), ..Self::plain(body) }
+        if let Some(formatted) = FormattedBody::markdown(&body) {
+            Self::html(body, formatted.body)
+        } else {
+            Self::plain(body)
+        }
+    }
+}
+
+#[cfg(feature = "unstable-msc1767")]
+impl From<MessageContent> for TextMessageEventContent {
+    fn from(message: MessageContent) -> Self {
+        let body =
+            if let Some(body) = message.find_plain() { body } else { &message.variants()[0].body };
+        let formatted = message.find_html().map(FormattedBody::html);
+
+        Self { body: body.to_owned(), formatted, message: Some(message) }
     }
 }
 
