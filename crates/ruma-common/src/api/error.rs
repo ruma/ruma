@@ -131,21 +131,21 @@ pub enum FromHttpResponseError<E> {
     Deserialization(DeserializationError),
 
     /// The server returned a non-success status
-    Http(ServerError<E>),
+    Server(ServerError<E>),
 }
 
 impl<E: fmt::Display> fmt::Display for FromHttpResponseError<E> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Deserialization(err) => write!(f, "deserialization failed: {}", err),
-            Self::Http(err) => write!(f, "the server returned an error: {}", err),
+            Self::Server(err) => write!(f, "the server returned an error: {}", err),
         }
     }
 }
 
 impl<E> From<ServerError<E>> for FromHttpResponseError<E> {
     fn from(err: ServerError<E>) -> Self {
-        Self::Http(err)
+        Self::Server(err)
     }
 }
 
