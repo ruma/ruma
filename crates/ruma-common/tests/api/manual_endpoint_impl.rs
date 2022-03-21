@@ -129,7 +129,7 @@ impl IncomingResponse for Response {
         if http_response.status().as_u16() < 400 {
             Ok(Response)
         } else {
-            Err(FromHttpResponseError::Http(ServerError::Known(
+            Err(FromHttpResponseError::Server(ServerError::Known(
                 <MatrixError as EndpointError>::try_from_http_response(http_response)?,
             )))
         }
