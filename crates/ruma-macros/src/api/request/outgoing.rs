@@ -186,7 +186,7 @@ impl Request {
             #[cfg(feature = "client")]
             impl #impl_generics #ruma_common::api::OutgoingRequest for Request #ty_generics #where_clause {
                 type EndpointError = #error_ty;
-                type IncomingResponse = <Response as #ruma_common::serde::Outgoing>::Incoming;
+                type IncomingResponse = Response;
 
                 const METADATA: #ruma_common::api::Metadata = self::METADATA;
 

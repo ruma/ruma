@@ -70,7 +70,7 @@ pub mod v3 {
     #[cfg(feature = "client")]
     impl<'a> ruma_common::api::OutgoingRequest for Request<'a> {
         type EndpointError = crate::Error;
-        type IncomingResponse = <Response as ruma_common::serde::Outgoing>::Incoming;
+        type IncomingResponse = Response;
 
         const METADATA: ruma_common::api::Metadata = METADATA;
 

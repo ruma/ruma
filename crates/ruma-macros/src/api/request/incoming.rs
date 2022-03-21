@@ -64,11 +64,16 @@ impl Request {
                 quote! { request_query },
             );
 
+            let request_query_ty = if self.lifetimes.query.is_empty() {
+                quote! { RequestQuery }
+            } else {
+                quote! { IncomingRequestQuery }
+            };
+
             let parse = quote! {
-                let request_query: <RequestQuery as #ruma_common::serde::Outgoing>::Incoming =
-                    #ruma_common::serde::urlencoded::from_str(
-                        &request.uri().query().unwrap_or("")
-                    )?;
+                let request_query: #request_query_ty = #ruma_common::serde::urlencoded::from_str(
+                    &request.uri().query().unwrap_or("")
+                )?;
 
                 #decls
             };
@@ -144,17 +149,14 @@ impl Request {
         };
 
         let extract_body = self.has_body_fields().then(|| {
-            let body_lifetimes = (!self.lifetimes.body.is_empty()).then(|| {
-                // duplicate the anonymous lifetime as many times as needed
-                let lifetimes = std::iter::repeat(quote! { '_ }).take(self.lifetimes.body.len());
-                quote! { < #( #lifetimes, )* > }
-            });
+            let request_body_ty = if self.lifetimes.body.is_empty() {
+                quote! { RequestBody }
+            } else {
+                quote! { IncomingRequestBody }
+            };
 
             quote! {
-                let request_body: <
-                    RequestBody #body_lifetimes
-                    as #ruma_common::serde::Outgoing
-                >::Incoming = {
+                let request_body: #request_body_ty = {
                     let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
                         request.body(),
                     );
