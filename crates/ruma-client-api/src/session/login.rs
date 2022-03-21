@@ -268,10 +268,6 @@ pub mod v3 {
         extra: JsonObject,
     }
 
-    impl Outgoing for CustomLoginInfo<'_> {
-        type Incoming = IncomingCustomLoginInfo;
-    }
-
     /// Client configuration provided by the server.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]

@@ -70,7 +70,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
     };
 
     match data {
-        DataKind::Unit => Ok(impl_outgoing_with_incoming_self(&input, &ruma_common)),
+        DataKind::Unit => Ok(TokenStream::new()),
         DataKind::Enum(mut vars) => {
             let mut found_lifetime = false;
             for var in &mut vars {
@@ -81,30 +81,21 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
                 }
             }
 
-            let original_ident = &input.ident;
-            let (original_impl_gen, original_ty_gen, _) = input.generics.split_for_impl();
-
             if !found_lifetime {
-                return Ok(impl_outgoing_with_incoming_self(&input, &ruma_common));
+                return Ok(TokenStream::new());
             }
 
             let vis = input.vis;
             let doc = format!("'Incoming' variant of [{ty}](enum.{ty}.html).", ty = &input.ident);
-            let incoming_ident =
-                format_ident!("Incoming{}", original_ident, span = Span::call_site());
+            let incoming_ident = format_ident!("Incoming{}", input.ident, span = Span::call_site());
             let mut gen_copy = input.generics.clone();
-            let (impl_gen, ty_gen) = split_for_impl_lifetime_less(&mut gen_copy);
+            let (_, ty_gen) = split_for_impl_lifetime_less(&mut gen_copy);
 
             Ok(quote! {
                 #[doc = #doc]
                 #[derive( #( #derives ),* )]
                 #( #input_attrs )*
                 #vis enum #incoming_ident #ty_gen { #( #vars, )* }
-
-                #[automatically_derived]
-                impl #original_impl_gen #ruma_common::serde::Outgoing for #original_ident #original_ty_gen {
-                    type Incoming = #incoming_ident #impl_gen;
-                }
             })
         }
         DataKind::Struct(mut fields, struct_kind) => {
@@ -118,19 +109,15 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
                 }
             }
 
-            let original_ident = &input.ident;
-            let (original_impl_gen, original_ty_gen, _) = input.generics.split_for_impl();
-
             if !found_lifetime {
-                return Ok(impl_outgoing_with_incoming_self(&input, &ruma_common));
+                return Ok(TokenStream::new());
             }
 
             let vis = input.vis;
             let doc = format!("'Incoming' variant of [{ty}](struct.{ty}.html).", ty = &input.ident);
-            let incoming_ident =
-                format_ident!("Incoming{}", original_ident, span = Span::call_site());
+            let incoming_ident = format_ident!("Incoming{}", input.ident, span = Span::call_site());
             let mut gen_copy = input.generics.clone();
-            let (impl_gen, ty_gen) = split_for_impl_lifetime_less(&mut gen_copy);
+            let (_, ty_gen) = split_for_impl_lifetime_less(&mut gen_copy);
 
             let struct_def = match struct_kind {
                 StructKind::Struct => quote! { { #(#fields,)* } },
@@ -142,11 +129,6 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
                 #[derive( #( #derives ),* )]
                 #( #input_attrs )*
                 #vis struct #incoming_ident #ty_gen #struct_def
-
-                #[automatically_derived]
-                impl #original_impl_gen #ruma_common::serde::Outgoing for #original_ident #original_ty_gen {
-                    type Incoming = #incoming_ident #impl_gen;
-                }
             })
         }
     }
@@ -160,18 +142,6 @@ fn filter_input_attrs(attr: &Attribute) -> bool {
         || attr.path.is_ident("serde")
         || attr.path.is_ident("non_exhaustive")
         || attr.path.is_ident("allow")
-}
-
-fn impl_outgoing_with_incoming_self(input: &DeriveInput, ruma_common: &TokenStream) -> TokenStream {
-    let ident = &input.ident;
-    let (impl_gen, ty_gen, _) = input.generics.split_for_impl();
-
-    quote! {
-        #[automatically_derived]
-        impl #impl_gen #ruma_common::serde::Outgoing for #ident #ty_gen {
-            type Incoming = Self;
-        }
-    }
 }
 
 fn split_for_impl_lifetime_less(generics: &mut Generics) -> (ImplGenerics<'_>, TypeGenerics<'_>) {

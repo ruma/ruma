@@ -72,22 +72,6 @@ where
     serde_json::from_str(val.get()).map_err(E::custom)
 }
 
-/// A type that can be sent to another party that understands the matrix protocol.
-///
-/// If any of the fields of `Self` don't implement serde's `Deserialize`, you can derive this trait
-/// to generate a corresponding 'Incoming' type that supports deserialization. This is useful for
-/// things like `ruma_common::events::EventResult`. For more details, see the
-/// [derive macro's documentation][doc].
-///
-/// [doc]: derive.Outgoing.html
-// TODO: Better explain how this trait relates to serde's traits
-pub trait Outgoing {
-    /// The 'Incoming' variant of `Self`.
-    type Incoming;
-}
-
-// -- Everything below is macro-related --
-
 pub use ruma_macros::{
     AsRefStr, DeserializeFromCowStr, DisplayAsRefStr, FromString, OrdAsRefStr, Outgoing,
     PartialEqAsRefStr, PartialOrdAsRefStr, SerializeAsRefStr, StringEnum, _FakeDeriveSerde,
