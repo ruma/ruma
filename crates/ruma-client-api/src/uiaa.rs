@@ -560,10 +560,6 @@ pub struct IncomingCustomAuthData {
     extra: JsonObject,
 }
 
-impl Outgoing for CustomAuthData<'_> {
-    type Incoming = IncomingCustomAuthData;
-}
-
 /// Identification information for the user.
 #[derive(Clone, Debug, PartialEq, Eq, Outgoing, Serialize)]
 #[serde(from = "user_serde::IncomingUserIdentifier", into = "user_serde::UserIdentifier<'_>")]

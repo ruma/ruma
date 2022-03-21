@@ -12,7 +12,6 @@ use ruma_common::{
         AuthScheme, EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata,
         OutgoingRequest, OutgoingResponse, SendAccessToken,
     },
-    serde::Outgoing,
     RoomAliasId, RoomId,
 };
 use serde::{Deserialize, Serialize};
@@ -22,10 +21,6 @@ use serde::{Deserialize, Serialize};
 pub struct Request {
     pub room_id: Box<RoomId>,         // body
     pub room_alias: Box<RoomAliasId>, // path
-}
-
-impl Outgoing for Request {
-    type Incoming = Self;
 }
 
 const METADATA: Metadata = Metadata {
@@ -115,10 +110,6 @@ struct RequestBody {
 /// The response to a request to create a new room alias.
 #[derive(Clone, Copy, Debug)]
 pub struct Response;
-
-impl Outgoing for Response {
-    type Incoming = Self;
-}
 
 impl IncomingResponse for Response {
     type EndpointError = MatrixError;
