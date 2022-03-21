@@ -8,7 +8,7 @@ pub mod v3 {
     use ruma_common::{
         api::ruma_api,
         events::{AnyStateEventContent, EventContent, StateEventType},
-        serde::{Outgoing, Raw},
+        serde::{Incoming, Raw},
         EventId, RoomId,
     };
     use serde_json::value::to_raw_value as to_raw_json_value;
@@ -36,7 +36,7 @@ pub mod v3 {
     /// Data for a request to the `send_state_event` API endpoint.
     ///
     /// Send a state event to a room associated with a given state key.
-    #[derive(Clone, Debug, Outgoing)]
+    #[derive(Clone, Debug, Incoming)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[incoming_derive(!Deserialize)]
     pub struct Request<'a> {

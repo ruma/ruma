@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-use crate::serde::{Outgoing, StringEnum};
+use crate::serde::{Incoming, StringEnum};
 use js_int::UInt;
 use serde::{
     de::{Error, MapAccess, Visitor},
@@ -108,7 +108,7 @@ impl From<PublicRoomsChunkInit> for PublicRoomsChunk {
 }
 
 /// A filter for public rooms lists
-#[derive(Clone, Debug, Default, Outgoing, Serialize)]
+#[derive(Clone, Debug, Default, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Default)]
 pub struct Filter<'a> {
@@ -131,7 +131,7 @@ impl Filter<'_> {
 
 /// Information about which networks/protocols from application services on the
 /// homeserver from which to request rooms.
-#[derive(Clone, Debug, PartialEq, Eq, Outgoing)]
+#[derive(Clone, Debug, PartialEq, Eq, Incoming)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, PartialEq, Eq, !Deserialize)]
 pub enum RoomNetwork<'a> {

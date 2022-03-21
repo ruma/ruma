@@ -4,7 +4,7 @@ use ruma_common::{
         error::{FromHttpResponseError, IntoHttpError, MatrixError},
         ruma_api, IncomingResponse, OutgoingResponse,
     },
-    serde::Outgoing,
+    serde::Incoming,
 };
 
 ruma_api! {
@@ -25,7 +25,7 @@ ruma_api! {
     }
 }
 
-#[derive(Outgoing)]
+#[derive(Incoming)]
 pub struct Response;
 
 impl IncomingResponse for Response {

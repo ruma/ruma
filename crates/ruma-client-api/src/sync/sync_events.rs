@@ -16,7 +16,7 @@ pub mod v3 {
             AnyToDeviceEvent,
         },
         presence::PresenceState,
-        serde::{Outgoing, Raw},
+        serde::{Incoming, Raw},
         DeviceKeyAlgorithm, RoomId, UserId,
     };
     use serde::{Deserialize, Serialize};
@@ -138,7 +138,7 @@ pub mod v3 {
     }
 
     /// A filter represented either as its full JSON definition or the ID of a saved filter.
-    #[derive(Clone, Debug, Outgoing, Serialize)]
+    #[derive(Clone, Debug, Incoming, Serialize)]
     #[allow(clippy::large_enum_variant)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[serde(untagged)]

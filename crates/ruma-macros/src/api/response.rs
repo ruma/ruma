@@ -110,7 +110,7 @@ impl Response {
                 #[derive(
                     Debug,
                     #ruma_macros::_FakeDeriveRumaApi,
-                    #ruma_common::serde::Outgoing,
+                    #ruma_common::serde::Incoming,
                     #serde_derives
                 )]
                 #serde_attr

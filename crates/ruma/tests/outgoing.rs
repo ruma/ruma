@@ -4,7 +4,7 @@
 
 #![allow(clippy::exhaustive_structs, clippy::redundant_allocation)]
 
-use ruma::{Outgoing, UserId};
+use ruma::{Incoming, UserId};
 
 #[allow(unused)]
 pub struct Thing<'t, T> {
@@ -20,14 +20,14 @@ pub struct IncomingThing<T> {
 }
 
 #[allow(unused)]
-#[derive(Copy, Clone, Debug, Outgoing, serde::Serialize)]
+#[derive(Copy, Clone, Debug, Incoming, serde::Serialize)]
 #[serde(crate = "serde")]
 pub struct OtherThing<'t> {
     pub some: &'t str,
     pub t: &'t [u8],
 }
 
-#[derive(Outgoing)]
+#[derive(Incoming)]
 #[incoming_derive(!Deserialize)]
 #[non_exhaustive]
 pub struct FakeRequest<'a, T> {
@@ -45,7 +45,7 @@ pub struct FakeRequest<'a, T> {
     pub triple_ref: &'a &'a &'a str,
 }
 
-#[derive(Outgoing)]
+#[derive(Incoming)]
 #[incoming_derive(!Deserialize)]
 #[non_exhaustive]
 pub enum EnumThing<'a, T> {
