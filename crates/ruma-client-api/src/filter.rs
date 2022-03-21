@@ -8,7 +8,7 @@ mod url;
 
 use js_int::UInt;
 use ruma_common::{
-    serde::{Outgoing, StringEnum},
+    serde::{Incoming, StringEnum},
     RoomId, UserId,
 };
 use serde::Serialize;
@@ -83,7 +83,7 @@ impl RelationType {
 }
 
 /// Filters to be applied to room events.
-#[derive(Clone, Debug, Default, Outgoing, Serialize)]
+#[derive(Clone, Debug, Default, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, Default, Serialize)]
 pub struct RoomEventFilter<'a> {
@@ -228,7 +228,7 @@ impl IncomingRoomEventFilter {
 }
 
 /// Filters to be applied to room data.
-#[derive(Clone, Debug, Default, Outgoing, Serialize)]
+#[derive(Clone, Debug, Default, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, Default, Serialize)]
 pub struct RoomFilter<'a> {
@@ -310,7 +310,7 @@ impl IncomingRoomFilter {
 }
 
 /// Filter for non-room data.
-#[derive(Clone, Debug, Default, Outgoing, Serialize)]
+#[derive(Clone, Debug, Default, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, Default, Serialize)]
 pub struct Filter<'a> {
@@ -382,7 +382,7 @@ impl IncomingFilter {
 }
 
 /// A filter definition
-#[derive(Clone, Debug, Default, Outgoing, Serialize)]
+#[derive(Clone, Debug, Default, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, Default, Serialize)]
 pub struct FilterDefinition<'a> {

@@ -22,7 +22,7 @@ enum DataKind {
     Unit,
 }
 
-pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
+pub fn expand_derive_incoming(input: DeriveInput) -> syn::Result<TokenStream> {
     let ruma_common = import_ruma_common();
 
     let mut derives = vec![quote! { Debug }];
@@ -56,7 +56,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
         input.attrs.iter().filter(|attr| filter_input_attrs(attr)).collect::<Vec<_>>();
 
     let data = match input.data.clone() {
-        Data::Union(_) => panic!("#[derive(Outgoing)] does not support Union types"),
+        Data::Union(_) => panic!("#[derive(Incoming)] does not support Union types"),
         Data::Enum(e) => DataKind::Enum(e.variants.into_iter().collect()),
         Data::Struct(s) => match s.fields {
             Fields::Named(fs) => {

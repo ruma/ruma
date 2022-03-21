@@ -39,7 +39,7 @@ impl Response {
                 Clone,
                 Debug,
                 #ruma_macros::Response,
-                #ruma_common::serde::Outgoing,
+                #ruma_common::serde::Incoming,
                 #ruma_common::serde::_FakeDeriveSerde,
             )]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]

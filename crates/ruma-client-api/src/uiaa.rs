@@ -10,7 +10,7 @@ use ruma_common::{
         error::{DeserializationError, IntoHttpError},
         EndpointError, OutgoingResponse,
     },
-    serde::{from_raw_json_value, JsonObject, Outgoing, StringEnum},
+    serde::{from_raw_json_value, Incoming, JsonObject, StringEnum},
     thirdparty::Medium,
     ClientSecret, SessionId,
 };
@@ -34,7 +34,7 @@ mod user_serde;
 ///
 /// To construct the custom `AuthData` variant you first have to construct [`IncomingAuthData::new`]
 /// and then call [`IncomingAuthData::to_outgoing`] on it.
-#[derive(Clone, Debug, Outgoing, Serialize)]
+#[derive(Clone, Debug, Incoming, Serialize)]
 #[non_exhaustive]
 #[incoming_derive(!Deserialize)]
 #[serde(untagged)]
@@ -342,7 +342,7 @@ pub enum AuthType {
 /// See [the spec] for how to use this.
 ///
 /// [the spec]: https://spec.matrix.org/v1.2/client-server-api/#password-based
-#[derive(Clone, Debug, Outgoing, Serialize)]
+#[derive(Clone, Debug, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.password")]
 pub struct Password<'a> {
@@ -379,7 +379,7 @@ impl IncomingPassword {
 /// See [the spec] for how to use this.
 ///
 /// [the spec]: https://spec.matrix.org/v1.2/client-server-api/#google-recaptcha
-#[derive(Clone, Debug, Outgoing, Serialize)]
+#[derive(Clone, Debug, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.recaptcha")]
 pub struct ReCaptcha<'a> {
@@ -409,7 +409,7 @@ impl IncomingReCaptcha {
 /// See [the spec] for how to use this.
 ///
 /// [the spec]: https://spec.matrix.org/v1.2/client-server-api/#email-based-identity--homeserver
-#[derive(Clone, Debug, Outgoing, Serialize)]
+#[derive(Clone, Debug, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.email.identity")]
 pub struct EmailIdentity<'a> {
@@ -436,7 +436,7 @@ impl IncomingEmailIdentity {
 /// See [the spec] for how to use this.
 ///
 /// [the spec]: https://spec.matrix.org/v1.2/client-server-api/#phone-numbermsisdn-based-identity--homeserver
-#[derive(Clone, Debug, Outgoing, Serialize)]
+#[derive(Clone, Debug, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.msisdn")]
 pub struct Msisdn<'a> {
@@ -460,7 +460,7 @@ impl IncomingMsisdn {
 /// See [the spec] for how to use this.
 ///
 /// [the spec]: https://spec.matrix.org/v1.2/client-server-api/#dummy-auth
-#[derive(Clone, Debug, Default, Outgoing, Serialize)]
+#[derive(Clone, Debug, Default, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.dummy")]
 pub struct Dummy<'a> {
@@ -487,7 +487,7 @@ impl IncomingDummy {
 /// See [the spec] for how to use this.
 ///
 /// [the spec]: https://spec.matrix.org/v1.2/client-server-api/#token-authenticated-registration
-#[derive(Clone, Debug, Outgoing, Serialize)]
+#[derive(Clone, Debug, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.registration_token")]
 pub struct RegistrationToken<'a> {
@@ -517,7 +517,7 @@ impl IncomingRegistrationToken {
 /// See [the spec] for how to use this.
 ///
 /// [the spec]: https://spec.matrix.org/v1.2/client-server-api/#fallback
-#[derive(Clone, Debug, Outgoing, Serialize)]
+#[derive(Clone, Debug, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct FallbackAcknowledgement<'a> {
     /// The value of the session key given by the homeserver.
@@ -561,7 +561,7 @@ pub struct IncomingCustomAuthData {
 }
 
 /// Identification information for the user.
-#[derive(Clone, Debug, PartialEq, Eq, Outgoing, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Incoming, Serialize)]
 #[serde(from = "user_serde::IncomingUserIdentifier", into = "user_serde::UserIdentifier<'_>")]
 #[allow(clippy::exhaustive_enums)]
 pub enum UserIdentifier<'a> {

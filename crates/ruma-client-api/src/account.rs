@@ -19,13 +19,13 @@ pub mod request_registration_token_via_msisdn;
 pub mod unbind_3pid;
 pub mod whoami;
 
-use ruma_common::serde::{Outgoing, StringEnum};
+use ruma_common::serde::{Incoming, StringEnum};
 use serde::Serialize;
 
 use crate::PrivOwnedStr;
 
 /// Additional authentication information for requestToken endpoints.
-#[derive(Clone, Debug, Outgoing, Serialize)]
+#[derive(Clone, Debug, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct IdentityServerInfo<'a> {
     /// The ID server to send the onward request to as a hostname with an

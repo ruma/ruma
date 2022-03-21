@@ -13,7 +13,7 @@ pub mod v1 {
         api::ruma_api,
         events::RoomEventType,
         push::{PusherData, Tweak},
-        serde::{Outgoing, StringEnum},
+        serde::{Incoming, StringEnum},
         EventId, RoomAliasId, RoomId, RoomName, SecondsSinceUnixEpoch, UserId,
     };
     use serde::{Deserialize, Serialize};
@@ -65,7 +65,7 @@ pub mod v1 {
     }
 
     /// Type for passing information about a push notification
-    #[derive(Clone, Debug, Default, Outgoing, Serialize)]
+    #[derive(Clone, Debug, Default, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct Notification<'a> {
         /// The Matrix event ID of the event being notified about.
@@ -196,7 +196,7 @@ pub mod v1 {
     }
 
     /// Type for passing information about devices.
-    #[derive(Clone, Debug, Deserialize, Outgoing, Serialize)]
+    #[derive(Clone, Debug, Deserialize, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct Device {
         /// The `app_id` given when the pusher was created.

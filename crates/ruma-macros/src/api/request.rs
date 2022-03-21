@@ -220,7 +220,7 @@ impl Request {
                     #serde::Serialize,
                     #derive_deserialize
                 )]
-                #[cfg_attr(feature = "server", derive(#ruma_common::serde::Outgoing))]
+                #[cfg_attr(feature = "server", derive(#ruma_common::serde::Incoming))]
                 #serde_attr
                 struct RequestBody< #(#lifetimes),* > { #(#fields),* }
             }
@@ -248,7 +248,7 @@ impl Request {
                     #serde::Serialize,
                     #derive_deserialize
                 )]
-                #[cfg_attr(feature = "server", derive(#ruma_common::serde::Outgoing))]
+                #[cfg_attr(feature = "server", derive(#ruma_common::serde::Incoming))]
                 struct RequestQuery< #(#lifetimes),* > #def
             }
         });

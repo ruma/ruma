@@ -8,7 +8,7 @@ pub mod v3 {
     use ruma_common::{
         api::ruma_api,
         events::{AnyStateEventContent, StateEventType},
-        serde::{Outgoing, Raw},
+        serde::{Incoming, Raw},
         RoomId,
     };
 
@@ -39,7 +39,7 @@ pub mod v3 {
     /// Data for a request to the `get_state_events_for_key` API endpoint.
     ///
     /// Get state events associated with a given key.
-    #[derive(Clone, Debug, Outgoing)]
+    #[derive(Clone, Debug, Incoming)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[incoming_derive(!Deserialize)]
     pub struct Request<'a> {
