@@ -5,8 +5,8 @@ use syn::{
     parse_quote,
     punctuated::Punctuated,
     AngleBracketedGenericArguments, Attribute, Data, DeriveInput, GenericArgument, GenericParam,
-    Generics, Ident, ParenthesizedGenericArguments, Path, PathArguments, Token, Type, TypePath,
-    TypeReference, TypeSlice,
+    Generics, Ident, ItemType, ParenthesizedGenericArguments, Path, PathArguments, Token, Type,
+    TypePath, TypeReference, TypeSlice,
 };
 
 use crate::util::import_ruma_common;
@@ -38,8 +38,25 @@ pub fn expand_derive_incoming(mut ty_def: DeriveInput) -> syn::Result<TokenStrea
         }
     }
 
+    let ident = format_ident!("Incoming{}", ty_def.ident, span = Span::call_site());
+
     if !found_lifetime {
-        return Ok(TokenStream::new());
+        let doc = format!(
+            "Convenience type alias for [{}], for consistency with other [{}] types.",
+            &ty_def.ident, ident
+        );
+
+        let mut type_alias: ItemType = parse_quote! { type X = Y; };
+        type_alias.vis = ty_def.vis.clone();
+        type_alias.ident = ident;
+        type_alias.generics = ty_def.generics.clone();
+        type_alias.ty =
+            Box::new(TypePath { qself: None, path: ty_def.ident.clone().into() }.into());
+
+        return Ok(quote! {
+            #[doc = #doc]
+            #type_alias
+        });
     }
 
     let mut derives = vec![quote! { Debug }];
@@ -73,7 +90,7 @@ pub fn expand_derive_incoming(mut ty_def: DeriveInput) -> syn::Result<TokenStrea
     clean_generics(&mut ty_def.generics);
 
     let doc = format!("'Incoming' variant of [{}].", &ty_def.ident);
-    ty_def.ident = format_ident!("Incoming{}", ty_def.ident, span = Span::call_site());
+    ty_def.ident = ident;
 
     Ok(quote! {
         #[doc = #doc]

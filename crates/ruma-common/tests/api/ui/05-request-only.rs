@@ -1,10 +1,7 @@
 use bytes::BufMut;
-use ruma_common::{
-    api::{
-        error::{FromHttpResponseError, IntoHttpError, MatrixError},
-        ruma_api, IncomingResponse, OutgoingResponse,
-    },
-    serde::Incoming,
+use ruma_common::api::{
+    error::{FromHttpResponseError, IntoHttpError, MatrixError},
+    ruma_api, IncomingResponse, OutgoingResponse,
 };
 
 ruma_api! {
@@ -25,7 +22,6 @@ ruma_api! {
     }
 }
 
-#[derive(Incoming)]
 pub struct Response;
 
 impl IncomingResponse for Response {
