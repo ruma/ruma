@@ -14,9 +14,8 @@ use crate::MxcUri;
 /// A picture that is associated with the room.
 ///
 /// This can be displayed alongside the room information.
-#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[cfg_attr(feature = "unstable-pre-spec", derive(Default))]
 #[ruma_event(type = "m.room.avatar", kind = State)]
 pub struct RoomAvatarEventContent {
     /// Information about the avatar image.
@@ -24,35 +23,11 @@ pub struct RoomAvatarEventContent {
     pub info: Option<Box<ImageInfo>>,
 
     /// URL of the avatar image.
-    ///
-    /// With the `unstable-pre-spec` feature, this field is optional.
-    /// See [matrix-spec#471](https://github.com/matrix-org/matrix-spec/issues/471).
-    #[cfg(not(feature = "unstable-pre-spec"))]
-    pub url: Box<MxcUri>,
-
-    /// URL of the avatar image.
-    ///
-    /// Without the `unstable-pre-spec` feature, this field is not optional.
-    /// See [matrix-spec#471](https://github.com/matrix-org/matrix-spec/issues/471).
-    #[cfg(feature = "unstable-pre-spec")]
     pub url: Option<Box<MxcUri>>,
 }
 
 impl RoomAvatarEventContent {
-    /// Create an `RoomAvatarEventContent` from the given image URL.
-    ///
-    /// With the `unstable-pre-spec` feature, this method takes no parameters.
-    /// See [matrix-spec#471](https://github.com/matrix-org/matrix-spec/issues/471).
-    #[cfg(not(feature = "unstable-pre-spec"))]
-    pub fn new(url: Box<MxcUri>) -> Self {
-        Self { info: None, url }
-    }
-
     /// Create an empty `RoomAvatarEventContent`.
-    ///
-    /// Without the `unstable-pre-spec` feature, this method takes an `MxcUri`.
-    /// See [matrix-spec#471](https://github.com/matrix-org/matrix-spec/issues/471).
-    #[cfg(feature = "unstable-pre-spec")]
     pub fn new() -> Self {
         Self::default()
     }

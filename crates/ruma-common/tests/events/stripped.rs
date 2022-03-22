@@ -99,17 +99,13 @@ fn deserialize_stripped_state_events() {
     match event {
         AnyStrippedStateEvent::RoomAvatar(event) => {
             let image_info = event.content.info.unwrap();
-            let expected_url = mxc_uri!("mxc://example.com/iMag3");
-
-            #[cfg(feature = "unstable-pre-spec")]
-            let expected_url = Some(expected_url.to_owned());
 
             assert_eq!(image_info.height.unwrap(), uint!(128));
             assert_eq!(image_info.width.unwrap(), uint!(128));
             assert_eq!(image_info.mimetype.unwrap(), "image/jpeg");
             assert_eq!(image_info.size.unwrap(), uint!(1024));
             assert_eq!(image_info.thumbnail_info.unwrap().size.unwrap(), uint!(32));
-            assert_eq!(event.content.url, expected_url);
+            assert_eq!(event.content.url.unwrap(), mxc_uri!("mxc://example.com/iMag3"));
             assert_eq!(event.state_key, "");
             assert_eq!(event.sender.to_string(), "@example:localhost");
         }
