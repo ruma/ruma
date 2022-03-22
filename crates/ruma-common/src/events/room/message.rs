@@ -2,7 +2,7 @@
 //!
 //! [`m.room.message`]: https://spec.matrix.org/v1.2/client-server-api/#mroommessage
 
-use std::{borrow::Cow, fmt};
+use std::{borrow::Cow, fmt, time::Duration};
 
 use js_int::UInt;
 use ruma_macros::EventContent;
@@ -510,8 +510,12 @@ impl AudioMessageEventContent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct AudioInfo {
     /// The duration of the audio in milliseconds.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub duration: Option<UInt>,
+    #[serde(
+        with = "crate::serde::duration::opt_ms",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub duration: Option<Duration>,
 
     /// The mimetype of the audio, e.g. "audio/aac".
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1083,8 +1087,12 @@ impl VideoMessageEventContent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct VideoInfo {
     /// The duration of the video in milliseconds.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub duration: Option<UInt>,
+    #[serde(
+        with = "crate::serde::duration::opt_ms",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub duration: Option<Duration>,
 
     /// The height of the video in pixels.
     #[serde(rename = "h", skip_serializing_if = "Option::is_none")]
