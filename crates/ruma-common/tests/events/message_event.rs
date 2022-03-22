@@ -5,7 +5,7 @@ use ruma_common::{
     event_id,
     events::{
         call::{answer::CallAnswerEventContent, SessionDescription, SessionDescriptionType},
-        room::{ImageInfo, ThumbnailInfo, ThumbnailSource},
+        room::{ImageInfo, MediaSource, ThumbnailInfo},
         sticker::StickerEventContent,
         AnyMessageLikeEvent, AnyMessageLikeEventContent, AnySyncMessageLikeEvent, MessageLikeEvent,
         MessageLikeEventType, MessageLikeUnsigned,
@@ -32,7 +32,7 @@ fn message_serialize_sticker() {
                     mimetype: Some("image/png".into()),
                     size: UInt::new(82595),
                 }))),
-                thumbnail_src: Some(ThumbnailSource::Plain(mxc_uri!("mxc://matrix.org/irsns989Rrsn").to_owned())),
+                thumbnail_src: Some(MediaSource::Plain(mxc_uri!("mxc://matrix.org/irsns989Rrsn").to_owned())),
             }),
             mxc_uri!("mxc://matrix.org/rnsldl8srs98IRrs").to_owned(),
         ),
@@ -184,7 +184,7 @@ fn deserialize_message_sticker() {
                     mimetype: Some(mimetype),
                     size,
                     thumbnail_info: Some(thumbnail_info),
-                    thumbnail_src: Some(ThumbnailSource::Plain(thumbnail_url)),
+                    thumbnail_src: Some(MediaSource::Plain(thumbnail_url)),
                     #[cfg(feature = "unstable-msc2448")]
                     blurhash: None,
                     ..

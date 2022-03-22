@@ -9,7 +9,7 @@ use ruma_macros::EventContent;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
-use super::{EncryptedFile, ImageInfo, MediaSource, ThumbnailInfo, ThumbnailSource};
+use super::{EncryptedFile, ImageInfo, MediaSource, ThumbnailInfo};
 #[cfg(feature = "unstable-msc1767")]
 use crate::events::{
     emote::EmoteEventContent,
@@ -644,8 +644,8 @@ pub struct FileInfo {
     pub thumbnail_info: Option<Box<ThumbnailInfo>>,
 
     /// The source of the thumbnail of the file.
-    #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    pub thumbnail_src: Option<ThumbnailSource>,
+    #[serde(flatten, with = "super::thumbnail_src_serde", skip_serializing_if = "Option::is_none")]
+    pub thumbnail_src: Option<MediaSource>,
 }
 
 impl FileInfo {
@@ -718,8 +718,8 @@ impl LocationMessageEventContent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct LocationInfo {
     /// The URL to a thumbnail of the location.
-    #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    pub thumbnail_src: Option<ThumbnailSource>,
+    #[serde(flatten, with = "super::thumbnail_src_serde", skip_serializing_if = "Option::is_none")]
+    pub thumbnail_src: Option<MediaSource>,
 
     /// Metadata about the image referred to in `thumbnail_src.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1065,8 +1065,8 @@ pub struct VideoInfo {
     pub thumbnail_info: Option<Box<ThumbnailInfo>>,
 
     /// The source of the thumbnail of the video clip.
-    #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    pub thumbnail_src: Option<ThumbnailSource>,
+    #[serde(flatten, with = "super::thumbnail_src_serde", skip_serializing_if = "Option::is_none")]
+    pub thumbnail_src: Option<MediaSource>,
 
     /// The [BlurHash](https://blurha.sh) for this video.
     ///

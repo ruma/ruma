@@ -29,6 +29,7 @@ pub mod power_levels;
 pub mod redaction;
 pub mod server_acl;
 pub mod third_party_invite;
+mod thumbnail_src_serde;
 pub mod tombstone;
 pub mod topic;
 
@@ -70,8 +71,8 @@ pub struct ImageInfo {
     pub thumbnail_info: Option<Box<ThumbnailInfo>>,
 
     /// The source of the thumbnail of the image.
-    #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    pub thumbnail_src: Option<ThumbnailSource>,
+    #[serde(flatten, with = "thumbnail_src_serde", skip_serializing_if = "Option::is_none")]
+    pub thumbnail_src: Option<MediaSource>,
 
     /// The [BlurHash](https://blurha.sh) for this image.
     ///
@@ -91,19 +92,6 @@ impl ImageInfo {
     pub fn new() -> Self {
         Self::default()
     }
-}
-
-/// The source of a thumbnail.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub enum ThumbnailSource {
-    /// The MXC URI to the unencrypted media file.
-    #[serde(rename = "thumbnail_url")]
-    Plain(Box<MxcUri>),
-
-    /// The encryption info of the encrypted media file.
-    #[serde(rename = "thumbnail_file")]
-    Encrypted(Box<EncryptedFile>),
 }
 
 /// Metadata about a thumbnail.
