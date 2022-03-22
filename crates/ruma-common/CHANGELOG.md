@@ -3,7 +3,7 @@
 Breaking changes:
 
 * Change `events::room` media types to accept either a plain file or an
-  encrypted file
+  encrypted file, not both simultaneously
 
 # 0.8.0
 
