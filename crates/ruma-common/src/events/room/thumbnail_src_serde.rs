@@ -69,7 +69,7 @@ mod tests {
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
     struct ThumbnailSourceTest {
-        #[serde(flatten, with = "super", default, skip_serializing_if = "Option::is_none")]
+        #[serde(flatten, with = "super", skip_serializing_if = "Option::is_none")]
         src: Option<MediaSource>,
     }
 
