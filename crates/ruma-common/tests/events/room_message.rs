@@ -12,9 +12,12 @@ use ruma_common::{
     event_id,
     events::{
         key::verification::VerificationMethod,
-        room::message::{
-            AudioMessageEventContent, KeyVerificationRequestEventContent, MessageType,
-            RoomMessageEvent, RoomMessageEventContent, TextMessageEventContent,
+        room::{
+            message::{
+                AudioMessageEventContent, KeyVerificationRequestEventContent, MessageType,
+                RoomMessageEvent, RoomMessageEventContent, TextMessageEventContent,
+            },
+            MediaSource,
         },
         MessageLikeUnsigned,
     },
@@ -443,8 +446,7 @@ fn content_deserialization() {
             msgtype: MessageType::Audio(AudioMessageEventContent {
                 body,
                 info: None,
-                url: Some(url),
-                file: None,
+                src: MediaSource::Plain(url),
                 ..
             }),
             ..

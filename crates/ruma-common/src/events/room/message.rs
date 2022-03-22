@@ -9,7 +9,7 @@ use ruma_macros::EventContent;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
-use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
+use super::{EncryptedFile, ImageInfo, MediaSource, ThumbnailInfo, ThumbnailSource};
 #[cfg(feature = "unstable-msc1767")]
 use crate::events::{
     emote::EmoteEventContent,
@@ -474,17 +474,9 @@ pub struct AudioMessageEventContent {
     /// The textual representation of this message.
     pub body: String,
 
-    /// The URL to the audio clip.
-    ///
-    /// Required if the file is unencrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<Box<MxcUri>>,
-
-    /// Information on the encrypted audio clip.
-    ///
-    /// Required if the audio clip is encrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub file: Option<Box<EncryptedFile>>,
+    /// The source of the audio clip.
+    #[serde(flatten)]
+    pub src: MediaSource,
 
     /// Metadata for the audio clip referred to in `url`.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -495,13 +487,13 @@ impl AudioMessageEventContent {
     /// Creates a new non-encrypted `RoomAudioMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<AudioInfo>>) -> Self {
-        Self { body, url: Some(url), info, file: None }
+        Self { body, src: MediaSource::Plain(url), info }
     }
 
     /// Creates a new encrypted `RoomAudioMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
-        Self { body, url: None, info: None, file: Some(Box::new(file)) }
+        Self { body, src: MediaSource::Encrypted(Box::new(file)), info: None }
     }
 }
 
@@ -612,15 +604,9 @@ pub struct FileMessageEventContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filename: Option<String>,
 
-    /// The URL to the file.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<Box<MxcUri>>,
-
-    /// Information on the encrypted file.
-    ///
-    /// Required if file is encrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub file: Option<Box<EncryptedFile>>,
+    /// The source of the file.
+    #[serde(flatten)]
+    pub src: MediaSource,
 
     /// Metadata about the file referred to in `url`.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -631,13 +617,13 @@ impl FileMessageEventContent {
     /// Creates a new non-encrypted `RoomFileMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<FileInfo>>) -> Self {
-        Self { body, filename: None, url: Some(url), info, file: None }
+        Self { body, filename: None, src: MediaSource::Plain(url), info }
     }
 
     /// Creates a new encrypted `RoomFileMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
-        Self { body, filename: None, url: None, info: None, file: Some(Box::new(file)) }
+        Self { body, filename: None, src: MediaSource::Encrypted(Box::new(file)), info: None }
     }
 }
 
@@ -653,21 +639,13 @@ pub struct FileInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub size: Option<UInt>,
 
-    /// Metadata about the image referred to in `thumbnail_url`.
+    /// Metadata about the image referred to in `thumbnail_src`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<Box<ThumbnailInfo>>,
 
-    /// The URL to the thumbnail of the file.
-    ///
-    /// Only present if the thumbnail is unencrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_url: Option<Box<MxcUri>>,
-
-    /// Information on the encrypted thumbnail file.
-    ///
-    /// Only present if the thumbnail is encrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_file: Option<Box<EncryptedFile>>,
+    /// The source of the thumbnail of the file.
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub thumbnail_src: Option<ThumbnailSource>,
 }
 
 impl FileInfo {
@@ -688,15 +666,9 @@ pub struct ImageMessageEventContent {
     /// description for accessibility e.g. "image attachment".
     pub body: String,
 
-    /// The URL to the image.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<Box<MxcUri>>,
-
-    /// Information on the encrypted image.
-    ///
-    /// Required if image is encrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub file: Option<Box<EncryptedFile>>,
+    /// The source of the image.
+    #[serde(flatten)]
+    pub src: MediaSource,
 
     /// Metadata about the image referred to in `url`.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -707,13 +679,13 @@ impl ImageMessageEventContent {
     /// Creates a new non-encrypted `RoomImageMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<ImageInfo>>) -> Self {
-        Self { body, url: Some(url), info, file: None }
+        Self { body, src: MediaSource::Plain(url), info }
     }
 
     /// Creates a new encrypted `RoomImageMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
-        Self { body, url: None, info: None, file: Some(Box::new(file)) }
+        Self { body, src: MediaSource::Encrypted(Box::new(file)), info: None }
     }
 }
 
@@ -745,19 +717,11 @@ impl LocationMessageEventContent {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct LocationInfo {
-    /// The URL to a thumbnail of the location being represented.
-    ///
-    /// Only present if the thumbnail is unencrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_url: Option<Box<MxcUri>>,
+    /// The URL to a thumbnail of the location.
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub thumbnail_src: Option<ThumbnailSource>,
 
-    /// Information on an encrypted thumbnail of the location being represented.
-    ///
-    /// Only present if the thumbnail is encrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_file: Option<Box<EncryptedFile>>,
-
-    /// Metadata about the image referred to in `thumbnail_url` or `thumbnail_file`.
+    /// Metadata about the image referred to in `thumbnail_src.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<Box<ThumbnailInfo>>,
 }
@@ -1049,15 +1013,9 @@ pub struct VideoMessageEventContent {
     /// accessibility, e.g. "video attachment".
     pub body: String,
 
-    /// The URL to the video clip.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<Box<MxcUri>>,
-
-    /// Information on the encrypted video clip.
-    ///
-    /// Required if video clip is encrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub file: Option<Box<EncryptedFile>>,
+    /// The source of the video clip.
+    #[serde(flatten)]
+    pub src: MediaSource,
 
     /// Metadata about the video clip referred to in `url`.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1068,13 +1026,13 @@ impl VideoMessageEventContent {
     /// Creates a new non-encrypted `RoomVideoMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<VideoInfo>>) -> Self {
-        Self { body, url: Some(url), info, file: None }
+        Self { body, src: MediaSource::Plain(url), info }
     }
 
     /// Creates a new encrypted `RoomVideoMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
-        Self { body, url: None, info: None, file: Some(Box::new(file)) }
+        Self { body, src: MediaSource::Encrypted(Box::new(file)), info: None }
     }
 }
 
@@ -1102,21 +1060,13 @@ pub struct VideoInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub size: Option<UInt>,
 
-    /// Metadata about an image.
+    /// Metadata about the image referred to in `thumbnail_src`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<Box<ThumbnailInfo>>,
 
-    /// The URL to an image thumbnail of the video clip.
-    ///
-    /// Only present if the thumbnail is unencrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_url: Option<Box<MxcUri>>,
-
-    /// Information on the encrypted thumbnail file.
-    ///
-    /// Only present if the thumbnail is encrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_file: Option<Box<EncryptedFile>>,
+    /// The source of the thumbnail of the video clip.
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub thumbnail_src: Option<ThumbnailSource>,
 
     /// The [BlurHash](https://blurha.sh) for this video.
     ///

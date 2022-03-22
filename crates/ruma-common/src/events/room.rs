@@ -32,6 +32,19 @@ pub mod third_party_invite;
 pub mod tombstone;
 pub mod topic;
 
+/// The source of a media file.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub enum MediaSource {
+    /// The MXC URI to the unencrypted media file.
+    #[serde(rename = "url")]
+    Plain(Box<MxcUri>),
+
+    /// The encryption info of the encrypted media file.
+    #[serde(rename = "file")]
+    Encrypted(Box<EncryptedFile>),
+}
+
 /// Metadata about an image.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -52,21 +65,13 @@ pub struct ImageInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub size: Option<UInt>,
 
-    /// Metadata about the image referred to in `thumbnail_url`.
+    /// Metadata about the image referred to in `thumbnail_src`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<Box<ThumbnailInfo>>,
 
-    /// The URL to the thumbnail of the image.
-    ///
-    /// Only present if the thumbnail is unencrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_url: Option<Box<MxcUri>>,
-
-    /// Information on the encrypted thumbnail image.
-    ///
-    /// Only present if the thumbnail is encrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_file: Option<Box<EncryptedFile>>,
+    /// The source of the thumbnail of the image.
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub thumbnail_src: Option<ThumbnailSource>,
 
     /// The [BlurHash](https://blurha.sh) for this image.
     ///
@@ -86,6 +91,19 @@ impl ImageInfo {
     pub fn new() -> Self {
         Self::default()
     }
+}
+
+/// The source of a thumbnail.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub enum ThumbnailSource {
+    /// The MXC URI to the unencrypted media file.
+    #[serde(rename = "thumbnail_url")]
+    Plain(Box<MxcUri>),
+
+    /// The encryption info of the encrypted media file.
+    #[serde(rename = "thumbnail_file")]
+    Encrypted(Box<EncryptedFile>),
 }
 
 /// Metadata about a thumbnail.
