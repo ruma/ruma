@@ -474,9 +474,13 @@ fn generate_event_content_impl<'a>(
                     ty: ::std::option::Option<crate::PrivOwnedStr>,
                 }
 
-                impl ::std::convert::AsRef<::std::primitive::str> for #i {
-                    fn as_ref(&self) -> &::std::primitive::str {
-                        self.ty.as_ref().map(|t| &t.0[..]).unwrap_or(#event_type)
+                impl #serde::Serialize for #i {
+                    fn serialize<S>(&self, serializer: S) -> ::std::result::Result<S::Ok, S::Error>
+                    where
+                        S: #serde::Serializer,
+                    {
+                        let s = self.ty.as_ref().map(|t| &t.0[..]).unwrap_or(#event_type);
+                        serializer.serialize_str(s)
                     }
                 }
             });
