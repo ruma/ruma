@@ -12,7 +12,7 @@ fn main() {
     use ruma_common::events::EventContent;
 
     assert_eq!(
-        MacroTestContent { frag: "foo".to_owned() }.event_type().as_str(),
+        MacroTestContent { frag: "foo".to_owned() }.event_type().to_string(),
         "m.macro.test.foo"
     );
 }

@@ -240,7 +240,7 @@ fn expand_into_full_event(
 /// Create a content enum from `EventEnumInput`.
 fn expand_content_enum(
     kind: EventKind,
-    events: &[LitStr],
+    event_types: &[LitStr],
     attrs: &[Attribute],
     variants: &[EventEnumVariant],
     ruma_common: &TokenStream,
@@ -251,13 +251,18 @@ fn expand_content_enum(
     let ident = kind.to_content_enum();
 
     let event_type_enum = kind.to_event_type_enum();
-    let event_type_str = events;
 
     let content: Vec<_> =
-        events.iter().map(|ev| to_event_content_path(kind, ev, None, ruma_common)).collect();
+        event_types.iter().map(|ev| to_event_content_path(kind, ev, None, ruma_common)).collect();
+    let event_type_match_arms = event_types.iter().map(|s| {
+        if let Some(prefix) = s.value().strip_suffix(".*") {
+            quote! { _s if _s.starts_with(#prefix) }
+        } else {
+            quote! { #s }
+        }
+    });
 
     let variant_decls = variants.iter().map(|v| v.decl()).collect::<Vec<_>>();
-
     let variant_attrs = variants.iter().map(|v| {
         let attrs = &v.attrs;
         quote! { #(#attrs)* }
@@ -278,7 +283,7 @@ fn expand_content_enum(
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
         pub enum #ident {
             #(
-                #[doc = #event_type_str]
+                #[doc = #event_types]
                 #variant_decls(#content),
             )*
             #[doc(hidden)]
@@ -305,7 +310,7 @@ fn expand_content_enum(
             ) -> #serde_json::Result<Self> {
                 match event_type {
                     #(
-                        #variant_attrs #event_type_str => {
+                        #variant_attrs #event_type_match_arms => {
                             let content = #content::from_parts(event_type, input)?;
                             ::std::result::Result::Ok(#variant_ctors(content))
                         }
@@ -434,7 +439,9 @@ fn expand_accessor_methods(
                             event.unsigned._map_prev_unsigned(|c| #content_enum::_Custom {
                                 event_type: crate::PrivOwnedStr(
                                     ::std::convert::From::from(
-                                        #ruma_common::events::EventContent::event_type(c).as_str()
+                                        ::std::string::ToString::to_string(
+                                            &#ruma_common::events::EventContent::event_type(c)
+                                        )
                                     ),
                                 ),
                             })
@@ -467,8 +474,9 @@ fn expand_accessor_methods(
                     Self::_Custom(event) => #content_enum::_Custom {
                         event_type: crate::PrivOwnedStr(
                             ::std::convert::From::from(
-                                #ruma_common::events::EventContent::event_type(&event.content)
-                                    .as_str(),
+                                ::std::string::ToString::to_string(
+                                    &#ruma_common::events::EventContent::event_type(&event.content)
+                                )
                             ),
                         ),
                     },
@@ -627,9 +635,14 @@ impl EventEnumVariant {
 }
 
 impl EventEnumEntry {
+    pub(crate) fn has_type_fragment(&self) -> bool {
+        self.ev_type.value().ends_with(".*")
+    }
+
     pub(crate) fn to_variant(&self) -> syn::Result<EventEnumVariant> {
         let attrs = self.attrs.clone();
         let ident = m_prefix_name_to_type_name(&self.ev_type)?;
+
         Ok(EventEnumVariant { attrs, ident })
     }
 }
