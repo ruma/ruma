@@ -29,7 +29,7 @@ jobs:
       - name: Run checks
         uses: actions-rs/cargo@v1
         env:
-          RUSTFLAGS: --cfg='ruma_identifiers_storage="${{ matrix.id_storage }}"'
+          RUSTFLAGS: '--cfg=''ruma_identifiers_storage="${{ matrix.id_storage }}"'''
         with:
           command: run
           args: -p xtask --no-default-features ci stable-all
