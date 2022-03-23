@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        id_storage: ["", "Arc"]
+        id_storage: ["Box", "Arc"]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
