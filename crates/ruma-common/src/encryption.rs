@@ -6,7 +6,10 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{serde::Base64, DeviceId, DeviceKeyId, EventEncryptionAlgorithm, UserId};
+use crate::{
+    serde::{Base64, StringEnum},
+    DeviceId, DeviceKeyId, EventEncryptionAlgorithm, PrivOwnedStr, UserId,
+};
 
 /// Identity keys for a device.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -152,9 +155,9 @@ impl CrossSigningKey {
 }
 
 /// The usage of a cross signing key.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, StringEnum)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "snake_case")]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum KeyUsage {
     /// Master key.
     Master,
@@ -164,4 +167,7 @@ pub enum KeyUsage {
 
     /// User-signing key.
     UserSigning,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
 }
