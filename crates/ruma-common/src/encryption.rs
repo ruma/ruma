@@ -118,7 +118,7 @@ pub enum OneTimeKey {
 }
 
 /// Signatures for a `CrossSigningKey` object.
-pub type CrossSigningKeySignatures = BTreeMap<Box<UserId>, BTreeMap<String, String>>;
+pub type CrossSigningKeySignatures = BTreeMap<Box<UserId>, BTreeMap<Box<DeviceKeyId>, String>>;
 
 /// A cross signing key.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -133,7 +133,7 @@ pub struct CrossSigningKey {
     /// The public key.
     ///
     /// The object must have exactly one property.
-    pub keys: BTreeMap<String, String>,
+    pub keys: BTreeMap<Box<DeviceKeyId>, String>,
 
     /// Signatures of the key.
     ///
@@ -147,7 +147,7 @@ impl CrossSigningKey {
     pub fn new(
         user_id: Box<UserId>,
         usage: Vec<KeyUsage>,
-        keys: BTreeMap<String, String>,
+        keys: BTreeMap<Box<DeviceKeyId>, String>,
         signatures: CrossSigningKeySignatures,
     ) -> Self {
         Self { user_id, usage, keys, signatures }
