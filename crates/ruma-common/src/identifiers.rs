@@ -10,40 +10,28 @@ use serde::de::{self, Deserializer, Unexpected};
 
 #[doc(inline)]
 pub use self::{
-    client_secret::ClientSecret,
+    client_secret::{ClientSecret, OwnedClientSecret},
     crypto_algorithms::{DeviceKeyAlgorithm, EventEncryptionAlgorithm, SigningKeyAlgorithm},
-    device_id::DeviceId,
-    device_key_id::DeviceKeyId,
-    event_id::EventId,
+    device_id::{DeviceId, OwnedDeviceId},
+    device_key_id::{DeviceKeyId, OwnedDeviceKeyId},
+    event_id::{EventId, OwnedEventId},
     key_id::{DeviceSigningKeyId, KeyId, ServerSigningKeyId, SigningKeyId},
-    key_name::KeyName,
+    key_name::{KeyName, OwnedKeyName},
     matrix_uri::{MatrixToUri, MatrixUri},
-    mxc_uri::MxcUri,
-    room_alias_id::RoomAliasId,
-    room_id::RoomId,
-    room_name::RoomName,
-    room_or_room_alias_id::RoomOrAliasId,
+    mxc_uri::{MxcUri, OwnedMxcUri},
+    room_alias_id::{OwnedRoomAliasId, RoomAliasId},
+    room_id::{OwnedRoomId, RoomId},
+    room_name::{OwnedRoomName, RoomName},
+    room_or_room_alias_id::{OwnedRoomOrAliasId, RoomOrAliasId},
     room_version_id::RoomVersionId,
-    server_name::ServerName,
-    session_id::SessionId,
+    server_name::{OwnedServerName, ServerName},
+    session_id::{OwnedSessionId, SessionId},
     signatures::{DeviceSignatures, EntitySignatures, ServerSignatures, Signatures},
-    transaction_id::TransactionId,
-    user_id::UserId,
+    transaction_id::{OwnedTransactionId, TransactionId},
+    user_id::{OwnedUserId, UserId},
 };
 #[doc(inline)]
 pub use ruma_identifiers_validation::error::Error;
-
-/// Provides owned variants for opaque identifiers.
-pub mod owned {
-    pub use super::{
-        client_secret::OwnedClientSecret, device_id::OwnedDeviceId,
-        device_key_id::OwnedDeviceKeyId, event_id::OwnedEventId, key_name::OwnedKeyName,
-        mxc_uri::OwnedMxcUri, room_alias_id::OwnedRoomAliasId, room_id::OwnedRoomId,
-        room_name::OwnedRoomName, room_or_room_alias_id::OwnedRoomOrAliasId,
-        server_name::OwnedServerName, session_id::OwnedSessionId,
-        transaction_id::OwnedTransactionId, user_id::OwnedUserId,
-    };
-}
 
 #[macro_use]
 mod macros;

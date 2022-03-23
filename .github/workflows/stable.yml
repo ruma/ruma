@@ -13,6 +13,9 @@ jobs:
   check_all:
     name: Check All Features
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        id_storage: ["", "Arc"]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -25,6 +28,8 @@ jobs:
       - uses: Swatinem/rust-cache@v1
       - name: Run checks
         uses: actions-rs/cargo@v1
+        env:
+          RUSTFLAGS: --cfg='ruma_identifiers_storage="${{ matrix.id_storage }}"'
         with:
           command: run
           args: -p xtask --no-default-features ci stable-all

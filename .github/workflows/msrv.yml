@@ -13,6 +13,9 @@ jobs:
   all_features:
     name: Check All Features
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        id_storage: ["", "Arc"]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -20,7 +23,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: '1.55'
+          toolchain: "1.55"
       # Used to compile xtask
       - name: Install rust stable toolchain
         uses: actions-rs/toolchain@v1
@@ -36,6 +39,8 @@ jobs:
           sharedKey: msrv1.55
       - name: Run checks
         uses: actions-rs/cargo@v1
+        env:
+          RUSTFLAGS: --cfg='ruma_identifiers_storage="${{ matrix.id_storage }}"'
         with:
           command: run
           args: -p xtask --no-default-features ci msrv-all
@@ -50,7 +55,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: '1.55'
+          toolchain: "1.55"
       # Used to compile xtask
       - name: Install rust stable toolchain
         uses: actions-rs/toolchain@v1
@@ -80,7 +85,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: '1.55'
+          toolchain: "1.55"
       # Used to compile xtask
       - name: Install rust stable toolchain
         uses: actions-rs/toolchain@v1

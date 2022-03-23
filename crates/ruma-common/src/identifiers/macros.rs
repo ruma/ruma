@@ -27,6 +27,12 @@ macro_rules! partial_eq_string {
 macro_rules! owned_identifier {
     ($owned:ident, $id:ident) => {
         #[doc = concat!("Owned variant of ", stringify!($id))]
+        ///
+        /// The wrapper type for this type is variable, by default it'll use [`Box`],
+        /// but you can change that by setting "`--cfg=ruma_identifiers_storage=...`" using
+        /// `RUSTFLAGS` or `.cargo/config.toml` (under `[build]` -> `rustflags = ["..."]`)
+        /// to the following;
+        /// - `ruma_identifiers_storage="Arc"` to use [`Arc`](std::sync::Arc) as a wrapper type.
         #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
         pub struct $owned {
             #[cfg(not(any(ruma_identifiers_storage = "Arc")))]
@@ -37,13 +43,13 @@ macro_rules! owned_identifier {
 
         impl AsRef<$id> for $owned {
             fn as_ref(&self) -> &$id {
-                &self.inner
+                &*self.inner
             }
         }
 
         impl AsRef<str> for $owned {
             fn as_ref(&self) -> &str {
-                &self.inner.as_ref()
+                (*self.inner).as_ref()
             }
         }
 
@@ -69,12 +75,7 @@ macro_rules! owned_identifier {
 
         impl From<Box<$id>> for $owned {
             fn from(b: Box<$id>) -> $owned {
-                Self {
-                    #[cfg(not(any(ruma_identifiers_storage = "Arc")))]
-                    inner: b,
-                    #[cfg(ruma_identifiers_storage = "Arc")]
-                    inner: std::sync::Arc::from(b),
-                }
+                Self { inner: b.into() }
             }
         }
 
@@ -100,6 +101,18 @@ macro_rules! owned_identifier {
         }
 
         partial_eq_string!($owned);
+
+        impl PartialEq<Box<$id>> for $owned {
+            fn eq(&self, other: &Box<$id>) -> bool {
+                AsRef::<$id>::as_ref(self) == AsRef::<$id>::as_ref(other)
+            }
+        }
+
+        impl PartialEq<$owned> for Box<$id> {
+            fn eq(&self, other: &$owned) -> bool {
+                AsRef::<$id>::as_ref(self) == AsRef::<$id>::as_ref(other)
+            }
+        }
     };
 }
 
