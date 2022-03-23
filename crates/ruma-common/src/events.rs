@@ -5,26 +5,16 @@
 //! Different event types represent different actions, such as joining a room or sending a message.
 //! Events are stored and transmitted as simple JSON structures.
 //! While anyone can create a new event type for their own purposes, the Matrix specification
-//! defines a number of event types which are considered core to the protocol, and Matrix clients
-//! and servers must understand their semantics.
-//! This module contains Rust types for each of the event types defined by the specification and
+//! defines a number of event types which are considered core to the protocol.
+//! This module contains Rust types for all of the event types defined by the specification and
 //! facilities for extending the event system for custom event types.
-//!
-//! # Event types
-//!
-//! This module includes a Rust enum called [`EventType`], which provides a simple enumeration of
-//! all the event types defined by the Matrix specification. Matrix event types are serialized to
-//! JSON strings in [reverse domain name
-//! notation](https://en.wikipedia.org/wiki/Reverse_domain_name_notation), although the core event
-//! types all use the special "m" TLD, e.g. `m.room.message`.
 //!
 //! # Core event types
 //!
-//! This module includes Rust types for every one of the event types in the Matrix specification.
-//! To better organize the crate, these types live in separate modules with a hierarchy that
-//! matches the reverse domain name notation of the event type.
-//! For example, the `m.room.message` event lives at
-//! `ruma_common::events::::room::message::MessageLikeEvent`. Each type's module also contains a
+//! This module includes Rust types for all event types in the Matrix specification.
+//! To better organize the crate, these types live in separate modules with a hierarchy that matches
+//! the reverse domain name notation of the event type. For example, the `m.room.message` event
+//! lives at `ruma::events::room::message::RoomMessageEvent`. Each type's module also contains a
 //! Rust type for that event type's `content` field, and any other supporting types required by the
 //! event's other fields.
 //!
@@ -109,22 +99,6 @@
 //!     }) if key == "👍"
 //! );
 //! ```
-//!
-//! # Serialization and deserialization
-//!
-//! All concrete event types in this module can be serialized via the `Serialize` trait from
-//! [serde](https://serde.rs/) and can be deserialized from a `Raw<EventType>`. In order to
-//! handle incoming data that may not conform to this module's strict definitions of event
-//! structures, deserialization will return `Raw::Err` on error. This error covers both
-//! structurally invalid JSON data as well as structurally valid JSON that doesn't fulfill
-//! additional constraints the matrix specification defines for some event types. The error exposes
-//! the deserialized `serde_json::Value` so that developers can still work with the received
-//! event data. This makes it possible to deserialize a collection of events without the entire
-//! collection failing to deserialize due to a single invalid event. The "content" type for each
-//! event also implements `Serialize` and either `TryFromRaw` (enabling usage as
-//! `Raw<ContentType>` for dedicated content types) or `Deserialize` (when the content is a
-//! type alias), allowing content to be converted to and from JSON independently of the surrounding
-//! event structure, if needed.
 
 use serde::{de::IgnoredAny, Deserialize, Serializer};
 
