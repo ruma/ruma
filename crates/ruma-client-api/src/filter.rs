@@ -8,7 +8,7 @@ mod url;
 
 use js_int::UInt;
 use ruma_common::{
-    serde::{Outgoing, StringEnum},
+    serde::{Incoming, StringEnum},
     RoomId, UserId,
 };
 use serde::Serialize;
@@ -67,7 +67,7 @@ pub enum RelationType {
     Replacement,
 
     /// `m.thread`, a participant to a thread.
-    #[ruma_enum(rename = "io.element.thread")]
+    #[ruma_enum(rename = "io.element.thread", alias = "m.thread")]
     Thread,
 
     #[doc(hidden)]
@@ -83,7 +83,7 @@ impl RelationType {
 }
 
 /// Filters to be applied to room events.
-#[derive(Clone, Debug, Default, Outgoing, Serialize)]
+#[derive(Clone, Debug, Default, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, Default, Serialize)]
 pub struct RoomEventFilter<'a> {
@@ -153,6 +153,7 @@ pub struct RoomEventFilter<'a> {
     #[cfg(feature = "unstable-msc3440")]
     #[serde(
         rename = "io.element.relation_types",
+        alias = "related_by_rel_types",
         default,
         skip_serializing_if = "<[_]>::is_empty"
     )]
@@ -165,6 +166,7 @@ pub struct RoomEventFilter<'a> {
     #[cfg(feature = "unstable-msc3440")]
     #[serde(
         rename = "io.element.relation_senders",
+        alias = "related_by_senders",
         default,
         skip_serializing_if = "<[_]>::is_empty"
     )]
@@ -226,7 +228,7 @@ impl IncomingRoomEventFilter {
 }
 
 /// Filters to be applied to room data.
-#[derive(Clone, Debug, Default, Outgoing, Serialize)]
+#[derive(Clone, Debug, Default, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, Default, Serialize)]
 pub struct RoomFilter<'a> {
@@ -308,7 +310,7 @@ impl IncomingRoomFilter {
 }
 
 /// Filter for non-room data.
-#[derive(Clone, Debug, Default, Outgoing, Serialize)]
+#[derive(Clone, Debug, Default, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, Default, Serialize)]
 pub struct Filter<'a> {
@@ -380,7 +382,7 @@ impl IncomingFilter {
 }
 
 /// A filter definition
-#[derive(Clone, Debug, Default, Outgoing, Serialize)]
+#[derive(Clone, Debug, Default, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, Default, Serialize)]
 pub struct FilterDefinition<'a> {

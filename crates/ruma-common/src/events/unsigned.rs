@@ -76,7 +76,7 @@ pub struct StateUnsigned<C: EventContent<EventType = StateEventType>> {
     pub prev_content: Option<C>,
 
     /// Server-compiled information from other events relating to this event.
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-msc2675")]
     #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]
     pub relations: Option<Relations>,
 }
@@ -88,7 +88,7 @@ impl<C: EventContent<EventType = StateEventType>> StateUnsigned<C> {
             age: None,
             transaction_id: None,
             prev_content: None,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-msc2675")]
             relations: None,
         }
     }
@@ -128,7 +128,7 @@ impl<C: EventContent<EventType = StateEventType>> StateUnsigned<C> {
             #[serde(skip_serializing_if = "Option::is_none")]
             transaction_id: Option<Box<TransactionId>>,
             prev_content: Option<Raw<C>>,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-msc2675")]
             #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]
             relations: Option<Relations>,
         }
@@ -140,7 +140,7 @@ impl<C: EventContent<EventType = StateEventType>> StateUnsigned<C> {
         Ok(Self {
             age: raw.age,
             transaction_id: raw.transaction_id,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-msc2675")]
             relations: raw.relations,
             prev_content,
         })
@@ -154,7 +154,7 @@ impl<C: EventContent<EventType = StateEventType>> StateUnsigned<C> {
             age: self.age,
             transaction_id: self.transaction_id.clone(),
             prev_content: self.prev_content.as_ref().map(f),
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-msc2675")]
             relations: self.relations.clone(),
         }
     }

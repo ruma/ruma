@@ -173,20 +173,4 @@ ruma-identity-service-api = { version = "0.4.0", path = "../ruma-identity-servic
 ruma-push-gateway-api = { version = "0.4.0", path = "../ruma-push-gateway-api", optional = true }
 
 [dev-dependencies]
-anyhow = "1.0.37"
-isahc = "1.3.1"
 serde = { version = "1.0.118", features = ["derive"] }
-tokio = { version = "1.0.1", features = ["macros", "rt"] }
-tokio-stream = { version = "0.1.1", default-features = false }
-
-[[example]]
-name = "hello_world"
-required-features = ["client-api-c", "client-ext-client-api", "client-hyper-native-tls", "rand"]
-
-[[example]]
-name = "hello_isahc"
-required-features = ["client-api-c", "client-ext-client-api", "client-isahc", "rand"]
-
-[[example]]
-name = "message_log"
-required-features = ["client-api-c", "client-ext-client-api", "client-hyper-native-tls"]

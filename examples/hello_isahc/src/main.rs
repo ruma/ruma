@@ -1,6 +1,3 @@
-//! Same as the hello_world example, but using the isahc http client (a Rust wrapper around
-//! libcurl).
-
 use std::{convert::TryFrom, env, process::exit};
 
 use ruma::{

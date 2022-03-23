@@ -2,10 +2,10 @@ use std::{convert::TryFrom, env, process::exit};
 
 use ruma::{
     api::client::{alias::get_alias, membership::join_room_by_id, message::send_message_event},
+    common::TransactionId,
     events::room::message::RoomMessageEventContent,
     RoomAliasId,
 };
-use ruma_common::TransactionId;
 
 type HttpClient = ruma::client::http_client::HyperNativeTls;
 

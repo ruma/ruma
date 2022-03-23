@@ -29,8 +29,22 @@ pub mod power_levels;
 pub mod redaction;
 pub mod server_acl;
 pub mod third_party_invite;
+mod thumbnail_src_serde;
 pub mod tombstone;
 pub mod topic;
+
+/// The source of a media file.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub enum MediaSource {
+    /// The MXC URI to the unencrypted media file.
+    #[serde(rename = "url")]
+    Plain(Box<MxcUri>),
+
+    /// The encryption info of the encrypted media file.
+    #[serde(rename = "file")]
+    Encrypted(Box<EncryptedFile>),
+}
 
 /// Metadata about an image.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -52,28 +66,24 @@ pub struct ImageInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub size: Option<UInt>,
 
-    /// Metadata about the image referred to in `thumbnail_url`.
+    /// Metadata about the image referred to in `thumbnail_src`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<Box<ThumbnailInfo>>,
 
-    /// The URL to the thumbnail of the image.
-    ///
-    /// Only present if the thumbnail is unencrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_url: Option<Box<MxcUri>>,
-
-    /// Information on the encrypted thumbnail image.
-    ///
-    /// Only present if the thumbnail is encrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_file: Option<Box<EncryptedFile>>,
+    /// The source of the thumbnail of the image.
+    #[serde(flatten, with = "thumbnail_src_serde", skip_serializing_if = "Option::is_none")]
+    pub thumbnail_src: Option<MediaSource>,
 
     /// The [BlurHash](https://blurha.sh) for this image.
     ///
     /// This uses the unstable prefix in
     /// [MSC2448](https://github.com/matrix-org/matrix-spec-proposals/pull/2448).
     #[cfg(feature = "unstable-msc2448")]
-    #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "xyz.amorgan.blurhash",
+        alias = "blurhash",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub blurhash: Option<String>,
 }
 

@@ -47,7 +47,11 @@ pub mod v3 {
             /// This uses the unstable prefix in
             /// [MSC2448](https://github.com/matrix-org/matrix-spec-proposals/pull/2448).
             #[cfg(feature = "unstable-msc2448")]
-            #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
+            #[serde(
+                rename = "xyz.amorgan.blurhash",
+                alias = "blurhash",
+                skip_serializing_if = "Option::is_none"
+            )]
             pub blurhash: Option<String>,
         }
 

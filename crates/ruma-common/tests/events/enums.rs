@@ -211,10 +211,17 @@ fn message_event_serialization() {
         unsigned: MessageLikeUnsigned::default(),
     };
 
+    #[cfg(not(feature = "unstable-msc1767"))]
     assert_eq!(
         serde_json::to_string(&event).expect("Failed to serialize message event"),
         r#"{"type":"m.room.message","content":{"msgtype":"m.text","body":"test"},"event_id":"$1234:example.com","sender":"@test:example.com","origin_server_ts":0,"room_id":"!roomid:example.com"}"#
-    )
+    );
+
+    #[cfg(feature = "unstable-msc1767")]
+    assert_eq!(
+        serde_json::to_string(&event).expect("Failed to serialize message event"),
+        r#"{"type":"m.room.message","content":{"msgtype":"m.text","body":"test","org.matrix.msc1767.text":"test"},"event_id":"$1234:example.com","sender":"@test:example.com","origin_server_ts":0,"room_id":"!roomid:example.com"}"#
+    );
 }
 
 #[test]

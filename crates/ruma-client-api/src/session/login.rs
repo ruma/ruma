@@ -7,7 +7,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::ruma_api,
-        serde::{JsonObject, Outgoing},
+        serde::{Incoming, JsonObject},
         DeviceId, ServerName, UserId,
     };
     use serde::{
@@ -94,7 +94,7 @@ pub mod v3 {
     ///
     /// To construct the custom `LoginInfo` variant you first have to construct
     /// [`IncomingLoginInfo::new`] and then call [`IncomingLoginInfo::to_outgoing`] on it.
-    #[derive(Clone, Debug, Outgoing, Serialize)]
+    #[derive(Clone, Debug, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[incoming_derive(!Deserialize)]
     #[serde(untagged)]
@@ -177,7 +177,7 @@ pub mod v3 {
     }
 
     /// An identifier and password to supply as authentication.
-    #[derive(Clone, Debug, Outgoing, Serialize)]
+    #[derive(Clone, Debug, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[serde(tag = "type", rename = "m.login.password")]
     pub struct Password<'a> {
@@ -203,7 +203,7 @@ pub mod v3 {
     }
 
     /// A token to supply as authentication.
-    #[derive(Clone, Debug, Outgoing, Serialize)]
+    #[derive(Clone, Debug, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[serde(tag = "type", rename = "m.login.token")]
     pub struct Token<'a> {
@@ -226,7 +226,7 @@ pub mod v3 {
     }
 
     /// An identifier to supply for Application Service authentication.
-    #[derive(Clone, Debug, Outgoing, Serialize)]
+    #[derive(Clone, Debug, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[serde(tag = "type", rename = "m.login.application_service")]
     pub struct ApplicationService<'a> {
@@ -266,10 +266,6 @@ pub mod v3 {
         login_type: String,
         #[serde(flatten)]
         extra: JsonObject,
-    }
-
-    impl Outgoing for CustomLoginInfo<'_> {
-        type Incoming = IncomingCustomLoginInfo;
     }
 
     /// Client configuration provided by the server.

@@ -2,14 +2,20 @@
 //!
 //! [`m.room.message`]: https://spec.matrix.org/v1.2/client-server-api/#mroommessage
 
-use std::{borrow::Cow, fmt};
+use std::{borrow::Cow, fmt, time::Duration};
 
 use js_int::UInt;
 use ruma_macros::EventContent;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
-use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
+use super::{EncryptedFile, ImageInfo, MediaSource, ThumbnailInfo};
+#[cfg(feature = "unstable-msc1767")]
+use crate::events::{
+    emote::EmoteEventContent,
+    message::{MessageContent, MessageEventContent},
+    notice::NoticeEventContent,
+};
 use crate::{
     events::key::verification::VerificationMethod,
     serde::{JsonObject, StringEnum},
@@ -179,6 +185,33 @@ impl RoomMessageEventContent {
     /// Return a reference to the message body.
     pub fn body(&self) -> &str {
         self.msgtype.body()
+    }
+}
+
+#[cfg(feature = "unstable-msc1767")]
+impl From<EmoteEventContent> for RoomMessageEventContent {
+    fn from(content: EmoteEventContent) -> Self {
+        let EmoteEventContent { message, relates_to, .. } = content;
+
+        Self { msgtype: MessageType::Emote(message.into()), relates_to }
+    }
+}
+
+#[cfg(feature = "unstable-msc1767")]
+impl From<MessageEventContent> for RoomMessageEventContent {
+    fn from(content: MessageEventContent) -> Self {
+        let MessageEventContent { message, relates_to, .. } = content;
+
+        Self { msgtype: MessageType::Text(message.into()), relates_to }
+    }
+}
+
+#[cfg(feature = "unstable-msc1767")]
+impl From<NoticeEventContent> for RoomMessageEventContent {
+    fn from(content: NoticeEventContent) -> Self {
+        let NoticeEventContent { message, relates_to, .. } = content;
+
+        Self { msgtype: MessageType::Notice(message.into()), relates_to }
     }
 }
 
@@ -441,17 +474,9 @@ pub struct AudioMessageEventContent {
     /// The textual representation of this message.
     pub body: String,
 
-    /// The URL to the audio clip.
-    ///
-    /// Required if the file is unencrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<Box<MxcUri>>,
-
-    /// Information on the encrypted audio clip.
-    ///
-    /// Required if the audio clip is encrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub file: Option<Box<EncryptedFile>>,
+    /// The source of the audio clip.
+    #[serde(flatten)]
+    pub src: MediaSource,
 
     /// Metadata for the audio clip referred to in `url`.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -462,13 +487,13 @@ impl AudioMessageEventContent {
     /// Creates a new non-encrypted `RoomAudioMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<AudioInfo>>) -> Self {
-        Self { body, url: Some(url), info, file: None }
+        Self { body, src: MediaSource::Plain(url), info }
     }
 
     /// Creates a new encrypted `RoomAudioMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
-        Self { body, url: None, info: None, file: Some(Box::new(file)) }
+        Self { body, src: MediaSource::Encrypted(Box::new(file)), info: None }
     }
 }
 
@@ -477,8 +502,12 @@ impl AudioMessageEventContent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct AudioInfo {
     /// The duration of the audio in milliseconds.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub duration: Option<UInt>,
+    #[serde(
+        with = "crate::serde::duration::opt_ms",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub duration: Option<Duration>,
 
     /// The mimetype of the audio, e.g. "audio/aac".
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -507,17 +536,37 @@ pub struct EmoteMessageEventContent {
     /// Formatted form of the message `body`.
     #[serde(flatten)]
     pub formatted: Option<FormattedBody>,
+
+    /// Extensible-event representation of the message.
+    ///
+    /// If present, this should be preferred over the other fields.
+    #[cfg(feature = "unstable-msc1767")]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub message: Option<MessageContent>,
 }
 
 impl EmoteMessageEventContent {
     /// A convenience constructor to create a plain-text emote.
     pub fn plain(body: impl Into<String>) -> Self {
-        Self { body: body.into(), formatted: None }
+        let body = body.into();
+        Self {
+            #[cfg(feature = "unstable-msc1767")]
+            message: Some(MessageContent::plain(body.clone())),
+            body,
+            formatted: None,
+        }
     }
 
     /// A convenience constructor to create an html emote message.
     pub fn html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
-        Self { formatted: Some(FormattedBody::html(html_body)), ..Self::plain(body) }
+        let body = body.into();
+        let html_body = html_body.into();
+        Self {
+            #[cfg(feature = "unstable-msc1767")]
+            message: Some(MessageContent::html(body.clone(), html_body.clone())),
+            body,
+            formatted: Some(FormattedBody::html(html_body)),
+        }
     }
 
     /// A convenience constructor to create a markdown emote.
@@ -526,7 +575,22 @@ impl EmoteMessageEventContent {
     /// plain-text emote.
     #[cfg(feature = "markdown")]
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
-        Self { formatted: FormattedBody::markdown(&body), ..Self::plain(body) }
+        if let Some(formatted) = FormattedBody::markdown(&body) {
+            Self::html(body, formatted.body)
+        } else {
+            Self::plain(body)
+        }
+    }
+}
+
+#[cfg(feature = "unstable-msc1767")]
+impl From<MessageContent> for EmoteMessageEventContent {
+    fn from(message: MessageContent) -> Self {
+        let body =
+            if let Some(body) = message.find_plain() { body } else { &message.variants()[0].body };
+        let formatted = message.find_html().map(FormattedBody::html);
+
+        Self { body: body.to_owned(), formatted, message: Some(message) }
     }
 }
 
@@ -544,15 +608,9 @@ pub struct FileMessageEventContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filename: Option<String>,
 
-    /// The URL to the file.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<Box<MxcUri>>,
-
-    /// Information on the encrypted file.
-    ///
-    /// Required if file is encrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub file: Option<Box<EncryptedFile>>,
+    /// The source of the file.
+    #[serde(flatten)]
+    pub src: MediaSource,
 
     /// Metadata about the file referred to in `url`.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -563,13 +621,13 @@ impl FileMessageEventContent {
     /// Creates a new non-encrypted `RoomFileMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<FileInfo>>) -> Self {
-        Self { body, filename: None, url: Some(url), info, file: None }
+        Self { body, filename: None, src: MediaSource::Plain(url), info }
     }
 
     /// Creates a new encrypted `RoomFileMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
-        Self { body, filename: None, url: None, info: None, file: Some(Box::new(file)) }
+        Self { body, filename: None, src: MediaSource::Encrypted(Box::new(file)), info: None }
     }
 }
 
@@ -585,21 +643,13 @@ pub struct FileInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub size: Option<UInt>,
 
-    /// Metadata about the image referred to in `thumbnail_url`.
+    /// Metadata about the image referred to in `thumbnail_src`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<Box<ThumbnailInfo>>,
 
-    /// The URL to the thumbnail of the file.
-    ///
-    /// Only present if the thumbnail is unencrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_url: Option<Box<MxcUri>>,
-
-    /// Information on the encrypted thumbnail file.
-    ///
-    /// Only present if the thumbnail is encrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_file: Option<Box<EncryptedFile>>,
+    /// The source of the thumbnail of the file.
+    #[serde(flatten, with = "super::thumbnail_src_serde", skip_serializing_if = "Option::is_none")]
+    pub thumbnail_src: Option<MediaSource>,
 }
 
 impl FileInfo {
@@ -620,15 +670,9 @@ pub struct ImageMessageEventContent {
     /// description for accessibility e.g. "image attachment".
     pub body: String,
 
-    /// The URL to the image.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<Box<MxcUri>>,
-
-    /// Information on the encrypted image.
-    ///
-    /// Required if image is encrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub file: Option<Box<EncryptedFile>>,
+    /// The source of the image.
+    #[serde(flatten)]
+    pub src: MediaSource,
 
     /// Metadata about the image referred to in `url`.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -639,13 +683,13 @@ impl ImageMessageEventContent {
     /// Creates a new non-encrypted `RoomImageMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<ImageInfo>>) -> Self {
-        Self { body, url: Some(url), info, file: None }
+        Self { body, src: MediaSource::Plain(url), info }
     }
 
     /// Creates a new encrypted `RoomImageMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
-        Self { body, url: None, info: None, file: Some(Box::new(file)) }
+        Self { body, src: MediaSource::Encrypted(Box::new(file)), info: None }
     }
 }
 
@@ -677,19 +721,11 @@ impl LocationMessageEventContent {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct LocationInfo {
-    /// The URL to a thumbnail of the location being represented.
-    ///
-    /// Only present if the thumbnail is unencrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_url: Option<Box<MxcUri>>,
+    /// The URL to a thumbnail of the location.
+    #[serde(flatten, with = "super::thumbnail_src_serde", skip_serializing_if = "Option::is_none")]
+    pub thumbnail_src: Option<MediaSource>,
 
-    /// Information on an encrypted thumbnail of the location being represented.
-    ///
-    /// Only present if the thumbnail is encrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_file: Option<Box<EncryptedFile>>,
-
-    /// Metadata about the image referred to in `thumbnail_url` or `thumbnail_file`.
+    /// Metadata about the image referred to in `thumbnail_src.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<Box<ThumbnailInfo>>,
 }
@@ -712,17 +748,37 @@ pub struct NoticeMessageEventContent {
     /// Formatted form of the message `body`.
     #[serde(flatten)]
     pub formatted: Option<FormattedBody>,
+
+    /// Extensible-event representation of the message.
+    ///
+    /// If present, this should be preferred over the other fields.
+    #[cfg(feature = "unstable-msc1767")]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub message: Option<MessageContent>,
 }
 
 impl NoticeMessageEventContent {
     /// A convenience constructor to create a plain text notice.
     pub fn plain(body: impl Into<String>) -> Self {
-        Self { body: body.into(), formatted: None }
+        let body = body.into();
+        Self {
+            #[cfg(feature = "unstable-msc1767")]
+            message: Some(MessageContent::plain(body.clone())),
+            body,
+            formatted: None,
+        }
     }
 
     /// A convenience constructor to create an html notice.
     pub fn html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
-        Self { formatted: Some(FormattedBody::html(html_body)), ..Self::plain(body) }
+        let body = body.into();
+        let html_body = html_body.into();
+        Self {
+            #[cfg(feature = "unstable-msc1767")]
+            message: Some(MessageContent::html(body.clone(), html_body.clone())),
+            body,
+            formatted: Some(FormattedBody::html(html_body)),
+        }
     }
 
     /// A convenience constructor to create a markdown notice.
@@ -731,7 +787,22 @@ impl NoticeMessageEventContent {
     /// text notice.
     #[cfg(feature = "markdown")]
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
-        Self { formatted: FormattedBody::markdown(&body), ..Self::plain(body) }
+        if let Some(formatted) = FormattedBody::markdown(&body) {
+            Self::html(body, formatted.body)
+        } else {
+            Self::plain(body)
+        }
+    }
+}
+
+#[cfg(feature = "unstable-msc1767")]
+impl From<MessageContent> for NoticeMessageEventContent {
+    fn from(message: MessageContent) -> Self {
+        let body =
+            if let Some(body) = message.find_plain() { body } else { &message.variants()[0].body };
+        let formatted = message.find_html().map(FormattedBody::html);
+
+        Self { body: body.to_owned(), formatted, message: Some(message) }
     }
 }
 
@@ -879,17 +950,37 @@ pub struct TextMessageEventContent {
     /// Formatted form of the message `body`.
     #[serde(flatten)]
     pub formatted: Option<FormattedBody>,
+
+    /// Extensible-event representation of the message.
+    ///
+    /// If present, this should be preferred over the other fields.
+    #[cfg(feature = "unstable-msc1767")]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub message: Option<MessageContent>,
 }
 
 impl TextMessageEventContent {
     /// A convenience constructor to create a plain text message.
     pub fn plain(body: impl Into<String>) -> Self {
-        Self { body: body.into(), formatted: None }
+        let body = body.into();
+        Self {
+            #[cfg(feature = "unstable-msc1767")]
+            message: Some(MessageContent::plain(body.clone())),
+            body,
+            formatted: None,
+        }
     }
 
     /// A convenience constructor to create an html message.
     pub fn html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
-        Self { formatted: Some(FormattedBody::html(html_body)), ..Self::plain(body) }
+        let body = body.into();
+        let html_body = html_body.into();
+        Self {
+            #[cfg(feature = "unstable-msc1767")]
+            message: Some(MessageContent::html(body.clone(), html_body.clone())),
+            body,
+            formatted: Some(FormattedBody::html(html_body)),
+        }
     }
 
     /// A convenience constructor to create a markdown message.
@@ -898,7 +989,22 @@ impl TextMessageEventContent {
     /// text message.
     #[cfg(feature = "markdown")]
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
-        Self { formatted: FormattedBody::markdown(&body), ..Self::plain(body) }
+        if let Some(formatted) = FormattedBody::markdown(&body) {
+            Self::html(body, formatted.body)
+        } else {
+            Self::plain(body)
+        }
+    }
+}
+
+#[cfg(feature = "unstable-msc1767")]
+impl From<MessageContent> for TextMessageEventContent {
+    fn from(message: MessageContent) -> Self {
+        let body =
+            if let Some(body) = message.find_plain() { body } else { &message.variants()[0].body };
+        let formatted = message.find_html().map(FormattedBody::html);
+
+        Self { body: body.to_owned(), formatted, message: Some(message) }
     }
 }
 
@@ -911,15 +1017,9 @@ pub struct VideoMessageEventContent {
     /// accessibility, e.g. "video attachment".
     pub body: String,
 
-    /// The URL to the video clip.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<Box<MxcUri>>,
-
-    /// Information on the encrypted video clip.
-    ///
-    /// Required if video clip is encrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub file: Option<Box<EncryptedFile>>,
+    /// The source of the video clip.
+    #[serde(flatten)]
+    pub src: MediaSource,
 
     /// Metadata about the video clip referred to in `url`.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -930,13 +1030,13 @@ impl VideoMessageEventContent {
     /// Creates a new non-encrypted `RoomVideoMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<VideoInfo>>) -> Self {
-        Self { body, url: Some(url), info, file: None }
+        Self { body, src: MediaSource::Plain(url), info }
     }
 
     /// Creates a new encrypted `RoomVideoMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
-        Self { body, url: None, info: None, file: Some(Box::new(file)) }
+        Self { body, src: MediaSource::Encrypted(Box::new(file)), info: None }
     }
 }
 
@@ -945,8 +1045,12 @@ impl VideoMessageEventContent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct VideoInfo {
     /// The duration of the video in milliseconds.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub duration: Option<UInt>,
+    #[serde(
+        with = "crate::serde::duration::opt_ms",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub duration: Option<Duration>,
 
     /// The height of the video in pixels.
     #[serde(rename = "h", skip_serializing_if = "Option::is_none")]
@@ -964,21 +1068,13 @@ pub struct VideoInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub size: Option<UInt>,
 
-    /// Metadata about an image.
+    /// Metadata about the image referred to in `thumbnail_src`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<Box<ThumbnailInfo>>,
 
-    /// The URL to an image thumbnail of the video clip.
-    ///
-    /// Only present if the thumbnail is unencrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_url: Option<Box<MxcUri>>,
-
-    /// Information on the encrypted thumbnail file.
-    ///
-    /// Only present if the thumbnail is encrypted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_file: Option<Box<EncryptedFile>>,
+    /// The source of the thumbnail of the video clip.
+    #[serde(flatten, with = "super::thumbnail_src_serde", skip_serializing_if = "Option::is_none")]
+    pub thumbnail_src: Option<MediaSource>,
 
     /// The [BlurHash](https://blurha.sh) for this video.
     ///

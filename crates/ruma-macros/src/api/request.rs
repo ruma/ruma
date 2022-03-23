@@ -217,10 +217,10 @@ impl Request {
                 #[derive(
                     Debug,
                     #ruma_macros::_FakeDeriveRumaApi,
-                    #ruma_common::serde::Outgoing,
                     #serde::Serialize,
                     #derive_deserialize
                 )]
+                #[cfg_attr(feature = "server", derive(#ruma_common::serde::Incoming))]
                 #serde_attr
                 struct RequestBody< #(#lifetimes),* > { #(#fields),* }
             }
@@ -245,10 +245,10 @@ impl Request {
                 #[derive(
                     Debug,
                     #ruma_macros::_FakeDeriveRumaApi,
-                    #ruma_common::serde::Outgoing,
                     #serde::Serialize,
                     #derive_deserialize
                 )]
+                #[cfg_attr(feature = "server", derive(#ruma_common::serde::Incoming))]
                 struct RequestQuery< #(#lifetimes),* > #def
             }
         });

@@ -30,7 +30,7 @@ ruma_api! {
 
         /// Information about the tile server to use to display location data.
         #[cfg(feature = "unstable-msc3488")]
-        #[serde(rename = "org.matrix.msc3488.tile_server")]
+        #[serde(rename = "org.matrix.msc3488.tile_server", alias = "m.tile_server")]
         pub tile_server: Option<TileServerInfo>,
     }
 

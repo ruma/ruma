@@ -37,8 +37,8 @@ use self::{
         enum_as_ref_str::expand_enum_as_ref_str,
         enum_from_string::expand_enum_from_string,
         eq_as_ref_str::expand_partial_eq_as_ref_str,
+        incoming::expand_derive_incoming,
         ord_as_ref_str::{expand_ord_as_ref_str, expand_partial_ord_as_ref_str},
-        outgoing::expand_derive_outgoing,
         serialize_as_ref_str::expand_serialize_as_ref_str,
     },
     util::import_ruma_common,
@@ -232,55 +232,13 @@ pub fn user_id(input: TokenStream) -> TokenStream {
     output.into()
 }
 
-/// Derive the `Outgoing` trait, possibly generating an 'Incoming' version of the struct this
-/// derive macro is used on.
+/// Generating an 'Incoming' version of the type this derive macro is used on.
 ///
-/// Specifically, if no lifetime variables are used on any of the fields of the struct, this simple
-/// implementation will be generated:
-///
-/// ```ignore
-/// # // TODO: "ignore" this doctest until it is more extensively documented. (See #541)
-/// impl Outgoing for MyType {
-///     type Incoming = Self;
-/// }
-/// ```
-/*
-
-TODO: Extend docs. Previously:
-
-If, however, `#[wrap_incoming]` is used (which is the only reason you should ever use this
-derive macro manually), a new struct `IncomingT` (where `T` is the type this derive is used on)
-is generated, with all of the fields with `#[wrap_incoming]` replaced:
-
-```ignore
-#[derive(Outgoing)]
-struct MyType {
-    pub foo: Foo,
-    #[wrap_incoming]
-    pub bar: Bar,
-    #[wrap_incoming(Baz)]
-    pub baz: Option<Baz>,
-    #[wrap_incoming(with EventResult)]
-    pub x: XEvent,
-    #[wrap_incoming(YEvent with EventResult)]
-    pub ys: Vec<YEvent>,
-}
-
-// generated
-struct IncomingMyType {
-    pub foo: Foo,
-    pub bar: IncomingBar,
-    pub baz: Option<IncomingBaz>,
-    pub x: EventResult<XEvent>,
-    pub ys: Vec<EventResult<YEvent>>,
-}
-```
-
-*/
-#[proc_macro_derive(Outgoing, attributes(incoming_derive))]
-pub fn derive_outgoing(input: TokenStream) -> TokenStream {
+/// This type will be a fully-owned version of the input type, using no lifetime generics.
+#[proc_macro_derive(Incoming, attributes(incoming_derive))]
+pub fn derive_incoming(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    expand_derive_outgoing(input).unwrap_or_else(syn::Error::into_compile_error).into()
+    expand_derive_incoming(input).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
 /// Derive the `AsRef<str>` trait for an enum.

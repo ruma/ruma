@@ -17,10 +17,7 @@ impl Response {
 
         let typed_response_body_decl = self.has_body_fields().then(|| {
             quote! {
-                let response_body: <
-                    ResponseBody
-                    as #ruma_common::serde::Outgoing
-                >::Incoming = {
+                let response_body: ResponseBody = {
                     let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
                         response.body(),
                     );

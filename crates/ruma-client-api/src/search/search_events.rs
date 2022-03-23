@@ -11,7 +11,7 @@ pub mod v3 {
     use ruma_common::{
         api::ruma_api,
         events::{AnyRoomEvent, AnyStateEvent},
-        serde::{Outgoing, Raw, StringEnum},
+        serde::{Incoming, Raw, StringEnum},
         EventId, MxcUri, RoomId, UserId,
     };
     use serde::{Deserialize, Serialize};
@@ -67,7 +67,7 @@ pub mod v3 {
     }
 
     /// Categories of events that can be searched for.
-    #[derive(Clone, Debug, Default, Outgoing, Serialize)]
+    #[derive(Clone, Debug, Default, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct Categories<'a> {
         /// Criteria for searching room events.
@@ -83,7 +83,7 @@ pub mod v3 {
     }
 
     /// Criteria for searching a category of events.
-    #[derive(Clone, Debug, Outgoing, Serialize)]
+    #[derive(Clone, Debug, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct Criteria<'a> {
         /// The string to search events for.
@@ -275,7 +275,7 @@ pub mod v3 {
     }
 
     /// Requests that the server partitions the result set based on the provided list of keys.
-    #[derive(Clone, Default, Debug, Outgoing, Serialize)]
+    #[derive(Clone, Default, Debug, Incoming, Serialize)]
     #[incoming_derive(Default)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct Groupings<'a> {

@@ -5,7 +5,10 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::{message::MessageContent, room::message::Relation};
+use super::{
+    message::MessageContent,
+    room::message::{NoticeMessageEventContent, Relation},
+};
 
 /// The payload for an extensible notice message.
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
@@ -41,5 +44,19 @@ impl NoticeEventContent {
     #[cfg(feature = "markdown")]
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
         Self { message: MessageContent::markdown(body), relates_to: None }
+    }
+
+    /// Create a new `MessageEventContent` from the given `NoticeMessageEventContent` and optional
+    /// relation.
+    pub fn from_notice_room_message(
+        content: NoticeMessageEventContent,
+        relates_to: Option<Relation>,
+    ) -> Self {
+        let NoticeMessageEventContent { body, formatted, message, .. } = content;
+        if let Some(message) = message {
+            Self { message, relates_to }
+        } else {
+            Self { message: MessageContent::from_room_message_content(body, formatted), relates_to }
+        }
     }
 }

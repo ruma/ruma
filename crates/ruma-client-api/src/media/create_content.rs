@@ -39,7 +39,12 @@ pub mod v3 {
             /// [MSC2448](https://github.com/matrix-org/matrix-spec-proposals/pull/2448).
             #[ruma_api(query)]
             #[cfg(feature = "unstable-msc2448")]
-            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default", rename = "xyz.amorgan.blurhash")]
+            #[serde(
+                default,
+                skip_serializing_if = "ruma_common::serde::is_default",
+                rename = "xyz.amorgan.generate_blurhash",
+                alias = "generate_blurhash"
+            )]
             pub generate_blurhash: bool,
         }
 
@@ -52,7 +57,11 @@ pub mod v3 {
             /// This uses the unstable prefix in
             /// [MSC2448](https://github.com/matrix-org/matrix-spec-proposals/pull/2448).
             #[cfg(feature = "unstable-msc2448")]
-            #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
+            #[serde(
+                rename = "xyz.amorgan.blurhash",
+                alias = "blurhash",
+                skip_serializing_if = "Option::is_none"
+            )]
             pub blurhash: Option<String>,
         }
 

@@ -1,4 +1,4 @@
-use ruma_common::api::{ruma_api, IncomingRequest};
+use ruma_common::api::{ruma_api, IncomingRequest as _};
 
 ruma_api! {
     metadata: {
