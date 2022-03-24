@@ -98,14 +98,6 @@ pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
                 .unwrap_or_else(syn::Error::into_compile_error),
         );
         res.extend(
-            expand_possibly_redacted_enum(kind, V::Full, ruma_common)
-                .unwrap_or_else(syn::Error::into_compile_error),
-        );
-        res.extend(
-            expand_possibly_redacted_enum(kind, V::Sync, ruma_common)
-                .unwrap_or_else(syn::Error::into_compile_error),
-        );
-        res.extend(
             expand_from_full_event(kind, V::Redacted, variants)
                 .unwrap_or_else(syn::Error::into_compile_error),
         );
@@ -422,50 +414,6 @@ fn expand_redact(
                         #ruma_common::events::Redact::redact(event, redaction, version),
                     )
                 }
-            }
-        }
-    })
-}
-
-fn expand_possibly_redacted_enum(
-    kind: EventKind,
-    var: EventKindVariation,
-    ruma_common: &TokenStream,
-) -> syn::Result<TokenStream> {
-    let serde = quote! { #ruma_common::exports::serde };
-    let serde_json = quote! { #ruma_common::exports::serde_json };
-
-    let ident = format_ident!("AnyPossiblyRedacted{}", kind.to_event_ident(var)?);
-    let regular_enum_ident = kind.to_event_enum_ident(var)?;
-    let redacted_enum_ident = kind.to_event_enum_ident(var.to_redacted())?;
-
-    Ok(quote! {
-        /// An enum that holds either regular un-redacted events or redacted events.
-        #[derive(Clone, Debug)]
-        #[allow(clippy::exhaustive_enums)]
-        pub enum #ident {
-            /// An un-redacted event.
-            Regular(#regular_enum_ident),
-
-            /// A redacted event.
-            Redacted(#redacted_enum_ident),
-        }
-
-        impl<'de> #serde::de::Deserialize<'de> for #ident {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-            where
-                D: #serde::de::Deserializer<'de>,
-            {
-                let json = Box::<#serde_json::value::RawValue>::deserialize(deserializer)?;
-                let #ruma_common::events::RedactionDeHelper { unsigned } =
-                    #ruma_common::serde::from_raw_json_value(&json)?;
-
-                Ok(match unsigned {
-                    Some(unsigned) if unsigned.redacted_because.is_some() => {
-                        Self::Redacted(#ruma_common::serde::from_raw_json_value(&json)?)
-                    }
-                    _ => Self::Regular(#ruma_common::serde::from_raw_json_value(&json)?),
-                })
             }
         }
     })
