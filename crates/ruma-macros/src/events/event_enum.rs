@@ -6,9 +6,29 @@ use syn::{Attribute, Data, DataEnum, DeriveInput, Ident, LitStr};
 
 use super::{
     event_parse::{EventEnumDecl, EventEnumEntry, EventKind, EventKindVariation},
-    util::{has_prev_content, is_non_stripped_room_event, EVENT_FIELDS},
+    util::{has_prev_content, is_non_stripped_room_event},
 };
 use crate::util::m_prefix_name_to_type_name;
+
+type EventKindFn = fn(EventKind, EventKindVariation) -> bool;
+
+/// This const is used to generate the accessor methods for the `Any*Event` enums.
+///
+/// DO NOT alter the field names unless the structs in `ruma_common::events::event_kinds` have
+/// changed.
+const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
+    ("origin_server_ts", is_non_stripped_room_event),
+    ("room_id", |kind, var| {
+        matches!(kind, EventKind::MessageLike | EventKind::State | EventKind::Ephemeral)
+            && matches!(var, EventKindVariation::Full | EventKindVariation::Redacted)
+    }),
+    ("event_id", is_non_stripped_room_event),
+    ("sender", |kind, var| {
+        matches!(kind, EventKind::MessageLike | EventKind::State | EventKind::ToDevice)
+            && var != EventKindVariation::Initial
+    }),
+    ("state_key", |kind, _| matches!(kind, EventKind::State)),
+];
 
 /// Create a content enum from `EventEnumInput`.
 pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
