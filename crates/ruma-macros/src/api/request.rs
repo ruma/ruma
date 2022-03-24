@@ -214,13 +214,12 @@ impl Request {
 
             quote! {
                 /// Data in the request body.
-                #[derive(
-                    Debug,
-                    #ruma_macros::_FakeDeriveRumaApi,
-                    #serde::Serialize,
-                    #derive_deserialize
+                #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi)]
+                #[cfg_attr(feature = "client", derive(#serde::Serialize))]
+                #[cfg_attr(
+                    feature = "server",
+                    derive(#ruma_common::serde::Incoming, #derive_deserialize)
                 )]
-                #[cfg_attr(feature = "server", derive(#ruma_common::serde::Incoming))]
                 #serde_attr
                 struct RequestBody< #(#lifetimes),* > { #(#fields),* }
             }
@@ -242,13 +241,12 @@ impl Request {
 
             quote! {
                 /// Data in the request's query string.
-                #[derive(
-                    Debug,
-                    #ruma_macros::_FakeDeriveRumaApi,
-                    #serde::Serialize,
-                    #derive_deserialize
+                #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi)]
+                #[cfg_attr(feature = "client", derive(#serde::Serialize))]
+                #[cfg_attr(
+                    feature = "server",
+                    derive(#ruma_common::serde::Incoming, #derive_deserialize)
                 )]
-                #[cfg_attr(feature = "server", derive(#ruma_common::serde::Incoming))]
                 struct RequestQuery< #(#lifetimes),* > #def
             }
         });
