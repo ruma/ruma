@@ -104,10 +104,10 @@ impl Waveform {
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, thiserror::Error)]
 #[non_exhaustive]
 pub enum WaveformError {
-    /// There are more than [`Waveform::MAX`] values.
+    /// There are more than [`Waveform::MAX_LENGTH`] values.
     #[error("too many values")]
     TooManyValues,
-    /// There are less that [`Waveform::MIN`] values.
+    /// There are less that [`Waveform::MIN_LENGTH`] values.
     #[error("not enough values")]
     NotEnoughValues,
 }
