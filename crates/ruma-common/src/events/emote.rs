@@ -11,6 +11,18 @@ use super::{
 };
 
 /// The payload for an extensible emote message.
+///
+/// This is the new primary type introduced in [MSC1767] and should not be sent before the end of
+/// the transition period. See the documentation of the [`message`] module for more information.
+///
+/// `EmoteEventContent` can be converted to a [`RoomMessageEventContent`] with a
+/// [`MessageType::Emote`]. You can convert it back with
+/// [`EmoteEventContent::from_emote_room_message()`].
+///
+/// [MSC1767]: https://github.com/matrix-org/matrix-spec-proposals/pull/1767
+/// [`message`]: super::message
+/// [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
+/// [`MessageType::Emote`]: super::room::message::MessageType::Emote
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.emote", kind = MessageLike)]
