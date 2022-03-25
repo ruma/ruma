@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     file::FileContent,
-    image::{Captions, Thumbnails},
+    image::{Captions, ThumbnailContent},
     message::MessageContent,
     room::message::Relation,
 };
@@ -33,8 +33,8 @@ pub struct VideoEventContent {
     pub video: Box<VideoContent>,
 
     /// The thumbnails of the message.
-    #[serde(rename = "m.thumbnail", default, skip_serializing_if = "Thumbnails::is_empty")]
-    pub thumbnail: Thumbnails,
+    #[serde(rename = "m.thumbnail", default, skip_serializing_if = "Vec::is_empty")]
+    pub thumbnail: Vec<ThumbnailContent>,
 
     /// The captions of the message.
     #[serde(rename = "m.caption", default, skip_serializing_if = "Captions::is_empty")]
