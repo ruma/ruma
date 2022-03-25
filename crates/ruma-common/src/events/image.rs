@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     file::{EncryptedContent, FileContent},
-    message::{MessageContent, Text},
+    message::MessageContent,
     room::message::Relation,
 };
 use crate::MxcUri;
@@ -35,8 +35,13 @@ pub struct ImageEventContent {
     pub thumbnail: Vec<ThumbnailContent>,
 
     /// The captions of the message.
-    #[serde(rename = "m.caption", default, skip_serializing_if = "Captions::is_empty")]
-    pub caption: Captions,
+    #[serde(
+        rename = "m.caption",
+        with = "super::message::content_serde::as_vec",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub caption: Option<MessageContent>,
 
     /// Information about related messages for [rich replies].
     ///
@@ -148,71 +153,6 @@ impl ThumbnailContent {
     /// Creates a `ThumbnailContent` with the given file and image info.
     pub fn new(file: ThumbnailFileContent, image: Option<Box<ImageContent>>) -> Self {
         Self { file, image }
-    }
-}
-
-/// An array of captions.
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct Captions(pub(crate) Vec<Text>);
-
-impl Captions {
-    /// Creates a new `Captions` with the given captions.
-    ///
-    /// The captions must be ordered by most preferred first.
-    pub fn new(captions: &[Text]) -> Self {
-        Self(captions.to_owned())
-    }
-
-    /// A convenience constructor to create a plain text caption.
-    pub fn plain(body: impl Into<String>) -> Self {
-        Self(vec![Text::plain(body)])
-    }
-
-    /// A convenience constructor to create an HTML caption.
-    pub fn html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
-        Self(vec![Text::html(html_body), Text::plain(body)])
-    }
-
-    /// A convenience constructor to create a Markdown caption.
-    ///
-    /// Returns an HTML caption if some Markdown formatting was detected, otherwise returns a plain
-    /// text caption.
-    #[cfg(feature = "markdown")]
-    pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
-        let mut message = Vec::with_capacity(2);
-        if let Some(html_body) = Text::markdown(&body) {
-            message.push(html_body);
-        }
-        message.push(Text::plain(body));
-        Self(message)
-    }
-
-    /// Get the captions.
-    ///
-    /// The captions are ordered by most preferred first.
-    pub fn captions(&self) -> &[Text] {
-        &self.0
-    }
-
-    /// Whether this is empty.
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    /// Get the plain text representation of this caption.
-    pub fn find_plain(&self) -> Option<&str> {
-        self.captions()
-            .iter()
-            .find(|content| content.mimetype == "text/plain")
-            .map(|content| content.body.as_ref())
-    }
-
-    /// Get the HTML representation of this caption.
-    pub fn find_html(&self) -> Option<&str> {
-        self.captions()
-            .iter()
-            .find(|content| content.mimetype == "text/html")
-            .map(|content| content.body.as_ref())
     }
 }
 

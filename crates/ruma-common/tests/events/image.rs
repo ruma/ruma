@@ -8,7 +8,7 @@ use ruma_common::{
     events::{
         file::{EncryptedContentInit, FileContent, FileContentInfo},
         image::{
-            Captions, ImageContent, ImageEventContent, ThumbnailContent, ThumbnailFileContent,
+            ImageContent, ImageEventContent, ThumbnailContent, ThumbnailFileContent,
             ThumbnailFileContentInfo,
         },
         message::MessageContent,
@@ -128,7 +128,7 @@ fn image_event_serialization() {
                     ),
                     None
                 )],
-                caption: Captions::plain("This is my house"),
+                caption: Some(MessageContent::plain("This is my house")),
                 relates_to: Some(Relation::Reply {
                     in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
                 }),
@@ -207,7 +207,7 @@ fn plain_content_deserialization() {
     assert_matches!(
         from_json_value::<ImageEventContent>(json_data)
             .unwrap(),
-        ImageEventContent { message, file, image, thumbnail, caption, .. }
+        ImageEventContent { message, file, image, thumbnail, caption: Some(caption), .. }
         if message.find_plain() == Some("Upload: my_cat.png")
             && message.find_html().is_none()
             && file.url == "mxc://notareal.hs/abcdef"
@@ -248,7 +248,7 @@ fn encrypted_content_deserialization() {
     assert_matches!(
         from_json_value::<ImageEventContent>(json_data)
             .unwrap(),
-        ImageEventContent { message, file, image, thumbnail, caption, .. }
+        ImageEventContent { message, file, image, thumbnail, caption: None, .. }
         if message.find_plain() == Some("Upload: my_file.txt")
             && message.find_html().is_none()
             && file.url == "mxc://notareal.hs/abcdef"
@@ -256,7 +256,6 @@ fn encrypted_content_deserialization() {
             && image.width.is_none()
             && image.height.is_none()
             && thumbnail[0].file.url == "mxc://notareal.hs/thumbnail"
-            && caption.is_empty()
     );
 }
 
@@ -295,7 +294,7 @@ fn message_event_deserialization() {
                 },
                 image,
                 thumbnail,
-                caption,
+                caption: None,
                 ..
             },
             event_id,
@@ -313,7 +312,6 @@ fn message_event_deserialization() {
             && image.width == Some(uint!(1300))
             && image.height == Some(uint!(837))
             && thumbnail.is_empty()
-            && caption.is_empty()
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
             && room_id == room_id!("!roomid:notareal.hs")
             && sender == user_id!("@user:notareal.hs")

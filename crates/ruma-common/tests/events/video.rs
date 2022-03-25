@@ -9,7 +9,7 @@ use ruma_common::{
     event_id,
     events::{
         file::{EncryptedContentInit, FileContent, FileContentInfo},
-        image::{Captions, ThumbnailContent, ThumbnailFileContent, ThumbnailFileContentInfo},
+        image::{ThumbnailContent, ThumbnailFileContent, ThumbnailFileContentInfo},
         message::MessageContent,
         room::{
             message::{InReplyTo, Relation},
@@ -135,7 +135,7 @@ fn event_serialization() {
                     ),
                     None
                 )],
-                caption: Captions::plain("This is my awesome vintage lava lamp"),
+                caption: Some(MessageContent::plain("This is my awesome vintage lava lamp")),
                 relates_to: Some(Relation::Reply {
                     in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
                 }),
@@ -215,7 +215,7 @@ fn plain_content_deserialization() {
     assert_matches!(
         from_json_value::<VideoEventContent>(json_data)
             .unwrap(),
-        VideoEventContent { message, file, video, thumbnail, caption, .. }
+        VideoEventContent { message, file, video, thumbnail, caption: Some(caption), .. }
         if message.find_plain() == Some("Video: my_cat.mp4")
             && message.find_html().is_none()
             && file.url == "mxc://notareal.hs/abcdef"
@@ -257,7 +257,7 @@ fn encrypted_content_deserialization() {
     assert_matches!(
         from_json_value::<VideoEventContent>(json_data)
             .unwrap(),
-        VideoEventContent { message, file, video, thumbnail, caption, .. }
+        VideoEventContent { message, file, video, thumbnail, caption: None, .. }
         if message.find_plain() == Some("Upload: my_cat.mp4")
             && message.find_html().is_none()
             && file.url == "mxc://notareal.hs/abcdef"
@@ -266,7 +266,6 @@ fn encrypted_content_deserialization() {
             && video.height.is_none()
             && video.duration.is_none()
             && thumbnail[0].file.url == "mxc://notareal.hs/thumbnail"
-            && caption.is_empty()
     );
 }
 
@@ -305,7 +304,7 @@ fn message_event_deserialization() {
                 },
                 video,
                 thumbnail,
-                caption,
+                caption: None,
                 ..
             },
             event_id,
@@ -324,7 +323,6 @@ fn message_event_deserialization() {
             && video.height == Some(uint!(837))
             && video.duration.is_none()
             && thumbnail.is_empty()
-            && caption.is_empty()
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
             && room_id == room_id!("!roomid:notareal.hs")
             && sender == user_id!("@user:notareal.hs")

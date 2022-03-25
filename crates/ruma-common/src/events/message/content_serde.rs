@@ -67,3 +67,34 @@ impl Serialize for MessageContent {
         st.end()
     }
 }
+
+pub(crate) mod as_vec {
+    use serde::{ser::SerializeSeq, Deserialize, Deserializer, Serializer};
+
+    use crate::events::message::{MessageContent, Text};
+
+    /// Serializes a `Option<MessageContent>` as a `Vec<Text>`.
+    pub fn serialize<S>(content: &Option<MessageContent>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        if let Some(content) = content {
+            let mut seq = serializer.serialize_seq(Some(content.len()))?;
+            for e in content.iter() {
+                seq.serialize_element(e)?;
+            }
+            seq.end()
+        } else {
+            serializer.serialize_seq(Some(0))?.end()
+        }
+    }
+
+    /// Deserializes a `Vec<Text>` to an `Option<MessageContent>`.
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<MessageContent>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        Option::<Vec<Text>>::deserialize(deserializer)
+            .map(|content| content.filter(|content| !content.is_empty()).map(Into::into))
+    }
+}

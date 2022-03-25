@@ -9,10 +9,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    file::FileContent,
-    image::{Captions, ThumbnailContent},
-    message::MessageContent,
-    room::message::Relation,
+    file::FileContent, image::ThumbnailContent, message::MessageContent, room::message::Relation,
 };
 
 /// The payload for an extensible video message.
@@ -37,8 +34,13 @@ pub struct VideoEventContent {
     pub thumbnail: Vec<ThumbnailContent>,
 
     /// The captions of the message.
-    #[serde(rename = "m.caption", default, skip_serializing_if = "Captions::is_empty")]
-    pub caption: Captions,
+    #[serde(
+        rename = "m.caption",
+        with = "super::message::content_serde::as_vec",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub caption: Option<MessageContent>,
 
     /// Information about related messages.
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
