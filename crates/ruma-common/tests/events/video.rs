@@ -37,10 +37,10 @@ fn plain_content_serialization() {
         to_json_value(&event_content).unwrap(),
         json!({
             "org.matrix.msc1767.text": "Upload: my_video.webm",
-            "org.matrix.msc1767.file": {
+            "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
             },
-            "org.matrix.msc1767.video": {}
+            "m.video": {}
         })
     );
 }
@@ -77,7 +77,7 @@ fn encrypted_content_serialization() {
         to_json_value(&event_content).unwrap(),
         json!({
             "org.matrix.msc1767.text": "Upload: my_video.webm",
-            "org.matrix.msc1767.file": {
+            "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "key": {
                     "kty": "oct",
@@ -92,7 +92,7 @@ fn encrypted_content_serialization() {
                 },
                 "v": "v2"
             },
-            "org.matrix.msc1767.video": {}
+            "m.video": {}
         })
     );
 }
@@ -158,25 +158,25 @@ fn event_serialization() {
                     { "body": "Upload: <strong>my_lava_lamp.webm</strong>", "mimetype": "text/html"},
                     { "body": "Upload: my_lava_lamp.webm", "mimetype": "text/plain"},
                 ],
-                "org.matrix.msc1767.file": {
+                "m.file": {
                     "url": "mxc://notareal.hs/abcdef",
                     "name": "my_lava_lamp.webm",
                     "mimetype": "video/webm",
                     "size": 1_897_774,
                 },
-                "org.matrix.msc1767.video": {
+                "m.video": {
                     "width": 1920,
                     "height": 1080,
                     "duration": 15_000,
                 },
-                "org.matrix.msc1767.thumbnail": [
+                "m.thumbnail": [
                     {
                         "url": "mxc://notareal.hs/thumbnail",
                         "mimetype": "image/jpeg",
                         "size": 334_593,
                     }
                 ],
-                "org.matrix.msc1767.caption": [
+                "m.caption": [
                     {
                         "body": "This is my awesome vintage lava lamp",
                         "mimetype": "text/plain",
@@ -201,13 +201,13 @@ fn event_serialization() {
 fn plain_content_deserialization() {
     let json_data = json!({
         "org.matrix.msc1767.text": "Video: my_cat.mp4",
-        "org.matrix.msc1767.file": {
+        "m.file": {
             "url": "mxc://notareal.hs/abcdef",
         },
-        "org.matrix.msc1767.video": {
+        "m.video": {
             "duration": 5_668,
         },
-        "org.matrix.msc1767.caption": [
+        "m.caption": [
             {
                 "body": "Look at my cat!",
             }
@@ -233,7 +233,7 @@ fn plain_content_deserialization() {
 fn encrypted_content_deserialization() {
     let json_data = json!({
         "org.matrix.msc1767.text": "Upload: my_cat.mp4",
-        "org.matrix.msc1767.file": {
+        "m.file": {
             "url": "mxc://notareal.hs/abcdef",
             "key": {
                 "kty": "oct",
@@ -248,8 +248,8 @@ fn encrypted_content_deserialization() {
             },
             "v": "v2"
         },
-        "org.matrix.msc1767.video": {},
-        "org.matrix.msc1767.thumbnail": [
+        "m.video": {},
+        "m.thumbnail": [
             {
                 "url": "mxc://notareal.hs/thumbnail",
             }
@@ -277,13 +277,13 @@ fn message_event_deserialization() {
     let json_data = json!({
         "content": {
             "org.matrix.msc1767.text": "Upload: my_gnome.webm",
-            "org.matrix.msc1767.file": {
+            "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "my_gnome.webm",
                 "mimetype": "video/webm",
                 "size": 123_774,
             },
-            "org.matrix.msc1767.video": {
+            "m.video": {
                 "width": 1300,
                 "height": 837,
             }

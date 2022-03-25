@@ -32,7 +32,7 @@ fn plain_content_serialization() {
         to_json_value(&event_content).unwrap(),
         json!({
             "org.matrix.msc1767.text": "Upload: my_file.txt",
-            "org.matrix.msc1767.file": {
+            "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
             }
         })
@@ -69,7 +69,7 @@ fn encrypted_content_serialization() {
         to_json_value(&event_content).unwrap(),
         json!({
             "org.matrix.msc1767.text": "Upload: my_file.txt",
-            "org.matrix.msc1767.file": {
+            "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "key": {
                     "kty": "oct",
@@ -128,7 +128,7 @@ fn file_event_serialization() {
                     { "body": "Upload: <strong>my_file.txt</strong>", "mimetype": "text/html"},
                     { "body": "Upload: my_file.txt", "mimetype": "text/plain"},
                 ],
-                "org.matrix.msc1767.file": {
+                "m.file": {
                     "url": "mxc://notareal.hs/abcdef",
                     "name": "my_file.txt",
                     "mimetype": "text/plain",
@@ -153,7 +153,7 @@ fn file_event_serialization() {
 fn plain_content_deserialization() {
     let json_data = json!({
         "org.matrix.msc1767.text": "Upload: my_file.txt",
-        "org.matrix.msc1767.file": {
+        "m.file": {
             "url": "mxc://notareal.hs/abcdef",
         }
     });
@@ -172,7 +172,7 @@ fn plain_content_deserialization() {
 fn encrypted_content_deserialization() {
     let json_data = json!({
         "org.matrix.msc1767.text": "Upload: my_file.txt",
-        "org.matrix.msc1767.file": {
+        "m.file": {
             "url": "mxc://notareal.hs/abcdef",
             "key": {
                 "kty": "oct",
@@ -208,7 +208,7 @@ fn message_event_deserialization() {
                 { "body": "Upload: <strong>my_file.txt</strong>", "mimetype": "text/html"},
                 { "body": "Upload: my_file.txt", "mimetype": "text/plain"},
             ],
-            "org.matrix.msc1767.file": {
+            "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "my_file.txt",
                 "mimetype": "text/plain",

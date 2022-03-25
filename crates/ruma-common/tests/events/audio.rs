@@ -73,10 +73,10 @@ fn plain_content_serialization() {
         to_json_value(&event_content).unwrap(),
         json!({
             "org.matrix.msc1767.text": "Upload: my_sound.ogg",
-            "org.matrix.msc1767.file": {
+            "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
             },
-            "org.matrix.msc1767.audio": {}
+            "m.audio": {}
         })
     );
 }
@@ -113,7 +113,7 @@ fn encrypted_content_serialization() {
         to_json_value(&event_content).unwrap(),
         json!({
             "org.matrix.msc1767.text": "Upload: my_sound.ogg",
-            "org.matrix.msc1767.file": {
+            "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "key": {
                     "kty": "oct",
@@ -128,7 +128,7 @@ fn encrypted_content_serialization() {
                 },
                 "v": "v2"
             },
-            "org.matrix.msc1767.audio": {}
+            "m.audio": {}
         })
     );
 }
@@ -181,13 +181,13 @@ fn event_serialization() {
                     { "body": "Upload: <strong>my_mix.mp3</strong>", "mimetype": "text/html"},
                     { "body": "Upload: my_mix.mp3", "mimetype": "text/plain"},
                 ],
-                "org.matrix.msc1767.file": {
+                "m.file": {
                     "url": "mxc://notareal.hs/abcdef",
                     "name": "my_mix.mp3",
                     "mimetype": "audio/mp3",
                     "size": 897_774,
                 },
-                "org.matrix.msc1767.audio": {
+                "m.audio": {
                     "duration": 123_000,
                 },
                 "m.relates_to": {
@@ -209,10 +209,10 @@ fn event_serialization() {
 fn plain_content_deserialization() {
     let json_data = json!({
         "org.matrix.msc1767.text": "Upload: my_new_song.webm",
-        "org.matrix.msc1767.file": {
+        "m.file": {
             "url": "mxc://notareal.hs/abcdef",
         },
-        "org.matrix.msc1767.audio": {
+        "m.audio": {
             "waveform": [
                 13,
                 34,
@@ -290,7 +290,7 @@ fn plain_content_deserialization() {
 fn encrypted_content_deserialization() {
     let json_data = json!({
         "org.matrix.msc1767.text": "Upload: my_file.txt",
-        "org.matrix.msc1767.file": {
+        "m.file": {
             "url": "mxc://notareal.hs/abcdef",
             "key": {
                 "kty": "oct",
@@ -305,7 +305,7 @@ fn encrypted_content_deserialization() {
             },
             "v": "v2"
         },
-        "org.matrix.msc1767.audio": {},
+        "m.audio": {},
     });
 
     assert_matches!(
@@ -329,13 +329,13 @@ fn message_event_deserialization() {
     let json_data = json!({
         "content": {
             "org.matrix.msc1767.text": "Upload: airplane_sound.opus",
-            "org.matrix.msc1767.file": {
+            "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "airplane_sound.opus",
                 "mimetype": "audio/opus",
                 "size": 123_774,
             },
-            "org.matrix.msc1767.audio": {
+            "m.audio": {
                 "duration": 5_300,
             }
         },
