@@ -31,8 +31,8 @@ pub struct ImageEventContent {
     pub image: Box<ImageContent>,
 
     /// The thumbnails of the message.
-    #[serde(rename = "m.thumbnail", default, skip_serializing_if = "Thumbnails::is_empty")]
-    pub thumbnail: Thumbnails,
+    #[serde(rename = "m.thumbnail", default, skip_serializing_if = "Vec::is_empty")]
+    pub thumbnail: Vec<ThumbnailContent>,
 
     /// The captions of the message.
     #[serde(rename = "m.caption", default, skip_serializing_if = "Captions::is_empty")]
@@ -148,31 +148,6 @@ impl ThumbnailContent {
     /// Creates a `ThumbnailContent` with the given file and image info.
     pub fn new(file: ThumbnailFileContent, image: Option<Box<ImageContent>>) -> Self {
         Self { file, image }
-    }
-}
-
-/// An array of thumbnails.
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct Thumbnails(pub(crate) Vec<ThumbnailContent>);
-
-impl Thumbnails {
-    /// Creates a new `Thumbnails` with the given thumbnails.
-    ///
-    /// The thumbnails must be ordered by most preferred first.
-    pub fn new(thumbnails: &[ThumbnailContent]) -> Self {
-        Self(thumbnails.to_owned())
-    }
-
-    /// Get the thumbnails.
-    ///
-    /// The thumbnails are ordered by most preferred first.
-    pub fn thumbnails(&self) -> &[ThumbnailContent] {
-        &self.0
-    }
-
-    /// Whether this is empty.
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
     }
 }
 

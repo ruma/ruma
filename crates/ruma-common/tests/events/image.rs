@@ -9,7 +9,7 @@ use ruma_common::{
         file::{EncryptedContentInit, FileContent, FileContentInfo},
         image::{
             Captions, ImageContent, ImageEventContent, ThumbnailContent, ThumbnailFileContent,
-            ThumbnailFileContentInfo, Thumbnails,
+            ThumbnailFileContentInfo,
         },
         message::MessageContent,
         room::{
@@ -118,7 +118,7 @@ fn image_event_serialization() {
             ),
             {
                 image: Box::new(ImageContent::with_size(uint!(1920), uint!(1080))),
-                thumbnail: Thumbnails::new(&[ThumbnailContent::new(
+                thumbnail: vec![ThumbnailContent::new(
                     ThumbnailFileContent::plain(
                         mxc_uri!("mxc://notareal.hs/thumbnail").to_owned(),
                         Some(Box::new(assign!(ThumbnailFileContentInfo::new(), {
@@ -127,7 +127,7 @@ fn image_event_serialization() {
                         })))
                     ),
                     None
-                )]),
+                )],
                 caption: Captions::plain("This is my house"),
                 relates_to: Some(Relation::Reply {
                     in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
@@ -255,7 +255,7 @@ fn encrypted_content_deserialization() {
             && file.encryption_info.is_some()
             && image.width.is_none()
             && image.height.is_none()
-            && thumbnail.thumbnails()[0].file.url == "mxc://notareal.hs/thumbnail"
+            && thumbnail[0].file.url == "mxc://notareal.hs/thumbnail"
             && caption.is_empty()
     );
 }

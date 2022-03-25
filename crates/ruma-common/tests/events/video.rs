@@ -9,9 +9,7 @@ use ruma_common::{
     event_id,
     events::{
         file::{EncryptedContentInit, FileContent, FileContentInfo},
-        image::{
-            Captions, ThumbnailContent, ThumbnailFileContent, ThumbnailFileContentInfo, Thumbnails,
-        },
+        image::{Captions, ThumbnailContent, ThumbnailFileContent, ThumbnailFileContentInfo},
         message::MessageContent,
         room::{
             message::{InReplyTo, Relation},
@@ -127,7 +125,7 @@ fn event_serialization() {
                         duration: Some(Duration::from_secs(15)),
                     }
                 )),
-                thumbnail: Thumbnails::new(&[ThumbnailContent::new(
+                thumbnail: vec![ThumbnailContent::new(
                     ThumbnailFileContent::plain(
                         mxc_uri!("mxc://notareal.hs/thumbnail").to_owned(),
                         Some(Box::new(assign!(ThumbnailFileContentInfo::new(), {
@@ -136,7 +134,7 @@ fn event_serialization() {
                         })))
                     ),
                     None
-                )]),
+                )],
                 caption: Captions::plain("This is my awesome vintage lava lamp"),
                 relates_to: Some(Relation::Reply {
                     in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
@@ -267,7 +265,7 @@ fn encrypted_content_deserialization() {
             && video.width.is_none()
             && video.height.is_none()
             && video.duration.is_none()
-            && thumbnail.thumbnails()[0].file.url == "mxc://notareal.hs/thumbnail"
+            && thumbnail[0].file.url == "mxc://notareal.hs/thumbnail"
             && caption.is_empty()
     );
 }
