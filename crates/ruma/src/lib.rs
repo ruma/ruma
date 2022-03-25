@@ -164,7 +164,7 @@ pub use ruma_common::{
     mxc_uri, power_levels, presence, push, receipt, room, room_alias_id, room_id, room_version_id,
     serde::Incoming, server_name, server_signing_key_id, thirdparty, to_device, user_id,
     ClientSecret, DeviceId, DeviceKeyAlgorithm, DeviceKeyId, DeviceSignatures, DeviceSigningKeyId,
-    EntitySignatures, EventEncryptionAlgorithm, EventId, KeyId, KeyName, MatrixToUri,
+    EntitySignatures, EventEncryptionAlgorithm, EventId, IdParseError, KeyId, KeyName, MatrixToUri,
     MilliSecondsSinceUnixEpoch, MxcUri, PrivOwnedStr, RoomAliasId, RoomId, RoomOrAliasId,
     RoomVersionId, SecondsSinceUnixEpoch, ServerName, ServerSignatures, ServerSigningKeyId,
     SessionId, Signatures, SigningKeyAlgorithm, TransactionId, UserId,
