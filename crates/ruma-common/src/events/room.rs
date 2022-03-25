@@ -35,7 +35,7 @@ pub mod topic;
 
 /// The source of a media file.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[allow(clippy::exhaustive_enums)]
 pub enum MediaSource {
     /// The MXC URI to the unencrypted media file.
     #[serde(rename = "url")]
