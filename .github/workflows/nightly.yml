@@ -10,83 +10,43 @@ on:
     branches: [main, next]
 
 jobs:
-  fmt:
-    name: Fmt
+  check:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: Check Formatting
+            cmd: fmt
+            components: rustfmt
+
+          - name: Full Features
+            cmd: nightly-full
+
+          - name: Clippy Default Features
+            cmd: clippy-default
+            components: clippy
+
+          - name: Clippy All Features
+            cmd: clippy-all
+            components: clippy
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
+
       - name: Install rust nightly toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: nightly-2022-03-23
           override: true
-          components: rustfmt
+          components: ${{ matrix.components }}
+
       - uses: Swatinem/rust-cache@v1
+
       - name: Run checks
         uses: actions-rs/cargo@v1
         with:
           command: run
-          args: -p xtask --no-default-features ci fmt
-
-  check_full:
-    name: Check Full Features
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-      - name: Install rust nightly toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly-2022-03-23
-          override: true
-      - uses: Swatinem/rust-cache@v1
-      - name: Run checks
-        uses: actions-rs/cargo@v1
-        with:
-          command: run
-          args: -p xtask --no-default-features ci nightly-full
-
-  clippy_default:
-    name: Clippy Default Features
-    runs-on: ubuntu-latest
-    needs: check_full
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-      - name: Install rust nightly toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly-2022-03-23
-          override: true
-          components: clippy
-      - uses: Swatinem/rust-cache@v1
-      - name: Run lints
-        uses: actions-rs/cargo@v1
-        with:
-          command: run
-          args: -p xtask --no-default-features ci clippy-default
-
-  clippy_all:
-    name: Clippy All Features
-    runs-on: ubuntu-latest
-    needs: check_full
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-      - name: Install rust nightly toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly-2022-03-23
-          override: true
-          components: clippy
-      - uses: Swatinem/rust-cache@v1
-      - name: Run lints
-        uses: actions-rs/cargo@v1
-        with:
-          command: run
-          args: -p xtask --no-default-features ci clippy-all
+          args: -p xtask --no-default-features ci ${{ matrix.cmd }}

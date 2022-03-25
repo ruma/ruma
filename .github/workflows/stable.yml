@@ -10,119 +10,45 @@ on:
     branches: [main, next]
 
 jobs:
-  check_all:
-    name: Check All Features
+  check:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: Check All Features
+            cmd: stable-all
+
+          - name: Check Client
+            cmd: stable-client
+
+          - name: Check Common
+            cmd: stable-common
+
+          - name: Run Tests
+            cmd: test-all
+
+          - name: Run Doc Tests
+            cmd: test-doc
+
+          - name: Test Common Features
+            cmd: test-common
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
+
       - name: Install rust stable toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
+
       - uses: Swatinem/rust-cache@v1
+
       - name: Run checks
         uses: actions-rs/cargo@v1
         with:
           command: run
-          args: -p xtask --no-default-features ci stable-all
-
-  check_client:
-    name: Check Client
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-      - name: Install rust stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: Swatinem/rust-cache@v1
-      - name: Run checks
-        uses: actions-rs/cargo@v1
-        with:
-          command: run
-          args: -p xtask --no-default-features ci stable-client
-
-  check_common:
-    name: Check Common
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-      - name: Install rust stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: Swatinem/rust-cache@v1
-      - name: Run checks
-        uses: actions-rs/cargo@v1
-        with:
-          command: run
-          args: -p xtask --no-default-features ci stable-common
-
-  test_all:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    needs: check_all
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-      - name: Install rust stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: Swatinem/rust-cache@v1
-      - name: Run tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: run
-          args: -p xtask --no-default-features ci test-all
-
-  test_doc:
-    name: Run Doc Tests
-    runs-on: ubuntu-latest
-    needs: check_all
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-      - name: Install rust stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: Swatinem/rust-cache@v1
-      - name: Run tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: run
-          args: -p xtask --no-default-features ci test-doc
-
-  test_common:
-    name: Test Common Features
-    runs-on: ubuntu-latest
-    needs: check_common
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-      - name: Install rust stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: Swatinem/rust-cache@v1
-      - name: Run tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: run
-          args: -p xtask --no-default-features ci test-common
+          args: -p xtask --no-default-features ci ${{ matrix.cmd }}

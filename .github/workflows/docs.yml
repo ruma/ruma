@@ -16,6 +16,7 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
+
       - name: Install nightly rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -23,7 +24,9 @@ jobs:
           # Needed for use of unstable options
           toolchain: nightly-2022-03-23
           override: true
+
       - uses: Swatinem/rust-cache@v1
+
       - name: Build docs
         uses: actions-rs/cargo@v1
         env:
@@ -31,6 +34,7 @@ jobs:
         with:
           command: doc
           args: --no-deps --workspace --exclude ruma-macros --exclude ruma-identifiers-validation --exclude xtask --all-features -Zrustdoc-map
+
       - name: Deploy to docs branch
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         uses: JamesIves/github-pages-deploy-action@4.1.4
