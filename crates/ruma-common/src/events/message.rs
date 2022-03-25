@@ -1,7 +1,52 @@
 //! Types for extensible text message events ([MSC1767]).
 //!
+//! # Extensible events
+//!
+//! MSCs [1767] (Text, Emote and Notice), [3551] (Files), [3552] (Images and Stickers), [3553]
+//! (Videos), [3246] (Audio), and [3488] (Location) introduce new primary types called extensible
+//! events. These types are meant to replace the `m.room.message` primary type and its `msgtype`s.
+//! Other MSCs introduce new types with an `m.room.message` fallback, like [MSC3245] (Voice
+//! Messages), and types that only have an extensible events format, like [MSC3381] (Polls).
+//!
+//! # Transition Period
+//!
+//! MSC1767 defines a transition period that will start after the extensible events are released in
+//! a Matrix version. It should last approximately one year, but the end of that period will be
+//! formalized in a new Matrix version.
+//!
+//! The new primary types should not be sent over the Matrix network before the end of the
+//! transition period. Instead, transitional `m.room.message` events should be sent. These
+//! transitional events include the content of the now legacy `m.room.message` event and the content
+//! of the new extensible event types in a single event.
+//!
+//! # How to use them
+//!
+//! First, enable the `unstable-mscXXXX` features (where `XXXX` is the number of the MSC) for the
+//! needed extensible types.
+//!
+//! The recommended way to send transitional extensible events while they are unstable and during
+//! the transition period is to build one of the new primary types and then to convert it to a
+//! [`RoomMessageEventContent`] by using `.into()` or `RoomMessageEventContent::from()`. The
+//! provided constructors will copy the relevant data in the legacy fields.
+//!
+//! For incoming events, a `RoomMessageEventContent` can be converted to an extensible event with
+//! the relevant `from_*_room_message` method on the primary type. This conversion will work even
+//! with legacy `m.room.message` events that don't have extensible events content.
+//!
+//! It is also possible to enable extensible events support and continue using
+//! `RoomMessageEventContent`'s constructors. The data will be duplicated in both the legacy and
+//! extensible events fields.
+//!
 //! [MSC1767]: https://github.com/matrix-org/matrix-spec-proposals/pull/1767
-
+//! [1767]: https://github.com/matrix-org/matrix-spec-proposals/pull/1767
+//! [3551]: https://github.com/matrix-org/matrix-spec-proposals/pull/3551
+//! [3552]: https://github.com/matrix-org/matrix-spec-proposals/pull/3552
+//! [3553]: https://github.com/matrix-org/matrix-spec-proposals/pull/3553
+//! [3246]: https://github.com/matrix-org/matrix-spec-proposals/pull/3246
+//! [3488]: https://github.com/matrix-org/matrix-spec-proposals/pull/3488
+//! [MSC3245]: https://github.com/matrix-org/matrix-spec-proposals/pull/3245
+//! [MSC3381]: https://github.com/matrix-org/matrix-spec-proposals/pull/3381
+//! [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -12,6 +57,18 @@ use content_serde::MessageContentSerDeHelper;
 use super::room::message::{FormattedBody, MessageFormat, Relation, TextMessageEventContent};
 
 /// The payload for an extensible text message.
+///
+/// This is the new primary type introduced in [MSC1767] and should not be sent before the end of
+/// the transition period. See the documentation of the [`message`] module for more information.
+///
+/// `MessageEventContent` can be converted to a [`RoomMessageEventContent`] with a
+/// [`MessageType::Text`]. You can convert it back with
+/// [`MessageEventContent::from_text_room_message()`].
+///
+/// [MSC1767]: https://github.com/matrix-org/matrix-spec-proposals/pull/1767
+/// [`message`]: super::message
+/// [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
+/// [`MessageType::Text`]: super::room::message::MessageType::Text
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.message", kind = MessageLike)]

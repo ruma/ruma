@@ -11,6 +11,18 @@ use super::{
 };
 
 /// The payload for an extensible notice message.
+///
+/// This is the new primary type introduced in [MSC1767] and should not be sent before the end of
+/// the transition period. See the documentation of the [`message`] module for more information.
+///
+/// `NoticeEventContent` can be converted to a [`RoomMessageEventContent`] with a
+/// [`MessageType::Notice`]. You can convert it back with
+/// [`NoticeEventContent::from_notice_room_message()`].
+///
+/// [MSC1767]: https://github.com/matrix-org/matrix-spec-proposals/pull/1767
+/// [`message`]: super::message
+/// [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
+/// [`MessageType::Notice`]: super::room::message::MessageType::Notice
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.notice", kind = MessageLike)]
