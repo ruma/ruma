@@ -59,11 +59,10 @@ impl Serialize for MessageContent {
         S: serde::Serializer,
     {
         let mut st = serializer.serialize_struct("MessageContent", 1)?;
-        let variants = self.variants();
-        if variants.len() == 1 && variants[0].mimetype == "text/plain" {
-            st.serialize_field("org.matrix.msc1767.text", &variants[0].body)?;
+        if self.len() == 1 && self[0].mimetype == "text/plain" {
+            st.serialize_field("org.matrix.msc1767.text", &self[0].body)?;
         } else {
-            st.serialize_field("org.matrix.msc1767.message", variants)?;
+            st.serialize_field("org.matrix.msc1767.message", &self.0)?;
         }
         st.end()
     }

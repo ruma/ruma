@@ -47,6 +47,8 @@
 //! [MSC3245]: https://github.com/matrix-org/matrix-spec-proposals/pull/3245
 //! [MSC3381]: https://github.com/matrix-org/matrix-spec-proposals/pull/3381
 //! [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
+use std::ops::Deref;
+
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -162,29 +164,30 @@ impl MessageContent {
 
     /// Get the plain text representation of this message.
     pub fn find_plain(&self) -> Option<&str> {
-        self.variants()
-            .iter()
+        self.iter()
             .find(|content| content.mimetype == "text/plain")
             .map(|content| content.body.as_ref())
     }
 
     /// Get the HTML representation of this message.
     pub fn find_html(&self) -> Option<&str> {
-        self.variants()
-            .iter()
+        self.iter()
             .find(|content| content.mimetype == "text/html")
             .map(|content| content.body.as_ref())
-    }
-
-    /// Get all the text representations of this message.
-    pub fn variants(&self) -> &[Text] {
-        &self.0
     }
 }
 
 impl From<Vec<Text>> for MessageContent {
     fn from(variants: Vec<Text>) -> Self {
         Self(variants)
+    }
+}
+
+impl Deref for MessageContent {
+    type Target = [Text];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
