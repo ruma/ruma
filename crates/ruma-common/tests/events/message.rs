@@ -280,8 +280,8 @@ fn room_message_plain_text_stable_deserialization() {
             }),
             ..
         } if body == "test"
-          && message.variants().len() == 1
-          && message.variants()[0].body == "test"
+          && message.len() == 1
+          && message[0].body == "test"
     );
 }
 
@@ -305,8 +305,8 @@ fn room_message_plain_text_unstable_deserialization() {
             }),
             ..
         } if body == "test"
-          && message.variants().len() == 1
-          && message.variants()[0].body == "test"
+          && message.len() == 1
+          && message[0].body == "test"
     );
 }
 
@@ -336,9 +336,9 @@ fn room_message_html_text_stable_deserialization() {
             ..
         } if body == "test"
             && formatted.body == "<h1>test</h1>"
-            && message.variants().len() == 2
-            && message.variants()[0].body == "<h1>test</h1>"
-            && message.variants()[1].body == "test"
+            && message.len() == 2
+            && message[0].body == "<h1>test</h1>"
+            && message[1].body == "test"
     );
 }
 
@@ -368,9 +368,9 @@ fn room_message_html_text_unstable_deserialization() {
             ..
         } if body == "test"
             && formatted.body == "<h1>test</h1>"
-            && message.variants().len() == 2
-            && message.variants()[0].body == "<h1>test</h1>"
-            && message.variants()[1].body == "test"
+            && message.len() == 2
+            && message[0].body == "<h1>test</h1>"
+            && message[1].body == "test"
     );
 }
 
@@ -511,8 +511,8 @@ fn room_message_notice_stable_deserialization() {
             }),
             ..
         } if body == "test"
-          && message.variants().len() == 1
-          && message.variants()[0].body == "test"
+          && message.len() == 1
+          && message[0].body == "test"
     );
 }
 
@@ -536,8 +536,8 @@ fn room_message_notice_unstable_deserialization() {
             }),
             ..
         } if body == "test"
-          && message.variants().len() == 1
-          && message.variants()[0].body == "test"
+          && message.len() == 1
+          && message[0].body == "test"
     );
 }
 
@@ -679,8 +679,8 @@ fn room_message_emote_stable_deserialization() {
             }),
             ..
         } if body == "test"
-          && message.variants().len() == 1
-          && message.variants()[0].body == "test"
+          && message.len() == 1
+          && message[0].body == "test"
     );
 }
 
@@ -704,8 +704,8 @@ fn room_message_emote_unstable_deserialization() {
             }),
             ..
         } if body == "test"
-          && message.variants().len() == 1
-          && message.variants()[0].body == "test"
+          && message.len() == 1
+          && message[0].body == "test"
     );
 }
 
@@ -746,7 +746,7 @@ fn lang_deserialization() {
     });
 
     let content = from_json_value::<MessageContent>(json_data).unwrap();
-    assert_eq!(content.variants()[0].lang.as_deref(), Some("fr"));
-    assert_eq!(content.variants()[1].lang.as_deref(), Some("de"));
-    assert_eq!(content.variants()[2].lang.as_deref(), Some("en"));
+    assert_eq!(content[0].lang.as_deref(), Some("fr"));
+    assert_eq!(content[1].lang.as_deref(), Some("de"));
+    assert_eq!(content[2].lang.as_deref(), Some("en"));
 }

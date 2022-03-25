@@ -586,8 +586,7 @@ impl EmoteMessageEventContent {
 #[cfg(feature = "unstable-msc1767")]
 impl From<MessageContent> for EmoteMessageEventContent {
     fn from(message: MessageContent) -> Self {
-        let body =
-            if let Some(body) = message.find_plain() { body } else { &message.variants()[0].body };
+        let body = if let Some(body) = message.find_plain() { body } else { &message[0].body };
         let formatted = message.find_html().map(FormattedBody::html);
 
         Self { body: body.to_owned(), formatted, message: Some(message) }
@@ -798,8 +797,7 @@ impl NoticeMessageEventContent {
 #[cfg(feature = "unstable-msc1767")]
 impl From<MessageContent> for NoticeMessageEventContent {
     fn from(message: MessageContent) -> Self {
-        let body =
-            if let Some(body) = message.find_plain() { body } else { &message.variants()[0].body };
+        let body = if let Some(body) = message.find_plain() { body } else { &message[0].body };
         let formatted = message.find_html().map(FormattedBody::html);
 
         Self { body: body.to_owned(), formatted, message: Some(message) }
@@ -1000,8 +998,7 @@ impl TextMessageEventContent {
 #[cfg(feature = "unstable-msc1767")]
 impl From<MessageContent> for TextMessageEventContent {
     fn from(message: MessageContent) -> Self {
-        let body =
-            if let Some(body) = message.find_plain() { body } else { &message.variants()[0].body };
+        let body = if let Some(body) = message.find_plain() { body } else { &message[0].body };
         let formatted = message.find_html().map(FormattedBody::html);
 
         Self { body: body.to_owned(), formatted, message: Some(message) }
