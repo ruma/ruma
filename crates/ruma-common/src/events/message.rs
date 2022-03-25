@@ -52,7 +52,7 @@ use std::ops::Deref;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-mod content_serde;
+pub(crate) mod content_serde;
 
 use content_serde::MessageContentSerDeHelper;
 
