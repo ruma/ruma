@@ -35,17 +35,17 @@ pub mod v3 {
 
             /// The token to start returning events from.
             ///
-            /// This token can be obtained from a
-            /// prev_batch token returned for each room by the sync API, or from a start or end token
-            /// returned by a previous request to this endpoint.
+            /// This token can be obtained from a `prev_batch` token returned for each room by the
+            /// sync endpoint, or from a `start` or `end` token returned by a previous request to
+            /// this endpoint.
             #[ruma_api(query)]
             pub from: &'a str,
 
             /// The token to stop returning events at.
             ///
-            /// This token can be obtained from a prev_batch
-            /// token returned for each room by the sync endpoint, or from a start or end token returned
-            /// by a previous request to this endpoint.
+            /// This token can be obtained from a `prev_batch` token returned for each room by the
+            /// sync endpoint, or from a `start` or `end` token returned by a previous request to
+            /// this endpoint.
             #[serde(skip_serializing_if = "Option::is_none")]
             #[ruma_api(query)]
             pub to: Option<&'a str>,
@@ -56,12 +56,12 @@ pub mod v3 {
 
             /// The maximum number of events to return.
             ///
-            /// Default: 10.
+            /// Default: `10`.
             #[ruma_api(query)]
             #[serde(default = "default_limit", skip_serializing_if = "is_default_limit")]
             pub limit: UInt,
 
-            /// A RoomEventFilter to filter returned events with.
+            /// A `RoomEventFilter` to filter returned events with.
             #[ruma_api(query)]
             #[serde(
                 with = "ruma_common::serde::json_string",
