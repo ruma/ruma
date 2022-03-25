@@ -110,7 +110,7 @@ impl Response {
 
             quote! {
                 /// Data in the response body.
-                #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi)]
+                #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
                 #serde_derives
                 #serde_attr
                 struct ResponseBody { #(#fields),* }

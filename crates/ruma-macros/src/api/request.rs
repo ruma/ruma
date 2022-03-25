@@ -214,7 +214,7 @@ impl Request {
 
             quote! {
                 /// Data in the request body.
-                #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi)]
+                #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
                 #[cfg_attr(feature = "client", derive(#serde::Serialize))]
                 #[cfg_attr(
                     feature = "server",
@@ -241,7 +241,7 @@ impl Request {
 
             quote! {
                 /// Data in the request's query string.
-                #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi)]
+                #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
                 #[cfg_attr(feature = "client", derive(#serde::Serialize))]
                 #[cfg_attr(
                     feature = "server",
