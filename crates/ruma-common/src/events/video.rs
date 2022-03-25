@@ -25,27 +25,19 @@ pub struct VideoEventContent {
     pub message: MessageContent,
 
     /// The file content of the message.
-    #[serde(rename = "org.matrix.msc1767.file")]
+    #[serde(rename = "m.file")]
     pub file: FileContent,
 
     /// The video content of the message.
-    #[serde(rename = "org.matrix.msc1767.video")]
+    #[serde(rename = "m.video")]
     pub video: Box<VideoContent>,
 
     /// The thumbnails of the message.
-    #[serde(
-        rename = "org.matrix.msc1767.thumbnail",
-        default,
-        skip_serializing_if = "Thumbnails::is_empty"
-    )]
+    #[serde(rename = "m.thumbnail", default, skip_serializing_if = "Thumbnails::is_empty")]
     pub thumbnail: Thumbnails,
 
     /// The captions of the message.
-    #[serde(
-        rename = "org.matrix.msc1767.caption",
-        default,
-        skip_serializing_if = "Captions::is_empty"
-    )]
+    #[serde(rename = "m.caption", default, skip_serializing_if = "Captions::is_empty")]
     pub caption: Captions,
 
     /// Information about related messages.

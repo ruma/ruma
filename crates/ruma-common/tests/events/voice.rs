@@ -60,16 +60,16 @@ fn event_serialization() {
         json!({
             "content": {
                 "org.matrix.msc1767.text": "Voice message",
-                "org.matrix.msc1767.file": {
+                "m.file": {
                     "url": "mxc://notareal.hs/abcdef",
                     "name": "voice_message.ogg",
                     "mimetype": "audio/opus",
                     "size": 897_774,
                 },
-                "org.matrix.msc1767.audio": {
+                "m.audio": {
                     "duration": 23_000,
                 },
-                "org.matrix.msc3245.voice": {},
+                "m.voice": {},
                 "m.relates_to": {
                     "m.in_reply_to": {
                         "event_id": "$replyevent:example.com"
@@ -90,16 +90,16 @@ fn message_event_deserialization() {
     let json_data = json!({
         "content": {
             "org.matrix.msc1767.text": "Voice message",
-            "org.matrix.msc1767.file": {
+            "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "voice_message.ogg",
                 "mimetype": "audio/opus",
                 "size": 123_774,
             },
-            "org.matrix.msc1767.audio": {
+            "m.audio": {
                 "duration": 5_300,
             },
-            "org.matrix.msc3245.voice": {},
+            "m.voice": {},
         },
         "event_id": "$event:notareal.hs",
         "origin_server_ts": 134_829_848,

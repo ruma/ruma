@@ -23,19 +23,15 @@ pub struct LocationEventContent {
     pub message: MessageContent,
 
     /// The location info of the message.
-    #[serde(rename = "org.matrix.msc3488.location")]
+    #[serde(rename = "m.location")]
     pub location: LocationContent,
 
     /// The asset this message refers to.
-    #[serde(
-        default,
-        rename = "org.matrix.msc3488.asset",
-        skip_serializing_if = "ruma_common::serde::is_default"
-    )]
+    #[serde(default, rename = "m.asset", skip_serializing_if = "ruma_common::serde::is_default")]
     pub asset: AssetContent,
 
     /// The timestamp this message refers to.
-    #[serde(rename = "org.matrix.msc3488.ts", skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "m.ts", skip_serializing_if = "Option::is_none")]
     pub ts: Option<MilliSecondsSinceUnixEpoch>,
 
     /// Information about related messages.

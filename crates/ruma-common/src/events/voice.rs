@@ -19,15 +19,15 @@ pub struct VoiceEventContent {
     pub message: MessageContent,
 
     /// The file content of the message.
-    #[serde(rename = "org.matrix.msc1767.file")]
+    #[serde(rename = "m.file")]
     pub file: FileContent,
 
     /// The audio content of the message.
-    #[serde(rename = "org.matrix.msc1767.audio")]
+    #[serde(rename = "m.audio")]
     pub audio: AudioContent,
 
     /// The audio content of the message.
-    #[serde(rename = "org.matrix.msc3245.voice")]
+    #[serde(rename = "m.voice")]
     pub voice: VoiceContent,
 
     /// Information about related messages.

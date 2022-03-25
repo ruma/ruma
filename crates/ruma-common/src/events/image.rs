@@ -23,27 +23,19 @@ pub struct ImageEventContent {
     pub message: MessageContent,
 
     /// The file content of the message.
-    #[serde(rename = "org.matrix.msc1767.file")]
+    #[serde(rename = "m.file")]
     pub file: FileContent,
 
     /// The image content of the message.
-    #[serde(rename = "org.matrix.msc1767.image")]
+    #[serde(rename = "m.image")]
     pub image: Box<ImageContent>,
 
     /// The thumbnails of the message.
-    #[serde(
-        rename = "org.matrix.msc1767.thumbnail",
-        default,
-        skip_serializing_if = "Thumbnails::is_empty"
-    )]
+    #[serde(rename = "m.thumbnail", default, skip_serializing_if = "Thumbnails::is_empty")]
     pub thumbnail: Thumbnails,
 
-    /// The thumbnails of the message.
-    #[serde(
-        rename = "org.matrix.msc1767.caption",
-        default,
-        skip_serializing_if = "Captions::is_empty"
-    )]
+    /// The captions of the message.
+    #[serde(rename = "m.caption", default, skip_serializing_if = "Captions::is_empty")]
     pub caption: Captions,
 
     /// Information about related messages for [rich replies].

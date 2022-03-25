@@ -142,7 +142,7 @@ pub struct FileEventContent {
     pub message: MessageContent,
 
     /// The file content of the message.
-    #[serde(rename = "org.matrix.msc1767.file")]
+    #[serde(rename = "m.file")]
     pub file: FileContent,
 
     /// Information about related messages for [rich replies].

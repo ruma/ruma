@@ -35,10 +35,10 @@ fn plain_content_serialization() {
         to_json_value(&event_content).unwrap(),
         json!({
             "org.matrix.msc1767.text": "Upload: my_image.jpg",
-            "org.matrix.msc1767.file": {
+            "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
             },
-            "org.matrix.msc1767.image": {}
+            "m.image": {}
         })
     );
 }
@@ -75,7 +75,7 @@ fn encrypted_content_serialization() {
         to_json_value(&event_content).unwrap(),
         json!({
             "org.matrix.msc1767.text": "Upload: my_image.jpg",
-            "org.matrix.msc1767.file": {
+            "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "key": {
                     "kty": "oct",
@@ -90,7 +90,7 @@ fn encrypted_content_serialization() {
                 },
                 "v": "v2"
             },
-            "org.matrix.msc1767.image": {}
+            "m.image": {}
         })
     );
 }
@@ -149,24 +149,24 @@ fn image_event_serialization() {
                     { "body": "Upload: <strong>my_house.jpg</strong>", "mimetype": "text/html"},
                     { "body": "Upload: my_house.jpg", "mimetype": "text/plain"},
                 ],
-                "org.matrix.msc1767.file": {
+                "m.file": {
                     "url": "mxc://notareal.hs/abcdef",
                     "name": "my_house.jpg",
                     "mimetype": "image/jpeg",
                     "size": 897_774,
                 },
-                "org.matrix.msc1767.image": {
+                "m.image": {
                     "width": 1920,
                     "height": 1080,
                 },
-                "org.matrix.msc1767.thumbnail": [
+                "m.thumbnail": [
                     {
                         "url": "mxc://notareal.hs/thumbnail",
                         "mimetype": "image/jpeg",
                         "size": 334_593,
                     }
                 ],
-                "org.matrix.msc1767.caption": [
+                "m.caption": [
                     {
                         "body": "This is my house",
                         "mimetype": "text/plain",
@@ -191,13 +191,13 @@ fn image_event_serialization() {
 fn plain_content_deserialization() {
     let json_data = json!({
         "org.matrix.msc1767.text": "Upload: my_cat.png",
-        "org.matrix.msc1767.file": {
+        "m.file": {
             "url": "mxc://notareal.hs/abcdef",
         },
-        "org.matrix.msc1767.image": {
+        "m.image": {
             "width": 668,
         },
-        "org.matrix.msc1767.caption": [
+        "m.caption": [
             {
                 "body": "Look at my cat!",
             }
@@ -222,7 +222,7 @@ fn plain_content_deserialization() {
 fn encrypted_content_deserialization() {
     let json_data = json!({
         "org.matrix.msc1767.text": "Upload: my_file.txt",
-        "org.matrix.msc1767.file": {
+        "m.file": {
             "url": "mxc://notareal.hs/abcdef",
             "key": {
                 "kty": "oct",
@@ -237,8 +237,8 @@ fn encrypted_content_deserialization() {
             },
             "v": "v2"
         },
-        "org.matrix.msc1767.image": {},
-        "org.matrix.msc1767.thumbnail": [
+        "m.image": {},
+        "m.thumbnail": [
             {
                 "url": "mxc://notareal.hs/thumbnail",
             }
@@ -265,13 +265,13 @@ fn message_event_deserialization() {
     let json_data = json!({
         "content": {
             "org.matrix.msc1767.text": "Upload: my_gnome.webp",
-            "org.matrix.msc1767.file": {
+            "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "my_gnome.webp",
                 "mimetype": "image/webp",
                 "size": 123_774,
             },
-            "org.matrix.msc1767.image": {
+            "m.image": {
                 "width": 1300,
                 "height": 837,
             }
