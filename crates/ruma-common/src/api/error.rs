@@ -248,7 +248,7 @@ pub enum DeserializationError {
 
     /// Got an invalid identifier.
     #[error("{0}")]
-    Ident(#[from] crate::Error),
+    Ident(#[from] crate::IdParseError),
 
     /// Header value deserialization failed.
     #[error("{0}")]

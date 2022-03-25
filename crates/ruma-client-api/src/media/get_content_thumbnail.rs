@@ -6,7 +6,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixmediav3thumbnailservernamemediaid
 
     use js_int::UInt;
-    use ruma_common::{api::ruma_api, serde::StringEnum, Error, MxcUri, ServerName};
+    use ruma_common::{api::ruma_api, serde::StringEnum, IdParseError, MxcUri, ServerName};
 
     use crate::PrivOwnedStr;
 
@@ -83,7 +83,7 @@ pub mod v3 {
 
         /// Creates a new `Request` with the given url, desired thumbnail width and
         /// desired thumbnail height.
-        pub fn from_url(url: &'a MxcUri, width: UInt, height: UInt) -> Result<Self, Error> {
+        pub fn from_url(url: &'a MxcUri, width: UInt, height: UInt) -> Result<Self, IdParseError> {
             let (server_name, media_id) = url.parts()?;
 
             Ok(Self { media_id, server_name, method: None, width, height, allow_remote: true })

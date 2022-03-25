@@ -110,7 +110,7 @@ mod tests {
     use std::convert::TryFrom;
 
     use super::RoomId;
-    use crate::Error;
+    use crate::IdParseError;
 
     #[test]
     fn valid_room_id() {
@@ -186,25 +186,31 @@ mod tests {
     fn missing_room_id_sigil() {
         assert_eq!(
             <&RoomId>::try_from("carl:example.com").unwrap_err(),
-            Error::MissingLeadingSigil
+            IdParseError::MissingLeadingSigil
         );
     }
 
     #[test]
     fn missing_room_id_delimiter() {
-        assert_eq!(<&RoomId>::try_from("!29fhd83h92h0").unwrap_err(), Error::MissingDelimiter);
+        assert_eq!(
+            <&RoomId>::try_from("!29fhd83h92h0").unwrap_err(),
+            IdParseError::MissingDelimiter
+        );
     }
 
     #[test]
     fn invalid_room_id_host() {
-        assert_eq!(<&RoomId>::try_from("!29fhd83h92h0:/").unwrap_err(), Error::InvalidServerName);
+        assert_eq!(
+            <&RoomId>::try_from("!29fhd83h92h0:/").unwrap_err(),
+            IdParseError::InvalidServerName
+        );
     }
 
     #[test]
     fn invalid_room_id_port() {
         assert_eq!(
             <&RoomId>::try_from("!29fhd83h92h0:example.com:notaport").unwrap_err(),
-            Error::InvalidServerName
+            IdParseError::InvalidServerName
         );
     }
 }

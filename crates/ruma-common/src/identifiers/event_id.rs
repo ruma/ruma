@@ -78,7 +78,7 @@ mod tests {
     use std::convert::TryFrom;
 
     use super::EventId;
-    use crate::Error;
+    use crate::IdParseError;
 
     #[test]
     fn valid_original_event_id() {
@@ -209,7 +209,7 @@ mod tests {
     fn missing_original_event_id_sigil() {
         assert_eq!(
             <&EventId>::try_from("39hvsi03hlne:example.com").unwrap_err(),
-            Error::MissingLeadingSigil
+            IdParseError::MissingLeadingSigil
         );
     }
 
@@ -217,7 +217,7 @@ mod tests {
     fn missing_base64_event_id_sigil() {
         assert_eq!(
             <&EventId>::try_from("acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk").unwrap_err(),
-            Error::MissingLeadingSigil
+            IdParseError::MissingLeadingSigil
         );
     }
 
@@ -225,20 +225,23 @@ mod tests {
     fn missing_url_safe_base64_event_id_sigil() {
         assert_eq!(
             <&EventId>::try_from("Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg").unwrap_err(),
-            Error::MissingLeadingSigil
+            IdParseError::MissingLeadingSigil
         );
     }
 
     #[test]
     fn invalid_event_id_host() {
-        assert_eq!(<&EventId>::try_from("$39hvsi03hlne:/").unwrap_err(), Error::InvalidServerName);
+        assert_eq!(
+            <&EventId>::try_from("$39hvsi03hlne:/").unwrap_err(),
+            IdParseError::InvalidServerName
+        );
     }
 
     #[test]
     fn invalid_event_id_port() {
         assert_eq!(
             <&EventId>::try_from("$39hvsi03hlne:example.com:notaport").unwrap_err(),
-            Error::InvalidServerName
+            IdParseError::InvalidServerName
         );
     }
 }

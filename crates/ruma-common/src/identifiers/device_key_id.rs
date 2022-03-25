@@ -43,7 +43,7 @@ mod tests {
     use std::convert::TryFrom;
 
     use super::DeviceKeyId;
-    use crate::identifiers::{crypto_algorithms::DeviceKeyAlgorithm, Error};
+    use crate::identifiers::{crypto_algorithms::DeviceKeyAlgorithm, IdParseError};
 
     #[test]
     fn convert_device_key_id() {
@@ -75,7 +75,7 @@ mod tests {
     fn missing_key_algorithm() {
         assert_eq!(
             <&DeviceKeyId>::try_from(":JLAFKJWSCS").unwrap_err(),
-            Error::InvalidKeyAlgorithm
+            IdParseError::InvalidKeyAlgorithm
         );
     }
 
@@ -83,7 +83,7 @@ mod tests {
     fn missing_delimiter() {
         assert_eq!(
             <&DeviceKeyId>::try_from("ed25519|JLAFKJWSCS").unwrap_err(),
-            Error::MissingDelimiter,
+            IdParseError::MissingDelimiter,
         );
     }
 

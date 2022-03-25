@@ -157,7 +157,7 @@ mod tests {
     use std::convert::TryFrom;
 
     use super::RoomOrAliasId;
-    use crate::Error;
+    use crate::IdParseError;
 
     #[test]
     fn valid_room_id_or_alias_id_with_a_room_alias_id() {
@@ -183,7 +183,7 @@ mod tests {
     fn missing_sigil_for_room_id_or_alias_id() {
         assert_eq!(
             <&RoomOrAliasId>::try_from("ruma:example.com").unwrap_err(),
-            Error::MissingLeadingSigil
+            IdParseError::MissingLeadingSigil
         );
     }
 

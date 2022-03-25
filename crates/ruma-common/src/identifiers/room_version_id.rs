@@ -5,6 +5,8 @@ use std::{cmp::Ordering, convert::TryFrom, str::FromStr};
 use ruma_macros::DisplayAsRefStr;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+use super::IdParseError;
+
 /// A Matrix [room version] ID.
 ///
 /// A `RoomVersionId` can be or converted or deserialized from a string slice, and can be converted
@@ -145,7 +147,7 @@ impl<'de> Deserialize<'de> for RoomVersionId {
 }
 
 /// Attempts to create a new Matrix room version ID from a string representation.
-fn try_from<S>(room_version_id: S) -> Result<RoomVersionId, crate::Error>
+fn try_from<S>(room_version_id: S) -> Result<RoomVersionId, IdParseError>
 where
     S: AsRef<str> + Into<Box<str>>,
 {
@@ -169,7 +171,7 @@ where
 }
 
 impl FromStr for RoomVersionId {
-    type Err = crate::Error;
+    type Err = IdParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         try_from(s)
@@ -177,7 +179,7 @@ impl FromStr for RoomVersionId {
 }
 
 impl TryFrom<&str> for RoomVersionId {
-    type Error = crate::Error;
+    type Error = IdParseError;
 
     fn try_from(s: &str) -> Result<Self, Self::Error> {
         try_from(s)
@@ -185,7 +187,7 @@ impl TryFrom<&str> for RoomVersionId {
 }
 
 impl TryFrom<String> for RoomVersionId {
-    type Error = crate::Error;
+    type Error = IdParseError;
 
     fn try_from(s: String) -> Result<Self, Self::Error> {
         try_from(s)
@@ -247,7 +249,7 @@ mod tests {
     use std::convert::TryFrom;
 
     use super::RoomVersionId;
-    use crate::Error;
+    use crate::IdParseError;
 
     #[test]
     fn valid_version_1_room_version_id() {
@@ -307,14 +309,14 @@ mod tests {
 
     #[test]
     fn empty_room_version_id() {
-        assert_eq!(RoomVersionId::try_from(""), Err(Error::EmptyRoomVersionId));
+        assert_eq!(RoomVersionId::try_from(""), Err(IdParseError::EmptyRoomVersionId));
     }
 
     #[test]
     fn over_max_code_point_room_version_id() {
         assert_eq!(
             RoomVersionId::try_from("0123456789012345678901234567890123456789"),
-            Err(Error::MaximumLengthExceeded)
+            Err(IdParseError::MaximumLengthExceeded)
         );
     }
 

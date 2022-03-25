@@ -63,7 +63,7 @@ mod tests {
     use std::convert::TryFrom;
 
     use super::RoomAliasId;
-    use crate::Error;
+    use crate::IdParseError;
 
     #[test]
     fn valid_room_alias_id() {
@@ -133,33 +133,36 @@ mod tests {
     fn missing_room_alias_id_sigil() {
         assert_eq!(
             <&RoomAliasId>::try_from("39hvsi03hlne:example.com").unwrap_err(),
-            Error::MissingLeadingSigil
+            IdParseError::MissingLeadingSigil
         );
     }
 
     #[test]
     fn missing_room_alias_id_delimiter() {
-        assert_eq!(<&RoomAliasId>::try_from("#ruma").unwrap_err(), Error::MissingDelimiter);
+        assert_eq!(<&RoomAliasId>::try_from("#ruma").unwrap_err(), IdParseError::MissingDelimiter);
     }
 
     #[test]
     fn invalid_leading_sigil() {
         assert_eq!(
             <&RoomAliasId>::try_from("!room_id:foo.bar").unwrap_err(),
-            Error::MissingLeadingSigil
+            IdParseError::MissingLeadingSigil
         );
     }
 
     #[test]
     fn invalid_room_alias_id_host() {
-        assert_eq!(<&RoomAliasId>::try_from("#ruma:/").unwrap_err(), Error::InvalidServerName);
+        assert_eq!(
+            <&RoomAliasId>::try_from("#ruma:/").unwrap_err(),
+            IdParseError::InvalidServerName
+        );
     }
 
     #[test]
     fn invalid_room_alias_id_port() {
         assert_eq!(
             <&RoomAliasId>::try_from("#ruma:example.com:notaport").unwrap_err(),
-            Error::InvalidServerName
+            IdParseError::InvalidServerName
         );
     }
 }

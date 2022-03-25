@@ -2,7 +2,7 @@
 
 use std::{rc::Rc, sync::Arc};
 
-use super::{matrix_uri::UriAction, MatrixToUri, MatrixUri, ServerName};
+use super::{matrix_uri::UriAction, IdParseError, MatrixToUri, MatrixUri, ServerName};
 
 /// A Matrix [user ID].
 ///
@@ -42,7 +42,7 @@ impl UserId {
     pub fn parse_with_server_name(
         id: impl AsRef<str> + Into<Box<str>>,
         server_name: &ServerName,
-    ) -> Result<Box<Self>, super::Error> {
+    ) -> Result<Box<Self>, IdParseError> {
         let id_str = id.as_ref();
 
         if id_str.starts_with('@') {
@@ -59,7 +59,7 @@ impl UserId {
     pub fn parse_with_server_name_rc(
         id: impl AsRef<str> + Into<Rc<str>>,
         server_name: &ServerName,
-    ) -> Result<Rc<Self>, super::Error> {
+    ) -> Result<Rc<Self>, IdParseError> {
         let id_str = id.as_ref();
 
         if id_str.starts_with('@') {
@@ -76,7 +76,7 @@ impl UserId {
     pub fn parse_with_server_name_arc(
         id: impl AsRef<str> + Into<Arc<str>>,
         server_name: &ServerName,
-    ) -> Result<Arc<Self>, super::Error> {
+    ) -> Result<Arc<Self>, IdParseError> {
         let id_str = id.as_ref();
 
         if id_str.starts_with('@') {
@@ -154,7 +154,7 @@ mod tests {
     use std::convert::TryFrom;
 
     use super::UserId;
-    use crate::{server_name, Error};
+    use crate::{server_name, IdParseError};
 
     #[test]
     fn valid_user_id_from_str() {
@@ -301,7 +301,7 @@ mod tests {
     fn invalid_characters_in_user_id_localpart() {
         assert_eq!(
             <&UserId>::try_from("@te\nst:example.com").unwrap_err(),
-            Error::InvalidCharacters
+            IdParseError::InvalidCharacters
         );
     }
 
@@ -309,25 +309,25 @@ mod tests {
     fn missing_user_id_sigil() {
         assert_eq!(
             <&UserId>::try_from("carl:example.com").unwrap_err(),
-            Error::MissingLeadingSigil
+            IdParseError::MissingLeadingSigil
         );
     }
 
     #[test]
     fn missing_user_id_delimiter() {
-        assert_eq!(<&UserId>::try_from("@carl").unwrap_err(), Error::MissingDelimiter);
+        assert_eq!(<&UserId>::try_from("@carl").unwrap_err(), IdParseError::MissingDelimiter);
     }
 
     #[test]
     fn invalid_user_id_host() {
-        assert_eq!(<&UserId>::try_from("@carl:/").unwrap_err(), Error::InvalidServerName);
+        assert_eq!(<&UserId>::try_from("@carl:/").unwrap_err(), IdParseError::InvalidServerName);
     }
 
     #[test]
     fn invalid_user_id_port() {
         assert_eq!(
             <&UserId>::try_from("@carl:example.com:notaport").unwrap_err(),
-            Error::InvalidServerName
+            IdParseError::InvalidServerName
         );
     }
 }
