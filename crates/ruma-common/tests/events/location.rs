@@ -11,7 +11,9 @@ use ruma_common::{
             ZoomLevelError,
         },
         message::MessageContent,
-        room::message::{InReplyTo, Relation},
+        room::message::{
+            InReplyTo, LocationMessageEventContent, MessageType, Relation, RoomMessageEventContent,
+        },
         AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned,
     },
     room_id, user_id, MilliSecondsSinceUnixEpoch,
@@ -105,7 +107,7 @@ fn event_serialization() {
 #[test]
 fn plain_content_deserialization() {
     let json_data = json!({
-        "org.matrix.msc1767.text": "Alice was at geo:51.5008,0.1247;u=35",
+        "m.text": "Alice was at geo:51.5008,0.1247;u=35",
         "m.location": {
             "uri": "geo:51.5008,0.1247;u=35",
         },
@@ -227,4 +229,74 @@ fn message_event_deserialization() {
             && sender == user_id!("@user:notareal.hs")
             && unsigned.is_empty()
     );
+}
+
+#[test]
+fn room_message_serialization() {
+    let message_event_content =
+        RoomMessageEventContent::new(MessageType::Location(LocationMessageEventContent::new(
+            "Alice was at geo:51.5008,0.1247;u=35".to_owned(),
+            "geo:51.5008,0.1247;u=35".to_owned(),
+        )));
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "Alice was at geo:51.5008,0.1247;u=35",
+            "geo_uri": "geo:51.5008,0.1247;u=35",
+            "msgtype": "m.location",
+            "org.matrix.msc1767.text": "Alice was at geo:51.5008,0.1247;u=35",
+            "org.matrix.msc3488.location": {
+                "uri": "geo:51.5008,0.1247;u=35",
+            },
+        })
+    );
+}
+
+#[test]
+fn room_message_stable_deserialization() {
+    let json_data = json!({
+        "body": "Alice was at geo:51.5008,0.1247;u=35",
+        "geo_uri": "geo:51.5008,0.1247;u=35",
+        "msgtype": "m.location",
+        "m.text": "Alice was at geo:51.5008,0.1247;u=35",
+        "m.location": {
+            "uri": "geo:51.5008,0.1247;u=35",
+        },
+    });
+
+    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    assert_matches!(event_content.msgtype, MessageType::Location(_));
+    if let MessageType::Location(content) = event_content.msgtype {
+        assert_eq!(content.body, "Alice was at geo:51.5008,0.1247;u=35");
+        assert_eq!(content.geo_uri, "geo:51.5008,0.1247;u=35");
+        let message = content.message.unwrap();
+        assert_eq!(message.len(), 1);
+        assert_eq!(message[0].body, "Alice was at geo:51.5008,0.1247;u=35");
+        assert_eq!(content.location.unwrap().uri, "geo:51.5008,0.1247;u=35");
+    }
+}
+
+#[test]
+fn room_message_unstable_deserialization() {
+    let json_data = json!({
+        "body": "Alice was at geo:51.5008,0.1247;u=35",
+        "geo_uri": "geo:51.5008,0.1247;u=35",
+        "msgtype": "m.location",
+        "org.matrix.msc1767.text": "Alice was at geo:51.5008,0.1247;u=35",
+        "org.matrix.msc3488.location": {
+            "uri": "geo:51.5008,0.1247;u=35",
+        },
+    });
+
+    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    assert_matches!(event_content.msgtype, MessageType::Location(_));
+    if let MessageType::Location(content) = event_content.msgtype {
+        assert_eq!(content.body, "Alice was at geo:51.5008,0.1247;u=35");
+        assert_eq!(content.geo_uri, "geo:51.5008,0.1247;u=35");
+        let message = content.message.unwrap();
+        assert_eq!(message.len(), 1);
+        assert_eq!(message[0].body, "Alice was at geo:51.5008,0.1247;u=35");
+        assert_eq!(content.location.unwrap().uri, "geo:51.5008,0.1247;u=35");
+    }
 }

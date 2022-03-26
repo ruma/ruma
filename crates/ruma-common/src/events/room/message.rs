@@ -31,6 +31,11 @@ use crate::{
     serde::{JsonObject, StringEnum},
     DeviceId, EventId, MxcUri, PrivOwnedStr, UserId,
 };
+#[cfg(feature = "unstable-msc3488")]
+use crate::{
+    events::location::{AssetContent, LocationContent, LocationEventContent},
+    MilliSecondsSinceUnixEpoch,
+};
 
 mod content_serde;
 pub mod feedback;
@@ -243,6 +248,20 @@ impl From<ImageEventContent> for RoomMessageEventContent {
         Self {
             msgtype: MessageType::Image(ImageMessageEventContent::from_extensible_content(
                 message, file, image, thumbnail, caption,
+            )),
+            relates_to,
+        }
+    }
+}
+
+#[cfg(feature = "unstable-msc3488")]
+impl From<LocationEventContent> for RoomMessageEventContent {
+    fn from(content: LocationEventContent) -> Self {
+        let LocationEventContent { message, location, asset, ts, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::Location(LocationMessageEventContent::from_extensible_content(
+                message, location, asset, ts,
             )),
             relates_to,
         }
@@ -1073,6 +1092,10 @@ impl ImageMessageEventContent {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.location")]
+#[cfg_attr(
+    feature = "unstable-msc3488",
+    serde(from = "content_serde::LocationMessageEventContentDeHelper")
+)]
 pub struct LocationMessageEventContent {
     /// A description of the location e.g. "Big Ben, London, UK", or some kind of content
     /// description for accessibility, e.g. "location attachment".
@@ -1084,12 +1107,75 @@ pub struct LocationMessageEventContent {
     /// Info about the location being represented.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<Box<LocationInfo>>,
+
+    /// Extensible-event text representation of the message.
+    ///
+    /// If present, this should be preferred over the `body` field.
+    #[cfg(feature = "unstable-msc3488")]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub message: Option<MessageContent>,
+
+    /// Extensible-event location info of the message.
+    ///
+    /// If present, this should be preferred over the `geo_uri` field.
+    #[cfg(feature = "unstable-msc3488")]
+    #[serde(rename = "org.matrix.msc3488.location", skip_serializing_if = "Option::is_none")]
+    pub location: Option<LocationContent>,
+
+    /// Extensible-event asset this message refers to.
+    #[cfg(feature = "unstable-msc3488")]
+    #[serde(rename = "org.matrix.msc3488.asset", skip_serializing_if = "Option::is_none")]
+    pub asset: Option<AssetContent>,
+
+    /// Extensible-event timestamp this message refers to.
+    #[cfg(feature = "unstable-msc3488")]
+    #[serde(rename = "org.matrix.msc3488.ts", skip_serializing_if = "Option::is_none")]
+    pub ts: Option<MilliSecondsSinceUnixEpoch>,
 }
 
 impl LocationMessageEventContent {
     /// Creates a new `RoomLocationMessageEventContent` with the given body and geo URI.
     pub fn new(body: String, geo_uri: String) -> Self {
-        Self { body, geo_uri, info: None }
+        Self {
+            #[cfg(feature = "unstable-msc3488")]
+            message: Some(MessageContent::plain(body.clone())),
+            #[cfg(feature = "unstable-msc3488")]
+            location: Some(LocationContent::new(geo_uri.clone())),
+            #[cfg(feature = "unstable-msc3488")]
+            asset: None,
+            #[cfg(feature = "unstable-msc3488")]
+            ts: None,
+            body,
+            geo_uri,
+            info: None,
+        }
+    }
+
+    /// Create a new `LocationMessageEventContent` with the given message, location info, asset and
+    /// timestamp.
+    #[cfg(feature = "unstable-msc3488")]
+    pub fn from_extensible_content(
+        message: MessageContent,
+        location: LocationContent,
+        asset: AssetContent,
+        ts: Option<MilliSecondsSinceUnixEpoch>,
+    ) -> Self {
+        let body = if let Some(body) = message.find_plain() {
+            body.to_owned()
+        } else {
+            message[0].body.clone()
+        };
+        let geo_uri = location.uri.clone();
+
+        Self {
+            message: Some(message),
+            location: Some(location),
+            asset: Some(asset),
+            ts,
+            body,
+            geo_uri,
+            info: None,
+        }
     }
 }
 
