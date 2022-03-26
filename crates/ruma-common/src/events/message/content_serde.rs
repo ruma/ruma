@@ -3,15 +3,8 @@
 use std::convert::TryFrom;
 
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
-use thiserror::Error;
 
-use super::{MessageContent, Text};
-
-#[derive(Error, Debug)]
-pub enum MessageContentSerdeError {
-    #[error("missing field `m.message` or `m.text`")]
-    MissingMessage,
-}
+use super::{MessageContent, Text, TryFromExtensibleError};
 
 #[derive(Debug, Default, Deserialize)]
 pub(crate) struct MessageContentSerDeHelper {
@@ -33,7 +26,7 @@ pub(crate) struct MessageContentSerDeHelper {
 }
 
 impl TryFrom<MessageContentSerDeHelper> for MessageContent {
-    type Error = MessageContentSerdeError;
+    type Error = TryFromExtensibleError;
 
     fn try_from(helper: MessageContentSerDeHelper) -> Result<Self, Self::Error> {
         let MessageContentSerDeHelper {
@@ -48,7 +41,7 @@ impl TryFrom<MessageContentSerDeHelper> for MessageContent {
         } else if let Some(text) = text_stable.or(text_unstable) {
             Ok(Self::plain(text))
         } else {
-            Err(MessageContentSerdeError::MissingMessage)
+            Err(TryFromExtensibleError::MissingField("m.message or m.text".to_owned()))
         }
     }
 }

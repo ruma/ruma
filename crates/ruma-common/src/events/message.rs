@@ -51,6 +51,7 @@ use std::ops::Deref;
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 pub(crate) mod content_serde;
 
@@ -247,4 +248,13 @@ impl Text {
     fn default_mimetype() -> String {
         "text/plain".to_owned()
     }
+}
+
+/// The error type returned when a conversion to an extensible event type fails.
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum TryFromExtensibleError {
+    /// A field is missing.
+    #[error("missing field `{0}`")]
+    MissingField(String),
 }
