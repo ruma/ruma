@@ -47,7 +47,7 @@
 //! [MSC3245]: https://github.com/matrix-org/matrix-spec-proposals/pull/3245
 //! [MSC3381]: https://github.com/matrix-org/matrix-spec-proposals/pull/3381
 //! [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
-use std::ops::Deref;
+use std::{convert::TryFrom, ops::Deref};
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -123,11 +123,25 @@ impl MessageEventContent {
 }
 
 /// Text message content.
+///
+/// A `MessageContent` must contain at least one message to be used as a fallback text
+/// representation.
 #[derive(Clone, Debug, Deserialize)]
 #[serde(try_from = "MessageContentSerDeHelper")]
 pub struct MessageContent(pub(crate) Vec<Text>);
 
 impl MessageContent {
+    /// Create a `MessageContent` from an array of messages.
+    ///
+    /// Returns `None` if the array is empty.
+    pub fn new(messages: Vec<Text>) -> Option<Self> {
+        if messages.is_empty() {
+            None
+        } else {
+            Some(Self(messages))
+        }
+    }
+
     /// A convenience constructor to create a plain text message.
     pub fn plain(body: impl Into<String>) -> Self {
         Self(vec![Text::plain(body)])
@@ -178,9 +192,17 @@ impl MessageContent {
     }
 }
 
-impl From<Vec<Text>> for MessageContent {
-    fn from(variants: Vec<Text>) -> Self {
-        Self(variants)
+/// The error type returned when trying to construct an empty `MessageContent`.
+#[derive(Debug, Error)]
+#[non_exhaustive]
+#[error("MessageContent cannot be empty")]
+pub struct EmptyMessageContentError;
+
+impl TryFrom<Vec<Text>> for MessageContent {
+    type Error = EmptyMessageContentError;
+
+    fn try_from(messages: Vec<Text>) -> Result<Self, Self::Error> {
+        Self::new(messages).ok_or(EmptyMessageContentError)
     }
 }
 

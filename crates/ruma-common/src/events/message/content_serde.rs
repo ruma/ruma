@@ -62,7 +62,7 @@ impl Serialize for MessageContent {
 }
 
 pub(crate) mod as_vec {
-    use serde::{ser::SerializeSeq, Deserialize, Deserializer, Serializer};
+    use serde::{de, ser::SerializeSeq, Deserialize, Deserializer, Serializer};
 
     use crate::events::message::{MessageContent, Text};
 
@@ -87,7 +87,10 @@ pub(crate) mod as_vec {
     where
         D: Deserializer<'de>,
     {
-        Option::<Vec<Text>>::deserialize(deserializer)
-            .map(|content| content.filter(|content| !content.is_empty()).map(Into::into))
+        Option::<Vec<Text>>::deserialize(deserializer).and_then(|content| {
+            content.map(MessageContent::new).ok_or_else(|| {
+                de::Error::invalid_value(de::Unexpected::Other("empty array"), &"a non-empty array")
+            })
+        })
     }
 }
