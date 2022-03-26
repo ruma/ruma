@@ -10,11 +10,26 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     message::MessageContent,
-    room::{message::Relation, JsonWebKey},
+    room::{
+        message::{FileInfo, FileMessageEventContent, Relation},
+        EncryptedFile, JsonWebKey, MediaSource,
+    },
 };
 use crate::{serde::Base64, MxcUri};
 
-/// The payload for an extensible text message.
+/// The payload for an extensible file message.
+///
+/// This is the new primary type introduced in [MSC3551] and should not be sent before the end of
+/// the transition period. See the documentation of the [`message`] module for more information.
+///
+/// `FileEventContent` can be converted to a [`RoomMessageEventContent`] with a
+/// [`MessageType::File`]. You can convert it back with
+/// [`FileEventContent::from_file_room_message()`].
+///
+/// [MSC3551]: https://github.com/matrix-org/matrix-spec-proposals/pull/3551
+/// [`message`]: super::message
+/// [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
+/// [`MessageType::File`]: super::room::message::MessageType::File
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.file", kind = MessageLike)]
@@ -84,6 +99,22 @@ impl FileEventContent {
     ) -> Self {
         Self { message, file: FileContent::encrypted(url, encryption_info, info), relates_to: None }
     }
+
+    /// Create a new `FileEventContent` from the given `FileMessageEventContent` and optional
+    /// relation.
+    pub fn from_file_room_message(
+        content: FileMessageEventContent,
+        relates_to: Option<Relation>,
+    ) -> Self {
+        let FileMessageEventContent { body, filename, source, info, message, file } = content;
+
+        let message = message.unwrap_or_else(|| MessageContent::plain(body));
+        let file = file.unwrap_or_else(|| {
+            FileContent::from_room_message_content(source, info.as_deref(), filename)
+        });
+
+        Self { message, file, relates_to }
+    }
 }
 
 /// File content.
@@ -119,6 +150,21 @@ impl FileContent {
         Self { url, info, encryption_info: Some(Box::new(encryption_info)) }
     }
 
+    /// Create a new `FileContent` with the given media source, file info and filename.
+    pub fn from_room_message_content(
+        source: MediaSource,
+        info: Option<impl Into<FileContentInfo>>,
+        filename: Option<String>,
+    ) -> Self {
+        let (url, encryption_info) = match source {
+            MediaSource::Plain(url) => (url, None),
+            MediaSource::Encrypted(file) => (file.url.to_owned(), Some(Box::new((&*file).into()))),
+        };
+        let info = FileContentInfo::from_room_message_content(info, filename).map(Box::new);
+
+        Self { url, encryption_info, info }
+    }
+
     /// Whether the file is encrypted.
     pub fn is_encrypted(&self) -> bool {
         self.encryption_info.is_some()
@@ -146,6 +192,29 @@ impl FileContentInfo {
     /// Creates an empty `FileContentInfo`.
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Create a new `FileContentInfo` with the given file info and filename.
+    ///
+    /// Returns `None` if both parameters are `None`
+    pub fn from_room_message_content(
+        info: Option<impl Into<FileContentInfo>>,
+        filename: Option<String>,
+    ) -> Option<Self> {
+        if filename.is_none() && info.is_none() {
+            None
+        } else {
+            let mut info: Self = info.map(Into::into).unwrap_or_default();
+            info.name = filename;
+            Some(info)
+        }
+    }
+}
+
+impl From<&FileInfo> for FileContentInfo {
+    fn from(info: &FileInfo) -> Self {
+        let FileInfo { mimetype, size, .. } = info;
+        Self { mimetype: mimetype.to_owned(), size: size.to_owned(), ..Default::default() }
     }
 }
 
@@ -200,6 +269,13 @@ pub struct EncryptedContentInit {
 impl From<EncryptedContentInit> for EncryptedContent {
     fn from(init: EncryptedContentInit) -> Self {
         let EncryptedContentInit { key, iv, hashes, v } = init;
+        Self { key, iv, hashes, v }
+    }
+}
+
+impl From<&EncryptedFile> for EncryptedContent {
+    fn from(encrypted: &EncryptedFile) -> Self {
+        let EncryptedFile { key, iv, hashes, v, .. } = encrypted.to_owned();
         Self { key, iv, hashes, v }
     }
 }
