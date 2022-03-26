@@ -70,7 +70,6 @@ where
 #[cfg(not(feature = "unstable-pre-spec"))]
 #[cfg(test)]
 mod tests {
-    use matches::assert_matches;
     use serde_json::{json, to_value as to_json_value};
 
     use super::{deserialize, serialize};
@@ -87,15 +86,10 @@ mod tests {
             }
         ]);
 
-        let parsed = deserialize(response).unwrap();
-
-        assert_matches!(
-            parsed,
-            RoomState { origin, auth_chain, state }
-            if origin == "example.com"
-                && auth_chain.is_empty()
-                && state.is_empty()
-        );
+        let RoomState { origin, auth_chain, state } = deserialize(response).unwrap();
+        assert_eq!(origin, "example.com");
+        assert_eq!(auth_chain, vec![]);
+        assert_eq!(state, vec![]);
     }
 
     #[test]
@@ -147,12 +141,9 @@ mod tests {
     #[test]
     fn too_long_array() {
         let json = json!([200, { "origin": "", "auth_chain": [], "state": [] }, 200]);
-        assert_matches!(
-            deserialize(json).unwrap(),
-            RoomState { origin, auth_chain, state }
-            if origin.is_empty()
-              && auth_chain.is_empty()
-              && state.is_empty()
-        );
+        let RoomState { origin, auth_chain, state } = deserialize(json).unwrap();
+        assert_eq!(origin, "");
+        assert_eq!(auth_chain, vec![]);
+        assert_eq!(state, vec![]);
     }
 }

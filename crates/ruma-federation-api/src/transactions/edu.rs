@@ -356,24 +356,26 @@ mod test {
         });
 
         let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
-        assert_matches!(
-            &edu,
-            Edu::DeviceListUpdate(DeviceListUpdateContent {
-                user_id,
-                device_id,
-                device_display_name,
-                stream_id,
-                prev_id,
-                deleted,
-                keys
-            }) if user_id == "@john:example.com"
-                && device_id == "QBUAZIFURK"
-                && device_display_name.as_deref() == Some("Mobile")
-                && *stream_id == uint!(6)
-                && prev_id.is_empty()
-                && *deleted == Some(false)
-                && keys.is_some()
-        );
+        let DeviceListUpdateContent {
+            user_id,
+            device_id,
+            device_display_name,
+            stream_id,
+            prev_id,
+            deleted,
+            keys,
+        } = match &edu {
+            Edu::DeviceListUpdate(u) => u,
+            _ => panic!("Unexpected Edu variant: {:#?}", edu),
+        };
+
+        assert_eq!(user_id, "@john:example.com");
+        assert_eq!(device_id, "QBUAZIFURK");
+        assert_eq!(device_display_name.as_deref(), Some("Mobile"));
+        assert_eq!(*stream_id, uint!(6));
+        assert_eq!(*prev_id, vec![]);
+        assert_eq!(*deleted, Some(false));
+        assert_matches!(keys, Some(_));
 
         assert_eq!(serde_json::to_value(&edu).unwrap(), json);
     }
@@ -390,24 +392,26 @@ mod test {
         });
 
         let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
-        assert_matches!(
-            &edu,
-            Edu::DeviceListUpdate(DeviceListUpdateContent {
-                user_id,
-                device_id,
-                device_display_name,
-                stream_id,
-                prev_id,
-                deleted,
-                keys
-            }) if user_id == "@john:example.com"
-                && device_id == "QBUAZIFURK"
-                && device_display_name.is_none()
-                && *stream_id == uint!(6)
-                && prev_id.is_empty()
-                && deleted.is_none()
-                && keys.is_none()
-        );
+        let DeviceListUpdateContent {
+            user_id,
+            device_id,
+            device_display_name,
+            stream_id,
+            prev_id,
+            deleted,
+            keys,
+        } = match &edu {
+            Edu::DeviceListUpdate(u) => u,
+            _ => panic!("Unexpected Edu variant: {:#?}", edu),
+        };
+
+        assert_eq!(user_id, "@john:example.com");
+        assert_eq!(device_id, "QBUAZIFURK");
+        assert_eq!(*device_display_name, None);
+        assert_eq!(*stream_id, uint!(6));
+        assert_eq!(*prev_id, vec![]);
+        assert_eq!(*deleted, None);
+        assert_matches!(keys, None);
 
         assert_eq!(serde_json::to_value(&edu).unwrap(), json);
     }
