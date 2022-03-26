@@ -19,6 +19,7 @@ mod redaction;
 mod relations;
 mod room_message;
 mod state_event;
+mod sticker;
 mod stripped;
 mod to_device;
 mod video;
