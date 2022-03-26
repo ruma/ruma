@@ -1,5 +1,7 @@
 #![cfg(feature = "unstable-msc1767")]
 
+use std::convert::TryFrom;
+
 use assign::assign;
 use js_int::uint;
 use matches::assert_matches;
@@ -7,7 +9,7 @@ use ruma_common::{
     event_id,
     events::{
         emote::EmoteEventContent,
-        message::MessageEventContent,
+        message::{MessageContent, MessageEventContent, Text},
         notice::NoticeEventContent,
         room::message::{
             EmoteMessageEventContent, InReplyTo, MessageType, NoticeMessageEventContent, Relation,
@@ -18,6 +20,19 @@ use ruma_common::{
     room_id, user_id, MilliSecondsSinceUnixEpoch,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+
+#[test]
+fn try_from_valid() {
+    assert_matches!(
+        MessageContent::try_from(vec![Text::plain("A message")]),
+        Ok(message) if message.len() == 1
+    );
+}
+
+#[test]
+fn try_from_invalid() {
+    assert_matches!(MessageContent::try_from(vec![]), Err(_));
+}
 
 #[test]
 fn html_content_serialization() {
@@ -712,13 +727,12 @@ fn room_message_emote_unstable_deserialization() {
 #[test]
 #[cfg(feature = "unstable-msc3554")]
 fn lang_serialization() {
-    use ruma_common::events::message::{MessageContent, Text};
-
-    let content = MessageContent::from(vec![
+    let content = MessageContent::try_from(vec![
         assign!(Text::plain("Bonjour le monde !"), { lang: Some("fr".into()) }),
         assign!(Text::plain("Hallo Welt!"), { lang: Some("de".into()) }),
         assign!(Text::plain("Hello World!"), { lang: Some("en".into()) }),
-    ]);
+    ])
+    .unwrap();
 
     assert_eq!(
         to_json_value(&content).unwrap(),
@@ -735,8 +749,6 @@ fn lang_serialization() {
 #[test]
 #[cfg(feature = "unstable-msc3554")]
 fn lang_deserialization() {
-    use ruma_common::events::message::MessageContent;
-
     let json_data = json!({
         "org.matrix.msc1767.message": [
             { "body": "Bonjour le monde !", "mimetype": "text/plain", "lang": "fr"},
