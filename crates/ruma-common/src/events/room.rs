@@ -7,6 +7,8 @@ use std::collections::BTreeMap;
 use js_int::UInt;
 use serde::{de, Deserialize, Serialize};
 
+#[cfg(feature = "unstable-msc3551")]
+use super::file::{EncryptedContent, FileContent};
 use crate::{
     serde::{base64::UrlSafe, Base64},
     MxcUri,
@@ -66,6 +68,18 @@ impl<'de> Deserialize<'de> for MediaSource {
             // Prefer file if it is set
             MediaSourceJsonRepr { file: Some(file), .. } => Ok(MediaSource::Encrypted(file)),
             MediaSourceJsonRepr { url: Some(url), .. } => Ok(MediaSource::Plain(url)),
+        }
+    }
+}
+
+#[cfg(feature = "unstable-msc3551")]
+impl From<&FileContent> for MediaSource {
+    fn from(content: &FileContent) -> Self {
+        let FileContent { url, encryption_info, .. } = content;
+        if let Some(encryption_info) = encryption_info.as_deref() {
+            Self::Encrypted(Box::new(EncryptedFile::from_extensible_content(url, encryption_info)))
+        } else {
+            Self::Plain(url.to_owned())
         }
     }
 }
@@ -171,6 +185,15 @@ pub struct EncryptedFile {
     ///
     /// Must be `v2`.
     pub v: String,
+}
+
+#[cfg(feature = "unstable-msc3551")]
+impl EncryptedFile {
+    /// Create an `EncryptedFile` from the given url and encryption info.
+    pub fn from_extensible_content(url: &MxcUri, encryption_info: &EncryptedContent) -> Self {
+        let EncryptedContent { key, iv, hashes, v } = encryption_info.to_owned();
+        Self { url: url.to_owned(), key, iv, hashes, v }
+    }
 }
 
 /// Initial set of fields of `EncryptedFile`.

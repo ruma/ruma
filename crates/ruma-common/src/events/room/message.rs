@@ -10,6 +10,8 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 use super::{EncryptedFile, ImageInfo, MediaSource, ThumbnailInfo};
+#[cfg(feature = "unstable-msc3551")]
+use crate::events::file::{FileContent, FileContentInfo, FileEventContent};
 #[cfg(feature = "unstable-msc1767")]
 use crate::events::{
     emote::EmoteEventContent,
@@ -194,6 +196,20 @@ impl From<EmoteEventContent> for RoomMessageEventContent {
         let EmoteEventContent { message, relates_to, .. } = content;
 
         Self { msgtype: MessageType::Emote(message.into()), relates_to }
+    }
+}
+
+#[cfg(feature = "unstable-msc3551")]
+impl From<FileEventContent> for RoomMessageEventContent {
+    fn from(content: FileEventContent) -> Self {
+        let FileEventContent { message, file, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::File(FileMessageEventContent::from_extensible_content(
+                message, file,
+            )),
+            relates_to,
+        }
     }
 }
 
@@ -597,6 +613,10 @@ impl From<MessageContent> for EmoteMessageEventContent {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.file")]
+#[cfg_attr(
+    feature = "unstable-msc3551",
+    serde(from = "content_serde::FileMessageEventContentDeHelper")
+)]
 pub struct FileMessageEventContent {
     /// A human-readable description of the file.
     ///
@@ -614,19 +634,69 @@ pub struct FileMessageEventContent {
     /// Metadata about the file referred to in `url`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<Box<FileInfo>>,
+
+    /// Extensible-event text representation of the message.
+    ///
+    /// If present, this should be preferred over the `body` field.
+    #[cfg(feature = "unstable-msc3551")]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub message: Option<MessageContent>,
+
+    /// Extensible-event file content of the message.
+    ///
+    /// If present, this should be preferred over the `source` and `info` fields.
+    #[cfg(feature = "unstable-msc3551")]
+    #[serde(rename = "org.matrix.msc1767.file", skip_serializing_if = "Option::is_none")]
+    pub file: Option<FileContent>,
 }
 
 impl FileMessageEventContent {
     /// Creates a new non-encrypted `RoomFileMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<FileInfo>>) -> Self {
-        Self { body, filename: None, source: MediaSource::Plain(url), info }
+        Self {
+            #[cfg(feature = "unstable-msc3551")]
+            message: Some(MessageContent::plain(body.clone())),
+            #[cfg(feature = "unstable-msc3551")]
+            file: Some(FileContent::plain(
+                url.clone(),
+                info.as_deref().map(|info| Box::new(info.into())),
+            )),
+            body,
+            filename: None,
+            source: MediaSource::Plain(url),
+            info,
+        }
     }
 
     /// Creates a new encrypted `RoomFileMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
-        Self { body, filename: None, source: MediaSource::Encrypted(Box::new(file)), info: None }
+        Self {
+            #[cfg(feature = "unstable-msc3551")]
+            message: Some(MessageContent::plain(body.clone())),
+            #[cfg(feature = "unstable-msc3551")]
+            file: Some(FileContent::encrypted(file.url.clone(), (&file).into(), None)),
+            body,
+            filename: None,
+            source: MediaSource::Encrypted(Box::new(file)),
+            info: None,
+        }
+    }
+
+    /// Create a new `RoomFileMessageEventContent` with the given message and file info.
+    #[cfg(feature = "unstable-msc3551")]
+    pub fn from_extensible_content(message: MessageContent, file: FileContent) -> Self {
+        let body = if let Some(body) = message.find_plain() {
+            body.to_owned()
+        } else {
+            message[0].body.clone()
+        };
+        let filename = file.info.as_deref().and_then(|info| info.name.clone());
+        let info = file.info.as_deref().map(|info| Box::new(info.into()));
+        let source = (&file).into();
+
+        Self { message: Some(message), file: Some(file), body, filename, source, info }
     }
 }
 
@@ -659,6 +729,14 @@ impl FileInfo {
     /// Creates an empty `FileInfo`.
     pub fn new() -> Self {
         Self::default()
+    }
+}
+
+#[cfg(feature = "unstable-msc3551")]
+impl From<&FileContentInfo> for FileInfo {
+    fn from(info: &FileContentInfo) -> Self {
+        let FileContentInfo { mimetype, size, .. } = info;
+        Self { mimetype: mimetype.to_owned(), size: size.to_owned(), ..Default::default() }
     }
 }
 

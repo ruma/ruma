@@ -3,6 +3,8 @@
 use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
 
+#[cfg(feature = "unstable-msc3551")]
+use super::{FileContent, FileInfo, FileMessageEventContent, MediaSource, MessageContent};
 use super::{MessageType, Relation, RoomMessageEventContent};
 use crate::serde::from_raw_json_value;
 
@@ -48,5 +50,57 @@ impl<'de> Deserialize<'de> for MessageType {
             "m.key.verification.request" => Self::VerificationRequest(from_raw_json_value(&json)?),
             _ => Self::_Custom(from_raw_json_value(&json)?),
         })
+    }
+}
+
+/// Helper struct for deserializing `FileMessageEventContent` with stable and unstable field names.
+///
+/// It's not possible to use the `alias` attribute of serde because of
+/// https://github.com/serde-rs/serde/issues/1504.
+#[derive(Clone, Debug, Deserialize)]
+#[cfg(feature = "unstable-msc3551")]
+pub struct FileMessageEventContentDeHelper {
+    /// A human-readable description of the file.
+    pub body: String,
+
+    /// The original filename of the uploaded file.
+    pub filename: Option<String>,
+
+    /// The source of the file.
+    #[serde(flatten)]
+    pub source: MediaSource,
+
+    /// Metadata about the file referred to in `url`.
+    pub info: Option<Box<FileInfo>>,
+
+    /// Extensible-event text representation of the message.
+    #[serde(flatten)]
+    pub message: Option<MessageContent>,
+
+    /// Extensible-event file content of the message, with stable name.
+    #[serde(rename = "m.file")]
+    pub file_stable: Option<FileContent>,
+
+    /// Extensible-event file content of the message, with unstable name.
+    #[serde(rename = "org.matrix.msc1767.file")]
+    pub file_unstable: Option<FileContent>,
+}
+
+#[cfg(feature = "unstable-msc3551")]
+impl From<FileMessageEventContentDeHelper> for FileMessageEventContent {
+    fn from(helper: FileMessageEventContentDeHelper) -> Self {
+        let FileMessageEventContentDeHelper {
+            body,
+            filename,
+            source,
+            info,
+            message,
+            file_stable,
+            file_unstable,
+        } = helper;
+
+        let file = file_stable.or(file_unstable);
+
+        Self { body, filename, source, info, message, file }
     }
 }
