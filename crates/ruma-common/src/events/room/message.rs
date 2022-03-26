@@ -18,6 +18,8 @@ use crate::events::file::{FileContent, FileContentInfo, FileEventContent};
 use crate::events::image::{ImageContent, ImageEventContent, ThumbnailContent};
 #[cfg(feature = "unstable-msc3553")]
 use crate::events::video::{VideoContent, VideoEventContent};
+#[cfg(feature = "unstable-msc3245")]
+use crate::events::voice::{VoiceContent, VoiceEventContent};
 #[cfg(feature = "unstable-msc1767")]
 use crate::events::{
     emote::EmoteEventContent,
@@ -273,6 +275,20 @@ impl From<VideoEventContent> for RoomMessageEventContent {
         Self {
             msgtype: MessageType::Video(VideoMessageEventContent::from_extensible_content(
                 message, file, video, thumbnail, caption,
+            )),
+            relates_to,
+        }
+    }
+}
+
+#[cfg(feature = "unstable-msc3245")]
+impl From<VoiceEventContent> for RoomMessageEventContent {
+    fn from(content: VoiceEventContent) -> Self {
+        let VoiceEventContent { message, file, audio, voice, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::Audio(AudioMessageEventContent::from_extensible_voice_content(
+                message, file, audio, voice,
             )),
             relates_to,
         }
@@ -570,6 +586,13 @@ pub struct AudioMessageEventContent {
     #[cfg(feature = "unstable-msc3246")]
     #[serde(rename = "org.matrix.msc1767.audio", skip_serializing_if = "Option::is_none")]
     pub audio: Option<AudioContent>,
+
+    /// Extensible-event voice flag of the message.
+    ///
+    /// If present, this should be represented as a voice message.
+    #[cfg(feature = "unstable-msc3245")]
+    #[serde(rename = "org.matrix.msc3245.voice", skip_serializing_if = "Option::is_none")]
+    pub voice: Option<VoiceContent>,
 }
 
 impl AudioMessageEventContent {
@@ -586,6 +609,8 @@ impl AudioMessageEventContent {
             )),
             #[cfg(feature = "unstable-msc3246")]
             audio: Some(info.as_deref().map_or_else(AudioContent::default, Into::into)),
+            #[cfg(feature = "unstable-msc3245")]
+            voice: None,
             body,
             source: MediaSource::Plain(url),
             info,
@@ -602,6 +627,8 @@ impl AudioMessageEventContent {
             file: Some(FileContent::encrypted(file.url.clone(), (&file).into(), None)),
             #[cfg(feature = "unstable-msc3246")]
             audio: Some(AudioContent::default()),
+            #[cfg(feature = "unstable-msc3245")]
+            voice: None,
             body,
             source: MediaSource::Encrypted(Box::new(file)),
             info: None,
@@ -623,7 +650,30 @@ impl AudioMessageEventContent {
         let source = (&file).into();
         let info = AudioInfo::from_extensible_content(file.info.as_deref(), &audio).map(Box::new);
 
-        Self { message: Some(message), file: Some(file), audio: Some(audio), body, source, info }
+        Self {
+            message: Some(message),
+            file: Some(file),
+            audio: Some(audio),
+            #[cfg(feature = "unstable-msc3245")]
+            voice: None,
+            body,
+            source,
+            info,
+        }
+    }
+
+    /// Create a new `AudioMessageEventContent` with the given message, file info, audio info and
+    /// voice flag.
+    #[cfg(feature = "unstable-msc3245")]
+    pub fn from_extensible_voice_content(
+        message: MessageContent,
+        ext_file: FileContent,
+        audio: AudioContent,
+        voice: VoiceContent,
+    ) -> Self {
+        let mut content = Self::from_extensible_content(message, ext_file, audio);
+        content.voice = Some(voice);
+        content
     }
 }
 

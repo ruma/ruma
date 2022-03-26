@@ -75,7 +75,18 @@ impl AudioEventContent {
         content: AudioMessageEventContent,
         relates_to: Option<Relation>,
     ) -> Self {
-        let AudioMessageEventContent { body, source, info, message, file, audio } = content;
+        // Otherwise the `voice` field has an extra indentation
+        #[rustfmt::skip]
+        let AudioMessageEventContent {
+            body,
+            source,
+            info,
+            message,
+            file,
+            audio,
+            #[cfg(feature = "unstable-msc3245")]
+            voice: _,
+        } = content;
 
         let message = message.unwrap_or_else(|| MessageContent::plain(body));
         let file = file.unwrap_or_else(|| {
