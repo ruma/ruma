@@ -70,6 +70,7 @@ where
 #[cfg(not(feature = "unstable-pre-spec"))]
 #[cfg(test)]
 mod tests {
+    use matches::assert_matches;
     use serde_json::{json, to_value as to_json_value};
 
     use super::{deserialize, serialize};
@@ -88,8 +89,8 @@ mod tests {
 
         let RoomState { origin, auth_chain, state } = deserialize(response).unwrap();
         assert_eq!(origin, "example.com");
-        assert_eq!(auth_chain, vec![]);
-        assert_eq!(state, vec![]);
+        assert_matches!(auth_chain.as_slice(), []);
+        assert_matches!(state.as_slice(), []);
     }
 
     #[test]
@@ -143,7 +144,7 @@ mod tests {
         let json = json!([200, { "origin": "", "auth_chain": [], "state": [] }, 200]);
         let RoomState { origin, auth_chain, state } = deserialize(json).unwrap();
         assert_eq!(origin, "");
-        assert_eq!(auth_chain, vec![]);
-        assert_eq!(state, vec![]);
+        assert_matches!(auth_chain.as_slice(), []);
+        assert_matches!(state.as_slice(), []);
     }
 }
