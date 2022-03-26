@@ -5,6 +5,11 @@ use serde_json::value::RawValue as RawJsonValue;
 
 #[cfg(feature = "unstable-msc3245")]
 use super::VoiceContent;
+#[cfg(feature = "unstable-msc3488")]
+use super::{
+    AssetContent, LocationContent, LocationInfo, LocationMessageEventContent,
+    MilliSecondsSinceUnixEpoch,
+};
 #[cfg(feature = "unstable-msc3246")]
 use super::{AudioContent, AudioInfo, AudioMessageEventContent};
 #[cfg(feature = "unstable-msc3551")]
@@ -275,6 +280,77 @@ impl From<ImageMessageEventContentDeHelper> for ImageMessageEventContent {
         let caption = caption_stable.or(caption_unstable);
 
         Self { body, source, info, message, file, image, thumbnail, caption }
+    }
+}
+
+/// Helper struct for deserializing `LocationMessageEventContent` with stable and unstable field
+/// names.
+///
+/// It's not possible to use the `alias` attribute of serde because of
+/// https://github.com/serde-rs/serde/issues/1504.
+#[derive(Clone, Debug, Deserialize)]
+#[cfg(feature = "unstable-msc3488")]
+pub struct LocationMessageEventContentDeHelper {
+    /// A description of the location.
+    pub body: String,
+
+    /// A geo URI representing the location.
+    pub geo_uri: String,
+
+    /// Info about the location being represented.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub info: Option<Box<LocationInfo>>,
+
+    /// Extensible-event text representation of the message.
+    #[serde(flatten)]
+    pub message: Option<MessageContent>,
+
+    /// Extensible-event location info of the message, with stable name.
+    #[serde(rename = "m.location")]
+    pub location_stable: Option<LocationContent>,
+
+    /// Extensible-event location info of the message, with unstable name.
+    #[serde(rename = "org.matrix.msc3488.location")]
+    pub location_unstable: Option<LocationContent>,
+
+    /// Extensible-event asset this message refers to, with stable name.
+    #[serde(rename = "m.asset")]
+    pub asset_stable: Option<AssetContent>,
+
+    /// Extensible-event asset this message refers to, with unstable name.
+    #[serde(rename = "org.matrix.msc3488.asset")]
+    pub asset_unstable: Option<AssetContent>,
+
+    /// Extensible-event timestamp this message refers to, with stable name.
+    #[serde(rename = "m.ts")]
+    pub ts_stable: Option<MilliSecondsSinceUnixEpoch>,
+
+    /// Extensible-event timestamp this message refers to, with unstable name.
+    #[serde(rename = "org.matrix.msc3488.ts")]
+    pub ts_unstable: Option<MilliSecondsSinceUnixEpoch>,
+}
+
+#[cfg(feature = "unstable-msc3488")]
+impl From<LocationMessageEventContentDeHelper> for LocationMessageEventContent {
+    fn from(helper: LocationMessageEventContentDeHelper) -> Self {
+        let LocationMessageEventContentDeHelper {
+            body,
+            geo_uri,
+            info,
+            message,
+            location_stable,
+            location_unstable,
+            asset_stable,
+            asset_unstable,
+            ts_stable,
+            ts_unstable,
+        } = helper;
+
+        let location = location_stable.or(location_unstable);
+        let asset = asset_stable.or(asset_unstable);
+        let ts = ts_stable.or(ts_unstable);
+
+        Self { body, geo_uri, info, message, location, asset, ts }
     }
 }
 
