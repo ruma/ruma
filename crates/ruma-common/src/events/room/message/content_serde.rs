@@ -3,6 +3,8 @@
 use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
 
+#[cfg(feature = "unstable-msc3245")]
+use super::VoiceContent;
 #[cfg(feature = "unstable-msc3246")]
 use super::{AudioContent, AudioInfo, AudioMessageEventContent};
 #[cfg(feature = "unstable-msc3551")]
@@ -95,6 +97,16 @@ pub struct AudioMessageEventContentDeHelper {
     /// Extensible-event audio info of the message, with unstable name.
     #[serde(rename = "org.matrix.msc1767.audio")]
     pub audio_unstable: Option<AudioContent>,
+
+    /// Extensible-event voice flag of the message, with stable name.
+    #[cfg(feature = "unstable-msc3245")]
+    #[serde(rename = "m.voice")]
+    pub voice_stable: Option<VoiceContent>,
+
+    /// Extensible-event voice flag of the message, with unstable name.
+    #[cfg(feature = "unstable-msc3245")]
+    #[serde(rename = "org.matrix.msc3245.voice")]
+    pub voice_unstable: Option<VoiceContent>,
 }
 
 #[cfg(feature = "unstable-msc3246")]
@@ -109,12 +121,27 @@ impl From<AudioMessageEventContentDeHelper> for AudioMessageEventContent {
             file_unstable,
             audio_stable,
             audio_unstable,
+            #[cfg(feature = "unstable-msc3245")]
+            voice_stable,
+            #[cfg(feature = "unstable-msc3245")]
+            voice_unstable,
         } = helper;
 
         let file = file_stable.or(file_unstable);
         let audio = audio_stable.or(audio_unstable);
+        #[cfg(feature = "unstable-msc3245")]
+        let voice = voice_stable.or(voice_unstable);
 
-        Self { body, source, info, message, file, audio }
+        Self {
+            body,
+            source,
+            info,
+            message,
+            file,
+            audio,
+            #[cfg(feature = "unstable-msc3245")]
+            voice,
+        }
     }
 }
 
