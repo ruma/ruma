@@ -5,6 +5,8 @@ use serde_json::value::RawValue as RawJsonValue;
 
 #[cfg(feature = "unstable-msc3551")]
 use super::{FileContent, FileInfo, FileMessageEventContent, MediaSource, MessageContent};
+#[cfg(feature = "unstable-msc3552")]
+use super::{ImageContent, ImageInfo, ImageMessageEventContent, ThumbnailContent};
 use super::{MessageType, Relation, RoomMessageEventContent};
 use crate::serde::from_raw_json_value;
 
@@ -102,5 +104,86 @@ impl From<FileMessageEventContentDeHelper> for FileMessageEventContent {
         let file = file_stable.or(file_unstable);
 
         Self { body, filename, source, info, message, file }
+    }
+}
+
+/// Helper struct for deserializing `ImageMessageEventContent` with stable and unstable field names.
+///
+/// It's not possible to use the `alias` attribute of serde because of
+/// https://github.com/serde-rs/serde/issues/1504.
+#[derive(Clone, Debug, Deserialize)]
+#[cfg(feature = "unstable-msc3552")]
+pub struct ImageMessageEventContentDeHelper {
+    /// A textual representation of the image.
+    pub body: String,
+
+    /// The source of the image.
+    #[serde(flatten)]
+    pub source: MediaSource,
+
+    /// Metadata about the image referred to in `source`.
+    pub info: Option<Box<ImageInfo>>,
+
+    /// Extensible-event text representation of the message.
+    #[serde(flatten)]
+    pub message: Option<MessageContent>,
+
+    /// Extensible-event file content of the message, with unstable name.
+    #[serde(rename = "m.file")]
+    pub file_stable: Option<FileContent>,
+
+    /// Extensible-event file content of the message, with unstable name.
+    #[serde(rename = "org.matrix.msc1767.file")]
+    pub file_unstable: Option<FileContent>,
+
+    /// Extensible-event image info of the message, with stable name.
+    #[serde(rename = "m.image")]
+    pub image_stable: Option<Box<ImageContent>>,
+
+    /// Extensible-event image info of the message, with unstable name.
+    #[serde(rename = "org.matrix.msc1767.image")]
+    pub image_unstable: Option<Box<ImageContent>>,
+
+    /// Extensible-event thumbnails of the message, with stable name.
+    #[serde(rename = "m.thumbnail")]
+    pub thumbnail_stable: Option<Vec<ThumbnailContent>>,
+
+    /// Extensible-event thumbnails of the message, with unstable name.
+    #[serde(rename = "org.matrix.msc1767.thumbnail")]
+    pub thumbnail_unstable: Option<Vec<ThumbnailContent>>,
+
+    /// Extensible-event captions of the message, with stable name.
+    #[serde(rename = "m.caption")]
+    pub caption_stable: Option<MessageContent>,
+
+    /// Extensible-event captions of the message, with unstable name.
+    #[serde(rename = "org.matrix.msc1767.caption")]
+    pub caption_unstable: Option<MessageContent>,
+}
+
+#[cfg(feature = "unstable-msc3552")]
+impl From<ImageMessageEventContentDeHelper> for ImageMessageEventContent {
+    fn from(helper: ImageMessageEventContentDeHelper) -> Self {
+        let ImageMessageEventContentDeHelper {
+            body,
+            source,
+            info,
+            message,
+            file_stable,
+            file_unstable,
+            image_stable,
+            image_unstable,
+            thumbnail_stable,
+            thumbnail_unstable,
+            caption_stable,
+            caption_unstable,
+        } = helper;
+
+        let file = file_stable.or(file_unstable);
+        let image = image_stable.or(image_unstable);
+        let thumbnail = thumbnail_stable.or(thumbnail_unstable);
+        let caption = caption_stable.or(caption_unstable);
+
+        Self { body, source, info, message, file, image, thumbnail, caption }
     }
 }

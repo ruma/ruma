@@ -12,7 +12,7 @@ use super::{
     message::MessageContent,
     room::{
         message::{FileInfo, FileMessageEventContent, Relation},
-        EncryptedFile, JsonWebKey, MediaSource,
+        EncryptedFile, ImageInfo, JsonWebKey, MediaSource,
     },
 };
 use crate::{serde::Base64, MxcUri};
@@ -214,6 +214,13 @@ impl FileContentInfo {
 impl From<&FileInfo> for FileContentInfo {
     fn from(info: &FileInfo) -> Self {
         let FileInfo { mimetype, size, .. } = info;
+        Self { mimetype: mimetype.to_owned(), size: size.to_owned(), ..Default::default() }
+    }
+}
+
+impl From<&ImageInfo> for FileContentInfo {
+    fn from(info: &ImageInfo) -> Self {
+        let ImageInfo { mimetype, size, .. } = info;
         Self { mimetype: mimetype.to_owned(), size: size.to_owned(), ..Default::default() }
     }
 }

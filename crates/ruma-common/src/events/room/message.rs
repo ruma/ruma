@@ -12,6 +12,8 @@ use serde_json::Value as JsonValue;
 use super::{EncryptedFile, ImageInfo, MediaSource, ThumbnailInfo};
 #[cfg(feature = "unstable-msc3551")]
 use crate::events::file::{FileContent, FileContentInfo, FileEventContent};
+#[cfg(feature = "unstable-msc3552")]
+use crate::events::image::{ImageContent, ImageEventContent, ThumbnailContent};
 #[cfg(feature = "unstable-msc1767")]
 use crate::events::{
     emote::EmoteEventContent,
@@ -207,6 +209,20 @@ impl From<FileEventContent> for RoomMessageEventContent {
         Self {
             msgtype: MessageType::File(FileMessageEventContent::from_extensible_content(
                 message, file,
+            )),
+            relates_to,
+        }
+    }
+}
+
+#[cfg(feature = "unstable-msc3552")]
+impl From<ImageEventContent> for RoomMessageEventContent {
+    fn from(content: ImageEventContent) -> Self {
+        let ImageEventContent { message, file, image, thumbnail, caption, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::Image(ImageMessageEventContent::from_extensible_content(
+                message, file, image, thumbnail, caption,
             )),
             relates_to,
         }
@@ -744,6 +760,10 @@ impl From<&FileContentInfo> for FileInfo {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.image")]
+#[cfg_attr(
+    feature = "unstable-msc3552",
+    serde(from = "content_serde::ImageMessageEventContentDeHelper")
+)]
 pub struct ImageMessageEventContent {
     /// A textual representation of the image.
     ///
@@ -758,19 +778,128 @@ pub struct ImageMessageEventContent {
     /// Metadata about the image referred to in `url`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<Box<ImageInfo>>,
+
+    /// Extensible-event text representation of the message.
+    ///
+    /// If present, this should be preferred over the `body` field.
+    #[cfg(feature = "unstable-msc3552")]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub message: Option<MessageContent>,
+
+    /// Extensible-event file content of the message.
+    ///
+    /// If present, this should be preferred over the `source` and `info` fields.
+    #[cfg(feature = "unstable-msc3552")]
+    #[serde(rename = "org.matrix.msc1767.file", skip_serializing_if = "Option::is_none")]
+    pub file: Option<FileContent>,
+
+    /// Extensible-event image info of the message.
+    ///
+    /// If present, this should be preferred over the `info` field.
+    #[cfg(feature = "unstable-msc3552")]
+    #[serde(rename = "org.matrix.msc1767.image", skip_serializing_if = "Option::is_none")]
+    pub image: Option<Box<ImageContent>>,
+
+    /// Extensible-event thumbnails of the message.
+    ///
+    /// If present, this should be preferred over the `info` field.
+    #[cfg(feature = "unstable-msc3552")]
+    #[serde(rename = "org.matrix.msc1767.thumbnail", skip_serializing_if = "Option::is_none")]
+    pub thumbnail: Option<Vec<ThumbnailContent>>,
+
+    /// Extensible-event captions of the message.
+    #[cfg(feature = "unstable-msc3552")]
+    #[serde(
+        rename = "org.matrix.msc1767.caption",
+        with = "crate::events::message::content_serde::as_vec",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub caption: Option<MessageContent>,
 }
 
 impl ImageMessageEventContent {
     /// Creates a new non-encrypted `RoomImageMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<ImageInfo>>) -> Self {
-        Self { body, source: MediaSource::Plain(url), info }
+        Self {
+            #[cfg(feature = "unstable-msc3552")]
+            message: Some(MessageContent::plain(body.clone())),
+            #[cfg(feature = "unstable-msc3552")]
+            file: Some(FileContent::plain(
+                url.clone(),
+                info.as_deref().map(|info| Box::new(info.into())),
+            )),
+            #[cfg(feature = "unstable-msc3552")]
+            image: Some(Box::new(info.as_deref().map_or_else(ImageContent::default, Into::into))),
+            #[cfg(feature = "unstable-msc3552")]
+            thumbnail: info
+                .as_deref()
+                .and_then(|info| {
+                    ThumbnailContent::from_room_message_content(
+                        info.thumbnail_source.as_ref(),
+                        info.thumbnail_info.as_deref(),
+                    )
+                })
+                .map(|thumbnail| vec![thumbnail]),
+            #[cfg(feature = "unstable-msc3552")]
+            caption: None,
+            body,
+            source: MediaSource::Plain(url),
+            info,
+        }
     }
 
     /// Creates a new encrypted `RoomImageMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
-        Self { body, source: MediaSource::Encrypted(Box::new(file)), info: None }
+        Self {
+            #[cfg(feature = "unstable-msc3552")]
+            message: Some(MessageContent::plain(body.clone())),
+            #[cfg(feature = "unstable-msc3552")]
+            file: Some(FileContent::encrypted(file.url.clone(), (&file).into(), None)),
+            #[cfg(feature = "unstable-msc3552")]
+            image: Some(Box::new(ImageContent::default())),
+            #[cfg(feature = "unstable-msc3552")]
+            thumbnail: None,
+            #[cfg(feature = "unstable-msc3552")]
+            caption: None,
+            body,
+            source: MediaSource::Encrypted(Box::new(file)),
+            info: None,
+        }
+    }
+
+    /// Create a new `ImageMessageEventContent` with the given message, file info, image info,
+    /// thumbnails and captions.
+    #[cfg(feature = "unstable-msc3552")]
+    pub fn from_extensible_content(
+        message: MessageContent,
+        file: FileContent,
+        image: Box<ImageContent>,
+        thumbnail: Vec<ThumbnailContent>,
+        caption: Option<MessageContent>,
+    ) -> Self {
+        let body = if let Some(body) = message.find_plain() {
+            body.to_owned()
+        } else {
+            message[0].body.clone()
+        };
+        let source = (&file).into();
+        let info = ImageInfo::from_extensible_content(file.info.as_deref(), &image, &thumbnail)
+            .map(Box::new);
+        let thumbnail = if thumbnail.is_empty() { None } else { Some(thumbnail) };
+
+        Self {
+            message: Some(message),
+            file: Some(file),
+            image: Some(image),
+            thumbnail,
+            caption,
+            body,
+            source,
+            info,
+        }
     }
 }
 
