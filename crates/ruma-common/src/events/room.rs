@@ -66,7 +66,7 @@ pub struct ImageInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub size: Option<UInt>,
 
-    /// Metadata about the image referred to in `thumbnail_src`.
+    /// Metadata about the image referred to in `thumbnail_source`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<Box<ThumbnailInfo>>,
 

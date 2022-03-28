@@ -32,7 +32,7 @@ pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<MediaSource>, D::Er
 where
     D: Deserializer<'de>,
 {
-    Option::<ThumbnailSource>::deserialize(deserializer).map(|src| src.map(Into::into))
+    Option::<ThumbnailSource>::deserialize(deserializer).map(|source| source.map(Into::into))
 }
 
 #[derive(Clone, Debug, Deserialize)]
