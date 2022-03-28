@@ -21,8 +21,10 @@
 //!
 //! # How to use them
 //!
-//! First, enable the `unstable-mscXXXX` features (where `XXXX` is the number of the MSC) for the
-//! needed extensible types.
+//! First, you can enable the `unstable-extensible-events` feature from the `ruma` crate, that
+//! will enable all the MSCs for the extensible events that correspond to the legacy `msgtype`s
+//! (1767, 3246, 3488, 3551, 3552, 3553). It is also possible to enable only the MSCs you want with
+//! the `unstable-mscXXXX` features (where `XXXX` is the number of the MSC).
 //!
 //! The recommended way to send transitional extensible events while they are unstable and during
 //! the transition period is to build one of the new primary types and then to convert it to a
