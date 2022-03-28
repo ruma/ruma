@@ -6,10 +6,14 @@
 
 use js_int::UInt;
 use ruma_common::{
-    directory::PublicRoomJoinRule, events::space::child::HierarchySpaceChildStateEvent,
-    room::RoomType, serde::Raw, MxcUri, RoomAliasId, RoomId, RoomName,
+    events::space::child::HierarchySpaceChildStateEvent,
+    room::RoomType,
+    serde::{Raw, StringEnum},
+    MxcUri, RoomAliasId, RoomId, RoomName,
 };
 use serde::{Deserialize, Serialize};
+
+use crate::PrivOwnedStr;
 
 pub mod get_hierarchy;
 
@@ -63,7 +67,7 @@ pub struct SpaceHierarchyRoomsChunk {
 
     /// The join rule of the room.
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
-    pub join_rule: PublicRoomJoinRule,
+    pub join_rule: SpaceRoomJoinRule,
 
     /// The type of room from `m.room.create`, if any.
     pub room_type: Option<RoomType>,
@@ -96,7 +100,7 @@ pub struct SpaceHierarchyRoomsChunkInit {
     pub guest_can_join: bool,
 
     /// The join rule of the room.
-    pub join_rule: PublicRoomJoinRule,
+    pub join_rule: SpaceRoomJoinRule,
 
     /// The stripped `m.space.child` events of the space-room.
     ///
@@ -128,5 +132,49 @@ impl From<SpaceHierarchyRoomsChunkInit> for SpaceHierarchyRoomsChunk {
             room_type: None,
             children_state,
         }
+    }
+}
+
+/// The rule used for users wishing to join a room.
+///
+/// In contrast to the regular [`JoinRule`](ruma_common::events::room::join_rules::JoinRule), this
+/// enum does not hold the conditions for joining restricted rooms. Instead, the server is assumed
+/// to only return rooms the user is allowed to join in a space hierarchy listing response.
+///
+/// This type can hold an arbitrary string. To check for join rules that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub enum SpaceRoomJoinRule {
+    /// A user who wishes to join the room must first receive an invite to the room from someone
+    /// already inside of the room.
+    Invite,
+
+    /// Users can join the room if they are invited, or they can request an invite to the room.
+    ///
+    /// They can be allowed (invited) or denied (kicked/banned) access.
+    Knock,
+
+    /// Reserved but not yet implemented by the Matrix specification.
+    Private,
+
+    /// Users can join the room if they are invited, or if they meet any of the conditions
+    /// described in a set of [`AllowRule`](ruma_common::events::room::join_rules::AllowRule)s.
+    ///
+    /// These rules are not made available as part of a space hierarchy listing response and can
+    /// only be seen by users inside the room.
+    Restricted,
+
+    /// Anyone can join the room without any prior action.
+    Public,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}
+
+impl Default for SpaceRoomJoinRule {
+    fn default() -> Self {
+        SpaceRoomJoinRule::Public
     }
 }
