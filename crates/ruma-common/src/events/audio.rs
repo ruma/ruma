@@ -211,7 +211,7 @@ impl Amplitude {
     }
 
     /// The value of this `Amplitude`.
-    pub fn value(&self) -> UInt {
+    pub fn get(&self) -> UInt {
         self.0
     }
 }

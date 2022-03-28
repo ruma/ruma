@@ -60,7 +60,7 @@ fn waveform_deserialization_clamp_amplitude() {
 
     assert_matches!(
         from_json_value::<Waveform>(json_data).unwrap(),
-        waveform if waveform.amplitudes().iter().all(|amp| amp.value() == Amplitude::MAX.into())
+        waveform if waveform.amplitudes().iter().all(|amp| amp.get() == Amplitude::MAX.into())
     );
 }
 
