@@ -149,7 +149,7 @@ fn zoomlevel_deserialization_pass() {
         LocationContent {
             zoom_level: Some(zoom_level),
             ..
-        } if zoom_level.value() == uint!(16)
+        } if zoom_level.get() == uint!(16)
     );
 }
 
@@ -222,7 +222,7 @@ fn message_event_deserialization() {
             && message.find_html().is_none()
             && uri == "geo:51.5008,0.1247;u=35"
             && description == "Alice's whereabouts"
-            && zoom_level.value() == uint!(4)
+            && zoom_level.get() == uint!(4)
             && ts == MilliSecondsSinceUnixEpoch(uint!(1_636_829_458))
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
             && room_id == room_id!("!roomid:notareal.hs")
