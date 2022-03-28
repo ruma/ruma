@@ -167,7 +167,7 @@ pub struct FileMessageEventContentDeHelper {
     #[serde(flatten)]
     pub source: MediaSource,
 
-    /// Metadata about the file referred to in `url`.
+    /// Metadata about the file referred to in `source`.
     pub info: Option<Box<FileInfo>>,
 
     /// Extensible-event text representation of the message.

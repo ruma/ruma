@@ -31,34 +31,32 @@ pub struct EmoteEventContent {
     #[serde(flatten)]
     pub message: MessageContent,
 
-    /// Information about related messages for [rich replies].
-    ///
-    /// [rich replies]: https://spec.matrix.org/v1.2/client-server-api/#rich-replies
+    /// Information about related messages.
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation>,
 }
 
 impl EmoteEventContent {
-    /// A convenience constructor to create a plain text message.
+    /// A convenience constructor to create a plain text emote.
     pub fn plain(body: impl Into<String>) -> Self {
         Self { message: MessageContent::plain(body), relates_to: None }
     }
 
-    /// A convenience constructor to create an HTML message.
+    /// A convenience constructor to create an HTML emote.
     pub fn html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
         Self { message: MessageContent::html(body, html_body), relates_to: None }
     }
 
-    /// A convenience constructor to create a Markdown message.
+    /// A convenience constructor to create a Markdown emote.
     ///
-    /// Returns an HTML message if some Markdown formatting was detected, otherwise returns a plain
-    /// text message.
+    /// Returns an HTML emote if some Markdown formatting was detected, otherwise returns a plain
+    /// text emote.
     #[cfg(feature = "markdown")]
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
         Self { message: MessageContent::markdown(body), relates_to: None }
     }
 
-    /// Create a new `MessageEventContent` from the given `EmoteMessageEventContent` and optional
+    /// Create a new `EmoteEventContent` from the given `EmoteMessageEventContent` and optional
     /// relation.
     pub fn from_emote_room_message(
         content: EmoteMessageEventContent,

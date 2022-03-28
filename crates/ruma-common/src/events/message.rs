@@ -82,9 +82,7 @@ pub struct MessageEventContent {
     #[serde(flatten)]
     pub message: MessageContent,
 
-    /// Information about related messages for [rich replies].
-    ///
-    /// [rich replies]: https://spec.matrix.org/v1.2/client-server-api/#rich-replies
+    /// Information about related messages.
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation>,
 }
