@@ -5,7 +5,7 @@
 use std::collections::BTreeMap;
 
 use js_int::UInt;
-use serde::{Deserialize, Serialize};
+use serde::{de, Deserialize, Serialize};
 
 use crate::{
     serde::{base64::UrlSafe, Base64},
@@ -34,7 +34,7 @@ pub mod tombstone;
 pub mod topic;
 
 /// The source of a media file.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[allow(clippy::exhaustive_enums)]
 pub enum MediaSource {
     /// The MXC URI to the unencrypted media file.
@@ -44,6 +44,30 @@ pub enum MediaSource {
     /// The encryption info of the encrypted media file.
     #[serde(rename = "file")]
     Encrypted(Box<EncryptedFile>),
+}
+
+/// Custom implementation of `Deserialize`, because serde doesn't guarantee what variant will be
+/// deserialized for "externally tagged"¹ enums where multiple "tag" fields exist.
+///
+/// ¹ https://serde.rs/enum-representations.html
+impl<'de> Deserialize<'de> for MediaSource {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        pub struct MediaSourceJsonRepr {
+            url: Option<Box<MxcUri>>,
+            file: Option<Box<EncryptedFile>>,
+        }
+
+        match MediaSourceJsonRepr::deserialize(deserializer)? {
+            MediaSourceJsonRepr { url: None, file: None } => Err(de::Error::missing_field("url")),
+            // Prefer file if it is set
+            MediaSourceJsonRepr { file: Some(file), .. } => Ok(MediaSource::Encrypted(file)),
+            MediaSourceJsonRepr { url: Some(url), .. } => Ok(MediaSource::Plain(url)),
+        }
+    }
 }
 
 /// Metadata about an image.

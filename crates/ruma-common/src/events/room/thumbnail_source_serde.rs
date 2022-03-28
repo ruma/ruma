@@ -1,9 +1,8 @@
 //! De-/serialization functions for `Option<MediaSource>` objects representing a thumbnail source.
 
 use serde::{
-    de::Deserializer,
     ser::{SerializeStruct, Serializer},
-    Deserialize,
+    Deserialize, Deserializer,
 };
 
 use crate::MxcUri;
@@ -32,25 +31,20 @@ pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<MediaSource>, D::Er
 where
     D: Deserializer<'de>,
 {
-    Option::<ThumbnailSource>::deserialize(deserializer).map(|source| source.map(Into::into))
-}
+    #[derive(Deserialize)]
+    pub struct ThumbnailSourceJsonRepr {
+        thumbnail_url: Option<Box<MxcUri>>,
+        thumbnail_file: Option<Box<EncryptedFile>>,
+    }
 
-#[derive(Clone, Debug, Deserialize)]
-enum ThumbnailSource {
-    /// The MXC URI to the unencrypted media file.
-    #[serde(rename = "thumbnail_url")]
-    Plain(Box<MxcUri>),
-
-    /// The encryption info of the encrypted media file.
-    #[serde(rename = "thumbnail_file")]
-    Encrypted(Box<EncryptedFile>),
-}
-
-impl From<ThumbnailSource> for MediaSource {
-    fn from(source: ThumbnailSource) -> Self {
-        match source {
-            ThumbnailSource::Plain(url) => Self::Plain(url),
-            ThumbnailSource::Encrypted(file) => Self::Encrypted(file),
+    match ThumbnailSourceJsonRepr::deserialize(deserializer)? {
+        ThumbnailSourceJsonRepr { thumbnail_url: None, thumbnail_file: None } => Ok(None),
+        // Prefer file if it is set
+        ThumbnailSourceJsonRepr { thumbnail_file: Some(file), .. } => {
+            Ok(Some(MediaSource::Encrypted(file)))
+        }
+        ThumbnailSourceJsonRepr { thumbnail_url: Some(url), .. } => {
+            Ok(Some(MediaSource::Plain(url)))
         }
     }
 }
