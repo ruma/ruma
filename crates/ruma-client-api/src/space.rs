@@ -1,4 +1,8 @@
 //! Endpoints for spaces.
+//!
+//! See the [Matrix specification][spec] for more details about spaces.
+//!
+//! [spec]: https://spec.matrix.org/v1.2/client-server-api/#spaces
 
 use js_int::UInt;
 use ruma_common::{
