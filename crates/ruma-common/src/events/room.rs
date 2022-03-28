@@ -253,3 +253,66 @@ impl From<JsonWebKeyInit> for JsonWebKey {
         Self { kty, key_ops, alg, k, ext }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeMap;
+
+    use matches::assert_matches;
+    use serde::Deserialize;
+    use serde_json::{from_value as from_json_value, json};
+
+    use crate::serde::Base64;
+
+    use super::{EncryptedFile, JsonWebKey, MediaSource};
+
+    #[derive(Deserialize)]
+    struct MsgWithAttachment {
+        #[allow(dead_code)]
+        body: String,
+        #[serde(flatten)]
+        source: MediaSource,
+    }
+
+    fn dummy_jwt() -> JsonWebKey {
+        JsonWebKey {
+            kty: "oct".to_owned(),
+            key_ops: vec!["encrypt".to_owned(), "decrypt".to_owned()],
+            alg: "A256CTR".to_owned(),
+            k: Base64::new(vec![0; 64]),
+            ext: true,
+        }
+    }
+
+    fn encrypted_file() -> EncryptedFile {
+        EncryptedFile {
+            url: "mxc://localhost/encrypted_file".into(),
+            key: dummy_jwt(),
+            iv: Base64::new(vec![0; 64]),
+            hashes: BTreeMap::new(),
+            v: "v2".to_owned(),
+        }
+    }
+
+    #[test]
+    fn prefer_encrypted_attachment_over_plain() {
+        let msg: MsgWithAttachment = from_json_value(json!({
+            "body": "",
+            "url": "mxc://localhost/file",
+            "file": encrypted_file(),
+        }))
+        .unwrap();
+
+        assert_matches!(msg.source, MediaSource::Encrypted(_));
+
+        // As above, but with the file field before the url field
+        let msg: MsgWithAttachment = from_json_value(json!({
+            "body": "",
+            "file": encrypted_file(),
+            "url": "mxc://localhost/file",
+        }))
+        .unwrap();
+
+        assert_matches!(msg.source, MediaSource::Encrypted(_));
+    }
+}
