@@ -16,6 +16,11 @@ use crate::{events::room::ImageInfo, MxcUri};
 /// The content of an `m.sticker` event.
 ///
 /// A sticker message.
+///
+/// With the `unstable-msc3552` feature, this type also contains the transitional extensible events
+/// format. See the documentation of the [`message`] module for more information.
+///
+/// [`message`]: super::message
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.sticker", kind = MessageLike)]
