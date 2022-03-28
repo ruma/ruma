@@ -446,7 +446,7 @@ fn content_deserialization() {
             msgtype: MessageType::Audio(AudioMessageEventContent {
                 body,
                 info: None,
-                src: MediaSource::Plain(url),
+                source: MediaSource::Plain(url),
                 ..
             }),
             ..
