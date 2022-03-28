@@ -10,6 +10,8 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 use super::{EncryptedFile, ImageInfo, MediaSource, ThumbnailInfo};
+#[cfg(feature = "unstable-msc3246")]
+use crate::events::audio::{AudioContent, AudioEventContent};
 #[cfg(feature = "unstable-msc3551")]
 use crate::events::file::{FileContent, FileContentInfo, FileEventContent};
 #[cfg(feature = "unstable-msc3552")]
@@ -191,6 +193,20 @@ impl RoomMessageEventContent {
     /// Return a reference to the message body.
     pub fn body(&self) -> &str {
         self.msgtype.body()
+    }
+}
+
+#[cfg(feature = "unstable-msc3246")]
+impl From<AudioEventContent> for RoomMessageEventContent {
+    fn from(content: AudioEventContent) -> Self {
+        let AudioEventContent { message, file, audio, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::Audio(AudioMessageEventContent::from_extensible_content(
+                message, file, audio,
+            )),
+            relates_to,
+        }
     }
 }
 
@@ -518,6 +534,10 @@ impl Thread {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.audio")]
+#[cfg_attr(
+    feature = "unstable-msc3246",
+    serde(from = "content_serde::AudioMessageEventContentDeHelper")
+)]
 pub struct AudioMessageEventContent {
     /// The textual representation of this message.
     pub body: String,
@@ -529,19 +549,81 @@ pub struct AudioMessageEventContent {
     /// Metadata for the audio clip referred to in `url`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<Box<AudioInfo>>,
+
+    /// Extensible-event text representation of the message.
+    ///
+    /// If present, this should be preferred over the `body` field.
+    #[cfg(feature = "unstable-msc3246")]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub message: Option<MessageContent>,
+
+    /// Extensible-event file content of the message.
+    ///
+    /// If present, this should be preferred over the `source` and `info` fields.
+    #[cfg(feature = "unstable-msc3246")]
+    #[serde(rename = "org.matrix.msc1767.file", skip_serializing_if = "Option::is_none")]
+    pub file: Option<FileContent>,
+
+    /// Extensible-event audio info of the message.
+    ///
+    /// If present, this should be preferred over the `info` field.
+    #[cfg(feature = "unstable-msc3246")]
+    #[serde(rename = "org.matrix.msc1767.audio", skip_serializing_if = "Option::is_none")]
+    pub audio: Option<AudioContent>,
 }
 
 impl AudioMessageEventContent {
     /// Creates a new non-encrypted `RoomAudioMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<AudioInfo>>) -> Self {
-        Self { body, source: MediaSource::Plain(url), info }
+        Self {
+            #[cfg(feature = "unstable-msc3246")]
+            message: Some(MessageContent::plain(body.clone())),
+            #[cfg(feature = "unstable-msc3246")]
+            file: Some(FileContent::plain(
+                url.clone(),
+                info.as_deref().map(|info| Box::new(info.into())),
+            )),
+            #[cfg(feature = "unstable-msc3246")]
+            audio: Some(info.as_deref().map_or_else(AudioContent::default, Into::into)),
+            body,
+            source: MediaSource::Plain(url),
+            info,
+        }
     }
 
     /// Creates a new encrypted `RoomAudioMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
-        Self { body, source: MediaSource::Encrypted(Box::new(file)), info: None }
+        Self {
+            #[cfg(feature = "unstable-msc3246")]
+            message: Some(MessageContent::plain(body.clone())),
+            #[cfg(feature = "unstable-msc3246")]
+            file: Some(FileContent::encrypted(file.url.clone(), (&file).into(), None)),
+            #[cfg(feature = "unstable-msc3246")]
+            audio: Some(AudioContent::default()),
+            body,
+            source: MediaSource::Encrypted(Box::new(file)),
+            info: None,
+        }
+    }
+
+    /// Create a new `AudioMessageEventContent` with the given message, file info and audio info.
+    #[cfg(feature = "unstable-msc3246")]
+    pub fn from_extensible_content(
+        message: MessageContent,
+        file: FileContent,
+        audio: AudioContent,
+    ) -> Self {
+        let body = if let Some(body) = message.find_plain() {
+            body.to_owned()
+        } else {
+            message[0].body.clone()
+        };
+        let source = (&file).into();
+        let info = AudioInfo::from_extensible_content(file.info.as_deref(), &audio).map(Box::new);
+
+        Self { message: Some(message), file: Some(file), audio: Some(audio), body, source, info }
     }
 }
 
@@ -570,6 +652,24 @@ impl AudioInfo {
     /// Creates an empty `AudioInfo`.
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Create an `AudioInfo` from the given file info and audio info.
+    #[cfg(feature = "unstable-msc3246")]
+    pub fn from_extensible_content(
+        file_info: Option<&FileContentInfo>,
+        audio: &AudioContent,
+    ) -> Option<Self> {
+        if file_info.is_none() && audio.is_empty() {
+            None
+        } else {
+            let (mimetype, size) = file_info
+                .map(|info| (info.mimetype.to_owned(), info.size.to_owned()))
+                .unwrap_or_default();
+            let AudioContent { duration, .. } = audio;
+
+            Some(Self { duration: duration.to_owned(), mimetype, size })
+        }
     }
 }
 

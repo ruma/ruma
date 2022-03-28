@@ -3,6 +3,8 @@
 use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
 
+#[cfg(feature = "unstable-msc3246")]
+use super::{AudioContent, AudioInfo, AudioMessageEventContent};
 #[cfg(feature = "unstable-msc3551")]
 use super::{FileContent, FileInfo, FileMessageEventContent, MediaSource, MessageContent};
 #[cfg(feature = "unstable-msc3552")]
@@ -54,6 +56,65 @@ impl<'de> Deserialize<'de> for MessageType {
             "m.key.verification.request" => Self::VerificationRequest(from_raw_json_value(&json)?),
             _ => Self::_Custom(from_raw_json_value(&json)?),
         })
+    }
+}
+
+/// Helper struct for deserializing `AudioMessageEventContent` with stable and unstable field names.
+///
+/// It's not possible to use the `alias` attribute of serde because of
+/// https://github.com/serde-rs/serde/issues/1504.
+#[derive(Clone, Debug, Deserialize)]
+#[cfg(feature = "unstable-msc3246")]
+pub struct AudioMessageEventContentDeHelper {
+    /// The textual representation of this message.
+    pub body: String,
+
+    /// The source of the audio clip.
+    #[serde(flatten)]
+    pub source: MediaSource,
+
+    /// Metadata for the audio clip referred to in `source`.
+    pub info: Option<Box<AudioInfo>>,
+
+    /// Extensible-event text representation of the message.
+    #[serde(flatten)]
+    pub message: Option<MessageContent>,
+
+    /// Extensible-event file content of the message, with stable name.
+    #[serde(rename = "m.file")]
+    pub file_stable: Option<FileContent>,
+
+    /// Extensible-event file content of the message, with unstable name.
+    #[serde(rename = "org.matrix.msc1767.file")]
+    pub file_unstable: Option<FileContent>,
+
+    /// Extensible-event audio info of the message, with stable name.
+    #[serde(rename = "m.audio")]
+    pub audio_stable: Option<AudioContent>,
+
+    /// Extensible-event audio info of the message, with unstable name.
+    #[serde(rename = "org.matrix.msc1767.audio")]
+    pub audio_unstable: Option<AudioContent>,
+}
+
+#[cfg(feature = "unstable-msc3246")]
+impl From<AudioMessageEventContentDeHelper> for AudioMessageEventContent {
+    fn from(helper: AudioMessageEventContentDeHelper) -> Self {
+        let AudioMessageEventContentDeHelper {
+            body,
+            source,
+            info,
+            message,
+            file_stable,
+            file_unstable,
+            audio_stable,
+            audio_unstable,
+        } = helper;
+
+        let file = file_stable.or(file_unstable);
+        let audio = audio_stable.or(audio_unstable);
+
+        Self { body, source, info, message, file, audio }
     }
 }
 
