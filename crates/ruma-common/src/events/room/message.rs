@@ -566,6 +566,13 @@ impl Thread {
 }
 
 /// The payload for an audio message.
+///
+/// With the `unstable-msc3246` feature, this type contains the transitional format of
+/// [`AudioEventContent`] and with the `unstable-msc3245` feature, this type also contains the
+/// transitional format of [`VoiceEventContent`]. See the documentation of the [`message`] module
+/// for more information.
+///
+/// [`message`]: crate::events::message
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.audio")]
@@ -743,6 +750,11 @@ impl AudioInfo {
 }
 
 /// The payload for an emote message.
+///
+/// With the `unstable-msc1767` feature, this type contains the transitional format of
+/// [`EmoteEventContent`]. See the documentation of the [`message`] module for more information.
+///
+/// [`message`]: crate::events::message
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.emote")]
@@ -811,6 +823,11 @@ impl From<MessageContent> for EmoteMessageEventContent {
 }
 
 /// The payload for a file message.
+///
+/// With the `unstable-msc3551` feature, this type contains the transitional format of
+/// [`FileEventContent`]. See the documentation of the [`message`] module for more information.
+///
+/// [`message`]: crate::events::message
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.file")]
@@ -942,6 +959,11 @@ impl From<&FileContentInfo> for FileInfo {
 }
 
 /// The payload for an image message.
+///
+/// With the `unstable-msc3552` feature, this type contains the transitional format of
+/// [`ImageEventContent`]. See the documentation of the [`message`] module for more information.
+///
+/// [`message`]: crate::events::message
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.image")]
@@ -1089,6 +1111,11 @@ impl ImageMessageEventContent {
 }
 
 /// The payload for a location message.
+///
+/// With the `unstable-msc3488` feature, this type contains the transitional format of
+/// [`LocationEventContent`]. See the documentation of the [`message`] module for more information.
+///
+/// [`message`]: crate::events::message
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.location")]
@@ -1204,6 +1231,11 @@ impl LocationInfo {
 }
 
 /// The payload for a notice message.
+///
+/// With the `unstable-msc1767` feature, this type contains the transitional format of
+/// [`NoticeEventContent`]. See the documentation of the [`message`] module for more information.
+///
+/// [`message`]: crate::events::message
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.notice")]
@@ -1405,6 +1437,11 @@ impl FormattedBody {
 }
 
 /// The payload for a text message.
+///
+/// With the `unstable-msc1767` feature, this type contains the transitional format of
+/// [`MessageEventContent`]. See the documentation of the [`message`] module for more information.
+///
+/// [`message`]: crate::events::message
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.text")]
@@ -1473,6 +1510,11 @@ impl From<MessageContent> for TextMessageEventContent {
 }
 
 /// The payload for a video message.
+///
+/// With the `unstable-msc3553` feature, this type contains the transitional format of
+/// [`VideoEventContent`]. See the documentation of the [`message`] module for more information.
+///
+/// [`message`]: crate::events::message
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.video")]
