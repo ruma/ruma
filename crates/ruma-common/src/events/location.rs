@@ -149,7 +149,7 @@ impl ZoomLevel {
     }
 
     /// The value of this `ZoomLevel`.
-    pub fn value(&self) -> UInt {
+    pub fn get(&self) -> UInt {
         self.0
     }
 }
