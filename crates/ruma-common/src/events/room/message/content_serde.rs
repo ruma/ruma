@@ -8,6 +8,8 @@ use super::{FileContent, FileInfo, FileMessageEventContent, MediaSource, Message
 #[cfg(feature = "unstable-msc3552")]
 use super::{ImageContent, ImageInfo, ImageMessageEventContent, ThumbnailContent};
 use super::{MessageType, Relation, RoomMessageEventContent};
+#[cfg(feature = "unstable-msc3553")]
+use super::{VideoContent, VideoInfo, VideoMessageEventContent};
 use crate::serde::from_raw_json_value;
 
 impl<'de> Deserialize<'de> for RoomMessageEventContent {
@@ -185,5 +187,86 @@ impl From<ImageMessageEventContentDeHelper> for ImageMessageEventContent {
         let caption = caption_stable.or(caption_unstable);
 
         Self { body, source, info, message, file, image, thumbnail, caption }
+    }
+}
+
+/// Helper struct for deserializing `VideoMessageEventContent` with stable and unstable field names.
+///
+/// It's not possible to use the `alias` attribute of serde because of
+/// https://github.com/serde-rs/serde/issues/1504.
+#[derive(Clone, Debug, Deserialize)]
+#[cfg(feature = "unstable-msc3553")]
+pub struct VideoMessageEventContentDeHelper {
+    /// A description of the video.
+    pub body: String,
+
+    /// The source of the video clip.
+    #[serde(flatten)]
+    pub source: MediaSource,
+
+    /// Metadata about the video clip referred to in `source`.
+    pub info: Option<Box<VideoInfo>>,
+
+    /// Extensible-event text representation of the message.
+    #[serde(flatten)]
+    pub message: Option<MessageContent>,
+
+    /// Extensible-event file content of the message, with stable name.
+    #[serde(rename = "m.file")]
+    pub file_stable: Option<FileContent>,
+
+    /// Extensible-event file content of the message, with unstable name.
+    #[serde(rename = "org.matrix.msc1767.file")]
+    pub file_unstable: Option<FileContent>,
+
+    /// Extensible-event video info of the message, with stable name.
+    #[serde(rename = "m.video")]
+    pub video_stable: Option<Box<VideoContent>>,
+
+    /// Extensible-event video info of the message, with unstable name.
+    #[serde(rename = "org.matrix.msc1767.video")]
+    pub video_unstable: Option<Box<VideoContent>>,
+
+    /// Extensible-event thumbnails of the message, with stable name.
+    #[serde(rename = "m.thumbnail")]
+    pub thumbnail_stable: Option<Vec<ThumbnailContent>>,
+
+    /// Extensible-event thumbnails of the message, with unstable name.
+    #[serde(rename = "org.matrix.msc1767.thumbnail")]
+    pub thumbnail_unstable: Option<Vec<ThumbnailContent>>,
+
+    /// Extensible-event captions of the message, with stable name.
+    #[serde(rename = "m.caption")]
+    pub caption_stable: Option<MessageContent>,
+
+    /// Extensible-event captions of the message, with unstable name.
+    #[serde(rename = "org.matrix.msc1767.caption")]
+    pub caption_unstable: Option<MessageContent>,
+}
+
+#[cfg(feature = "unstable-msc3553")]
+impl From<VideoMessageEventContentDeHelper> for VideoMessageEventContent {
+    fn from(helper: VideoMessageEventContentDeHelper) -> Self {
+        let VideoMessageEventContentDeHelper {
+            body,
+            source,
+            info,
+            message,
+            file_stable,
+            file_unstable,
+            video_stable,
+            video_unstable,
+            thumbnail_stable,
+            thumbnail_unstable,
+            caption_stable,
+            caption_unstable,
+        } = helper;
+
+        let file = file_stable.or(file_unstable);
+        let video = video_stable.or(video_unstable);
+        let thumbnail = thumbnail_stable.or(thumbnail_unstable);
+        let caption = caption_stable.or(caption_unstable);
+
+        Self { body, source, info, message, file, video, thumbnail, caption }
     }
 }
