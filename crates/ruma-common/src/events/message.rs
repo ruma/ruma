@@ -227,9 +227,11 @@ pub struct Text {
     /// The text content.
     pub body: String,
 
-    /// The language of the text.
+    /// The language of the text ([MSC3554]).
     ///
     /// This must be a valid language code according to [BCP 47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt).
+    ///
+    /// [MSC3554]: https://github.com/matrix-org/matrix-spec-proposals/pull/3554
     #[cfg(feature = "unstable-msc3554")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub lang: Option<String>,
