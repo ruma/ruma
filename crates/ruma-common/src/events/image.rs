@@ -58,9 +58,7 @@ pub struct ImageEventContent {
     )]
     pub caption: Option<MessageContent>,
 
-    /// Information about related messages for [rich replies].
-    ///
-    /// [rich replies]: https://spec.matrix.org/v1.2/client-server-api/#rich-replies
+    /// Information about related messages.
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation>,
 }
@@ -244,7 +242,7 @@ impl ThumbnailFileContent {
         Self { url, info, encryption_info: Some(Box::new(encryption_info)) }
     }
 
-    /// Create a `ThumbnailContent` with the given thumbnail source and info.
+    /// Create a `ThumbnailFileContent` with the given thumbnail source and info.
     ///
     /// Returns `None` if no thumbnail was found.
     fn from_room_message_content(

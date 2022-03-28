@@ -588,7 +588,7 @@ pub struct AudioMessageEventContent {
     #[serde(flatten)]
     pub source: MediaSource,
 
-    /// Metadata for the audio clip referred to in `url`.
+    /// Metadata for the audio clip referred to in `source`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<Box<AudioInfo>>,
 
@@ -622,7 +622,7 @@ pub struct AudioMessageEventContent {
 }
 
 impl AudioMessageEventContent {
-    /// Creates a new non-encrypted `RoomAudioMessageEventContent` with the given body, url and
+    /// Creates a new non-encrypted `AudioMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<AudioInfo>>) -> Self {
         Self {
@@ -643,7 +643,7 @@ impl AudioMessageEventContent {
         }
     }
 
-    /// Creates a new encrypted `RoomAudioMessageEventContent` with the given body and encrypted
+    /// Creates a new encrypted `AudioMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
         Self {
@@ -693,11 +693,11 @@ impl AudioMessageEventContent {
     #[cfg(feature = "unstable-msc3245")]
     pub fn from_extensible_voice_content(
         message: MessageContent,
-        ext_file: FileContent,
+        file: FileContent,
         audio: AudioContent,
         voice: VoiceContent,
     ) -> Self {
-        let mut content = Self::from_extensible_content(message, ext_file, audio);
+        let mut content = Self::from_extensible_content(message, file, audio);
         content.voice = Some(voice);
         content
     }
@@ -849,7 +849,7 @@ pub struct FileMessageEventContent {
     #[serde(flatten)]
     pub source: MediaSource,
 
-    /// Metadata about the file referred to in `url`.
+    /// Metadata about the file referred to in `source`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<Box<FileInfo>>,
 
@@ -869,7 +869,7 @@ pub struct FileMessageEventContent {
 }
 
 impl FileMessageEventContent {
-    /// Creates a new non-encrypted `RoomFileMessageEventContent` with the given body, url and
+    /// Creates a new non-encrypted `FileMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<FileInfo>>) -> Self {
         Self {
@@ -887,7 +887,7 @@ impl FileMessageEventContent {
         }
     }
 
-    /// Creates a new encrypted `RoomFileMessageEventContent` with the given body and encrypted
+    /// Creates a new encrypted `FileMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
         Self {
@@ -902,7 +902,7 @@ impl FileMessageEventContent {
         }
     }
 
-    /// Create a new `RoomFileMessageEventContent` with the given message and file info.
+    /// Create a new `FileMessageEventContent` with the given message and file info.
     #[cfg(feature = "unstable-msc3551")]
     pub fn from_extensible_content(message: MessageContent, file: FileContent) -> Self {
         let body = if let Some(body) = message.find_plain() {
@@ -982,7 +982,7 @@ pub struct ImageMessageEventContent {
     #[serde(flatten)]
     pub source: MediaSource,
 
-    /// Metadata about the image referred to in `url`.
+    /// Metadata about the image referred to in `source`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<Box<ImageInfo>>,
 
@@ -1026,7 +1026,7 @@ pub struct ImageMessageEventContent {
 }
 
 impl ImageMessageEventContent {
-    /// Creates a new non-encrypted `RoomImageMessageEventContent` with the given body, url and
+    /// Creates a new non-encrypted `ImageMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<ImageInfo>>) -> Self {
         Self {
@@ -1057,7 +1057,7 @@ impl ImageMessageEventContent {
         }
     }
 
-    /// Creates a new encrypted `RoomImageMessageEventContent` with the given body and encrypted
+    /// Creates a new encrypted `ImageMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
         Self {
@@ -1161,7 +1161,7 @@ pub struct LocationMessageEventContent {
 }
 
 impl LocationMessageEventContent {
-    /// Creates a new `RoomLocationMessageEventContent` with the given body and geo URI.
+    /// Creates a new `LocationMessageEventContent` with the given body and geo URI.
     pub fn new(body: String, geo_uri: String) -> Self {
         Self {
             #[cfg(feature = "unstable-msc3488")]
@@ -1210,7 +1210,7 @@ impl LocationMessageEventContent {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct LocationInfo {
-    /// The URL to a thumbnail of the location.
+    /// The source of a thumbnail of the location.
     #[serde(
         flatten,
         with = "super::thumbnail_source_serde",
@@ -1328,7 +1328,7 @@ pub struct ServerNoticeMessageEventContent {
 }
 
 impl ServerNoticeMessageEventContent {
-    /// Creates a new `RoomServerNoticeMessageEventContent` with the given body and notice type.
+    /// Creates a new `ServerNoticeMessageEventContent` with the given body and notice type.
     pub fn new(body: String, server_notice_type: ServerNoticeType) -> Self {
         Self { body, server_notice_type, admin_contact: None, limit_type: None }
     }
@@ -1422,9 +1422,9 @@ impl FormattedBody {
         Self { format: MessageFormat::Html, body: body.into() }
     }
 
-    /// Creates a new HTML-formatted message body by parsing the markdown in `body`.
+    /// Creates a new HTML-formatted message body by parsing the Markdown in `body`.
     ///
-    /// Returns `None` if no markdown formatting was found.
+    /// Returns `None` if no Markdown formatting was found.
     #[cfg(feature = "markdown")]
     pub fn markdown(body: impl AsRef<str>) -> Option<Self> {
         let body = body.as_ref();
@@ -1473,7 +1473,7 @@ impl TextMessageEventContent {
         }
     }
 
-    /// A convenience constructor to create an html message.
+    /// A convenience constructor to create an HTML message.
     pub fn html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
         let body = body.into();
         let html_body = html_body.into();
@@ -1485,9 +1485,9 @@ impl TextMessageEventContent {
         }
     }
 
-    /// A convenience constructor to create a markdown message.
+    /// A convenience constructor to create a Markdown message.
     ///
-    /// Returns an html message if some markdown formatting was detected, otherwise returns a plain
+    /// Returns an HTML message if some Markdown formatting was detected, otherwise returns a plain
     /// text message.
     #[cfg(feature = "markdown")]
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
@@ -1531,7 +1531,7 @@ pub struct VideoMessageEventContent {
     #[serde(flatten)]
     pub source: MediaSource,
 
-    /// Metadata about the video clip referred to in `url`.
+    /// Metadata about the video clip referred to in `source`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<Box<VideoInfo>>,
 
@@ -1575,7 +1575,7 @@ pub struct VideoMessageEventContent {
 }
 
 impl VideoMessageEventContent {
-    /// Creates a new non-encrypted `RoomVideoMessageEventContent` with the given body, url and
+    /// Creates a new non-encrypted `VideoMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<VideoInfo>>) -> Self {
         Self {
@@ -1606,7 +1606,7 @@ impl VideoMessageEventContent {
         }
     }
 
-    /// Creates a new encrypted `RoomVideoMessageEventContent` with the given body and encrypted
+    /// Creates a new encrypted `VideoMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
         Self {
@@ -1780,7 +1780,7 @@ pub struct KeyVerificationRequestEventContent {
 }
 
 impl KeyVerificationRequestEventContent {
-    /// Creates a new `RoomKeyVerificationRequestEventContent` with the given body, method, device
+    /// Creates a new `KeyVerificationRequestEventContent` with the given body, method, device
     /// and user ID.
     pub fn new(
         body: String,

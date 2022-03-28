@@ -42,9 +42,7 @@ pub struct FileEventContent {
     #[serde(rename = "m.file")]
     pub file: FileContent,
 
-    /// Information about related messages for [rich replies].
-    ///
-    /// [rich replies]: https://spec.matrix.org/v1.2/client-server-api/#rich-replies
+    /// Information about related messages.
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation>,
 }
@@ -130,7 +128,7 @@ pub struct FileContent {
 
     /// Information on the encrypted file.
     ///
-    /// Required if file is encrypted.
+    /// Required if the file is encrypted.
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub encryption_info: Option<Box<EncryptedContent>>,
 }
@@ -179,7 +177,7 @@ pub struct FileContentInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
 
-    /// The mimetype of the file, e.g. “application/msword”.
+    /// The mimetype of the file, e.g. "application/msword".
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mimetype: Option<String>,
 
@@ -196,7 +194,7 @@ impl FileContentInfo {
 
     /// Create a new `FileContentInfo` with the given file info and filename.
     ///
-    /// Returns `None` if both parameters are `None`
+    /// Returns `None` if both parameters are `None`.
     pub fn from_room_message_content(
         info: Option<impl Into<FileContentInfo>>,
         filename: Option<String>,

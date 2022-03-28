@@ -41,7 +41,7 @@ pub struct VoiceEventContent {
     #[serde(rename = "m.audio")]
     pub audio: AudioContent,
 
-    /// The audio content of the message.
+    /// The voice content of the message.
     #[serde(rename = "m.voice")]
     pub voice: VoiceContent,
 
@@ -99,6 +99,9 @@ impl VoiceEventContent {
 }
 
 /// Voice content.
+///
+/// This is currently empty and used as a flag to mark an audio event that should be displayed as a
+/// voice message.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct VoiceContent {}
