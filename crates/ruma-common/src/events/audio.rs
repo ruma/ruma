@@ -13,9 +13,25 @@ mod waveform_serde;
 
 use waveform_serde::WaveformSerDeHelper;
 
-use super::{file::FileContent, message::MessageContent, room::message::Relation};
+use super::{
+    file::FileContent,
+    message::MessageContent,
+    room::message::{AudioInfo, AudioMessageEventContent, Relation},
+};
 
 /// The payload for an extensible audio message.
+///
+/// This is the new primary type introduced in [MSC3246] and should not be sent before the end of
+/// the transition period. See the documentation of the [`message`] module for more information.
+///
+/// `AudioEventContent` can be converted to a [`RoomMessageEventContent`] with a
+/// [`MessageType::Audio`]. You can convert it back with
+/// [`AudioEventContent::from_audio_room_message()`].
+///
+/// [MSC3246]: https://github.com/matrix-org/matrix-spec-proposals/pull/3246
+/// [`message`]: super::message
+/// [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
+/// [`MessageType::Audio`]: super::room::message::MessageType::Audio
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.audio", kind = MessageLike)]
@@ -52,6 +68,23 @@ impl AudioEventContent {
     pub fn with_message(message: MessageContent, file: FileContent) -> Self {
         Self { message, file, audio: Default::default(), relates_to: None }
     }
+
+    /// Create a new `AudioEventContent` from the given `AudioMessageEventContent` and optional
+    /// relation.
+    pub fn from_audio_room_message(
+        content: AudioMessageEventContent,
+        relates_to: Option<Relation>,
+    ) -> Self {
+        let AudioMessageEventContent { body, source, info, message, file, audio } = content;
+
+        let message = message.unwrap_or_else(|| MessageContent::plain(body));
+        let file = file.unwrap_or_else(|| {
+            FileContent::from_room_message_content(source, info.as_deref(), None)
+        });
+        let audio = audio.or_else(|| info.as_deref().map(Into::into)).unwrap_or_default();
+
+        Self { message, file, audio, relates_to }
+    }
 }
 
 /// Audio content.
@@ -75,6 +108,18 @@ impl AudioContent {
     /// Creates a new empty `AudioContent`.
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Whether this `AudioContent` is empty.
+    pub fn is_empty(&self) -> bool {
+        self.duration.is_none() && self.waveform.is_none()
+    }
+}
+
+impl From<&AudioInfo> for AudioContent {
+    fn from(info: &AudioInfo) -> Self {
+        let AudioInfo { duration, .. } = info;
+        Self { duration: duration.to_owned(), ..Default::default() }
     }
 }
 

@@ -52,6 +52,7 @@ fn serialization() {
         unsigned: MessageLikeUnsigned::default(),
     };
 
+    #[cfg(not(feature = "unstable-msc3246"))]
     assert_eq!(
         to_json_value(ev).unwrap(),
         json!({
@@ -67,6 +68,28 @@ fn serialization() {
             }
         })
     );
+
+    #[cfg(feature = "unstable-msc3246")]
+    assert_eq!(
+        to_json_value(ev).unwrap(),
+        json!({
+            "type": "m.room.message",
+            "event_id": "$143273582443PhrSn:example.org",
+            "origin_server_ts": 10_000,
+            "room_id": "!testroomid:example.org",
+            "sender": "@user:example.org",
+            "content": {
+                "body": "test",
+                "msgtype": "m.audio",
+                "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd",
+                "org.matrix.msc1767.text": "test",
+                "org.matrix.msc1767.file": {
+                    "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd",
+                },
+                "org.matrix.msc1767.audio": {},
+            }
+        })
+    );
 }
 
 #[test]
@@ -78,12 +101,28 @@ fn content_serialization() {
             None,
         )));
 
+    #[cfg(not(feature = "unstable-msc3246"))]
     assert_eq!(
         to_json_value(&message_event_content).unwrap(),
         json!({
             "body": "test",
             "msgtype": "m.audio",
             "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd"
+        })
+    );
+
+    #[cfg(feature = "unstable-msc3246")]
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "test",
+            "msgtype": "m.audio",
+            "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd",
+            "org.matrix.msc1767.text": "test",
+            "org.matrix.msc1767.file": {
+                "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd",
+            },
+            "org.matrix.msc1767.audio": {},
         })
     );
 }

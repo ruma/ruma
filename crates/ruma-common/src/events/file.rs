@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use super::{
     message::MessageContent,
     room::{
-        message::{FileInfo, FileMessageEventContent, Relation, VideoInfo},
+        message::{AudioInfo, FileInfo, FileMessageEventContent, Relation, VideoInfo},
         EncryptedFile, ImageInfo, JsonWebKey, MediaSource,
     },
 };
@@ -208,6 +208,13 @@ impl FileContentInfo {
             info.name = filename;
             Some(info)
         }
+    }
+}
+
+impl From<&AudioInfo> for FileContentInfo {
+    fn from(info: &AudioInfo) -> Self {
+        let AudioInfo { mimetype, size, .. } = info;
+        Self { mimetype: mimetype.to_owned(), size: size.to_owned(), ..Default::default() }
     }
 }
 
