@@ -14,6 +14,8 @@ use super::{EncryptedFile, ImageInfo, MediaSource, ThumbnailInfo};
 use crate::events::file::{FileContent, FileContentInfo, FileEventContent};
 #[cfg(feature = "unstable-msc3552")]
 use crate::events::image::{ImageContent, ImageEventContent, ThumbnailContent};
+#[cfg(feature = "unstable-msc3553")]
+use crate::events::video::{VideoContent, VideoEventContent};
 #[cfg(feature = "unstable-msc1767")]
 use crate::events::{
     emote::EmoteEventContent,
@@ -244,6 +246,20 @@ impl From<NoticeEventContent> for RoomMessageEventContent {
         let NoticeEventContent { message, relates_to, .. } = content;
 
         Self { msgtype: MessageType::Notice(message.into()), relates_to }
+    }
+}
+
+#[cfg(feature = "unstable-msc3553")]
+impl From<VideoEventContent> for RoomMessageEventContent {
+    fn from(content: VideoEventContent) -> Self {
+        let VideoEventContent { message, file, video, thumbnail, caption, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::Video(VideoMessageEventContent::from_extensible_content(
+                message, file, video, thumbnail, caption,
+            )),
+            relates_to,
+        }
     }
 }
 
@@ -1224,6 +1240,10 @@ impl From<MessageContent> for TextMessageEventContent {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.video")]
+#[cfg_attr(
+    feature = "unstable-msc3553",
+    serde(from = "content_serde::VideoMessageEventContentDeHelper")
+)]
 pub struct VideoMessageEventContent {
     /// A description of the video, e.g. "Gangnam Style", or some kind of content description for
     /// accessibility, e.g. "video attachment".
@@ -1236,19 +1256,128 @@ pub struct VideoMessageEventContent {
     /// Metadata about the video clip referred to in `url`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<Box<VideoInfo>>,
+
+    /// Extensible-event text representation of the message.
+    ///
+    /// If present, this should be preferred over the `body` field.
+    #[cfg(feature = "unstable-msc3553")]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub message: Option<MessageContent>,
+
+    /// Extensible-event file content of the message.
+    ///
+    /// If present, this should be preferred over the `source` and `info` fields.
+    #[cfg(feature = "unstable-msc3553")]
+    #[serde(rename = "org.matrix.msc1767.file", skip_serializing_if = "Option::is_none")]
+    pub file: Option<FileContent>,
+
+    /// Extensible-event video info of the message.
+    ///
+    /// If present, this should be preferred over the `info` field.
+    #[cfg(feature = "unstable-msc3553")]
+    #[serde(rename = "org.matrix.msc1767.video", skip_serializing_if = "Option::is_none")]
+    pub video: Option<Box<VideoContent>>,
+
+    /// Extensible-event thumbnails of the message.
+    ///
+    /// If present, this should be preferred over the `info` field.
+    #[cfg(feature = "unstable-msc3553")]
+    #[serde(rename = "org.matrix.msc1767.thumbnail", skip_serializing_if = "Option::is_none")]
+    pub thumbnail: Option<Vec<ThumbnailContent>>,
+
+    /// Extensible-event captions of the message.
+    #[cfg(feature = "unstable-msc3553")]
+    #[serde(
+        rename = "org.matrix.msc1767.caption",
+        with = "crate::events::message::content_serde::as_vec",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub caption: Option<MessageContent>,
 }
 
 impl VideoMessageEventContent {
     /// Creates a new non-encrypted `RoomVideoMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<VideoInfo>>) -> Self {
-        Self { body, source: MediaSource::Plain(url), info }
+        Self {
+            #[cfg(feature = "unstable-msc3553")]
+            message: Some(MessageContent::plain(body.clone())),
+            #[cfg(feature = "unstable-msc3553")]
+            file: Some(FileContent::plain(
+                url.clone(),
+                info.as_deref().map(|info| Box::new(info.into())),
+            )),
+            #[cfg(feature = "unstable-msc3553")]
+            video: Some(Box::new(info.as_deref().map_or_else(VideoContent::default, Into::into))),
+            #[cfg(feature = "unstable-msc3553")]
+            thumbnail: info
+                .as_deref()
+                .and_then(|info| {
+                    ThumbnailContent::from_room_message_content(
+                        info.thumbnail_source.as_ref(),
+                        info.thumbnail_info.as_deref(),
+                    )
+                })
+                .map(|thumbnail| vec![thumbnail]),
+            #[cfg(feature = "unstable-msc3553")]
+            caption: None,
+            body,
+            source: MediaSource::Plain(url),
+            info,
+        }
     }
 
     /// Creates a new encrypted `RoomVideoMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
-        Self { body, source: MediaSource::Encrypted(Box::new(file)), info: None }
+        Self {
+            #[cfg(feature = "unstable-msc3553")]
+            message: Some(MessageContent::plain(body.clone())),
+            #[cfg(feature = "unstable-msc3553")]
+            file: Some(FileContent::encrypted(file.url.clone(), (&file).into(), None)),
+            #[cfg(feature = "unstable-msc3553")]
+            video: Some(Box::new(VideoContent::default())),
+            #[cfg(feature = "unstable-msc3553")]
+            thumbnail: None,
+            #[cfg(feature = "unstable-msc3553")]
+            caption: None,
+            body,
+            source: MediaSource::Encrypted(Box::new(file)),
+            info: None,
+        }
+    }
+
+    /// Create a new `VideoMessageEventContent` with the given message, file info, video info,
+    /// thumbnails and captions.
+    #[cfg(feature = "unstable-msc3553")]
+    pub fn from_extensible_content(
+        message: MessageContent,
+        file: FileContent,
+        video: Box<VideoContent>,
+        thumbnail: Vec<ThumbnailContent>,
+        caption: Option<MessageContent>,
+    ) -> Self {
+        let body = if let Some(body) = message.find_plain() {
+            body.to_owned()
+        } else {
+            message[0].body.clone()
+        };
+        let source = (&file).into();
+        let info = VideoInfo::from_extensible_content(file.info.as_deref(), &video, &thumbnail)
+            .map(Box::new);
+        let thumbnail = if thumbnail.is_empty() { None } else { Some(thumbnail) };
+
+        Self {
+            message: Some(message),
+            file: Some(file),
+            video: Some(video),
+            thumbnail,
+            caption,
+            body,
+            source,
+            info,
+        }
     }
 }
 
@@ -1305,6 +1434,47 @@ impl VideoInfo {
     /// Creates an empty `VideoInfo`.
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Create a `VideoInfo` from the given file info, video info and thumbnail.
+    #[cfg(feature = "unstable-msc3553")]
+    pub fn from_extensible_content(
+        file_info: Option<&FileContentInfo>,
+        video: &VideoContent,
+        thumbnail: &[ThumbnailContent],
+    ) -> Option<Self> {
+        if file_info.is_none() && video.is_empty() && thumbnail.is_empty() {
+            None
+        } else {
+            let (mimetype, size) = file_info
+                .map(|info| (info.mimetype.to_owned(), info.size.to_owned()))
+                .unwrap_or_default();
+            let VideoContent { duration, height, width } = video.to_owned();
+            let (thumbnail_source, thumbnail_info) = thumbnail
+                .get(0)
+                .map(|thumbnail| {
+                    let source = (&thumbnail.file).into();
+                    let info = ThumbnailInfo::from_extensible_content(
+                        thumbnail.file.info.as_deref(),
+                        thumbnail.image.as_deref(),
+                    )
+                    .map(Box::new);
+                    (Some(source), info)
+                })
+                .unwrap_or_default();
+
+            Some(Self {
+                duration,
+                height,
+                width,
+                mimetype,
+                size,
+                thumbnail_info,
+                thumbnail_source,
+                #[cfg(feature = "unstable-msc2448")]
+                blurhash: None,
+            })
+        }
     }
 }
 
