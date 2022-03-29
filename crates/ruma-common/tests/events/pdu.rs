@@ -1,4 +1,4 @@
-#![cfg(all(feature = "unstable-pdu", not(feature = "unstable-pre-spec")))]
+#![cfg(all(feature = "unstable-pdu"))]
 
 use std::{collections::BTreeMap, convert::TryInto};
 
@@ -32,7 +32,6 @@ fn serialize_pdu_as_v1() {
         room_id: room_id!("!n8f893n9:example.com").to_owned(),
         event_id: event_id!("$somejoinevent:matrix.org").to_owned(),
         sender: user_id!("@sender:example.com").to_owned(),
-        origin: "matrix.org".into(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(1_592_050_773_658_u64.try_into().unwrap()),
         kind: RoomEventType::RoomPowerLevels,
         content: to_raw_json_value(&json!({ "testing": 123 })).unwrap(),
@@ -56,7 +55,6 @@ fn serialize_pdu_as_v1() {
         "room_id": "!n8f893n9:example.com",
         "event_id": "$somejoinevent:matrix.org",
         "sender": "@sender:example.com",
-        "origin": "matrix.org",
         "origin_server_ts": 1_592_050_773_658_u64,
         "type": "m.room.power_levels",
         "content": {
@@ -98,7 +96,6 @@ fn serialize_pdu_as_v3() {
     let v3_pdu = RoomV3Pdu {
         room_id: room_id!("!n8f893n9:example.com").to_owned(),
         sender: user_id!("@sender:example.com").to_owned(),
-        origin: "matrix.org".into(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(1_592_050_773_658_u64.try_into().unwrap()),
         kind: RoomEventType::RoomPowerLevels,
         content: to_raw_json_value(&json!({ "testing": 123 })).unwrap(),
@@ -115,7 +112,6 @@ fn serialize_pdu_as_v3() {
     let json = json!({
         "room_id": "!n8f893n9:example.com",
         "sender": "@sender:example.com",
-        "origin": "matrix.org",
         "origin_server_ts": 1_592_050_773_658_u64,
         "type": "m.room.power_levels",
         "content": {
@@ -158,7 +154,6 @@ fn deserialize_pdu_as_v1() {
         "hashes": {
             "sha256": "ThisHashCoversAllFieldsInCaseThisIsRedacted"
         },
-        "origin": "matrix.org",
         "origin_server_ts": 1_234_567_890,
         "prev_events": [
             [
@@ -198,7 +193,6 @@ fn deserialize_pdu_as_v1() {
     }
 }
 
-#[cfg(not(feature = "unstable-pre-spec"))]
 #[test]
 fn deserialize_pdu_as_v3() {
     let json = json!({
@@ -213,7 +207,6 @@ fn deserialize_pdu_as_v3() {
         "hashes": {
             "sha256": "ThisHashCoversAllFieldsInCaseThisIsRedacted"
         },
-        "origin": "matrix.org",
         "origin_server_ts": 1_234_567_890,
         "prev_events": [
                 "$abc123:matrix.org"
