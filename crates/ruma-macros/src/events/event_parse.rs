@@ -2,7 +2,6 @@
 
 use std::fmt;
 
-use proc_macro2::Span;
 use quote::{format_ident, IdentFragment};
 use syn::{
     braced,
@@ -110,19 +109,11 @@ impl IdentFragment for EventKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Display::fmt(self, f)
     }
-
-    fn span(&self) -> Option<Span> {
-        Some(Span::call_site())
-    }
 }
 
 impl IdentFragment for EventKindVariation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Display::fmt(self, f)
-    }
-
-    fn span(&self) -> Option<Span> {
-        Some(Span::call_site())
     }
 }
 
