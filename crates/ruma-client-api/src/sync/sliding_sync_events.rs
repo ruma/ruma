@@ -3,14 +3,16 @@
 use std::{collections::BTreeMap, time::Duration};
 
 use js_int::UInt;
-use ruma_api::ruma_api;
-use ruma_common::presence::PresenceState;
-use ruma_events::{
-    presence::PresenceEvent, AnySyncRoomEvent, AnySyncStateEvent,
-    EventType,
+use ruma_common::{
+    api::ruma_api,
+    presence::PresenceState,
+    events::{
+        presence::PresenceEvent, AnySyncRoomEvent, AnySyncStateEvent,
+        EventType
+    },
+    DeviceKeyAlgorithm, RoomId, UserId,
+    serde::Raw, serde::duration::opt_ms,
 };
-use ruma_identifiers::{DeviceKeyAlgorithm, RoomId, UserId};
-use ruma_serde::{Outgoing, Raw};
 use serde::{Deserialize, Serialize};
 
 use crate::filter::{FilterDefinition};
@@ -128,7 +130,7 @@ ruma_api! {
 
         /// The maximum time to poll in milliseconds before returning this request.
         #[serde(
-            with = "ruma_serde::duration::opt_ms",
+            with = "opt_ms",
             default,
             skip_serializing_if = "Option::is_none",
         )]
