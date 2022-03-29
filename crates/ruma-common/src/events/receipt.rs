@@ -31,9 +31,8 @@ impl ReceiptEventContent {
         receipt_type: ReceiptType,
     ) -> Option<(&EventId, &Receipt)> {
         self.iter().find_map(|(event_id, receipts)| {
-            receipts.get(&receipt_type).and_then(|user_receipts| {
-                user_receipts.get(user_id).map(|receipt| (event_id.as_ref(), receipt))
-            })
+            let receipt = receipts.get(&receipt_type)?.get(user_id)?;
+            Some((event_id.as_ref(), receipt))
         })
     }
 }
