@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3roomsroomidstate
 
-    use ruma_common::{api::ruma_api, events::AnyStateEvent, serde::Raw, RoomId};
+    use ruma_common::{api::ruma_api, events::AnyOriginalStateEvent, serde::Raw, RoomId};
 
     ruma_api! {
         metadata: {
@@ -32,7 +32,7 @@ pub mod v3 {
             /// If the user has left the room then this will be the state of the room when they left as
             /// a list of events.
             #[ruma_api(body)]
-            pub room_state: Vec<Raw<AnyStateEvent>>,
+            pub room_state: Vec<Raw<AnyOriginalStateEvent>>,
         }
 
         error: crate::Error
@@ -47,7 +47,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given room state.
-        pub fn new(room_state: Vec<Raw<AnyStateEvent>>) -> Self {
+        pub fn new(room_state: Vec<Raw<AnyOriginalStateEvent>>) -> Self {
             Self { room_state }
         }
     }

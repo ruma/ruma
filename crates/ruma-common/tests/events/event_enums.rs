@@ -5,7 +5,7 @@ use serde_json::{from_value as from_json_value, json};
 
 use ruma_common::events::{
     call::{answer::CallAnswerEventContent, SessionDescription, SessionDescriptionType},
-    AnyMessageLikeEvent, MessageLikeEvent,
+    AnyOriginalMessageLikeEvent, OriginalMessageLikeEvent,
 };
 
 #[test]
@@ -35,9 +35,9 @@ fn deserialize_message_event() {
     });
 
     assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data)
+        from_json_value::<AnyOriginalMessageLikeEvent>(json_data)
             .unwrap(),
-        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent {
+        AnyOriginalMessageLikeEvent::CallAnswer(OriginalMessageLikeEvent {
             content: CallAnswerEventContent {
                 answer: SessionDescription {
                     session_type: SessionDescriptionType::Answer,

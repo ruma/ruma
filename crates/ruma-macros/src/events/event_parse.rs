@@ -19,8 +19,10 @@ mod kw {
 // If the variants of this enum change `to_event_path` needs to be updated as well.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum EventKindVariation {
-    Full,
+    None,
     Sync,
+    Original,
+    OriginalSync,
     Stripped,
     Initial,
     Redacted,
@@ -30,8 +32,10 @@ pub enum EventKindVariation {
 impl fmt::Display for EventKindVariation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            EventKindVariation::Full => write!(f, ""),
+            EventKindVariation::None => write!(f, ""),
             EventKindVariation::Sync => write!(f, "Sync"),
+            EventKindVariation::Original => write!(f, "Original"),
+            EventKindVariation::OriginalSync => write!(f, "OriginalSync"),
             EventKindVariation::Stripped => write!(f, "Stripped"),
             EventKindVariation::Initial => write!(f, "Initial"),
             EventKindVariation::Redacted => write!(f, "Redacted"),
@@ -46,20 +50,20 @@ impl EventKindVariation {
     }
 
     pub fn is_sync(self) -> bool {
-        matches!(self, Self::Sync | Self::RedactedSync)
+        matches!(self, Self::OriginalSync | Self::RedactedSync)
     }
 
     pub fn to_redacted(self) -> Self {
         match self {
-            EventKindVariation::Full => EventKindVariation::Redacted,
-            EventKindVariation::Sync => EventKindVariation::RedactedSync,
+            EventKindVariation::Original => EventKindVariation::Redacted,
+            EventKindVariation::OriginalSync => EventKindVariation::RedactedSync,
             _ => panic!("No redacted form of {:?}", self),
         }
     }
 
     pub fn to_sync(self) -> Self {
         match self {
-            EventKindVariation::Full => EventKindVariation::Sync,
+            EventKindVariation::Original => EventKindVariation::OriginalSync,
             EventKindVariation::Redacted => EventKindVariation::RedactedSync,
             _ => panic!("No sync form of {:?}", self),
         }
@@ -67,9 +71,9 @@ impl EventKindVariation {
 
     pub fn to_full(self) -> Self {
         match self {
-            EventKindVariation::Sync => EventKindVariation::Full,
+            EventKindVariation::OriginalSync => EventKindVariation::Original,
             EventKindVariation::RedactedSync => EventKindVariation::Redacted,
-            _ => panic!("No full form of {:?}", self),
+            _ => panic!("No original (unredacted) form of {:?}", self),
         }
     }
 }
@@ -127,11 +131,20 @@ impl EventKind {
         use EventKindVariation as V;
 
         match (self, var) {
-            (_, V::Full)
-            | (Self::MessageLike | Self::RoomRedaction | Self::State | Self::Ephemeral, V::Sync)
+            (
+                Self::GlobalAccountData
+                | Self::RoomAccountData
+                | Self::Ephemeral
+                | Self::ToDevice
+                | Self::Presence
+                | Self::HierarchySpaceChild
+                | Self::Decrypted,
+                V::None,
+            )
+            | (Self::Ephemeral, V::Sync)
             | (
                 Self::MessageLike | Self::RoomRedaction | Self::State,
-                V::Redacted | V::RedactedSync,
+                V::Original | V::OriginalSync | V::Redacted | V::RedactedSync,
             )
             | (Self::State, V::Stripped | V::Initial) => Ok(format_ident!("{}{}", var, self)),
             _ => Err(syn::Error::new(
@@ -188,29 +201,33 @@ impl Parse for EventKind {
 pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation)> {
     let ident_str = ident.to_string();
     match ident_str.as_str() {
-        "GlobalAccountDataEvent" => Some((EventKind::GlobalAccountData, EventKindVariation::Full)),
-        "RoomAccountDataEvent" => Some((EventKind::RoomAccountData, EventKindVariation::Full)),
-        "EphemeralRoomEvent" => Some((EventKind::Ephemeral, EventKindVariation::Full)),
+        "GlobalAccountDataEvent" => Some((EventKind::GlobalAccountData, EventKindVariation::None)),
+        "RoomAccountDataEvent" => Some((EventKind::RoomAccountData, EventKindVariation::None)),
+        "EphemeralRoomEvent" => Some((EventKind::Ephemeral, EventKindVariation::None)),
         "SyncEphemeralRoomEvent" => Some((EventKind::Ephemeral, EventKindVariation::Sync)),
-        "MessageLikeEvent" => Some((EventKind::MessageLike, EventKindVariation::Full)),
-        "SyncMessageLikeEvent" => Some((EventKind::MessageLike, EventKindVariation::Sync)),
+        "OriginalMessageLikeEvent" => Some((EventKind::MessageLike, EventKindVariation::Original)),
+        "OriginalSyncMessageLikeEvent" => {
+            Some((EventKind::MessageLike, EventKindVariation::OriginalSync))
+        }
         "RedactedMessageLikeEvent" => Some((EventKind::MessageLike, EventKindVariation::Redacted)),
         "RedactedSyncMessageLikeEvent" => {
             Some((EventKind::MessageLike, EventKindVariation::RedactedSync))
         }
-        "StateEvent" => Some((EventKind::State, EventKindVariation::Full)),
-        "SyncStateEvent" => Some((EventKind::State, EventKindVariation::Sync)),
+        "OriginalStateEvent" => Some((EventKind::State, EventKindVariation::Original)),
+        "OriginalSyncStateEvent" => Some((EventKind::State, EventKindVariation::OriginalSync)),
         "StrippedStateEvent" => Some((EventKind::State, EventKindVariation::Stripped)),
         "InitialStateEvent" => Some((EventKind::State, EventKindVariation::Initial)),
         "RedactedStateEvent" => Some((EventKind::State, EventKindVariation::Redacted)),
         "RedactedSyncStateEvent" => Some((EventKind::State, EventKindVariation::RedactedSync)),
-        "ToDeviceEvent" => Some((EventKind::ToDevice, EventKindVariation::Full)),
-        "PresenceEvent" => Some((EventKind::Presence, EventKindVariation::Full)),
+        "ToDeviceEvent" => Some((EventKind::ToDevice, EventKindVariation::None)),
+        "PresenceEvent" => Some((EventKind::Presence, EventKindVariation::None)),
         "HierarchySpaceChildEvent" => {
             Some((EventKind::HierarchySpaceChild, EventKindVariation::Stripped))
         }
-        "RoomRedactionEvent" => Some((EventKind::RoomRedaction, EventKindVariation::Full)),
-        "SyncRoomRedactionEvent" => Some((EventKind::RoomRedaction, EventKindVariation::Sync)),
+        "OriginalRoomRedactionEvent" => Some((EventKind::RoomRedaction, EventKindVariation::None)),
+        "OriginalSyncRoomRedactionEvent" => {
+            Some((EventKind::RoomRedaction, EventKindVariation::OriginalSync))
+        }
         "RedactedRoomRedactionEvent" => {
             Some((EventKind::RoomRedaction, EventKindVariation::Redacted))
         }
@@ -218,7 +235,7 @@ pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation
             Some((EventKind::RoomRedaction, EventKindVariation::RedactedSync))
         }
         "DecryptedOlmV1Event" | "DecryptedMegolmV1Event" => {
-            Some((EventKind::Decrypted, EventKindVariation::Full))
+            Some((EventKind::Decrypted, EventKindVariation::None))
         }
         _ => None,
     }

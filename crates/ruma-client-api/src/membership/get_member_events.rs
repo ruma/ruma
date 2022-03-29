@@ -7,7 +7,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::ruma_api,
-        events::room::member::RoomMemberEvent,
+        events::room::member::OriginalRoomMemberEvent,
         serde::{Raw, StringEnum},
         RoomId,
     };
@@ -58,7 +58,7 @@ pub mod v3 {
 
         response: {
             /// A list of member events.
-            pub chunk: Vec<Raw<RoomMemberEvent>>,
+            pub chunk: Vec<Raw<OriginalRoomMemberEvent>>,
         }
 
         error: crate::Error
@@ -73,7 +73,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given member event chunk.
-        pub fn new(chunk: Vec<Raw<RoomMemberEvent>>) -> Self {
+        pub fn new(chunk: Vec<Raw<OriginalRoomMemberEvent>>) -> Self {
             Self { chunk }
         }
     }

@@ -7,9 +7,9 @@ use ruma_common::{
             aliases::RedactedRoomAliasesEventContent,
             create::{RedactedRoomCreateEventContent, RoomCreateEventContent},
             message::{RedactedRoomMessageEventContent, RoomMessageEventContent},
-            redaction::{RoomRedactionEventContent, SyncRoomRedactionEvent},
+            redaction::{OriginalSyncRoomRedactionEvent, RoomRedactionEventContent},
         },
-        AnyMessageLikeEvent, AnyRedactedMessageLikeEvent, AnyRedactedSyncMessageLikeEvent,
+        AnyOriginalMessageLikeEvent, AnyRedactedMessageLikeEvent, AnyRedactedSyncMessageLikeEvent,
         AnyRedactedSyncStateEvent, AnyRoomEvent, AnySyncRoomEvent, EventContent,
         MessageLikeUnsigned, Redact, RedactContent, RedactedMessageLikeEvent,
         RedactedSyncMessageLikeEvent, RedactedSyncStateEvent, RedactedUnsigned,
@@ -23,7 +23,7 @@ use serde_json::{
 
 fn unsigned() -> RedactedUnsigned {
     let mut unsigned = RedactedUnsigned::default();
-    unsigned.redacted_because = Some(Box::new(SyncRoomRedactionEvent {
+    unsigned.redacted_because = Some(Box::new(OriginalSyncRoomRedactionEvent {
         content: RoomRedactionEventContent::with_reason("redacted because".into()),
         redacts: event_id!("$h29iv0s8:example.com").to_owned(),
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
@@ -160,7 +160,7 @@ fn redacted_deserialize_any_room_sync() {
     // The presence of `redacted_because` triggers the event enum (AnySyncRoomEvent in this case)
     // to return early with `RedactedContent` instead of failing to deserialize according
     // to the event type string.
-    unsigned.redacted_because = Some(Box::new(SyncRoomRedactionEvent {
+    unsigned.redacted_because = Some(Box::new(OriginalSyncRoomRedactionEvent {
         content: RoomRedactionEventContent::with_reason("redacted because".into()),
         redacts: event_id!("$h29iv0s8:example.com").to_owned(),
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
@@ -260,7 +260,7 @@ fn redact_method_properly_redacts() {
         },
     });
 
-    let redaction = SyncRoomRedactionEvent {
+    let redaction = OriginalSyncRoomRedactionEvent {
         content: RoomRedactionEventContent::with_reason("redacted because".into()),
         redacts: event_id!("$143273582443PhrSn:example.com").to_owned(),
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
@@ -269,7 +269,7 @@ fn redact_method_properly_redacts() {
         unsigned: MessageLikeUnsigned::default(),
     };
 
-    let event: AnyMessageLikeEvent = from_json_value(ev).unwrap();
+    let event: AnyOriginalMessageLikeEvent = from_json_value(ev).unwrap();
 
     assert_matches!(
         event.redact(redaction, &RoomVersionId::V6),

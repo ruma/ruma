@@ -367,8 +367,10 @@ fn generate_event_type_aliases(
     })?;
 
     let type_aliases = [
-        EventKindVariation::Full,
+        EventKindVariation::None,
         EventKindVariation::Sync,
+        EventKindVariation::Original,
+        EventKindVariation::OriginalSync,
         EventKindVariation::Stripped,
         EventKindVariation::Initial,
         EventKindVariation::Redacted,
@@ -380,8 +382,10 @@ fn generate_event_type_aliases(
         let ev_type = format_ident!("{}{}", var, ev_type_s);
 
         let doc_text = match var {
-            EventKindVariation::Full => "",
-            EventKindVariation::Sync => " from a `sync_events` response",
+            EventKindVariation::None | EventKindVariation::Original => "",
+            EventKindVariation::Sync | EventKindVariation::OriginalSync => {
+                " from a `sync_events` response"
+            }
             EventKindVariation::Stripped => " from an invited room preview",
             EventKindVariation::Redacted => " that has been redacted",
             EventKindVariation::RedactedSync => {

@@ -15,7 +15,7 @@ use ruma_common::{
         room::{
             message::{
                 AudioMessageEventContent, KeyVerificationRequestEventContent, MessageType,
-                RoomMessageEvent, RoomMessageEventContent, TextMessageEventContent,
+                OriginalRoomMessageEvent, RoomMessageEventContent, TextMessageEventContent,
             },
             MediaSource,
         },
@@ -39,7 +39,7 @@ macro_rules! json_object {
 
 #[test]
 fn serialization() {
-    let ev = RoomMessageEvent {
+    let ev = OriginalRoomMessageEvent {
         content: RoomMessageEventContent::new(MessageType::Audio(AudioMessageEventContent::plain(
             "test".into(),
             mxc_uri!("mxc://example.org/ffed755USFFxlgbQYZGtryd").to_owned(),

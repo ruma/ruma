@@ -4,7 +4,7 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
     key,
-    room::{encrypted, redaction::SyncRoomRedactionEvent},
+    room::{encrypted, redaction::OriginalSyncRoomRedactionEvent},
     Redact, UnsignedDeHelper,
 };
 use crate::{
@@ -129,8 +129,8 @@ macro_rules! room_ev_accessor {
             #[doc = concat!("Returns this event's `", stringify!($field), "` field.")]
             pub fn $field(&self) -> $ty {
                 match self {
-                    Self::MessageLike(ev) => ev.$field(),
-                    Self::State(ev) => ev.$field(),
+                    Self::OriginalMessageLike(ev) => ev.$field(),
+                    Self::OriginalState(ev) => ev.$field(),
                     Self::RedactedMessageLike(ev) => ev.$field(),
                     Self::RedactedState(ev) => ev.$field(),
                 }
@@ -143,11 +143,11 @@ macro_rules! room_ev_accessor {
 #[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
 #[derive(Clone, Debug, EventEnumFromEvent)]
 pub enum AnyRoomEvent {
-    /// Any message-like event.
-    MessageLike(AnyMessageLikeEvent),
+    /// Any message-like event (unredacted).
+    OriginalMessageLike(AnyOriginalMessageLikeEvent),
 
-    /// Any state event.
-    State(AnyStateEvent),
+    /// Any state event (unredacted).
+    OriginalState(AnyOriginalStateEvent),
 
     /// Any message-like event that has been redacted.
     RedactedMessageLike(AnyRedactedMessageLikeEvent),
@@ -169,11 +169,11 @@ impl AnyRoomEvent {
 #[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
 #[derive(Clone, Debug, EventEnumFromEvent)]
 pub enum AnySyncRoomEvent {
-    /// Any sync message-like event.
-    MessageLike(AnySyncMessageLikeEvent),
+    /// Any sync message-like event (unredacted).
+    OriginalMessageLike(AnyOriginalSyncMessageLikeEvent),
 
-    /// Any sync state event.
-    State(AnySyncStateEvent),
+    /// Any sync state event (unredacted).
+    OriginalState(AnyOriginalSyncStateEvent),
 
     /// Any sync message-like event that has been redacted.
     RedactedMessageLike(AnyRedactedSyncMessageLikeEvent),
@@ -190,8 +190,10 @@ impl AnySyncRoomEvent {
     /// Converts `self` to an `AnyRoomEvent` by adding the given a room ID.
     pub fn into_full_event(self, room_id: Box<RoomId>) -> AnyRoomEvent {
         match self {
-            Self::MessageLike(ev) => AnyRoomEvent::MessageLike(ev.into_full_event(room_id)),
-            Self::State(ev) => AnyRoomEvent::State(ev.into_full_event(room_id)),
+            Self::OriginalMessageLike(ev) => {
+                AnyRoomEvent::OriginalMessageLike(ev.into_full_event(room_id))
+            }
+            Self::OriginalState(ev) => AnyRoomEvent::OriginalState(ev.into_full_event(room_id)),
             Self::RedactedMessageLike(ev) => {
                 AnyRoomEvent::RedactedMessageLike(ev.into_full_event(room_id))
             }
@@ -220,14 +222,14 @@ impl<'de> Deserialize<'de> for AnyRoomEvent {
                 Some(unsigned) if unsigned.redacted_because.is_some() => {
                     AnyRoomEvent::RedactedState(from_raw_json_value(&json)?)
                 }
-                _ => AnyRoomEvent::State(from_raw_json_value(&json)?),
+                _ => AnyRoomEvent::OriginalState(from_raw_json_value(&json)?),
             })
         } else {
             Ok(match unsigned {
                 Some(unsigned) if unsigned.redacted_because.is_some() => {
                     AnyRoomEvent::RedactedMessageLike(from_raw_json_value(&json)?)
                 }
-                _ => AnyRoomEvent::MessageLike(from_raw_json_value(&json)?),
+                _ => AnyRoomEvent::OriginalMessageLike(from_raw_json_value(&json)?),
             })
         }
     }
@@ -246,14 +248,14 @@ impl<'de> Deserialize<'de> for AnySyncRoomEvent {
                 Some(unsigned) if unsigned.redacted_because.is_some() => {
                     AnySyncRoomEvent::RedactedState(from_raw_json_value(&json)?)
                 }
-                _ => AnySyncRoomEvent::State(from_raw_json_value(&json)?),
+                _ => AnySyncRoomEvent::OriginalState(from_raw_json_value(&json)?),
             })
         } else {
             Ok(match unsigned {
                 Some(unsigned) if unsigned.redacted_because.is_some() => {
                     AnySyncRoomEvent::RedactedMessageLike(from_raw_json_value(&json)?)
                 }
-                _ => AnySyncRoomEvent::MessageLike(from_raw_json_value(&json)?),
+                _ => AnySyncRoomEvent::OriginalMessageLike(from_raw_json_value(&json)?),
             })
         }
     }
@@ -276,12 +278,18 @@ impl Redact for AnyRoomEvent {
     /// Redacts `self`, referencing the given event in `unsigned.redacted_because`.
     ///
     /// Does nothing for events that are already redacted.
-    fn redact(self, redaction: SyncRoomRedactionEvent, version: &RoomVersionId) -> Self::Redacted {
+    fn redact(
+        self,
+        redaction: OriginalSyncRoomRedactionEvent,
+        version: &RoomVersionId,
+    ) -> Self::Redacted {
         match self {
-            Self::MessageLike(ev) => Self::Redacted::MessageLike(ev.redact(redaction, version)),
-            Self::State(ev) => Self::Redacted::State(ev.redact(redaction, version)),
-            Self::RedactedMessageLike(ev) => Self::Redacted::MessageLike(ev),
-            Self::RedactedState(ev) => Self::Redacted::State(ev),
+            Self::OriginalMessageLike(ev) => {
+                AnyRedactedRoomEvent::MessageLike(ev.redact(redaction, version))
+            }
+            Self::OriginalState(ev) => AnyRedactedRoomEvent::State(ev.redact(redaction, version)),
+            Self::RedactedMessageLike(ev) => AnyRedactedRoomEvent::MessageLike(ev),
+            Self::RedactedState(ev) => AnyRedactedRoomEvent::State(ev),
         }
     }
 }
@@ -312,12 +320,20 @@ impl Redact for AnySyncRoomEvent {
     /// Redacts `self`, referencing the given event in `unsigned.redacted_because`.
     ///
     /// Does nothing for events that are already redacted.
-    fn redact(self, redaction: SyncRoomRedactionEvent, version: &RoomVersionId) -> Self::Redacted {
+    fn redact(
+        self,
+        redaction: OriginalSyncRoomRedactionEvent,
+        version: &RoomVersionId,
+    ) -> AnyRedactedSyncRoomEvent {
         match self {
-            Self::MessageLike(ev) => Self::Redacted::MessageLike(ev.redact(redaction, version)),
-            Self::State(ev) => Self::Redacted::State(ev.redact(redaction, version)),
-            Self::RedactedMessageLike(ev) => Self::Redacted::MessageLike(ev),
-            Self::RedactedState(ev) => Self::Redacted::State(ev),
+            Self::OriginalMessageLike(ev) => {
+                AnyRedactedSyncRoomEvent::MessageLike(ev.redact(redaction, version))
+            }
+            Self::OriginalState(ev) => {
+                AnyRedactedSyncRoomEvent::State(ev.redact(redaction, version))
+            }
+            Self::RedactedMessageLike(ev) => AnyRedactedSyncRoomEvent::MessageLike(ev),
+            Self::RedactedState(ev) => AnyRedactedSyncRoomEvent::State(ev),
         }
     }
 }

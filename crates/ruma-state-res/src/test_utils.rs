@@ -29,12 +29,12 @@ use tracing::info;
 
 use crate::{auth_types_for_event, Error, Event, Result, StateMap};
 
-pub use event::StateEvent;
+pub use event::OriginalStateEvent;
 
 static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 
 pub fn do_check(
-    events: &[Arc<StateEvent>],
+    events: &[Arc<OriginalStateEvent>],
     edges: Vec<Vec<Box<EventId>>>,
     expected_state_ids: Vec<Box<EventId>>,
 ) {
@@ -52,7 +52,7 @@ pub fn do_check(
 
     // This will be lexi_topo_sorted for resolution
     let mut graph = HashMap::new();
-    // This is the same as in `resolve` event_id -> StateEvent
+    // This is the same as in `resolve` event_id -> OriginalStateEvent
     let mut fake_event_map = HashMap::new();
 
     // Create the DB of events that led up to this point
@@ -76,8 +76,8 @@ pub fn do_check(
         }
     }
 
-    // event_id -> StateEvent
-    let mut event_map: HashMap<Box<EventId>, Arc<StateEvent>> = HashMap::new();
+    // event_id -> OriginalStateEvent
+    let mut event_map: HashMap<Box<EventId>, Arc<OriginalStateEvent>> = HashMap::new();
     // event_id -> StateMap<Box<EventId>>
     let mut state_at_event: HashMap<Box<EventId>, StateMap<Box<EventId>>> = HashMap::new();
 
@@ -245,7 +245,7 @@ impl<E: Event> TestStore<E> {
 
 // A StateStore implementation for testing
 #[allow(clippy::type_complexity)]
-impl TestStore<StateEvent> {
+impl TestStore<OriginalStateEvent> {
     pub fn set_up(
         &mut self,
     ) -> (StateMap<Box<EventId>>, StateMap<Box<EventId>>, StateMap<Box<EventId>>) {
@@ -387,12 +387,12 @@ pub fn to_init_pdu_event(
     ev_type: RoomEventType,
     state_key: Option<&str>,
     content: Box<RawJsonValue>,
-) -> Arc<StateEvent> {
+) -> Arc<OriginalStateEvent> {
     let ts = SERVER_TIMESTAMP.fetch_add(1, SeqCst);
     let id = if id.contains('$') { id.to_owned() } else { format!("${}:foo", id) };
 
     let state_key = state_key.map(ToOwned::to_owned);
-    Arc::new(StateEvent {
+    Arc::new(OriginalStateEvent {
         event_id: id.try_into().unwrap(),
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
             room_id: room_id().to_owned(),
@@ -420,7 +420,7 @@ pub fn to_pdu_event<S>(
     content: Box<RawJsonValue>,
     auth_events: &[S],
     prev_events: &[S],
-) -> Arc<StateEvent>
+) -> Arc<OriginalStateEvent>
 where
     S: AsRef<str>,
 {
@@ -430,7 +430,7 @@ where
     let prev_events = prev_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
 
     let state_key = state_key.map(ToOwned::to_owned);
-    Arc::new(StateEvent {
+    Arc::new(OriginalStateEvent {
         event_id: id.try_into().unwrap(),
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
             room_id: room_id().to_owned(),
@@ -452,7 +452,7 @@ where
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<StateEvent>> {
+pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<OriginalStateEvent>> {
     vec![
         to_pdu_event::<&EventId>(
             "CREATE",
@@ -534,7 +534,7 @@ pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<StateEvent>> {
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-pub fn INITIAL_EVENTS_CREATE_ROOM() -> HashMap<Box<EventId>, Arc<StateEvent>> {
+pub fn INITIAL_EVENTS_CREATE_ROOM() -> HashMap<Box<EventId>, Arc<OriginalStateEvent>> {
     vec![to_pdu_event::<&EventId>(
         "CREATE",
         alice(),
@@ -567,7 +567,7 @@ pub mod event {
 
     use crate::Event;
 
-    impl Event for StateEvent {
+    impl Event for OriginalStateEvent {
         type Id = Box<EventId>;
 
         fn event_id(&self) -> &Self::Id {
@@ -658,13 +658,13 @@ pub mod event {
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
     #[allow(clippy::exhaustive_structs)]
-    pub struct StateEvent {
+    pub struct OriginalStateEvent {
         pub event_id: Box<EventId>,
         #[serde(flatten)]
         pub rest: Pdu,
     }
 
-    //impl StateEvent {
+    //impl OriginalStateEvent {
     //    pub fn state_key(&self) -> &str {
     //        match &self.rest {
     //            Pdu::RoomV1Pdu(ev) => ev.state_key.as_ref().unwrap(),

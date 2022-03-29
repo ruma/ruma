@@ -1,7 +1,8 @@
 use indoc::formatdoc;
 
 use super::{
-    FormattedBody, MessageType, RoomMessageEvent, RoomMessageEventContent, SyncRoomMessageEvent,
+    FormattedBody, MessageType, OriginalRoomMessageEvent, OriginalSyncRoomMessageEvent,
+    RoomMessageEventContent,
 };
 use crate::{EventId, UserId};
 
@@ -21,7 +22,7 @@ pub trait ReplyBaseEvent {
     fn content(&self) -> &RoomMessageEventContent;
 }
 
-impl ReplyBaseEvent for RoomMessageEvent {
+impl ReplyBaseEvent for OriginalRoomMessageEvent {
     fn event_id(&self) -> &EventId {
         &self.event_id
     }
@@ -35,7 +36,7 @@ impl ReplyBaseEvent for RoomMessageEvent {
     }
 }
 
-impl ReplyBaseEvent for SyncRoomMessageEvent {
+impl ReplyBaseEvent for OriginalSyncRoomMessageEvent {
     fn event_id(&self) -> &EventId {
         &self.event_id
     }
@@ -91,7 +92,7 @@ pub fn get_plain_quote_fallback(original_message: &impl ReplyBaseEvent) -> Strin
 }
 
 #[allow(clippy::nonstandard_macro_braces)]
-pub fn get_html_quote_fallback(original_message: &RoomMessageEvent) -> String {
+pub fn get_html_quote_fallback(original_message: &OriginalRoomMessageEvent) -> String {
     match &original_message.content.msgtype {
         MessageType::Audio(_) => {
             formatdoc!(
@@ -303,12 +304,12 @@ mod tests {
         event_id, events::MessageLikeUnsigned, room_id, user_id, MilliSecondsSinceUnixEpoch,
     };
 
-    use super::{RoomMessageEvent, RoomMessageEventContent};
+    use super::{OriginalRoomMessageEvent, RoomMessageEventContent};
 
     #[test]
     fn plain_quote_fallback_multiline() {
         assert_eq!(
-            super::get_plain_quote_fallback(&RoomMessageEvent {
+            super::get_plain_quote_fallback(&OriginalRoomMessageEvent {
                 content: RoomMessageEventContent::text_plain("multi\nline"),
                 event_id: event_id!("$1598361704261elfgc:localhost").to_owned(),
                 sender: user_id!("@alice:example.com").to_owned(),

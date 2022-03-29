@@ -17,7 +17,7 @@ use ruma_common::{
             MediaSource,
         },
         voice::{VoiceContent, VoiceEventContent},
-        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned,
+        AnyOriginalMessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
     },
     mxc_uri, room_id, user_id, MilliSecondsSinceUnixEpoch,
 };
@@ -25,7 +25,7 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 
 #[test]
 fn event_serialization() {
-    let event = MessageLikeEvent {
+    let event = OriginalMessageLikeEvent {
         content: assign!(
             VoiceEventContent::plain(
                 "Voice message",
@@ -114,8 +114,8 @@ fn message_event_deserialization() {
     });
 
     assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Voice(MessageLikeEvent {
+        from_json_value::<AnyOriginalMessageLikeEvent>(json_data).unwrap(),
+        AnyOriginalMessageLikeEvent::Voice(OriginalMessageLikeEvent {
             content: VoiceEventContent {
                 message,
                 file: FileContent {

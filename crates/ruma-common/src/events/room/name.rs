@@ -36,11 +36,11 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::RoomNameEventContent;
-    use crate::events::{StateEvent, StateUnsigned};
+    use crate::events::{OriginalStateEvent, StateUnsigned};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
-        let name_event = StateEvent {
+        let name_event = OriginalStateEvent {
             content: RoomNameEventContent { name: "The room name".try_into().ok() },
             event_id: event_id!("$h29iv0s8:example.com").to_owned(),
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
@@ -68,7 +68,7 @@ mod tests {
 
     #[test]
     fn serialization_with_all_fields() {
-        let name_event = StateEvent {
+        let name_event = OriginalStateEvent {
             content: RoomNameEventContent { name: "The room name".try_into().ok() },
             event_id: event_id!("$h29iv0s8:example.com").to_owned(),
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
@@ -114,7 +114,10 @@ mod tests {
             "type": "m.room.name"
         });
         assert_eq!(
-            from_json_value::<StateEvent<RoomNameEventContent>>(json_data).unwrap().content.name,
+            from_json_value::<OriginalStateEvent<RoomNameEventContent>>(json_data)
+                .unwrap()
+                .content
+                .name,
             None
         );
     }
@@ -161,7 +164,10 @@ mod tests {
             "type": "m.room.name"
         });
         assert_eq!(
-            from_json_value::<StateEvent<RoomNameEventContent>>(json_data).unwrap().content.name,
+            from_json_value::<OriginalStateEvent<RoomNameEventContent>>(json_data)
+                .unwrap()
+                .content
+                .name,
             None
         );
     }
@@ -180,7 +186,10 @@ mod tests {
             "type": "m.room.name"
         });
         assert_eq!(
-            from_json_value::<StateEvent<RoomNameEventContent>>(json_data).unwrap().content.name,
+            from_json_value::<OriginalStateEvent<RoomNameEventContent>>(json_data)
+                .unwrap()
+                .content
+                .name,
             None
         );
     }
@@ -201,7 +210,10 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<StateEvent<RoomNameEventContent>>(json_data).unwrap().content.name,
+            from_json_value::<OriginalStateEvent<RoomNameEventContent>>(json_data)
+                .unwrap()
+                .content
+                .name,
             name
         );
     }

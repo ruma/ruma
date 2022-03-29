@@ -13,7 +13,7 @@ use crate::{
 /// Redaction event.
 #[derive(Clone, Debug, Event)]
 #[allow(clippy::exhaustive_structs)]
-pub struct RoomRedactionEvent {
+pub struct OriginalRoomRedactionEvent {
     /// Data specific to the event type.
     pub content: RoomRedactionEventContent,
 
@@ -36,12 +36,12 @@ pub struct RoomRedactionEvent {
     pub unsigned: MessageLikeUnsigned,
 }
 
-impl Redact for RoomRedactionEvent {
+impl Redact for OriginalRoomRedactionEvent {
     type Redacted = RedactedRoomRedactionEvent;
 
     fn redact(
         self,
-        redaction: SyncRoomRedactionEvent,
+        redaction: OriginalSyncRoomRedactionEvent,
         version: &crate::RoomVersionId,
     ) -> Self::Redacted {
         RedactedRoomRedactionEvent {
@@ -86,7 +86,7 @@ pub struct RedactedRoomRedactionEvent {
 /// Redaction event without a `room_id`.
 #[derive(Clone, Debug, Event)]
 #[allow(clippy::exhaustive_structs)]
-pub struct SyncRoomRedactionEvent {
+pub struct OriginalSyncRoomRedactionEvent {
     /// Data specific to the event type.
     pub content: RoomRedactionEventContent,
 
@@ -106,12 +106,12 @@ pub struct SyncRoomRedactionEvent {
     pub unsigned: MessageLikeUnsigned,
 }
 
-impl Redact for SyncRoomRedactionEvent {
+impl Redact for OriginalSyncRoomRedactionEvent {
     type Redacted = RedactedSyncRoomRedactionEvent;
 
     fn redact(
         self,
-        redaction: SyncRoomRedactionEvent,
+        redaction: OriginalSyncRoomRedactionEvent,
         version: &crate::RoomVersionId,
     ) -> Self::Redacted {
         RedactedSyncRoomRedactionEvent {

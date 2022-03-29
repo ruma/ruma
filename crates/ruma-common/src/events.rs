@@ -38,10 +38,10 @@
 //! `ruma::api::client::state::send_state_event`'s `Request`.
 //!
 //! As a more advanced example we create a reaction message event. For this event we will use a
-//! [`SyncMessageLikeEvent`] struct but any [`MessageLikeEvent`] struct would work.
+//! [`OriginalSyncMessageLikeEvent`] struct but any [`OriginalMessageLikeEvent`] struct would work.
 //!
 //! ```rust
-//! use ruma_common::events::{macros::EventContent, SyncMessageLikeEvent};
+//! use ruma_common::events::{macros::EventContent, OriginalSyncMessageLikeEvent};
 //! use ruma_common::EventId;
 //! use serde::{Deserialize, Serialize};
 //!
@@ -90,8 +90,8 @@
 //! // The downside of this event is we cannot use it with event enums,
 //! // but could be deserialized from a `Raw<_>` that has failed to deserialize.
 //! matches::assert_matches!(
-//!     serde_json::from_value::<SyncMessageLikeEvent<ReactionEventContent>>(json),
-//!     Ok(SyncMessageLikeEvent {
+//!     serde_json::from_value::<OriginalSyncMessageLikeEvent<ReactionEventContent>>(json),
+//!     Ok(OriginalSyncMessageLikeEvent {
 //!         content: ReactionEventContent {
 //!             relates_to: RelatesTo::Annotation { key, .. },
 //!         },
@@ -102,7 +102,7 @@
 
 use serde::{de::IgnoredAny, Deserialize, Serializer};
 
-use self::room::redaction::SyncRoomRedactionEvent;
+use self::room::redaction::OriginalSyncRoomRedactionEvent;
 use crate::{EventEncryptionAlgorithm, RoomVersionId};
 
 // Needs to be public for trybuild tests
@@ -180,7 +180,11 @@ pub trait Redact {
     ///
     /// A small number of events have room-version specific redaction behavior, so a version has to
     /// be specified.
-    fn redact(self, redaction: SyncRoomRedactionEvent, version: &RoomVersionId) -> Self::Redacted;
+    fn redact(
+        self,
+        redaction: OriginalSyncRoomRedactionEvent,
+        version: &RoomVersionId,
+    ) -> Self::Redacted;
 }
 
 /// Trait to define the behavior of redact an event's content object.

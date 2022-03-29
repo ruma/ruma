@@ -55,7 +55,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
     }
 
     if matches!(kind, EventKind::MessageLike | EventKind::State)
-        && matches!(var, EventKindVariation::Full | EventKindVariation::Sync)
+        && matches!(var, EventKindVariation::Original | EventKindVariation::OriginalSync)
     {
         res.extend(expand_redact_event(&input, kind, var, &fields, &ruma_common));
     }
@@ -422,7 +422,7 @@ fn expand_redact_event(
 
             fn redact(
                 self,
-                redaction: #ruma_common::events::room::redaction::SyncRoomRedactionEvent,
+                redaction: #ruma_common::events::room::redaction::OriginalSyncRoomRedactionEvent,
                 version: &#ruma_common::RoomVersionId,
             ) -> Self::Redacted {
                 let content = #ruma_common::events::RedactContent::redact(self.content, version);

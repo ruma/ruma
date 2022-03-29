@@ -20,7 +20,12 @@ const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
     ("origin_server_ts", is_non_stripped_room_event),
     ("room_id", |kind, var| {
         matches!(kind, EventKind::MessageLike | EventKind::State | EventKind::Ephemeral)
-            && matches!(var, EventKindVariation::Full | EventKindVariation::Redacted)
+            && matches!(
+                var,
+                EventKindVariation::None
+                    | EventKindVariation::Original
+                    | EventKindVariation::Redacted
+            )
     }),
     ("event_id", is_non_stripped_room_event),
     ("sender", |kind, var| {
@@ -48,23 +53,59 @@ pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
     let variants = &variants;
     let ruma_common = &ruma_common;
 
-    res.extend(
-        expand_event_enum(kind, V::Full, events, attrs, variants, ruma_common)
-            .unwrap_or_else(syn::Error::into_compile_error),
-    );
     res.extend(expand_content_enum(kind, events, attrs, variants, ruma_common));
 
-    if matches!(kind, EventKind::Ephemeral | EventKind::MessageLike | EventKind::State) {
+    if matches!(kind, EventKind::MessageLike | EventKind::State) {
+        res.extend(
+            expand_event_enum(kind, V::Original, events, attrs, variants, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+        res.extend(
+            expand_event_enum(kind, V::OriginalSync, events, attrs, variants, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+        res.extend(
+            expand_event_enum(kind, V::Redacted, events, attrs, variants, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+        res.extend(
+            expand_event_enum(kind, V::RedactedSync, events, attrs, variants, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+        res.extend(
+            expand_redact(kind, V::Original, variants, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+        res.extend(
+            expand_redact(kind, V::OriginalSync, variants, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+        res.extend(
+            expand_from_full_event(kind, V::Original, variants)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+        res.extend(
+            expand_into_full_event(kind, V::OriginalSync, variants, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+        res.extend(
+            expand_from_full_event(kind, V::Redacted, variants)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+        res.extend(
+            expand_into_full_event(kind, V::RedactedSync, variants, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+    } else {
+        res.extend(
+            expand_event_enum(kind, V::None, events, attrs, variants, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+    }
+
+    if matches!(kind, EventKind::Ephemeral) {
         res.extend(
             expand_event_enum(kind, V::Sync, events, attrs, variants, ruma_common)
-                .unwrap_or_else(syn::Error::into_compile_error),
-        );
-        res.extend(
-            expand_from_full_event(kind, V::Full, variants)
-                .unwrap_or_else(syn::Error::into_compile_error),
-        );
-        res.extend(
-            expand_into_full_event(kind, V::Sync, variants, ruma_common)
                 .unwrap_or_else(syn::Error::into_compile_error),
         );
     }
@@ -76,33 +117,6 @@ pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
         );
         res.extend(
             expand_event_enum(kind, V::Initial, events, attrs, variants, ruma_common)
-                .unwrap_or_else(syn::Error::into_compile_error),
-        );
-    }
-
-    if matches!(kind, EventKind::MessageLike | EventKind::State) {
-        res.extend(
-            expand_event_enum(kind, V::Redacted, events, attrs, variants, ruma_common)
-                .unwrap_or_else(syn::Error::into_compile_error),
-        );
-        res.extend(
-            expand_event_enum(kind, V::RedactedSync, events, attrs, variants, ruma_common)
-                .unwrap_or_else(syn::Error::into_compile_error),
-        );
-        res.extend(
-            expand_redact(kind, V::Full, variants, ruma_common)
-                .unwrap_or_else(syn::Error::into_compile_error),
-        );
-        res.extend(
-            expand_redact(kind, V::Sync, variants, ruma_common)
-                .unwrap_or_else(syn::Error::into_compile_error),
-        );
-        res.extend(
-            expand_from_full_event(kind, V::Redacted, variants)
-                .unwrap_or_else(syn::Error::into_compile_error),
-        );
-        res.extend(
-            expand_into_full_event(kind, V::RedactedSync, variants, ruma_common)
                 .unwrap_or_else(syn::Error::into_compile_error),
         );
     }
@@ -401,7 +415,7 @@ fn expand_redact(
 
             fn redact(
                 self,
-                redaction: #ruma_common::events::room::redaction::SyncRoomRedactionEvent,
+                redaction: #ruma_common::events::room::redaction::OriginalSyncRoomRedactionEvent,
                 version: &#ruma_common::RoomVersionId,
             ) -> #redacted_enum {
                 match self {
@@ -546,7 +560,7 @@ fn to_event_path(
     let path = event_module_path(name);
     let event = m_prefix_name_to_type_name(name).unwrap();
     let event_name = if kind == EventKind::ToDevice {
-        assert_eq!(var, EventKindVariation::Full);
+        assert_eq!(var, EventKindVariation::None);
         format_ident!("ToDevice{}Event", event)
     } else {
         format_ident!("{}{}Event", var, event)

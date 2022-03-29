@@ -10,11 +10,12 @@ use ruma_common::{
             message::{MessageType, RoomMessageEventContent, TextMessageEventContent},
             power_levels::RoomPowerLevelsEventContent,
         },
-        AnyEphemeralRoomEvent, AnyMessageLikeEvent, AnyRoomEvent, AnyStateEvent,
-        AnyStateEventContent, AnySyncMessageLikeEvent, AnySyncRoomEvent, AnySyncStateEvent,
-        EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEvent, MessageLikeEventType,
-        MessageLikeUnsigned, RoomAccountDataEventType, StateEvent, StateEventType,
-        SyncMessageLikeEvent, SyncStateEvent, ToDeviceEventType,
+        AnyEphemeralRoomEvent, AnyOriginalMessageLikeEvent, AnyOriginalStateEvent,
+        AnyOriginalSyncMessageLikeEvent, AnyOriginalSyncStateEvent, AnyRoomEvent,
+        AnyStateEventContent, AnySyncRoomEvent, EphemeralRoomEventType, GlobalAccountDataEventType,
+        MessageLikeEventType, MessageLikeUnsigned, OriginalMessageLikeEvent, OriginalStateEvent,
+        OriginalSyncMessageLikeEvent, OriginalSyncStateEvent, RoomAccountDataEventType,
+        StateEventType, ToDeviceEventType,
     },
     MilliSecondsSinceUnixEpoch,
 };
@@ -123,8 +124,8 @@ fn power_event_sync_deserialization() {
 
     assert_matches!(
         from_json_value::<AnySyncRoomEvent>(json_data),
-        Ok(AnySyncRoomEvent::State(
-            AnySyncStateEvent::RoomPowerLevels(SyncStateEvent {
+        Ok(AnySyncRoomEvent::OriginalState(
+            AnyOriginalSyncStateEvent::RoomPowerLevels(OriginalSyncStateEvent {
                 content: RoomPowerLevelsEventContent {
                     ban, ..
                 },
@@ -141,8 +142,8 @@ fn message_event_sync_deserialization() {
 
     assert_matches!(
         from_json_value::<AnySyncRoomEvent>(json_data),
-        Ok(AnySyncRoomEvent::MessageLike(
-            AnySyncMessageLikeEvent::RoomMessage(SyncMessageLikeEvent {
+        Ok(AnySyncRoomEvent::OriginalMessageLike(
+            AnyOriginalSyncMessageLikeEvent::RoomMessage(OriginalSyncMessageLikeEvent {
                 content: RoomMessageEventContent {
                     msgtype: MessageType::Text(TextMessageEventContent {
                         body,
@@ -164,8 +165,8 @@ fn aliases_event_sync_deserialization() {
 
     assert_matches!(
         from_json_value::<AnySyncRoomEvent>(json_data),
-        Ok(AnySyncRoomEvent::State(
-            AnySyncStateEvent::RoomAliases(SyncStateEvent {
+        Ok(AnySyncRoomEvent::OriginalState(
+            AnyOriginalSyncStateEvent::RoomAliases(OriginalSyncStateEvent {
                 content: RoomAliasesEventContent {
                     aliases,
                     ..
@@ -183,8 +184,8 @@ fn message_room_event_deserialization() {
 
     assert_matches!(
         from_json_value::<AnyRoomEvent>(json_data),
-        Ok(AnyRoomEvent::MessageLike(
-            AnyMessageLikeEvent::RoomMessage(MessageLikeEvent {
+        Ok(AnyRoomEvent::OriginalMessageLike(
+            AnyOriginalMessageLikeEvent::RoomMessage(OriginalMessageLikeEvent {
                 content: RoomMessageEventContent {
                     msgtype: MessageType::Text(TextMessageEventContent {
                         body,
@@ -202,7 +203,7 @@ fn message_room_event_deserialization() {
 
 #[test]
 fn message_event_serialization() {
-    let event = MessageLikeEvent {
+    let event = OriginalMessageLikeEvent {
         content: RoomMessageEventContent::text_plain("test"),
         event_id: event_id!("$1234:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(0)),
@@ -230,8 +231,8 @@ fn alias_room_event_deserialization() {
 
     assert_matches!(
         from_json_value::<AnyRoomEvent>(json_data),
-        Ok(AnyRoomEvent::State(
-            AnyStateEvent::RoomAliases(StateEvent {
+        Ok(AnyRoomEvent::OriginalState(
+            AnyOriginalStateEvent::RoomAliases(OriginalStateEvent {
                 content: RoomAliasesEventContent {
                     aliases,
                     ..
@@ -249,8 +250,8 @@ fn message_event_deserialization() {
 
     assert_matches!(
         from_json_value::<AnyRoomEvent>(json_data),
-        Ok(AnyRoomEvent::MessageLike(
-            AnyMessageLikeEvent::RoomMessage(MessageLikeEvent {
+        Ok(AnyRoomEvent::OriginalMessageLike(
+            AnyOriginalMessageLikeEvent::RoomMessage(OriginalMessageLikeEvent {
                 content: RoomMessageEventContent {
                     msgtype: MessageType::Text(TextMessageEventContent {
                         body,
@@ -272,8 +273,8 @@ fn alias_event_deserialization() {
 
     assert_matches!(
         from_json_value::<AnyRoomEvent>(json_data),
-        Ok(AnyRoomEvent::State(
-            AnyStateEvent::RoomAliases(StateEvent {
+        Ok(AnyRoomEvent::OriginalState(
+            AnyOriginalStateEvent::RoomAliases(OriginalStateEvent {
                 content: RoomAliasesEventContent {
                     aliases,
                     ..
@@ -291,14 +292,14 @@ fn alias_event_field_access() {
 
     assert_matches!(
         from_json_value::<AnyRoomEvent>(json_data.clone()),
-        Ok(AnyRoomEvent::State(state_event))
+        Ok(AnyRoomEvent::OriginalState(state_event))
         if state_event.state_key() == ""
             && state_event.room_id() == room_id!("!room:room.com")
             && state_event.event_id() == event_id!("$152037280074GZeOm:localhost")
             && state_event.sender() == user_id!("@example:localhost")
     );
 
-    let deser = from_json_value::<AnyStateEvent>(json_data).unwrap();
+    let deser = from_json_value::<AnyOriginalStateEvent>(json_data).unwrap();
     if let AnyStateEventContent::RoomAliases(RoomAliasesEventContent { aliases, .. }) =
         deser.content()
     {
