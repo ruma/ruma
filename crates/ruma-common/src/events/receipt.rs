@@ -30,15 +30,11 @@ impl ReceiptEventContent {
         user_id: &UserId,
         receipt_type: ReceiptType,
     ) -> Option<(&EventId, &Receipt)> {
-        for (event_id, receipts) in self.iter() {
-            for (type_, user_receipts) in receipts.iter() {
-                if type_ == &receipt_type {
-                    return user_receipts.get(user_id).map(|receipt| (event_id.as_ref(), receipt));
-                }
-            }
-        }
-
-        None
+        self.iter().find_map(|(event_id, receipts)| {
+            receipts.get(&receipt_type).and_then(|user_receipts| {
+                user_receipts.get(user_id).map(|receipt| (event_id.as_ref(), receipt))
+            })
+        })
     }
 }
 
