@@ -5,8 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3roomsroomidaliases
 
-    use ruma_api::ruma_api;
-    use ruma_identifiers::{RoomAliasId, RoomId};
+    use ruma_common::{api::ruma_api, RoomAliasId, RoomId};
 
     ruma_api! {
         metadata: {
@@ -15,6 +14,7 @@ pub mod v3 {
             name: "aliases",
             r0_path: "/_matrix/client/r0/rooms/:room_id/aliases",
             stable_path: "/_matrix/client/v3/rooms/:room_id/aliases",
+            unstable_path: "/_matrix/client/unstable/org.matrix.msc2432/rooms/:room_id/aliases",
             rate_limited: true,
             authentication: AccessToken,
             added: 1.0,

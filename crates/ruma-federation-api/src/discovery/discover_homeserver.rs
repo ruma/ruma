@@ -2,8 +2,7 @@
 //!
 //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#getwell-knownmatrixserver
 
-use ruma_api::ruma_api;
-use ruma_identifiers::ServerName;
+use ruma_common::{api::ruma_api, ServerName};
 
 ruma_api! {
     metadata: {

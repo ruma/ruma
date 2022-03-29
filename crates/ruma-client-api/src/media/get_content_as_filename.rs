@@ -5,8 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixmediav3downloadservernamemediaidfilename
 
-    use ruma_api::ruma_api;
-    use ruma_identifiers::{Error, MxcUri, ServerName};
+    use ruma_common::{api::ruma_api, IdParseError, MxcUri, ServerName};
 
     ruma_api! {
         metadata: {
@@ -37,7 +36,7 @@ pub mod v3 {
             ///
             /// Used to prevent routing loops. Defaults to `true`.
             #[ruma_api(query)]
-            #[serde(default = "ruma_serde::default_true", skip_serializing_if = "ruma_serde::is_true")]
+            #[serde(default = "ruma_common::serde::default_true", skip_serializing_if = "ruma_common::serde::is_true")]
             pub allow_remote: bool,
         }
 
@@ -48,7 +47,6 @@ pub mod v3 {
 
             /// The content type of the file that was previously uploaded.
             #[ruma_api(header = CONTENT_TYPE)]
-            // Potentially not actually optional – https://github.com/matrix-org/matrix-doc/pull/2818
             pub content_type: Option<String>,
 
             /// The value of the `Content-Disposition` HTTP header, possibly containing the name of the
@@ -71,7 +69,7 @@ pub mod v3 {
         }
 
         /// Creates a new `Request` with the given url and filename.
-        pub fn from_url(url: &'a MxcUri, filename: &'a str) -> Result<Self, Error> {
+        pub fn from_url(url: &'a MxcUri, filename: &'a str) -> Result<Self, IdParseError> {
             let (server_name, media_id) = url.parts()?;
 
             Ok(Self { media_id, server_name, filename, allow_remote: true })

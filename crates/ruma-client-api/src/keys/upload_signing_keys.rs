@@ -5,9 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3keysdevice_signingupload
 
-    use ruma_api::ruma_api;
-    use ruma_common::encryption::CrossSigningKey;
-    use ruma_serde::Raw;
+    use ruma_common::{api::ruma_api, encryption::CrossSigningKey, serde::Raw};
 
     use crate::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
 

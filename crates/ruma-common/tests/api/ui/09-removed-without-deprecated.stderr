@@ -1,0 +1,13 @@
+error: removed version is defined while deprecated version is not defined
+  --> $DIR/09-removed-without-deprecated.rs:3:1
+   |
+3  | / ruma_api! {
+4  | |     metadata: {
+5  | |         description: "This will fail.",
+6  | |         method: GET,
+...  |
+20 | |     response: {}
+21 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `ruma_api` (in Nightly builds, run with -Z macro-backtrace for more info)

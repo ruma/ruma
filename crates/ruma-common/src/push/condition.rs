@@ -1,14 +1,12 @@
 use std::{collections::BTreeMap, convert::TryFrom, ops::RangeBounds, str::FromStr};
 
 use js_int::{Int, UInt};
-use ruma_identifiers::{RoomId, UserId};
-use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};
 use serde_json::{to_value as to_json_value, value::Value as JsonValue};
-use tracing::warn;
+use tracing::{instrument, warn};
 use wildmatch::WildMatch;
 
-use crate::power_levels::NotificationPowerLevels;
+use crate::{power_levels::NotificationPowerLevels, serde::Raw, RoomId, UserId};
 
 mod room_member_count_is;
 
@@ -278,6 +276,7 @@ impl FlattenedJson {
     }
 
     /// Flatten and insert the `value` at `path`.
+    #[instrument(skip(self, value))]
     fn flatten_value(&mut self, value: JsonValue, path: String) {
         match value {
             JsonValue::Object(fields) => {
@@ -305,11 +304,10 @@ impl FlattenedJson {
 mod tests {
     use std::collections::BTreeMap;
 
+    use crate::{room_id, serde::Raw, user_id};
     use js_int::uint;
     use maplit::btreemap;
     use matches::assert_matches;
-    use ruma_identifiers::{room_id, user_id};
-    use ruma_serde::Raw;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
@@ -458,7 +456,7 @@ mod tests {
         assert!("foobar".matches_pattern("foo*", false));
         assert!("foo bar".matches_pattern("foo*", false));
         assert!(!"foo".matches_pattern("foo?", false));
-        assert!("foo".matches_pattern("fo?", false));
+        assert!("fooo".matches_pattern("foo?", false));
         assert!("FOO".matches_pattern("foo", false));
         assert!("".matches_pattern("", false));
         assert!("".matches_pattern("*", false));

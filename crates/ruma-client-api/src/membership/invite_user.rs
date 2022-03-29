@@ -10,9 +10,7 @@ pub mod v3 {
     //! [spec-mxid]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3roomsroomidinvite
     //! [spec-3pid]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3roomsroomidinvite-1
 
-    use ruma_api::ruma_api;
-    use ruma_identifiers::{RoomId, UserId};
-    use ruma_serde::Outgoing;
+    use ruma_common::{api::ruma_api, serde::Incoming, RoomId, UserId};
     use serde::Serialize;
 
     use crate::membership::{IncomingInvite3pid, Invite3pid};
@@ -64,7 +62,7 @@ pub mod v3 {
     }
 
     /// Distinguishes between invititations by Matrix or third party identifiers.
-    #[derive(Clone, Debug, PartialEq, Outgoing, Serialize)]
+    #[derive(Clone, Debug, PartialEq, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[incoming_derive(PartialEq)]
     #[serde(untagged)]
@@ -81,8 +79,7 @@ pub mod v3 {
 
     #[cfg(test)]
     mod tests {
-        use ruma_common::thirdparty::Medium;
-        use ruma_identifiers::user_id;
+        use ruma_common::{thirdparty::Medium, user_id};
         use serde_json::{from_value as from_json_value, json};
 
         use super::IncomingInvitationRecipient;

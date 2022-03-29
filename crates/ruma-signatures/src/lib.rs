@@ -44,7 +44,7 @@
 
 #![warn(missing_docs)]
 
-use ruma_serde::{AsRefStr, DisplayAsRefStr};
+use ruma_common::serde::{AsRefStr, DisplayAsRefStr};
 
 pub use error::{Error, JsonError, JsonType, ParseError, VerificationError};
 pub use functions::{
@@ -52,7 +52,7 @@ pub use functions::{
     redact_in_place, reference_hash, sign_json, verify_event, verify_json,
 };
 pub use keys::{Ed25519KeyPair, KeyPair, PublicKeyMap, PublicKeySet};
-pub use ruma_serde::{CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue};
+pub use ruma_common::serde::{CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue};
 pub use signatures::Signature;
 pub use verification::Verified;
 
@@ -106,8 +106,7 @@ mod tests {
 
     use base64::{decode_config, STANDARD_NO_PAD};
     use pkcs8::{der::Decodable, PrivateKeyInfo};
-    use ruma_identifiers::RoomVersionId;
-    use ruma_serde::Base64;
+    use ruma_common::{serde::Base64, RoomVersionId};
     use serde_json::{from_str as from_json_str, to_string as to_json_string};
 
     use super::{

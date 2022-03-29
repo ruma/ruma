@@ -5,10 +5,12 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3roomsroomidstateeventtypestatekey
 
-    use ruma_api::ruma_api;
-    use ruma_events::{AnyStateEventContent, EventType};
-    use ruma_identifiers::RoomId;
-    use ruma_serde::{Outgoing, Raw};
+    use ruma_common::{
+        api::ruma_api,
+        events::{AnyStateEventContent, StateEventType},
+        serde::{Incoming, Raw},
+        RoomId,
+    };
 
     ruma_api! {
         metadata: {
@@ -26,7 +28,7 @@ pub mod v3 {
             /// The content of the state event.
             ///
             /// Since the inner type of the `Raw` does not implement `Deserialize`, you need to use
-            /// `ruma_events::RawExt` to deserialize it.
+            /// [`Raw::deserialize_content`] to deserialize it.
             #[ruma_api(body)]
             pub content: Raw<AnyStateEventContent>,
         }
@@ -37,7 +39,7 @@ pub mod v3 {
     /// Data for a request to the `get_state_events_for_key` API endpoint.
     ///
     /// Get state events associated with a given key.
-    #[derive(Clone, Debug, Outgoing)]
+    #[derive(Clone, Debug, Incoming)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[incoming_derive(!Deserialize)]
     pub struct Request<'a> {
@@ -45,7 +47,7 @@ pub mod v3 {
         pub room_id: &'a RoomId,
 
         /// The type of state to look up.
-        pub event_type: EventType,
+        pub event_type: StateEventType,
 
         /// The key of the state to look up.
         pub state_key: &'a str,
@@ -53,7 +55,7 @@ pub mod v3 {
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given room ID, event type and state key.
-        pub fn new(room_id: &'a RoomId, event_type: EventType, state_key: &'a str) -> Self {
+        pub fn new(room_id: &'a RoomId, event_type: StateEventType, state_key: &'a str) -> Self {
             Self { room_id, event_type, state_key }
         }
     }
@@ -66,31 +68,31 @@ pub mod v3 {
     }
 
     #[cfg(feature = "client")]
-    impl<'a> ruma_api::OutgoingRequest for Request<'a> {
+    impl<'a> ruma_common::api::OutgoingRequest for Request<'a> {
         type EndpointError = crate::Error;
-        type IncomingResponse = <Response as ruma_serde::Outgoing>::Incoming;
+        type IncomingResponse = Response;
 
-        const METADATA: ruma_api::Metadata = METADATA;
+        const METADATA: ruma_common::api::Metadata = METADATA;
 
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
             base_url: &str,
-            access_token: ruma_api::SendAccessToken<'_>,
-            considering_versions: &'_ [ruma_api::MatrixVersion],
-        ) -> Result<http::Request<T>, ruma_api::error::IntoHttpError> {
+            access_token: ruma_common::api::SendAccessToken<'_>,
+            considering_versions: &'_ [ruma_common::api::MatrixVersion],
+        ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use std::borrow::Cow;
 
             use http::header;
             use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 
             let room_id_percent = utf8_percent_encode(self.room_id.as_str(), NON_ALPHANUMERIC);
-            let event_type_percent =
-                utf8_percent_encode(self.event_type.as_str(), NON_ALPHANUMERIC);
+            let event_type = self.event_type.to_string();
+            let event_type_percent = utf8_percent_encode(&event_type, NON_ALPHANUMERIC);
 
             let mut url = format!(
                 "{}{}",
                 base_url.strip_suffix('/').unwrap_or(base_url),
-                ruma_api::select_path(
+                ruma_common::api::select_path(
                     considering_versions,
                     &METADATA,
                     None,
@@ -117,7 +119,7 @@ pub mod v3 {
                         "Bearer {}",
                         access_token
                             .get_required_for_endpoint()
-                            .ok_or(ruma_api::error::IntoHttpError::NeedsAuthentication)?,
+                            .ok_or(ruma_common::api::error::IntoHttpError::NeedsAuthentication)?,
                     ),
                 )
                 .body(T::default())
@@ -126,23 +128,23 @@ pub mod v3 {
     }
 
     #[cfg(feature = "server")]
-    impl ruma_api::IncomingRequest for IncomingRequest {
+    impl ruma_common::api::IncomingRequest for IncomingRequest {
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
 
-        const METADATA: ruma_api::Metadata = METADATA;
+        const METADATA: ruma_common::api::Metadata = METADATA;
 
         fn try_from_http_request<B, S>(
             _request: http::Request<B>,
             path_args: &[S],
-        ) -> Result<Self, ruma_api::error::FromHttpRequestError>
+        ) -> Result<Self, ruma_common::api::error::FromHttpRequestError>
         where
             B: AsRef<[u8]>,
             S: AsRef<str>,
         {
             // FIXME: find a way to make this if-else collapse with serde recognizing trailing
             // Option
-            let (room_id, event_type, state_key): (Box<RoomId>, EventType, String) =
+            let (room_id, event_type, state_key): (Box<RoomId>, StateEventType, String) =
                 if path_args.len() == 3 {
                     serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
                         _,

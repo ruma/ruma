@@ -9,14 +9,13 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.2/push-gateway-api/#post_matrixpushv1notify
 
     use js_int::UInt;
-    use ruma_api::ruma_api;
     use ruma_common::{
+        api::ruma_api,
+        events::RoomEventType,
         push::{PusherData, Tweak},
-        SecondsSinceUnixEpoch,
+        serde::{Incoming, StringEnum},
+        EventId, RoomAliasId, RoomId, RoomName, SecondsSinceUnixEpoch, UserId,
     };
-    use ruma_events::EventType;
-    use ruma_identifiers::{EventId, RoomAliasId, RoomId, RoomName, UserId};
-    use ruma_serde::{Outgoing, StringEnum};
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
 
@@ -66,7 +65,7 @@ pub mod v1 {
     }
 
     /// Type for passing information about a push notification
-    #[derive(Clone, Debug, Default, Outgoing, Serialize)]
+    #[derive(Clone, Debug, Default, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct Notification<'a> {
         /// The Matrix event ID of the event being notified about.
@@ -85,7 +84,7 @@ pub mod v1 {
 
         /// The type of the event as in the event's `type` field.
         #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-        pub event_type: Option<&'a EventType>,
+        pub event_type: Option<&'a RoomEventType>,
 
         /// The sender of the event as in the corresponding event field.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -105,7 +104,7 @@ pub mod v1 {
 
         /// Whether the user receiving the notification is the subject of a member event (i.e. the
         /// `state_key` of the member event is equal to the user's Matrix ID).
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub user_is_target: bool,
 
         /// The priority of the notification.
@@ -113,7 +112,7 @@ pub mod v1 {
         /// If omitted, `high` is assumed. This may be used by push gateways to deliver less
         /// time-sensitive notifications in a way that will preserve battery power on mobile
         /// devices.
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub prio: NotificationPriority,
 
         /// The `content` field from the event, if present.
@@ -125,7 +124,7 @@ pub mod v1 {
         /// Current number of unacknowledged communications for the recipient user.
         ///
         /// Counts whose value is zero should be omitted.
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub counts: NotificationCounts,
 
         /// An array of devices that the notification should be sent to.
@@ -179,12 +178,12 @@ pub mod v1 {
     pub struct NotificationCounts {
         /// The number of unread messages a user has across all of the rooms they
         /// are a member of.
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub unread: UInt,
 
         /// The number of unacknowledged missed calls a user has across all rooms of
         /// which they are a member.
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub missed_calls: UInt,
     }
 
@@ -197,7 +196,7 @@ pub mod v1 {
     }
 
     /// Type for passing information about devices.
-    #[derive(Clone, Debug, Deserialize, Outgoing, Serialize)]
+    #[derive(Clone, Debug, Deserialize, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct Device {
         /// The `app_id` given when the pusher was created.
@@ -321,9 +320,9 @@ pub mod v1 {
     #[cfg(test)]
     mod tests {
         use js_int::uint;
-        use ruma_common::SecondsSinceUnixEpoch;
-        use ruma_events::EventType;
-        use ruma_identifiers::{event_id, room_alias_id, room_id, user_id};
+        use ruma_common::{
+            event_id, events::RoomEventType, room_alias_id, room_id, user_id, SecondsSinceUnixEpoch,
+        };
         use serde_json::{
             from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
         };
@@ -385,7 +384,7 @@ pub mod v1 {
             let notice = Notification {
                 event_id: Some(eid),
                 room_id: Some(rid),
-                event_type: Some(&EventType::RoomMessage),
+                event_type: Some(&RoomEventType::RoomMessage),
                 sender: Some(uid),
                 sender_display_name: Some("Major Tom"),
                 room_alias: Some(alias),

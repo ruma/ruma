@@ -7,8 +7,7 @@ pub mod v3 {
 
     use std::collections::BTreeMap;
 
-    use ruma_api::ruma_api;
-    use ruma_common::thirdparty::Location;
+    use ruma_common::{api::ruma_api, thirdparty::Location};
 
     ruma_api! {
         metadata: {
@@ -28,7 +27,7 @@ pub mod v3 {
             pub protocol: &'a str,
 
             /// One or more custom fields to help identify the third party location.
-            // The specification is incorrect for this parameter. See matrix-org/matrix-doc#2352.
+            // The specification is incorrect for this parameter. See [matrix-spec#560](https://github.com/matrix-org/matrix-spec/issues/560).
             #[ruma_api(query_map)]
             pub fields: BTreeMap<String, String>,
         }

@@ -1,5 +1,13 @@
 # [unreleased]
 
+Breaking changes:
+
+* Use `Raw` for `config::set_*_account_data::Request::data`.
+
+Improvements:
+
+* Add support for the space summary API in `space::get_hierarchy` according to MSC2946.
+
 # 0.13.0
 
 Bug fixes:

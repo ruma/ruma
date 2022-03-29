@@ -17,12 +17,15 @@
 use std::hash::{Hash, Hasher};
 
 use indexmap::{Equivalent, IndexSet};
-use ruma_serde::{Raw, StringEnum};
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "unstable-pre-spec")]
 use serde_json::Value as JsonValue;
+use tracing::instrument;
 
-use crate::PrivOwnedStr;
+use crate::{
+    serde::{Raw, StringEnum},
+    PrivOwnedStr,
+};
 
 mod action;
 mod condition;
@@ -99,6 +102,7 @@ impl Ruleset {
     ///
     /// * `event` - The raw JSON of a room message event.
     /// * `context` - The context of the message and room at the time of the event.
+    #[instrument(skip_all, fields(context.room_id = %context.room_id))]
     pub fn get_match<T>(
         &self,
         event: &Raw<T>,
@@ -116,6 +120,7 @@ impl Ruleset {
     ///
     /// * `event` - The raw JSON of a room message event.
     /// * `context` - The context of the message and room at the time of the event.
+    #[instrument(skip_all, fields(context.room_id = %context.room_id))]
     pub fn get_actions<T>(&self, event: &Raw<T>, context: &PushConditionRoomCtx) -> &[Action] {
         self.get_match(event, context).map(|rule| rule.actions()).unwrap_or(&[])
     }
@@ -406,7 +411,7 @@ pub struct PusherData {
     /// For more information, see [Sygnal docs][sygnal].
     ///
     /// [sygnal]: https://github.com/matrix-org/sygnal/blob/main/docs/applications.md#ios-applications-beware
-    // Not specified, issue: https://github.com/matrix-org/matrix-doc/issues/3474
+    // Not specified, issue: https://github.com/matrix-org/matrix-spec/issues/921
     #[cfg(feature = "unstable-pre-spec")]
     #[serde(default, skip_serializing_if = "JsonValue::is_null")]
     pub default_payload: JsonValue,
@@ -463,8 +468,6 @@ mod tests {
 
     use js_int::uint;
     use matches::assert_matches;
-    use ruma_identifiers::{room_id, user_id};
-    use ruma_serde::Raw;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value,
         value::RawValue as RawJsonValue, Value as JsonValue,
@@ -475,7 +478,7 @@ mod tests {
         condition::{PushCondition, PushConditionRoomCtx, RoomMemberCountIs},
         AnyPushRule, ConditionalPushRule, PatternedPushRule, Ruleset, SimplePushRule,
     };
-    use crate::power_levels::NotificationPowerLevels;
+    use crate::{power_levels::NotificationPowerLevels, room_id, serde::Raw, user_id};
 
     fn example_ruleset() -> Ruleset {
         let mut set = Ruleset::new();

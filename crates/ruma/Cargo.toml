@@ -15,9 +15,9 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-api = ["ruma-api"]
+api = ["ruma-common/api"]
 client = ["ruma-client"]
-events = ["ruma-events"]
+events = ["ruma-common/events"]
 signatures = ["ruma-signatures"]
 state-res = ["ruma-state-res"]
 
@@ -54,9 +54,9 @@ push-gateway-api-s = ["api", "ruma-push-gateway-api/server"]
 push-gateway-api = ["push-gateway-api-c", "push-gateway-api-s"]
 
 # Convenience features
-either = ["ruma-identifiers/either"]
-rand = ["ruma-identifiers/rand"]
-markdown = ["ruma-events/markdown"]
+either = ["ruma-common/either"]
+rand = ["ruma-common/rand"]
+markdown = ["ruma-common/markdown"]
 
 # Everything except compat and unstable features
 full = [
@@ -83,8 +83,6 @@ full = [
 # missing with this feature.
 compat = [
     "ruma-common/compat",
-    "ruma-events/compat",
-    "ruma-identifiers/compat",
     "ruma-client-api/compat",
     "ruma-signatures/compat",
     "ruma-state-res/compat",
@@ -98,7 +96,6 @@ appservice-api-helper = ["ruma-appservice-api/helper"]
 #           otherwise provides!
 unstable-exhaustive-types = [
     "ruma-common/unstable-exhaustive-types",
-    "ruma-events/unstable-exhaustive-types",
     "ruma-appservice-api/unstable-exhaustive-types",
     "ruma-client-api/unstable-exhaustive-types",
     "ruma-federation-api/unstable-exhaustive-types",
@@ -106,34 +103,56 @@ unstable-exhaustive-types = [
     "ruma-push-gateway-api/unstable-exhaustive-types",
     "ruma-state-res/unstable-exhaustive-types"
 ]
-unstable-pdu = ["ruma-events/unstable-pdu"]
+unstable-pdu = ["ruma-common/unstable-pdu"]
 unstable-pre-spec = [
     "ruma-common/unstable-pre-spec",
-    "ruma-events/unstable-pre-spec",
     "ruma-federation-api/unstable-pre-spec",
 ]
+unstable-msc1767 = ["ruma-common/unstable-msc1767"]
 unstable-msc2448 = [
     "ruma-client-api/unstable-msc2448",
-    "ruma-events/unstable-msc2448",
+    "ruma-common/unstable-msc2448",
     "ruma-federation-api/unstable-msc2448"
 ]
-unstable-msc2675 = ["ruma-events/unstable-msc2675"]
-unstable-msc2676 = ["ruma-events/unstable-msc2676"]
-unstable-msc2677 = [
-    "ruma-common/unstable-msc2677",
-    "ruma-events/unstable-msc2677",
+unstable-msc2675 = ["ruma-common/unstable-msc2675"]
+unstable-msc2676 = ["ruma-common/unstable-msc2676"]
+unstable-msc2677 = ["ruma-common/unstable-msc2677"]
+unstable-msc3245 = ["ruma-common/unstable-msc3245"]
+unstable-msc3246 = ["ruma-common/unstable-msc3246"]
+unstable-msc3440 = [
+    "ruma-client-api/unstable-msc3440",
+    "ruma-common/unstable-msc3440",
 ]
+unstable-msc3488 = [
+    "ruma-client-api/unstable-msc3488",
+    "ruma-common/unstable-msc3488",
+]
+unstable-msc3551 = ["ruma-common/unstable-msc3551"]
+unstable-msc3552 = ["ruma-common/unstable-msc3552"]
+unstable-msc3553 = ["ruma-common/unstable-msc3553"]
+unstable-msc3554 = ["ruma-common/unstable-msc3554"]
 unstable-msc3618 = ["ruma-federation-api/unstable-msc3618"]
+unstable-msc3723 = ["ruma-federation-api/unstable-msc3723"]
 
 # Private feature, only used in test / benchmarking code
 __ci = [
     "full",
     "unstable-pre-spec",
+    "unstable-msc1767",
     "unstable-msc2448",
     "unstable-msc2675",
     "unstable-msc2676",
     "unstable-msc2677",
+    "unstable-msc3245",
+    "unstable-msc3246",
+    "unstable-msc3440",
+    "unstable-msc3488",
+    "unstable-msc3551",
+    "unstable-msc3552",
+    "unstable-msc3553",
+    "unstable-msc3554",
     "unstable-msc3618",
+    "unstable-msc3723",
     "ruma-state-res/__ci",
 ]
 
@@ -142,15 +161,11 @@ assign = "1.1.1"
 js_int = "0.2.0"
 
 ruma-common = { version = "0.8.0", path = "../ruma-common" }
-ruma-identifiers = { version = "0.22.0", path = "../ruma-identifiers", features = ["serde"] }
-ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 
 ruma-client = { version = "0.8.0", path = "../ruma-client", optional = true }
-ruma-events = { version = "0.26.0", path = "../ruma-events", optional = true }
 ruma-signatures = { version = "0.10.0", path = "../ruma-signatures", optional = true }
 ruma-state-res = { version = "0.6.0", path = "../ruma-state-res", optional = true }
 
-ruma-api = { version = "0.20.0", path = "../ruma-api", optional = true }
 ruma-appservice-api = { version = "0.5.0", path = "../ruma-appservice-api", optional = true }
 ruma-client-api = { version = "0.13.0", path = "../ruma-client-api", optional = true }
 ruma-federation-api = { version = "0.4.0", path = "../ruma-federation-api", optional = true }
@@ -158,20 +173,4 @@ ruma-identity-service-api = { version = "0.4.0", path = "../ruma-identity-servic
 ruma-push-gateway-api = { version = "0.4.0", path = "../ruma-push-gateway-api", optional = true }
 
 [dev-dependencies]
-anyhow = "1.0.37"
-isahc = "1.3.1"
 serde = { version = "1.0.118", features = ["derive"] }
-tokio = { version = "1.0.1", features = ["macros", "rt"] }
-tokio-stream = { version = "0.1.1", default-features = false }
-
-[[example]]
-name = "hello_world"
-required-features = ["client-api-c", "client-ext-client-api", "client-hyper-native-tls", "rand"]
-
-[[example]]
-name = "hello_isahc"
-required-features = ["client-api-c", "client-ext-client-api", "client-isahc"]
-
-[[example]]
-name = "message_log"
-required-features = ["client-api-c", "client-ext-client-api", "client-hyper-native-tls"]

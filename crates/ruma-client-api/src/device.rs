@@ -1,7 +1,6 @@
 //! Endpoints for managing devices.
 
-use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_identifiers::DeviceId;
+use ruma_common::{DeviceId, MilliSecondsSinceUnixEpoch};
 use serde::{Deserialize, Serialize};
 
 pub mod delete_device;

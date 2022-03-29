@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use clap::{Args, Subcommand};
 use xshell::pushd;
 
 use crate::{cmd, Metadata, Result};
@@ -9,45 +10,123 @@ mod spec_links;
 use spec_links::check_spec_links;
 
 const MSRV: &str = "1.55";
+const NIGHTLY: &str = "nightly-2022-03-23";
+
+#[derive(Args)]
+pub struct CiArgs {
+    #[clap(subcommand)]
+    pub cmd: Option<CiCmd>,
+}
+
+#[derive(Subcommand)]
+pub enum CiCmd {
+    /// Check crates compile with the MSRV
+    Msrv,
+    /// Check all crates with all features (msrv)
+    MsrvAll,
+    /// Check ruma-client with default features (msrv)
+    MsrvClient,
+    /// Check ruma crate with default features (msrv)
+    MsrvRuma,
+    /// Run all the tasks that use the stable version
+    Stable,
+    /// Check all crates with all features (stable)
+    StableAll,
+    /// Check ruma-client without default features (stable)
+    StableClient,
+    /// Check ruma-common with only the required features (stable)
+    StableCommon,
+    /// Run all tests with almost all features (stable)
+    TestAll,
+    /// Run doc tests with almost all features (stable)
+    TestDoc,
+    /// Test ruma-common with the compat feature (stable)
+    TestCommon,
+    /// Run all the tasks that use the nightly version
+    Nightly,
+    /// Check formatting (nightly)
+    Fmt,
+    /// Check ruma crate with `full` features (nightly)
+    NightlyFull,
+    /// Lint default features with clippy (nightly)
+    ClippyDefault,
+    /// Lint almost all features with clippy (nightly)
+    ClippyAll,
+    /// Run all lints that don't need compilation
+    Lint,
+    /// Check sorting of dependencies (lint)
+    Dependencies,
+    /// Check spec links point to a recent version (lint)
+    SpecLinks,
+    /// Check typos
+    Typos,
+}
 
 /// Task to run CI tests.
 pub struct CiTask {
-    /// Which version of Rust to test against.
-    version: Option<String>,
+    /// Which command to run.
+    cmd: Option<CiCmd>,
 
     /// The root of the workspace.
     project_root: PathBuf,
 }
 
 impl CiTask {
-    pub(crate) fn new(version: Option<String>) -> Result<Self> {
+    pub(crate) fn new(cmd: Option<CiCmd>) -> Result<Self> {
         let project_root = Metadata::load()?.workspace_root;
-        Ok(Self { version, project_root })
+        Ok(Self { cmd, project_root })
     }
 
     pub(crate) fn run(self) -> Result<()> {
         let _p = pushd(&self.project_root)?;
 
-        match self.version.as_deref() {
-            Some("msrv") => self.build_msrv()?,
-            Some("stable") => self.build_stable()?,
-            Some("nightly") => self.build_nightly()?,
-            Some(_) => return Err("Wrong Rust version specified.".into()),
+        match self.cmd {
+            Some(CiCmd::Msrv) => self.msrv()?,
+            Some(CiCmd::MsrvAll) => self.msrv_all()?,
+            Some(CiCmd::MsrvClient) => self.msrv_client()?,
+            Some(CiCmd::MsrvRuma) => self.msrv_ruma()?,
+            Some(CiCmd::Stable) => self.stable()?,
+            Some(CiCmd::StableAll) => self.stable_all()?,
+            Some(CiCmd::StableClient) => self.stable_client()?,
+            Some(CiCmd::StableCommon) => self.stable_common()?,
+            Some(CiCmd::TestAll) => self.test_all()?,
+            Some(CiCmd::TestDoc) => self.test_doc()?,
+            Some(CiCmd::TestCommon) => self.test_common()?,
+            Some(CiCmd::Nightly) => self.nightly()?,
+            Some(CiCmd::Fmt) => self.fmt()?,
+            Some(CiCmd::NightlyFull) => self.nightly_full()?,
+            Some(CiCmd::ClippyDefault) => self.clippy_default()?,
+            Some(CiCmd::ClippyAll) => self.clippy_all()?,
+            Some(CiCmd::Lint) => self.lint()?,
+            Some(CiCmd::Dependencies) => self.dependencies()?,
+            Some(CiCmd::SpecLinks) => check_spec_links(&self.project_root.join("crates"))?,
+            Some(CiCmd::Typos) => self.typos()?,
             None => {
-                self.build_msrv().and(self.build_stable()).and(self.build_nightly())?;
+                self.msrv()
+                    .and(self.stable())
+                    .and(self.nightly())
+                    .and(self.lint())
+                    .and(self.typos())?;
             }
         }
 
         Ok(())
     }
 
-    fn build_msrv(&self) -> Result<()> {
-        // Check all crates with all features except
-        // * ruma (would pull in ruma-signatures)
-        // * ruma-client (tested only with client-api feature due to most / all optional HTTP client
-        //   deps having less strict MSRV)
-        // * ruma-signatures (MSRV exception)
-        // * xtask (no real reason to enforce an MSRV for it)
+    /// Check that the crates compile with the MSRV.
+    fn msrv(&self) -> Result<()> {
+        self.msrv_all()?;
+        self.msrv_client()?;
+        self.msrv_ruma()
+    }
+
+    /// Check all crates with all features with the MSRV, except:
+    /// * ruma (would pull in ruma-signatures)
+    /// * ruma-client (tested only with client-api feature due to most / all optional HTTP client
+    ///   deps having less strict MSRV)
+    /// * ruma-signatures (MSRV exception)
+    /// * xtask (no real reason to enforce an MSRV for it)
+    fn msrv_all(&self) -> Result<()> {
         cmd!(
             "rustup run {MSRV} cargo check --workspace --all-features
                 --exclude ruma
@@ -55,69 +134,142 @@ impl CiTask {
                 --exclude ruma-signatures
                 --exclude xtask"
         )
-        .run()?;
+        .run()
+        .map_err(Into::into)
+    }
 
-        // Check ruma-client crate with default features
-        cmd!("rustup run {MSRV} cargo check -p ruma-client --features client-api").run()?;
+    /// Check ruma-client with default features with the MSRV.
+    fn msrv_client(&self) -> Result<()> {
+        cmd!("rustup run {MSRV} cargo check -p ruma-client --features client-api")
+            .run()
+            .map_err(Into::into)
+    }
 
-        // Check ruma crate with default features
+    /// Check ruma crate with default features with the MSRV.
+    fn msrv_ruma(&self) -> Result<()> {
         cmd!("rustup run {MSRV} cargo check -p ruma").run().map_err(Into::into)
     }
 
-    fn build_stable(&self) -> Result<()> {
-        // 1. Make sure everything compiles
-        cmd!("rustup run stable cargo check --workspace --all-features").run()?;
-        cmd!("rustup run stable cargo check -p ruma-client --no-default-features").run()?;
-        cmd!("rustup run stable cargo check -p ruma-identifiers --no-default-features").run()?;
-
-        // 2. Run tests
-        let workspace_res = cmd!("rustup run stable cargo test --workspace --features __ci").run();
-        let events_compat_res =
-            cmd!("rustup run stable cargo test -p ruma-events --features compat compat").run();
-
-        workspace_res.and(events_compat_res).map_err(Into::into)
+    /// Run all the tasks that use the stable version.
+    fn stable(&self) -> Result<()> {
+        self.stable_all()?;
+        self.stable_client()?;
+        self.stable_common()?;
+        self.test_all()?;
+        self.test_doc()?;
+        self.test_common()
     }
 
-    fn build_nightly(&self) -> Result<()> {
-        // Check formatting
-        let fmt_res = cmd!("rustup run nightly cargo fmt -- --check").run();
-        // Check `ruma` crate with `full` feature (sometimes things only compile with an unstable
-        // flag)
-        let check_full_res = cmd!("rustup run nightly cargo check -p ruma --features full").run();
-        // Check everything with default features with clippy
-        let clippy_default_res = cmd!(
+    /// Check all crates with all features with the stable version.
+    fn stable_all(&self) -> Result<()> {
+        cmd!("rustup run stable cargo check --workspace --all-features").run().map_err(Into::into)
+    }
+
+    /// Check ruma-client without default features with the stable version.
+    fn stable_client(&self) -> Result<()> {
+        cmd!("rustup run stable cargo check -p ruma-client --no-default-features")
+            .run()
+            .map_err(Into::into)
+    }
+
+    /// Check ruma-common with onjy the required features with the stable version.
+    fn stable_common(&self) -> Result<()> {
+        cmd!("rustup run stable cargo check -p ruma-common --no-default-features --features client,server").run().map_err(Into::into)
+    }
+
+    /// Run tests on all crates with almost all features with the stable version.
+    fn test_all(&self) -> Result<()> {
+        cmd!("rustup run stable cargo test --tests --features __ci").run().map_err(Into::into)
+    }
+
+    /// Run doctests on all crates with almost all features with the stable version.
+    fn test_doc(&self) -> Result<()> {
+        cmd!("rustup run stable cargo test --doc --features __ci").run().map_err(Into::into)
+    }
+
+    /// Test ruma-common with the compat feature with the stable version.
+    fn test_common(&self) -> Result<()> {
+        cmd!("rustup run stable cargo test -p ruma-common --features events --features compat compat").run().map_err(Into::into)
+    }
+
+    /// Run all the tasks that use the nightly version.
+    fn nightly(&self) -> Result<()> {
+        self.fmt()?;
+        self.nightly_full()?;
+        self.clippy_default()?;
+        self.clippy_all()
+    }
+
+    /// Check the formatting with the nightly version.
+    fn fmt(&self) -> Result<()> {
+        cmd!("rustup run {NIGHTLY} cargo fmt -- --check").run().map_err(Into::into)
+    }
+
+    /// Check ruma crate with full feature with the nightly version.
+    fn nightly_full(&self) -> Result<()> {
+        cmd!("rustup run {NIGHTLY} cargo check -p ruma --features full").run().map_err(Into::into)
+    }
+
+    /// Lint default features with clippy with the nightly version.
+    fn clippy_default(&self) -> Result<()> {
+        cmd!(
             "
-            rustup run nightly cargo clippy
+            rustup run {NIGHTLY} cargo clippy
                 --workspace --all-targets --features=full -- -D warnings
             "
         )
-        .run();
-        // Check everything with almost all features with clippy
-        let clippy_all_res = cmd!(
+        .run()
+        .map_err(Into::into)
+    }
+
+    /// Lint almost all features with clippy with the nightly version.
+    fn clippy_all(&self) -> Result<()> {
+        cmd!(
             "
-            rustup run nightly cargo clippy
+            rustup run {NIGHTLY} cargo clippy
                 --workspace --all-targets --features=__ci,compat -- -D warnings
             "
         )
-        .run();
+        .run()
+        .map_err(Into::into)
+    }
+
+    /// Run all lints that don't need compilation.
+    fn lint(&self) -> Result<()> {
         // Check dependencies being sorted
-        let sort_res = cmd!(
+        let dependencies_res = self.dependencies();
+        // Check that all links point to the same version of the spec
+        let spec_links_res = check_spec_links(&self.project_root.join("crates"));
+
+        dependencies_res.and(spec_links_res)
+    }
+
+    /// Check the sorting of dependencies with the nightly version.
+    fn dependencies(&self) -> Result<()> {
+        if cmd!("cargo sort --version").run().is_err() {
+            return Err(
+                "Could not find cargo-sort. Install it by running `cargo install cargo-sort`"
+                    .into(),
+            );
+        }
+        cmd!(
             "
-            rustup run nightly cargo sort
+            rustup run {NIGHTLY} cargo sort
                 --workspace --grouped --check
                 --order package,lib,features,dependencies,dev-dependencies,build-dependencies
             "
         )
-        .run();
-        // Check that all links point to the same version of the spec
-        let spec_links = check_spec_links(&self.project_root.join("crates"));
+        .run()
+        .map_err(Into::into)
+    }
 
-        fmt_res
-            .and(check_full_res)
-            .and(clippy_default_res)
-            .and(clippy_all_res)
-            .and(sort_res)
-            .map_err(Into::into)
-            .and(spec_links)
+    /// Check the typos.
+    fn typos(&self) -> Result<()> {
+        if cmd!("typos --version").run().is_err() {
+            return Err(
+                "Could not find typos. Install it by running `cargo install typos-cli`".into()
+            );
+        }
+        cmd!("typos").run().map_err(Into::into)
     }
 }

@@ -1,0 +1,5 @@
+[default.extend-words]
+# Remove this once base64 gets correctly ignored by typos
+# Or if we're able to ignore certain lines.
+NAX = "NAX"
+Nd = "Nd"

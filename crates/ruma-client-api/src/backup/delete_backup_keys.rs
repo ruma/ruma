@@ -4,13 +4,15 @@ pub mod v3 {
     //! `/v3/` ([spec])
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#delete_matrixclientv3room_keyskeys
+    //!
+    //! This deletes keys from a backup version, but not the version itself.
 
     use js_int::UInt;
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
 
     ruma_api! {
         metadata: {
-            description: "Delete all keys in a backup.",
+            description: "Delete all keys from a backup.",
             method: DELETE,
             name: "delete_backup_keys",
             unstable_path: "/_matrix/client/unstable/room_keys/keys",
@@ -22,9 +24,7 @@ pub mod v3 {
         }
 
         request: {
-            /// The backup version.
-            ///
-            /// Must be the current backup.
+            /// The backup version from which to delete keys.
             #[ruma_api(query)]
             pub version: &'a str,
         }

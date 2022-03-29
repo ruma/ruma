@@ -7,11 +7,12 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
-use ruma_identifiers::DeviceId;
 use serde::{
     de::{self, Unexpected},
     Deserialize, Deserializer, Serialize, Serializer,
 };
+
+use crate::DeviceId;
 
 /// Represents one or all of a user's devices.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -70,7 +71,7 @@ impl<'de> Deserialize<'de> for DeviceIdOrAllDevices {
     where
         D: Deserializer<'de>,
     {
-        let s = ruma_serde::deserialize_cow_str(deserializer)?;
+        let s = crate::serde::deserialize_cow_str(deserializer)?;
         DeviceIdOrAllDevices::try_from(s.as_ref()).map_err(|_| {
             de::Error::invalid_value(Unexpected::Str(&s), &"a valid device identifier or '*'")
         })

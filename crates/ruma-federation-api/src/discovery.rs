@@ -2,9 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_identifiers::{ServerName, ServerSigningKeyId};
-use ruma_serde::Base64;
+use ruma_common::{serde::Base64, MilliSecondsSinceUnixEpoch, ServerName, ServerSigningKeyId};
 use serde::{Deserialize, Serialize};
 
 pub mod discover_homeserver;
@@ -12,6 +10,8 @@ pub mod get_remote_server_keys;
 pub mod get_remote_server_keys_batch;
 pub mod get_server_keys;
 pub mod get_server_version;
+#[cfg(feature = "unstable-msc3723")]
+pub mod get_server_versions;
 
 /// Public key of the homeserver for verifying digital signatures.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -46,7 +46,7 @@ impl OldVerifyKey {
     }
 }
 
-// Spec is wrong, all fields are required (see https://github.com/matrix-org/matrix-doc/issues/2508)
+// Spec is wrong, all fields are required (see https://github.com/matrix-org/matrix-spec/issues/613)
 /// Queried server key, signed by the notary server.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]

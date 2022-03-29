@@ -8,15 +8,17 @@ pub mod v3 {
     use std::{collections::BTreeMap, time::Duration};
 
     use js_int::UInt;
-    use ruma_api::ruma_api;
-    use ruma_common::presence::PresenceState;
-    use ruma_events::{
-        presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
-        AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncRoomEvent, AnySyncStateEvent,
-        AnyToDeviceEvent,
+    use ruma_common::{
+        api::ruma_api,
+        events::{
+            presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
+            AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncRoomEvent, AnySyncStateEvent,
+            AnyToDeviceEvent,
+        },
+        presence::PresenceState,
+        serde::{Incoming, Raw},
+        DeviceKeyAlgorithm, RoomId, UserId,
     };
-    use ruma_identifiers::{DeviceKeyAlgorithm, RoomId, UserId};
-    use ruma_serde::{Outgoing, Raw};
     use serde::{Deserialize, Serialize};
 
     use crate::filter::{FilterDefinition, IncomingFilterDefinition};
@@ -49,20 +51,20 @@ pub mod v3 {
             pub since: Option<&'a str>,
 
             /// Controls whether to include the full state for all rooms the user is a member of.
-            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
             #[ruma_api(query)]
             pub full_state: bool,
 
             /// Controls whether the client is automatically marked as online by polling this API.
             ///
             /// Defaults to `PresenceState::Online`.
-            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
             #[ruma_api(query)]
             pub set_presence: &'a PresenceState,
 
             /// The maximum time to poll in milliseconds before returning this request.
             #[serde(
-                with = "ruma_serde::duration::opt_ms",
+                with = "ruma_common::serde::duration::opt_ms",
                 default,
                 skip_serializing_if = "Option::is_none",
             )]
@@ -136,7 +138,7 @@ pub mod v3 {
     }
 
     /// A filter represented either as its full JSON definition or the ID of a saved filter.
-    #[derive(Clone, Debug, Outgoing, Serialize)]
+    #[derive(Clone, Debug, Incoming, Serialize)]
     #[allow(clippy::large_enum_variant)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[serde(untagged)]
@@ -152,7 +154,7 @@ pub mod v3 {
         // functionally equivalent to looking at whether the first symbol is a '{' as the spec
         // says. (there are probably some corner cases like leading whitespace)
         /// A complete filter definition serialized to JSON.
-        #[serde(with = "ruma_serde::json_string")]
+        #[serde(with = "ruma_common::serde::json_string")]
         FilterDefinition(FilterDefinition<'a>),
 
         /// The ID of a filter saved on the server.
@@ -332,7 +334,7 @@ pub mod v3 {
         /// True if the number of events returned was limited by the `limit` on the filter.
         ///
         /// Default to `false`.
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub limited: bool,
 
         /// A token that can be supplied to to the `from` parameter of the
@@ -618,7 +620,7 @@ pub mod v3 {
     mod client_tests {
         use std::time::Duration;
 
-        use ruma_api::{MatrixVersion, OutgoingRequest as _, SendAccessToken};
+        use ruma_common::api::{MatrixVersion, OutgoingRequest as _, SendAccessToken};
 
         use super::{Filter, PresenceState, Request};
 
@@ -655,8 +657,7 @@ pub mod v3 {
         use std::time::Duration;
 
         use matches::assert_matches;
-        use ruma_api::IncomingRequest as _;
-        use ruma_common::presence::PresenceState;
+        use ruma_common::{api::IncomingRequest as _, presence::PresenceState};
 
         use super::{IncomingFilter, IncomingRequest};
 

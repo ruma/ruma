@@ -7,9 +7,7 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixfederationv1eventeventid
 
-    use ruma_api::ruma_api;
-    use ruma_common::MilliSecondsSinceUnixEpoch;
-    use ruma_identifiers::{EventId, ServerName};
+    use ruma_common::{api::ruma_api, EventId, MilliSecondsSinceUnixEpoch, ServerName};
     use serde_json::value::RawValue as RawJsonValue;
 
     ruma_api! {
@@ -37,7 +35,7 @@ pub mod v1 {
             pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
             /// The event.
-            #[serde(rename = "pdus", with = "ruma_serde::single_element_seq")]
+            #[serde(rename = "pdus", with = "ruma_common::serde::single_element_seq")]
             pub pdu: Box<RawJsonValue>,
         }
     }

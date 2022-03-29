@@ -6,7 +6,7 @@
 //!
 //! For more information, see this [GitHub issue][issue].
 //!
-//! [issue]: https://github.com/matrix-org/matrix-doc/issues/2541
+//! [issue]: https://github.com/matrix-org/matrix-spec-proposals/issues/2541
 
 use std::{fmt, marker::PhantomData};
 
@@ -87,15 +87,10 @@ mod tests {
             }
         ]);
 
-        let parsed = deserialize(response).unwrap();
-
-        assert_matches!(
-            parsed,
-            RoomState { origin, auth_chain, state }
-            if origin == "example.com"
-                && auth_chain.is_empty()
-                && state.is_empty()
-        );
+        let RoomState { origin, auth_chain, state } = deserialize(response).unwrap();
+        assert_eq!(origin, "example.com");
+        assert_matches!(auth_chain.as_slice(), []);
+        assert_matches!(state.as_slice(), []);
     }
 
     #[test]
@@ -147,12 +142,9 @@ mod tests {
     #[test]
     fn too_long_array() {
         let json = json!([200, { "origin": "", "auth_chain": [], "state": [] }, 200]);
-        assert_matches!(
-            deserialize(json).unwrap(),
-            RoomState { origin, auth_chain, state }
-            if origin.is_empty()
-              && auth_chain.is_empty()
-              && state.is_empty()
-        );
+        let RoomState { origin, auth_chain, state } = deserialize(json).unwrap();
+        assert_eq!(origin, "");
+        assert_matches!(auth_chain.as_slice(), []);
+        assert_matches!(state.as_slice(), []);
     }
 }

@@ -5,18 +5,18 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3loginssoredirect
 
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
 
     ruma_api! {
         metadata: {
             description: "",
             method: GET,
             name: "sso_login",
-            unstable_path: "/_matrix/client/unstable/org.matrix.msc2858/login/sso/redirect",
+            r0_path: "/_matrix/client/r0/login/sso/redirect",
             stable_path: "/_matrix/client/v3/login/sso/redirect",
             rate_limited: false,
             authentication: None,
-            added: 1.1,
+            added: 1.0,
         }
 
         request: {
@@ -52,7 +52,7 @@ pub mod v3 {
 
     #[cfg(all(test, feature = "client"))]
     mod tests {
-        use ruma_api::{MatrixVersion, OutgoingRequest, SendAccessToken};
+        use ruma_common::api::{MatrixVersion, OutgoingRequest, SendAccessToken};
 
         use super::Request;
 

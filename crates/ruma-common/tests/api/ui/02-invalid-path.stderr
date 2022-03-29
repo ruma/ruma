@@ -1,0 +1,11 @@
+error: path may only contain printable ASCII characters with no spaces
+ --> $DIR/02-invalid-path.rs:8:24
+  |
+8 |         unstable_path: "µ/°/§/€",
+  |                        ^^^^^^^^^
+
+error: path may only contain printable ASCII characters with no spaces
+  --> $DIR/02-invalid-path.rs:26:24
+   |
+26 |         unstable_path: "path/to/invalid space/endpoint",
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

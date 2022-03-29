@@ -8,8 +8,10 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#post_matrixfederationv1publicrooms
 
     use js_int::UInt;
-    use ruma_api::ruma_api;
-    use ruma_common::directory::{IncomingRoomNetwork, PublicRoomsChunk, RoomNetwork};
+    use ruma_common::{
+        api::ruma_api,
+        directory::{IncomingRoomNetwork, PublicRoomsChunk, RoomNetwork},
+    };
 
     ruma_api! {
         metadata: {
@@ -35,7 +37,7 @@ pub mod v1 {
             pub since: Option<&'a str>,
 
             /// Network to fetch the public room lists from.
-            #[serde(flatten, skip_serializing_if = "ruma_serde::is_default")]
+            #[serde(flatten, skip_serializing_if = "ruma_common::serde::is_default")]
             #[ruma_api(query)]
             pub room_network: RoomNetwork<'a>,
         }

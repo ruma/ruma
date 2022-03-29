@@ -4,11 +4,9 @@
 
 use std::collections::BTreeMap;
 
-use ruma_identifiers::{RoomAliasId, UserId};
-use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::{MilliSecondsSinceUnixEpoch, PrivOwnedStr};
+use crate::{serde::StringEnum, MilliSecondsSinceUnixEpoch, PrivOwnedStr, RoomAliasId, UserId};
 
 /// Metadata about a third party protocol.
 ///
@@ -89,7 +87,7 @@ pub struct ProtocolInstance {
 
     /// A unique identifier across all instances.
     ///
-    /// See [matrix-doc#3203](https://github.com/matrix-org/matrix-doc/issues/3203).
+    /// See [matrix-spec#833](https://github.com/matrix-org/matrix-spec/issues/833).
     #[cfg(feature = "unstable-pre-spec")]
     pub instance_id: String,
 }
@@ -112,7 +110,7 @@ pub struct ProtocolInstanceInit {
 
     /// A unique identifier across all instances.
     ///
-    /// See [matrix-doc#3203](https://github.com/matrix-org/matrix-doc/issues/3203).
+    /// See [matrix-spec#833](https://github.com/matrix-org/matrix-spec/issues/833).
     #[cfg(feature = "unstable-pre-spec")]
     pub instance_id: String,
 }

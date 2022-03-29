@@ -8,10 +8,12 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixfederationv1userdevicesuserid
 
     use js_int::UInt;
-    use ruma_api::ruma_api;
-    use ruma_common::encryption::DeviceKeys;
-    use ruma_identifiers::{DeviceId, UserId};
-    use ruma_serde::Raw;
+    use ruma_common::{
+        api::ruma_api,
+        encryption::{CrossSigningKey, DeviceKeys},
+        serde::Raw,
+        DeviceId, UserId,
+    };
     use serde::{Deserialize, Serialize};
 
     ruma_api! {
@@ -45,6 +47,14 @@ pub mod v1 {
 
             /// The user's devices.
             pub devices: Vec<UserDevice>,
+
+            /// The user's master key.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub master_key: Option<Raw<CrossSigningKey>>,
+
+            /// The users's self-signing key.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub self_signing_key: Option<Raw<CrossSigningKey>>,
         }
     }
 
@@ -60,7 +70,13 @@ pub mod v1 {
         ///
         /// The device list will be empty.
         pub fn new(user_id: Box<UserId>, stream_id: UInt) -> Self {
-            Self { user_id, stream_id, devices: Vec::new() }
+            Self {
+                user_id,
+                stream_id,
+                devices: Vec::new(),
+                master_key: None,
+                self_signing_key: None,
+            }
         }
     }
 

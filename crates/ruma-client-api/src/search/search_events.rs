@@ -8,10 +8,12 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use js_int::{uint, UInt};
-    use ruma_api::ruma_api;
-    use ruma_events::{AnyRoomEvent, AnyStateEvent};
-    use ruma_identifiers::{EventId, MxcUri, RoomId, UserId};
-    use ruma_serde::{Outgoing, Raw, StringEnum};
+    use ruma_common::{
+        api::ruma_api,
+        events::{AnyRoomEvent, AnyStateEvent},
+        serde::{Incoming, Raw, StringEnum},
+        EventId, MxcUri, RoomId, UserId,
+    };
     use serde::{Deserialize, Serialize};
 
     use crate::{
@@ -65,7 +67,7 @@ pub mod v3 {
     }
 
     /// Categories of events that can be searched for.
-    #[derive(Clone, Debug, Default, Outgoing, Serialize)]
+    #[derive(Clone, Debug, Default, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct Categories<'a> {
         /// Criteria for searching room events.
@@ -81,7 +83,7 @@ pub mod v3 {
     }
 
     /// Criteria for searching a category of events.
-    #[derive(Clone, Debug, Outgoing, Serialize)]
+    #[derive(Clone, Debug, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct Criteria<'a> {
         /// The string to search events for.
@@ -149,7 +151,7 @@ pub mod v3 {
 
         /// Requests that the server returns the historic profile information for the users that
         /// sent the events that were returned.
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub include_profile: bool,
     }
 
@@ -273,7 +275,7 @@ pub mod v3 {
     }
 
     /// Requests that the server partitions the result set based on the provided list of keys.
-    #[derive(Clone, Default, Debug, Outgoing, Serialize)]
+    #[derive(Clone, Default, Debug, Incoming, Serialize)]
     #[incoming_derive(Default)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct Groupings<'a> {
@@ -482,7 +484,7 @@ pub mod v3 {
         #[serde(skip_serializing_if = "Option::is_none")]
         #[cfg_attr(
             feature = "compat",
-            serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
+            serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
         )]
         pub avatar_url: Option<Box<MxcUri>>,
 

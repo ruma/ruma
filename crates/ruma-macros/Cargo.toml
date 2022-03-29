@@ -1,0 +1,24 @@
+[package]
+categories = ["api-bindings", "web-programming"]
+description = "Procedural macros used by the Ruma crates."
+edition = "2018"
+homepage = "https://www.ruma.io/"
+keywords = ["matrix", "chat", "messaging", "ruma"]
+license = "MIT"
+name = "ruma-macros"
+readme = "README.md"
+repository = "https://github.com/ruma/ruma"
+version = "0.1.0"
+
+[lib]
+proc-macro = true
+
+[features]
+compat = []
+
+[dependencies]
+proc-macro-crate = "1.0.0"
+proc-macro2 = "1.0.24"
+quote = "1.0.8"
+ruma-identifiers-validation = { version = "0.7.0", path = "../ruma-identifiers-validation", default-features = false }
+syn = { version = "1.0.57", features = ["extra-traits", "full", "visit"] }

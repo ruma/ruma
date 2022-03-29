@@ -2,10 +2,9 @@
 //!
 //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#put_matrixfederationv2inviteroomideventid
 
-use ruma_api::ruma_api;
-use ruma_events::AnyStrippedStateEvent;
-use ruma_identifiers::{EventId, RoomId, RoomVersionId};
-use ruma_serde::Raw;
+use ruma_common::{
+    api::ruma_api, events::AnyStrippedStateEvent, serde::Raw, EventId, RoomId, RoomVersionId,
+};
 use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {

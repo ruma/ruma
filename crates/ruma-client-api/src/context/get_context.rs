@@ -6,10 +6,12 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3roomsroomidcontexteventid
 
     use js_int::{uint, UInt};
-    use ruma_api::ruma_api;
-    use ruma_events::{AnyRoomEvent, AnyStateEvent};
-    use ruma_identifiers::{EventId, RoomId};
-    use ruma_serde::Raw;
+    use ruma_common::{
+        api::ruma_api,
+        events::{AnyRoomEvent, AnyStateEvent},
+        serde::Raw,
+        EventId, RoomId,
+    };
 
     use crate::filter::{IncomingRoomEventFilter, RoomEventFilter};
 
@@ -44,7 +46,7 @@ pub mod v3 {
             /// A RoomEventFilter to filter returned events with.
             #[ruma_api(query)]
             #[serde(
-                with = "ruma_serde::json_string",
+                with = "ruma_common::serde::json_string",
                 default,
                 skip_serializing_if = "RoomEventFilter::is_empty"
             )]

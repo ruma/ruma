@@ -5,9 +5,11 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3login
 
-    use ruma_api::ruma_api;
-    use ruma_identifiers::{DeviceId, ServerName, UserId};
-    use ruma_serde::{JsonObject, Outgoing};
+    use ruma_common::{
+        api::ruma_api,
+        serde::{Incoming, JsonObject},
+        DeviceId, ServerName, UserId,
+    };
     use serde::{
         de::{self, DeserializeOwned},
         Deserialize, Deserializer, Serialize,
@@ -92,7 +94,7 @@ pub mod v3 {
     ///
     /// To construct the custom `LoginInfo` variant you first have to construct
     /// [`IncomingLoginInfo::new`] and then call [`IncomingLoginInfo::to_outgoing`] on it.
-    #[derive(Clone, Debug, Outgoing, Serialize)]
+    #[derive(Clone, Debug, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[incoming_derive(!Deserialize)]
     #[serde(untagged)]
@@ -102,6 +104,9 @@ pub mod v3 {
 
         /// Token-based login.
         Token(Token<'a>),
+
+        /// Application Service-specific login.
+        ApplicationService(ApplicationService<'a>),
 
         #[doc(hidden)]
         _Custom(CustomLoginInfo<'a>),
@@ -124,6 +129,9 @@ pub mod v3 {
                     Self::Password(serde_json::from_value(JsonValue::Object(data))?)
                 }
                 "m.login.token" => Self::Token(serde_json::from_value(JsonValue::Object(data))?),
+                "m.login.application_service" => {
+                    Self::ApplicationService(serde_json::from_value(JsonValue::Object(data))?)
+                }
                 _ => Self::_Custom(IncomingCustomLoginInfo {
                     login_type: login_type.into(),
                     extra: data,
@@ -136,6 +144,7 @@ pub mod v3 {
             match self {
                 Self::Password(a) => LoginInfo::Password(a.to_outgoing()),
                 Self::Token(a) => LoginInfo::Token(a.to_outgoing()),
+                Self::ApplicationService(a) => LoginInfo::ApplicationService(a.to_outgoing()),
                 Self::_Custom(a) => LoginInfo::_Custom(CustomLoginInfo {
                     login_type: &a.login_type,
                     extra: &a.extra,
@@ -168,7 +177,7 @@ pub mod v3 {
     }
 
     /// An identifier and password to supply as authentication.
-    #[derive(Clone, Debug, Outgoing, Serialize)]
+    #[derive(Clone, Debug, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[serde(tag = "type", rename = "m.login.password")]
     pub struct Password<'a> {
@@ -194,7 +203,7 @@ pub mod v3 {
     }
 
     /// A token to supply as authentication.
-    #[derive(Clone, Debug, Outgoing, Serialize)]
+    #[derive(Clone, Debug, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[serde(tag = "type", rename = "m.login.token")]
     pub struct Token<'a> {
@@ -216,6 +225,29 @@ pub mod v3 {
         }
     }
 
+    /// An identifier to supply for Application Service authentication.
+    #[derive(Clone, Debug, Incoming, Serialize)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[serde(tag = "type", rename = "m.login.application_service")]
+    pub struct ApplicationService<'a> {
+        /// Identification information for the user.
+        pub identifier: UserIdentifier<'a>,
+    }
+
+    impl<'a> ApplicationService<'a> {
+        /// Creates a new `ApplicationService` with the given identifier.
+        pub fn new(identifier: UserIdentifier<'a>) -> Self {
+            Self { identifier }
+        }
+    }
+
+    impl IncomingApplicationService {
+        /// Convert `IncomingApplicationService` to `ApplicationService`.
+        fn to_outgoing(&self) -> ApplicationService<'_> {
+            ApplicationService { identifier: self.identifier.to_outgoing() }
+        }
+    }
+
     #[doc(hidden)]
     #[derive(Clone, Debug, Serialize)]
     #[non_exhaustive]
@@ -234,10 +266,6 @@ pub mod v3 {
         login_type: String,
         #[serde(flatten)]
         extra: JsonObject,
-    }
-
-    impl Outgoing for CustomLoginInfo<'_> {
-        type Incoming = IncomingCustomLoginInfo;
     }
 
     /// Client configuration provided by the server.
@@ -328,8 +356,10 @@ pub mod v3 {
         #[test]
         #[cfg(feature = "client")]
         fn serialize_login_request_body() {
-            use ruma_api::{MatrixVersion, OutgoingRequest, SendAccessToken};
-            use ruma_common::thirdparty::Medium;
+            use ruma_common::{
+                api::{MatrixVersion, OutgoingRequest, SendAccessToken},
+                thirdparty::Medium,
+            };
             use serde_json::Value as JsonValue;
 
             use super::{LoginInfo, Password, Request, Token};

@@ -6,9 +6,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixmediav3thumbnailservernamemediaid
 
     use js_int::UInt;
-    use ruma_api::ruma_api;
-    use ruma_identifiers::{Error, MxcUri, ServerName};
-    use ruma_serde::StringEnum;
+    use ruma_common::{api::ruma_api, serde::StringEnum, IdParseError, MxcUri, ServerName};
 
     use crate::PrivOwnedStr;
 
@@ -54,7 +52,7 @@ pub mod v3 {
             ///
             /// Used to prevent routing loops. Defaults to `true`.
             #[ruma_api(query)]
-            #[serde(default = "ruma_serde::default_true", skip_serializing_if = "ruma_serde::is_true")]
+            #[serde(default = "ruma_common::serde::default_true", skip_serializing_if = "ruma_common::serde::is_true")]
             pub allow_remote: bool,
         }
 
@@ -85,7 +83,7 @@ pub mod v3 {
 
         /// Creates a new `Request` with the given url, desired thumbnail width and
         /// desired thumbnail height.
-        pub fn from_url(url: &'a MxcUri, width: UInt, height: UInt) -> Result<Self, Error> {
+        pub fn from_url(url: &'a MxcUri, width: UInt, height: UInt) -> Result<Self, IdParseError> {
             let (server_name, media_id) = url.parts()?;
 
             Ok(Self { media_id, server_name, method: None, width, height, allow_remote: true })

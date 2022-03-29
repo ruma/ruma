@@ -7,9 +7,7 @@ pub mod v3 {
 
     use std::time::Duration;
 
-    use ruma_api::ruma_api;
-    use ruma_common::presence::PresenceState;
-    use ruma_identifiers::UserId;
+    use ruma_common::{api::ruma_api, presence::PresenceState, UserId};
 
     ruma_api! {
         metadata: {
@@ -40,7 +38,7 @@ pub mod v3 {
 
             /// The length of time in milliseconds since an action was performed by the user.
             #[serde(
-                with = "ruma_serde::duration::opt_ms",
+                with = "ruma_common::serde::duration::opt_ms",
                 default,
                 skip_serializing_if = "Option::is_none",
             )]

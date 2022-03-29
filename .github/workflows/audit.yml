@@ -1,5 +1,8 @@
 name: Dependencies
 
+env:
+  CARGO_TERM_COLOR: always
+
 on:
   schedule:
     # every monday at 4AM (UTC?)
@@ -9,7 +12,9 @@ jobs:
     name: Security Audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
       - uses: actions-rs/audit-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

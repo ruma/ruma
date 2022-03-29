@@ -5,8 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3accountwhoami
 
-    use ruma_api::ruma_api;
-    use ruma_identifiers::UserId;
+    use ruma_common::{api::ruma_api, DeviceId, UserId};
 
     ruma_api! {
         metadata: {
@@ -26,6 +25,14 @@ pub mod v3 {
         response: {
             /// The id of the user that owns the access token.
             pub user_id: Box<UserId>,
+
+            /// The device ID associated with the access token, if any.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub device_id: Option<Box<DeviceId>>,
+
+            /// If `true`, the user is a guest user.
+            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+            pub is_guest: bool,
         }
 
         error: crate::Error
@@ -40,8 +47,8 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given user ID.
-        pub fn new(user_id: Box<UserId>) -> Self {
-            Self { user_id }
+        pub fn new(user_id: Box<UserId>, is_guest: bool) -> Self {
+            Self { user_id, device_id: None, is_guest }
         }
     }
 }

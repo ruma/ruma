@@ -5,8 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixmediav3upload
 
-    use ruma_api::ruma_api;
-    use ruma_identifiers::MxcUri;
+    use ruma_common::{api::ruma_api, MxcUri};
 
     ruma_api! {
         metadata: {
@@ -37,10 +36,15 @@ pub mod v3 {
             /// Should the server return a blurhash or not.
             ///
             /// This uses the unstable prefix in
-            /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
+            /// [MSC2448](https://github.com/matrix-org/matrix-spec-proposals/pull/2448).
             #[ruma_api(query)]
             #[cfg(feature = "unstable-msc2448")]
-            #[serde(default, skip_serializing_if = "ruma_serde::is_default", rename = "xyz.amorgan.blurhash")]
+            #[serde(
+                default,
+                skip_serializing_if = "ruma_common::serde::is_default",
+                rename = "xyz.amorgan.generate_blurhash",
+                alias = "generate_blurhash"
+            )]
             pub generate_blurhash: bool,
         }
 
@@ -51,9 +55,13 @@ pub mod v3 {
             /// The [BlurHash](https://blurha.sh) for the uploaded content.
             ///
             /// This uses the unstable prefix in
-            /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
+            /// [MSC2448](https://github.com/matrix-org/matrix-spec-proposals/pull/2448).
             #[cfg(feature = "unstable-msc2448")]
-            #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
+            #[serde(
+                rename = "xyz.amorgan.blurhash",
+                alias = "blurhash",
+                skip_serializing_if = "Option::is_none"
+            )]
             pub blurhash: Option<String>,
         }
 

@@ -7,7 +7,7 @@ use std::{
 };
 
 use js_int::UInt;
-use ruma_serde::{DeserializeFromCowStr, FromString};
+use ruma_common::serde::{DeserializeFromCowStr, FromString};
 use serde::{
     de::{self, Deserialize, Deserializer, MapAccess, Visitor},
     ser::{self, Serialize, SerializeMap, Serializer},
@@ -296,7 +296,7 @@ impl Serialize for ErrorKind {
 
 #[cfg(test)]
 mod tests {
-    use ruma_identifiers::room_version_id;
+    use ruma_common::room_version_id;
     use serde_json::{from_value as from_json_value, json};
 
     use super::ErrorKind;

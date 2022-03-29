@@ -8,8 +8,7 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/application-service-api/#get_matrixappv1thirdpartyprotocolprotocol
 
-    use ruma_api::ruma_api;
-    use ruma_common::thirdparty::Protocol;
+    use ruma_common::{api::ruma_api, thirdparty::Protocol};
 
     ruma_api! {
         metadata: {

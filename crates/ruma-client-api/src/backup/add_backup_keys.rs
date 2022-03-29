@@ -8,14 +8,13 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use js_int::UInt;
-    use ruma_api::ruma_api;
-    use ruma_identifiers::RoomId;
+    use ruma_common::{api::ruma_api, RoomId};
 
     use crate::backup::RoomKeyBackup;
 
     ruma_api! {
         metadata: {
-            description: "Store several keys in the backup.",
+            description: "Store keys in the backup.",
             method: PUT,
             name: "add_backup_keys",
             unstable_path: "/_matrix/client/unstable/room_keys/keys",
@@ -26,13 +25,13 @@ pub mod v3 {
         }
 
         request: {
-            /// The backup version.
+            /// The backup version to add keys to.
             ///
             /// Must be the current backup.
             #[ruma_api(query)]
             pub version: &'a str,
 
-            /// A map from room IDs to session IDs to key data.
+            /// A map of room IDs to session IDs to key data to store.
             pub rooms: BTreeMap<Box<RoomId>, RoomKeyBackup>,
         }
 

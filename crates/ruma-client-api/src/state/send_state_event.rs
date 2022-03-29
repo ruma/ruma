@@ -5,10 +5,12 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#put_matrixclientv3roomsroomidstateeventtypestatekey
 
-    use ruma_api::ruma_api;
-    use ruma_events::{AnyStateEventContent, StateEventContent};
-    use ruma_identifiers::{EventId, RoomId};
-    use ruma_serde::{Outgoing, Raw};
+    use ruma_common::{
+        api::ruma_api,
+        events::{AnyStateEventContent, EventContent, StateEventType},
+        serde::{Incoming, Raw},
+        EventId, RoomId,
+    };
     use serde_json::value::to_raw_value as to_raw_json_value;
 
     ruma_api! {
@@ -34,7 +36,7 @@ pub mod v3 {
     /// Data for a request to the `send_state_event` API endpoint.
     ///
     /// Send a state event to a room associated with a given state key.
-    #[derive(Clone, Debug, Outgoing)]
+    #[derive(Clone, Debug, Incoming)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[incoming_derive(!Deserialize)]
     pub struct Request<'a> {
@@ -42,7 +44,7 @@ pub mod v3 {
         pub room_id: &'a RoomId,
 
         /// The type of event to send.
-        pub event_type: &'a str,
+        pub event_type: StateEventType,
 
         /// The state_key for the state to send.
         pub state_key: &'a str,
@@ -58,11 +60,14 @@ pub mod v3 {
         ///
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
-        pub fn new<T: StateEventContent>(
+        pub fn new<T>(
             room_id: &'a RoomId,
             state_key: &'a str,
             content: &'a T,
-        ) -> serde_json::Result<Self> {
+        ) -> serde_json::Result<Self>
+        where
+            T: EventContent<EventType = StateEventType>,
+        {
             Ok(Self {
                 room_id,
                 state_key,
@@ -75,7 +80,7 @@ pub mod v3 {
         /// content.
         pub fn new_raw(
             room_id: &'a RoomId,
-            event_type: &'a str,
+            event_type: StateEventType,
             state_key: &'a str,
             body: Raw<AnyStateEventContent>,
         ) -> Self {
@@ -91,30 +96,31 @@ pub mod v3 {
     }
 
     #[cfg(feature = "client")]
-    impl<'a> ruma_api::OutgoingRequest for Request<'a> {
+    impl<'a> ruma_common::api::OutgoingRequest for Request<'a> {
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
 
-        const METADATA: ruma_api::Metadata = METADATA;
+        const METADATA: ruma_common::api::Metadata = METADATA;
 
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
             base_url: &str,
-            access_token: ruma_api::SendAccessToken<'_>,
-            considering_versions: &'_ [ruma_api::MatrixVersion],
-        ) -> Result<http::Request<T>, ruma_api::error::IntoHttpError> {
+            access_token: ruma_common::api::SendAccessToken<'_>,
+            considering_versions: &'_ [ruma_common::api::MatrixVersion],
+        ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use std::borrow::Cow;
 
             use http::header::{self, HeaderValue};
             use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 
             let room_id_percent = utf8_percent_encode(self.room_id.as_str(), NON_ALPHANUMERIC);
-            let event_type_percent = utf8_percent_encode(self.event_type, NON_ALPHANUMERIC);
+            let event_type = self.event_type.to_string();
+            let event_type_percent = utf8_percent_encode(&event_type, NON_ALPHANUMERIC);
 
             let mut url = format!(
                 "{}{}",
                 base_url.strip_suffix('/').unwrap_or(base_url),
-                ruma_api::select_path(
+                ruma_common::api::select_path(
                     considering_versions,
                     &METADATA,
                     None,
@@ -142,51 +148,51 @@ pub mod v3 {
                         "Bearer {}",
                         access_token
                             .get_required_for_endpoint()
-                            .ok_or(ruma_api::error::IntoHttpError::NeedsAuthentication)?
+                            .ok_or(ruma_common::api::error::IntoHttpError::NeedsAuthentication)?
                     ))?,
                 )
-                .body(ruma_serde::json_to_buf(&self.body)?)?;
+                .body(ruma_common::serde::json_to_buf(&self.body)?)?;
 
             Ok(http_request)
         }
     }
 
     #[cfg(feature = "server")]
-    impl ruma_api::IncomingRequest for IncomingRequest {
+    impl ruma_common::api::IncomingRequest for IncomingRequest {
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
 
-        const METADATA: ruma_api::Metadata = METADATA;
+        const METADATA: ruma_common::api::Metadata = METADATA;
 
         fn try_from_http_request<B, S>(
             request: http::Request<B>,
             path_args: &[S],
-        ) -> Result<Self, ruma_api::error::FromHttpRequestError>
+        ) -> Result<Self, ruma_common::api::error::FromHttpRequestError>
         where
             B: AsRef<[u8]>,
             S: AsRef<str>,
         {
             // FIXME: find a way to make this if-else collapse with serde recognizing trailing
             // Option
-            let (room_id, event_type, state_key): (Box<RoomId>, String, String) = if path_args.len()
-                == 3
-            {
-                serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
-                    _,
-                    serde::de::value::Error,
-                >::new(
-                    path_args.iter().map(::std::convert::AsRef::as_ref),
-                ))?
-            } else {
-                let (a, b) = serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
-                    _,
-                    serde::de::value::Error,
-                >::new(
-                    path_args.iter().map(::std::convert::AsRef::as_ref),
-                ))?;
+            let (room_id, event_type, state_key): (Box<RoomId>, StateEventType, String) =
+                if path_args.len() == 3 {
+                    serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
+                        _,
+                        serde::de::value::Error,
+                    >::new(
+                        path_args.iter().map(::std::convert::AsRef::as_ref),
+                    ))?
+                } else {
+                    let (a, b) =
+                        serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
+                            _,
+                            serde::de::value::Error,
+                        >::new(
+                            path_args.iter().map(::std::convert::AsRef::as_ref),
+                        ))?;
 
-                (a, b, "".into())
-            };
+                    (a, b, "".into())
+                };
 
             let body = serde_json::from_slice(request.body().as_ref())?;
 

@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3pushersset
 
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
     use serde::{Deserialize, Serialize};
 
     use crate::push::{PusherData, PusherKind};
@@ -30,7 +30,7 @@ pub mod v3 {
             /// Controls if another pusher with the same pushkey and app id should be created.
             ///
             /// Defaults to `false`. See the spec for more details.
-            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
             pub append: bool,
         }
 

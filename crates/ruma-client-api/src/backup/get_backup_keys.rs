@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/room_keys/keys`
+//!
+//! Retrieve all keys from a backup version.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -7,14 +9,13 @@ pub mod v3 {
 
     use std::collections::BTreeMap;
 
-    use ruma_api::ruma_api;
-    use ruma_identifiers::RoomId;
+    use ruma_common::{api::ruma_api, RoomId};
 
     use crate::backup::RoomKeyBackup;
 
     ruma_api! {
         metadata: {
-            description: "Retrieve all keys from a backup.",
+            description: "Retrieve all keys from a backup version.",
             method: GET,
             name: "get_backup_keys",
             unstable_path: "/_matrix/client/unstable/room_keys/keys",
@@ -26,9 +27,7 @@ pub mod v3 {
         }
 
         request: {
-            /// The backup version.
-            ///
-            /// Must be the current backup.
+            /// The backup version to retrieve keys from.
             #[ruma_api(query)]
             pub version: &'a str,
         }

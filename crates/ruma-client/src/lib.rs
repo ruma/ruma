@@ -67,9 +67,8 @@
 //! #     .await?;
 //! use std::convert::TryFrom;
 //!
-//! use ruma_api::MatrixVersion;
 //! use ruma_client_api::alias::get_alias;
-//! use ruma_identifiers::{room_alias_id, room_id};
+//! use ruma_common::{api::MatrixVersion, room_alias_id, room_id};
 //!
 //! let response = client
 //!     .send_request(get_alias::v3::Request::new(room_alias_id!("#example_room:example.com")))
@@ -104,8 +103,10 @@
 
 use std::{any::type_name, future::Future};
 
-use ruma_api::{MatrixVersion, OutgoingRequest, SendAccessToken};
-use ruma_identifiers::UserId;
+use ruma_common::{
+    api::{MatrixVersion, OutgoingRequest, SendAccessToken},
+    UserId,
+};
 use tracing::{info_span, Instrument};
 
 // "Undo" rename from `Cargo.toml` that only serves to make crate names available as a Cargo
@@ -175,7 +176,9 @@ where
 
         let res =
             info_span!("deserialize_response", response_type = type_name::<R::IncomingResponse>())
-                .in_scope(move || ruma_api::IncomingResponse::try_from_http_response(http_res))?;
+                .in_scope(move || {
+                    ruma_common::api::IncomingResponse::try_from_http_response(http_res)
+                })?;
 
         Ok(res)
     }
@@ -186,7 +189,7 @@ fn add_user_id_to_query<C: HttpClient + ?Sized, R: OutgoingRequest>(
 ) -> impl FnOnce(&mut http::Request<C::RequestBody>) -> Result<(), ResponseError<C, R>> + '_ {
     use assign::assign;
     use http::uri::Uri;
-    use ruma_serde::urlencoded;
+    use ruma_common::serde::urlencoded;
 
     move |http_request| {
         let extra_params = urlencoded::to_string(&[("user_id", user_id)]).unwrap();

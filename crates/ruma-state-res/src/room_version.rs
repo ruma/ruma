@@ -1,4 +1,4 @@
-use ruma_identifiers::RoomVersionId;
+use ruma_common::RoomVersionId;
 
 use crate::{Error, Result};
 
@@ -64,7 +64,7 @@ pub struct RoomVersion {
     pub allow_knocking: bool,
     /// Adds support for the restricted join rule.
     ///
-    /// See: <https://github.com/matrix-org/matrix-doc/pull/3289> for more information.
+    /// See: [MSC3289](https://github.com/matrix-org/matrix-spec-proposals/pull/3289) for more information.
     pub restricted_join_rules: bool,
 }
 

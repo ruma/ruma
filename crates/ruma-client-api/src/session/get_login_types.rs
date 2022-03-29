@@ -7,9 +7,11 @@ pub mod v3 {
 
     use std::borrow::Cow;
 
-    use ruma_api::ruma_api;
-    use ruma_identifiers::MxcUri;
-    use ruma_serde::{JsonObject, StringEnum};
+    use ruma_common::{
+        api::ruma_api,
+        serde::{JsonObject, StringEnum},
+        MxcUri,
+    };
     use serde::{de::DeserializeOwned, Deserialize, Serialize};
     use serde_json::Value as JsonValue;
 
@@ -190,12 +192,12 @@ pub mod v3 {
 
     /// An SSO login identity provider brand identifier.
     ///
-    /// The predefined ones can be found in the matrix-doc repo in a [separate
-    /// document][matrix-doc]. To use a custom brand string, simply use
+    /// The predefined ones can be found in the matrix-spec-proposals repo in a [separate
+    /// document][matrix-spec-proposals]. To use a custom brand string, simply use
     /// `IdentityProviderBrand::from("custom-brand")` or `"custom-brand".into()` (if the type is
     /// known from the surrounding context).
     ///
-    /// [matrix-doc]: https://github.com/matrix-org/matrix-doc/blob/v1.1/informal/idp-brands.md
+    /// [matrix-spec-proposals]: https://github.com/matrix-org/matrix-spec-proposals/blob/v1.1/informal/idp-brands.md
     #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub enum IdentityProviderBrand {
@@ -250,7 +252,7 @@ pub mod v3 {
     }
 
     mod login_type_serde {
-        use ruma_serde::from_raw_json_value;
+        use ruma_common::serde::from_raw_json_value;
         use serde::{de, Deserialize};
         use serde_json::value::RawValue as RawJsonValue;
 

@@ -3,11 +3,13 @@
 use std::{collections::BTreeMap, fmt, time::Duration};
 
 use bytes::BufMut;
-use ruma_api::{
-    error::{DeserializationError, IntoHttpError},
-    EndpointError, OutgoingResponse,
+use ruma_common::{
+    api::{
+        error::{DeserializationError, IntoHttpError},
+        EndpointError, OutgoingResponse,
+    },
+    RoomVersionId,
 };
-use ruma_identifiers::RoomVersionId;
 use serde::{Deserialize, Serialize};
 use serde_json::{from_slice as from_json_slice, Value as JsonValue};
 
@@ -260,7 +262,7 @@ impl OutgoingResponse for Error {
         http::Response::builder()
             .header(http::header::CONTENT_TYPE, "application/json")
             .status(self.status_code)
-            .body(ruma_serde::json_to_buf(&ErrorBody::from(self))?)
+            .body(ruma_common::serde::json_to_buf(&ErrorBody::from(self))?)
             .map_err(Into::into)
     }
 }

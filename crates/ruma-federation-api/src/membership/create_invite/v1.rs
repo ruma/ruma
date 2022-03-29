@@ -2,11 +2,12 @@
 //!
 //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#put_matrixfederationv1inviteroomideventid
 
-use ruma_api::ruma_api;
-use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_events::{room::member::RoomMemberEventContent, AnyStrippedStateEvent, EventType};
-use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
-use ruma_serde::Raw;
+use ruma_common::{
+    api::ruma_api,
+    events::{room::member::RoomMemberEventContent, AnyStrippedStateEvent, StateEventType},
+    serde::Raw,
+    EventId, MilliSecondsSinceUnixEpoch, RoomId, ServerName, UserId,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
@@ -41,7 +42,7 @@ ruma_api! {
 
         /// The value `m.room.member`.
         #[serde(rename = "type")]
-        pub kind: EventType,
+        pub kind: StateEventType,
 
         /// The user ID of the invited member.
         pub state_key: &'a UserId,
@@ -123,7 +124,7 @@ impl<'a> From<RequestInit<'a>> for Request<'a> {
             sender: init.sender,
             origin: init.origin,
             origin_server_ts: init.origin_server_ts,
-            kind: EventType::RoomMember,
+            kind: StateEventType::RoomMember,
             state_key: init.state_key,
             content: init.content,
             unsigned: init.unsigned,

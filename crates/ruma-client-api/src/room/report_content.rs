@@ -6,8 +6,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3roomsroomidreporteventid
 
     use js_int::Int;
-    use ruma_api::ruma_api;
-    use ruma_identifiers::{EventId, RoomId};
+    use ruma_common::{api::ruma_api, EventId, RoomId};
 
     ruma_api! {
         metadata: {
@@ -31,12 +30,12 @@ pub mod v3 {
             pub event_id: &'a EventId,
 
             /// Integer between -100 and 0 rating offensivness.
-            pub score: Int,
+            pub score: Option<Int>,
 
             /// Reason to report content.
             ///
             /// May be blank.
-            pub reason: &'a str,
+            pub reason: Option<&'a str>,
         }
 
         #[derive(Default)]
@@ -50,8 +49,8 @@ pub mod v3 {
         pub fn new(
             room_id: &'a RoomId,
             event_id: &'a EventId,
-            score: Int,
-            reason: &'a str,
+            score: Option<Int>,
+            reason: Option<&'a str>,
         ) -> Self {
             Self { room_id, event_id, score, reason }
         }

@@ -8,10 +8,12 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use js_int::UInt;
-    use ruma_api::ruma_api;
-    use ruma_common::encryption::{DeviceKeys, OneTimeKey};
-    use ruma_identifiers::{DeviceKeyAlgorithm, DeviceKeyId};
-    use ruma_serde::Raw;
+    use ruma_common::{
+        api::ruma_api,
+        encryption::{DeviceKeys, OneTimeKey},
+        serde::Raw,
+        DeviceKeyAlgorithm, DeviceKeyId,
+    };
 
     ruma_api! {
         metadata: {

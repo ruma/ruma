@@ -11,10 +11,10 @@ use std::fmt;
 
 pub mod association;
 pub mod authentication;
+pub mod discovery;
 pub mod invitation;
 pub mod keys;
 pub mod lookup;
-pub mod status;
 pub mod tos;
 
 // Wrapper around `Box<str>` that cannot be used in a meaningful way outside of

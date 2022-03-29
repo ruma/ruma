@@ -5,8 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#put_matrixclientv3profileuseridavatar_url
 
-    use ruma_api::ruma_api;
-    use ruma_identifiers::{MxcUri, UserId};
+    use ruma_common::{api::ruma_api, MxcUri, UserId};
 
     ruma_api! {
         metadata: {
@@ -35,8 +34,8 @@ pub mod v3 {
                 feature = "compat",
                 serde(
                     default,
-                    deserialize_with = "ruma_serde::empty_string_as_none",
-                    serialize_with = "ruma_serde::none_as_empty_string"
+                    deserialize_with = "ruma_common::serde::empty_string_as_none",
+                    serialize_with = "ruma_common::serde::none_as_empty_string"
                 )
             )]
             #[cfg_attr(
@@ -48,9 +47,13 @@ pub mod v3 {
             /// The [BlurHash](https://blurha.sh) for the avatar pointed to by `avatar_url`.
             ///
             /// This uses the unstable prefix in
-            /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
+            /// [MSC2448](https://github.com/matrix-org/matrix-spec-proposals/pull/2448).
             #[cfg(feature = "unstable-msc2448")]
-            #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
+            #[serde(
+                rename = "xyz.amorgan.blurhash",
+                alias = "blurhash",
+                skip_serializing_if = "Option::is_none"
+            )]
             pub blurhash: Option<&'a str>,
         }
 
@@ -82,7 +85,7 @@ pub mod v3 {
     #[cfg(all(test, feature = "server"))]
     mod tests {
         use matches::assert_matches;
-        use ruma_api::IncomingRequest as _;
+        use ruma_common::api::IncomingRequest as _;
 
         use super::IncomingRequest;
 

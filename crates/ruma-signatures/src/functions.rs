@@ -8,8 +8,10 @@ use std::{
 };
 
 use base64::{encode_config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
-use ruma_identifiers::{EventId, RoomVersionId, ServerName, UserId};
-use ruma_serde::{base64::Standard, Base64, CanonicalJsonObject, CanonicalJsonValue};
+use ruma_common::{
+    serde::{base64::Standard, Base64, CanonicalJsonObject, CanonicalJsonValue},
+    EventId, RoomVersionId, ServerName, UserId,
+};
 use serde_json::{from_str as from_json_str, to_string as to_json_string};
 use sha2::{digest::Digest, Sha256};
 
@@ -48,7 +50,10 @@ fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'stat
             _ => &["membership"],
         },
         "m.room.create" => &["creator"],
-        "m.room.join_rules" => &["join_rule"],
+        "m.room.join_rules" => match version {
+            RoomVersionId::V8 | RoomVersionId::V9 => &["join_rule", "allow"],
+            _ => &["join_rule"],
+        },
         "m.room.power_levels" => &[
             "ban",
             "events",
@@ -229,7 +234,7 @@ pub fn canonical_json(object: &CanonicalJsonObject) -> Result<String, Error> {
 /// ```rust
 /// use std::collections::BTreeMap;
 ///
-/// use ruma_serde::Base64;
+/// use ruma_common::serde::Base64;
 ///
 /// const PUBLIC_KEY: &[u8] = b"XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
 ///
@@ -416,7 +421,7 @@ pub fn reference_hash(
 /// # Examples
 ///
 /// ```rust
-/// # use ruma_identifiers::RoomVersionId;
+/// # use ruma_common::RoomVersionId;
 /// # use ruma_signatures::{hash_and_sign_event, Ed25519KeyPair};
 /// #
 /// const PKCS8: &str = "\
@@ -541,8 +546,8 @@ where
 ///
 /// ```rust
 /// # use std::collections::BTreeMap;
-/// # use ruma_identifiers::RoomVersionId;
-/// # use ruma_serde::Base64;
+/// # use ruma_common::RoomVersionId;
+/// # use ruma_common::serde::Base64;
 /// # use ruma_signatures::{verify_event, Verified};
 /// #
 /// const PUBLIC_KEY: &[u8] = b"XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
@@ -792,6 +797,9 @@ fn object_retain_keys(object: &mut CanonicalJsonObject, keys: &[&str]) {
 ///
 /// It will return the sender's server (unless it's a third party invite) and the event id server
 /// (on v1 and v2 room versions)
+///
+/// Starting with room version 8, if join_authorised_via_users_server is present, a signature from
+/// that user is required.
 fn servers_to_check_signatures(
     object: &CanonicalJsonObject,
     version: &RoomVersionId,
@@ -827,7 +835,28 @@ fn servers_to_check_signatures(
                 return Err(JsonError::field_missing_from_object("event_id"));
             }
         },
-        _ => (),
+        RoomVersionId::V3
+        | RoomVersionId::V4
+        | RoomVersionId::V5
+        | RoomVersionId::V6
+        | RoomVersionId::V7 => {}
+        // TODO: And for all future versions that have join_authorised_via_users_server
+        RoomVersionId::V8 | RoomVersionId::V9 => {
+            if let Some(authorized_user) = object
+                .get("content")
+                .and_then(|c| c.as_object())
+                .and_then(|c| c.get("join_authorised_via_users_server"))
+            {
+                let authorized_user = authorized_user.as_str().ok_or_else(|| {
+                    JsonError::not_of_type("join_authorised_via_users_server", JsonType::String)
+                })?;
+                let authorized_user = <&UserId>::try_from(authorized_user)
+                    .map_err(|e| Error::from(ParseError::UserId(e)))?;
+
+                servers_to_check.insert(authorized_user.server_name().to_owned());
+            }
+        }
+        _ => unimplemented!(),
     }
 
     Ok(servers_to_check)
@@ -848,8 +877,10 @@ mod tests {
         convert::{TryFrom, TryInto},
     };
 
-    use ruma_identifiers::{RoomVersionId, ServerSigningKeyId, SigningKeyAlgorithm};
-    use ruma_serde::{Base64, CanonicalJsonValue};
+    use ruma_common::{
+        serde::{Base64, CanonicalJsonValue},
+        RoomVersionId, ServerSigningKeyId, SigningKeyAlgorithm,
+    };
     use serde_json::json;
 
     use super::canonical_json;
@@ -962,6 +993,80 @@ mod tests {
         assert!(verification_result.is_ok());
         let verification = verification_result.unwrap();
         assert!(matches!(verification, Verified::Signatures));
+    }
+
+    #[test]
+    fn verify_event_check_signatures_for_authorized_user() {
+        let key_pair_sender = generate_key_pair();
+        let key_pair_authorized = generate_key_pair();
+        let mut signed_event = serde_json::from_str(
+            r#"{
+                "event_id": "$event_id:domain-event",
+                "auth_events": [],
+                "content": {"join_authorised_via_users_server": "@authorized:domain-authorized"},
+                "depth": 3,
+                "hashes": {
+                    "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+                },
+                "origin": "domain",
+                "origin_server_ts": 1000000,
+                "prev_events": [],
+                "room_id": "!x:domain",
+                "sender": "@name:domain-sender",
+                "type": "m.room.member",
+                "unsigned": {
+                    "age_ts": 1000000
+                }
+            }"#,
+        )
+        .unwrap();
+        sign_json("domain-sender", &key_pair_sender, &mut signed_event).unwrap();
+        sign_json("domain-authorized", &key_pair_authorized, &mut signed_event).unwrap();
+
+        let mut public_key_map = BTreeMap::new();
+        add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
+        add_key_to_map(&mut public_key_map, "domain-authorized", &key_pair_authorized);
+
+        let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V9);
+
+        assert!(verification_result.is_ok());
+        let verification = verification_result.unwrap();
+        assert!(matches!(verification, Verified::Signatures));
+    }
+
+    #[test]
+    fn verification_fails_if_missing_signatures_for_authorized_user() {
+        let key_pair_sender = generate_key_pair();
+        let mut signed_event = serde_json::from_str(
+            r#"{
+                "event_id": "$event_id:domain-event",
+                "auth_events": [],
+                "content": {"join_authorised_via_users_server": "@authorized:domain-authorized"},
+                "depth": 3,
+                "hashes": {
+                    "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+                },
+                "origin": "domain",
+                "origin_server_ts": 1000000,
+                "prev_events": [],
+                "room_id": "!x:domain",
+                "sender": "@name:domain-sender",
+                "type": "X",
+                "unsigned": {
+                    "age_ts": 1000000
+                }
+            }"#,
+        )
+        .unwrap();
+        sign_json("domain-sender", &key_pair_sender, &mut signed_event).unwrap();
+
+        let mut public_key_map = BTreeMap::new();
+        add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
+
+        let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V9);
+
+        assert!(verification_result.is_err()) // Should be Err(VerificationError::
+                                              // signature_not_found("domain-authorized")));
     }
 
     #[test]

@@ -5,8 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3devicesdeviceid
 
-    use ruma_api::ruma_api;
-    use ruma_identifiers::DeviceId;
+    use ruma_common::{api::ruma_api, DeviceId};
 
     use crate::device::Device;
 

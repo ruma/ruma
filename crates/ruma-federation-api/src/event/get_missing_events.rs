@@ -8,8 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#post_matrixfederationv1get_missing_eventsroomid
 
     use js_int::{uint, UInt};
-    use ruma_api::ruma_api;
-    use ruma_identifiers::{EventId, RoomId};
+    use ruma_common::{api::ruma_api, EventId, RoomId};
     use serde_json::value::RawValue as RawJsonValue;
 
     ruma_api! {
@@ -37,7 +36,7 @@ pub mod v1 {
             /// The minimum depth of events to retrieve.
             ///
             /// Defaults to 0.
-            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
             pub min_depth: UInt,
 
             /// The latest event IDs that the sender already has.

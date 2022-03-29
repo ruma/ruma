@@ -5,9 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3roomsroomidreceiptreceipttypeeventid
 
-    use ruma_api::ruma_api;
-    use ruma_common::receipt::ReceiptType;
-    use ruma_identifiers::{EventId, RoomId};
+    use ruma_common::{api::ruma_api, receipt::ReceiptType, EventId, RoomId};
 
     ruma_api! {
         metadata: {

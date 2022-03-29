@@ -9,9 +9,7 @@ pub mod v2 {
 
     use std::time::Duration;
 
-    use ruma_api::ruma_api;
-    use ruma_common::authentication::TokenType;
-    use ruma_identifiers::ServerName;
+    use ruma_common::{api::ruma_api, authentication::TokenType, ServerName};
 
     ruma_api! {
         metadata: {
@@ -40,7 +38,7 @@ pub mod v2 {
             pub matrix_server_name: &'a ServerName,
 
             /// The number of seconds before this token expires and a new one must be generated.
-            #[serde(with = "ruma_serde::duration::secs")]
+            #[serde(with = "ruma_common::serde::duration::secs")]
             pub expires_in: Duration,
         }
 

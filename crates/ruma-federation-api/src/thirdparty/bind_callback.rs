@@ -11,9 +11,9 @@ pub mod v1 {
 
     use std::collections::BTreeMap;
 
-    use ruma_api::ruma_api;
-    use ruma_common::thirdparty::Medium;
-    use ruma_identifiers::{RoomId, ServerName, ServerSigningKeyId, UserId};
+    use ruma_common::{
+        api::ruma_api, thirdparty::Medium, RoomId, ServerName, ServerSigningKeyId, UserId,
+    };
     use serde::{Deserialize, Serialize};
 
     ruma_api! {

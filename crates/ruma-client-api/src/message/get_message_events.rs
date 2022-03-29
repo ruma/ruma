@@ -6,10 +6,12 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3roomsroomidmessages
 
     use js_int::{uint, UInt};
-    use ruma_api::ruma_api;
-    use ruma_events::{AnyRoomEvent, AnyStateEvent};
-    use ruma_identifiers::RoomId;
-    use ruma_serde::Raw;
+    use ruma_common::{
+        api::ruma_api,
+        events::{AnyRoomEvent, AnyStateEvent},
+        serde::Raw,
+        RoomId,
+    };
     use serde::{Deserialize, Serialize};
 
     use crate::filter::{IncomingRoomEventFilter, RoomEventFilter};
@@ -33,17 +35,27 @@ pub mod v3 {
 
             /// The token to start returning events from.
             ///
-            /// This token can be obtained from a
-            /// prev_batch token returned for each room by the sync API, or from a start or end token
-            /// returned by a previous request to this endpoint.
+            /// This token can be obtained from a `prev_batch` token returned for each room by the
+            /// sync endpoint, or from a `start` or `end` token returned by a previous request to
+            /// this endpoint.
+            ///
+            /// If this is `None`, the server will return messages from the start or end of the
+            /// history visible to the user, depending on the value of [`dir`][Self::dir].
+            ///
+            /// *Note: This field is marked required in v1.2 of the specification, but that is
+            /// changing, most likely as part of v1.3. To frontload the breaking change, this field
+            /// is optional already even though v1.2 is the latest version at the time of writing.
+            /// The specification change can be found [here].*
+            ///
+            /// [here]: https://github.com/matrix-org/matrix-spec/pull/1002
             #[ruma_api(query)]
-            pub from: &'a str,
+            pub from: Option<&'a str>,
 
             /// The token to stop returning events at.
             ///
-            /// This token can be obtained from a prev_batch
-            /// token returned for each room by the sync endpoint, or from a start or end token returned
-            /// by a previous request to this endpoint.
+            /// This token can be obtained from a `prev_batch` token returned for each room by the
+            /// sync endpoint, or from a `start` or `end` token returned by a previous request to
+            /// this endpoint.
             #[serde(skip_serializing_if = "Option::is_none")]
             #[ruma_api(query)]
             pub to: Option<&'a str>,
@@ -54,15 +66,15 @@ pub mod v3 {
 
             /// The maximum number of events to return.
             ///
-            /// Default: 10.
+            /// Default: `10`.
             #[ruma_api(query)]
             #[serde(default = "default_limit", skip_serializing_if = "is_default_limit")]
             pub limit: UInt,
 
-            /// A RoomEventFilter to filter returned events with.
+            /// A [`RoomEventFilter`] to filter returned events with.
             #[ruma_api(query)]
             #[serde(
-                with = "ruma_serde::json_string",
+                with = "ruma_common::serde::json_string",
                 default,
                 skip_serializing_if = "RoomEventFilter::is_empty"
             )]
@@ -97,7 +109,7 @@ pub mod v3 {
         pub fn new(room_id: &'a RoomId, from: &'a str, dir: Direction) -> Self {
             Self {
                 room_id,
-                from,
+                from: Some(from),
                 to: None,
                 dir,
                 limit: default_limit(),
@@ -115,6 +127,32 @@ pub mod v3 {
         /// `Forward`.
         pub fn forward(room_id: &'a RoomId, from: &'a str) -> Self {
             Self::new(room_id, from, Direction::Forward)
+        }
+
+        /// Creates a new `Request` to fetch messages from the very start of the available history
+        /// for a given room.
+        pub fn from_start(room_id: &'a RoomId) -> Self {
+            Self {
+                room_id,
+                from: None,
+                to: None,
+                dir: Direction::Forward,
+                limit: default_limit(),
+                filter: RoomEventFilter::default(),
+            }
+        }
+
+        /// Creates a new `Request` to fetch messages from the very end of the available history for
+        /// a given room.
+        pub fn from_end(room_id: &'a RoomId) -> Self {
+            Self {
+                room_id,
+                from: None,
+                to: None,
+                dir: Direction::Backward,
+                limit: default_limit(),
+                filter: RoomEventFilter::default(),
+            }
         }
     }
 
@@ -150,8 +188,10 @@ pub mod v3 {
     #[cfg(all(test, feature = "client"))]
     mod tests {
         use js_int::uint;
-        use ruma_api::{MatrixVersion, OutgoingRequest, SendAccessToken};
-        use ruma_identifiers::room_id;
+        use ruma_common::{
+            api::{MatrixVersion, OutgoingRequest, SendAccessToken},
+            room_id,
+        };
 
         use super::{Direction, Request};
         use crate::filter::{LazyLoadOptions, RoomEventFilter};
@@ -173,7 +213,7 @@ pub mod v3 {
             };
             let req = Request {
                 room_id,
-                from: "token",
+                from: Some("token"),
                 to: Some("token2"),
                 dir: Direction::Backward,
                 limit: uint!(0),
@@ -202,7 +242,7 @@ pub mod v3 {
             let room_id = room_id!("!roomid:example.org");
             let req = Request {
                 room_id,
-                from: "token",
+                from: Some("token"),
                 to: Some("token2"),
                 dir: Direction::Backward,
                 limit: uint!(0),

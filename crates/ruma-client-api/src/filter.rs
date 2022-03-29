@@ -7,8 +7,10 @@ mod lazy_load;
 mod url;
 
 use js_int::UInt;
-use ruma_identifiers::{RoomId, UserId};
-use ruma_serde::{Outgoing, StringEnum};
+use ruma_common::{
+    serde::{Incoming, StringEnum},
+    RoomId, UserId,
+};
 use serde::Serialize;
 
 use crate::PrivOwnedStr;
@@ -46,8 +48,42 @@ impl Default for EventFormat {
     }
 }
 
+/// Relation types as defined in `rel_type` of an `m.relates_to` field.
+///
+/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[cfg(feature = "unstable-msc3440")]
+#[non_exhaustive]
+pub enum RelationType {
+    /// `m.annotation`, an annotation, principally used by reactions.
+    #[cfg(feature = "unstable-msc2677")]
+    #[ruma_enum(rename = "m.annotation")]
+    Annotation,
+
+    /// `m.replace`, a replacement.
+    #[cfg(feature = "unstable-msc2676")]
+    #[ruma_enum(rename = "m.replace")]
+    Replacement,
+
+    /// `m.thread`, a participant to a thread.
+    #[ruma_enum(rename = "io.element.thread", alias = "m.thread")]
+    Thread,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}
+
+#[cfg(feature = "unstable-msc3440")]
+impl RelationType {
+    /// Creates a string slice from this `RelationType`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
+}
+
 /// Filters to be applied to room events.
-#[derive(Clone, Debug, Default, Outgoing, Serialize)]
+#[derive(Clone, Debug, Default, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, Default, Serialize)]
 pub struct RoomEventFilter<'a> {
@@ -109,6 +145,32 @@ pub struct RoomEventFilter<'a> {
     /// Defaults to `LazyLoadOptions::Disabled`.
     #[serde(flatten)]
     pub lazy_load_options: LazyLoadOptions,
+
+    /// A list of relation types to include.
+    ///
+    /// An event A is included in the filter only if there exists another event B which relates to
+    /// A with a `rel_type` which is defined in the list.
+    #[cfg(feature = "unstable-msc3440")]
+    #[serde(
+        rename = "io.element.relation_types",
+        alias = "related_by_rel_types",
+        default,
+        skip_serializing_if = "<[_]>::is_empty"
+    )]
+    pub related_by_rel_types: &'a [RelationType],
+
+    /// A list of senders to include.
+    ///
+    /// An event A is included in the filter only if there exists another event B which relates to
+    /// A, and which has a sender which is in the list.
+    #[cfg(feature = "unstable-msc3440")]
+    #[serde(
+        rename = "io.element.relation_senders",
+        alias = "related_by_senders",
+        default,
+        skip_serializing_if = "<[_]>::is_empty"
+    )]
+    pub related_by_senders: &'a [Box<UserId>],
 }
 
 impl<'a> RoomEventFilter<'a> {
@@ -126,7 +188,7 @@ impl<'a> RoomEventFilter<'a> {
 
     /// Returns `true` if all fields are empty.
     pub fn is_empty(&self) -> bool {
-        self.not_types.is_empty()
+        let empty = self.not_types.is_empty()
             && self.not_rooms.is_empty()
             && self.limit.is_none()
             && self.rooms.is_none()
@@ -134,14 +196,20 @@ impl<'a> RoomEventFilter<'a> {
             && self.senders.is_none()
             && self.types.is_none()
             && self.url_filter.is_none()
-            && self.lazy_load_options.is_disabled()
+            && self.lazy_load_options.is_disabled();
+
+        #[cfg(not(feature = "unstable-msc3440"))]
+        return empty;
+
+        #[cfg(feature = "unstable-msc3440")]
+        return empty && self.related_by_rel_types.is_empty() && self.related_by_senders.is_empty();
     }
 }
 
 impl IncomingRoomEventFilter {
     /// Returns `true` if all fields are empty.
     pub fn is_empty(&self) -> bool {
-        self.not_types.is_empty()
+        let empty = self.not_types.is_empty()
             && self.not_rooms.is_empty()
             && self.limit.is_none()
             && self.rooms.is_none()
@@ -149,36 +217,42 @@ impl IncomingRoomEventFilter {
             && self.senders.is_none()
             && self.types.is_none()
             && self.url_filter.is_none()
-            && self.lazy_load_options.is_disabled()
+            && self.lazy_load_options.is_disabled();
+
+        #[cfg(not(feature = "unstable-msc3440"))]
+        return empty;
+
+        #[cfg(feature = "unstable-msc3440")]
+        return empty && self.related_by_rel_types.is_empty() && self.related_by_senders.is_empty();
     }
 }
 
 /// Filters to be applied to room data.
-#[derive(Clone, Debug, Default, Outgoing, Serialize)]
+#[derive(Clone, Debug, Default, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, Default, Serialize)]
 pub struct RoomFilter<'a> {
     /// Include rooms that the user has left in the sync.
     ///
     /// Defaults to `false`.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub include_leave: bool,
 
     /// The per user account data to include for rooms.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_empty")]
     pub account_data: RoomEventFilter<'a>,
 
     /// The message and state update events to include for rooms.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_empty")]
     pub timeline: RoomEventFilter<'a>,
 
     /// The events that aren't recorded in the room history, e.g. typing and receipts, to include
     /// for rooms.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_empty")]
     pub ephemeral: RoomEventFilter<'a>,
 
     /// The state events to include for rooms.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_empty")]
     pub state: RoomEventFilter<'a>,
 
     /// A list of room IDs to exclude.
@@ -236,7 +310,7 @@ impl IncomingRoomFilter {
 }
 
 /// Filter for non-room data.
-#[derive(Clone, Debug, Default, Outgoing, Serialize)]
+#[derive(Clone, Debug, Default, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, Default, Serialize)]
 pub struct Filter<'a> {
@@ -308,7 +382,7 @@ impl IncomingFilter {
 }
 
 /// A filter definition
-#[derive(Clone, Debug, Default, Outgoing, Serialize)]
+#[derive(Clone, Debug, Default, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, Default, Serialize)]
 pub struct FilterDefinition<'a> {
@@ -325,19 +399,19 @@ pub struct FilterDefinition<'a> {
     ///
     /// 'client' will return the events in a format suitable for clients. 'federation' will return
     /// the raw event as received over federation. The default is 'client'.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub event_format: EventFormat,
 
     /// The presence updates to include.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_empty")]
     pub presence: Filter<'a>,
 
     /// The user account data that isn't associated with rooms to include.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_empty")]
     pub account_data: Filter<'a>,
 
     /// Filters to be applied to room data.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_empty")]
     pub room: RoomFilter<'a>,
 }
 
@@ -382,7 +456,7 @@ impl IncomingFilterDefinition {
 
 macro_rules! can_be_empty {
     ($ty:ident $(<$gen:tt>)?) => {
-        impl $(<$gen>)? ruma_serde::CanBeEmpty for $ty $(<$gen>)? {
+        impl $(<$gen>)? ruma_common::serde::CanBeEmpty for $ty $(<$gen>)? {
             fn is_empty(&self) -> bool {
                 self.is_empty()
             }
@@ -468,10 +542,26 @@ mod tests {
                 limit: None,
                 url_filter: Some(UrlFilter::EventsWithUrl),
                 lazy_load_options: LazyLoadOptions::Enabled { include_redundant_members: false },
-            } if types == vec!["m.room.message".to_owned()]
+                #[cfg(feature = "unstable-msc3440")]
+                related_by_rel_types,
+                #[cfg(feature = "unstable-msc3440")]
+                related_by_senders
+            } if {
+                let valid = types == vec!["m.room.message".to_owned()]
                 && not_types.is_empty()
                 && not_rooms.is_empty()
-                && not_senders.is_empty()
+                && not_senders.is_empty();
+
+                #[cfg(not(feature = "unstable-msc3440"))]
+                {
+                    valid
+                }
+
+                #[cfg(feature = "unstable-msc3440")]
+                {
+                    valid && related_by_rel_types.is_empty() && related_by_senders.is_empty()
+                }
+            }
         );
 
         Ok(())

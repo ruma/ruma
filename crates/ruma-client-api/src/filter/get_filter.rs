@@ -5,8 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3useruseridfilterfilterid
 
-    use ruma_api::ruma_api;
-    use ruma_identifiers::UserId;
+    use ruma_common::{api::ruma_api, UserId};
 
     use crate::filter::IncomingFilterDefinition;
 
@@ -62,7 +61,7 @@ pub mod v3 {
         #[cfg(feature = "client")]
         #[test]
         fn deserialize_response() {
-            use ruma_api::IncomingResponse;
+            use ruma_common::api::IncomingResponse;
 
             assert_matches!(
                 super::Response::try_from_http_response(
@@ -75,7 +74,7 @@ pub mod v3 {
         #[cfg(feature = "server")]
         #[test]
         fn serialize_response() {
-            use ruma_api::OutgoingResponse;
+            use ruma_common::api::OutgoingResponse;
 
             use crate::filter::IncomingFilterDefinition;
 

@@ -7,8 +7,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3register
 
-    use ruma_api::ruma_api;
-    use ruma_identifiers::{DeviceId, UserId};
+    use ruma_common::{api::ruma_api, DeviceId, UserId};
 
     use super::{LoginType, RegistrationKind};
     use crate::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
@@ -66,12 +65,12 @@ pub mod v3 {
             ///
             /// Defaults to `User` if omitted.
             #[ruma_api(query)]
-            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
             pub kind: RegistrationKind,
 
             /// If `true`, an `access_token` and `device_id` should not be returned
             /// from this call, therefore preventing an automatic login.
-            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
             pub inhibit_login: bool,
 
             /// Login `type` used by Appservices.

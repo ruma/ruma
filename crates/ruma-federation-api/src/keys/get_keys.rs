@@ -9,10 +9,12 @@ pub mod v1 {
 
     use std::collections::BTreeMap;
 
-    use ruma_api::ruma_api;
-    use ruma_common::encryption::{CrossSigningKey, DeviceKeys};
-    use ruma_identifiers::{DeviceId, UserId};
-    use ruma_serde::Raw;
+    use ruma_common::{
+        api::ruma_api,
+        encryption::{CrossSigningKey, DeviceKeys},
+        serde::Raw,
+        DeviceId, UserId,
+    };
 
     ruma_api! {
         metadata: {

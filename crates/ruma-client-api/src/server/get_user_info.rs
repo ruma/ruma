@@ -7,9 +7,7 @@ pub mod v3 {
 
     use std::collections::BTreeMap;
 
-    use ruma_api::ruma_api;
-    use ruma_common::MilliSecondsSinceUnixEpoch;
-    use ruma_identifiers::UserId;
+    use ruma_common::{api::ruma_api, MilliSecondsSinceUnixEpoch, UserId};
     use serde::{Deserialize, Serialize};
 
     ruma_api! {

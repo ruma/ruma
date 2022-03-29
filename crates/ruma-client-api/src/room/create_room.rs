@@ -6,16 +6,19 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3createroom
 
     use assign::assign;
-    use ruma_api::ruma_api;
-    use ruma_events::{
-        room::{
-            create::{PreviousRoom, RoomCreateEventContent, RoomType},
-            power_levels::RoomPowerLevelsEventContent,
+    use ruma_common::{
+        api::ruma_api,
+        events::{
+            room::{
+                create::{PreviousRoom, RoomCreateEventContent},
+                power_levels::RoomPowerLevelsEventContent,
+            },
+            AnyInitialStateEvent,
         },
-        AnyInitialStateEvent,
+        room::RoomType,
+        serde::{Raw, StringEnum},
+        RoomId, RoomName, RoomVersionId, UserId,
     };
-    use ruma_identifiers::{RoomId, RoomName, RoomVersionId, UserId};
-    use ruma_serde::{Raw, StringEnum};
     use serde::{Deserialize, Serialize};
 
     use crate::{
@@ -59,7 +62,7 @@ pub mod v3 {
             pub invite_3pid: &'a [Invite3pid<'a>],
 
             /// If set, this sets the `is_direct` flag on room invites.
-            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
             pub is_direct: bool,
 
             /// If this is included, an `m.room.name` event will be sent into the room to indicate the
@@ -94,7 +97,7 @@ pub mod v3 {
             ///
             /// A private visibility will hide the room from the published room list. Defaults to
             /// `Private`.
-            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
             pub visibility: Visibility,
         }
 
@@ -132,8 +135,8 @@ pub mod v3 {
         /// Defaults to `true` if key does not exist.
         #[serde(
             rename = "m.federate",
-            default = "ruma_serde::default_true",
-            skip_serializing_if = "ruma_serde::is_true"
+            default = "ruma_common::serde::default_true",
+            skip_serializing_if = "ruma_common::serde::is_true"
         )]
         pub federate: bool,
 

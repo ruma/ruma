@@ -4,11 +4,13 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_common::{
-    encryption::DeviceKeys, presence::PresenceState, to_device::DeviceIdOrAllDevices,
+    encryption::{CrossSigningKey, DeviceKeys},
+    events::{receipt::Receipt, AnyToDeviceEventContent, ToDeviceEventType},
+    presence::PresenceState,
+    serde::{from_raw_json_value, Raw},
+    to_device::DeviceIdOrAllDevices,
+    DeviceId, EventId, RoomId, TransactionId, UserId,
 };
-use ruma_events::{receipt::Receipt, AnyToDeviceEventContent, EventType};
-use ruma_identifiers::{DeviceId, EventId, RoomId, TransactionId, UserId};
-use ruma_serde::{from_raw_json_value, Raw};
 use serde::{de, Deserialize, Serialize};
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
@@ -45,6 +47,11 @@ pub enum Edu {
     #[serde(rename = "m.direct_to_device")]
     DirectToDevice(DirectDeviceContent),
 
+    /// An EDU that lets servers push details to each other when one of their users updates their
+    /// cross-signing keys.
+    #[serde(rename = "m.signing_key_update")]
+    SigningKeyUpdate(SigningKeyUpdateContent),
+
     #[doc(hidden)]
     _Custom(JsonValue),
 }
@@ -70,6 +77,7 @@ impl<'de> Deserialize<'de> for Edu {
             "m.typing" => Self::Typing(from_raw_json_value(&content)?),
             "m.device_list_update" => Self::DeviceListUpdate(from_raw_json_value(&content)?),
             "m.direct_to_device" => Self::DirectToDevice(from_raw_json_value(&content)?),
+            "m.signing_key_update" => Self::SigningKeyUpdate(from_raw_json_value(&content)?),
             _ => Self::_Custom(from_raw_json_value(&content)?),
         })
     }
@@ -256,7 +264,7 @@ pub struct DirectDeviceContent {
 
     /// Event type for the message.
     #[serde(rename = "type")]
-    pub ev_type: EventType,
+    pub ev_type: ToDeviceEventType,
 
     /// Unique utf8 string ID for the message, used for idempotency.
     pub message_id: Box<TransactionId>,
@@ -270,7 +278,11 @@ pub struct DirectDeviceContent {
 
 impl DirectDeviceContent {
     /// Creates a new `DirectDeviceContent` with the given `sender, `ev_type` and `message_id`.
-    pub fn new(sender: Box<UserId>, ev_type: EventType, message_id: Box<TransactionId>) -> Self {
+    pub fn new(
+        sender: Box<UserId>,
+        ev_type: ToDeviceEventType,
+        message_id: Box<TransactionId>,
+    ) -> Self {
         Self { sender, ev_type, message_id, messages: DirectDeviceMessages::new() }
     }
 }
@@ -281,11 +293,34 @@ impl DirectDeviceContent {
 pub type DirectDeviceMessages =
     BTreeMap<Box<UserId>, BTreeMap<DeviceIdOrAllDevices, Raw<AnyToDeviceEventContent>>>;
 
+/// The content for an `m.signing_key_update` EDU.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct SigningKeyUpdateContent {
+    /// The user ID whose cross-signing keys have changed.
+    pub user_id: Box<UserId>,
+
+    /// The user's master key, if it was updated.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub master_key: Option<Raw<CrossSigningKey>>,
+
+    /// The users's self-signing key, if it was updated.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub self_signing_key: Option<Raw<CrossSigningKey>>,
+}
+
+impl SigningKeyUpdateContent {
+    /// Creates a new `SigningKeyUpdateContent`.
+    pub fn new(user_id: Box<UserId>) -> Self {
+        Self { user_id, master_key: None, self_signing_key: None }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use js_int::uint;
     use matches::assert_matches;
-    use ruma_identifiers::{room_id, user_id};
+    use ruma_common::{room_id, user_id};
     use serde_json::json;
 
     use super::*;
@@ -321,24 +356,26 @@ mod test {
         });
 
         let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
-        assert_matches!(
-            &edu,
-            Edu::DeviceListUpdate(DeviceListUpdateContent {
-                user_id,
-                device_id,
-                device_display_name,
-                stream_id,
-                prev_id,
-                deleted,
-                keys
-            }) if user_id == "@john:example.com"
-                && device_id == "QBUAZIFURK"
-                && device_display_name.as_deref() == Some("Mobile")
-                && *stream_id == uint!(6)
-                && prev_id.is_empty()
-                && *deleted == Some(false)
-                && keys.is_some()
-        );
+        let DeviceListUpdateContent {
+            user_id,
+            device_id,
+            device_display_name,
+            stream_id,
+            prev_id,
+            deleted,
+            keys,
+        } = match &edu {
+            Edu::DeviceListUpdate(u) => u,
+            _ => panic!("Unexpected Edu variant: {:#?}", edu),
+        };
+
+        assert_eq!(user_id, "@john:example.com");
+        assert_eq!(device_id, "QBUAZIFURK");
+        assert_eq!(device_display_name.as_deref(), Some("Mobile"));
+        assert_eq!(*stream_id, uint!(6));
+        assert_eq!(*prev_id, vec![]);
+        assert_eq!(*deleted, Some(false));
+        assert_matches!(keys, Some(_));
 
         assert_eq!(serde_json::to_value(&edu).unwrap(), json);
     }
@@ -355,24 +392,26 @@ mod test {
         });
 
         let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
-        assert_matches!(
-            &edu,
-            Edu::DeviceListUpdate(DeviceListUpdateContent {
-                user_id,
-                device_id,
-                device_display_name,
-                stream_id,
-                prev_id,
-                deleted,
-                keys
-            }) if user_id == "@john:example.com"
-                && device_id == "QBUAZIFURK"
-                && device_display_name.is_none()
-                && *stream_id == uint!(6)
-                && prev_id.is_empty()
-                && deleted.is_none()
-                && keys.is_none()
-        );
+        let DeviceListUpdateContent {
+            user_id,
+            device_id,
+            device_display_name,
+            stream_id,
+            prev_id,
+            deleted,
+            keys,
+        } = match &edu {
+            Edu::DeviceListUpdate(u) => u,
+            _ => panic!("Unexpected Edu variant: {:#?}", edu),
+        };
+
+        assert_eq!(user_id, "@john:example.com");
+        assert_eq!(device_id, "QBUAZIFURK");
+        assert_eq!(*device_display_name, None);
+        assert_eq!(*stream_id, uint!(6));
+        assert_eq!(*prev_id, vec![]);
+        assert_eq!(*deleted, None);
+        assert_matches!(keys, None);
 
         assert_eq!(serde_json::to_value(&edu).unwrap(), json);
     }
@@ -458,9 +497,62 @@ mod test {
             Edu::DirectToDevice(DirectDeviceContent {
                 sender, ev_type, message_id, messages
             }) if sender == "@john:example.com"
-                && *ev_type == EventType::RoomKeyRequest
+                && *ev_type == ToDeviceEventType::RoomKeyRequest
                 && message_id == "hiezohf6Hoo7kaev"
                 && messages.get(user_id!("@alice:example.org")).is_some()
+        );
+
+        assert_eq!(serde_json::to_value(&edu).unwrap(), json);
+    }
+
+    #[test]
+    fn signing_key_update_edu() {
+        let json = json!({
+            "content": {
+                "master_key": {
+                    "keys": {
+                        "ed25519:alice+base64+public+key": "alice+base64+public+key",
+                        "ed25519:base64+master+public+key": "base64+master+public+key"
+                    },
+                    "signatures": {
+                        "@alice:example.com": {
+                            "ed25519:alice+base64+master+key": "signature+of+key"
+                        }
+                    },
+                    "usage": [
+                        "master"
+                    ],
+                    "user_id": "@alice:example.com"
+                },
+                "self_signing_key": {
+                    "keys": {
+                        "ed25519:alice+base64+public+key": "alice+base64+public+key",
+                        "ed25519:base64+self+signing+public+key": "base64+self+signing+master+public+key"
+                    },
+                    "signatures": {
+                        "@alice:example.com": {
+                            "ed25519:alice+base64+master+key": "signature+of+key",
+                            "ed25519:base64+master+public+key": "signature+of+self+signing+key"
+                        }
+                    },
+                    "usage": [
+                        "self_signing"
+                    ],
+                    "user_id": "@alice:example.com"
+                  },
+                "user_id": "@alice:example.com"
+            },
+            "edu_type": "m.signing_key_update"
+        });
+
+        let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
+        assert_matches!(
+            &edu,
+            Edu::SigningKeyUpdate(SigningKeyUpdateContent {
+                user_id,
+                master_key: Some(_),
+                self_signing_key: Some(_),
+            }) if user_id == "@alice:example.com"
         );
 
         assert_eq!(serde_json::to_value(&edu).unwrap(), json);

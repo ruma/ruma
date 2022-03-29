@@ -5,10 +5,12 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#put_matrixclientv3roomsroomidsendeventtypetxnid
 
-    use ruma_api::ruma_api;
-    use ruma_events::{AnyMessageEventContent, MessageEventContent};
-    use ruma_identifiers::{EventId, RoomId, TransactionId};
-    use ruma_serde::Raw;
+    use ruma_common::{
+        api::ruma_api,
+        events::{AnyMessageLikeEventContent, EventContent, MessageLikeEventType},
+        serde::Raw,
+        EventId, RoomId, TransactionId,
+    };
     use serde_json::value::to_raw_value as to_raw_json_value;
 
     ruma_api! {
@@ -30,7 +32,7 @@ pub mod v3 {
 
             /// The type of event to send.
             #[ruma_api(path)]
-            pub event_type: &'a str,
+            pub event_type: MessageLikeEventType,
 
             /// The transaction ID for this event.
             ///
@@ -42,7 +44,7 @@ pub mod v3 {
 
             /// The event content to send.
             #[ruma_api(body)]
-            pub body: Raw<AnyMessageEventContent>,
+            pub body: Raw<AnyMessageLikeEventContent>,
         }
 
         response: {
@@ -60,11 +62,14 @@ pub mod v3 {
         ///
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
-        pub fn new<T: MessageEventContent>(
+        pub fn new<T>(
             room_id: &'a RoomId,
             txn_id: &'a TransactionId,
             content: &'a T,
-        ) -> serde_json::Result<Self> {
+        ) -> serde_json::Result<Self>
+        where
+            T: EventContent<EventType = MessageLikeEventType>,
+        {
             Ok(Self {
                 room_id,
                 txn_id,
@@ -78,8 +83,8 @@ pub mod v3 {
         pub fn new_raw(
             room_id: &'a RoomId,
             txn_id: &'a TransactionId,
-            event_type: &'a str,
-            body: Raw<AnyMessageEventContent>,
+            event_type: MessageLikeEventType,
+            body: Raw<AnyMessageLikeEventContent>,
         ) -> Self {
             Self { room_id, event_type, txn_id, body }
         }

@@ -3,11 +3,12 @@
 //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#put_matrixfederationv1send_leaveroomideventid
 
 use js_int::UInt;
-use ruma_api::ruma_api;
-use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_events::{room::member::RoomMemberEventContent, EventType};
-use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
-use ruma_serde::Raw;
+use ruma_common::{
+    api::ruma_api,
+    events::{room::member::RoomMemberEventContent, StateEventType},
+    serde::Raw,
+    EventId, MilliSecondsSinceUnixEpoch, RoomId, ServerName, UserId,
+};
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
@@ -45,7 +46,7 @@ ruma_api! {
         /// The value `m.room.member`.
         #[ruma_api(query)]
         #[serde(rename = "type")]
-        pub event_type: EventType,
+        pub event_type: StateEventType,
 
         /// The user ID of the leaving member.
         #[ruma_api(query)]
@@ -94,7 +95,7 @@ pub struct RequestInit<'a> {
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The value `m.room.member`.
-    pub event_type: EventType,
+    pub event_type: StateEventType,
 
     /// The user ID of the leaving member.
     pub state_key: &'a str,

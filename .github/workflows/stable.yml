@@ -1,5 +1,8 @@
 name: Rust Stable
 
+env:
+  CARGO_TERM_COLOR: always
+
 on:
   push:
     branches: [main, next]
@@ -7,21 +10,45 @@ on:
     branches: [main, next]
 
 jobs:
-  check_stable:
-    name: Check
+  check:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: Check All Features
+            cmd: stable-all
+
+          - name: Check Client
+            cmd: stable-client
+
+          - name: Check Common
+            cmd: stable-common
+
+          - name: Run Tests
+            cmd: test-all
+
+          - name: Run Doc Tests
+            cmd: test-doc
+
+          - name: Test Common Features
+            cmd: test-common
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
+
       - name: Install rust stable toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
+
       - uses: Swatinem/rust-cache@v1
+
       - name: Run checks
         uses: actions-rs/cargo@v1
         with:
           command: run
-          args: -p xtask --no-default-features ci stable
+          args: -p xtask --no-default-features ci ${{ matrix.cmd }}

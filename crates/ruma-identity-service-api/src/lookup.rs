@@ -1,6 +1,6 @@
 //! Endpoints to look up Matrix IDs bound to 3PIDs.
 
-use ruma_serde::StringEnum;
+use ruma_common::serde::StringEnum;
 
 use crate::PrivOwnedStr;
 

@@ -15,7 +15,7 @@ pub struct NotificationPowerLevels {
     /// integers too.
     #[cfg_attr(
         feature = "compat",
-        serde(deserialize_with = "ruma_serde::deserialize_v1_powerlevel")
+        serde(deserialize_with = "crate::serde::deserialize_v1_powerlevel")
     )]
     #[serde(default = "default_power_level")]
     pub room: Int,

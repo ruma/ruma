@@ -5,10 +5,12 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3roomsroomidmembers
 
-    use ruma_api::ruma_api;
-    use ruma_events::room::member::RoomMemberEvent;
-    use ruma_identifiers::RoomId;
-    use ruma_serde::{Raw, StringEnum};
+    use ruma_common::{
+        api::ruma_api,
+        events::room::member::RoomMemberEvent,
+        serde::{Raw, StringEnum},
+        RoomId,
+    };
 
     use crate::PrivOwnedStr;
 
@@ -110,7 +112,7 @@ pub mod v3 {
     #[cfg(all(test, feature = "server"))]
     mod tests {
         use matches::assert_matches;
-        use ruma_api::IncomingRequest as _;
+        use ruma_common::api::IncomingRequest as _;
 
         use super::{IncomingRequest, MembershipEventFilter};
 

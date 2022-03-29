@@ -7,55 +7,55 @@
 
 use std::path::PathBuf;
 
+use clap::{Parser, Subcommand};
 use serde::Deserialize;
 use serde_json::from_str as from_json_str;
 
 #[cfg(feature = "default")]
 mod cargo;
 mod ci;
-mod flags;
+mod doc;
 #[cfg(feature = "default")]
 mod release;
 #[cfg(feature = "default")]
 mod util;
 
-use ci::CiTask;
+use ci::{CiArgs, CiTask};
+use doc::DocTask;
 #[cfg(feature = "default")]
-use release::ReleaseTask;
+use release::{ReleaseArgs, ReleaseTask};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-fn main() {
-    if let Err(e) = try_main() {
-        eprintln!("{}", e);
-        std::process::exit(-1);
-    }
+#[derive(Parser)]
+struct Xtask {
+    #[clap(subcommand)]
+    cmd: Command,
 }
 
-fn try_main() -> Result<()> {
-    let flags = flags::Xtask::from_env()?;
-    match flags.subcommand {
-        flags::XtaskCmd::Help(_) => {
-            println!("{}", flags::Xtask::HELP);
-            Ok(())
+#[derive(Subcommand)]
+enum Command {
+    /// Run continuous integration checks
+    Ci(CiArgs),
+    /// Build the docs
+    Doc(DocTask),
+    /// Publish a new version of a crate on crates.io, `publish` can be used as an alias
+    #[cfg(feature = "default")]
+    #[clap(alias = "publish")]
+    Release(ReleaseArgs),
+}
+
+fn main() -> Result<()> {
+    match Xtask::parse().cmd {
+        Command::Ci(args) => {
+            let ci = CiTask::new(args.cmd)?;
+            ci.run()
         }
-        flags::XtaskCmd::Ci(ci) => {
-            let task = CiTask::new(ci.version)?;
-            task.run()
-        }
+        Command::Doc(doc) => doc.run(),
         #[cfg(feature = "default")]
-        flags::XtaskCmd::Release(cmd) => {
-            let mut task = ReleaseTask::new(cmd.name, cmd.version)?;
+        Command::Release(args) => {
+            let mut task = ReleaseTask::new(args.package, args.version, args.dry_run)?;
             task.run()
-        }
-        #[cfg(feature = "default")]
-        flags::XtaskCmd::Publish(cmd) => {
-            let mut task = ReleaseTask::new(cmd.name, cmd.version)?;
-            task.run()
-        }
-        #[cfg(not(feature = "default"))]
-        _ => {
-            Err("This command is only available when xtask is built with default features.".into())
         }
     }
 }

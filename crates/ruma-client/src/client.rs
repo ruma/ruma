@@ -6,7 +6,6 @@ use std::{
 use assign::assign;
 use async_stream::try_stream;
 use futures_core::stream::Stream;
-use ruma_api::{MatrixVersion, OutgoingRequest, SendAccessToken};
 use ruma_client_api::{
     account::register::{self, RegistrationKind},
     session::login::{self, v3::LoginInfo},
@@ -14,8 +13,11 @@ use ruma_client_api::{
     sync::syncv3_events,
     uiaa::UserIdentifier,
 };
-use ruma_common::presence::PresenceState;
-use ruma_identifiers::{DeviceId, UserId};
+use ruma_common::{
+    api::{MatrixVersion, OutgoingRequest, SendAccessToken},
+    presence::PresenceState,
+    DeviceId, UserId,
+};
 
 use crate::{
     add_user_id_to_query, send_customized_request, Error, HttpClient, ResponseError, ResponseResult,

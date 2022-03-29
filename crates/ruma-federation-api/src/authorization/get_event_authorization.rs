@@ -7,8 +7,7 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixfederationv1event_authroomideventid
 
-    use ruma_api::ruma_api;
-    use ruma_identifiers::{EventId, RoomId};
+    use ruma_common::{api::ruma_api, EventId, RoomId};
     use serde_json::value::RawValue as RawJsonValue;
 
     ruma_api! {

@@ -1,25 +1,27 @@
 //! Endpoints for server-side key backups.
 
-pub mod add_backup_key_session;
-pub mod add_backup_key_sessions;
 pub mod add_backup_keys;
-pub mod create_backup;
-pub mod delete_backup;
-pub mod delete_backup_key_session;
-pub mod delete_backup_key_sessions;
+pub mod add_backup_keys_for_room;
+pub mod add_backup_keys_for_session;
+pub mod create_backup_version;
 pub mod delete_backup_keys;
-pub mod get_backup;
-pub mod get_backup_key_session;
-pub mod get_backup_key_sessions;
+pub mod delete_backup_keys_for_room;
+pub mod delete_backup_keys_for_session;
+pub mod delete_backup_version;
+pub mod get_backup_info;
 pub mod get_backup_keys;
-pub mod get_latest_backup;
-pub mod update_backup;
+pub mod get_backup_keys_for_room;
+pub mod get_backup_keys_for_session;
+pub mod get_latest_backup_info;
+pub mod update_backup_version;
 
 use std::collections::BTreeMap;
 
 use js_int::UInt;
-use ruma_identifiers::{DeviceKeyId, UserId};
-use ruma_serde::{Base64, Raw};
+use ruma_common::{
+    serde::{Base64, Raw},
+    DeviceKeyId, UserId,
+};
 use serde::{Deserialize, Serialize};
 
 /// A wrapper around a mapping of session IDs to key data.

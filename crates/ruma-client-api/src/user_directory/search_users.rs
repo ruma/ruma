@@ -6,8 +6,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3user_directorysearch
 
     use js_int::{uint, UInt};
-    use ruma_api::ruma_api;
-    use ruma_identifiers::{MxcUri, UserId};
+    use ruma_common::{api::ruma_api, MxcUri, UserId};
     use serde::{Deserialize, Serialize};
 
     ruma_api! {
@@ -92,7 +91,7 @@ pub mod v3 {
         #[serde(skip_serializing_if = "Option::is_none")]
         #[cfg_attr(
             feature = "compat",
-            serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
+            serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
         )]
         pub avatar_url: Option<Box<MxcUri>>,
     }

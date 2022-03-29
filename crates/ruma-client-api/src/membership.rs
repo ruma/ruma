@@ -14,14 +14,12 @@ pub mod unban_user;
 
 use std::collections::BTreeMap;
 
-use ruma_common::thirdparty::Medium;
-use ruma_identifiers::{ServerName, ServerSigningKeyId, UserId};
-use ruma_serde::Outgoing;
+use ruma_common::{serde::Incoming, thirdparty::Medium, ServerName, ServerSigningKeyId, UserId};
 use serde::Serialize;
 
 /// A signature of an `m.third_party_invite` token to prove that this user owns a third party
 /// identity which has been invited to the room.
-#[derive(Clone, Debug, Outgoing, Serialize)]
+#[derive(Clone, Debug, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ThirdPartySigned<'a> {
     /// The Matrix ID of the user who issued the invite.
@@ -54,7 +52,7 @@ impl<'a> ThirdPartySigned<'a> {
 ///
 /// To create an instance of this type, first create a `Invite3pidInit` and convert it via
 /// `Invite3pid::from` / `.into()`.
-#[derive(Clone, Debug, PartialEq, Outgoing, Serialize)]
+#[derive(Clone, Debug, PartialEq, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(PartialEq)]
 pub struct Invite3pid<'a> {

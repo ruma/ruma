@@ -6,11 +6,11 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3publicrooms
 
     use js_int::UInt;
-    use ruma_api::ruma_api;
-    use ruma_common::directory::{
-        Filter, IncomingFilter, IncomingRoomNetwork, PublicRoomsChunk, RoomNetwork,
+    use ruma_common::{
+        api::ruma_api,
+        directory::{Filter, IncomingFilter, IncomingRoomNetwork, PublicRoomsChunk, RoomNetwork},
+        ServerName,
     };
-    use ruma_identifiers::ServerName;
 
     ruma_api! {
         metadata: {
@@ -46,7 +46,7 @@ pub mod v3 {
             pub filter: Filter<'a>,
 
             /// Network to fetch the public room lists from.
-            #[serde(flatten, skip_serializing_if = "ruma_serde::is_default")]
+            #[serde(flatten, skip_serializing_if = "ruma_common::serde::is_default")]
             pub room_network: RoomNetwork<'a>,
         }
 

@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3accountpassword
 
-    use ruma_api::ruma_api;
+    use ruma_common::api::ruma_api;
 
     use crate::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
 
@@ -32,7 +32,7 @@ pub mod v3 {
             ///
             /// When false, the server can still take advantage of the soft logout method for the user's
             /// remaining devices.
-            #[serde(default = "ruma_serde::default_true", skip_serializing_if = "ruma_serde::is_true")]
+            #[serde(default = "ruma_common::serde::default_true", skip_serializing_if = "ruma_common::serde::is_true")]
             pub logout_devices: bool,
 
             /// Additional authentication information for the user-interactive authentication API.
