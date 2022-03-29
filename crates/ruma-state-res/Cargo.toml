@@ -17,9 +17,6 @@ all-features = true
 compat = []
 unstable-exhaustive-types = []
 
-# Private, only used in test / benchmarking code
-__ci = ["ruma-common/unstable-pre-spec"]
-
 [dependencies]
 itertools = "0.10.0"
 js_int = "0.2.0"

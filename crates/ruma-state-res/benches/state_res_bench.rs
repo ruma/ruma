@@ -395,8 +395,6 @@ where
             content,
             redacts: None,
             unsigned: btreemap! {},
-            #[cfg(not(feature = "__ci"))]
-            origin: "foo".into(),
             auth_events,
             prev_events,
             depth: uint!(0),

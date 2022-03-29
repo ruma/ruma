@@ -403,8 +403,6 @@ pub fn to_init_pdu_event(
             content,
             redacts: None,
             unsigned: BTreeMap::new(),
-            #[cfg(not(feature = "__ci"))]
-            origin: "foo".into(),
             auth_events: vec![],
             prev_events: vec![],
             depth: uint!(0),
@@ -443,8 +441,6 @@ where
             content,
             redacts: None,
             unsigned: BTreeMap::new(),
-            #[cfg(not(feature = "__ci"))]
-            origin: "foo".into(),
             auth_events,
             prev_events,
             depth: uint!(0),
