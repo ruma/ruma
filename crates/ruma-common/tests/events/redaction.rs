@@ -3,8 +3,8 @@ use matches::assert_matches;
 use ruma_common::{
     event_id,
     events::{
-        room::redaction::{RoomRedactionEvent, RoomRedactionEventContent},
-        AnyMessageLikeEvent, MessageLikeUnsigned,
+        room::redaction::{OriginalRoomRedactionEvent, RoomRedactionEventContent},
+        AnyOriginalMessageLikeEvent, MessageLikeUnsigned,
     },
     room_id, user_id, MilliSecondsSinceUnixEpoch,
 };
@@ -28,7 +28,7 @@ fn redaction() -> JsonValue {
 
 #[test]
 fn serialize_redaction() {
-    let aliases_event = RoomRedactionEvent {
+    let aliases_event = OriginalRoomRedactionEvent {
         content: RoomRedactionEventContent::with_reason("being a turd".into()),
         redacts: event_id!("$nomore:example.com").to_owned(),
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
@@ -49,8 +49,8 @@ fn deserialize_redaction() {
     let json_data = redaction();
 
     assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::RoomRedaction(RoomRedactionEvent {
+        from_json_value::<AnyOriginalMessageLikeEvent>(json_data).unwrap(),
+        AnyOriginalMessageLikeEvent::RoomRedaction(OriginalRoomRedactionEvent {
             content: RoomRedactionEventContent { reason: Some(reas), .. },
             redacts,
             event_id,

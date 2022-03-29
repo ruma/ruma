@@ -18,7 +18,7 @@ use std::{
 };
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use event::StateEvent;
+use event::OriginalStateEvent;
 use js_int::{int, uint};
 use maplit::{btreemap, hashmap, hashset};
 use ruma_common::{
@@ -232,7 +232,7 @@ impl<E: Event> TestStore<E> {
     }
 }
 
-impl TestStore<StateEvent> {
+impl TestStore<OriginalStateEvent> {
     #[allow(clippy::type_complexity)]
     fn set_up(
         &mut self,
@@ -372,7 +372,7 @@ fn to_pdu_event<S>(
     content: Box<RawJsonValue>,
     auth_events: &[S],
     prev_events: &[S],
-) -> Arc<StateEvent>
+) -> Arc<OriginalStateEvent>
 where
     S: AsRef<str>,
 {
@@ -384,7 +384,7 @@ where
     let prev_events = prev_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
 
     let state_key = state_key.map(ToOwned::to_owned);
-    Arc::new(StateEvent {
+    Arc::new(OriginalStateEvent {
         event_id: id.try_into().unwrap(),
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
             room_id: room_id().to_owned(),
@@ -406,7 +406,7 @@ where
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<StateEvent>> {
+fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<OriginalStateEvent>> {
     vec![
         to_pdu_event::<&EventId>(
             "CREATE",
@@ -488,7 +488,7 @@ fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<StateEvent>> {
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn BAN_STATE_SET() -> HashMap<Box<EventId>, Arc<StateEvent>> {
+fn BAN_STATE_SET() -> HashMap<Box<EventId>, Arc<OriginalStateEvent>> {
     vec![
         to_pdu_event(
             "PA",
@@ -541,7 +541,7 @@ mod event {
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
 
-    impl Event for StateEvent {
+    impl Event for OriginalStateEvent {
         type Id = Box<EventId>;
 
         fn event_id(&self) -> &Self::Id {
@@ -631,7 +631,7 @@ mod event {
     }
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct StateEvent {
+    pub struct OriginalStateEvent {
         pub event_id: Box<EventId>,
         #[serde(flatten)]
         pub rest: Pdu,

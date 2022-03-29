@@ -221,7 +221,7 @@ mod tests {
     use crate::room_id;
     use matches::assert_matches;
 
-    use super::{AllowRule, JoinRule, RoomJoinRulesEventContent, SyncRoomJoinRulesEvent};
+    use super::{AllowRule, JoinRule, OriginalSyncRoomJoinRulesEvent, RoomJoinRulesEventContent};
 
     #[test]
     fn deserialize() {
@@ -277,6 +277,6 @@ mod tests {
             "event_id": "$0ACb9KSPlT3al3kikyRYvFhMqXPP9ZcQOBrsdIuh58U"
         }"#;
 
-        assert_matches!(serde_json::from_str::<SyncRoomJoinRulesEvent>(json), Ok(_));
+        assert_matches!(serde_json::from_str::<OriginalSyncRoomJoinRulesEvent>(json), Ok(_));
     }
 }

@@ -4,8 +4,8 @@ pub(crate) fn is_non_stripped_room_event(kind: EventKind, var: EventKindVariatio
     matches!(kind, EventKind::MessageLike | EventKind::State)
         && matches!(
             var,
-            EventKindVariation::Full
-                | EventKindVariation::Sync
+            EventKindVariation::Original
+                | EventKindVariation::OriginalSync
                 | EventKindVariation::Redacted
                 | EventKindVariation::RedactedSync
         )
@@ -13,5 +13,5 @@ pub(crate) fn is_non_stripped_room_event(kind: EventKind, var: EventKindVariatio
 
 pub(crate) fn has_prev_content(kind: EventKind, var: EventKindVariation) -> bool {
     matches!(kind, EventKind::State)
-        && matches!(var, EventKindVariation::Full | EventKindVariation::Sync)
+        && matches!(var, EventKindVariation::Original | EventKindVariation::OriginalSync)
 }

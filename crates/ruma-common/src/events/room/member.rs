@@ -10,8 +10,8 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
     events::{
-        EventContent, HasDeserializeFields, RedactContent, RedactedEventContent, StateEventType,
-        StrippedStateEvent, SyncStateEvent,
+        EventContent, HasDeserializeFields, OriginalSyncStateEvent, RedactContent,
+        RedactedEventContent, StateEventType, StrippedStateEvent,
     },
     serde::StringEnum,
     MxcUri, PrivOwnedStr, RoomVersionId, ServerName, ServerSigningKeyId, UserId,
@@ -377,7 +377,7 @@ fn membership_change(
     }
 }
 
-impl RoomMemberEvent {
+impl OriginalRoomMemberEvent {
     /// Helper function for membership change.
     ///
     /// Check [the specification][spec] for details.
@@ -393,7 +393,7 @@ impl RoomMemberEvent {
     }
 }
 
-impl SyncStateEvent<RoomMemberEventContent> {
+impl OriginalSyncStateEvent<RoomMemberEventContent> {
     /// Helper function for membership change.
     ///
     /// Check [the specification][spec] for details.
@@ -429,7 +429,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json};
 
     use super::{MembershipState, RoomMemberEventContent, SignedContent, ThirdPartyInvite};
-    use crate::events::{StateEvent, StateUnsigned};
+    use crate::events::{OriginalStateEvent, StateUnsigned};
 
     #[test]
     fn serde_with_no_prev_content() {
@@ -446,8 +446,8 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<StateEvent<RoomMemberEventContent>>(json).unwrap(),
-            StateEvent {
+            from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap(),
+            OriginalStateEvent {
                 content: RoomMemberEventContent {
                     avatar_url: None,
                     displayname: None,
@@ -490,7 +490,7 @@ mod tests {
             },
         });
 
-        let ev = from_json_value::<StateEvent<RoomMemberEventContent>>(json).unwrap();
+        let ev = from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap();
 
         assert_matches!(
             ev.content,
@@ -556,8 +556,8 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<StateEvent<RoomMemberEventContent>>(json).unwrap(),
-            StateEvent {
+            from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap(),
+            OriginalStateEvent {
                 content: RoomMemberEventContent {
                     avatar_url: Some(avatar_url),
                     displayname: Some(displayname),
@@ -629,8 +629,8 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<StateEvent<RoomMemberEventContent>>(json).unwrap(),
-            StateEvent {
+            from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap(),
+            OriginalStateEvent {
                 content: RoomMemberEventContent {
                     avatar_url: None,
                     displayname: None,
@@ -692,8 +692,8 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<StateEvent<RoomMemberEventContent>>(json).unwrap(),
-            StateEvent {
+            from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap(),
+            OriginalStateEvent {
                 content: RoomMemberEventContent {
                     avatar_url: None,
                     displayname: None,

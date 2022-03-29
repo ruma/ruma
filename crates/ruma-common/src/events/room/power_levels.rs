@@ -182,13 +182,13 @@ mod tests {
     use serde_json::{json, to_value as to_json_value};
 
     use super::{default_power_level, NotificationPowerLevels, RoomPowerLevelsEventContent};
-    use crate::events::{StateEvent, StateUnsigned};
+    use crate::events::{OriginalStateEvent, StateUnsigned};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
         let default = default_power_level();
 
-        let power_levels_event = StateEvent {
+        let power_levels_event = OriginalStateEvent {
             content: RoomPowerLevelsEventContent {
                 ban: default,
                 events: BTreeMap::new(),
@@ -226,7 +226,7 @@ mod tests {
     #[test]
     fn serialization_with_all_fields() {
         let user = user_id!("@carl:example.com");
-        let power_levels_event = StateEvent {
+        let power_levels_event = OriginalStateEvent {
             content: RoomPowerLevelsEventContent {
                 ban: int!(23),
                 events: btreemap! {

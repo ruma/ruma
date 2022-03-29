@@ -22,7 +22,7 @@ mod tests {
     use js_int::int;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{PolicyRuleRoomEvent, PolicyRuleRoomEventContent};
+    use super::{OriginalPolicyRuleRoomEvent, PolicyRuleRoomEventContent};
     use crate::{
         event_id,
         events::{
@@ -36,7 +36,7 @@ mod tests {
 
     #[test]
     fn serialization() {
-        let room_event = PolicyRuleRoomEvent {
+        let room_event = OriginalPolicyRuleRoomEvent {
             event_id: event_id!("$143273582443PhrSn:example.org").to_owned(),
             sender: user_id!("@example:example.org").to_owned(),
             origin_server_ts: MilliSecondsSinceUnixEpoch(1_432_735_824_653_u64.try_into().unwrap()),
@@ -89,6 +89,9 @@ mod tests {
             }
         });
 
-        assert!(from_json_value::<Raw<PolicyRuleRoomEvent>>(json).unwrap().deserialize().is_ok());
+        assert!(from_json_value::<Raw<OriginalPolicyRuleRoomEvent>>(json)
+            .unwrap()
+            .deserialize()
+            .is_ok());
     }
 }

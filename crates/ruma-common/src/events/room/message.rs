@@ -127,11 +127,11 @@ impl RoomMessageEventContent {
     /// [`RoomMessageEvent`] since it creates a permalink to the previous message, for which the
     /// room ID is required. If you want to reply to a [`SyncRoomMessageEvent`], you have to convert
     /// it first by calling
-    /// [`.into_full_event()`][crate::events::SyncMessageLikeEvent::into_full_event].
+    /// [`.into_full_event()`][crate::events::OriginalSyncMessageLikeEvent::into_full_event].
     pub fn text_reply_html(
         reply: impl fmt::Display,
         html_reply: impl fmt::Display,
-        original_message: &RoomMessageEvent,
+        original_message: &OriginalRoomMessageEvent,
     ) -> Self {
         let quoted = reply::get_plain_quote_fallback(original_message);
         let quoted_html = reply::get_html_quote_fallback(original_message);
@@ -169,11 +169,11 @@ impl RoomMessageEventContent {
     /// [`RoomMessageEvent`] since it creates a permalink to the previous message, for which the
     /// room ID is required. If you want to reply to a [`SyncRoomMessageEvent`], you have to convert
     /// it first by calling
-    /// [`.into_full_event()`][crate::events::SyncMessageLikeEvent::into_full_event].
+    /// [`.into_full_event()`][crate::events::OriginalSyncMessageLikeEvent::into_full_event].
     pub fn notice_reply_html(
         reply: impl fmt::Display,
         html_reply: impl fmt::Display,
-        original_message: &RoomMessageEvent,
+        original_message: &OriginalRoomMessageEvent,
     ) -> Self {
         let quoted = reply::get_plain_quote_fallback(original_message);
         let quoted_html = reply::get_html_quote_fallback(original_message);

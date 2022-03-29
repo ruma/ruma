@@ -7,8 +7,8 @@ use ruma_common::{
         call::{answer::CallAnswerEventContent, SessionDescription, SessionDescriptionType},
         room::{ImageInfo, MediaSource, ThumbnailInfo},
         sticker::StickerEventContent,
-        AnyMessageLikeEvent, AnyMessageLikeEventContent, AnySyncMessageLikeEvent, MessageLikeEvent,
-        MessageLikeEventType, MessageLikeUnsigned,
+        AnyMessageLikeEventContent, AnyOriginalMessageLikeEvent, AnyOriginalSyncMessageLikeEvent,
+        MessageLikeEventType, MessageLikeUnsigned, OriginalMessageLikeEvent,
     },
     mxc_uri, room_id,
     serde::Raw,
@@ -18,7 +18,7 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 
 #[test]
 fn message_serialize_sticker() {
-    let aliases_event = MessageLikeEvent {
+    let aliases_event = OriginalMessageLikeEvent {
         content: StickerEventContent::new(
             "Hello".into(),
             assign!(ImageInfo::new(), {
@@ -167,8 +167,8 @@ fn deserialize_message_call_answer() {
     });
 
     assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent {
+        from_json_value::<AnyOriginalMessageLikeEvent>(json_data).unwrap(),
+        AnyOriginalMessageLikeEvent::CallAnswer(OriginalMessageLikeEvent {
             content: CallAnswerEventContent {
                 answer: SessionDescription {
                     session_type: SessionDescriptionType::Answer,
@@ -221,8 +221,8 @@ fn deserialize_message_sticker() {
     });
 
     assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Sticker(MessageLikeEvent {
+        from_json_value::<AnyOriginalMessageLikeEvent>(json_data).unwrap(),
+        AnyOriginalMessageLikeEvent::Sticker(OriginalMessageLikeEvent {
             content: StickerEventContent {
                 body,
                 info: ImageInfo {
@@ -290,11 +290,11 @@ fn deserialize_message_then_convert_to_full() {
         "type": "m.call.answer"
     });
 
-    let sync_ev: AnySyncMessageLikeEvent = from_json_value(json_data).unwrap();
+    let sync_ev: AnyOriginalSyncMessageLikeEvent = from_json_value(json_data).unwrap();
 
     assert_matches!(
         sync_ev.into_full_event(rid.to_owned()),
-        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent {
+        AnyOriginalMessageLikeEvent::CallAnswer(OriginalMessageLikeEvent {
             content: CallAnswerEventContent {
                 answer: SessionDescription {
                     session_type: SessionDescriptionType::Answer,

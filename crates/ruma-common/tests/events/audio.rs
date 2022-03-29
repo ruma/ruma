@@ -17,7 +17,7 @@ use ruma_common::{
             },
             JsonWebKeyInit, MediaSource,
         },
-        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned,
+        AnyOriginalMessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
     },
     mxc_uri, room_id,
     serde::Base64,
@@ -137,7 +137,7 @@ fn encrypted_content_serialization() {
 
 #[test]
 fn event_serialization() {
-    let event = MessageLikeEvent {
+    let event = OriginalMessageLikeEvent {
         content: assign!(
             AudioEventContent::with_message(
                 MessageContent::html(
@@ -349,8 +349,8 @@ fn message_event_deserialization() {
     });
 
     assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Audio(MessageLikeEvent {
+        from_json_value::<AnyOriginalMessageLikeEvent>(json_data).unwrap(),
+        AnyOriginalMessageLikeEvent::Audio(OriginalMessageLikeEvent {
             content: AudioEventContent {
                 message,
                 file: FileContent {

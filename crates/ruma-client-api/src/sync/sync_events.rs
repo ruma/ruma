@@ -11,9 +11,9 @@ pub mod v3 {
     use ruma_common::{
         api::ruma_api,
         events::{
-            presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
-            AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncRoomEvent, AnySyncStateEvent,
-            AnyToDeviceEvent,
+            presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyOriginalSyncStateEvent,
+            AnyRoomAccountDataEvent, AnyStrippedStateEvent, AnySyncEphemeralRoomEvent,
+            AnySyncRoomEvent, AnyToDeviceEvent,
         },
         presence::PresenceState,
         serde::{Incoming, Raw},
@@ -384,7 +384,7 @@ pub mod v3 {
     pub struct State {
         /// A list of state events.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub events: Vec<Raw<AnySyncStateEvent>>,
+        pub events: Vec<Raw<AnyOriginalSyncStateEvent>>,
     }
 
     impl State {

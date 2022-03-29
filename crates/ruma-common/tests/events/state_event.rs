@@ -9,8 +9,8 @@ use ruma_common::{
             avatar::{ImageInfo, RoomAvatarEventContent},
             ThumbnailInfo,
         },
-        AnyRoomEvent, AnyStateEvent, AnyStateEventContent, AnySyncStateEvent, StateEvent,
-        StateEventType, StateUnsigned, SyncStateEvent,
+        AnyOriginalStateEvent, AnyOriginalSyncStateEvent, AnyRoomEvent, AnyStateEventContent,
+        OriginalStateEvent, OriginalSyncStateEvent, StateEventType, StateUnsigned,
     },
     mxc_uri, room_alias_id, room_id,
     serde::Raw,
@@ -41,7 +41,7 @@ fn aliases_event_with_prev_content() -> JsonValue {
 
 #[test]
 fn serialize_aliases_with_prev_content() {
-    let aliases_event = StateEvent {
+    let aliases_event = OriginalStateEvent {
         content: RoomAliasesEventContent::new(vec![
             room_alias_id!("#somewhere:localhost").to_owned()
         ]),
@@ -66,7 +66,7 @@ fn serialize_aliases_with_prev_content() {
 
 #[test]
 fn serialize_aliases_without_prev_content() {
-    let aliases_event = StateEvent {
+    let aliases_event = OriginalStateEvent {
         content: RoomAliasesEventContent::new(vec![
             room_alias_id!("#somewhere:localhost").to_owned()
         ]),
@@ -115,8 +115,8 @@ fn deserialize_aliases_with_prev_content() {
     let json_data = aliases_event_with_prev_content();
 
     assert_matches!(
-        from_json_value::<AnyStateEvent>(json_data).unwrap(),
-        AnyStateEvent::RoomAliases(StateEvent {
+        from_json_value::<AnyOriginalStateEvent>(json_data).unwrap(),
+        AnyOriginalStateEvent::RoomAliases(OriginalStateEvent {
             content,
             event_id,
             origin_server_ts,
@@ -143,9 +143,9 @@ fn deserialize_aliases_sync_with_room_id() {
     let json_data = aliases_event_with_prev_content();
 
     assert_matches!(
-        from_json_value::<AnySyncStateEvent>(json_data)
+        from_json_value::<AnyOriginalSyncStateEvent>(json_data)
             .unwrap(),
-        AnySyncStateEvent::RoomAliases(SyncStateEvent {
+        AnyOriginalSyncStateEvent::RoomAliases(OriginalSyncStateEvent {
             content,
             event_id,
             origin_server_ts,
@@ -193,8 +193,8 @@ fn deserialize_avatar_without_prev_content() {
     });
 
     assert_matches!(
-        from_json_value::<AnyStateEvent>(json_data).unwrap(),
-        AnyStateEvent::RoomAvatar(StateEvent {
+        from_json_value::<AnyOriginalStateEvent>(json_data).unwrap(),
+        AnyOriginalStateEvent::RoomAvatar(OriginalStateEvent {
             content: RoomAvatarEventContent {
                 info: Some(info),
                 url: Some(url),
@@ -268,8 +268,8 @@ fn deserialize_member_event_with_top_level_membership_field() {
     assert_matches!(
         from_json_value::<AnyRoomEvent>(json_data)
             .unwrap(),
-        AnyRoomEvent::State(
-            AnyStateEvent::RoomMember(StateEvent {
+        AnyRoomEvent::OriginalState(
+            AnyOriginalStateEvent::RoomMember(OriginalStateEvent {
                 content,
                 event_id,
                 origin_server_ts,
@@ -287,11 +287,11 @@ fn deserialize_member_event_with_top_level_membership_field() {
 fn deserialize_full_event_convert_to_sync() {
     let json_data = aliases_event_with_prev_content();
 
-    let full_ev: AnyStateEvent = from_json_value(json_data).unwrap();
+    let full_ev: AnyOriginalStateEvent = from_json_value(json_data).unwrap();
 
     assert_matches!(
-        AnySyncStateEvent::from(full_ev),
-        AnySyncStateEvent::RoomAliases(SyncStateEvent {
+        AnyOriginalSyncStateEvent::from(full_ev),
+        AnyOriginalSyncStateEvent::RoomAliases(OriginalSyncStateEvent {
             content,
             event_id,
             origin_server_ts,

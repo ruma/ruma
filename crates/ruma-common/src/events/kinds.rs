@@ -44,10 +44,10 @@ pub struct SyncEphemeralRoomEvent<C: EphemeralRoomEventContent> {
 
 /// A message-like event.
 ///
-/// `MessageLikeEvent` implements the comparison traits using only the `event_id` field, a sorted
-/// list would be sorted lexicographically based on the event's `EventId`.
+/// `OriginalMessageLikeEvent` implements the comparison traits using only the `event_id` field, a
+/// sorted list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct MessageLikeEvent<C: MessageLikeEventContent> {
+pub struct OriginalMessageLikeEvent<C: MessageLikeEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -69,10 +69,10 @@ pub struct MessageLikeEvent<C: MessageLikeEventContent> {
 
 /// A message-like event without a `room_id`.
 ///
-/// `SyncMessageLikeEvent` implements the comparison traits using only the `event_id` field, a
-/// sorted list would be sorted lexicographically based on the event's `EventId`.
+/// `OriginalSyncMessageLikeEvent` implements the comparison traits using only the `event_id` field,
+/// a sorted list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct SyncMessageLikeEvent<C: MessageLikeEventContent> {
+pub struct OriginalSyncMessageLikeEvent<C: MessageLikeEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -138,10 +138,10 @@ pub struct RedactedSyncMessageLikeEvent<C: RedactedMessageLikeEventContent> {
 
 /// A state event.
 ///
-/// `StateEvent` implements the comparison traits using only the `event_id` field, a sorted list
-/// would be sorted lexicographically based on the event's `EventId`.
+/// `OriginalStateEvent` implements the comparison traits using only the `event_id` field, a sorted
+/// list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct StateEvent<C: StateEventContent> {
+pub struct OriginalStateEvent<C: StateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -169,10 +169,10 @@ pub struct StateEvent<C: StateEventContent> {
 
 /// A state event without a `room_id`.
 ///
-/// `SyncStateEvent` implements the comparison traits using only the `event_id` field, a sorted list
-/// would be sorted lexicographically based on the event's `EventId`.
+/// `OriginalSyncStateEvent` implements the comparison traits using only the `event_id` field, a
+/// sorted list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct SyncStateEvent<C: StateEventContent> {
+pub struct OriginalSyncStateEvent<C: StateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 

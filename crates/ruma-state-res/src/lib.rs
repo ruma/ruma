@@ -657,7 +657,8 @@ mod tests {
         room_version::RoomVersion,
         test_utils::{
             alice, bob, charlie, do_check, ella, event_id, member_content_ban, member_content_join,
-            room_id, to_init_pdu_event, to_pdu_event, zara, StateEvent, TestStore, INITIAL_EVENTS,
+            room_id, to_init_pdu_event, to_pdu_event, zara, OriginalStateEvent, TestStore,
+            INITIAL_EVENTS,
         },
         Event, StateMap,
     };
@@ -1042,7 +1043,7 @@ mod tests {
         let _ =
             tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
 
-        let mut store = TestStore::<StateEvent>(hashmap! {});
+        let mut store = TestStore::<OriginalStateEvent>(hashmap! {});
 
         // build up the DAG
         let (state_at_bob, state_at_charlie, expected) = store.set_up();
@@ -1208,7 +1209,7 @@ mod tests {
     }
 
     #[allow(non_snake_case)]
-    fn BAN_STATE_SET() -> HashMap<Box<EventId>, Arc<StateEvent>> {
+    fn BAN_STATE_SET() -> HashMap<Box<EventId>, Arc<OriginalStateEvent>> {
         vec![
             to_pdu_event(
                 "PA",
@@ -1253,7 +1254,7 @@ mod tests {
     }
 
     #[allow(non_snake_case)]
-    fn JOIN_RULE() -> HashMap<Box<EventId>, Arc<StateEvent>> {
+    fn JOIN_RULE() -> HashMap<Box<EventId>, Arc<OriginalStateEvent>> {
         vec![
             to_pdu_event(
                 "JR",

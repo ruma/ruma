@@ -14,7 +14,7 @@ use ruma_common::{
         room::message::{
             InReplyTo, LocationMessageEventContent, MessageType, Relation, RoomMessageEventContent,
         },
-        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned,
+        AnyOriginalMessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
     },
     room_id, user_id, MilliSecondsSinceUnixEpoch,
 };
@@ -40,7 +40,7 @@ fn plain_content_serialization() {
 
 #[test]
 fn event_serialization() {
-    let event = MessageLikeEvent {
+    let event = OriginalMessageLikeEvent {
         content: assign!(
             LocationEventContent::with_message(
                 MessageContent::html(
@@ -195,8 +195,8 @@ fn message_event_deserialization() {
     });
 
     assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Location(MessageLikeEvent {
+        from_json_value::<AnyOriginalMessageLikeEvent>(json_data).unwrap(),
+        AnyOriginalMessageLikeEvent::Location(OriginalMessageLikeEvent {
             content: LocationEventContent {
                 message,
                 location: LocationContent {
