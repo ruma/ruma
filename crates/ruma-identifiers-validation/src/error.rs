@@ -172,3 +172,15 @@ pub enum MatrixUriError {
     #[error("unknown query item")]
     UnknownQueryItem,
 }
+
+#[cfg(test)]
+mod tests {
+    use std::mem::size_of;
+
+    use super::Error;
+
+    #[test]
+    fn small_error_type() {
+        assert!(size_of::<Error>() <= 8);
+    }
+}
