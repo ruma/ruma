@@ -55,7 +55,7 @@ impl SpaceChildEventContent {
 /// key.
 #[derive(Clone, Debug, Event)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct HierarchySpaceChildStateEvent {
+pub struct HierarchySpaceChildEvent {
     /// The content of the space child event.
     pub content: SpaceChildEventContent,
 
@@ -76,7 +76,7 @@ mod tests {
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{HierarchySpaceChildStateEvent, SpaceChildEventContent};
+    use super::{HierarchySpaceChildEvent, SpaceChildEventContent};
 
     #[test]
     fn space_child_serialization() {
@@ -106,7 +106,7 @@ mod tests {
 
     #[test]
     fn hierarchy_space_child_serialization() {
-        let event = HierarchySpaceChildStateEvent {
+        let event = HierarchySpaceChildEvent {
             content: SpaceChildEventContent {
                 via: Some(vec![server_name!("example.com").to_owned()]),
                 order: Some("uwu".to_owned()),
@@ -146,8 +146,8 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<HierarchySpaceChildStateEvent>(json).unwrap(),
-            HierarchySpaceChildStateEvent {
+            from_json_value::<HierarchySpaceChildEvent>(json).unwrap(),
+            HierarchySpaceChildEvent {
                 content: SpaceChildEventContent {
                     via: Some(via),
                     order: None,

@@ -6,7 +6,7 @@
 
 use js_int::UInt;
 use ruma_common::{
-    events::space::child::HierarchySpaceChildStateEvent,
+    events::space::child::HierarchySpaceChildEvent,
     room::RoomType,
     serde::{Raw, StringEnum},
     MxcUri, RoomAliasId, RoomId, RoomName,
@@ -75,7 +75,7 @@ pub struct SpaceHierarchyRoomsChunk {
     /// The stripped `m.space.child` events of the space-room.
     ///
     /// If the room is not a space-room, this should be empty.
-    pub children_state: Vec<Raw<HierarchySpaceChildStateEvent>>,
+    pub children_state: Vec<Raw<HierarchySpaceChildEvent>>,
 }
 
 /// Initial set of mandatory fields of `SpaceHierarchyRoomsChunk`.
@@ -105,7 +105,7 @@ pub struct SpaceHierarchyRoomsChunkInit {
     /// The stripped `m.space.child` events of the space-room.
     ///
     /// If the room is not a space-room, this should be empty.
-    pub children_state: Vec<Raw<HierarchySpaceChildStateEvent>>,
+    pub children_state: Vec<Raw<HierarchySpaceChildEvent>>,
 }
 
 impl From<SpaceHierarchyRoomsChunkInit> for SpaceHierarchyRoomsChunk {

@@ -2,8 +2,8 @@
 
 use js_int::UInt;
 use ruma_common::{
-    directory::PublicRoomJoinRule, events::space::child::HierarchySpaceChildStateEvent,
-    room::RoomType, serde::Raw, MxcUri, RoomAliasId, RoomId, RoomName,
+    directory::PublicRoomJoinRule, events::space::child::HierarchySpaceChildEvent, room::RoomType,
+    serde::Raw, MxcUri, RoomAliasId, RoomId, RoomName,
 };
 use serde::{Deserialize, Serialize};
 
@@ -67,7 +67,7 @@ pub struct SpaceHierarchyParentSummary {
     /// The stripped `m.space.child` events of the space-room.
     ///
     /// If the room is not a space-room, this should be empty.
-    pub children_state: Vec<Raw<HierarchySpaceChildStateEvent>>,
+    pub children_state: Vec<Raw<HierarchySpaceChildEvent>>,
 
     /// If the room is a restricted room, these are the room IDs which are specified by the join
     /// rules.
@@ -102,7 +102,7 @@ pub struct SpaceHierarchyParentSummaryInit {
     /// The stripped `m.space.child` events of the space-room.
     ///
     /// If the room is not a space-room, this should be empty.
-    pub children_state: Vec<Raw<HierarchySpaceChildStateEvent>>,
+    pub children_state: Vec<Raw<HierarchySpaceChildEvent>>,
 
     /// If the room is a restricted room, these are the room IDs which are specified by the join
     /// rules.

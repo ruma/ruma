@@ -100,7 +100,7 @@ impl fmt::Display for EventKind {
             EventKind::ToDevice => write!(f, "ToDeviceEvent"),
             EventKind::RoomRedaction => write!(f, "RoomRedactionEvent"),
             EventKind::Presence => write!(f, "PresenceEvent"),
-            EventKind::HierarchySpaceChild => write!(f, "HierarchySpaceChildStateEvent"),
+            EventKind::HierarchySpaceChild => write!(f, "HierarchySpaceChildEvent"),
             EventKind::Decrypted => unreachable!(),
         }
     }
@@ -214,7 +214,7 @@ pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation
         "RedactedSyncStateEvent" => Some((EventKind::State, EventKindVariation::RedactedSync)),
         "ToDeviceEvent" => Some((EventKind::ToDevice, EventKindVariation::Full)),
         "PresenceEvent" => Some((EventKind::Presence, EventKindVariation::Full)),
-        "HierarchySpaceChildStateEvent" => {
+        "HierarchySpaceChildEvent" => {
             Some((EventKind::HierarchySpaceChild, EventKindVariation::Stripped))
         }
         "RoomRedactionEvent" => Some((EventKind::RoomRedaction, EventKindVariation::Full)),
