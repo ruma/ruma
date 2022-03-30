@@ -267,6 +267,19 @@ pub mod v3 {
         /// room.
         #[serde(default, skip_serializing_if = "Ephemeral::is_empty")]
         pub ephemeral: Ephemeral,
+
+        /// The number of unread events since the latest read receipt.
+        ///
+        /// This uses the unstable prefix in [MSC2654].
+        ///
+        /// [MSC2654]: https://github.com/matrix-org/matrix-spec-proposals/pull/2654
+        #[cfg(feature = "unstable-msc2654")]
+        #[serde(
+            rename = "org.matrix.msc2654.unread_count",
+            alias = "unread_count",
+            skip_serializing_if = "Option::is_none"
+        )]
+        pub unread_count: Option<UInt>,
     }
 
     impl JoinedRoom {
@@ -277,12 +290,18 @@ pub mod v3 {
 
         /// Returns true if there are no updates in the room.
         pub fn is_empty(&self) -> bool {
-            self.summary.is_empty()
+            let is_empty = self.summary.is_empty()
                 && self.unread_notifications.is_empty()
                 && self.timeline.is_empty()
                 && self.state.is_empty()
                 && self.account_data.is_empty()
-                && self.ephemeral.is_empty()
+                && self.ephemeral.is_empty();
+
+            #[cfg(not(feature = "unstable-msc2654"))]
+            return is_empty;
+
+            #[cfg(feature = "unstable-msc2654")]
+            return is_empty && self.unread_count.is_none();
         }
     }
 
