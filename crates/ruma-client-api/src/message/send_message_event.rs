@@ -7,7 +7,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::ruma_api,
-        events::{AnyMessageLikeEventContent, EventContent, MessageLikeEventType},
+        events::{AnyMessageLikeEventContent, MessageLikeEventContent, MessageLikeEventType},
         serde::Raw,
         EventId, RoomId, TransactionId,
     };
@@ -68,7 +68,7 @@ pub mod v3 {
             content: &'a T,
         ) -> serde_json::Result<Self>
         where
-            T: EventContent<EventType = MessageLikeEventType>,
+            T: MessageLikeEventContent,
         {
             Ok(Self {
                 room_id,

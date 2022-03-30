@@ -5,6 +5,11 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use crate::serde::Raw;
 
+use super::{
+    EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEventType,
+    RoomAccountDataEventType, StateEventType, ToDeviceEventType,
+};
+
 /// The base trait that all event content types implement.
 ///
 /// Use [`macros::EventContent`] to derive this traits. It is not meant to be implemented manually.
@@ -127,4 +132,47 @@ pub enum EventKind {
 
     /// Presence event kind.
     Presence,
+}
+
+macro_rules! trait_aliases {
+    // need to use `,` instead of `+` because (1) path can't be followed by `+`
+    // and (2) `+` can't be used as a separator since it's a repetition operator
+    ($(
+        $( #[doc = $docs:literal] )*
+        trait $id:ident = $( $def:path ),+;
+    )*) => {
+        $(
+            $( #[doc = $docs] )*
+            pub trait $id: $($def+)+ {}
+            impl<T: $($def+)+> $id for T {}
+        )*
+    }
+}
+
+trait_aliases! {
+    /// An alias for `EventContent<EventType = GlobalAccountDataEventType>`.
+    trait GlobalAccountDataEventContent = EventContent<EventType = GlobalAccountDataEventType>;
+
+    /// An alias for `EventContent<EventType = RoomAccountDataEventType>`.
+    trait RoomAccountDataEventContent = EventContent<EventType = RoomAccountDataEventType>;
+
+    /// An alias for `EventContent<EventType = EphemeralRoomEventType>`.
+    trait EphemeralRoomEventContent = EventContent<EventType = EphemeralRoomEventType>;
+
+    /// An alias for `EventContent<EventType = MessageLikeEventType>`.
+    trait MessageLikeEventContent = EventContent<EventType = MessageLikeEventType>;
+
+    /// An alias for `EventContent<EventType = MessageLikeEventType> + RedactedEventContent`.
+    trait RedactedMessageLikeEventContent =
+        EventContent<EventType = MessageLikeEventType>, RedactedEventContent;
+
+    /// An alias for `EventContent<EventType = StateEventType>`.
+    trait StateEventContent = EventContent<EventType = StateEventType>;
+
+    /// An alias for `EventContent<EventType = StateEventType> + RedactedEventContent`.
+    trait RedactedStateEventContent =
+        EventContent<EventType = StateEventType>, RedactedEventContent;
+
+    /// An alias for `EventContent<EventType = ToDeviceEventType>`.
+    trait ToDeviceEventContent = EventContent<EventType = ToDeviceEventType>;
 }

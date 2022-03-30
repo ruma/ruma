@@ -7,7 +7,9 @@ pub mod v3 {
 
     use ruma_common::{
         api::ruma_api,
-        events::{AnyRoomAccountDataEventContent, EventContent, RoomAccountDataEventType},
+        events::{
+            AnyRoomAccountDataEventContent, RoomAccountDataEventContent, RoomAccountDataEventType,
+        },
         serde::Raw,
         RoomId, UserId,
     };
@@ -68,7 +70,7 @@ pub mod v3 {
             user_id: &'a UserId,
         ) -> serde_json::Result<Self>
         where
-            T: EventContent<EventType = RoomAccountDataEventType>,
+            T: RoomAccountDataEventContent,
         {
             Ok(Self {
                 data: Raw::from_json(to_raw_json_value(data)?),

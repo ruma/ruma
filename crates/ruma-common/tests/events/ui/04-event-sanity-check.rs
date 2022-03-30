@@ -4,14 +4,14 @@
 extern crate serde;
 
 use ruma_common::{
-    events::{EventContent, StateEventType, StateUnsigned},
+    events::{StateEventContent, StateUnsigned},
     EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId,
 };
 use ruma_macros::Event;
 
 /// State event.
 #[derive(Clone, Debug, Event)]
-pub struct StateEvent<C: EventContent<EventType = StateEventType>> {
+pub struct StateEvent<C: StateEventContent> {
     pub content: C,
     pub event_id: Box<EventId>,
     pub sender: Box<UserId>,
