@@ -127,7 +127,4 @@ pub enum EventKind {
 
     /// Presence event kind.
     Presence,
-
-    /// Hierarchy space child kind.
-    HierarchySpaceChild,
 }
