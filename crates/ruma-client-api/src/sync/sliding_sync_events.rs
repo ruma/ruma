@@ -236,6 +236,16 @@ pub struct Room {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub initial: Option<bool>,
 
+    /// This is a direct message
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_dm: Option<bool>,
+
+    /// This is not-yet-accepted invite, with the folowing sync state events
+    /// the room must be considered in invite state as long as the Option is not None
+    /// even if there are no state events.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub invite_state: Option<Vec<Raw<AnySyncStateEvent>>>,
+
     /// The number of unread notifications for this room with the highlight flag set.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub highlight_count: Option<UInt>,
