@@ -378,6 +378,20 @@ pub mod v3 {
         pub fn is_empty(&self) -> bool {
             self.events.is_empty()
         }
+
+        /// Creates a `State` with events
+        pub fn with_events(events: Vec<Raw<AnySyncStateEvent>>) -> Self {
+            State {
+                events,
+                ..Default::default()
+            }
+        }
+    }
+
+    impl From<Vec<Raw<AnySyncStateEvent>>> for State {
+        fn from(events: Vec<Raw<AnySyncStateEvent>>) -> Self {
+            State::with_events(events)
+        }
     }
 
     /// The global private data created by this user.
@@ -501,6 +515,13 @@ pub mod v3 {
         }
     }
 
+    impl From<InviteState> for InvitedRoom {
+        fn from(invite_state: InviteState) -> Self {
+            InvitedRoom { invite_state, ..Default::default() }
+        }
+    }
+
+
     /// The state of a room that the user has been invited to.
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -519,6 +540,12 @@ pub mod v3 {
         /// Returns true if there are no state updates.
         pub fn is_empty(&self) -> bool {
             self.events.is_empty()
+        }
+    }
+
+    impl From<Vec<Raw<AnyStrippedStateEvent>>> for InviteState {
+        fn from(events: Vec<Raw<AnyStrippedStateEvent>>) -> Self {
+            InviteState { events, ..Default::default() }
         }
     }
 

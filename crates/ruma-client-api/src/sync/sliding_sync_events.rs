@@ -7,14 +7,14 @@ use ruma_common::{
     api::ruma_api,
     presence::PresenceState,
     events::{
-        presence::PresenceEvent, AnySyncRoomEvent, AnySyncStateEvent,
+        presence::PresenceEvent, AnySyncRoomEvent, AnySyncStateEvent, AnyStrippedStateEvent,
         EventType
     },
     DeviceKeyAlgorithm, RoomId, UserId,
     serde::Raw, serde::duration::opt_ms,
 };
 use serde::{Deserialize, Serialize};
-
+use super::sync_events::v3::UnreadNotificationsCount;
 use crate::filter::{FilterDefinition};
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -244,15 +244,11 @@ pub struct Room {
     /// the room must be considered in invite state as long as the Option is not None
     /// even if there are no state events.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub invite_state: Option<Vec<Raw<AnySyncStateEvent>>>,
+    pub invite_state: Option<Vec<Raw<AnyStrippedStateEvent>>>,
 
-    /// The number of unread notifications for this room with the highlight flag set.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub highlight_count: Option<UInt>,
-
-    /// The total number of unread notifications for this room.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub notification_count: Option<UInt>,
+    /// Counts of unread notifications for this room.
+    #[serde(flatten, default, skip_serializing_if = "UnreadNotificationsCount::is_empty")]
+    pub unread_notifications: UnreadNotificationsCount,
 
     /// The timeline of messages and state changes in the room.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -272,8 +268,7 @@ impl Room {
 
     /// Returns true if there are no updates in the room.
     pub fn is_empty(&self) -> bool {
-        self.highlight_count.is_none()
-            && self.notification_count.is_none()
+        self.unread_notifications.is_empty()
             && self.timeline.is_empty()
             && self.required_state.is_empty()
     }
