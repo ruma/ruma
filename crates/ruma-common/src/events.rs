@@ -136,7 +136,7 @@ use crate::{EventEncryptionAlgorithm, RoomVersionId};
 pub mod _custom;
 mod content;
 mod enums;
-mod event_kinds;
+mod kinds;
 mod unsigned;
 
 /// Re-export of all the derives needed to create your own event types.
@@ -193,7 +193,7 @@ pub use self::relation::Relations;
 pub use self::{
     content::*,
     enums::*,
-    event_kinds::*,
+    kinds::*,
     unsigned::{MessageLikeUnsigned, RedactedUnsigned, StateUnsigned},
 };
 
