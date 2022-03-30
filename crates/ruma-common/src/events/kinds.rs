@@ -5,9 +5,9 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     EphemeralRoomEventContent, GlobalAccountDataEventContent, MessageLikeEventContent,
-    MessageLikeEventType, MessageLikeUnsigned, RedactedMessageLikeEventContent,
-    RedactedStateEventContent, RedactedUnsigned, RoomAccountDataEventContent, StateEventContent,
-    StateEventType, StateUnsigned, ToDeviceEventContent,
+    MessageLikeUnsigned, RedactedMessageLikeEventContent, RedactedStateEventContent,
+    RedactedUnsigned, RoomAccountDataEventContent, StateEventContent, StateUnsigned,
+    ToDeviceEventContent,
 };
 use crate::{EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId};
 

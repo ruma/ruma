@@ -384,7 +384,9 @@ fn expand_redact_event(
     where_clause.predicates.push(parse_quote! { #ty_param: #ruma_common::events::RedactContent });
     where_clause.predicates.push(parse_quote! {
         <#ty_param as #ruma_common::events::RedactContent>::Redacted:
-            #ruma_common::events::EventContent<EventType = #redacted_event_type_enum>
+            #ruma_common::events::EventContent<
+                EventType = #ruma_common::events::#redacted_event_type_enum
+            >
                 + #ruma_common::events::RedactedEventContent
     });
 
