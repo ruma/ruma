@@ -210,8 +210,12 @@ pub struct SyncOp {
     pub op: SlidingOp,
 
     /// The list of room updates to apply
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub rooms: Vec<Room>
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rooms: Option<Vec<Room>>,
+
+    /// On insert we are only receiving exactly one room
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub room: Option<Room>,
 }
 
 /// Updates to joined rooms.
