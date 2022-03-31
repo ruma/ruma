@@ -59,6 +59,36 @@ pub enum EventEncryptionAlgorithm {
     _Custom(PrivOwnedStr),
 }
 
+/// A key algorithm to be used to generate a key from a passphrase.
+///
+/// This type can hold an arbitrary string. To check for algorithms that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(DeserializeFromCowStr, SerializeAsRefStr))]
+pub enum KeyDerivationAlgorithm {
+    /// PBKDF2
+    #[ruma_enum(rename = "m.pbkdf2")]
+    Pbkfd2,
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}
+
+///
+/// This type can hold an arbitrary string. To check for algorithms that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(DeserializeFromCowStr, SerializeAsRefStr))]
+pub enum SecretEncryptionAlgorithm {
+    /// TODO
+    #[ruma_enum(rename = "m.secret_storage.v1.aes-hmac-sha2 ")]
+    SecretStorageV1AesHmacSha2,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}
+
 #[cfg(test)]
 mod tests {
     use super::{DeviceKeyAlgorithm, SigningKeyAlgorithm};

@@ -17,6 +17,9 @@ event_enum! {
         "m.direct",
         "m.ignored_user_list",
         "m.push_rules",
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        "m.secret_storage.default_key",
     }
 
     /// Any room account data event.
