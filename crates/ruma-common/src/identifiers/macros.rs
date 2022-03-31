@@ -24,8 +24,100 @@ macro_rules! partial_eq_string {
     }
 }
 
+macro_rules! owned_identifier {
+    ($owned:ident, $id:ident) => {
+        #[doc = concat!("Owned variant of ", stringify!($id))]
+        ///
+        /// The wrapper type for this type is variable, by default it'll use [`Box`],
+        /// but you can change that by setting "`--cfg=ruma_identifiers_storage=...`" using
+        /// `RUSTFLAGS` or `.cargo/config.toml` (under `[build]` -> `rustflags = ["..."]`)
+        /// to the following;
+        /// - `ruma_identifiers_storage="Arc"` to use [`Arc`](std::sync::Arc) as a wrapper type.
+        #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+        pub struct $owned {
+            #[cfg(not(any(ruma_identifiers_storage = "Arc")))]
+            inner: Box<$id>,
+            #[cfg(ruma_identifiers_storage = "Arc")]
+            inner: std::sync::Arc<$id>,
+        }
+
+        impl AsRef<$id> for $owned {
+            fn as_ref(&self) -> &$id {
+                &*self.inner
+            }
+        }
+
+        impl AsRef<str> for $owned {
+            fn as_ref(&self) -> &str {
+                (*self.inner).as_ref()
+            }
+        }
+
+        impl std::ops::Deref for $owned {
+            type Target = $id;
+
+            fn deref(&self) -> &Self::Target {
+                &self.inner
+            }
+        }
+
+        impl std::borrow::Borrow<$id> for $owned {
+            fn borrow(&self) -> &$id {
+                self.as_ref()
+            }
+        }
+
+        impl From<&'_ $id> for $owned {
+            fn from(id: &$id) -> $owned {
+                $owned { inner: id.into() }
+            }
+        }
+
+        impl From<Box<$id>> for $owned {
+            fn from(b: Box<$id>) -> $owned {
+                Self { inner: b.into() }
+            }
+        }
+
+        impl From<std::sync::Arc<$id>> for $owned {
+            fn from(a: std::sync::Arc<$id>) -> $owned {
+                Self {
+                    #[cfg(not(any(ruma_identifiers_storage = "Arc")))]
+                    inner: a.as_ref().into(),
+                    #[cfg(ruma_identifiers_storage = "Arc")]
+                    inner: a,
+                }
+            }
+        }
+
+        #[cfg(feature = "serde")]
+        impl serde::Serialize for $owned {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                serializer.serialize_str(self.as_ref().as_str())
+            }
+        }
+
+        partial_eq_string!($owned);
+
+        impl PartialEq<Box<$id>> for $owned {
+            fn eq(&self, other: &Box<$id>) -> bool {
+                AsRef::<$id>::as_ref(self) == AsRef::<$id>::as_ref(other)
+            }
+        }
+
+        impl PartialEq<$owned> for Box<$id> {
+            fn eq(&self, other: &$owned) -> bool {
+                AsRef::<$id>::as_ref(self) == AsRef::<$id>::as_ref(other)
+            }
+        }
+    };
+}
+
 macro_rules! opaque_identifier_common_impls {
-    ($id:ty) => {
+    ($id:ident, $owned:ident) => {
         impl $id {
             pub(super) fn from_borrowed(s: &str) -> &Self {
                 unsafe { std::mem::transmute(s) }
@@ -64,10 +156,20 @@ macro_rules! opaque_identifier_common_impls {
 
         impl Clone for Box<$id> {
             fn clone(&self) -> Self {
-                (**self).to_owned()
+                (**self).into()
             }
         }
 
+        // impl ToOwned for $id {
+        //     type Owned = $owned;
+
+        //     fn to_owned(&self) -> Self::Owned {
+        //         Self::from_owned(self.0.into()).into()
+        //     }
+        // }
+
+        // TODO swap below with above after codebase has been converted
+        //  to not use `to_owned` as equivalent to "into Box"
         impl ToOwned for $id {
             type Owned = Box<$id>;
 
@@ -90,7 +192,7 @@ macro_rules! opaque_identifier_common_impls {
 
         impl From<&$id> for Box<$id> {
             fn from(id: &$id) -> Self {
-                id.to_owned()
+                $id::from_owned(id.0.into())
             }
         }
 
@@ -154,13 +256,13 @@ macro_rules! opaque_identifier_common_impls {
         }
 
         partial_eq_string!($id);
-        partial_eq_string!(Box<$id>);
+        partial_eq_string!(Box<$id>); // todo: Remove when all instances of Box have been converted to Owned
     };
 }
 
 macro_rules! opaque_identifier {
-    ($id:ident) => {
-        opaque_identifier_common_impls!($id);
+    ($id:ident, $owned:ident) => {
+        opaque_identifier_common_impls!($id, $owned);
 
         impl<'a> From<&'a str> for &'a $id {
             fn from(s: &'a str) -> Self {
@@ -206,11 +308,21 @@ macro_rules! opaque_identifier {
                 Box::<str>::deserialize(deserializer).map($id::from_owned)
             }
         }
+
+        #[cfg(feature = "serde")]
+        impl<'de> serde::Deserialize<'de> for $owned {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                Box::<str>::deserialize(deserializer).map($id::from_owned).map(Into::into)
+            }
+        }
     };
 }
 
 macro_rules! opaque_identifier_validated {
-    ($id:ident, $validate_id:expr) => {
+    ($id:ident, $owned:ident, $validate_id:expr) => {
         impl $id {
             #[rustfmt::skip]
             doc_concat! {
@@ -249,7 +361,7 @@ macro_rules! opaque_identifier_validated {
             }
         }
 
-        opaque_identifier_common_impls!($id);
+        opaque_identifier_common_impls!($id, $owned);
 
         impl From<Box<$id>> for String {
             fn from(id: Box<$id>) -> Self {
@@ -268,6 +380,23 @@ macro_rules! opaque_identifier_validated {
 
                 match $id::parse(s) {
                     Ok(o) => Ok(o),
+                    Err(e) => Err(D::Error::custom(e)),
+                }
+            }
+        }
+
+        #[cfg(feature = "serde")]
+        impl<'de> serde::Deserialize<'de> for $owned {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                use serde::de::Error;
+
+                let s = String::deserialize(deserializer)?;
+
+                match $id::parse(s) {
+                    Ok(o) => Ok(o.into()),
                     Err(e) => Err(D::Error::custom(e)),
                 }
             }

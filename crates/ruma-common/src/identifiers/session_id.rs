@@ -8,4 +8,10 @@
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SessionId(str);
 
-opaque_identifier_validated!(SessionId, ruma_identifiers_validation::session_id::validate);
+owned_identifier!(OwnedSessionId, SessionId);
+
+opaque_identifier_validated!(
+    SessionId,
+    OwnedSessionId,
+    ruma_identifiers_validation::session_id::validate
+);

@@ -20,7 +20,9 @@ use super::{matrix_uri::UriAction, IdParseError, MatrixToUri, MatrixUri, ServerN
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct UserId(str);
 
-opaque_identifier_validated!(UserId, ruma_identifiers_validation::user_id::validate);
+owned_identifier!(OwnedUserId, UserId);
+
+opaque_identifier_validated!(UserId, OwnedUserId, ruma_identifiers_validation::user_id::validate);
 
 impl UserId {
     /// Attempts to generate a `UserId` for the given origin server with a localpart consisting of

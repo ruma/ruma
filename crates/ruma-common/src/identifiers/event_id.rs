@@ -38,7 +38,13 @@ use super::ServerName;
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct EventId(str);
 
-opaque_identifier_validated!(EventId, ruma_identifiers_validation::event_id::validate);
+owned_identifier!(OwnedEventId, EventId);
+
+opaque_identifier_validated!(
+    EventId,
+    OwnedEventId,
+    ruma_identifiers_validation::event_id::validate
+);
 
 impl EventId {
     /// Attempts to generate an `EventId` for the given origin server with a localpart consisting
