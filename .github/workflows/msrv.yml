@@ -25,6 +25,12 @@ jobs:
           - name: Check Ruma
             cmd: msrv-ruma
 
+          - name: Check Owned IDs with Box
+            cmd: msrv-owned-id-box
+
+          - name: Check Owned IDs with Arc
+            cmd: msrv-owned-id-arc
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
