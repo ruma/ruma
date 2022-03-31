@@ -9,7 +9,7 @@ use std::{
     sync::Arc,
 };
 
-use super::{crypto_algorithms::SigningKeyAlgorithm, DeviceId, KeyName};
+use super::{crypto_algorithms::SigningKeyAlgorithm, DeviceId, IdParseError, KeyName};
 
 /// A key algorithm and key name delimited by a colon.
 #[repr(transparent)]
@@ -222,7 +222,7 @@ impl<'de, A, K: ?Sized> serde::Deserialize<'de> for Box<KeyId<A, K>> {
     }
 }
 
-fn try_from<S, A, K: ?Sized>(s: S) -> Result<Box<KeyId<A, K>>, crate::Error>
+fn try_from<S, A, K: ?Sized>(s: S) -> Result<Box<KeyId<A, K>>, IdParseError>
 where
     S: AsRef<str> + Into<Box<str>>,
 {
@@ -231,7 +231,7 @@ where
 }
 
 impl<'a, A, K: ?Sized> TryFrom<&'a str> for &'a KeyId<A, K> {
-    type Error = crate::Error;
+    type Error = IdParseError;
 
     fn try_from(s: &'a str) -> Result<Self, Self::Error> {
         (ruma_identifiers_validation::key_id::validate)(s)?;
@@ -240,7 +240,7 @@ impl<'a, A, K: ?Sized> TryFrom<&'a str> for &'a KeyId<A, K> {
 }
 
 impl<A, K: ?Sized> FromStr for Box<KeyId<A, K>> {
-    type Err = crate::Error;
+    type Err = IdParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         try_from(s)
@@ -248,7 +248,7 @@ impl<A, K: ?Sized> FromStr for Box<KeyId<A, K>> {
 }
 
 impl<A, K: ?Sized> TryFrom<&str> for Box<KeyId<A, K>> {
-    type Error = crate::Error;
+    type Error = IdParseError;
 
     fn try_from(s: &str) -> Result<Self, Self::Error> {
         try_from(s)
@@ -256,7 +256,7 @@ impl<A, K: ?Sized> TryFrom<&str> for Box<KeyId<A, K>> {
 }
 
 impl<A, K: ?Sized> TryFrom<String> for Box<KeyId<A, K>> {
-    type Error = crate::Error;
+    type Error = IdParseError;
 
     fn try_from(s: String) -> Result<Self, Self::Error> {
         try_from(s)

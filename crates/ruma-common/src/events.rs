@@ -126,6 +126,8 @@
 //! type alias), allowing content to be converted to and from JSON independently of the surrounding
 //! event structure, if needed.
 
+use std::fmt;
+
 use serde::{de::IgnoredAny, Deserialize, Serialize, Serializer};
 use serde_json::value::RawValue as RawJsonValue;
 
@@ -201,7 +203,7 @@ pub use self::{
 /// Use [`macros::EventContent`] to derive this traits. It is not meant to be implemented manually.
 pub trait EventContent: Sized + Serialize {
     /// The Rust enum for the event kind's known types.
-    type EventType: AsRef<str>;
+    type EventType;
 
     /// Get the event's type, like `m.room.message`.
     fn event_type(&self) -> Self::EventType;
@@ -237,10 +239,14 @@ pub trait RedactContent {
     fn redact(self, version: &RoomVersionId) -> Self::Redacted;
 }
 
-impl<T: EventContent> Raw<T> {
+impl<T> Raw<T>
+where
+    T: EventContent,
+    T::EventType: fmt::Display,
+{
     /// Try to deserialize the JSON as an event's content.
     pub fn deserialize_content(&self, event_type: T::EventType) -> serde_json::Result<T> {
-        T::from_parts(event_type.as_ref(), self.json())
+        T::from_parts(&event_type.to_string(), self.json())
     }
 }
 

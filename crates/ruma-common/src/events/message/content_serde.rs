@@ -3,15 +3,8 @@
 use std::convert::TryFrom;
 
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
-use thiserror::Error;
 
-use super::{MessageContent, Text};
-
-#[derive(Error, Debug)]
-pub enum MessageContentSerdeError {
-    #[error("missing field `m.message` or `m.text`")]
-    MissingMessage,
-}
+use super::{MessageContent, Text, TryFromExtensibleError};
 
 #[derive(Debug, Default, Deserialize)]
 pub(crate) struct MessageContentSerDeHelper {
@@ -33,7 +26,7 @@ pub(crate) struct MessageContentSerDeHelper {
 }
 
 impl TryFrom<MessageContentSerDeHelper> for MessageContent {
-    type Error = MessageContentSerdeError;
+    type Error = TryFromExtensibleError;
 
     fn try_from(helper: MessageContentSerDeHelper) -> Result<Self, Self::Error> {
         let MessageContentSerDeHelper {
@@ -48,7 +41,7 @@ impl TryFrom<MessageContentSerDeHelper> for MessageContent {
         } else if let Some(text) = text_stable.or(text_unstable) {
             Ok(Self::plain(text))
         } else {
-            Err(MessageContentSerdeError::MissingMessage)
+            Err(TryFromExtensibleError::MissingField("m.message or m.text".to_owned()))
         }
     }
 }
@@ -59,12 +52,45 @@ impl Serialize for MessageContent {
         S: serde::Serializer,
     {
         let mut st = serializer.serialize_struct("MessageContent", 1)?;
-        let variants = self.variants();
-        if variants.len() == 1 && variants[0].mimetype == "text/plain" {
-            st.serialize_field("org.matrix.msc1767.text", &variants[0].body)?;
+        if self.len() == 1 && self[0].mimetype == "text/plain" {
+            st.serialize_field("org.matrix.msc1767.text", &self[0].body)?;
         } else {
-            st.serialize_field("org.matrix.msc1767.message", variants)?;
+            st.serialize_field("org.matrix.msc1767.message", &self.0)?;
         }
         st.end()
+    }
+}
+
+pub(crate) mod as_vec {
+    use serde::{de, ser::SerializeSeq, Deserialize, Deserializer, Serializer};
+
+    use crate::events::message::{MessageContent, Text};
+
+    /// Serializes a `Option<MessageContent>` as a `Vec<Text>`.
+    pub fn serialize<S>(content: &Option<MessageContent>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        if let Some(content) = content {
+            let mut seq = serializer.serialize_seq(Some(content.len()))?;
+            for e in content.iter() {
+                seq.serialize_element(e)?;
+            }
+            seq.end()
+        } else {
+            serializer.serialize_seq(Some(0))?.end()
+        }
+    }
+
+    /// Deserializes a `Vec<Text>` to an `Option<MessageContent>`.
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<MessageContent>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        Option::<Vec<Text>>::deserialize(deserializer).and_then(|content| {
+            content.map(MessageContent::new).ok_or_else(|| {
+                de::Error::invalid_value(de::Unexpected::Other("empty array"), &"a non-empty array")
+            })
+        })
     }
 }

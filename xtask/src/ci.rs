@@ -10,6 +10,7 @@ mod spec_links;
 use spec_links::check_spec_links;
 
 const MSRV: &str = "1.55";
+const NIGHTLY: &str = "nightly-2022-03-23";
 
 #[derive(Args)]
 pub struct CiArgs {
@@ -201,19 +202,19 @@ impl CiTask {
 
     /// Check the formatting with the nightly version.
     fn fmt(&self) -> Result<()> {
-        cmd!("rustup run nightly cargo fmt -- --check").run().map_err(Into::into)
+        cmd!("rustup run {NIGHTLY} cargo fmt -- --check").run().map_err(Into::into)
     }
 
     /// Check ruma crate with full feature with the nightly version.
     fn nightly_full(&self) -> Result<()> {
-        cmd!("rustup run nightly cargo check -p ruma --features full").run().map_err(Into::into)
+        cmd!("rustup run {NIGHTLY} cargo check -p ruma --features full").run().map_err(Into::into)
     }
 
     /// Lint default features with clippy with the nightly version.
     fn clippy_default(&self) -> Result<()> {
         cmd!(
             "
-            rustup run nightly cargo clippy
+            rustup run {NIGHTLY} cargo clippy
                 --workspace --all-targets --features=full -- -D warnings
             "
         )
@@ -225,7 +226,7 @@ impl CiTask {
     fn clippy_all(&self) -> Result<()> {
         cmd!(
             "
-            rustup run nightly cargo clippy
+            rustup run {NIGHTLY} cargo clippy
                 --workspace --all-targets --features=__ci,compat -- -D warnings
             "
         )
@@ -253,7 +254,7 @@ impl CiTask {
         }
         cmd!(
             "
-            rustup run nightly cargo sort
+            rustup run {NIGHTLY} cargo sort
                 --workspace --grouped --check
                 --order package,lib,features,dependencies,dev-dependencies,build-dependencies
             "

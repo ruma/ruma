@@ -1,5 +1,7 @@
 #![cfg(feature = "unstable-msc1767")]
 
+use std::convert::TryFrom;
+
 use assign::assign;
 use js_int::uint;
 use matches::assert_matches;
@@ -7,7 +9,7 @@ use ruma_common::{
     event_id,
     events::{
         emote::EmoteEventContent,
-        message::MessageEventContent,
+        message::{MessageContent, MessageEventContent, Text},
         notice::NoticeEventContent,
         room::message::{
             EmoteMessageEventContent, InReplyTo, MessageType, NoticeMessageEventContent, Relation,
@@ -18,6 +20,19 @@ use ruma_common::{
     room_id, user_id, MilliSecondsSinceUnixEpoch,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+
+#[test]
+fn try_from_valid() {
+    assert_matches!(
+        MessageContent::try_from(vec![Text::plain("A message")]),
+        Ok(message) if message.len() == 1
+    );
+}
+
+#[test]
+fn try_from_invalid() {
+    assert_matches!(MessageContent::try_from(vec![]), Err(_));
+}
 
 #[test]
 fn html_content_serialization() {
@@ -280,8 +295,8 @@ fn room_message_plain_text_stable_deserialization() {
             }),
             ..
         } if body == "test"
-          && message.variants().len() == 1
-          && message.variants()[0].body == "test"
+          && message.len() == 1
+          && message[0].body == "test"
     );
 }
 
@@ -305,8 +320,8 @@ fn room_message_plain_text_unstable_deserialization() {
             }),
             ..
         } if body == "test"
-          && message.variants().len() == 1
-          && message.variants()[0].body == "test"
+          && message.len() == 1
+          && message[0].body == "test"
     );
 }
 
@@ -336,9 +351,9 @@ fn room_message_html_text_stable_deserialization() {
             ..
         } if body == "test"
             && formatted.body == "<h1>test</h1>"
-            && message.variants().len() == 2
-            && message.variants()[0].body == "<h1>test</h1>"
-            && message.variants()[1].body == "test"
+            && message.len() == 2
+            && message[0].body == "<h1>test</h1>"
+            && message[1].body == "test"
     );
 }
 
@@ -368,9 +383,9 @@ fn room_message_html_text_unstable_deserialization() {
             ..
         } if body == "test"
             && formatted.body == "<h1>test</h1>"
-            && message.variants().len() == 2
-            && message.variants()[0].body == "<h1>test</h1>"
-            && message.variants()[1].body == "test"
+            && message.len() == 2
+            && message[0].body == "<h1>test</h1>"
+            && message[1].body == "test"
     );
 }
 
@@ -511,8 +526,8 @@ fn room_message_notice_stable_deserialization() {
             }),
             ..
         } if body == "test"
-          && message.variants().len() == 1
-          && message.variants()[0].body == "test"
+          && message.len() == 1
+          && message[0].body == "test"
     );
 }
 
@@ -536,8 +551,8 @@ fn room_message_notice_unstable_deserialization() {
             }),
             ..
         } if body == "test"
-          && message.variants().len() == 1
-          && message.variants()[0].body == "test"
+          && message.len() == 1
+          && message[0].body == "test"
     );
 }
 
@@ -679,8 +694,8 @@ fn room_message_emote_stable_deserialization() {
             }),
             ..
         } if body == "test"
-          && message.variants().len() == 1
-          && message.variants()[0].body == "test"
+          && message.len() == 1
+          && message[0].body == "test"
     );
 }
 
@@ -704,21 +719,20 @@ fn room_message_emote_unstable_deserialization() {
             }),
             ..
         } if body == "test"
-          && message.variants().len() == 1
-          && message.variants()[0].body == "test"
+          && message.len() == 1
+          && message[0].body == "test"
     );
 }
 
 #[test]
 #[cfg(feature = "unstable-msc3554")]
 fn lang_serialization() {
-    use ruma_common::events::message::{MessageContent, Text};
-
-    let content = MessageContent::from(vec![
+    let content = MessageContent::try_from(vec![
         assign!(Text::plain("Bonjour le monde !"), { lang: Some("fr".into()) }),
         assign!(Text::plain("Hallo Welt!"), { lang: Some("de".into()) }),
         assign!(Text::plain("Hello World!"), { lang: Some("en".into()) }),
-    ]);
+    ])
+    .unwrap();
 
     assert_eq!(
         to_json_value(&content).unwrap(),
@@ -735,8 +749,6 @@ fn lang_serialization() {
 #[test]
 #[cfg(feature = "unstable-msc3554")]
 fn lang_deserialization() {
-    use ruma_common::events::message::MessageContent;
-
     let json_data = json!({
         "org.matrix.msc1767.message": [
             { "body": "Bonjour le monde !", "mimetype": "text/plain", "lang": "fr"},
@@ -746,7 +758,7 @@ fn lang_deserialization() {
     });
 
     let content = from_json_value::<MessageContent>(json_data).unwrap();
-    assert_eq!(content.variants()[0].lang.as_deref(), Some("fr"));
-    assert_eq!(content.variants()[1].lang.as_deref(), Some("de"));
-    assert_eq!(content.variants()[2].lang.as_deref(), Some("en"));
+    assert_eq!(content[0].lang.as_deref(), Some("fr"));
+    assert_eq!(content[1].lang.as_deref(), Some("de"));
+    assert_eq!(content[2].lang.as_deref(), Some("en"));
 }

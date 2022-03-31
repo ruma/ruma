@@ -8,13 +8,15 @@ use ruma_common::{
     events::{
         file::{EncryptedContentInit, FileContent, FileContentInfo},
         image::{
-            Captions, ImageContent, ImageEventContent, ThumbnailContent, ThumbnailFileContent,
-            ThumbnailFileContentInfo, Thumbnails,
+            ImageContent, ImageEventContent, ThumbnailContent, ThumbnailFileContent,
+            ThumbnailFileContentInfo,
         },
         message::MessageContent,
         room::{
-            message::{InReplyTo, Relation},
-            JsonWebKeyInit,
+            message::{
+                ImageMessageEventContent, InReplyTo, MessageType, Relation, RoomMessageEventContent,
+            },
+            JsonWebKeyInit, MediaSource,
         },
         AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned,
     },
@@ -35,10 +37,10 @@ fn plain_content_serialization() {
         to_json_value(&event_content).unwrap(),
         json!({
             "org.matrix.msc1767.text": "Upload: my_image.jpg",
-            "org.matrix.msc1767.file": {
+            "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
             },
-            "org.matrix.msc1767.image": {}
+            "m.image": {}
         })
     );
 }
@@ -75,7 +77,7 @@ fn encrypted_content_serialization() {
         to_json_value(&event_content).unwrap(),
         json!({
             "org.matrix.msc1767.text": "Upload: my_image.jpg",
-            "org.matrix.msc1767.file": {
+            "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "key": {
                     "kty": "oct",
@@ -90,7 +92,7 @@ fn encrypted_content_serialization() {
                 },
                 "v": "v2"
             },
-            "org.matrix.msc1767.image": {}
+            "m.image": {}
         })
     );
 }
@@ -118,7 +120,7 @@ fn image_event_serialization() {
             ),
             {
                 image: Box::new(ImageContent::with_size(uint!(1920), uint!(1080))),
-                thumbnail: Thumbnails::new(&[ThumbnailContent::new(
+                thumbnail: vec![ThumbnailContent::new(
                     ThumbnailFileContent::plain(
                         mxc_uri!("mxc://notareal.hs/thumbnail").to_owned(),
                         Some(Box::new(assign!(ThumbnailFileContentInfo::new(), {
@@ -127,8 +129,8 @@ fn image_event_serialization() {
                         })))
                     ),
                     None
-                )]),
-                caption: Captions::plain("This is my house"),
+                )],
+                caption: Some(MessageContent::plain("This is my house")),
                 relates_to: Some(Relation::Reply {
                     in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
                 }),
@@ -149,24 +151,24 @@ fn image_event_serialization() {
                     { "body": "Upload: <strong>my_house.jpg</strong>", "mimetype": "text/html"},
                     { "body": "Upload: my_house.jpg", "mimetype": "text/plain"},
                 ],
-                "org.matrix.msc1767.file": {
+                "m.file": {
                     "url": "mxc://notareal.hs/abcdef",
                     "name": "my_house.jpg",
                     "mimetype": "image/jpeg",
                     "size": 897_774,
                 },
-                "org.matrix.msc1767.image": {
+                "m.image": {
                     "width": 1920,
                     "height": 1080,
                 },
-                "org.matrix.msc1767.thumbnail": [
+                "m.thumbnail": [
                     {
                         "url": "mxc://notareal.hs/thumbnail",
                         "mimetype": "image/jpeg",
                         "size": 334_593,
                     }
                 ],
-                "org.matrix.msc1767.caption": [
+                "m.caption": [
                     {
                         "body": "This is my house",
                         "mimetype": "text/plain",
@@ -190,14 +192,14 @@ fn image_event_serialization() {
 #[test]
 fn plain_content_deserialization() {
     let json_data = json!({
-        "org.matrix.msc1767.text": "Upload: my_cat.png",
-        "org.matrix.msc1767.file": {
+        "m.text": "Upload: my_cat.png",
+        "m.file": {
             "url": "mxc://notareal.hs/abcdef",
         },
-        "org.matrix.msc1767.image": {
+        "m.image": {
             "width": 668,
         },
-        "org.matrix.msc1767.caption": [
+        "m.caption": [
             {
                 "body": "Look at my cat!",
             }
@@ -207,7 +209,7 @@ fn plain_content_deserialization() {
     assert_matches!(
         from_json_value::<ImageEventContent>(json_data)
             .unwrap(),
-        ImageEventContent { message, file, image, thumbnail, caption, .. }
+        ImageEventContent { message, file, image, thumbnail, caption: Some(caption), .. }
         if message.find_plain() == Some("Upload: my_cat.png")
             && message.find_html().is_none()
             && file.url == "mxc://notareal.hs/abcdef"
@@ -222,7 +224,7 @@ fn plain_content_deserialization() {
 fn encrypted_content_deserialization() {
     let json_data = json!({
         "org.matrix.msc1767.text": "Upload: my_file.txt",
-        "org.matrix.msc1767.file": {
+        "m.file": {
             "url": "mxc://notareal.hs/abcdef",
             "key": {
                 "kty": "oct",
@@ -237,8 +239,8 @@ fn encrypted_content_deserialization() {
             },
             "v": "v2"
         },
-        "org.matrix.msc1767.image": {},
-        "org.matrix.msc1767.thumbnail": [
+        "m.image": {},
+        "m.thumbnail": [
             {
                 "url": "mxc://notareal.hs/thumbnail",
             }
@@ -248,15 +250,14 @@ fn encrypted_content_deserialization() {
     assert_matches!(
         from_json_value::<ImageEventContent>(json_data)
             .unwrap(),
-        ImageEventContent { message, file, image, thumbnail, caption, .. }
+        ImageEventContent { message, file, image, thumbnail, caption: None, .. }
         if message.find_plain() == Some("Upload: my_file.txt")
             && message.find_html().is_none()
             && file.url == "mxc://notareal.hs/abcdef"
             && file.encryption_info.is_some()
             && image.width.is_none()
             && image.height.is_none()
-            && thumbnail.thumbnails()[0].file.url == "mxc://notareal.hs/thumbnail"
-            && caption.is_empty()
+            && thumbnail[0].file.url == "mxc://notareal.hs/thumbnail"
     );
 }
 
@@ -265,13 +266,13 @@ fn message_event_deserialization() {
     let json_data = json!({
         "content": {
             "org.matrix.msc1767.text": "Upload: my_gnome.webp",
-            "org.matrix.msc1767.file": {
+            "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "my_gnome.webp",
                 "mimetype": "image/webp",
                 "size": 123_774,
             },
-            "org.matrix.msc1767.image": {
+            "m.image": {
                 "width": 1300,
                 "height": 837,
             }
@@ -295,7 +296,7 @@ fn message_event_deserialization() {
                 },
                 image,
                 thumbnail,
-                caption,
+                caption: None,
                 ..
             },
             event_id,
@@ -313,10 +314,93 @@ fn message_event_deserialization() {
             && image.width == Some(uint!(1300))
             && image.height == Some(uint!(837))
             && thumbnail.is_empty()
-            && caption.is_empty()
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
             && room_id == room_id!("!roomid:notareal.hs")
             && sender == user_id!("@user:notareal.hs")
             && unsigned.is_empty()
     );
+}
+
+#[test]
+fn room_message_serialization() {
+    let message_event_content =
+        RoomMessageEventContent::new(MessageType::Image(ImageMessageEventContent::plain(
+            "Upload: my_image.jpg".to_owned(),
+            mxc_uri!("mxc://notareal.hs/file").to_owned(),
+            None,
+        )));
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "Upload: my_image.jpg",
+            "url": "mxc://notareal.hs/file",
+            "msgtype": "m.image",
+            "org.matrix.msc1767.text": "Upload: my_image.jpg",
+            "org.matrix.msc1767.file": {
+                "url": "mxc://notareal.hs/file",
+            },
+            "org.matrix.msc1767.image": {},
+        })
+    );
+}
+
+#[test]
+fn room_message_stable_deserialization() {
+    let json_data = json!({
+        "body": "Upload: my_image.jpg",
+        "url": "mxc://notareal.hs/file",
+        "msgtype": "m.image",
+        "m.text": "Upload: my_image.jpg",
+        "m.file": {
+            "url": "mxc://notareal.hs/file",
+        },
+        "m.image": {},
+    });
+
+    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    assert_matches!(event_content.msgtype, MessageType::Image(_));
+    if let MessageType::Image(content) = event_content.msgtype {
+        assert_eq!(content.body, "Upload: my_image.jpg");
+        assert_matches!(content.source, MediaSource::Plain(_));
+        if let MediaSource::Plain(url) = content.source {
+            assert_eq!(url, "mxc://notareal.hs/file");
+        }
+        let message = content.message.unwrap();
+        assert_eq!(message.len(), 1);
+        assert_eq!(message[0].body, "Upload: my_image.jpg");
+        let file = content.file.unwrap();
+        assert_eq!(file.url, "mxc://notareal.hs/file");
+        assert!(!file.is_encrypted());
+    }
+}
+
+#[test]
+fn room_message_unstable_deserialization() {
+    let json_data = json!({
+        "body": "Upload: my_image.jpg",
+        "url": "mxc://notareal.hs/file",
+        "msgtype": "m.image",
+        "org.matrix.msc1767.text": "Upload: my_image.jpg",
+        "org.matrix.msc1767.file": {
+            "url": "mxc://notareal.hs/file",
+        },
+        "org.matrix.msc1767.image": {},
+    });
+
+    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    assert_matches!(event_content.msgtype, MessageType::Image(_));
+    if let MessageType::Image(content) = event_content.msgtype {
+        assert_eq!(content.body, "Upload: my_image.jpg");
+        assert_matches!(content.source, MediaSource::Plain(_));
+        if let MediaSource::Plain(url) = content.source {
+            assert_eq!(url, "mxc://notareal.hs/file");
+        }
+        let message = content.message.unwrap();
+        assert_eq!(message.len(), 1);
+        assert_eq!(message[0].body, "Upload: my_image.jpg");
+        let file = content.file.unwrap();
+        assert_eq!(file.url, "mxc://notareal.hs/file");
+        assert!(!file.is_encrypted());
+    }
 }

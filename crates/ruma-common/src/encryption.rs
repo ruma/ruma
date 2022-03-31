@@ -6,7 +6,10 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{serde::Base64, DeviceId, DeviceKeyId, EventEncryptionAlgorithm, UserId};
+use crate::{
+    serde::{Base64, StringEnum},
+    DeviceId, DeviceKeyId, EventEncryptionAlgorithm, PrivOwnedStr, UserId,
+};
 
 /// Identity keys for a device.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -115,7 +118,7 @@ pub enum OneTimeKey {
 }
 
 /// Signatures for a `CrossSigningKey` object.
-pub type CrossSigningKeySignatures = BTreeMap<Box<UserId>, BTreeMap<String, String>>;
+pub type CrossSigningKeySignatures = BTreeMap<Box<UserId>, BTreeMap<Box<DeviceKeyId>, String>>;
 
 /// A cross signing key.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -130,7 +133,7 @@ pub struct CrossSigningKey {
     /// The public key.
     ///
     /// The object must have exactly one property.
-    pub keys: BTreeMap<String, String>,
+    pub keys: BTreeMap<Box<DeviceKeyId>, String>,
 
     /// Signatures of the key.
     ///
@@ -144,7 +147,7 @@ impl CrossSigningKey {
     pub fn new(
         user_id: Box<UserId>,
         usage: Vec<KeyUsage>,
-        keys: BTreeMap<String, String>,
+        keys: BTreeMap<Box<DeviceKeyId>, String>,
         signatures: CrossSigningKeySignatures,
     ) -> Self {
         Self { user_id, usage, keys, signatures }
@@ -152,9 +155,9 @@ impl CrossSigningKey {
 }
 
 /// The usage of a cross signing key.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, StringEnum)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "snake_case")]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum KeyUsage {
     /// Master key.
     Master,
@@ -164,4 +167,7 @@ pub enum KeyUsage {
 
     /// User-signing key.
     UserSigning,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
 }

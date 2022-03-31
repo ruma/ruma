@@ -334,7 +334,7 @@ macro_rules! opaque_identifier_validated {
                 ")]
                 pub fn parse(
                     s: impl AsRef<str> + Into<Box<str>>,
-                ) -> Result<Box<Self>, crate:: Error> {
+                ) -> Result<Box<Self>, crate::IdParseError> {
                     $validate_id(s.as_ref())?;
                     Ok($id::from_owned(s.into()))
                 }
@@ -344,7 +344,7 @@ macro_rules! opaque_identifier_validated {
                 #[doc = concat!("Try parsing a `&str` into an `Rc<", stringify!($id), ">`.")]
                 pub fn parse_rc(
                     s: impl AsRef<str> + Into<std::rc::Rc<str>>,
-                ) -> Result<std::rc::Rc<Self>, crate:: Error> {
+                ) -> Result<std::rc::Rc<Self>, crate::IdParseError> {
                     $validate_id(s.as_ref())?;
                     Ok($id::from_rc(s.into()))
                 }
@@ -354,7 +354,7 @@ macro_rules! opaque_identifier_validated {
                 #[doc = concat!("Try parsing a `&str` into an `Arc<", stringify!($id), ">`.")]
                 pub fn parse_arc(
                     s: impl AsRef<str> + Into<std::sync::Arc<str>>,
-                ) -> Result<std::sync::Arc<Self>, crate:: Error> {
+                ) -> Result<std::sync::Arc<Self>, crate::IdParseError> {
                     $validate_id(s.as_ref())?;
                     Ok($id::from_arc(s.into()))
                 }
@@ -403,7 +403,7 @@ macro_rules! opaque_identifier_validated {
         }
 
         impl<'a> std::convert::TryFrom<&'a str> for &'a $id {
-            type Error = crate:: Error;
+            type Error = crate::IdParseError;
 
             fn try_from(s: &'a str) -> Result<Self, Self::Error> {
                 $validate_id(s)?;
@@ -412,7 +412,7 @@ macro_rules! opaque_identifier_validated {
         }
 
         impl std::str::FromStr for Box<$id> {
-            type Err = crate:: Error;
+            type Err = crate::IdParseError;
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 $id::parse(s)
@@ -420,7 +420,7 @@ macro_rules! opaque_identifier_validated {
         }
 
         impl std::convert::TryFrom<&str> for Box<$id> {
-            type Error = crate:: Error;
+            type Error = crate::IdParseError;
 
             fn try_from(s: &str) -> Result<Self, Self::Error> {
                 $id::parse(s)
@@ -428,7 +428,7 @@ macro_rules! opaque_identifier_validated {
         }
 
         impl std::convert::TryFrom<String> for Box<$id> {
-            type Error = crate:: Error;
+            type Error = crate::IdParseError;
 
             fn try_from(s: String) -> Result<Self, Self::Error> {
                 $id::parse(s)

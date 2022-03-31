@@ -175,11 +175,11 @@ impl VerificationError {
 pub enum ParseError {
     /// For user ID parsing errors.
     #[error("Could not parse User ID: {0}")]
-    UserId(#[source] ruma_common::Error),
+    UserId(#[source] ruma_common::IdParseError),
 
     /// For event ID parsing errors.
     #[error("Could not parse Event ID: {0}")]
-    EventId(#[source] ruma_common::Error),
+    EventId(#[source] ruma_common::IdParseError),
 
     /// For when an event ID, coupled with a specific room version, doesn't have a server name
     /// embedded.

@@ -3,7 +3,7 @@
 //! [spec]: https://spec.matrix.org/v1.2/identity-service-api/#get_matrixidentityversions
 //!
 //! Note: This endpoint was only implemented in/after 1.1, so a 404 could indicate the server only
-//! supports 1.0 endpoints. Please use [`server_status`](crate::discovery::server_status) to
+//! supports 1.0 endpoints. Please use [`server_status`](super::get_server_status) to
 //! double-check.
 //!
 //! Note: This endpoint does not contain an unstable variant for 1.0.

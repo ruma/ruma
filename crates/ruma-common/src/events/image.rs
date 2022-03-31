@@ -8,12 +8,27 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     file::{EncryptedContent, FileContent},
-    message::{MessageContent, Text},
-    room::message::Relation,
+    message::MessageContent,
+    room::{
+        message::{ImageMessageEventContent, Relation},
+        ImageInfo, MediaSource, ThumbnailInfo,
+    },
 };
 use crate::MxcUri;
 
 /// The payload for an extensible image message.
+///
+/// This is the new primary type introduced in [MSC3552] and should not be sent before the end of
+/// the transition period. See the documentation of the [`message`] module for more information.
+///
+/// `ImageEventContent` can be converted to a [`RoomMessageEventContent`] with a
+/// [`MessageType::Image`]. You can convert it back with
+/// [`ImageEventContent::from_image_room_message()`].
+///
+/// [MSC3552]: https://github.com/matrix-org/matrix-spec-proposals/pull/3552
+/// [`message`]: super::message
+/// [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
+/// [`MessageType::Image`]: super::room::message::MessageType::Image
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.image", kind = MessageLike)]
@@ -23,32 +38,27 @@ pub struct ImageEventContent {
     pub message: MessageContent,
 
     /// The file content of the message.
-    #[serde(rename = "org.matrix.msc1767.file")]
+    #[serde(rename = "m.file")]
     pub file: FileContent,
 
     /// The image content of the message.
-    #[serde(rename = "org.matrix.msc1767.image")]
+    #[serde(rename = "m.image")]
     pub image: Box<ImageContent>,
 
     /// The thumbnails of the message.
-    #[serde(
-        rename = "org.matrix.msc1767.thumbnail",
-        default,
-        skip_serializing_if = "Thumbnails::is_empty"
-    )]
-    pub thumbnail: Thumbnails,
+    #[serde(rename = "m.thumbnail", default, skip_serializing_if = "Vec::is_empty")]
+    pub thumbnail: Vec<ThumbnailContent>,
 
-    /// The thumbnails of the message.
+    /// The captions of the message.
     #[serde(
-        rename = "org.matrix.msc1767.caption",
+        rename = "m.caption",
+        with = "super::message::content_serde::as_vec",
         default,
-        skip_serializing_if = "Captions::is_empty"
+        skip_serializing_if = "Option::is_none"
     )]
-    pub caption: Captions,
+    pub caption: Option<MessageContent>,
 
-    /// Information about related messages for [rich replies].
-    ///
-    /// [rich replies]: https://spec.matrix.org/v1.2/client-server-api/#rich-replies
+    /// Information about related messages.
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation>,
 }
@@ -77,25 +87,124 @@ impl ImageEventContent {
             relates_to: None,
         }
     }
+
+    /// Create a new `ImageEventContent` from the given `ImageMessageEventContent` and optional
+    /// relation.
+    pub fn from_image_room_message(
+        content: ImageMessageEventContent,
+        relates_to: Option<Relation>,
+    ) -> Self {
+        let ImageMessageEventContent {
+            body,
+            source,
+            info,
+            message,
+            file,
+            image,
+            thumbnail,
+            caption,
+        } = content;
+
+        let message = message.unwrap_or_else(|| MessageContent::plain(body));
+        let file = file.unwrap_or_else(|| {
+            FileContent::from_room_message_content(source, info.as_deref(), None)
+        });
+        let image =
+            image.or_else(|| info.as_deref().map(|info| Box::new(info.into()))).unwrap_or_default();
+        let thumbnail = thumbnail
+            .or_else(|| {
+                info.as_deref()
+                    .and_then(|info| {
+                        ThumbnailContent::from_room_message_content(
+                            info.thumbnail_source.as_ref(),
+                            info.thumbnail_info.as_deref(),
+                        )
+                    })
+                    .map(|thumbnail| vec![thumbnail])
+            })
+            .unwrap_or_default();
+
+        Self { message, file, image, thumbnail, caption, relates_to }
+    }
 }
 
-/// Information about a thumbnail file content.
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+/// Image content.
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct ThumbnailFileContentInfo {
-    /// The mimetype of the thumbnail, e.g. `image/png`.
+pub struct ImageContent {
+    /// The height of the image in pixels.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub mimetype: Option<String>,
+    pub height: Option<UInt>,
 
-    /// The size of the thumbnail in bytes.
+    /// The width of the image in pixels.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub size: Option<UInt>,
+    pub width: Option<UInt>,
 }
 
-impl ThumbnailFileContentInfo {
-    /// Creates an empty `ThumbnailFileContentInfo`.
+impl ImageContent {
+    /// Creates a new empty `ImageContent`.
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Creates a new `ImageContent` with the given width and height.
+    pub fn with_size(width: UInt, height: UInt) -> Self {
+        Self { height: Some(height), width: Some(width) }
+    }
+
+    /// Whether this `ImageContent` is empty.
+    pub fn is_empty(&self) -> bool {
+        self.height.is_none() && self.width.is_none()
+    }
+}
+
+impl From<&ImageInfo> for ImageContent {
+    fn from(info: &ImageInfo) -> Self {
+        let ImageInfo { height, width, .. } = info;
+        Self { height: height.to_owned(), width: width.to_owned() }
+    }
+}
+
+impl From<&ThumbnailInfo> for ImageContent {
+    fn from(info: &ThumbnailInfo) -> Self {
+        let ThumbnailInfo { height, width, .. } = info;
+        Self { height: height.to_owned(), width: width.to_owned() }
+    }
+}
+
+/// Thumbnail content.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct ThumbnailContent {
+    /// The file info of the thumbnail.
+    #[serde(flatten)]
+    pub file: ThumbnailFileContent,
+
+    /// The image info of the thumbnail.
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub image: Option<Box<ImageContent>>,
+}
+
+impl ThumbnailContent {
+    /// Creates a `ThumbnailContent` with the given file and image info.
+    pub fn new(file: ThumbnailFileContent, image: Option<Box<ImageContent>>) -> Self {
+        Self { file, image }
+    }
+
+    /// Create a `ThumbnailContent` with the given thumbnail source and info.
+    ///
+    /// Returns `None` if no thumbnail was found.
+    pub fn from_room_message_content(
+        thumbnail_source: Option<&MediaSource>,
+        thumbnail_info: Option<&ThumbnailInfo>,
+    ) -> Option<Self> {
+        thumbnail_source.map(|thumbnail_source| {
+            let file =
+                ThumbnailFileContent::from_room_message_content(thumbnail_source, thumbnail_info);
+            let image = thumbnail_info.map(|info| Box::new(info.into()));
+
+            Self { file, image }
+        })
     }
 }
 
@@ -133,143 +242,54 @@ impl ThumbnailFileContent {
         Self { url, info, encryption_info: Some(Box::new(encryption_info)) }
     }
 
+    /// Create a `ThumbnailFileContent` with the given thumbnail source and info.
+    ///
+    /// Returns `None` if no thumbnail was found.
+    fn from_room_message_content(
+        thumbnail_source: &MediaSource,
+        thumbnail_info: Option<&ThumbnailInfo>,
+    ) -> Self {
+        match thumbnail_source {
+            MediaSource::Plain(url) => {
+                Self::plain(url.to_owned(), thumbnail_info.map(|info| Box::new(info.into())))
+            }
+            MediaSource::Encrypted(file) => Self::encrypted(
+                file.url.clone(),
+                (&**file).into(),
+                thumbnail_info.map(|info| Box::new(info.into())),
+            ),
+        }
+    }
+
     /// Whether the thumbnail file is encrypted.
     pub fn is_encrypted(&self) -> bool {
         self.encryption_info.is_some()
     }
 }
 
-/// Thumbnail content.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct ThumbnailContent {
-    /// The file info of the thumbnail.
-    #[serde(flatten)]
-    pub file: ThumbnailFileContent,
-
-    /// The image info of the thumbnail.
-    #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    pub image: Option<Box<ImageContent>>,
-}
-
-impl ThumbnailContent {
-    /// Creates a `ThumbnailContent` with the given file and image info.
-    pub fn new(file: ThumbnailFileContent, image: Option<Box<ImageContent>>) -> Self {
-        Self { file, image }
-    }
-}
-
-/// An array of thumbnails.
+/// Information about a thumbnail file content.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct Thumbnails(pub(crate) Vec<ThumbnailContent>);
-
-impl Thumbnails {
-    /// Creates a new `Thumbnails` with the given thumbnails.
-    ///
-    /// The thumbnails must be ordered by most preferred first.
-    pub fn new(thumbnails: &[ThumbnailContent]) -> Self {
-        Self(thumbnails.to_owned())
-    }
-
-    /// Get the thumbnails.
-    ///
-    /// The thumbnails are ordered by most preferred first.
-    pub fn thumbnails(&self) -> &[ThumbnailContent] {
-        &self.0
-    }
-
-    /// Whether this is empty.
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-}
-
-/// An array of captions.
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct Captions(pub(crate) Vec<Text>);
-
-impl Captions {
-    /// Creates a new `Captions` with the given captions.
-    ///
-    /// The captions must be ordered by most preferred first.
-    pub fn new(captions: &[Text]) -> Self {
-        Self(captions.to_owned())
-    }
-
-    /// A convenience constructor to create a plain text caption.
-    pub fn plain(body: impl Into<String>) -> Self {
-        Self(vec![Text::plain(body)])
-    }
-
-    /// A convenience constructor to create an HTML caption.
-    pub fn html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
-        Self(vec![Text::html(html_body), Text::plain(body)])
-    }
-
-    /// A convenience constructor to create a Markdown caption.
-    ///
-    /// Returns an HTML caption if some Markdown formatting was detected, otherwise returns a plain
-    /// text caption.
-    #[cfg(feature = "markdown")]
-    pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
-        let mut message = Vec::with_capacity(2);
-        if let Some(html_body) = Text::markdown(&body) {
-            message.push(html_body);
-        }
-        message.push(Text::plain(body));
-        Self(message)
-    }
-
-    /// Get the captions.
-    ///
-    /// The captions are ordered by most preferred first.
-    pub fn captions(&self) -> &[Text] {
-        &self.0
-    }
-
-    /// Whether this is empty.
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    /// Get the plain text representation of this caption.
-    pub fn find_plain(&self) -> Option<&str> {
-        self.captions()
-            .iter()
-            .find(|content| content.mimetype == "text/plain")
-            .map(|content| content.body.as_ref())
-    }
-
-    /// Get the HTML representation of this caption.
-    pub fn find_html(&self) -> Option<&str> {
-        self.captions()
-            .iter()
-            .find(|content| content.mimetype == "text/html")
-            .map(|content| content.body.as_ref())
-    }
-}
-
-/// Image content.
-#[derive(Default, Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct ImageContent {
-    /// The height of the image in pixels.
+pub struct ThumbnailFileContentInfo {
+    /// The mimetype of the thumbnail, e.g. `image/png`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub height: Option<UInt>,
+    pub mimetype: Option<String>,
 
-    /// The width of the image in pixels.
+    /// The size of the thumbnail in bytes.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub width: Option<UInt>,
+    pub size: Option<UInt>,
 }
 
-impl ImageContent {
-    /// Creates a new empty `ImageContent`.
+impl ThumbnailFileContentInfo {
+    /// Creates an empty `ThumbnailFileContentInfo`.
     pub fn new() -> Self {
         Self::default()
     }
+}
 
-    /// Creates a new `ImageContent` with the given width and height.
-    pub fn with_size(width: UInt, height: UInt) -> Self {
-        Self { height: Some(height), width: Some(width) }
+impl From<&ThumbnailInfo> for ThumbnailFileContentInfo {
+    fn from(info: &ThumbnailInfo) -> Self {
+        let ThumbnailInfo { mimetype, size, .. } = info;
+        Self { mimetype: mimetype.to_owned(), size: size.to_owned() }
     }
 }

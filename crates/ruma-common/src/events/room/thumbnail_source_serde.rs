@@ -1,9 +1,8 @@
 //! De-/serialization functions for `Option<MediaSource>` objects representing a thumbnail source.
 
 use serde::{
-    de::Deserializer,
     ser::{SerializeStruct, Serializer},
-    Deserialize,
+    Deserialize, Deserializer,
 };
 
 use crate::MxcUri;
@@ -11,13 +10,13 @@ use crate::MxcUri;
 use super::{EncryptedFile, MediaSource};
 
 /// Serializes a MediaSource to a thumbnail source.
-pub fn serialize<S>(src: &Option<MediaSource>, serializer: S) -> Result<S::Ok, S::Error>
+pub fn serialize<S>(source: &Option<MediaSource>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
-    if let Some(src) = src {
+    if let Some(source) = source {
         let mut st = serializer.serialize_struct("ThumbnailSource", 1)?;
-        match src {
+        match source {
             MediaSource::Plain(url) => st.serialize_field("thumbnail_url", url)?,
             MediaSource::Encrypted(file) => st.serialize_field("thumbnail_file", file)?,
         }
@@ -32,25 +31,20 @@ pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<MediaSource>, D::Er
 where
     D: Deserializer<'de>,
 {
-    Option::<ThumbnailSource>::deserialize(deserializer).map(|src| src.map(Into::into))
-}
+    #[derive(Deserialize)]
+    pub struct ThumbnailSourceJsonRepr {
+        thumbnail_url: Option<Box<MxcUri>>,
+        thumbnail_file: Option<Box<EncryptedFile>>,
+    }
 
-#[derive(Clone, Debug, Deserialize)]
-enum ThumbnailSource {
-    /// The MXC URI to the unencrypted media file.
-    #[serde(rename = "thumbnail_url")]
-    Plain(Box<MxcUri>),
-
-    /// The encryption info of the encrypted media file.
-    #[serde(rename = "thumbnail_file")]
-    Encrypted(Box<EncryptedFile>),
-}
-
-impl From<ThumbnailSource> for MediaSource {
-    fn from(src: ThumbnailSource) -> Self {
-        match src {
-            ThumbnailSource::Plain(url) => Self::Plain(url),
-            ThumbnailSource::Encrypted(file) => Self::Encrypted(file),
+    match ThumbnailSourceJsonRepr::deserialize(deserializer)? {
+        ThumbnailSourceJsonRepr { thumbnail_url: None, thumbnail_file: None } => Ok(None),
+        // Prefer file if it is set
+        ThumbnailSourceJsonRepr { thumbnail_file: Some(file), .. } => {
+            Ok(Some(MediaSource::Encrypted(file)))
+        }
+        ThumbnailSourceJsonRepr { thumbnail_url: Some(url), .. } => {
+            Ok(Some(MediaSource::Plain(url)))
         }
     }
 }
@@ -70,7 +64,7 @@ mod tests {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     struct ThumbnailSourceTest {
         #[serde(flatten, with = "super", skip_serializing_if = "Option::is_none")]
-        src: Option<MediaSource>,
+        source: Option<MediaSource>,
     }
 
     #[test]
@@ -79,7 +73,7 @@ mod tests {
 
         assert_matches!(
             serde_json::from_value::<ThumbnailSourceTest>(json).unwrap(),
-            ThumbnailSourceTest { src: Some(MediaSource::Plain(url)) }
+            ThumbnailSourceTest { source: Some(MediaSource::Plain(url)) }
             if url == "mxc://notareal.hs/abcdef"
         );
     }
@@ -106,7 +100,7 @@ mod tests {
 
         assert_matches!(
             serde_json::from_value::<ThumbnailSourceTest>(json).unwrap(),
-            ThumbnailSourceTest { src: Some(MediaSource::Encrypted(file)) }
+            ThumbnailSourceTest { source: Some(MediaSource::Encrypted(file)) }
             if file.url == "mxc://notareal.hs/abcdef"
         );
     }
@@ -117,7 +111,7 @@ mod tests {
 
         assert_matches!(
             serde_json::from_value::<ThumbnailSourceTest>(json).unwrap(),
-            ThumbnailSourceTest { src: None }
+            ThumbnailSourceTest { source: None }
         );
     }
 
@@ -127,7 +121,7 @@ mod tests {
 
         assert_matches!(
             serde_json::from_value::<ThumbnailSourceTest>(json).unwrap(),
-            ThumbnailSourceTest { src: None }
+            ThumbnailSourceTest { source: None }
         );
     }
 
@@ -137,14 +131,14 @@ mod tests {
 
         assert_matches!(
             serde_json::from_value::<ThumbnailSourceTest>(json).unwrap(),
-            ThumbnailSourceTest { src: None }
+            ThumbnailSourceTest { source: None }
         );
     }
 
     #[test]
     fn serialize_plain() {
         let request = ThumbnailSourceTest {
-            src: Some(MediaSource::Plain(mxc_uri!("mxc://notareal.hs/abcdef").into())),
+            source: Some(MediaSource::Plain(mxc_uri!("mxc://notareal.hs/abcdef").into())),
         };
         assert_eq!(
             serde_json::to_value(&request).unwrap(),
@@ -155,7 +149,7 @@ mod tests {
     #[test]
     fn serialize_encrypted() {
         let request = ThumbnailSourceTest {
-            src: Some(MediaSource::Encrypted(Box::new(
+            source: Some(MediaSource::Encrypted(Box::new(
                 EncryptedFileInit {
                     url: mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
                     key: JsonWebKeyInit {
@@ -201,7 +195,7 @@ mod tests {
 
     #[test]
     fn serialize_none() {
-        let request = ThumbnailSourceTest { src: None };
+        let request = ThumbnailSourceTest { source: None };
         assert_eq!(serde_json::to_value(&request).unwrap(), json!({}));
     }
 }

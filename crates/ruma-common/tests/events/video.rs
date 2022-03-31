@@ -9,13 +9,13 @@ use ruma_common::{
     event_id,
     events::{
         file::{EncryptedContentInit, FileContent, FileContentInfo},
-        image::{
-            Captions, ThumbnailContent, ThumbnailFileContent, ThumbnailFileContentInfo, Thumbnails,
-        },
+        image::{ThumbnailContent, ThumbnailFileContent, ThumbnailFileContentInfo},
         message::MessageContent,
         room::{
-            message::{InReplyTo, Relation},
-            JsonWebKeyInit,
+            message::{
+                InReplyTo, MessageType, Relation, RoomMessageEventContent, VideoMessageEventContent,
+            },
+            JsonWebKeyInit, MediaSource,
         },
         video::{VideoContent, VideoEventContent},
         AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned,
@@ -37,10 +37,10 @@ fn plain_content_serialization() {
         to_json_value(&event_content).unwrap(),
         json!({
             "org.matrix.msc1767.text": "Upload: my_video.webm",
-            "org.matrix.msc1767.file": {
+            "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
             },
-            "org.matrix.msc1767.video": {}
+            "m.video": {}
         })
     );
 }
@@ -77,7 +77,7 @@ fn encrypted_content_serialization() {
         to_json_value(&event_content).unwrap(),
         json!({
             "org.matrix.msc1767.text": "Upload: my_video.webm",
-            "org.matrix.msc1767.file": {
+            "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "key": {
                     "kty": "oct",
@@ -92,7 +92,7 @@ fn encrypted_content_serialization() {
                 },
                 "v": "v2"
             },
-            "org.matrix.msc1767.video": {}
+            "m.video": {}
         })
     );
 }
@@ -127,7 +127,7 @@ fn event_serialization() {
                         duration: Some(Duration::from_secs(15)),
                     }
                 )),
-                thumbnail: Thumbnails::new(&[ThumbnailContent::new(
+                thumbnail: vec![ThumbnailContent::new(
                     ThumbnailFileContent::plain(
                         mxc_uri!("mxc://notareal.hs/thumbnail").to_owned(),
                         Some(Box::new(assign!(ThumbnailFileContentInfo::new(), {
@@ -136,8 +136,8 @@ fn event_serialization() {
                         })))
                     ),
                     None
-                )]),
-                caption: Captions::plain("This is my awesome vintage lava lamp"),
+                )],
+                caption: Some(MessageContent::plain("This is my awesome vintage lava lamp")),
                 relates_to: Some(Relation::Reply {
                     in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
                 }),
@@ -158,25 +158,25 @@ fn event_serialization() {
                     { "body": "Upload: <strong>my_lava_lamp.webm</strong>", "mimetype": "text/html"},
                     { "body": "Upload: my_lava_lamp.webm", "mimetype": "text/plain"},
                 ],
-                "org.matrix.msc1767.file": {
+                "m.file": {
                     "url": "mxc://notareal.hs/abcdef",
                     "name": "my_lava_lamp.webm",
                     "mimetype": "video/webm",
                     "size": 1_897_774,
                 },
-                "org.matrix.msc1767.video": {
+                "m.video": {
                     "width": 1920,
                     "height": 1080,
                     "duration": 15_000,
                 },
-                "org.matrix.msc1767.thumbnail": [
+                "m.thumbnail": [
                     {
                         "url": "mxc://notareal.hs/thumbnail",
                         "mimetype": "image/jpeg",
                         "size": 334_593,
                     }
                 ],
-                "org.matrix.msc1767.caption": [
+                "m.caption": [
                     {
                         "body": "This is my awesome vintage lava lamp",
                         "mimetype": "text/plain",
@@ -200,14 +200,14 @@ fn event_serialization() {
 #[test]
 fn plain_content_deserialization() {
     let json_data = json!({
-        "org.matrix.msc1767.text": "Video: my_cat.mp4",
-        "org.matrix.msc1767.file": {
+        "m.text": "Video: my_cat.mp4",
+        "m.file": {
             "url": "mxc://notareal.hs/abcdef",
         },
-        "org.matrix.msc1767.video": {
+        "m.video": {
             "duration": 5_668,
         },
-        "org.matrix.msc1767.caption": [
+        "m.caption": [
             {
                 "body": "Look at my cat!",
             }
@@ -217,7 +217,7 @@ fn plain_content_deserialization() {
     assert_matches!(
         from_json_value::<VideoEventContent>(json_data)
             .unwrap(),
-        VideoEventContent { message, file, video, thumbnail, caption, .. }
+        VideoEventContent { message, file, video, thumbnail, caption: Some(caption), .. }
         if message.find_plain() == Some("Video: my_cat.mp4")
             && message.find_html().is_none()
             && file.url == "mxc://notareal.hs/abcdef"
@@ -232,8 +232,8 @@ fn plain_content_deserialization() {
 #[test]
 fn encrypted_content_deserialization() {
     let json_data = json!({
-        "org.matrix.msc1767.text": "Upload: my_cat.mp4",
-        "org.matrix.msc1767.file": {
+        "m.text": "Upload: my_cat.mp4",
+        "m.file": {
             "url": "mxc://notareal.hs/abcdef",
             "key": {
                 "kty": "oct",
@@ -248,8 +248,8 @@ fn encrypted_content_deserialization() {
             },
             "v": "v2"
         },
-        "org.matrix.msc1767.video": {},
-        "org.matrix.msc1767.thumbnail": [
+        "m.video": {},
+        "m.thumbnail": [
             {
                 "url": "mxc://notareal.hs/thumbnail",
             }
@@ -259,7 +259,7 @@ fn encrypted_content_deserialization() {
     assert_matches!(
         from_json_value::<VideoEventContent>(json_data)
             .unwrap(),
-        VideoEventContent { message, file, video, thumbnail, caption, .. }
+        VideoEventContent { message, file, video, thumbnail, caption: None, .. }
         if message.find_plain() == Some("Upload: my_cat.mp4")
             && message.find_html().is_none()
             && file.url == "mxc://notareal.hs/abcdef"
@@ -267,8 +267,7 @@ fn encrypted_content_deserialization() {
             && video.width.is_none()
             && video.height.is_none()
             && video.duration.is_none()
-            && thumbnail.thumbnails()[0].file.url == "mxc://notareal.hs/thumbnail"
-            && caption.is_empty()
+            && thumbnail[0].file.url == "mxc://notareal.hs/thumbnail"
     );
 }
 
@@ -276,14 +275,14 @@ fn encrypted_content_deserialization() {
 fn message_event_deserialization() {
     let json_data = json!({
         "content": {
-            "org.matrix.msc1767.text": "Upload: my_gnome.webm",
-            "org.matrix.msc1767.file": {
+            "m.text": "Upload: my_gnome.webm",
+            "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "my_gnome.webm",
                 "mimetype": "video/webm",
                 "size": 123_774,
             },
-            "org.matrix.msc1767.video": {
+            "m.video": {
                 "width": 1300,
                 "height": 837,
             }
@@ -307,7 +306,7 @@ fn message_event_deserialization() {
                 },
                 video,
                 thumbnail,
-                caption,
+                caption: None,
                 ..
             },
             event_id,
@@ -326,10 +325,93 @@ fn message_event_deserialization() {
             && video.height == Some(uint!(837))
             && video.duration.is_none()
             && thumbnail.is_empty()
-            && caption.is_empty()
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
             && room_id == room_id!("!roomid:notareal.hs")
             && sender == user_id!("@user:notareal.hs")
             && unsigned.is_empty()
     );
+}
+
+#[test]
+fn room_message_serialization() {
+    let message_event_content =
+        RoomMessageEventContent::new(MessageType::Video(VideoMessageEventContent::plain(
+            "Upload: my_video.mp4".to_owned(),
+            mxc_uri!("mxc://notareal.hs/file").to_owned(),
+            None,
+        )));
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "Upload: my_video.mp4",
+            "url": "mxc://notareal.hs/file",
+            "msgtype": "m.video",
+            "org.matrix.msc1767.text": "Upload: my_video.mp4",
+            "org.matrix.msc1767.file": {
+                "url": "mxc://notareal.hs/file",
+            },
+            "org.matrix.msc1767.video": {},
+        })
+    );
+}
+
+#[test]
+fn room_message_stable_deserialization() {
+    let json_data = json!({
+        "body": "Upload: my_video.mp4",
+        "url": "mxc://notareal.hs/file",
+        "msgtype": "m.video",
+        "m.text": "Upload: my_video.mp4",
+        "m.file": {
+            "url": "mxc://notareal.hs/file",
+        },
+        "m.video": {},
+    });
+
+    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    assert_matches!(event_content.msgtype, MessageType::Video(_));
+    if let MessageType::Video(content) = event_content.msgtype {
+        assert_eq!(content.body, "Upload: my_video.mp4");
+        assert_matches!(content.source, MediaSource::Plain(_));
+        if let MediaSource::Plain(url) = content.source {
+            assert_eq!(url, "mxc://notareal.hs/file");
+        }
+        let message = content.message.unwrap();
+        assert_eq!(message.len(), 1);
+        assert_eq!(message[0].body, "Upload: my_video.mp4");
+        let file = content.file.unwrap();
+        assert_eq!(file.url, "mxc://notareal.hs/file");
+        assert!(!file.is_encrypted());
+    }
+}
+
+#[test]
+fn room_message_unstable_deserialization() {
+    let json_data = json!({
+        "body": "Upload: my_video.mp4",
+        "url": "mxc://notareal.hs/file",
+        "msgtype": "m.video",
+        "org.matrix.msc1767.text": "Upload: my_video.mp4",
+        "org.matrix.msc1767.file": {
+            "url": "mxc://notareal.hs/file",
+        },
+        "org.matrix.msc1767.video": {},
+    });
+
+    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    assert_matches!(event_content.msgtype, MessageType::Video(_));
+    if let MessageType::Video(content) = event_content.msgtype {
+        assert_eq!(content.body, "Upload: my_video.mp4");
+        assert_matches!(content.source, MediaSource::Plain(_));
+        if let MediaSource::Plain(url) = content.source {
+            assert_eq!(url, "mxc://notareal.hs/file");
+        }
+        let message = content.message.unwrap();
+        assert_eq!(message.len(), 1);
+        assert_eq!(message[0].body, "Upload: my_video.mp4");
+        let file = content.file.unwrap();
+        assert_eq!(file.url, "mxc://notareal.hs/file");
+        assert!(!file.is_encrypted());
+    }
 }

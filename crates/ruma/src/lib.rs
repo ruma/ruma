@@ -160,12 +160,12 @@ pub use js_int::{int, uint, Int, UInt};
 #[cfg(feature = "client-ext-client-api")]
 pub use ruma_client::Client;
 pub use ruma_common::{
-    authentication, device_id, device_key_id, directory, encryption, event_id, matrix_uri, mxc_uri,
-    power_levels, presence, push, receipt, room, room_alias_id, room_id, room_version_id,
+    authentication, device_id, device_key_id, directory, encryption, event_id, exports, matrix_uri,
+    mxc_uri, power_levels, presence, push, receipt, room, room_alias_id, room_id, room_version_id,
     serde::Incoming, server_name, server_signing_key_id, thirdparty, to_device, user_id,
     ClientSecret, DeviceId, DeviceKeyAlgorithm, DeviceKeyId, DeviceSignatures, DeviceSigningKeyId,
-    EntitySignatures, EventEncryptionAlgorithm, EventId, KeyId, KeyName, MatrixToUri,
-    MilliSecondsSinceUnixEpoch, MxcUri, PrivOwnedStr, RoomAliasId, RoomId, RoomOrAliasId,
+    EntitySignatures, EventEncryptionAlgorithm, EventId, IdParseError, KeyId, KeyName, MatrixToUri,
+    MilliSecondsSinceUnixEpoch, MxcUri, PrivOwnedStr, RoomAliasId, RoomId, RoomName, RoomOrAliasId,
     RoomVersionId, SecondsSinceUnixEpoch, ServerName, ServerSignatures, ServerSigningKeyId,
     SessionId, Signatures, SigningKeyAlgorithm, TransactionId, UserId,
 };

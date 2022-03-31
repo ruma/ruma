@@ -6,7 +6,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::{
     parse::{Parse, ParseStream},
-    DeriveInput, Ident, LitStr, Token,
+    DeriveInput, Field, Ident, LitStr, Token,
 };
 
 use crate::util::m_prefix_name_to_type_name;
@@ -20,6 +20,7 @@ mod kw {
     syn::custom_keyword!(custom_redacted);
     // The kind of event content this is.
     syn::custom_keyword!(kind);
+    syn::custom_keyword!(type_fragment);
 }
 
 /// Parses attributes for `*EventContent` derives.
@@ -38,6 +39,10 @@ enum EventMeta {
     /// This attribute signals that the events redacted form is manually implemented and should not
     /// be generated.
     CustomRedacted,
+
+    /// The given field holds a part of the event type (replaces the `*` in a `m.foo.*` event
+    /// type).
+    TypeFragment,
 }
 
 impl EventMeta {
@@ -73,6 +78,9 @@ impl Parse for EventMeta {
         } else if lookahead.peek(kw::custom_redacted) {
             let _: kw::custom_redacted = input.parse()?;
             Ok(EventMeta::CustomRedacted)
+        } else if lookahead.peek(kw::type_fragment) {
+            let _: kw::type_fragment = input.parse()?;
+            Ok(EventMeta::TypeFragment)
         } else {
             Err(lookahead.error())
         }
@@ -149,7 +157,7 @@ pub fn expand_event_content(
 
     let ident = &input.ident;
     let fields = match &input.data {
-        syn::Data::Struct(syn::DataStruct { fields, .. }) => fields,
+        syn::Data::Struct(syn::DataStruct { fields, .. }) => fields.iter(),
         _ => {
             return Err(syn::Error::new(
                 Span::call_site(),
@@ -158,15 +166,38 @@ pub fn expand_event_content(
         }
     };
 
+    let event_type_s = event_type.value();
+    let prefix = event_type_s.strip_suffix(".*");
+
+    if prefix.unwrap_or(&event_type_s).contains('*') {
+        return Err(syn::Error::new_spanned(
+            event_type,
+            "event type may only contain `*` as part of a `.*` suffix",
+        ));
+    }
+
+    if prefix.is_some() && !event_kind.map_or(false, |k| k.is_account_data()) {
+        return Err(syn::Error::new_spanned(
+            event_type,
+            "only account data events may contain a `.*` suffix",
+        ));
+    }
+
     // We only generate redacted content structs for state and message-like events
     let redacted_event_content = needs_redacted(&content_attr, event_kind)
         .then(|| {
-            generate_redacted_event_content(ident, fields, event_type, event_kind, ruma_common)
+            generate_redacted_event_content(
+                ident,
+                fields.clone(),
+                event_type,
+                event_kind,
+                ruma_common,
+            )
         })
         .transpose()?;
 
     let event_content_impl =
-        generate_event_content_impl(ident, event_type, event_kind, ruma_common)?;
+        generate_event_content_impl(ident, fields, event_type, event_kind, ruma_common)?;
     let static_event_content_impl = event_kind
         .map(|k| generate_static_event_content_impl(ident, k, false, event_type, ruma_common));
     let type_aliases = event_kind
@@ -181,13 +212,18 @@ pub fn expand_event_content(
     })
 }
 
-fn generate_redacted_event_content(
+fn generate_redacted_event_content<'a>(
     ident: &Ident,
-    fields: &syn::Fields,
+    fields: impl Iterator<Item = &'a Field>,
     event_type: &LitStr,
     event_kind: Option<EventKind>,
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
+    assert!(
+        !event_type.value().contains('*'),
+        "Event type shouldn't contain a `*`, this should have been checked previously"
+    );
+
     let serde = quote! { #ruma_common::exports::serde };
     let serde_json = quote! { #ruma_common::exports::serde_json };
 
@@ -195,7 +231,6 @@ fn generate_redacted_event_content(
     let redacted_ident = format_ident!("Redacted{}", ident);
 
     let kept_redacted_fields: Vec<_> = fields
-        .iter()
         .map(|f| {
             let mut keep_field = false;
             let attrs = f
@@ -217,7 +252,7 @@ fn generate_redacted_event_content(
                 .collect::<syn::Result<_>>()?;
 
             if keep_field {
-                Ok(Some(syn::Field { attrs, ..f.clone() }))
+                Ok(Some(Field { attrs, ..f.clone() }))
             } else {
                 Ok(None)
             }
@@ -260,8 +295,13 @@ fn generate_redacted_event_content(
         }
     });
 
-    let redacted_event_content =
-        generate_event_content_impl(&redacted_ident, event_type, event_kind, ruma_common)?;
+    let redacted_event_content = generate_event_content_impl(
+        &redacted_ident,
+        kept_redacted_fields.iter(),
+        event_type,
+        event_kind,
+        ruma_common,
+    )?;
 
     let static_event_content_impl = event_kind.map(|k| {
         generate_static_event_content_impl(&redacted_ident, k, true, event_type, ruma_common)
@@ -371,8 +411,9 @@ fn generate_event_type_aliases(
     Ok(type_aliases)
 }
 
-fn generate_event_content_impl(
+fn generate_event_content_impl<'a>(
     ident: &Ident,
+    mut fields: impl Iterator<Item = &'a Field>,
     event_type: &LitStr,
     event_kind: Option<EventKind>,
     ruma_common: &TokenStream,
@@ -387,7 +428,40 @@ fn generate_event_content_impl(
             let i = kind.to_event_type_enum();
             event_type_ty_decl = None;
             event_type_ty = quote! { #ruma_common::events::#i };
-            event_type_fn_impl = quote! { ::std::convert::From::from(#event_type) };
+            event_type_fn_impl = match event_type.value().strip_suffix(".*") {
+                Some(type_prefix) => {
+                    let type_fragment_field = fields
+                        .find_map(|f| {
+                            f.attrs.iter().filter(|a| a.path.is_ident("ruma_event")).find_map(|a| {
+                                match a.parse_args() {
+                                    Ok(EventMeta::TypeFragment) => Some(Ok(f)),
+                                    Ok(_) => None,
+                                    Err(e) => Some(Err(e)),
+                                }
+                            })
+                        })
+                        .transpose()?;
+
+                    let f = type_fragment_field
+                        .ok_or_else(|| {
+                            syn::Error::new_spanned(
+                                event_type,
+                                "event type with a `.*` suffix requires there to be a \
+                                 `#[ruma_event(type_fragment)]` field",
+                            )
+                        })?
+                        .ident
+                        .as_ref()
+                        .expect("type fragment field needs to have a name");
+
+                    let format = type_prefix.to_owned() + ".{}";
+
+                    quote! {
+                        ::std::convert::From::from(::std::format!(#format, self.#f))
+                    }
+                }
+                None => quote! { ::std::convert::From::from(#event_type) },
+            };
         }
         None => {
             let camel_case_type_name = m_prefix_name_to_type_name(event_type)?;
@@ -400,9 +474,13 @@ fn generate_event_content_impl(
                     ty: ::std::option::Option<crate::PrivOwnedStr>,
                 }
 
-                impl ::std::convert::AsRef<::std::primitive::str> for #i {
-                    fn as_ref(&self) -> &::std::primitive::str {
-                        self.ty.as_ref().map(|t| &t.0[..]).unwrap_or(#event_type)
+                impl #serde::Serialize for #i {
+                    fn serialize<S>(&self, serializer: S) -> ::std::result::Result<S::Ok, S::Error>
+                    where
+                        S: #serde::Serializer,
+                    {
+                        let s = self.ty.as_ref().map(|t| &t.0[..]).unwrap_or(#event_type);
+                        serializer.serialize_str(s)
                     }
                 }
             });

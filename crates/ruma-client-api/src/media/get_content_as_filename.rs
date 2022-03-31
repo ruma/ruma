@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixmediav3downloadservernamemediaidfilename
 
-    use ruma_common::{api::ruma_api, Error, MxcUri, ServerName};
+    use ruma_common::{api::ruma_api, IdParseError, MxcUri, ServerName};
 
     ruma_api! {
         metadata: {
@@ -69,7 +69,7 @@ pub mod v3 {
         }
 
         /// Creates a new `Request` with the given url and filename.
-        pub fn from_url(url: &'a MxcUri, filename: &'a str) -> Result<Self, Error> {
+        pub fn from_url(url: &'a MxcUri, filename: &'a str) -> Result<Self, IdParseError> {
             let (server_name, media_id) = url.parts()?;
 
             Ok(Self { media_id, server_name, filename, allow_remote: true })

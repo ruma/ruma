@@ -23,6 +23,20 @@ use crate::{receipt::ReceiptType, EventId, MilliSecondsSinceUnixEpoch, UserId};
 #[ruma_event(type = "m.receipt", kind = EphemeralRoom)]
 pub struct ReceiptEventContent(pub BTreeMap<Box<EventId>, Receipts>);
 
+impl ReceiptEventContent {
+    /// Get the receipt for the given user ID with the given receipt type, if it exists.
+    pub fn user_receipt(
+        &self,
+        user_id: &UserId,
+        receipt_type: ReceiptType,
+    ) -> Option<(&EventId, &Receipt)> {
+        self.iter().find_map(|(event_id, receipts)| {
+            let receipt = receipts.get(&receipt_type)?.get(user_id)?;
+            Some((event_id.as_ref(), receipt))
+        })
+    }
+}
+
 impl Deref for ReceiptEventContent {
     type Target = BTreeMap<Box<EventId>, Receipts>;
 

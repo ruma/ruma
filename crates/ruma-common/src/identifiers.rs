@@ -31,7 +31,7 @@ pub use self::{
     user_id::{OwnedUserId, UserId},
 };
 #[doc(inline)]
-pub use ruma_identifiers_validation::error::Error;
+pub use ruma_identifiers_validation::error::Error as IdParseError;
 
 #[macro_use]
 mod macros;

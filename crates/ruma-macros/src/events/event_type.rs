@@ -61,8 +61,7 @@ fn generate_enum(
     input: &[&Vec<EventEnumEntry>],
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
-    let str_doc = format!("Creates a string slice from this `{}`.", ident);
-    let byte_doc = format!("Creates a byte slice from this `{}`.", ident);
+    let serde = quote! { #ruma_common::exports::serde };
     let enum_doc = format!("The type of `{}` this is.", ident.strip_suffix("Type").unwrap());
 
     let deprecated_attr = (ident == "EventType").then(|| {
@@ -86,8 +85,57 @@ fn generate_enum(
     }
 
     let event_types = deduped.iter().map(|e| &e.ev_type);
-    let variants =
-        deduped.iter().map(|e| Ok(e.to_variant()?.decl())).collect::<syn::Result<Vec<_>>>()?;
+
+    let variants: Vec<_> = deduped
+        .iter()
+        .map(|e| {
+            let start = e.to_variant()?.decl();
+            let data = e.has_type_fragment().then(|| quote! { (::std::string::String) });
+
+            Ok(quote! {
+                #start #data
+            })
+        })
+        .collect::<syn::Result<_>>()?;
+
+    let to_cow_str_match_arms: Vec<_> = deduped
+        .iter()
+        .map(|e| {
+            let v = e.to_variant()?;
+            let start = v.match_arm(quote! { Self });
+            let ev_type = &e.ev_type;
+
+            Ok(if let Some(prefix) = ev_type.value().strip_suffix(".*") {
+                let fstr = prefix.to_owned() + "{}";
+                quote! { #start(_s) => ::std::borrow::Cow::Owned(::std::format!(#fstr, _s)) }
+            } else {
+                quote! { #start => ::std::borrow::Cow::Borrowed(#ev_type) }
+            })
+        })
+        .collect::<syn::Result<_>>()?;
+
+    let from_str_match_arms: Vec<_> = deduped
+        .iter()
+        .map(|e| {
+            let v = e.to_variant()?;
+            let ctor = v.ctor(quote! { Self });
+
+            let match_arm = if let Some(prefix) = e.ev_type.value().strip_suffix('*') {
+                quote! {
+                    // Use if-let guard once available
+                    _s if _s.starts_with(#prefix) => {
+                        #ctor(::std::convert::From::from(_s.strip_prefix(#prefix).unwrap()))
+                    }
+                }
+            } else {
+                let t = &e.ev_type;
+                quote! { #t => #ctor }
+            };
+
+            let attrs = &e.attrs;
+            Ok(quote! { #(#attrs)* #match_arm })
+        })
+        .collect::<syn::Result<_>>()?;
 
     Ok(quote! {
         #[doc = #enum_doc]
@@ -95,12 +143,11 @@ fn generate_enum(
         /// This type can hold an arbitrary string. To check for events that are not available as a
         /// documented variant here, use its string representation, obtained through `.as_str()`.
         #deprecated_attr
-        #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, #ruma_common::serde::StringEnum)]
+        #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
         pub enum #ident {
             #(
                 #[doc = #event_types]
-                #[ruma_enum(rename = #event_types)]
                 #variants,
             )*
             #[doc(hidden)]
@@ -109,14 +156,56 @@ fn generate_enum(
 
         #[allow(deprecated)]
         impl #ident {
-            #[doc = #str_doc]
-            pub fn as_str(&self) -> &str {
-                self.as_ref()
+            fn to_cow_str(&self) -> ::std::borrow::Cow<'_, ::std::primitive::str> {
+                match self {
+                    #(#to_cow_str_match_arms,)*
+                    Self::_Custom(crate::PrivOwnedStr(s)) => ::std::borrow::Cow::Borrowed(s),
+                }
             }
+        }
 
-            #[doc = #byte_doc]
-            pub fn as_bytes(&self) -> &[u8] {
-                self.as_str().as_bytes()
+        #[allow(deprecated)]
+        impl ::std::fmt::Display for #ident {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                self.to_cow_str().fmt(f)
+            }
+        }
+
+        #[allow(deprecated)]
+        impl ::std::convert::From<&::std::primitive::str> for #ident {
+            fn from(s: &::std::primitive::str) -> Self {
+                match s {
+                    #(#from_str_match_arms,)*
+                    _ => Self::_Custom(crate::PrivOwnedStr(::std::convert::From::from(s))),
+                }
+            }
+        }
+
+        #[allow(deprecated)]
+        impl ::std::convert::From<::std::string::String> for #ident {
+            fn from(s: ::std::string::String) -> Self {
+                ::std::convert::From::from(s.as_str())
+            }
+        }
+
+        #[allow(deprecated)]
+        impl<'de> #serde::Deserialize<'de> for #ident {
+            fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+            where
+                D: #serde::Deserializer<'de>
+            {
+                let s = #ruma_common::serde::deserialize_cow_str(deserializer)?;
+                Ok(::std::convert::From::from(&s[..]))
+            }
+        }
+
+        #[allow(deprecated)]
+        impl #serde::Serialize for #ident {
+            fn serialize<S>(&self, serializer: S) -> ::std::result::Result<S::Ok, S::Error>
+            where
+                S: #serde::Serializer,
+            {
+                self.to_cow_str().serialize(serializer)
             }
         }
     })

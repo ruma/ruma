@@ -86,8 +86,8 @@ pub mod v3 {
             use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 
             let room_id_percent = utf8_percent_encode(self.room_id.as_str(), NON_ALPHANUMERIC);
-            let event_type_percent =
-                utf8_percent_encode(self.event_type.as_str(), NON_ALPHANUMERIC);
+            let event_type = self.event_type.to_string();
+            let event_type_percent = utf8_percent_encode(&event_type, NON_ALPHANUMERIC);
 
             let mut url = format!(
                 "{}{}",

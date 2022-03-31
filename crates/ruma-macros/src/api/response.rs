@@ -99,7 +99,10 @@ impl Response {
 
         let response_body_struct = (!self.has_raw_body()).then(|| {
             let serde_derives = self.manual_body_serde.not().then(|| {
-                quote! { #serde::Deserialize, #serde::Serialize }
+                quote! {
+                    #[cfg_attr(feature = "client", derive(#serde::Deserialize))]
+                    #[cfg_attr(feature = "server", derive(#serde::Serialize))]
+                }
             });
 
             let serde_attr = self.has_newtype_body().then(|| quote! { #[serde(transparent)] });
@@ -107,12 +110,8 @@ impl Response {
 
             quote! {
                 /// Data in the response body.
-                #[derive(
-                    Debug,
-                    #ruma_macros::_FakeDeriveRumaApi,
-                    #ruma_common::serde::Incoming,
-                    #serde_derives
-                )]
+                #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
+                #serde_derives
                 #serde_attr
                 struct ResponseBody { #(#fields),* }
             }

@@ -16,13 +16,24 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
+
+      - name: Install rust nightly toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly-2022-03-23
+          override: true
+
       - uses: Swatinem/rust-cache@v1
+
       - name: Check spelling
         uses: crate-ci/typos@master
+
       - name: Install cargo-sort
         uses: actions-rs/install@v0.1
         with:
           crate: cargo-sort
+
       - name: Run lints
         uses: actions-rs/cargo@v1
         with:

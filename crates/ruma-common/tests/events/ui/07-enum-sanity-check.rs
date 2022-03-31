@@ -6,7 +6,8 @@ event_enum! {
         "m.direct",
         #[cfg(test)]
         "m.ignored_user_list",
-        "m.push_rules",
+        // Doesn't actually have a wildcard, but this should work as a wildcard test
+        "m.push_rules.*",
         #[cfg(any())]
         "m.ruma_test",
     }
