@@ -216,7 +216,7 @@ impl CiTask {
         cmd!("rustup run {NIGHTLY} cargo check -p ruma --features full").run().map_err(Into::into)
     }
 
-    /// Check ruma-identifiers with `ruma_identifiers_storage="Box"`
+    /// Check ruma-common with `ruma_identifiers_storage="Box"`
     fn msrv_owned_id_box(&self) -> Result<()> {
         cmd!("rustup run {MSRV} cargo check -p ruma-common")
             .env("RUSTFLAGS", "--cfg=ruma_identifiers_storage=\"Box\"")
@@ -224,7 +224,7 @@ impl CiTask {
             .map_err(Into::into)
     }
 
-    /// Check ruma-identifiers with `ruma_identifiers_storage="Arc"`
+    /// Check ruma-common with `ruma_identifiers_storage="Arc"`
     fn msrv_owned_id_arc(&self) -> Result<()> {
         cmd!("rustup run {MSRV} cargo check -p ruma-common")
             .env("RUSTFLAGS", "--cfg=ruma_identifiers_storage=\"Arc\"")
