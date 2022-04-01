@@ -258,6 +258,10 @@ pub struct Room {
     /// A list of state events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub required_state: Vec<Raw<AnySyncStateEvent>>,
+
+    /// The prev_batch allowing you to paginate through the messages before the given ones
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prev_batch: Option<String>,
 }
 
 impl Room {
