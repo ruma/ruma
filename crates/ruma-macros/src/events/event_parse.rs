@@ -2,6 +2,7 @@
 
 use std::fmt;
 
+use proc_macro2::Span;
 use quote::{format_ident, IdentFragment};
 use syn::{
     braced,
@@ -122,7 +123,7 @@ impl EventKind {
         matches!(self, Self::GlobalAccountData | Self::RoomAccountData)
     }
 
-    pub fn try_to_event_ident(self, var: EventKindVariation) -> Option<Ident> {
+    pub fn to_event_ident(self, var: EventKindVariation) -> syn::Result<Ident> {
         use EventKindVariation as V;
 
         match (self, var) {
@@ -132,19 +133,19 @@ impl EventKind {
                 Self::MessageLike | Self::RoomRedaction | Self::State,
                 V::Redacted | V::RedactedSync,
             )
-            | (Self::State, V::Stripped | V::Initial) => Some(format_ident!("{}{}", var, self)),
-            _ => None,
+            | (Self::State, V::Stripped | V::Initial) => Ok(format_ident!("{}{}", var, self)),
+            _ => Err(syn::Error::new(
+                Span::call_site(),
+                format!(
+                    "({:?}, {:?}) is not a valid event kind / variation combination",
+                    self, var
+                ),
+            )),
         }
     }
 
-    pub fn to_event_ident(self, var: EventKindVariation) -> Ident {
-        self.try_to_event_ident(var).unwrap_or_else(|| {
-            panic!("({:?}, {:?}) is not a valid event kind / variation combination", self, var);
-        })
-    }
-
-    pub fn to_event_enum_ident(self, var: EventKindVariation) -> Ident {
-        format_ident!("Any{}", self.to_event_ident(var))
+    pub fn to_event_enum_ident(self, var: EventKindVariation) -> syn::Result<Ident> {
+        Ok(format_ident!("Any{}", self.to_event_ident(var)?))
     }
 
     pub fn to_event_type_enum(self) -> Ident {

@@ -379,7 +379,7 @@ fn generate_event_type_aliases(
         EventKindVariation::RedactedSync,
     ]
     .iter()
-    .filter_map(|&var| Some((var, event_kind.try_to_event_ident(var)?)))
+    .filter_map(|&var| Some((var, event_kind.to_event_ident(var).ok()?)))
     .map(|(var, ev_struct)| {
         let ev_type = format_ident!("{}{}", var, ev_type_s);
 
