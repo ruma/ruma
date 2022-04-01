@@ -1,9 +1,3 @@
-error: well-known matrix events have to start with `m.` found `not.a.path`
-  --> tests/events/ui/08-enum-invalid-path.rs:11:9
-   |
-11 |         "not.a.path",
-   |         ^^^^^^^^^^^^
-
 error[E0433]: failed to resolve: could not find `not` in `events`
  --> tests/events/ui/08-enum-invalid-path.rs:5:9
   |
