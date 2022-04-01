@@ -45,7 +45,10 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
     let mut res = TokenStream::new();
 
     res.extend(expand_serialize_event(&input, var, &fields, &ruma_common));
-    res.extend(expand_deserialize_event(&input, kind, var, &fields, &ruma_common)?);
+    res.extend(
+        expand_deserialize_event(&input, kind, var, &fields, &ruma_common)
+            .unwrap_or_else(syn::Error::into_compile_error),
+    );
 
     if var.is_sync() {
         res.extend(expand_sync_from_into_full(&input, kind, var, &fields, &ruma_common));
