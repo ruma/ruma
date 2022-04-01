@@ -454,13 +454,13 @@ fn expand_accessor_methods(
                     match self {
                         #(
                             #self_variants(event) => {
-                                event.unsigned._map_prev_unsigned(|c| {
+                                event.unsigned._map_prev_content(|c| {
                                     #content_variants(c.clone())
                                 })
                             },
                         )*
                         Self::_Custom(event) => {
-                            event.unsigned._map_prev_unsigned(|c| #content_enum::_Custom {
+                            event.unsigned._map_prev_content(|c| #content_enum::_Custom {
                                 event_type: crate::PrivOwnedStr(
                                     ::std::convert::From::from(
                                         ::std::string::ToString::to_string(
