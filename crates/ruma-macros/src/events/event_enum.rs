@@ -48,29 +48,71 @@ pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
     let variants = &variants;
     let ruma_common = &ruma_common;
 
-    res.extend(expand_event_enum(kind, V::Full, events, attrs, variants, ruma_common));
+    res.extend(
+        expand_event_enum(kind, V::Full, events, attrs, variants, ruma_common)
+            .unwrap_or_else(syn::Error::into_compile_error),
+    );
     res.extend(expand_content_enum(kind, events, attrs, variants, ruma_common));
 
     if matches!(kind, EventKind::Ephemeral | EventKind::MessageLike | EventKind::State) {
-        res.extend(expand_event_enum(kind, V::Sync, events, attrs, variants, ruma_common));
-        res.extend(expand_from_full_event(kind, V::Full, variants));
-        res.extend(expand_into_full_event(kind, V::Sync, variants, ruma_common));
+        res.extend(
+            expand_event_enum(kind, V::Sync, events, attrs, variants, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+        res.extend(
+            expand_from_full_event(kind, V::Full, variants)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+        res.extend(
+            expand_into_full_event(kind, V::Sync, variants, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
     }
 
     if matches!(kind, EventKind::State) {
-        res.extend(expand_event_enum(kind, V::Stripped, events, attrs, variants, ruma_common));
-        res.extend(expand_event_enum(kind, V::Initial, events, attrs, variants, ruma_common));
+        res.extend(
+            expand_event_enum(kind, V::Stripped, events, attrs, variants, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+        res.extend(
+            expand_event_enum(kind, V::Initial, events, attrs, variants, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
     }
 
     if matches!(kind, EventKind::MessageLike | EventKind::State) {
-        res.extend(expand_event_enum(kind, V::Redacted, events, attrs, variants, ruma_common));
-        res.extend(expand_event_enum(kind, V::RedactedSync, events, attrs, variants, ruma_common));
-        res.extend(expand_redact(kind, V::Full, variants, ruma_common));
-        res.extend(expand_redact(kind, V::Sync, variants, ruma_common));
-        res.extend(expand_possibly_redacted_enum(kind, V::Full, ruma_common));
-        res.extend(expand_possibly_redacted_enum(kind, V::Sync, ruma_common));
-        res.extend(expand_from_full_event(kind, V::Redacted, variants));
-        res.extend(expand_into_full_event(kind, V::RedactedSync, variants, ruma_common));
+        res.extend(
+            expand_event_enum(kind, V::Redacted, events, attrs, variants, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+        res.extend(
+            expand_event_enum(kind, V::RedactedSync, events, attrs, variants, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+        res.extend(
+            expand_redact(kind, V::Full, variants, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+        res.extend(
+            expand_redact(kind, V::Sync, variants, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+        res.extend(
+            expand_possibly_redacted_enum(kind, V::Full, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+        res.extend(
+            expand_possibly_redacted_enum(kind, V::Sync, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+        res.extend(
+            expand_from_full_event(kind, V::Redacted, variants)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+        res.extend(
+            expand_into_full_event(kind, V::RedactedSync, variants, ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
     }
 
     Ok(res)

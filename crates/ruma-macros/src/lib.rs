@@ -72,24 +72,25 @@ use self::{
 //// supported:  https://github.com/rust-lang/rust/issues/74563
 #[proc_macro]
 pub fn event_enum(input: TokenStream) -> TokenStream {
+    let event_enum_input = syn::parse_macro_input!(input as EventEnumInput);
+
     let ruma_common = import_ruma_common();
 
-    let event_enum_input = syn::parse_macro_input!(input as EventEnumInput);
     let enums = event_enum_input
         .enums
         .iter()
-        .map(expand_event_enums)
-        .collect::<syn::Result<pm2::TokenStream>>();
-    let event_types = expand_event_type_enum(event_enum_input, ruma_common);
-    event_types
-        .and_then(|types| {
-            enums.map(|mut enums| {
-                enums.extend(types);
-                enums
-            })
-        })
-        .unwrap_or_else(syn::Error::into_compile_error)
-        .into()
+        .map(|e| expand_event_enums(e).unwrap_or_else(syn::Error::into_compile_error))
+        .collect::<pm2::TokenStream>();
+
+    let event_types = expand_event_type_enum(event_enum_input, ruma_common)
+        .unwrap_or_else(syn::Error::into_compile_error);
+
+    let tokens = quote! {
+        #enums
+        #event_types
+    };
+
+    tokens.into()
 }
 
 /// Generates an implementation of `ruma_common::events::EventContent`.
