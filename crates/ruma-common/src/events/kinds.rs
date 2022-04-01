@@ -1,15 +1,17 @@
 #![allow(clippy::exhaustive_structs)]
 
 use ruma_macros::Event;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
+use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
-    EphemeralRoomEventContent, GlobalAccountDataEventContent, MessageLikeEventContent,
-    MessageLikeUnsigned, RedactedMessageLikeEventContent, RedactedStateEventContent,
-    RedactedUnsigned, RoomAccountDataEventContent, StateEventContent, StateUnsigned,
-    ToDeviceEventContent,
+    EphemeralRoomEventContent, EventContent, GlobalAccountDataEventContent,
+    MessageLikeEventContent, MessageLikeEventType, MessageLikeUnsigned, RedactContent,
+    RedactedEventContent, RedactedMessageLikeEventContent, RedactedStateEventContent,
+    RedactedUnsigned, RedactionDeHelper, RoomAccountDataEventContent, StateEventContent,
+    StateEventType, StateUnsigned, ToDeviceEventContent,
 };
-use crate::{EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId};
+use crate::{serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId};
 
 /// A global account data event.
 #[derive(Clone, Debug, Event)]
@@ -42,7 +44,7 @@ pub struct SyncEphemeralRoomEvent<C: EphemeralRoomEventContent> {
     pub content: C,
 }
 
-/// A message-like event.
+/// An unredacted message-like event.
 ///
 /// `OriginalMessageLikeEvent` implements the comparison traits using only the `event_id` field, a
 /// sorted list would be sorted lexicographically based on the event's `EventId`.
@@ -67,7 +69,7 @@ pub struct OriginalMessageLikeEvent<C: MessageLikeEventContent> {
     pub unsigned: MessageLikeUnsigned,
 }
 
-/// A message-like event without a `room_id`.
+/// An unredacted message-like event without a `room_id`.
 ///
 /// `OriginalSyncMessageLikeEvent` implements the comparison traits using only the `event_id` field,
 /// a sorted list would be sorted lexicographically based on the event's `EventId`.
@@ -136,7 +138,43 @@ pub struct RedactedSyncMessageLikeEvent<C: RedactedMessageLikeEventContent> {
     pub unsigned: RedactedUnsigned,
 }
 
-/// A state event.
+/// A possibly-redacted message-like event.
+///
+/// `MessageLikeEvent` implements the comparison traits using only the `event_id` field, a sorted
+/// list would be sorted lexicographically based on the event's `EventId`.
+#[allow(clippy::exhaustive_enums)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(untagged)]
+pub enum MessageLikeEvent<C: MessageLikeEventContent + RedactContent>
+where
+    C::Redacted: MessageLikeEventContent + RedactedEventContent,
+{
+    /// Original, unredacted form of the event.
+    Original(OriginalMessageLikeEvent<C>),
+
+    /// Redacted form of the event with minimal fields.
+    Redacted(RedactedMessageLikeEvent<C::Redacted>),
+}
+
+/// A possibly-redacted message-like event without a `room_id`.
+///
+/// `SyncMessageLikeEvent` implements the comparison traits using only the `event_id` field, a
+/// sorted list would be sorted lexicographically based on the event's `EventId`.
+#[allow(clippy::exhaustive_enums)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(untagged)]
+pub enum SyncMessageLikeEvent<C: MessageLikeEventContent + RedactContent>
+where
+    C::Redacted: MessageLikeEventContent + RedactedEventContent,
+{
+    /// Original, unredacted form of the event.
+    Original(OriginalSyncMessageLikeEvent<C>),
+
+    /// Redacted form of the event with minimal fields.
+    Redacted(RedactedSyncMessageLikeEvent<C::Redacted>),
+}
+
+/// An unredacted state event.
 ///
 /// `OriginalStateEvent` implements the comparison traits using only the `event_id` field, a sorted
 /// list would be sorted lexicographically based on the event's `EventId`.
@@ -167,7 +205,7 @@ pub struct OriginalStateEvent<C: StateEventContent> {
     pub unsigned: StateUnsigned<C>,
 }
 
-/// A state event without a `room_id`.
+/// An unredacted state event without a `room_id`.
 ///
 /// `OriginalSyncStateEvent` implements the comparison traits using only the `event_id` field, a
 /// sorted list would be sorted lexicographically based on the event's `EventId`.
@@ -286,6 +324,42 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
     pub unsigned: RedactedUnsigned,
 }
 
+/// A possibly-redacted state event.
+///
+/// `StateEvent` implements the comparison traits using only the `event_id` field, a sorted list
+/// would be sorted lexicographically based on the event's `EventId`.
+#[allow(clippy::exhaustive_enums)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(untagged)]
+pub enum StateEvent<C: StateEventContent + RedactContent>
+where
+    C::Redacted: StateEventContent + RedactedEventContent,
+{
+    /// Original, unredacted form of the event.
+    Original(OriginalStateEvent<C>),
+
+    /// Redacted form of the event with minimal fields.
+    Redacted(RedactedStateEvent<C::Redacted>),
+}
+
+/// A possibly-redacted state event without a `room_id`.
+///
+/// `SyncStateEvent` implements the comparison traits using only the `event_id` field, a sorted list
+/// would be sorted lexicographically based on the event's `EventId`.
+#[allow(clippy::exhaustive_enums)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(untagged)]
+pub enum SyncStateEvent<C: StateEventContent + RedactContent>
+where
+    C::Redacted: StateEventContent + RedactedEventContent,
+{
+    /// Original, unredacted form of the event.
+    Original(OriginalSyncStateEvent<C>),
+
+    /// Redacted form of the event with minimal fields.
+    Redacted(RedactedSyncStateEvent<C::Redacted>),
+}
+
 /// An event sent using send-to-device messaging.
 #[derive(Clone, Debug, Event)]
 pub struct ToDeviceEvent<C: ToDeviceEventContent> {
@@ -331,3 +405,144 @@ pub struct DecryptedMegolmV1Event<C: MessageLikeEventContent> {
     /// The ID of the room associated with the event.
     pub room_id: Box<RoomId>,
 }
+
+macro_rules! impl_possibly_redacted_event {
+    ($ty:ident ( $content_trait:ident, $event_type:ident ) { $($extra:tt)* }) => {
+        impl<C> $ty<C>
+        where
+            C: $content_trait + RedactContent,
+            C::Redacted: $content_trait + RedactedEventContent,
+        {
+            /// Returns the `type` of this event.
+            pub fn event_type(&self) -> $event_type {
+                match self {
+                    Self::Original(ev) => ev.content.event_type(),
+                    Self::Redacted(ev) => ev.content.event_type(),
+                }
+            }
+
+            /// Returns this event's `event_id` field.
+            pub fn event_id(&self) -> &EventId {
+                match self {
+                    Self::Original(ev) => &ev.event_id,
+                    Self::Redacted(ev) => &ev.event_id,
+                }
+            }
+
+            /// Returns this event's `sender` field.
+            pub fn sender(&self) -> &UserId {
+                match self {
+                    Self::Original(ev) => &ev.sender,
+                    Self::Redacted(ev) => &ev.sender,
+                }
+            }
+
+            /// Returns this event's `origin_server_ts` field.
+            pub fn origin_server_ts(&self) -> &MilliSecondsSinceUnixEpoch {
+                match self {
+                    Self::Original(ev) => &ev.origin_server_ts,
+                    Self::Redacted(ev) => &ev.origin_server_ts,
+                }
+            }
+
+            // So the room_id method can be in the same impl block, in rustdoc
+            $($extra)*
+        }
+
+        impl<'de, C> Deserialize<'de> for $ty<C>
+        where
+            C: $content_trait + RedactContent,
+            C::Redacted: $content_trait + RedactedEventContent,
+        {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: Deserializer<'de>,
+            {
+                let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+                let RedactionDeHelper { unsigned } = from_raw_json_value(&json)?;
+
+                if unsigned.and_then(|u| u.redacted_because).is_some() {
+                    Ok(Self::Redacted(from_raw_json_value(&json)?))
+                } else {
+                    Ok(Self::Original(from_raw_json_value(&json)?))
+                }
+            }
+        }
+    }
+}
+
+impl_possibly_redacted_event!(MessageLikeEvent(MessageLikeEventContent, MessageLikeEventType) {
+    /// Returns this event's `room_id` field.
+    pub fn room_id(&self) -> &RoomId {
+        match self {
+            Self::Original(ev) => &ev.room_id,
+            Self::Redacted(ev) => &ev.room_id,
+        }
+    }
+});
+
+impl_possibly_redacted_event!(SyncMessageLikeEvent(MessageLikeEventContent, MessageLikeEventType) {
+    /// Convert this sync event into a full event (one with a `room_id` field).
+    pub fn into_full_event(self, room_id: Box<RoomId>) -> MessageLikeEvent<C> {
+        match self {
+            Self::Original(ev) => MessageLikeEvent::Original(ev.into_full_event(room_id)),
+            Self::Redacted(ev) => MessageLikeEvent::Redacted(ev.into_full_event(room_id)),
+        }
+    }
+});
+
+impl_possibly_redacted_event!(StateEvent(StateEventContent, StateEventType) {
+    /// Returns this event's `room_id` field.
+    pub fn room_id(&self) -> &RoomId {
+        match self {
+            Self::Original(ev) => &ev.room_id,
+            Self::Redacted(ev) => &ev.room_id,
+        }
+    }
+
+    /// Returns this event's `state_key` field.
+    pub fn state_key(&self) -> &str {
+        match self {
+            Self::Original(ev) => &ev.state_key,
+            Self::Redacted(ev) => &ev.state_key,
+        }
+    }
+});
+
+impl_possibly_redacted_event!(SyncStateEvent(StateEventContent, StateEventType) {
+    /// Returns this event's `state_key` field.
+    pub fn state_key(&self) -> &str {
+        match self {
+            Self::Original(ev) => &ev.state_key,
+            Self::Redacted(ev) => &ev.state_key,
+        }
+    }
+
+    /// Convert this sync event into a full event (one with a `room_id` field).
+    pub fn into_full_event(self, room_id: Box<RoomId>) -> StateEvent<C> {
+        match self {
+            Self::Original(ev) => StateEvent::Original(ev.into_full_event(room_id)),
+            Self::Redacted(ev) => StateEvent::Redacted(ev.into_full_event(room_id)),
+        }
+    }
+});
+
+macro_rules! impl_sync_from_full {
+    ($ty:ident, $full:ident, $content_trait:ident) => {
+        impl<C> From<$full<C>> for $ty<C>
+        where
+            C: $content_trait + RedactContent,
+            C::Redacted: $content_trait + RedactedEventContent,
+        {
+            fn from(full: $full<C>) -> Self {
+                match full {
+                    $full::Original(ev) => Self::Original(ev.into()),
+                    $full::Redacted(ev) => Self::Redacted(ev.into()),
+                }
+            }
+        }
+    };
+}
+
+impl_sync_from_full!(SyncMessageLikeEvent, MessageLikeEvent, MessageLikeEventContent);
+impl_sync_from_full!(SyncStateEvent, StateEvent, StateEventContent);
