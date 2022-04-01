@@ -127,6 +127,10 @@ impl EventKind {
         matches!(self, Self::GlobalAccountData | Self::RoomAccountData)
     }
 
+    pub fn is_room(self) -> bool {
+        matches!(self, Self::MessageLike | Self::RoomRedaction | Self::State)
+    }
+
     pub fn to_event_ident(self, var: EventKindVariation) -> syn::Result<Ident> {
         use EventKindVariation as V;
 
