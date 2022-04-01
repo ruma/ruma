@@ -6,12 +6,6 @@ event_enum! {
     }
 }
 
-event_enum! {
-    enum State {
-        "not.a.path",
-    }
-}
-
 fn main() {}
 
 #[doc(hidden)]
