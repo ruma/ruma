@@ -146,7 +146,7 @@ impl<C: StateEventContent> StateUnsigned<C> {
         })
     }
 
-    pub fn _map_prev_unsigned<T>(&self, f: impl FnOnce(&C) -> T) -> StateUnsigned<T>
+    pub fn _map_prev_content<T>(&self, f: impl FnOnce(&C) -> T) -> StateUnsigned<T>
     where
         T: StateEventContent,
     {
