@@ -5,7 +5,6 @@ mod enums;
 mod ephemeral_event;
 mod event;
 mod event_content;
-mod event_content_enum;
 mod event_enums;
 mod file;
 mod image;
