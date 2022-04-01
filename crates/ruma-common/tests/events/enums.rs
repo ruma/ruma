@@ -11,9 +11,9 @@ use ruma_common::{
             power_levels::RoomPowerLevelsEventContent,
         },
         AnyEphemeralRoomEvent, AnyOriginalMessageLikeEvent, AnyOriginalStateEvent,
-        AnyOriginalSyncMessageLikeEvent, AnyOriginalSyncStateEvent, AnyRoomEvent,
-        AnyStateEventContent, AnySyncRoomEvent, EphemeralRoomEventType, GlobalAccountDataEventType,
-        MessageLikeEventType, MessageLikeUnsigned, OriginalMessageLikeEvent, OriginalStateEvent,
+        AnyOriginalSyncMessageLikeEvent, AnyOriginalSyncStateEvent, AnyRoomEvent, AnySyncRoomEvent,
+        EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEventType,
+        MessageLikeUnsigned, OriginalMessageLikeEvent, OriginalStateEvent,
         OriginalSyncMessageLikeEvent, OriginalSyncStateEvent, RoomAccountDataEventType,
         StateEventType, ToDeviceEventType,
     },
@@ -300,10 +300,8 @@ fn alias_event_field_access() {
     );
 
     let deser = from_json_value::<AnyOriginalStateEvent>(json_data).unwrap();
-    if let AnyStateEventContent::RoomAliases(RoomAliasesEventContent { aliases, .. }) =
-        deser.content()
-    {
-        assert_eq!(aliases, vec![room_alias_id!("#somewhere:localhost")])
+    if let AnyOriginalStateEvent::RoomAliases(ev) = &deser {
+        assert_eq!(ev.content.aliases, vec![room_alias_id!("#somewhere:localhost")])
     } else {
         panic!("the `Any*Event` enum's accessor methods may have been altered")
     }

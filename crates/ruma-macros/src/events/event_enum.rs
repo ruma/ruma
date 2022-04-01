@@ -6,7 +6,7 @@ use syn::{Attribute, Data, DataEnum, DeriveInput, Ident, LitStr};
 
 use super::{
     event_parse::{EventEnumDecl, EventEnumEntry, EventKind, EventKindVariation},
-    util::{has_prev_content, is_non_stripped_room_event},
+    util::is_non_stripped_room_event,
 };
 use crate::util::m_prefix_name_to_type_name;
 
@@ -443,52 +443,9 @@ fn expand_accessor_methods(
     let event_type_enum = format_ident!("{}Type", kind);
     let self_variants: Vec<_> = variants.iter().map(|v| v.match_arm(quote! { Self })).collect();
 
-    let content_accessors = (!var.is_redacted()).then(|| {
+    let content_accessors = (!kind.is_room()).then(|| {
         let content_enum = kind.to_content_enum();
         let content_variants: Vec<_> = variants.iter().map(|v| v.ctor(&content_enum)).collect();
-
-        let unsigned = if has_prev_content(kind, var) {
-            quote! {
-                /// Returns this event's unsigned field.
-                pub fn unsigned(&self) -> #ruma_common::events::StateUnsigned<#content_enum> {
-                    match self {
-                        #(
-                            #self_variants(event) => {
-                                event.unsigned._map_prev_content(|c| {
-                                    #content_variants(c.clone())
-                                })
-                            },
-                        )*
-                        Self::_Custom(event) => {
-                            event.unsigned._map_prev_content(|c| #content_enum::_Custom {
-                                event_type: crate::PrivOwnedStr(
-                                    ::std::convert::From::from(
-                                        ::std::string::ToString::to_string(
-                                            &#ruma_common::events::EventContent::event_type(c)
-                                        )
-                                    ),
-                                ),
-                            })
-                        },
-                    }
-                }
-            }
-        } else if is_non_stripped_room_event(kind, var) {
-            let field_type = field_return_type("unsigned", var, ruma_common);
-            let variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
-
-            quote! {
-                /// Returns this event's unsigned field.
-                pub fn unsigned(&self) -> &#field_type {
-                    match self {
-                        #( #variants(event) => &event.unsigned, )*
-                        Self::_Custom(event) => &event.unsigned,
-                    }
-                }
-            }
-        } else {
-            quote! {}
-        };
 
         quote! {
             /// Returns the content for this event.
@@ -506,8 +463,6 @@ fn expand_accessor_methods(
                     },
                 }
             }
-
-            #unsigned
         }
     });
 
