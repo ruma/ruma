@@ -165,7 +165,7 @@ pub use ruma_common::{
     serde::Incoming, server_name, server_signing_key_id, thirdparty, to_device, user_id,
     ClientSecret, DeviceId, DeviceKeyAlgorithm, DeviceKeyId, DeviceSignatures, DeviceSigningKeyId,
     EntitySignatures, EventEncryptionAlgorithm, EventId, IdParseError, KeyId, KeyName, MatrixToUri,
-    MilliSecondsSinceUnixEpoch, MxcUri, PrivOwnedStr, RoomAliasId, RoomId, RoomName, RoomOrAliasId,
-    RoomVersionId, SecondsSinceUnixEpoch, ServerName, ServerSignatures, ServerSigningKeyId,
-    SessionId, Signatures, SigningKeyAlgorithm, TransactionId, UserId,
+    MatrixUri, MilliSecondsSinceUnixEpoch, MxcUri, PrivOwnedStr, RoomAliasId, RoomId, RoomName,
+    RoomOrAliasId, RoomVersionId, SecondsSinceUnixEpoch, ServerName, ServerSignatures,
+    ServerSigningKeyId, SessionId, Signatures, SigningKeyAlgorithm, TransactionId, UserId,
 };
