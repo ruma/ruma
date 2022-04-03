@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.secret_storage.default_key", kind = GlobalAccountData)]
-pub struct DefaultKeyEventContent {
+pub struct SecretStorageDefaultKeyEventContent {
     /// The ID of the default key.
     pub key: String,
 }
