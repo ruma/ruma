@@ -2,13 +2,8 @@
 
 use std::collections::BTreeMap;
 
-use ruma_events_macros::EventContent;
+use ruma_common::events::macros::EventContent;
 use serde::{Deserialize, Serialize};
-
-use crate::GlobalAccountDataEvent;
-
-/// An event to store an encrypted secret in a user's `account_data`.
-pub type SomeSecretEvent = GlobalAccountDataEvent<SomeSecretEventContent>;
 
 /// The payload for `SomeSecretEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
@@ -17,7 +12,6 @@ pub type SomeSecretEvent = GlobalAccountDataEvent<SomeSecretEventContent>;
 pub struct SomeSecretEventContent(BTreeMap<String, AesHmacSha2EncryptedData>);
 
 /// Data encrypted using the *m.secret_storage.v1.aes-hmac-sha2* algorithm.
-#[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AesHmacSha2EncryptedData {

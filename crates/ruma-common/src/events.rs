@@ -153,8 +153,6 @@ pub mod room;
 pub mod room_key;
 pub mod room_key_request;
 pub mod secret;
-#[cfg(feature = "unstable-pre-spec")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub mod secret_storage;
 pub mod space;
 pub mod sticker;

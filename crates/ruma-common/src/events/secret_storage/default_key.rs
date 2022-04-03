@@ -1,12 +1,7 @@
 //! Types for the *m.secret_storage.default_key* event.
 
-use ruma_events_macros::EventContent;
+use ruma_common::events::macros::EventContent;
 use serde::{Deserialize, Serialize};
-
-use crate::GlobalAccountDataEvent;
-
-/// An event to mark a key as the "default" key in the user's account_data.
-pub type DefaultKeyEvent = GlobalAccountDataEvent<DefaultKeyEventContent>;
 
 /// The payload for `DefaultKeyEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]

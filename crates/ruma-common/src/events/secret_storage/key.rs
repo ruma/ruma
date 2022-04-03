@@ -1,20 +1,20 @@
-//! Types for the *m.secret_storage.key.[keyID]* event.
+//! Types for the *m.secret_storage.key.\** event.
 
 use js_int::{uint, UInt};
-use ruma_events_macros::EventContent;
-use ruma_identifiers::{KeyDerivationAlgorithm, SecretEncryptionAlgorithm};
+use ruma_common::identifiers::{KeyDerivationAlgorithm, SecretEncryptionAlgorithm};
 use serde::{Deserialize, Serialize};
 
-use crate::GlobalAccountDataEvent;
-
-/// An event to store a key in a user's `account_data`.
-pub type KeyEvent = GlobalAccountDataEvent<KeyEventContent>;
+use ruma_common::events::macros::EventContent;
 
 /// The payload for `KeyEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.secret_storage.key.[keyID]", kind = GlobalAccountData)]
+#[ruma_event(type = "m.secret_storage.key.*", kind = GlobalAccountData)]
 pub struct KeyEventContent {
+    /// The ID of the key.
+    #[ruma_event(type_fragment)]
+    pub key_id: String,
+
     /// The name of the key.
     ///
     /// If not given, the client may use a generic name such as "Unnamed key", or "Default Key" if
@@ -33,9 +33,10 @@ pub struct KeyEventContent {
 }
 
 impl KeyEventContent {
-    /// Creates a new KeyEventContent with no name and no passphrase.
-    pub fn new() -> Self {
+    /// Creates a new KeyEventContent with a key ID,  no name and no passphrase.
+    pub fn new(key_id: String) -> Self {
         Self {
+            key_id,
             name: None,
             algorithm: SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2,
             passphrase: None,
@@ -81,11 +82,10 @@ fn is_default_bits(val: &UInt) -> bool {
     *val == default_bits()
 }
 
-/// A key description encrypted using the *m.secret_storage.v1.aes-hmac-sha2* algorithm.
-#[cfg(feature = "unstable-pre-spec")]
+/// A key description encrypted using a specified algorithm.
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct AesHmacSha2KeyDescription {
+pub struct KeyDescription {
     /// The name of the key.
     pub name: String,
 
@@ -107,8 +107,8 @@ pub struct AesHmacSha2KeyDescription {
     pub mac: Option<String>,
 }
 
-impl AesHmacSha2KeyDescription {
-    /// Creates a `AesHmacSha2KeyDescription` with the given name.
+impl KeyDescription {
+    /// Creates a `KeyDescription` with the given name.
     pub fn new(name: String) -> Self {
         Self {
             name,
