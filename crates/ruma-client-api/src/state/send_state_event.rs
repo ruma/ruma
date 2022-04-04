@@ -9,7 +9,7 @@ pub mod v3 {
         api::ruma_api,
         events::{AnyStateEventContent, StateEventContent, StateEventType},
         serde::{Incoming, Raw},
-        EventId, RoomId,
+        EventId, OwnedRoomId, RoomId,
     };
     use serde_json::value::to_raw_value as to_raw_json_value;
 
@@ -174,7 +174,7 @@ pub mod v3 {
         {
             // FIXME: find a way to make this if-else collapse with serde recognizing trailing
             // Option
-            let (room_id, event_type, state_key): (Box<RoomId>, StateEventType, String) =
+            let (room_id, event_type, state_key): (OwnedRoomId, StateEventType, String) =
                 if path_args.len() == 3 {
                     serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
                         _,

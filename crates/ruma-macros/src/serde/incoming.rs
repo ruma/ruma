@@ -20,7 +20,7 @@ pub fn expand_derive_incoming(mut ty_def: DeriveInput) -> syn::Result<TokenStrea
         Data::Enum(e) => {
             for var in &mut e.variants {
                 for field in &mut var.fields {
-                    if strip_lifetimes(&mut field.ty) {
+                    if strip_lifetimes(&mut field.ty, &ruma_common) {
                         found_lifetime = true;
                     }
                 }
@@ -31,7 +31,7 @@ pub fn expand_derive_incoming(mut ty_def: DeriveInput) -> syn::Result<TokenStrea
                 if !matches!(field.vis, syn::Visibility::Public(_)) {
                     return Err(syn::Error::new_spanned(field, "All fields must be marked `pub`"));
                 }
-                if strip_lifetimes(&mut field.ty) {
+                if strip_lifetimes(&mut field.ty, &ruma_common) {
                     found_lifetime = true;
                 }
             }
@@ -118,7 +118,7 @@ fn clean_generics(generics: &mut Generics) {
         .collect();
 }
 
-fn strip_lifetimes(field_type: &mut Type) -> bool {
+fn strip_lifetimes(field_type: &mut Type, ruma_common: &TokenStream) -> bool {
     match field_type {
         // T<'a> -> IncomingT
         // The IncomingT has to be declared by the user of this derive macro.
@@ -137,7 +137,7 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                             .into_iter()
                             .map(|mut ty| {
                                 if let GenericArgument::Type(ty) = &mut ty {
-                                    if strip_lifetimes(ty) {
+                                    if strip_lifetimes(ty, ruma_common) {
                                         has_lifetimes = true;
                                     };
                                 }
@@ -160,7 +160,7 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                             .clone()
                             .into_iter()
                             .map(|mut ty| {
-                                if strip_lifetimes(&mut ty) {
+                                if strip_lifetimes(&mut ty, ruma_common) {
                                     has_lifetimes = true;
                                 };
                                 ty
@@ -191,6 +191,8 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                     if last_seg.ident == "str" {
                         // &str -> String
                         Some(parse_quote! { ::std::string::String })
+                    } else if last_seg.ident == "RawJsonValue" {
+                        Some(parse_quote! { ::std::boxed::Box<#path> })
                     } else if last_seg.ident == "ClientSecret"
                         || last_seg.ident == "DeviceId"
                         || last_seg.ident == "DeviceKeyId"
@@ -200,7 +202,6 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                         || last_seg.ident == "MxcUri"
                         || last_seg.ident == "ServerName"
                         || last_seg.ident == "SessionId"
-                        || last_seg.ident == "RawJsonValue"
                         || last_seg.ident == "RoomAliasId"
                         || last_seg.ident == "RoomId"
                         || last_seg.ident == "RoomOrAliasId"
@@ -210,8 +211,8 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                         || last_seg.ident == "TransactionId"
                         || last_seg.ident == "UserId"
                     {
-                        // The identifiers that need to be boxed `Box<T>` since they are DST's.
-                        Some(parse_quote! { ::std::boxed::Box<#path> })
+                        let ident = format_ident!("Owned{}", last_seg.ident);
+                        Some(parse_quote! { #ruma_common::#ident })
                     } else {
                         None
                     }
@@ -219,7 +220,7 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                 // &[T] -> Vec<T>
                 Type::Slice(TypeSlice { elem, .. }) => {
                     // Recursively strip the lifetimes of the slice's elements.
-                    strip_lifetimes(&mut *elem);
+                    strip_lifetimes(&mut *elem, ruma_common);
                     Some(parse_quote! { Vec<#elem> })
                 }
                 _ => None,
@@ -229,7 +230,7 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                 Some(ty) => ty,
                 None => {
                     // Strip lifetimes of `elem`.
-                    strip_lifetimes(elem);
+                    strip_lifetimes(elem, ruma_common);
                     // Replace reference with `elem`.
                     (**elem).clone()
                 }
@@ -240,7 +241,7 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
         Type::Tuple(syn::TypeTuple { elems, .. }) => {
             let mut has_lifetime = false;
             for elem in elems {
-                if strip_lifetimes(elem) {
+                if strip_lifetimes(elem, ruma_common) {
                     has_lifetime = true;
                 }
             }
