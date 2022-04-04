@@ -2,8 +2,25 @@
 
 Breaking changes:
 
+* Several ruma crates have been merged into `ruma-common`
+  * `ruma-api` has moved into `api`, behind a feature flag
+  * `ruma-events` has moved into `events`, behind a feature flag
+  * `ruma-identifiers` types are available at the root of the crate
+  * `ruma-serde` has moved into `serde`
+* The `events::*MessageEvent` types have been renamed to `*MessageLikeEvent`
 * Change `events::room` media types to accept either a plain file or an
   encrypted file, not both simultaneously
+* Change `events::room` media types to use `Duration` where applicable
+* Move `prev_content` into `unsigned`
+* Rename `identifiers::Error` to `IdParseError`
+
+Improvements:
+
+* Add unstable support for extensible events (MSCs 1767, 3551, 3552, 3553, 3246, 3488)
+* Add unstable support for translatable text content (MSC3554)
+* Add unstable support for voice messages (MSC3245)
+* Add unstable support for threads (MSC3440)
+* Add `ReceiptEventContent::user_receipt`
 
 # 0.8.0
 
