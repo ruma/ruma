@@ -2,7 +2,7 @@
 //!
 //! The differences between the `RoomV1Pdu` schema and the `RoomV3Pdu` schema are that the
 //! `RoomV1Pdu` takes an `event_id` field (`RoomV3Pdu` does not), and `auth_events` and
-//! `prev_events` take `Vec<(Box<EventId>, EventHash)> rather than `Vec<Box<EventId>>` in
+//! `prev_events` take `Vec<(OwnedEventId, EventHash)> rather than `Vec<OwnedEventId>` in
 //! `RoomV3Pdu`.
 
 use std::collections::BTreeMap;
@@ -15,7 +15,10 @@ use serde::{
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 
 use super::RoomEventType;
-use crate::{EventId, MilliSecondsSinceUnixEpoch, RoomId, ServerName, ServerSigningKeyId, UserId};
+use crate::{
+    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedServerName,
+    OwnedServerSigningKeyId, OwnedUserId,
+};
 
 /// Enum for PDU schemas
 #[derive(Clone, Debug, Serialize)]
@@ -34,13 +37,13 @@ pub enum Pdu {
 #[allow(clippy::exhaustive_structs)]
 pub struct RoomV1Pdu {
     /// Event ID for the PDU.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The room this event belongs to.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// The user id of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver
     /// of when this event was created.
@@ -61,7 +64,7 @@ pub struct RoomV1Pdu {
     /// Event IDs for the most recent events in the room that the homeserver was
     /// aware of when it created this event.
     #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub prev_events: Vec<(Box<EventId>, EventHash)>,
+    pub prev_events: Vec<(OwnedEventId, EventHash)>,
 
     /// The maximum depth of the `prev_events`, plus one.
     pub depth: UInt,
@@ -69,11 +72,11 @@ pub struct RoomV1Pdu {
     /// Event IDs for the authorization events that would allow this event to be
     /// in the room.
     #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub auth_events: Vec<(Box<EventId>, EventHash)>,
+    pub auth_events: Vec<(OwnedEventId, EventHash)>,
 
     /// For redaction events, the ID of the event being redacted.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub redacts: Option<Box<EventId>>,
+    pub redacts: Option<OwnedEventId>,
 
     /// Additional data added by the origin server but not covered by the
     /// signatures.
@@ -84,7 +87,7 @@ pub struct RoomV1Pdu {
     pub hashes: EventHash,
 
     /// Signatures for the PDU.
-    pub signatures: BTreeMap<Box<ServerName>, BTreeMap<Box<ServerSigningKeyId>, String>>,
+    pub signatures: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
 }
 
 /// A 'persistent data unit' (event) for room versions 3 and beyond.
@@ -92,10 +95,10 @@ pub struct RoomV1Pdu {
 #[allow(clippy::exhaustive_structs)]
 pub struct RoomV3Pdu {
     /// The room this event belongs to.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// The user id of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver
     /// of when this event was created.
@@ -115,18 +118,18 @@ pub struct RoomV3Pdu {
 
     /// Event IDs for the most recent events in the room that the homeserver was
     /// aware of when it created this event.
-    pub prev_events: Vec<Box<EventId>>,
+    pub prev_events: Vec<OwnedEventId>,
 
     /// The maximum depth of the `prev_events`, plus one.
     pub depth: UInt,
 
     /// Event IDs for the authorization events that would allow this event to be
     /// in the room.
-    pub auth_events: Vec<Box<EventId>>,
+    pub auth_events: Vec<OwnedEventId>,
 
     /// For redaction events, the ID of the event being redacted.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub redacts: Option<Box<EventId>>,
+    pub redacts: Option<OwnedEventId>,
 
     /// Additional data added by the origin server but not covered by the
     /// signatures.
@@ -137,7 +140,7 @@ pub struct RoomV3Pdu {
     pub hashes: EventHash,
 
     /// Signatures for the PDU.
-    pub signatures: BTreeMap<Box<ServerName>, BTreeMap<Box<ServerSigningKeyId>, String>>,
+    pub signatures: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
 }
 
 /// Content hashes of a PDU.

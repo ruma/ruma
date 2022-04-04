@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     events::RoomEventType,
     power_levels::{default_power_level, NotificationPowerLevels},
-    UserId,
+    OwnedUserId, UserId,
 };
 
 /// The content of an `m.room.power_levels` event.
@@ -118,7 +118,7 @@ pub struct RoomPowerLevelsEventContent {
     )]
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     #[ruma_event(skip_redaction)]
-    pub users: BTreeMap<Box<UserId>, Int>,
+    pub users: BTreeMap<OwnedUserId, Int>,
 
     /// The default power level for every user in the room.
     ///
@@ -227,7 +227,7 @@ pub struct RoomPowerLevels {
     /// The power levels for specific users.
     ///
     /// This is a mapping from `user_id` to power level for that user.
-    pub users: BTreeMap<Box<UserId>, Int>,
+    pub users: BTreeMap<OwnedUserId, Int>,
 
     /// The default power level for every user in the room.
     pub users_default: Int,

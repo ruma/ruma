@@ -5,7 +5,7 @@
 use ruma_macros::{Event, EventContent};
 use serde::{Deserialize, Serialize};
 
-use crate::{MilliSecondsSinceUnixEpoch, ServerName, UserId};
+use crate::{MilliSecondsSinceUnixEpoch, OwnedServerName, OwnedUserId};
 
 /// The content of an `m.space.child` event.
 ///
@@ -20,7 +20,7 @@ use crate::{MilliSecondsSinceUnixEpoch, ServerName, UserId};
 pub struct SpaceChildEventContent {
     /// List of candidate servers that can be used to join the room.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub via: Option<Vec<Box<ServerName>>>,
+    pub via: Option<Vec<OwnedServerName>>,
 
     /// Provide a default ordering of siblings in the room list.
     ///
@@ -60,7 +60,7 @@ pub struct HierarchySpaceChildEvent {
     pub content: SpaceChildEventContent,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// The room ID of the child.
     pub state_key: String,

@@ -14,7 +14,8 @@ use crate::{
         RedactedEventContent, StateEventType, StrippedStateEvent,
     },
     serde::StringEnum,
-    MxcUri, PrivOwnedStr, RoomVersionId, ServerName, ServerSigningKeyId, UserId,
+    MxcUri, OwnedServerName, OwnedServerSigningKeyId, OwnedUserId, PrivOwnedStr, RoomVersionId,
+    UserId,
 };
 
 /// The content of an `m.room.member` event.
@@ -99,7 +100,7 @@ pub struct RoomMemberEventContent {
     /// Arbitrarily chosen `UserId` (MxID) of a local user who can send an invite.
     #[serde(rename = "join_authorised_via_users_server")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub join_authorized_via_users_server: Option<Box<UserId>>,
+    pub join_authorized_via_users_server: Option<OwnedUserId>,
 }
 
 impl RoomMemberEventContent {
@@ -145,7 +146,7 @@ pub struct RedactedRoomMemberEventContent {
     /// This is redacted in room versions 8 and below. It is used for validating
     /// joins when the join rule is restricted.
     #[serde(rename = "join_authorised_via_users_server")]
-    pub join_authorized_via_users_server: Option<Box<UserId>>,
+    pub join_authorized_via_users_server: Option<OwnedUserId>,
 }
 
 impl RedactedRoomMemberEventContent {
@@ -251,7 +252,7 @@ pub struct SignedContent {
 
     /// A single signature from the verifying server, in the format specified by the Signing Events
     /// section of the server-server API.
-    pub signatures: BTreeMap<Box<ServerName>, BTreeMap<Box<ServerSigningKeyId>, String>>,
+    pub signatures: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
 
     /// The token property of the containing `third_party_invite` object.
     pub token: String,
@@ -261,7 +262,7 @@ impl SignedContent {
     /// Creates a new `SignedContent` with the given mxid, signature and token.
     pub fn new(
         mxid: Box<UserId>,
-        signatures: BTreeMap<Box<ServerName>, BTreeMap<Box<ServerSigningKeyId>, String>>,
+        signatures: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
         token: String,
     ) -> Self {
         Self { mxid, signatures, token }

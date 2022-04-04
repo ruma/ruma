@@ -5,7 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{room::RoomType, EventId, RoomId, RoomVersionId, UserId};
+use crate::{room::RoomType, EventId, OwnedUserId, RoomId, RoomVersionId};
 
 /// The content of an `m.room.create` event.
 ///
@@ -20,7 +20,7 @@ pub struct RoomCreateEventContent {
     ///
     /// This is set by the homeserver.
     #[ruma_event(skip_redaction)]
-    pub creator: Box<UserId>,
+    pub creator: OwnedUserId,
 
     /// Whether or not this room's data should be transferred to other homeservers.
     #[serde(
@@ -49,7 +49,7 @@ pub struct RoomCreateEventContent {
 
 impl RoomCreateEventContent {
     /// Creates a new `RoomCreateEventContent` with the given creator.
-    pub fn new(creator: Box<UserId>) -> Self {
+    pub fn new(creator: OwnedUserId) -> Self {
         Self {
             creator,
             federate: true,

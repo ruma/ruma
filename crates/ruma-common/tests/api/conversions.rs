@@ -5,7 +5,7 @@ use ruma_common::{
         ruma_api, IncomingRequest as _, MatrixVersion, OutgoingRequest as _,
         OutgoingRequestAppserviceExt, SendAccessToken,
     },
-    user_id, UserId,
+    user_id, OwnedUserId,
 };
 
 ruma_api! {
@@ -29,7 +29,7 @@ ruma_api! {
         #[ruma_api(path)]
         pub bar: String,
         #[ruma_api(path)]
-        pub user: Box<UserId>,
+        pub user: OwnedUserId,
     }
 
     response: {
@@ -119,9 +119,9 @@ fn request_with_user_id_serde() {
 }
 
 mod without_query {
-    use ruma_common::api::MatrixVersion;
+    use ruma_common::{api::MatrixVersion, OwnedUserId};
 
-    use super::{ruma_api, user_id, OutgoingRequestAppserviceExt, SendAccessToken, UserId};
+    use super::{ruma_api, user_id, OutgoingRequestAppserviceExt, SendAccessToken};
 
     ruma_api! {
         metadata: {
@@ -140,7 +140,7 @@ mod without_query {
             #[ruma_api(path)]
             pub bar: String,
             #[ruma_api(path)]
-            pub user: Box<UserId>,
+            pub user: OwnedUserId,
         }
 
         response: {

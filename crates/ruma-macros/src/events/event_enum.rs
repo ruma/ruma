@@ -270,10 +270,7 @@ fn expand_into_full_event(
         #[automatically_derived]
         impl #ident {
             /// Convert this sync event into a full event (one with a `room_id` field).
-            pub fn into_full_event(
-                self,
-                room_id: ::std::boxed::Box<#ruma_common::RoomId>,
-            ) -> #full {
+            pub fn into_full_event(self, room_id: #ruma_common::OwnedRoomId) -> #full {
                 match self {
                     #(
                         #self_variants(event) => {

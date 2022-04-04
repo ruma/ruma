@@ -10,7 +10,7 @@ use std::{
 use base64::{encode_config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
 use ruma_common::{
     serde::{base64::Standard, Base64, CanonicalJsonObject, CanonicalJsonValue},
-    EventId, RoomVersionId, ServerName, UserId,
+    EventId, OwnedServerName, RoomVersionId, UserId,
 };
 use serde_json::{from_str as from_json_str, to_string as to_json_string};
 use sha2::{digest::Digest, Sha256};
@@ -803,7 +803,7 @@ fn object_retain_keys(object: &mut CanonicalJsonObject, keys: &[&str]) {
 fn servers_to_check_signatures(
     object: &CanonicalJsonObject,
     version: &RoomVersionId,
-) -> Result<BTreeSet<Box<ServerName>>, Error> {
+) -> Result<BTreeSet<OwnedServerName>, Error> {
     let mut servers_to_check = BTreeSet::new();
 
     if !is_third_party_invite(object)? {

@@ -1014,9 +1014,9 @@ mod tests {
 
         assert!(valid_membership_change(
             &RoomVersion::V6,
-            &target_user,
+            target_user,
             fetch_state(StateEventType::RoomMember, target_user.to_string()),
-            &sender,
+            sender,
             fetch_state(StateEventType::RoomMember, sender.to_string()),
             &requester,
             None::<PduEvent>,
@@ -1056,9 +1056,9 @@ mod tests {
 
         assert!(!valid_membership_change(
             &RoomVersion::V6,
-            &target_user,
+            target_user,
             fetch_state(StateEventType::RoomMember, target_user.to_string()),
-            &sender,
+            sender,
             fetch_state(StateEventType::RoomMember, sender.to_string()),
             &requester,
             None::<PduEvent>,
@@ -1098,9 +1098,9 @@ mod tests {
 
         assert!(valid_membership_change(
             &RoomVersion::V6,
-            &target_user,
+            target_user,
             fetch_state(StateEventType::RoomMember, target_user.to_string()),
-            &sender,
+            sender,
             fetch_state(StateEventType::RoomMember, sender.to_string()),
             &requester,
             None::<PduEvent>,
@@ -1140,9 +1140,9 @@ mod tests {
 
         assert!(!valid_membership_change(
             &RoomVersion::V6,
-            &target_user,
+            target_user,
             fetch_state(StateEventType::RoomMember, target_user.to_string()),
-            &sender,
+            sender,
             fetch_state(StateEventType::RoomMember, sender.to_string()),
             &requester,
             None::<PduEvent>,
@@ -1176,7 +1176,7 @@ mod tests {
         );
 
         let mut member = RoomMemberEventContent::new(MembershipState::Join);
-        member.join_authorized_via_users_server = Some(alice());
+        member.join_authorized_via_users_server = Some(alice().to_owned());
 
         let auth_events = events
             .values()
@@ -1199,15 +1199,15 @@ mod tests {
 
         assert!(valid_membership_change(
             &RoomVersion::V9,
-            &target_user,
+            target_user,
             fetch_state(StateEventType::RoomMember, target_user.to_string()),
-            &sender,
+            sender,
             fetch_state(StateEventType::RoomMember, sender.to_string()),
             &requester,
             None::<PduEvent>,
             fetch_state(StateEventType::RoomPowerLevels, "".to_owned()),
             fetch_state(StateEventType::RoomJoinRules, "".to_owned()),
-            Some(&alice()),
+            Some(alice()),
             &MembershipState::Join,
             fetch_state(StateEventType::RoomCreate, "".to_owned()).unwrap(),
         )
@@ -1215,15 +1215,15 @@ mod tests {
 
         assert!(!valid_membership_change(
             &RoomVersion::V9,
-            &target_user,
+            target_user,
             fetch_state(StateEventType::RoomMember, target_user.to_string()),
-            &sender,
+            sender,
             fetch_state(StateEventType::RoomMember, sender.to_string()),
             &requester,
             None::<PduEvent>,
             fetch_state(StateEventType::RoomPowerLevels, "".to_owned()),
             fetch_state(StateEventType::RoomJoinRules, "".to_owned()),
-            Some(&ella()),
+            Some(ella()),
             &MembershipState::Leave,
             fetch_state(StateEventType::RoomCreate, "".to_owned()).unwrap(),
         )
@@ -1266,9 +1266,9 @@ mod tests {
 
         assert!(valid_membership_change(
             &RoomVersion::V7,
-            &target_user,
+            target_user,
             fetch_state(StateEventType::RoomMember, target_user.to_string()),
-            &sender,
+            sender,
             fetch_state(StateEventType::RoomMember, sender.to_string()),
             &requester,
             None::<PduEvent>,

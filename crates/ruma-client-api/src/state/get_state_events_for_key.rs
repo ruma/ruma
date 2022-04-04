@@ -9,7 +9,7 @@ pub mod v3 {
         api::ruma_api,
         events::{AnyStateEventContent, StateEventType},
         serde::{Incoming, Raw},
-        OwnedRoomId, RoomId,
+        RoomId,
     };
 
     ruma_api! {
@@ -142,6 +142,8 @@ pub mod v3 {
             B: AsRef<[u8]>,
             S: AsRef<str>,
         {
+            use ruma_common::OwnedRoomId;
+
             // FIXME: find a way to make this if-else collapse with serde recognizing trailing
             // Option
             let (room_id, event_type, state_key): (OwnedRoomId, StateEventType, String) =

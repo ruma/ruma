@@ -9,7 +9,7 @@ mod url;
 use js_int::UInt;
 use ruma_common::{
     serde::{Incoming, StringEnum},
-    RoomId, UserId,
+    OwnedRoomId, RoomId, UserId,
 };
 use serde::Serialize;
 
@@ -99,7 +99,7 @@ pub struct RoomEventFilter<'a> {
     /// If this list is absent then no rooms are excluded. A matching room will be excluded even if
     /// it is listed in the 'rooms' filter.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub not_rooms: &'a [Box<RoomId>],
+    pub not_rooms: &'a [OwnedRoomId],
 
     /// The maximum number of events to return.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -109,7 +109,7 @@ pub struct RoomEventFilter<'a> {
     ///
     /// If this list is absent then all rooms are included.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub rooms: Option<&'a [Box<RoomId>]>,
+    pub rooms: Option<&'a [OwnedRoomId]>,
 
     /// A list of sender IDs to exclude.
     ///

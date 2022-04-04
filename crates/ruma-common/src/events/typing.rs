@@ -5,7 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::UserId;
+use crate::OwnedUserId;
 
 /// The content of an `m.typing` event.
 ///
@@ -15,12 +15,12 @@ use crate::UserId;
 #[ruma_event(type = "m.typing", kind = EphemeralRoom)]
 pub struct TypingEventContent {
     /// The list of user IDs typing in this room, if any.
-    pub user_ids: Vec<Box<UserId>>,
+    pub user_ids: Vec<OwnedUserId>,
 }
 
 impl TypingEventContent {
     /// Creates a new `TypingEventContent` with the given user IDs.
-    pub fn new(user_ids: Vec<Box<UserId>>) -> Self {
+    pub fn new(user_ids: Vec<OwnedUserId>) -> Self {
         Self { user_ids }
     }
 }

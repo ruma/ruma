@@ -25,6 +25,7 @@ impl Parse for IdentifierInput {
 
 pub fn expand_id_zst(input: ItemStruct) -> syn::Result<TokenStream> {
     let id = &input.ident;
+    let owned = format_ident!("Owned{}", id);
 
     let owned_decl = expand_owned_id(&input);
 
@@ -115,10 +116,10 @@ pub fn expand_id_zst(input: ItemStruct) -> syn::Result<TokenStream> {
         }
 
         impl #impl_generics ToOwned for #id #ty_generics {
-            type Owned = Box<#id #ty_generics>;
+            type Owned = #owned #ty_generics;
 
             fn to_owned(&self) -> Self::Owned {
-                Self::from_box(self.as_str().into())
+                #owned::from_ref(self)
             }
         }
 
@@ -239,6 +240,17 @@ fn expand_owned_id(input: &ItemStruct) -> TokenStream {
             inner: Box<#id #ty_generics>,
             #[cfg(ruma_identifiers_storage = "Arc")]
             inner: std::sync::Arc<#id #ty_generics>,
+        }
+
+        impl #impl_generics #owned #ty_generics {
+            fn from_ref(v: &#id #ty_generics) -> Self {
+                Self {
+                    #[cfg(not(any(ruma_identifiers_storage = "Arc")))]
+                    inner: #id::from_box(v.as_str().into()),
+                    #[cfg(ruma_identifiers_storage = "Arc")]
+                    inner: #id::from_arc(v.as_str().into()),
+                }
+            }
         }
 
         impl #impl_generics AsRef<#id #ty_generics> for #owned #ty_generics {

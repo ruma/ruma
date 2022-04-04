@@ -30,7 +30,8 @@ use ruma_common::{
         },
         RoomEventType, StateEventType,
     },
-    room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, RoomId, RoomVersionId, UserId,
+    room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, RoomVersionId,
+    UserId,
 };
 use ruma_state_res::{self as state_res, Error, Event, Result, StateMap};
 use serde_json::{
@@ -157,7 +158,7 @@ criterion_main!(benches);
 //  IMPLEMENTATION DETAILS AHEAD
 //
 /////////////////////////////////////////////////////////////////////*/
-struct TestStore<E: Event>(HashMap<Box<EventId>, Arc<E>>);
+struct TestStore<E: Event>(HashMap<OwnedEventId, Arc<E>>);
 
 #[allow(unused)]
 impl<E: Event> TestStore<E> {
@@ -230,7 +231,7 @@ impl TestStore<PduEvent> {
     #[allow(clippy::type_complexity)]
     fn set_up(
         &mut self,
-    ) -> (StateMap<Box<EventId>>, StateMap<Box<EventId>>, StateMap<Box<EventId>>) {
+    ) -> (StateMap<OwnedEventId>, StateMap<OwnedEventId>, StateMap<OwnedEventId>) {
         let create_event = to_pdu_event::<&EventId>(
             "CREATE",
             alice(),
@@ -314,27 +315,27 @@ impl TestStore<PduEvent> {
     }
 }
 
-fn event_id(id: &str) -> Box<EventId> {
+fn event_id(id: &str) -> OwnedEventId {
     if id.contains('$') {
         return id.try_into().unwrap();
     }
     format!("${}:foo", id).try_into().unwrap()
 }
 
-fn alice() -> Box<UserId> {
-    user_id!("@alice:foo").to_owned()
+fn alice() -> &'static UserId {
+    user_id!("@alice:foo")
 }
 
-fn bob() -> Box<UserId> {
-    user_id!("@bob:foo").to_owned()
+fn bob() -> &'static UserId {
+    user_id!("@bob:foo")
 }
 
-fn charlie() -> Box<UserId> {
-    user_id!("@charlie:foo").to_owned()
+fn charlie() -> &'static UserId {
+    user_id!("@charlie:foo")
 }
 
-fn ella() -> Box<UserId> {
-    user_id!("@ella:foo").to_owned()
+fn ella() -> &'static UserId {
+    user_id!("@ella:foo")
 }
 
 fn room_id() -> &'static RoomId {
@@ -351,7 +352,7 @@ fn member_content_join() -> Box<RawJsonValue> {
 
 fn to_pdu_event<S>(
     id: &str,
-    sender: Box<UserId>,
+    sender: &UserId,
     ev_type: RoomEventType,
     state_key: Option<&str>,
     content: Box<RawJsonValue>,
@@ -373,7 +374,7 @@ where
         event_id: id.try_into().unwrap(),
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
             room_id: room_id().to_owned(),
-            sender,
+            sender: sender.to_owned(),
             origin_server_ts: MilliSecondsSinceUnixEpoch(ts.try_into().unwrap()),
             state_key,
             kind: ev_type,
@@ -391,7 +392,7 @@ where
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<PduEvent>> {
+fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
     vec![
         to_pdu_event::<&EventId>(
             "CREATE",
@@ -406,7 +407,7 @@ fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<PduEvent>> {
             "IMA",
             alice(),
             RoomEventType::RoomMember,
-            Some(alice().to_string().as_str()),
+            Some(alice().as_str()),
             member_content_join(),
             &["CREATE"],
             &["CREATE"],
@@ -416,7 +417,7 @@ fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<PduEvent>> {
             alice(),
             RoomEventType::RoomPowerLevels,
             Some(""),
-            to_raw_json_value(&json!({ "users": { alice().to_string(): 100 } })).unwrap(),
+            to_raw_json_value(&json!({ "users": { alice(): 100 } })).unwrap(),
             &["CREATE", "IMA"],
             &["IMA"],
         ),
@@ -473,7 +474,7 @@ fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<PduEvent>> {
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn BAN_STATE_SET() -> HashMap<Box<EventId>, Arc<PduEvent>> {
+fn BAN_STATE_SET() -> HashMap<OwnedEventId, Arc<PduEvent>> {
     vec![
         to_pdu_event(
             "PA",
@@ -531,14 +532,14 @@ impl EventTypeExt for &RoomEventType {
 mod event {
     use ruma_common::{
         events::{pdu::Pdu, RoomEventType},
-        EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId,
+        MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, UserId,
     };
     use ruma_state_res::Event;
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
 
     impl Event for PduEvent {
-        type Id = Box<EventId>;
+        type Id = OwnedEventId;
 
         fn event_id(&self) -> &Self::Id {
             &self.event_id
@@ -628,7 +629,7 @@ mod event {
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct PduEvent {
-        pub event_id: Box<EventId>,
+        pub event_id: OwnedEventId,
         #[serde(flatten)]
         pub rest: Pdu,
     }

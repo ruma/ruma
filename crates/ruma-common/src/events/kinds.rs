@@ -13,7 +13,8 @@ use super::{
     StateUnsigned, ToDeviceEventContent,
 };
 use crate::{
-    serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, RoomId, RoomVersionId, UserId,
+    serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
+    OwnedUserId, RoomId, RoomVersionId, UserId,
 };
 
 /// A global account data event.
@@ -37,7 +38,7 @@ pub struct EphemeralRoomEvent<C: EphemeralRoomEventContent> {
     pub content: C,
 
     /// The ID of the room associated with this event.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 }
 
 /// An ephemeral room event without a `room_id`.
@@ -57,16 +58,16 @@ pub struct OriginalMessageLikeEvent<C: MessageLikeEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: MessageLikeUnsigned,
@@ -82,10 +83,10 @@ pub struct OriginalSyncMessageLikeEvent<C: MessageLikeEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -104,16 +105,16 @@ pub struct RedactedMessageLikeEvent<C: RedactedMessageLikeEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: RedactedUnsigned,
@@ -129,10 +130,10 @@ pub struct RedactedSyncMessageLikeEvent<C: RedactedMessageLikeEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -187,16 +188,16 @@ pub struct OriginalStateEvent<C: StateEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
@@ -218,10 +219,10 @@ pub struct OriginalSyncStateEvent<C: StateEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -243,7 +244,7 @@ pub struct StrippedStateEvent<C: StateEventContent> {
     pub content: C,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
@@ -278,16 +279,16 @@ pub struct RedactedStateEvent<C: RedactedStateEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
@@ -309,10 +310,10 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -370,7 +371,7 @@ pub struct ToDeviceEvent<C: ToDeviceEventContent> {
     pub content: C,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 }
 
 /// The decrypted payload of an `m.olm.v1.curve25519-aes-sha2` event.
@@ -380,10 +381,10 @@ pub struct DecryptedOlmV1Event<C: MessageLikeEventContent> {
     pub content: C,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// The fully-qualified ID of the intended recipient this event.
-    pub recipient: Box<UserId>,
+    pub recipient: OwnedUserId,
 
     /// The recipient's ed25519 key.
     pub recipient_keys: OlmV1Keys,
@@ -406,7 +407,7 @@ pub struct DecryptedMegolmV1Event<C: MessageLikeEventContent> {
     pub content: C,
 
     /// The ID of the room associated with the event.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 }
 
 macro_rules! impl_possibly_redacted_event {
@@ -517,7 +518,7 @@ impl_possibly_redacted_event!(SyncMessageLikeEvent(MessageLikeEventContent, Mess
     }
 
     /// Convert this sync event into a full event (one with a `room_id` field).
-    pub fn into_full_event(self, room_id: Box<RoomId>) -> MessageLikeEvent<C> {
+    pub fn into_full_event(self, room_id: OwnedRoomId) -> MessageLikeEvent<C> {
         match self {
             Self::Original(ev) => MessageLikeEvent::Original(ev.into_full_event(room_id)),
             Self::Redacted(ev) => MessageLikeEvent::Redacted(ev.into_full_event(room_id)),
@@ -569,7 +570,7 @@ impl_possibly_redacted_event!(SyncStateEvent(StateEventContent, StateEventType) 
     }
 
     /// Convert this sync event into a full event (one with a `room_id` field).
-    pub fn into_full_event(self, room_id: Box<RoomId>) -> StateEvent<C> {
+    pub fn into_full_event(self, room_id: OwnedRoomId) -> StateEvent<C> {
         match self {
             Self::Original(ev) => StateEvent::Original(ev.into_full_event(room_id)),
             Self::Redacted(ev) => StateEvent::Redacted(ev.into_full_event(room_id)),

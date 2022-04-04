@@ -63,7 +63,7 @@ mod tests {
     #[test]
     fn create_device_id_from_box() {
         let box_str: Box<str> = "ijklmnop".into();
-        let device_id: Box<DeviceId> = DeviceId::from_box(box_str);
+        let device_id: Box<DeviceId> = box_str.into();
         assert_eq!(device_id.as_str(), "ijklmnop");
     }
 }

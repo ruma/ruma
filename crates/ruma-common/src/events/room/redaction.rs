@@ -12,7 +12,7 @@ use crate::{
         RedactedUnsigned, RedactionDeHelper,
     },
     serde::from_raw_json_value,
-    EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId, UserId,
 };
 
 /// A possibly-redacted redaction event.
@@ -47,19 +47,19 @@ pub struct OriginalRoomRedactionEvent {
     pub content: RoomRedactionEventContent,
 
     /// The ID of the event that was redacted.
-    pub redacts: Box<EventId>,
+    pub redacts: OwnedEventId,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: MessageLikeUnsigned,
@@ -92,16 +92,16 @@ pub struct RedactedRoomRedactionEvent {
     pub content: RedactedRoomRedactionEventContent,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: RedactedUnsigned,
@@ -115,13 +115,13 @@ pub struct OriginalSyncRoomRedactionEvent {
     pub content: RoomRedactionEventContent,
 
     /// The ID of the event that was redacted.
-    pub redacts: Box<EventId>,
+    pub redacts: OwnedEventId,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -156,10 +156,10 @@ pub struct RedactedSyncRoomRedactionEvent {
     pub content: RedactedRoomRedactionEventContent,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -309,7 +309,7 @@ impl SyncRoomRedactionEvent {
     }
 
     /// Convert this sync event into a full event (one with a `room_id` field).
-    pub fn into_full_event(self, room_id: Box<RoomId>) -> RoomRedactionEvent {
+    pub fn into_full_event(self, room_id: OwnedRoomId) -> RoomRedactionEvent {
         match self {
             Self::Original(ev) => RoomRedactionEvent::Original(ev.into_full_event(room_id)),
             Self::Redacted(ev) => RoomRedactionEvent::Redacted(ev.into_full_event(room_id)),

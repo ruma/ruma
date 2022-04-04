@@ -14,7 +14,7 @@ use super::{
         ImageInfo, MediaSource, ThumbnailInfo,
     },
 };
-use crate::MxcUri;
+use crate::OwnedMxcUri;
 
 /// The payload for an extensible image message.
 ///
@@ -213,7 +213,7 @@ impl ThumbnailContent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ThumbnailFileContent {
     /// The URL to the thumbnail.
-    pub url: Box<MxcUri>,
+    pub url: OwnedMxcUri,
 
     /// Information about the uploaded thumbnail.
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
@@ -228,14 +228,14 @@ pub struct ThumbnailFileContent {
 
 impl ThumbnailFileContent {
     /// Creates a new non-encrypted `ThumbnailFileContent` with the given url and file info.
-    pub fn plain(url: Box<MxcUri>, info: Option<Box<ThumbnailFileContentInfo>>) -> Self {
+    pub fn plain(url: OwnedMxcUri, info: Option<Box<ThumbnailFileContentInfo>>) -> Self {
         Self { url, info, encryption_info: None }
     }
 
     /// Creates a new encrypted `ThumbnailFileContent` with the given url, encryption info and
     /// thumbnail file info.
     pub fn encrypted(
-        url: Box<MxcUri>,
+        url: OwnedMxcUri,
         encryption_info: EncryptedContent,
         info: Option<Box<ThumbnailFileContentInfo>>,
     ) -> Self {

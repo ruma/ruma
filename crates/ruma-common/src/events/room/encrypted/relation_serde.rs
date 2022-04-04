@@ -8,7 +8,7 @@ use super::Replacement;
 use super::Thread;
 use super::{InReplyTo, Reference, Relation};
 #[cfg(feature = "unstable-msc3440")]
-use crate::EventId;
+use crate::OwnedEventId;
 
 impl<'de> Deserialize<'de> for Relation {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -126,7 +126,7 @@ impl RelatesToJsonRepr {
 #[cfg(feature = "unstable-msc3440")]
 struct ThreadStableJsonRepr {
     /// The ID of the root message in the thread.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// Whether the `m.in_reply_to` field is a fallback for older clients or a real reply in a
     /// thread.
@@ -139,7 +139,7 @@ struct ThreadStableJsonRepr {
 #[cfg(feature = "unstable-msc3440")]
 struct ThreadUnstableJsonRepr {
     /// The ID of the root message in the thread.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// Whether the `m.in_reply_to` field is a fallback for older clients or a real reply in a
     /// thread.

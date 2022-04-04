@@ -667,7 +667,7 @@ mod tests {
             room::join_rules::{JoinRule, RoomJoinRulesEventContent},
             RoomEventType, StateEventType,
         },
-        EventId, MilliSecondsSinceUnixEpoch, RoomVersionId,
+        MilliSecondsSinceUnixEpoch, OwnedEventId, RoomVersionId,
     };
     use serde_json::{json, value::to_raw_value as to_raw_json_value};
     use tracing::debug;
@@ -692,7 +692,7 @@ mod tests {
             .map(|ev| (ev.event_type().with_state_key(ev.state_key().unwrap()), ev.clone()))
             .collect::<StateMap<_>>();
 
-        let auth_chain: HashSet<Box<EventId>> = HashSet::new();
+        let auth_chain: HashSet<OwnedEventId> = HashSet::new();
 
         let power_events = event_map
             .values()
@@ -1222,7 +1222,7 @@ mod tests {
     }
 
     #[allow(non_snake_case)]
-    fn BAN_STATE_SET() -> HashMap<Box<EventId>, Arc<PduEvent>> {
+    fn BAN_STATE_SET() -> HashMap<OwnedEventId, Arc<PduEvent>> {
         vec![
             to_pdu_event(
                 "PA",
@@ -1267,7 +1267,7 @@ mod tests {
     }
 
     #[allow(non_snake_case)]
-    fn JOIN_RULE() -> HashMap<Box<EventId>, Arc<PduEvent>> {
+    fn JOIN_RULE() -> HashMap<OwnedEventId, Arc<PduEvent>> {
         vec![
             to_pdu_event(
                 "JR",

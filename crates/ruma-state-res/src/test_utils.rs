@@ -19,7 +19,8 @@ use ruma_common::{
         },
         RoomEventType,
     },
-    room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, RoomId, RoomVersionId, UserId,
+    room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, RoomVersionId,
+    UserId,
 };
 use serde_json::{
     json,
@@ -35,8 +36,8 @@ static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 
 pub fn do_check(
     events: &[Arc<PduEvent>],
-    edges: Vec<Vec<Box<EventId>>>,
-    expected_state_ids: Vec<Box<EventId>>,
+    edges: Vec<Vec<OwnedEventId>>,
+    expected_state_ids: Vec<OwnedEventId>,
 ) {
     // To activate logging use `RUST_LOG=debug cargo t`
 
@@ -76,10 +77,10 @@ pub fn do_check(
         }
     }
 
-    // event_id -> OriginalStateEvent
-    let mut event_map: HashMap<Box<EventId>, Arc<PduEvent>> = HashMap::new();
-    // event_id -> StateMap<Box<EventId>>
-    let mut state_at_event: HashMap<Box<EventId>, StateMap<Box<EventId>>> = HashMap::new();
+    // event_id -> PduEvent
+    let mut event_map: HashMap<OwnedEventId, Arc<PduEvent>> = HashMap::new();
+    // event_id -> StateMap<OwnedEventId>
+    let mut state_at_event: HashMap<OwnedEventId, StateMap<OwnedEventId>> = HashMap::new();
 
     // Resolve the current state and add it to the state_at_event map then continue
     // on in "time"
@@ -93,7 +94,7 @@ pub fn do_check(
 
         let prev_events = graph.get(&node).unwrap();
 
-        let state_before: StateMap<Box<EventId>> = if prev_events.is_empty() {
+        let state_before: StateMap<OwnedEventId> = if prev_events.is_empty() {
             HashMap::new()
         } else if prev_events.len() == 1 {
             state_at_event.get(prev_events.iter().next().unwrap()).unwrap().clone()
@@ -155,7 +156,7 @@ pub fn do_check(
         let ev_id = e.event_id();
         let event = to_pdu_event(
             e.event_id().as_str(),
-            e.sender().to_owned(),
+            e.sender(),
             e.event_type().clone(),
             e.state_key(),
             e.content().to_owned(),
@@ -201,13 +202,13 @@ pub fn do_check(
                 && **k != ("m.room.message".into(), "dummy".to_owned())
         })
         .map(|(k, v)| (k.clone(), v.clone()))
-        .collect::<StateMap<Box<EventId>>>();
+        .collect::<StateMap<OwnedEventId>>();
 
     assert_eq!(expected_state, end_state);
 }
 
 #[allow(clippy::exhaustive_structs)]
-pub struct TestStore<E: Event>(pub HashMap<Box<EventId>, Arc<E>>);
+pub struct TestStore<E: Event>(pub HashMap<OwnedEventId, Arc<E>>);
 
 impl<E: Event> TestStore<E> {
     pub fn get_event(&self, _: &RoomId, event_id: &EventId) -> Result<Arc<E>> {
@@ -248,7 +249,7 @@ impl<E: Event> TestStore<E> {
 impl TestStore<PduEvent> {
     pub fn set_up(
         &mut self,
-    ) -> (StateMap<Box<EventId>>, StateMap<Box<EventId>>, StateMap<Box<EventId>>) {
+    ) -> (StateMap<OwnedEventId>, StateMap<OwnedEventId>, StateMap<OwnedEventId>) {
         let create_event = to_pdu_event::<&EventId>(
             "CREATE",
             alice(),
@@ -265,7 +266,7 @@ impl TestStore<PduEvent> {
             "IMA",
             alice(),
             RoomEventType::RoomMember,
-            Some(alice().to_string().as_str()),
+            Some(alice().as_str()),
             member_content_join(),
             &[cre.clone()],
             &[cre.clone()],
@@ -289,7 +290,7 @@ impl TestStore<PduEvent> {
             "IMB",
             bob(),
             RoomEventType::RoomMember,
-            Some(bob().to_string().as_str()),
+            Some(bob().as_str()),
             member_content_join(),
             &[cre.clone(), join_rules.event_id().to_owned()],
             &[join_rules.event_id().to_owned()],
@@ -300,7 +301,7 @@ impl TestStore<PduEvent> {
             "IMC",
             charlie(),
             RoomEventType::RoomMember,
-            Some(charlie().to_string().as_str()),
+            Some(charlie().as_str()),
             member_content_join(),
             &[cre, join_rules.event_id().to_owned()],
             &[join_rules.event_id().to_owned()],
@@ -332,7 +333,7 @@ impl TestStore<PduEvent> {
     }
 }
 
-pub fn event_id(id: &str) -> Box<EventId> {
+pub fn event_id(id: &str) -> OwnedEventId {
     if id.contains('$') {
         return id.try_into().unwrap();
     }
@@ -340,24 +341,24 @@ pub fn event_id(id: &str) -> Box<EventId> {
     format!("${}:foo", id).try_into().unwrap()
 }
 
-pub fn alice() -> Box<UserId> {
-    user_id!("@alice:foo").to_owned()
+pub fn alice() -> &'static UserId {
+    user_id!("@alice:foo")
 }
 
-pub fn bob() -> Box<UserId> {
-    user_id!("@bob:foo").to_owned()
+pub fn bob() -> &'static UserId {
+    user_id!("@bob:foo")
 }
 
-pub fn charlie() -> Box<UserId> {
-    user_id!("@charlie:foo").to_owned()
+pub fn charlie() -> &'static UserId {
+    user_id!("@charlie:foo")
 }
 
-pub fn ella() -> Box<UserId> {
-    user_id!("@ella:foo").to_owned()
+pub fn ella() -> &'static UserId {
+    user_id!("@ella:foo")
 }
 
-pub fn zara() -> Box<UserId> {
-    user_id!("@zara:foo").to_owned()
+pub fn zara() -> &'static UserId {
+    user_id!("@zara:foo")
 }
 
 pub fn room_id() -> &'static RoomId {
@@ -374,7 +375,7 @@ pub fn member_content_join() -> Box<RawJsonValue> {
 
 pub fn to_init_pdu_event(
     id: &str,
-    sender: Box<UserId>,
+    sender: &UserId,
     ev_type: RoomEventType,
     state_key: Option<&str>,
     content: Box<RawJsonValue>,
@@ -387,7 +388,7 @@ pub fn to_init_pdu_event(
         event_id: id.try_into().unwrap(),
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
             room_id: room_id().to_owned(),
-            sender,
+            sender: sender.to_owned(),
             origin_server_ts: MilliSecondsSinceUnixEpoch(ts.try_into().unwrap()),
             state_key,
             kind: ev_type,
@@ -405,7 +406,7 @@ pub fn to_init_pdu_event(
 
 pub fn to_pdu_event<S>(
     id: &str,
-    sender: Box<UserId>,
+    sender: &UserId,
     ev_type: RoomEventType,
     state_key: Option<&str>,
     content: Box<RawJsonValue>,
@@ -425,7 +426,7 @@ where
         event_id: id.try_into().unwrap(),
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
             room_id: room_id().to_owned(),
-            sender,
+            sender: sender.to_owned(),
             origin_server_ts: MilliSecondsSinceUnixEpoch(ts.try_into().unwrap()),
             state_key,
             kind: ev_type,
@@ -443,7 +444,7 @@ where
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<PduEvent>> {
+pub fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
     vec![
         to_pdu_event::<&EventId>(
             "CREATE",
@@ -458,7 +459,7 @@ pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<PduEvent>> {
             "IMA",
             alice(),
             RoomEventType::RoomMember,
-            Some(alice().to_string().as_str()),
+            Some(alice().as_str()),
             member_content_join(),
             &["CREATE"],
             &["CREATE"],
@@ -468,7 +469,7 @@ pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<PduEvent>> {
             alice(),
             RoomEventType::RoomPowerLevels,
             Some(""),
-            to_raw_json_value(&json!({ "users": { alice().to_string(): 100 } })).unwrap(),
+            to_raw_json_value(&json!({ "users": { alice(): 100 } })).unwrap(),
             &["CREATE", "IMA"],
             &["IMA"],
         ),
@@ -485,7 +486,7 @@ pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<PduEvent>> {
             "IMB",
             bob(),
             RoomEventType::RoomMember,
-            Some(bob().to_string().as_str()),
+            Some(bob().as_str()),
             member_content_join(),
             &["CREATE", "IJR", "IPOWER"],
             &["IJR"],
@@ -494,7 +495,7 @@ pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<PduEvent>> {
             "IMC",
             charlie(),
             RoomEventType::RoomMember,
-            Some(charlie().to_string().as_str()),
+            Some(charlie().as_str()),
             member_content_join(),
             &["CREATE", "IJR", "IPOWER"],
             &["IMB"],
@@ -525,7 +526,7 @@ pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<PduEvent>> {
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-pub fn INITIAL_EVENTS_CREATE_ROOM() -> HashMap<Box<EventId>, Arc<PduEvent>> {
+pub fn INITIAL_EVENTS_CREATE_ROOM() -> HashMap<OwnedEventId, Arc<PduEvent>> {
     vec![to_pdu_event::<&EventId>(
         "CREATE",
         alice(),
@@ -541,7 +542,7 @@ pub fn INITIAL_EVENTS_CREATE_ROOM() -> HashMap<Box<EventId>, Arc<PduEvent>> {
 }
 
 #[allow(non_snake_case)]
-pub fn INITIAL_EDGES() -> Vec<Box<EventId>> {
+pub fn INITIAL_EDGES() -> Vec<OwnedEventId> {
     vec!["START", "IMC", "IMB", "IJR", "IPOWER", "IMA", "CREATE"]
         .into_iter()
         .map(event_id)
@@ -551,7 +552,7 @@ pub fn INITIAL_EDGES() -> Vec<Box<EventId>> {
 pub mod event {
     use ruma_common::{
         events::{pdu::Pdu, RoomEventType},
-        EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId,
+        MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, UserId,
     };
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
@@ -559,7 +560,7 @@ pub mod event {
     use crate::Event;
 
     impl Event for PduEvent {
-        type Id = Box<EventId>;
+        type Id = OwnedEventId;
 
         fn event_id(&self) -> &Self::Id {
             &self.event_id
@@ -650,7 +651,7 @@ pub mod event {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     #[allow(clippy::exhaustive_structs)]
     pub struct PduEvent {
-        pub event_id: Box<EventId>,
+        pub event_id: OwnedEventId,
         #[serde(flatten)]
         pub rest: Pdu,
     }
