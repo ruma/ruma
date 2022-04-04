@@ -1,5 +1,14 @@
 # [unreleased]
 
+Breaking changes:
+
+* Rename `status` to `discovery`
+
+Improvements:
+
+* Add `room_type` to `store_invitation::Request` according to MSC3288
+* Add `discovery::get_supported_versions` according to MSC2320
+
 # 0.4.0
 
 Breaking changes:
