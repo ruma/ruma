@@ -5,7 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::ServerName;
+use crate::OwnedServerName;
 
 /// The content of an `m.space.parent` event.
 ///
@@ -20,7 +20,7 @@ use crate::ServerName;
 pub struct SpaceParentEventContent {
     /// List of candidate servers that can be used to join the room.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub via: Option<Vec<Box<ServerName>>>,
+    pub via: Option<Vec<OwnedServerName>>,
 
     /// Determines whether this is the main parent for the space.
     ///

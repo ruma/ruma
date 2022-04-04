@@ -8,8 +8,8 @@ use super::{
     Redact,
 };
 use crate::{
-    serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, RoomId, RoomVersionId,
-    TransactionId, UserId,
+    serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, RoomId,
+    RoomVersionId, TransactionId, UserId,
 };
 
 event_enum! {
@@ -191,7 +191,7 @@ impl AnySyncRoomEvent {
     }
 
     /// Converts `self` to an `AnyRoomEvent` by adding the given a room ID.
-    pub fn into_full_event(self, room_id: Box<RoomId>) -> AnyRoomEvent {
+    pub fn into_full_event(self, room_id: OwnedRoomId) -> AnyRoomEvent {
         match self {
             Self::MessageLike(ev) => AnyRoomEvent::MessageLike(ev.into_full_event(room_id)),
             Self::State(ev) => AnyRoomEvent::State(ev.into_full_event(room_id)),

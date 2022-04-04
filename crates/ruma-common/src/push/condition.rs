@@ -6,7 +6,7 @@ use serde_json::{to_value as to_json_value, value::Value as JsonValue};
 use tracing::{instrument, warn};
 use wildmatch::WildMatch;
 
-use crate::{power_levels::NotificationPowerLevels, serde::Raw, RoomId, UserId};
+use crate::{power_levels::NotificationPowerLevels, serde::Raw, OwnedRoomId, OwnedUserId, UserId};
 
 mod room_member_count_is;
 
@@ -114,7 +114,7 @@ impl PushCondition {
 #[allow(clippy::exhaustive_structs)]
 pub struct PushConditionRoomCtx {
     /// The ID of the room.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// The number of members in the room.
     pub member_count: UInt,
@@ -123,7 +123,7 @@ pub struct PushConditionRoomCtx {
     pub user_display_name: String,
 
     /// The power levels of the users of the room.
-    pub users_power_levels: BTreeMap<Box<UserId>, Int>,
+    pub users_power_levels: BTreeMap<OwnedUserId, Int>,
 
     /// The default power level of the users of the room.
     pub default_power_level: Int,

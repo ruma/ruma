@@ -45,10 +45,10 @@ mod tests {
 
         let event = OriginalStateEvent {
             content: content.clone(),
-            event_id: EventId::new(server_name),
+            event_id: EventId::new(server_name).into(),
             origin_server_ts: MilliSecondsSinceUnixEpoch(1_432_804_485_886_u64.try_into().unwrap()),
-            room_id: RoomId::new(server_name),
-            sender: UserId::new(server_name),
+            room_id: RoomId::new(server_name).into(),
+            sender: UserId::new(server_name).into(),
             state_key: "".into(),
             unsigned: StateUnsigned::default(),
         };

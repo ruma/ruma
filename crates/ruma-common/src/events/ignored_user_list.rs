@@ -5,7 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::UserId;
+use crate::OwnedUserId;
 
 /// The content of an `m.ignored_user_list` event.
 ///
@@ -16,12 +16,12 @@ use crate::UserId;
 pub struct IgnoredUserListEventContent {
     /// A list of users to ignore.
     #[serde(with = "crate::serde::vec_as_map_of_empty")]
-    pub ignored_users: Vec<Box<UserId>>,
+    pub ignored_users: Vec<OwnedUserId>,
 }
 
 impl IgnoredUserListEventContent {
     /// Creates a new `IgnoredUserListEventContent` from the given user IDs.
-    pub fn new(ignored_users: Vec<Box<UserId>>) -> Self {
+    pub fn new(ignored_users: Vec<OwnedUserId>) -> Self {
         Self { ignored_users }
     }
 }

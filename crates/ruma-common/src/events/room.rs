@@ -14,9 +14,11 @@ use super::{
     file::FileContentInfo,
     image::{ImageContent, ThumbnailContent, ThumbnailFileContent, ThumbnailFileContentInfo},
 };
+#[cfg(feature = "unstable-msc3551")]
+use crate::MxcUri;
 use crate::{
     serde::{base64::UrlSafe, Base64},
-    MxcUri,
+    OwnedMxcUri,
 };
 
 pub mod aliases;
@@ -46,7 +48,7 @@ pub mod topic;
 pub enum MediaSource {
     /// The MXC URI to the unencrypted media file.
     #[serde(rename = "url")]
-    Plain(Box<MxcUri>),
+    Plain(OwnedMxcUri),
 
     /// The encryption info of the encrypted media file.
     #[serde(rename = "file")]
@@ -64,7 +66,7 @@ impl<'de> Deserialize<'de> for MediaSource {
     {
         #[derive(Deserialize)]
         pub struct MediaSourceJsonRepr {
-            url: Option<Box<MxcUri>>,
+            url: Option<OwnedMxcUri>,
             file: Option<Box<EncryptedFile>>,
         }
 
@@ -243,7 +245,7 @@ impl ThumbnailInfo {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct EncryptedFile {
     /// The URL to the file.
-    pub url: Box<MxcUri>,
+    pub url: OwnedMxcUri,
 
     /// A [JSON Web Key](https://tools.ietf.org/html/rfc7517#appendix-A.3) object.
     pub key: JsonWebKey,
@@ -279,7 +281,7 @@ impl EncryptedFile {
 #[allow(clippy::exhaustive_structs)]
 pub struct EncryptedFileInit {
     /// The URL to the file.
-    pub url: Box<MxcUri>,
+    pub url: OwnedMxcUri,
 
     /// A [JSON Web Key](https://tools.ietf.org/html/rfc7517#appendix-A.3) object.
     pub key: JsonWebKey,
@@ -384,7 +386,7 @@ mod tests {
     use serde::Deserialize;
     use serde_json::{from_value as from_json_value, json};
 
-    use crate::serde::Base64;
+    use crate::{mxc_uri, serde::Base64};
 
     use super::{EncryptedFile, JsonWebKey, MediaSource};
 
@@ -408,7 +410,7 @@ mod tests {
 
     fn encrypted_file() -> EncryptedFile {
         EncryptedFile {
-            url: "mxc://localhost/encrypted_file".into(),
+            url: mxc_uri!("mxc://localhost/encryptedfile").to_owned(),
             key: dummy_jwt(),
             iv: Base64::new(vec![0; 64]),
             hashes: BTreeMap::new(),

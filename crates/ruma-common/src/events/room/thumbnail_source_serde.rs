@@ -5,7 +5,7 @@ use serde::{
     Deserialize, Deserializer,
 };
 
-use crate::MxcUri;
+use crate::OwnedMxcUri;
 
 use super::{EncryptedFile, MediaSource};
 
@@ -33,7 +33,7 @@ where
 {
     #[derive(Deserialize)]
     pub struct ThumbnailSourceJsonRepr {
-        thumbnail_url: Option<Box<MxcUri>>,
+        thumbnail_url: Option<OwnedMxcUri>,
         thumbnail_file: Option<Box<EncryptedFile>>,
     }
 

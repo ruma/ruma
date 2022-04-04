@@ -8,7 +8,7 @@ use super::RoomMessageEventContent;
 use super::Thread;
 use super::{InReplyTo, Relation};
 #[cfg(any(feature = "unstable-msc2676", feature = "unstable-msc3440"))]
-use crate::EventId;
+use crate::OwnedEventId;
 
 impl<'de> Deserialize<'de> for Relation {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -165,7 +165,7 @@ enum RelationJsonRepr {
 #[derive(Clone, Deserialize, Serialize)]
 #[cfg(feature = "unstable-msc2676")]
 struct ReplacementJsonRepr {
-    event_id: Box<EventId>,
+    event_id: OwnedEventId,
 }
 
 /// A thread relation without the reply fallback, with stable names.
@@ -173,7 +173,7 @@ struct ReplacementJsonRepr {
 #[cfg(feature = "unstable-msc3440")]
 struct ThreadStableJsonRepr {
     /// The ID of the root message in the thread.
-    event_id: Box<EventId>,
+    event_id: OwnedEventId,
 
     /// Whether the `m.in_reply_to` field is a fallback for older clients or a real reply in a
     /// thread.
@@ -186,7 +186,7 @@ struct ThreadStableJsonRepr {
 #[cfg(feature = "unstable-msc3440")]
 struct ThreadUnstableJsonRepr {
     /// The ID of the root message in the thread.
-    event_id: Box<EventId>,
+    event_id: OwnedEventId,
 
     /// Whether the `m.in_reply_to` field is a fallback for older clients or a real reply in a
     /// thread.

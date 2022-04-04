@@ -9,7 +9,7 @@ use ruma_identifiers_validation::{
 };
 use url::Url;
 
-use super::{EventId, RoomAliasId, RoomId, RoomOrAliasId, ServerName, UserId};
+use super::{EventId, OwnedServerName, RoomAliasId, RoomId, RoomOrAliasId, ServerName, UserId};
 use crate::PrivOwnedStr;
 
 const MATRIX_TO_BASE_URL: &str = "https://matrix.to/#/";
@@ -239,7 +239,7 @@ impl From<(&RoomAliasId, &EventId)> for MatrixId {
 #[derive(Debug, PartialEq, Eq)]
 pub struct MatrixToUri {
     id: MatrixId,
-    via: Vec<Box<ServerName>>,
+    via: Vec<OwnedServerName>,
 }
 
 impl MatrixToUri {
@@ -253,7 +253,7 @@ impl MatrixToUri {
     }
 
     /// Matrix servers usable to route a `RoomId`.
-    pub fn via(&self) -> &[Box<ServerName>] {
+    pub fn via(&self) -> &[OwnedServerName] {
         &self.via
     }
 
@@ -272,7 +272,7 @@ impl MatrixToUri {
 
         for (key, value) in url.query_pairs() {
             if key.as_ref() == "via" {
-                via.push(ServerName::parse(value)?);
+                via.push(value.parse()?);
             } else {
                 return Err(MatrixToError::UnknownArgument.into());
             }
@@ -399,7 +399,7 @@ impl From<Box<str>> for UriAction {
 #[derive(Debug, PartialEq, Eq)]
 pub struct MatrixUri {
     id: MatrixId,
-    via: Vec<Box<ServerName>>,
+    via: Vec<OwnedServerName>,
     action: Option<UriAction>,
 }
 
@@ -414,7 +414,7 @@ impl MatrixUri {
     }
 
     /// Matrix servers usable to route a `RoomId`.
-    pub fn via(&self) -> &[Box<ServerName>] {
+    pub fn via(&self) -> &[OwnedServerName] {
         &self.via
     }
 
@@ -438,7 +438,7 @@ impl MatrixUri {
 
         for (key, value) in url.query_pairs() {
             if key.as_ref() == "via" {
-                via.push(ServerName::parse(value)?);
+                via.push(value.parse()?);
             } else if key.as_ref() == "action" {
                 if action.is_some() {
                     return Err(MatrixUriError::TooManyActions.into());

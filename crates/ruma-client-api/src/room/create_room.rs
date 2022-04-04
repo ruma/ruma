@@ -17,7 +17,7 @@ pub mod v3 {
         },
         room::RoomType,
         serde::{Raw, StringEnum},
-        RoomId, RoomName, RoomVersionId, UserId,
+        OwnedUserId, RoomId, RoomName, RoomVersionId, UserId,
     };
     use serde::{Deserialize, Serialize};
 
@@ -161,7 +161,7 @@ pub mod v3 {
         /// a `RoomCreateEventContent`.
         pub fn into_event_content(
             self,
-            creator: Box<UserId>,
+            creator: OwnedUserId,
             room_version: RoomVersionId,
         ) -> RoomCreateEventContent {
             assign!(RoomCreateEventContent::new(creator), {

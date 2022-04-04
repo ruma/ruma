@@ -8,7 +8,7 @@ use crate::{
     events::{
         EventContent, HasDeserializeFields, RedactContent, RedactedEventContent, StateEventType,
     },
-    RoomAliasId, RoomVersionId,
+    OwnedRoomAliasId, RoomVersionId,
 };
 
 /// The content of an `m.room.aliases` event.
@@ -19,12 +19,12 @@ use crate::{
 #[ruma_event(type = "m.room.aliases", kind = State, custom_redacted)]
 pub struct RoomAliasesEventContent {
     /// A list of room aliases.
-    pub aliases: Vec<Box<RoomAliasId>>,
+    pub aliases: Vec<OwnedRoomAliasId>,
 }
 
 impl RoomAliasesEventContent {
     /// Create an `RoomAliasesEventContent` from the given aliases.
-    pub fn new(aliases: Vec<Box<RoomAliasId>>) -> Self {
+    pub fn new(aliases: Vec<OwnedRoomAliasId>) -> Self {
         Self { aliases }
     }
 }
@@ -56,14 +56,14 @@ pub struct RedactedRoomAliasesEventContent {
     ///
     /// According to the Matrix spec version 1 redaction rules allowed this field to be
     /// kept after redaction, this was changed in version 6.
-    pub aliases: Option<Vec<Box<RoomAliasId>>>,
+    pub aliases: Option<Vec<OwnedRoomAliasId>>,
 }
 
 impl RedactedRoomAliasesEventContent {
     /// Create a `RedactedAliasesEventContent` with the given aliases.
     ///
     /// This is only valid for room version 5 and below.
-    pub fn new_v1(aliases: Vec<Box<RoomAliasId>>) -> Self {
+    pub fn new_v1(aliases: Vec<OwnedRoomAliasId>) -> Self {
         Self { aliases: Some(aliases) }
     }
 

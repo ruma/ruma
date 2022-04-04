@@ -9,7 +9,9 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::message::{self, InReplyTo};
-use crate::{DeviceId, EventId};
+#[cfg(feature = "unstable-msc2677")]
+use crate::EventId;
+use crate::{DeviceId, OwnedEventId};
 
 mod relation_serde;
 
@@ -138,7 +140,7 @@ impl From<message::Relation> for Relation {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Replacement {
     /// The ID of the event being replacing.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 }
 
 /// A reference to another event.
@@ -146,12 +148,12 @@ pub struct Replacement {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Reference {
     /// The event we are referencing.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 }
 
 impl Reference {
     /// Creates a new `Reference` with the given event ID.
-    pub fn new(event_id: Box<EventId>) -> Self {
+    pub fn new(event_id: OwnedEventId) -> Self {
         Self { event_id }
     }
 }
@@ -182,7 +184,7 @@ impl Annotation {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Thread {
     /// The ID of the root message in the thread.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// A reply relation.
     ///
@@ -203,13 +205,13 @@ pub struct Thread {
 impl Thread {
     /// Convenience method to create a regular `Thread` with the given event ID and latest
     /// message-like event ID.
-    pub fn plain(event_id: Box<EventId>, latest_event_id: Box<EventId>) -> Self {
+    pub fn plain(event_id: OwnedEventId, latest_event_id: OwnedEventId) -> Self {
         Self { event_id, in_reply_to: InReplyTo::new(latest_event_id), is_falling_back: false }
     }
 
     /// Convenience method to create a reply `Thread` with the given event ID and replied-to event
     /// ID.
-    pub fn reply(event_id: Box<EventId>, reply_to_event_id: Box<EventId>) -> Self {
+    pub fn reply(event_id: OwnedEventId, reply_to_event_id: OwnedEventId) -> Self {
         Self { event_id, in_reply_to: InReplyTo::new(reply_to_event_id), is_falling_back: true }
     }
 }

@@ -5,7 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{EventEncryptionAlgorithm, RoomId};
+use crate::{EventEncryptionAlgorithm, OwnedRoomId};
 
 /// The content of an `m.room_key` event.
 ///
@@ -20,7 +20,7 @@ pub struct ToDeviceRoomKeyEventContent {
     pub algorithm: EventEncryptionAlgorithm,
 
     /// The room where the key is used.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// The ID of the session that the key is for.
     pub session_id: String,
@@ -34,7 +34,7 @@ impl ToDeviceRoomKeyEventContent {
     /// and session key.
     pub fn new(
         algorithm: EventEncryptionAlgorithm,
-        room_id: Box<RoomId>,
+        room_id: OwnedRoomId,
         session_id: String,
         session_key: String,
     ) -> Self {

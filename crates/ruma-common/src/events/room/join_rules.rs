@@ -11,7 +11,7 @@ use serde::{
 };
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
-use crate::{serde::from_raw_json_value, PrivOwnedStr, RoomId};
+use crate::{serde::from_raw_json_value, OwnedRoomId, PrivOwnedStr};
 
 /// The content of an `m.room.join_rules` event.
 ///
@@ -179,7 +179,7 @@ pub enum AllowRule {
 
 impl AllowRule {
     /// Constructs an `AllowRule` with membership of the room with the given id as its predicate.
-    pub fn room_membership(room_id: Box<RoomId>) -> Self {
+    pub fn room_membership(room_id: OwnedRoomId) -> Self {
         Self::RoomMembership(RoomMembership::new(room_id))
     }
 }
@@ -189,12 +189,12 @@ impl AllowRule {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomMembership {
     /// The id of the room which being a member of grants permission to join another room.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 }
 
 impl RoomMembership {
     /// Constructs a new room membership rule for the given room id.
-    pub fn new(room_id: Box<RoomId>) -> Self {
+    pub fn new(room_id: OwnedRoomId) -> Self {
         Self { room_id }
     }
 }
