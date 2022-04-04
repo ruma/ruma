@@ -2,6 +2,7 @@
 
 use std::{collections::BTreeMap, convert::TryInto};
 
+use js_int::uint;
 use ruma_common::{
     event_id,
     events::{
@@ -40,7 +41,7 @@ fn serialize_pdu_as_v1() {
             event_id!("$previousevent:matrix.org").to_owned(),
             EventHash::new("123567".into()),
         )],
-        depth: 2_u32.into(),
+        depth: uint!(2),
         auth_events: vec![(
             event_id!("$someauthevent:matrix.org").to_owned(),
             EventHash::new("21389CFEDABC".into()),
@@ -101,7 +102,7 @@ fn serialize_pdu_as_v3() {
         content: to_raw_json_value(&json!({ "testing": 123 })).unwrap(),
         state_key: Some("state".into()),
         prev_events: vec![event_id!("$previousevent:matrix.org").to_owned()],
-        depth: 2_u32.into(),
+        depth: uint!(2),
         auth_events: vec![event_id!("$someauthevent:matrix.org").to_owned()],
         redacts: Some(event_id!("$9654:matrix.org").to_owned()),
         unsigned,

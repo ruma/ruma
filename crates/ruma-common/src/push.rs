@@ -466,7 +466,7 @@ impl PushFormat {
 mod tests {
     use std::collections::BTreeMap;
 
-    use js_int::uint;
+    use js_int::{int, uint};
     use matches::assert_matches;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value,
@@ -966,20 +966,20 @@ mod tests {
 
         let context_one_to_one = &PushConditionRoomCtx {
             room_id: room_id!("!dm:server.name").to_owned(),
-            member_count: 2_u32.into(),
+            member_count: uint!(2),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
-            default_power_level: 50.into(),
-            notification_power_levels: NotificationPowerLevels { room: 50.into() },
+            default_power_level: int!(50),
+            notification_power_levels: NotificationPowerLevels { room: int!(50) },
         };
 
         let context_public_room = &PushConditionRoomCtx {
             room_id: room_id!("!far_west:server.name").to_owned(),
-            member_count: 100_u32.into(),
+            member_count: uint!(100),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
-            default_power_level: 50.into(),
-            notification_power_levels: NotificationPowerLevels { room: 50.into() },
+            default_power_level: int!(50),
+            notification_power_levels: NotificationPowerLevels { room: int!(50) },
         };
 
         let message = serde_json::from_str::<Raw<JsonValue>>(
@@ -1065,11 +1065,11 @@ mod tests {
     fn custom_ruleset_applies() {
         let context_one_to_one = &PushConditionRoomCtx {
             room_id: room_id!("!dm:server.name").to_owned(),
-            member_count: 2_u32.into(),
+            member_count: uint!(2),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
-            default_power_level: 50.into(),
-            notification_power_levels: NotificationPowerLevels { room: 50.into() },
+            default_power_level: int!(50),
+            notification_power_levels: NotificationPowerLevels { room: int!(50) },
         };
 
         let message = serde_json::from_str::<Raw<JsonValue>>(
