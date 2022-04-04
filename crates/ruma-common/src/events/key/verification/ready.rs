@@ -6,7 +6,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{Relation, VerificationMethod};
-use crate::identifiers::{DeviceId, TransactionId};
+use crate::{DeviceId, TransactionId};
 
 /// The content of a to-device `m.m.key.verification.ready` event.
 ///
