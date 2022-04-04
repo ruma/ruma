@@ -90,7 +90,6 @@ macro_rules! owned_identifier {
             }
         }
 
-        #[cfg(feature = "serde")]
         impl serde::Serialize for $owned {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -309,7 +308,6 @@ macro_rules! opaque_identifier {
             }
         }
 
-        #[cfg(feature = "serde")]
         impl<'de> serde::Deserialize<'de> for $owned {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -385,7 +383,6 @@ macro_rules! opaque_identifier_validated {
             }
         }
 
-        #[cfg(feature = "serde")]
         impl<'de> serde::Deserialize<'de> for $owned {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
