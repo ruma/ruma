@@ -124,4 +124,27 @@ mod tests {
         );
         serde_json_eq(EventEncryptionAlgorithm::from("io.ruma.test"), json!("io.ruma.test"));
     }
+
+    #[test]
+    fn key_derivation_algorithm_serde() {
+        use serde_json::json;
+
+        use super::KeyDerivationAlgorithm;
+        use crate::serde::test::serde_json_eq;
+
+        serde_json_eq(KeyDerivationAlgorithm::Pbkfd2, json!("m.pbkdf2"));
+    }
+
+    #[test]
+    fn secret_encryption_algorithm_serde() {
+        use serde_json::json;
+
+        use super::SecretEncryptionAlgorithm;
+        use crate::serde::test::serde_json_eq;
+
+        serde_json_eq(
+            SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2,
+            json!("m.secret_storage.v1.aes-hmac-sha2"),
+        );
+    }
 }
