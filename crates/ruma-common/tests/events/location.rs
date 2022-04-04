@@ -14,7 +14,7 @@ use ruma_common::{
         room::message::{
             InReplyTo, LocationMessageEventContent, MessageType, Relation, RoomMessageEventContent,
         },
-        AnyOriginalMessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
+        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
     },
     room_id, user_id, MilliSecondsSinceUnixEpoch,
 };
@@ -195,8 +195,8 @@ fn message_event_deserialization() {
     });
 
     assert_matches!(
-        from_json_value::<AnyOriginalMessageLikeEvent>(json_data).unwrap(),
-        AnyOriginalMessageLikeEvent::Location(OriginalMessageLikeEvent {
+        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
+        AnyMessageLikeEvent::Location(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: LocationEventContent {
                 message,
                 location: LocationContent {
@@ -217,7 +217,7 @@ fn message_event_deserialization() {
             room_id,
             sender,
             unsigned
-        }) if event_id == event_id!("$event:notareal.hs")
+        })) if event_id == event_id!("$event:notareal.hs")
             && message.find_plain() == Some("Alice was at geo:51.5008,0.1247;u=35 as of Sat Nov 13 18:50:58 2021")
             && message.find_html().is_none()
             && uri == "geo:51.5008,0.1247;u=35"

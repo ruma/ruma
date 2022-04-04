@@ -5,7 +5,7 @@ use std::fmt::Debug;
 use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
-use super::AnyOriginalSyncMessageLikeEvent;
+use super::AnySyncMessageLikeEvent;
 use crate::{serde::Raw, EventId, MilliSecondsSinceUnixEpoch, UserId};
 
 /// Summary of all reactions with the given key to an event.
@@ -98,7 +98,7 @@ impl BundledReplacement {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct BundledThread {
     /// The latest event in the thread.
-    pub latest_event: Box<Raw<AnyOriginalSyncMessageLikeEvent>>,
+    pub latest_event: Box<Raw<AnySyncMessageLikeEvent>>,
 
     /// The number of events in the thread.
     pub count: UInt,
@@ -111,7 +111,7 @@ pub struct BundledThread {
 impl BundledThread {
     /// Creates a new `BundledThread` with the given event, count and user participated flag.
     pub fn new(
-        latest_event: Box<Raw<AnyOriginalSyncMessageLikeEvent>>,
+        latest_event: Box<Raw<AnySyncMessageLikeEvent>>,
         count: UInt,
         current_user_participated: bool,
     ) -> Self {

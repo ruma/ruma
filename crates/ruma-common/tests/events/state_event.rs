@@ -9,8 +9,8 @@ use ruma_common::{
             avatar::{ImageInfo, RoomAvatarEventContent},
             ThumbnailInfo,
         },
-        AnyOriginalStateEvent, AnyOriginalSyncStateEvent, AnyRoomEvent, AnyStateEventContent,
-        OriginalStateEvent, OriginalSyncStateEvent, StateEventType, StateUnsigned,
+        AnyRoomEvent, AnyStateEvent, AnyStateEventContent, AnySyncStateEvent, OriginalStateEvent,
+        OriginalSyncStateEvent, StateEvent, StateEventType, StateUnsigned, SyncStateEvent,
     },
     mxc_uri, room_alias_id, room_id,
     serde::Raw,
@@ -115,8 +115,8 @@ fn deserialize_aliases_with_prev_content() {
     let json_data = aliases_event_with_prev_content();
 
     assert_matches!(
-        from_json_value::<AnyOriginalStateEvent>(json_data).unwrap(),
-        AnyOriginalStateEvent::RoomAliases(OriginalStateEvent {
+        from_json_value::<AnyStateEvent>(json_data).unwrap(),
+        AnyStateEvent::RoomAliases(StateEvent::Original(OriginalStateEvent {
             content,
             event_id,
             origin_server_ts,
@@ -127,7 +127,7 @@ fn deserialize_aliases_with_prev_content() {
                 prev_content: Some(prev_content),
                 ..
             },
-        }) if content.aliases == vec![room_alias_id!("#somewhere:localhost")]
+        })) if content.aliases == vec![room_alias_id!("#somewhere:localhost")]
             && event_id == event_id!("$h29iv0s8:example.com")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && prev_content.aliases == vec![room_alias_id!("#inner:localhost")]
@@ -143,9 +143,9 @@ fn deserialize_aliases_sync_with_room_id() {
     let json_data = aliases_event_with_prev_content();
 
     assert_matches!(
-        from_json_value::<AnyOriginalSyncStateEvent>(json_data)
+        from_json_value::<AnySyncStateEvent>(json_data)
             .unwrap(),
-        AnyOriginalSyncStateEvent::RoomAliases(OriginalSyncStateEvent {
+        AnySyncStateEvent::RoomAliases(SyncStateEvent::Original(OriginalSyncStateEvent {
             content,
             event_id,
             origin_server_ts,
@@ -155,7 +155,7 @@ fn deserialize_aliases_sync_with_room_id() {
                 prev_content: Some(prev_content),
                 ..
             },
-        }) if content.aliases == vec![room_alias_id!("#somewhere:localhost")]
+        })) if content.aliases == vec![room_alias_id!("#somewhere:localhost")]
             && event_id == event_id!("$h29iv0s8:example.com")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && prev_content.aliases == vec![room_alias_id!("#inner:localhost")]
@@ -193,8 +193,8 @@ fn deserialize_avatar_without_prev_content() {
     });
 
     assert_matches!(
-        from_json_value::<AnyOriginalStateEvent>(json_data).unwrap(),
-        AnyOriginalStateEvent::RoomAvatar(OriginalStateEvent {
+        from_json_value::<AnyStateEvent>(json_data).unwrap(),
+        AnyStateEvent::RoomAvatar(StateEvent::Original(OriginalStateEvent {
             content: RoomAvatarEventContent {
                 info: Some(info),
                 url: Some(url),
@@ -206,7 +206,7 @@ fn deserialize_avatar_without_prev_content() {
             sender,
             state_key,
             unsigned,
-        }) if event_id == event_id!("$h29iv0s8:example.com")
+        })) if event_id == event_id!("$h29iv0s8:example.com")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && room_id == room_id!("!roomid:room.com")
             && sender == user_id!("@carl:example.com")
@@ -268,15 +268,15 @@ fn deserialize_member_event_with_top_level_membership_field() {
     assert_matches!(
         from_json_value::<AnyRoomEvent>(json_data)
             .unwrap(),
-        AnyRoomEvent::OriginalState(
-            AnyOriginalStateEvent::RoomMember(OriginalStateEvent {
+        AnyRoomEvent::State(AnyStateEvent::RoomMember(StateEvent::Original(
+            OriginalStateEvent {
                 content,
                 event_id,
                 origin_server_ts,
                 sender,
                 ..
             }
-        )) if event_id == event_id!("$h29iv0s8:example.com")
+        ))) if event_id == event_id!("$h29iv0s8:example.com")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && sender == user_id!("@example:localhost")
             && content.displayname == Some("example".into())
@@ -287,11 +287,11 @@ fn deserialize_member_event_with_top_level_membership_field() {
 fn deserialize_full_event_convert_to_sync() {
     let json_data = aliases_event_with_prev_content();
 
-    let full_ev: AnyOriginalStateEvent = from_json_value(json_data).unwrap();
+    let full_ev: AnyStateEvent = from_json_value(json_data).unwrap();
 
     assert_matches!(
-        AnyOriginalSyncStateEvent::from(full_ev),
-        AnyOriginalSyncStateEvent::RoomAliases(OriginalSyncStateEvent {
+        AnySyncStateEvent::from(full_ev),
+        AnySyncStateEvent::RoomAliases(SyncStateEvent::Original(OriginalSyncStateEvent {
             content,
             event_id,
             origin_server_ts,
@@ -301,7 +301,7 @@ fn deserialize_full_event_convert_to_sync() {
                 prev_content: Some(prev_content),
                 ..
             }
-        }) if content.aliases == vec![room_alias_id!("#somewhere:localhost")]
+        })) if content.aliases == vec![room_alias_id!("#somewhere:localhost")]
             && event_id == "$h29iv0s8:example.com"
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && prev_content.aliases == vec![room_alias_id!("#inner:localhost")]

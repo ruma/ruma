@@ -8,7 +8,7 @@ pub mod v3 {
     use js_int::{uint, UInt};
     use ruma_common::{
         api::ruma_api,
-        events::{AnyOriginalStateEvent, AnyRoomEvent},
+        events::{AnyRoomEvent, AnyStateEvent},
         serde::Raw,
         EventId, RoomId,
     };
@@ -79,7 +79,7 @@ pub mod v3 {
 
             /// The state of the room at the last event returned.
             #[serde(default, skip_serializing_if = "Vec::is_empty")]
-            pub state: Vec<Raw<AnyOriginalStateEvent>>,
+            pub state: Vec<Raw<AnyStateEvent>>,
         }
 
         error: crate::Error

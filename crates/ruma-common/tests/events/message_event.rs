@@ -7,7 +7,7 @@ use ruma_common::{
         call::{answer::CallAnswerEventContent, SessionDescription, SessionDescriptionType},
         room::{ImageInfo, MediaSource, ThumbnailInfo},
         sticker::StickerEventContent,
-        AnyMessageLikeEventContent, AnyOriginalMessageLikeEvent, AnyOriginalSyncMessageLikeEvent,
+        AnyMessageLikeEvent, AnyMessageLikeEventContent, AnySyncMessageLikeEvent, MessageLikeEvent,
         MessageLikeEventType, MessageLikeUnsigned, OriginalMessageLikeEvent,
     },
     mxc_uri, room_id,
@@ -167,8 +167,8 @@ fn deserialize_message_call_answer() {
     });
 
     assert_matches!(
-        from_json_value::<AnyOriginalMessageLikeEvent>(json_data).unwrap(),
-        AnyOriginalMessageLikeEvent::CallAnswer(OriginalMessageLikeEvent {
+        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
+        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: CallAnswerEventContent {
                 answer: SessionDescription {
                     session_type: SessionDescriptionType::Answer,
@@ -184,7 +184,7 @@ fn deserialize_message_call_answer() {
             room_id,
             sender,
             unsigned,
-        }) if sdp == "Hello" && call_id == "foofoo" && version == UInt::new(1).unwrap()
+        })) if sdp == "Hello" && call_id == "foofoo" && version == UInt::new(1).unwrap()
             && event_id == event_id!("$h29iv0s8:example.com")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && room_id == room_id!("!roomid:room.com")
@@ -221,8 +221,8 @@ fn deserialize_message_sticker() {
     });
 
     assert_matches!(
-        from_json_value::<AnyOriginalMessageLikeEvent>(json_data).unwrap(),
-        AnyOriginalMessageLikeEvent::Sticker(OriginalMessageLikeEvent {
+        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
+        AnyMessageLikeEvent::Sticker(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: StickerEventContent {
                 body,
                 info: ImageInfo {
@@ -244,7 +244,7 @@ fn deserialize_message_sticker() {
             room_id,
             sender,
             unsigned
-        }) if event_id == event_id!("$h29iv0s8:example.com")
+        })) if event_id == event_id!("$h29iv0s8:example.com")
             && body == "Hello"
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && room_id == room_id!("!roomid:room.com")
@@ -290,11 +290,11 @@ fn deserialize_message_then_convert_to_full() {
         "type": "m.call.answer"
     });
 
-    let sync_ev: AnyOriginalSyncMessageLikeEvent = from_json_value(json_data).unwrap();
+    let sync_ev: AnySyncMessageLikeEvent = from_json_value(json_data).unwrap();
 
     assert_matches!(
         sync_ev.into_full_event(rid.to_owned()),
-        AnyOriginalMessageLikeEvent::CallAnswer(OriginalMessageLikeEvent {
+        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: CallAnswerEventContent {
                 answer: SessionDescription {
                     session_type: SessionDescriptionType::Answer,
@@ -310,7 +310,7 @@ fn deserialize_message_then_convert_to_full() {
             room_id,
             sender,
             unsigned,
-        }) if sdp == "Hello"
+        })) if sdp == "Hello"
             && call_id == "foofoo"
             && version == uint!(1)
             && event_id == "$h29iv0s8:example.com"

@@ -14,7 +14,7 @@ use ruma_common::{
             },
             EncryptedFileInit, JsonWebKeyInit, MediaSource,
         },
-        AnyOriginalMessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
+        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
     },
     mxc_uri, room_id,
     serde::Base64,
@@ -225,8 +225,8 @@ fn message_event_deserialization() {
     });
 
     assert_matches!(
-        from_json_value::<AnyOriginalMessageLikeEvent>(json_data).unwrap(),
-        AnyOriginalMessageLikeEvent::File(OriginalMessageLikeEvent {
+        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
+        AnyMessageLikeEvent::File(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: FileEventContent {
                 message,
                 file: FileContent {
@@ -241,7 +241,7 @@ fn message_event_deserialization() {
             room_id,
             sender,
             unsigned
-        }) if event_id == event_id!("$event:notareal.hs")
+        })) if event_id == event_id!("$event:notareal.hs")
             && message.find_plain() == Some("Upload: my_file.txt")
             && message.find_html() == Some("Upload: <strong>my_file.txt</strong>")
             && url.as_str() == "mxc://notareal.hs/abcdef"

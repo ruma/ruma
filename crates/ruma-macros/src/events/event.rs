@@ -422,7 +422,7 @@ fn expand_redact_event(
 
             fn redact(
                 self,
-                redaction: #ruma_common::events::room::redaction::OriginalSyncRoomRedactionEvent,
+                redaction: #ruma_common::events::room::redaction::SyncRoomRedactionEvent,
                 version: &#ruma_common::RoomVersionId,
             ) -> Self::Redacted {
                 let content = #ruma_common::events::RedactContent::redact(self.content, version);

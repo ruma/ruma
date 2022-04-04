@@ -5,13 +5,16 @@ use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
-    EphemeralRoomEventContent, EventContent, GlobalAccountDataEventContent,
-    MessageLikeEventContent, MessageLikeEventType, MessageLikeUnsigned, RedactContent,
-    RedactedEventContent, RedactedMessageLikeEventContent, RedactedStateEventContent,
-    RedactedUnsigned, RedactionDeHelper, RoomAccountDataEventContent, StateEventContent,
-    StateEventType, StateUnsigned, ToDeviceEventContent,
+    room::redaction::SyncRoomRedactionEvent, EphemeralRoomEventContent, EventContent,
+    GlobalAccountDataEventContent, MessageLikeEventContent, MessageLikeEventType,
+    MessageLikeUnsigned, Redact, RedactContent, RedactedEventContent,
+    RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
+    RedactionDeHelper, RoomAccountDataEventContent, StateEventContent, StateEventType,
+    StateUnsigned, ToDeviceEventContent,
 };
-use crate::{serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId};
+use crate::{
+    serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, RoomId, RoomVersionId, UserId,
+};
 
 /// A global account data event.
 #[derive(Clone, Debug, Event)]
@@ -447,6 +450,21 @@ macro_rules! impl_possibly_redacted_event {
 
             // So the room_id method can be in the same impl block, in rustdoc
             $($extra)*
+        }
+
+        impl<C> Redact for $ty<C>
+        where
+            C: $content_trait + RedactContent,
+            C::Redacted: $content_trait + RedactedEventContent,
+        {
+            type Redacted = Self;
+
+            fn redact(self, redaction: SyncRoomRedactionEvent, version: &RoomVersionId) -> Self {
+                match self {
+                    Self::Original(ev) => Self::Redacted(ev.redact(redaction, version)),
+                    Self::Redacted(ev) => Self::Redacted(ev),
+                }
+            }
         }
 
         impl<'de, C> Deserialize<'de> for $ty<C>

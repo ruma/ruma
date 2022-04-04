@@ -4,7 +4,7 @@ use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 
 #[cfg(feature = "unstable-msc2675")]
 use super::relation::Relations;
-use super::{room::redaction::OriginalSyncRoomRedactionEvent, StateEventContent};
+use super::{room::redaction::SyncRoomRedactionEvent, StateEventContent};
 use crate::{serde::Raw, TransactionId};
 
 /// Extra information about a message event that is not incorporated into the event's hash.
@@ -172,7 +172,7 @@ impl<C: StateEventContent> Default for StateUnsigned<C> {
 pub struct RedactedUnsigned {
     /// The event that redacted this event, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub redacted_because: Option<Box<OriginalSyncRoomRedactionEvent>>,
+    pub redacted_because: Option<Box<SyncRoomRedactionEvent>>,
 }
 
 impl RedactedUnsigned {
@@ -182,7 +182,7 @@ impl RedactedUnsigned {
     }
 
     /// Create a new `RedactedUnsigned` with the given redacted because.
-    pub fn new_because(redacted_because: Box<OriginalSyncRoomRedactionEvent>) -> Self {
+    pub fn new_because(redacted_because: Box<SyncRoomRedactionEvent>) -> Self {
         Self { redacted_because: Some(redacted_because) }
     }
 

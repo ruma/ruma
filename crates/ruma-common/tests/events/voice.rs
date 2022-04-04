@@ -17,7 +17,7 @@ use ruma_common::{
             MediaSource,
         },
         voice::{VoiceContent, VoiceEventContent},
-        AnyOriginalMessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
+        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
     },
     mxc_uri, room_id, user_id, MilliSecondsSinceUnixEpoch,
 };
@@ -114,8 +114,8 @@ fn message_event_deserialization() {
     });
 
     assert_matches!(
-        from_json_value::<AnyOriginalMessageLikeEvent>(json_data).unwrap(),
-        AnyOriginalMessageLikeEvent::Voice(OriginalMessageLikeEvent {
+        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
+        AnyMessageLikeEvent::Voice(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: VoiceEventContent {
                 message,
                 file: FileContent {
@@ -131,7 +131,7 @@ fn message_event_deserialization() {
             room_id,
             sender,
             unsigned
-        }) if event_id == event_id!("$event:notareal.hs")
+        })) if event_id == event_id!("$event:notareal.hs")
             && message.find_plain() == Some("Voice message")
             && message.find_html().is_none()
             && url == "mxc://notareal.hs/abcdef"

@@ -1,11 +1,13 @@
 use js_int::{uint, UInt};
 use matches::assert_matches;
-use ruma_common::{event_id, room_id, user_id, MilliSecondsSinceUnixEpoch};
+use ruma_common::{
+    event_id, events::MessageLikeEvent, room_id, user_id, MilliSecondsSinceUnixEpoch,
+};
 use serde_json::{from_value as from_json_value, json};
 
 use ruma_common::events::{
     call::{answer::CallAnswerEventContent, SessionDescription, SessionDescriptionType},
-    AnyOriginalMessageLikeEvent, OriginalMessageLikeEvent,
+    AnyMessageLikeEvent, OriginalMessageLikeEvent,
 };
 
 #[test]
@@ -35,9 +37,9 @@ fn deserialize_message_event() {
     });
 
     assert_matches!(
-        from_json_value::<AnyOriginalMessageLikeEvent>(json_data)
+        from_json_value::<AnyMessageLikeEvent>(json_data)
             .unwrap(),
-        AnyOriginalMessageLikeEvent::CallAnswer(OriginalMessageLikeEvent {
+        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: CallAnswerEventContent {
                 answer: SessionDescription {
                     session_type: SessionDescriptionType::Answer,
@@ -53,7 +55,7 @@ fn deserialize_message_event() {
             room_id,
             sender,
             unsigned,
-        }) if sdp == "Hello" && call_id == "foofoo" && version == UInt::new(1).unwrap()
+        })) if sdp == "Hello" && call_id == "foofoo" && version == UInt::new(1).unwrap()
             && event_id == event_id!("$h29iv0s8:example.com")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && room_id == room_id!("!roomid:room.com")
