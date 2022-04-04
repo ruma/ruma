@@ -3,6 +3,9 @@
 Improvements:
 
 * Add support for the space summary API in `space::get_hierarchy` according to MSC2946.
+* Add `transactions::edu::Edu::SigningKeyUpdate` according to MSC1756
+* Add Add cross-signing fields to `get_devices::Response` according to MSC1756
+* Add unstable endpoint `discovery::get_server_versions` according to MSC3723
 
 # 0.4.0
 
@@ -19,6 +22,7 @@ Improvements:
   * `knock:::send_knock::v1::Request` requires a PDU instead of the `knock_event`
 * Move cross-signing properties of `keys::get_keys::v1::Response` out of `unstable-pre-spec`
 * Move MSC implementations from `unstable-pre-spec` to per-msc features:
+
   ```
   unstable-msc2448
   unstable-msc3618
@@ -40,12 +44,14 @@ Breaking changes:
 Improvements:
 
 * Add more endpoints:
+
   ```rust
   knock::{
     create_knock_event::v1,
     send_knock::v1,
   }
   ```
+
   * Add unstable support for room knocking.
 
 # 0.2.0
