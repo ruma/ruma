@@ -85,7 +85,7 @@ pub enum KeyDerivationAlgorithm {
 pub enum SecretEncryptionAlgorithm {
     /// m.secret_storage.v1.aes-hmac-sha2 secret encryption algorithm.
     ///
-    /// The secret is encrypted using AES-CTR-256 and MACed usig HMAC-SHA-256.
+    /// The secret is encrypted using AES-CTR-256 and MACed using HMAC-SHA-256.
     #[ruma_enum(rename = "m.secret_storage.v1.aes-hmac-sha2")]
     SecretStorageV1AesHmacSha2,
 
