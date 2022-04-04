@@ -70,10 +70,12 @@ pub enum KeyDerivationAlgorithm {
     /// PBKDF2
     #[ruma_enum(rename = "m.pbkdf2")]
     Pbkfd2,
+
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
 
+/// Encryption algorithm used to encrypt a secret.
 ///
 /// This type can hold an arbitrary string. To check for algorithms that are not available as a
 /// documented variant here, use its string representation, obtained through `.as_str()`.
@@ -81,8 +83,8 @@ pub enum KeyDerivationAlgorithm {
 #[non_exhaustive]
 #[cfg_attr(feature = "serde", derive(DeserializeFromCowStr, SerializeAsRefStr))]
 pub enum SecretEncryptionAlgorithm {
-    /// TODO
-    #[ruma_enum(rename = "m.secret_storage.v1.aes-hmac-sha2 ")]
+    /// m.secret_storage.v1.aes-hmac-sha2 secret encryption algorithm.
+    #[ruma_enum(rename = "m.secret_storage.v1.aes-hmac-sha2")]
     SecretStorageV1AesHmacSha2,
 
     #[doc(hidden)]

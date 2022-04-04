@@ -1,10 +1,14 @@
-//! Types for the *m.secret_storage.key.\** event.
+//! Types for the [`m.secret_storage.key.*`] event.
+//!
+//! [`m.secret_storage.key.*`]: https://spec.matrix.org/v1.2/client-server-api/#key-storage
 
 use js_int::{uint, UInt};
-use ruma_common::identifiers::{KeyDerivationAlgorithm, SecretEncryptionAlgorithm};
 use serde::{Deserialize, Serialize};
 
-use ruma_common::events::macros::EventContent;
+use crate::{
+    events::macros::EventContent,
+    identifiers::{KeyDerivationAlgorithm, SecretEncryptionAlgorithm},
+};
 
 /// The payload for `KeyEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
@@ -33,7 +37,7 @@ pub struct KeyEventContent {
 }
 
 impl KeyEventContent {
-    /// Creates a new KeyEventContent with a key ID,  no name and no passphrase.
+    /// Creates a new KeyEventContent with the given key ID, no name and no passphrase.
     pub fn new(key_id: String) -> Self {
         Self {
             key_id,
@@ -47,7 +51,6 @@ impl KeyEventContent {
 /// A passphrase from which a key is to be derived.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-
 pub struct PassPhrase {
     /// The algorithm to use to generate the key from the passphrase.
     ///
