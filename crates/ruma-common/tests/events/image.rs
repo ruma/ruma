@@ -18,7 +18,7 @@ use ruma_common::{
             },
             JsonWebKeyInit, MediaSource,
         },
-        AnyOriginalMessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
+        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
     },
     mxc_uri, room_id,
     serde::Base64,
@@ -285,8 +285,8 @@ fn message_event_deserialization() {
     });
 
     assert_matches!(
-        from_json_value::<AnyOriginalMessageLikeEvent>(json_data).unwrap(),
-        AnyOriginalMessageLikeEvent::Image(OriginalMessageLikeEvent {
+        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
+        AnyMessageLikeEvent::Image(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: ImageEventContent {
                 message,
                 file: FileContent {
@@ -304,7 +304,7 @@ fn message_event_deserialization() {
             room_id,
             sender,
             unsigned
-        }) if event_id == event_id!("$event:notareal.hs")
+        })) if event_id == event_id!("$event:notareal.hs")
             && message.find_plain() == Some("Upload: my_gnome.webp")
             && message.find_html().is_none()
             && url == "mxc://notareal.hs/abcdef"

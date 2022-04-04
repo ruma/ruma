@@ -8,7 +8,7 @@ pub mod v3 {
     use js_int::{uint, UInt};
     use ruma_common::{
         api::ruma_api,
-        events::{AnyOriginalStateEvent, AnyRoomEvent},
+        events::{AnyRoomEvent, AnyStateEvent},
         serde::Raw,
         RoomId,
     };
@@ -96,7 +96,7 @@ pub mod v3 {
 
             /// A list of state events relevant to showing the `chunk`.
             #[serde(default, skip_serializing_if = "Vec::is_empty")]
-            pub state: Vec<Raw<AnyOriginalStateEvent>>,
+            pub state: Vec<Raw<AnyStateEvent>>,
         }
 
         error: crate::Error

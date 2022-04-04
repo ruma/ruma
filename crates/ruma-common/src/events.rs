@@ -102,7 +102,7 @@
 
 use serde::{de::IgnoredAny, Deserialize, Serializer};
 
-use self::room::redaction::OriginalSyncRoomRedactionEvent;
+use self::room::redaction::SyncRoomRedactionEvent;
 use crate::{EventEncryptionAlgorithm, RoomVersionId};
 
 // Needs to be public for trybuild tests
@@ -180,11 +180,7 @@ pub trait Redact {
     ///
     /// A small number of events have room-version specific redaction behavior, so a version has to
     /// be specified.
-    fn redact(
-        self,
-        redaction: OriginalSyncRoomRedactionEvent,
-        version: &RoomVersionId,
-    ) -> Self::Redacted;
+    fn redact(self, redaction: SyncRoomRedactionEvent, version: &RoomVersionId) -> Self::Redacted;
 }
 
 /// Trait to define the behavior of redact an event's content object.

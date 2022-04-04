@@ -61,14 +61,6 @@ impl EventKindVariation {
         }
     }
 
-    pub fn to_sync(self) -> Self {
-        match self {
-            EventKindVariation::Original => EventKindVariation::OriginalSync,
-            EventKindVariation::Redacted => EventKindVariation::RedactedSync,
-            _ => panic!("No sync form of {:?}", self),
-        }
-    }
-
     pub fn to_full(self) -> Self {
         match self {
             EventKindVariation::OriginalSync => EventKindVariation::Original,
@@ -135,17 +127,8 @@ impl EventKind {
         use EventKindVariation as V;
 
         match (self, var) {
-            (
-                Self::GlobalAccountData
-                | Self::RoomAccountData
-                | Self::Ephemeral
-                | Self::ToDevice
-                | Self::Presence
-                | Self::HierarchySpaceChild
-                | Self::Decrypted,
-                V::None,
-            )
-            | (Self::Ephemeral, V::Sync)
+            (_, V::None)
+            | (Self::Ephemeral | Self::MessageLike | Self::State, V::Sync)
             | (
                 Self::MessageLike | Self::RoomRedaction | Self::State,
                 V::Original | V::OriginalSync | V::Redacted | V::RedactedSync,

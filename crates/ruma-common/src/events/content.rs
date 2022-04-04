@@ -39,8 +39,8 @@ where
 /// The base trait that all redacted event content types implement.
 ///
 /// This trait's associated functions and methods should not be used to build
-/// redacted events, prefer the `redact` method on `AnyOriginalStateEvent` and
-/// `AnyOriginalMessageLikeEvent` and their "sync" and "stripped" counterparts.
+/// redacted events, prefer the `redact` method on `AnyStateEvent` and
+/// `AnyMessageLikeEvent` and their "sync" and "stripped" counterparts.
 /// The `RedactedEventContent` trait is an implementation detail, ruma makes no
 /// API guarantees.
 pub trait RedactedEventContent: EventContent {

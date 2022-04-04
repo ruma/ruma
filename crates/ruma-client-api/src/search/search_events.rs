@@ -10,7 +10,7 @@ pub mod v3 {
     use js_int::{uint, UInt};
     use ruma_common::{
         api::ruma_api,
-        events::{AnyOriginalStateEvent, AnyRoomEvent},
+        events::{AnyRoomEvent, AnyStateEvent},
         serde::{Incoming, Raw, StringEnum},
         EventId, MxcUri, RoomId, UserId,
     };
@@ -385,7 +385,7 @@ pub mod v3 {
         ///
         /// This is included if the request had the `include_state` key set with a value of `true`.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub state: BTreeMap<Box<RoomId>, Vec<Raw<AnyOriginalStateEvent>>>,
+        pub state: BTreeMap<Box<RoomId>, Vec<Raw<AnyStateEvent>>>,
 
         /// List of words which should be highlighted, useful for stemming which may
         /// change the query terms.
