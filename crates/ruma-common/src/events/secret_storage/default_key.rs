@@ -1,4 +1,6 @@
-//! Types for the *m.secret_storage.default_key* event.
+//! Types for the [`m.secret_storage.default_key`] event.
+//!
+//! [`m.secret_storage.default_key`]: https://spec.matrix.org/v1.2/client-server-api/#key-storage
 
 use ruma_common::events::macros::EventContent;
 use serde::{Deserialize, Serialize};
