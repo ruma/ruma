@@ -1,12 +1,39 @@
 # [unreleased]
 
+Bug fixes:
+
+* Fix HTTP method of `backup::update_backup`
+* Make score and reason optional in room::report_content::Request
+* Fix `uiaa::*::thirdparty_id_creds` according to a clarification in the spec
+
 Breaking changes:
 
 * Use `Raw` for `config::set_*_account_data::Request::data`.
+* Rename the endpoints in `backup`:
+  * `add_backup_key_session` => `add_backup_keys_for_session`
+  * `add_backup_key_sessions` => `add_backup_keys_for_room`
+  * `create_backup` => `create_backup_version`
+  * `delete_backup` => `delete_backup_version`
+  * `delete_backup_key_session` => `delete_backup_keys_for_session`
+  * `delete_backup_key_sessions` => `delete_backup_keys_for_room`
+  * `get_backup` => `get_backup_info`
+  * `get_backup_key_session` => `get_backup_keys_for_session`
+  * `get_backup_key_sessions` => `get_backup_keys_for_room`
+  * `get_latest_backup` => `get_latest_backup_info`
+  * `update_backup` => `update_backup_version`
+* Rename `discover` to `discovery`
+* Move `capabilities::get_capabilities` into `discovery`
+* Make `from` optional in `message::get_message_events` according to a clarification in the spec
 
 Improvements:
 
 * Add support for the space summary API in `space::get_hierarchy` according to MSC2946.
+* Add `device_id` to `account::whoami::Response` according to MSC2033
+* Add `is_guest` to `account::whoami::Response` according to MSC3069
+* Add `session::login::LoginInfo::ApplicationService` according to MSC2778
+* Add new fields in `discovery::get_capabilities::Capabilities` according to MSC3283
+* Implement Space Summary API according to MSC2946
+* Add unstable support for threads in `filter::RoomEventFilter` according to MSC3440
 
 # 0.13.0
 
