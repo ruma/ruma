@@ -42,8 +42,6 @@ pub mod feedback;
 mod relation_serde;
 mod reply;
 
-pub use reply::ReplyBaseEvent;
-
 /// The content of an `m.room.message` event.
 ///
 /// This event is used when sending messages in a room.
@@ -105,28 +103,34 @@ impl RoomMessageEventContent {
     }
 
     /// Creates a plain text reply to a message.
+    ///
+    /// This constructor requires an [`OriginalRoomMessageEvent`] since it creates a permalink to
+    /// the previous message, for which the room ID is required. If you want to reply to an
+    /// [`OriginalSyncRoomMessageEvent`], you have to convert it first by calling
+    /// [`.into_full_event()`][crate::events::OriginalSyncMessageLikeEvent::into_full_event].
     pub fn text_reply_plain(
         reply: impl fmt::Display,
-        original_message: &impl ReplyBaseEvent,
+        original_message: &OriginalRoomMessageEvent,
     ) -> Self {
         let quoted = reply::get_plain_quote_fallback(original_message);
+        let quoted_html = reply::get_html_quote_fallback(original_message);
 
         let body = format!("{}\n\n{}", quoted, reply);
+        let html_body = format!("{}\n\n{}", quoted_html, reply);
 
         Self {
             relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo { event_id: original_message.event_id().to_owned() },
+                in_reply_to: InReplyTo { event_id: original_message.event_id.to_owned() },
             }),
-            ..Self::text_plain(body)
+            ..Self::text_html(body, html_body)
         }
     }
 
     /// Creates a html text reply to a message.
     ///
-    /// Different from `text_reply_plain`, this constructor requires specifically a
-    /// [`RoomMessageEvent`] since it creates a permalink to the previous message, for which the
-    /// room ID is required. If you want to reply to a [`SyncRoomMessageEvent`], you have to convert
-    /// it first by calling
+    /// This constructor requires an [`OriginalRoomMessageEvent`] since it creates a permalink to
+    /// the previous message, for which the room ID is required. If you want to reply to an
+    /// [`OriginalSyncRoomMessageEvent`], you have to convert it first by calling
     /// [`.into_full_event()`][crate::events::OriginalSyncMessageLikeEvent::into_full_event].
     pub fn text_reply_html(
         reply: impl fmt::Display,
@@ -148,27 +152,34 @@ impl RoomMessageEventContent {
     }
 
     /// Creates a plain text notice reply to a message.
+    ///
+    /// This constructor requires an [`OriginalRoomMessageEvent`] since it creates a permalink to
+    /// the previous message, for which the room ID is required. If you want to reply to an
+    /// [`OriginalSyncRoomMessageEvent`], you have to convert it first by calling
+    /// [`.into_full_event()`][crate::events::OriginalSyncMessageLikeEvent::into_full_event].
     pub fn notice_reply_plain(
         reply: impl fmt::Display,
-        original_message: &impl ReplyBaseEvent,
+        original_message: &OriginalRoomMessageEvent,
     ) -> Self {
         let quoted = reply::get_plain_quote_fallback(original_message);
+        let quoted_html = reply::get_html_quote_fallback(original_message);
 
         let body = format!("{}\n\n{}", quoted, reply);
+        let html_body = format!("{}\n\n{}", quoted_html, reply);
+
         Self {
             relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo { event_id: original_message.event_id().to_owned() },
+                in_reply_to: InReplyTo { event_id: original_message.event_id.to_owned() },
             }),
-            ..Self::notice_plain(body)
+            ..Self::notice_html(body, html_body)
         }
     }
 
     /// Creates a html text notice reply to a message.
     ///
-    /// Different from `notice_reply_plain`, this constructor requires specifically a
-    /// [`RoomMessageEvent`] since it creates a permalink to the previous message, for which the
-    /// room ID is required. If you want to reply to a [`SyncRoomMessageEvent`], you have to convert
-    /// it first by calling
+    /// This constructor requires an [`OriginalRoomMessageEvent`] since it creates a permalink to
+    /// the previous message, for which the room ID is required. If you want to reply to an
+    /// [`OriginalSyncRoomMessageEvent`], you have to convert it first by calling
     /// [`.into_full_event()`][crate::events::OriginalSyncMessageLikeEvent::into_full_event].
     pub fn notice_reply_html(
         reply: impl fmt::Display,

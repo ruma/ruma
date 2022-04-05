@@ -1,59 +1,11 @@
 use indoc::formatdoc;
 
-use super::{
-    FormattedBody, MessageType, OriginalRoomMessageEvent, OriginalSyncRoomMessageEvent,
-    RoomMessageEventContent,
-};
-use crate::{EventId, UserId};
+use super::{FormattedBody, MessageType, OriginalRoomMessageEvent};
 
-/// An event that can be replied to.
-///
-/// This trait only exists to allow the plain-text `reply` constructors on `MessageLikeEventContent`
-/// to use either a [`RoomMessageEvent`] or a [`SyncRoomMessageEvent`] as the event being replied
-/// to.
-pub trait ReplyBaseEvent {
-    #[doc(hidden)]
-    fn event_id(&self) -> &EventId;
+pub fn get_plain_quote_fallback(original_message: &OriginalRoomMessageEvent) -> String {
+    let sender = &original_message.sender;
 
-    #[doc(hidden)]
-    fn sender(&self) -> &UserId;
-
-    #[doc(hidden)]
-    fn content(&self) -> &RoomMessageEventContent;
-}
-
-impl ReplyBaseEvent for OriginalRoomMessageEvent {
-    fn event_id(&self) -> &EventId {
-        &self.event_id
-    }
-
-    fn sender(&self) -> &UserId {
-        &self.sender
-    }
-
-    fn content(&self) -> &RoomMessageEventContent {
-        &self.content
-    }
-}
-
-impl ReplyBaseEvent for OriginalSyncRoomMessageEvent {
-    fn event_id(&self) -> &EventId {
-        &self.event_id
-    }
-
-    fn sender(&self) -> &UserId {
-        &self.sender
-    }
-
-    fn content(&self) -> &RoomMessageEventContent {
-        &self.content
-    }
-}
-
-pub fn get_plain_quote_fallback(original_message: &impl ReplyBaseEvent) -> String {
-    let sender = original_message.sender();
-
-    match &original_message.content().msgtype {
+    match &original_message.content.msgtype {
         MessageType::Audio(_) => {
             format!("> <{}> sent an audio file.", sender)
         }
@@ -301,10 +253,12 @@ fn formatted_or_plain_body<'a>(formatted: &'a Option<FormattedBody>, body: &'a s
 #[cfg(test)]
 mod tests {
     use crate::{
-        event_id, events::MessageLikeUnsigned, room_id, user_id, MilliSecondsSinceUnixEpoch,
+        event_id,
+        events::{room::message::RoomMessageEventContent, MessageLikeUnsigned},
+        room_id, user_id, MilliSecondsSinceUnixEpoch,
     };
 
-    use super::{OriginalRoomMessageEvent, RoomMessageEventContent};
+    use super::OriginalRoomMessageEvent;
 
     #[test]
     fn plain_quote_fallback_multiline() {

@@ -19,6 +19,9 @@ Breaking changes:
 * Change `events::room` media types to use `Duration` where applicable
 * Move `prev_content` into `unsigned`
 * Rename `identifiers::Error` to `IdParseError`
+* Fix the `RoomMessageEventContent::*_reply_plain` methods that now return a
+  message with a `formatted_body`, according to the spec. Therefore, they only
+  accept `OriginalRoomMessageEvent`s like their HTML counterparts.
 
 Improvements:
 
