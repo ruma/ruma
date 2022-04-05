@@ -67,7 +67,7 @@ pub struct RoomPowerLevelsEventContent {
         feature = "compat",
         serde(deserialize_with = "crate::serde::deserialize_v1_powerlevel")
     )]
-    #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
+    #[serde(default, skip_serializing_if = "crate::serde::is_default")]
     pub invite: Int,
 
     /// The level required to kick a user.
@@ -147,13 +147,13 @@ impl RoomPowerLevelsEventContent {
         Self {
             ban: default_power_level(),
             events: BTreeMap::new(),
-            events_default: Int::default(),
-            invite: default_power_level(),
+            events_default: int!(0),
+            invite: int!(0),
             kick: default_power_level(),
             redact: default_power_level(),
             state_default: default_power_level(),
             users: BTreeMap::new(),
-            users_default: Int::default(),
+            users_default: int!(0),
             notifications: NotificationPowerLevels::default(),
         }
     }
@@ -193,7 +193,7 @@ mod tests {
                 ban: default,
                 events: BTreeMap::new(),
                 events_default: int!(0),
-                invite: default,
+                invite: int!(0),
                 kick: default,
                 redact: default,
                 state_default: default,
