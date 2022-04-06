@@ -75,8 +75,6 @@ impl Redact for OriginalRoomRedactionEvent {
     ) -> Self::Redacted {
         RedactedRoomRedactionEvent {
             content: self.content.redact(version),
-            // There is no released room version where this isn't redacted yet
-            redacts: None,
             event_id: self.event_id,
             sender: self.sender,
             origin_server_ts: self.origin_server_ts,
@@ -92,9 +90,6 @@ impl Redact for OriginalRoomRedactionEvent {
 pub struct RedactedRoomRedactionEvent {
     /// Data specific to the event type.
     pub content: RedactedRoomRedactionEventContent,
-
-    /// The ID of the event that was redacted.
-    pub redacts: Option<Box<EventId>>,
 
     /// The globally unique event identifier for the user who sent the event.
     pub event_id: Box<EventId>,
@@ -145,8 +140,6 @@ impl Redact for OriginalSyncRoomRedactionEvent {
     ) -> Self::Redacted {
         RedactedSyncRoomRedactionEvent {
             content: self.content.redact(version),
-            // There is no released room version where this isn't redacted yet
-            redacts: None,
             event_id: self.event_id,
             sender: self.sender,
             origin_server_ts: self.origin_server_ts,
@@ -161,9 +154,6 @@ impl Redact for OriginalSyncRoomRedactionEvent {
 pub struct RedactedSyncRoomRedactionEvent {
     /// Data specific to the event type.
     pub content: RedactedRoomRedactionEventContent,
-
-    /// The ID of the event that was redacted.
-    pub redacts: Option<Box<EventId>>,
 
     /// The globally unique event identifier for the user who sent the event.
     pub event_id: Box<EventId>,
