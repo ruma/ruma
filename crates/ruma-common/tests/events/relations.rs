@@ -178,6 +178,7 @@ fn thread_plain_serialize() {
                 "m.in_reply_to": {
                     "event_id": "$latesteventid",
                 },
+                "io.element.show_reply": true,
             },
         })
     );
@@ -195,6 +196,7 @@ fn thread_plain_serialize() {
                 "m.in_reply_to": {
                     "event_id": "$latesteventid",
                 },
+                "io.element.show_reply": true,
             },
         })
     );
@@ -229,7 +231,6 @@ fn thread_reply_serialize() {
                 "m.in_reply_to": {
                     "event_id": "$repliedtoeventid",
                 },
-                "io.element.show_reply": true,
             },
         })
     );
@@ -247,7 +248,6 @@ fn thread_reply_serialize() {
                 "m.in_reply_to": {
                     "event_id": "$repliedtoeventid",
                 },
-                "io.element.show_reply": true,
             },
         })
     );
