@@ -6,7 +6,9 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{serde::StringEnum, MilliSecondsSinceUnixEpoch, PrivOwnedStr, RoomAliasId, UserId};
+use crate::{
+    serde::StringEnum, MilliSecondsSinceUnixEpoch, OwnedRoomAliasId, OwnedUserId, PrivOwnedStr,
+};
 
 /// Metadata about a third party protocol.
 ///
@@ -175,7 +177,7 @@ impl From<FieldTypeInit> for FieldType {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Location {
     /// An alias for a matrix room.
-    pub alias: Box<RoomAliasId>,
+    pub alias: OwnedRoomAliasId,
 
     /// The protocol ID that the third party location is a part of.
     pub protocol: String,
@@ -187,7 +189,7 @@ pub struct Location {
 impl Location {
     /// Creates a new `Location` with the given alias, protocol and fields.
     pub fn new(
-        alias: Box<RoomAliasId>,
+        alias: OwnedRoomAliasId,
         protocol: String,
         fields: BTreeMap<String, String>,
     ) -> Self {
@@ -200,7 +202,7 @@ impl Location {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct User {
     /// A matrix user ID representing a third party user.
-    pub userid: Box<UserId>,
+    pub userid: OwnedUserId,
 
     /// The protocol ID that the third party user is a part of.
     pub protocol: String,
@@ -211,7 +213,7 @@ pub struct User {
 
 impl User {
     /// Creates a new `User` with the given userid, protocol and fields.
-    pub fn new(userid: Box<UserId>, protocol: String, fields: BTreeMap<String, String>) -> Self {
+    pub fn new(userid: OwnedUserId, protocol: String, fields: BTreeMap<String, String>) -> Self {
         Self { userid, protocol, fields }
     }
 }
