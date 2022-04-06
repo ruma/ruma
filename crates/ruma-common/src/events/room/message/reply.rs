@@ -1,3 +1,5 @@
+use std::fmt;
+
 use indoc::formatdoc;
 
 use super::{FormattedBody, MessageType, OriginalRoomMessageEvent};
@@ -248,6 +250,27 @@ fn formatted_or_plain_body<'a>(formatted: &'a Option<FormattedBody>, body: &'a s
     } else {
         body
     }
+}
+
+/// Get the plain and formatted body for a rich reply.
+///
+/// Returns a `(plain, html)` tuple.
+pub fn plain_and_formatted_reply_body(
+    body: impl fmt::Display,
+    formatted: Option<impl fmt::Display>,
+    original_message: &OriginalRoomMessageEvent,
+) -> (String, String) {
+    let quoted = get_plain_quote_fallback(original_message);
+    let quoted_html = get_html_quote_fallback(original_message);
+
+    let plain = format!("{}\n\n{}", quoted, body);
+    let html = if let Some(formatted) = formatted {
+        format!("{}\n\n{}", quoted_html, formatted)
+    } else {
+        format!("{}\n\n{}", quoted_html, body)
+    };
+
+    (plain, html)
 }
 
 #[cfg(test)]
