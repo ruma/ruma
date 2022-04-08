@@ -71,8 +71,6 @@
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
 
 #[doc(inline)]
-pub use ruma_common as common;
-#[doc(inline)]
 pub use ruma_common::serde;
 
 #[cfg(feature = "client")]
