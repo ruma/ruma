@@ -13,7 +13,7 @@ use ruma::{
     },
     presence::PresenceState,
     serde::Raw,
-    RoomId, TransactionId, UserId,
+    OwnedUserId, RoomId, TransactionId, UserId,
 };
 use serde_json::Value as JsonValue;
 use tokio::fs;
@@ -223,7 +223,7 @@ async fn read_state() -> io::Result<Option<State>> {
 
 struct Config {
     homeserver: String,
-    username: Box<UserId>,
+    username: OwnedUserId,
     password: Option<String>,
 }
 

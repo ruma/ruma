@@ -8,7 +8,7 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use js_int::UInt;
-    use ruma_common::{api::ruma_api, RoomId};
+    use ruma_common::{api::ruma_api, OwnedRoomId};
 
     use crate::backup::RoomKeyBackup;
 
@@ -32,7 +32,7 @@ pub mod v3 {
             pub version: &'a str,
 
             /// A map of room IDs to session IDs to key data to store.
-            pub rooms: BTreeMap<Box<RoomId>, RoomKeyBackup>,
+            pub rooms: BTreeMap<OwnedRoomId, RoomKeyBackup>,
         }
 
         response: {
@@ -51,7 +51,7 @@ pub mod v3 {
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given version and room key backups.
-        pub fn new(version: &'a str, rooms: BTreeMap<Box<RoomId>, RoomKeyBackup>) -> Self {
+        pub fn new(version: &'a str, rooms: BTreeMap<OwnedRoomId, RoomKeyBackup>) -> Self {
             Self { version, rooms }
         }
     }

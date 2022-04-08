@@ -8,7 +8,7 @@ pub mod v3 {
     use js_int::UInt;
     use ruma_common::{
         api::ruma_api, events::AnySyncRoomEvent, push::Action, serde::Raw,
-        MilliSecondsSinceUnixEpoch, RoomId,
+        MilliSecondsSinceUnixEpoch, OwnedRoomId,
     };
     use serde::{Deserialize, Serialize};
 
@@ -94,7 +94,7 @@ pub mod v3 {
         pub read: bool,
 
         /// The ID of the room in which the event was posted.
-        pub room_id: Box<RoomId>,
+        pub room_id: OwnedRoomId,
 
         /// The time at which the event notification was sent.
         pub ts: MilliSecondsSinceUnixEpoch,
@@ -107,7 +107,7 @@ pub mod v3 {
             actions: Vec<Action>,
             event: Raw<AnySyncRoomEvent>,
             read: bool,
-            room_id: Box<RoomId>,
+            room_id: OwnedRoomId,
             ts: MilliSecondsSinceUnixEpoch,
         ) -> Self {
             Self { actions, event, profile_tag: None, read, room_id, ts }

@@ -12,7 +12,7 @@ use ruma_common::{
     },
     serde::{from_raw_json_value, Incoming, JsonObject, StringEnum},
     thirdparty::Medium,
-    ClientSecret, SessionId,
+    ClientSecret, OwnedSessionId,
 };
 use serde::{
     de::{self, DeserializeOwned},
@@ -607,7 +607,7 @@ impl IncomingUserIdentifier {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ThirdpartyIdCredentials {
     /// Identity server session ID.
-    pub sid: Box<SessionId>,
+    pub sid: OwnedSessionId,
 
     /// Identity server client secret.
     pub client_secret: Box<ClientSecret>,
@@ -623,7 +623,7 @@ impl ThirdpartyIdCredentials {
     /// Creates a new `ThirdpartyIdCredentials` with the given session ID, client secret, identity
     /// server address and access token.
     pub fn new(
-        sid: Box<SessionId>,
+        sid: OwnedSessionId,
         client_secret: Box<ClientSecret>,
         id_server: String,
         id_access_token: String,

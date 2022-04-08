@@ -71,13 +71,13 @@ pub mod v1 {
             next_batch: impl Into<String>,
         ) -> serde_json::Result<ruma_client_api::sync::sync_events::v3::Response> {
             use ruma_client_api::sync::sync_events;
-            use ruma_common::RoomId;
+            use ruma_common::OwnedRoomId;
             use serde::Deserialize;
             use tracing::warn;
 
             #[derive(Debug, Deserialize)]
             struct EventDeHelper {
-                room_id: Option<Box<RoomId>>,
+                room_id: Option<OwnedRoomId>,
             }
 
             let mut response = sync_events::v3::Response::new(next_batch.into());

@@ -6,7 +6,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3user_directorysearch
 
     use js_int::{uint, UInt};
-    use ruma_common::{api::ruma_api, MxcUri, UserId};
+    use ruma_common::{api::ruma_api, MxcUri, OwnedUserId};
     use serde::{Deserialize, Serialize};
 
     ruma_api! {
@@ -78,7 +78,7 @@ pub mod v3 {
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct User {
         /// The user's matrix user ID.
-        pub user_id: Box<UserId>,
+        pub user_id: OwnedUserId,
 
         /// The display name of the user, if one exists.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -98,7 +98,7 @@ pub mod v3 {
 
     impl User {
         /// Create a new `User` with the given `UserId`.
-        pub fn new(user_id: Box<UserId>) -> Self {
+        pub fn new(user_id: OwnedUserId) -> Self {
             Self { user_id, display_name: None, avatar_url: None }
         }
     }

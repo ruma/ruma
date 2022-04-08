@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3knockroomidoralias
 
-    use ruma_common::{api::ruma_api, RoomId, RoomOrAliasId, ServerName};
+    use ruma_common::{api::ruma_api, OwnedRoomId, OwnedServerName, RoomOrAliasId};
 
     ruma_api! {
         metadata: {
@@ -33,12 +33,12 @@ pub mod v3 {
             /// One of the servers must be participating in the room.
             #[ruma_api(query)]
             #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-            pub server_name: &'a [Box<ServerName>],
+            pub server_name: &'a [OwnedServerName],
         }
 
         response: {
             /// The room that the user knocked on.
-            pub room_id: Box<RoomId>,
+            pub room_id: OwnedRoomId,
         }
     }
 
@@ -51,7 +51,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given room ID.
-        pub fn new(room_id: Box<RoomId>) -> Self {
+        pub fn new(room_id: OwnedRoomId) -> Self {
             Self { room_id }
         }
     }

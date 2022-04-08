@@ -12,7 +12,7 @@ pub mod v3 {
         api::ruma_api,
         encryption::{DeviceKeys, OneTimeKey},
         serde::Raw,
-        DeviceKeyAlgorithm, DeviceKeyId,
+        DeviceKeyAlgorithm, OwnedDeviceKeyId,
     };
 
     ruma_api! {
@@ -37,11 +37,11 @@ pub mod v3 {
 
             /// One-time public keys for "pre-key" messages.
             #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-            pub one_time_keys: BTreeMap<Box<DeviceKeyId>, Raw<OneTimeKey>>,
+            pub one_time_keys: BTreeMap<OwnedDeviceKeyId, Raw<OneTimeKey>>,
 
             /// Fallback public keys for "pre-key" messages.
             #[serde(default, skip_serializing_if = "BTreeMap::is_empty", rename = "org.matrix.msc2732.fallback_keys")]
-            pub fallback_keys: BTreeMap<Box<DeviceKeyId>, Raw<OneTimeKey>>,
+            pub fallback_keys: BTreeMap<OwnedDeviceKeyId, Raw<OneTimeKey>>,
         }
 
         response: {

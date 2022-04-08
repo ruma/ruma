@@ -8,7 +8,7 @@ pub mod v3 {
     use ruma_common::{
         api::ruma_api,
         serde::{Incoming, JsonObject},
-        DeviceId, ServerName, UserId,
+        DeviceId, OwnedDeviceId, OwnedServerName, OwnedUserId,
     };
     use serde::{
         de::{self, DeserializeOwned},
@@ -48,7 +48,7 @@ pub mod v3 {
 
         response: {
             /// The fully-qualified Matrix ID that has been registered.
-            pub user_id: Box<UserId>,
+            pub user_id: OwnedUserId,
 
             /// An access token for the account.
             pub access_token: String,
@@ -58,13 +58,13 @@ pub mod v3 {
             /// Deprecated: Clients should instead use the `user_id.server_name()`
             /// method if they require it.
             #[serde(skip_serializing_if = "Option::is_none")]
-            pub home_server: Option<Box<ServerName>>,
+            pub home_server: Option<OwnedServerName>,
 
             /// ID of the logged-in device.
             ///
             /// Will be the same as the corresponding parameter in the request, if one was
             /// specified.
-            pub device_id: Box<DeviceId>,
+            pub device_id: OwnedDeviceId,
 
             /// Client configuration provided by the server.
             ///
@@ -85,7 +85,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given user ID, access token and device ID.
-        pub fn new(user_id: Box<UserId>, access_token: String, device_id: Box<DeviceId>) -> Self {
+        pub fn new(user_id: OwnedUserId, access_token: String, device_id: OwnedDeviceId) -> Self {
             Self { user_id, access_token, home_server: None, device_id, well_known: None }
         }
     }

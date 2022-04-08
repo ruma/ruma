@@ -7,7 +7,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3register
 
-    use ruma_common::{api::ruma_api, DeviceId, UserId};
+    use ruma_common::{api::ruma_api, DeviceId, OwnedDeviceId, OwnedUserId};
 
     use super::{LoginType, RegistrationKind};
     use crate::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
@@ -91,12 +91,12 @@ pub mod v3 {
             pub access_token: Option<String>,
 
             /// The fully-qualified Matrix ID that has been registered.
-            pub user_id: Box<UserId>,
+            pub user_id: OwnedUserId,
 
             /// ID of the registered device.
             ///
             /// Will be the same as the corresponding parameter in the request, if one was specified.
-            pub device_id: Option<Box<DeviceId>>,
+            pub device_id: Option<OwnedDeviceId>,
         }
 
         error: UiaaResponse
@@ -111,7 +111,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given user ID.
-        pub fn new(user_id: Box<UserId>) -> Self {
+        pub fn new(user_id: OwnedUserId) -> Self {
             Self { access_token: None, user_id, device_id: None }
         }
     }

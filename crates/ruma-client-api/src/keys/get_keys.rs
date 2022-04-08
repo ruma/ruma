@@ -11,7 +11,7 @@ pub mod v3 {
         api::ruma_api,
         encryption::{CrossSigningKey, DeviceKeys},
         serde::Raw,
-        DeviceId, UserId,
+        OwnedDeviceId, OwnedUserId,
     };
     use serde_json::Value as JsonValue;
 
@@ -42,7 +42,7 @@ pub mod v3 {
             /// The keys to be downloaded.
             ///
             /// An empty list indicates all devices for the corresponding user.
-            pub device_keys: BTreeMap<Box<UserId>, Vec<Box<DeviceId>>>,
+            pub device_keys: BTreeMap<OwnedUserId, Vec<OwnedDeviceId>>,
 
             /// If the client is fetching keys as a result of a device update received in a sync
             /// request, this should be the 'since' token of that sync request, or any later sync token.
@@ -63,19 +63,19 @@ pub mod v3 {
 
             /// Information on the queried devices.
             #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-            pub device_keys: BTreeMap<Box<UserId>, BTreeMap<Box<DeviceId>, Raw<DeviceKeys>>>,
+            pub device_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Raw<DeviceKeys>>>,
 
             /// Information on the master cross-signing keys of the queried users.
             #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-            pub master_keys: BTreeMap<Box<UserId>, Raw<CrossSigningKey>>,
+            pub master_keys: BTreeMap<OwnedUserId, Raw<CrossSigningKey>>,
 
             /// Information on the self-signing keys of the queried users.
             #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-            pub self_signing_keys: BTreeMap<Box<UserId>, Raw<CrossSigningKey>>,
+            pub self_signing_keys: BTreeMap<OwnedUserId, Raw<CrossSigningKey>>,
 
             /// Information on the user-signing keys of the queried users.
             #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-            pub user_signing_keys: BTreeMap<Box<UserId>, Raw<CrossSigningKey>>,
+            pub user_signing_keys: BTreeMap<OwnedUserId, Raw<CrossSigningKey>>,
         }
 
         error: crate::Error

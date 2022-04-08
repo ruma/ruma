@@ -11,7 +11,7 @@ pub mod v3 {
         api::ruma_api,
         encryption::{CrossSigningKey, DeviceKeys},
         serde::{Raw, StringEnum},
-        DeviceId, UserId,
+        OwnedDeviceId, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
@@ -35,13 +35,13 @@ pub mod v3 {
         request: {
             /// Signed keys.
             #[ruma_api(body)]
-            pub signed_keys: BTreeMap<Box<UserId>, SignedKeys>,
+            pub signed_keys: BTreeMap<OwnedUserId, SignedKeys>,
         }
 
         #[derive(Default)]
         response: {
             /// Signature processing failures.
-            pub failures: BTreeMap<Box<UserId>, BTreeMap<String, Failure>>,
+            pub failures: BTreeMap<OwnedUserId, BTreeMap<String, Failure>>,
         }
 
         error: crate::Error
@@ -49,7 +49,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given signed keys.
-        pub fn new(signed_keys: BTreeMap<Box<UserId>, SignedKeys>) -> Self {
+        pub fn new(signed_keys: BTreeMap<OwnedUserId, SignedKeys>) -> Self {
             Self { signed_keys }
         }
     }
@@ -73,8 +73,8 @@ pub mod v3 {
         }
 
         /// Add the given device keys.
-        pub fn add_device_keys(&mut self, device_id: Box<DeviceId>, device_keys: Raw<DeviceKeys>) {
-            self.0.insert(device_id.into(), device_keys.into_json());
+        pub fn add_device_keys(&mut self, device_id: OwnedDeviceId, device_keys: Raw<DeviceKeys>) {
+            self.0.insert(device_id.as_str().into(), device_keys.into_json());
         }
 
         /// Add the given cross signing keys.

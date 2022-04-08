@@ -9,7 +9,7 @@ use ruma_common::{
     events::space::child::HierarchySpaceChildEvent,
     room::RoomType,
     serde::{Raw, StringEnum},
-    MxcUri, RoomAliasId, RoomId, RoomName,
+    MxcUri, OwnedRoomAliasId, OwnedRoomId, RoomName,
 };
 use serde::{Deserialize, Serialize};
 
@@ -30,7 +30,7 @@ pub struct SpaceHierarchyRoomsChunk {
         feature = "compat",
         serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
     )]
-    pub canonical_alias: Option<Box<RoomAliasId>>,
+    pub canonical_alias: Option<OwnedRoomAliasId>,
 
     /// The name of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -40,7 +40,7 @@ pub struct SpaceHierarchyRoomsChunk {
     pub num_joined_members: UInt,
 
     /// The ID of the room.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// The topic of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -89,7 +89,7 @@ pub struct SpaceHierarchyRoomsChunkInit {
     pub num_joined_members: UInt,
 
     /// The ID of the room.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// Whether the room may be viewed by guest users without joining.
     pub world_readable: bool,
