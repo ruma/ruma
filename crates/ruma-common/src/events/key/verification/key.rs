@@ -6,7 +6,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::Relation;
-use crate::{serde::Base64, TransactionId};
+use crate::{serde::Base64, OwnedTransactionId};
 
 /// The content of a to-device `m.key.verification.key` event.
 ///
@@ -18,7 +18,7 @@ pub struct ToDeviceKeyVerificationKeyEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the `m.key.verification.start` message.
-    pub transaction_id: Box<TransactionId>,
+    pub transaction_id: OwnedTransactionId,
 
     /// The device's ephemeral public key, encoded as unpadded base64.
     pub key: Base64,
@@ -27,7 +27,7 @@ pub struct ToDeviceKeyVerificationKeyEventContent {
 impl ToDeviceKeyVerificationKeyEventContent {
     /// Creates a new `ToDeviceKeyVerificationKeyEventContent` with the given transaction ID and
     /// key.
-    pub fn new(transaction_id: Box<TransactionId>, key: Base64) -> Self {
+    pub fn new(transaction_id: OwnedTransactionId, key: Base64) -> Self {
         Self { transaction_id, key }
     }
 }

@@ -29,7 +29,7 @@ use crate::events::{
 use crate::{
     events::key::verification::VerificationMethod,
     serde::{JsonObject, StringEnum},
-    DeviceId, OwnedEventId, OwnedMxcUri, OwnedUserId, PrivOwnedStr,
+    OwnedDeviceId, OwnedEventId, OwnedMxcUri, OwnedUserId, PrivOwnedStr,
 };
 #[cfg(feature = "unstable-msc3488")]
 use crate::{
@@ -1906,7 +1906,7 @@ pub struct KeyVerificationRequestEventContent {
     pub methods: Vec<VerificationMethod>,
 
     /// The device ID which is initiating the request.
-    pub from_device: Box<DeviceId>,
+    pub from_device: OwnedDeviceId,
 
     /// The user ID which should receive the request.
     ///
@@ -1922,7 +1922,7 @@ impl KeyVerificationRequestEventContent {
     pub fn new(
         body: String,
         methods: Vec<VerificationMethod>,
-        from_device: Box<DeviceId>,
+        from_device: OwnedDeviceId,
         to: OwnedUserId,
     ) -> Self {
         Self { body, methods, from_device, to }

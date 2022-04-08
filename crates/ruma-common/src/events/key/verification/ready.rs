@@ -6,7 +6,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{Relation, VerificationMethod};
-use crate::{DeviceId, TransactionId};
+use crate::{OwnedDeviceId, OwnedTransactionId};
 
 /// The content of a to-device `m.m.key.verification.ready` event.
 ///
@@ -16,7 +16,7 @@ use crate::{DeviceId, TransactionId};
 #[ruma_event(type = "m.key.verification.ready", kind = ToDevice)]
 pub struct ToDeviceKeyVerificationReadyEventContent {
     /// The device ID which is initiating the request.
-    pub from_device: Box<DeviceId>,
+    pub from_device: OwnedDeviceId,
 
     /// The verification methods supported by the sender.
     pub methods: Vec<VerificationMethod>,
@@ -26,16 +26,16 @@ pub struct ToDeviceKeyVerificationReadyEventContent {
     /// Must be unique with respect to the devices involved. Must be the same as the
     /// `transaction_id` given in the `m.key.verification.request` from a
     /// request.
-    pub transaction_id: Box<TransactionId>,
+    pub transaction_id: OwnedTransactionId,
 }
 
 impl ToDeviceKeyVerificationReadyEventContent {
     /// Creates a new `ToDeviceKeyVerificationReadyEventContent` with the given device ID,
     /// verification methods and transaction ID.
     pub fn new(
-        from_device: Box<DeviceId>,
+        from_device: OwnedDeviceId,
         methods: Vec<VerificationMethod>,
-        transaction_id: Box<TransactionId>,
+        transaction_id: OwnedTransactionId,
     ) -> Self {
         Self { from_device, methods, transaction_id }
     }
@@ -49,7 +49,7 @@ impl ToDeviceKeyVerificationReadyEventContent {
 #[ruma_event(type = "m.key.verification.ready", kind = MessageLike)]
 pub struct KeyVerificationReadyEventContent {
     /// The device ID which is initiating the request.
-    pub from_device: Box<DeviceId>,
+    pub from_device: OwnedDeviceId,
 
     /// The verification methods supported by the sender.
     pub methods: Vec<VerificationMethod>,
@@ -64,7 +64,7 @@ impl KeyVerificationReadyEventContent {
     /// Creates a new `KeyVerificationReadyEventContent` with the given device ID, methods and
     /// relation.
     pub fn new(
-        from_device: Box<DeviceId>,
+        from_device: OwnedDeviceId,
         methods: Vec<VerificationMethod>,
         relates_to: Relation,
     ) -> Self {
@@ -74,7 +74,7 @@ impl KeyVerificationReadyEventContent {
 
 #[cfg(test)]
 mod tests {
-    use crate::{event_id, DeviceId};
+    use crate::{event_id, OwnedDeviceId};
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -84,7 +84,7 @@ mod tests {
     #[test]
     fn serialization() {
         let event_id = event_id!("$1598361704261elfgc:localhost").to_owned();
-        let device: Box<DeviceId> = "123".into();
+        let device: OwnedDeviceId = "123".into();
 
         let json_data = json!({
             "from_device": device,
@@ -121,7 +121,7 @@ mod tests {
     #[test]
     fn deserialization() {
         let id = event_id!("$1598361704261elfgc:localhost");
-        let device: Box<DeviceId> = "123".into();
+        let device: OwnedDeviceId = "123".into();
 
         let json_data = json!({
             "from_device": device,

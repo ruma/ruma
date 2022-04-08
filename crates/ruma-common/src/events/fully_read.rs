@@ -5,7 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::EventId;
+use crate::OwnedEventId;
 
 /// The content of an `m.fully_read` event.
 ///
@@ -17,12 +17,12 @@ use crate::EventId;
 #[ruma_event(type = "m.fully_read", kind = RoomAccountData)]
 pub struct FullyReadEventContent {
     /// The event the user's read marker is located at in the room.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 }
 
 impl FullyReadEventContent {
     /// Creates a new `FullyReadEventContent` with the given event ID.
-    pub fn new(event_id: Box<EventId>) -> Self {
+    pub fn new(event_id: OwnedEventId) -> Self {
         Self { event_id }
     }
 }

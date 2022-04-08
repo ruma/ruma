@@ -9,9 +9,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::message::{self, InReplyTo};
-#[cfg(feature = "unstable-msc2677")]
-use crate::EventId;
-use crate::{DeviceId, OwnedEventId};
+use crate::{OwnedDeviceId, OwnedEventId};
 
 mod relation_serde;
 
@@ -164,7 +162,7 @@ impl Reference {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Annotation {
     /// The event that is being annotated.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The annotation.
     pub key: String,
@@ -173,7 +171,7 @@ pub struct Annotation {
 #[cfg(feature = "unstable-msc2677")]
 impl Annotation {
     /// Creates a new `Annotation` with the given event ID and key.
-    pub fn new(event_id: Box<EventId>, key: String) -> Self {
+    pub fn new(event_id: OwnedEventId, key: String) -> Self {
         Self { event_id, key }
     }
 }
@@ -269,7 +267,7 @@ pub struct MegolmV1AesSha2Content {
     pub sender_key: String,
 
     /// The ID of the sending device.
-    pub device_id: Box<DeviceId>,
+    pub device_id: OwnedDeviceId,
 
     /// The ID of the session used to encrypt the message.
     pub session_id: String,
@@ -289,7 +287,7 @@ pub struct MegolmV1AesSha2ContentInit {
     pub sender_key: String,
 
     /// The ID of the sending device.
-    pub device_id: Box<DeviceId>,
+    pub device_id: OwnedDeviceId,
 
     /// The ID of the session used to encrypt the message.
     pub session_id: String,

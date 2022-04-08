@@ -12,7 +12,7 @@ use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, Relation,
     ShortAuthenticationString,
 };
-use crate::{serde::Base64, DeviceId, TransactionId};
+use crate::{serde::Base64, OwnedDeviceId, OwnedTransactionId};
 
 /// The content of a to-device `m.key.verification.start` event.
 ///
@@ -22,14 +22,14 @@ use crate::{serde::Base64, DeviceId, TransactionId};
 #[ruma_event(type = "m.key.verification.start", kind = ToDevice)]
 pub struct ToDeviceKeyVerificationStartEventContent {
     /// The device ID which is initiating the process.
-    pub from_device: Box<DeviceId>,
+    pub from_device: OwnedDeviceId,
 
     /// An opaque identifier for the verification process.
     ///
     /// Must be unique with respect to the devices involved. Must be the same as the
     /// `transaction_id` given in the `m.key.verification.request` if this process is originating
     /// from a request.
-    pub transaction_id: Box<TransactionId>,
+    pub transaction_id: OwnedTransactionId,
 
     /// Method specific content.
     #[serde(flatten)]
@@ -40,8 +40,8 @@ impl ToDeviceKeyVerificationStartEventContent {
     /// Creates a new `ToDeviceKeyVerificationStartEventContent` with the given device ID,
     /// transaction ID and method specific content.
     pub fn new(
-        from_device: Box<DeviceId>,
-        transaction_id: Box<TransactionId>,
+        from_device: OwnedDeviceId,
+        transaction_id: OwnedTransactionId,
         method: StartMethod,
     ) -> Self {
         Self { from_device, transaction_id, method }
@@ -56,7 +56,7 @@ impl ToDeviceKeyVerificationStartEventContent {
 #[ruma_event(type = "m.key.verification.start", kind = MessageLike)]
 pub struct KeyVerificationStartEventContent {
     /// The device ID which is initiating the process.
-    pub from_device: Box<DeviceId>,
+    pub from_device: OwnedDeviceId,
 
     /// Method specific content.
     #[serde(flatten)]
@@ -70,7 +70,7 @@ pub struct KeyVerificationStartEventContent {
 impl KeyVerificationStartEventContent {
     /// Creates a new `KeyVerificationStartEventContent` with the given device ID, method and
     /// relation.
-    pub fn new(from_device: Box<DeviceId>, method: StartMethod, relates_to: Relation) -> Self {
+    pub fn new(from_device: OwnedDeviceId, method: StartMethod, relates_to: Relation) -> Self {
         Self { from_device, method, relates_to }
     }
 }

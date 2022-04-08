@@ -3,7 +3,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::EventId;
+use crate::OwnedEventId;
 
 /// The payload for a `m.reaction` event.
 ///
@@ -38,7 +38,7 @@ impl From<Relation> for ReactionEventContent {
 #[serde(tag = "rel_type", rename = "m.annotation")]
 pub struct Relation {
     /// The event that is being annotated.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// A string that indicates the annotation being applied.
     ///
@@ -51,7 +51,7 @@ pub struct Relation {
 
 impl Relation {
     /// Creates a new `Relation` with the given event ID and key.
-    pub fn new(event_id: Box<EventId>, key: String) -> Self {
+    pub fn new(event_id: OwnedEventId, key: String) -> Self {
         Self { event_id, key }
     }
 }

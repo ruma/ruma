@@ -248,7 +248,7 @@ pub struct SignedContent {
     /// The invited Matrix user ID.
     ///
     /// Must be equal to the user_id property of the event.
-    pub mxid: Box<UserId>,
+    pub mxid: OwnedUserId,
 
     /// A single signature from the verifying server, in the format specified by the Signing Events
     /// section of the server-server API.
@@ -261,8 +261,8 @@ pub struct SignedContent {
 impl SignedContent {
     /// Creates a new `SignedContent` with the given mxid, signature and token.
     pub fn new(
-        mxid: Box<UserId>,
         signatures: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
+        mxid: OwnedUserId,
         token: String,
     ) -> Self {
         Self { mxid, signatures, token }

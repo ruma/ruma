@@ -6,7 +6,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::VerificationMethod;
-use crate::{DeviceId, MilliSecondsSinceUnixEpoch, TransactionId};
+use crate::{MilliSecondsSinceUnixEpoch, OwnedDeviceId, OwnedTransactionId};
 
 /// The content of an `m.key.verification.request` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
@@ -14,12 +14,12 @@ use crate::{DeviceId, MilliSecondsSinceUnixEpoch, TransactionId};
 #[ruma_event(type = "m.key.verification.request", kind = ToDevice)]
 pub struct ToDeviceKeyVerificationRequestEventContent {
     /// The device ID which is initiating the request.
-    pub from_device: Box<DeviceId>,
+    pub from_device: OwnedDeviceId,
 
     /// An opaque identifier for the verification request.
     ///
     /// Must be unique with respect to the devices involved.
-    pub transaction_id: Box<TransactionId>,
+    pub transaction_id: OwnedTransactionId,
 
     /// The verification methods supported by the sender.
     pub methods: Vec<VerificationMethod>,
@@ -35,8 +35,8 @@ impl ToDeviceKeyVerificationRequestEventContent {
     /// Creates a new `ToDeviceKeyVerificationRequestEventContent` with the given device ID,
     /// transaction ID, methods and timestamp.
     pub fn new(
-        from_device: Box<DeviceId>,
-        transaction_id: Box<TransactionId>,
+        from_device: OwnedDeviceId,
+        transaction_id: OwnedTransactionId,
         methods: Vec<VerificationMethod>,
         timestamp: MilliSecondsSinceUnixEpoch,
     ) -> Self {

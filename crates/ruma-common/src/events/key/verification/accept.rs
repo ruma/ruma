@@ -12,7 +12,7 @@ use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, Relation,
     ShortAuthenticationString,
 };
-use crate::{serde::Base64, TransactionId};
+use crate::{serde::Base64, OwnedTransactionId};
 
 /// The content of a to-device `m.key.verification.accept` event.
 ///
@@ -24,7 +24,7 @@ pub struct ToDeviceKeyVerificationAcceptEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the `m.key.verification.start` message.
-    pub transaction_id: Box<TransactionId>,
+    pub transaction_id: OwnedTransactionId,
 
     /// The method specific content.
     #[serde(flatten)]
@@ -34,7 +34,7 @@ pub struct ToDeviceKeyVerificationAcceptEventContent {
 impl ToDeviceKeyVerificationAcceptEventContent {
     /// Creates a new `ToDeviceKeyVerificationAcceptEventContent` with the given transaction ID and
     /// method-specific content.
-    pub fn new(transaction_id: Box<TransactionId>, method: AcceptMethod) -> Self {
+    pub fn new(transaction_id: OwnedTransactionId, method: AcceptMethod) -> Self {
         Self { transaction_id, method }
     }
 }

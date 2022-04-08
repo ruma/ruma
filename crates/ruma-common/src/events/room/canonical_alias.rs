@@ -5,7 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{OwnedRoomAliasId, RoomAliasId};
+use crate::OwnedRoomAliasId;
 
 /// The content of an `m.room.canonical_alias` event.
 ///
@@ -27,7 +27,7 @@ pub struct RoomCanonicalAliasEventContent {
 
     /// List of alternative aliases to the room.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub alt_aliases: Vec<Box<RoomAliasId>>,
+    pub alt_aliases: Vec<OwnedRoomAliasId>,
 }
 
 impl RoomCanonicalAliasEventContent {

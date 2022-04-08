@@ -8,7 +8,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::Relation;
-use crate::{serde::Base64, TransactionId};
+use crate::{serde::Base64, OwnedTransactionId};
 
 /// The content of a to-device `m.key.verification.` event.
 ///
@@ -20,7 +20,7 @@ pub struct ToDeviceKeyVerificationMacEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the `m.key.verification.start` message.
-    pub transaction_id: Box<TransactionId>,
+    pub transaction_id: OwnedTransactionId,
 
     /// A map of the key ID to the MAC of the key, using the algorithm in the verification process.
     ///
@@ -36,7 +36,7 @@ impl ToDeviceKeyVerificationMacEventContent {
     /// Creates a new `ToDeviceKeyVerificationMacEventContent` with the given transaction ID, key ID
     /// to MAC map and key MAC.
     pub fn new(
-        transaction_id: Box<TransactionId>,
+        transaction_id: OwnedTransactionId,
         mac: BTreeMap<String, Base64>,
         keys: Base64,
     ) -> Self {
