@@ -5,7 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{serde::StringEnum, EventId, PrivOwnedStr};
+use crate::{serde::StringEnum, OwnedEventId, PrivOwnedStr};
 
 /// The content of an `m.room.message.feedback` event.
 ///
@@ -18,7 +18,7 @@ use crate::{serde::StringEnum, EventId, PrivOwnedStr};
 #[ruma_event(type = "m.room.message.feedback", kind = MessageLike)]
 pub struct RoomMessageFeedbackEventContent {
     /// The event that this feedback is related to.
-    pub target_event_id: Box<EventId>,
+    pub target_event_id: OwnedEventId,
 
     /// The type of feedback.
     #[serde(rename = "type")]
@@ -27,7 +27,7 @@ pub struct RoomMessageFeedbackEventContent {
 
 impl RoomMessageFeedbackEventContent {
     /// Create a `RoomMessageFeedbackEventContent` from the given target event id and feedback type.
-    pub fn new(target_event_id: Box<EventId>, feedback_type: FeedbackType) -> Self {
+    pub fn new(target_event_id: OwnedEventId, feedback_type: FeedbackType) -> Self {
         Self { target_event_id, feedback_type }
     }
 }

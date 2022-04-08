@@ -5,7 +5,7 @@ use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 #[cfg(feature = "unstable-msc2675")]
 use super::relation::Relations;
 use super::{room::redaction::SyncRoomRedactionEvent, StateEventContent};
-use crate::{serde::Raw, TransactionId};
+use crate::{serde::Raw, OwnedTransactionId};
 
 /// Extra information about a message event that is not incorporated into the event's hash.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -22,7 +22,7 @@ pub struct MessageLikeUnsigned {
     /// The client-supplied transaction ID, if the client being given the event is the same one
     /// which sent it.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub transaction_id: Option<Box<TransactionId>>,
+    pub transaction_id: Option<OwnedTransactionId>,
 
     /// Server-compiled information from other events relating to this event.
     #[cfg(feature = "unstable-msc2675")]
@@ -69,7 +69,7 @@ pub struct StateUnsigned<C: StateEventContent> {
     /// The client-supplied transaction ID, if the client being given the event is the same one
     /// which sent it.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub transaction_id: Option<Box<TransactionId>>,
+    pub transaction_id: Option<OwnedTransactionId>,
 
     /// Optional previous content of the event.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -126,7 +126,7 @@ impl<C: StateEventContent> StateUnsigned<C> {
             #[serde(skip_serializing_if = "Option::is_none")]
             age: Option<Int>,
             #[serde(skip_serializing_if = "Option::is_none")]
-            transaction_id: Option<Box<TransactionId>>,
+            transaction_id: Option<OwnedTransactionId>,
             prev_content: Option<Raw<C>>,
             #[cfg(feature = "unstable-msc2675")]
             #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]

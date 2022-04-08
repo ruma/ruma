@@ -6,7 +6,8 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    serde::StringEnum, DeviceId, EventEncryptionAlgorithm, PrivOwnedStr, RoomId, TransactionId,
+    serde::StringEnum, EventEncryptionAlgorithm, OwnedDeviceId, OwnedRoomId, OwnedTransactionId,
+    PrivOwnedStr,
 };
 
 /// The content of an `m.room_key_request` event.
@@ -23,13 +24,13 @@ pub struct ToDeviceRoomKeyRequestEventContent {
     pub body: Option<RequestedKeyInfo>,
 
     /// ID of the device requesting the key.
-    pub requesting_device_id: Box<DeviceId>,
+    pub requesting_device_id: OwnedDeviceId,
 
     /// A random string uniquely identifying the request for a key.
     ///
     /// If the key is requested multiple times, it should be reused. It should also reused
     /// in order to cancel a request.
-    pub request_id: Box<TransactionId>,
+    pub request_id: OwnedTransactionId,
 }
 
 impl ToDeviceRoomKeyRequestEventContent {
@@ -38,8 +39,8 @@ impl ToDeviceRoomKeyRequestEventContent {
     pub fn new(
         action: Action,
         body: Option<RequestedKeyInfo>,
-        requesting_device_id: Box<DeviceId>,
-        request_id: Box<TransactionId>,
+        requesting_device_id: OwnedDeviceId,
+        request_id: OwnedTransactionId,
     ) -> Self {
         Self { action, body, requesting_device_id, request_id }
     }
@@ -77,7 +78,7 @@ pub struct RequestedKeyInfo {
     pub algorithm: EventEncryptionAlgorithm,
 
     /// The room where the key is used.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// The Curve25519 key of the device which initiated the session originally.
     pub sender_key: String,
@@ -91,7 +92,7 @@ impl RequestedKeyInfo {
     /// ID.
     pub fn new(
         algorithm: EventEncryptionAlgorithm,
-        room_id: Box<RoomId>,
+        room_id: OwnedRoomId,
         sender_key: String,
         session_id: String,
     ) -> Self {

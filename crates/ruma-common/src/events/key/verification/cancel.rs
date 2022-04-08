@@ -6,7 +6,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::Relation;
-use crate::{serde::StringEnum, PrivOwnedStr, TransactionId};
+use crate::{serde::StringEnum, OwnedTransactionId, PrivOwnedStr};
 
 /// The content of a to-device `m.key.verification.cancel` event.
 ///
@@ -16,7 +16,7 @@ use crate::{serde::StringEnum, PrivOwnedStr, TransactionId};
 #[ruma_event(type = "m.key.verification.cancel", kind = ToDevice)]
 pub struct ToDeviceKeyVerificationCancelEventContent {
     /// The opaque identifier for the verification process/request.
-    pub transaction_id: Box<TransactionId>,
+    pub transaction_id: OwnedTransactionId,
 
     /// A human readable description of the `code`.
     ///
@@ -30,7 +30,7 @@ pub struct ToDeviceKeyVerificationCancelEventContent {
 impl ToDeviceKeyVerificationCancelEventContent {
     /// Creates a new `ToDeviceKeyVerificationCancelEventContent` with the given transaction ID,
     /// reason and code.
-    pub fn new(transaction_id: Box<TransactionId>, reason: String, code: CancelCode) -> Self {
+    pub fn new(transaction_id: OwnedTransactionId, reason: String, code: CancelCode) -> Self {
         Self { transaction_id, reason, code }
     }
 }

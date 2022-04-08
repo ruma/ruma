@@ -7,7 +7,7 @@ use std::convert::TryFrom;
 use ruma_macros::EventContent;
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 
-use crate::{serde::StringEnum, DeviceId, PrivOwnedStr, TransactionId};
+use crate::{serde::StringEnum, OwnedDeviceId, OwnedTransactionId, PrivOwnedStr};
 
 /// The content of an `m.secret.request` event.
 ///
@@ -23,14 +23,14 @@ pub struct ToDeviceSecretRequestEventContent {
     pub action: RequestAction,
 
     /// The ID of the device requesting the event.
-    pub requesting_device_id: Box<DeviceId>,
+    pub requesting_device_id: OwnedDeviceId,
 
     /// A random string uniquely identifying (with respect to the requester and the target) the
     /// target for a secret.
     ///
     /// If the secret is requested from multiple devices at the same time, the same ID may be used
     /// for every target. The same ID is also used in order to cancel a previous request.
-    pub request_id: Box<TransactionId>,
+    pub request_id: OwnedTransactionId,
 }
 
 impl ToDeviceSecretRequestEventContent {
@@ -38,8 +38,8 @@ impl ToDeviceSecretRequestEventContent {
     /// request ID.
     pub fn new(
         action: RequestAction,
-        requesting_device_id: Box<DeviceId>,
-        request_id: Box<TransactionId>,
+        requesting_device_id: OwnedDeviceId,
+        request_id: OwnedTransactionId,
     ) -> Self {
         Self { action, requesting_device_id, request_id }
     }

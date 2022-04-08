@@ -5,7 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{EventEncryptionAlgorithm, RoomId};
+use crate::{EventEncryptionAlgorithm, OwnedRoomId};
 
 /// The content of an `m.forwarded_room_key` event.
 ///
@@ -19,7 +19,7 @@ pub struct ToDeviceForwardedRoomKeyEventContent {
     pub algorithm: EventEncryptionAlgorithm,
 
     /// The room where the key is used.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// The Curve25519 key of the device which initiated the session originally.
     pub sender_key: String,
@@ -57,7 +57,7 @@ pub struct ToDeviceForwardedRoomKeyEventContentInit {
     pub algorithm: EventEncryptionAlgorithm,
 
     /// The room where the key is used.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// The Curve25519 key of the device which initiated the session originally.
     pub sender_key: String,

@@ -6,7 +6,7 @@ use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
 use super::AnySyncMessageLikeEvent;
-use crate::{serde::Raw, EventId, MilliSecondsSinceUnixEpoch, UserId};
+use crate::{serde::Raw, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedUserId};
 
 /// Summary of all reactions with the given key to an event.
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq, Serialize)]
@@ -74,10 +74,10 @@ impl AnnotationChunk {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct BundledReplacement {
     /// The ID of the replacing event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The user ID of the sender of the latest replacement.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when the latest replacement was sent.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -87,7 +87,7 @@ pub struct BundledReplacement {
 #[cfg(feature = "unstable-msc2676")]
 impl BundledReplacement {
     /// Creates a new `BundledReplacement` with the given event ID and sender.
-    pub fn new(event_id: Box<EventId>, sender: Box<UserId>) -> Self {
+    pub fn new(event_id: OwnedEventId, sender: OwnedUserId) -> Self {
         Self { event_id, sender, origin_server_ts: None }
     }
 }
