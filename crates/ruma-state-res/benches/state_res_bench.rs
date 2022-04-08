@@ -28,7 +28,7 @@ use ruma_common::{
             join_rules::{JoinRule, RoomJoinRulesEventContent},
             member::{MembershipState, RoomMemberEventContent},
         },
-        RoomEventType,
+        RoomEventType, StateEventType,
     },
     room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, RoomId, RoomVersionId, UserId,
 };
@@ -104,10 +104,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
         ]
         .iter()
         .map(|ev| {
-            (
-                (ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()),
-                ev.event_id().to_owned(),
-            )
+            (ev.event_type().with_state_key(ev.state_key().unwrap()), ev.event_id().to_owned())
         })
         .collect::<StateMap<_>>();
 
@@ -122,10 +119,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
         ]
         .iter()
         .map(|ev| {
-            (
-                (ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()),
-                ev.event_id().to_owned(),
-            )
+            (ev.event_type().with_state_key(ev.state_key().unwrap()), ev.event_id().to_owned())
         })
         .collect::<StateMap<_>>();
 
@@ -298,30 +292,21 @@ impl TestStore<PduEvent> {
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
             .map(|e| {
-                (
-                    (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
-                    e.event_id().to_owned(),
-                )
+                (e.event_type().with_state_key(e.state_key().unwrap()), e.event_id().to_owned())
             })
             .collect::<StateMap<_>>();
 
         let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
             .iter()
             .map(|e| {
-                (
-                    (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
-                    e.event_id().to_owned(),
-                )
+                (e.event_type().with_state_key(e.state_key().unwrap()), e.event_id().to_owned())
             })
             .collect::<StateMap<_>>();
 
         let expected = [&create_event, &alice_mem, &join_rules, &bob_mem, &charlie_mem]
             .iter()
             .map(|e| {
-                (
-                    (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
-                    e.event_id().to_owned(),
-                )
+                (e.event_type().with_state_key(e.state_key().unwrap()), e.event_id().to_owned())
             })
             .collect::<StateMap<_>>();
 
@@ -530,6 +515,17 @@ fn BAN_STATE_SET() -> HashMap<Box<EventId>, Arc<PduEvent>> {
     .into_iter()
     .map(|ev| (ev.event_id().to_owned(), ev))
     .collect()
+}
+
+/// Convenience trait for adding event type plus state key to state maps.
+trait EventTypeExt {
+    fn with_state_key(self, state_key: impl Into<String>) -> (StateEventType, String);
+}
+
+impl EventTypeExt for &RoomEventType {
+    fn with_state_key(self, state_key: impl Into<String>) -> (StateEventType, String) {
+        (self.to_string().into(), state_key.into())
+    }
 }
 
 mod event {

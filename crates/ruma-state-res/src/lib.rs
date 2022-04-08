@@ -10,7 +10,7 @@ use js_int::{int, Int};
 use ruma_common::{
     events::{
         room::member::{MembershipState, RoomMemberEventContent},
-        RoomEventType,
+        RoomEventType, StateEventType,
     },
     EventId, MilliSecondsSinceUnixEpoch, RoomVersionId, UserId,
 };
@@ -31,7 +31,7 @@ pub use room_version::RoomVersion;
 pub use state_event::Event;
 
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
-pub type StateMap<T> = HashMap<(RoomEventType, String), T>;
+pub type StateMap<T> = HashMap<(StateEventType, String), T>;
 
 /// Resolve sets of state events as they come in.
 ///
@@ -132,7 +132,7 @@ where
     trace!("{:?}", events_to_resolve);
 
     // This "epochs" power level event
-    let power_event = resolved_control.get(&(RoomEventType::RoomPowerLevels, "".into()));
+    let power_event = resolved_control.get(&(StateEventType::RoomPowerLevels, "".into()));
 
     debug!("power event: {:?}", power_event);
 
@@ -418,20 +418,15 @@ fn iterative_auth_check<E: Event + Clone>(
             .state_key()
             .ok_or_else(|| Error::InvalidPdu("State event had no state key".to_owned()))?;
 
-        let mut auth_events = HashMap::new();
+        let mut auth_events = StateMap::new();
         for aid in event.auth_events() {
             if let Some(ev) = fetch_event(aid.borrow()) {
                 // TODO synapse check "rejected_reason" which is most likely
                 // related to soft-failing
                 auth_events.insert(
-                    (
-                        ev.event_type().to_owned(),
-                        ev.state_key()
-                            .ok_or_else(|| {
-                                Error::InvalidPdu("State event had no state key".to_owned())
-                            })?
-                            .to_owned(),
-                    ),
+                    ev.event_type().with_state_key(ev.state_key().ok_or_else(|| {
+                        Error::InvalidPdu("State event had no state key".to_owned())
+                    })?),
                     ev,
                 );
             } else {
@@ -462,11 +457,10 @@ fn iterative_auth_check<E: Event + Clone>(
         });
 
         if auth_check(room_version, &event, current_third_party, |ty, key| {
-            auth_events.get(&(ty.clone(), key.to_owned()))
+            auth_events.get(&ty.with_state_key(key))
         })? {
             // add event to resolved state map
-            resolved_state
-                .insert((event.event_type().to_owned(), state_key.to_owned()), event_id.clone());
+            resolved_state.insert(event.event_type().with_state_key(state_key), event_id.clone());
         } else {
             // synapse passes here on AuthError. We do not add this event to resolved_state.
             warn!("event {} failed the authentication check", event_id);
@@ -632,6 +626,32 @@ fn is_power_event(event: impl Event) -> bool {
     }
 }
 
+/// Convenience trait for adding event type plus state key to state maps.
+trait EventTypeExt {
+    fn with_state_key(self, state_key: impl Into<String>) -> (StateEventType, String);
+}
+
+impl EventTypeExt for StateEventType {
+    fn with_state_key(self, state_key: impl Into<String>) -> (StateEventType, String) {
+        (self, state_key.into())
+    }
+}
+
+impl EventTypeExt for RoomEventType {
+    fn with_state_key(self, state_key: impl Into<String>) -> (StateEventType, String) {
+        (self.to_string().into(), state_key.into())
+    }
+}
+
+impl<T> EventTypeExt for &T
+where
+    T: EventTypeExt + Clone,
+{
+    fn with_state_key(self, state_key: impl Into<String>) -> (StateEventType, String) {
+        self.to_owned().with_state_key(state_key)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::{
@@ -645,7 +665,7 @@ mod tests {
     use ruma_common::{
         events::{
             room::join_rules::{JoinRule, RoomJoinRulesEventContent},
-            RoomEventType,
+            RoomEventType, StateEventType,
         },
         EventId, MilliSecondsSinceUnixEpoch, RoomVersionId,
     };
@@ -659,7 +679,7 @@ mod tests {
             alice, bob, charlie, do_check, ella, event_id, member_content_ban, member_content_join,
             room_id, to_init_pdu_event, to_pdu_event, zara, PduEvent, TestStore, INITIAL_EVENTS,
         },
-        Event, StateMap,
+        Event, EventTypeExt, StateMap,
     };
 
     fn test_event_sort() {
@@ -669,9 +689,7 @@ mod tests {
 
         let event_map = events
             .values()
-            .map(|ev| {
-                ((ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()), ev.clone())
-            })
+            .map(|ev| (ev.event_type().with_state_key(ev.state_key().unwrap()), ev.clone()))
             .collect::<StateMap<_>>();
 
         let auth_chain: HashSet<Box<EventId>> = HashSet::new();
@@ -702,7 +720,7 @@ mod tests {
         events_to_sort.shuffle(&mut rand::thread_rng());
 
         let power_level =
-            resolved_power.get(&(RoomEventType::RoomPowerLevels, "".to_owned())).cloned();
+            resolved_power.get(&(StateEventType::RoomPowerLevels, "".to_owned())).cloned();
 
         let sorted_event_ids =
             crate::mainline_sort(&events_to_sort, power_level, |id| events.get(id).map(Arc::clone))
@@ -1131,9 +1149,7 @@ mod tests {
             inner.get(&event_id("PA")).unwrap(),
         ]
         .iter()
-        .map(|ev| {
-            ((ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()), ev.event_id.clone())
-        })
+        .map(|ev| (ev.event_type().with_state_key(ev.state_key().unwrap()), ev.event_id.clone()))
         .collect::<StateMap<_>>();
 
         let state_set_b = [
@@ -1146,9 +1162,7 @@ mod tests {
             inner.get(&event_id("PA")).unwrap(),
         ]
         .iter()
-        .map(|ev| {
-            ((ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()), ev.event_id.clone())
-        })
+        .map(|ev| (ev.event_type().with_state_key(ev.state_key().unwrap()), ev.event_id.clone()))
         .collect::<StateMap<_>>();
 
         let ev_map = store.0.clone();

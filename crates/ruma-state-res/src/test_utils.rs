@@ -27,7 +27,7 @@ use serde_json::{
 };
 use tracing::info;
 
-use crate::{auth_types_for_event, Error, Event, Result, StateMap};
+use crate::{auth_types_for_event, Error, Event, EventTypeExt, Result, StateMap};
 
 pub use event::PduEvent;
 
@@ -130,9 +130,9 @@ pub fn do_check(
 
         let mut state_after = state_before.clone();
 
-        let ty = fake_event.event_type().to_owned();
-        let key = fake_event.state_key().unwrap().to_owned();
-        state_after.insert((ty, key), event_id.to_owned());
+        let ty = fake_event.event_type();
+        let key = fake_event.state_key().unwrap();
+        state_after.insert(ty.with_state_key(key), event_id.to_owned());
 
         let auth_types = auth_types_for_event(
             fake_event.event_type(),
@@ -181,7 +181,7 @@ pub fn do_check(
             )
         });
 
-        let key = (ev.event_type().to_owned(), ev.state_key().unwrap().to_owned());
+        let key = ev.event_type().with_state_key(ev.state_key().unwrap());
 
         expected_state.insert(key, node);
     }
@@ -198,7 +198,7 @@ pub fn do_check(
                 // Filter out the dummy messages events.
                 // These act as points in time where there should be a known state to
                 // test against.
-                && **k != (RoomEventType::RoomMessage, "dummy".to_owned())
+                && **k != ("m.room.message".into(), "dummy".to_owned())
         })
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect::<StateMap<Box<EventId>>>();
@@ -310,30 +310,21 @@ impl TestStore<PduEvent> {
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
             .map(|e| {
-                (
-                    (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
-                    e.event_id().to_owned(),
-                )
+                (e.event_type().with_state_key(e.state_key().unwrap()), e.event_id().to_owned())
             })
             .collect::<StateMap<_>>();
 
         let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
             .iter()
             .map(|e| {
-                (
-                    (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
-                    e.event_id().to_owned(),
-                )
+                (e.event_type().with_state_key(e.state_key().unwrap()), e.event_id().to_owned())
             })
             .collect::<StateMap<_>>();
 
         let expected = [&create_event, &alice_mem, &join_rules, &bob_mem, &charlie_mem]
             .iter()
             .map(|e| {
-                (
-                    (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
-                    e.event_id().to_owned(),
-                )
+                (e.event_type().with_state_key(e.state_key().unwrap()), e.event_id().to_owned())
             })
             .collect::<StateMap<_>>();
 
