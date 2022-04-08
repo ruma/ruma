@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3roomsroomidupgrade
 
-    use ruma_common::{api::ruma_api, RoomId, RoomVersionId};
+    use ruma_common::{api::ruma_api, OwnedRoomId, RoomId, RoomVersionId};
 
     ruma_api! {
         metadata: {
@@ -30,7 +30,7 @@ pub mod v3 {
 
         response: {
             /// ID of the new room.
-            pub replacement_room: Box<RoomId>,
+            pub replacement_room: OwnedRoomId,
         }
 
         error: crate::Error
@@ -45,7 +45,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given room ID.
-        pub fn new(replacement_room: Box<RoomId>) -> Self {
+        pub fn new(replacement_room: OwnedRoomId) -> Self {
             Self { replacement_room }
         }
     }

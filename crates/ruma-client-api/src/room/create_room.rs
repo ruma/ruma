@@ -17,7 +17,7 @@ pub mod v3 {
         },
         room::RoomType,
         serde::{Raw, StringEnum},
-        OwnedUserId, RoomId, RoomName, RoomVersionId, UserId,
+        OwnedRoomId, OwnedUserId, RoomName, RoomVersionId,
     };
     use serde::{Deserialize, Serialize};
 
@@ -55,7 +55,7 @@ pub mod v3 {
             ///
             /// This will tell the server to invite everyone in the list to the newly created room.
             #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-            pub invite: &'a [Box<UserId>],
+            pub invite: &'a [OwnedUserId],
 
             /// List of third party IDs of users to invite.
             #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
@@ -103,7 +103,7 @@ pub mod v3 {
 
         response: {
             /// The created room's ID.
-            pub room_id: Box<RoomId>,
+            pub room_id: OwnedRoomId,
         }
 
         error: crate::Error
@@ -118,7 +118,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given room id.
-        pub fn new(room_id: Box<RoomId>) -> Self {
+        pub fn new(room_id: OwnedRoomId) -> Self {
             Self { room_id }
         }
     }

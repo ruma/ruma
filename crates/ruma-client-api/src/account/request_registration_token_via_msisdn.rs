@@ -6,7 +6,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3registermsisdnrequesttoken
 
     use js_int::UInt;
-    use ruma_common::{api::ruma_api, ClientSecret, SessionId};
+    use ruma_common::{api::ruma_api, ClientSecret, OwnedSessionId};
 
     use crate::account::{IdentityServerInfo, IncomingIdentityServerInfo};
 
@@ -48,7 +48,7 @@ pub mod v3 {
 
         response: {
             /// The session identifier given by the identity server.
-            pub sid: Box<SessionId>,
+            pub sid: OwnedSessionId,
 
             /// URL to submit validation token to.
             ///
@@ -89,7 +89,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given session identifier.
-        pub fn new(sid: Box<SessionId>) -> Self {
+        pub fn new(sid: OwnedSessionId) -> Self {
             Self { sid, submit_url: None }
         }
     }

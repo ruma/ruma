@@ -9,7 +9,7 @@ mod url;
 use js_int::UInt;
 use ruma_common::{
     serde::{Incoming, StringEnum},
-    OwnedRoomId, RoomId, UserId,
+    OwnedRoomId, OwnedUserId,
 };
 use serde::Serialize;
 
@@ -116,13 +116,13 @@ pub struct RoomEventFilter<'a> {
     /// If this list is absent then no senders are excluded. A matching sender will be excluded
     /// even if it is listed in the 'senders' filter.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub not_senders: &'a [Box<UserId>],
+    pub not_senders: &'a [OwnedUserId],
 
     /// A list of senders IDs to include.
     ///
     /// If this list is absent then all senders are included.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub senders: Option<&'a [Box<UserId>]>,
+    pub senders: Option<&'a [OwnedUserId]>,
 
     /// A list of event types to include.
     ///
@@ -169,7 +169,7 @@ pub struct RoomEventFilter<'a> {
         default,
         skip_serializing_if = "<[_]>::is_empty"
     )]
-    pub related_by_senders: &'a [Box<UserId>],
+    pub related_by_senders: &'a [OwnedUserId],
 }
 
 impl<'a> RoomEventFilter<'a> {
@@ -260,14 +260,14 @@ pub struct RoomFilter<'a> {
     /// it is listed in the 'rooms' filter. This filter is applied before the filters in
     /// `ephemeral`, `state`, `timeline` or `account_data`.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub not_rooms: &'a [Box<RoomId>],
+    pub not_rooms: &'a [OwnedRoomId],
 
     /// A list of room IDs to include.
     ///
     /// If this list is absent then all rooms are included. This filter is applied before the
     /// filters in `ephemeral`, `state`, `timeline` or `account_data`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub rooms: Option<&'a [Box<RoomId>]>,
+    pub rooms: Option<&'a [OwnedRoomId]>,
 }
 
 impl<'a> RoomFilter<'a> {
@@ -329,7 +329,7 @@ pub struct Filter<'a> {
     ///
     /// If this list is absent then all senders are included.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub senders: Option<&'a [Box<UserId>]>,
+    pub senders: Option<&'a [OwnedUserId]>,
 
     /// A list of event types to include.
     ///
@@ -343,7 +343,7 @@ pub struct Filter<'a> {
     /// If this list is absent then no senders are excluded. A matching sender will be excluded
     /// even if it is listed in the 'senders' filter.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub not_senders: &'a [Box<UserId>],
+    pub not_senders: &'a [OwnedUserId],
 }
 
 impl<'a> Filter<'a> {

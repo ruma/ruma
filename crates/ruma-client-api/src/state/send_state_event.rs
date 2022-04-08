@@ -9,7 +9,7 @@ pub mod v3 {
         api::ruma_api,
         events::{AnyStateEventContent, StateEventContent, StateEventType},
         serde::{Incoming, Raw},
-        EventId, RoomId,
+        OwnedEventId, RoomId,
     };
     use serde_json::value::to_raw_value as to_raw_json_value;
 
@@ -27,7 +27,7 @@ pub mod v3 {
 
         response: {
             /// A unique identifier for the event.
-            pub event_id: Box<EventId>,
+            pub event_id: OwnedEventId,
         }
 
         error: crate::Error
@@ -90,7 +90,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given event id.
-        pub fn new(event_id: Box<EventId>) -> Self {
+        pub fn new(event_id: OwnedEventId) -> Self {
             Self { event_id }
         }
     }

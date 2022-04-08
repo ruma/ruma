@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3joined_rooms
 
-    use ruma_common::{api::ruma_api, RoomId};
+    use ruma_common::{api::ruma_api, OwnedRoomId};
 
     ruma_api! {
         metadata: {
@@ -25,7 +25,7 @@ pub mod v3 {
         response: {
             /// A list of the rooms the user is in, i.e. the ID of each room in
             /// which the user has joined membership.
-            pub joined_rooms: Vec<Box<RoomId>>,
+            pub joined_rooms: Vec<OwnedRoomId>,
         }
 
         error: crate::Error
@@ -40,7 +40,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given joined rooms.
-        pub fn new(joined_rooms: Vec<Box<RoomId>>) -> Self {
+        pub fn new(joined_rooms: Vec<OwnedRoomId>) -> Self {
             Self { joined_rooms }
         }
     }

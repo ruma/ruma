@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3directoryroomroomalias
 
-    use ruma_common::{api::ruma_api, RoomAliasId, RoomId, ServerName};
+    use ruma_common::{api::ruma_api, OwnedRoomId, OwnedServerName, RoomAliasId};
 
     ruma_api! {
         metadata: {
@@ -27,10 +27,10 @@ pub mod v3 {
 
         response: {
             /// The room ID for this room alias.
-            pub room_id: Box<RoomId>,
+            pub room_id: OwnedRoomId,
 
             /// A list of servers that are aware of this room ID.
-            pub servers: Vec<Box<ServerName>>,
+            pub servers: Vec<OwnedServerName>,
         }
 
         error: crate::Error
@@ -45,7 +45,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given room id and servers
-        pub fn new(room_id: Box<RoomId>, servers: Vec<Box<ServerName>>) -> Self {
+        pub fn new(room_id: OwnedRoomId, servers: Vec<OwnedServerName>) -> Self {
             Self { room_id, servers }
         }
     }

@@ -7,7 +7,7 @@ pub mod v3 {
 
     use std::collections::BTreeMap;
 
-    use ruma_common::{api::ruma_api, MilliSecondsSinceUnixEpoch, UserId};
+    use ruma_common::{api::ruma_api, MilliSecondsSinceUnixEpoch, OwnedUserId, UserId};
     use serde::{Deserialize, Serialize};
 
     ruma_api! {
@@ -32,7 +32,7 @@ pub mod v3 {
         response: {
             /// The Matrix user ID of the user.
             #[serde(skip_serializing_if = "Option::is_none")]
-            pub user_id: Option<Box<UserId>>,
+            pub user_id: Option<OwnedUserId>,
 
             /// A map of the user's device identifiers to information about that device.
             #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
