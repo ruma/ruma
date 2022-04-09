@@ -10,7 +10,7 @@ use std::{
 use base64::{encode_config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
 use ruma_common::{
     serde::{base64::Standard, Base64, CanonicalJsonObject, CanonicalJsonValue},
-    EventId, OwnedServerName, RoomVersionId, UserId,
+    OwnedEventId, OwnedServerName, RoomVersionId, UserId,
 };
 use serde_json::{from_str as from_json_str, to_string as to_json_string};
 use sha2::{digest::Digest, Sha256};
@@ -821,7 +821,7 @@ fn servers_to_check_signatures(
     match version {
         RoomVersionId::V1 | RoomVersionId::V2 => match object.get("event_id") {
             Some(CanonicalJsonValue::String(raw_event_id)) => {
-                let event_id: Box<EventId> =
+                let event_id: OwnedEventId =
                     raw_event_id.parse().map_err(|e| Error::from(ParseError::EventId(e)))?;
 
                 let server_name = event_id

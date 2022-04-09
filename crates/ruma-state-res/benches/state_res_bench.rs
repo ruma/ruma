@@ -170,7 +170,7 @@ impl<E: Event> TestStore<E> {
     }
 
     /// Returns the events that correspond to the `event_ids` sorted in the same order.
-    fn get_events(&self, room_id: &RoomId, event_ids: &[Box<EventId>]) -> Result<Vec<Arc<E>>> {
+    fn get_events(&self, room_id: &RoomId, event_ids: &[OwnedEventId]) -> Result<Vec<Arc<E>>> {
         let mut events = vec![];
         for id in event_ids {
             events.push(self.get_event(room_id, id)?);

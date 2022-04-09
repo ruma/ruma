@@ -11,7 +11,7 @@ pub mod v2 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::ruma_api, serde::Raw, MilliSecondsSinceUnixEpoch, ServerName, ServerSigningKeyId,
+        api::ruma_api, serde::Raw, MilliSecondsSinceUnixEpoch, OwnedServerName, ServerSigningKeyId,
     };
     use serde::{Deserialize, Serialize};
 
@@ -37,7 +37,7 @@ pub mod v2 {
             /// notary server must return an empty server_keys array in the response.
             ///
             /// The notary server may return multiple keys regardless of the Key IDs given.
-            pub server_keys: BTreeMap<Box<ServerName>, BTreeMap<Box<ServerSigningKeyId>, QueryCriteria>>,
+            pub server_keys: BTreeMap<OwnedServerName, BTreeMap<Box<ServerSigningKeyId>, QueryCriteria>>,
 
         }
 
@@ -51,7 +51,7 @@ pub mod v2 {
         /// Creates a new `Request` with the given query criteria.
         pub fn new(
             server_keys: BTreeMap<
-                Box<ServerName>,
+                OwnedServerName,
                 BTreeMap<Box<ServerSigningKeyId>, QueryCriteria>,
             >,
         ) -> Self {

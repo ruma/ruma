@@ -13,7 +13,7 @@ use ruma_common::{
         RoomEventType, StateEventType,
     },
     serde::{Base64, Raw},
-    RoomVersionId, UserId,
+    OwnedUserId, RoomVersionId, UserId,
 };
 use serde::{de::IgnoredAny, Deserialize};
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
@@ -30,7 +30,7 @@ struct GetMembership {
 #[derive(Deserialize)]
 struct RoomMemberContentFields {
     membership: Option<Raw<MembershipState>>,
-    join_authorised_via_users_server: Option<Raw<Box<UserId>>>,
+    join_authorised_via_users_server: Option<Raw<OwnedUserId>>,
 }
 
 #[derive(Deserialize)]
@@ -65,7 +65,7 @@ pub fn auth_types_for_event(
         struct RoomMemberContentFields {
             membership: Option<Raw<MembershipState>>,
             third_party_invite: Option<Raw<ThirdPartyInvite>>,
-            join_authorised_via_users_server: Option<Raw<Box<UserId>>>,
+            join_authorised_via_users_server: Option<Raw<OwnedUserId>>,
         }
 
         if let Some(state_key) = state_key {

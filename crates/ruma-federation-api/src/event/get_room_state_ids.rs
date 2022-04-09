@@ -7,7 +7,7 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixfederationv1state_idsroomid
 
-    use ruma_common::{api::ruma_api, EventId, RoomId};
+    use ruma_common::{api::ruma_api, EventId, OwnedEventId, RoomId};
 
     ruma_api! {
         metadata: {
@@ -33,10 +33,10 @@ pub mod v1 {
         response: {
             /// The full set of authorization events that make up the state of the
             /// room, and their authorization events, recursively.
-            pub auth_chain_ids: Vec<Box<EventId>>,
+            pub auth_chain_ids: Vec<OwnedEventId>,
 
             /// The fully resolved state of the room at the given event.
-            pub pdu_ids: Vec<Box<EventId>>,
+            pub pdu_ids: Vec<OwnedEventId>,
         }
     }
 
@@ -49,7 +49,7 @@ pub mod v1 {
 
     impl Response {
         /// Creates a new `Response` with the given auth chain IDs and room state IDs.
-        pub fn new(auth_chain_ids: Vec<Box<EventId>>, pdu_ids: Vec<Box<EventId>>) -> Self {
+        pub fn new(auth_chain_ids: Vec<OwnedEventId>, pdu_ids: Vec<OwnedEventId>) -> Self {
             Self { auth_chain_ids, pdu_ids }
         }
     }

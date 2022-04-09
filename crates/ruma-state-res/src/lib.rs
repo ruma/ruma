@@ -12,7 +12,7 @@ use ruma_common::{
         room::member::{MembershipState, RoomMemberEventContent},
         RoomEventType, StateEventType,
     },
-    EventId, MilliSecondsSinceUnixEpoch, RoomVersionId, UserId,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, RoomVersionId,
 };
 use serde::Deserialize;
 use serde_json::from_str as from_json_str;
@@ -342,7 +342,7 @@ struct PowerLevelsContentFields {
         serde(deserialize_with = "ruma_common::serde::btreemap_deserialize_v1_powerlevel_values")
     )]
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    users: BTreeMap<Box<UserId>, Int>,
+    users: BTreeMap<OwnedUserId, Int>,
 
     #[cfg_attr(
         feature = "compat",
