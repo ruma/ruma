@@ -8,7 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#post_matrixfederationv1get_missing_eventsroomid
 
     use js_int::{uint, UInt};
-    use ruma_common::{api::ruma_api, EventId, RoomId};
+    use ruma_common::{api::ruma_api, OwnedEventId, RoomId};
     use serde_json::value::RawValue as RawJsonValue;
 
     ruma_api! {
@@ -42,10 +42,10 @@ pub mod v1 {
             /// The latest event IDs that the sender already has.
             ///
             /// These are skipped when retrieving the previous events of `latest_events`.
-            pub earliest_events: &'a [Box<EventId>],
+            pub earliest_events: &'a [OwnedEventId],
 
             /// The event IDs to retrieve the previous events for.
-            pub latest_events: &'a [Box<EventId>],
+            pub latest_events: &'a [OwnedEventId],
         }
 
         #[derive(Default)]
@@ -59,8 +59,8 @@ pub mod v1 {
         /// Creates a new `Request` for events in the given room with the given constraints.
         pub fn new(
             room_id: &'a RoomId,
-            earliest_events: &'a [Box<EventId>],
-            latest_events: &'a [Box<EventId>],
+            earliest_events: &'a [OwnedEventId],
+            latest_events: &'a [OwnedEventId],
         ) -> Self {
             Self {
                 room_id,

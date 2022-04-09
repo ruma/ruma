@@ -7,7 +7,7 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixfederationv1querydirectory
 
-    use ruma_common::{api::ruma_api, RoomAliasId, RoomId, ServerName};
+    use ruma_common::{api::ruma_api, OwnedRoomId, OwnedServerName, RoomAliasId};
 
     ruma_api! {
         metadata: {
@@ -28,10 +28,10 @@ pub mod v1 {
 
         response: {
             /// Room ID mapped to queried alias.
-            pub room_id: Box<RoomId>,
+            pub room_id: OwnedRoomId,
 
             /// An array of server names that are likely to hold the given room.
-            pub servers: Vec<Box<ServerName>>,
+            pub servers: Vec<OwnedServerName>,
         }
     }
 
@@ -44,7 +44,7 @@ pub mod v1 {
 
     impl Response {
         /// Creates a new `Response` with the given room IDs and servers.
-        pub fn new(room_id: Box<RoomId>, servers: Vec<Box<ServerName>>) -> Self {
+        pub fn new(room_id: OwnedRoomId, servers: Vec<OwnedServerName>) -> Self {
             Self { room_id, servers }
         }
     }

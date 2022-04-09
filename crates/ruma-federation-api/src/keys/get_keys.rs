@@ -13,7 +13,7 @@ pub mod v1 {
         api::ruma_api,
         encryption::{CrossSigningKey, DeviceKeys},
         serde::Raw,
-        DeviceId, UserId,
+        OwnedDeviceId, OwnedUserId,
     };
 
     ruma_api! {
@@ -31,27 +31,27 @@ pub mod v1 {
             /// The keys to be downloaded.
             ///
             /// Gives all keys for a given user if the list of device ids is empty.
-            pub device_keys: BTreeMap<Box<UserId>, Vec<Box<DeviceId>>>,
+            pub device_keys: BTreeMap<OwnedUserId, Vec<OwnedDeviceId>>,
         }
 
         #[derive(Default)]
         response: {
             /// Keys from the queried devices.
-            pub device_keys: BTreeMap<Box<UserId>, BTreeMap<Box<DeviceId>, Raw<DeviceKeys>>>,
+            pub device_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Raw<DeviceKeys>>>,
 
             /// Information on the master cross-signing keys of the queried users.
             #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-            pub master_keys: BTreeMap<Box<UserId>, Raw<CrossSigningKey>>,
+            pub master_keys: BTreeMap<OwnedUserId, Raw<CrossSigningKey>>,
 
             /// Information on the self-signing keys of the queried users.
             #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-            pub self_signing_keys: BTreeMap<Box<UserId>, Raw<CrossSigningKey>>,
+            pub self_signing_keys: BTreeMap<OwnedUserId, Raw<CrossSigningKey>>,
         }
     }
 
     impl Request {
         /// Creates a new `Request` asking for the given device keys.
-        pub fn new(device_keys: BTreeMap<Box<UserId>, Vec<Box<DeviceId>>>) -> Self {
+        pub fn new(device_keys: BTreeMap<OwnedUserId, Vec<OwnedDeviceId>>) -> Self {
             Self { device_keys }
         }
     }
@@ -59,7 +59,7 @@ pub mod v1 {
     impl Response {
         /// Creates a new `Response` with the given device keys.
         pub fn new(
-            device_keys: BTreeMap<Box<UserId>, BTreeMap<Box<DeviceId>, Raw<DeviceKeys>>>,
+            device_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Raw<DeviceKeys>>>,
         ) -> Self {
             Self { device_keys, ..Default::default() }
         }

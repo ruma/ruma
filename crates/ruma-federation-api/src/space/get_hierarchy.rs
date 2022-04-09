@@ -7,7 +7,7 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixfederationv1hierarchyroomid
 
-    use ruma_common::{api::ruma_api, RoomId};
+    use ruma_common::{api::ruma_api, OwnedRoomId, RoomId};
 
     use crate::space::{SpaceHierarchyChildSummary, SpaceHierarchyParentSummary};
 
@@ -46,7 +46,7 @@ pub mod v1 {
             ///
             /// Rooms which the responding server cannot provide details on will be outright
             /// excluded from the response instead.
-            pub inaccessible_children: Vec<Box<RoomId>>,
+            pub inaccessible_children: Vec<OwnedRoomId>,
 
             /// A summary of the requested room.
             pub room: SpaceHierarchyParentSummary,

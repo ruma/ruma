@@ -7,7 +7,7 @@ pub mod v2 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/identity-service-api/#get_matrixidentityv2account
 
-    use ruma_common::{api::ruma_api, UserId};
+    use ruma_common::{api::ruma_api, OwnedUserId};
 
     ruma_api! {
         metadata: {
@@ -25,7 +25,7 @@ pub mod v2 {
 
         response: {
             /// The user ID which registered the token.
-            pub user_id: Box<UserId>,
+            pub user_id: OwnedUserId,
         }
     }
 
@@ -38,7 +38,7 @@ pub mod v2 {
 
     impl Response {
         /// Creates a new `Response` with the given `UserId`.
-        pub fn new(user_id: Box<UserId>) -> Self {
+        pub fn new(user_id: OwnedUserId) -> Self {
             Self { user_id }
         }
     }

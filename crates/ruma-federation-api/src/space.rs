@@ -3,7 +3,7 @@
 use js_int::UInt;
 use ruma_common::{
     directory::PublicRoomJoinRule, events::space::child::HierarchySpaceChildEvent, room::RoomType,
-    serde::Raw, MxcUri, RoomAliasId, RoomId, RoomName,
+    serde::Raw, MxcUri, OwnedRoomAliasId, OwnedRoomId, RoomName,
 };
 use serde::{Deserialize, Serialize};
 
@@ -22,7 +22,7 @@ pub struct SpaceHierarchyParentSummary {
         feature = "compat",
         serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
     )]
-    pub canonical_alias: Option<Box<RoomAliasId>>,
+    pub canonical_alias: Option<OwnedRoomAliasId>,
 
     /// The name of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -32,7 +32,7 @@ pub struct SpaceHierarchyParentSummary {
     pub num_joined_members: UInt,
 
     /// The ID of the room.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// The topic of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -72,7 +72,7 @@ pub struct SpaceHierarchyParentSummary {
     /// If the room is a restricted room, these are the room IDs which are specified by the join
     /// rules.
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
-    pub allowed_room_ids: Vec<Box<RoomId>>,
+    pub allowed_room_ids: Vec<OwnedRoomId>,
 }
 
 /// Initial set of mandatory fields of `SpaceHierarchyParentSummary`.
@@ -86,7 +86,7 @@ pub struct SpaceHierarchyParentSummaryInit {
     pub num_joined_members: UInt,
 
     /// The ID of the room.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// Whether the room may be viewed by guest users without joining.
     pub world_readable: bool,
@@ -106,7 +106,7 @@ pub struct SpaceHierarchyParentSummaryInit {
 
     /// If the room is a restricted room, these are the room IDs which are specified by the join
     /// rules.
-    pub allowed_room_ids: Vec<Box<RoomId>>,
+    pub allowed_room_ids: Vec<OwnedRoomId>,
 }
 
 impl From<SpaceHierarchyParentSummaryInit> for SpaceHierarchyParentSummary {
@@ -151,7 +151,7 @@ pub struct SpaceHierarchyChildSummary {
         feature = "compat",
         serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
     )]
-    pub canonical_alias: Option<Box<RoomAliasId>>,
+    pub canonical_alias: Option<OwnedRoomAliasId>,
 
     /// The name of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -161,7 +161,7 @@ pub struct SpaceHierarchyChildSummary {
     pub num_joined_members: UInt,
 
     /// The ID of the room.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// The topic of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -196,7 +196,7 @@ pub struct SpaceHierarchyChildSummary {
     /// If the room is a restricted room, these are the room IDs which are specified by the join
     /// rules.
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
-    pub allowed_room_ids: Vec<Box<RoomId>>,
+    pub allowed_room_ids: Vec<OwnedRoomId>,
 }
 
 /// Initial set of mandatory fields of `SpaceHierarchyChildSummary`.
@@ -210,7 +210,7 @@ pub struct SpaceHierarchyChildSummaryInit {
     pub num_joined_members: UInt,
 
     /// The ID of the room.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// Whether the room may be viewed by guest users without joining.
     pub world_readable: bool,
@@ -225,7 +225,7 @@ pub struct SpaceHierarchyChildSummaryInit {
 
     /// If the room is a restricted room, these are the room IDs which are specified by the join
     /// rules.
-    pub allowed_room_ids: Vec<Box<RoomId>>,
+    pub allowed_room_ids: Vec<OwnedRoomId>,
 }
 
 impl From<SpaceHierarchyChildSummaryInit> for SpaceHierarchyChildSummary {
