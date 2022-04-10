@@ -10,8 +10,9 @@ pub mod lookup_3pid;
 /// The algorithms that can be used to hash the identifiers used for lookup, as defined in the
 /// Matrix Spec.
 ///
-/// This type can hold an arbitrary string. To check for algorithms that are not available as a
-/// documented variant here, use its string representation, obtained through `.as_str()`.
+/// This type can hold an arbitrary string. To build this with a custom value, convert it from a
+/// string with `::from() / .into()`. To check for formats that are not available as a documented
+/// variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Debug, PartialEq, Eq, Clone, StringEnum)]
 #[non_exhaustive]
 #[ruma_enum(rename_all = "snake_case")]

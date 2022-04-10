@@ -302,6 +302,7 @@ impl<'de> Deserialize<'de> for IncomingAuthData {
 }
 
 /// The type of an authentication stage.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[non_exhaustive]
 pub enum AuthType {

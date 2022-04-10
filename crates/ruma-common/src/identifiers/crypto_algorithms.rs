@@ -5,9 +5,7 @@ use ruma_macros::StringEnum;
 use crate::PrivOwnedStr;
 
 /// The basic key algorithms in the specification.
-///
-/// This type can hold an arbitrary string. To check for algorithms that are not available as a
-/// documented variant here, use its string representation, obtained through `.as_str()`.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[non_exhaustive]
 #[ruma_enum(rename_all = "snake_case")]
@@ -26,9 +24,7 @@ pub enum DeviceKeyAlgorithm {
 }
 
 /// The signing key algorithms defined in the Matrix spec.
-///
-/// This type can hold an arbitrary string. To check for algorithms that are not available as a
-/// documented variant here, use its string representation, obtained through `.as_str()`.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[non_exhaustive]
 #[ruma_enum(rename_all = "snake_case")]
@@ -41,9 +37,7 @@ pub enum SigningKeyAlgorithm {
 }
 
 /// An encryption algorithm to be used to encrypt messages sent to a room.
-///
-/// This type can hold an arbitrary string. To check for algorithms that are not available as a
-/// documented variant here, use its string representation, obtained through `.as_str()`.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[non_exhaustive]
 pub enum EventEncryptionAlgorithm {

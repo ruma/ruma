@@ -187,9 +187,7 @@ impl RedactedEventContent for RedactedRoomMemberEventContent {
 }
 
 /// The membership state of a user.
-///
-/// This type can hold an arbitrary string. To check for formats that are not available as a
-/// documented variant here, use its string representation, obtained through `.as_str()`.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "lowercase")]
 #[non_exhaustive]
