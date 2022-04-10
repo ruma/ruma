@@ -29,11 +29,9 @@ jobs:
 
       - name: Build docs
         uses: actions-rs/cargo@v1
-        env:
-          RUSTDOCFLAGS: "--enable-index-page -Zunstable-options --cfg docsrs"
         with:
-          command: doc
-          args: --no-deps --workspace --exclude ruma-macros --exclude ruma-identifiers-validation --exclude xtask --all-features -Zrustdoc-map
+          command: run
+          args: -p xtask -- doc --deny-warnings
 
       - name: Deploy to docs branch
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
