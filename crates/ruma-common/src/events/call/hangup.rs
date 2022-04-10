@@ -39,9 +39,7 @@ impl CallHangupEventContent {
 /// Should not be provided when the user naturally ends or rejects the call. When there was an error
 /// in the call negotiation, this should be `ice_failed` for when ICE negotiation fails or
 /// `invite_timeout` for when the other party did not answer in time.
-///
-/// This type can hold an arbitrary string. To check for formats that are not available as a
-/// documented variant here, use its string representation, obtained through `.as_str()`.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]

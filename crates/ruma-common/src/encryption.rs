@@ -155,6 +155,7 @@ impl CrossSigningKey {
 }
 
 /// The usage of a cross signing key.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, StringEnum)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_enum(rename_all = "snake_case")]

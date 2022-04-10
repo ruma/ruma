@@ -230,9 +230,7 @@ impl<'de> Visitor<'de> for RoomNetworkVisitor {
 }
 
 /// The rule used for users wishing to join a public room.
-///
-/// This type can hold an arbitrary string. To check for join rules that are not available as a
-/// documented variant here, use its string representation, obtained through `.as_str()`.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
