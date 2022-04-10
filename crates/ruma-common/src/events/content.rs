@@ -13,6 +13,8 @@ use super::{
 /// The base trait that all event content types implement.
 ///
 /// Use [`macros::EventContent`] to derive this traits. It is not meant to be implemented manually.
+///
+/// [`macros::EventContent`]: super::macros::EventContent
 pub trait EventContent: Sized + Serialize {
     /// The Rust enum for the event kind's known types.
     type EventType;

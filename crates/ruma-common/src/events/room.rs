@@ -53,10 +53,10 @@ pub enum MediaSource {
     Encrypted(Box<EncryptedFile>),
 }
 
-/// Custom implementation of `Deserialize`, because serde doesn't guarantee what variant will be
-/// deserialized for "externally tagged"¹ enums where multiple "tag" fields exist.
-///
-/// ¹ https://serde.rs/enum-representations.html
+// Custom implementation of `Deserialize`, because serde doesn't guarantee what variant will be
+// deserialized for "externally tagged"¹ enums where multiple "tag" fields exist.
+//
+// ¹ https://serde.rs/enum-representations.html
 impl<'de> Deserialize<'de> for MediaSource {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
