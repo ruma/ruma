@@ -15,6 +15,7 @@
 use std::{convert::TryInto as _, error::Error as StdError, fmt};
 
 use bytes::BufMut;
+use tracing::warn;
 
 use crate::UserId;
 
@@ -410,38 +411,36 @@ pub fn select_path<'a>(
     stable: Option<fmt::Arguments<'a>>,
 ) -> Result<fmt::Arguments<'a>, IntoHttpError> {
     match metadata.versioning_decision_for(versions) {
-        VersioningDecision::Removed => {
-            return Err(IntoHttpError::EndpointRemoved(metadata.removed.unwrap()))
-        }
+        VersioningDecision::Removed => Err(IntoHttpError::EndpointRemoved(
+            metadata.removed.expect("VersioningDecision::Removed implies metadata.removed"),
+        )),
         VersioningDecision::Stable { any_deprecated, all_deprecated, any_removed } => {
             if any_removed {
                 if all_deprecated {
-                    tracing::warn!(
+                    warn!(
                         "endpoint {} is removed in some (and deprecated in ALL) of the following versions: {:?}",
                         metadata.name,
                         versions
-                    )
+                    );
                 } else if any_deprecated {
-                    tracing::warn!(
-                        "endpoint {} is removed (and deprecated) in some versions: {:?}",
+                    warn!(
+                        "endpoint {} is removed (and deprecated) in some of the following versions: {:?}",
                         metadata.name,
                         versions
-                    )
+                    );
                 } else {
-                    unreachable!("any_removed implies *_deprecated")
+                    unreachable!("any_removed implies *_deprecated");
                 }
             } else if all_deprecated {
-                tracing::warn!(
+                warn!(
                     "endpoint {} is deprecated in ALL of the following versions: {:?}",
-                    metadata.name,
-                    versions
-                )
+                    metadata.name, versions
+                );
             } else if any_deprecated {
-                tracing::warn!(
-                    "endpoint {} is deprecated in some versions: {:?}",
-                    metadata.name,
-                    versions
-                )
+                warn!(
+                    "endpoint {} is deprecated in some of the following versions: {:?}",
+                    metadata.name, versions
+                );
             }
 
             if let Some(r0) = r0 {

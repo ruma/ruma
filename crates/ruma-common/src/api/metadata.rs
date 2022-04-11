@@ -100,6 +100,7 @@ impl Metadata {
 
 /// A versioning "decision" derived from a set of matrix versions.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[allow(clippy::exhaustive_enums)]
 pub enum VersioningDecision {
     /// The unstable endpoint should be used.
     Unstable,
