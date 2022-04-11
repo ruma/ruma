@@ -59,6 +59,63 @@ pub struct Metadata {
     pub removed: Option<MatrixVersion>,
 }
 
+impl Metadata {
+    /// Will decide how a particular set of matrix versions sees an endpoint.
+    ///
+    /// It will pick `Stable` over `R0` and `Unstable`. It'll return `Deprecated` or `Removed` only
+    /// if all versions denote it.
+    ///
+    /// In other words, if in any version it tells it supports the endpoint in a stable fashion,
+    /// this will return `Stable`, even if some versions in this set will denote deprecation or
+    /// removal.
+    ///
+    /// If resulting [`VersioningDecision`] is `Stable`, it will also detail if any version denoted
+    /// deprecation or removal.
+    pub fn versioning_decision_for(&self, versions: &[MatrixVersion]) -> VersioningDecision {
+        let greater_or_equal_any =
+            |version: MatrixVersion| versions.iter().any(|v| v.is_superset_of(version));
+        let greater_or_equal_all =
+            |version: MatrixVersion| versions.iter().all(|v| v.is_superset_of(version));
+
+        // Check if all versions removed this endpoint.
+        if self.removed.map(greater_or_equal_all).unwrap_or(false) {
+            return VersioningDecision::Removed;
+        }
+
+        // Check if *any* version marks this endpoint as stable.
+        if self.added.map(greater_or_equal_any).unwrap_or(false) {
+            let all_deprecated = self.deprecated.map(greater_or_equal_all).unwrap_or(false);
+
+            return VersioningDecision::Stable {
+                any_deprecated: all_deprecated
+                    || self.deprecated.map(greater_or_equal_any).unwrap_or(false),
+                all_deprecated,
+                any_removed: self.removed.map(greater_or_equal_any).unwrap_or(false),
+            };
+        }
+
+        VersioningDecision::Unstable
+    }
+}
+
+/// A versioning "decision" derived from a set of matrix versions.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum VersioningDecision {
+    Unstable,
+    Stable {
+        /// If any version denoted deprecation.
+        any_deprecated: bool,
+
+        /// If *all* versions denoted deprecation.
+        all_deprecated: bool,
+
+        /// If any version denoted removal.
+        any_removed: bool,
+    },
+    /// This endpoint was removed in all versions.
+    Removed,
+}
+
 /// The Matrix versions Ruma currently understands to exist.
 ///
 /// Matrix, since fall 2021, has a quarterly release schedule, using a global `vX.Y` versioning
