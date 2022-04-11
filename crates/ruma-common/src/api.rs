@@ -414,32 +414,34 @@ pub fn select_path<'a>(
             return Err(IntoHttpError::EndpointRemoved(metadata.removed.unwrap()))
         }
         VersioningDecision::Stable { any_deprecated, all_deprecated, any_removed } => {
-            match (any_removed, all_deprecated, any_deprecated) {
-                // Some remove, all deprecate
-                (true, true, _) => tracing::warn!(
-                        "endpoint {} is deprecated in ALL (and removed in some) of the following versions: {:?}",
+            if any_removed {
+                if all_deprecated {
+                    tracing::warn!(
+                        "endpoint {} is removed in some (and deprecated in ALL) of the following versions: {:?}",
                         metadata.name,
                         versions
-                ),
-                // Some remove, some deprecate
-                (true, false, true) => tracing::warn!(
-                    "endpoint {} is deprecated (and removed) in some versions: {:?}",
-                    metadata.name,
-                    versions
-                ),
-                // None remove, all deprecate
-                (false, true, _) => tracing::warn!(
+                    )
+                } else if any_deprecated {
+                    tracing::warn!(
+                        "endpoint {} is removed (and deprecated) in some versions: {:?}",
+                        metadata.name,
+                        versions
+                    )
+                } else {
+                    unreachable!("any_removed implies *_deprecated")
+                }
+            } else if all_deprecated {
+                tracing::warn!(
                     "endpoint {} is deprecated in ALL of the following versions: {:?}",
                     metadata.name,
                     versions
-                ),
-                // None remove, some deprecate
-                (false, false, true) => tracing::warn!(
+                )
+            } else if any_deprecated {
+                tracing::warn!(
                     "endpoint {} is deprecated in some versions: {:?}",
                     metadata.name,
                     versions
-                ),
-                _ => {}
+                )
             }
 
             if let Some(r0) = r0 {
