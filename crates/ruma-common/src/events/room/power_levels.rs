@@ -171,6 +171,114 @@ fn is_default_power_level(l: &Int) -> bool {
     *l == int!(50)
 }
 
+/// The effective power levels of a room.
+///
+/// This struct contains the same fields as [`RoomPowerLevelsEventContent`] and be created from that
+/// using a `From` trait implementation, but it is also implements
+/// `From<`[`RedactedRoomPowerLevelsEventContent`]`>`, so can be used when wanting to inspect the
+/// power levels of a room, regardless of whether the most recent power-levels event is redacted or
+/// not.
+#[derive(Clone, Debug)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct RoomPowerLevels {
+    /// The level required to ban a user.
+    ///
+    /// If you activate the `compat` feature, deserialization will work for stringified
+    /// integers too.
+    pub ban: Int,
+
+    /// The level required to send specific event types.
+    ///
+    /// This is a mapping from event type to power level required.
+    ///
+    /// If you activate the `compat` feature, deserialization will work for stringified
+    /// integers too.
+    pub events: BTreeMap<RoomEventType, Int>,
+
+    /// The default level required to send message events.
+    ///
+    /// If you activate the `compat` feature, deserialization will work for stringified
+    /// integers too.
+    pub events_default: Int,
+
+    /// The level required to invite a user.
+    ///
+    /// If you activate the `compat` feature, deserialization will work for stringified
+    /// integers too.
+    pub invite: Int,
+
+    /// The level required to kick a user.
+    ///
+    /// If you activate the `compat` feature, deserialization will work for stringified
+    /// integers too.
+    pub kick: Int,
+
+    /// The level required to redact an event.
+    ///
+    /// If you activate the `compat` feature, deserialization will work for stringified
+    /// integers too.
+    pub redact: Int,
+
+    /// The default level required to send state events.
+    ///
+    /// If you activate the `compat` feature, deserialization will work for stringified
+    /// integers too.
+    pub state_default: Int,
+
+    /// The power levels for specific users.
+    ///
+    /// This is a mapping from `user_id` to power level for that user.
+    ///
+    /// If you activate the `compat` feature, deserialization will work for stringified
+    /// integers too.
+    pub users: BTreeMap<Box<UserId>, Int>,
+
+    /// The default power level for every user in the room.
+    ///
+    /// If you activate the `compat` feature, deserialization will work for stringified
+    /// integers too.
+    pub users_default: Int,
+
+    /// The power level requirements for specific notification types.
+    ///
+    /// This is a mapping from `key` to power level for that notifications key.
+    pub notifications: NotificationPowerLevels,
+}
+
+impl From<RoomPowerLevelsEventContent> for RoomPowerLevels {
+    fn from(c: RoomPowerLevelsEventContent) -> Self {
+        Self {
+            ban: c.ban,
+            events: c.events,
+            events_default: c.events_default,
+            invite: c.invite,
+            kick: c.kick,
+            redact: c.redact,
+            state_default: c.state_default,
+            users: c.users,
+            users_default: c.users_default,
+            notifications: c.notifications,
+        }
+    }
+}
+
+impl From<RedactedRoomPowerLevelsEventContent> for RoomPowerLevels {
+    fn from(c: RedactedRoomPowerLevelsEventContent) -> Self {
+        Self {
+            ban: c.ban,
+            events: c.events,
+            events_default: c.events_default,
+            invite: int!(0),
+            kick: c.kick,
+            redact: c.redact,
+            state_default: c.state_default,
+            users: c.users,
+            users_default: c.users_default,
+            notifications: NotificationPowerLevels::default(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;
