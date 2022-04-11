@@ -195,11 +195,9 @@ pub use ruma_macros::ruma_api;
 pub mod error;
 mod metadata;
 
-pub use metadata::{MatrixVersion, Metadata};
+pub use metadata::{MatrixVersion, Metadata, VersioningDecision};
 
 use error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
-
-use self::metadata::VersioningDecision;
 
 /// An enum to control whether an access token should be added to outgoing requests
 #[derive(Clone, Copy, Debug)]
