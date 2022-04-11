@@ -101,7 +101,12 @@ impl Metadata {
 /// A versioning "decision" derived from a set of matrix versions.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum VersioningDecision {
+    /// The unstable endpoint should be used.
     Unstable,
+    /// The stable endpoint should be used.
+    ///
+    /// Note, in the special case that all versions note [v1.0](MatrixVersion::V1_0), and the
+    /// [`r0_path`](Metadata::r0_path) is not `None`, that path should be used.
     Stable {
         /// If any version denoted deprecation.
         any_deprecated: bool,
@@ -112,7 +117,7 @@ pub enum VersioningDecision {
         /// If any version denoted removal.
         any_removed: bool,
     },
-    /// This endpoint was removed in all versions.
+    /// This endpoint was removed in all versions, it should not be used.
     Removed,
 }
 
