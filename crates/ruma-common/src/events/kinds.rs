@@ -497,9 +497,25 @@ impl_possibly_redacted_event!(MessageLikeEvent(MessageLikeEventContent, MessageL
             Self::Redacted(ev) => &ev.room_id,
         }
     }
+
+    /// Get the inner `OriginalMessageLikeEvent` if this is an unredacted event.
+    pub fn as_original(&self) -> Option<&OriginalMessageLikeEvent<C>> {
+        match self {
+            Self::Original(v) => Some(v),
+            _ => None,
+        }
+    }
 });
 
 impl_possibly_redacted_event!(SyncMessageLikeEvent(MessageLikeEventContent, MessageLikeEventType) {
+    /// Get the inner `OriginalSyncMessageLikeEvent` if this is an unredacted event.
+    pub fn as_original(&self) -> Option<&OriginalSyncMessageLikeEvent<C>> {
+        match self {
+            Self::Original(v) => Some(v),
+            _ => None,
+        }
+    }
+
     /// Convert this sync event into a full event (one with a `room_id` field).
     pub fn into_full_event(self, room_id: Box<RoomId>) -> MessageLikeEvent<C> {
         match self {
@@ -525,6 +541,14 @@ impl_possibly_redacted_event!(StateEvent(StateEventContent, StateEventType) {
             Self::Redacted(ev) => &ev.state_key,
         }
     }
+
+    /// Get the inner `OriginalStateEvent` if this is an unredacted event.
+    pub fn as_original(&self) -> Option<&OriginalStateEvent<C>> {
+        match self {
+            Self::Original(v) => Some(v),
+            _ => None,
+        }
+    }
 });
 
 impl_possibly_redacted_event!(SyncStateEvent(StateEventContent, StateEventType) {
@@ -533,6 +557,14 @@ impl_possibly_redacted_event!(SyncStateEvent(StateEventContent, StateEventType) 
         match self {
             Self::Original(ev) => &ev.state_key,
             Self::Redacted(ev) => &ev.state_key,
+        }
+    }
+
+    /// Get the inner `OriginalSyncStateEvent` if this is an unredacted event.
+    pub fn as_original(&self) -> Option<&OriginalSyncStateEvent<C>> {
+        match self {
+            Self::Original(v) => Some(v),
+            _ => None,
         }
     }
 
