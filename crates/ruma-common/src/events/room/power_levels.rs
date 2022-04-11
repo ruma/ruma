@@ -181,6 +181,16 @@ impl RoomPowerLevelsEvent {
     }
 }
 
+impl SyncRoomPowerLevelsEvent {
+    /// Obtain the effective power levels, regardless of whether this event is redacted.
+    pub fn power_levels(&self) -> RoomPowerLevels {
+        match self {
+            Self::Original(ev) => ev.content.clone().into(),
+            Self::Redacted(ev) => ev.content.clone().into(),
+        }
+    }
+}
+
 /// The effective power levels of a room.
 ///
 /// This struct contains the same fields as [`RoomPowerLevelsEventContent`] and be created from that
