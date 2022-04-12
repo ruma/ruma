@@ -17,7 +17,7 @@ pub struct OriginalStateEvent<C: StateEventContent> {
     pub sender: OwnedUserId,
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
     pub room_id: OwnedRoomId,
-    pub state_key: String,
+    pub state_key: C::StateKey,
     pub unsigned: StateUnsigned<C>,
 }
 

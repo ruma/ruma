@@ -203,7 +203,7 @@ pub struct OriginalStateEvent<C: StateEventContent> {
     ///
     /// This is often an empty string, but some events send a `UserId` to show which user the event
     /// affects.
-    pub state_key: String,
+    pub state_key: C::StateKey,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: StateUnsigned<C>,
@@ -231,7 +231,7 @@ pub struct OriginalSyncStateEvent<C: StateEventContent> {
     ///
     /// This is often an empty string, but some events send a `UserId` to show which user the event
     /// affects.
-    pub state_key: String,
+    pub state_key: C::StateKey,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: StateUnsigned<C>,
@@ -250,7 +250,7 @@ pub struct StrippedStateEvent<C: StateEventContent> {
     ///
     /// This is often an empty string, but some events send a `UserId` to show which user the event
     /// affects.
-    pub state_key: String,
+    pub state_key: C::StateKey,
 }
 
 /// A minimal state event, used for creating a new room.
@@ -265,8 +265,7 @@ pub struct InitialStateEvent<C: StateEventContent> {
     /// affects.
     ///
     /// Defaults to the empty string.
-    #[ruma_event(default)]
-    pub state_key: String,
+    pub state_key: C::StateKey,
 }
 
 /// A redacted state event.
@@ -294,7 +293,7 @@ pub struct RedactedStateEvent<C: RedactedStateEventContent> {
     ///
     /// This is often an empty string, but some events send a `UserId` to show which user the event
     /// affects.
-    pub state_key: String,
+    pub state_key: C::StateKey,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: RedactedUnsigned,
@@ -322,7 +321,7 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
     ///
     /// This is often an empty string, but some events send a `UserId` to show which user the event
     /// affects.
-    pub state_key: String,
+    pub state_key: C::StateKey,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: RedactedUnsigned,
@@ -411,11 +410,16 @@ pub struct DecryptedMegolmV1Event<C: MessageLikeEventContent> {
 }
 
 macro_rules! impl_possibly_redacted_event {
-    ($ty:ident ( $content_trait:ident, $event_type:ident ) { $($extra:tt)* }) => {
+    (
+        $ty:ident ( $content_trait:ident, $event_type:ident )
+        $( where C::Redacted: $trait:ident<StateKey = C::StateKey>, )?
+        { $($extra:tt)* }
+    ) => {
         impl<C> $ty<C>
         where
             C: $content_trait + RedactContent,
             C::Redacted: $content_trait + RedactedEventContent,
+            $( C::Redacted: $trait<StateKey = C::StateKey>, )?
         {
             /// Returns the `type` of this event.
             pub fn event_type(&self) -> $event_type {
@@ -457,6 +461,7 @@ macro_rules! impl_possibly_redacted_event {
         where
             C: $content_trait + RedactContent,
             C::Redacted: $content_trait + RedactedEventContent,
+            $( C::Redacted: $trait<StateKey = C::StateKey>, )?
         {
             type Redacted = Self;
 
@@ -472,6 +477,7 @@ macro_rules! impl_possibly_redacted_event {
         where
             C: $content_trait + RedactContent,
             C::Redacted: $content_trait + RedactedEventContent,
+            $( C::Redacted: $trait<StateKey = C::StateKey>, )?
         {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -526,57 +532,67 @@ impl_possibly_redacted_event!(SyncMessageLikeEvent(MessageLikeEventContent, Mess
     }
 });
 
-impl_possibly_redacted_event!(StateEvent(StateEventContent, StateEventType) {
-    /// Returns this event's `room_id` field.
-    pub fn room_id(&self) -> &RoomId {
-        match self {
-            Self::Original(ev) => &ev.room_id,
-            Self::Redacted(ev) => &ev.room_id,
+impl_possibly_redacted_event!(
+    StateEvent(StateEventContent, StateEventType)
+    where
+        C::Redacted: StateEventContent<StateKey = C::StateKey>,
+    {
+        /// Returns this event's `room_id` field.
+        pub fn room_id(&self) -> &RoomId {
+            match self {
+                Self::Original(ev) => &ev.room_id,
+                Self::Redacted(ev) => &ev.room_id,
+            }
         }
-    }
 
-    /// Returns this event's `state_key` field.
-    pub fn state_key(&self) -> &str {
-        match self {
-            Self::Original(ev) => &ev.state_key,
-            Self::Redacted(ev) => &ev.state_key,
+        /// Returns this event's `state_key` field.
+        pub fn state_key(&self) -> &C::StateKey {
+            match self {
+                Self::Original(ev) => &ev.state_key,
+                Self::Redacted(ev) => &ev.state_key,
+            }
         }
-    }
 
-    /// Get the inner `OriginalStateEvent` if this is an unredacted event.
-    pub fn as_original(&self) -> Option<&OriginalStateEvent<C>> {
-        match self {
-            Self::Original(v) => Some(v),
-            _ => None,
+        /// Get the inner `OriginalStateEvent` if this is an unredacted event.
+        pub fn as_original(&self) -> Option<&OriginalStateEvent<C>> {
+            match self {
+                Self::Original(v) => Some(v),
+                _ => None,
+            }
         }
     }
-});
+);
 
-impl_possibly_redacted_event!(SyncStateEvent(StateEventContent, StateEventType) {
-    /// Returns this event's `state_key` field.
-    pub fn state_key(&self) -> &str {
-        match self {
-            Self::Original(ev) => &ev.state_key,
-            Self::Redacted(ev) => &ev.state_key,
+impl_possibly_redacted_event!(
+    SyncStateEvent(StateEventContent, StateEventType)
+    where
+        C::Redacted: StateEventContent<StateKey = C::StateKey>,
+    {
+        /// Returns this event's `state_key` field.
+        pub fn state_key(&self) -> &C::StateKey {
+            match self {
+                Self::Original(ev) => &ev.state_key,
+                Self::Redacted(ev) => &ev.state_key,
+            }
         }
-    }
 
-    /// Get the inner `OriginalSyncStateEvent` if this is an unredacted event.
-    pub fn as_original(&self) -> Option<&OriginalSyncStateEvent<C>> {
-        match self {
-            Self::Original(v) => Some(v),
-            _ => None,
+        /// Get the inner `OriginalSyncStateEvent` if this is an unredacted event.
+        pub fn as_original(&self) -> Option<&OriginalSyncStateEvent<C>> {
+            match self {
+                Self::Original(v) => Some(v),
+                _ => None,
+            }
         }
-    }
 
-    /// Convert this sync event into a full event (one with a `room_id` field).
-    pub fn into_full_event(self, room_id: OwnedRoomId) -> StateEvent<C> {
-        match self {
-            Self::Original(ev) => StateEvent::Original(ev.into_full_event(room_id)),
-            Self::Redacted(ev) => StateEvent::Redacted(ev.into_full_event(room_id)),
+        /// Convert this sync event into a full event (one with a `room_id` field).
+        pub fn into_full_event(self, room_id: OwnedRoomId) -> StateEvent<C> {
+            match self {
+                Self::Original(ev) => StateEvent::Original(ev.into_full_event(room_id)),
+                Self::Redacted(ev) => StateEvent::Redacted(ev.into_full_event(room_id)),
+            }
         }
     }
-});
+);
 
 macro_rules! impl_sync_from_full {
     ($ty:ident, $full:ident, $content_trait:ident) => {
