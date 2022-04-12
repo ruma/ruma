@@ -4,7 +4,7 @@ use serde_json::value::RawValue as RawJsonValue;
 use super::{
     EphemeralRoomEventType, EventContent, GlobalAccountDataEventType, HasDeserializeFields,
     MessageLikeEventType, RedactContent, RedactedEventContent, RoomAccountDataEventType,
-    StateEventType, ToDeviceEventType,
+    StateEventContent, StateEventType, ToDeviceEventType,
 };
 use crate::RoomVersionId;
 
@@ -68,3 +68,7 @@ custom_event_content!(CustomEphemeralRoomEventContent, EphemeralRoomEventType);
 custom_room_event_content!(CustomMessageLikeEventContent, MessageLikeEventType);
 custom_room_event_content!(CustomStateEventContent, StateEventType);
 custom_event_content!(CustomToDeviceEventContent, ToDeviceEventType);
+
+impl StateEventContent for CustomStateEventContent {
+    type StateKey = String;
+}

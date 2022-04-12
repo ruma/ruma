@@ -37,7 +37,6 @@ const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
         matches!(kind, EventKind::MessageLike | EventKind::State | EventKind::ToDevice)
             && var != EventEnumVariation::Initial
     }),
-    ("state_key", |kind, _| matches!(kind, EventKind::State)),
 ];
 
 /// Create a content enum from `EventEnumInput`.
@@ -484,6 +483,21 @@ fn expand_accessor_methods(
         })
     });
 
+    let state_key_accessor = (kind == EventKind::State).then(|| {
+        let variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
+        let call_parens = maybe_redacted.then(|| quote! { () });
+
+        quote! {
+            /// Returns this event's `state_key` field.
+            pub fn state_key(&self) -> &::std::primitive::str {
+                match self {
+                    #( #variants(event) => &event.state_key #call_parens .as_ref(), )*
+                    Self::_Custom(event) => &event.state_key #call_parens .as_ref(),
+                }
+            }
+        }
+    });
+
     let txn_id_accessor = maybe_redacted.then(|| {
         let variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
         quote! {
@@ -513,6 +527,7 @@ fn expand_accessor_methods(
 
             #content_accessors
             #( #methods )*
+            #state_key_accessor
             #txn_id_accessor
         }
     })
@@ -572,7 +587,6 @@ fn field_return_type(name: &str, ruma_common: &TokenStream) -> TokenStream {
         "room_id" => quote! { #ruma_common::RoomId },
         "event_id" => quote! { #ruma_common::EventId },
         "sender" => quote! { #ruma_common::UserId },
-        "state_key" => quote! { ::std::primitive::str },
         _ => panic!("the `ruma_macros::event_enum::EVENT_FIELD` const was changed"),
     }
 }

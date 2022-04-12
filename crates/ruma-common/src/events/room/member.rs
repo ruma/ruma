@@ -11,7 +11,7 @@ use serde_json::value::RawValue as RawJsonValue;
 use crate::{
     events::{
         EventContent, HasDeserializeFields, OriginalSyncStateEvent, RedactContent,
-        RedactedEventContent, StateEventType, StrippedStateEvent,
+        RedactedEventContent, StateEventContent, StateEventType, StrippedStateEvent,
     },
     serde::StringEnum,
     MxcUri, OwnedServerName, OwnedServerSigningKeyId, OwnedUserId, PrivOwnedStr, RoomVersionId,
@@ -173,6 +173,10 @@ impl EventContent for RedactedRoomMemberEventContent {
 
         serde_json::from_str(content.get())
     }
+}
+
+impl StateEventContent for RedactedRoomMemberEventContent {
+    type StateKey = String; // Box<UserId>
 }
 
 // Since this redacted event has fields we leave the default `empty` method

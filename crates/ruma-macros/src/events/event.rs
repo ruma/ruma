@@ -2,10 +2,7 @@
 
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
-use syn::{
-    parse_quote, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, GenericParam, Meta,
-    MetaList, NestedMeta,
-};
+use syn::{parse_quote, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, GenericParam};
 
 use super::{
     event_parse::{to_kind_variation, EventKind, EventKindVariation},
@@ -169,14 +166,16 @@ fn expand_deserialize_event(
         .iter()
         .map(|field| {
             let name = field.ident.as_ref().unwrap();
-            let ty = &field.ty;
             if name == "content" || (name == "unsigned" && has_prev_content(kind, var)) {
                 if is_generic {
                     quote! { ::std::boxed::Box<#serde_json::value::RawValue> }
                 } else {
                     quote! { #content_type }
                 }
+            } else if name == "state_key" && var == EventKindVariation::Initial {
+                quote! { ::std::string::String }
             } else {
+                let ty = &field.ty;
                 quote! { #ty }
             }
         })
@@ -225,41 +224,32 @@ fn expand_deserialize_event(
                         )?;
                     }
                 }
-            } else if name == "unsigned" && has_prev_content(kind, var) {
-                quote! {
-                    let unsigned = unsigned.map(|json| {
-                        #ruma_common::events::StateUnsigned::_from_parts(&event_type, &json)
-                            .map_err(#serde::de::Error::custom)
-                    }).transpose()?.unwrap_or_default();
-                }
-            } else {
-                let attrs: Vec<_> = field
-                    .attrs
-                    .iter()
-                    .filter(|a| a.path.is_ident("ruma_event"))
-                    .map(|a| a.parse_meta())
-                    .collect::<syn::Result<_>>()?;
-
-                let has_default_attr = attrs.iter().any(|a| {
-                    matches!(
-                        a,
-                        Meta::List(MetaList { nested, .. })
-                        if nested.iter().any(|n| {
-                            matches!(n, NestedMeta::Meta(Meta::Path(p)) if p.is_ident("default"))
-                        })
-                    )
-                });
-
-                if has_default_attr || name == "unsigned" {
+            } else if name == "unsigned" {
+                if has_prev_content(kind, var) {
                     quote! {
-                        let #name = #name.unwrap_or_default();
+                        let unsigned = unsigned.map(|json| {
+                            #ruma_common::events::StateUnsigned::_from_parts(&event_type, &json)
+                                .map_err(#serde::de::Error::custom)
+                        }).transpose()?.unwrap_or_default();
                     }
                 } else {
                     quote! {
-                        let #name = #name.ok_or_else(|| {
-                            #serde::de::Error::missing_field(stringify!(#name))
-                        })?;
+                        let unsigned = unsigned.unwrap_or_default();
                     }
+                }
+            } else if name == "state_key" && var == EventKindVariation::Initial {
+                let ty = &field.ty;
+                quote! {
+                    let state_key: ::std::string::String = state_key.unwrap_or_default();
+                    let state_key: #ty = <#ty as #serde::de::Deserialize>::deserialize(
+                        #serde::de::IntoDeserializer::<A::Error>::into_deserializer(state_key),
+                    )?;
+                }
+            } else {
+                quote! {
+                    let #name = #name.ok_or_else(|| {
+                        #serde::de::Error::missing_field(stringify!(#name))
+                    })?;
                 }
             })
         })
@@ -385,12 +375,21 @@ fn expand_redact_event(
 
     let where_clause = generics.make_where_clause();
     where_clause.predicates.push(parse_quote! { #ty_param: #ruma_common::events::RedactContent });
-    where_clause.predicates.push(parse_quote! {
-        <#ty_param as #ruma_common::events::RedactContent>::Redacted:
+
+    let redacted_event_content_bound = if kind == EventKind::State {
+        quote! {
+            #ruma_common::events::StateEventContent<StateKey = #ty_param::StateKey>
+        }
+    } else {
+        quote! {
             #ruma_common::events::EventContent<
                 EventType = #ruma_common::events::#redacted_event_type_enum
             >
-                + #ruma_common::events::RedactedEventContent
+        }
+    };
+    where_clause.predicates.push(parse_quote! {
+        <#ty_param as #ruma_common::events::RedactContent>::Redacted:
+            #redacted_event_content_bound + #ruma_common::events::RedactedEventContent
     });
 
     let (impl_generics, ty_gen, where_clause) = generics.split_for_impl();
