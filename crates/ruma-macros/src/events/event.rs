@@ -191,20 +191,22 @@ fn expand_deserialize_event(
                     quote! {
                         let content = match C::has_deserialize_fields() {
                             #ruma_common::events::HasDeserializeFields::False => {
-                                C::empty(&event_type).map_err(A::Error::custom)?
+                                C::empty(&event_type).map_err(#serde::de::Error::custom)?
                             },
                             #ruma_common::events::HasDeserializeFields::True => {
                                 let json = content.ok_or_else(
                                     || #serde::de::Error::missing_field("content"),
                                 )?;
-                                C::from_parts(&event_type, &json).map_err(A::Error::custom)?
+                                C::from_parts(&event_type, &json)
+                                    .map_err(#serde::de::Error::custom)?
                             },
                             #ruma_common::events::HasDeserializeFields::Optional => {
                                 let json = content.unwrap_or(
                                     #serde_json::value::RawValue::from_string("{}".to_owned())
                                         .unwrap()
                                 );
-                                C::from_parts(&event_type, &json).map_err(A::Error::custom)?
+                                C::from_parts(&event_type, &json)
+                                    .map_err(#serde::de::Error::custom)?
                             },
                         };
                     }
@@ -213,7 +215,7 @@ fn expand_deserialize_event(
                         let content = {
                             let json = content
                                 .ok_or_else(|| #serde::de::Error::missing_field("content"))?;
-                            C::from_parts(&event_type, &json).map_err(A::Error::custom)?
+                            C::from_parts(&event_type, &json).map_err(#serde::de::Error::custom)?
                         };
                     }
                 } else {
@@ -227,7 +229,7 @@ fn expand_deserialize_event(
                 quote! {
                     let unsigned = unsigned.map(|json| {
                         #ruma_common::events::StateUnsigned::_from_parts(&event_type, &json)
-                            .map_err(A::Error::custom)
+                            .map_err(#serde::de::Error::custom)
                     }).transpose()?.unwrap_or_default();
                 }
             } else {
@@ -316,8 +318,6 @@ fn expand_deserialize_event(
                     where
                         A: #serde::de::MapAccess<'de>,
                     {
-                        use #serde::de::Error as _;
-
                         let mut event_type: Option<String> = None;
                         #( let mut #field_names: Option<#deserialize_var_types> = None; )*
 
