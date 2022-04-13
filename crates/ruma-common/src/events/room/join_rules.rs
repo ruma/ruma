@@ -49,6 +49,26 @@ impl<'de> Deserialize<'de> for RoomJoinRulesEventContent {
     }
 }
 
+impl RoomJoinRulesEvent {
+    /// Obtain the join rule, regardless of whether this event is redacted.
+    pub fn join_rule(&self) -> &JoinRule {
+        match self {
+            Self::Original(ev) => &ev.content.join_rule,
+            Self::Redacted(ev) => &ev.content.join_rule,
+        }
+    }
+}
+
+impl SyncRoomJoinRulesEvent {
+    /// Obtain the join rule, regardless of whether this event is redacted.
+    pub fn join_rule(&self) -> &JoinRule {
+        match self {
+            Self::Original(ev) => &ev.content.join_rule,
+            Self::Redacted(ev) => &ev.content.join_rule,
+        }
+    }
+}
+
 /// The rule used for users wishing to join this room.
 ///
 /// This type can hold an arbitrary string. To check for formats that are not available as a
