@@ -28,6 +28,26 @@ impl RoomGuestAccessEventContent {
     }
 }
 
+impl RoomGuestAccessEvent {
+    /// Obtain the guest access policy, regardless of whether this event is redacted.
+    pub fn guest_access(&self) -> &GuestAccess {
+        match self {
+            Self::Original(ev) => &ev.content.guest_access,
+            Self::Redacted(_) => &GuestAccess::Forbidden,
+        }
+    }
+}
+
+impl SyncRoomGuestAccessEvent {
+    /// Obtain the guest access policy, regardless of whether this event is redacted.
+    pub fn guest_access(&self) -> &GuestAccess {
+        match self {
+            Self::Original(ev) => &ev.content.guest_access,
+            Self::Redacted(_) => &GuestAccess::Forbidden,
+        }
+    }
+}
+
 /// A policy for guest user access to a room.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
