@@ -8,7 +8,8 @@ use super::{
     Redact,
 };
 use crate::{
-    serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, RoomId, RoomVersionId, UserId,
+    serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, RoomId, RoomVersionId,
+    TransactionId, UserId,
 };
 
 event_enum! {
@@ -153,6 +154,14 @@ impl AnyRoomEvent {
     room_ev_accessor!(room_id: &RoomId);
     room_ev_accessor!(event_id: &EventId);
     room_ev_accessor!(sender: &UserId);
+
+    /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
+    pub fn transaction_id(&self) -> Option<&TransactionId> {
+        match self {
+            Self::MessageLike(ev) => ev.transaction_id(),
+            Self::State(ev) => ev.transaction_id(),
+        }
+    }
 }
 
 /// Any sync room event.
@@ -172,6 +181,14 @@ impl AnySyncRoomEvent {
     room_ev_accessor!(origin_server_ts: &MilliSecondsSinceUnixEpoch);
     room_ev_accessor!(event_id: &EventId);
     room_ev_accessor!(sender: &UserId);
+
+    /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
+    pub fn transaction_id(&self) -> Option<&TransactionId> {
+        match self {
+            Self::MessageLike(ev) => ev.transaction_id(),
+            Self::State(ev) => ev.transaction_id(),
+        }
+    }
 
     /// Converts `self` to an `AnyRoomEvent` by adding the given a room ID.
     pub fn into_full_event(self, room_id: Box<RoomId>) -> AnyRoomEvent {
