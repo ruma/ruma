@@ -230,6 +230,14 @@ impl RoomRedactionEvent {
             Self::Redacted(ev) => &ev.room_id,
         }
     }
+
+    /// Get the inner `RoomRedactionEvent` if this is an unredacted event.
+    pub fn as_original(&self) -> Option<&OriginalRoomRedactionEvent> {
+        match self {
+            Self::Original(v) => Some(v),
+            _ => None,
+        }
+    }
 }
 
 impl Redact for RoomRedactionEvent {
@@ -289,6 +297,14 @@ impl SyncRoomRedactionEvent {
         match self {
             Self::Original(ev) => &ev.origin_server_ts,
             Self::Redacted(ev) => &ev.origin_server_ts,
+        }
+    }
+
+    /// Get the inner `SyncRoomRedactionEvent` if this is an unredacted event.
+    pub fn as_original(&self) -> Option<&OriginalSyncRoomRedactionEvent> {
+        match self {
+            Self::Original(v) => Some(v),
+            _ => None,
         }
     }
 
