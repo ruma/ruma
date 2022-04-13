@@ -202,61 +202,34 @@ impl SyncRoomPowerLevelsEvent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomPowerLevels {
     /// The level required to ban a user.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
     pub ban: Int,
 
     /// The level required to send specific event types.
     ///
     /// This is a mapping from event type to power level required.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
     pub events: BTreeMap<RoomEventType, Int>,
 
     /// The default level required to send message events.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
     pub events_default: Int,
 
     /// The level required to invite a user.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
     pub invite: Int,
 
     /// The level required to kick a user.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
     pub kick: Int,
 
     /// The level required to redact an event.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
     pub redact: Int,
 
     /// The default level required to send state events.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
     pub state_default: Int,
 
     /// The power levels for specific users.
     ///
     /// This is a mapping from `user_id` to power level for that user.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
     pub users: BTreeMap<Box<UserId>, Int>,
 
     /// The default power level for every user in the room.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
     pub users_default: Int,
 
     /// The power level requirements for specific notification types.
