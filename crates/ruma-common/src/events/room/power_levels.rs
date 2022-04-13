@@ -2,7 +2,7 @@
 //!
 //! [`m.room.power_levels`]: https://spec.matrix.org/v1.2/client-server-api/#mroompower_levels
 
-use std::collections::BTreeMap;
+use std::{cmp::max, collections::BTreeMap};
 
 use js_int::{int, Int};
 use ruma_macros::EventContent;
@@ -236,6 +236,18 @@ pub struct RoomPowerLevels {
     ///
     /// This is a mapping from `key` to power level for that notifications key.
     pub notifications: NotificationPowerLevels,
+}
+
+impl RoomPowerLevels {
+    /// Get the power level of a specific user.
+    pub fn for_user(&self, user_id: &UserId) -> Int {
+        self.users.get(user_id).map_or(self.users_default, |pl| *pl)
+    }
+
+    /// Get the maximum power level of any user.
+    pub fn max(&self) -> Int {
+        self.users.values().fold(self.users_default, |max_pl, user_pl| max(max_pl, *user_pl))
+    }
 }
 
 impl From<RoomPowerLevelsEventContent> for RoomPowerLevels {
