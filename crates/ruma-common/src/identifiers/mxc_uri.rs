@@ -5,6 +5,7 @@
 use std::num::NonZeroU8;
 
 use ruma_identifiers_validation::{error::MxcUriError, mxc_uri::validate};
+use ruma_macros::IdZst;
 
 use super::ServerName;
 
@@ -15,12 +16,8 @@ type Result<T, E = MxcUriError> = std::result::Result<T, E>;
 /// [MXC URI]: https://spec.matrix.org/v1.2/client-server-api/#matrix-content-mxc-uris
 
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
 pub struct MxcUri(str);
-
-owned_identifier!(OwnedMxcUri, MxcUri);
-
-opaque_identifier!(MxcUri, OwnedMxcUri);
 
 impl MxcUri {
     /// If this is a valid MXC URI, returns the media ID.

@@ -1,5 +1,7 @@
 //! Matrix room identifiers.
 
+use ruma_macros::IdZst;
+
 use super::{matrix_uri::UriAction, EventId, MatrixToUri, MatrixUri, ServerName};
 
 /// A Matrix [room ID].
@@ -15,12 +17,9 @@ use super::{matrix_uri::UriAction, EventId, MatrixToUri, MatrixUri, ServerName};
 ///
 /// [room ID]: https://spec.matrix.org/v1.2/appendices/#room-ids-and-event-ids
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[ruma_id(validate = ruma_identifiers_validation::room_id::validate)]
 pub struct RoomId(str);
-
-owned_identifier!(OwnedRoomId, RoomId);
-
-opaque_identifier_validated!(RoomId, OwnedRoomId, ruma_identifiers_validation::room_id::validate);
 
 impl RoomId {
     /// Attempts to generate a `RoomId` for the given origin server with a localpart consisting of

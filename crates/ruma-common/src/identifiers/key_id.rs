@@ -263,5 +263,24 @@ impl<A, K: ?Sized> TryFrom<String> for Box<KeyId<A, K>> {
     }
 }
 
+macro_rules! partial_eq_string {
+    ($id:ty $([$( $g:ident ),*])?) => {
+        partial_eq_string!(@imp $(<$($g),*>)?, $id, str);
+        partial_eq_string!(@imp $(<$($g),*>)?, $id, &str);
+        partial_eq_string!(@imp $(<$($g),*>)?, $id, String);
+        partial_eq_string!(@imp $(<$($g),*>)?, str, $id);
+        partial_eq_string!(@imp $(<$($g),*>)?, &str, $id);
+        partial_eq_string!(@imp $(<$($g),*>)?, String, $id);
+    };
+    (@imp $(<$( $g:ident ),*>)?, $l:ty, $r:ty) => {
+        impl $(<$($g),*>)? PartialEq<$r> for $l {
+            fn eq(&self, other: &$r) -> bool {
+                AsRef::<str>::as_ref(self)
+                    == AsRef::<str>::as_ref(other)
+            }
+        }
+    }
+}
+
 #[rustfmt::skip]
 partial_eq_string!(KeyId<A, K> [A, K]);

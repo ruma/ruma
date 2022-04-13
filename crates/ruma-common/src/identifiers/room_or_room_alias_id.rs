@@ -2,6 +2,8 @@
 
 use std::{convert::TryFrom, hint::unreachable_unchecked};
 
+use ruma_macros::IdZst;
+
 use super::{server_name::ServerName, RoomAliasId, RoomId};
 
 /// A Matrix [room ID] or a Matrix [room alias ID].
@@ -24,16 +26,9 @@ use super::{server_name::ServerName, RoomAliasId, RoomId};
 /// [room ID]: https://spec.matrix.org/v1.2/appendices/#room-ids-and-event-ids
 /// [room alias ID]: https://spec.matrix.org/v1.2/appendices/#room-aliases
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[ruma_id(validate = ruma_identifiers_validation::room_id_or_alias_id::validate)]
 pub struct RoomOrAliasId(str);
-
-owned_identifier!(OwnedRoomOrAliasId, RoomOrAliasId);
-
-opaque_identifier_validated!(
-    RoomOrAliasId,
-    OwnedRoomOrAliasId,
-    ruma_identifiers_validation::room_id_or_alias_id::validate
-);
 
 impl RoomOrAliasId {
     /// Returns the local part (everything after the `!` or `#` and before the first colon).

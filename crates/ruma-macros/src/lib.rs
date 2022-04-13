@@ -6,6 +6,7 @@
 
 #![warn(missing_docs)]
 
+use identifiers::expand_id_zst;
 use proc_macro::TokenStream;
 use proc_macro2 as pm2;
 use quote::quote;
@@ -13,7 +14,7 @@ use ruma_identifiers_validation::{
     device_key_id, event_id, key_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
     user_id,
 };
-use syn::{parse_macro_input, DeriveInput, ItemEnum};
+use syn::{parse_macro_input, DeriveInput, ItemEnum, ItemStruct};
 
 mod api;
 mod events;
@@ -114,6 +115,13 @@ pub fn derive_event(input: TokenStream) -> TokenStream {
 pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     expand_from_impls_derived(input).into()
+}
+
+/// Generate methods and trait impl's for ZST identifier type.
+#[proc_macro_derive(IdZst, attributes(ruma_id))]
+pub fn derive_id_zst(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as ItemStruct);
+    expand_id_zst(input).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
 /// Compile-time checked `DeviceKeyId` construction.

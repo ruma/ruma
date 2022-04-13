@@ -1,3 +1,5 @@
+use ruma_macros::IdZst;
+
 #[cfg(feature = "rand")]
 use super::generate_localpart;
 
@@ -26,12 +28,8 @@ use super::generate_localpart;
 /// assert_eq!(owned_id.as_str(), "ijklmnop");
 /// ```
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
 pub struct DeviceId(str);
-
-owned_identifier!(OwnedDeviceId, DeviceId);
-
-opaque_identifier!(DeviceId, OwnedDeviceId);
 
 impl DeviceId {
     /// Generates a random `DeviceId`, suitable for assignment to a new device.

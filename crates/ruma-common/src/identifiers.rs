@@ -33,9 +33,6 @@ pub use self::{
 #[doc(inline)]
 pub use ruma_identifiers_validation::error::Error as IdParseError;
 
-#[macro_use]
-mod macros;
-
 pub mod matrix_uri;
 pub mod user_id;
 

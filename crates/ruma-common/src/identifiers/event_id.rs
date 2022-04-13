@@ -1,5 +1,7 @@
 //! Matrix event identifiers.
 
+use ruma_macros::IdZst;
+
 use super::ServerName;
 
 /// A Matrix [event ID].
@@ -35,16 +37,9 @@ use super::ServerName;
 ///
 /// [event ID]: https://spec.matrix.org/v1.2/appendices/#room-ids-and-event-ids
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[ruma_id(validate = ruma_identifiers_validation::event_id::validate)]
 pub struct EventId(str);
-
-owned_identifier!(OwnedEventId, EventId);
-
-opaque_identifier_validated!(
-    EventId,
-    OwnedEventId,
-    ruma_identifiers_validation::event_id::validate
-);
 
 impl EventId {
     /// Attempts to generate an `EventId` for the given origin server with a localpart consisting

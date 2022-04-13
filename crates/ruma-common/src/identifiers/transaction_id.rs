@@ -1,3 +1,5 @@
+use ruma_macros::IdZst;
+
 /// A Matrix transaction ID.
 ///
 /// Transaction IDs in Matrix are opaque strings. This type is provided simply for its semantic
@@ -7,7 +9,7 @@
 /// `TransactionId::new()` to generate a random one. If that function is not available for you, you
 /// need to activate this crate's `rand` Cargo feature.
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
 pub struct TransactionId(str);
 
 impl TransactionId {
@@ -21,7 +23,3 @@ impl TransactionId {
         Self::from_owned(id.to_simple().to_string().into_boxed_str())
     }
 }
-
-owned_identifier!(OwnedTransactionId, TransactionId);
-
-opaque_identifier!(TransactionId, OwnedTransactionId);

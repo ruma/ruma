@@ -17,12 +17,9 @@ use super::{matrix_uri::UriAction, IdParseError, MatrixToUri, MatrixUri, ServerN
 ///
 /// [user ID]: https://spec.matrix.org/v1.2/appendices/#user-identifiers
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[ruma_id(validate = ruma_identifiers_validation::user_id::validate)]
 pub struct UserId(str);
-
-owned_identifier!(OwnedUserId, UserId);
-
-opaque_identifier_validated!(UserId, OwnedUserId, ruma_identifiers_validation::user_id::validate);
 
 impl UserId {
     /// Attempts to generate a `UserId` for the given origin server with a localpart consisting of
@@ -150,6 +147,7 @@ impl UserId {
 }
 
 pub use ruma_identifiers_validation::user_id::localpart_is_fully_conforming;
+use ruma_macros::IdZst;
 
 #[cfg(test)]
 mod tests {

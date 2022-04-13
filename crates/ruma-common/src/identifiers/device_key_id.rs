@@ -1,19 +1,14 @@
 //! Identifiers for device keys for end-to-end encryption.
 
+use ruma_macros::IdZst;
+
 use super::{crypto_algorithms::DeviceKeyAlgorithm, DeviceId};
 
 /// A key algorithm and a device id, combined with a ':'.
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[ruma_id(validate = ruma_identifiers_validation::device_key_id::validate)]
 pub struct DeviceKeyId(str);
-
-owned_identifier!(OwnedDeviceKeyId, DeviceKeyId);
-
-opaque_identifier_validated!(
-    DeviceKeyId,
-    OwnedDeviceKeyId,
-    ruma_identifiers_validation::device_key_id::validate
-);
 
 impl DeviceKeyId {
     /// Create a `DeviceKeyId` from a `DeviceKeyAlgorithm` and a `DeviceId`.
