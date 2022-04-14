@@ -57,11 +57,20 @@ impl<A, K: ?Sized> KeyId<A, K> {
 /// Algorithm + key name for signing keys.
 pub type SigningKeyId<K> = KeyId<SigningKeyAlgorithm, K>;
 
+/// Algorithm + key name for signing keys.
+pub type OwnedSigningKeyId<K> = OwnedKeyId<SigningKeyAlgorithm, K>;
+
 /// Algorithm + key name for homeserver signing keys.
 pub type ServerSigningKeyId = SigningKeyId<KeyName>;
 
+/// Algorithm + key name for homeserver signing keys.
+pub type OwnedServerSigningKeyId = OwnedSigningKeyId<KeyName>;
+
 /// Algorithm + key name for device keys.
 pub type DeviceSigningKeyId = SigningKeyId<DeviceId>;
+
+/// Algorithm + key name for device keys.
+pub type OwnedDeviceSigningKeyId = OwnedSigningKeyId<DeviceId>;
 
 // The following impls are usually derived using the std macros.
 // They are implemented manually here to avoid unnecessary bounds.
