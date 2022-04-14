@@ -282,6 +282,30 @@ fn expand_owned_id(id: &Ident, owned: &Ident) -> TokenStream {
 
         #partial_eq_string
 
+        impl PartialEq<#id> for #owned {
+            fn eq(&self, other: &#id) -> bool {
+                AsRef::<#id>::as_ref(self) == other
+            }
+        }
+
+        impl PartialEq<#owned> for #id {
+            fn eq(&self, other: &#owned) -> bool {
+                self == AsRef::<#id>::as_ref(other)
+            }
+        }
+
+        impl PartialEq<&#id> for #owned {
+            fn eq(&self, other: &&#id) -> bool {
+                AsRef::<#id>::as_ref(self) == *other
+            }
+        }
+
+        impl PartialEq<#owned> for &#id {
+            fn eq(&self, other: &#owned) -> bool {
+                *self == AsRef::<#id>::as_ref(other)
+            }
+        }
+
         impl PartialEq<Box<#id>> for #owned {
             fn eq(&self, other: &Box<#id>) -> bool {
                 AsRef::<#id>::as_ref(self) == AsRef::<#id>::as_ref(other)
