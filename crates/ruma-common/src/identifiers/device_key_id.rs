@@ -21,7 +21,7 @@ impl DeviceKeyId {
         res.push(':');
         res.push_str(device_id);
 
-        Self::from_owned(res.into())
+        Self::from_box(res.into())
     }
 
     /// Returns key algorithm of the device key ID.

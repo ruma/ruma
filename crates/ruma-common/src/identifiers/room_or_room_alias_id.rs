@@ -58,8 +58,8 @@ impl RoomOrAliasId {
         let boxed_str = self.into_owned();
 
         match variant {
-            Variant::RoomId => either::Either::Left(RoomId::from_owned(boxed_str)),
-            Variant::RoomAliasId => either::Either::Right(RoomAliasId::from_owned(boxed_str)),
+            Variant::RoomId => either::Either::Left(RoomId::from_box(boxed_str)),
+            Variant::RoomAliasId => either::Either::Right(RoomAliasId::from_box(boxed_str)),
         }
     }
 
@@ -96,13 +96,13 @@ impl<'a> From<&'a RoomAliasId> for &'a RoomOrAliasId {
 
 impl From<Box<RoomId>> for Box<RoomOrAliasId> {
     fn from(room_id: Box<RoomId>) -> Self {
-        RoomOrAliasId::from_owned(room_id.into_owned())
+        RoomOrAliasId::from_box(room_id.into_owned())
     }
 }
 
 impl From<Box<RoomAliasId>> for Box<RoomOrAliasId> {
     fn from(room_alias_id: Box<RoomAliasId>) -> Self {
-        RoomOrAliasId::from_owned(room_alias_id.into_owned())
+        RoomOrAliasId::from_box(room_alias_id.into_owned())
     }
 }
 
@@ -133,8 +133,8 @@ impl TryFrom<Box<RoomOrAliasId>> for Box<RoomId> {
 
     fn try_from(id: Box<RoomOrAliasId>) -> Result<Box<RoomId>, Box<RoomAliasId>> {
         match id.variant() {
-            Variant::RoomId => Ok(RoomId::from_owned(id.into_owned())),
-            Variant::RoomAliasId => Err(RoomAliasId::from_owned(id.into_owned())),
+            Variant::RoomId => Ok(RoomId::from_box(id.into_owned())),
+            Variant::RoomAliasId => Err(RoomAliasId::from_box(id.into_owned())),
         }
     }
 }
@@ -144,8 +144,8 @@ impl TryFrom<Box<RoomOrAliasId>> for Box<RoomAliasId> {
 
     fn try_from(id: Box<RoomOrAliasId>) -> Result<Box<RoomAliasId>, Box<RoomId>> {
         match id.variant() {
-            Variant::RoomAliasId => Ok(RoomAliasId::from_owned(id.into_owned())),
-            Variant::RoomId => Err(RoomId::from_owned(id.into_owned())),
+            Variant::RoomAliasId => Ok(RoomAliasId::from_box(id.into_owned())),
+            Variant::RoomId => Err(RoomId::from_box(id.into_owned())),
         }
     }
 }

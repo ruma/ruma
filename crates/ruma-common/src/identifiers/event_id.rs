@@ -49,7 +49,7 @@ impl EventId {
     /// 1 and 2.
     #[cfg(feature = "rand")]
     pub fn new(server_name: &ServerName) -> Box<Self> {
-        Self::from_owned(format!("${}:{}", super::generate_localpart(18), server_name).into())
+        Self::from_box(format!("${}:{}", super::generate_localpart(18), server_name).into())
     }
 
     /// Returns the event's unique ID.

@@ -23,7 +23,7 @@ impl ClientSecret {
     #[cfg(feature = "rand")]
     pub fn new() -> Box<Self> {
         let id = uuid::Uuid::new_v4();
-        Self::from_owned(id.to_simple().to_string().into_boxed_str())
+        Self::from_box(id.to_simple().to_string().into_boxed_str())
     }
 }
 

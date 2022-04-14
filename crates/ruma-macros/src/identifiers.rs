@@ -60,7 +60,7 @@ pub fn expand_id_zst(input: ItemStruct) -> syn::Result<TokenStream> {
                 unsafe { std::mem::transmute(s) }
             }
 
-            pub(super) fn from_owned(s: Box<str>) -> Box<Self> {
+            pub(super) fn from_box(s: Box<str>) -> Box<Self> {
                 unsafe { Box::from_raw(Box::into_raw(s) as _) }
             }
 
@@ -97,7 +97,7 @@ pub fn expand_id_zst(input: ItemStruct) -> syn::Result<TokenStream> {
             type Owned = Box<#id>;
 
             fn to_owned(&self) -> Self::Owned {
-                Self::from_owned(self.0.into())
+                Self::from_box(self.0.into())
             }
         }
 
@@ -121,7 +121,7 @@ pub fn expand_id_zst(input: ItemStruct) -> syn::Result<TokenStream> {
 
         impl From<&#id> for Box<#id> {
             fn from(id: &#id) -> Self {
-                #id::from_owned(id.0.into())
+                #id::from_box(id.0.into())
             }
         }
 
@@ -299,7 +299,7 @@ fn expand_checked_impls(id: &Ident, owned: &Ident, validate: Path) -> TokenStrea
                 s: impl AsRef<str> + Into<Box<str>>,
             ) -> Result<Box<Self>, crate::IdParseError> {
                 #validate(s.as_ref())?;
-                Ok(#id::from_owned(s.into()))
+                Ok(#id::from_box(s.into()))
             }
 
             #[doc = #parse_rc_docs]
@@ -396,19 +396,19 @@ fn expand_unchecked_impls(id: &Ident, owned: &Ident) -> TokenStream {
 
         impl From<&str> for Box<#id> {
             fn from(s: &str) -> Self {
-                #id::from_owned(s.into())
+                #id::from_box(s.into())
             }
         }
 
         impl From<Box<str>> for Box<#id> {
             fn from(s: Box<str>) -> Self {
-                #id::from_owned(s)
+                #id::from_box(s)
             }
         }
 
         impl From<String> for Box<#id> {
             fn from(s: String) -> Self {
-                #id::from_owned(s.into())
+                #id::from_box(s.into())
             }
         }
 
@@ -423,7 +423,7 @@ fn expand_unchecked_impls(id: &Ident, owned: &Ident) -> TokenStream {
             where
                 D: serde::Deserializer<'de>,
             {
-                Box::<str>::deserialize(deserializer).map(#id::from_owned)
+                Box::<str>::deserialize(deserializer).map(#id::from_box)
             }
         }
 
@@ -433,7 +433,7 @@ fn expand_unchecked_impls(id: &Ident, owned: &Ident) -> TokenStream {
                 D: serde::Deserializer<'de>,
             {
                 // FIXME: Deserialize inner, convert that
-                Box::<str>::deserialize(deserializer).map(#id::from_owned).map(Into::into)
+                Box::<str>::deserialize(deserializer).map(#id::from_box).map(Into::into)
             }
         }
     }

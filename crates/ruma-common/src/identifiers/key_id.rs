@@ -30,7 +30,7 @@ impl<A, K: ?Sized> KeyId<A, K> {
         res.push(':');
         res.push_str(key_name);
 
-        Self::from_owned(res.into())
+        Self::from_box(res.into())
     }
 
     /// Returns key algorithm of the key ID.
@@ -63,7 +63,7 @@ impl<A, K: ?Sized> KeyId<A, K> {
         unsafe { std::mem::transmute(s) }
     }
 
-    fn from_owned(s: Box<str>) -> Box<Self> {
+    fn from_box(s: Box<str>) -> Box<Self> {
         unsafe { Box::from_raw(Box::into_raw(s) as _) }
     }
 
@@ -95,7 +95,7 @@ impl<A, K: ?Sized> ToOwned for KeyId<A, K> {
     type Owned = Box<KeyId<A, K>>;
 
     fn to_owned(&self) -> Self::Owned {
-        Self::from_owned(self.1.into())
+        Self::from_box(self.1.into())
     }
 }
 
@@ -227,7 +227,7 @@ where
     S: AsRef<str> + Into<Box<str>>,
 {
     ruma_identifiers_validation::key_id::validate(s.as_ref())?;
-    Ok(KeyId::from_owned(s.into()))
+    Ok(KeyId::from_box(s.into()))
 }
 
 impl<'a, A, K: ?Sized> TryFrom<&'a str> for &'a KeyId<A, K> {

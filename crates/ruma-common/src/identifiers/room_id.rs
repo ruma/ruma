@@ -28,7 +28,7 @@ impl RoomId {
     /// Fails if the given homeserver cannot be parsed as a valid host.
     #[cfg(feature = "rand")]
     pub fn new(server_name: &ServerName) -> Box<Self> {
-        Self::from_owned(format!("!{}:{}", super::generate_localpart(18), server_name).into())
+        Self::from_box(format!("!{}:{}", super::generate_localpart(18), server_name).into())
     }
 
     /// Returns the rooms's unique ID.

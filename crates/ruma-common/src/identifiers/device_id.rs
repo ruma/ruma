@@ -35,7 +35,7 @@ impl DeviceId {
     /// Generates a random `DeviceId`, suitable for assignment to a new device.
     #[cfg(feature = "rand")]
     pub fn new() -> Box<Self> {
-        Self::from_owned(generate_localpart(8))
+        Self::from_box(generate_localpart(8))
     }
 }
 
@@ -63,7 +63,7 @@ mod tests {
     #[test]
     fn create_device_id_from_box() {
         let box_str: Box<str> = "ijklmnop".into();
-        let device_id: Box<DeviceId> = DeviceId::from_owned(box_str);
+        let device_id: Box<DeviceId> = DeviceId::from_box(box_str);
         assert_eq!(device_id.as_str(), "ijklmnop");
     }
 }

@@ -26,7 +26,7 @@ impl UserId {
     /// 12 random ASCII characters.
     #[cfg(feature = "rand")]
     pub fn new(server_name: &ServerName) -> Box<Self> {
-        Self::from_owned(
+        Self::from_box(
             format!("@{}:{}", super::generate_localpart(12).to_lowercase(), server_name).into(),
         )
     }
@@ -48,7 +48,7 @@ impl UserId {
             Self::parse(id)
         } else {
             let _ = localpart_is_fully_conforming(id_str)?;
-            Ok(Self::from_owned(format!("@{}:{}", id_str, server_name).into()))
+            Ok(Self::from_box(format!("@{}:{}", id_str, server_name).into()))
         }
     }
 
