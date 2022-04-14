@@ -54,7 +54,6 @@ push-gateway-api-s = ["api", "ruma-push-gateway-api/server"]
 push-gateway-api = ["push-gateway-api-c", "push-gateway-api-s"]
 
 # Convenience features
-either = ["ruma-common/either"]
 rand = ["ruma-common/rand"]
 markdown = ["ruma-common/markdown"]
 
@@ -71,7 +70,6 @@ full = [
     "federation-api",
     "identity-service-api",
     "push-gateway-api",
-    "either",
     "rand",
     "markdown",
 ]
