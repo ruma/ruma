@@ -113,6 +113,12 @@ pub fn expand_id_zst(input: ItemStruct) -> syn::Result<TokenStream> {
             }
         }
 
+        impl From<&#id> for String {
+            fn from(id: &#id) -> Self {
+                id.as_str().to_owned()
+            }
+        }
+
         impl From<Box<#id>> for String {
             fn from(id: Box<#id>) -> Self {
                 id.into_owned().into()
