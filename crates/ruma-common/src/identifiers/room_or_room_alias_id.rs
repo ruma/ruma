@@ -51,18 +51,6 @@ impl RoomOrAliasId {
         self.variant() == Variant::RoomAliasId
     }
 
-    /// Turn this `RoomOrAliasId` into `Either<RoomId, RoomAliasId>`
-    #[cfg(feature = "either")]
-    pub fn into_either(self: Box<Self>) -> either::Either<Box<RoomId>, Box<RoomAliasId>> {
-        let variant = self.variant();
-        let boxed_str = self.into_owned();
-
-        match variant {
-            Variant::RoomId => either::Either::Left(RoomId::from_box(boxed_str)),
-            Variant::RoomAliasId => either::Either::Right(RoomAliasId::from_box(boxed_str)),
-        }
-    }
-
     fn colon_idx(&self) -> usize {
         self.as_str().find(':').unwrap()
     }
