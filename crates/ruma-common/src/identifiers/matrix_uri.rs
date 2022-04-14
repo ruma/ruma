@@ -9,7 +9,10 @@ use ruma_identifiers_validation::{
 };
 use url::Url;
 
-use super::{EventId, OwnedServerName, RoomAliasId, RoomId, RoomOrAliasId, ServerName, UserId};
+use super::{
+    EventId, OwnedEventId, OwnedRoomAliasId, OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName,
+    OwnedUserId, RoomAliasId, RoomId, RoomOrAliasId, ServerName, UserId,
+};
 use crate::PrivOwnedStr;
 
 const MATRIX_TO_BASE_URL: &str = "https://matrix.to/#/";
@@ -46,16 +49,16 @@ const RESERVED: &AsciiSet = &CONTROLS
 #[non_exhaustive]
 pub enum MatrixId {
     /// A room ID.
-    Room(Box<RoomId>),
+    Room(OwnedRoomId),
 
     /// A room alias.
-    RoomAlias(Box<RoomAliasId>),
+    RoomAlias(OwnedRoomAliasId),
 
     /// A user ID.
-    User(Box<UserId>),
+    User(OwnedUserId),
 
     /// An event ID.
-    Event(Box<RoomOrAliasId>, Box<EventId>),
+    Event(OwnedRoomOrAliasId, OwnedEventId),
 }
 
 impl MatrixId {

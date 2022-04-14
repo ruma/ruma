@@ -5,7 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::EventId;
+use crate::OwnedEventId;
 
 /// The content of an `m.room.pinned_events` event.
 ///
@@ -15,12 +15,12 @@ use crate::EventId;
 #[ruma_event(type = "m.room.pinned_events", kind = State)]
 pub struct RoomPinnedEventsEventContent {
     /// An ordered list of event IDs to pin.
-    pub pinned: Vec<Box<EventId>>,
+    pub pinned: Vec<OwnedEventId>,
 }
 
 impl RoomPinnedEventsEventContent {
     /// Creates a new `RoomPinnedEventsEventContent` with the given events.
-    pub fn new(pinned: Vec<Box<EventId>>) -> Self {
+    pub fn new(pinned: Vec<OwnedEventId>) -> Self {
         Self { pinned }
     }
 }
@@ -45,10 +45,10 @@ mod tests {
 
         let event = OriginalStateEvent {
             content: content.clone(),
-            event_id: EventId::new(server_name).into(),
+            event_id: EventId::new(server_name),
             origin_server_ts: MilliSecondsSinceUnixEpoch(1_432_804_485_886_u64.try_into().unwrap()),
-            room_id: RoomId::new(server_name).into(),
-            sender: UserId::new(server_name).into(),
+            room_id: RoomId::new(server_name),
+            sender: UserId::new(server_name),
             state_key: "".into(),
             unsigned: StateUnsigned::default(),
         };

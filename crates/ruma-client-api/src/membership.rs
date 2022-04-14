@@ -15,7 +15,7 @@ pub mod unban_user;
 use std::collections::BTreeMap;
 
 use ruma_common::{
-    serde::Incoming, thirdparty::Medium, OwnedServerName, ServerSigningKeyId, UserId,
+    serde::Incoming, thirdparty::Medium, OwnedServerName, OwnedServerSigningKeyId, UserId,
 };
 use serde::Serialize;
 
@@ -34,7 +34,7 @@ pub struct ThirdPartySigned<'a> {
     pub token: &'a str,
 
     /// A signatures object containing a signature of the entire signed object.
-    pub signatures: BTreeMap<OwnedServerName, BTreeMap<Box<ServerSigningKeyId>, String>>,
+    pub signatures: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
 }
 
 impl<'a> ThirdPartySigned<'a> {
@@ -44,7 +44,7 @@ impl<'a> ThirdPartySigned<'a> {
         sender: &'a UserId,
         mxid: &'a UserId,
         token: &'a str,
-        signatures: BTreeMap<OwnedServerName, BTreeMap<Box<ServerSigningKeyId>, String>>,
+        signatures: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
     ) -> Self {
         Self { sender, mxid, token, signatures }
     }

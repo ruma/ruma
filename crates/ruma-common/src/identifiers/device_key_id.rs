@@ -12,7 +12,7 @@ pub struct DeviceKeyId(str);
 
 impl DeviceKeyId {
     /// Create a `DeviceKeyId` from a `DeviceKeyAlgorithm` and a `DeviceId`.
-    pub fn from_parts(algorithm: DeviceKeyAlgorithm, device_id: &DeviceId) -> Box<Self> {
+    pub fn from_parts(algorithm: DeviceKeyAlgorithm, device_id: &DeviceId) -> OwnedDeviceKeyId {
         let algorithm: &str = algorithm.as_ref();
         let device_id: &str = device_id.as_ref();
 
@@ -21,7 +21,7 @@ impl DeviceKeyId {
         res.push(':');
         res.push_str(device_id);
 
-        Self::from_box(res.into())
+        Self::from_borrowed(&res).to_owned()
     }
 
     /// Returns key algorithm of the device key ID.
@@ -43,7 +43,7 @@ impl DeviceKeyId {
 mod tests {
     use std::convert::TryFrom;
 
-    use super::DeviceKeyId;
+    use super::{DeviceKeyId, OwnedDeviceKeyId};
     use crate::identifiers::{crypto_algorithms::DeviceKeyAlgorithm, IdParseError};
 
     #[test]
@@ -65,7 +65,7 @@ mod tests {
 
     #[test]
     fn deserialize_device_key_id() {
-        let deserialized: Box<DeviceKeyId> =
+        let deserialized: OwnedDeviceKeyId =
             serde_json::from_value(serde_json::json!("ed25519:JLAFKJWSCS")).unwrap();
 
         let expected = <&DeviceKeyId>::try_from("ed25519:JLAFKJWSCS").unwrap();

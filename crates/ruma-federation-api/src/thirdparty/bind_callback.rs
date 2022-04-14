@@ -12,8 +12,8 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::ruma_api, thirdparty::Medium, OwnedRoomId, OwnedServerName, OwnedUserId,
-        ServerSigningKeyId, UserId,
+        api::ruma_api, thirdparty::Medium, OwnedRoomId, OwnedServerName, OwnedServerSigningKeyId,
+        OwnedUserId, UserId,
     };
     use serde::{Deserialize, Serialize};
 
@@ -88,7 +88,7 @@ pub mod v1 {
         pub sender: OwnedUserId,
 
         /// Signature from the identity server using a long-term private key.
-        pub signed: BTreeMap<OwnedServerName, BTreeMap<Box<ServerSigningKeyId>, String>>,
+        pub signed: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
     }
 
     impl ThirdPartyInvite {
@@ -98,7 +98,7 @@ pub mod v1 {
             mxid: OwnedUserId,
             room_id: OwnedRoomId,
             sender: OwnedUserId,
-            signed: BTreeMap<OwnedServerName, BTreeMap<Box<ServerSigningKeyId>, String>>,
+            signed: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
         ) -> Self {
             Self { medium: Medium::Email, address, mxid, room_id, sender, signed }
         }

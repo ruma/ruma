@@ -12,15 +12,15 @@ use ruma_common::{
         AuthScheme, EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata,
         OutgoingRequest, OutgoingResponse, SendAccessToken,
     },
-    RoomAliasId, RoomId,
+    OwnedRoomAliasId, OwnedRoomId,
 };
 use serde::{Deserialize, Serialize};
 
 /// A request to create a new room alias.
 #[derive(Debug)]
 pub struct Request {
-    pub room_id: Box<RoomId>,         // body
-    pub room_alias: Box<RoomAliasId>, // path
+    pub room_id: OwnedRoomId,         // body
+    pub room_alias: OwnedRoomAliasId, // path
 }
 
 const METADATA: Metadata = Metadata {
@@ -104,7 +104,7 @@ impl IncomingRequest for Request {
 
 #[derive(Debug, Serialize, Deserialize)]
 struct RequestBody {
-    room_id: Box<RoomId>,
+    room_id: OwnedRoomId,
 }
 
 /// The response to a request to create a new room alias.

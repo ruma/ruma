@@ -10,7 +10,7 @@ use std::{
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{RoomId, UserId};
+use crate::{OwnedRoomId, OwnedUserId};
 
 /// The content of an `m.direct` event.
 ///
@@ -21,10 +21,10 @@ use crate::{RoomId, UserId};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.direct", kind = GlobalAccountData)]
-pub struct DirectEventContent(pub BTreeMap<Box<UserId>, Vec<Box<RoomId>>>);
+pub struct DirectEventContent(pub BTreeMap<OwnedUserId, Vec<OwnedRoomId>>);
 
 impl Deref for DirectEventContent {
-    type Target = BTreeMap<Box<UserId>, Vec<Box<RoomId>>>;
+    type Target = BTreeMap<OwnedUserId, Vec<OwnedRoomId>>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
