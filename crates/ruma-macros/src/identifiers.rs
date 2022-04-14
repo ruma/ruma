@@ -234,7 +234,6 @@ fn expand_owned_id(input: &ItemStruct) -> TokenStream {
         /// `RUSTFLAGS` or `.cargo/config.toml` (under `[build]` -> `rustflags = ["..."]`)
         /// to the following;
         /// - `ruma_identifiers_storage="Arc"` to use [`Arc`](std::sync::Arc) as a wrapper type.
-        #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
         pub struct #owned #impl_generics {
             #[cfg(not(any(ruma_identifiers_storage = "Arc")))]
             inner: Box<#id #ty_generics>,
@@ -251,6 +250,12 @@ fn expand_owned_id(input: &ItemStruct) -> TokenStream {
         impl #impl_generics AsRef<str> for #owned #ty_generics {
             fn as_ref(&self) -> &str {
                 (*self.inner).as_ref()
+            }
+        }
+
+        impl #impl_generics std::clone::Clone for #owned #ty_generics {
+            fn clone(&self) -> Self {
+                (&*self.inner).into()
             }
         }
 
@@ -294,6 +299,41 @@ fn expand_owned_id(input: &ItemStruct) -> TokenStream {
         impl #impl_generics std::fmt::Display for #owned #ty_generics {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 write!(f, "{}", self.as_str())
+            }
+        }
+
+        impl #impl_generics std::fmt::Debug for #owned #ty_generics {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                <str as std::fmt::Debug>::fmt(self.as_str(), f)
+            }
+        }
+
+        impl #impl_generics std::cmp::PartialEq for #owned #ty_generics {
+            fn eq(&self, other: &Self) -> bool {
+                self.as_str() == other.as_str()
+            }
+        }
+
+        impl #impl_generics std::cmp::Eq for #owned #ty_generics {}
+
+        impl #impl_generics std::cmp::PartialOrd for #owned #ty_generics {
+            fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+                Some(self.cmp(other))
+            }
+        }
+
+        impl #impl_generics std::cmp::Ord for #owned #ty_generics {
+            fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+                self.as_str().cmp(other.as_str())
+            }
+        }
+
+        impl #impl_generics std::hash::Hash for #owned #ty_generics {
+            fn hash<H>(&self, state: &mut H)
+            where
+                H: std::hash::Hasher,
+            {
+                self.as_str().hash(state)
             }
         }
 
