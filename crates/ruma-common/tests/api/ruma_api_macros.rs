@@ -5,7 +5,7 @@ pub mod some_endpoint {
         api::ruma_api,
         events::{tag::TagEvent, AnyRoomEvent},
         serde::Raw,
-        UserId,
+        OwnedUserId,
     };
 
     ruma_api! {
@@ -33,7 +33,7 @@ pub mod some_endpoint {
             // This value will be inserted into the request's URL in place of the
             // ":user" path component.
             #[ruma_api(path)]
-            pub user: Box<UserId>,
+            pub user: OwnedUserId,
         }
 
         response: {

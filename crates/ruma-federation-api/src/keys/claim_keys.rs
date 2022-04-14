@@ -13,7 +13,7 @@ pub mod v1 {
         api::ruma_api,
         encryption::OneTimeKey,
         serde::{Base64, Raw},
-        DeviceKeyAlgorithm, DeviceKeyId, OwnedDeviceId, OwnedUserId,
+        DeviceKeyAlgorithm, OwnedDeviceId, OwnedDeviceKeyId, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};
 
@@ -58,7 +58,7 @@ pub mod v1 {
 
     /// One time keys for use in pre-key messages
     pub type OneTimeKeys =
-        BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, BTreeMap<Box<DeviceKeyId>, Raw<OneTimeKey>>>>;
+        BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, BTreeMap<OwnedDeviceKeyId, Raw<OneTimeKey>>>>;
 
     /// A key and its signature
     #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -68,14 +68,14 @@ pub mod v1 {
         pub key: Base64,
 
         /// Signature of the key object.
-        pub signatures: BTreeMap<OwnedUserId, BTreeMap<Box<DeviceKeyId>, String>>,
+        pub signatures: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceKeyId, String>>,
     }
 
     impl KeyObject {
         /// Creates a new `KeyObject` with the given key and signatures.
         pub fn new(
             key: Base64,
-            signatures: BTreeMap<OwnedUserId, BTreeMap<Box<DeviceKeyId>, String>>,
+            signatures: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceKeyId, String>>,
         ) -> Self {
             Self { key, signatures }
         }

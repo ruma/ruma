@@ -2,15 +2,15 @@ use std::{borrow::Borrow, collections::BTreeMap};
 
 use serde::{Deserialize, Serialize};
 
-use super::{DeviceId, KeyName, ServerName, SigningKeyId, UserId};
+use super::{OwnedDeviceId, OwnedKeyName, OwnedServerName, OwnedSigningKeyId, OwnedUserId};
 
 /// Map of key identifier to signature values.
-pub type EntitySignatures<K> = BTreeMap<Box<SigningKeyId<K>>, String>;
+pub type EntitySignatures<K> = BTreeMap<OwnedSigningKeyId<K>, String>;
 
 /// Map of all signatures, grouped by entity
 ///
 /// ```
-/// # use ruma_common::{server_name,  {KeyId, Signatures, SigningKeyAlgorithm}};
+/// # use ruma_common::{server_name, KeyId, Signatures, SigningKeyAlgorithm};
 /// let key_identifier = KeyId::from_parts(SigningKeyAlgorithm::Ed25519, "1");
 /// let mut signatures = Signatures::new();
 /// let server_name = server_name!("example.org");
@@ -34,7 +34,7 @@ impl<E: Ord, K: ?Sized> Signatures<E, K> {
     pub fn insert(
         &mut self,
         entity: E,
-        key_identifier: Box<SigningKeyId<K>>,
+        key_identifier: OwnedSigningKeyId<K>,
         value: String,
     ) -> Option<String> {
         self.0.entry(entity).or_insert_with(Default::default).insert(key_identifier, value)
@@ -51,7 +51,7 @@ impl<E: Ord, K: ?Sized> Signatures<E, K> {
 }
 
 /// Map of server signatures for an event, grouped by server.
-pub type ServerSignatures = Signatures<Box<ServerName>, Box<KeyName>>;
+pub type ServerSignatures = Signatures<OwnedServerName, OwnedKeyName>;
 
 /// Map of device signatures for an event, grouped by user.
-pub type DeviceSignatures = Signatures<UserId, Box<DeviceId>>;
+pub type DeviceSignatures = Signatures<OwnedUserId, OwnedDeviceId>;

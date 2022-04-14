@@ -17,7 +17,7 @@ pub struct KeyId<A, K: ?Sized>(PhantomData<(A, K)>, str);
 
 impl<A, K: ?Sized> KeyId<A, K> {
     /// Creates a new `KeyId` from an algorithm and key name.
-    pub fn from_parts(algorithm: A, key_name: &K) -> Box<Self>
+    pub fn from_parts(algorithm: A, key_name: &K) -> OwnedKeyId<A, K>
     where
         A: AsRef<str>,
         K: AsRef<str>,
@@ -30,7 +30,7 @@ impl<A, K: ?Sized> KeyId<A, K> {
         res.push(':');
         res.push_str(key_name);
 
-        Self::from_box(res.into())
+        Self::from_borrowed(&res).to_owned()
     }
 
     /// Returns key algorithm of the key ID.

@@ -2,7 +2,9 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::{serde::Base64, MilliSecondsSinceUnixEpoch, OwnedServerName, ServerSigningKeyId};
+use ruma_common::{
+    serde::Base64, MilliSecondsSinceUnixEpoch, OwnedServerName, OwnedServerSigningKeyId,
+};
 use serde::{Deserialize, Serialize};
 
 pub mod discover_homeserver;
@@ -55,15 +57,15 @@ pub struct ServerSigningKeys {
     pub server_name: OwnedServerName,
 
     /// Public keys of the homeserver for verifying digital signatures.
-    pub verify_keys: BTreeMap<Box<ServerSigningKeyId>, VerifyKey>,
+    pub verify_keys: BTreeMap<OwnedServerSigningKeyId, VerifyKey>,
 
     /// Public keys that the homeserver used to use and when it stopped using them.
-    pub old_verify_keys: BTreeMap<Box<ServerSigningKeyId>, OldVerifyKey>,
+    pub old_verify_keys: BTreeMap<OwnedServerSigningKeyId, OldVerifyKey>,
 
     /// Digital signatures of this object signed using the verify_keys.
     ///
     /// Map of server name to keys by key ID.
-    pub signatures: BTreeMap<OwnedServerName, BTreeMap<Box<ServerSigningKeyId>, String>>,
+    pub signatures: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
 
     /// Timestamp when the keys should be refreshed.
     ///

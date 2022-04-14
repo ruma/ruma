@@ -21,9 +21,10 @@ impl ClientSecret {
     /// This will currently be a UUID without hyphens, but no guarantees are made about the
     /// structure of client secrets generated from this function.
     #[cfg(feature = "rand")]
-    pub fn new() -> Box<Self> {
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new() -> OwnedClientSecret {
         let id = uuid::Uuid::new_v4();
-        Self::from_box(id.to_simple().to_string().into_boxed_str())
+        ClientSecret::from_borrowed(&id.to_simple().to_string()).to_owned()
     }
 }
 

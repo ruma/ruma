@@ -2,7 +2,7 @@
 // consume the request/response.
 
 mod newtype_body {
-    use ruma_common::{api::ruma_api, UserId};
+    use ruma_common::{api::ruma_api, OwnedUserId};
 
     #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
     pub struct Foo;
@@ -25,7 +25,7 @@ mod newtype_body {
             pub bar: String,
 
             #[ruma_api(query)]
-            pub baz: Box<UserId>,
+            pub baz: OwnedUserId,
 
             #[ruma_api(header = CONTENT_TYPE)]
             pub world: String,
@@ -42,7 +42,7 @@ mod newtype_body {
 }
 
 mod raw_body {
-    use ruma_common::{api::ruma_api, UserId};
+    use ruma_common::{api::ruma_api, OwnedUserId};
 
     ruma_api! {
         metadata: {
@@ -62,7 +62,7 @@ mod raw_body {
             pub bar: String,
 
             #[ruma_api(query)]
-            pub baz: Box<UserId>,
+            pub baz: OwnedUserId,
 
             #[ruma_api(header = CONTENT_TYPE)]
             pub world: String,
@@ -79,7 +79,7 @@ mod raw_body {
 }
 
 mod plain {
-    use ruma_common::{api::ruma_api, UserId};
+    use ruma_common::{api::ruma_api, OwnedUserId};
 
     #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
     pub struct Foo;
@@ -101,7 +101,7 @@ mod plain {
             pub bar: String,
 
             #[ruma_api(query)]
-            pub baz: Box<UserId>,
+            pub baz: OwnedUserId,
 
             #[ruma_api(header = CONTENT_TYPE)]
             pub world: String,
