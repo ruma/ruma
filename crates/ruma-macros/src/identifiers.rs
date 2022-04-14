@@ -491,6 +491,31 @@ fn expand_checked_impls(input: &ItemStruct, validate: Path) -> TokenStream {
                 <#id #ty_generics>::parse(s)
             }
         }
+
+        impl #impl_generics std::str::FromStr for #owned #ty_generics {
+            type Err = crate::IdParseError;
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                <&#id #ty_generics as std::convert::TryFrom<_>>::try_from(s).map(Into::into)
+            }
+        }
+
+        impl #impl_generics std::convert::TryFrom<&str> for #owned #ty_generics {
+            type Error = crate::IdParseError;
+
+            fn try_from(s: &str) -> Result<Self, Self::Error> {
+                <&#id #ty_generics as std::convert::TryFrom<_>>::try_from(s).map(Into::into)
+            }
+        }
+
+        impl #impl_generics std::convert::TryFrom<String> for #owned #ty_generics {
+            type Error = crate::IdParseError;
+
+            fn try_from(s: String) -> Result<Self, Self::Error> {
+                <&#id #ty_generics as std::convert::TryFrom<_>>::try_from(s.as_str())
+                    .map(Into::into)
+            }
+        }
     }
 }
 
@@ -502,6 +527,24 @@ fn expand_unchecked_impls(input: &ItemStruct) -> TokenStream {
         impl<'a> From<&'a str> for &'a #id {
             fn from(s: &'a str) -> Self {
                 #id::from_borrowed(s)
+            }
+        }
+
+        impl From<&str> for #owned {
+            fn from(s: &str) -> Self {
+                <&#id>::from(s).into()
+            }
+        }
+
+        impl From<Box<str>> for #owned {
+            fn from(s: Box<str>) -> Self {
+                <&#id>::from(&*s).into()
+            }
+        }
+
+        impl From<String> for #owned {
+            fn from(s: String) -> Self {
+                <&#id>::from(s.as_str()).into()
             }
         }
 
