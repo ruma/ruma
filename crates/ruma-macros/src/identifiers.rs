@@ -265,6 +265,12 @@ fn expand_owned_id(id: &Ident, owned: &Ident) -> TokenStream {
             }
         }
 
+        impl std::fmt::Display for #owned {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{}", self.as_str())
+            }
+        }
+
         impl serde::Serialize for #owned {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
