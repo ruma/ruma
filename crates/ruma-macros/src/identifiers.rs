@@ -405,7 +405,8 @@ fn expand_checked_impls(input: &ItemStruct, validate: Path) -> TokenStream {
     let (impl_generics, ty_generics, _where_clause) = input.generics.split_for_impl();
     let generic_params = &input.generics.params;
 
-    let parse_doc_header = format!("Try parsing a `&str` into a `Box<{}>`.", id);
+    let parse_doc_header = format!("Try parsing a `&str` into an `Owned{}`.", id);
+    let parse_box_doc_header = format!("Try parsing a `&str` into a `Box<{}>`.", id);
     let parse_rc_docs = format!("Try parsing a `&str` into an `Rc<{}>`.", id);
     let parse_arc_docs = format!("Try parsing a `&str` into an `Arc<{}>`.", id);
 
@@ -416,6 +417,18 @@ fn expand_checked_impls(input: &ItemStruct, validate: Path) -> TokenStream {
             /// The same can also be done using `FromStr`, `TryFrom` or `TryInto`.
             /// This function is simply more constrained and thus useful in generic contexts.
             pub fn parse(
+                s: impl AsRef<str>,
+            ) -> Result<#owned #ty_generics, crate::IdParseError> {
+                let s = s.as_ref();
+                #validate(s)?;
+                Ok(#id::from_borrowed(s).to_owned())
+            }
+
+            #[doc = #parse_box_doc_header]
+            ///
+            /// The same can also be done using `FromStr`, `TryFrom` or `TryInto`.
+            /// This function is simply more constrained and thus useful in generic contexts.
+            pub fn parse_box(
                 s: impl AsRef<str> + Into<Box<str>>,
             ) -> Result<Box<Self>, crate::IdParseError> {
                 #validate(s.as_ref())?;
@@ -448,7 +461,7 @@ fn expand_checked_impls(input: &ItemStruct, validate: Path) -> TokenStream {
 
                 let s = String::deserialize(deserializer)?;
 
-                match #id::parse(s) {
+                match #id::parse_box(s) {
                     Ok(o) => Ok(o),
                     Err(e) => Err(D::Error::custom(e)),
                 }
@@ -465,7 +478,7 @@ fn expand_checked_impls(input: &ItemStruct, validate: Path) -> TokenStream {
                 let s = String::deserialize(deserializer)?;
 
                 match #id::parse(s) {
-                    Ok(o) => Ok(o.into()),
+                    Ok(o) => Ok(o),
                     Err(e) => Err(D::Error::custom(e)),
                 }
             }
@@ -484,7 +497,7 @@ fn expand_checked_impls(input: &ItemStruct, validate: Path) -> TokenStream {
             type Err = crate::IdParseError;
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
-                <#id #ty_generics>::parse(s)
+                <#id #ty_generics>::parse_box(s)
             }
         }
 
@@ -492,7 +505,7 @@ fn expand_checked_impls(input: &ItemStruct, validate: Path) -> TokenStream {
             type Error = crate::IdParseError;
 
             fn try_from(s: &str) -> Result<Self, Self::Error> {
-                <#id #ty_generics>::parse(s)
+                <#id #ty_generics>::parse_box(s)
             }
         }
 
@@ -500,7 +513,7 @@ fn expand_checked_impls(input: &ItemStruct, validate: Path) -> TokenStream {
             type Error = crate::IdParseError;
 
             fn try_from(s: String) -> Result<Self, Self::Error> {
-                <#id #ty_generics>::parse(s)
+                <#id #ty_generics>::parse_box(s)
             }
         }
 
@@ -508,7 +521,7 @@ fn expand_checked_impls(input: &ItemStruct, validate: Path) -> TokenStream {
             type Err = crate::IdParseError;
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
-                <&#id #ty_generics as std::convert::TryFrom<_>>::try_from(s).map(Into::into)
+                <#id #ty_generics>::parse(s)
             }
         }
 
@@ -516,7 +529,7 @@ fn expand_checked_impls(input: &ItemStruct, validate: Path) -> TokenStream {
             type Error = crate::IdParseError;
 
             fn try_from(s: &str) -> Result<Self, Self::Error> {
-                <&#id #ty_generics as std::convert::TryFrom<_>>::try_from(s).map(Into::into)
+                <#id #ty_generics>::parse(s)
             }
         }
 
@@ -524,8 +537,7 @@ fn expand_checked_impls(input: &ItemStruct, validate: Path) -> TokenStream {
             type Error = crate::IdParseError;
 
             fn try_from(s: String) -> Result<Self, Self::Error> {
-                <&#id #ty_generics as std::convert::TryFrom<_>>::try_from(s.as_str())
-                    .map(Into::into)
+                <#id #ty_generics>::parse(s)
             }
         }
     }
