@@ -123,7 +123,7 @@ pub fn auth_check<E: Event>(
     room_version: &RoomVersion,
     incoming_event: impl Event,
     current_third_party_invite: Option<impl Event>,
-    fetch_state: impl Fn(&RoomEventType, &str) -> Option<E>,
+    fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<bool> {
     info!(
         "auth_check beginning for {} ({})",
@@ -208,7 +208,7 @@ pub fn auth_check<E: Event>(
     }
     */
 
-    let room_create_event = match fetch_state(&RoomEventType::RoomCreate, "") {
+    let room_create_event = match fetch_state(&StateEventType::RoomCreate, "") {
         None => {
             warn!("no m.room.create event in auth chain");
             return Ok(false);
@@ -243,8 +243,8 @@ pub fn auth_check<E: Event>(
     }
 
     // If type is m.room.member
-    let power_levels_event = fetch_state(&RoomEventType::RoomPowerLevels, "");
-    let sender_member_event = fetch_state(&RoomEventType::RoomMember, sender.as_str());
+    let power_levels_event = fetch_state(&StateEventType::RoomPowerLevels, "");
+    let sender_member_event = fetch_state(&StateEventType::RoomMember, sender.as_str());
 
     if *incoming_event.event_type() == RoomEventType::RoomMember {
         info!("starting m.room.member check");
@@ -270,7 +270,7 @@ pub fn auth_check<E: Event>(
 
         let user_for_join_auth_membership = user_for_join_auth
             .as_ref()
-            .and_then(|auth_user| fetch_state(&RoomEventType::RoomMember, auth_user.as_str()))
+            .and_then(|auth_user| fetch_state(&StateEventType::RoomMember, auth_user.as_str()))
             .and_then(|mem| from_json_str::<GetMembership>(mem.content().get()).ok())
             .map(|mem| mem.membership)
             .unwrap_or(MembershipState::Leave);
@@ -278,13 +278,13 @@ pub fn auth_check<E: Event>(
         if !valid_membership_change(
             room_version,
             target_user,
-            fetch_state(&RoomEventType::RoomMember, target_user.as_str()).as_ref(),
+            fetch_state(&StateEventType::RoomMember, target_user.as_str()).as_ref(),
             sender,
             sender_member_event.as_ref(),
             &incoming_event,
             current_third_party_invite,
             power_levels_event.as_ref(),
-            fetch_state(&RoomEventType::RoomJoinRules, "").as_ref(),
+            fetch_state(&StateEventType::RoomJoinRules, "").as_ref(),
             user_for_join_auth.as_deref(),
             &user_for_join_auth_membership,
             room_create_event,
