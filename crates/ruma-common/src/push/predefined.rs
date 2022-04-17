@@ -179,7 +179,7 @@ impl PatternedPushRule {
     /// Matrix ID, separated by word boundaries.
     pub fn contains_user_name(user_id: &UserId) -> Self {
         Self {
-            rule_id: ".m.rules.contains_user_name".into(),
+            rule_id: ".m.rule.contains_user_name".into(),
             enabled: true,
             default: true,
             pattern: user_id.localpart().into(),
@@ -197,7 +197,7 @@ impl ConditionalPushRule {
     /// Matches any incoming VOIP call.
     pub fn call() -> Self {
         Self {
-            rule_id: ".m.rules.call".into(),
+            rule_id: ".m.rule.call".into(),
             default: true,
             enabled: true,
             conditions: vec![EventMatch { key: "type".into(), pattern: "m.call.invite".into() }],
@@ -216,7 +216,7 @@ impl ConditionalPushRule {
     /// either matches all events that are encrypted (in 1:1 rooms) or none.
     pub fn encrypted_room_one_to_one() -> Self {
         Self {
-            rule_id: ".m.rules.encrypted_room_one_to_one".into(),
+            rule_id: ".m.rule.encrypted_room_one_to_one".into(),
             default: true,
             enabled: true,
             conditions: vec![
@@ -234,7 +234,7 @@ impl ConditionalPushRule {
     /// Matches any message sent in a room with exactly two members.
     pub fn room_one_to_one() -> Self {
         Self {
-            rule_id: ".m.rules.room_one_to_one".into(),
+            rule_id: ".m.rule.room_one_to_one".into(),
             default: true,
             enabled: true,
             conditions: vec![
@@ -252,7 +252,7 @@ impl ConditionalPushRule {
     /// Matches all chat messages.
     pub fn message() -> Self {
         Self {
-            rule_id: ".m.rules.message".into(),
+            rule_id: ".m.rule.message".into(),
             default: true,
             enabled: true,
             conditions: vec![EventMatch { key: "type".into(), pattern: "m.room.message".into() }],
@@ -267,7 +267,7 @@ impl ConditionalPushRule {
     /// either matches all events that are encrypted (in group rooms) or none.
     pub fn encrypted() -> Self {
         Self {
-            rule_id: ".m.rules.encrypted".into(),
+            rule_id: ".m.rule.encrypted".into(),
             default: true,
             enabled: true,
             conditions: vec![EventMatch { key: "type".into(), pattern: "m.room.encrypted".into() }],
