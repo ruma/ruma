@@ -16,6 +16,7 @@ all-features = true
 [features]
 compat = ["tracing"]
 unstable-exhaustive-types = []
+unstable-msc2870 = []
 
 [dependencies]
 base64 = "0.13.0"
