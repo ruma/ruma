@@ -30,6 +30,7 @@ Improvements:
 * Add unstable support for voice messages (MSC3245)
 * Add unstable support for threads (MSC3440)
 * Add `ReceiptEventContent::user_receipt`
+* Make `Restricted::allow` public
 
 # 0.8.0
 

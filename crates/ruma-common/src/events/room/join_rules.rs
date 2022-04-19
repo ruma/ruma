@@ -154,7 +154,7 @@ impl<'de> Deserialize<'de> for JoinRule {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Restricted {
     /// Allow rules which describe conditions that allow joining a room.
-    allow: Vec<AllowRule>,
+    pub allow: Vec<AllowRule>,
 }
 
 impl Restricted {
