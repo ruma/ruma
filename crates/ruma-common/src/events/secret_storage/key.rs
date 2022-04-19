@@ -86,7 +86,7 @@ pub enum SecretEncryptionAlgorithm {
     /// Secrets using this method are encrypted using AES-CTR-256 and authenticated using
     /// HMAC-SHA-256.
     SecretStorageV1AesHmacSha2 {
-        /// The 16-byte initalization vector, encoded as base64.
+        /// The 16-byte initialization vector, encoded as base64.
         iv: Base64,
 
         /// The AES-CTR-encrypted data, encoded as base64.
