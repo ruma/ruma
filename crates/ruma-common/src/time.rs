@@ -23,7 +23,11 @@ impl MilliSecondsSinceUnixEpoch {
 
     /// The current system time in milliseconds since the unix epoch.
     pub fn now() -> Self {
-        Self::from_system_time(SystemTime::now()).unwrap()
+        #[cfg(not(all(target_arch = "wasm32", target_os = "unknown", feature = "js")))]
+        return Self::from_system_time(SystemTime::now()).unwrap();
+
+        #[cfg(all(target_arch = "wasm32", target_os = "unknown", feature = "js"))]
+        return Self(f64_to_uint(js_sys::Date::now()));
     }
 
     /// Creates a new `SystemTime` from `self`, if it can be represented.
@@ -59,7 +63,11 @@ impl SecondsSinceUnixEpoch {
 
     /// The current system-time as seconds since the unix epoch.
     pub fn now() -> Self {
-        Self::from_system_time(SystemTime::now()).unwrap()
+        #[cfg(not(all(target_arch = "wasm32", target_os = "unknown", feature = "js")))]
+        return Self::from_system_time(SystemTime::now()).unwrap();
+
+        #[cfg(all(target_arch = "wasm32", target_os = "unknown", feature = "js"))]
+        return Self(f64_to_uint(js_sys::Date::now() / 1000.0));
     }
 
     /// Creates a new `SystemTime` from `self`, if it can be represented.
@@ -71,6 +79,12 @@ impl SecondsSinceUnixEpoch {
     pub fn get(&self) -> UInt {
         self.0
     }
+}
+
+#[cfg(all(target_arch = "wasm32", target_os = "unknown", feature = "js"))]
+fn f64_to_uint(val: f64) -> UInt {
+    use std::convert::TryFrom;
+    UInt::try_from(val as u64).unwrap()
 }
 
 #[cfg(test)]
