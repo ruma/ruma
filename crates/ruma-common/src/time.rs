@@ -21,7 +21,7 @@ impl MilliSecondsSinceUnixEpoch {
         Some(Self(millis))
     }
 
-    /// The current milliseconds since the unix epoch.
+    /// The current system time in milliseconds since the unix epoch.
     pub fn now() -> Self {
         Self::from_system_time(SystemTime::now()).unwrap()
     }
