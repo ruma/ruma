@@ -57,6 +57,11 @@ impl SecondsSinceUnixEpoch {
         Some(Self(millis))
     }
 
+    /// The current system-time as seconds since the unix epoch.
+    pub fn now() -> Self {
+        Self::from_system_time(SystemTime::now()).unwrap()
+    }
+
     /// Creates a new `SystemTime` from `self`, if it can be represented.
     pub fn to_system_time(self) -> Option<SystemTime> {
         UNIX_EPOCH.checked_add(Duration::from_secs(self.0.into()))
