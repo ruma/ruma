@@ -5,48 +5,7 @@
 use js_int::{uint, UInt};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    events::macros::EventContent,
-    identifiers::{KeyDerivationAlgorithm, SecretEncryptionAlgorithm},
-};
-
-/// The payload for `KeyEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.secret_storage.key.*", kind = GlobalAccountData)]
-pub struct KeyEventContent {
-    /// The ID of the key.
-    #[ruma_event(type_fragment)]
-    pub key_id: String,
-
-    /// The name of the key.
-    ///
-    /// If not given, the client may use a generic name such as "Unnamed key", or "Default Key" if
-    /// the key is marked as the default key.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-
-    /// The encryption algorithm to be used for this key.
-    ///
-    /// Currently, only `m.secret_storage.v1.aes-hmac-sha2` is supported.
-    pub algorithm: SecretEncryptionAlgorithm,
-
-    /// The passphrase from which to generate the key.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub passphrase: Option<PassPhrase>,
-}
-
-impl KeyEventContent {
-    /// Creates a new KeyEventContent with the given key ID, no name and no passphrase.
-    pub fn new(key_id: String) -> Self {
-        Self {
-            key_id,
-            name: None,
-            algorithm: SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2,
-            passphrase: None,
-        }
-    }
-}
+use crate::{events::macros::EventContent, identifiers::KeyDerivationAlgorithm, serde::Base64};
 
 /// A passphrase from which a key is to be derived.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -87,38 +46,190 @@ fn is_default_bits(val: &UInt) -> bool {
 
 /// A key description encrypted using a specified algorithm.
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct KeyDescription {
+#[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
+#[ruma_event(type = "m.secret_storage.key.*", kind = GlobalAccountData)]
+pub struct KeyDescriptionContent {
+    /// The ID of the key.
+    #[ruma_event(type_fragment)]
+    #[serde(skip)]
+    pub key_id: String,
+
     /// The name of the key.
     pub name: String,
 
     /// The encryption algorithm used for this key.
     ///
     /// Currently, only `m.secret_storage.v1.aes-hmac-sha2` is supported.
+    #[serde(flatten)]
     pub algorithm: SecretEncryptionAlgorithm,
 
     /// The passphrase from which to generate the key.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub passphrase: Option<PassPhrase>,
-
-    /// The 16-byte initialization vector, encoded as base64.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub iv: Option<String>,
-
-    /// The MAC of the result of encrypting 32 bytes of 0, encoded as base64.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub mac: Option<String>,
 }
 
-impl KeyDescription {
+impl KeyDescriptionContent {
     /// Creates a `KeyDescription` with the given name.
-    pub fn new(name: String) -> Self {
-        Self {
-            name,
-            algorithm: SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2,
-            passphrase: None,
-            iv: None,
-            mac: None,
-        }
+    pub fn new(key_id: String, name: String, algorithm: SecretEncryptionAlgorithm) -> Self {
+        Self { key_id, name, algorithm, passphrase: None }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(tag = "algorithm")]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+/// An algorithm and its properties, used to encrypt a secret.
+pub enum SecretEncryptionAlgorithm {
+    #[serde(rename = "m.secret_storage.v1.aes-hmac-sha2")]
+    /// Encrypted using the `m.secrect_storage.v1.aes-hmac-sha2` algorithm.
+    ///
+    /// Secrets using this method are encrypted using AES-CTR-256 and authenticated using
+    /// HMAC-SHA-256.
+    SecretStorageV1AesHmacSha2 {
+        /// The 16-byte initalization vector, encoded as base64.
+        iv: Base64,
+
+        /// The AES-CTR-encrypted data, encoded as base64.
+        ciphertext: Base64,
+
+        /// The MAC, encoded as base64.
+        mac: Base64,
+    },
+}
+
+#[cfg(test)]
+mod tests {
+
+    use js_int::uint;
+    use matches::assert_matches;
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+
+    use super::{KeyDescriptionContent, PassPhrase, SecretEncryptionAlgorithm};
+    use crate::{serde::Base64, KeyDerivationAlgorithm};
+
+    #[test]
+    fn test_key_description_serialization() {
+        let content = KeyDescriptionContent::new(
+            "my_key".into(),
+            "my_key".into(),
+            SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
+                iv: Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap(),
+                ciphertext: Base64::parse("dGhpc2lzZGVmaW5pdGVseWNpcGhlcnRleHQ").unwrap(),
+                mac: Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap(),
+            },
+        );
+
+        let json = json!({
+            "name": "my_key",
+            "algorithm": "m.secret_storage.v1.aes-hmac-sha2",
+            "iv": "YWJjZGVmZ2hpamtsbW5vcA",
+            "ciphertext": "dGhpc2lzZGVmaW5pdGVseWNpcGhlcnRleHQ",
+            "mac": "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U"
+        });
+
+        assert_eq!(to_json_value(&content).unwrap(), json);
+    }
+
+    #[test]
+    fn test_key_description_deserialization() {
+        let json = json!({
+            "name": "my_key",
+            "algorithm": "m.secret_storage.v1.aes-hmac-sha2",
+            "iv": "YWJjZGVmZ2hpamtsbW5vcA",
+            "ciphertext": "dGhpc2lzZGVmaW5pdGVseWNpcGhlcnRleHQ",
+            "mac": "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U"
+        });
+
+        assert_matches!(
+            from_json_value(json).unwrap(),
+            KeyDescriptionContent {
+                key_id: _,
+                name,
+                algorithm: SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
+                    iv,
+                    ciphertext,
+                    mac,
+                },
+                passphrase: None,
+            }
+            if name == *"my_key"
+                && iv == Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap()
+                && ciphertext == Base64::parse("dGhpc2lzZGVmaW5pdGVseWNpcGhlcnRleHQ").unwrap()
+                && mac == Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap()
+        )
+    }
+
+    #[test]
+    fn test_key_description_with_passphrase_serialization() {
+        let content = KeyDescriptionContent {
+            passphrase: Some(PassPhrase::new("rocksalt".into(), uint!(8))),
+            ..KeyDescriptionContent::new(
+                "my_key".into(),
+                "my_key".into(),
+                SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
+                    iv: Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap(),
+                    ciphertext: Base64::parse("dGhpc2lzZGVmaW5pdGVseWNpcGhlcnRleHQ").unwrap(),
+                    mac: Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap(),
+                },
+            )
+        };
+
+        let json = json!({
+            "name": "my_key",
+            "algorithm": "m.secret_storage.v1.aes-hmac-sha2",
+            "iv": "YWJjZGVmZ2hpamtsbW5vcA",
+            "ciphertext": "dGhpc2lzZGVmaW5pdGVseWNpcGhlcnRleHQ",
+            "mac": "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U",
+            "passphrase": {
+                "algorithm": "m.pbkdf2",
+                "salt": "rocksalt",
+                "iterations": 8
+            }
+        });
+
+        assert_eq!(to_json_value(&content).unwrap(), json);
+    }
+
+    #[test]
+    fn test_key_description_with_passphrase_deserialization() {
+        let json = json!({
+            "name": "my_key",
+            "algorithm": "m.secret_storage.v1.aes-hmac-sha2",
+            "iv": "YWJjZGVmZ2hpamtsbW5vcA",
+            "ciphertext": "dGhpc2lzZGVmaW5pdGVseWNpcGhlcnRleHQ",
+            "mac": "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U",
+            "passphrase": {
+                "algorithm": "m.pbkdf2",
+                "salt": "rocksalt",
+                "iterations": 8,
+                "bits": 256
+            }
+        });
+
+        assert_matches!(
+            from_json_value(json).unwrap(),
+            KeyDescriptionContent {
+                key_id: _key,
+                name,
+                algorithm: SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
+                    iv,
+                    ciphertext,
+                    mac,
+                },
+                passphrase: Some(PassPhrase {
+                    algorithm: KeyDerivationAlgorithm::Pbkfd2,
+                    salt,
+                    iterations,
+                    bits
+                })
+            }
+            if name == *"my_key"
+                && iv == Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap()
+                && ciphertext == Base64::parse("dGhpc2lzZGVmaW5pdGVseWNpcGhlcnRleHQ").unwrap()
+                && mac == Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap()
+                && salt == *"rocksalt"
+                && iterations == uint!(8)
+                && bits == uint!(256)
+        )
     }
 }
