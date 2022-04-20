@@ -9,7 +9,7 @@ use crate::{
         EventContent, HasDeserializeFields, RedactContent, RedactedEventContent, StateEventContent,
         StateEventType,
     },
-    OwnedRoomAliasId, RoomVersionId,
+    OwnedRoomAliasId, OwnedServerName, RoomVersionId,
 };
 
 /// The content of an `m.room.aliases` event.
@@ -17,7 +17,7 @@ use crate::{
 /// Informs the room about what room aliases it has been given.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.aliases", kind = State, custom_redacted)]
+#[ruma_event(type = "m.room.aliases", kind = State, state_key_type = OwnedServerName, custom_redacted)]
 pub struct RoomAliasesEventContent {
     /// A list of room aliases.
     pub aliases: Vec<OwnedRoomAliasId>,
@@ -96,7 +96,7 @@ impl EventContent for RedactedRoomAliasesEventContent {
 }
 
 impl StateEventContent for RedactedRoomAliasesEventContent {
-    type StateKey = String; // Box<ServerName>
+    type StateKey = OwnedServerName;
 }
 
 // Since this redacted event has fields we leave the default `empty` method

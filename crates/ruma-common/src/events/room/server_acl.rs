@@ -6,14 +6,14 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 use wildmatch::WildMatch;
 
-use crate::ServerName;
+use crate::{events::EmptyStateKey, ServerName};
 
 /// The content of an `m.room.server_acl` event.
 ///
 /// An event to indicate which servers are permitted to participate in the room.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.server_acl", kind = State)]
+#[ruma_event(type = "m.room.server_acl", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomServerAclEventContent {
     /// Whether to allow server names that are IP address literals.
     ///
@@ -64,11 +64,10 @@ impl RoomServerAclEventContent {
 
 #[cfg(test)]
 mod tests {
-    use crate::server_name;
     use serde_json::{from_value as from_json_value, json};
 
     use super::RoomServerAclEventContent;
-    use crate::events::OriginalStateEvent;
+    use crate::{events::OriginalStateEvent, server_name};
 
     #[test]
     fn default_values() {

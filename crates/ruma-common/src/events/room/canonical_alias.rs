@@ -5,14 +5,14 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::OwnedRoomAliasId;
+use crate::{events::EmptyStateKey, OwnedRoomAliasId};
 
 /// The content of an `m.room.canonical_alias` event.
 ///
 /// Informs the room as to which alias is the canonical one.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.canonical_alias", kind = State)]
+#[ruma_event(type = "m.room.canonical_alias", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomCanonicalAliasEventContent {
     /// The canonical alias.
     ///
@@ -39,12 +39,15 @@ impl RoomCanonicalAliasEventContent {
 
 #[cfg(test)]
 mod tests {
-    use crate::{event_id, room_alias_id, room_id, user_id, MilliSecondsSinceUnixEpoch};
     use js_int::uint;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::RoomCanonicalAliasEventContent;
-    use crate::events::{OriginalStateEvent, StateUnsigned};
+    use crate::{
+        event_id,
+        events::{EmptyStateKey, OriginalStateEvent, StateUnsigned},
+        room_alias_id, room_id, user_id, MilliSecondsSinceUnixEpoch,
+    };
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
@@ -57,7 +60,7 @@ mod tests {
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
             room_id: room_id!("!dummy:example.com").to_owned(),
             sender: user_id!("@carl:example.com").to_owned(),
-            state_key: "".into(),
+            state_key: EmptyStateKey,
             unsigned: StateUnsigned::default(),
         };
 

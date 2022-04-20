@@ -70,7 +70,7 @@ fn aliases_event() -> JsonValue {
         "event_id": "$152037280074GZeOm:localhost",
         "origin_server_ts": 1,
         "sender": "@example:localhost",
-        "state_key": "",
+        "state_key": "room.com",
         "room_id": "!room:room.com",
         "type": "m.room.aliases",
         "unsigned": {
@@ -87,7 +87,7 @@ fn aliases_event_sync() -> JsonValue {
         "event_id": "$152037280074GZeOm:localhost",
         "origin_server_ts": 1,
         "sender": "@example:localhost",
-        "state_key": "",
+        "state_key": "example.com",
         "type": "m.room.aliases",
         "unsigned": {
             "age": 1
@@ -172,21 +172,14 @@ fn message_event_sync_deserialization() {
 fn aliases_event_sync_deserialization() {
     let json_data = aliases_event_sync();
 
-    assert_matches!(
-        from_json_value::<AnySyncRoomEvent>(json_data),
-        Ok(AnySyncRoomEvent::State(
-            AnySyncStateEvent::RoomAliases(SyncStateEvent::Original(
-                OriginalSyncStateEvent {
-                    content: RoomAliasesEventContent {
-                        aliases,
-                        ..
-                    },
-                    ..
-                },
-            ))
-        ))
-        if aliases == vec![ room_alias_id!("#somewhere:localhost") ]
-    );
+    let ev = match from_json_value::<AnySyncRoomEvent>(json_data) {
+        Ok(AnySyncRoomEvent::State(AnySyncStateEvent::RoomAliases(SyncStateEvent::Original(
+            ev,
+        )))) => ev,
+        res => panic!("unexpected result: {:?}", res),
+    };
+
+    assert_eq!(ev.content.aliases, vec![room_alias_id!("#somewhere:localhost")]);
 }
 
 #[test]
@@ -253,7 +246,7 @@ fn alias_room_event_deserialization() {
                 ..
             }))
         ))
-        if aliases == vec![ room_alias_id!("#somewhere:localhost") ]
+        if aliases == vec![room_alias_id!("#somewhere:localhost")]
     );
 }
 
@@ -295,7 +288,7 @@ fn alias_event_deserialization() {
                 ..
             }))
         ))
-        if aliases == vec![ room_alias_id!("#somewhere:localhost") ]
+        if aliases == vec![room_alias_id!("#somewhere:localhost")]
     );
 }
 
@@ -306,7 +299,7 @@ fn alias_event_field_access() {
     assert_matches!(
         from_json_value::<AnyRoomEvent>(json_data.clone()),
         Ok(AnyRoomEvent::State(state_event))
-        if state_event.state_key() == ""
+        if state_event.state_key() == "room.com"
             && state_event.room_id() == room_id!("!room:room.com")
             && state_event.event_id() == event_id!("$152037280074GZeOm:localhost")
             && state_event.sender() == user_id!("@example:localhost")

@@ -28,7 +28,7 @@
 //! use serde::{Deserialize, Serialize};
 //!
 //! #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-//! #[ruma_event(type = "org.example.event", kind = State)]
+//! #[ruma_event(type = "org.example.event", kind = State, state_key_type = String)]
 //! pub struct ExampleContent {
 //!     field: String,
 //! }
@@ -113,6 +113,7 @@ pub mod _custom;
 mod content;
 mod enums;
 mod kinds;
+mod state_key;
 mod unsigned;
 
 /// Re-export of all the derives needed to create your own event types.
@@ -170,6 +171,7 @@ pub use self::{
     content::*,
     enums::*,
     kinds::*,
+    state_key::EmptyStateKey,
     unsigned::{MessageLikeUnsigned, RedactedUnsigned, StateUnsigned},
 };
 

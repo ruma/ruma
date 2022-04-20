@@ -5,7 +5,9 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{room::RoomType, OwnedEventId, OwnedRoomId, OwnedUserId, RoomVersionId};
+use crate::{
+    events::EmptyStateKey, room::RoomType, OwnedEventId, OwnedRoomId, OwnedUserId, RoomVersionId,
+};
 
 /// The content of an `m.room.create` event.
 ///
@@ -14,7 +16,7 @@ use crate::{room::RoomType, OwnedEventId, OwnedRoomId, OwnedUserId, RoomVersionI
 /// It acts as the root of all other events.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.create", kind = State)]
+#[ruma_event(type = "m.room.create", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomCreateEventContent {
     /// The `user_id` of the room creator.
     ///
@@ -85,11 +87,11 @@ fn default_room_version_id() -> RoomVersionId {
 
 #[cfg(test)]
 mod tests {
-    use crate::{user_id, RoomVersionId};
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{RoomCreateEventContent, RoomType};
+    use crate::{user_id, RoomVersionId};
 
     #[test]
     fn serialization() {

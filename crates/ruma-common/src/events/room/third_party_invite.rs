@@ -16,7 +16,7 @@ use crate::serde::Base64;
 /// Any user who can present that signature may use this invitation to join the target room.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.third_party_invite", kind = State)]
+#[ruma_event(type = "m.room.third_party_invite", kind = State, state_key_type = String)]
 pub struct RoomThirdPartyInviteEventContent {
     /// A user-readable string which represents the user who has been invited.
     ///

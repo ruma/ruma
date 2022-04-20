@@ -9,7 +9,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    events::RoomEventType,
+    events::{EmptyStateKey, RoomEventType},
     power_levels::{default_power_level, NotificationPowerLevels},
     OwnedUserId, UserId,
 };
@@ -19,7 +19,7 @@ use crate::{
 /// Defines the power levels (privileges) of users in the room.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.power_levels", kind = State)]
+#[ruma_event(type = "m.room.power_levels", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomPowerLevelsEventContent {
     /// The level required to ban a user.
     ///
@@ -288,14 +288,17 @@ impl From<RedactedRoomPowerLevelsEventContent> for RoomPowerLevels {
 mod tests {
     use std::collections::BTreeMap;
 
-    use crate::{event_id, room_id, user_id, MilliSecondsSinceUnixEpoch};
     use assign::assign;
     use js_int::{int, uint};
     use maplit::btreemap;
     use serde_json::{json, to_value as to_json_value};
 
     use super::{default_power_level, NotificationPowerLevels, RoomPowerLevelsEventContent};
-    use crate::events::{OriginalStateEvent, StateUnsigned};
+    use crate::{
+        event_id,
+        events::{EmptyStateKey, OriginalStateEvent, StateUnsigned},
+        room_id, user_id, MilliSecondsSinceUnixEpoch,
+    };
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
@@ -319,7 +322,7 @@ mod tests {
             room_id: room_id!("!n8f893n9:example.com").to_owned(),
             unsigned: StateUnsigned::default(),
             sender: user_id!("@carl:example.com").to_owned(),
-            state_key: "".into(),
+            state_key: EmptyStateKey,
         };
 
         let actual = to_json_value(&power_levels_event).unwrap();
@@ -382,7 +385,7 @@ mod tests {
                 ..StateUnsigned::default()
             },
             sender: user.to_owned(),
-            state_key: "".into(),
+            state_key: EmptyStateKey,
         };
 
         let actual = to_json_value(&power_levels_event).unwrap();

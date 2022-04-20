@@ -177,7 +177,12 @@ pub fn expand_event_content(
     let state_key_types: Vec<_> =
         content_attr.iter().filter_map(|attrs| attrs.get_state_key_type()).collect();
     let state_key_type = match (event_kind, state_key_types.as_slice()) {
-        (Some(EventKind::State), []) => Some(quote! { ::std::string::String }),
+        (Some(EventKind::State), []) => {
+            return Err(syn::Error::new(
+                Span::call_site(),
+                "no state_key_type attribute found, please specify one",
+            ));
+        }
         (Some(EventKind::State), [ty]) => Some(quote! { #ty }),
         (Some(EventKind::State), _) => {
             return Err(syn::Error::new(
