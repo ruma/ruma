@@ -10,7 +10,7 @@ mod spec_links;
 use spec_links::check_spec_links;
 
 const MSRV: &str = "1.55";
-const NIGHTLY: &str = "nightly-2022-03-23";
+const NIGHTLY: &str = "nightly";
 
 #[derive(Args)]
 pub struct CiArgs {
