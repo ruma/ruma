@@ -11,14 +11,14 @@ use serde::{
 };
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
-use crate::{serde::from_raw_json_value, OwnedRoomId, PrivOwnedStr};
+use crate::{events::EmptyStateKey, serde::from_raw_json_value, OwnedRoomId, PrivOwnedStr};
 
 /// The content of an `m.room.join_rules` event.
 ///
 /// Describes how users are allowed to join the room.
 #[derive(Clone, Debug, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.join_rules", kind = State)]
+#[ruma_event(type = "m.room.join_rules", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomJoinRulesEventContent {
     /// The type of rules used for users wishing to join this room.
     #[ruma_event(skip_redaction)]
@@ -238,10 +238,10 @@ impl<'de> Deserialize<'de> for AllowRule {
 
 #[cfg(test)]
 mod tests {
-    use crate::room_id;
     use matches::assert_matches;
 
     use super::{AllowRule, JoinRule, OriginalSyncRoomJoinRulesEvent, RoomJoinRulesEventContent};
+    use crate::room_id;
 
     #[test]
     fn deserialize() {

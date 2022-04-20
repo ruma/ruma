@@ -16,7 +16,7 @@ use ruma_common::{
         RedactedMessageLikeEvent, RedactedSyncMessageLikeEvent, RedactedSyncStateEvent,
         RedactedUnsigned, SyncMessageLikeEvent, SyncStateEvent,
     },
-    room_id, user_id, MilliSecondsSinceUnixEpoch, RoomVersionId,
+    room_id, server_name, user_id, MilliSecondsSinceUnixEpoch, RoomVersionId,
 };
 use serde_json::{
     from_value as from_json_value, json, to_value as to_json_value,
@@ -64,7 +64,7 @@ fn redacted_aliases_event_serialize_no_content() {
     let redacted = RedactedSyncStateEvent {
         content: RedactedRoomAliasesEventContent::default(),
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
-        state_key: "".into(),
+        state_key: server_name!("example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         sender: user_id!("@carl:example.com").to_owned(),
         unsigned: RedactedUnsigned::default(),
@@ -72,7 +72,7 @@ fn redacted_aliases_event_serialize_no_content() {
 
     let expected = json!({
       "event_id": "$h29iv0s8:example.com",
-      "state_key": "",
+      "state_key": "example.com",
       "origin_server_ts": 1,
       "sender": "@carl:example.com",
       "type": "m.room.aliases",
@@ -87,7 +87,7 @@ fn redacted_aliases_event_serialize_with_content() {
     let redacted = RedactedSyncStateEvent {
         content: RedactedRoomAliasesEventContent::new_v1(vec![]),
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
-        state_key: "".to_owned(),
+        state_key: server_name!("example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         sender: user_id!("@carl:example.com").to_owned(),
         unsigned: RedactedUnsigned::default(),
@@ -98,7 +98,7 @@ fn redacted_aliases_event_serialize_with_content() {
           "aliases": []
       },
       "event_id": "$h29iv0s8:example.com",
-      "state_key": "",
+      "state_key": "example.com",
       "origin_server_ts": 1,
       "sender": "@carl:example.com",
       "type": "m.room.aliases",
@@ -206,7 +206,7 @@ fn redacted_state_event_deserialize() {
       "event_id": "$h29iv0s8:example.com",
       "origin_server_ts": 1,
       "sender": "@carl:example.com",
-      "state_key": "hello there",
+      "state_key": "",
       "unsigned": unsigned(),
       "type": "m.room.create",
     });
@@ -220,13 +220,11 @@ fn redacted_state_event_deserialize() {
                     creator, ..
                 },
                 event_id,
-                state_key,
                 unsigned,
                 ..
             }),
         )) if event_id == event_id!("$h29iv0s8:example.com")
             && unsigned.redacted_because.is_some()
-            && state_key == "hello there"
             && creator == user_id!("@carl:example.com")
     )
 }

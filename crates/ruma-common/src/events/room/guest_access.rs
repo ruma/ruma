@@ -5,7 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{serde::StringEnum, PrivOwnedStr};
+use crate::{events::EmptyStateKey, serde::StringEnum, PrivOwnedStr};
 
 /// The content of an `m.room.guest_access` event.
 ///
@@ -15,7 +15,7 @@ use crate::{serde::StringEnum, PrivOwnedStr};
 /// servers should act as if it is present and has the value `GuestAccess::Forbidden`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.guest_access", kind = State)]
+#[ruma_event(type = "m.room.guest_access", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomGuestAccessEventContent {
     /// A policy for guest user access to a room.
     pub guest_access: GuestAccess,

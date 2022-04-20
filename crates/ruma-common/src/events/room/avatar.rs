@@ -7,7 +7,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::ThumbnailInfo;
-use crate::MxcUri;
+use crate::{events::EmptyStateKey, MxcUri};
 
 /// The content of an `m.room.avatar` event.
 ///
@@ -16,7 +16,7 @@ use crate::MxcUri;
 /// This can be displayed alongside the room information.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.avatar", kind = State)]
+#[ruma_event(type = "m.room.avatar", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomAvatarEventContent {
     /// Information about the avatar image.
     #[serde(skip_serializing_if = "Option::is_none")]

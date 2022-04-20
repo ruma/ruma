@@ -12,7 +12,7 @@ use super::PolicyRuleEventContent;
 /// This event type is used to apply rules to room entities.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[allow(clippy::exhaustive_structs)]
-#[ruma_event(type = "m.policy.rule.room", kind = State)]
+#[ruma_event(type = "m.policy.rule.room", kind = State, state_key_type = String)]
 pub struct PolicyRuleRoomEventContent(pub PolicyRuleEventContent);
 
 #[cfg(test)]

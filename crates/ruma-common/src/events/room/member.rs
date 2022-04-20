@@ -40,7 +40,7 @@ use crate::{
 /// must be assumed as leave.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.member", kind = State, custom_redacted)]
+#[ruma_event(type = "m.room.member", kind = State, state_key_type = OwnedUserId, custom_redacted)]
 pub struct RoomMemberEventContent {
     /// The avatar URL for this user, if any.
     ///
@@ -176,7 +176,7 @@ impl EventContent for RedactedRoomMemberEventContent {
 }
 
 impl StateEventContent for RedactedRoomMemberEventContent {
-    type StateKey = String; // Box<UserId>
+    type StateKey = OwnedUserId;
 }
 
 // Since this redacted event has fields we leave the default `empty` method
@@ -329,7 +329,7 @@ fn membership_change(
     content: &RoomMemberEventContent,
     prev_content: Option<&RoomMemberEventContent>,
     sender: &UserId,
-    state_key: &str,
+    state_key: &UserId,
 ) -> MembershipChange {
     use MembershipChange as Ch;
     use MembershipState as St;
@@ -425,14 +425,16 @@ impl StrippedStateEvent<RoomMemberEventContent> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{server_name, server_signing_key_id, MilliSecondsSinceUnixEpoch};
     use js_int::uint;
     use maplit::btreemap;
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json};
 
     use super::{MembershipState, RoomMemberEventContent, SignedContent, ThirdPartyInvite};
-    use crate::events::{OriginalStateEvent, StateUnsigned};
+    use crate::{
+        events::{OriginalStateEvent, StateUnsigned},
+        server_name, server_signing_key_id, MilliSecondsSinceUnixEpoch,
+    };
 
     #[test]
     fn serde_with_no_prev_content() {
@@ -445,7 +447,7 @@ mod tests {
             "origin_server_ts": 1,
             "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
-            "state_key": "example.com"
+            "state_key": "@carl:example.com"
         });
 
         assert_matches!(
@@ -469,7 +471,7 @@ mod tests {
                 && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
                 && room_id == "!n8f893n9:example.com"
                 && sender == "@carl:example.com"
-                && state_key == "example.com"
+                && state_key == "@carl:example.com"
                 && unsigned.is_empty()
         );
     }
@@ -485,7 +487,7 @@ mod tests {
             "origin_server_ts": 1,
             "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
-            "state_key": "example.com",
+            "state_key": "@carl:example.com",
             "unsigned": {
                 "prev_content": {
                     "membership": "join"
@@ -511,7 +513,7 @@ mod tests {
         assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
         assert_eq!(ev.room_id, "!n8f893n9:example.com");
         assert_eq!(ev.sender, "@carl:example.com");
-        assert_eq!(ev.state_key, "example.com");
+        assert_eq!(ev.state_key, "@carl:example.com");
 
         assert_matches!(
             ev.unsigned,
@@ -691,7 +693,7 @@ mod tests {
             "origin_server_ts": 1,
             "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
-            "state_key": "example.com"
+            "state_key": "@carl:example.com"
         });
 
         assert_matches!(
@@ -717,7 +719,7 @@ mod tests {
                 && room_id == "!n8f893n9:example.com"
                 && sender == "@carl:example.com"
                 && authed == "@notcarl:example.com"
-                && state_key == "example.com"
+                && state_key == "@carl:example.com"
                 && unsigned.is_empty()
         );
     }

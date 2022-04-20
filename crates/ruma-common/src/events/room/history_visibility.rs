@@ -5,7 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{serde::StringEnum, PrivOwnedStr};
+use crate::{events::EmptyStateKey, serde::StringEnum, PrivOwnedStr};
 
 /// The content of an `m.room.history_visibility` event.
 ///
@@ -13,7 +13,7 @@ use crate::{serde::StringEnum, PrivOwnedStr};
 /// before they joined.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.history_visibility", kind = State)]
+#[ruma_event(type = "m.room.history_visibility", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomHistoryVisibilityEventContent {
     /// Who can see the room history.
     #[ruma_event(skip_redaction)]

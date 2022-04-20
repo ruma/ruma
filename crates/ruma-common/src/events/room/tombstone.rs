@@ -5,14 +5,14 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::OwnedRoomId;
+use crate::{events::EmptyStateKey, OwnedRoomId};
 
 /// The content of an `m.room.tombstone` event.
 ///
 /// A state event signifying that a room has been upgraded to a different room version, and that
 /// clients should go there.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.room.tombstone", kind = State)]
+#[ruma_event(type = "m.room.tombstone", kind = State, state_key_type = EmptyStateKey)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomTombstoneEventContent {
     /// A server-defined message.
