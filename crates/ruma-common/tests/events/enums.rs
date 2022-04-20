@@ -1,6 +1,12 @@
 use js_int::uint;
 use matches::assert_matches;
-use ruma_common::{event_id, room_alias_id, room_id, serde::test::serde_json_eq, user_id};
+use ruma_common::{
+    event_id,
+    events::{MessageLikeEvent, StateEvent, SyncMessageLikeEvent, SyncStateEvent},
+    room_alias_id, room_id,
+    serde::test::serde_json_eq,
+    user_id,
+};
 use serde_json::{from_value as from_json_value, json, Value as JsonValue};
 
 use ruma_common::{
@@ -11,10 +17,10 @@ use ruma_common::{
             power_levels::RoomPowerLevelsEventContent,
         },
         AnyEphemeralRoomEvent, AnyMessageLikeEvent, AnyRoomEvent, AnyStateEvent,
-        AnyStateEventContent, AnySyncMessageLikeEvent, AnySyncRoomEvent, AnySyncStateEvent,
-        EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEvent, MessageLikeEventType,
-        MessageLikeUnsigned, RoomAccountDataEventType, StateEvent, StateEventType,
-        SyncMessageLikeEvent, SyncStateEvent, ToDeviceEventType,
+        AnySyncMessageLikeEvent, AnySyncRoomEvent, AnySyncStateEvent, EphemeralRoomEventType,
+        GlobalAccountDataEventType, MessageLikeEventType, MessageLikeUnsigned,
+        OriginalMessageLikeEvent, OriginalStateEvent, OriginalSyncMessageLikeEvent,
+        OriginalSyncStateEvent, RoomAccountDataEventType, StateEventType, ToDeviceEventType,
     },
     MilliSecondsSinceUnixEpoch,
 };
@@ -124,12 +130,14 @@ fn power_event_sync_deserialization() {
     assert_matches!(
         from_json_value::<AnySyncRoomEvent>(json_data),
         Ok(AnySyncRoomEvent::State(
-            AnySyncStateEvent::RoomPowerLevels(SyncStateEvent {
-                content: RoomPowerLevelsEventContent {
-                    ban, ..
+            AnySyncStateEvent::RoomPowerLevels(SyncStateEvent::Original(
+                OriginalSyncStateEvent {
+                    content: RoomPowerLevelsEventContent {
+                        ban, ..
+                    },
+                    ..
                 },
-                ..
-            })
+            )),
         ))
         if ban == js_int::Int::new(50).unwrap()
     );
@@ -142,17 +150,19 @@ fn message_event_sync_deserialization() {
     assert_matches!(
         from_json_value::<AnySyncRoomEvent>(json_data),
         Ok(AnySyncRoomEvent::MessageLike(
-            AnySyncMessageLikeEvent::RoomMessage(SyncMessageLikeEvent {
-                content: RoomMessageEventContent {
-                    msgtype: MessageType::Text(TextMessageEventContent {
-                        body,
-                        formatted: Some(formatted),
+            AnySyncMessageLikeEvent::RoomMessage(SyncMessageLikeEvent::Original(
+                OriginalSyncMessageLikeEvent {
+                    content: RoomMessageEventContent {
+                        msgtype: MessageType::Text(TextMessageEventContent {
+                            body,
+                            formatted: Some(formatted),
+                            ..
+                        }),
                         ..
-                    }),
+                    },
                     ..
                 },
-                ..
-            })
+            ))
         ))
         if body == "baba" && formatted.body == "<strong>baba</strong>"
     );
@@ -165,13 +175,15 @@ fn aliases_event_sync_deserialization() {
     assert_matches!(
         from_json_value::<AnySyncRoomEvent>(json_data),
         Ok(AnySyncRoomEvent::State(
-            AnySyncStateEvent::RoomAliases(SyncStateEvent {
-                content: RoomAliasesEventContent {
-                    aliases,
+            AnySyncStateEvent::RoomAliases(SyncStateEvent::Original(
+                OriginalSyncStateEvent {
+                    content: RoomAliasesEventContent {
+                        aliases,
+                        ..
+                    },
                     ..
                 },
-                ..
-            })
+            ))
         ))
         if aliases == vec![ room_alias_id!("#somewhere:localhost") ]
     );
@@ -184,17 +196,19 @@ fn message_room_event_deserialization() {
     assert_matches!(
         from_json_value::<AnyRoomEvent>(json_data),
         Ok(AnyRoomEvent::MessageLike(
-            AnyMessageLikeEvent::RoomMessage(MessageLikeEvent {
-                content: RoomMessageEventContent {
-                    msgtype: MessageType::Text(TextMessageEventContent {
-                        body,
-                        formatted: Some(formatted),
+            AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(
+                OriginalMessageLikeEvent {
+                    content: RoomMessageEventContent {
+                        msgtype: MessageType::Text(TextMessageEventContent {
+                            body,
+                            formatted: Some(formatted),
+                            ..
+                        }),
                         ..
-                    }),
+                    },
                     ..
                 },
-                ..
-            })
+            ))
         ))
         if body == "baba" && formatted.body == "<strong>baba</strong>"
     );
@@ -202,7 +216,7 @@ fn message_room_event_deserialization() {
 
 #[test]
 fn message_event_serialization() {
-    let event = MessageLikeEvent {
+    let event = OriginalMessageLikeEvent {
         content: RoomMessageEventContent::text_plain("test"),
         event_id: event_id!("$1234:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(0)),
@@ -231,13 +245,13 @@ fn alias_room_event_deserialization() {
     assert_matches!(
         from_json_value::<AnyRoomEvent>(json_data),
         Ok(AnyRoomEvent::State(
-            AnyStateEvent::RoomAliases(StateEvent {
+            AnyStateEvent::RoomAliases(StateEvent::Original(OriginalStateEvent {
                 content: RoomAliasesEventContent {
                     aliases,
                     ..
                 },
                 ..
-            })
+            }))
         ))
         if aliases == vec![ room_alias_id!("#somewhere:localhost") ]
     );
@@ -250,7 +264,7 @@ fn message_event_deserialization() {
     assert_matches!(
         from_json_value::<AnyRoomEvent>(json_data),
         Ok(AnyRoomEvent::MessageLike(
-            AnyMessageLikeEvent::RoomMessage(MessageLikeEvent {
+            AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(OriginalMessageLikeEvent {
                 content: RoomMessageEventContent {
                     msgtype: MessageType::Text(TextMessageEventContent {
                         body,
@@ -260,7 +274,7 @@ fn message_event_deserialization() {
                     ..
                 },
                 ..
-            })
+            }))
         ))
         if body == "baba" && formatted.body == "<strong>baba</strong>"
     );
@@ -273,13 +287,13 @@ fn alias_event_deserialization() {
     assert_matches!(
         from_json_value::<AnyRoomEvent>(json_data),
         Ok(AnyRoomEvent::State(
-            AnyStateEvent::RoomAliases(StateEvent {
+            AnyStateEvent::RoomAliases(StateEvent::Original(OriginalStateEvent {
                 content: RoomAliasesEventContent {
                     aliases,
                     ..
                 },
                 ..
-            })
+            }))
         ))
         if aliases == vec![ room_alias_id!("#somewhere:localhost") ]
     );
@@ -299,10 +313,8 @@ fn alias_event_field_access() {
     );
 
     let deser = from_json_value::<AnyStateEvent>(json_data).unwrap();
-    if let AnyStateEventContent::RoomAliases(RoomAliasesEventContent { aliases, .. }) =
-        deser.content()
-    {
-        assert_eq!(aliases, vec![room_alias_id!("#somewhere:localhost")])
+    if let AnyStateEvent::RoomAliases(StateEvent::Original(ev)) = &deser {
+        assert_eq!(ev.content.aliases, vec![room_alias_id!("#somewhere:localhost")])
     } else {
         panic!("the `Any*Event` enum's accessor methods may have been altered")
     }

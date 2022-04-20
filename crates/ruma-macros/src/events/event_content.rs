@@ -184,25 +184,20 @@ pub fn expand_event_content(
     }
 
     // We only generate redacted content structs for state and message-like events
-    let redacted_event_content = needs_redacted(&content_attr, event_kind)
-        .then(|| {
-            generate_redacted_event_content(
-                ident,
-                fields.clone(),
-                event_type,
-                event_kind,
-                ruma_common,
-            )
-        })
-        .transpose()?;
+    let redacted_event_content = needs_redacted(&content_attr, event_kind).then(|| {
+        generate_redacted_event_content(ident, fields.clone(), event_type, event_kind, ruma_common)
+            .unwrap_or_else(syn::Error::into_compile_error)
+    });
 
     let event_content_impl =
-        generate_event_content_impl(ident, fields, event_type, event_kind, ruma_common)?;
+        generate_event_content_impl(ident, fields, event_type, event_kind, ruma_common)
+            .unwrap_or_else(syn::Error::into_compile_error);
     let static_event_content_impl = event_kind
         .map(|k| generate_static_event_content_impl(ident, k, false, event_type, ruma_common));
-    let type_aliases = event_kind
-        .map(|k| generate_event_type_aliases(k, ident, &event_type.value(), ruma_common))
-        .transpose()?;
+    let type_aliases = event_kind.map(|k| {
+        generate_event_type_aliases(k, ident, &event_type.value(), ruma_common)
+            .unwrap_or_else(syn::Error::into_compile_error)
+    });
 
     Ok(quote! {
         #redacted_event_content
@@ -301,7 +296,8 @@ fn generate_redacted_event_content<'a>(
         event_type,
         event_kind,
         ruma_common,
-    )?;
+    )
+    .unwrap_or_else(syn::Error::into_compile_error);
 
     let static_event_content_impl = event_kind.map(|k| {
         generate_static_event_content_impl(&redacted_ident, k, true, event_type, ruma_common)
@@ -371,21 +367,25 @@ fn generate_event_type_aliases(
     })?;
 
     let type_aliases = [
-        EventKindVariation::Full,
+        EventKindVariation::None,
         EventKindVariation::Sync,
+        EventKindVariation::Original,
+        EventKindVariation::OriginalSync,
         EventKindVariation::Stripped,
         EventKindVariation::Initial,
         EventKindVariation::Redacted,
         EventKindVariation::RedactedSync,
     ]
     .iter()
-    .filter_map(|&var| Some((var, event_kind.try_to_event_ident(var)?)))
+    .filter_map(|&var| Some((var, event_kind.to_event_ident(var).ok()?)))
     .map(|(var, ev_struct)| {
         let ev_type = format_ident!("{}{}", var, ev_type_s);
 
         let doc_text = match var {
-            EventKindVariation::Full => "",
-            EventKindVariation::Sync => " from a `sync_events` response",
+            EventKindVariation::None | EventKindVariation::Original => "",
+            EventKindVariation::Sync | EventKindVariation::OriginalSync => {
+                " from a `sync_events` response"
+            }
             EventKindVariation::Stripped => " from an invited room preview",
             EventKindVariation::Redacted => " that has been redacted",
             EventKindVariation::RedactedSync => {

@@ -15,7 +15,7 @@ pub trait Event {
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
 pub type StateMap<T> = BTreeMap<(EventType, Option<String>), T>;
 
-/// A mapping of `EventId` to `T`, usually a `StateEvent`.
+/// A mapping of `EventId` to `T`, usually a `OriginalStateEvent`.
 pub type EventMap<T> = BTreeMap<Box<EventId>, T>;
 
 struct StateResolution {

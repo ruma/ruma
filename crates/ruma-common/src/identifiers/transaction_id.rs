@@ -22,4 +22,6 @@ impl TransactionId {
     }
 }
 
-opaque_identifier!(TransactionId);
+owned_identifier!(OwnedTransactionId, TransactionId);
+
+opaque_identifier!(TransactionId, OwnedTransactionId);

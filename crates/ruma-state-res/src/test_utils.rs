@@ -27,14 +27,14 @@ use serde_json::{
 };
 use tracing::info;
 
-use crate::{auth_types_for_event, Error, Event, Result, StateMap};
+use crate::{auth_types_for_event, Error, Event, EventTypeExt, Result, StateMap};
 
-pub use event::StateEvent;
+pub use event::PduEvent;
 
 static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 
 pub fn do_check(
-    events: &[Arc<StateEvent>],
+    events: &[Arc<PduEvent>],
     edges: Vec<Vec<Box<EventId>>>,
     expected_state_ids: Vec<Box<EventId>>,
 ) {
@@ -52,7 +52,7 @@ pub fn do_check(
 
     // This will be lexi_topo_sorted for resolution
     let mut graph = HashMap::new();
-    // This is the same as in `resolve` event_id -> StateEvent
+    // This is the same as in `resolve` event_id -> OriginalStateEvent
     let mut fake_event_map = HashMap::new();
 
     // Create the DB of events that led up to this point
@@ -76,8 +76,8 @@ pub fn do_check(
         }
     }
 
-    // event_id -> StateEvent
-    let mut event_map: HashMap<Box<EventId>, Arc<StateEvent>> = HashMap::new();
+    // event_id -> OriginalStateEvent
+    let mut event_map: HashMap<Box<EventId>, Arc<PduEvent>> = HashMap::new();
     // event_id -> StateMap<Box<EventId>>
     let mut state_at_event: HashMap<Box<EventId>, StateMap<Box<EventId>>> = HashMap::new();
 
@@ -130,9 +130,9 @@ pub fn do_check(
 
         let mut state_after = state_before.clone();
 
-        let ty = fake_event.event_type().to_owned();
-        let key = fake_event.state_key().unwrap().to_owned();
-        state_after.insert((ty, key), event_id.to_owned());
+        let ty = fake_event.event_type();
+        let key = fake_event.state_key().unwrap();
+        state_after.insert(ty.with_state_key(key), event_id.to_owned());
 
         let auth_types = auth_types_for_event(
             fake_event.event_type(),
@@ -181,7 +181,7 @@ pub fn do_check(
             )
         });
 
-        let key = (ev.event_type().to_owned(), ev.state_key().unwrap().to_owned());
+        let key = ev.event_type().with_state_key(ev.state_key().unwrap());
 
         expected_state.insert(key, node);
     }
@@ -198,7 +198,7 @@ pub fn do_check(
                 // Filter out the dummy messages events.
                 // These act as points in time where there should be a known state to
                 // test against.
-                && **k != (RoomEventType::RoomMessage, "dummy".to_owned())
+                && **k != ("m.room.message".into(), "dummy".to_owned())
         })
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect::<StateMap<Box<EventId>>>();
@@ -245,7 +245,7 @@ impl<E: Event> TestStore<E> {
 
 // A StateStore implementation for testing
 #[allow(clippy::type_complexity)]
-impl TestStore<StateEvent> {
+impl TestStore<PduEvent> {
     pub fn set_up(
         &mut self,
     ) -> (StateMap<Box<EventId>>, StateMap<Box<EventId>>, StateMap<Box<EventId>>) {
@@ -310,30 +310,21 @@ impl TestStore<StateEvent> {
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
             .map(|e| {
-                (
-                    (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
-                    e.event_id().to_owned(),
-                )
+                (e.event_type().with_state_key(e.state_key().unwrap()), e.event_id().to_owned())
             })
             .collect::<StateMap<_>>();
 
         let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
             .iter()
             .map(|e| {
-                (
-                    (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
-                    e.event_id().to_owned(),
-                )
+                (e.event_type().with_state_key(e.state_key().unwrap()), e.event_id().to_owned())
             })
             .collect::<StateMap<_>>();
 
         let expected = [&create_event, &alice_mem, &join_rules, &bob_mem, &charlie_mem]
             .iter()
             .map(|e| {
-                (
-                    (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
-                    e.event_id().to_owned(),
-                )
+                (e.event_type().with_state_key(e.state_key().unwrap()), e.event_id().to_owned())
             })
             .collect::<StateMap<_>>();
 
@@ -387,12 +378,12 @@ pub fn to_init_pdu_event(
     ev_type: RoomEventType,
     state_key: Option<&str>,
     content: Box<RawJsonValue>,
-) -> Arc<StateEvent> {
+) -> Arc<PduEvent> {
     let ts = SERVER_TIMESTAMP.fetch_add(1, SeqCst);
     let id = if id.contains('$') { id.to_owned() } else { format!("${}:foo", id) };
 
     let state_key = state_key.map(ToOwned::to_owned);
-    Arc::new(StateEvent {
+    Arc::new(PduEvent {
         event_id: id.try_into().unwrap(),
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
             room_id: room_id().to_owned(),
@@ -403,8 +394,6 @@ pub fn to_init_pdu_event(
             content,
             redacts: None,
             unsigned: BTreeMap::new(),
-            #[cfg(not(feature = "__ci"))]
-            origin: "foo".into(),
             auth_events: vec![],
             prev_events: vec![],
             depth: uint!(0),
@@ -422,7 +411,7 @@ pub fn to_pdu_event<S>(
     content: Box<RawJsonValue>,
     auth_events: &[S],
     prev_events: &[S],
-) -> Arc<StateEvent>
+) -> Arc<PduEvent>
 where
     S: AsRef<str>,
 {
@@ -432,7 +421,7 @@ where
     let prev_events = prev_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
 
     let state_key = state_key.map(ToOwned::to_owned);
-    Arc::new(StateEvent {
+    Arc::new(PduEvent {
         event_id: id.try_into().unwrap(),
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
             room_id: room_id().to_owned(),
@@ -443,8 +432,6 @@ where
             content,
             redacts: None,
             unsigned: BTreeMap::new(),
-            #[cfg(not(feature = "__ci"))]
-            origin: "foo".into(),
             auth_events,
             prev_events,
             depth: uint!(0),
@@ -456,7 +443,7 @@ where
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<StateEvent>> {
+pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<PduEvent>> {
     vec![
         to_pdu_event::<&EventId>(
             "CREATE",
@@ -538,7 +525,7 @@ pub fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<StateEvent>> {
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-pub fn INITIAL_EVENTS_CREATE_ROOM() -> HashMap<Box<EventId>, Arc<StateEvent>> {
+pub fn INITIAL_EVENTS_CREATE_ROOM() -> HashMap<Box<EventId>, Arc<PduEvent>> {
     vec![to_pdu_event::<&EventId>(
         "CREATE",
         alice(),
@@ -571,7 +558,7 @@ pub mod event {
 
     use crate::Event;
 
-    impl Event for StateEvent {
+    impl Event for PduEvent {
         type Id = Box<EventId>;
 
         fn event_id(&self) -> &Self::Id {
@@ -662,20 +649,9 @@ pub mod event {
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
     #[allow(clippy::exhaustive_structs)]
-    pub struct StateEvent {
+    pub struct PduEvent {
         pub event_id: Box<EventId>,
         #[serde(flatten)]
         pub rest: Pdu,
     }
-
-    //impl StateEvent {
-    //    pub fn state_key(&self) -> &str {
-    //        match &self.rest {
-    //            Pdu::RoomV1Pdu(ev) => ev.state_key.as_ref().unwrap(),
-    //            Pdu::RoomV3Pdu(ev) => ev.state_key.as_ref().unwrap(),
-    //            #[cfg(not(feature = "unstable-exhaustive-types"))]
-    //            _ => unreachable!("new PDU version"),
-    //        }
-    //    }
-    //}
 }

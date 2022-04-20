@@ -65,10 +65,7 @@ impl KeyVerificationCancelEventContent {
 /// An error code for why the process/request was cancelled by the user.
 ///
 /// Custom error codes should use the Java package naming convention.
-///
-/// This type can hold an arbitrary string. To check for events that are not
-/// available as a documented variant here, use its string representation,
-/// obtained through `.as_str()`.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 // FIXME: Add `m.foo_bar` as a naming scheme in StringEnum and remove rename attributes.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[non_exhaustive]

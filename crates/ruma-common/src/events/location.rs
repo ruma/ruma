@@ -10,10 +10,25 @@ use serde::{Deserialize, Serialize};
 
 mod zoomlevel_serde;
 
-use super::{message::MessageContent, room::message::Relation};
+use super::{
+    message::MessageContent,
+    room::message::{LocationMessageEventContent, Relation},
+};
 use crate::{MilliSecondsSinceUnixEpoch, PrivOwnedStr};
 
 /// The payload for an extensible location message.
+///
+/// This is the new primary type introduced in [MSC3488] and should not be sent before the end of
+/// the transition period. See the documentation of the [`message`] module for more information.
+///
+/// `LocationEventContent` can be converted to a [`RoomMessageEventContent`] with a
+/// [`MessageType::Location`]. You can convert it back with
+/// [`LocationEventContent::from_location_room_message()`].
+///
+/// [MSC3488]: https://github.com/matrix-org/matrix-spec-proposals/pull/3488
+/// [`message`]: super::message
+/// [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
+/// [`MessageType::Location`]: super::room::message::MessageType::Location
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.location", kind = MessageLike)]
@@ -54,6 +69,22 @@ impl LocationEventContent {
     /// Creates a new `LocationEventContent` with the given text representation and location.
     pub fn with_message(message: MessageContent, location: LocationContent) -> Self {
         Self { message, location, asset: Default::default(), ts: None, relates_to: None }
+    }
+
+    /// Create a new `LocationEventContent` from the given `LocationMessageEventContent` and
+    /// optional relation.
+    pub fn from_location_room_message(
+        content: LocationMessageEventContent,
+        relates_to: Option<Relation>,
+    ) -> Self {
+        let LocationMessageEventContent { body, geo_uri, message, location, asset, ts, .. } =
+            content;
+
+        let message = message.unwrap_or_else(|| MessageContent::plain(body));
+        let location = location.unwrap_or_else(|| LocationContent::new(geo_uri));
+        let asset = asset.unwrap_or_default();
+
+        Self { message, location, asset, ts, relates_to }
     }
 }
 
@@ -118,7 +149,7 @@ impl ZoomLevel {
     }
 
     /// The value of this `ZoomLevel`.
-    pub fn value(&self) -> UInt {
+    pub fn get(&self) -> UInt {
         self.0
     }
 }
@@ -148,9 +179,7 @@ impl AssetContent {
 }
 
 /// The type of an asset.
-///
-/// This type can hold an arbitrary string. To check for formats that are not available as a
-/// documented variant here, use its string representation, obtained through `.as_str()`.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[non_exhaustive]
 pub enum AssetType {

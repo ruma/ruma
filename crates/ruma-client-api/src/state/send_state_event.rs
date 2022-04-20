@@ -7,7 +7,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::ruma_api,
-        events::{AnyStateEventContent, EventContent, StateEventType},
+        events::{AnyStateEventContent, StateEventContent, StateEventType},
         serde::{Incoming, Raw},
         EventId, RoomId,
     };
@@ -66,7 +66,7 @@ pub mod v3 {
             content: &'a T,
         ) -> serde_json::Result<Self>
         where
-            T: EventContent<EventType = StateEventType>,
+            T: StateEventContent,
         {
             Ok(Self {
                 room_id,

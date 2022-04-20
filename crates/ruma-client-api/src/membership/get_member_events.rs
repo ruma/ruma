@@ -7,7 +7,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::ruma_api,
-        events::room::member::RoomMemberEvent,
+        events::room::member::OriginalRoomMemberEvent,
         serde::{Raw, StringEnum},
         RoomId,
     };
@@ -58,7 +58,7 @@ pub mod v3 {
 
         response: {
             /// A list of member events.
-            pub chunk: Vec<Raw<RoomMemberEvent>>,
+            pub chunk: Vec<Raw<OriginalRoomMemberEvent>>,
         }
 
         error: crate::Error
@@ -73,15 +73,13 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given member event chunk.
-        pub fn new(chunk: Vec<Raw<RoomMemberEvent>>) -> Self {
+        pub fn new(chunk: Vec<Raw<OriginalRoomMemberEvent>>) -> Self {
             Self { chunk }
         }
     }
 
     /// The kind of membership events to filter for.
-    ///
-    /// This type can hold an arbitrary string. To check for formats that are not available as a
-    /// documented variant here, use its string representation, obtained through `.as_str()`.
+    #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
     #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
     #[ruma_enum(rename_all = "lowercase")]
     #[non_exhaustive]

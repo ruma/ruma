@@ -68,7 +68,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json};
 
     use super::RoomServerAclEventContent;
-    use crate::events::StateEvent;
+    use crate::events::OriginalStateEvent;
 
     #[test]
     fn default_values() {
@@ -82,7 +82,7 @@ mod tests {
             "type": "m.room.server_acl"
         });
 
-        let server_acl_event: StateEvent<RoomServerAclEventContent> =
+        let server_acl_event: OriginalStateEvent<RoomServerAclEventContent> =
             from_json_value(json_data).unwrap();
 
         assert!(server_acl_event.content.allow_ip_literals);

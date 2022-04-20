@@ -1,58 +1,11 @@
 use indoc::formatdoc;
 
-use super::{
-    FormattedBody, MessageType, RoomMessageEvent, RoomMessageEventContent, SyncRoomMessageEvent,
-};
-use crate::{EventId, UserId};
+use super::{FormattedBody, MessageType, OriginalRoomMessageEvent};
 
-/// An event that can be replied to.
-///
-/// This trait only exists to allow the plain-text `reply` constructors on `MessageLikeEventContent`
-/// to use either a [`RoomMessageEvent`] or a [`SyncRoomMessageEvent`] as the event being replied
-/// to.
-pub trait ReplyBaseEvent {
-    #[doc(hidden)]
-    fn event_id(&self) -> &EventId;
+pub fn get_plain_quote_fallback(original_message: &OriginalRoomMessageEvent) -> String {
+    let sender = &original_message.sender;
 
-    #[doc(hidden)]
-    fn sender(&self) -> &UserId;
-
-    #[doc(hidden)]
-    fn content(&self) -> &RoomMessageEventContent;
-}
-
-impl ReplyBaseEvent for RoomMessageEvent {
-    fn event_id(&self) -> &EventId {
-        &self.event_id
-    }
-
-    fn sender(&self) -> &UserId {
-        &self.sender
-    }
-
-    fn content(&self) -> &RoomMessageEventContent {
-        &self.content
-    }
-}
-
-impl ReplyBaseEvent for SyncRoomMessageEvent {
-    fn event_id(&self) -> &EventId {
-        &self.event_id
-    }
-
-    fn sender(&self) -> &UserId {
-        &self.sender
-    }
-
-    fn content(&self) -> &RoomMessageEventContent {
-        &self.content
-    }
-}
-
-pub fn get_plain_quote_fallback(original_message: &impl ReplyBaseEvent) -> String {
-    let sender = original_message.sender();
-
-    match &original_message.content().msgtype {
+    match &original_message.content.msgtype {
         MessageType::Audio(_) => {
             format!("> <{}> sent an audio file.", sender)
         }
@@ -91,7 +44,7 @@ pub fn get_plain_quote_fallback(original_message: &impl ReplyBaseEvent) -> Strin
 }
 
 #[allow(clippy::nonstandard_macro_braces)]
-pub fn get_html_quote_fallback(original_message: &RoomMessageEvent) -> String {
+pub fn get_html_quote_fallback(original_message: &OriginalRoomMessageEvent) -> String {
     match &original_message.content.msgtype {
         MessageType::Audio(_) => {
             formatdoc!(
@@ -300,15 +253,17 @@ fn formatted_or_plain_body<'a>(formatted: &'a Option<FormattedBody>, body: &'a s
 #[cfg(test)]
 mod tests {
     use crate::{
-        event_id, events::MessageLikeUnsigned, room_id, user_id, MilliSecondsSinceUnixEpoch,
+        event_id,
+        events::{room::message::RoomMessageEventContent, MessageLikeUnsigned},
+        room_id, user_id, MilliSecondsSinceUnixEpoch,
     };
 
-    use super::{RoomMessageEvent, RoomMessageEventContent};
+    use super::OriginalRoomMessageEvent;
 
     #[test]
     fn plain_quote_fallback_multiline() {
         assert_eq!(
-            super::get_plain_quote_fallback(&RoomMessageEvent {
+            super::get_plain_quote_fallback(&OriginalRoomMessageEvent {
                 content: RoomMessageEventContent::text_plain("multi\nline"),
                 event_id: event_id!("$1598361704261elfgc:localhost").to_owned(),
                 sender: user_id!("@alice:example.com").to_owned(),

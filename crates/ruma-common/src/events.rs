@@ -5,26 +5,16 @@
 //! Different event types represent different actions, such as joining a room or sending a message.
 //! Events are stored and transmitted as simple JSON structures.
 //! While anyone can create a new event type for their own purposes, the Matrix specification
-//! defines a number of event types which are considered core to the protocol, and Matrix clients
-//! and servers must understand their semantics.
-//! This module contains Rust types for each of the event types defined by the specification and
+//! defines a number of event types which are considered core to the protocol.
+//! This module contains Rust types for all of the event types defined by the specification and
 //! facilities for extending the event system for custom event types.
-//!
-//! # Event types
-//!
-//! This module includes a Rust enum called [`EventType`], which provides a simple enumeration of
-//! all the event types defined by the Matrix specification. Matrix event types are serialized to
-//! JSON strings in [reverse domain name
-//! notation](https://en.wikipedia.org/wiki/Reverse_domain_name_notation), although the core event
-//! types all use the special "m" TLD, e.g. `m.room.message`.
 //!
 //! # Core event types
 //!
-//! This module includes Rust types for every one of the event types in the Matrix specification.
-//! To better organize the crate, these types live in separate modules with a hierarchy that
-//! matches the reverse domain name notation of the event type.
-//! For example, the `m.room.message` event lives at
-//! `ruma_common::events::::room::message::MessageLikeEvent`. Each type's module also contains a
+//! This module includes Rust types for all event types in the Matrix specification.
+//! To better organize the crate, these types live in separate modules with a hierarchy that matches
+//! the reverse domain name notation of the event type. For example, the `m.room.message` event
+//! lives at `ruma::events::room::message::RoomMessageEvent`. Each type's module also contains a
 //! Rust type for that event type's `content` field, and any other supporting types required by the
 //! event's other fields.
 //!
@@ -48,10 +38,10 @@
 //! `ruma::api::client::state::send_state_event`'s `Request`.
 //!
 //! As a more advanced example we create a reaction message event. For this event we will use a
-//! [`SyncMessageLikeEvent`] struct but any [`MessageLikeEvent`] struct would work.
+//! [`OriginalSyncMessageLikeEvent`] struct but any [`OriginalMessageLikeEvent`] struct would work.
 //!
 //! ```rust
-//! use ruma_common::events::{macros::EventContent, SyncMessageLikeEvent};
+//! use ruma_common::events::{macros::EventContent, OriginalSyncMessageLikeEvent};
 //! use ruma_common::EventId;
 //! use serde::{Deserialize, Serialize};
 //!
@@ -100,8 +90,8 @@
 //! // The downside of this event is we cannot use it with event enums,
 //! // but could be deserialized from a `Raw<_>` that has failed to deserialize.
 //! matches::assert_matches!(
-//!     serde_json::from_value::<SyncMessageLikeEvent<ReactionEventContent>>(json),
-//!     Ok(SyncMessageLikeEvent {
+//!     serde_json::from_value::<OriginalSyncMessageLikeEvent<ReactionEventContent>>(json),
+//!     Ok(OriginalSyncMessageLikeEvent {
 //!         content: ReactionEventContent {
 //!             relates_to: RelatesTo::Annotation { key, .. },
 //!         },
@@ -109,36 +99,18 @@
 //!     }) if key == "👍"
 //! );
 //! ```
-//!
-//! # Serialization and deserialization
-//!
-//! All concrete event types in this module can be serialized via the `Serialize` trait from
-//! [serde](https://serde.rs/) and can be deserialized from a `Raw<EventType>`. In order to
-//! handle incoming data that may not conform to this module's strict definitions of event
-//! structures, deserialization will return `Raw::Err` on error. This error covers both
-//! structurally invalid JSON data as well as structurally valid JSON that doesn't fulfill
-//! additional constraints the matrix specification defines for some event types. The error exposes
-//! the deserialized `serde_json::Value` so that developers can still work with the received
-//! event data. This makes it possible to deserialize a collection of events without the entire
-//! collection failing to deserialize due to a single invalid event. The "content" type for each
-//! event also implements `Serialize` and either `TryFromRaw` (enabling usage as
-//! `Raw<ContentType>` for dedicated content types) or `Deserialize` (when the content is a
-//! type alias), allowing content to be converted to and from JSON independently of the surrounding
-//! event structure, if needed.
 
-use std::fmt;
-
-use serde::{de::IgnoredAny, Deserialize, Serialize, Serializer};
-use serde_json::value::RawValue as RawJsonValue;
+use serde::{de::IgnoredAny, Deserialize, Serializer};
 
 use self::room::redaction::SyncRoomRedactionEvent;
-use crate::{serde::Raw, EventEncryptionAlgorithm, RoomVersionId};
+use crate::{EventEncryptionAlgorithm, RoomVersionId};
 
 // Needs to be public for trybuild tests
 #[doc(hidden)]
 pub mod _custom;
+mod content;
 mod enums;
-mod event_kinds;
+mod kinds;
 mod unsigned;
 
 /// Re-export of all the derives needed to create your own event types.
@@ -193,25 +165,11 @@ pub mod voice;
 #[cfg(feature = "unstable-msc2675")]
 pub use self::relation::Relations;
 pub use self::{
+    content::*,
     enums::*,
-    event_kinds::*,
+    kinds::*,
     unsigned::{MessageLikeUnsigned, RedactedUnsigned, StateUnsigned},
 };
-
-/// The base trait that all event content types implement.
-///
-/// Use [`macros::EventContent`] to derive this traits. It is not meant to be implemented manually.
-pub trait EventContent: Sized + Serialize {
-    /// The Rust enum for the event kind's known types.
-    type EventType;
-
-    /// Get the event's type, like `m.room.message`.
-    fn event_type(&self) -> Self::EventType;
-
-    /// Constructs the given event content.
-    #[doc(hidden)]
-    fn from_parts(event_type: &str, content: &RawJsonValue) -> serde_json::Result<Self>;
-}
 
 /// Trait to define the behavior of redacting an event.
 pub trait Redact {
@@ -237,118 +195,6 @@ pub trait RedactContent {
     ///
     /// Where applicable, it is preferred to use [`Redact::redact`] on the outer event.
     fn redact(self, version: &RoomVersionId) -> Self::Redacted;
-}
-
-impl<T> Raw<T>
-where
-    T: EventContent,
-    T::EventType: fmt::Display,
-{
-    /// Try to deserialize the JSON as an event's content.
-    pub fn deserialize_content(&self, event_type: T::EventType) -> serde_json::Result<T> {
-        T::from_parts(&event_type.to_string(), self.json())
-    }
-}
-
-/// The base trait that all redacted event content types implement.
-///
-/// This trait's associated functions and methods should not be used to build
-/// redacted events, prefer the `redact` method on `AnyStateEvent` and
-/// `AnyMessageLikeEvent` and their "sync" and "stripped" counterparts. The
-/// `RedactedEventContent` trait is an implementation detail, ruma makes no
-/// API guarantees.
-pub trait RedactedEventContent: EventContent {
-    /// Constructs the redacted event content.
-    ///
-    /// If called for anything but "empty" redacted content this will error.
-    #[doc(hidden)]
-    fn empty(_event_type: &str) -> serde_json::Result<Self> {
-        Err(serde::de::Error::custom("this event is not redacted"))
-    }
-
-    /// Determines if the redacted event content needs to serialize fields.
-    #[doc(hidden)]
-    fn has_serialize_fields(&self) -> bool;
-
-    /// Determines if the redacted event content needs to deserialize fields.
-    #[doc(hidden)]
-    fn has_deserialize_fields() -> HasDeserializeFields;
-}
-
-/// Trait for abstracting over event content structs.
-///
-/// … but *not* enums which don't always have an event type and kind (e.g. message vs state) that's
-/// fixed / known at compile time.
-pub trait StaticEventContent: EventContent {
-    /// The event's "kind".
-    ///
-    /// See the type's documentation.
-    const KIND: EventKind;
-
-    /// The event type.
-    const TYPE: &'static str;
-}
-
-/// The "kind" of an event.
-///
-/// This corresponds directly to the event content marker traits.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[non_exhaustive]
-pub enum EventKind {
-    /// Global account data event kind.
-    GlobalAccountData,
-
-    /// Room account data event kind.
-    RoomAccountData,
-
-    /// Ephemeral room event kind.
-    EphemeralRoomData,
-
-    /// Message-like event kind.
-    ///
-    /// Since redacted / non-redacted message-like events are used in the same places but have
-    /// different sets of fields, these two variations are treated as two closely-related event
-    /// kinds.
-    MessageLike {
-        /// Redacted variation?
-        redacted: bool,
-    },
-
-    /// State event kind.
-    ///
-    /// Since redacted / non-redacted state events are used in the same places but have different
-    /// sets of fields, these two variations are treated as two closely-related event kinds.
-    State {
-        /// Redacted variation?
-        redacted: bool,
-    },
-
-    /// To-device event kind.
-    ToDevice,
-
-    /// Presence event kind.
-    Presence,
-
-    /// Hierarchy space child kind.
-    HierarchySpaceChild,
-}
-
-/// `HasDeserializeFields` is used in the code generated by the `Event` derive
-/// to aid in deserializing redacted events.
-#[doc(hidden)]
-#[derive(Debug)]
-#[allow(clippy::exhaustive_enums)]
-pub enum HasDeserializeFields {
-    /// Deserialize the event's content, failing if invalid.
-    True,
-
-    /// Return the redacted version of this event's content.
-    False,
-
-    /// `Optional` is used for `RedactedAliasesEventContent` since it has
-    /// an empty version and one with content left after redaction that
-    /// must be supported together.
-    Optional,
 }
 
 /// Helper struct to determine the event kind from a `serde_json::value::RawValue`.

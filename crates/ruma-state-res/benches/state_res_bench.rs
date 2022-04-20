@@ -18,7 +18,7 @@ use std::{
 };
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use event::StateEvent;
+use event::PduEvent;
 use js_int::{int, uint};
 use maplit::{btreemap, hashmap, hashset};
 use ruma_common::{
@@ -28,7 +28,7 @@ use ruma_common::{
             join_rules::{JoinRule, RoomJoinRulesEventContent},
             member::{MembershipState, RoomMemberEventContent},
         },
-        RoomEventType,
+        RoomEventType, StateEventType,
     },
     room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, RoomId, RoomVersionId, UserId,
 };
@@ -104,10 +104,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
         ]
         .iter()
         .map(|ev| {
-            (
-                (ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()),
-                ev.event_id().to_owned(),
-            )
+            (ev.event_type().with_state_key(ev.state_key().unwrap()), ev.event_id().to_owned())
         })
         .collect::<StateMap<_>>();
 
@@ -122,10 +119,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
         ]
         .iter()
         .map(|ev| {
-            (
-                (ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()),
-                ev.event_id().to_owned(),
-            )
+            (ev.event_type().with_state_key(ev.state_key().unwrap()), ev.event_id().to_owned())
         })
         .collect::<StateMap<_>>();
 
@@ -232,7 +226,7 @@ impl<E: Event> TestStore<E> {
     }
 }
 
-impl TestStore<StateEvent> {
+impl TestStore<PduEvent> {
     #[allow(clippy::type_complexity)]
     fn set_up(
         &mut self,
@@ -298,30 +292,21 @@ impl TestStore<StateEvent> {
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
             .map(|e| {
-                (
-                    (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
-                    e.event_id().to_owned(),
-                )
+                (e.event_type().with_state_key(e.state_key().unwrap()), e.event_id().to_owned())
             })
             .collect::<StateMap<_>>();
 
         let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
             .iter()
             .map(|e| {
-                (
-                    (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
-                    e.event_id().to_owned(),
-                )
+                (e.event_type().with_state_key(e.state_key().unwrap()), e.event_id().to_owned())
             })
             .collect::<StateMap<_>>();
 
         let expected = [&create_event, &alice_mem, &join_rules, &bob_mem, &charlie_mem]
             .iter()
             .map(|e| {
-                (
-                    (e.event_type().to_owned(), e.state_key().unwrap().to_owned()),
-                    e.event_id().to_owned(),
-                )
+                (e.event_type().with_state_key(e.state_key().unwrap()), e.event_id().to_owned())
             })
             .collect::<StateMap<_>>();
 
@@ -372,7 +357,7 @@ fn to_pdu_event<S>(
     content: Box<RawJsonValue>,
     auth_events: &[S],
     prev_events: &[S],
-) -> Arc<StateEvent>
+) -> Arc<PduEvent>
 where
     S: AsRef<str>,
 {
@@ -384,7 +369,7 @@ where
     let prev_events = prev_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
 
     let state_key = state_key.map(ToOwned::to_owned);
-    Arc::new(StateEvent {
+    Arc::new(PduEvent {
         event_id: id.try_into().unwrap(),
         rest: Pdu::RoomV3Pdu(RoomV3Pdu {
             room_id: room_id().to_owned(),
@@ -395,8 +380,6 @@ where
             content,
             redacts: None,
             unsigned: btreemap! {},
-            #[cfg(not(feature = "__ci"))]
-            origin: "foo".into(),
             auth_events,
             prev_events,
             depth: uint!(0),
@@ -408,7 +391,7 @@ where
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<StateEvent>> {
+fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<PduEvent>> {
     vec![
         to_pdu_event::<&EventId>(
             "CREATE",
@@ -490,7 +473,7 @@ fn INITIAL_EVENTS() -> HashMap<Box<EventId>, Arc<StateEvent>> {
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn BAN_STATE_SET() -> HashMap<Box<EventId>, Arc<StateEvent>> {
+fn BAN_STATE_SET() -> HashMap<Box<EventId>, Arc<PduEvent>> {
     vec![
         to_pdu_event(
             "PA",
@@ -534,6 +517,17 @@ fn BAN_STATE_SET() -> HashMap<Box<EventId>, Arc<StateEvent>> {
     .collect()
 }
 
+/// Convenience trait for adding event type plus state key to state maps.
+trait EventTypeExt {
+    fn with_state_key(self, state_key: impl Into<String>) -> (StateEventType, String);
+}
+
+impl EventTypeExt for &RoomEventType {
+    fn with_state_key(self, state_key: impl Into<String>) -> (StateEventType, String) {
+        (self.to_string().into(), state_key.into())
+    }
+}
+
 mod event {
     use ruma_common::{
         events::{pdu::Pdu, RoomEventType},
@@ -543,7 +537,7 @@ mod event {
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
 
-    impl Event for StateEvent {
+    impl Event for PduEvent {
         type Id = Box<EventId>;
 
         fn event_id(&self) -> &Self::Id {
@@ -633,7 +627,7 @@ mod event {
     }
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct StateEvent {
+    pub struct PduEvent {
         pub event_id: Box<EventId>,
         #[serde(flatten)]
         pub rest: Pdu,

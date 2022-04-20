@@ -42,7 +42,7 @@ const RESERVED: &AsciiSet = &CONTROLS
     .add(b'=');
 
 /// All Matrix Identifiers that can be represented as a Matrix URI.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum MatrixId {
     /// A room ID.

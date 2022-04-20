@@ -18,7 +18,9 @@ type Result<T, E = MxcUriError> = std::result::Result<T, E>;
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct MxcUri(str);
 
-opaque_identifier!(MxcUri);
+owned_identifier!(OwnedMxcUri, MxcUri);
+
+opaque_identifier!(MxcUri, OwnedMxcUri);
 
 impl MxcUri {
     /// If this is a valid MXC URI, returns the media ID.

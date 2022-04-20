@@ -32,7 +32,7 @@ mod tests {
     use crate::{server_name, EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId};
 
     use super::RoomPinnedEventsEventContent;
-    use crate::events::{StateEvent, StateUnsigned};
+    use crate::events::{OriginalStateEvent, StateUnsigned};
 
     #[test]
     fn serialization_deserialization() {
@@ -43,7 +43,7 @@ mod tests {
         content.pinned.push(EventId::new(server_name));
         content.pinned.push(EventId::new(server_name));
 
-        let event = StateEvent {
+        let event = OriginalStateEvent {
             content: content.clone(),
             event_id: EventId::new(server_name),
             origin_server_ts: MilliSecondsSinceUnixEpoch(1_432_804_485_886_u64.try_into().unwrap()),
@@ -54,7 +54,7 @@ mod tests {
         };
 
         let serialized_event = serde_json::to_string(&event).unwrap();
-        let parsed_event: StateEvent<RoomPinnedEventsEventContent> =
+        let parsed_event: OriginalStateEvent<RoomPinnedEventsEventContent> =
             serde_json::from_str(&serialized_event).unwrap();
 
         assert_eq!(parsed_event.event_id, event.event_id);

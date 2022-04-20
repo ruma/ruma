@@ -45,14 +45,17 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
     let mut res = TokenStream::new();
 
     res.extend(expand_serialize_event(&input, var, &fields, &ruma_common));
-    res.extend(expand_deserialize_event(&input, kind, var, &fields, &ruma_common)?);
+    res.extend(
+        expand_deserialize_event(&input, kind, var, &fields, &ruma_common)
+            .unwrap_or_else(syn::Error::into_compile_error),
+    );
 
     if var.is_sync() {
         res.extend(expand_sync_from_into_full(&input, kind, var, &fields, &ruma_common));
     }
 
     if matches!(kind, EventKind::MessageLike | EventKind::State)
-        && matches!(var, EventKindVariation::Full | EventKindVariation::Sync)
+        && matches!(var, EventKindVariation::Original | EventKindVariation::OriginalSync)
     {
         res.extend(expand_redact_event(&input, kind, var, &fields, &ruma_common));
     }
@@ -364,14 +367,14 @@ fn expand_redact_event(
     var: EventKindVariation,
     fields: &[Field],
     ruma_common: &TokenStream,
-) -> TokenStream {
-    let redacted_type = kind.to_event_ident(var.to_redacted());
+) -> syn::Result<TokenStream> {
+    let redacted_type = kind.to_event_ident(var.to_redacted())?;
     let redacted_event_type_enum = kind.to_event_type_enum();
     let ident = &input.ident;
 
     let mut generics = input.generics.clone();
     if generics.params.is_empty() {
-        return TokenStream::new();
+        return Ok(TokenStream::new());
     }
 
     assert_eq!(generics.params.len(), 1, "expected one generic parameter");
@@ -384,7 +387,9 @@ fn expand_redact_event(
     where_clause.predicates.push(parse_quote! { #ty_param: #ruma_common::events::RedactContent });
     where_clause.predicates.push(parse_quote! {
         <#ty_param as #ruma_common::events::RedactContent>::Redacted:
-            #ruma_common::events::EventContent<EventType = #redacted_event_type_enum>
+            #ruma_common::events::EventContent<
+                EventType = #ruma_common::events::#redacted_event_type_enum
+            >
                 + #ruma_common::events::RedactedEventContent
     });
 
@@ -408,7 +413,7 @@ fn expand_redact_event(
         }
     });
 
-    quote! {
+    Ok(quote! {
         #[automatically_derived]
         impl #impl_generics #ruma_common::events::Redact for #ident #ty_gen #where_clause {
             type Redacted = #ruma_common::events::#redacted_type<
@@ -427,7 +432,7 @@ fn expand_redact_event(
                 }
             }
         }
-    }
+    })
 }
 
 fn expand_sync_from_into_full(
@@ -436,13 +441,13 @@ fn expand_sync_from_into_full(
     var: EventKindVariation,
     fields: &[Field],
     ruma_common: &TokenStream,
-) -> TokenStream {
+) -> syn::Result<TokenStream> {
     let ident = &input.ident;
-    let full_struct = kind.to_event_ident(var.to_full());
+    let full_struct = kind.to_event_ident(var.to_full())?;
     let (impl_generics, ty_gen, where_clause) = input.generics.split_for_impl();
     let fields: Vec<_> = fields.iter().flat_map(|f| &f.ident).collect();
 
-    quote! {
+    Ok(quote! {
         #[automatically_derived]
         impl #impl_generics ::std::convert::From<#full_struct #ty_gen>
             for #ident #ty_gen #where_clause
@@ -467,7 +472,7 @@ fn expand_sync_from_into_full(
                 }
             }
         }
-    }
+    })
 }
 
 fn expand_eq_ord_event(input: &DeriveInput) -> TokenStream {

@@ -5,7 +5,7 @@ use serde_json::value::RawValue as RawJsonValue;
 use super::{
     key,
     room::{encrypted, redaction::SyncRoomRedactionEvent},
-    Redact, UnsignedDeHelper,
+    Redact,
 };
 use crate::{
     serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, RoomId, RoomVersionId, UserId,
@@ -131,8 +131,6 @@ macro_rules! room_ev_accessor {
                 match self {
                     Self::MessageLike(ev) => ev.$field(),
                     Self::State(ev) => ev.$field(),
-                    Self::RedactedMessageLike(ev) => ev.$field(),
-                    Self::RedactedState(ev) => ev.$field(),
                 }
             }
         }
@@ -148,12 +146,6 @@ pub enum AnyRoomEvent {
 
     /// Any state event.
     State(AnyStateEvent),
-
-    /// Any message-like event that has been redacted.
-    RedactedMessageLike(AnyRedactedMessageLikeEvent),
-
-    /// Any state event that has been redacted.
-    RedactedState(AnyRedactedStateEvent),
 }
 
 impl AnyRoomEvent {
@@ -174,12 +166,6 @@ pub enum AnySyncRoomEvent {
 
     /// Any sync state event.
     State(AnySyncStateEvent),
-
-    /// Any sync message-like event that has been redacted.
-    RedactedMessageLike(AnyRedactedSyncMessageLikeEvent),
-
-    /// Any sync state event that has been redacted.
-    RedactedState(AnyRedactedSyncStateEvent),
 }
 
 impl AnySyncRoomEvent {
@@ -192,10 +178,6 @@ impl AnySyncRoomEvent {
         match self {
             Self::MessageLike(ev) => AnyRoomEvent::MessageLike(ev.into_full_event(room_id)),
             Self::State(ev) => AnyRoomEvent::State(ev.into_full_event(room_id)),
-            Self::RedactedMessageLike(ev) => {
-                AnyRoomEvent::RedactedMessageLike(ev.into_full_event(room_id))
-            }
-            Self::RedactedState(ev) => AnyRoomEvent::RedactedState(ev.into_full_event(room_id)),
         }
     }
 }
@@ -204,7 +186,6 @@ impl AnySyncRoomEvent {
 #[allow(clippy::exhaustive_structs)]
 struct EventDeHelper {
     pub state_key: Option<de::IgnoredAny>,
-    pub unsigned: Option<UnsignedDeHelper>,
 }
 
 impl<'de> Deserialize<'de> for AnyRoomEvent {
@@ -213,22 +194,12 @@ impl<'de> Deserialize<'de> for AnyRoomEvent {
         D: de::Deserializer<'de>,
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let EventDeHelper { state_key, unsigned } = from_raw_json_value(&json)?;
+        let EventDeHelper { state_key } = from_raw_json_value(&json)?;
 
         if state_key.is_some() {
-            Ok(match unsigned {
-                Some(unsigned) if unsigned.redacted_because.is_some() => {
-                    AnyRoomEvent::RedactedState(from_raw_json_value(&json)?)
-                }
-                _ => AnyRoomEvent::State(from_raw_json_value(&json)?),
-            })
+            Ok(AnyRoomEvent::State(from_raw_json_value(&json)?))
         } else {
-            Ok(match unsigned {
-                Some(unsigned) if unsigned.redacted_because.is_some() => {
-                    AnyRoomEvent::RedactedMessageLike(from_raw_json_value(&json)?)
-                }
-                _ => AnyRoomEvent::MessageLike(from_raw_json_value(&json)?),
-            })
+            Ok(AnyRoomEvent::MessageLike(from_raw_json_value(&json)?))
         }
     }
 }
@@ -239,94 +210,40 @@ impl<'de> Deserialize<'de> for AnySyncRoomEvent {
         D: de::Deserializer<'de>,
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let EventDeHelper { state_key, unsigned } = from_raw_json_value(&json)?;
+        let EventDeHelper { state_key } = from_raw_json_value(&json)?;
 
         if state_key.is_some() {
-            Ok(match unsigned {
-                Some(unsigned) if unsigned.redacted_because.is_some() => {
-                    AnySyncRoomEvent::RedactedState(from_raw_json_value(&json)?)
-                }
-                _ => AnySyncRoomEvent::State(from_raw_json_value(&json)?),
-            })
+            Ok(AnySyncRoomEvent::State(from_raw_json_value(&json)?))
         } else {
-            Ok(match unsigned {
-                Some(unsigned) if unsigned.redacted_because.is_some() => {
-                    AnySyncRoomEvent::RedactedMessageLike(from_raw_json_value(&json)?)
-                }
-                _ => AnySyncRoomEvent::MessageLike(from_raw_json_value(&json)?),
-            })
+            Ok(AnySyncRoomEvent::MessageLike(from_raw_json_value(&json)?))
         }
     }
-}
-
-/// Any redacted room event.
-#[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
-#[derive(Clone, Debug, EventEnumFromEvent)]
-pub enum AnyRedactedRoomEvent {
-    /// Any message-like event that has been redacted.
-    MessageLike(AnyRedactedMessageLikeEvent),
-
-    /// Any state event that has been redacted.
-    State(AnyRedactedStateEvent),
 }
 
 impl Redact for AnyRoomEvent {
-    type Redacted = AnyRedactedRoomEvent;
+    type Redacted = Self;
 
     /// Redacts `self`, referencing the given event in `unsigned.redacted_because`.
     ///
     /// Does nothing for events that are already redacted.
-    fn redact(self, redaction: SyncRoomRedactionEvent, version: &RoomVersionId) -> Self::Redacted {
+    fn redact(self, redaction: SyncRoomRedactionEvent, version: &RoomVersionId) -> Self {
         match self {
-            Self::MessageLike(ev) => Self::Redacted::MessageLike(ev.redact(redaction, version)),
-            Self::State(ev) => Self::Redacted::State(ev.redact(redaction, version)),
-            Self::RedactedMessageLike(ev) => Self::Redacted::MessageLike(ev),
-            Self::RedactedState(ev) => Self::Redacted::State(ev),
+            Self::MessageLike(ev) => Self::MessageLike(ev.redact(redaction, version)),
+            Self::State(ev) => Self::State(ev.redact(redaction, version)),
         }
     }
-}
-
-impl From<AnyRedactedRoomEvent> for AnyRoomEvent {
-    fn from(ev: AnyRedactedRoomEvent) -> Self {
-        match ev {
-            AnyRedactedRoomEvent::MessageLike(ev) => Self::RedactedMessageLike(ev),
-            AnyRedactedRoomEvent::State(ev) => Self::RedactedState(ev),
-        }
-    }
-}
-
-/// Any redacted sync room event (room event without a `room_id`, as returned in `/sync` responses)
-#[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
-#[derive(Clone, Debug, EventEnumFromEvent)]
-pub enum AnyRedactedSyncRoomEvent {
-    /// Any sync message-like event that has been redacted.
-    MessageLike(AnyRedactedSyncMessageLikeEvent),
-
-    /// Any sync state event that has been redacted.
-    State(AnyRedactedSyncStateEvent),
 }
 
 impl Redact for AnySyncRoomEvent {
-    type Redacted = AnyRedactedSyncRoomEvent;
+    type Redacted = Self;
 
     /// Redacts `self`, referencing the given event in `unsigned.redacted_because`.
     ///
     /// Does nothing for events that are already redacted.
-    fn redact(self, redaction: SyncRoomRedactionEvent, version: &RoomVersionId) -> Self::Redacted {
+    fn redact(self, redaction: SyncRoomRedactionEvent, version: &RoomVersionId) -> Self {
         match self {
-            Self::MessageLike(ev) => Self::Redacted::MessageLike(ev.redact(redaction, version)),
-            Self::State(ev) => Self::Redacted::State(ev.redact(redaction, version)),
-            Self::RedactedMessageLike(ev) => Self::Redacted::MessageLike(ev),
-            Self::RedactedState(ev) => Self::Redacted::State(ev),
-        }
-    }
-}
-
-impl From<AnyRedactedSyncRoomEvent> for AnySyncRoomEvent {
-    fn from(ev: AnyRedactedSyncRoomEvent) -> Self {
-        match ev {
-            AnyRedactedSyncRoomEvent::MessageLike(ev) => Self::RedactedMessageLike(ev),
-            AnyRedactedSyncRoomEvent::State(ev) => Self::RedactedState(ev),
+            Self::MessageLike(ev) => Self::MessageLike(ev.redact(redaction, version)),
+            Self::State(ev) => Self::State(ev.redact(redaction, version)),
         }
     }
 }

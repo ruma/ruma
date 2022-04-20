@@ -25,6 +25,12 @@ jobs:
           - name: Check Ruma
             cmd: msrv-ruma
 
+          - name: Check Owned IDs with Box
+            cmd: msrv-owned-id-box
+
+          - name: Check Owned IDs with Arc
+            cmd: msrv-owned-id-arc
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -33,7 +39,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: '1.55'
+          toolchain: "1.55"
 
       # Used to compile xtask
       - name: Install rust stable toolchain

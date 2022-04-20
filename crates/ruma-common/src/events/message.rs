@@ -21,8 +21,10 @@
 //!
 //! # How to use them
 //!
-//! First, enable the `unstable-mscXXXX` features (where `XXXX` is the number of the MSC) for the
-//! needed extensible types.
+//! First, you can enable the `unstable-extensible-events` feature from the `ruma` crate, that
+//! will enable all the MSCs for the extensible events that correspond to the legacy `msgtype`s
+//! (1767, 3246, 3488, 3551, 3552, 3553). It is also possible to enable only the MSCs you want with
+//! the `unstable-mscXXXX` features (where `XXXX` is the number of the MSC).
 //!
 //! The recommended way to send transitional extensible events while they are unstable and during
 //! the transition period is to build one of the new primary types and then to convert it to a
@@ -80,9 +82,7 @@ pub struct MessageEventContent {
     #[serde(flatten)]
     pub message: MessageContent,
 
-    /// Information about related messages for [rich replies].
-    ///
-    /// [rich replies]: https://spec.matrix.org/v1.2/client-server-api/#rich-replies
+    /// Information about related messages.
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation>,
 }
@@ -225,9 +225,11 @@ pub struct Text {
     /// The text content.
     pub body: String,
 
-    /// The language of the text.
+    /// The language of the text ([MSC3554]).
     ///
     /// This must be a valid language code according to [BCP 47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt).
+    ///
+    /// [MSC3554]: https://github.com/matrix-org/matrix-spec-proposals/pull/3554
     #[cfg(feature = "unstable-msc3554")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub lang: Option<String>,

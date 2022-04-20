@@ -12,12 +12,14 @@ pub mod v1 {
     use ruma_common::{
         api::ruma_api,
         events::RoomEventType,
-        push::{PusherData, Tweak},
+        push::{PushFormat, Tweak},
         serde::{Incoming, StringEnum},
         EventId, RoomAliasId, RoomId, RoomName, SecondsSinceUnixEpoch, UserId,
     };
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
+    #[cfg(feature = "unstable-pre-spec")]
+    use serde_json::value::Value as JsonValue;
 
     use crate::PrivOwnedStr;
 
@@ -143,7 +145,8 @@ pub mod v1 {
     /// This may be used by push gateways to deliver less time-sensitive
     /// notifications in a way that will preserve battery power on mobile devices.
     ///
-    /// This type can hold an arbitrary string. To check for formats that are not available as a
+    /// This type can hold an arbitrary string. To build this with a custom value, convert it from a
+    /// string with `::from() / .into()`. To check for formats that are not available as a
     /// documented variant here, use its string representation, obtained through `.as_str()`.
     #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
     #[ruma_enum(rename_all = "snake_case")]
@@ -214,9 +217,6 @@ pub mod v1 {
         pub pushkey_ts: Option<SecondsSinceUnixEpoch>,
 
         /// A dictionary of additional pusher-specific data.
-        ///
-        /// For 'http' pushers, this is the data dictionary passed in at pusher creation minus the
-        /// `url` key.
         #[serde(default, skip_serializing_if = "PusherData::is_empty")]
         pub data: PusherData,
 
@@ -236,6 +236,67 @@ pub mod v1 {
                 pushkey_ts: None,
                 data: PusherData::new(),
                 tweaks: Vec::new(),
+            }
+        }
+    }
+
+    /// Information for the pusher implementation itself.
+    ///
+    /// This is the data dictionary passed in at pusher creation minus the `url` key.
+    ///
+    /// It can be constructed from [`ruma_common::push::PusherData`] with `::from()` / `.into()`.
+    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    pub struct PusherData {
+        /// The format to use when sending notifications to the Push Gateway.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub format: Option<PushFormat>,
+
+        /// iOS (+ macOS?) specific default payload that will be sent to apple push notification
+        /// service.
+        ///
+        /// For more information, see [Sygnal docs][sygnal].
+        ///
+        /// [sygnal]: https://github.com/matrix-org/sygnal/blob/main/docs/applications.md#ios-applications-beware
+        // Not specified, issue: https://github.com/matrix-org/matrix-spec/issues/921
+        #[cfg(feature = "unstable-pre-spec")]
+        #[serde(default, skip_serializing_if = "JsonValue::is_null")]
+        pub default_payload: JsonValue,
+    }
+
+    impl PusherData {
+        /// Creates an empty `PusherData`.
+        pub fn new() -> Self {
+            Default::default()
+        }
+
+        /// Returns `true` if all fields are `None`.
+        pub fn is_empty(&self) -> bool {
+            #[cfg(not(feature = "unstable-pre-spec"))]
+            {
+                self.format.is_none()
+            }
+
+            #[cfg(feature = "unstable-pre-spec")]
+            {
+                self.format.is_none() && self.default_payload.is_null()
+            }
+        }
+    }
+
+    impl From<ruma_common::push::PusherData> for PusherData {
+        fn from(data: ruma_common::push::PusherData) -> Self {
+            let ruma_common::push::PusherData {
+                format,
+                #[cfg(feature = "unstable-pre-spec")]
+                default_payload,
+                ..
+            } = data;
+
+            Self {
+                format,
+                #[cfg(feature = "unstable-pre-spec")]
+                default_payload,
             }
         }
     }

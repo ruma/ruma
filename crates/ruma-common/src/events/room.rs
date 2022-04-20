@@ -7,6 +7,13 @@ use std::collections::BTreeMap;
 use js_int::UInt;
 use serde::{de, Deserialize, Serialize};
 
+#[cfg(feature = "unstable-msc3551")]
+use super::file::{EncryptedContent, FileContent};
+#[cfg(feature = "unstable-msc3552")]
+use super::{
+    file::FileContentInfo,
+    image::{ImageContent, ThumbnailContent, ThumbnailFileContent, ThumbnailFileContentInfo},
+};
 use crate::{
     serde::{base64::UrlSafe, Base64},
     MxcUri,
@@ -46,10 +53,10 @@ pub enum MediaSource {
     Encrypted(Box<EncryptedFile>),
 }
 
-/// Custom implementation of `Deserialize`, because serde doesn't guarantee what variant will be
-/// deserialized for "externally tagged"¹ enums where multiple "tag" fields exist.
-///
-/// ¹ https://serde.rs/enum-representations.html
+// Custom implementation of `Deserialize`, because serde doesn't guarantee what variant will be
+// deserialized for "externally tagged"¹ enums where multiple "tag" fields exist.
+//
+// ¹ https://serde.rs/enum-representations.html
 impl<'de> Deserialize<'de> for MediaSource {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -66,6 +73,30 @@ impl<'de> Deserialize<'de> for MediaSource {
             // Prefer file if it is set
             MediaSourceJsonRepr { file: Some(file), .. } => Ok(MediaSource::Encrypted(file)),
             MediaSourceJsonRepr { url: Some(url), .. } => Ok(MediaSource::Plain(url)),
+        }
+    }
+}
+
+#[cfg(feature = "unstable-msc3551")]
+impl From<&FileContent> for MediaSource {
+    fn from(content: &FileContent) -> Self {
+        let FileContent { url, encryption_info, .. } = content;
+        if let Some(encryption_info) = encryption_info.as_deref() {
+            Self::Encrypted(Box::new(EncryptedFile::from_extensible_content(url, encryption_info)))
+        } else {
+            Self::Plain(url.to_owned())
+        }
+    }
+}
+
+#[cfg(feature = "unstable-msc3552")]
+impl From<&ThumbnailFileContent> for MediaSource {
+    fn from(content: &ThumbnailFileContent) -> Self {
+        let ThumbnailFileContent { url, encryption_info, .. } = content;
+        if let Some(encryption_info) = encryption_info.as_deref() {
+            Self::Encrypted(Box::new(EncryptedFile::from_extensible_content(url, encryption_info)))
+        } else {
+            Self::Plain(url.to_owned())
         }
     }
 }
@@ -116,6 +147,46 @@ impl ImageInfo {
     pub fn new() -> Self {
         Self::default()
     }
+
+    /// Create an `ImageInfo` from the given file info, image info and thumbnail.
+    #[cfg(feature = "unstable-msc3552")]
+    pub fn from_extensible_content(
+        file_info: Option<&FileContentInfo>,
+        image: &ImageContent,
+        thumbnail: &[ThumbnailContent],
+    ) -> Option<Self> {
+        if file_info.is_none() && image.is_empty() && thumbnail.is_empty() {
+            None
+        } else {
+            let (mimetype, size) = file_info
+                .map(|info| (info.mimetype.to_owned(), info.size.to_owned()))
+                .unwrap_or_default();
+            let ImageContent { height, width } = image.to_owned();
+            let (thumbnail_source, thumbnail_info) = thumbnail
+                .get(0)
+                .map(|thumbnail| {
+                    let source = (&thumbnail.file).into();
+                    let info = ThumbnailInfo::from_extensible_content(
+                        thumbnail.file.info.as_deref(),
+                        thumbnail.image.as_deref(),
+                    )
+                    .map(Box::new);
+                    (Some(source), info)
+                })
+                .unwrap_or_default();
+
+            Some(Self {
+                height,
+                width,
+                mimetype,
+                size,
+                thumbnail_source,
+                thumbnail_info,
+                #[cfg(feature = "unstable-msc2448")]
+                blurhash: None,
+            })
+        }
+    }
 }
 
 /// Metadata about a thumbnail.
@@ -144,6 +215,24 @@ impl ThumbnailInfo {
     pub fn new() -> Self {
         Self::default()
     }
+
+    /// Create a `ThumbnailInfo` with the given file info and image info.
+    ///
+    /// Returns `None` if `file_info` and `image` are `None`.
+    #[cfg(feature = "unstable-msc3552")]
+    pub fn from_extensible_content(
+        file_info: Option<&ThumbnailFileContentInfo>,
+        image: Option<&ImageContent>,
+    ) -> Option<Self> {
+        if file_info.is_none() && image.is_none() {
+            None
+        } else {
+            let ThumbnailFileContentInfo { mimetype, size } =
+                file_info.map(ToOwned::to_owned).unwrap_or_default();
+            let ImageContent { height, width } = image.map(ToOwned::to_owned).unwrap_or_default();
+            Some(Self { height, width, mimetype, size })
+        }
+    }
 }
 
 /// A file sent to a room with end-to-end encryption enabled.
@@ -171,6 +260,15 @@ pub struct EncryptedFile {
     ///
     /// Must be `v2`.
     pub v: String,
+}
+
+#[cfg(feature = "unstable-msc3551")]
+impl EncryptedFile {
+    /// Create an `EncryptedFile` from the given url and encryption info.
+    pub fn from_extensible_content(url: &MxcUri, encryption_info: &EncryptedContent) -> Self {
+        let EncryptedContent { key, iv, hashes, v } = encryption_info.to_owned();
+        Self { url: url.to_owned(), key, iv, hashes, v }
+    }
 }
 
 /// Initial set of fields of `EncryptedFile`.

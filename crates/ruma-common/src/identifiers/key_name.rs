@@ -6,4 +6,6 @@
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct KeyName(str);
 
-opaque_identifier!(KeyName);
+owned_identifier!(OwnedKeyName, KeyName);
+
+opaque_identifier!(KeyName, OwnedKeyName);

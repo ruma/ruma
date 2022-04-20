@@ -7,7 +7,13 @@ use super::{crypto_algorithms::DeviceKeyAlgorithm, DeviceId};
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct DeviceKeyId(str);
 
-opaque_identifier_validated!(DeviceKeyId, ruma_identifiers_validation::device_key_id::validate);
+owned_identifier!(OwnedDeviceKeyId, DeviceKeyId);
+
+opaque_identifier_validated!(
+    DeviceKeyId,
+    OwnedDeviceKeyId,
+    ruma_identifiers_validation::device_key_id::validate
+);
 
 impl DeviceKeyId {
     /// Create a `DeviceKeyId` from a `DeviceKeyAlgorithm` and a `DeviceId`.

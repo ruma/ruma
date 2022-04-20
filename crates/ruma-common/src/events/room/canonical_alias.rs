@@ -44,11 +44,11 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::RoomCanonicalAliasEventContent;
-    use crate::events::{StateEvent, StateUnsigned};
+    use crate::events::{OriginalStateEvent, StateUnsigned};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
-        let canonical_alias_event = StateEvent {
+        let canonical_alias_event = OriginalStateEvent {
             content: RoomCanonicalAliasEventContent {
                 alias: Some(room_alias_id!("#somewhere:localhost").to_owned()),
                 alt_aliases: Vec::new(),
@@ -90,7 +90,7 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<StateEvent<RoomCanonicalAliasEventContent>>(json_data)
+            from_json_value::<OriginalStateEvent<RoomCanonicalAliasEventContent>>(json_data)
                 .unwrap()
                 .content
                 .alias,
@@ -112,7 +112,7 @@ mod tests {
             "type": "m.room.canonical_alias"
         });
         assert_eq!(
-            from_json_value::<StateEvent<RoomCanonicalAliasEventContent>>(json_data)
+            from_json_value::<OriginalStateEvent<RoomCanonicalAliasEventContent>>(json_data)
                 .unwrap()
                 .content
                 .alias,
@@ -134,7 +134,7 @@ mod tests {
             "type": "m.room.canonical_alias"
         });
         assert_eq!(
-            from_json_value::<StateEvent<RoomCanonicalAliasEventContent>>(json_data)
+            from_json_value::<OriginalStateEvent<RoomCanonicalAliasEventContent>>(json_data)
                 .unwrap()
                 .content
                 .alias,
@@ -157,7 +157,7 @@ mod tests {
             "type": "m.room.canonical_alias"
         });
         assert_eq!(
-            from_json_value::<StateEvent<RoomCanonicalAliasEventContent>>(json_data)
+            from_json_value::<OriginalStateEvent<RoomCanonicalAliasEventContent>>(json_data)
                 .unwrap()
                 .content
                 .alias,

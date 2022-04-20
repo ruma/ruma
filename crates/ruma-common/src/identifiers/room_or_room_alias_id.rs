@@ -27,8 +27,11 @@ use super::{server_name::ServerName, RoomAliasId, RoomId};
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct RoomOrAliasId(str);
 
+owned_identifier!(OwnedRoomOrAliasId, RoomOrAliasId);
+
 opaque_identifier_validated!(
     RoomOrAliasId,
+    OwnedRoomOrAliasId,
     ruma_identifiers_validation::room_id_or_alias_id::validate
 );
 

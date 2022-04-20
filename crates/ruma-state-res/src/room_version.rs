@@ -98,12 +98,7 @@ impl RoomVersion {
         ..Self::V5
     };
 
-    pub const V7: Self = Self {
-        // FIXME: once room version 7 is stabilized move this to version 8
-        disposition: RoomDisposition::Unstable,
-        allow_knocking: true,
-        ..Self::V6
-    };
+    pub const V7: Self = Self { allow_knocking: true, ..Self::V6 };
 
     pub const V8: Self = Self { restricted_join_rules: true, ..Self::V7 };
 

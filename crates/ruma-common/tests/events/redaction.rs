@@ -3,7 +3,9 @@ use matches::assert_matches;
 use ruma_common::{
     event_id,
     events::{
-        room::redaction::{RoomRedactionEvent, RoomRedactionEventContent},
+        room::redaction::{
+            OriginalRoomRedactionEvent, RoomRedactionEvent, RoomRedactionEventContent,
+        },
         AnyMessageLikeEvent, MessageLikeUnsigned,
     },
     room_id, user_id, MilliSecondsSinceUnixEpoch,
@@ -28,7 +30,7 @@ fn redaction() -> JsonValue {
 
 #[test]
 fn serialize_redaction() {
-    let aliases_event = RoomRedactionEvent {
+    let aliases_event = OriginalRoomRedactionEvent {
         content: RoomRedactionEventContent::with_reason("being a turd".into()),
         redacts: event_id!("$nomore:example.com").to_owned(),
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
@@ -50,7 +52,7 @@ fn deserialize_redaction() {
 
     assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::RoomRedaction(RoomRedactionEvent {
+        AnyMessageLikeEvent::RoomRedaction(RoomRedactionEvent::Original(OriginalRoomRedactionEvent {
             content: RoomRedactionEventContent { reason: Some(reas), .. },
             redacts,
             event_id,
@@ -58,7 +60,7 @@ fn deserialize_redaction() {
             room_id,
             sender,
             unsigned,
-        }) if reas == "being a turd"
+        })) if reas == "being a turd"
             && event_id == event_id!("$h29iv0s8:example.com")
             && redacts == event_id!("$nomore:example.com")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))

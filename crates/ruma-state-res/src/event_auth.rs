@@ -10,7 +10,7 @@ use ruma_common::{
             power_levels::RoomPowerLevelsEventContent,
             third_party_invite::RoomThirdPartyInviteEventContent,
         },
-        RoomEventType,
+        RoomEventType, StateEventType,
     },
     serde::{Base64, Raw},
     RoomVersionId, UserId,
@@ -49,15 +49,15 @@ pub fn auth_types_for_event(
     sender: &UserId,
     state_key: Option<&str>,
     content: &RawJsonValue,
-) -> serde_json::Result<Vec<(RoomEventType, String)>> {
+) -> serde_json::Result<Vec<(StateEventType, String)>> {
     if kind == &RoomEventType::RoomCreate {
         return Ok(vec![]);
     }
 
     let mut auth_types = vec![
-        (RoomEventType::RoomPowerLevels, "".to_owned()),
-        (RoomEventType::RoomMember, sender.to_string()),
-        (RoomEventType::RoomCreate, "".to_owned()),
+        (StateEventType::RoomPowerLevels, "".to_owned()),
+        (StateEventType::RoomMember, sender.to_string()),
+        (StateEventType::RoomCreate, "".to_owned()),
     ];
 
     if kind == &RoomEventType::RoomMember {
@@ -75,7 +75,7 @@ pub fn auth_types_for_event(
                 if [MembershipState::Join, MembershipState::Invite, MembershipState::Knock]
                     .contains(&membership)
                 {
-                    let key = (RoomEventType::RoomJoinRules, "".to_owned());
+                    let key = (StateEventType::RoomJoinRules, "".to_owned());
                     if !auth_types.contains(&key) {
                         auth_types.push(key);
                     }
@@ -83,21 +83,21 @@ pub fn auth_types_for_event(
                     if let Some(Ok(u)) =
                         content.join_authorised_via_users_server.map(|m| m.deserialize())
                     {
-                        let key = (RoomEventType::RoomMember, u.to_string());
+                        let key = (StateEventType::RoomMember, u.to_string());
                         if !auth_types.contains(&key) {
                             auth_types.push(key);
                         }
                     }
                 }
 
-                let key = (RoomEventType::RoomMember, state_key.to_owned());
+                let key = (StateEventType::RoomMember, state_key.to_owned());
                 if !auth_types.contains(&key) {
                     auth_types.push(key);
                 }
 
                 if membership == MembershipState::Invite {
                     if let Some(Ok(t_id)) = content.third_party_invite.map(|t| t.deserialize()) {
-                        let key = (RoomEventType::RoomThirdPartyInvite, t_id.signed.token);
+                        let key = (StateEventType::RoomThirdPartyInvite, t_id.signed.token);
                         if !auth_types.contains(&key) {
                             auth_types.push(key);
                         }
@@ -974,7 +974,7 @@ mod tests {
             },
             member::{MembershipState, RoomMemberEventContent},
         },
-        RoomEventType,
+        RoomEventType, StateEventType,
     };
     use serde_json::value::to_raw_value as to_raw_json_value;
 
@@ -982,9 +982,9 @@ mod tests {
         event_auth::valid_membership_change,
         test_utils::{
             alice, charlie, ella, event_id, member_content_ban, member_content_join, room_id,
-            to_pdu_event, StateEvent, INITIAL_EVENTS, INITIAL_EVENTS_CREATE_ROOM,
+            to_pdu_event, PduEvent, INITIAL_EVENTS, INITIAL_EVENTS_CREATE_ROOM,
         },
-        Event, RoomVersion, StateMap,
+        Event, EventTypeExt, RoomVersion, StateMap,
     };
 
     #[test]
@@ -995,9 +995,7 @@ mod tests {
 
         let auth_events = events
             .values()
-            .map(|ev| {
-                ((ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()), Arc::clone(ev))
-            })
+            .map(|ev| (ev.event_type().with_state_key(ev.state_key().unwrap()), Arc::clone(ev)))
             .collect::<StateMap<_>>();
 
         let requester = to_pdu_event(
@@ -1017,16 +1015,16 @@ mod tests {
         assert!(valid_membership_change(
             &RoomVersion::V6,
             &target_user,
-            fetch_state(RoomEventType::RoomMember, target_user.to_string()),
+            fetch_state(StateEventType::RoomMember, target_user.to_string()),
             &sender,
-            fetch_state(RoomEventType::RoomMember, sender.to_string()),
+            fetch_state(StateEventType::RoomMember, sender.to_string()),
             &requester,
-            None::<StateEvent>,
-            fetch_state(RoomEventType::RoomPowerLevels, "".to_owned()),
-            fetch_state(RoomEventType::RoomJoinRules, "".to_owned()),
+            None::<PduEvent>,
+            fetch_state(StateEventType::RoomPowerLevels, "".to_owned()),
+            fetch_state(StateEventType::RoomJoinRules, "".to_owned()),
             None,
             &MembershipState::Leave,
-            fetch_state(RoomEventType::RoomCreate, "".to_owned()).unwrap(),
+            fetch_state(StateEventType::RoomCreate, "".to_owned()).unwrap(),
         )
         .unwrap());
     }
@@ -1039,9 +1037,7 @@ mod tests {
 
         let auth_events = events
             .values()
-            .map(|ev| {
-                ((ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()), Arc::clone(ev))
-            })
+            .map(|ev| (ev.event_type().with_state_key(ev.state_key().unwrap()), Arc::clone(ev)))
             .collect::<StateMap<_>>();
 
         let requester = to_pdu_event(
@@ -1061,16 +1057,16 @@ mod tests {
         assert!(!valid_membership_change(
             &RoomVersion::V6,
             &target_user,
-            fetch_state(RoomEventType::RoomMember, target_user.to_string()),
+            fetch_state(StateEventType::RoomMember, target_user.to_string()),
             &sender,
-            fetch_state(RoomEventType::RoomMember, sender.to_string()),
+            fetch_state(StateEventType::RoomMember, sender.to_string()),
             &requester,
-            None::<StateEvent>,
-            fetch_state(RoomEventType::RoomPowerLevels, "".to_owned()),
-            fetch_state(RoomEventType::RoomJoinRules, "".to_owned()),
+            None::<PduEvent>,
+            fetch_state(StateEventType::RoomPowerLevels, "".to_owned()),
+            fetch_state(StateEventType::RoomJoinRules, "".to_owned()),
             None,
             &MembershipState::Leave,
-            fetch_state(RoomEventType::RoomCreate, "".to_owned()).unwrap(),
+            fetch_state(StateEventType::RoomCreate, "".to_owned()).unwrap(),
         )
         .unwrap());
     }
@@ -1083,9 +1079,7 @@ mod tests {
 
         let auth_events = events
             .values()
-            .map(|ev| {
-                ((ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()), Arc::clone(ev))
-            })
+            .map(|ev| (ev.event_type().with_state_key(ev.state_key().unwrap()), Arc::clone(ev)))
             .collect::<StateMap<_>>();
 
         let requester = to_pdu_event(
@@ -1105,16 +1099,16 @@ mod tests {
         assert!(valid_membership_change(
             &RoomVersion::V6,
             &target_user,
-            fetch_state(RoomEventType::RoomMember, target_user.to_string()),
+            fetch_state(StateEventType::RoomMember, target_user.to_string()),
             &sender,
-            fetch_state(RoomEventType::RoomMember, sender.to_string()),
+            fetch_state(StateEventType::RoomMember, sender.to_string()),
             &requester,
-            None::<StateEvent>,
-            fetch_state(RoomEventType::RoomPowerLevels, "".to_owned()),
-            fetch_state(RoomEventType::RoomJoinRules, "".to_owned()),
+            None::<PduEvent>,
+            fetch_state(StateEventType::RoomPowerLevels, "".to_owned()),
+            fetch_state(StateEventType::RoomJoinRules, "".to_owned()),
             None,
             &MembershipState::Leave,
-            fetch_state(RoomEventType::RoomCreate, "".to_owned()).unwrap(),
+            fetch_state(StateEventType::RoomCreate, "".to_owned()).unwrap(),
         )
         .unwrap());
     }
@@ -1127,9 +1121,7 @@ mod tests {
 
         let auth_events = events
             .values()
-            .map(|ev| {
-                ((ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()), Arc::clone(ev))
-            })
+            .map(|ev| (ev.event_type().with_state_key(ev.state_key().unwrap()), Arc::clone(ev)))
             .collect::<StateMap<_>>();
 
         let requester = to_pdu_event(
@@ -1149,16 +1141,16 @@ mod tests {
         assert!(!valid_membership_change(
             &RoomVersion::V6,
             &target_user,
-            fetch_state(RoomEventType::RoomMember, target_user.to_string()),
+            fetch_state(StateEventType::RoomMember, target_user.to_string()),
             &sender,
-            fetch_state(RoomEventType::RoomMember, sender.to_string()),
+            fetch_state(StateEventType::RoomMember, sender.to_string()),
             &requester,
-            None::<StateEvent>,
-            fetch_state(RoomEventType::RoomPowerLevels, "".to_owned()),
-            fetch_state(RoomEventType::RoomJoinRules, "".to_owned()),
+            None::<PduEvent>,
+            fetch_state(StateEventType::RoomPowerLevels, "".to_owned()),
+            fetch_state(StateEventType::RoomJoinRules, "".to_owned()),
             None,
             &MembershipState::Leave,
-            fetch_state(RoomEventType::RoomCreate, "".to_owned()).unwrap(),
+            fetch_state(StateEventType::RoomCreate, "".to_owned()).unwrap(),
         )
         .unwrap());
     }
@@ -1188,9 +1180,7 @@ mod tests {
 
         let auth_events = events
             .values()
-            .map(|ev| {
-                ((ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()), Arc::clone(ev))
-            })
+            .map(|ev| (ev.event_type().with_state_key(ev.state_key().unwrap()), Arc::clone(ev)))
             .collect::<StateMap<_>>();
 
         let requester = to_pdu_event(
@@ -1210,32 +1200,32 @@ mod tests {
         assert!(valid_membership_change(
             &RoomVersion::V9,
             &target_user,
-            fetch_state(RoomEventType::RoomMember, target_user.to_string()),
+            fetch_state(StateEventType::RoomMember, target_user.to_string()),
             &sender,
-            fetch_state(RoomEventType::RoomMember, sender.to_string()),
+            fetch_state(StateEventType::RoomMember, sender.to_string()),
             &requester,
-            None::<StateEvent>,
-            fetch_state(RoomEventType::RoomPowerLevels, "".to_owned()),
-            fetch_state(RoomEventType::RoomJoinRules, "".to_owned()),
+            None::<PduEvent>,
+            fetch_state(StateEventType::RoomPowerLevels, "".to_owned()),
+            fetch_state(StateEventType::RoomJoinRules, "".to_owned()),
             Some(&alice()),
             &MembershipState::Join,
-            fetch_state(RoomEventType::RoomCreate, "".to_owned()).unwrap(),
+            fetch_state(StateEventType::RoomCreate, "".to_owned()).unwrap(),
         )
         .unwrap());
 
         assert!(!valid_membership_change(
             &RoomVersion::V9,
             &target_user,
-            fetch_state(RoomEventType::RoomMember, target_user.to_string()),
+            fetch_state(StateEventType::RoomMember, target_user.to_string()),
             &sender,
-            fetch_state(RoomEventType::RoomMember, sender.to_string()),
+            fetch_state(StateEventType::RoomMember, sender.to_string()),
             &requester,
-            None::<StateEvent>,
-            fetch_state(RoomEventType::RoomPowerLevels, "".to_owned()),
-            fetch_state(RoomEventType::RoomJoinRules, "".to_owned()),
+            None::<PduEvent>,
+            fetch_state(StateEventType::RoomPowerLevels, "".to_owned()),
+            fetch_state(StateEventType::RoomJoinRules, "".to_owned()),
             Some(&ella()),
             &MembershipState::Leave,
-            fetch_state(RoomEventType::RoomCreate, "".to_owned()).unwrap(),
+            fetch_state(StateEventType::RoomCreate, "".to_owned()).unwrap(),
         )
         .unwrap());
     }
@@ -1257,9 +1247,7 @@ mod tests {
 
         let auth_events = events
             .values()
-            .map(|ev| {
-                ((ev.event_type().to_owned(), ev.state_key().unwrap().to_owned()), Arc::clone(ev))
-            })
+            .map(|ev| (ev.event_type().with_state_key(ev.state_key().unwrap()), Arc::clone(ev)))
             .collect::<StateMap<_>>();
 
         let requester = to_pdu_event(
@@ -1279,16 +1267,16 @@ mod tests {
         assert!(valid_membership_change(
             &RoomVersion::V7,
             &target_user,
-            fetch_state(RoomEventType::RoomMember, target_user.to_string()),
+            fetch_state(StateEventType::RoomMember, target_user.to_string()),
             &sender,
-            fetch_state(RoomEventType::RoomMember, sender.to_string()),
+            fetch_state(StateEventType::RoomMember, sender.to_string()),
             &requester,
-            None::<StateEvent>,
-            fetch_state(RoomEventType::RoomPowerLevels, "".to_owned()),
-            fetch_state(RoomEventType::RoomJoinRules, "".to_owned()),
+            None::<PduEvent>,
+            fetch_state(StateEventType::RoomPowerLevels, "".to_owned()),
+            fetch_state(StateEventType::RoomJoinRules, "".to_owned()),
             None,
             &MembershipState::Leave,
-            fetch_state(RoomEventType::RoomCreate, "".to_owned()).unwrap(),
+            fetch_state(StateEventType::RoomCreate, "".to_owned()).unwrap(),
         )
         .unwrap());
     }

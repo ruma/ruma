@@ -10,6 +10,16 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 use super::{EncryptedFile, ImageInfo, MediaSource, ThumbnailInfo};
+#[cfg(feature = "unstable-msc3246")]
+use crate::events::audio::{AudioContent, AudioEventContent};
+#[cfg(feature = "unstable-msc3551")]
+use crate::events::file::{FileContent, FileContentInfo, FileEventContent};
+#[cfg(feature = "unstable-msc3552")]
+use crate::events::image::{ImageContent, ImageEventContent, ThumbnailContent};
+#[cfg(feature = "unstable-msc3553")]
+use crate::events::video::{VideoContent, VideoEventContent};
+#[cfg(feature = "unstable-msc3245")]
+use crate::events::voice::{VoiceContent, VoiceEventContent};
 #[cfg(feature = "unstable-msc1767")]
 use crate::events::{
     emote::EmoteEventContent,
@@ -21,13 +31,16 @@ use crate::{
     serde::{JsonObject, StringEnum},
     DeviceId, EventId, MxcUri, PrivOwnedStr, UserId,
 };
+#[cfg(feature = "unstable-msc3488")]
+use crate::{
+    events::location::{AssetContent, LocationContent, LocationEventContent},
+    MilliSecondsSinceUnixEpoch,
+};
 
 mod content_serde;
 pub mod feedback;
 mod relation_serde;
 mod reply;
-
-pub use reply::ReplyBaseEvent;
 
 /// The content of an `m.room.message` event.
 ///
@@ -90,33 +103,39 @@ impl RoomMessageEventContent {
     }
 
     /// Creates a plain text reply to a message.
+    ///
+    /// This constructor requires an [`OriginalRoomMessageEvent`] since it creates a permalink to
+    /// the previous message, for which the room ID is required. If you want to reply to an
+    /// [`OriginalSyncRoomMessageEvent`], you have to convert it first by calling
+    /// [`.into_full_event()`][crate::events::OriginalSyncMessageLikeEvent::into_full_event].
     pub fn text_reply_plain(
         reply: impl fmt::Display,
-        original_message: &impl ReplyBaseEvent,
+        original_message: &OriginalRoomMessageEvent,
     ) -> Self {
         let quoted = reply::get_plain_quote_fallback(original_message);
+        let quoted_html = reply::get_html_quote_fallback(original_message);
 
         let body = format!("{}\n\n{}", quoted, reply);
+        let html_body = format!("{}\n\n{}", quoted_html, reply);
 
         Self {
             relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo { event_id: original_message.event_id().to_owned() },
+                in_reply_to: InReplyTo { event_id: original_message.event_id.to_owned() },
             }),
-            ..Self::text_plain(body)
+            ..Self::text_html(body, html_body)
         }
     }
 
     /// Creates a html text reply to a message.
     ///
-    /// Different from `text_reply_plain`, this constructor requires specifically a
-    /// [`RoomMessageEvent`] since it creates a permalink to the previous message, for which the
-    /// room ID is required. If you want to reply to a [`SyncRoomMessageEvent`], you have to convert
-    /// it first by calling
-    /// [`.into_full_event()`][crate::events::SyncMessageLikeEvent::into_full_event].
+    /// This constructor requires an [`OriginalRoomMessageEvent`] since it creates a permalink to
+    /// the previous message, for which the room ID is required. If you want to reply to an
+    /// [`OriginalSyncRoomMessageEvent`], you have to convert it first by calling
+    /// [`.into_full_event()`][crate::events::OriginalSyncMessageLikeEvent::into_full_event].
     pub fn text_reply_html(
         reply: impl fmt::Display,
         html_reply: impl fmt::Display,
-        original_message: &RoomMessageEvent,
+        original_message: &OriginalRoomMessageEvent,
     ) -> Self {
         let quoted = reply::get_plain_quote_fallback(original_message);
         let quoted_html = reply::get_html_quote_fallback(original_message);
@@ -133,32 +152,39 @@ impl RoomMessageEventContent {
     }
 
     /// Creates a plain text notice reply to a message.
+    ///
+    /// This constructor requires an [`OriginalRoomMessageEvent`] since it creates a permalink to
+    /// the previous message, for which the room ID is required. If you want to reply to an
+    /// [`OriginalSyncRoomMessageEvent`], you have to convert it first by calling
+    /// [`.into_full_event()`][crate::events::OriginalSyncMessageLikeEvent::into_full_event].
     pub fn notice_reply_plain(
         reply: impl fmt::Display,
-        original_message: &impl ReplyBaseEvent,
+        original_message: &OriginalRoomMessageEvent,
     ) -> Self {
         let quoted = reply::get_plain_quote_fallback(original_message);
+        let quoted_html = reply::get_html_quote_fallback(original_message);
 
         let body = format!("{}\n\n{}", quoted, reply);
+        let html_body = format!("{}\n\n{}", quoted_html, reply);
+
         Self {
             relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo { event_id: original_message.event_id().to_owned() },
+                in_reply_to: InReplyTo { event_id: original_message.event_id.to_owned() },
             }),
-            ..Self::notice_plain(body)
+            ..Self::notice_html(body, html_body)
         }
     }
 
     /// Creates a html text notice reply to a message.
     ///
-    /// Different from `notice_reply_plain`, this constructor requires specifically a
-    /// [`RoomMessageEvent`] since it creates a permalink to the previous message, for which the
-    /// room ID is required. If you want to reply to a [`SyncRoomMessageEvent`], you have to convert
-    /// it first by calling
-    /// [`.into_full_event()`][crate::events::SyncMessageLikeEvent::into_full_event].
+    /// This constructor requires an [`OriginalRoomMessageEvent`] since it creates a permalink to
+    /// the previous message, for which the room ID is required. If you want to reply to an
+    /// [`OriginalSyncRoomMessageEvent`], you have to convert it first by calling
+    /// [`.into_full_event()`][crate::events::OriginalSyncMessageLikeEvent::into_full_event].
     pub fn notice_reply_html(
         reply: impl fmt::Display,
         html_reply: impl fmt::Display,
-        original_message: &RoomMessageEvent,
+        original_message: &OriginalRoomMessageEvent,
     ) -> Self {
         let quoted = reply::get_plain_quote_fallback(original_message);
         let quoted_html = reply::get_html_quote_fallback(original_message);
@@ -188,12 +214,68 @@ impl RoomMessageEventContent {
     }
 }
 
+#[cfg(feature = "unstable-msc3246")]
+impl From<AudioEventContent> for RoomMessageEventContent {
+    fn from(content: AudioEventContent) -> Self {
+        let AudioEventContent { message, file, audio, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::Audio(AudioMessageEventContent::from_extensible_content(
+                message, file, audio,
+            )),
+            relates_to,
+        }
+    }
+}
+
 #[cfg(feature = "unstable-msc1767")]
 impl From<EmoteEventContent> for RoomMessageEventContent {
     fn from(content: EmoteEventContent) -> Self {
         let EmoteEventContent { message, relates_to, .. } = content;
 
         Self { msgtype: MessageType::Emote(message.into()), relates_to }
+    }
+}
+
+#[cfg(feature = "unstable-msc3551")]
+impl From<FileEventContent> for RoomMessageEventContent {
+    fn from(content: FileEventContent) -> Self {
+        let FileEventContent { message, file, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::File(FileMessageEventContent::from_extensible_content(
+                message, file,
+            )),
+            relates_to,
+        }
+    }
+}
+
+#[cfg(feature = "unstable-msc3552")]
+impl From<ImageEventContent> for RoomMessageEventContent {
+    fn from(content: ImageEventContent) -> Self {
+        let ImageEventContent { message, file, image, thumbnail, caption, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::Image(ImageMessageEventContent::from_extensible_content(
+                message, file, image, thumbnail, caption,
+            )),
+            relates_to,
+        }
+    }
+}
+
+#[cfg(feature = "unstable-msc3488")]
+impl From<LocationEventContent> for RoomMessageEventContent {
+    fn from(content: LocationEventContent) -> Self {
+        let LocationEventContent { message, location, asset, ts, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::Location(LocationMessageEventContent::from_extensible_content(
+                message, location, asset, ts,
+            )),
+            relates_to,
+        }
     }
 }
 
@@ -212,6 +294,34 @@ impl From<NoticeEventContent> for RoomMessageEventContent {
         let NoticeEventContent { message, relates_to, .. } = content;
 
         Self { msgtype: MessageType::Notice(message.into()), relates_to }
+    }
+}
+
+#[cfg(feature = "unstable-msc3553")]
+impl From<VideoEventContent> for RoomMessageEventContent {
+    fn from(content: VideoEventContent) -> Self {
+        let VideoEventContent { message, file, video, thumbnail, caption, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::Video(VideoMessageEventContent::from_extensible_content(
+                message, file, video, thumbnail, caption,
+            )),
+            relates_to,
+        }
+    }
+}
+
+#[cfg(feature = "unstable-msc3245")]
+impl From<VoiceEventContent> for RoomMessageEventContent {
+    fn from(content: VoiceEventContent) -> Self {
+        let VoiceEventContent { message, file, audio, voice, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::Audio(AudioMessageEventContent::from_extensible_voice_content(
+                message, file, audio, voice,
+            )),
+            relates_to,
+        }
     }
 }
 
@@ -467,9 +577,20 @@ impl Thread {
 }
 
 /// The payload for an audio message.
+///
+/// With the `unstable-msc3246` feature, this type contains the transitional format of
+/// [`AudioEventContent`] and with the `unstable-msc3245` feature, this type also contains the
+/// transitional format of [`VoiceEventContent`]. See the documentation of the [`message`] module
+/// for more information.
+///
+/// [`message`]: crate::events::message
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.audio")]
+#[cfg_attr(
+    feature = "unstable-msc3246",
+    serde(from = "content_serde::AudioMessageEventContentDeHelper")
+)]
 pub struct AudioMessageEventContent {
     /// The textual representation of this message.
     pub body: String,
@@ -478,22 +599,118 @@ pub struct AudioMessageEventContent {
     #[serde(flatten)]
     pub source: MediaSource,
 
-    /// Metadata for the audio clip referred to in `url`.
+    /// Metadata for the audio clip referred to in `source`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<Box<AudioInfo>>,
+
+    /// Extensible-event text representation of the message.
+    ///
+    /// If present, this should be preferred over the `body` field.
+    #[cfg(feature = "unstable-msc3246")]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub message: Option<MessageContent>,
+
+    /// Extensible-event file content of the message.
+    ///
+    /// If present, this should be preferred over the `source` and `info` fields.
+    #[cfg(feature = "unstable-msc3246")]
+    #[serde(rename = "org.matrix.msc1767.file", skip_serializing_if = "Option::is_none")]
+    pub file: Option<FileContent>,
+
+    /// Extensible-event audio info of the message.
+    ///
+    /// If present, this should be preferred over the `info` field.
+    #[cfg(feature = "unstable-msc3246")]
+    #[serde(rename = "org.matrix.msc1767.audio", skip_serializing_if = "Option::is_none")]
+    pub audio: Option<AudioContent>,
+
+    /// Extensible-event voice flag of the message.
+    ///
+    /// If present, this should be represented as a voice message.
+    #[cfg(feature = "unstable-msc3245")]
+    #[serde(rename = "org.matrix.msc3245.voice", skip_serializing_if = "Option::is_none")]
+    pub voice: Option<VoiceContent>,
 }
 
 impl AudioMessageEventContent {
-    /// Creates a new non-encrypted `RoomAudioMessageEventContent` with the given body, url and
+    /// Creates a new non-encrypted `AudioMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<AudioInfo>>) -> Self {
-        Self { body, source: MediaSource::Plain(url), info }
+        Self {
+            #[cfg(feature = "unstable-msc3246")]
+            message: Some(MessageContent::plain(body.clone())),
+            #[cfg(feature = "unstable-msc3246")]
+            file: Some(FileContent::plain(
+                url.clone(),
+                info.as_deref().map(|info| Box::new(info.into())),
+            )),
+            #[cfg(feature = "unstable-msc3246")]
+            audio: Some(info.as_deref().map_or_else(AudioContent::default, Into::into)),
+            #[cfg(feature = "unstable-msc3245")]
+            voice: None,
+            body,
+            source: MediaSource::Plain(url),
+            info,
+        }
     }
 
-    /// Creates a new encrypted `RoomAudioMessageEventContent` with the given body and encrypted
+    /// Creates a new encrypted `AudioMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
-        Self { body, source: MediaSource::Encrypted(Box::new(file)), info: None }
+        Self {
+            #[cfg(feature = "unstable-msc3246")]
+            message: Some(MessageContent::plain(body.clone())),
+            #[cfg(feature = "unstable-msc3246")]
+            file: Some(FileContent::encrypted(file.url.clone(), (&file).into(), None)),
+            #[cfg(feature = "unstable-msc3246")]
+            audio: Some(AudioContent::default()),
+            #[cfg(feature = "unstable-msc3245")]
+            voice: None,
+            body,
+            source: MediaSource::Encrypted(Box::new(file)),
+            info: None,
+        }
+    }
+
+    /// Create a new `AudioMessageEventContent` with the given message, file info and audio info.
+    #[cfg(feature = "unstable-msc3246")]
+    pub fn from_extensible_content(
+        message: MessageContent,
+        file: FileContent,
+        audio: AudioContent,
+    ) -> Self {
+        let body = if let Some(body) = message.find_plain() {
+            body.to_owned()
+        } else {
+            message[0].body.clone()
+        };
+        let source = (&file).into();
+        let info = AudioInfo::from_extensible_content(file.info.as_deref(), &audio).map(Box::new);
+
+        Self {
+            message: Some(message),
+            file: Some(file),
+            audio: Some(audio),
+            #[cfg(feature = "unstable-msc3245")]
+            voice: None,
+            body,
+            source,
+            info,
+        }
+    }
+
+    /// Create a new `AudioMessageEventContent` with the given message, file info, audio info and
+    /// voice flag.
+    #[cfg(feature = "unstable-msc3245")]
+    pub fn from_extensible_voice_content(
+        message: MessageContent,
+        file: FileContent,
+        audio: AudioContent,
+        voice: VoiceContent,
+    ) -> Self {
+        let mut content = Self::from_extensible_content(message, file, audio);
+        content.voice = Some(voice);
+        content
     }
 }
 
@@ -523,9 +740,32 @@ impl AudioInfo {
     pub fn new() -> Self {
         Self::default()
     }
+
+    /// Create an `AudioInfo` from the given file info and audio info.
+    #[cfg(feature = "unstable-msc3246")]
+    pub fn from_extensible_content(
+        file_info: Option<&FileContentInfo>,
+        audio: &AudioContent,
+    ) -> Option<Self> {
+        if file_info.is_none() && audio.is_empty() {
+            None
+        } else {
+            let (mimetype, size) = file_info
+                .map(|info| (info.mimetype.to_owned(), info.size.to_owned()))
+                .unwrap_or_default();
+            let AudioContent { duration, .. } = audio;
+
+            Some(Self { duration: duration.to_owned(), mimetype, size })
+        }
+    }
 }
 
 /// The payload for an emote message.
+///
+/// With the `unstable-msc1767` feature, this type contains the transitional format of
+/// [`EmoteEventContent`]. See the documentation of the [`message`] module for more information.
+///
+/// [`message`]: crate::events::message
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.emote")]
@@ -594,9 +834,18 @@ impl From<MessageContent> for EmoteMessageEventContent {
 }
 
 /// The payload for a file message.
+///
+/// With the `unstable-msc3551` feature, this type contains the transitional format of
+/// [`FileEventContent`]. See the documentation of the [`message`] module for more information.
+///
+/// [`message`]: crate::events::message
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.file")]
+#[cfg_attr(
+    feature = "unstable-msc3551",
+    serde(from = "content_serde::FileMessageEventContentDeHelper")
+)]
 pub struct FileMessageEventContent {
     /// A human-readable description of the file.
     ///
@@ -611,22 +860,72 @@ pub struct FileMessageEventContent {
     #[serde(flatten)]
     pub source: MediaSource,
 
-    /// Metadata about the file referred to in `url`.
+    /// Metadata about the file referred to in `source`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<Box<FileInfo>>,
+
+    /// Extensible-event text representation of the message.
+    ///
+    /// If present, this should be preferred over the `body` field.
+    #[cfg(feature = "unstable-msc3551")]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub message: Option<MessageContent>,
+
+    /// Extensible-event file content of the message.
+    ///
+    /// If present, this should be preferred over the `source` and `info` fields.
+    #[cfg(feature = "unstable-msc3551")]
+    #[serde(rename = "org.matrix.msc1767.file", skip_serializing_if = "Option::is_none")]
+    pub file: Option<FileContent>,
 }
 
 impl FileMessageEventContent {
-    /// Creates a new non-encrypted `RoomFileMessageEventContent` with the given body, url and
+    /// Creates a new non-encrypted `FileMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<FileInfo>>) -> Self {
-        Self { body, filename: None, source: MediaSource::Plain(url), info }
+        Self {
+            #[cfg(feature = "unstable-msc3551")]
+            message: Some(MessageContent::plain(body.clone())),
+            #[cfg(feature = "unstable-msc3551")]
+            file: Some(FileContent::plain(
+                url.clone(),
+                info.as_deref().map(|info| Box::new(info.into())),
+            )),
+            body,
+            filename: None,
+            source: MediaSource::Plain(url),
+            info,
+        }
     }
 
-    /// Creates a new encrypted `RoomFileMessageEventContent` with the given body and encrypted
+    /// Creates a new encrypted `FileMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
-        Self { body, filename: None, source: MediaSource::Encrypted(Box::new(file)), info: None }
+        Self {
+            #[cfg(feature = "unstable-msc3551")]
+            message: Some(MessageContent::plain(body.clone())),
+            #[cfg(feature = "unstable-msc3551")]
+            file: Some(FileContent::encrypted(file.url.clone(), (&file).into(), None)),
+            body,
+            filename: None,
+            source: MediaSource::Encrypted(Box::new(file)),
+            info: None,
+        }
+    }
+
+    /// Create a new `FileMessageEventContent` with the given message and file info.
+    #[cfg(feature = "unstable-msc3551")]
+    pub fn from_extensible_content(message: MessageContent, file: FileContent) -> Self {
+        let body = if let Some(body) = message.find_plain() {
+            body.to_owned()
+        } else {
+            message[0].body.clone()
+        };
+        let filename = file.info.as_deref().and_then(|info| info.name.clone());
+        let info = file.info.as_deref().map(|info| Box::new(info.into()));
+        let source = (&file).into();
+
+        Self { message: Some(message), file: Some(file), body, filename, source, info }
     }
 }
 
@@ -662,10 +961,27 @@ impl FileInfo {
     }
 }
 
+#[cfg(feature = "unstable-msc3551")]
+impl From<&FileContentInfo> for FileInfo {
+    fn from(info: &FileContentInfo) -> Self {
+        let FileContentInfo { mimetype, size, .. } = info;
+        Self { mimetype: mimetype.to_owned(), size: size.to_owned(), ..Default::default() }
+    }
+}
+
 /// The payload for an image message.
+///
+/// With the `unstable-msc3552` feature, this type contains the transitional format of
+/// [`ImageEventContent`]. See the documentation of the [`message`] module for more information.
+///
+/// [`message`]: crate::events::message
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.image")]
+#[cfg_attr(
+    feature = "unstable-msc3552",
+    serde(from = "content_serde::ImageMessageEventContentDeHelper")
+)]
 pub struct ImageMessageEventContent {
     /// A textual representation of the image.
     ///
@@ -677,29 +993,147 @@ pub struct ImageMessageEventContent {
     #[serde(flatten)]
     pub source: MediaSource,
 
-    /// Metadata about the image referred to in `url`.
+    /// Metadata about the image referred to in `source`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<Box<ImageInfo>>,
+
+    /// Extensible-event text representation of the message.
+    ///
+    /// If present, this should be preferred over the `body` field.
+    #[cfg(feature = "unstable-msc3552")]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub message: Option<MessageContent>,
+
+    /// Extensible-event file content of the message.
+    ///
+    /// If present, this should be preferred over the `source` and `info` fields.
+    #[cfg(feature = "unstable-msc3552")]
+    #[serde(rename = "org.matrix.msc1767.file", skip_serializing_if = "Option::is_none")]
+    pub file: Option<FileContent>,
+
+    /// Extensible-event image info of the message.
+    ///
+    /// If present, this should be preferred over the `info` field.
+    #[cfg(feature = "unstable-msc3552")]
+    #[serde(rename = "org.matrix.msc1767.image", skip_serializing_if = "Option::is_none")]
+    pub image: Option<Box<ImageContent>>,
+
+    /// Extensible-event thumbnails of the message.
+    ///
+    /// If present, this should be preferred over the `info` field.
+    #[cfg(feature = "unstable-msc3552")]
+    #[serde(rename = "org.matrix.msc1767.thumbnail", skip_serializing_if = "Option::is_none")]
+    pub thumbnail: Option<Vec<ThumbnailContent>>,
+
+    /// Extensible-event captions of the message.
+    #[cfg(feature = "unstable-msc3552")]
+    #[serde(
+        rename = "org.matrix.msc1767.caption",
+        with = "crate::events::message::content_serde::as_vec",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub caption: Option<MessageContent>,
 }
 
 impl ImageMessageEventContent {
-    /// Creates a new non-encrypted `RoomImageMessageEventContent` with the given body, url and
+    /// Creates a new non-encrypted `ImageMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<ImageInfo>>) -> Self {
-        Self { body, source: MediaSource::Plain(url), info }
+        Self {
+            #[cfg(feature = "unstable-msc3552")]
+            message: Some(MessageContent::plain(body.clone())),
+            #[cfg(feature = "unstable-msc3552")]
+            file: Some(FileContent::plain(
+                url.clone(),
+                info.as_deref().map(|info| Box::new(info.into())),
+            )),
+            #[cfg(feature = "unstable-msc3552")]
+            image: Some(Box::new(info.as_deref().map_or_else(ImageContent::default, Into::into))),
+            #[cfg(feature = "unstable-msc3552")]
+            thumbnail: info
+                .as_deref()
+                .and_then(|info| {
+                    ThumbnailContent::from_room_message_content(
+                        info.thumbnail_source.as_ref(),
+                        info.thumbnail_info.as_deref(),
+                    )
+                })
+                .map(|thumbnail| vec![thumbnail]),
+            #[cfg(feature = "unstable-msc3552")]
+            caption: None,
+            body,
+            source: MediaSource::Plain(url),
+            info,
+        }
     }
 
-    /// Creates a new encrypted `RoomImageMessageEventContent` with the given body and encrypted
+    /// Creates a new encrypted `ImageMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
-        Self { body, source: MediaSource::Encrypted(Box::new(file)), info: None }
+        Self {
+            #[cfg(feature = "unstable-msc3552")]
+            message: Some(MessageContent::plain(body.clone())),
+            #[cfg(feature = "unstable-msc3552")]
+            file: Some(FileContent::encrypted(file.url.clone(), (&file).into(), None)),
+            #[cfg(feature = "unstable-msc3552")]
+            image: Some(Box::new(ImageContent::default())),
+            #[cfg(feature = "unstable-msc3552")]
+            thumbnail: None,
+            #[cfg(feature = "unstable-msc3552")]
+            caption: None,
+            body,
+            source: MediaSource::Encrypted(Box::new(file)),
+            info: None,
+        }
+    }
+
+    /// Create a new `ImageMessageEventContent` with the given message, file info, image info,
+    /// thumbnails and captions.
+    #[cfg(feature = "unstable-msc3552")]
+    pub fn from_extensible_content(
+        message: MessageContent,
+        file: FileContent,
+        image: Box<ImageContent>,
+        thumbnail: Vec<ThumbnailContent>,
+        caption: Option<MessageContent>,
+    ) -> Self {
+        let body = if let Some(body) = message.find_plain() {
+            body.to_owned()
+        } else {
+            message[0].body.clone()
+        };
+        let source = (&file).into();
+        let info = ImageInfo::from_extensible_content(file.info.as_deref(), &image, &thumbnail)
+            .map(Box::new);
+        let thumbnail = if thumbnail.is_empty() { None } else { Some(thumbnail) };
+
+        Self {
+            message: Some(message),
+            file: Some(file),
+            image: Some(image),
+            thumbnail,
+            caption,
+            body,
+            source,
+            info,
+        }
     }
 }
 
 /// The payload for a location message.
+///
+/// With the `unstable-msc3488` feature, this type contains the transitional format of
+/// [`LocationEventContent`]. See the documentation of the [`message`] module for more information.
+///
+/// [`message`]: crate::events::message
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.location")]
+#[cfg_attr(
+    feature = "unstable-msc3488",
+    serde(from = "content_serde::LocationMessageEventContentDeHelper")
+)]
 pub struct LocationMessageEventContent {
     /// A description of the location e.g. "Big Ben, London, UK", or some kind of content
     /// description for accessibility, e.g. "location attachment".
@@ -711,12 +1145,75 @@ pub struct LocationMessageEventContent {
     /// Info about the location being represented.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<Box<LocationInfo>>,
+
+    /// Extensible-event text representation of the message.
+    ///
+    /// If present, this should be preferred over the `body` field.
+    #[cfg(feature = "unstable-msc3488")]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub message: Option<MessageContent>,
+
+    /// Extensible-event location info of the message.
+    ///
+    /// If present, this should be preferred over the `geo_uri` field.
+    #[cfg(feature = "unstable-msc3488")]
+    #[serde(rename = "org.matrix.msc3488.location", skip_serializing_if = "Option::is_none")]
+    pub location: Option<LocationContent>,
+
+    /// Extensible-event asset this message refers to.
+    #[cfg(feature = "unstable-msc3488")]
+    #[serde(rename = "org.matrix.msc3488.asset", skip_serializing_if = "Option::is_none")]
+    pub asset: Option<AssetContent>,
+
+    /// Extensible-event timestamp this message refers to.
+    #[cfg(feature = "unstable-msc3488")]
+    #[serde(rename = "org.matrix.msc3488.ts", skip_serializing_if = "Option::is_none")]
+    pub ts: Option<MilliSecondsSinceUnixEpoch>,
 }
 
 impl LocationMessageEventContent {
-    /// Creates a new `RoomLocationMessageEventContent` with the given body and geo URI.
+    /// Creates a new `LocationMessageEventContent` with the given body and geo URI.
     pub fn new(body: String, geo_uri: String) -> Self {
-        Self { body, geo_uri, info: None }
+        Self {
+            #[cfg(feature = "unstable-msc3488")]
+            message: Some(MessageContent::plain(body.clone())),
+            #[cfg(feature = "unstable-msc3488")]
+            location: Some(LocationContent::new(geo_uri.clone())),
+            #[cfg(feature = "unstable-msc3488")]
+            asset: None,
+            #[cfg(feature = "unstable-msc3488")]
+            ts: None,
+            body,
+            geo_uri,
+            info: None,
+        }
+    }
+
+    /// Create a new `LocationMessageEventContent` with the given message, location info, asset and
+    /// timestamp.
+    #[cfg(feature = "unstable-msc3488")]
+    pub fn from_extensible_content(
+        message: MessageContent,
+        location: LocationContent,
+        asset: AssetContent,
+        ts: Option<MilliSecondsSinceUnixEpoch>,
+    ) -> Self {
+        let body = if let Some(body) = message.find_plain() {
+            body.to_owned()
+        } else {
+            message[0].body.clone()
+        };
+        let geo_uri = location.uri.clone();
+
+        Self {
+            message: Some(message),
+            location: Some(location),
+            asset: Some(asset),
+            ts,
+            body,
+            geo_uri,
+            info: None,
+        }
     }
 }
 
@@ -724,7 +1221,7 @@ impl LocationMessageEventContent {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct LocationInfo {
-    /// The URL to a thumbnail of the location.
+    /// The source of a thumbnail of the location.
     #[serde(
         flatten,
         with = "super::thumbnail_source_serde",
@@ -745,6 +1242,11 @@ impl LocationInfo {
 }
 
 /// The payload for a notice message.
+///
+/// With the `unstable-msc1767` feature, this type contains the transitional format of
+/// [`NoticeEventContent`]. See the documentation of the [`message`] module for more information.
+///
+/// [`message`]: crate::events::message
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.notice")]
@@ -837,16 +1339,14 @@ pub struct ServerNoticeMessageEventContent {
 }
 
 impl ServerNoticeMessageEventContent {
-    /// Creates a new `RoomServerNoticeMessageEventContent` with the given body and notice type.
+    /// Creates a new `ServerNoticeMessageEventContent` with the given body and notice type.
     pub fn new(body: String, server_notice_type: ServerNoticeType) -> Self {
         Self { body, server_notice_type, admin_contact: None, limit_type: None }
     }
 }
 
 /// Types of server notices.
-///
-/// This type can hold an arbitrary string. To check for formats that are not available as a
-/// documented variant here, use its string representation, obtained through `.as_str()`.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[non_exhaustive]
 pub enum ServerNoticeType {
@@ -867,8 +1367,9 @@ impl ServerNoticeType {
 
 /// Types of usage limits.
 ///
-/// This type can hold an arbitrary string. To check for formats that are not available as a
-/// documented variant here, use its string representation, obtained through `.as_str()`.
+/// This type can hold an arbitrary string. To build this with a custom value, convert it from a
+/// string with `::from() / .into()`. To check for formats that are not available as a documented
+/// variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
@@ -892,8 +1393,9 @@ impl LimitType {
 
 /// The format for the formatted representation of a message body.
 ///
-/// This type can hold an arbitrary string. To check for formats that are not available as a
-/// documented variant here, use its string representation, obtained through `.as_str()`.
+/// This type can hold an arbitrary string. To build this with a custom value, convert it from a
+/// string with `::from() / .into()`. To check for formats that are not available as a documented
+/// variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[non_exhaustive]
 pub enum MessageFormat {
@@ -931,9 +1433,9 @@ impl FormattedBody {
         Self { format: MessageFormat::Html, body: body.into() }
     }
 
-    /// Creates a new HTML-formatted message body by parsing the markdown in `body`.
+    /// Creates a new HTML-formatted message body by parsing the Markdown in `body`.
     ///
-    /// Returns `None` if no markdown formatting was found.
+    /// Returns `None` if no Markdown formatting was found.
     #[cfg(feature = "markdown")]
     pub fn markdown(body: impl AsRef<str>) -> Option<Self> {
         let body = body.as_ref();
@@ -946,6 +1448,11 @@ impl FormattedBody {
 }
 
 /// The payload for a text message.
+///
+/// With the `unstable-msc1767` feature, this type contains the transitional format of
+/// [`MessageEventContent`]. See the documentation of the [`message`] module for more information.
+///
+/// [`message`]: crate::events::message
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.text")]
@@ -977,7 +1484,7 @@ impl TextMessageEventContent {
         }
     }
 
-    /// A convenience constructor to create an html message.
+    /// A convenience constructor to create an HTML message.
     pub fn html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
         let body = body.into();
         let html_body = html_body.into();
@@ -989,9 +1496,9 @@ impl TextMessageEventContent {
         }
     }
 
-    /// A convenience constructor to create a markdown message.
+    /// A convenience constructor to create a Markdown message.
     ///
-    /// Returns an html message if some markdown formatting was detected, otherwise returns a plain
+    /// Returns an HTML message if some Markdown formatting was detected, otherwise returns a plain
     /// text message.
     #[cfg(feature = "markdown")]
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
@@ -1014,9 +1521,18 @@ impl From<MessageContent> for TextMessageEventContent {
 }
 
 /// The payload for a video message.
+///
+/// With the `unstable-msc3553` feature, this type contains the transitional format of
+/// [`VideoEventContent`]. See the documentation of the [`message`] module for more information.
+///
+/// [`message`]: crate::events::message
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.video")]
+#[cfg_attr(
+    feature = "unstable-msc3553",
+    serde(from = "content_serde::VideoMessageEventContentDeHelper")
+)]
 pub struct VideoMessageEventContent {
     /// A description of the video, e.g. "Gangnam Style", or some kind of content description for
     /// accessibility, e.g. "video attachment".
@@ -1026,22 +1542,131 @@ pub struct VideoMessageEventContent {
     #[serde(flatten)]
     pub source: MediaSource,
 
-    /// Metadata about the video clip referred to in `url`.
+    /// Metadata about the video clip referred to in `source`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<Box<VideoInfo>>,
+
+    /// Extensible-event text representation of the message.
+    ///
+    /// If present, this should be preferred over the `body` field.
+    #[cfg(feature = "unstable-msc3553")]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub message: Option<MessageContent>,
+
+    /// Extensible-event file content of the message.
+    ///
+    /// If present, this should be preferred over the `source` and `info` fields.
+    #[cfg(feature = "unstable-msc3553")]
+    #[serde(rename = "org.matrix.msc1767.file", skip_serializing_if = "Option::is_none")]
+    pub file: Option<FileContent>,
+
+    /// Extensible-event video info of the message.
+    ///
+    /// If present, this should be preferred over the `info` field.
+    #[cfg(feature = "unstable-msc3553")]
+    #[serde(rename = "org.matrix.msc1767.video", skip_serializing_if = "Option::is_none")]
+    pub video: Option<Box<VideoContent>>,
+
+    /// Extensible-event thumbnails of the message.
+    ///
+    /// If present, this should be preferred over the `info` field.
+    #[cfg(feature = "unstable-msc3553")]
+    #[serde(rename = "org.matrix.msc1767.thumbnail", skip_serializing_if = "Option::is_none")]
+    pub thumbnail: Option<Vec<ThumbnailContent>>,
+
+    /// Extensible-event captions of the message.
+    #[cfg(feature = "unstable-msc3553")]
+    #[serde(
+        rename = "org.matrix.msc1767.caption",
+        with = "crate::events::message::content_serde::as_vec",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub caption: Option<MessageContent>,
 }
 
 impl VideoMessageEventContent {
-    /// Creates a new non-encrypted `RoomVideoMessageEventContent` with the given body, url and
+    /// Creates a new non-encrypted `VideoMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<VideoInfo>>) -> Self {
-        Self { body, source: MediaSource::Plain(url), info }
+        Self {
+            #[cfg(feature = "unstable-msc3553")]
+            message: Some(MessageContent::plain(body.clone())),
+            #[cfg(feature = "unstable-msc3553")]
+            file: Some(FileContent::plain(
+                url.clone(),
+                info.as_deref().map(|info| Box::new(info.into())),
+            )),
+            #[cfg(feature = "unstable-msc3553")]
+            video: Some(Box::new(info.as_deref().map_or_else(VideoContent::default, Into::into))),
+            #[cfg(feature = "unstable-msc3553")]
+            thumbnail: info
+                .as_deref()
+                .and_then(|info| {
+                    ThumbnailContent::from_room_message_content(
+                        info.thumbnail_source.as_ref(),
+                        info.thumbnail_info.as_deref(),
+                    )
+                })
+                .map(|thumbnail| vec![thumbnail]),
+            #[cfg(feature = "unstable-msc3553")]
+            caption: None,
+            body,
+            source: MediaSource::Plain(url),
+            info,
+        }
     }
 
-    /// Creates a new encrypted `RoomVideoMessageEventContent` with the given body and encrypted
+    /// Creates a new encrypted `VideoMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
-        Self { body, source: MediaSource::Encrypted(Box::new(file)), info: None }
+        Self {
+            #[cfg(feature = "unstable-msc3553")]
+            message: Some(MessageContent::plain(body.clone())),
+            #[cfg(feature = "unstable-msc3553")]
+            file: Some(FileContent::encrypted(file.url.clone(), (&file).into(), None)),
+            #[cfg(feature = "unstable-msc3553")]
+            video: Some(Box::new(VideoContent::default())),
+            #[cfg(feature = "unstable-msc3553")]
+            thumbnail: None,
+            #[cfg(feature = "unstable-msc3553")]
+            caption: None,
+            body,
+            source: MediaSource::Encrypted(Box::new(file)),
+            info: None,
+        }
+    }
+
+    /// Create a new `VideoMessageEventContent` with the given message, file info, video info,
+    /// thumbnails and captions.
+    #[cfg(feature = "unstable-msc3553")]
+    pub fn from_extensible_content(
+        message: MessageContent,
+        file: FileContent,
+        video: Box<VideoContent>,
+        thumbnail: Vec<ThumbnailContent>,
+        caption: Option<MessageContent>,
+    ) -> Self {
+        let body = if let Some(body) = message.find_plain() {
+            body.to_owned()
+        } else {
+            message[0].body.clone()
+        };
+        let source = (&file).into();
+        let info = VideoInfo::from_extensible_content(file.info.as_deref(), &video, &thumbnail)
+            .map(Box::new);
+        let thumbnail = if thumbnail.is_empty() { None } else { Some(thumbnail) };
+
+        Self {
+            message: Some(message),
+            file: Some(file),
+            video: Some(video),
+            thumbnail,
+            caption,
+            body,
+            source,
+            info,
+        }
     }
 }
 
@@ -1099,6 +1724,47 @@ impl VideoInfo {
     pub fn new() -> Self {
         Self::default()
     }
+
+    /// Create a `VideoInfo` from the given file info, video info and thumbnail.
+    #[cfg(feature = "unstable-msc3553")]
+    pub fn from_extensible_content(
+        file_info: Option<&FileContentInfo>,
+        video: &VideoContent,
+        thumbnail: &[ThumbnailContent],
+    ) -> Option<Self> {
+        if file_info.is_none() && video.is_empty() && thumbnail.is_empty() {
+            None
+        } else {
+            let (mimetype, size) = file_info
+                .map(|info| (info.mimetype.to_owned(), info.size.to_owned()))
+                .unwrap_or_default();
+            let VideoContent { duration, height, width } = video.to_owned();
+            let (thumbnail_source, thumbnail_info) = thumbnail
+                .get(0)
+                .map(|thumbnail| {
+                    let source = (&thumbnail.file).into();
+                    let info = ThumbnailInfo::from_extensible_content(
+                        thumbnail.file.info.as_deref(),
+                        thumbnail.image.as_deref(),
+                    )
+                    .map(Box::new);
+                    (Some(source), info)
+                })
+                .unwrap_or_default();
+
+            Some(Self {
+                duration,
+                height,
+                width,
+                mimetype,
+                size,
+                thumbnail_info,
+                thumbnail_source,
+                #[cfg(feature = "unstable-msc2448")]
+                blurhash: None,
+            })
+        }
+    }
 }
 
 /// The payload for a key verification request message.
@@ -1125,7 +1791,7 @@ pub struct KeyVerificationRequestEventContent {
 }
 
 impl KeyVerificationRequestEventContent {
-    /// Creates a new `RoomKeyVerificationRequestEventContent` with the given body, method, device
+    /// Creates a new `KeyVerificationRequestEventContent` with the given body, method, device
     /// and user ID.
     pub fn new(
         body: String,

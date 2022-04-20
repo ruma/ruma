@@ -305,7 +305,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     use crate::{room_id, serde::Raw, user_id};
-    use js_int::uint;
+    use js_int::{int, uint};
     use maplit::btreemap;
     use matches::assert_matches;
     use serde_json::{
@@ -468,15 +468,15 @@ mod tests {
         let first_sender = user_id!("@worthy_whale:server.name").to_owned();
 
         let mut users_power_levels = BTreeMap::new();
-        users_power_levels.insert(first_sender, 25.into());
+        users_power_levels.insert(first_sender, int!(25));
 
         let context = PushConditionRoomCtx {
             room_id: room_id!("!room:server.name").to_owned(),
-            member_count: 3_u8.into(),
+            member_count: uint!(3),
             user_display_name: "Groovy Gorilla".into(),
             users_power_levels,
-            default_power_level: 50.into(),
-            notification_power_levels: NotificationPowerLevels { room: 50.into() },
+            default_power_level: int!(50),
+            notification_power_levels: NotificationPowerLevels { room: int!(50) },
         };
 
         let first_event_raw = serde_json::from_str::<Raw<JsonValue>>(

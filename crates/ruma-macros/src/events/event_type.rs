@@ -44,14 +44,38 @@ pub fn expand_event_type_enum(
 
     let mut res = TokenStream::new();
 
-    res.extend(generate_enum("EventType", &all, &ruma_common)?);
-    res.extend(generate_enum("RoomEventType", &room, &ruma_common)?);
-    res.extend(generate_enum("StateEventType", &state, &ruma_common)?);
-    res.extend(generate_enum("MessageLikeEventType", &message, &ruma_common)?);
-    res.extend(generate_enum("EphemeralRoomEventType", &ephemeral, &ruma_common)?);
-    res.extend(generate_enum("RoomAccountDataEventType", &room_account, &ruma_common)?);
-    res.extend(generate_enum("GlobalAccountDataEventType", &global_account, &ruma_common)?);
-    res.extend(generate_enum("ToDeviceEventType", &to_device, &ruma_common)?);
+    res.extend(
+        generate_enum("EventType", &all, &ruma_common)
+            .unwrap_or_else(syn::Error::into_compile_error),
+    );
+    res.extend(
+        generate_enum("RoomEventType", &room, &ruma_common)
+            .unwrap_or_else(syn::Error::into_compile_error),
+    );
+    res.extend(
+        generate_enum("StateEventType", &state, &ruma_common)
+            .unwrap_or_else(syn::Error::into_compile_error),
+    );
+    res.extend(
+        generate_enum("MessageLikeEventType", &message, &ruma_common)
+            .unwrap_or_else(syn::Error::into_compile_error),
+    );
+    res.extend(
+        generate_enum("EphemeralRoomEventType", &ephemeral, &ruma_common)
+            .unwrap_or_else(syn::Error::into_compile_error),
+    );
+    res.extend(
+        generate_enum("RoomAccountDataEventType", &room_account, &ruma_common)
+            .unwrap_or_else(syn::Error::into_compile_error),
+    );
+    res.extend(
+        generate_enum("GlobalAccountDataEventType", &global_account, &ruma_common)
+            .unwrap_or_else(syn::Error::into_compile_error),
+    );
+    res.extend(
+        generate_enum("ToDeviceEventType", &to_device, &ruma_common)
+            .unwrap_or_else(syn::Error::into_compile_error),
+    );
 
     Ok(res)
 }
@@ -140,8 +164,9 @@ fn generate_enum(
     Ok(quote! {
         #[doc = #enum_doc]
         ///
-        /// This type can hold an arbitrary string. To check for events that are not available as a
-        /// documented variant here, use its string representation, obtained through `.as_str()`.
+        /// This type can hold an arbitrary string. To build events with a custom type, convert it
+        /// from a string with `::from() / .into()`. To check for events that are not available as a
+        /// documented variant here, use its string representation, obtained through `.to_string()`.
         #deprecated_attr
         #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]

@@ -15,7 +15,7 @@ use ruma_common::{
             EmoteMessageEventContent, InReplyTo, MessageType, NoticeMessageEventContent, Relation,
             RoomMessageEventContent, TextMessageEventContent,
         },
-        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned,
+        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
     },
     room_id, user_id, MilliSecondsSinceUnixEpoch,
 };
@@ -126,7 +126,7 @@ fn relates_to_content_serialization() {
 
 #[test]
 fn message_event_serialization() {
-    let event = MessageLikeEvent {
+    let event = OriginalMessageLikeEvent {
         content: MessageEventContent::plain("Hello, World!"),
         event_id: event_id!("$event:notareal.hs").to_owned(),
         sender: user_id!("@user:notareal.hs").to_owned(),
@@ -256,7 +256,7 @@ fn message_event_deserialization() {
 
     assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Message(MessageLikeEvent {
+        AnyMessageLikeEvent::Message(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: MessageEventContent {
                 message,
                 ..
@@ -266,7 +266,7 @@ fn message_event_deserialization() {
             room_id,
             sender,
             unsigned
-        }) if event_id == event_id!("$event:notareal.hs")
+        })) if event_id == event_id!("$event:notareal.hs")
             && message.find_plain() == Some("Hello, World!")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
             && room_id == room_id!("!roomid:notareal.hs")
@@ -391,7 +391,7 @@ fn room_message_html_text_unstable_deserialization() {
 
 #[test]
 fn notice_event_serialization() {
-    let event = MessageLikeEvent {
+    let event = OriginalMessageLikeEvent {
         content: NoticeEventContent::plain("Hello, I'm a robot!"),
         event_id: event_id!("$event:notareal.hs").to_owned(),
         sender: user_id!("@user:notareal.hs").to_owned(),
@@ -448,7 +448,7 @@ fn notice_event_stable_deserialization() {
 
     assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Notice(MessageLikeEvent {
+        AnyMessageLikeEvent::Notice(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: NoticeEventContent {
                 message,
                 ..
@@ -458,7 +458,7 @@ fn notice_event_stable_deserialization() {
             room_id,
             sender,
             unsigned
-        }) if event_id == event_id!("$event:notareal.hs")
+        })) if event_id == event_id!("$event:notareal.hs")
             && message.find_plain() == Some("Hello, I'm a robot!")
             && message.find_html() == Some("Hello, I'm a <em>robot</em>!")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
@@ -486,7 +486,7 @@ fn notice_event_unstable_deserialization() {
 
     assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Notice(MessageLikeEvent {
+        AnyMessageLikeEvent::Notice(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: NoticeEventContent {
                 message,
                 ..
@@ -496,7 +496,7 @@ fn notice_event_unstable_deserialization() {
             room_id,
             sender,
             unsigned
-        }) if event_id == event_id!("$event:notareal.hs")
+        })) if event_id == event_id!("$event:notareal.hs")
             && message.find_plain() == Some("Hello, I'm a robot!")
             && message.find_html() == Some("Hello, I'm a <em>robot</em>!")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
@@ -558,7 +558,7 @@ fn room_message_notice_unstable_deserialization() {
 
 #[test]
 fn emote_event_serialization() {
-    let event = MessageLikeEvent {
+    let event = OriginalMessageLikeEvent {
         content: EmoteEventContent::html(
             "is testing some code…",
             "is testing some <code>code</code>…",
@@ -619,7 +619,7 @@ fn emote_event_stable_deserialization() {
 
     assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Emote(MessageLikeEvent {
+        AnyMessageLikeEvent::Emote(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: EmoteEventContent {
                 message,
                 ..
@@ -629,7 +629,7 @@ fn emote_event_stable_deserialization() {
             room_id,
             sender,
             unsigned
-        }) if event_id == event_id!("$event:notareal.hs")
+        })) if event_id == event_id!("$event:notareal.hs")
             && message.find_plain() == Some("is testing some code…")
             && message.find_html().is_none()
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
@@ -654,7 +654,7 @@ fn emote_event_unstable_deserialization() {
 
     assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Emote(MessageLikeEvent {
+        AnyMessageLikeEvent::Emote(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: EmoteEventContent {
                 message,
                 ..
@@ -664,7 +664,7 @@ fn emote_event_unstable_deserialization() {
             room_id,
             sender,
             unsigned
-        }) if event_id == event_id!("$event:notareal.hs")
+        })) if event_id == event_id!("$event:notareal.hs")
             && message.find_plain() == Some("is testing some code…")
             && message.find_html().is_none()
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))

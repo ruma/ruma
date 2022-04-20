@@ -28,6 +28,10 @@ pub enum CiCmd {
     MsrvClient,
     /// Check ruma crate with default features (msrv)
     MsrvRuma,
+    /// Check ruma-identifiers with `ruma_identifiers_storage="Box"`
+    MsrvOwnedIdBox,
+    /// Check ruma-identifiers with `ruma_identifiers_storage="Arc"`
+    MsrvOwnedIdArc,
     /// Run all the tasks that use the stable version
     Stable,
     /// Check all crates with all features (stable)
@@ -85,6 +89,8 @@ impl CiTask {
             Some(CiCmd::MsrvAll) => self.msrv_all()?,
             Some(CiCmd::MsrvClient) => self.msrv_client()?,
             Some(CiCmd::MsrvRuma) => self.msrv_ruma()?,
+            Some(CiCmd::MsrvOwnedIdBox) => self.msrv_owned_id_box()?,
+            Some(CiCmd::MsrvOwnedIdArc) => self.msrv_owned_id_arc()?,
             Some(CiCmd::Stable) => self.stable()?,
             Some(CiCmd::StableAll) => self.stable_all()?,
             Some(CiCmd::StableClient) => self.stable_client()?,
@@ -208,6 +214,22 @@ impl CiTask {
     /// Check ruma crate with full feature with the nightly version.
     fn nightly_full(&self) -> Result<()> {
         cmd!("rustup run {NIGHTLY} cargo check -p ruma --features full").run().map_err(Into::into)
+    }
+
+    /// Check ruma-common with `ruma_identifiers_storage="Box"`
+    fn msrv_owned_id_box(&self) -> Result<()> {
+        cmd!("rustup run {MSRV} cargo check -p ruma-common")
+            .env("RUSTFLAGS", "--cfg=ruma_identifiers_storage=\"Box\"")
+            .run()
+            .map_err(Into::into)
+    }
+
+    /// Check ruma-common with `ruma_identifiers_storage="Arc"`
+    fn msrv_owned_id_arc(&self) -> Result<()> {
+        cmd!("rustup run {MSRV} cargo check -p ruma-common")
+            .env("RUSTFLAGS", "--cfg=ruma_identifiers_storage=\"Arc\"")
+            .run()
+            .map_err(Into::into)
     }
 
     /// Lint default features with clippy with the nightly version.

@@ -12,10 +12,12 @@ use ruma_common::{
         file::{EncryptedContentInit, FileContent, FileContentInfo},
         message::MessageContent,
         room::{
-            message::{InReplyTo, Relation},
-            JsonWebKeyInit,
+            message::{
+                AudioMessageEventContent, InReplyTo, MessageType, Relation, RoomMessageEventContent,
+            },
+            JsonWebKeyInit, MediaSource,
         },
-        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned,
+        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
     },
     mxc_uri, room_id,
     serde::Base64,
@@ -58,7 +60,7 @@ fn waveform_deserialization_clamp_amplitude() {
 
     assert_matches!(
         from_json_value::<Waveform>(json_data).unwrap(),
-        waveform if waveform.amplitudes().iter().all(|amp| amp.value() == Amplitude::MAX.into())
+        waveform if waveform.amplitudes().iter().all(|amp| amp.get() == Amplitude::MAX.into())
     );
 }
 
@@ -135,7 +137,7 @@ fn encrypted_content_serialization() {
 
 #[test]
 fn event_serialization() {
-    let event = MessageLikeEvent {
+    let event = OriginalMessageLikeEvent {
         content: assign!(
             AudioEventContent::with_message(
                 MessageContent::html(
@@ -208,7 +210,7 @@ fn event_serialization() {
 #[test]
 fn plain_content_deserialization() {
     let json_data = json!({
-        "org.matrix.msc1767.text": "Upload: my_new_song.webm",
+        "m.text": "Upload: my_new_song.webm",
         "m.file": {
             "url": "mxc://notareal.hs/abcdef",
         },
@@ -289,7 +291,7 @@ fn plain_content_deserialization() {
 #[test]
 fn encrypted_content_deserialization() {
     let json_data = json!({
-        "org.matrix.msc1767.text": "Upload: my_file.txt",
+        "m.text": "Upload: my_file.txt",
         "m.file": {
             "url": "mxc://notareal.hs/abcdef",
             "key": {
@@ -328,7 +330,7 @@ fn encrypted_content_deserialization() {
 fn message_event_deserialization() {
     let json_data = json!({
         "content": {
-            "org.matrix.msc1767.text": "Upload: airplane_sound.opus",
+            "m.text": "Upload: airplane_sound.opus",
             "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "airplane_sound.opus",
@@ -348,7 +350,7 @@ fn message_event_deserialization() {
 
     assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Audio(MessageLikeEvent {
+        AnyMessageLikeEvent::Audio(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: AudioEventContent {
                 message,
                 file: FileContent {
@@ -364,7 +366,7 @@ fn message_event_deserialization() {
             room_id,
             sender,
             unsigned
-        }) if event_id == event_id!("$event:notareal.hs")
+        })) if event_id == event_id!("$event:notareal.hs")
             && message.find_plain() == Some("Upload: airplane_sound.opus")
             && message.find_html().is_none()
             && url == "mxc://notareal.hs/abcdef"
@@ -378,4 +380,88 @@ fn message_event_deserialization() {
             && sender == user_id!("@user:notareal.hs")
             && unsigned.is_empty()
     );
+}
+
+#[test]
+fn room_message_serialization() {
+    let message_event_content =
+        RoomMessageEventContent::new(MessageType::Audio(AudioMessageEventContent::plain(
+            "Upload: my_song.mp3".to_owned(),
+            mxc_uri!("mxc://notareal.hs/file").to_owned(),
+            None,
+        )));
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "Upload: my_song.mp3",
+            "url": "mxc://notareal.hs/file",
+            "msgtype": "m.audio",
+            "org.matrix.msc1767.text": "Upload: my_song.mp3",
+            "org.matrix.msc1767.file": {
+                "url": "mxc://notareal.hs/file",
+            },
+            "org.matrix.msc1767.audio": {},
+        })
+    );
+}
+
+#[test]
+fn room_message_stable_deserialization() {
+    let json_data = json!({
+        "body": "Upload: my_song.mp3",
+        "url": "mxc://notareal.hs/file",
+        "msgtype": "m.audio",
+        "m.text": "Upload: my_song.mp3",
+        "m.file": {
+            "url": "mxc://notareal.hs/file",
+        },
+        "m.audio": {},
+    });
+
+    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    assert_matches!(event_content.msgtype, MessageType::Audio(_));
+    if let MessageType::Audio(content) = event_content.msgtype {
+        assert_eq!(content.body, "Upload: my_song.mp3");
+        assert_matches!(content.source, MediaSource::Plain(_));
+        if let MediaSource::Plain(url) = content.source {
+            assert_eq!(url, "mxc://notareal.hs/file");
+        }
+        let message = content.message.unwrap();
+        assert_eq!(message.len(), 1);
+        assert_eq!(message[0].body, "Upload: my_song.mp3");
+        let file = content.file.unwrap();
+        assert_eq!(file.url, "mxc://notareal.hs/file");
+        assert!(!file.is_encrypted());
+    }
+}
+
+#[test]
+fn room_message_unstable_deserialization() {
+    let json_data = json!({
+        "body": "Upload: my_song.mp3",
+        "url": "mxc://notareal.hs/file",
+        "msgtype": "m.audio",
+        "org.matrix.msc1767.text": "Upload: my_song.mp3",
+        "org.matrix.msc1767.file": {
+            "url": "mxc://notareal.hs/file",
+        },
+        "org.matrix.msc1767.audio": {},
+    });
+
+    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    assert_matches!(event_content.msgtype, MessageType::Audio(_));
+    if let MessageType::Audio(content) = event_content.msgtype {
+        assert_eq!(content.body, "Upload: my_song.mp3");
+        assert_matches!(content.source, MediaSource::Plain(_));
+        if let MediaSource::Plain(url) = content.source {
+            assert_eq!(url, "mxc://notareal.hs/file");
+        }
+        let message = content.message.unwrap();
+        assert_eq!(message.len(), 1);
+        assert_eq!(message[0].body, "Upload: my_song.mp3");
+        let file = content.file.unwrap();
+        assert_eq!(file.url, "mxc://notareal.hs/file");
+        assert!(!file.is_encrypted());
+    }
 }

@@ -11,7 +11,8 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use ruma_common::{
     events::{
-        room::power_levels::RoomPowerLevelsEventContent, AnyRoomEvent, AnyStateEvent, StateEvent,
+        room::power_levels::RoomPowerLevelsEventContent, AnyRoomEvent, AnyStateEvent,
+        OriginalStateEvent,
     },
     serde::Raw,
 };
@@ -76,9 +77,9 @@ fn deserialize_any_state_event(c: &mut Criterion) {
 fn deserialize_specific_event(c: &mut Criterion) {
     let json_data = power_levels();
 
-    c.bench_function("deserialize to `StateEvent<PowerLevelsEventContent>`", |b| {
+    c.bench_function("deserialize to `OriginalStateEvent<PowerLevelsEventContent>`", |b| {
         b.iter(|| {
-            let _ = serde_json::from_value::<StateEvent<RoomPowerLevelsEventContent>>(
+            let _ = serde_json::from_value::<OriginalStateEvent<RoomPowerLevelsEventContent>>(
                 json_data.clone(),
             )
             .unwrap();

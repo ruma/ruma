@@ -440,10 +440,8 @@ impl PusherData {
 /// A special format that the homeserver should use when sending notifications to a Push Gateway.
 /// Currently, only "event_id_only" is supported as of [Push Gateway API r0.1.1][spec].
 ///
-/// This type can hold an arbitrary string. To check for formats that are not available as a
-/// documented variant here, use its string representation, obtained through `.as_str()`.
-///
 /// [spec]: https://spec.matrix.org/v1.2/push-gateway-api/#homeserver-behaviour
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
@@ -466,7 +464,7 @@ impl PushFormat {
 mod tests {
     use std::collections::BTreeMap;
 
-    use js_int::uint;
+    use js_int::{int, uint};
     use matches::assert_matches;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value,
@@ -966,20 +964,20 @@ mod tests {
 
         let context_one_to_one = &PushConditionRoomCtx {
             room_id: room_id!("!dm:server.name").to_owned(),
-            member_count: 2_u32.into(),
+            member_count: uint!(2),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
-            default_power_level: 50.into(),
-            notification_power_levels: NotificationPowerLevels { room: 50.into() },
+            default_power_level: int!(50),
+            notification_power_levels: NotificationPowerLevels { room: int!(50) },
         };
 
         let context_public_room = &PushConditionRoomCtx {
             room_id: room_id!("!far_west:server.name").to_owned(),
-            member_count: 100_u32.into(),
+            member_count: uint!(100),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
-            default_power_level: 50.into(),
-            notification_power_levels: NotificationPowerLevels { room: 50.into() },
+            default_power_level: int!(50),
+            notification_power_levels: NotificationPowerLevels { room: int!(50) },
         };
 
         let message = serde_json::from_str::<Raw<JsonValue>>(
@@ -1065,11 +1063,11 @@ mod tests {
     fn custom_ruleset_applies() {
         let context_one_to_one = &PushConditionRoomCtx {
             room_id: room_id!("!dm:server.name").to_owned(),
-            member_count: 2_u32.into(),
+            member_count: uint!(2),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
-            default_power_level: 50.into(),
-            notification_power_levels: NotificationPowerLevels { room: 50.into() },
+            default_power_level: int!(50),
+            notification_power_levels: NotificationPowerLevels { room: int!(50) },
         };
 
         let message = serde_json::from_str::<Raw<JsonValue>>(

@@ -8,7 +8,7 @@ use ruma_common::{
         room::{ImageInfo, MediaSource, ThumbnailInfo},
         sticker::StickerEventContent,
         AnyMessageLikeEvent, AnyMessageLikeEventContent, AnySyncMessageLikeEvent, MessageLikeEvent,
-        MessageLikeEventType, MessageLikeUnsigned,
+        MessageLikeEventType, MessageLikeUnsigned, OriginalMessageLikeEvent,
     },
     mxc_uri, room_id,
     serde::Raw,
@@ -18,7 +18,7 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 
 #[test]
 fn message_serialize_sticker() {
-    let aliases_event = MessageLikeEvent {
+    let aliases_event = OriginalMessageLikeEvent {
         content: StickerEventContent::new(
             "Hello".into(),
             assign!(ImageInfo::new(), {
@@ -44,6 +44,8 @@ fn message_serialize_sticker() {
     };
 
     let actual = to_json_value(&aliases_event).unwrap();
+
+    #[cfg(not(feature = "unstable-msc3552"))]
     let expected = json!({
         "content": {
             "body": "Hello",
@@ -61,6 +63,51 @@ fn message_serialize_sticker() {
                 "w": 1011
               },
             "url": "mxc://matrix.org/rnsldl8srs98IRrs"
+        },
+        "event_id": "$h29iv0s8:example.com",
+        "origin_server_ts": 1,
+        "room_id": "!roomid:room.com",
+        "sender": "@carl:example.com",
+        "type": "m.sticker",
+    });
+
+    #[cfg(feature = "unstable-msc3552")]
+    let expected = json!({
+        "content": {
+            "body": "Hello",
+            "info": {
+                "h": 423,
+                "mimetype": "image/png",
+                "size": 84242,
+                "thumbnail_info": {
+                  "h": 334,
+                  "mimetype": "image/png",
+                  "size": 82595,
+                  "w": 800
+                },
+                "thumbnail_url": "mxc://matrix.org/irsns989Rrsn",
+                "w": 1011
+              },
+            "url": "mxc://matrix.org/rnsldl8srs98IRrs",
+            "org.matrix.msc1767.text": "Hello",
+            "org.matrix.msc1767.file": {
+                "url": "mxc://matrix.org/rnsldl8srs98IRrs",
+                "mimetype": "image/png",
+                "size": 84242,
+            },
+            "org.matrix.msc1767.image": {
+                "height": 423,
+                "width": 1011,
+            },
+            "org.matrix.msc1767.thumbnail": [
+                {
+                    "url": "mxc://matrix.org/irsns989Rrsn",
+                    "mimetype": "image/png",
+                    "size": 82595,
+                    "height": 334,
+                    "width": 800,
+                }
+            ],
         },
         "event_id": "$h29iv0s8:example.com",
         "origin_server_ts": 1,
@@ -121,7 +168,7 @@ fn deserialize_message_call_answer() {
 
     assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent {
+        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: CallAnswerEventContent {
                 answer: SessionDescription {
                     session_type: SessionDescriptionType::Answer,
@@ -137,7 +184,7 @@ fn deserialize_message_call_answer() {
             room_id,
             sender,
             unsigned,
-        }) if sdp == "Hello" && call_id == "foofoo" && version == UInt::new(1).unwrap()
+        })) if sdp == "Hello" && call_id == "foofoo" && version == UInt::new(1).unwrap()
             && event_id == event_id!("$h29iv0s8:example.com")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && room_id == room_id!("!roomid:room.com")
@@ -175,7 +222,7 @@ fn deserialize_message_sticker() {
 
     assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Sticker(MessageLikeEvent {
+        AnyMessageLikeEvent::Sticker(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: StickerEventContent {
                 body,
                 info: ImageInfo {
@@ -197,7 +244,7 @@ fn deserialize_message_sticker() {
             room_id,
             sender,
             unsigned
-        }) if event_id == event_id!("$h29iv0s8:example.com")
+        })) if event_id == event_id!("$h29iv0s8:example.com")
             && body == "Hello"
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && room_id == room_id!("!roomid:room.com")
@@ -247,7 +294,7 @@ fn deserialize_message_then_convert_to_full() {
 
     assert_matches!(
         sync_ev.into_full_event(rid.to_owned()),
-        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent {
+        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: CallAnswerEventContent {
                 answer: SessionDescription {
                     session_type: SessionDescriptionType::Answer,
@@ -263,7 +310,7 @@ fn deserialize_message_then_convert_to_full() {
             room_id,
             sender,
             unsigned,
-        }) if sdp == "Hello"
+        })) if sdp == "Hello"
             && call_id == "foofoo"
             && version == uint!(1)
             && event_id == "$h29iv0s8:example.com"
