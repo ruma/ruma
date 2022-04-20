@@ -8,7 +8,7 @@
 //! Which crates are re-exported can be configured through cargo features.
 //!
 //! > ⚠ Some details might be missing because rustdoc has trouble with re-exports so you may need
-//!   to refer to other crates' documentations.
+//! > to refer to other crates' documentations.
 //!
 //! # API features
 //!
@@ -28,7 +28,7 @@
 //! # Compatibility feature
 //!
 //! * `compat` increases compatibility with other parts of the Matrix ecosystem, at the expense of
-//! deviating from the specification.
+//!   deviating from the specification.
 //!
 //! # Convenience features
 //!
