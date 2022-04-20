@@ -278,7 +278,7 @@ impl CiTask {
             "
             rustup run {NIGHTLY} cargo sort
                 --workspace --grouped --check
-                --order package,lib,features,dependencies,dev-dependencies,build-dependencies
+                --order package,lib,features,dependencies,target,dev-dependencies,build-dependencies
             "
         )
         .run()
