@@ -118,6 +118,18 @@ impl RoomMemberEventContent {
             join_authorized_via_users_server: None,
         }
     }
+
+    /// Obtain the details about this event that are required to calculate a membership change.
+    ///
+    /// This is required when you want to calculate the change a redacted `m.room.member` event
+    /// made.
+    pub fn details(&self) -> MembershipDetails<'_> {
+        MembershipDetails {
+            avatar_url: self.avatar_url.as_deref(),
+            displayname: self.displayname.as_deref(),
+            membership: &self.membership,
+        }
+    }
 }
 
 impl RedactContent for RoomMemberEventContent {
@@ -153,6 +165,14 @@ impl RedactedRoomMemberEventContent {
     /// Create a `RedactedRoomMemberEventContent` with the given membership.
     pub fn new(membership: MembershipState) -> Self {
         Self { membership, join_authorized_via_users_server: None }
+    }
+
+    /// Obtain the details about this event that are required to calculate a membership change.
+    ///
+    /// This is required when you want to calculate the change a redacted `m.room.member` event
+    /// made.
+    pub fn details(&self) -> MembershipDetails<'_> {
+        MembershipDetails { avatar_url: None, displayname: None, membership: &self.membership }
     }
 }
 
@@ -273,6 +293,15 @@ impl SignedContent {
     }
 }
 
+/// The details of a member event required to calculate a [`MembershipChange`].
+pub struct MembershipDetails<'a> {
+    // These fields are intentionally private, this struct is only meant for
+    // passing it to one of the membership_change methods on redacted events.
+    avatar_url: Option<&'a MxcUri>,
+    displayname: Option<&'a str>,
+    membership: &'a MembershipState,
+}
+
 /// Translation of the membership change in `m.room.member` event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -326,28 +355,18 @@ pub enum MembershipChange {
 /// Internal function so all `RoomMemberEventContent` state event kinds can share the same
 /// implementation.
 fn membership_change(
-    content: &RoomMemberEventContent,
-    prev_content: Option<&RoomMemberEventContent>,
+    content: MembershipDetails<'_>,
+    prev_content: Option<MembershipDetails<'_>>,
     sender: &UserId,
     state_key: &UserId,
 ) -> MembershipChange {
     use MembershipChange as Ch;
     use MembershipState as St;
 
-    let prev_content = if let Some(prev_content) = &prev_content {
+    let prev_content = if let Some(prev_content) = prev_content {
         prev_content
     } else {
-        &RoomMemberEventContent {
-            avatar_url: None,
-            displayname: None,
-            is_direct: None,
-            membership: St::Leave,
-            third_party_invite: None,
-            #[cfg(feature = "unstable-msc2448")]
-            blurhash: None,
-            reason: None,
-            join_authorized_via_users_server: None,
-        }
+        MembershipDetails { avatar_url: None, displayname: None, membership: &St::Leave }
     };
 
     match (&prev_content.membership, &content.membership) {
@@ -381,45 +400,140 @@ fn membership_change(
 }
 
 impl OriginalRoomMemberEvent {
+    /// Obtain the details about this event that are required to calculate a membership change.
+    ///
+    /// This is required when you want to calculate the change a redacted `m.room.member` event
+    /// made.
+    pub fn details(&self) -> MembershipDetails<'_> {
+        self.content.details()
+    }
+
+    /// Get a reference to the `prev_content` in unsigned, if it exists.
+    ///
+    /// Shorthand for `event.unsigned.prev_content.as_ref()`
+    pub fn prev_content(&self) -> Option<&RoomMemberEventContent> {
+        self.unsigned.prev_content.as_ref()
+    }
+
+    fn prev_details(&self) -> Option<MembershipDetails<'_>> {
+        self.prev_content().map(|c| c.details())
+    }
+
     /// Helper function for membership change.
     ///
     /// Check [the specification][spec] for details.
     ///
     /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
     pub fn membership_change(&self) -> MembershipChange {
-        membership_change(
-            &self.content,
-            self.unsigned.prev_content.as_ref(),
-            &self.sender,
-            &self.state_key,
-        )
+        membership_change(self.details(), self.prev_details(), &self.sender, &self.state_key)
+    }
+}
+
+impl RedactedRoomMemberEvent {
+    /// Obtain the details about this event that are required to calculate a membership change.
+    ///
+    /// This is required when you want to calculate the change a redacted `m.room.member` event
+    /// made.
+    pub fn details(&self) -> MembershipDetails<'_> {
+        self.content.details()
+    }
+
+    /// Helper function for membership change.
+    ///
+    /// Since redacted events don't have `unsigned.prev_content`, you have to pass the `.details()`
+    /// of the previous `m.room.member` event manually (if there is a previous `m.room.member`
+    /// event).
+    ///
+    /// Check [the specification][spec] for details.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
+    pub fn membership_change(
+        &self,
+        prev_details: Option<MembershipDetails<'_>>,
+    ) -> MembershipChange {
+        membership_change(self.details(), prev_details, &self.sender, &self.state_key)
     }
 }
 
 impl OriginalSyncRoomMemberEvent {
+    /// Obtain the details about this event that are required to calculate a membership change.
+    ///
+    /// This is required when you want to calculate the change a redacted `m.room.member` event
+    /// made.
+    pub fn details(&self) -> MembershipDetails<'_> {
+        self.content.details()
+    }
+
+    /// Get a reference to the `prev_content` in unsigned, if it exists.
+    ///
+    /// Shorthand for `event.unsigned.prev_content.as_ref()`
+    pub fn prev_content(&self) -> Option<&RoomMemberEventContent> {
+        self.unsigned.prev_content.as_ref()
+    }
+
+    fn prev_details(&self) -> Option<MembershipDetails<'_>> {
+        self.prev_content().map(|c| c.details())
+    }
+
     /// Helper function for membership change.
     ///
     /// Check [the specification][spec] for details.
     ///
     /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
     pub fn membership_change(&self) -> MembershipChange {
-        membership_change(
-            &self.content,
-            self.unsigned.prev_content.as_ref(),
-            &self.sender,
-            &self.state_key,
-        )
+        membership_change(self.details(), self.prev_details(), &self.sender, &self.state_key)
+    }
+}
+
+impl RedactedSyncRoomMemberEvent {
+    /// Obtain the details about this event that are required to calculate a membership change.
+    ///
+    /// This is required when you want to calculate the change a redacted `m.room.member` event
+    /// made.
+    pub fn details(&self) -> MembershipDetails<'_> {
+        self.content.details()
+    }
+
+    /// Helper function for membership change.
+    ///
+    /// Since redacted events don't have `unsigned.prev_content`, you have to pass the `.details()`
+    /// of the previous `m.room.member` event manually (if there is a previous `m.room.member`
+    /// event).
+    ///
+    /// Check [the specification][spec] for details.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
+    pub fn membership_change(
+        &self,
+        prev_details: Option<MembershipDetails<'_>>,
+    ) -> MembershipChange {
+        membership_change(self.details(), prev_details, &self.sender, &self.state_key)
     }
 }
 
 impl StrippedRoomMemberEvent {
+    /// Obtain the details about this event that are required to calculate a membership change.
+    ///
+    /// This is required when you want to calculate the change a redacted `m.room.member` event
+    /// made.
+    pub fn details(&self) -> MembershipDetails<'_> {
+        self.content.details()
+    }
+
     /// Helper function for membership change.
+    ///
+    /// Since stripped events don't have `unsigned.prev_content`, you have to pass the `.details()`
+    /// of the previous `m.room.member` event manually (if there is a previous `m.room.member`
+    /// event).
     ///
     /// Check [the specification][spec] for details.
     ///
     /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
-    pub fn membership_change(&self) -> MembershipChange {
-        membership_change(&self.content, None, &self.sender, &self.state_key)
+    pub fn membership_change(
+        &self,
+        prev_details: Option<MembershipDetails<'_>>,
+    ) -> MembershipChange {
+        membership_change(self.details(), prev_details, &self.sender, &self.state_key)
     }
 }
 
