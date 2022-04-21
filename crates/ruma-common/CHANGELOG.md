@@ -34,6 +34,7 @@ Improvements:
 * Add unstable support for threads (MSC3440)
 * Add `ReceiptEventContent::user_receipt`
 * Make `Restricted::allow` public
+* Conversion from `RoomPowerLevels` to `RoomPowerLevelsEventContent`
 
 # 0.8.0
 

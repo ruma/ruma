@@ -284,6 +284,23 @@ impl From<RedactedRoomPowerLevelsEventContent> for RoomPowerLevels {
     }
 }
 
+impl From<RoomPowerLevels> for RoomPowerLevelsEventContent {
+    fn from(c: RoomPowerLevels) -> Self {
+        Self {
+            ban: c.ban,
+            events: c.events,
+            events_default: c.events_default,
+            invite: c.invite,
+            kick: c.kick,
+            redact: c.redact,
+            state_default: c.state_default,
+            users: c.users,
+            users_default: c.users_default,
+            notifications: c.notifications,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;
