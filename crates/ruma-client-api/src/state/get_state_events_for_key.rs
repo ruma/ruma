@@ -100,7 +100,10 @@ pub mod v3 {
                         "/_matrix/client/r0/rooms/{}/state/{}",
                         room_id_percent, event_type_percent
                     )),
-                    None,
+                    Some(format_args!(
+                        "/_matrix/client/v3/rooms/{}/state/{}",
+                        room_id_percent, event_type_percent
+                    )),
                 )?
             );
 
