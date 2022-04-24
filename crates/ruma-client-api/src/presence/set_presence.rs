@@ -40,8 +40,8 @@ pub mod v3 {
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given user ID and presence state.
-        pub fn new(user_id: &'a UserId, presence: PresenceState) -> Self {
-            Self { user_id, presence, status_msg: None }
+        pub fn new(user_id: &'a UserId, presence: PresenceState, status_msg: Option<&'a str>) -> Self {
+            Self { user_id, presence, status_msg }
         }
     }
 
