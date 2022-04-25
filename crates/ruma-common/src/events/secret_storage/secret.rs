@@ -66,7 +66,7 @@ mod tests {
         };
 
         let mut encrypted = BTreeMap::<String, SecretEncryptedData>::new();
-        encrypted.insert("key_one".to_string(), key_one_data);
+        encrypted.insert("key_one".to_owned(), key_one_data);
 
         let content = SecretEventContent::new("my_secret".into(), encrypted);
 
