@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixmediav3upload
 
-    use ruma_common::{api::ruma_api, MxcUri};
+    use ruma_common::{api::ruma_api, OwnedMxcUri};
 
     ruma_api! {
         metadata: {
@@ -50,7 +50,7 @@ pub mod v3 {
 
         response: {
             /// The MXC URI for the uploaded content.
-            pub content_uri: Box<MxcUri>,
+            pub content_uri: OwnedMxcUri,
 
             /// The [BlurHash](https://blurha.sh) for the uploaded content.
             ///
@@ -83,7 +83,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given MXC URI.
-        pub fn new(content_uri: Box<MxcUri>) -> Self {
+        pub fn new(content_uri: OwnedMxcUri) -> Self {
             Self {
                 content_uri,
                 #[cfg(feature = "unstable-msc2448")]

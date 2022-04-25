@@ -65,7 +65,7 @@ mod tests {
 
     use ruma_identifiers_validation::error::MxcUriError;
 
-    use super::MxcUri;
+    use super::{MxcUri, OwnedMxcUri};
 
     #[test]
     fn parse_mxc_uri() {
@@ -102,7 +102,7 @@ mod tests {
 
     #[test]
     fn deserialize_mxc_uri() {
-        let mxc = serde_json::from_str::<Box<MxcUri>>(r#""mxc://server/1234id""#)
+        let mxc = serde_json::from_str::<OwnedMxcUri>(r#""mxc://server/1234id""#)
             .expect("Failed to convert JSON to MxcUri");
 
         assert_eq!(mxc.as_str(), "mxc://server/1234id");

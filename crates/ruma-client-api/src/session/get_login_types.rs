@@ -10,7 +10,7 @@ pub mod v3 {
     use ruma_common::{
         api::ruma_api,
         serde::{JsonObject, StringEnum},
-        MxcUri,
+        OwnedMxcUri,
     };
     use serde::{de::DeserializeOwned, Deserialize, Serialize};
     use serde_json::Value as JsonValue;
@@ -177,7 +177,7 @@ pub mod v3 {
         pub name: String,
 
         /// The icon for the provider.
-        pub icon: Option<Box<MxcUri>>,
+        pub icon: Option<OwnedMxcUri>,
 
         /// The brand identifier for the provider.
         pub brand: Option<IdentityProviderBrand>,

@@ -12,7 +12,7 @@ pub mod v3 {
         api::ruma_api,
         events::{AnyRoomEvent, AnyStateEvent},
         serde::{Incoming, Raw, StringEnum},
-        MxcUri, OwnedEventId, OwnedRoomId, OwnedUserId,
+        OwnedEventId, OwnedMxcUri, OwnedRoomId, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};
 
@@ -489,7 +489,7 @@ pub mod v3 {
             feature = "compat",
             serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
         )]
-        pub avatar_url: Option<Box<MxcUri>>,
+        pub avatar_url: Option<OwnedMxcUri>,
 
         /// The user's display name, if set.
         #[serde(skip_serializing_if = "Option::is_none")]

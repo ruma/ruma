@@ -14,7 +14,7 @@ use serde::{
 };
 use serde_json::Value as JsonValue;
 
-use crate::{MxcUri, PrivOwnedStr, RoomName};
+use crate::{OwnedMxcUri, PrivOwnedStr, RoomName};
 
 /// A chunk of a room list response, describing one room.
 ///
@@ -62,7 +62,7 @@ pub struct PublicRoomsChunk {
         feature = "compat",
         serde(default, deserialize_with = "crate::serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<Box<MxcUri>>,
+    pub avatar_url: Option<OwnedMxcUri>,
 
     /// The join rule of the room.
     #[serde(default, skip_serializing_if = "crate::serde::is_default")]

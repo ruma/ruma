@@ -7,7 +7,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::ThumbnailInfo;
-use crate::{events::EmptyStateKey, MxcUri};
+use crate::{events::EmptyStateKey, OwnedMxcUri};
 
 /// The content of an `m.room.avatar` event.
 ///
@@ -23,7 +23,7 @@ pub struct RoomAvatarEventContent {
     pub info: Option<Box<ImageInfo>>,
 
     /// URL of the avatar image.
-    pub url: Option<Box<MxcUri>>,
+    pub url: Option<OwnedMxcUri>,
 }
 
 impl RoomAvatarEventContent {
@@ -59,7 +59,7 @@ pub struct ImageInfo {
 
     /// The URL to the thumbnail of the image.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_url: Option<Box<MxcUri>>,
+    pub thumbnail_url: Option<OwnedMxcUri>,
 
     /// The [BlurHash](https://blurha.sh) for this image.
     ///

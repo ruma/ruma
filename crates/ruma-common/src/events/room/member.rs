@@ -14,7 +14,8 @@ use crate::{
         StateEventType,
     },
     serde::StringEnum,
-    MxcUri, OwnedServerName, OwnedServerSigningKeyId, OwnedUserId, PrivOwnedStr, RoomVersionId,
+    OwnedMxcUri, OwnedServerName, OwnedServerSigningKeyId, OwnedUserId, PrivOwnedStr,
+    RoomVersionId,
 };
 
 mod change;
@@ -55,7 +56,7 @@ pub struct RoomMemberEventContent {
         feature = "compat",
         serde(default, deserialize_with = "crate::serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<Box<MxcUri>>,
+    pub avatar_url: Option<OwnedMxcUri>,
 
     /// The display name for this user, if any.
     ///

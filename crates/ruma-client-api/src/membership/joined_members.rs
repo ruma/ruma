@@ -7,7 +7,7 @@ pub mod v3 {
 
     use std::collections::BTreeMap;
 
-    use ruma_common::{api::ruma_api, MxcUri, OwnedUserId, RoomId};
+    use ruma_common::{api::ruma_api, OwnedMxcUri, OwnedUserId, RoomId};
     use serde::{Deserialize, Serialize};
 
     ruma_api! {
@@ -68,7 +68,7 @@ pub mod v3 {
             feature = "compat",
             serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
         )]
-        pub avatar_url: Option<Box<MxcUri>>,
+        pub avatar_url: Option<OwnedMxcUri>,
     }
 
     impl RoomMember {

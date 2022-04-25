@@ -7,7 +7,7 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixfederationv1queryprofile
 
-    use ruma_common::{api::ruma_api, serde::StringEnum, MxcUri, UserId};
+    use ruma_common::{api::ruma_api, serde::StringEnum, OwnedMxcUri, UserId};
 
     use crate::PrivOwnedStr;
 
@@ -48,7 +48,7 @@ pub mod v1 {
                 feature = "compat",
                 serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
             )]
-            pub avatar_url: Option<Box<MxcUri>>,
+            pub avatar_url: Option<OwnedMxcUri>,
 
             /// The [BlurHash](https://blurha.sh) for the avatar pointed to by `avatar_url`.
             ///

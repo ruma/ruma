@@ -9,7 +9,7 @@ use ruma_common::{
     events::space::child::HierarchySpaceChildEvent,
     room::RoomType,
     serde::{Raw, StringEnum},
-    MxcUri, OwnedRoomAliasId, OwnedRoomId, RoomName,
+    OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, RoomName,
 };
 use serde::{Deserialize, Serialize};
 
@@ -63,7 +63,7 @@ pub struct SpaceHierarchyRoomsChunk {
         feature = "compat",
         serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<Box<MxcUri>>,
+    pub avatar_url: Option<OwnedMxcUri>,
 
     /// The join rule of the room.
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]

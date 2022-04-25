@@ -6,7 +6,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3user_directorysearch
 
     use js_int::{uint, UInt};
-    use ruma_common::{api::ruma_api, MxcUri, OwnedUserId};
+    use ruma_common::{api::ruma_api, OwnedMxcUri, OwnedUserId};
     use serde::{Deserialize, Serialize};
 
     ruma_api! {
@@ -93,7 +93,7 @@ pub mod v3 {
             feature = "compat",
             serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
         )]
-        pub avatar_url: Option<Box<MxcUri>>,
+        pub avatar_url: Option<OwnedMxcUri>,
     }
 
     impl User {
