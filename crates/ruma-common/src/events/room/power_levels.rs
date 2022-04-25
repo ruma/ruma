@@ -9,7 +9,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    events::{EmptyStateKey, RoomEventType},
+    events::{EmptyStateKey, MessageLikeEventType, RoomEventType, StateEventType},
     power_levels::{default_power_level, NotificationPowerLevels},
     OwnedUserId, UserId,
 };
@@ -244,6 +244,37 @@ impl RoomPowerLevels {
         self.users.get(user_id).map_or(self.users_default, |pl| *pl)
     }
 
+    /// Whether the given user can do the given action based on the power levels.
+    pub fn user_can_do(&self, user_id: &UserId, action: PowerLevelAction) -> bool {
+        let user_pl = self.for_user(user_id);
+
+        match action {
+            PowerLevelAction::Ban => user_pl >= self.ban,
+            PowerLevelAction::Invite => user_pl >= self.invite,
+            PowerLevelAction::Kick => user_pl >= self.kick,
+            PowerLevelAction::Redact => user_pl >= self.redact,
+            PowerLevelAction::SendMessage(message_type) => {
+                user_pl
+                    >= self
+                        .events
+                        .get(&message_type.to_string().into())
+                        .map(ToOwned::to_owned)
+                        .unwrap_or(self.events_default)
+            }
+            PowerLevelAction::SendState(state_type) => {
+                user_pl
+                    >= self
+                        .events
+                        .get(&state_type.to_string().into())
+                        .map(ToOwned::to_owned)
+                        .unwrap_or(self.state_default)
+            }
+            PowerLevelAction::TriggerNotification(notification_type) => match notification_type {
+                NotificationPowerLevelType::Room => user_pl >= self.notifications.room,
+            },
+        }
+    }
+
     /// Get the maximum power level of any user.
     pub fn max(&self) -> Int {
         self.users.values().fold(self.users_default, |max_pl, user_pl| max(max_pl, *user_pl))
@@ -299,6 +330,40 @@ impl From<RoomPowerLevels> for RoomPowerLevelsEventContent {
             notifications: c.notifications,
         }
     }
+}
+
+/// The actions that can be limited by power levels.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum PowerLevelAction {
+    /// Ban a user.
+    Ban,
+
+    /// Invite a user.
+    Invite,
+
+    /// Kick a user.
+    Kick,
+
+    /// Redact an event.
+    Redact,
+
+    /// Send a message-like event.
+    SendMessage(MessageLikeEventType),
+
+    /// Send a state event.
+    SendState(StateEventType),
+
+    /// Trigger a notification.
+    TriggerNotification(NotificationPowerLevelType),
+}
+
+/// The notification types that can be limited by power levels.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum NotificationPowerLevelType {
+    /// `@room` notifications.
+    Room,
 }
 
 #[cfg(test)]
