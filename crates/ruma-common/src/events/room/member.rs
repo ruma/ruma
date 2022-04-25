@@ -355,43 +355,32 @@ pub enum MembershipChange {
 /// Internal function so all `RoomMemberEventContent` state event kinds can share the same
 /// implementation.
 fn membership_change(
-    content: MembershipDetails<'_>,
-    prev_content: Option<MembershipDetails<'_>>,
+    details: MembershipDetails<'_>,
+    prev_details: Option<MembershipDetails<'_>>,
     sender: &UserId,
     state_key: &UserId,
 ) -> MembershipChange {
     use MembershipChange as Ch;
     use MembershipState as St;
 
-    let prev_content = if let Some(prev_content) = prev_content {
-        prev_content
-    } else {
-        MembershipDetails { avatar_url: None, displayname: None, membership: &St::Leave }
+    let prev_details = match prev_details {
+        Some(prev) => prev,
+        None => MembershipDetails { avatar_url: None, displayname: None, membership: &St::Leave },
     };
 
-    match (&prev_content.membership, &content.membership) {
+    match (&prev_details.membership, &details.membership) {
         (St::Invite, St::Invite) | (St::Leave, St::Leave) | (St::Ban, St::Ban) => Ch::None,
         (St::Invite, St::Join) | (St::Leave, St::Join) => Ch::Joined,
-        (St::Invite, St::Leave) => {
-            if sender == state_key {
-                Ch::InvitationRevoked
-            } else {
-                Ch::InvitationRejected
-            }
-        }
+        (St::Invite, St::Leave) if sender == state_key => Ch::InvitationRevoked,
+        (St::Invite, St::Leave) => Ch::InvitationRejected,
         (St::Invite, St::Ban) | (St::Leave, St::Ban) => Ch::Banned,
         (St::Join, St::Invite) | (St::Ban, St::Invite) | (St::Ban, St::Join) => Ch::Error,
         (St::Join, St::Join) => Ch::ProfileChanged {
-            displayname_changed: prev_content.displayname != content.displayname,
-            avatar_url_changed: prev_content.avatar_url != content.avatar_url,
+            displayname_changed: prev_details.displayname != details.displayname,
+            avatar_url_changed: prev_details.avatar_url != details.avatar_url,
         },
-        (St::Join, St::Leave) => {
-            if sender == state_key {
-                Ch::Left
-            } else {
-                Ch::Kicked
-            }
-        }
+        (St::Join, St::Leave) if sender == state_key => Ch::Left,
+        (St::Join, St::Leave) => Ch::Kicked,
         (St::Join, St::Ban) => Ch::KickedAndBanned,
         (St::Leave, St::Invite) => Ch::Invited,
         (St::Ban, St::Leave) => Ch::Unbanned,
