@@ -75,24 +75,6 @@ pub enum KeyDerivationAlgorithm {
     _Custom(PrivOwnedStr),
 }
 
-// /// An encryption algorithm to be used to encrypt a secret to be stored in a user's account_data.
-// ///
-// /// This type can hold an arbitrary string. To check for algorithms that are not available as a
-// /// documented variant here, use its string representation, obtained through `.as_str()`.
-// #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
-// #[non_exhaustive]
-// #[cfg_attr(feature = "serde", derive(DeserializeFromCowStr, SerializeAsRefStr))]
-// pub enum SecretEncryptionAlgorithm {
-//     /// m.secret_storage.v1.aes-hmac-sha2 secret encryption algorithm.
-//     ///
-//     /// The secret is encrypted using AES-CTR-256 and MACed using HMAC-SHA-256.
-//     #[ruma_enum(rename = "m.secret_storage.v1.aes-hmac-sha2")]
-//     SecretStorageV1AesHmacSha2,
-
-//     #[doc(hidden)]
-//     _Custom(PrivOwnedStr),
-// }
-
 #[cfg(test)]
 mod tests {
     use super::{DeviceKeyAlgorithm, SigningKeyAlgorithm};
