@@ -61,22 +61,22 @@ impl EndpointError for MatrixError {
 #[non_exhaustive]
 pub enum IntoHttpError {
     /// Tried to create an authentication request without an access token.
-    #[error(
-        "This endpoint has to be converted to http::Request using \
-         try_into_authenticated_http_request"
-    )]
+    #[error("no access token given, but this endpoint requires one")]
     NeedsAuthentication,
 
     /// Tried to create a request with an old enough version, for which no unstable endpoint
     /// exists.
     ///
     /// This is also a fallback error for if the version is too new for this endpoint.
-    #[error("Endpoint was not supported by server-reported versions, but no unstable path to fall back to was defined.")]
+    #[error(
+        "endpoint was not supported by server-reported versions, \
+         but no unstable path to fall back to was defined"
+    )]
     NoUnstablePath,
 
     /// Tried to create a request with [`MatrixVersion`]s for all of which this endpoint was
     /// removed.
-    #[error("Could not create any path variant for endpoint, as it was removed in version {0}")]
+    #[error("could not create any path variant for endpoint, as it was removed in version {0}")]
     EndpointRemoved(MatrixVersion),
 
     /// JSON serialization failed.
@@ -84,11 +84,11 @@ pub enum IntoHttpError {
     Json(#[from] serde_json::Error),
 
     /// Query parameter serialization failed.
-    #[error("Query parameter serialization failed: {0}")]
+    #[error("query parameter serialization failed: {0}")]
     Query(#[from] crate::serde::urlencoded::ser::Error),
 
     /// Header serialization failed.
-    #[error("Header serialization failed: {0}")]
+    #[error("header serialization failed: {0}")]
     Header(#[from] http::header::InvalidHeaderValue),
 
     /// HTTP request construction failed.
@@ -235,23 +235,23 @@ impl<E: StdError> StdError for ServerError<E> {}
 #[non_exhaustive]
 pub enum DeserializationError {
     /// Encountered invalid UTF-8.
-    #[error("{0}")]
+    #[error(transparent)]
     Utf8(#[from] std::str::Utf8Error),
 
     /// JSON deserialization failed.
-    #[error("{0}")]
+    #[error(transparent)]
     Json(#[from] serde_json::Error),
 
     /// Query parameter deserialization failed.
-    #[error("{0}")]
+    #[error(transparent)]
     Query(#[from] crate::serde::urlencoded::de::Error),
 
     /// Got an invalid identifier.
-    #[error("{0}")]
+    #[error(transparent)]
     Ident(#[from] crate::IdParseError),
 
     /// Header value deserialization failed.
-    #[error("{0}")]
+    #[error(transparent)]
     Header(#[from] HeaderDeserializationError),
 }
 
@@ -276,7 +276,7 @@ pub enum HeaderDeserializationError {
     ToStrError(http::header::ToStrError),
 
     /// The given required header is missing.
-    #[error("Missing header `{0}`")]
+    #[error("missing header `{0}`")]
     MissingHeader(String),
 }
 
@@ -287,7 +287,7 @@ pub struct UnknownVersionError;
 
 impl fmt::Display for UnknownVersionError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Version string was unknown.")
+        write!(f, "version string was unknown")
     }
 }
 
