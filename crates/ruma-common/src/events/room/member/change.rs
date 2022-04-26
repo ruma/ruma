@@ -1,5 +1,3 @@
-use serde::{Deserialize, Serialize};
-
 use super::MembershipState;
 use crate::{MxcUri, UserId};
 
@@ -11,7 +9,7 @@ pub struct MembershipDetails<'a> {
 }
 
 /// Translation of the membership change in `m.room.member` event.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum MembershipChange {
     /// No change.
