@@ -470,13 +470,14 @@ fn expand_accessor_methods(
             let field_type = field_return_type(name, ruma_common);
             let variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
             let call_parens = maybe_redacted.then(|| quote! { () });
+            let ampersand = if *name == "origin_server_ts" { quote! {  } } else { quote! { & } };
 
             quote! {
                 #[doc = #docs]
-                pub fn #ident(&self) -> &#field_type {
+                pub fn #ident(&self) -> #field_type {
                     match self {
-                        #( #variants(event) => &event.#ident #call_parens, )*
-                        Self::_Custom(event) => &event.#ident #call_parens,
+                        #( #variants(event) => #ampersand event.#ident #call_parens, )*
+                        Self::_Custom(event) => #ampersand event.#ident #call_parens,
                     }
                 }
             }
@@ -584,9 +585,9 @@ fn event_module_path(name: &LitStr) -> Vec<Ident> {
 fn field_return_type(name: &str, ruma_common: &TokenStream) -> TokenStream {
     match name {
         "origin_server_ts" => quote! { #ruma_common::MilliSecondsSinceUnixEpoch },
-        "room_id" => quote! { #ruma_common::RoomId },
-        "event_id" => quote! { #ruma_common::EventId },
-        "sender" => quote! { #ruma_common::UserId },
+        "room_id" => quote! { &#ruma_common::RoomId },
+        "event_id" => quote! { &#ruma_common::EventId },
+        "sender" => quote! { &#ruma_common::UserId },
         _ => panic!("the `ruma_macros::event_enum::EVENT_FIELD` const was changed"),
     }
 }
