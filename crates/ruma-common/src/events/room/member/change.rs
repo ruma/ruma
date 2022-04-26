@@ -2,6 +2,7 @@ use super::MembershipState;
 use crate::{MxcUri, UserId};
 
 /// The details of a member event required to calculate a [`MembershipChange`].
+#[derive(Clone, Debug)]
 pub struct MembershipDetails<'a> {
     pub(crate) avatar_url: Option<&'a MxcUri>,
     pub(crate) displayname: Option<&'a str>,
