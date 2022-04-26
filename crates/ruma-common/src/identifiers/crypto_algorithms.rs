@@ -60,9 +60,7 @@ pub enum EventEncryptionAlgorithm {
 }
 
 /// A key algorithm to be used to generate a key from a passphrase.
-///
-/// This type can hold an arbitrary string. To check for algorithms that are not available as a
-/// documented variant here, use its string representation, obtained through `.as_str()`.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[non_exhaustive]
 #[cfg_attr(feature = "serde", derive(DeserializeFromCowStr, SerializeAsRefStr))]

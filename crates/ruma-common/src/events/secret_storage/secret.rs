@@ -3,13 +3,11 @@
 use std::collections::BTreeMap;
 
 use crate::serde::Base64;
-use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 /// A secret and its encrypted contents.
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
-#[ruma_event(type = ".*", kind = GlobalAccountData)]
 pub struct SecretEventContent {
     /// The ID of the secret.
     #[ruma_event(type_fragment)]
@@ -31,6 +29,7 @@ impl SecretEventContent {
 
 /// Encrypted data for a corresponding secret storage encryption algorithm.
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(untagged)]
 pub enum SecretEncryptedData {
     /// Data encrypted using the *m.secret_storage.v1.aes-hmac-sha2* algorithm.
