@@ -12,7 +12,7 @@ pub struct MembershipDetails<'a> {
 /// Translation of the membership change in `m.room.member` event.
 #[derive(Clone, Debug)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub enum MembershipChange {
+pub enum MembershipChange<'a> {
     /// No change.
     None,
 
@@ -48,25 +48,45 @@ pub enum MembershipChange {
 
     /// `displayname` or `avatar_url` changed.
     ProfileChanged {
-        /// Whether the `displayname` changed.
-        displayname_changed: bool,
+        /// The details of the displayname change, if applicable.
+        displayname_change: Option<Change<Option<&'a str>>>,
 
-        /// Whether the `avatar_url` changed.
-        avatar_url_changed: bool,
+        /// The details of the avatar url change, if applicable.
+        avatar_url_change: Option<Change<Option<&'a MxcUri>>>,
     },
 
     /// Not implemented.
     NotImplemented,
 }
 
+/// A simple representation of a change, containing old and new data.
+#[derive(Clone, Debug)]
+pub struct Change<T> {
+    /// The old data.
+    pub old: T,
+
+    /// The new data.
+    pub new: T,
+}
+
+impl<T: PartialEq> Change<T> {
+    fn new(old: T, new: T) -> Option<Self> {
+        if old == new {
+            None
+        } else {
+            Some(Self { old, new })
+        }
+    }
+}
+
 /// Internal function so all `RoomMemberEventContent` state event kinds can share the same
 /// implementation.
-pub(super) fn membership_change(
-    details: MembershipDetails<'_>,
-    prev_details: Option<MembershipDetails<'_>>,
+pub(super) fn membership_change<'a>(
+    details: MembershipDetails<'a>,
+    prev_details: Option<MembershipDetails<'a>>,
     sender: &UserId,
     state_key: &UserId,
-) -> MembershipChange {
+) -> MembershipChange<'a> {
     use MembershipChange as Ch;
     use MembershipState as St;
 
@@ -83,8 +103,8 @@ pub(super) fn membership_change(
         (St::Invite, St::Ban) | (St::Leave, St::Ban) => Ch::Banned,
         (St::Join, St::Invite) | (St::Ban, St::Invite) | (St::Ban, St::Join) => Ch::Error,
         (St::Join, St::Join) => Ch::ProfileChanged {
-            displayname_changed: prev_details.displayname != details.displayname,
-            avatar_url_changed: prev_details.avatar_url != details.avatar_url,
+            displayname_change: Change::new(prev_details.displayname, details.displayname),
+            avatar_url_change: Change::new(prev_details.avatar_url, details.avatar_url),
         },
         (St::Join, St::Leave) if sender == state_key => Ch::Left,
         (St::Join, St::Leave) => Ch::Kicked,

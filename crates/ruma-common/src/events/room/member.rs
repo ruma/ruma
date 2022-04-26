@@ -323,7 +323,7 @@ impl OriginalRoomMemberEvent {
     /// Check [the specification][spec] for details.
     ///
     /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
-    pub fn membership_change(&self) -> MembershipChange {
+    pub fn membership_change(&self) -> MembershipChange<'_> {
         membership_change(self.details(), self.prev_details(), &self.sender, &self.state_key)
     }
 }
@@ -346,10 +346,10 @@ impl RedactedRoomMemberEvent {
     /// Check [the specification][spec] for details.
     ///
     /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
-    pub fn membership_change(
-        &self,
-        prev_details: Option<MembershipDetails<'_>>,
-    ) -> MembershipChange {
+    pub fn membership_change<'a>(
+        &'a self,
+        prev_details: Option<MembershipDetails<'a>>,
+    ) -> MembershipChange<'a> {
         membership_change(self.details(), prev_details, &self.sender, &self.state_key)
     }
 }
@@ -379,7 +379,7 @@ impl OriginalSyncRoomMemberEvent {
     /// Check [the specification][spec] for details.
     ///
     /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
-    pub fn membership_change(&self) -> MembershipChange {
+    pub fn membership_change(&self) -> MembershipChange<'_> {
         membership_change(self.details(), self.prev_details(), &self.sender, &self.state_key)
     }
 }
@@ -402,10 +402,10 @@ impl RedactedSyncRoomMemberEvent {
     /// Check [the specification][spec] for details.
     ///
     /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
-    pub fn membership_change(
-        &self,
-        prev_details: Option<MembershipDetails<'_>>,
-    ) -> MembershipChange {
+    pub fn membership_change<'a>(
+        &'a self,
+        prev_details: Option<MembershipDetails<'a>>,
+    ) -> MembershipChange<'a> {
         membership_change(self.details(), prev_details, &self.sender, &self.state_key)
     }
 }
@@ -428,10 +428,10 @@ impl StrippedRoomMemberEvent {
     /// Check [the specification][spec] for details.
     ///
     /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
-    pub fn membership_change(
-        &self,
-        prev_details: Option<MembershipDetails<'_>>,
-    ) -> MembershipChange {
+    pub fn membership_change<'a>(
+        &'a self,
+        prev_details: Option<MembershipDetails<'a>>,
+    ) -> MembershipChange<'a> {
         membership_change(self.details(), prev_details, &self.sender, &self.state_key)
     }
 }
