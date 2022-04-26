@@ -11,7 +11,9 @@ use serde::de::{self, Deserializer, Unexpected};
 #[doc(inline)]
 pub use self::{
     client_secret::{ClientSecret, OwnedClientSecret},
-    crypto_algorithms::{DeviceKeyAlgorithm, EventEncryptionAlgorithm, SigningKeyAlgorithm},
+    crypto_algorithms::{
+        DeviceKeyAlgorithm, EventEncryptionAlgorithm, KeyDerivationAlgorithm, SigningKeyAlgorithm,
+    },
     device_id::{DeviceId, OwnedDeviceId},
     device_key_id::{DeviceKeyId, OwnedDeviceKeyId},
     event_id::{EventId, OwnedEventId},

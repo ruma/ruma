@@ -18,6 +18,8 @@ event_enum! {
         "m.direct",
         "m.ignored_user_list",
         "m.push_rules",
+        "m.secret_storage.default_key",
+        "m.secret_storage.key.*",
     }
 
     /// Any room account data event.
