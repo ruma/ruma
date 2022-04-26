@@ -9,11 +9,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SecretEventContent {
-    /// The ID of the secret.
-    #[ruma_event(type_fragment)]
-    #[serde(skip)]
-    pub secret_id: String,
-
     /// Map from key ID to the encrypted data.
     ///
     /// The exact format for the encrypted data is dependent on the key algorithm.
