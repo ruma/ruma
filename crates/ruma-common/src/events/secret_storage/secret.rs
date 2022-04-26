@@ -16,9 +16,9 @@ pub struct SecretEventContent {
 }
 
 impl SecretEventContent {
-    /// Create a new `SecretEventContent` with the given secret ID and encrypted content.
-    pub fn new(secret_id: String, encrypted: BTreeMap<String, SecretEncryptedData>) -> Self {
-        Self { secret_id, encrypted }
+    /// Create a new `SecretEventContent` with the given encrypted content.
+    pub fn new(encrypted: BTreeMap<String, SecretEncryptedData>) -> Self {
+        Self { encrypted }
     }
 }
 
