@@ -132,6 +132,7 @@ pub mod emote;
 pub mod file;
 pub mod forwarded_room_key;
 pub mod fully_read;
+pub mod identity_server;
 pub mod ignored_user_list;
 #[cfg(feature = "unstable-msc3552")]
 pub mod image;
