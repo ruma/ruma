@@ -319,7 +319,7 @@ mod tests {
 
     #[test]
     fn missing_user_id_delimiter() {
-        assert_eq!(<&UserId>::try_from("@carl").unwrap_err(), IdParseError::MissingDelimiter);
+        assert_eq!(<&UserId>::try_from("@carl").unwrap_err(), IdParseError::MissingColon);
     }
 
     #[test]

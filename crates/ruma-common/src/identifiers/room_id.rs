@@ -195,10 +195,7 @@ mod tests {
 
     #[test]
     fn missing_room_id_delimiter() {
-        assert_eq!(
-            <&RoomId>::try_from("!29fhd83h92h0").unwrap_err(),
-            IdParseError::MissingDelimiter
-        );
+        assert_eq!(<&RoomId>::try_from("!29fhd83h92h0").unwrap_err(), IdParseError::MissingColon);
     }
 
     #[test]

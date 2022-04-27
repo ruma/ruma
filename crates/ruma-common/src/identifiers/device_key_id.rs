@@ -74,17 +74,14 @@ mod tests {
 
     #[test]
     fn missing_key_algorithm() {
-        assert_eq!(
-            <&DeviceKeyId>::try_from(":JLAFKJWSCS").unwrap_err(),
-            IdParseError::InvalidKeyAlgorithm
-        );
+        assert_eq!(<&DeviceKeyId>::try_from(":JLAFKJWSCS").unwrap_err(), IdParseError::Empty);
     }
 
     #[test]
     fn missing_delimiter() {
         assert_eq!(
             <&DeviceKeyId>::try_from("ed25519|JLAFKJWSCS").unwrap_err(),
-            IdParseError::MissingDelimiter,
+            IdParseError::MissingColon,
         );
     }
 

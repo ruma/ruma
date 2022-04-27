@@ -140,7 +140,7 @@ mod tests {
 
     #[test]
     fn missing_room_alias_id_delimiter() {
-        assert_eq!(<&RoomAliasId>::try_from("#ruma").unwrap_err(), IdParseError::MissingDelimiter);
+        assert_eq!(<&RoomAliasId>::try_from("#ruma").unwrap_err(), IdParseError::MissingColon);
     }
 
     #[test]

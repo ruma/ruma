@@ -268,7 +268,10 @@ impl MatrixToUri {
             return Err(MatrixToError::WrongBaseUrl.into());
         };
 
-        let url = Url::parse(MATRIX_TO_BASE_URL.trim_end_matches("#/"))?.join(without_base)?;
+        let url = Url::parse(MATRIX_TO_BASE_URL.trim_end_matches("#/"))
+            .expect("matrix.to base URL is valid")
+            .join(without_base)
+            .map_err(|_| MatrixToError::InvalidUrl)?;
 
         let id = MatrixId::parse_with_sigil(url.path())?;
         let mut via = vec![];
@@ -428,7 +431,7 @@ impl MatrixUri {
 
     /// Try parsing a `&str` into a `MatrixUri`.
     pub fn parse(s: &str) -> Result<Self, Error> {
-        let url = Url::parse(s)?;
+        let url = Url::parse(s).map_err(|_| MatrixToError::InvalidUrl)?;
 
         if url.scheme() != MATRIX_SCHEME {
             return Err(MatrixUriError::WrongScheme.into());
@@ -950,7 +953,10 @@ mod tests {
 
     #[test]
     fn parse_matrixuri_invalid_uri() {
-        assert_eq!(MatrixUri::parse("").unwrap_err(), Error::InvalidUri);
+        assert_eq!(
+            MatrixUri::parse("").unwrap_err(),
+            Error::InvalidMatrixToUri(MatrixToError::InvalidUrl)
+        );
     }
 
     #[test]

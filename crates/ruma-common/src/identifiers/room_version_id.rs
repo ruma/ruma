@@ -309,7 +309,7 @@ mod tests {
 
     #[test]
     fn empty_room_version_id() {
-        assert_eq!(RoomVersionId::try_from(""), Err(IdParseError::EmptyRoomVersionId));
+        assert_eq!(RoomVersionId::try_from(""), Err(IdParseError::Empty));
     }
 
     #[test]
