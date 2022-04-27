@@ -176,11 +176,10 @@ fn generate_enum(
                 })
             })
             .collect::<syn::Result<_>>()?;
-        let room_ident = Ident::new("RoomEventType", Span::call_site());
 
         Some(quote! {
             #[allow(deprecated)]
-            impl ::std::convert::From<#ident> for #room_ident {
+            impl ::std::convert::From<#ident> for #ruma_common::events::RoomEventType {
                 fn from(s: #ident) -> Self {
                     match s {
                         #(#match_arms,)*
