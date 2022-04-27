@@ -16,6 +16,7 @@ event_enum! {
     /// Any global account data event.
     enum GlobalAccountData {
         "m.direct",
+        "m.identity_server",
         "m.ignored_user_list",
         "m.push_rules",
         "m.secret_storage.default_key",
