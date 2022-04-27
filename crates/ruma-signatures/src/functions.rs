@@ -75,9 +75,9 @@ fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'stat
             _ => &[],
         },
         #[cfg(feature = "unstable-msc2870")]
-        "m.room.server_acl" if version.as_str() == "org.matrix.msc2870" => &[
-            "allow", "deny", "allow_ip_literals",
-        ],
+        "m.room.server_acl" if version.as_str() == "org.matrix.msc2870" => {
+            &["allow", "deny", "allow_ip_literals"]
+        }
         "m.room.history_visibility" => &["history_visibility"],
         _ => &[],
     }
