@@ -470,7 +470,7 @@ fn expand_accessor_methods(
             let field_type = field_return_type(name, ruma_common);
             let variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
             let call_parens = maybe_redacted.then(|| quote! { () });
-            let ampersand = if *name == "origin_server_ts" { quote! {  } } else { quote! { & } };
+            let ampersand = if *name == "origin_server_ts" { quote! { } } else { quote! { & } };
 
             quote! {
                 #[doc = #docs]
