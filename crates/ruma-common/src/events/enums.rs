@@ -152,7 +152,7 @@ pub enum AnyRoomEvent {
 }
 
 impl AnyRoomEvent {
-    room_ev_accessor!(origin_server_ts: &MilliSecondsSinceUnixEpoch);
+    room_ev_accessor!(origin_server_ts: MilliSecondsSinceUnixEpoch);
     room_ev_accessor!(room_id: &RoomId);
     room_ev_accessor!(event_id: &EventId);
     room_ev_accessor!(sender: &UserId);
@@ -180,7 +180,7 @@ pub enum AnySyncRoomEvent {
 }
 
 impl AnySyncRoomEvent {
-    room_ev_accessor!(origin_server_ts: &MilliSecondsSinceUnixEpoch);
+    room_ev_accessor!(origin_server_ts: MilliSecondsSinceUnixEpoch);
     room_ev_accessor!(event_id: &EventId);
     room_ev_accessor!(sender: &UserId);
 

@@ -446,10 +446,10 @@ macro_rules! impl_possibly_redacted_event {
             }
 
             /// Returns this event's `origin_server_ts` field.
-            pub fn origin_server_ts(&self) -> &MilliSecondsSinceUnixEpoch {
+            pub fn origin_server_ts(&self) -> MilliSecondsSinceUnixEpoch {
                 match self {
-                    Self::Original(ev) => &ev.origin_server_ts,
-                    Self::Redacted(ev) => &ev.origin_server_ts,
+                    Self::Original(ev) => ev.origin_server_ts,
+                    Self::Redacted(ev) => ev.origin_server_ts,
                 }
             }
 
