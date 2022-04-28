@@ -177,7 +177,7 @@ ruma-appservice-api = { version = "0.5.0", path = "../ruma-appservice-api", opti
 ruma-client-api = { version = "0.14.0", path = "../ruma-client-api", optional = true }
 ruma-federation-api = { version = "0.5.0", path = "../ruma-federation-api", optional = true }
 ruma-identity-service-api = { version = "0.5.0", path = "../ruma-identity-service-api", optional = true }
-ruma-push-gateway-api = { version = "0.4.0", path = "../ruma-push-gateway-api", optional = true }
+ruma-push-gateway-api = { version = "0.5.0", path = "../ruma-push-gateway-api", optional = true }
 
 [dev-dependencies]
 serde = { version = "1.0.118", features = ["derive"] }
