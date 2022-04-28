@@ -4,7 +4,7 @@ description = "Validation logic for ruma-common and ruma-macros"
 homepage = "https://www.ruma.io/"
 repository = "https://github.com/ruma/ruma"
 license = "MIT"
-version = "0.8.0"
+version = "0.8.1"
 edition = "2018"
 
 [package.metadata.docs.rs]
@@ -15,4 +15,3 @@ compat = []
 
 [dependencies]
 thiserror = "1.0.26"
-url = "2.2.2"

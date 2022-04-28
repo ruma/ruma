@@ -59,7 +59,7 @@ js_option = "0.1.0"
 percent-encoding = "2.1.0"
 pulldown-cmark = { version = "0.9.1", default-features = false, optional = true }
 rand_crate = { package = "rand", version = "0.8.3", optional = true }
-ruma-identifiers-validation = { version = "0.8.0", path = "../ruma-identifiers-validation", default-features = false }
+ruma-identifiers-validation = { version = "0.8.1", path = "../ruma-identifiers-validation", default-features = false }
 ruma-macros = { version = "=0.1.0", path = "../ruma-macros" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = { version = "1.0.64", features = ["raw_value"] }
