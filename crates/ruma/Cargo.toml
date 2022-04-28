@@ -170,7 +170,7 @@ js_int = "0.2.0"
 ruma-common = { version = "0.9.0", path = "../ruma-common" }
 
 ruma-client = { version = "0.9.0", path = "../ruma-client", optional = true }
-ruma-signatures = { version = "0.10.0", path = "../ruma-signatures", optional = true }
+ruma-signatures = { version = "0.11.0", path = "../ruma-signatures", optional = true }
 ruma-state-res = { version = "0.6.0", path = "../ruma-state-res", optional = true }
 
 ruma-appservice-api = { version = "0.6.0", path = "../ruma-appservice-api", optional = true }
