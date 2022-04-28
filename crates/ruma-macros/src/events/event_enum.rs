@@ -440,10 +440,35 @@ fn expand_accessor_methods(
         }
     };
 
-    let content_accessors = (!maybe_redacted).then(|| {
-        let content_enum = kind.to_content_enum();
-        let content_variants: Vec<_> = variants.iter().map(|v| v.ctor(&content_enum)).collect();
-
+    let content_enum = kind.to_content_enum();
+    let content_variants: Vec<_> = variants.iter().map(|v| v.ctor(&content_enum)).collect();
+    let content_accessor = if maybe_redacted {
+        quote! {
+            /// Returns the content for this event if it is not redacted, or `None` if it is.
+            pub fn original_content(&self) -> Option<#content_enum> {
+                match self {
+                    #(
+                        #self_variants(event) => {
+                            event.as_original().map(|ev| #content_variants(ev.content.clone()))
+                        }
+                    )*
+                    Self::_Custom(event) => event.as_original().map(|ev| {
+                        #content_enum::_Custom {
+                            event_type: crate::PrivOwnedStr(
+                                ::std::convert::From::from(
+                                    ::std::string::ToString::to_string(
+                                        &#ruma_common::events::EventContent::event_type(
+                                            &ev.content,
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        }
+                    }),
+                }
+            }
+        }
+    } else {
         quote! {
             /// Returns the content for this event.
             pub fn content(&self) -> #content_enum {
@@ -461,7 +486,7 @@ fn expand_accessor_methods(
                 }
             }
         }
-    });
+    };
 
     let methods = EVENT_FIELDS.iter().map(|(name, has_field)| {
         has_field(kind, var).then(|| {
@@ -526,7 +551,7 @@ fn expand_accessor_methods(
                 match self { #event_type_match_arms }
             }
 
-            #content_accessors
+            #content_accessor
             #( #methods )*
             #state_key_accessor
             #txn_id_accessor
