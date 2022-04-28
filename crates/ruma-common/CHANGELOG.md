@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.9.0
+
 Bug fixes:
 
 * Change default `invite` power level to `0`

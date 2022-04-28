@@ -8,7 +8,7 @@ license = "MIT"
 name = "ruma-macros"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.1.0"
+version = "0.9.0"
 
 [lib]
 proc-macro = true
