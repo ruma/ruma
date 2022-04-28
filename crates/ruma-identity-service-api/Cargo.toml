@@ -1,6 +1,6 @@
 [package]
 name = "ruma-identity-service-api"
-version = "0.4.0"
+version = "0.5.0"
 description = "Types for the endpoints in the Matrix identity service API."
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
