@@ -179,7 +179,7 @@ fn generate_enum(
 
         Some(quote! {
             #[allow(deprecated)]
-            impl ::std::convert::From<#ident> for #ruma_common::events::RoomEventType {
+            impl ::std::convert::From<#ident> for RoomEventType {
                 fn from(s: #ident) -> Self {
                     match s {
                         #(#match_arms,)*
