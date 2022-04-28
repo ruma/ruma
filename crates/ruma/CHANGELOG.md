@@ -1,5 +1,15 @@
 # [unreleased]
 
+# 0.6.0
+
+Please refer to the changelogs of:
+
+* ruma-common 0.9.0
+* ruma-client-api 0.14.0
+* ruma-federation-api 0.5.0
+* ruma-identity-service-api 0.5.0
+* ruma-state-res 0.7.0
+
 # 0.5.0
 
 Please refer to the changelogs of:
