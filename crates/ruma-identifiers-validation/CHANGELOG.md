@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Rework the `Error` type (merge / rename variants)
+
 # 0.7.0
 
 Improvements:
