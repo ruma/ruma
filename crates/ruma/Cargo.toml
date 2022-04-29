@@ -53,11 +53,14 @@ push-gateway-api-c = ["api", "ruma-push-gateway-api/client"]
 push-gateway-api-s = ["api", "ruma-push-gateway-api/server"]
 push-gateway-api = ["push-gateway-api-c", "push-gateway-api-s"]
 
+# Required for randomness, current system time in browser environments
+js = ["ruma-common/js"]
+
 # Convenience features
 rand = ["ruma-common/rand"]
 markdown = ["ruma-common/markdown"]
 
-# Everything except compat and unstable features
+# Everything except compat, js and unstable features
 full = [
     "api",
     "client",
