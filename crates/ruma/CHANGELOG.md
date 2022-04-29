@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.6.1
+
 Improvements:
 
 * Re-export `ruma-common`s `js` Cargo feature
