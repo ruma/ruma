@@ -191,6 +191,13 @@ impl SyncRoomPowerLevelsEvent {
     }
 }
 
+impl StrippedRoomPowerLevelsEvent {
+    /// Obtain the effective power levels from this event.
+    pub fn power_levels(&self) -> RoomPowerLevels {
+        self.content.clone().into()
+    }
+}
+
 /// The effective power levels of a room.
 ///
 /// This struct contains the same fields as [`RoomPowerLevelsEventContent`] and be created from that
