@@ -7,7 +7,7 @@ use quote::{format_ident, IdentFragment};
 use syn::{
     braced,
     parse::{self, Parse, ParseStream},
-    Attribute, Ident, LitStr, Token,
+    Attribute, Ident, LitStr, Path, Token,
 };
 
 /// Custom keywords for the `event_enum!` macro
@@ -231,11 +231,17 @@ pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation
 pub struct EventEnumEntry {
     pub attrs: Vec<Attribute>,
     pub ev_type: LitStr,
+    pub ev_path: Path,
 }
 
 impl Parse for EventEnumEntry {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        Ok(Self { attrs: input.call(Attribute::parse_outer)?, ev_type: input.parse()? })
+        let attrs = input.call(Attribute::parse_outer)?;
+        let ev_type: LitStr = input.parse()?;
+        let _: Token![=>] = input.parse()?;
+        let ev_path = input.call(Path::parse_mod_style)?;
+
+        Ok(Self { attrs, ev_type, ev_path })
     }
 }
 

@@ -1,5 +1,5 @@
 error[E0433]: failed to resolve: could not find `not` in `events`
- --> tests/events/ui/08-enum-invalid-path.rs:5:9
+ --> tests/events/ui/08-enum-invalid-path.rs:6:35
   |
-5 |         "m.not.a.path",
-  |         ^^^^^^^^^^^^^^ could not find `not` in `events`
+6 |         "m.not.a.path" => events::not::a::path,
+  |                                   ^^^ could not find `not` in `events`

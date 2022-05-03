@@ -15,108 +15,108 @@ use crate::{
 event_enum! {
     /// Any global account data event.
     enum GlobalAccountData {
-        "m.direct",
-        "m.identity_server",
-        "m.ignored_user_list",
-        "m.push_rules",
-        "m.secret_storage.default_key",
-        "m.secret_storage.key.*",
+        "m.direct" => super::direct,
+        "m.identity_server" => super::identity_server,
+        "m.ignored_user_list" => super::ignored_user_list,
+        "m.push_rules" => super::push_rules,
+        "m.secret_storage.default_key" => super::secret_storage::default_key,
+        "m.secret_storage.key.*" => super::secret_storage::key,
     }
 
     /// Any room account data event.
     enum RoomAccountData {
-        "m.fully_read",
-        "m.tag",
+        "m.fully_read" => super::fully_read,
+        "m.tag" => super::tag,
     }
 
     /// Any ephemeral room event.
     enum EphemeralRoom {
-        "m.receipt",
-        "m.typing",
+        "m.receipt" => super::receipt,
+        "m.typing" => super::typing,
     }
 
     /// Any message-like event.
     enum MessageLike {
         #[cfg(feature = "unstable-msc3246")]
-        "m.audio",
-        "m.call.answer",
-        "m.call.invite",
-        "m.call.hangup",
-        "m.call.candidates",
+        "m.audio" => super::audio,
+        "m.call.answer" => super::call::answer,
+        "m.call.invite" => super::call::invite,
+        "m.call.hangup" => super::call::hangup,
+        "m.call.candidates" => super::call::candidates,
         #[cfg(feature = "unstable-msc1767")]
-        "m.emote",
+        "m.emote" => super::emote,
         #[cfg(feature = "unstable-msc3551")]
-        "m.file",
+        "m.file" => super::file,
         #[cfg(feature = "unstable-msc3552")]
-        "m.image",
-        "m.key.verification.ready",
-        "m.key.verification.start",
-        "m.key.verification.cancel",
-        "m.key.verification.accept",
-        "m.key.verification.key",
-        "m.key.verification.mac",
-        "m.key.verification.done",
+        "m.image" => super::image,
+        "m.key.verification.ready" => super::key::verification::ready,
+        "m.key.verification.start" => super::key::verification::start,
+        "m.key.verification.cancel" => super::key::verification::cancel,
+        "m.key.verification.accept" => super::key::verification::accept,
+        "m.key.verification.key" => super::key::verification::key,
+        "m.key.verification.mac" => super::key::verification::mac,
+        "m.key.verification.done" => super::key::verification::done,
         #[cfg(feature = "unstable-msc3488")]
-        "m.location",
+        "m.location" => super::location,
         #[cfg(feature = "unstable-msc1767")]
-        "m.message",
+        "m.message" => super::message,
         #[cfg(feature = "unstable-msc1767")]
-        "m.notice",
+        "m.notice" => super::notice,
         #[cfg(feature = "unstable-msc2677")]
-        "m.reaction",
-        "m.room.encrypted",
-        "m.room.message",
-        "m.room.message.feedback",
-        "m.room.redaction",
-        "m.sticker",
+        "m.reaction" => super::reaction,
+        "m.room.encrypted" => super::room::encrypted,
+        "m.room.message" => super::room::message,
+        "m.room.message.feedback" => super::room::message::feedback,
+        "m.room.redaction" => super::room::redaction,
+        "m.sticker" => super::sticker,
         #[cfg(feature = "unstable-msc3553")]
-        "m.video",
+        "m.video" => super::video,
         #[cfg(feature = "unstable-msc3245")]
-        "m.voice",
+        "m.voice" => super::voice,
     }
 
     /// Any state event.
     enum State {
-        "m.policy.rule.room",
-        "m.policy.rule.server",
-        "m.policy.rule.user",
-        "m.room.aliases",
-        "m.room.avatar",
-        "m.room.canonical_alias",
-        "m.room.create",
-        "m.room.encryption",
-        "m.room.guest_access",
-        "m.room.history_visibility",
-        "m.room.join_rules",
-        "m.room.member",
-        "m.room.name",
-        "m.room.pinned_events",
-        "m.room.power_levels",
-        "m.room.server_acl",
-        "m.room.third_party_invite",
-        "m.room.tombstone",
-        "m.room.topic",
-        "m.space.child",
-        "m.space.parent",
+        "m.policy.rule.room" => super::policy::rule::room,
+        "m.policy.rule.server" => super::policy::rule::server,
+        "m.policy.rule.user" => super::policy::rule::user,
+        "m.room.aliases" => super::room::aliases,
+        "m.room.avatar" => super::room::avatar,
+        "m.room.canonical_alias" => super::room::canonical_alias,
+        "m.room.create" => super::room::create,
+        "m.room.encryption" => super::room::encryption,
+        "m.room.guest_access" => super::room::guest_access,
+        "m.room.history_visibility" => super::room::history_visibility,
+        "m.room.join_rules" => super::room::join_rules,
+        "m.room.member" => super::room::member,
+        "m.room.name" => super::room::name,
+        "m.room.pinned_events" => super::room::pinned_events,
+        "m.room.power_levels" => super::room::power_levels,
+        "m.room.server_acl" => super::room::server_acl,
+        "m.room.third_party_invite" => super::room::third_party_invite,
+        "m.room.tombstone" => super::room::tombstone,
+        "m.room.topic" => super::room::topic,
+        "m.space.child" => super::space::child,
+        "m.space.parent" => super::space::parent,
     }
 
     /// Any to-device event.
     enum ToDevice {
-        "m.dummy",
-        "m.room_key",
-        "m.room_key_request",
-        "m.forwarded_room_key",
-        "m.key.verification.request",
-        "m.key.verification.ready",
-        "m.key.verification.start",
-        "m.key.verification.cancel",
-        "m.key.verification.accept",
-        "m.key.verification.key",
-        "m.key.verification.mac",
-        "m.key.verification.done",
-        "m.room.encrypted",
-        "m.secret.request",
-        "m.secret.send",
+        "m.dummy" => super::dummy,
+        "m.room_key" => super::room_key,
+        "m.room_key_request" => super::room_key_request,
+        "m.forwarded_room_key" => super::forwarded_room_key,
+        "m.key.verification.request" => super::key::verification::request,
+        "m.key.verification.ready" => super::key::verification::ready,
+        "m.key.verification.start" => super::key::verification::start,
+        "m.key.verification.cancel" => super::key::verification::cancel,
+        "m.key.verification.accept" => super::key::verification::accept,
+        "m.key.verification.key" => super::key::verification::key,
+        "m.key.verification.mac" => super::key::verification::mac,
+        "m.key.verification.done" => super::key::verification::done,
+        "m.room.encrypted" => super::room::encrypted,
+        "m.secret.request"=> super::secret::request,
+        "m.secret.send" => super::secret::send,
     }
 }
 
