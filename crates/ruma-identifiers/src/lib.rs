@@ -1,7 +1,8 @@
 #![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
-//! Types for [Matrix](https://matrix.org/) identifiers for devices, events, keys, rooms, servers,
-//! users and URIs.
+//! ⚠ **Deprecated**: this crate has been merged into [ruma-common]. ⚠
+//!
+//! [ruma-common]: https://crates.io/crates/ruma-common
 
 #![warn(missing_docs)]
 // FIXME: Remove once lint doesn't trigger on std::convert::TryFrom in macros.rs anymore
