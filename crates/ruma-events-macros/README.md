@@ -1,5 +1,5 @@
 # ruma-events-macros
 
-**ruma-events-macros** provides a procedural macro for easily generating event types for [ruma-events].
+⚠ **Deprecated**: this crate has been merged into [ruma-macros]. ⚠
 
-[ruma-events]: https://github.com/ruma/ruma/tree/main/ruma-events
+[ruma-macros]: https://crates.io/crates/ruma-macros
