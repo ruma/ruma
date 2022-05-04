@@ -1,4 +1,6 @@
-# [unreleased]
+# 0.6.1
+
+Deprecation of the crate. It is now part of ruma-common.
 
 # 0.6.0
 

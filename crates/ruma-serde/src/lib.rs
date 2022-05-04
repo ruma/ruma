@@ -1,6 +1,8 @@
 #![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
-//! (De)serialization helpers for other ruma crates.
+//! ⚠ **Deprecated**: this crate has been merged into [ruma-common]. ⚠
+//!
+//! [ruma-common]: https://crates.io/crates/ruma-common
 
 #![warn(missing_docs)]
 
