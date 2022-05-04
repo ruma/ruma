@@ -1,12 +1,15 @@
 [package]
-description = "Procedural macros for creating Matrix identifiers."
+description = "Deprecated: crate merged into ruma-macros"
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"
 name = "ruma-identifiers-macros"
 repository = "https://github.com/ruma/ruma"
-version = "0.22.0"
+version = "0.22.1"
 edition = "2018"
+
+[badges]
+maintenance = { status = "deprecated" }
 
 [lib]
 proc-macro = true
