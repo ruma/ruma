@@ -1,17 +1,8 @@
 #![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
-//! Core types used to define the requests and responses for each endpoint in the various
-//! [Matrix API specifications][apis].
+//! ⚠ **Deprecated**: this crate has been merged into [ruma-common]. ⚠
 //!
-//! When implementing a new Matrix API, each endpoint has a request type which implements
-//! `Endpoint`, and a response type connected via an associated type.
-//!
-//! An implementation of `Endpoint` contains all the information about the HTTP method, the path and
-//! input parameters for requests, and the structure of a successful response.
-//! Such types can then be used by client code to make requests, and by server code to fulfill
-//! those requests.
-//!
-//! [apis]: https://spec.matrix.org/v1.2/#matrix-apis
+//! [ruma-common]: https://crates.io/crates/ruma-common
 
 #![warn(missing_docs)]
 
