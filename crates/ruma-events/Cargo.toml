@@ -1,14 +1,17 @@
 [package]
 categories = ["api-bindings"]
-description = "Serializable types for the events in the Matrix specification."
+description = "Deprecated: crate merged into ruma-common"
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"
 name = "ruma-events"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.26.0"
+version = "0.26.1"
 edition = "2018"
+
+[badges]
+maintenance = { status = "deprecated" }
 
 [package.metadata.docs.rs]
 all-features = true
@@ -32,7 +35,7 @@ indoc = "1.0"
 js_int = { version = "0.2.0", features = ["serde"] }
 pulldown-cmark = { version = "0.8", default-features = false, optional = true }
 ruma-common = { version = "0.8.0", path = "../ruma-common" }
-ruma-events-macros = { version = "=0.26.0", path = "../ruma-events-macros" }
+ruma-events-macros = { version = "=0.26.1", path = "../ruma-events-macros" }
 ruma-identifiers = { version = "0.22.0", path = "../ruma-identifiers", features = ["serde"] }
 ruma-serde = { version = "0.6.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
