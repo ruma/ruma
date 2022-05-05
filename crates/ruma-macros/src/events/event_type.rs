@@ -37,6 +37,7 @@ pub fn expand_event_type_enum(
     }
     let presence = vec![EventEnumEntry {
         attrs: vec![],
+        aliases: vec![],
         ev_type: LitStr::new("m.presence", Span::call_site()),
         ev_path: parse_quote! { #ruma_common::events::presence },
     }];
@@ -139,28 +140,32 @@ fn generate_enum(
         })
         .collect::<syn::Result<_>>()?;
 
-    let from_str_match_arms: Vec<_> = deduped
-        .iter()
-        .map(|e| {
-            let v = e.to_variant()?;
-            let ctor = v.ctor(quote! { Self });
+    let mut from_str_match_arms = TokenStream::new();
+    for event in &deduped {
+        let v = event.to_variant()?;
+        let ctor = v.ctor(quote! { Self });
+        let ev_types = event.aliases.iter().chain([&event.ev_type]);
+        let attrs = &event.attrs;
 
-            let match_arm = if let Some(prefix) = e.ev_type.value().strip_suffix('*') {
-                quote! {
+        if event.ev_type.value().ends_with(".*") {
+            for ev_type in ev_types {
+                let name = ev_type.value();
+                let prefix = name
+                    .strip_suffix('*')
+                    .expect("aliases have already been checked to have the same suffix");
+
+                from_str_match_arms.extend(quote! {
+                    #(#attrs)*
                     // Use if-let guard once available
                     _s if _s.starts_with(#prefix) => {
                         #ctor(::std::convert::From::from(_s.strip_prefix(#prefix).unwrap()))
                     }
-                }
-            } else {
-                let t = &e.ev_type;
-                quote! { #t => #ctor }
-            };
-
-            let attrs = &e.attrs;
-            Ok(quote! { #(#attrs)* #match_arm })
-        })
-        .collect::<syn::Result<_>>()?;
+                })
+            }
+        } else {
+            from_str_match_arms.extend(quote! { #(#attrs)* #(#ev_types)|* => #ctor, })
+        }
+    }
 
     let from_ident_for_room = if ident == "StateEventType" || ident == "MessageLikeEventType" {
         let match_arms: Vec<_> = deduped
@@ -232,7 +237,7 @@ fn generate_enum(
         impl ::std::convert::From<&::std::primitive::str> for #ident {
             fn from(s: &::std::primitive::str) -> Self {
                 match s {
-                    #(#from_str_match_arms,)*
+                    #from_str_match_arms
                     _ => Self::_Custom(crate::PrivOwnedStr(::std::convert::From::from(s))),
                 }
             }

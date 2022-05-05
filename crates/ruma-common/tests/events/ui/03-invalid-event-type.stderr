@@ -6,7 +6,7 @@ error: no event type attribute found, add `#[ruma_event(type = "any.room.event",
   |
   = note: this error originates in the derive macro `EventContent` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: expected one of: `type`, `kind`, `skip_redaction`, `custom_redacted`, `type_fragment`, `state_key_type`
+error: expected one of: `type`, `kind`, `skip_redaction`, `custom_redacted`, `type_fragment`, `state_key_type`, `alias`
   --> tests/events/ui/03-invalid-event-type.rs:11:14
    |
 11 | #[ruma_event(event = "m.macro.test", kind = State)]
