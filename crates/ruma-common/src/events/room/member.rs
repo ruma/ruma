@@ -21,7 +21,7 @@ use crate::{
 mod change;
 
 use self::change::membership_change;
-pub use self::change::{MembershipChange, MembershipDetails};
+pub use self::change::{Change, MembershipChange, MembershipDetails};
 
 /// The content of an `m.room.member` event.
 ///
