@@ -10,7 +10,7 @@ use ruma_common::{
         presence::PresenceEvent, AnySyncRoomEvent, AnySyncStateEvent, AnyStrippedStateEvent,
         EventType
     },
-    DeviceKeyAlgorithm, RoomId, UserId,
+    DeviceKeyAlgorithm, RoomId, UserId, OwnedRoomId,
     serde::Raw, serde::duration::opt_ms,
 };
 use serde::{Deserialize, Serialize};
@@ -99,11 +99,11 @@ pub struct SyncRequest {
 
     /// Specific rooms and event types that we want to receive events from
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub room_subscriptions: Option<BTreeMap<Box<RoomId>, RoomSubscription>>,
+    pub room_subscriptions: Option<BTreeMap<OwnedRoomId, RoomSubscription>>,
 
     /// Specific rooms we no longer want to receive events from
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub unsubscribe_rooms: Option<Vec<Box<RoomId>>>,
+    pub unsubscribe_rooms: Option<Vec<OwnedRoomId>>,
 }
 
 ruma_api! {
@@ -160,7 +160,7 @@ ruma_api! {
         pub counts: Vec<UInt>,
 
         /// Updates to subscribed rooms.
-        pub room_subscriptions: Option<BTreeMap<Box<RoomId>, Room>>,
+        pub room_subscriptions: Option<BTreeMap<OwnedRoomId, Room>>,
     }
 
     error: crate::Error
