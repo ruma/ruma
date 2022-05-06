@@ -216,6 +216,26 @@ impl RedactedEventContent for RedactedRoomMemberEventContent {
     }
 }
 
+impl RoomMemberEvent {
+    /// Obtain the membership state, regardless of whether this event is redacted.
+    pub fn membership(&self) -> &MembershipState {
+        match self {
+            Self::Original(ev) => &ev.content.membership,
+            Self::Redacted(ev) => &ev.content.membership,
+        }
+    }
+}
+
+impl SyncRoomMemberEvent {
+    /// Obtain the membership state, regardless of whether this event is redacted.
+    pub fn membership(&self) -> &MembershipState {
+        match self {
+            Self::Original(ev) => &ev.content.membership,
+            Self::Redacted(ev) => &ev.content.membership,
+        }
+    }
+}
+
 /// The membership state of a user.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
