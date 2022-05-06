@@ -1,5 +1,15 @@
 # [unreleased]
 
+# 0.6.2
+
+Improvements:
+
+* Add `StrippedPowerLevelsEvent::power_levels`
+* Add (`Sync`)`RoomMemberEvent::membership`
+* Export `events::room::member::Change`
+  * Prior to this, you couldn't actually do anything with the
+    `membership_change` functions on various member event types
+
 # 0.6.1
 
 Improvements:

@@ -5,7 +5,7 @@ edition = "2018"
 publish = false
 
 [dependencies]
-ruma = { version = "0.6.1", path = "../../crates/ruma", features = ["client-api-c", "client-ext-client-api", "client-hyper-native-tls"] }
+ruma = { version = "0.6.2", path = "../../crates/ruma", features = ["client-api-c", "client-ext-client-api", "client-hyper-native-tls"] }
 
 anyhow = "1.0.37"
 assign = "1.1.1"
