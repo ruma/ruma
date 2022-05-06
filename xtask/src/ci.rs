@@ -10,7 +10,7 @@ mod spec_links;
 use spec_links::check_spec_links;
 
 const MSRV: &str = "1.55";
-const NIGHTLY: &str = "nightly-2022-03-23";
+const NIGHTLY: &str = "nightly";
 
 #[derive(Args)]
 pub struct CiArgs {
@@ -54,6 +54,8 @@ pub enum CiCmd {
     NightlyFull,
     /// Lint default features with clippy (nightly)
     ClippyDefault,
+    /// Lint ruma-common with clippy on a wasm target (nightly)
+    ClippyWasm,
     /// Lint almost all features with clippy (nightly)
     ClippyAll,
     /// Run all lints that don't need compilation
@@ -102,6 +104,7 @@ impl CiTask {
             Some(CiCmd::Fmt) => self.fmt()?,
             Some(CiCmd::NightlyFull) => self.nightly_full()?,
             Some(CiCmd::ClippyDefault) => self.clippy_default()?,
+            Some(CiCmd::ClippyWasm) => self.clippy_wasm()?,
             Some(CiCmd::ClippyAll) => self.clippy_all()?,
             Some(CiCmd::Lint) => self.lint()?,
             Some(CiCmd::Dependencies) => self.dependencies()?,
@@ -203,6 +206,7 @@ impl CiTask {
         self.fmt()?;
         self.nightly_full()?;
         self.clippy_default()?;
+        self.clippy_wasm()?;
         self.clippy_all()
     }
 
@@ -244,6 +248,21 @@ impl CiTask {
         .map_err(Into::into)
     }
 
+    /// Lint ruma-common with clippy with the nightly version and wasm target.
+    ///
+    /// ruma-common is currently the only crate with wasm-specific code. If that changes, this
+    /// method should be updated.
+    fn clippy_wasm(&self) -> Result<()> {
+        cmd!(
+            "
+            rustup run {NIGHTLY} cargo clippy --target wasm32-unknown-unknown
+                -p ruma-common --features api,events,js,markdown,rand
+            "
+        )
+        .run()
+        .map_err(Into::into)
+    }
+
     /// Lint almost all features with clippy with the nightly version.
     fn clippy_all(&self) -> Result<()> {
         cmd!(
@@ -278,7 +297,7 @@ impl CiTask {
             "
             rustup run {NIGHTLY} cargo sort
                 --workspace --grouped --check
-                --order package,lib,features,dependencies,dev-dependencies,build-dependencies
+                --order package,lib,features,dependencies,target,dev-dependencies,build-dependencies
             "
         )
         .run()

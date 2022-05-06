@@ -10,7 +10,9 @@ use std::{
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{receipt::ReceiptType, EventId, MilliSecondsSinceUnixEpoch, UserId};
+use crate::{
+    receipt::ReceiptType, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedUserId, UserId,
+};
 
 /// The content of an `m.receipt` event.
 ///
@@ -21,7 +23,7 @@ use crate::{receipt::ReceiptType, EventId, MilliSecondsSinceUnixEpoch, UserId};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.receipt", kind = EphemeralRoom)]
-pub struct ReceiptEventContent(pub BTreeMap<Box<EventId>, Receipts>);
+pub struct ReceiptEventContent(pub BTreeMap<OwnedEventId, Receipts>);
 
 impl ReceiptEventContent {
     /// Get the receipt for the given user ID with the given receipt type, if it exists.
@@ -38,7 +40,7 @@ impl ReceiptEventContent {
 }
 
 impl Deref for ReceiptEventContent {
-    type Target = BTreeMap<Box<EventId>, Receipts>;
+    type Target = BTreeMap<OwnedEventId, Receipts>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -57,7 +59,7 @@ pub type Receipts = BTreeMap<ReceiptType, UserReceipts>;
 /// A mapping of user ID to receipt.
 ///
 /// The user ID is the entity who sent this receipt.
-pub type UserReceipts = BTreeMap<Box<UserId>, Receipt>;
+pub type UserReceipts = BTreeMap<OwnedUserId, Receipt>;
 
 /// An acknowledgement of an event.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]

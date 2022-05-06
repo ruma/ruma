@@ -5,7 +5,7 @@
 use ruma_macros::{Event, EventContent};
 use serde::{Deserialize, Serialize};
 
-use crate::{MilliSecondsSinceUnixEpoch, ServerName, UserId};
+use crate::{MilliSecondsSinceUnixEpoch, OwnedRoomId, OwnedServerName, OwnedUserId};
 
 /// The content of an `m.space.child` event.
 ///
@@ -16,11 +16,11 @@ use crate::{MilliSecondsSinceUnixEpoch, ServerName, UserId};
 /// which gives a list of candidate servers that can be used to join the room.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.space.child", kind = State)]
+#[ruma_event(type = "m.space.child", kind = State, state_key_type = OwnedRoomId)]
 pub struct SpaceChildEventContent {
     /// List of candidate servers that can be used to join the room.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub via: Option<Vec<Box<ServerName>>>,
+    pub via: Option<Vec<OwnedServerName>>,
 
     /// Provide a default ordering of siblings in the room list.
     ///
@@ -60,7 +60,7 @@ pub struct HierarchySpaceChildEvent {
     pub content: SpaceChildEventContent,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// The room ID of the child.
     pub state_key: String,
@@ -71,12 +71,12 @@ pub struct HierarchySpaceChildEvent {
 
 #[cfg(test)]
 mod tests {
-    use crate::{server_name, user_id, MilliSecondsSinceUnixEpoch};
     use js_int::uint;
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{HierarchySpaceChildEvent, SpaceChildEventContent};
+    use crate::{server_name, user_id, MilliSecondsSinceUnixEpoch};
 
     #[test]
     fn space_child_serialization() {

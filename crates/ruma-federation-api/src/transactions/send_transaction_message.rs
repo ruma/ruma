@@ -10,7 +10,8 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::ruma_api, serde::Raw, EventId, MilliSecondsSinceUnixEpoch, ServerName, TransactionId,
+        api::ruma_api, serde::Raw, MilliSecondsSinceUnixEpoch, OwnedEventId, ServerName,
+        TransactionId,
     };
     use serde_json::value::RawValue as RawJsonValue;
 
@@ -63,7 +64,7 @@ pub mod v1 {
             /// See [MSC3618](https://github.com/matrix-org/matrix-spec-proposals/pull/3618).
             #[cfg_attr(feature = "unstable-msc3618", serde(default))]
             #[serde(with = "crate::serde::pdu_process_response")]
-            pub pdus: BTreeMap<Box<EventId>, Result<(), String>>,
+            pub pdus: BTreeMap<OwnedEventId, Result<(), String>>,
         }
     }
 
@@ -82,7 +83,7 @@ pub mod v1 {
 
     impl Response {
         /// Creates a new `Response` with the given PDUs.
-        pub fn new(pdus: BTreeMap<Box<EventId>, Result<(), String>>) -> Self {
+        pub fn new(pdus: BTreeMap<OwnedEventId, Result<(), String>>) -> Self {
             Self { pdus }
         }
     }

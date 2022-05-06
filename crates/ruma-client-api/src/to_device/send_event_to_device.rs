@@ -9,7 +9,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::ruma_api, events::AnyToDeviceEventContent, serde::Raw,
-        to_device::DeviceIdOrAllDevices, TransactionId, UserId,
+        to_device::DeviceIdOrAllDevices, OwnedUserId, TransactionId,
     };
 
     ruma_api! {
@@ -64,5 +64,5 @@ pub mod v3 {
     ///
     /// Represented as a map of `{ user-ids => { device-ids => message-content } }`.
     pub type Messages =
-        BTreeMap<Box<UserId>, BTreeMap<DeviceIdOrAllDevices, Raw<AnyToDeviceEventContent>>>;
+        BTreeMap<OwnedUserId, BTreeMap<DeviceIdOrAllDevices, Raw<AnyToDeviceEventContent>>>;
 }

@@ -7,7 +7,9 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/application-service-api/#put_matrixappv1transactionstxnid
 
-    use ruma_common::{api::ruma_api, events::AnyRoomEvent, serde::Raw, TransactionId};
+    use ruma_common::{
+        api::ruma_api, events::AnyRoomEvent, serde::Raw, OwnedTransactionId, TransactionId,
+    };
 
     ruma_api! {
         metadata: {
@@ -44,7 +46,7 @@ pub mod v1 {
 
     impl IncomingRequest {
         /// Creates an `IncomingRequest` with the given transaction ID and list of events.
-        pub fn new(txn_id: Box<TransactionId>, events: Vec<Raw<AnyRoomEvent>>) -> IncomingRequest {
+        pub fn new(txn_id: OwnedTransactionId, events: Vec<Raw<AnyRoomEvent>>) -> IncomingRequest {
             IncomingRequest { txn_id, events }
         }
 
@@ -69,13 +71,13 @@ pub mod v1 {
             next_batch: impl Into<String>,
         ) -> serde_json::Result<ruma_client_api::sync::sync_events::v3::Response> {
             use ruma_client_api::sync::sync_events;
-            use ruma_common::RoomId;
+            use ruma_common::OwnedRoomId;
             use serde::Deserialize;
             use tracing::warn;
 
             #[derive(Debug, Deserialize)]
             struct EventDeHelper {
-                room_id: Option<Box<RoomId>>,
+                room_id: Option<OwnedRoomId>,
             }
 
             let mut response = sync_events::v3::Response::new(next_batch.into());

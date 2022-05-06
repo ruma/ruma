@@ -14,7 +14,7 @@ use ruma_common::{
     },
     mxc_uri, room_alias_id, room_id,
     serde::Raw,
-    user_id, MilliSecondsSinceUnixEpoch,
+    server_name, user_id, MilliSecondsSinceUnixEpoch,
 };
 use serde_json::{
     from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
@@ -29,7 +29,7 @@ fn aliases_event_with_prev_content() -> JsonValue {
         "origin_server_ts": 1,
         "room_id": "!roomid:room.com",
         "sender": "@carl:example.com",
-        "state_key": "",
+        "state_key": "room.com",
         "type": "m.room.aliases",
         "unsigned": {
             "prev_content": {
@@ -49,7 +49,7 @@ fn serialize_aliases_with_prev_content() {
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         room_id: room_id!("!roomid:room.com").to_owned(),
         sender: user_id!("@carl:example.com").to_owned(),
-        state_key: "".into(),
+        state_key: server_name!("room.com").to_owned(),
         unsigned: assign!(StateUnsigned::default(), {
             prev_content: Some(RoomAliasesEventContent::new(vec![room_alias_id!(
                 "#inner:localhost"
@@ -74,7 +74,7 @@ fn serialize_aliases_without_prev_content() {
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
         room_id: room_id!("!roomid:room.com").to_owned(),
         sender: user_id!("@carl:example.com").to_owned(),
-        state_key: "".into(),
+        state_key: server_name!("example.com").to_owned(),
         unsigned: StateUnsigned::default(),
     };
 
@@ -87,7 +87,7 @@ fn serialize_aliases_without_prev_content() {
         "origin_server_ts": 1,
         "room_id": "!roomid:room.com",
         "sender": "@carl:example.com",
-        "state_key": "",
+        "state_key": "example.com",
         "type": "m.room.aliases",
     });
 
@@ -122,18 +122,17 @@ fn deserialize_aliases_with_prev_content() {
             origin_server_ts,
             room_id,
             sender,
-            state_key,
             unsigned: StateUnsigned {
                 prev_content: Some(prev_content),
                 ..
             },
+            ..
         })) if content.aliases == vec![room_alias_id!("#somewhere:localhost")]
             && event_id == event_id!("$h29iv0s8:example.com")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && prev_content.aliases == vec![room_alias_id!("#inner:localhost")]
             && room_id == room_id!("!roomid:room.com")
             && sender == user_id!("@carl:example.com")
-            && state_key.is_empty()
     );
 }
 
@@ -150,17 +149,16 @@ fn deserialize_aliases_sync_with_room_id() {
             event_id,
             origin_server_ts,
             sender,
-            state_key,
             unsigned: StateUnsigned {
                 prev_content: Some(prev_content),
                 ..
             },
+            ..
         })) if content.aliases == vec![room_alias_id!("#somewhere:localhost")]
             && event_id == event_id!("$h29iv0s8:example.com")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && prev_content.aliases == vec![room_alias_id!("#inner:localhost")]
             && sender == user_id!("@carl:example.com")
-            && state_key.is_empty()
     );
 }
 
@@ -204,13 +202,12 @@ fn deserialize_avatar_without_prev_content() {
             origin_server_ts,
             room_id,
             sender,
-            state_key,
             unsigned,
+            ..
         })) if event_id == event_id!("$h29iv0s8:example.com")
             && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
             && room_id == room_id!("!roomid:room.com")
             && sender == user_id!("@carl:example.com")
-            && state_key.is_empty()
             && matches!(
                 info.as_ref(),
                 ImageInfo {
@@ -288,24 +285,17 @@ fn deserialize_full_event_convert_to_sync() {
     let json_data = aliases_event_with_prev_content();
 
     let full_ev: AnyStateEvent = from_json_value(json_data).unwrap();
+    let sync_ev = match AnySyncStateEvent::from(full_ev) {
+        AnySyncStateEvent::RoomAliases(SyncStateEvent::Original(ev)) => ev,
+        ev => panic!("unexpected variant for event {:?}", ev),
+    };
 
-    assert_matches!(
-        AnySyncStateEvent::from(full_ev),
-        AnySyncStateEvent::RoomAliases(SyncStateEvent::Original(OriginalSyncStateEvent {
-            content,
-            event_id,
-            origin_server_ts,
-            sender,
-            state_key,
-            unsigned: StateUnsigned {
-                prev_content: Some(prev_content),
-                ..
-            }
-        })) if content.aliases == vec![room_alias_id!("#somewhere:localhost")]
-            && event_id == "$h29iv0s8:example.com"
-            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
-            && prev_content.aliases == vec![room_alias_id!("#inner:localhost")]
-            && sender == "@carl:example.com"
-            && state_key.is_empty()
+    assert_eq!(sync_ev.content.aliases, vec![room_alias_id!("#somewhere:localhost")]);
+    assert_eq!(sync_ev.event_id, "$h29iv0s8:example.com");
+    assert_eq!(sync_ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+    assert_eq!(
+        sync_ev.unsigned.prev_content.unwrap().aliases,
+        vec![room_alias_id!("#inner:localhost")]
     );
+    assert_eq!(sync_ev.sender, "@carl:example.com");
 }

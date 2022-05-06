@@ -17,21 +17,22 @@ use super::{matrix_uri::UriAction, IdParseError, MatrixToUri, MatrixUri, ServerN
 ///
 /// [user ID]: https://spec.matrix.org/v1.2/appendices/#user-identifiers
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[ruma_id(validate = ruma_identifiers_validation::user_id::validate)]
 pub struct UserId(str);
-
-owned_identifier!(OwnedUserId, UserId);
-
-opaque_identifier_validated!(UserId, OwnedUserId, ruma_identifiers_validation::user_id::validate);
 
 impl UserId {
     /// Attempts to generate a `UserId` for the given origin server with a localpart consisting of
     /// 12 random ASCII characters.
     #[cfg(feature = "rand")]
-    pub fn new(server_name: &ServerName) -> Box<Self> {
-        Self::from_owned(
-            format!("@{}:{}", super::generate_localpart(12).to_lowercase(), server_name).into(),
-        )
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new(server_name: &ServerName) -> OwnedUserId {
+        Self::from_borrowed(&format!(
+            "@{}:{}",
+            super::generate_localpart(12).to_lowercase(),
+            server_name
+        ))
+        .to_owned()
     }
 
     /// Attempts to complete a user ID, by adding the colon + server name and `@` prefix, if not
@@ -44,14 +45,14 @@ impl UserId {
     pub fn parse_with_server_name(
         id: impl AsRef<str> + Into<Box<str>>,
         server_name: &ServerName,
-    ) -> Result<Box<Self>, IdParseError> {
+    ) -> Result<OwnedUserId, IdParseError> {
         let id_str = id.as_ref();
 
         if id_str.starts_with('@') {
-            Self::parse(id)
+            Self::parse(id).map(Into::into)
         } else {
             let _ = localpart_is_fully_conforming(id_str)?;
-            Ok(Self::from_owned(format!("@{}:{}", id_str, server_name).into()))
+            Ok(Self::from_borrowed(&format!("@{}:{}", id_str, server_name)).to_owned())
         }
     }
 
@@ -150,12 +151,13 @@ impl UserId {
 }
 
 pub use ruma_identifiers_validation::user_id::localpart_is_fully_conforming;
+use ruma_macros::IdZst;
 
 #[cfg(test)]
 mod tests {
     use std::convert::TryFrom;
 
-    use super::UserId;
+    use super::{OwnedUserId, UserId};
     use crate::{server_name, IdParseError};
 
     #[test]
@@ -274,7 +276,7 @@ mod tests {
     #[test]
     fn deserialize_valid_user_id() {
         assert_eq!(
-            serde_json::from_str::<Box<UserId>>(r#""@carl:example.com""#)
+            serde_json::from_str::<OwnedUserId>(r#""@carl:example.com""#)
                 .expect("Failed to convert JSON to UserId"),
             <&UserId>::try_from("@carl:example.com").expect("Failed to create UserId.")
         );
@@ -317,7 +319,7 @@ mod tests {
 
     #[test]
     fn missing_user_id_delimiter() {
-        assert_eq!(<&UserId>::try_from("@carl").unwrap_err(), IdParseError::MissingDelimiter);
+        assert_eq!(<&UserId>::try_from("@carl").unwrap_err(), IdParseError::MissingColon);
     }
 
     #[test]

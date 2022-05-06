@@ -11,14 +11,14 @@ use serde::{
 };
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
-use crate::{serde::from_raw_json_value, PrivOwnedStr, RoomId};
+use crate::{events::EmptyStateKey, serde::from_raw_json_value, OwnedRoomId, PrivOwnedStr};
 
 /// The content of an `m.room.join_rules` event.
 ///
 /// Describes how users are allowed to join the room.
 #[derive(Clone, Debug, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.join_rules", kind = State)]
+#[ruma_event(type = "m.room.join_rules", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomJoinRulesEventContent {
     /// The type of rules used for users wishing to join this room.
     #[ruma_event(skip_redaction)]
@@ -46,6 +46,26 @@ impl<'de> Deserialize<'de> for RoomJoinRulesEventContent {
     {
         let join_rule = JoinRule::deserialize(deserializer)?;
         Ok(RoomJoinRulesEventContent { join_rule })
+    }
+}
+
+impl RoomJoinRulesEvent {
+    /// Obtain the join rule, regardless of whether this event is redacted.
+    pub fn join_rule(&self) -> &JoinRule {
+        match self {
+            Self::Original(ev) => &ev.content.join_rule,
+            Self::Redacted(ev) => &ev.content.join_rule,
+        }
+    }
+}
+
+impl SyncRoomJoinRulesEvent {
+    /// Obtain the join rule, regardless of whether this event is redacted.
+    pub fn join_rule(&self) -> &JoinRule {
+        match self {
+            Self::Original(ev) => &ev.content.join_rule,
+            Self::Redacted(ev) => &ev.content.join_rule,
+        }
     }
 }
 
@@ -134,7 +154,7 @@ impl<'de> Deserialize<'de> for JoinRule {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Restricted {
     /// Allow rules which describe conditions that allow joining a room.
-    allow: Vec<AllowRule>,
+    pub allow: Vec<AllowRule>,
 }
 
 impl Restricted {
@@ -159,7 +179,7 @@ pub enum AllowRule {
 
 impl AllowRule {
     /// Constructs an `AllowRule` with membership of the room with the given id as its predicate.
-    pub fn room_membership(room_id: Box<RoomId>) -> Self {
+    pub fn room_membership(room_id: OwnedRoomId) -> Self {
         Self::RoomMembership(RoomMembership::new(room_id))
     }
 }
@@ -169,12 +189,12 @@ impl AllowRule {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomMembership {
     /// The id of the room which being a member of grants permission to join another room.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 }
 
 impl RoomMembership {
     /// Constructs a new room membership rule for the given room id.
-    pub fn new(room_id: Box<RoomId>) -> Self {
+    pub fn new(room_id: OwnedRoomId) -> Self {
         Self { room_id }
     }
 }
@@ -218,10 +238,10 @@ impl<'de> Deserialize<'de> for AllowRule {
 
 #[cfg(test)]
 mod tests {
-    use crate::room_id;
     use matches::assert_matches;
 
     use super::{AllowRule, JoinRule, OriginalSyncRoomJoinRulesEvent, RoomJoinRulesEventContent};
+    use crate::room_id;
 
     #[test]
     fn deserialize() {

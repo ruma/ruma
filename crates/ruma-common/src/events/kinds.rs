@@ -13,7 +13,8 @@ use super::{
     StateUnsigned, ToDeviceEventContent,
 };
 use crate::{
-    serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, RoomId, RoomVersionId, UserId,
+    serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
+    OwnedUserId, RoomId, RoomVersionId, UserId,
 };
 
 /// A global account data event.
@@ -37,7 +38,7 @@ pub struct EphemeralRoomEvent<C: EphemeralRoomEventContent> {
     pub content: C,
 
     /// The ID of the room associated with this event.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 }
 
 /// An ephemeral room event without a `room_id`.
@@ -57,16 +58,16 @@ pub struct OriginalMessageLikeEvent<C: MessageLikeEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: MessageLikeUnsigned,
@@ -82,10 +83,10 @@ pub struct OriginalSyncMessageLikeEvent<C: MessageLikeEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -104,16 +105,16 @@ pub struct RedactedMessageLikeEvent<C: RedactedMessageLikeEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: RedactedUnsigned,
@@ -129,10 +130,10 @@ pub struct RedactedSyncMessageLikeEvent<C: RedactedMessageLikeEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -187,22 +188,22 @@ pub struct OriginalStateEvent<C: StateEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
     /// This is often an empty string, but some events send a `UserId` to show which user the event
     /// affects.
-    pub state_key: String,
+    pub state_key: C::StateKey,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: StateUnsigned<C>,
@@ -218,10 +219,10 @@ pub struct OriginalSyncStateEvent<C: StateEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -230,7 +231,7 @@ pub struct OriginalSyncStateEvent<C: StateEventContent> {
     ///
     /// This is often an empty string, but some events send a `UserId` to show which user the event
     /// affects.
-    pub state_key: String,
+    pub state_key: C::StateKey,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: StateUnsigned<C>,
@@ -243,13 +244,13 @@ pub struct StrippedStateEvent<C: StateEventContent> {
     pub content: C,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
     /// This is often an empty string, but some events send a `UserId` to show which user the event
     /// affects.
-    pub state_key: String,
+    pub state_key: C::StateKey,
 }
 
 /// A minimal state event, used for creating a new room.
@@ -264,8 +265,7 @@ pub struct InitialStateEvent<C: StateEventContent> {
     /// affects.
     ///
     /// Defaults to the empty string.
-    #[ruma_event(default)]
-    pub state_key: String,
+    pub state_key: C::StateKey,
 }
 
 /// A redacted state event.
@@ -278,22 +278,22 @@ pub struct RedactedStateEvent<C: RedactedStateEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
     /// This is often an empty string, but some events send a `UserId` to show which user the event
     /// affects.
-    pub state_key: String,
+    pub state_key: C::StateKey,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: RedactedUnsigned,
@@ -309,10 +309,10 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -321,7 +321,7 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
     ///
     /// This is often an empty string, but some events send a `UserId` to show which user the event
     /// affects.
-    pub state_key: String,
+    pub state_key: C::StateKey,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: RedactedUnsigned,
@@ -370,7 +370,7 @@ pub struct ToDeviceEvent<C: ToDeviceEventContent> {
     pub content: C,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 }
 
 /// The decrypted payload of an `m.olm.v1.curve25519-aes-sha2` event.
@@ -380,10 +380,10 @@ pub struct DecryptedOlmV1Event<C: MessageLikeEventContent> {
     pub content: C,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 
     /// The fully-qualified ID of the intended recipient this event.
-    pub recipient: Box<UserId>,
+    pub recipient: OwnedUserId,
 
     /// The recipient's ed25519 key.
     pub recipient_keys: OlmV1Keys,
@@ -406,15 +406,20 @@ pub struct DecryptedMegolmV1Event<C: MessageLikeEventContent> {
     pub content: C,
 
     /// The ID of the room associated with the event.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 }
 
 macro_rules! impl_possibly_redacted_event {
-    ($ty:ident ( $content_trait:ident, $event_type:ident ) { $($extra:tt)* }) => {
+    (
+        $ty:ident ( $content_trait:ident, $event_type:ident )
+        $( where C::Redacted: $trait:ident<StateKey = C::StateKey>, )?
+        { $($extra:tt)* }
+    ) => {
         impl<C> $ty<C>
         where
             C: $content_trait + RedactContent,
             C::Redacted: $content_trait + RedactedEventContent,
+            $( C::Redacted: $trait<StateKey = C::StateKey>, )?
         {
             /// Returns the `type` of this event.
             pub fn event_type(&self) -> $event_type {
@@ -441,10 +446,10 @@ macro_rules! impl_possibly_redacted_event {
             }
 
             /// Returns this event's `origin_server_ts` field.
-            pub fn origin_server_ts(&self) -> &MilliSecondsSinceUnixEpoch {
+            pub fn origin_server_ts(&self) -> MilliSecondsSinceUnixEpoch {
                 match self {
-                    Self::Original(ev) => &ev.origin_server_ts,
-                    Self::Redacted(ev) => &ev.origin_server_ts,
+                    Self::Original(ev) => ev.origin_server_ts,
+                    Self::Redacted(ev) => ev.origin_server_ts,
                 }
             }
 
@@ -456,6 +461,7 @@ macro_rules! impl_possibly_redacted_event {
         where
             C: $content_trait + RedactContent,
             C::Redacted: $content_trait + RedactedEventContent,
+            $( C::Redacted: $trait<StateKey = C::StateKey>, )?
         {
             type Redacted = Self;
 
@@ -471,6 +477,7 @@ macro_rules! impl_possibly_redacted_event {
         where
             C: $content_trait + RedactContent,
             C::Redacted: $content_trait + RedactedEventContent,
+            $( C::Redacted: $trait<StateKey = C::StateKey>, )?
         {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -517,7 +524,7 @@ impl_possibly_redacted_event!(SyncMessageLikeEvent(MessageLikeEventContent, Mess
     }
 
     /// Convert this sync event into a full event (one with a `room_id` field).
-    pub fn into_full_event(self, room_id: Box<RoomId>) -> MessageLikeEvent<C> {
+    pub fn into_full_event(self, room_id: OwnedRoomId) -> MessageLikeEvent<C> {
         match self {
             Self::Original(ev) => MessageLikeEvent::Original(ev.into_full_event(room_id)),
             Self::Redacted(ev) => MessageLikeEvent::Redacted(ev.into_full_event(room_id)),
@@ -525,57 +532,67 @@ impl_possibly_redacted_event!(SyncMessageLikeEvent(MessageLikeEventContent, Mess
     }
 });
 
-impl_possibly_redacted_event!(StateEvent(StateEventContent, StateEventType) {
-    /// Returns this event's `room_id` field.
-    pub fn room_id(&self) -> &RoomId {
-        match self {
-            Self::Original(ev) => &ev.room_id,
-            Self::Redacted(ev) => &ev.room_id,
+impl_possibly_redacted_event!(
+    StateEvent(StateEventContent, StateEventType)
+    where
+        C::Redacted: StateEventContent<StateKey = C::StateKey>,
+    {
+        /// Returns this event's `room_id` field.
+        pub fn room_id(&self) -> &RoomId {
+            match self {
+                Self::Original(ev) => &ev.room_id,
+                Self::Redacted(ev) => &ev.room_id,
+            }
         }
-    }
 
-    /// Returns this event's `state_key` field.
-    pub fn state_key(&self) -> &str {
-        match self {
-            Self::Original(ev) => &ev.state_key,
-            Self::Redacted(ev) => &ev.state_key,
+        /// Returns this event's `state_key` field.
+        pub fn state_key(&self) -> &C::StateKey {
+            match self {
+                Self::Original(ev) => &ev.state_key,
+                Self::Redacted(ev) => &ev.state_key,
+            }
         }
-    }
 
-    /// Get the inner `OriginalStateEvent` if this is an unredacted event.
-    pub fn as_original(&self) -> Option<&OriginalStateEvent<C>> {
-        match self {
-            Self::Original(v) => Some(v),
-            _ => None,
+        /// Get the inner `OriginalStateEvent` if this is an unredacted event.
+        pub fn as_original(&self) -> Option<&OriginalStateEvent<C>> {
+            match self {
+                Self::Original(v) => Some(v),
+                _ => None,
+            }
         }
     }
-});
+);
 
-impl_possibly_redacted_event!(SyncStateEvent(StateEventContent, StateEventType) {
-    /// Returns this event's `state_key` field.
-    pub fn state_key(&self) -> &str {
-        match self {
-            Self::Original(ev) => &ev.state_key,
-            Self::Redacted(ev) => &ev.state_key,
+impl_possibly_redacted_event!(
+    SyncStateEvent(StateEventContent, StateEventType)
+    where
+        C::Redacted: StateEventContent<StateKey = C::StateKey>,
+    {
+        /// Returns this event's `state_key` field.
+        pub fn state_key(&self) -> &C::StateKey {
+            match self {
+                Self::Original(ev) => &ev.state_key,
+                Self::Redacted(ev) => &ev.state_key,
+            }
         }
-    }
 
-    /// Get the inner `OriginalSyncStateEvent` if this is an unredacted event.
-    pub fn as_original(&self) -> Option<&OriginalSyncStateEvent<C>> {
-        match self {
-            Self::Original(v) => Some(v),
-            _ => None,
+        /// Get the inner `OriginalSyncStateEvent` if this is an unredacted event.
+        pub fn as_original(&self) -> Option<&OriginalSyncStateEvent<C>> {
+            match self {
+                Self::Original(v) => Some(v),
+                _ => None,
+            }
         }
-    }
 
-    /// Convert this sync event into a full event (one with a `room_id` field).
-    pub fn into_full_event(self, room_id: Box<RoomId>) -> StateEvent<C> {
-        match self {
-            Self::Original(ev) => StateEvent::Original(ev.into_full_event(room_id)),
-            Self::Redacted(ev) => StateEvent::Redacted(ev.into_full_event(room_id)),
+        /// Convert this sync event into a full event (one with a `room_id` field).
+        pub fn into_full_event(self, room_id: OwnedRoomId) -> StateEvent<C> {
+            match self {
+                Self::Original(ev) => StateEvent::Original(ev.into_full_event(room_id)),
+                Self::Redacted(ev) => StateEvent::Redacted(ev.into_full_event(room_id)),
+            }
         }
     }
-});
+);
 
 macro_rules! impl_sync_from_full {
     ($ty:ident, $full:ident, $content_trait:ident) => {

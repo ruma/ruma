@@ -1,6 +1,6 @@
 [package]
 name = "ruma-identity-service-api"
-version = "0.4.0"
+version = "0.5.0"
 description = "Types for the endpoints in the Matrix identity service API."
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
@@ -19,7 +19,7 @@ server = []
 
 [dependencies]
 js_int = { version = "0.2.0", features = ["serde"] }
-ruma-common = { version = "0.8.0", path = "../ruma-common", features = ["api"] }
+ruma-common = { version = "0.9.0", path = "../ruma-common", features = ["api"] }
 serde = { version = "1.0.118", features = ["derive"] }
 
 [dev-dependencies]

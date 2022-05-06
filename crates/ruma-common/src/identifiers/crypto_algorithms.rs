@@ -53,6 +53,20 @@ pub enum EventEncryptionAlgorithm {
     _Custom(PrivOwnedStr),
 }
 
+/// A key algorithm to be used to generate a key from a passphrase.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(DeserializeFromCowStr, SerializeAsRefStr))]
+pub enum KeyDerivationAlgorithm {
+    /// PBKDF2
+    #[ruma_enum(rename = "m.pbkdf2")]
+    Pbkfd2,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}
+
 #[cfg(test)]
 mod tests {
     use super::{DeviceKeyAlgorithm, SigningKeyAlgorithm};
@@ -85,5 +99,15 @@ mod tests {
             json!("m.olm.v1.curve25519-aes-sha2"),
         );
         serde_json_eq(EventEncryptionAlgorithm::from("io.ruma.test"), json!("io.ruma.test"));
+    }
+
+    #[test]
+    fn key_derivation_algorithm_serde() {
+        use serde_json::json;
+
+        use super::KeyDerivationAlgorithm;
+        use crate::serde::test::serde_json_eq;
+
+        serde_json_eq(KeyDerivationAlgorithm::Pbkfd2, json!("m.pbkdf2"));
     }
 }

@@ -1,4 +1,6 @@
-use ruma_common::{serde::Base64DecodeError, EventId, RoomVersionId, ServerName};
+use ruma_common::{
+    serde::Base64DecodeError, EventId, OwnedEventId, OwnedServerName, RoomVersionId,
+};
 use thiserror::Error;
 
 /// `ruma-signature`'s error type, wraps a number of other error types.
@@ -144,11 +146,11 @@ pub enum JsonType {
 pub enum VerificationError {
     /// For when a signature cannot be found for a `target`.
     #[error("Could not find signatures for {0:?}")]
-    SignatureNotFound(Box<ServerName>),
+    SignatureNotFound(OwnedServerName),
 
     /// For when a public key cannot be found for a `target`.
     #[error("Could not find public key for {0:?}")]
-    PublicKeyNotFound(Box<ServerName>),
+    PublicKeyNotFound(OwnedServerName),
 
     /// For when no public key matches the signature given.
     #[error("Not signed with any of the given public keys")]
@@ -160,12 +162,12 @@ pub enum VerificationError {
 }
 
 impl VerificationError {
-    pub(crate) fn signature_not_found<T: Into<Box<ServerName>>>(target: T) -> Error {
-        Self::SignatureNotFound(target.into()).into()
+    pub(crate) fn signature_not_found(target: OwnedServerName) -> Error {
+        Self::SignatureNotFound(target).into()
     }
 
-    pub(crate) fn public_key_not_found<T: Into<Box<ServerName>>>(target: T) -> Error {
-        Self::PublicKeyNotFound(target.into()).into()
+    pub(crate) fn public_key_not_found(target: OwnedServerName) -> Error {
+        Self::PublicKeyNotFound(target).into()
     }
 }
 
@@ -184,7 +186,7 @@ pub enum ParseError {
     /// For when an event ID, coupled with a specific room version, doesn't have a server name
     /// embedded.
     #[error("Event Id {0:?} should have a server name for the given room version {1:?}")]
-    ServerNameFromEventIdByRoomVersion(Box<EventId>, RoomVersionId),
+    ServerNameFromEventIdByRoomVersion(OwnedEventId, RoomVersionId),
 
     /// For when the extracted/"parsed" public key from a PKCS#8 v2 document doesn't match the
     /// public key derived from it's private key.

@@ -28,7 +28,7 @@
 //! use serde::{Deserialize, Serialize};
 //!
 //! #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-//! #[ruma_event(type = "org.example.event", kind = State)]
+//! #[ruma_event(type = "org.example.event", kind = State, state_key_type = String)]
 //! pub struct ExampleContent {
 //!     field: String,
 //! }
@@ -41,8 +41,10 @@
 //! [`OriginalSyncMessageLikeEvent`] struct but any [`OriginalMessageLikeEvent`] struct would work.
 //!
 //! ```rust
-//! use ruma_common::events::{macros::EventContent, OriginalSyncMessageLikeEvent};
-//! use ruma_common::EventId;
+//! use ruma_common::{
+//!     events::{macros::EventContent, OriginalSyncMessageLikeEvent},
+//!     OwnedEventId,
+//! };
 //! use serde::{Deserialize, Serialize};
 //!
 //! #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -51,7 +53,7 @@
 //!     #[serde(rename = "m.annotation")]
 //!     Annotation {
 //!         /// The event this reaction relates to.
-//!         event_id: Box<EventId>,
+//!         event_id: OwnedEventId,
 //!         /// The displayable content of the reaction.
 //!         key: String,
 //!     },
@@ -111,6 +113,7 @@ pub mod _custom;
 mod content;
 mod enums;
 mod kinds;
+mod state_key;
 mod unsigned;
 
 /// Re-export of all the derives needed to create your own event types.
@@ -129,6 +132,7 @@ pub mod emote;
 pub mod file;
 pub mod forwarded_room_key;
 pub mod fully_read;
+pub mod identity_server;
 pub mod ignored_user_list;
 #[cfg(feature = "unstable-msc3552")]
 pub mod image;
@@ -153,6 +157,7 @@ pub mod room;
 pub mod room_key;
 pub mod room_key_request;
 pub mod secret;
+pub mod secret_storage;
 pub mod space;
 pub mod sticker;
 pub mod tag;
@@ -168,6 +173,7 @@ pub use self::{
     content::*,
     enums::*,
     kinds::*,
+    state_key::EmptyStateKey,
     unsigned::{MessageLikeUnsigned, RedactedUnsigned, StateUnsigned},
 };
 

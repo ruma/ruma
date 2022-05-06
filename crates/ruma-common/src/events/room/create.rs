@@ -5,7 +5,9 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{room::RoomType, EventId, RoomId, RoomVersionId, UserId};
+use crate::{
+    events::EmptyStateKey, room::RoomType, OwnedEventId, OwnedRoomId, OwnedUserId, RoomVersionId,
+};
 
 /// The content of an `m.room.create` event.
 ///
@@ -14,13 +16,13 @@ use crate::{room::RoomType, EventId, RoomId, RoomVersionId, UserId};
 /// It acts as the root of all other events.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.create", kind = State)]
+#[ruma_event(type = "m.room.create", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomCreateEventContent {
     /// The `user_id` of the room creator.
     ///
     /// This is set by the homeserver.
     #[ruma_event(skip_redaction)]
-    pub creator: Box<UserId>,
+    pub creator: OwnedUserId,
 
     /// Whether or not this room's data should be transferred to other homeservers.
     #[serde(
@@ -49,7 +51,7 @@ pub struct RoomCreateEventContent {
 
 impl RoomCreateEventContent {
     /// Creates a new `RoomCreateEventContent` with the given creator.
-    pub fn new(creator: Box<UserId>) -> Self {
+    pub fn new(creator: OwnedUserId) -> Self {
         Self {
             creator,
             federate: true,
@@ -65,15 +67,15 @@ impl RoomCreateEventContent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct PreviousRoom {
     /// The ID of the old room.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// The event ID of the last known event in the old room.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 }
 
 impl PreviousRoom {
     /// Creates a new `PreviousRoom` from the given room and event IDs.
-    pub fn new(room_id: Box<RoomId>, event_id: Box<EventId>) -> Self {
+    pub fn new(room_id: OwnedRoomId, event_id: OwnedEventId) -> Self {
         Self { room_id, event_id }
     }
 }
@@ -85,11 +87,11 @@ fn default_room_version_id() -> RoomVersionId {
 
 #[cfg(test)]
 mod tests {
-    use crate::{user_id, RoomVersionId};
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{RoomCreateEventContent, RoomType};
+    use crate::{user_id, RoomVersionId};
 
     #[test]
     fn serialization() {

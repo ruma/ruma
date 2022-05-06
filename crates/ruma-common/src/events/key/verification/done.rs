@@ -6,7 +6,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::Relation;
-use crate::TransactionId;
+use crate::OwnedTransactionId;
 
 /// The content of a to-device `m.m.key.verification.done` event.
 ///
@@ -18,12 +18,12 @@ pub struct ToDeviceKeyVerificationDoneEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the `m.key.verification.start` message.
-    pub transaction_id: Box<TransactionId>,
+    pub transaction_id: OwnedTransactionId,
 }
 
 impl ToDeviceKeyVerificationDoneEventContent {
     /// Creates a new `ToDeviceKeyVerificationDoneEventContent` with the given transaction ID.
-    pub fn new(transaction_id: Box<TransactionId>) -> Self {
+    pub fn new(transaction_id: OwnedTransactionId) -> Self {
         Self { transaction_id }
     }
 }

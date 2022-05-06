@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3profileuserid
 
-    use ruma_common::{api::ruma_api, MxcUri, UserId};
+    use ruma_common::{api::ruma_api, OwnedMxcUri, UserId};
 
     ruma_api! {
         metadata: {
@@ -36,7 +36,7 @@ pub mod v3 {
                 feature = "compat",
                 serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
             )]
-            pub avatar_url: Option<Box<MxcUri>>,
+            pub avatar_url: Option<OwnedMxcUri>,
 
             /// The user's display name, if set.
             #[serde(skip_serializing_if = "Option::is_none")]
@@ -67,7 +67,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given avatar URL and display name.
-        pub fn new(avatar_url: Option<Box<MxcUri>>, displayname: Option<String>) -> Self {
+        pub fn new(avatar_url: Option<OwnedMxcUri>, displayname: Option<String>) -> Self {
             Self {
                 avatar_url,
                 displayname,

@@ -10,12 +10,18 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
     events::{
-        EventContent, HasDeserializeFields, OriginalSyncStateEvent, RedactContent,
-        RedactedEventContent, StateEventType, StrippedStateEvent,
+        EventContent, HasDeserializeFields, RedactContent, RedactedEventContent, StateEventContent,
+        StateEventType,
     },
     serde::StringEnum,
-    MxcUri, PrivOwnedStr, RoomVersionId, ServerName, ServerSigningKeyId, UserId,
+    OwnedMxcUri, OwnedServerName, OwnedServerSigningKeyId, OwnedUserId, PrivOwnedStr,
+    RoomVersionId,
 };
+
+mod change;
+
+use self::change::membership_change;
+pub use self::change::{MembershipChange, MembershipDetails};
 
 /// The content of an `m.room.member` event.
 ///
@@ -39,7 +45,7 @@ use crate::{
 /// must be assumed as leave.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.member", kind = State, custom_redacted)]
+#[ruma_event(type = "m.room.member", kind = State, state_key_type = OwnedUserId, custom_redacted)]
 pub struct RoomMemberEventContent {
     /// The avatar URL for this user, if any.
     ///
@@ -50,7 +56,7 @@ pub struct RoomMemberEventContent {
         feature = "compat",
         serde(default, deserialize_with = "crate::serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<Box<MxcUri>>,
+    pub avatar_url: Option<OwnedMxcUri>,
 
     /// The display name for this user, if any.
     ///
@@ -99,7 +105,7 @@ pub struct RoomMemberEventContent {
     /// Arbitrarily chosen `UserId` (MxID) of a local user who can send an invite.
     #[serde(rename = "join_authorised_via_users_server")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub join_authorized_via_users_server: Option<Box<UserId>>,
+    pub join_authorized_via_users_server: Option<OwnedUserId>,
 }
 
 impl RoomMemberEventContent {
@@ -115,6 +121,18 @@ impl RoomMemberEventContent {
             blurhash: None,
             reason: None,
             join_authorized_via_users_server: None,
+        }
+    }
+
+    /// Obtain the details about this event that are required to calculate a membership change.
+    ///
+    /// This is required when you want to calculate the change a redacted `m.room.member` event
+    /// made.
+    pub fn details(&self) -> MembershipDetails<'_> {
+        MembershipDetails {
+            avatar_url: self.avatar_url.as_deref(),
+            displayname: self.displayname.as_deref(),
+            membership: &self.membership,
         }
     }
 }
@@ -145,13 +163,21 @@ pub struct RedactedRoomMemberEventContent {
     /// This is redacted in room versions 8 and below. It is used for validating
     /// joins when the join rule is restricted.
     #[serde(rename = "join_authorised_via_users_server")]
-    pub join_authorized_via_users_server: Option<Box<UserId>>,
+    pub join_authorized_via_users_server: Option<OwnedUserId>,
 }
 
 impl RedactedRoomMemberEventContent {
     /// Create a `RedactedRoomMemberEventContent` with the given membership.
     pub fn new(membership: MembershipState) -> Self {
         Self { membership, join_authorized_via_users_server: None }
+    }
+
+    /// Obtain the details about this event that are required to calculate a membership change.
+    ///
+    /// This is required when you want to calculate the change a redacted `m.room.member` event
+    /// made.
+    pub fn details(&self) -> MembershipDetails<'_> {
+        MembershipDetails { avatar_url: None, displayname: None, membership: &self.membership }
     }
 }
 
@@ -172,6 +198,10 @@ impl EventContent for RedactedRoomMemberEventContent {
 
         serde_json::from_str(content.get())
     }
+}
+
+impl StateEventContent for RedactedRoomMemberEventContent {
+    type StateKey = OwnedUserId;
 }
 
 // Since this redacted event has fields we leave the default `empty` method
@@ -247,11 +277,11 @@ pub struct SignedContent {
     /// The invited Matrix user ID.
     ///
     /// Must be equal to the user_id property of the event.
-    pub mxid: Box<UserId>,
+    pub mxid: OwnedUserId,
 
     /// A single signature from the verifying server, in the format specified by the Signing Events
     /// section of the server-server API.
-    pub signatures: BTreeMap<Box<ServerName>, BTreeMap<Box<ServerSigningKeyId>, String>>,
+    pub signatures: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
 
     /// The token property of the containing `third_party_invite` object.
     pub token: String,
@@ -260,174 +290,164 @@ pub struct SignedContent {
 impl SignedContent {
     /// Creates a new `SignedContent` with the given mxid, signature and token.
     pub fn new(
-        mxid: Box<UserId>,
-        signatures: BTreeMap<Box<ServerName>, BTreeMap<Box<ServerSigningKeyId>, String>>,
+        signatures: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
+        mxid: OwnedUserId,
         token: String,
     ) -> Self {
         Self { mxid, signatures, token }
     }
 }
 
-/// Translation of the membership change in `m.room.member` event.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub enum MembershipChange {
-    /// No change.
-    None,
-
-    /// Must never happen.
-    Error,
-
-    /// User joined the room.
-    Joined,
-
-    /// User left the room.
-    Left,
-
-    /// User was banned.
-    Banned,
-
-    /// User was unbanned.
-    Unbanned,
-
-    /// User was kicked.
-    Kicked,
-
-    /// User was invited.
-    Invited,
-
-    /// User was kicked and banned.
-    KickedAndBanned,
-
-    /// User rejected the invite.
-    InvitationRejected,
-
-    /// User had their invite revoked.
-    InvitationRevoked,
-
-    /// `displayname` or `avatar_url` changed.
-    ProfileChanged {
-        /// Whether the `displayname` changed.
-        displayname_changed: bool,
-
-        /// Whether the `avatar_url` changed.
-        avatar_url_changed: bool,
-    },
-
-    /// Not implemented.
-    NotImplemented,
-}
-
-/// Internal function so all `RoomMemberEventContent` state event kinds can share the same
-/// implementation.
-fn membership_change(
-    content: &RoomMemberEventContent,
-    prev_content: Option<&RoomMemberEventContent>,
-    sender: &UserId,
-    state_key: &str,
-) -> MembershipChange {
-    use MembershipChange as Ch;
-    use MembershipState as St;
-
-    let prev_content = if let Some(prev_content) = &prev_content {
-        prev_content
-    } else {
-        &RoomMemberEventContent {
-            avatar_url: None,
-            displayname: None,
-            is_direct: None,
-            membership: St::Leave,
-            third_party_invite: None,
-            #[cfg(feature = "unstable-msc2448")]
-            blurhash: None,
-            reason: None,
-            join_authorized_via_users_server: None,
-        }
-    };
-
-    match (&prev_content.membership, &content.membership) {
-        (St::Invite, St::Invite) | (St::Leave, St::Leave) | (St::Ban, St::Ban) => Ch::None,
-        (St::Invite, St::Join) | (St::Leave, St::Join) => Ch::Joined,
-        (St::Invite, St::Leave) => {
-            if sender == state_key {
-                Ch::InvitationRevoked
-            } else {
-                Ch::InvitationRejected
-            }
-        }
-        (St::Invite, St::Ban) | (St::Leave, St::Ban) => Ch::Banned,
-        (St::Join, St::Invite) | (St::Ban, St::Invite) | (St::Ban, St::Join) => Ch::Error,
-        (St::Join, St::Join) => Ch::ProfileChanged {
-            displayname_changed: prev_content.displayname != content.displayname,
-            avatar_url_changed: prev_content.avatar_url != content.avatar_url,
-        },
-        (St::Join, St::Leave) => {
-            if sender == state_key {
-                Ch::Left
-            } else {
-                Ch::Kicked
-            }
-        }
-        (St::Join, St::Ban) => Ch::KickedAndBanned,
-        (St::Leave, St::Invite) => Ch::Invited,
-        (St::Ban, St::Leave) => Ch::Unbanned,
-        _ => Ch::NotImplemented,
-    }
-}
-
 impl OriginalRoomMemberEvent {
+    /// Obtain the details about this event that are required to calculate a membership change.
+    ///
+    /// This is required when you want to calculate the change a redacted `m.room.member` event
+    /// made.
+    pub fn details(&self) -> MembershipDetails<'_> {
+        self.content.details()
+    }
+
+    /// Get a reference to the `prev_content` in unsigned, if it exists.
+    ///
+    /// Shorthand for `event.unsigned.prev_content.as_ref()`
+    pub fn prev_content(&self) -> Option<&RoomMemberEventContent> {
+        self.unsigned.prev_content.as_ref()
+    }
+
+    fn prev_details(&self) -> Option<MembershipDetails<'_>> {
+        self.prev_content().map(|c| c.details())
+    }
+
     /// Helper function for membership change.
     ///
     /// Check [the specification][spec] for details.
     ///
     /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
-    pub fn membership_change(&self) -> MembershipChange {
-        membership_change(
-            &self.content,
-            self.unsigned.prev_content.as_ref(),
-            &self.sender,
-            &self.state_key,
-        )
+    pub fn membership_change(&self) -> MembershipChange<'_> {
+        membership_change(self.details(), self.prev_details(), &self.sender, &self.state_key)
     }
 }
 
-impl OriginalSyncStateEvent<RoomMemberEventContent> {
+impl RedactedRoomMemberEvent {
+    /// Obtain the details about this event that are required to calculate a membership change.
+    ///
+    /// This is required when you want to calculate the change a redacted `m.room.member` event
+    /// made.
+    pub fn details(&self) -> MembershipDetails<'_> {
+        self.content.details()
+    }
+
     /// Helper function for membership change.
+    ///
+    /// Since redacted events don't have `unsigned.prev_content`, you have to pass the `.details()`
+    /// of the previous `m.room.member` event manually (if there is a previous `m.room.member`
+    /// event).
     ///
     /// Check [the specification][spec] for details.
     ///
     /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
-    pub fn membership_change(&self) -> MembershipChange {
-        membership_change(
-            &self.content,
-            self.unsigned.prev_content.as_ref(),
-            &self.sender,
-            &self.state_key,
-        )
+    pub fn membership_change<'a>(
+        &'a self,
+        prev_details: Option<MembershipDetails<'a>>,
+    ) -> MembershipChange<'a> {
+        membership_change(self.details(), prev_details, &self.sender, &self.state_key)
     }
 }
 
-impl StrippedStateEvent<RoomMemberEventContent> {
+impl OriginalSyncRoomMemberEvent {
+    /// Obtain the details about this event that are required to calculate a membership change.
+    ///
+    /// This is required when you want to calculate the change a redacted `m.room.member` event
+    /// made.
+    pub fn details(&self) -> MembershipDetails<'_> {
+        self.content.details()
+    }
+
+    /// Get a reference to the `prev_content` in unsigned, if it exists.
+    ///
+    /// Shorthand for `event.unsigned.prev_content.as_ref()`
+    pub fn prev_content(&self) -> Option<&RoomMemberEventContent> {
+        self.unsigned.prev_content.as_ref()
+    }
+
+    fn prev_details(&self) -> Option<MembershipDetails<'_>> {
+        self.prev_content().map(|c| c.details())
+    }
+
     /// Helper function for membership change.
     ///
     /// Check [the specification][spec] for details.
     ///
     /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
-    pub fn membership_change(&self) -> MembershipChange {
-        membership_change(&self.content, None, &self.sender, &self.state_key)
+    pub fn membership_change(&self) -> MembershipChange<'_> {
+        membership_change(self.details(), self.prev_details(), &self.sender, &self.state_key)
+    }
+}
+
+impl RedactedSyncRoomMemberEvent {
+    /// Obtain the details about this event that are required to calculate a membership change.
+    ///
+    /// This is required when you want to calculate the change a redacted `m.room.member` event
+    /// made.
+    pub fn details(&self) -> MembershipDetails<'_> {
+        self.content.details()
+    }
+
+    /// Helper function for membership change.
+    ///
+    /// Since redacted events don't have `unsigned.prev_content`, you have to pass the `.details()`
+    /// of the previous `m.room.member` event manually (if there is a previous `m.room.member`
+    /// event).
+    ///
+    /// Check [the specification][spec] for details.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
+    pub fn membership_change<'a>(
+        &'a self,
+        prev_details: Option<MembershipDetails<'a>>,
+    ) -> MembershipChange<'a> {
+        membership_change(self.details(), prev_details, &self.sender, &self.state_key)
+    }
+}
+
+impl StrippedRoomMemberEvent {
+    /// Obtain the details about this event that are required to calculate a membership change.
+    ///
+    /// This is required when you want to calculate the change a redacted `m.room.member` event
+    /// made.
+    pub fn details(&self) -> MembershipDetails<'_> {
+        self.content.details()
+    }
+
+    /// Helper function for membership change.
+    ///
+    /// Since stripped events don't have `unsigned.prev_content`, you have to pass the `.details()`
+    /// of the previous `m.room.member` event manually (if there is a previous `m.room.member`
+    /// event).
+    ///
+    /// Check [the specification][spec] for details.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
+    pub fn membership_change<'a>(
+        &'a self,
+        prev_details: Option<MembershipDetails<'a>>,
+    ) -> MembershipChange<'a> {
+        membership_change(self.details(), prev_details, &self.sender, &self.state_key)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{server_name, server_signing_key_id, MilliSecondsSinceUnixEpoch};
     use js_int::uint;
     use maplit::btreemap;
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json};
 
     use super::{MembershipState, RoomMemberEventContent, SignedContent, ThirdPartyInvite};
-    use crate::events::{OriginalStateEvent, StateUnsigned};
+    use crate::{
+        events::{OriginalStateEvent, StateUnsigned},
+        server_name, server_signing_key_id, MilliSecondsSinceUnixEpoch,
+    };
 
     #[test]
     fn serde_with_no_prev_content() {
@@ -440,7 +460,7 @@ mod tests {
             "origin_server_ts": 1,
             "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
-            "state_key": "example.com"
+            "state_key": "@carl:example.com"
         });
 
         assert_matches!(
@@ -464,7 +484,7 @@ mod tests {
                 && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
                 && room_id == "!n8f893n9:example.com"
                 && sender == "@carl:example.com"
-                && state_key == "example.com"
+                && state_key == "@carl:example.com"
                 && unsigned.is_empty()
         );
     }
@@ -480,7 +500,7 @@ mod tests {
             "origin_server_ts": 1,
             "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
-            "state_key": "example.com",
+            "state_key": "@carl:example.com",
             "unsigned": {
                 "prev_content": {
                     "membership": "join"
@@ -506,7 +526,7 @@ mod tests {
         assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
         assert_eq!(ev.room_id, "!n8f893n9:example.com");
         assert_eq!(ev.sender, "@carl:example.com");
-        assert_eq!(ev.state_key, "example.com");
+        assert_eq!(ev.state_key, "@carl:example.com");
 
         assert_matches!(
             ev.unsigned,
@@ -686,7 +706,7 @@ mod tests {
             "origin_server_ts": 1,
             "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
-            "state_key": "example.com"
+            "state_key": "@carl:example.com"
         });
 
         assert_matches!(
@@ -712,7 +732,7 @@ mod tests {
                 && room_id == "!n8f893n9:example.com"
                 && sender == "@carl:example.com"
                 && authed == "@notcarl:example.com"
-                && state_key == "example.com"
+                && state_key == "@carl:example.com"
                 && unsigned.is_empty()
         );
     }

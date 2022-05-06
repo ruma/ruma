@@ -2,7 +2,7 @@
 //!
 //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#getwell-knownmatrixserver
 
-use ruma_common::{api::ruma_api, ServerName};
+use ruma_common::{api::ruma_api, OwnedServerName};
 
 ruma_api! {
     metadata: {
@@ -21,7 +21,7 @@ ruma_api! {
     response: {
         /// The server name to delegate server-server communications to, with optional port.
         #[serde(rename = "m.server")]
-        pub server: Box<ServerName>,
+        pub server: OwnedServerName,
     }
 }
 
@@ -34,7 +34,7 @@ impl Request {
 
 impl Response {
     /// Creates a new `Response` with the given homeserver.
-    pub fn new(server: Box<ServerName>) -> Self {
+    pub fn new(server: OwnedServerName) -> Self {
         Self { server }
     }
 }

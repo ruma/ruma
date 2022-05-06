@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.9.0
+
 Bug fixes:
 
 * Change default `invite` power level to `0`
@@ -22,6 +24,9 @@ Breaking changes:
 * Fix the `RoomMessageEventContent::*_reply_plain` methods that now return a
   message with a `formatted_body`, according to the spec. Therefore, they only
   accept `OriginalRoomMessageEvent`s like their HTML counterparts.
+* Update the `state_key` field of state events to be of a different type
+  depending on the content type. You now no longer need to validate manually
+  that `m.room.member` events have a user ID as their state key!
 
 Improvements:
 
@@ -30,6 +35,8 @@ Improvements:
 * Add unstable support for voice messages (MSC3245)
 * Add unstable support for threads (MSC3440)
 * Add `ReceiptEventContent::user_receipt`
+* Make `Restricted::allow` public
+* Conversion from `RoomPowerLevels` to `RoomPowerLevelsEventContent`
 
 # 0.8.0
 

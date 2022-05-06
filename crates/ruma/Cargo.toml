@@ -7,7 +7,7 @@ homepage = "https://www.ruma.io/"
 repository = "https://github.com/ruma/ruma"
 readme = "README.md"
 license = "MIT"
-version = "0.5.0"
+version = "0.6.1"
 edition = "2018"
 
 [package.metadata.docs.rs]
@@ -53,12 +53,14 @@ push-gateway-api-c = ["api", "ruma-push-gateway-api/client"]
 push-gateway-api-s = ["api", "ruma-push-gateway-api/server"]
 push-gateway-api = ["push-gateway-api-c", "push-gateway-api-s"]
 
+# Required for randomness, current system time in browser environments
+js = ["ruma-common/js"]
+
 # Convenience features
-either = ["ruma-common/either"]
 rand = ["ruma-common/rand"]
 markdown = ["ruma-common/markdown"]
 
-# Everything except compat and unstable features
+# Everything except compat, js and unstable features
 full = [
     "api",
     "client",
@@ -71,7 +73,6 @@ full = [
     "federation-api",
     "identity-service-api",
     "push-gateway-api",
-    "either",
     "rand",
     "markdown",
 ]
@@ -124,6 +125,7 @@ unstable-msc2654 = ["ruma-client-api/unstable-msc2654"]
 unstable-msc2675 = ["ruma-common/unstable-msc2675"]
 unstable-msc2676 = ["ruma-common/unstable-msc2676"]
 unstable-msc2677 = ["ruma-common/unstable-msc2677"]
+unstable-msc2870 = ["ruma-signatures/unstable-msc2870"]
 unstable-msc3245 = ["ruma-common/unstable-msc3245"]
 unstable-msc3246 = ["ruma-common/unstable-msc3246"]
 unstable-msc3440 = [
@@ -151,6 +153,7 @@ __ci = [
     "unstable-msc2675",
     "unstable-msc2676",
     "unstable-msc2677",
+    "unstable-msc2870",
     "unstable-msc3245",
     "unstable-msc3246",
     "unstable-msc3440",
@@ -167,17 +170,17 @@ __ci = [
 assign = "1.1.1"
 js_int = "0.2.0"
 
-ruma-common = { version = "0.8.0", path = "../ruma-common" }
+ruma-common = { version = "0.9.0", path = "../ruma-common" }
 
-ruma-client = { version = "0.8.0", path = "../ruma-client", optional = true }
-ruma-signatures = { version = "0.10.0", path = "../ruma-signatures", optional = true }
-ruma-state-res = { version = "0.6.0", path = "../ruma-state-res", optional = true }
+ruma-client = { version = "0.9.0", path = "../ruma-client", optional = true }
+ruma-signatures = { version = "0.11.0", path = "../ruma-signatures", optional = true }
+ruma-state-res = { version = "0.7.0", path = "../ruma-state-res", optional = true }
 
-ruma-appservice-api = { version = "0.5.0", path = "../ruma-appservice-api", optional = true }
-ruma-client-api = { version = "0.13.0", path = "../ruma-client-api", optional = true }
-ruma-federation-api = { version = "0.4.0", path = "../ruma-federation-api", optional = true }
-ruma-identity-service-api = { version = "0.4.0", path = "../ruma-identity-service-api", optional = true }
-ruma-push-gateway-api = { version = "0.4.0", path = "../ruma-push-gateway-api", optional = true }
+ruma-appservice-api = { version = "0.6.0", path = "../ruma-appservice-api", optional = true }
+ruma-client-api = { version = "0.14.0", path = "../ruma-client-api", optional = true }
+ruma-federation-api = { version = "0.5.0", path = "../ruma-federation-api", optional = true }
+ruma-identity-service-api = { version = "0.5.0", path = "../ruma-identity-service-api", optional = true }
+ruma-push-gateway-api = { version = "0.5.0", path = "../ruma-push-gateway-api", optional = true }
 
 [dev-dependencies]
 serde = { version = "1.0.118", features = ["derive"] }

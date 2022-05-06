@@ -5,7 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::ServerName;
+use crate::{OwnedRoomId, OwnedServerName};
 
 /// The content of an `m.space.parent` event.
 ///
@@ -16,11 +16,11 @@ use crate::ServerName;
 /// parent.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.space.parent", kind = State)]
+#[ruma_event(type = "m.space.parent", kind = State, state_key_type = OwnedRoomId)]
 pub struct SpaceParentEventContent {
     /// List of candidate servers that can be used to join the room.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub via: Option<Vec<Box<ServerName>>>,
+    pub via: Option<Vec<OwnedServerName>>,
 
     /// Determines whether this is the main parent for the space.
     ///
@@ -41,10 +41,10 @@ impl SpaceParentEventContent {
 
 #[cfg(test)]
 mod tests {
-    use crate::server_name;
     use serde_json::{json, to_value as to_json_value};
 
     use super::SpaceParentEventContent;
+    use crate::server_name;
 
     #[test]
     fn space_parent_serialization() {

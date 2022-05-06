@@ -1,3 +1,5 @@
+use ruma_macros::IdZst;
+
 #[cfg(feature = "rand")]
 use super::generate_localpart;
 
@@ -9,7 +11,7 @@ use super::generate_localpart;
 /// # Example
 ///
 /// ```
-/// use ruma_common::{device_id, DeviceId};
+/// use ruma_common::{device_id, DeviceId, OwnedDeviceId};
 ///
 /// # #[cfg(feature = "rand")] {
 /// let random_id = DeviceId::new();
@@ -22,28 +24,25 @@ use super::generate_localpart;
 /// let ref_id: &DeviceId = "abcdefghi".into();
 /// assert_eq!(ref_id.as_str(), "abcdefghi");
 ///
-/// let owned_id: Box<DeviceId> = "ijklmnop".into();
+/// let owned_id: OwnedDeviceId = "ijklmnop".into();
 /// assert_eq!(owned_id.as_str(), "ijklmnop");
 /// ```
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
 pub struct DeviceId(str);
-
-owned_identifier!(OwnedDeviceId, DeviceId);
-
-opaque_identifier!(DeviceId, OwnedDeviceId);
 
 impl DeviceId {
     /// Generates a random `DeviceId`, suitable for assignment to a new device.
     #[cfg(feature = "rand")]
-    pub fn new() -> Box<Self> {
-        Self::from_owned(generate_localpart(8))
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new() -> OwnedDeviceId {
+        Self::from_borrowed(&generate_localpart(8)).to_owned()
     }
 }
 
 #[cfg(all(test, feature = "rand"))]
 mod tests {
-    use super::DeviceId;
+    use super::{DeviceId, OwnedDeviceId};
 
     #[test]
     fn generate_device_id() {
@@ -58,14 +57,14 @@ mod tests {
 
     #[test]
     fn create_boxed_device_id_from_str() {
-        let box_id: Box<DeviceId> = "12345678".into();
+        let box_id: OwnedDeviceId = "12345678".into();
         assert_eq!(box_id.as_str(), "12345678");
     }
 
     #[test]
     fn create_device_id_from_box() {
         let box_str: Box<str> = "ijklmnop".into();
-        let device_id: Box<DeviceId> = DeviceId::from_owned(box_str);
+        let device_id: OwnedDeviceId = box_str.into();
         assert_eq!(device_id.as_str(), "ijklmnop");
     }
 }

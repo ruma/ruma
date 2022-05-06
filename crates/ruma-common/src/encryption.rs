@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     serde::{Base64, StringEnum},
-    DeviceId, DeviceKeyId, EventEncryptionAlgorithm, PrivOwnedStr, UserId,
+    EventEncryptionAlgorithm, OwnedDeviceId, OwnedDeviceKeyId, OwnedUserId, PrivOwnedStr,
 };
 
 /// Identity keys for a device.
@@ -18,21 +18,21 @@ pub struct DeviceKeys {
     /// The ID of the user the device belongs to.
     ///
     /// Must match the user ID used when logging in.
-    pub user_id: Box<UserId>,
+    pub user_id: OwnedUserId,
 
     /// The ID of the device these keys belong to.
     ///
     /// Must match the device ID used when logging in.
-    pub device_id: Box<DeviceId>,
+    pub device_id: OwnedDeviceId,
 
     /// The encryption algorithms supported by this device.
     pub algorithms: Vec<EventEncryptionAlgorithm>,
 
     /// Public identity keys.
-    pub keys: BTreeMap<Box<DeviceKeyId>, String>,
+    pub keys: BTreeMap<OwnedDeviceKeyId, String>,
 
     /// Signatures for the device key object.
-    pub signatures: BTreeMap<Box<UserId>, BTreeMap<Box<DeviceKeyId>, String>>,
+    pub signatures: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceKeyId, String>>,
 
     /// Additional data added to the device key information by intermediate servers, and
     /// not covered by the signatures.
@@ -44,11 +44,11 @@ impl DeviceKeys {
     /// Creates a new `DeviceKeys` from the given user id, device id, algorithms, keys and
     /// signatures.
     pub fn new(
-        user_id: Box<UserId>,
-        device_id: Box<DeviceId>,
+        user_id: OwnedUserId,
+        device_id: OwnedDeviceId,
         algorithms: Vec<EventEncryptionAlgorithm>,
-        keys: BTreeMap<Box<DeviceKeyId>, String>,
-        signatures: BTreeMap<Box<UserId>, BTreeMap<Box<DeviceKeyId>, String>>,
+        keys: BTreeMap<OwnedDeviceKeyId, String>,
+        signatures: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceKeyId, String>>,
     ) -> Self {
         Self { user_id, device_id, algorithms, keys, signatures, unsigned: Default::default() }
     }
@@ -76,7 +76,7 @@ impl UnsignedDeviceInfo {
 }
 
 /// Signatures for a `SignedKey` object.
-pub type SignedKeySignatures = BTreeMap<Box<UserId>, BTreeMap<Box<DeviceKeyId>, String>>;
+pub type SignedKeySignatures = BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceKeyId, String>>;
 
 /// A key for the SignedCurve25519 algorithm
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -118,14 +118,14 @@ pub enum OneTimeKey {
 }
 
 /// Signatures for a `CrossSigningKey` object.
-pub type CrossSigningKeySignatures = BTreeMap<Box<UserId>, BTreeMap<Box<DeviceKeyId>, String>>;
+pub type CrossSigningKeySignatures = BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceKeyId, String>>;
 
 /// A cross signing key.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct CrossSigningKey {
     /// The ID of the user the key belongs to.
-    pub user_id: Box<UserId>,
+    pub user_id: OwnedUserId,
 
     /// What the key is used for.
     pub usage: Vec<KeyUsage>,
@@ -133,7 +133,7 @@ pub struct CrossSigningKey {
     /// The public key.
     ///
     /// The object must have exactly one property.
-    pub keys: BTreeMap<Box<DeviceKeyId>, String>,
+    pub keys: BTreeMap<OwnedDeviceKeyId, String>,
 
     /// Signatures of the key.
     ///
@@ -145,9 +145,9 @@ pub struct CrossSigningKey {
 impl CrossSigningKey {
     /// Creates a new `CrossSigningKey` with the given user ID, usage, keys and signatures.
     pub fn new(
-        user_id: Box<UserId>,
+        user_id: OwnedUserId,
         usage: Vec<KeyUsage>,
-        keys: BTreeMap<Box<DeviceKeyId>, String>,
+        keys: BTreeMap<OwnedDeviceKeyId, String>,
         signatures: CrossSigningKeySignatures,
     ) -> Self {
         Self { user_id, usage, keys, signatures }

@@ -6,7 +6,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::{
     parse::{Parse, ParseStream},
-    DeriveInput, Field, Ident, LitStr, Token,
+    DeriveInput, Field, Ident, LitStr, Token, Type,
 };
 
 use crate::util::m_prefix_name_to_type_name;
@@ -21,6 +21,8 @@ mod kw {
     // The kind of event content this is.
     syn::custom_keyword!(kind);
     syn::custom_keyword!(type_fragment);
+    // The type to use for a state events' `state_key` field.
+    syn::custom_keyword!(state_key_type);
 }
 
 /// Parses attributes for `*EventContent` derives.
@@ -43,6 +45,8 @@ enum EventMeta {
     /// The given field holds a part of the event type (replaces the `*` in a `m.foo.*` event
     /// type).
     TypeFragment,
+
+    StateKeyType(Box<Type>),
 }
 
 impl EventMeta {
@@ -59,6 +63,13 @@ impl EventMeta {
             _ => None,
         }
     }
+
+    fn get_state_key_type(&self) -> Option<&Type> {
+        match self {
+            Self::StateKeyType(ty) => Some(ty),
+            _ => None,
+        }
+    }
 }
 
 impl Parse for EventMeta {
@@ -71,7 +82,7 @@ impl Parse for EventMeta {
         } else if lookahead.peek(kw::kind) {
             let _: kw::kind = input.parse()?;
             let _: Token![=] = input.parse()?;
-            EventKind::parse(input).map(EventMeta::Kind)
+            input.parse().map(EventMeta::Kind)
         } else if lookahead.peek(kw::skip_redaction) {
             let _: kw::skip_redaction = input.parse()?;
             Ok(EventMeta::SkipRedaction)
@@ -81,6 +92,10 @@ impl Parse for EventMeta {
         } else if lookahead.peek(kw::type_fragment) {
             let _: kw::type_fragment = input.parse()?;
             Ok(EventMeta::TypeFragment)
+        } else if lookahead.peek(kw::state_key_type) {
+            let _: kw::state_key_type = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            input.parse().map(EventMeta::StateKeyType)
         } else {
             Err(lookahead.error())
         }
@@ -100,6 +115,10 @@ impl MetaAttrs {
 
     fn get_event_kind(&self) -> Option<EventKind> {
         self.0.iter().find_map(|a| a.get_event_kind())
+    }
+
+    fn get_state_key_type(&self) -> Option<&Type> {
+        self.0.iter().find_map(|a| a.get_state_key_type())
     }
 }
 
@@ -155,6 +174,31 @@ pub fn expand_event_content(
         }
     };
 
+    let state_key_types: Vec<_> =
+        content_attr.iter().filter_map(|attrs| attrs.get_state_key_type()).collect();
+    let state_key_type = match (event_kind, state_key_types.as_slice()) {
+        (Some(EventKind::State), []) => {
+            return Err(syn::Error::new(
+                Span::call_site(),
+                "no state_key_type attribute found, please specify one",
+            ));
+        }
+        (Some(EventKind::State), [ty]) => Some(quote! { #ty }),
+        (Some(EventKind::State), _) => {
+            return Err(syn::Error::new(
+                Span::call_site(),
+                "multiple state_key_type attribute found, there can only be one",
+            ));
+        }
+        (_, []) => None,
+        (_, [ty, ..]) => {
+            return Err(syn::Error::new_spanned(
+                ty,
+                "state_key_type attribute is not valid for non-state event kinds",
+            ));
+        }
+    };
+
     let ident = &input.ident;
     let fields = match &input.data {
         syn::Data::Struct(syn::DataStruct { fields, .. }) => fields.iter(),
@@ -185,13 +229,26 @@ pub fn expand_event_content(
 
     // We only generate redacted content structs for state and message-like events
     let redacted_event_content = needs_redacted(&content_attr, event_kind).then(|| {
-        generate_redacted_event_content(ident, fields.clone(), event_type, event_kind, ruma_common)
-            .unwrap_or_else(syn::Error::into_compile_error)
+        generate_redacted_event_content(
+            ident,
+            fields.clone(),
+            event_type,
+            event_kind,
+            state_key_type.as_ref(),
+            ruma_common,
+        )
+        .unwrap_or_else(syn::Error::into_compile_error)
     });
 
-    let event_content_impl =
-        generate_event_content_impl(ident, fields, event_type, event_kind, ruma_common)
-            .unwrap_or_else(syn::Error::into_compile_error);
+    let event_content_impl = generate_event_content_impl(
+        ident,
+        fields,
+        event_type,
+        event_kind,
+        state_key_type.as_ref(),
+        ruma_common,
+    )
+    .unwrap_or_else(syn::Error::into_compile_error);
     let static_event_content_impl = event_kind
         .map(|k| generate_static_event_content_impl(ident, k, false, event_type, ruma_common));
     let type_aliases = event_kind.map(|k| {
@@ -212,6 +269,7 @@ fn generate_redacted_event_content<'a>(
     fields: impl Iterator<Item = &'a Field>,
     event_type: &LitStr,
     event_kind: Option<EventKind>,
+    state_key_type: Option<&TokenStream>,
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
     assert!(
@@ -295,6 +353,7 @@ fn generate_redacted_event_content<'a>(
         kept_redacted_fields.iter(),
         event_type,
         event_kind,
+        state_key_type,
         ruma_common,
     )
     .unwrap_or_else(syn::Error::into_compile_error);
@@ -416,6 +475,7 @@ fn generate_event_content_impl<'a>(
     mut fields: impl Iterator<Item = &'a Field>,
     event_type: &LitStr,
     event_kind: Option<EventKind>,
+    state_key_type: Option<&TokenStream>,
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let serde = quote! { #ruma_common::exports::serde };
@@ -489,6 +549,16 @@ fn generate_event_content_impl<'a>(
         }
     }
 
+    let state_event_content_impl = (event_kind == Some(EventKind::State)).then(|| {
+        assert!(state_key_type.is_some());
+        quote! {
+            #[automatically_derived]
+            impl #ruma_common::events::StateEventContent for #ident {
+                type StateKey = #state_key_type;
+            }
+        }
+    });
+
     Ok(quote! {
         #event_type_ty_decl
 
@@ -513,6 +583,8 @@ fn generate_event_content_impl<'a>(
                 #serde_json::from_str(content.get())
             }
         }
+
+        #state_event_content_impl
     })
 }
 

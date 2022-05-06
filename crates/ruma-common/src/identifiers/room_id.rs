@@ -1,5 +1,7 @@
 //! Matrix room identifiers.
 
+use ruma_macros::IdZst;
+
 use super::{matrix_uri::UriAction, EventId, MatrixToUri, MatrixUri, ServerName};
 
 /// A Matrix [room ID].
@@ -15,12 +17,9 @@ use super::{matrix_uri::UriAction, EventId, MatrixToUri, MatrixUri, ServerName};
 ///
 /// [room ID]: https://spec.matrix.org/v1.2/appendices/#room-ids-and-event-ids
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[ruma_id(validate = ruma_identifiers_validation::room_id::validate)]
 pub struct RoomId(str);
-
-owned_identifier!(OwnedRoomId, RoomId);
-
-opaque_identifier_validated!(RoomId, OwnedRoomId, ruma_identifiers_validation::room_id::validate);
 
 impl RoomId {
     /// Attempts to generate a `RoomId` for the given origin server with a localpart consisting of
@@ -28,8 +27,10 @@ impl RoomId {
     ///
     /// Fails if the given homeserver cannot be parsed as a valid host.
     #[cfg(feature = "rand")]
-    pub fn new(server_name: &ServerName) -> Box<Self> {
-        Self::from_owned(format!("!{}:{}", super::generate_localpart(18), server_name).into())
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new(server_name: &ServerName) -> OwnedRoomId {
+        Self::from_borrowed(&format!("!{}:{}", super::generate_localpart(18), server_name))
+            .to_owned()
     }
 
     /// Returns the rooms's unique ID.
@@ -111,7 +112,7 @@ impl RoomId {
 mod tests {
     use std::convert::TryFrom;
 
-    use super::RoomId;
+    use super::{OwnedRoomId, RoomId};
     use crate::IdParseError;
 
     #[test]
@@ -158,7 +159,7 @@ mod tests {
     #[test]
     fn deserialize_valid_room_id() {
         assert_eq!(
-            serde_json::from_str::<Box<RoomId>>(r#""!29fhd83h92h0:example.com""#)
+            serde_json::from_str::<OwnedRoomId>(r#""!29fhd83h92h0:example.com""#)
                 .expect("Failed to convert JSON to RoomId"),
             <&RoomId>::try_from("!29fhd83h92h0:example.com").expect("Failed to create RoomId.")
         );
@@ -194,10 +195,7 @@ mod tests {
 
     #[test]
     fn missing_room_id_delimiter() {
-        assert_eq!(
-            <&RoomId>::try_from("!29fhd83h92h0").unwrap_err(),
-            IdParseError::MissingDelimiter
-        );
+        assert_eq!(<&RoomId>::try_from("!29fhd83h92h0").unwrap_err(), IdParseError::MissingColon);
     }
 
     #[test]

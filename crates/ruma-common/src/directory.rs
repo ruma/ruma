@@ -2,7 +2,10 @@
 
 use std::fmt;
 
-use crate::serde::{Incoming, StringEnum};
+use crate::{
+    serde::{Incoming, StringEnum},
+    OwnedRoomAliasId, OwnedRoomId,
+};
 use js_int::UInt;
 use serde::{
     de::{Error, MapAccess, Visitor},
@@ -11,7 +14,7 @@ use serde::{
 };
 use serde_json::Value as JsonValue;
 
-use crate::{MxcUri, PrivOwnedStr, RoomAliasId, RoomId, RoomName};
+use crate::{OwnedMxcUri, PrivOwnedStr, RoomName};
 
 /// A chunk of a room list response, describing one room.
 ///
@@ -26,7 +29,7 @@ pub struct PublicRoomsChunk {
         feature = "compat",
         serde(default, deserialize_with = "crate::serde::empty_string_as_none")
     )]
-    pub canonical_alias: Option<Box<RoomAliasId>>,
+    pub canonical_alias: Option<OwnedRoomAliasId>,
 
     /// The name of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -36,7 +39,7 @@ pub struct PublicRoomsChunk {
     pub num_joined_members: UInt,
 
     /// The ID of the room.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// The topic of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -59,7 +62,7 @@ pub struct PublicRoomsChunk {
         feature = "compat",
         serde(default, deserialize_with = "crate::serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<Box<MxcUri>>,
+    pub avatar_url: Option<OwnedMxcUri>,
 
     /// The join rule of the room.
     #[serde(default, skip_serializing_if = "crate::serde::is_default")]
@@ -77,7 +80,7 @@ pub struct PublicRoomsChunkInit {
     pub num_joined_members: UInt,
 
     /// The ID of the room.
-    pub room_id: Box<RoomId>,
+    pub room_id: OwnedRoomId,
 
     /// Whether the room may be viewed by guest users without joining.
     pub world_readable: bool,

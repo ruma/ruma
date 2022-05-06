@@ -37,7 +37,6 @@ const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
         matches!(kind, EventKind::MessageLike | EventKind::State | EventKind::ToDevice)
             && var != EventEnumVariation::Initial
     }),
-    ("state_key", |kind, _| matches!(kind, EventKind::State)),
 ];
 
 /// Create a content enum from `EventEnumInput`.
@@ -270,10 +269,7 @@ fn expand_into_full_event(
         #[automatically_derived]
         impl #ident {
             /// Convert this sync event into a full event (one with a `room_id` field).
-            pub fn into_full_event(
-                self,
-                room_id: ::std::boxed::Box<#ruma_common::RoomId>,
-            ) -> #full {
+            pub fn into_full_event(self, room_id: #ruma_common::OwnedRoomId) -> #full {
                 match self {
                     #(
                         #self_variants(event) => {
@@ -444,10 +440,35 @@ fn expand_accessor_methods(
         }
     };
 
-    let content_accessors = (!maybe_redacted).then(|| {
-        let content_enum = kind.to_content_enum();
-        let content_variants: Vec<_> = variants.iter().map(|v| v.ctor(&content_enum)).collect();
-
+    let content_enum = kind.to_content_enum();
+    let content_variants: Vec<_> = variants.iter().map(|v| v.ctor(&content_enum)).collect();
+    let content_accessor = if maybe_redacted {
+        quote! {
+            /// Returns the content for this event if it is not redacted, or `None` if it is.
+            pub fn original_content(&self) -> Option<#content_enum> {
+                match self {
+                    #(
+                        #self_variants(event) => {
+                            event.as_original().map(|ev| #content_variants(ev.content.clone()))
+                        }
+                    )*
+                    Self::_Custom(event) => event.as_original().map(|ev| {
+                        #content_enum::_Custom {
+                            event_type: crate::PrivOwnedStr(
+                                ::std::convert::From::from(
+                                    ::std::string::ToString::to_string(
+                                        &#ruma_common::events::EventContent::event_type(
+                                            &ev.content,
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        }
+                    }),
+                }
+            }
+        }
+    } else {
         quote! {
             /// Returns the content for this event.
             pub fn content(&self) -> #content_enum {
@@ -465,7 +486,7 @@ fn expand_accessor_methods(
                 }
             }
         }
-    });
+    };
 
     let methods = EVENT_FIELDS.iter().map(|(name, has_field)| {
         has_field(kind, var).then(|| {
@@ -474,17 +495,52 @@ fn expand_accessor_methods(
             let field_type = field_return_type(name, ruma_common);
             let variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
             let call_parens = maybe_redacted.then(|| quote! { () });
+            let ampersand = (*name != "origin_server_ts").then(|| quote! { & });
 
             quote! {
                 #[doc = #docs]
-                pub fn #ident(&self) -> &#field_type {
+                pub fn #ident(&self) -> #field_type {
                     match self {
-                        #( #variants(event) => &event.#ident #call_parens, )*
-                        Self::_Custom(event) => &event.#ident #call_parens,
+                        #( #variants(event) => #ampersand event.#ident #call_parens, )*
+                        Self::_Custom(event) => #ampersand event.#ident #call_parens,
                     }
                 }
             }
         })
+    });
+
+    let state_key_accessor = (kind == EventKind::State).then(|| {
+        let variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
+        let call_parens = maybe_redacted.then(|| quote! { () });
+
+        quote! {
+            /// Returns this event's `state_key` field.
+            pub fn state_key(&self) -> &::std::primitive::str {
+                match self {
+                    #( #variants(event) => &event.state_key #call_parens .as_ref(), )*
+                    Self::_Custom(event) => &event.state_key #call_parens .as_ref(),
+                }
+            }
+        }
+    });
+
+    let txn_id_accessor = maybe_redacted.then(|| {
+        let variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
+        quote! {
+            /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
+            pub fn transaction_id(&self) -> Option<&#ruma_common::TransactionId> {
+                match self {
+                    #(
+                        #variants(event) => {
+                            event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_deref())
+                        }
+                    )*
+                    Self::_Custom(event) => {
+                        event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_deref())
+                    }
+                }
+            }
+        }
     });
 
     Ok(quote! {
@@ -495,8 +551,10 @@ fn expand_accessor_methods(
                 match self { #event_type_match_arms }
             }
 
-            #content_accessors
+            #content_accessor
             #( #methods )*
+            #state_key_accessor
+            #txn_id_accessor
         }
     })
 }
@@ -552,10 +610,9 @@ fn event_module_path(name: &LitStr) -> Vec<Ident> {
 fn field_return_type(name: &str, ruma_common: &TokenStream) -> TokenStream {
     match name {
         "origin_server_ts" => quote! { #ruma_common::MilliSecondsSinceUnixEpoch },
-        "room_id" => quote! { #ruma_common::RoomId },
-        "event_id" => quote! { #ruma_common::EventId },
-        "sender" => quote! { #ruma_common::UserId },
-        "state_key" => quote! { ::std::primitive::str },
+        "room_id" => quote! { &#ruma_common::RoomId },
+        "event_id" => quote! { &#ruma_common::EventId },
+        "sender" => quote! { &#ruma_common::UserId },
         _ => panic!("the `ruma_macros::event_enum::EVENT_FIELD` const was changed"),
     }
 }

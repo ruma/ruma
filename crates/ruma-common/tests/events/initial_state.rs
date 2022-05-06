@@ -15,8 +15,7 @@ fn deserialize_initial_state_event() {
             "content": { "name": "foo" }
         }))
         .unwrap(),
-        AnyInitialStateEvent::RoomName(InitialStateEvent { content, state_key})
+        AnyInitialStateEvent::RoomName(InitialStateEvent { content, .. })
         if content.name == Some(Box::<RoomName>::try_from("foo").unwrap())
-            && state_key.is_empty()
     );
 }

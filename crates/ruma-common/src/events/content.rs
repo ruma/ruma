@@ -1,6 +1,6 @@
 use std::fmt;
 
-use serde::Serialize;
+use serde::{de::DeserializeOwned, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use crate::serde::Raw;
@@ -164,17 +164,18 @@ trait_aliases! {
     /// An alias for `EventContent<EventType = MessageLikeEventType>`.
     trait MessageLikeEventContent = EventContent<EventType = MessageLikeEventType>;
 
-    /// An alias for `EventContent<EventType = MessageLikeEventType> + RedactedEventContent`.
-    trait RedactedMessageLikeEventContent =
-        EventContent<EventType = MessageLikeEventType>, RedactedEventContent;
+    /// An alias for `MessageLikeEventContent + RedactedEventContent`.
+    trait RedactedMessageLikeEventContent = MessageLikeEventContent, RedactedEventContent;
 
-    /// An alias for `EventContent<EventType = StateEventType>`.
-    trait StateEventContent = EventContent<EventType = StateEventType>;
-
-    /// An alias for `EventContent<EventType = StateEventType> + RedactedEventContent`.
-    trait RedactedStateEventContent =
-        EventContent<EventType = StateEventType>, RedactedEventContent;
+    /// An alias for `StateEventContent + RedactedEventContent`.
+    trait RedactedStateEventContent = StateEventContent, RedactedEventContent;
 
     /// An alias for `EventContent<EventType = ToDeviceEventType>`.
     trait ToDeviceEventContent = EventContent<EventType = ToDeviceEventType>;
+}
+
+/// An alias for `EventContent<EventType = StateEventType>`.
+pub trait StateEventContent: EventContent<EventType = StateEventType> {
+    /// The type of the event's `state_key` field.
+    type StateKey: AsRef<str> + Clone + fmt::Debug + DeserializeOwned + Serialize;
 }

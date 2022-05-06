@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3joinroomidoralias
 
-    use ruma_common::{api::ruma_api, RoomId, RoomOrAliasId, ServerName};
+    use ruma_common::{api::ruma_api, OwnedRoomId, OwnedServerName, RoomOrAliasId};
 
     use crate::membership::{IncomingThirdPartySigned, ThirdPartySigned};
 
@@ -31,7 +31,7 @@ pub mod v3 {
             /// One of the servers  must be participating in the room.
             #[ruma_api(query)]
             #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-            pub server_name: &'a [Box<ServerName>],
+            pub server_name: &'a [OwnedServerName],
 
             /// The signature of a `m.third_party_invite` token to prove that this user owns a third
             /// party identity which has been invited to the room.
@@ -45,7 +45,7 @@ pub mod v3 {
 
         response: {
             /// The room that the user joined.
-            pub room_id: Box<RoomId>,
+            pub room_id: OwnedRoomId,
         }
 
         error: crate::Error
@@ -60,7 +60,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given room ID.
-        pub fn new(room_id: Box<RoomId>) -> Self {
+        pub fn new(room_id: OwnedRoomId) -> Self {
             Self { room_id }
         }
     }

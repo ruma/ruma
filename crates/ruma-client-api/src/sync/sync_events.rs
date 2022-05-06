@@ -17,7 +17,7 @@ pub mod v3 {
         },
         presence::PresenceState,
         serde::{Incoming, Raw},
-        DeviceKeyAlgorithm, RoomId, UserId,
+        DeviceKeyAlgorithm, OwnedRoomId, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};
 
@@ -179,19 +179,19 @@ pub mod v3 {
     pub struct Rooms {
         /// The rooms that the user has left or been banned from.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub leave: BTreeMap<Box<RoomId>, LeftRoom>,
+        pub leave: BTreeMap<OwnedRoomId, LeftRoom>,
 
         /// The rooms that the user has joined.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub join: BTreeMap<Box<RoomId>, JoinedRoom>,
+        pub join: BTreeMap<OwnedRoomId, JoinedRoom>,
 
         /// The rooms that the user has been invited to.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub invite: BTreeMap<Box<RoomId>, InvitedRoom>,
+        pub invite: BTreeMap<OwnedRoomId, InvitedRoom>,
 
         /// The rooms that the user has knocked on.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub knock: BTreeMap<Box<RoomId>, KnockedRoom>,
+        pub knock: BTreeMap<OwnedRoomId, KnockedRoom>,
     }
 
     impl Rooms {
@@ -617,12 +617,12 @@ pub mod v3 {
         /// List of users who have updated their device identity keys or who now
         /// share an encrypted room with the client since the previous sync
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub changed: Vec<Box<UserId>>,
+        pub changed: Vec<OwnedUserId>,
 
         /// List of users who no longer share encrypted rooms since the previous sync
         /// response.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub left: Vec<Box<UserId>>,
+        pub left: Vec<OwnedUserId>,
     }
 
     impl DeviceLists {

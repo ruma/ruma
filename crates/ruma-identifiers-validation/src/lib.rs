@@ -37,7 +37,7 @@ fn validate_id(id: &str, valid_sigils: &[char]) -> Result<(), Error> {
 /// Checks an identifier that contains a localpart and hostname for validity.
 fn parse_id(id: &str, valid_sigils: &[char]) -> Result<usize, Error> {
     validate_id(id, valid_sigils)?;
-    let colon_idx = id.find(':').ok_or(Error::MissingDelimiter)?;
+    let colon_idx = id.find(':').ok_or(Error::MissingColon)?;
     server_name::validate(&id[colon_idx + 1..])?;
     Ok(colon_idx)
 }

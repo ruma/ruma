@@ -11,7 +11,7 @@ use super::{
     image::{ImageContent, ThumbnailContent},
     message::MessageContent,
 };
-use crate::{events::room::ImageInfo, MxcUri};
+use crate::{events::room::ImageInfo, OwnedMxcUri};
 
 /// The content of an `m.sticker` event.
 ///
@@ -35,7 +35,7 @@ pub struct StickerEventContent {
     pub info: ImageInfo,
 
     /// The URL to the sticker image.
-    pub url: Box<MxcUri>,
+    pub url: OwnedMxcUri,
 
     /// Extensible-event text representation of the message.
     ///
@@ -91,7 +91,7 @@ pub struct StickerEventContent {
 
 impl StickerEventContent {
     /// Creates a new `StickerEventContent` with the given body, image info and URL.
-    pub fn new(body: String, info: ImageInfo, url: Box<MxcUri>) -> Self {
+    pub fn new(body: String, info: ImageInfo, url: OwnedMxcUri) -> Self {
         Self {
             #[cfg(feature = "unstable-msc3552")]
             message: Some(MessageContent::plain(body.clone())),

@@ -1,5 +1,7 @@
 //! Matrix event identifiers.
 
+use ruma_macros::IdZst;
+
 use super::ServerName;
 
 /// A Matrix [event ID].
@@ -35,16 +37,9 @@ use super::ServerName;
 ///
 /// [event ID]: https://spec.matrix.org/v1.2/appendices/#room-ids-and-event-ids
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[ruma_id(validate = ruma_identifiers_validation::event_id::validate)]
 pub struct EventId(str);
-
-owned_identifier!(OwnedEventId, EventId);
-
-opaque_identifier_validated!(
-    EventId,
-    OwnedEventId,
-    ruma_identifiers_validation::event_id::validate
-);
 
 impl EventId {
     /// Attempts to generate an `EventId` for the given origin server with a localpart consisting
@@ -53,8 +48,10 @@ impl EventId {
     /// This should only be used for events in the original format  as used by Matrix room versions
     /// 1 and 2.
     #[cfg(feature = "rand")]
-    pub fn new(server_name: &ServerName) -> Box<Self> {
-        Self::from_owned(format!("${}:{}", super::generate_localpart(18), server_name).into())
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new(server_name: &ServerName) -> OwnedEventId {
+        Self::from_borrowed(&format!("${}:{}", super::generate_localpart(18), server_name))
+            .to_owned()
     }
 
     /// Returns the event's unique ID.
@@ -83,7 +80,7 @@ impl EventId {
 mod tests {
     use std::convert::TryFrom;
 
-    use super::EventId;
+    use super::{EventId, OwnedEventId};
     use crate::IdParseError;
 
     #[test]
@@ -163,7 +160,7 @@ mod tests {
     #[test]
     fn deserialize_valid_original_event_id() {
         assert_eq!(
-            serde_json::from_str::<Box<EventId>>(r#""$39hvsi03hlne:example.com""#)
+            serde_json::from_str::<OwnedEventId>(r#""$39hvsi03hlne:example.com""#)
                 .expect("Failed to convert JSON to EventId"),
             <&EventId>::try_from("$39hvsi03hlne:example.com").expect("Failed to create EventId.")
         );
@@ -172,7 +169,7 @@ mod tests {
     #[test]
     fn deserialize_valid_base64_event_id() {
         assert_eq!(
-            serde_json::from_str::<Box<EventId>>(
+            serde_json::from_str::<OwnedEventId>(
                 r#""$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk""#
             )
             .expect("Failed to convert JSON to EventId"),
@@ -184,7 +181,7 @@ mod tests {
     #[test]
     fn deserialize_valid_url_safe_base64_event_id() {
         assert_eq!(
-            serde_json::from_str::<Box<EventId>>(
+            serde_json::from_str::<OwnedEventId>(
                 r#""$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg""#
             )
             .expect("Failed to convert JSON to EventId"),

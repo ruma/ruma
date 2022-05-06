@@ -5,7 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{serde::StringEnum, PrivOwnedStr};
+use crate::{events::EmptyStateKey, serde::StringEnum, PrivOwnedStr};
 
 /// The content of an `m.room.history_visibility` event.
 ///
@@ -13,7 +13,7 @@ use crate::{serde::StringEnum, PrivOwnedStr};
 /// before they joined.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.history_visibility", kind = State)]
+#[ruma_event(type = "m.room.history_visibility", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomHistoryVisibilityEventContent {
     /// Who can see the room history.
     #[ruma_event(skip_redaction)]
@@ -24,6 +24,26 @@ impl RoomHistoryVisibilityEventContent {
     /// Creates a new `RoomHistoryVisibilityEventContent` with the given policy.
     pub fn new(history_visibility: HistoryVisibility) -> Self {
         Self { history_visibility }
+    }
+}
+
+impl RoomHistoryVisibilityEvent {
+    /// Obtain the history visibility, regardless of whether this event is redacted.
+    pub fn history_visibility(&self) -> &HistoryVisibility {
+        match self {
+            Self::Original(ev) => &ev.content.history_visibility,
+            Self::Redacted(ev) => &ev.content.history_visibility,
+        }
+    }
+}
+
+impl SyncRoomHistoryVisibilityEvent {
+    /// Obtain the history visibility, regardless of whether this event is redacted.
+    pub fn history_visibility(&self) -> &HistoryVisibility {
+        match self {
+            Self::Original(ev) => &ev.content.history_visibility,
+            Self::Redacted(ev) => &ev.content.history_visibility,
+        }
     }
 }
 

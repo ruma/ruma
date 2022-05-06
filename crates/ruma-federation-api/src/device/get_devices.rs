@@ -12,7 +12,7 @@ pub mod v1 {
         api::ruma_api,
         encryption::{CrossSigningKey, DeviceKeys},
         serde::Raw,
-        DeviceId, UserId,
+        OwnedDeviceId, OwnedUserId, UserId,
     };
     use serde::{Deserialize, Serialize};
 
@@ -37,7 +37,7 @@ pub mod v1 {
 
         response: {
             /// The user ID devices were requested for.
-            pub user_id: Box<UserId>,
+            pub user_id: OwnedUserId,
 
             /// A unique ID for a given user_id which describes the version of the returned device list.
             ///
@@ -69,7 +69,7 @@ pub mod v1 {
         /// Creates a new `Response` with the given user id and stream id.
         ///
         /// The device list will be empty.
-        pub fn new(user_id: Box<UserId>, stream_id: UInt) -> Self {
+        pub fn new(user_id: OwnedUserId, stream_id: UInt) -> Self {
             Self {
                 user_id,
                 stream_id,
@@ -85,7 +85,7 @@ pub mod v1 {
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct UserDevice {
         /// The device ID.
-        pub device_id: Box<DeviceId>,
+        pub device_id: OwnedDeviceId,
 
         /// Identity keys for the device.
         pub keys: Raw<DeviceKeys>,
@@ -97,7 +97,7 @@ pub mod v1 {
 
     impl UserDevice {
         /// Creates a new `UserDevice` with the given device id and keys.
-        pub fn new(device_id: Box<DeviceId>, keys: Raw<DeviceKeys>) -> Self {
+        pub fn new(device_id: OwnedDeviceId, keys: Raw<DeviceKeys>) -> Self {
             Self { device_id, keys, device_display_name: None }
         }
     }

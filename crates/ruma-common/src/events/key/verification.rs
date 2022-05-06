@@ -9,7 +9,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{serde::StringEnum, EventId, PrivOwnedStr};
+use crate::{serde::StringEnum, OwnedEventId, PrivOwnedStr};
 
 pub mod accept;
 pub mod cancel;
@@ -124,12 +124,12 @@ impl ShortAuthenticationString {
 #[serde(tag = "rel_type", rename = "m.reference")]
 pub struct Relation {
     /// The event ID of a related `m.key.verification.request`.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 }
 
 impl Relation {
     /// Creates a new `Relation` with the given event ID.
-    pub fn new(event_id: Box<EventId>) -> Self {
+    pub fn new(event_id: OwnedEventId) -> Self {
         Self { event_id }
     }
 }

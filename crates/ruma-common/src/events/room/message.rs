@@ -29,7 +29,7 @@ use crate::events::{
 use crate::{
     events::key::verification::VerificationMethod,
     serde::{JsonObject, StringEnum},
-    DeviceId, EventId, MxcUri, PrivOwnedStr, UserId,
+    OwnedDeviceId, OwnedEventId, OwnedMxcUri, OwnedUserId, PrivOwnedStr,
 };
 #[cfg(feature = "unstable-msc3488")]
 use crate::{
@@ -112,11 +112,9 @@ impl RoomMessageEventContent {
         reply: impl fmt::Display,
         original_message: &OriginalRoomMessageEvent,
     ) -> Self {
-        let quoted = reply::get_plain_quote_fallback(original_message);
-        let quoted_html = reply::get_html_quote_fallback(original_message);
-
-        let body = format!("{}\n\n{}", quoted, reply);
-        let html_body = format!("{}\n\n{}", quoted_html, reply);
+        let formatted: Option<&str> = None;
+        let (body, html_body) =
+            reply::plain_and_formatted_reply_body(reply, formatted, original_message);
 
         Self {
             relates_to: Some(Relation::Reply {
@@ -137,11 +135,8 @@ impl RoomMessageEventContent {
         html_reply: impl fmt::Display,
         original_message: &OriginalRoomMessageEvent,
     ) -> Self {
-        let quoted = reply::get_plain_quote_fallback(original_message);
-        let quoted_html = reply::get_html_quote_fallback(original_message);
-
-        let body = format!("{}\n\n{}", quoted, reply);
-        let html_body = format!("{}\n\n{}", quoted_html, html_reply);
+        let (body, html_body) =
+            reply::plain_and_formatted_reply_body(reply, Some(html_reply), original_message);
 
         Self {
             relates_to: Some(Relation::Reply {
@@ -161,11 +156,9 @@ impl RoomMessageEventContent {
         reply: impl fmt::Display,
         original_message: &OriginalRoomMessageEvent,
     ) -> Self {
-        let quoted = reply::get_plain_quote_fallback(original_message);
-        let quoted_html = reply::get_html_quote_fallback(original_message);
-
-        let body = format!("{}\n\n{}", quoted, reply);
-        let html_body = format!("{}\n\n{}", quoted_html, reply);
+        let formatted: Option<&str> = None;
+        let (body, html_body) =
+            reply::plain_and_formatted_reply_body(reply, formatted, original_message);
 
         Self {
             relates_to: Some(Relation::Reply {
@@ -186,17 +179,114 @@ impl RoomMessageEventContent {
         html_reply: impl fmt::Display,
         original_message: &OriginalRoomMessageEvent,
     ) -> Self {
-        let quoted = reply::get_plain_quote_fallback(original_message);
-        let quoted_html = reply::get_html_quote_fallback(original_message);
-
-        let body = format!("{}\n\n{}", quoted, reply);
-        let html_body = format!("{}\n\n{}", quoted_html, html_reply);
+        let (body, html_body) =
+            reply::plain_and_formatted_reply_body(reply, Some(html_reply), original_message);
 
         Self {
             relates_to: Some(Relation::Reply {
                 in_reply_to: InReplyTo { event_id: original_message.event_id.clone() },
             }),
             ..Self::notice_html(body, html_body)
+        }
+    }
+
+    /// Create a new reply with the given message and optionally forwards the [`Relation::Thread`].
+    ///
+    /// If `message` is a text or notice message, it is modified to include the rich reply fallback.
+    #[cfg(feature = "unstable-msc3440")]
+    pub fn reply(
+        message: MessageType,
+        original_message: &OriginalRoomMessageEvent,
+        forward_thread: ForwardThread,
+    ) -> Self {
+        let msgtype = match message {
+            MessageType::Text(TextMessageEventContent { body, formatted, .. }) => {
+                let (body, html_body) = reply::plain_and_formatted_reply_body(
+                    body,
+                    formatted.map(|f| f.body),
+                    original_message,
+                );
+
+                MessageType::Text(TextMessageEventContent::html(body, html_body))
+            }
+            MessageType::Notice(NoticeMessageEventContent { body, formatted, .. }) => {
+                let (body, html_body) = reply::plain_and_formatted_reply_body(
+                    body,
+                    formatted.map(|f| f.body),
+                    original_message,
+                );
+
+                MessageType::Notice(NoticeMessageEventContent::html(body, html_body))
+            }
+            _ => message,
+        };
+
+        let relates_to = if let Some(Relation::Thread(Thread { event_id, .. })) = original_message
+            .content
+            .relates_to
+            .as_ref()
+            .filter(|_| forward_thread == ForwardThread::Yes)
+        {
+            Relation::Thread(Thread::reply(event_id.clone(), original_message.event_id.clone()))
+        } else {
+            Relation::Reply {
+                in_reply_to: InReplyTo { event_id: original_message.event_id.clone() },
+            }
+        };
+
+        Self { msgtype, relates_to: Some(relates_to) }
+    }
+
+    /// Create a new message for a thread that is optionally a reply.
+    ///
+    /// Looks for a [`Relation::Thread`] in `previous_message`. If it exists, a message for the same
+    /// thread is created. If it doesn't, a new thread with `previous_message` as the root is
+    /// created.
+    ///
+    /// If `message` is a text or notice message, it is modified to include the rich reply fallback.
+    #[cfg(feature = "unstable-msc3440")]
+    pub fn for_thread(
+        message: MessageType,
+        previous_message: &OriginalRoomMessageEvent,
+        is_reply: ReplyInThread,
+    ) -> Self {
+        let msgtype = match message {
+            MessageType::Text(TextMessageEventContent { body, formatted, .. }) => {
+                let (body, html_body) = reply::plain_and_formatted_reply_body(
+                    body,
+                    formatted.map(|f| f.body),
+                    previous_message,
+                );
+
+                MessageType::Text(TextMessageEventContent::html(body, html_body))
+            }
+            MessageType::Notice(NoticeMessageEventContent { body, formatted, .. }) => {
+                let (body, html_body) = reply::plain_and_formatted_reply_body(
+                    body,
+                    formatted.map(|f| f.body),
+                    previous_message,
+                );
+
+                MessageType::Notice(NoticeMessageEventContent::html(body, html_body))
+            }
+            _ => message,
+        };
+
+        let thread_root = if let Some(Relation::Thread(Thread { event_id, .. })) =
+            &previous_message.content.relates_to
+        {
+            event_id.clone()
+        } else {
+            previous_message.event_id.clone()
+        };
+
+        Self {
+            msgtype,
+            relates_to: Some(Relation::Thread(Thread {
+                event_id: thread_root,
+                in_reply_to: InReplyTo { event_id: previous_message.event_id.clone() },
+                is_falling_back: is_reply == ReplyInThread::No,
+            })),
         }
     }
 
@@ -323,6 +413,42 @@ impl From<VoiceEventContent> for RoomMessageEventContent {
             relates_to,
         }
     }
+}
+
+/// Whether or not to forward a [`Relation::Thread`] when sending a reply.
+#[cfg(feature = "unstable-msc3440")]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[allow(clippy::exhaustive_enums)]
+pub enum ForwardThread {
+    /// The thread relation in the original message is forwarded if it exists.
+    ///
+    /// This should be set if your client doesn't support threads (see [MSC3440]).
+    ///
+    /// [MSC3440]: https://github.com/matrix-org/matrix-spec-proposals/pull/3440
+    Yes,
+
+    /// Create a reply in the main conversation even if the original message is in a thread.
+    ///
+    /// This should be used if you client supports threads and you explicitly want that behavior.
+    No,
+}
+
+/// Whether or not the message is a reply inside a thread.
+#[cfg(feature = "unstable-msc3440")]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[allow(clippy::exhaustive_enums)]
+pub enum ReplyInThread {
+    /// This is a reply.
+    ///
+    /// Create a proper reply _in_ the thread.
+    Yes,
+
+    /// This is not a reply.
+    ///
+    /// Create a regular message in the thread, with a reply fallback, according to [MSC3440].
+    ///
+    /// [MSC3440]: https://github.com/matrix-org/matrix-spec-proposals/pull/3440
+    No,
 }
 
 /// The content that is specific to each message type variant.
@@ -508,12 +634,12 @@ pub enum Relation {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct InReplyTo {
     /// The event being replied to.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 }
 
 impl InReplyTo {
     /// Creates a new `InReplyTo` with the given event ID.
-    pub fn new(event_id: Box<EventId>) -> Self {
+    pub fn new(event_id: OwnedEventId) -> Self {
         Self { event_id }
     }
 }
@@ -524,7 +650,7 @@ impl InReplyTo {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Replacement {
     /// The ID of the event being replaced.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// New content.
     pub new_content: Box<RoomMessageEventContent>,
@@ -533,7 +659,7 @@ pub struct Replacement {
 #[cfg(feature = "unstable-msc2676")]
 impl Replacement {
     /// Creates a new `Replacement` with the given event ID and new content.
-    pub fn new(event_id: Box<EventId>, new_content: Box<RoomMessageEventContent>) -> Self {
+    pub fn new(event_id: OwnedEventId, new_content: Box<RoomMessageEventContent>) -> Self {
         Self { event_id, new_content }
     }
 }
@@ -544,7 +670,7 @@ impl Replacement {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Thread {
     /// The ID of the root message in the thread.
-    pub event_id: Box<EventId>,
+    pub event_id: OwnedEventId,
 
     /// A reply relation.
     ///
@@ -565,14 +691,14 @@ pub struct Thread {
 impl Thread {
     /// Convenience method to create a regular `Thread` with the given event ID and latest
     /// message-like event ID.
-    pub fn plain(event_id: Box<EventId>, latest_event_id: Box<EventId>) -> Self {
-        Self { event_id, in_reply_to: InReplyTo::new(latest_event_id), is_falling_back: false }
+    pub fn plain(event_id: OwnedEventId, latest_event_id: OwnedEventId) -> Self {
+        Self { event_id, in_reply_to: InReplyTo::new(latest_event_id), is_falling_back: true }
     }
 
     /// Convenience method to create a reply `Thread` with the given event ID and replied-to event
     /// ID.
-    pub fn reply(event_id: Box<EventId>, reply_to_event_id: Box<EventId>) -> Self {
-        Self { event_id, in_reply_to: InReplyTo::new(reply_to_event_id), is_falling_back: true }
+    pub fn reply(event_id: OwnedEventId, reply_to_event_id: OwnedEventId) -> Self {
+        Self { event_id, in_reply_to: InReplyTo::new(reply_to_event_id), is_falling_back: false }
     }
 }
 
@@ -635,7 +761,7 @@ pub struct AudioMessageEventContent {
 impl AudioMessageEventContent {
     /// Creates a new non-encrypted `AudioMessageEventContent` with the given body, url and
     /// optional extra info.
-    pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<AudioInfo>>) -> Self {
+    pub fn plain(body: String, url: OwnedMxcUri, info: Option<Box<AudioInfo>>) -> Self {
         Self {
             #[cfg(feature = "unstable-msc3246")]
             message: Some(MessageContent::plain(body.clone())),
@@ -882,7 +1008,7 @@ pub struct FileMessageEventContent {
 impl FileMessageEventContent {
     /// Creates a new non-encrypted `FileMessageEventContent` with the given body, url and
     /// optional extra info.
-    pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<FileInfo>>) -> Self {
+    pub fn plain(body: String, url: OwnedMxcUri, info: Option<Box<FileInfo>>) -> Self {
         Self {
             #[cfg(feature = "unstable-msc3551")]
             message: Some(MessageContent::plain(body.clone())),
@@ -1039,7 +1165,7 @@ pub struct ImageMessageEventContent {
 impl ImageMessageEventContent {
     /// Creates a new non-encrypted `ImageMessageEventContent` with the given body, url and
     /// optional extra info.
-    pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<ImageInfo>>) -> Self {
+    pub fn plain(body: String, url: OwnedMxcUri, info: Option<Box<ImageInfo>>) -> Self {
         Self {
             #[cfg(feature = "unstable-msc3552")]
             message: Some(MessageContent::plain(body.clone())),
@@ -1588,7 +1714,7 @@ pub struct VideoMessageEventContent {
 impl VideoMessageEventContent {
     /// Creates a new non-encrypted `VideoMessageEventContent` with the given body, url and
     /// optional extra info.
-    pub fn plain(body: String, url: Box<MxcUri>, info: Option<Box<VideoInfo>>) -> Self {
+    pub fn plain(body: String, url: OwnedMxcUri, info: Option<Box<VideoInfo>>) -> Self {
         Self {
             #[cfg(feature = "unstable-msc3553")]
             message: Some(MessageContent::plain(body.clone())),
@@ -1780,14 +1906,14 @@ pub struct KeyVerificationRequestEventContent {
     pub methods: Vec<VerificationMethod>,
 
     /// The device ID which is initiating the request.
-    pub from_device: Box<DeviceId>,
+    pub from_device: OwnedDeviceId,
 
     /// The user ID which should receive the request.
     ///
     /// Users should only respond to verification requests if they are named in this field. Users
     /// who are not named in this field and who did not send this event should ignore all other
     /// events that have a `m.reference` relationship with this event.
-    pub to: Box<UserId>,
+    pub to: OwnedUserId,
 }
 
 impl KeyVerificationRequestEventContent {
@@ -1796,8 +1922,8 @@ impl KeyVerificationRequestEventContent {
     pub fn new(
         body: String,
         methods: Vec<VerificationMethod>,
-        from_device: Box<DeviceId>,
-        to: Box<UserId>,
+        from_device: OwnedDeviceId,
+        to: OwnedUserId,
     ) -> Self {
         Self { body, methods, from_device, to }
     }

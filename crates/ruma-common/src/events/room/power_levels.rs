@@ -2,16 +2,16 @@
 //!
 //! [`m.room.power_levels`]: https://spec.matrix.org/v1.2/client-server-api/#mroompower_levels
 
-use std::collections::BTreeMap;
+use std::{cmp::max, collections::BTreeMap};
 
 use js_int::{int, Int};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    events::RoomEventType,
+    events::{EmptyStateKey, MessageLikeEventType, RoomEventType, StateEventType},
     power_levels::{default_power_level, NotificationPowerLevels},
-    UserId,
+    OwnedUserId, UserId,
 };
 
 /// The content of an `m.room.power_levels` event.
@@ -19,7 +19,7 @@ use crate::{
 /// Defines the power levels (privileges) of users in the room.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.power_levels", kind = State)]
+#[ruma_event(type = "m.room.power_levels", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomPowerLevelsEventContent {
     /// The level required to ban a user.
     ///
@@ -118,7 +118,7 @@ pub struct RoomPowerLevelsEventContent {
     )]
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     #[ruma_event(skip_redaction)]
-    pub users: BTreeMap<Box<UserId>, Int>,
+    pub users: BTreeMap<OwnedUserId, Int>,
 
     /// The default power level for every user in the room.
     ///
@@ -202,67 +202,83 @@ impl SyncRoomPowerLevelsEvent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomPowerLevels {
     /// The level required to ban a user.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
     pub ban: Int,
 
     /// The level required to send specific event types.
     ///
     /// This is a mapping from event type to power level required.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
     pub events: BTreeMap<RoomEventType, Int>,
 
     /// The default level required to send message events.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
     pub events_default: Int,
 
     /// The level required to invite a user.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
     pub invite: Int,
 
     /// The level required to kick a user.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
     pub kick: Int,
 
     /// The level required to redact an event.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
     pub redact: Int,
 
     /// The default level required to send state events.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
     pub state_default: Int,
 
     /// The power levels for specific users.
     ///
     /// This is a mapping from `user_id` to power level for that user.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
-    pub users: BTreeMap<Box<UserId>, Int>,
+    pub users: BTreeMap<OwnedUserId, Int>,
 
     /// The default power level for every user in the room.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
     pub users_default: Int,
 
     /// The power level requirements for specific notification types.
     ///
     /// This is a mapping from `key` to power level for that notifications key.
     pub notifications: NotificationPowerLevels,
+}
+
+impl RoomPowerLevels {
+    /// Get the power level of a specific user.
+    pub fn for_user(&self, user_id: &UserId) -> Int {
+        self.users.get(user_id).map_or(self.users_default, |pl| *pl)
+    }
+
+    /// Whether the given user can do the given action based on the power levels.
+    pub fn user_can_do(&self, user_id: &UserId, action: PowerLevelAction) -> bool {
+        let user_pl = self.for_user(user_id);
+
+        match action {
+            PowerLevelAction::Ban => user_pl >= self.ban,
+            PowerLevelAction::Invite => user_pl >= self.invite,
+            PowerLevelAction::Kick => user_pl >= self.kick,
+            PowerLevelAction::Redact => user_pl >= self.redact,
+            PowerLevelAction::SendMessage(message_type) => {
+                user_pl
+                    >= self
+                        .events
+                        .get(&message_type.to_string().into())
+                        .map(ToOwned::to_owned)
+                        .unwrap_or(self.events_default)
+            }
+            PowerLevelAction::SendState(state_type) => {
+                user_pl
+                    >= self
+                        .events
+                        .get(&state_type.to_string().into())
+                        .map(ToOwned::to_owned)
+                        .unwrap_or(self.state_default)
+            }
+            PowerLevelAction::TriggerNotification(notification_type) => match notification_type {
+                NotificationPowerLevelType::Room => user_pl >= self.notifications.room,
+            },
+        }
+    }
+
+    /// Get the maximum power level of any user.
+    pub fn max(&self) -> Int {
+        self.users.values().fold(self.users_default, |max_pl, user_pl| max(max_pl, *user_pl))
+    }
 }
 
 impl From<RoomPowerLevelsEventContent> for RoomPowerLevels {
@@ -299,18 +315,72 @@ impl From<RedactedRoomPowerLevelsEventContent> for RoomPowerLevels {
     }
 }
 
+impl From<RoomPowerLevels> for RoomPowerLevelsEventContent {
+    fn from(c: RoomPowerLevels) -> Self {
+        Self {
+            ban: c.ban,
+            events: c.events,
+            events_default: c.events_default,
+            invite: c.invite,
+            kick: c.kick,
+            redact: c.redact,
+            state_default: c.state_default,
+            users: c.users,
+            users_default: c.users_default,
+            notifications: c.notifications,
+        }
+    }
+}
+
+/// The actions that can be limited by power levels.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum PowerLevelAction {
+    /// Ban a user.
+    Ban,
+
+    /// Invite a user.
+    Invite,
+
+    /// Kick a user.
+    Kick,
+
+    /// Redact an event.
+    Redact,
+
+    /// Send a message-like event.
+    SendMessage(MessageLikeEventType),
+
+    /// Send a state event.
+    SendState(StateEventType),
+
+    /// Trigger a notification.
+    TriggerNotification(NotificationPowerLevelType),
+}
+
+/// The notification types that can be limited by power levels.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum NotificationPowerLevelType {
+    /// `@room` notifications.
+    Room,
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;
 
-    use crate::{event_id, room_id, user_id, MilliSecondsSinceUnixEpoch};
     use assign::assign;
     use js_int::{int, uint};
     use maplit::btreemap;
     use serde_json::{json, to_value as to_json_value};
 
     use super::{default_power_level, NotificationPowerLevels, RoomPowerLevelsEventContent};
-    use crate::events::{OriginalStateEvent, StateUnsigned};
+    use crate::{
+        event_id,
+        events::{EmptyStateKey, OriginalStateEvent, StateUnsigned},
+        room_id, user_id, MilliSecondsSinceUnixEpoch,
+    };
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
@@ -334,7 +404,7 @@ mod tests {
             room_id: room_id!("!n8f893n9:example.com").to_owned(),
             unsigned: StateUnsigned::default(),
             sender: user_id!("@carl:example.com").to_owned(),
-            state_key: "".into(),
+            state_key: EmptyStateKey,
         };
 
         let actual = to_json_value(&power_levels_event).unwrap();
@@ -397,7 +467,7 @@ mod tests {
                 ..StateUnsigned::default()
             },
             sender: user.to_owned(),
-            state_key: "".into(),
+            state_key: EmptyStateKey,
         };
 
         let actual = to_json_value(&power_levels_event).unwrap();

@@ -8,7 +8,9 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixfederationv1backfillroomid
 
     use js_int::UInt;
-    use ruma_common::{api::ruma_api, EventId, MilliSecondsSinceUnixEpoch, RoomId, ServerName};
+    use ruma_common::{
+        api::ruma_api, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedServerName, RoomId,
+    };
     use serde_json::value::RawValue as RawJsonValue;
 
     ruma_api! {
@@ -29,7 +31,7 @@ pub mod v1 {
 
             /// The event IDs to backfill from.
             #[ruma_api(query)]
-            pub v: &'a [Box<EventId>],
+            pub v: &'a [OwnedEventId],
 
             /// The maximum number of PDUs to retrieve, including the given events.
             #[ruma_api(query)]
@@ -38,7 +40,7 @@ pub mod v1 {
 
         response: {
             /// The `server_name` of the homeserver sending this transaction.
-            pub origin: Box<ServerName>,
+            pub origin: OwnedServerName,
 
             /// POSIX timestamp in milliseconds on originating homeserver when this transaction started.
             pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -53,7 +55,7 @@ pub mod v1 {
         /// * the given room id.
         /// * the event IDs to backfill from.
         /// * the maximum number of PDUs to retrieve, including the given events.
-        pub fn new(room_id: &'a RoomId, v: &'a [Box<EventId>], limit: UInt) -> Self {
+        pub fn new(room_id: &'a RoomId, v: &'a [OwnedEventId], limit: UInt) -> Self {
             Self { room_id, v, limit }
         }
     }
@@ -64,7 +66,7 @@ pub mod v1 {
         /// * the timestamp in milliseconds of when this transaction started.
         /// * the list of persistent updates to rooms.
         pub fn new(
-            origin: Box<ServerName>,
+            origin: OwnedServerName,
             origin_server_ts: MilliSecondsSinceUnixEpoch,
             pdus: Vec<Box<RawJsonValue>>,
         ) -> Self {

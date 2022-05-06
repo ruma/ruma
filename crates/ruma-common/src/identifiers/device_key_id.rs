@@ -1,23 +1,18 @@
 //! Identifiers for device keys for end-to-end encryption.
 
+use ruma_macros::IdZst;
+
 use super::{crypto_algorithms::DeviceKeyAlgorithm, DeviceId};
 
 /// A key algorithm and a device id, combined with a ':'.
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[ruma_id(validate = ruma_identifiers_validation::device_key_id::validate)]
 pub struct DeviceKeyId(str);
-
-owned_identifier!(OwnedDeviceKeyId, DeviceKeyId);
-
-opaque_identifier_validated!(
-    DeviceKeyId,
-    OwnedDeviceKeyId,
-    ruma_identifiers_validation::device_key_id::validate
-);
 
 impl DeviceKeyId {
     /// Create a `DeviceKeyId` from a `DeviceKeyAlgorithm` and a `DeviceId`.
-    pub fn from_parts(algorithm: DeviceKeyAlgorithm, device_id: &DeviceId) -> Box<Self> {
+    pub fn from_parts(algorithm: DeviceKeyAlgorithm, device_id: &DeviceId) -> OwnedDeviceKeyId {
         let algorithm: &str = algorithm.as_ref();
         let device_id: &str = device_id.as_ref();
 
@@ -26,7 +21,7 @@ impl DeviceKeyId {
         res.push(':');
         res.push_str(device_id);
 
-        Self::from_owned(res.into())
+        Self::from_borrowed(&res).to_owned()
     }
 
     /// Returns key algorithm of the device key ID.
@@ -48,7 +43,7 @@ impl DeviceKeyId {
 mod tests {
     use std::convert::TryFrom;
 
-    use super::DeviceKeyId;
+    use super::{DeviceKeyId, OwnedDeviceKeyId};
     use crate::identifiers::{crypto_algorithms::DeviceKeyAlgorithm, IdParseError};
 
     #[test]
@@ -70,7 +65,7 @@ mod tests {
 
     #[test]
     fn deserialize_device_key_id() {
-        let deserialized: Box<DeviceKeyId> =
+        let deserialized: OwnedDeviceKeyId =
             serde_json::from_value(serde_json::json!("ed25519:JLAFKJWSCS")).unwrap();
 
         let expected = <&DeviceKeyId>::try_from("ed25519:JLAFKJWSCS").unwrap();
@@ -79,17 +74,14 @@ mod tests {
 
     #[test]
     fn missing_key_algorithm() {
-        assert_eq!(
-            <&DeviceKeyId>::try_from(":JLAFKJWSCS").unwrap_err(),
-            IdParseError::InvalidKeyAlgorithm
-        );
+        assert_eq!(<&DeviceKeyId>::try_from(":JLAFKJWSCS").unwrap_err(), IdParseError::Empty);
     }
 
     #[test]
     fn missing_delimiter() {
         assert_eq!(
             <&DeviceKeyId>::try_from("ed25519|JLAFKJWSCS").unwrap_err(),
-            IdParseError::MissingDelimiter,
+            IdParseError::MissingColon,
         );
     }
 

@@ -15,7 +15,7 @@ use super::{
         EncryptedFile, ImageInfo, JsonWebKey, MediaSource,
     },
 };
-use crate::{serde::Base64, MxcUri};
+use crate::{serde::Base64, OwnedMxcUri};
 
 /// The payload for an extensible file message.
 ///
@@ -52,7 +52,7 @@ impl FileEventContent {
     /// file info.
     pub fn plain(
         message: impl Into<String>,
-        url: Box<MxcUri>,
+        url: OwnedMxcUri,
         info: Option<Box<FileContentInfo>>,
     ) -> Self {
         Self {
@@ -66,7 +66,7 @@ impl FileEventContent {
     /// file info.
     pub fn plain_message(
         message: MessageContent,
-        url: Box<MxcUri>,
+        url: OwnedMxcUri,
         info: Option<Box<FileContentInfo>>,
     ) -> Self {
         Self { message, file: FileContent::plain(url, info), relates_to: None }
@@ -76,7 +76,7 @@ impl FileEventContent {
     /// encryption info and file info.
     pub fn encrypted(
         message: impl Into<String>,
-        url: Box<MxcUri>,
+        url: OwnedMxcUri,
         encryption_info: EncryptedContent,
         info: Option<Box<FileContentInfo>>,
     ) -> Self {
@@ -91,7 +91,7 @@ impl FileEventContent {
     /// encryption info and file info.
     pub fn encrypted_message(
         message: MessageContent,
-        url: Box<MxcUri>,
+        url: OwnedMxcUri,
         encryption_info: EncryptedContent,
         info: Option<Box<FileContentInfo>>,
     ) -> Self {
@@ -120,7 +120,7 @@ impl FileEventContent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct FileContent {
     /// The URL to the file.
-    pub url: Box<MxcUri>,
+    pub url: OwnedMxcUri,
 
     /// Information about the uploaded file.
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
@@ -135,13 +135,13 @@ pub struct FileContent {
 
 impl FileContent {
     /// Creates a new non-encrypted `FileContent` with the given url and file info.
-    pub fn plain(url: Box<MxcUri>, info: Option<Box<FileContentInfo>>) -> Self {
+    pub fn plain(url: OwnedMxcUri, info: Option<Box<FileContentInfo>>) -> Self {
         Self { url, info, encryption_info: None }
     }
 
     /// Creates a new encrypted `FileContent` with the given url, encryption info and file info.
     pub fn encrypted(
-        url: Box<MxcUri>,
+        url: OwnedMxcUri,
         encryption_info: EncryptedContent,
         info: Option<Box<FileContentInfo>>,
     ) -> Self {
@@ -156,7 +156,7 @@ impl FileContent {
     ) -> Self {
         let (url, encryption_info) = match source {
             MediaSource::Plain(url) => (url, None),
-            MediaSource::Encrypted(file) => (file.url.to_owned(), Some(Box::new((&*file).into()))),
+            MediaSource::Encrypted(file) => (file.url.clone(), Some(Box::new((&*file).into()))),
         };
         let info = FileContentInfo::from_room_message_content(info, filename).map(Box::new);
 

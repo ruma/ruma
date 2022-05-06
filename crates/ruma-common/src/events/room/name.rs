@@ -5,14 +5,14 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::RoomName;
+use crate::{events::EmptyStateKey, RoomName};
 
 /// The content of an `m.room.name` event.
 ///
 /// The room name is a human-friendly string designed to be displayed to the end-user.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.room.name", kind = State)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[ruma_event(type = "m.room.name", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomNameEventContent {
     /// The name of the room.
     #[serde(default, deserialize_with = "crate::serde::empty_string_as_none")]
@@ -30,13 +30,18 @@ impl RoomNameEventContent {
 mod tests {
     use std::convert::TryInto;
 
-    use crate::{event_id, room_id, serde::Raw, user_id, MilliSecondsSinceUnixEpoch};
     use js_int::{int, uint};
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::RoomNameEventContent;
-    use crate::events::{OriginalStateEvent, StateUnsigned};
+    use crate::{
+        event_id,
+        events::{EmptyStateKey, OriginalStateEvent, StateUnsigned},
+        room_id,
+        serde::Raw,
+        user_id, MilliSecondsSinceUnixEpoch,
+    };
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
@@ -46,7 +51,7 @@ mod tests {
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
             room_id: room_id!("!n8f893n9:example.com").to_owned(),
             sender: user_id!("@carl:example.com").to_owned(),
-            state_key: "".into(),
+            state_key: EmptyStateKey,
             unsigned: StateUnsigned::default(),
         };
 
@@ -74,7 +79,7 @@ mod tests {
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
             room_id: room_id!("!n8f893n9:example.com").to_owned(),
             sender: user_id!("@carl:example.com").to_owned(),
-            state_key: "".into(),
+            state_key: EmptyStateKey,
             unsigned: StateUnsigned {
                 age: Some(int!(100)),
                 prev_content: Some(RoomNameEventContent { name: "The old name".try_into().ok() }),

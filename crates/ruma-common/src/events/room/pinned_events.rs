@@ -5,22 +5,22 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::EventId;
+use crate::{events::EmptyStateKey, OwnedEventId};
 
 /// The content of an `m.room.pinned_events` event.
 ///
 /// Used to "pin" particular events in a room for other participants to review later.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.pinned_events", kind = State)]
+#[ruma_event(type = "m.room.pinned_events", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomPinnedEventsEventContent {
     /// An ordered list of event IDs to pin.
-    pub pinned: Vec<Box<EventId>>,
+    pub pinned: Vec<OwnedEventId>,
 }
 
 impl RoomPinnedEventsEventContent {
     /// Creates a new `RoomPinnedEventsEventContent` with the given events.
-    pub fn new(pinned: Vec<Box<EventId>>) -> Self {
+    pub fn new(pinned: Vec<OwnedEventId>) -> Self {
         Self { pinned }
     }
 }
@@ -29,10 +29,11 @@ impl RoomPinnedEventsEventContent {
 mod tests {
     use std::convert::TryInto;
 
-    use crate::{server_name, EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId};
-
     use super::RoomPinnedEventsEventContent;
-    use crate::events::{OriginalStateEvent, StateUnsigned};
+    use crate::{
+        events::{EmptyStateKey, OriginalStateEvent, StateUnsigned},
+        server_name, EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId,
+    };
 
     #[test]
     fn serialization_deserialization() {
@@ -49,7 +50,7 @@ mod tests {
             origin_server_ts: MilliSecondsSinceUnixEpoch(1_432_804_485_886_u64.try_into().unwrap()),
             room_id: RoomId::new(server_name),
             sender: UserId::new(server_name),
-            state_key: "".into(),
+            state_key: EmptyStateKey,
             unsigned: StateUnsigned::default(),
         };
 

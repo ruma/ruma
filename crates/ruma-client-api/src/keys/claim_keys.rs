@@ -8,8 +8,8 @@ pub mod v3 {
     use std::{collections::BTreeMap, time::Duration};
 
     use ruma_common::{
-        api::ruma_api, encryption::OneTimeKey, serde::Raw, DeviceId, DeviceKeyAlgorithm,
-        DeviceKeyId, UserId,
+        api::ruma_api, encryption::OneTimeKey, serde::Raw, DeviceKeyAlgorithm, OwnedDeviceId,
+        OwnedDeviceKeyId, OwnedUserId,
     };
     use serde_json::Value as JsonValue;
 
@@ -36,7 +36,7 @@ pub mod v3 {
             pub timeout: Option<Duration>,
 
             /// The keys to be claimed.
-            pub one_time_keys: BTreeMap<Box<UserId>, BTreeMap<Box<DeviceId>, DeviceKeyAlgorithm>>,
+            pub one_time_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, DeviceKeyAlgorithm>>,
         }
 
         response: {
@@ -45,7 +45,7 @@ pub mod v3 {
             pub failures: BTreeMap<String, JsonValue>,
 
             /// One-time keys for the queried devices.
-            pub one_time_keys: BTreeMap<Box<UserId>, OneTimeKeys>,
+            pub one_time_keys: BTreeMap<OwnedUserId, OneTimeKeys>,
         }
 
         error: crate::Error
@@ -54,7 +54,7 @@ pub mod v3 {
     impl Request {
         /// Creates a new `Request` with the given key claims and the recommended 10 second timeout.
         pub fn new(
-            one_time_keys: BTreeMap<Box<UserId>, BTreeMap<Box<DeviceId>, DeviceKeyAlgorithm>>,
+            one_time_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, DeviceKeyAlgorithm>>,
         ) -> Self {
             Self { timeout: Some(Duration::from_secs(10)), one_time_keys }
         }
@@ -62,11 +62,11 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given keys and no failures.
-        pub fn new(one_time_keys: BTreeMap<Box<UserId>, OneTimeKeys>) -> Self {
+        pub fn new(one_time_keys: BTreeMap<OwnedUserId, OneTimeKeys>) -> Self {
             Self { failures: BTreeMap::new(), one_time_keys }
         }
     }
 
     /// The one-time keys for a given device.
-    pub type OneTimeKeys = BTreeMap<Box<DeviceId>, BTreeMap<Box<DeviceKeyId>, Raw<OneTimeKey>>>;
+    pub type OneTimeKeys = BTreeMap<OwnedDeviceId, BTreeMap<OwnedDeviceKeyId, Raw<OneTimeKey>>>;
 }

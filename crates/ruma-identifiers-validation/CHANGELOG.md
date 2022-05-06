@@ -1,5 +1,17 @@
 # [unreleased]
 
+# 0.8.1
+
+Improvements:
+
+* Remove unused dependency on `url`
+
+# 0.8.0
+
+Breaking changes:
+
+* Rework the `Error` type (merge / rename variants)
+
 # 0.7.0
 
 Improvements:

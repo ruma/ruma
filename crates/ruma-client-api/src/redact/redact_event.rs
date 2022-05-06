@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#put_matrixclientv3roomsroomidredacteventidtxnid
 
-    use ruma_common::{api::ruma_api, EventId, RoomId, TransactionId};
+    use ruma_common::{api::ruma_api, EventId, OwnedEventId, RoomId, TransactionId};
 
     ruma_api! {
         metadata: {
@@ -42,7 +42,7 @@ pub mod v3 {
 
         response: {
             /// The ID of the redacted event.
-            pub event_id: Box<EventId>,
+            pub event_id: OwnedEventId,
         }
 
         error: crate::Error
@@ -57,7 +57,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given event ID.
-        pub fn new(event_id: Box<EventId>) -> Self {
+        pub fn new(event_id: OwnedEventId) -> Self {
             Self { event_id }
         }
     }

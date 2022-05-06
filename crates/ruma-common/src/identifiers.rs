@@ -11,11 +11,16 @@ use serde::de::{self, Deserializer, Unexpected};
 #[doc(inline)]
 pub use self::{
     client_secret::{ClientSecret, OwnedClientSecret},
-    crypto_algorithms::{DeviceKeyAlgorithm, EventEncryptionAlgorithm, SigningKeyAlgorithm},
+    crypto_algorithms::{
+        DeviceKeyAlgorithm, EventEncryptionAlgorithm, KeyDerivationAlgorithm, SigningKeyAlgorithm,
+    },
     device_id::{DeviceId, OwnedDeviceId},
     device_key_id::{DeviceKeyId, OwnedDeviceKeyId},
     event_id::{EventId, OwnedEventId},
-    key_id::{DeviceSigningKeyId, KeyId, ServerSigningKeyId, SigningKeyId},
+    key_id::{
+        DeviceSigningKeyId, KeyId, OwnedDeviceSigningKeyId, OwnedKeyId, OwnedServerSigningKeyId,
+        OwnedSigningKeyId, ServerSigningKeyId, SigningKeyId,
+    },
     key_name::{KeyName, OwnedKeyName},
     matrix_uri::{MatrixToUri, MatrixUri},
     mxc_uri::{MxcUri, OwnedMxcUri},
@@ -32,9 +37,6 @@ pub use self::{
 };
 #[doc(inline)]
 pub use ruma_identifiers_validation::error::Error as IdParseError;
-
-#[macro_use]
-mod macros;
 
 pub mod matrix_uri;
 pub mod user_id;

@@ -7,7 +7,7 @@ pub mod v3 {
 
     use std::collections::BTreeMap;
 
-    use ruma_common::{api::ruma_api, MxcUri, RoomId, UserId};
+    use ruma_common::{api::ruma_api, OwnedMxcUri, OwnedUserId, RoomId};
     use serde::{Deserialize, Serialize};
 
     ruma_api! {
@@ -31,7 +31,7 @@ pub mod v3 {
         response: {
             /// A list of the rooms the user is in, i.e.
             /// the ID of each room in which the user has joined membership.
-            pub joined: BTreeMap<Box<UserId>, RoomMember>,
+            pub joined: BTreeMap<OwnedUserId, RoomMember>,
         }
 
         error: crate::Error
@@ -46,7 +46,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given joined rooms.
-        pub fn new(joined: BTreeMap<Box<UserId>, RoomMember>) -> Self {
+        pub fn new(joined: BTreeMap<OwnedUserId, RoomMember>) -> Self {
             Self { joined }
         }
     }
@@ -68,7 +68,7 @@ pub mod v3 {
             feature = "compat",
             serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
         )]
-        pub avatar_url: Option<Box<MxcUri>>,
+        pub avatar_url: Option<OwnedMxcUri>,
     }
 
     impl RoomMember {

@@ -2,7 +2,9 @@
 
 use std::{convert::TryFrom, hint::unreachable_unchecked};
 
-use super::{server_name::ServerName, RoomAliasId, RoomId};
+use ruma_macros::IdZst;
+
+use super::{server_name::ServerName, OwnedRoomAliasId, OwnedRoomId, RoomAliasId, RoomId};
 
 /// A Matrix [room ID] or a Matrix [room alias ID].
 ///
@@ -24,16 +26,9 @@ use super::{server_name::ServerName, RoomAliasId, RoomId};
 /// [room ID]: https://spec.matrix.org/v1.2/appendices/#room-ids-and-event-ids
 /// [room alias ID]: https://spec.matrix.org/v1.2/appendices/#room-aliases
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[ruma_id(validate = ruma_identifiers_validation::room_id_or_alias_id::validate)]
 pub struct RoomOrAliasId(str);
-
-owned_identifier!(OwnedRoomOrAliasId, RoomOrAliasId);
-
-opaque_identifier_validated!(
-    RoomOrAliasId,
-    OwnedRoomOrAliasId,
-    ruma_identifiers_validation::room_id_or_alias_id::validate
-);
 
 impl RoomOrAliasId {
     /// Returns the local part (everything after the `!` or `#` and before the first colon).
@@ -54,18 +49,6 @@ impl RoomOrAliasId {
     /// Whether this is a room alias id (starts with `'#'`)
     pub fn is_room_alias_id(&self) -> bool {
         self.variant() == Variant::RoomAliasId
-    }
-
-    /// Turn this `RoomOrAliasId` into `Either<RoomId, RoomAliasId>`
-    #[cfg(feature = "either")]
-    pub fn into_either(self: Box<Self>) -> either::Either<Box<RoomId>, Box<RoomAliasId>> {
-        let variant = self.variant();
-        let boxed_str = self.into_owned();
-
-        match variant {
-            Variant::RoomId => either::Either::Left(RoomId::from_owned(boxed_str)),
-            Variant::RoomAliasId => either::Either::Right(RoomAliasId::from_owned(boxed_str)),
-        }
     }
 
     fn colon_idx(&self) -> usize {
@@ -99,15 +82,17 @@ impl<'a> From<&'a RoomAliasId> for &'a RoomOrAliasId {
     }
 }
 
-impl From<Box<RoomId>> for Box<RoomOrAliasId> {
-    fn from(room_id: Box<RoomId>) -> Self {
-        RoomOrAliasId::from_owned(room_id.into_owned())
+impl From<OwnedRoomId> for OwnedRoomOrAliasId {
+    fn from(room_id: OwnedRoomId) -> Self {
+        // FIXME: Don't allocate
+        RoomOrAliasId::from_borrowed(room_id.as_str()).to_owned()
     }
 }
 
-impl From<Box<RoomAliasId>> for Box<RoomOrAliasId> {
-    fn from(room_alias_id: Box<RoomAliasId>) -> Self {
-        RoomOrAliasId::from_owned(room_alias_id.into_owned())
+impl From<OwnedRoomAliasId> for OwnedRoomOrAliasId {
+    fn from(room_alias_id: OwnedRoomAliasId) -> Self {
+        // FIXME: Don't allocate
+        RoomOrAliasId::from_borrowed(room_alias_id.as_str()).to_owned()
     }
 }
 
@@ -133,24 +118,26 @@ impl<'a> TryFrom<&'a RoomOrAliasId> for &'a RoomAliasId {
     }
 }
 
-impl TryFrom<Box<RoomOrAliasId>> for Box<RoomId> {
-    type Error = Box<RoomAliasId>;
+impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomId {
+    type Error = OwnedRoomAliasId;
 
-    fn try_from(id: Box<RoomOrAliasId>) -> Result<Box<RoomId>, Box<RoomAliasId>> {
+    fn try_from(id: OwnedRoomOrAliasId) -> Result<OwnedRoomId, OwnedRoomAliasId> {
+        // FIXME: Don't allocate
         match id.variant() {
-            Variant::RoomId => Ok(RoomId::from_owned(id.into_owned())),
-            Variant::RoomAliasId => Err(RoomAliasId::from_owned(id.into_owned())),
+            Variant::RoomId => Ok(RoomId::from_borrowed(id.as_str()).to_owned()),
+            Variant::RoomAliasId => Err(RoomAliasId::from_borrowed(id.as_str()).to_owned()),
         }
     }
 }
 
-impl TryFrom<Box<RoomOrAliasId>> for Box<RoomAliasId> {
-    type Error = Box<RoomId>;
+impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomAliasId {
+    type Error = OwnedRoomId;
 
-    fn try_from(id: Box<RoomOrAliasId>) -> Result<Box<RoomAliasId>, Box<RoomId>> {
+    fn try_from(id: OwnedRoomOrAliasId) -> Result<OwnedRoomAliasId, OwnedRoomId> {
+        // FIXME: Don't allocate
         match id.variant() {
-            Variant::RoomAliasId => Ok(RoomAliasId::from_owned(id.into_owned())),
-            Variant::RoomId => Err(RoomId::from_owned(id.into_owned())),
+            Variant::RoomAliasId => Ok(RoomAliasId::from_borrowed(id.as_str()).to_owned()),
+            Variant::RoomId => Err(RoomId::from_borrowed(id.as_str()).to_owned()),
         }
     }
 }
@@ -159,7 +146,7 @@ impl TryFrom<Box<RoomOrAliasId>> for Box<RoomAliasId> {
 mod tests {
     use std::convert::TryFrom;
 
-    use super::RoomOrAliasId;
+    use super::{OwnedRoomOrAliasId, RoomOrAliasId};
     use crate::IdParseError;
 
     #[test]
@@ -217,7 +204,7 @@ mod tests {
     #[test]
     fn deserialize_valid_room_id_or_alias_id_with_a_room_alias_id() {
         assert_eq!(
-            serde_json::from_str::<Box<RoomOrAliasId>>(r##""#ruma:example.com""##)
+            serde_json::from_str::<OwnedRoomOrAliasId>(r##""#ruma:example.com""##)
                 .expect("Failed to convert JSON to RoomAliasId"),
             <&RoomOrAliasId>::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
         );
@@ -226,7 +213,7 @@ mod tests {
     #[test]
     fn deserialize_valid_room_id_or_alias_id_with_a_room_id() {
         assert_eq!(
-            serde_json::from_str::<Box<RoomOrAliasId>>(r##""!29fhd83h92h0:example.com""##)
+            serde_json::from_str::<OwnedRoomOrAliasId>(r##""!29fhd83h92h0:example.com""##)
                 .expect("Failed to convert JSON to RoomId"),
             <&RoomOrAliasId>::try_from("!29fhd83h92h0:example.com")
                 .expect("Failed to create RoomAliasId.")

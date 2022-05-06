@@ -8,7 +8,7 @@
 //! Which crates are re-exported can be configured through cargo features.
 //!
 //! > ⚠ Some details might be missing because rustdoc has trouble with re-exports so you may need
-//!   to refer to other crates' documentations.
+//! > to refer to other crates' documentations.
 //!
 //! # API features
 //!
@@ -28,7 +28,7 @@
 //! # Compatibility feature
 //!
 //! * `compat` increases compatibility with other parts of the Matrix ecosystem, at the expense of
-//! deviating from the specification.
+//!   deviating from the specification.
 //!
 //! # Convenience features
 //!
@@ -70,8 +70,6 @@
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
 
-#[doc(inline)]
-pub use ruma_common as common;
 #[doc(inline)]
 pub use ruma_common::serde;
 
@@ -165,7 +163,11 @@ pub use ruma_common::{
     serde::Incoming, server_name, server_signing_key_id, thirdparty, to_device, user_id,
     ClientSecret, DeviceId, DeviceKeyAlgorithm, DeviceKeyId, DeviceSignatures, DeviceSigningKeyId,
     EntitySignatures, EventEncryptionAlgorithm, EventId, IdParseError, KeyId, KeyName, MatrixToUri,
-    MatrixUri, MilliSecondsSinceUnixEpoch, MxcUri, PrivOwnedStr, RoomAliasId, RoomId, RoomName,
-    RoomOrAliasId, RoomVersionId, SecondsSinceUnixEpoch, ServerName, ServerSignatures,
-    ServerSigningKeyId, SessionId, Signatures, SigningKeyAlgorithm, TransactionId, UserId,
+    MatrixUri, MilliSecondsSinceUnixEpoch, MxcUri, OwnedClientSecret, OwnedDeviceId,
+    OwnedDeviceKeyId, OwnedDeviceSigningKeyId, OwnedEventId, OwnedKeyId, OwnedKeyName, OwnedMxcUri,
+    OwnedRoomAliasId, OwnedRoomId, OwnedRoomName, OwnedRoomOrAliasId, OwnedServerName,
+    OwnedServerSigningKeyId, OwnedSessionId, OwnedSigningKeyId, OwnedTransactionId, OwnedUserId,
+    PrivOwnedStr, RoomAliasId, RoomId, RoomName, RoomOrAliasId, RoomVersionId,
+    SecondsSinceUnixEpoch, ServerName, ServerSignatures, ServerSigningKeyId, SessionId, Signatures,
+    SigningKeyAlgorithm, TransactionId, UserId,
 };

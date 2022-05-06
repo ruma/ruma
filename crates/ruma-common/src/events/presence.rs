@@ -7,7 +7,7 @@ use ruma_macros::{Event, EventContent};
 use serde::{Deserialize, Serialize};
 
 use super::{EventKind, StaticEventContent};
-use crate::{presence::PresenceState, MxcUri, UserId};
+use crate::{presence::PresenceState, OwnedMxcUri, OwnedUserId};
 
 /// Presence event.
 #[derive(Clone, Debug, Event)]
@@ -17,7 +17,7 @@ pub struct PresenceEvent {
     pub content: PresenceEventContent,
 
     /// Contains the fully-qualified ID of the user who sent this event.
-    pub sender: Box<UserId>,
+    pub sender: OwnedUserId,
 }
 
 /// Informs the room of members presence.
@@ -36,7 +36,7 @@ pub struct PresenceEventContent {
         feature = "compat",
         serde(default, deserialize_with = "crate::serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<Box<MxcUri>>,
+    pub avatar_url: Option<OwnedMxcUri>,
 
     /// Whether or not the user is currently active.
     #[serde(skip_serializing_if = "Option::is_none")]

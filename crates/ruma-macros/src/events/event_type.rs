@@ -161,6 +161,37 @@ fn generate_enum(
         })
         .collect::<syn::Result<_>>()?;
 
+    let from_ident_for_room = if ident == "StateEventType" || ident == "MessageLikeEventType" {
+        let match_arms: Vec<_> = deduped
+            .iter()
+            .map(|e| {
+                let v = e.to_variant()?;
+                let ident_var = v.match_arm(quote! { #ident });
+                let room_var = v.ctor(quote! { Self });
+
+                Ok(if e.has_type_fragment() {
+                    quote! { #ident_var (_s) => #room_var (_s) }
+                } else {
+                    quote! { #ident_var => #room_var }
+                })
+            })
+            .collect::<syn::Result<_>>()?;
+
+        Some(quote! {
+            #[allow(deprecated)]
+            impl ::std::convert::From<#ident> for RoomEventType {
+                fn from(s: #ident) -> Self {
+                    match s {
+                        #(#match_arms,)*
+                        #ident ::_Custom(_s) => Self::_Custom(_s),
+                    }
+                }
+            }
+        })
+    } else {
+        None
+    };
+
     Ok(quote! {
         #[doc = #enum_doc]
         ///
@@ -233,5 +264,7 @@ fn generate_enum(
                 self.to_cow_str().serialize(serializer)
             }
         }
+
+        #from_ident_for_room
     })
 }

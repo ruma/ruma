@@ -6,31 +6,13 @@ use std::str::Utf8Error;
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, thiserror::Error)]
 #[non_exhaustive]
 pub enum Error {
-    /// The client secret is empty.
-    #[error("client secret is empty")]
-    EmptyClientSecret,
+    /// The identifier or a required part of it is empty.
+    #[error("identifier or required part of it is empty")]
+    Empty,
 
-    /// The room name is empty.
-    #[error("room name is empty")]
-    EmptyRoomName,
-
-    /// The room version ID is empty.
-    #[error("room version ID is empty")]
-    EmptyRoomVersionId,
-
-    /// The ID's localpart contains invalid characters.
-    ///
-    /// Only relevant for user IDs.
-    #[error("localpart contains invalid characters")]
+    /// The identifier contains invalid characters.
+    #[error("identifier contains invalid characters")]
     InvalidCharacters,
-
-    /// The key algorithm is invalid (e.g. empty).
-    #[error("invalid key algorithm specified")]
-    InvalidKeyAlgorithm,
-
-    /// The key version contains outside of [a-zA-Z0-9_].
-    #[error("key ID version contains invalid characters")]
-    InvalidKeyVersion,
 
     /// The string isn't a valid Matrix ID.
     #[error("invalid matrix ID: {0}")]
@@ -38,7 +20,7 @@ pub enum Error {
 
     /// The string isn't a valid Matrix.to URI.
     #[error("invalid matrix.to URI: {0}")]
-    InvalidMatrixToRef(#[from] MatrixToError),
+    InvalidMatrixToUri(#[from] MatrixToError),
 
     /// The string isn't a valid Matrix URI.
     #[error("invalid matrix URI: {0}")]
@@ -52,10 +34,6 @@ pub enum Error {
     #[error("server name is not a valid IP address or domain name")]
     InvalidServerName,
 
-    /// The string isn't a valid URI.
-    #[error("invalid URI")]
-    InvalidUri,
-
     /// The string isn't valid UTF-8.
     #[error("invalid UTF-8")]
     InvalidUtf8,
@@ -67,7 +45,7 @@ pub enum Error {
     /// The ID is missing the colon delimiter between localpart and server name, or between key
     /// algorithm and key name / version.
     #[error("required colon is missing")]
-    MissingDelimiter,
+    MissingColon,
 
     /// The ID is missing the correct leading sigil.
     #[error("leading sigil is incorrect or missing")]
@@ -77,12 +55,6 @@ pub enum Error {
 impl From<Utf8Error> for Error {
     fn from(_: Utf8Error) -> Self {
         Self::InvalidUtf8
-    }
-}
-
-impl From<url::ParseError> for Error {
-    fn from(_: url::ParseError) -> Self {
-        Self::InvalidUri
     }
 }
 
@@ -147,6 +119,10 @@ pub enum MatrixIdError {
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, thiserror::Error)]
 #[non_exhaustive]
 pub enum MatrixToError {
+    /// String is not a valid URI.
+    #[error("given string is not a valid URL")]
+    InvalidUrl,
+
     /// String did not start with `https://matrix.to/#/`.
     #[error("base URL is not https://matrix.to/#/")]
     WrongBaseUrl,

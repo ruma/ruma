@@ -12,5 +12,5 @@ use super::PolicyRuleEventContent;
 /// This event type is used to apply rules to server entities.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[allow(clippy::exhaustive_structs)]
-#[ruma_event(type = "m.policy.rule.server", kind = State)]
+#[ruma_event(type = "m.policy.rule.server", kind = State, state_key_type = String)]
 pub struct PolicyRuleServerEventContent(pub PolicyRuleEventContent);

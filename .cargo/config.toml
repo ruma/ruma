@@ -21,7 +21,9 @@ rustflags = [
     "-Wclippy::macro_use_imports",
     "-Wclippy::map_flatten",
     "-Wclippy::missing_enforced_import_renames",
-    "-Wclippy::mod_module_files",
+    # Disabled because it triggers for tests/foo/mod.rs which can't be replaced
+    # easily. Locally allowing it also doesn't seem to work.
+    #"-Wclippy::mod_module_files",
     "-Wclippy::mut_mut",
     "-Wclippy::needless_borrow",
     "-Aclippy::new_without_default",

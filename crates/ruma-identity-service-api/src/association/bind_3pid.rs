@@ -8,7 +8,7 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/v1.2/identity-service-api/#post_matrixidentityv23pidbind
 
     use ruma_common::{
-        api::ruma_api, thirdparty::Medium, ClientSecret, MilliSecondsSinceUnixEpoch,
+        api::ruma_api, thirdparty::Medium, ClientSecret, MilliSecondsSinceUnixEpoch, OwnedUserId,
         ServerSignatures, SessionId, UserId,
     };
 
@@ -42,7 +42,7 @@ pub mod v2 {
             pub medium: Medium,
 
             /// The Matrix user ID associated with the 3PID.
-            pub mxid: Box<UserId>,
+            pub mxid: OwnedUserId,
 
             /// A UNIX timestamp before which the association is not known to be valid.
             pub not_before: MilliSecondsSinceUnixEpoch,
@@ -72,7 +72,7 @@ pub mod v2 {
         pub fn new(
             address: String,
             medium: Medium,
-            mxid: Box<UserId>,
+            mxid: OwnedUserId,
             not_before: MilliSecondsSinceUnixEpoch,
             not_after: MilliSecondsSinceUnixEpoch,
             ts: MilliSecondsSinceUnixEpoch,

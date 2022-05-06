@@ -9,7 +9,7 @@ pub mod v2 {
 
     use std::collections::BTreeMap;
 
-    use ruma_common::{api::ruma_api, UserId};
+    use ruma_common::{api::ruma_api, OwnedUserId};
 
     use crate::lookup::IdentifierHashingAlgorithm;
 
@@ -45,7 +45,7 @@ pub mod v2 {
             ///
             /// Addresses which do not have associations will not be included, which can make this
             /// property be an empty object.
-            pub mappings: BTreeMap<String, Box<UserId>>,
+            pub mappings: BTreeMap<String, OwnedUserId>,
         }
     }
 
@@ -63,7 +63,7 @@ pub mod v2 {
     impl Response {
         /// Create a `Response` with the BTreeMap which map addresses from the request which were
         /// found to their corresponding User IDs.
-        pub fn new(mappings: BTreeMap<String, Box<UserId>>) -> Self {
+        pub fn new(mappings: BTreeMap<String, OwnedUserId>) -> Self {
             Self { mappings }
         }
     }

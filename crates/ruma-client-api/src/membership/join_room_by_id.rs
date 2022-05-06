@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3roomsroomidjoin
 
-    use ruma_common::{api::ruma_api, RoomId};
+    use ruma_common::{api::ruma_api, OwnedRoomId, RoomId};
 
     use crate::membership::{IncomingThirdPartySigned, ThirdPartySigned};
 
@@ -38,7 +38,7 @@ pub mod v3 {
 
         response: {
             /// The room that the user joined.
-            pub room_id: Box<RoomId>,
+            pub room_id: OwnedRoomId,
         }
 
         error: crate::Error
@@ -53,7 +53,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given room id.
-        pub fn new(room_id: Box<RoomId>) -> Self {
+        pub fn new(room_id: OwnedRoomId) -> Self {
             Self { room_id }
         }
     }
