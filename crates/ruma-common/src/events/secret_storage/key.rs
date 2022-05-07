@@ -101,7 +101,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{PassPhrase, SecretEncryptionAlgorithm, SecretStorageKeyEventContent};
-    use crate::{serde::Base64, KeyDerivationAlgorithm};
+    use crate::{events::GlobalAccountDataEvent, serde::Base64, KeyDerivationAlgorithm};
 
     #[test]
     fn test_key_description_serialization() {
@@ -216,6 +216,64 @@ mod tests {
                 && salt == *"rocksalt"
                 && iterations == uint!(8)
                 && bits == uint!(256)
+        )
+    }
+
+    #[test]
+    fn test_event_serialization() {
+        let event = GlobalAccountDataEvent {
+            content: SecretStorageKeyEventContent::new(
+                "my_key_id".into(),
+                "my_key".into(),
+                SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
+                    iv: Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap(),
+                    mac: Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap(),
+                },
+            ),
+        };
+
+        let json = json!({
+            "type": "m.secret_storage.key.my_key_id",
+            "content": {
+                "name": "my_key",
+                "algorithm": "m.secret_storage.v1.aes-hmac-sha2",
+                "iv": "YWJjZGVmZ2hpamtsbW5vcA",
+                "mac": "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U"
+            }
+        });
+
+        assert_eq!(to_json_value(&event).unwrap(), json);
+    }
+
+    #[test]
+    fn test_event_deserialization() {
+        let json = json!({
+            "type": "m.secret_storage.key.my_key_id",
+            "content": {
+                "name": "my_key",
+                "algorithm": "m.secret_storage.v1.aes-hmac-sha2",
+                "iv": "YWJjZGVmZ2hpamtsbW5vcA",
+                "mac": "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U"
+            }
+        });
+
+        assert_matches!(
+            from_json_value(json).unwrap(),
+            GlobalAccountDataEvent {
+                content: SecretStorageKeyEventContent {
+                    key_id,
+                    name,
+                    algorithm: SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
+                        iv,
+                        mac,
+                    },
+                    passphrase: None,
+                }
+            }
+            if key_id == *"my_key_id"
+                && name == *"my_key"
+                && iv == Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap()
+                && mac == Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap()
         )
     }
 }

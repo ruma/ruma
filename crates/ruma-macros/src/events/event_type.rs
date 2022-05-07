@@ -131,7 +131,7 @@ fn generate_enum(
             let ev_type = &e.ev_type;
 
             Ok(if let Some(prefix) = ev_type.value().strip_suffix(".*") {
-                let fstr = prefix.to_owned() + "{}";
+                let fstr = prefix.to_owned() + ".{}";
                 quote! { #start(_s) => ::std::borrow::Cow::Owned(::std::format!(#fstr, _s)) }
             } else {
                 quote! { #start => ::std::borrow::Cow::Borrowed(#ev_type) }
