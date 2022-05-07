@@ -1,4 +1,4 @@
-msrv = "1.55"
+msrv = "1.59"
 avoid-breaking-exported-api = false
 disallowed-methods = [
     # https://github.com/serde-rs/json/issues/160

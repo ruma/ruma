@@ -1,4 +1,4 @@
-name: Rust 1.55
+name: Rust 1.59
 
 env:
   CARGO_TERM_COLOR: always
@@ -35,11 +35,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
 
-      - name: Install rust 1.55 toolchain
+      - name: Install rust 1.59 toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: "1.55"
+          toolchain: "1.59"
 
       # Used to compile xtask
       - name: Install rust stable toolchain
@@ -54,7 +54,7 @@ jobs:
           # A stable compiler update should automatically not reuse old caches.
           # Add the MSRV as a stable cache key too so bumping it also gets us a
           # fresh cache.
-          sharedKey: msrv1.55
+          sharedKey: msrv1.59
 
       - name: Run checks
         uses: actions-rs/cargo@v1
