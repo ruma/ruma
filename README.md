@@ -53,7 +53,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Minimum Rust version
 
-Ruma currently requires Rust 1.55. In general, we will never require beta or
+Ruma currently requires Rust 1.59. In general, we will never require beta or
 nightly for crates.io releases of our crates, and we will try to avoid releasing
 crates that depend on features that were only just stabilized.
 
