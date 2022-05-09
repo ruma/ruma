@@ -571,7 +571,7 @@ fn generate_event_content_impl<'a>(
                 let mut content: Self = #serde_json::from_str(content.get())?;
                 content.#type_fragment_field = type_fragment.to_owned();
 
-                Ok(content)
+                ::std::result::Result::Ok(content)
             } else {
                 ::std::result::Result::Err(#serde::de::Error::custom(
                     ::std::format!("expected event type starting with `{}`, found `{}`", #type_prefix, ev_type)
