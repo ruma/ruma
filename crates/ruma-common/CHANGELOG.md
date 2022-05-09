@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.9.2
+
+Bug fixes:
+
+* Fix serialization and deserialization of events with a dynamic `event_type`
+
 # 0.9.1
 
 Improvements:
