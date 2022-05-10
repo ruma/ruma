@@ -264,9 +264,11 @@ pub struct MegolmV1AesSha2Content {
     pub ciphertext: String,
 
     /// The Curve25519 key of the sender.
+    #[cfg_attr(feature = "unstable-msc3700", deprecated = "as of Matrix v1.3")]
     pub sender_key: String,
 
     /// The ID of the sending device.
+    #[cfg_attr(feature = "unstable-msc3700", deprecated = "as of Matrix v1.3")]
     pub device_id: OwnedDeviceId,
 
     /// The ID of the session used to encrypt the message.
