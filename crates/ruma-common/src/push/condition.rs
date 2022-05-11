@@ -75,6 +75,10 @@ impl PushCondition {
     /// * `event` - The flattened JSON representation of a room message event.
     /// * `context` - The context of the room at the time of the event.
     pub fn applies(&self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
+        if event.get("sender").map_or(false, |sender| sender == context.user_id) {
+            return false;
+        }
+
         match self {
             Self::EventMatch { key, pattern } => check_event_match(event, key, pattern, context),
             Self::ContainsDisplayName => {
@@ -118,6 +122,9 @@ pub struct PushConditionRoomCtx {
 
     /// The number of members in the room.
     pub member_count: UInt,
+
+    /// The users matrix ID.
+    pub user_id: OwnedUserId,
 
     /// The display name of the current user in the room.
     pub user_display_name: String,
@@ -473,6 +480,7 @@ mod tests {
         let context = PushConditionRoomCtx {
             room_id: room_id!("!room:server.name").to_owned(),
             member_count: uint!(3),
+            user_id: user_id!("@gorilla:server.name").to_owned(),
             user_display_name: "Groovy Gorilla".into(),
             users_power_levels,
             default_power_level: int!(50),
