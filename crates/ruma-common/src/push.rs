@@ -109,7 +109,13 @@ impl Ruleset {
         context: &PushConditionRoomCtx,
     ) -> Option<AnyPushRuleRef<'_>> {
         let event = FlattenedJson::from_raw(event);
-        self.iter().find(|rule| rule.applies(&event, context))
+
+        if event.get("sender").map_or(false, |sender| sender == context.user_id) {
+            // no need to look at the rules if the event was by the user themselves
+            None
+        } else {
+            self.iter().find(|rule| rule.applies(&event, context))
+        }
     }
 
     /// Get the push actions that apply to this event.
@@ -334,6 +340,10 @@ impl PatternedPushRule {
         event: &FlattenedJson,
         context: &PushConditionRoomCtx,
     ) -> bool {
+        if event.get("sender").map_or(false, |sender| sender == context.user_id) {
+            return false;
+        }
+
         self.enabled && condition::check_event_match(event, key, &self.pattern, context)
     }
 }
@@ -965,6 +975,7 @@ mod tests {
         let context_one_to_one = &PushConditionRoomCtx {
             room_id: room_id!("!dm:server.name").to_owned(),
             member_count: uint!(2),
+            user_id: user_id!("@jj:server.name").to_owned(),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
             default_power_level: int!(50),
@@ -974,6 +985,7 @@ mod tests {
         let context_public_room = &PushConditionRoomCtx {
             room_id: room_id!("!far_west:server.name").to_owned(),
             member_count: uint!(100),
+            user_id: user_id!("@jj:server.name").to_owned(),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
             default_power_level: int!(50),
@@ -1064,6 +1076,7 @@ mod tests {
         let context_one_to_one = &PushConditionRoomCtx {
             room_id: room_id!("!dm:server.name").to_owned(),
             member_count: uint!(2),
+            user_id: user_id!("@jj:server.name").to_owned(),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
             default_power_level: int!(50),

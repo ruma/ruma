@@ -1,5 +1,13 @@
 # [unreleased]
 
+Breaking changes:
+
+* Add `user_id` field to `PushConditionRoomCtx`
+
+Improvements:
+
+* All push rules are now considered to not apply to events sent by the user themselves
+
 # 0.9.2
 
 Bug fixes:
