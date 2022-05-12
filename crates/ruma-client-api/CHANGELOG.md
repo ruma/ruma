@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.14.1
+
 Improvements:
 
 * Add `From<&UserId>` and `From<&OwnedUserId>` implementations for `UserIdentifier`
