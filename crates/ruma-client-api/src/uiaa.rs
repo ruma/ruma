@@ -12,7 +12,7 @@ use ruma_common::{
     },
     serde::{from_raw_json_value, Incoming, JsonObject, StringEnum},
     thirdparty::Medium,
-    ClientSecret, OwnedSessionId,
+    ClientSecret, OwnedSessionId, OwnedUserId, UserId,
 };
 use serde::{
     de::{self, DeserializeOwned},
@@ -588,6 +588,18 @@ pub enum UserIdentifier<'a> {
         /// The phone number.
         phone: &'a str,
     },
+}
+
+impl<'a> From<&'a UserId> for UserIdentifier<'a> {
+    fn from(id: &'a UserId) -> Self {
+        Self::UserIdOrLocalpart(id.as_str())
+    }
+}
+
+impl<'a> From<&'a OwnedUserId> for UserIdentifier<'a> {
+    fn from(id: &'a OwnedUserId) -> Self {
+        Self::UserIdOrLocalpart(id.as_str())
+    }
 }
 
 impl IncomingUserIdentifier {
