@@ -483,41 +483,47 @@ fn generate_event_content_impl<'a>(
 
     let (event_type_ty_decl, event_type_ty, event_type_fn_impl);
 
+    let type_suffix_data = event_type
+        .value()
+        .strip_suffix('*')
+        .map(|type_prefix| {
+            let type_fragment_field = fields
+                .find_map(|f| {
+                    f.attrs.iter().filter(|a| a.path.is_ident("ruma_event")).find_map(|a| {
+                        match a.parse_args() {
+                            Ok(EventMeta::TypeFragment) => Some(Ok(f)),
+                            Ok(_) => None,
+                            Err(e) => Some(Err(e)),
+                        }
+                    })
+                })
+                .transpose()?
+                .ok_or_else(|| {
+                    syn::Error::new_spanned(
+                        event_type,
+                        "event type with a `.*` suffix requires there to be a \
+                                 `#[ruma_event(type_fragment)]` field",
+                    )
+                })?
+                .ident
+                .as_ref()
+                .expect("type fragment field needs to have a name");
+
+            <syn::Result<_>>::Ok((type_prefix.to_owned(), type_fragment_field))
+        })
+        .transpose()?;
+
     match event_kind {
         Some(kind) => {
             let i = kind.to_event_type_enum();
             event_type_ty_decl = None;
             event_type_ty = quote! { #ruma_common::events::#i };
-            event_type_fn_impl = match event_type.value().strip_suffix(".*") {
-                Some(type_prefix) => {
-                    let type_fragment_field = fields
-                        .find_map(|f| {
-                            f.attrs.iter().filter(|a| a.path.is_ident("ruma_event")).find_map(|a| {
-                                match a.parse_args() {
-                                    Ok(EventMeta::TypeFragment) => Some(Ok(f)),
-                                    Ok(_) => None,
-                                    Err(e) => Some(Err(e)),
-                                }
-                            })
-                        })
-                        .transpose()?;
-
-                    let f = type_fragment_field
-                        .ok_or_else(|| {
-                            syn::Error::new_spanned(
-                                event_type,
-                                "event type with a `.*` suffix requires there to be a \
-                                 `#[ruma_event(type_fragment)]` field",
-                            )
-                        })?
-                        .ident
-                        .as_ref()
-                        .expect("type fragment field needs to have a name");
-
-                    let format = type_prefix.to_owned() + ".{}";
+            event_type_fn_impl = match &type_suffix_data {
+                Some((type_prefix, type_fragment_field)) => {
+                    let format = type_prefix.to_owned() + "{}";
 
                     quote! {
-                        ::std::convert::From::from(::std::format!(#format, self.#f))
+                        ::std::convert::From::from(::std::format!(#format, self.#type_fragment_field))
                     }
                 }
                 None => quote! { ::std::convert::From::from(#event_type) },
@@ -559,6 +565,31 @@ fn generate_event_content_impl<'a>(
         }
     });
 
+    let from_parts_fn_impl = if let Some((type_prefix, type_fragment_field)) = &type_suffix_data {
+        quote! {
+            if let Some(type_fragment) = ev_type.strip_prefix(#type_prefix) {
+                let mut content: Self = #serde_json::from_str(content.get())?;
+                content.#type_fragment_field = type_fragment.to_owned();
+
+                ::std::result::Result::Ok(content)
+            } else {
+                ::std::result::Result::Err(#serde::de::Error::custom(
+                    ::std::format!("expected event type starting with `{}`, found `{}`", #type_prefix, ev_type)
+                ))
+            }
+        }
+    } else {
+        quote! {
+            if ev_type != #event_type {
+                return ::std::result::Result::Err(#serde::de::Error::custom(
+                    ::std::format!("expected event type `{}`, found `{}`", #event_type, ev_type)
+                ));
+            }
+
+            #serde_json::from_str(content.get())
+        }
+    };
+
     Ok(quote! {
         #event_type_ty_decl
 
@@ -574,13 +605,7 @@ fn generate_event_content_impl<'a>(
                 ev_type: &::std::primitive::str,
                 content: &#serde_json::value::RawValue,
             ) -> #serde_json::Result<Self> {
-                if ev_type != #event_type {
-                    return ::std::result::Result::Err(#serde::de::Error::custom(
-                        ::std::format!("expected event type `{}`, found `{}`", #event_type, ev_type)
-                    ));
-                }
-
-                #serde_json::from_str(content.get())
+                #from_parts_fn_impl
             }
         }
 

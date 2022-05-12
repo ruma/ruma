@@ -61,6 +61,7 @@ pub enum MembershipChange<'a> {
 
 /// A simple representation of a change, containing old and new data.
 #[derive(Clone, Debug)]
+#[allow(clippy::exhaustive_structs)]
 pub struct Change<T> {
     /// The old data.
     pub old: T,

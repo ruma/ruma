@@ -1,6 +1,6 @@
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
-use syn::{Ident, LitStr};
+use syn::{parse_quote, Ident, LitStr};
 
 use super::event_parse::{EventEnumEntry, EventEnumInput, EventKind};
 
@@ -38,6 +38,7 @@ pub fn expand_event_type_enum(
     let presence = vec![EventEnumEntry {
         attrs: vec![],
         ev_type: LitStr::new("m.presence", Span::call_site()),
+        ev_path: parse_quote! { #ruma_common::events::presence },
     }];
     let mut all = input.enums.iter().map(|e| &e.events).collect::<Vec<_>>();
     all.push(&presence);
@@ -130,7 +131,7 @@ fn generate_enum(
             let ev_type = &e.ev_type;
 
             Ok(if let Some(prefix) = ev_type.value().strip_suffix(".*") {
-                let fstr = prefix.to_owned() + "{}";
+                let fstr = prefix.to_owned() + ".{}";
                 quote! { #start(_s) => ::std::borrow::Cow::Owned(::std::format!(#fstr, _s)) }
             } else {
                 quote! { #start => ::std::borrow::Cow::Borrowed(#ev_type) }

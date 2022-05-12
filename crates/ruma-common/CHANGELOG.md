@@ -1,5 +1,29 @@
 # [unreleased]
 
+Breaking changes:
+
+* Add `user_id` field to `PushConditionRoomCtx`
+
+Improvements:
+
+* All push rules are now considered to not apply to events sent by the user themselves
+
+# 0.9.2
+
+Bug fixes:
+
+* Fix serialization and deserialization of events with a dynamic `event_type`
+
+# 0.9.1
+
+Improvements:
+
+* Add `StrippedPowerLevelsEvent::power_levels`
+* Add (`Sync`)`RoomMemberEvent::membership`
+* Export `events::room::member::Change`
+  * Prior to this, you couldn't actually do anything with the
+    `membership_change` functions on various member event types
+
 # 0.9.0
 
 Bug fixes:

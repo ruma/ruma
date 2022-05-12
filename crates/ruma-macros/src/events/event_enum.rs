@@ -4,7 +4,7 @@ use std::fmt;
 
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, IdentFragment, ToTokens};
-use syn::{Attribute, Data, DataEnum, DeriveInput, Ident, LitStr};
+use syn::{Attribute, Data, DataEnum, DeriveInput, Ident, LitStr, Path};
 
 use super::event_parse::{EventEnumDecl, EventEnumEntry, EventKind};
 use crate::util::m_prefix_name_to_type_name;
@@ -49,7 +49,8 @@ pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
 
     let kind = input.kind;
     let attrs = &input.attrs;
-    let events: Vec<_> = input.events.iter().map(|entry| entry.ev_type.clone()).collect();
+    let events: Vec<_> =
+        input.events.iter().map(|entry| (entry.ev_type.clone(), entry.ev_path.clone())).collect();
     let variants: Vec<_> =
         input.events.iter().map(EventEnumEntry::to_variant).collect::<syn::Result<_>>()?;
 
@@ -110,7 +111,7 @@ pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
 fn expand_event_enum(
     kind: EventKind,
     var: EventEnumVariation,
-    events: &[LitStr],
+    events: &[(LitStr, Path)],
     attrs: &[Attribute],
     variants: &[EventEnumVariant],
     ruma_common: &TokenStream,
@@ -120,7 +121,8 @@ fn expand_event_enum(
 
     let variant_decls = variants.iter().map(|v| v.decl());
     let content: Vec<_> =
-        events.iter().map(|event| to_event_path(event, kind, var, ruma_common)).collect();
+        events.iter().map(|(name, path)| to_event_path(name, path, kind, var)).collect();
+    let event_types: Vec<_> = events.iter().map(|(name, _)| name).collect();
 
     let custom_ty = format_ident!("Custom{}Content", kind);
 
@@ -131,11 +133,11 @@ fn expand_event_enum(
     Ok(quote! {
         #( #attrs )*
         #[derive(Clone, Debug)]
-        #[allow(clippy::large_enum_variant)]
+        #[allow(clippy::large_enum_variant, unused_qualifications)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
         pub enum #ident {
             #(
-                #[doc = #events]
+                #[doc = #event_types]
                 #variant_decls(#content),
             )*
             /// An event not defined by the Matrix specification
@@ -154,7 +156,7 @@ fn expand_event_enum(
 fn expand_deserialize_impl(
     kind: EventKind,
     var: EventEnumVariation,
-    events: &[LitStr],
+    events: &[(LitStr, Path)],
     variants: &[EventEnumVariant],
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
@@ -168,9 +170,11 @@ fn expand_deserialize_impl(
         quote! { #(#attrs)* }
     });
     let self_variants = variants.iter().map(|v| v.ctor(quote! { Self }));
-    let content = events.iter().map(|event| to_event_path(event, kind, var, ruma_common));
+    let content = events.iter().map(|(name, path)| to_event_path(name, path, kind, var));
+    let event_types: Vec<_> = events.iter().map(|(name, _)| name).collect();
 
     Ok(quote! {
+        #[allow(unused_qualifications)]
         impl<'de> #serde::de::Deserialize<'de> for #ident {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -184,7 +188,7 @@ fn expand_deserialize_impl(
 
                 match &*ev_type {
                     #(
-                        #variant_attrs #events => {
+                        #variant_attrs #event_types => {
                             let event = #serde_json::from_str::<#content>(json.get())
                                 .map_err(D::Error::custom)?;
                             Ok(#self_variants(event))
@@ -210,6 +214,7 @@ fn expand_from_impl(
         let attrs = &variant.attrs;
 
         quote! {
+            #[allow(unused_qualifications)]
             #[automatically_derived]
             #(#attrs)*
             impl ::std::convert::From<#content> for #ty {
@@ -288,7 +293,7 @@ fn expand_into_full_event(
 /// Create a content enum from `EventEnumInput`.
 fn expand_content_enum(
     kind: EventKind,
-    event_types: &[LitStr],
+    events: &[(LitStr, Path)],
     attrs: &[Attribute],
     variants: &[EventEnumVariant],
     ruma_common: &TokenStream,
@@ -301,14 +306,15 @@ fn expand_content_enum(
     let event_type_enum = kind.to_event_type_enum();
 
     let content: Vec<_> =
-        event_types.iter().map(|ev| to_event_content_path(kind, ev, None, ruma_common)).collect();
-    let event_type_match_arms = event_types.iter().map(|s| {
+        events.iter().map(|(name, path)| to_event_content_path(kind, name, path, None)).collect();
+    let event_type_match_arms = events.iter().map(|(s, _)| {
         if let Some(prefix) = s.value().strip_suffix(".*") {
             quote! { _s if _s.starts_with(#prefix) }
         } else {
             quote! { #s }
         }
     });
+    let event_types: Vec<_> = events.iter().map(|(name, _)| name).collect();
 
     let variant_decls = variants.iter().map(|v| v.decl()).collect::<Vec<_>>();
     let variant_attrs = variants.iter().map(|v| {
@@ -561,11 +567,10 @@ fn expand_accessor_methods(
 
 fn to_event_path(
     name: &LitStr,
+    path: &Path,
     kind: EventKind,
     var: EventEnumVariation,
-    ruma_common: &TokenStream,
 ) -> TokenStream {
-    let path = event_module_path(name);
     let event = m_prefix_name_to_type_name(name).unwrap();
     let event_name = if kind == EventKind::ToDevice {
         assert_eq!(var, EventEnumVariation::None);
@@ -573,16 +578,15 @@ fn to_event_path(
     } else {
         format_ident!("{}{}Event", var, event)
     };
-    quote! { #ruma_common::events::#( #path )::*::#event_name }
+    quote! { #path::#event_name }
 }
 
 fn to_event_content_path(
     kind: EventKind,
     name: &LitStr,
+    path: &Path,
     prefix: Option<&str>,
-    ruma_common: &TokenStream,
 ) -> TokenStream {
-    let path = event_module_path(name);
     let event = m_prefix_name_to_type_name(name).unwrap();
     let content_str = match kind {
         EventKind::ToDevice => {
@@ -592,19 +596,8 @@ fn to_event_content_path(
     };
 
     quote! {
-        #ruma_common::events::#( #path )::*::#content_str
+        #path::#content_str
     }
-}
-
-fn event_module_path(name: &LitStr) -> Vec<Ident> {
-    let value = name.value();
-    let value = value.strip_prefix("m.").unwrap();
-    value
-        .strip_suffix(".*")
-        .unwrap_or(value)
-        .split('.')
-        .map(|s| Ident::new(s, name.span()))
-        .collect()
 }
 
 fn field_return_type(name: &str, ruma_common: &TokenStream) -> TokenStream {

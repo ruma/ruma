@@ -259,7 +259,8 @@ async fn read_config() -> io::Result<Config> {
                 error.push_str("\n  required field `homeserver` is missing")
             }
             if let Err(e) = username {
-                error.push_str(&format!("\n  {}", e))
+                error.push_str("\n  ");
+                error.push_str(&e);
             }
             Err(io::Error::new(io::ErrorKind::InvalidData, error))
         }

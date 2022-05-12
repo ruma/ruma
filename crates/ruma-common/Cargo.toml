@@ -1,6 +1,6 @@
 [package]
 name = "ruma-common"
-version = "0.9.0"
+version = "0.9.2"
 description = "Common types for other ruma crates."
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
@@ -43,6 +43,7 @@ unstable-msc3551 = ["unstable-msc1767"]
 unstable-msc3552 = ["unstable-msc3551"]
 unstable-msc3553 = ["unstable-msc3552"]
 unstable-msc3554 = ["unstable-msc1767"]
+unstable-msc3700 = []
 
 [dependencies]
 base64 = "0.13.0"
@@ -60,7 +61,7 @@ percent-encoding = "2.1.0"
 pulldown-cmark = { version = "0.9.1", default-features = false, optional = true }
 rand_crate = { package = "rand", version = "0.8.3", optional = true }
 ruma-identifiers-validation = { version = "0.8.1", path = "../ruma-identifiers-validation", default-features = false }
-ruma-macros = { version = "=0.9.0", path = "../ruma-macros" }
+ruma-macros = { version = "0.9.2", path = "../ruma-macros" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = { version = "1.0.64", features = ["raw_value"] }
 thiserror = { version = "1.0.26", optional = true }

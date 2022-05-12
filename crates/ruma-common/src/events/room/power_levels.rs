@@ -191,6 +191,13 @@ impl SyncRoomPowerLevelsEvent {
     }
 }
 
+impl StrippedRoomPowerLevelsEvent {
+    /// Obtain the effective power levels from this event.
+    pub fn power_levels(&self) -> RoomPowerLevels {
+        self.content.clone().into()
+    }
+}
+
 /// The effective power levels of a room.
 ///
 /// This struct contains the same fields as [`RoomPowerLevelsEventContent`] and be created from that
@@ -257,7 +264,7 @@ impl RoomPowerLevels {
                 user_pl
                     >= self
                         .events
-                        .get(&message_type.to_string().into())
+                        .get(&message_type.into())
                         .map(ToOwned::to_owned)
                         .unwrap_or(self.events_default)
             }
@@ -265,7 +272,7 @@ impl RoomPowerLevels {
                 user_pl
                     >= self
                         .events
-                        .get(&state_type.to_string().into())
+                        .get(&state_type.into())
                         .map(ToOwned::to_owned)
                         .unwrap_or(self.state_default)
             }

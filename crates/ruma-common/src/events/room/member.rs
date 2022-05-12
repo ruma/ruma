@@ -21,7 +21,7 @@ use crate::{
 mod change;
 
 use self::change::membership_change;
-pub use self::change::{MembershipChange, MembershipDetails};
+pub use self::change::{Change, MembershipChange, MembershipDetails};
 
 /// The content of an `m.room.member` event.
 ///
@@ -213,6 +213,26 @@ impl RedactedEventContent for RedactedRoomMemberEventContent {
 
     fn has_deserialize_fields() -> HasDeserializeFields {
         HasDeserializeFields::Optional
+    }
+}
+
+impl RoomMemberEvent {
+    /// Obtain the membership state, regardless of whether this event is redacted.
+    pub fn membership(&self) -> &MembershipState {
+        match self {
+            Self::Original(ev) => &ev.content.membership,
+            Self::Redacted(ev) => &ev.content.membership,
+        }
+    }
+}
+
+impl SyncRoomMemberEvent {
+    /// Obtain the membership state, regardless of whether this event is redacted.
+    pub fn membership(&self) -> &MembershipState {
+        match self {
+            Self::Original(ev) => &ev.content.membership,
+            Self::Redacted(ev) => &ev.content.membership,
+        }
     }
 }
 

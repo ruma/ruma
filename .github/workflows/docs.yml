@@ -22,7 +22,7 @@ jobs:
         with:
           profile: minimal
           # Needed for use of unstable options
-          toolchain: nightly-2022-03-23
+          toolchain: nightly
           override: true
 
       - uses: Swatinem/rust-cache@v1
