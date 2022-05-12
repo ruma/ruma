@@ -3,6 +3,7 @@
 Improvements:
 
 * Add `From<&UserId>` and `From<&OwnedUserId>` implementations for `UserIdentifier`
+* Add `UserIdentifier::email` constructor
 
 # 0.14.0
 

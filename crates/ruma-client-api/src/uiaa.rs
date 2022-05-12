@@ -590,6 +590,13 @@ pub enum UserIdentifier<'a> {
     },
 }
 
+impl<'a> UserIdentifier<'a> {
+    /// Creates a [`UserIdentifier::ThirdPartyId`] from an email address.
+    pub fn email(address: &'a str) -> Self {
+        Self::ThirdPartyId { address, medium: Medium::Email }
+    }
+}
+
 impl<'a> From<&'a UserId> for UserIdentifier<'a> {
     fn from(id: &'a UserId) -> Self {
         Self::UserIdOrLocalpart(id.as_str())
