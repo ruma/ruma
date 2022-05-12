@@ -1,5 +1,16 @@
 # [unreleased]
 
+# 0.6.3
+
+Bug fixes:
+
+* Fix serialization and deserialization of events with a dynamic `event_type`
+
+Improvements:
+
+* Add `From<&UserId>` and `From<&OwnedUserId>` implementations for `UserIdentifier`
+* Add `UserIdentifier::email` constructor
+
 # 0.6.2
 
 Improvements:
