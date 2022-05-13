@@ -592,8 +592,14 @@ pub enum UserIdentifier<'a> {
 
 impl<'a> UserIdentifier<'a> {
     /// Creates a [`UserIdentifier::ThirdPartyId`] from an email address.
-    pub fn email(address: &'a str) -> Self {
+    pub fn from_email(address: &'a str) -> Self {
         Self::ThirdPartyId { address, medium: Medium::Email }
+    }
+
+    /// Creates a [`UserIdentifier::ThirdPartyId`] from a 2-letter country code
+    /// and a phone number.
+    pub fn from_phone(phone: &'a str) -> Self {
+        Self::ThirdPartyId { address: phone,  medium: Medium::Msisdn }
     }
 }
 

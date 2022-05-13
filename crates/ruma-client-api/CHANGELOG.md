@@ -2,8 +2,8 @@
 
 Improvements:
 
-* Add `From<&UserId>` and `From<&OwnedUserId>` implementations for `UserIdentifier`
-* Add `UserIdentifier::email` constructor
+* Add `From<&str>`, `From<&UserId>` and `From<&OwnedUserId>` implementations for `UserIdentifier`
+* Add `UserIdentifier::from_email` and `UserIdentifier::from_phone` constructors
 
 # 0.14.0
 
