@@ -27,26 +27,18 @@ mod kw {
     syn::custom_keyword!(alias);
 }
 
-/// Parses attributes for `*EventContent` derives.
+/// Parses struct attributes for `*EventContent` derives.
 ///
 /// `#[ruma_event(type = "m.room.alias")]`
-enum EventMeta {
+enum EventStructMeta {
     /// Variant holds the "m.whatever" event type.
     Type(LitStr),
 
     Kind(EventKind),
 
-    /// Fields marked with `#[ruma_event(skip_redaction)]` are kept when the event is
-    /// redacted.
-    SkipRedaction,
-
     /// This attribute signals that the events redacted form is manually implemented and should not
     /// be generated.
     CustomRedacted,
-
-    /// The given field holds a part of the event type (replaces the `*` in a `m.foo.*` event
-    /// type).
-    TypeFragment,
 
     StateKeyType(Box<Type>),
 
@@ -54,7 +46,7 @@ enum EventMeta {
     Alias(LitStr),
 }
 
-impl EventMeta {
+impl EventStructMeta {
     fn get_event_type(&self) -> Option<&LitStr> {
         match self {
             Self::Type(t) => Some(t),
@@ -84,45 +76,67 @@ impl EventMeta {
     }
 }
 
-impl Parse for EventMeta {
+impl Parse for EventStructMeta {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
         if lookahead.peek(Token![type]) {
             let _: Token![type] = input.parse()?;
             let _: Token![=] = input.parse()?;
-            input.parse().map(EventMeta::Type)
+            input.parse().map(EventStructMeta::Type)
         } else if lookahead.peek(kw::kind) {
             let _: kw::kind = input.parse()?;
             let _: Token![=] = input.parse()?;
-            input.parse().map(EventMeta::Kind)
-        } else if lookahead.peek(kw::skip_redaction) {
-            let _: kw::skip_redaction = input.parse()?;
-            Ok(EventMeta::SkipRedaction)
+            input.parse().map(EventStructMeta::Kind)
         } else if lookahead.peek(kw::custom_redacted) {
             let _: kw::custom_redacted = input.parse()?;
-            Ok(EventMeta::CustomRedacted)
-        } else if lookahead.peek(kw::type_fragment) {
-            let _: kw::type_fragment = input.parse()?;
-            Ok(EventMeta::TypeFragment)
+            Ok(EventStructMeta::CustomRedacted)
         } else if lookahead.peek(kw::state_key_type) {
             let _: kw::state_key_type = input.parse()?;
             let _: Token![=] = input.parse()?;
-            input.parse().map(EventMeta::StateKeyType)
+            input.parse().map(EventStructMeta::StateKeyType)
         } else if lookahead.peek(kw::alias) {
             let _: kw::alias = input.parse()?;
             let _: Token![=] = input.parse()?;
-            input.parse().map(EventMeta::Alias)
+            input.parse().map(EventStructMeta::Alias)
         } else {
             Err(lookahead.error())
         }
     }
 }
 
-struct MetaAttrs(Vec<EventMeta>);
+/// Parses field attributes for `*EventContent` derives.
+///
+/// `#[ruma_event(skip_redaction)]`
+enum EventFieldMeta {
+    /// Fields marked with `#[ruma_event(skip_redaction)]` are kept when the event is
+    /// redacted.
+    SkipRedaction,
+
+    /// The given field holds a part of the event type (replaces the `*` in a `m.foo.*` event
+    /// type).
+    TypeFragment,
+}
+
+impl Parse for EventFieldMeta {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let lookahead = input.lookahead1();
+        if lookahead.peek(kw::skip_redaction) {
+            let _: kw::skip_redaction = input.parse()?;
+            Ok(EventFieldMeta::SkipRedaction)
+        } else if lookahead.peek(kw::type_fragment) {
+            let _: kw::type_fragment = input.parse()?;
+            Ok(EventFieldMeta::TypeFragment)
+        } else {
+            Err(lookahead.error())
+        }
+    }
+}
+
+struct MetaAttrs(Vec<EventStructMeta>);
 
 impl MetaAttrs {
     fn is_custom(&self) -> bool {
-        self.0.iter().any(|a| matches!(a, &EventMeta::CustomRedacted))
+        self.0.iter().any(|a| matches!(a, &EventStructMeta::CustomRedacted))
     }
 
     fn get_event_type(&self) -> Option<&LitStr> {
@@ -144,7 +158,8 @@ impl MetaAttrs {
 
 impl Parse for MetaAttrs {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let attrs = syn::punctuated::Punctuated::<EventMeta, Token![,]>::parse_terminated(input)?;
+        let attrs =
+            syn::punctuated::Punctuated::<EventStructMeta, Token![,]>::parse_terminated(input)?;
         Ok(Self(attrs.into_iter().collect()))
     }
 }
@@ -324,7 +339,7 @@ fn generate_redacted_event_content<'a>(
                 .iter()
                 .map(|a| -> syn::Result<_> {
                     if a.path.is_ident("ruma_event") {
-                        if let EventMeta::SkipRedaction = a.parse_args()? {
+                        if let EventFieldMeta::SkipRedaction = a.parse_args()? {
                             keep_field = true;
                         }
 
@@ -532,7 +547,7 @@ fn generate_event_content_impl<'a>(
                 .find_map(|f| {
                     f.attrs.iter().filter(|a| a.path.is_ident("ruma_event")).find_map(|a| {
                         match a.parse_args() {
-                            Ok(EventMeta::TypeFragment) => Some(Ok(f)),
+                            Ok(EventFieldMeta::TypeFragment) => Some(Ok(f)),
                             Ok(_) => None,
                             Err(e) => Some(Err(e)),
                         }
