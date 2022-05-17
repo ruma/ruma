@@ -7,6 +7,7 @@ Breaking changes:
 Improvements:
 
 * All push rules are now considered to not apply to events sent by the user themselves
+* Add unstable support for reference relations (MSC3267)
 
 # 0.9.2
 

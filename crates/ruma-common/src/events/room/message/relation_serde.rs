@@ -1,5 +1,7 @@
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+#[cfg(feature = "unstable-msc3267")]
+use super::Reference;
 #[cfg(feature = "unstable-msc2676")]
 use super::Replacement;
 #[cfg(feature = "unstable-msc2676")]
@@ -40,6 +42,10 @@ impl<'de> Deserialize<'de> for Relation {
                         .new_content
                         .ok_or_else(|| serde::de::Error::missing_field("m.new_content"))?;
                     Relation::Replacement(Replacement { event_id, new_content })
+                }
+                #[cfg(feature = "unstable-msc3267")]
+                RelationJsonRepr::Reference(ReferenceJsonRepr { event_id }) => {
+                    Relation::Reference(Reference { event_id })
                 }
                 // FIXME: Maybe we should log this, though at this point we don't even have
                 // access to the rel_type of the unknown relation.
@@ -87,6 +93,15 @@ impl Serialize for Relation {
                     relation: Some(RelationJsonRepr::ThreadUnstable(ThreadUnstableJsonRepr {
                         event_id: event_id.clone(),
                         is_falling_back: *is_falling_back,
+                    })),
+                    ..Default::default()
+                })
+            }
+            #[cfg(feature = "unstable-msc3267")]
+            Relation::Reference(Reference { event_id }) => {
+                EventWithRelatesToJsonRepr::new(RelatesToJsonRepr {
+                    relation: Some(RelationJsonRepr::Reference(ReferenceJsonRepr {
+                        event_id: event_id.clone(),
                     })),
                     ..Default::default()
                 })
@@ -154,6 +169,11 @@ enum RelationJsonRepr {
     #[serde(rename = "io.element.thread")]
     ThreadUnstable(ThreadUnstableJsonRepr),
 
+    /// An event that replaces another event.
+    #[cfg(feature = "unstable-msc3267")]
+    #[serde(rename = "m.reference")]
+    Reference(ReferenceJsonRepr),
+
     /// An unknown relation type.
     ///
     /// Not available in the public API, but exists here so deserialization
@@ -196,4 +216,10 @@ struct ThreadUnstableJsonRepr {
         skip_serializing_if = "ruma_common::serde::is_default"
     )]
     is_falling_back: bool,
+}
+
+#[derive(Clone, Deserialize, Serialize)]
+#[cfg(feature = "unstable-msc3267")]
+struct ReferenceJsonRepr {
+    event_id: OwnedEventId,
 }

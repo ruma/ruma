@@ -324,3 +324,64 @@ fn thread_unstable_deserialize() {
           && !is_falling_back
     );
 }
+
+#[test]
+#[cfg(feature = "unstable-msc3267")]
+fn reference_deserialize() {
+    use ruma_common::events::room::message::Reference;
+
+    let json = json!({
+        "msgtype": "m.text",
+        "body": "<text msg>",
+        "m.relates_to": {
+            "rel_type": "m.reference",
+            "event_id": "$1598361704261elfgc",
+        },
+    });
+
+    assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json).unwrap(),
+        RoomMessageEventContent {
+            msgtype: MessageType::Text(_),
+            relates_to: Some(Relation::Reference(Reference { event_id, .. })),
+            ..
+        } if event_id == "$1598361704261elfgc"
+    );
+}
+
+#[test]
+#[cfg(feature = "unstable-msc3267")]
+fn reference_serialize() {
+    use ruma_common::events::room::message::Reference;
+
+    let content = assign!(RoomMessageEventContent::text_plain("This has a reference"), {
+        relates_to: Some(Relation::Reference(Reference::new(event_id!("$1598361704261elfgc").to_owned()))),
+    });
+
+    #[cfg(not(feature = "unstable-msc1767"))]
+    assert_eq!(
+        to_json_value(content).unwrap(),
+        json!({
+            "msgtype": "m.text",
+            "body": "This has a reference",
+            "m.relates_to": {
+                "rel_type": "m.reference",
+                "event_id": "$1598361704261elfgc",
+            },
+        })
+    );
+
+    #[cfg(feature = "unstable-msc1767")]
+    assert_eq!(
+        to_json_value(content).unwrap(),
+        json!({
+            "msgtype": "m.text",
+            "body": "This has a reference",
+            "org.matrix.msc1767.text": "This has a reference",
+            "m.relates_to": {
+                "rel_type": "m.reference",
+                "event_id": "$1598361704261elfgc",
+            },
+        })
+    );
+}

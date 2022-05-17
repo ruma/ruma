@@ -123,6 +123,8 @@ impl From<message::Relation> for Relation {
                 in_reply_to: t.in_reply_to,
                 is_falling_back: t.is_falling_back,
             }),
+            #[cfg(feature = "unstable-msc3267")]
+            message::Relation::Reference(r) => Self::Reference(Reference { event_id: r.event_id }),
             message::Relation::_Custom => Self::_Custom,
         }
     }

@@ -625,6 +625,10 @@ pub enum Relation {
     #[cfg(feature = "unstable-msc3440")]
     Thread(Thread),
 
+    /// An event that makes a reference to another event.
+    #[cfg(feature = "unstable-msc3267")]
+    Reference(Reference),
+
     #[doc(hidden)]
     _Custom,
 }
@@ -699,6 +703,23 @@ impl Thread {
     /// ID.
     pub fn reply(event_id: OwnedEventId, reply_to_event_id: OwnedEventId) -> Self {
         Self { event_id, in_reply_to: InReplyTo::new(reply_to_event_id), is_falling_back: false }
+    }
+}
+
+/// A reference to another event.
+#[cfg(feature = "unstable-msc3267")]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct Reference {
+    /// The event we are referencing.
+    pub event_id: OwnedEventId,
+}
+
+#[cfg(feature = "unstable-msc3267")]
+impl Reference {
+    /// Creates a new `Reference` with the given event ID.
+    pub fn new(event_id: OwnedEventId) -> Self {
+        Self { event_id }
     }
 }
 
