@@ -23,6 +23,9 @@ jobs:
           - name: Full Features
             cmd: nightly-full
 
+          - name: All Features
+            cmd: nightly-all
+
           - name: Clippy Default Features
             cmd: clippy-default
             components: clippy
