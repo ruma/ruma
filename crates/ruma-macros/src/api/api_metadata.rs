@@ -1,5 +1,7 @@
 //! Details of the `metadata` section of the procedural macro.
 
+use std::collections::HashSet;
+
 use quote::ToTokens;
 use syn::{
     braced,
@@ -22,6 +24,9 @@ mod kw {
     syn::custom_keyword!(added);
     syn::custom_keyword!(deprecated);
     syn::custom_keyword!(removed);
+    syn::custom_keyword!(unstable);
+    syn::custom_keyword!(msc);
+    syn::custom_keyword!(history);
 }
 
 /// The result of processing the `metadata` section of the macro.
@@ -110,6 +115,9 @@ impl Parse for Metadata {
                 FieldValue::Added(v) => set_field(&mut added, v)?,
                 FieldValue::Deprecated(v) => set_field(&mut deprecated, v)?,
                 FieldValue::Removed(v) => set_field(&mut removed, v)?,
+                FieldValue::History(h) => {
+                    // println!("history: `{:#?}`", h);
+                }
             }
         }
 
@@ -223,6 +231,7 @@ enum Field {
     Added,
     Deprecated,
     Removed,
+    History,
 }
 
 impl Parse for Field {
@@ -262,6 +271,9 @@ impl Parse for Field {
         } else if lookahead.peek(kw::removed) {
             let _: kw::removed = input.parse()?;
             Ok(Self::Removed)
+        } else if lookahead.peek(kw::history) {
+            let _: kw::history = input.parse()?;
+            Ok(Self::History)
         } else {
             Err(lookahead.error())
         }
@@ -280,6 +292,7 @@ enum FieldValue {
     Added(MatrixVersionLiteral),
     Deprecated(MatrixVersionLiteral),
     Removed(MatrixVersionLiteral),
+    History(History),
 }
 
 impl Parse for FieldValue {
@@ -299,11 +312,173 @@ impl Parse for FieldValue {
             Field::Added => Self::Added(input.parse()?),
             Field::Deprecated => Self::Deprecated(input.parse()?),
             Field::Removed => Self::Removed(input.parse()?),
+            Field::History => Self::History(input.parse()?),
         })
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug)]
+pub struct History {
+    entries: Vec<HistoryEntry>,
+
+    misc: MiscVersioning,
+}
+
+#[derive(Debug)]
+pub enum MiscVersioning {
+    None,
+    Deprecated(MatrixVersionLiteral),
+    Removed { deprecated: MatrixVersionLiteral, removed: MatrixVersionLiteral },
+}
+
+fn ref_version(
+    set: &mut HashSet<MatrixVersionLiteral>,
+    value: MatrixVersionLiteral,
+) -> syn::Result<()> {
+    if let Some(version) = set.get(&value) {
+        let mut error = syn::Error::new_spanned(value, "duplicate version reference");
+        error.combine(syn::Error::new_spanned(version, "first one here"));
+        Err(error)
+    } else {
+        set.insert(value);
+        Ok(())
+    }
+}
+
+impl Parse for History {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let values;
+        braced!(values in input);
+
+        let mut deprecated = None;
+        let mut removed = None;
+
+        let mut entries: Vec<_> = values
+            .parse_terminated::<HistoryEntry, Token![,]>(HistoryEntry::parse)?
+            .into_iter()
+            .collect();
+
+        let mut versions: HashSet<MatrixVersionLiteral> = HashSet::new();
+
+        for entry in &entries {
+            match entry {
+                HistoryEntry::Deprecated { version } => {
+                    ref_version(&mut versions, version.clone())?;
+                    set_field(&mut deprecated, version.clone())?;
+                }
+                HistoryEntry::Removed { version } => {
+                    ref_version(&mut versions, version.clone())?;
+                    set_field(&mut removed, version.clone())?;
+                }
+                HistoryEntry::Stable { version, path: _ } => {
+                    ref_version(&mut versions, version.clone())?;
+                }
+                _ => {}
+            }
+        }
+
+        let misc = match (deprecated, removed) {
+            (Some(d), Some(r)) => MiscVersioning::Removed { deprecated: d, removed: r },
+            (Some(d), None) => MiscVersioning::Deprecated(d),
+            (None, Some(v)) => {
+                return Err(syn::Error::new_spanned(
+                    v,
+                    "cannot define removed version without deprecated version",
+                ))
+            }
+
+            (None, None) => MiscVersioning::None,
+        };
+
+        entries.retain(|h| match h {
+            HistoryEntry::Unstable { path: _ } => true,
+            HistoryEntry::Stable { version: _, path: _ } => true,
+
+            HistoryEntry::Deprecated { version: _ } => false,
+            HistoryEntry::Removed { version: _ } => false,
+        });
+
+        // Sort so that the order is [Unstable, Unstable, 1.0, 1.1, 1.2, 2.0, 2.1]
+        // for optimized method purposes.
+        entries.sort_by(|a, b| {
+            let a = a.version().map(|v| v.into_parts()).unwrap_or((0, 0));
+            let b = b.version().map(|v| v.into_parts()).unwrap_or((0, 0));
+
+            a.cmp(&b)
+        });
+
+        Ok(History { entries, misc })
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum HistoryEntry {
+    Unstable { path: EndpointPath },
+    Stable { version: MatrixVersionLiteral, path: EndpointPath },
+    Deprecated { version: MatrixVersionLiteral },
+    Removed { version: MatrixVersionLiteral },
+}
+
+impl HistoryEntry {
+    fn version(&self) -> Option<&MatrixVersionLiteral> {
+        Some(match self {
+            HistoryEntry::Deprecated { version } => version,
+            HistoryEntry::Removed { version } => version,
+            HistoryEntry::Stable { version, path: _ } => version,
+
+            _ => return None,
+        })
+    }
+}
+
+impl Parse for HistoryEntry {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let key: HistoryEntryKey = input.parse()?;
+        let _: syn::token::FatArrow = input.parse()?;
+
+        match key {
+            HistoryEntryKey::Unstable => Ok(HistoryEntry::Unstable { path: input.parse()? }),
+            HistoryEntryKey::Version(version) => {
+                let lookahead = input.lookahead1();
+
+                if lookahead.peek(kw::deprecated) {
+                    let _: kw::deprecated = input.parse()?;
+
+                    Ok(Self::Deprecated { version })
+                } else if lookahead.peek(kw::removed) {
+                    let _: kw::removed = input.parse()?;
+
+                    Ok(Self::Removed { version })
+                } else {
+                    Ok(HistoryEntry::Stable { version, path: input.parse()? })
+                }
+            }
+        }
+    }
+}
+
+pub enum HistoryEntryKey {
+    Unstable,
+    Version(MatrixVersionLiteral),
+}
+
+impl Parse for HistoryEntryKey {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let lookahead = input.lookahead1();
+
+        if lookahead.peek(kw::unstable) {
+            let _: kw::unstable = input.parse()?;
+
+            Ok(Self::Unstable)
+        } else {
+            let version: MatrixVersionLiteral = input.parse()?;
+
+            Ok(Self::Version(version))
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub struct EndpointPath(LitStr);
 
 impl EndpointPath {

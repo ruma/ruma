@@ -17,6 +17,18 @@ ruma_api! {
         added: 1.0,
         deprecated: 1.1,
         removed: 1.2,
+
+        history: {
+            unstable => "/a/path",
+            unstable => "/another/path",
+
+            1.0 => "/1.0",
+            1.1 => "/1.1",
+            1.2 => "/1.2",
+
+            1.3 => deprecated,
+            1.4 => removed,
+        }
     }
 
     request: {
