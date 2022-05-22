@@ -24,7 +24,7 @@ pub trait Verifier {
 }
 
 /// A verifier for Ed25519 digital signatures.
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Default, Eq, PartialEq)]
 pub struct Ed25519Verifier;
 
 impl Verifier for Ed25519Verifier {
@@ -49,7 +49,7 @@ impl Verifier for Ed25519Verifier {
 /// calculated during verification. This is not necessarily an error condition, as it may indicate
 /// that the event has been redacted. In this case, receiving homeservers should store a redacted
 /// version of the event.
-#[derive(Clone, Debug, Hash, PartialEq)]
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
 #[allow(clippy::exhaustive_enums)]
 pub enum Verified {
     /// All signatures are valid and the content hashes match.

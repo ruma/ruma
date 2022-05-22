@@ -12,7 +12,7 @@ pub mod hangup;
 pub mod invite;
 
 /// A VoIP session description.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SessionDescription {
     /// The type of session description.

@@ -199,7 +199,7 @@ impl fmt::Display for ErrorKind {
 /// A Matrix Error without a status code.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(clippy::exhaustive_structs)]
-#[cfg_attr(test, derive(PartialEq))]
+#[cfg_attr(test, derive(Eq, PartialEq))]
 pub struct ErrorBody {
     /// A value which can be used to handle an error message.
     #[serde(flatten)]

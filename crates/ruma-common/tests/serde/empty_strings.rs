@@ -2,7 +2,7 @@ mod string {
     use serde::{Deserialize, Serialize};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    #[derive(Serialize, Deserialize, PartialEq, Debug)]
+    #[derive(Serialize, Deserialize, Eq, PartialEq, Debug)]
     struct StringStruct {
         #[serde(
             default,
@@ -59,7 +59,7 @@ mod user {
         user_id!("@carl:example.com")
     }
 
-    #[derive(Serialize, Deserialize, PartialEq, Debug)]
+    #[derive(Serialize, Deserialize, Eq, PartialEq, Debug)]
     struct User {
         #[serde(
             default,

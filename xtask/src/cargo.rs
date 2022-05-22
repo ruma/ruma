@@ -176,7 +176,7 @@ pub struct Dependency {
 }
 
 /// The kind of a cargo package dependency.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum DependencyKind {
     /// A dev dependency.

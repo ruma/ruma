@@ -16,7 +16,7 @@ pub mod thirdparty;
 /// A namespace defined by an application service.
 ///
 /// Used for [appservice registration](https://spec.matrix.org/v1.2/application-service-api/#registration).
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Namespace {
     /// Whether this application service has exclusive access to events within this namespace.

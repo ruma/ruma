@@ -10,7 +10,7 @@ pub mod get_devices;
 pub mod update_device;
 
 /// Information about a registered device.
-#[derive(Clone, Debug, Deserialize, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Hash, Eq, PartialEq, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Device {
     /// Device ID

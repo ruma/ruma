@@ -6,7 +6,7 @@ use js_int::{int, Int};
 use serde::{Deserialize, Serialize};
 
 /// The power level requirements for specific notification types.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct NotificationPowerLevels {
     /// The level required to trigger an `@room` notification.

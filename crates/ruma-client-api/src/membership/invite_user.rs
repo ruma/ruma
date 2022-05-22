@@ -62,9 +62,9 @@ pub mod v3 {
     }
 
     /// Distinguishes between invititations by Matrix or third party identifiers.
-    #[derive(Clone, Debug, PartialEq, Incoming, Serialize)]
+    #[derive(Clone, Debug, Eq, PartialEq, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-    #[incoming_derive(PartialEq)]
+    #[incoming_derive(Eq, PartialEq)]
     #[serde(untagged)]
     pub enum InvitationRecipient<'a> {
         /// Used to invite user by their Matrix identifier.

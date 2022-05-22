@@ -57,7 +57,7 @@ impl Response {
 }
 
 /// Information about a discovered homeserver.
-#[derive(Clone, Debug, Deserialize, Hash, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Hash, Eq, PartialEq, PartialOrd, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct HomeserverInfo {
     /// The base URL for the homeserver for client-server connections.
@@ -72,7 +72,7 @@ impl HomeserverInfo {
 }
 
 /// Information about a discovered identity server.
-#[derive(Clone, Debug, Deserialize, Hash, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Hash, Eq, PartialEq, PartialOrd, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct IdentityServerInfo {
     /// The base URL for the identity server for client-server connections.

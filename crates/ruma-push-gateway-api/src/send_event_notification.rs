@@ -176,7 +176,7 @@ pub mod v1 {
     }
 
     /// Type for passing information about notification counts.
-    #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq)]
+    #[derive(Clone, Debug, Default, Deserialize, Serialize, Eq, PartialEq)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct NotificationCounts {
         /// The number of unread messages a user has across all of the rooms they

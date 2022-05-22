@@ -77,7 +77,7 @@ fn deserialize_unit_type() {
     assert_eq!(urlencoded::from_str(""), Ok(()));
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize)]
 struct Params<'a> {
     a: usize,
     b: &'a str,
@@ -105,7 +105,7 @@ fn deserialize_list_of_str() {
 
 #[test]
 fn deserialize_multiple_lists() {
-    #[derive(Debug, PartialEq, Deserialize)]
+    #[derive(Debug, Eq, PartialEq, Deserialize)]
     struct Lists {
         xs: Vec<bool>,
         ys: Vec<u32>,
@@ -124,7 +124,7 @@ fn deserialize_multiple_lists() {
 
 #[test]
 fn deserialize_with_serde_attributes() {
-    #[derive(Debug, PartialEq, Deserialize)]
+    #[derive(Debug, Eq, PartialEq, Deserialize)]
     struct FieldsWithAttributes {
         #[serde(default)]
         xs: Vec<bool>,
@@ -178,19 +178,19 @@ struct Wrapper<T> {
     item: T,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Deserialize)]
 struct NewStruct<'a> {
     #[serde(borrow)]
     list: Vec<&'a str>,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Deserialize)]
 struct Struct<'a> {
     #[serde(borrow)]
     list: Vec<Option<&'a str>>,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Deserialize)]
 struct NumList {
     list: Vec<u8>,
 }
@@ -217,7 +217,7 @@ struct Nested<T> {
     item: T,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, Eq, PartialEq)]
 struct Inner<'a> {
     c: &'a str,
     a: usize,

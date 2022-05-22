@@ -247,7 +247,7 @@ impl Medium {
 /// this type using `ThirdPartyIdentifier::Init` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[cfg_attr(test, derive(PartialEq))]
+#[cfg_attr(test, derive(Eq, PartialEq))]
 pub struct ThirdPartyIdentifier {
     /// The third party identifier address.
     pub address: String,

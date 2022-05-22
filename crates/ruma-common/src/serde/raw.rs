@@ -238,7 +238,7 @@ mod tests {
 
     #[test]
     fn get_field() -> serde_json::Result<()> {
-        #[derive(Debug, PartialEq, Deserialize)]
+        #[derive(Debug, Eq, PartialEq, Deserialize)]
         struct A<'a> {
             #[serde(borrow)]
             b: Vec<&'a str>,

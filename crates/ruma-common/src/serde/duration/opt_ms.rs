@@ -47,7 +47,7 @@ mod tests {
     use serde::{Deserialize, Serialize};
     use serde_json::json;
 
-    #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+    #[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
     struct DurationTest {
         #[serde(with = "super", default, skip_serializing_if = "Option::is_none")]
         timeout: Option<Duration>,

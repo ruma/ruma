@@ -127,13 +127,13 @@ mod tweak_serde {
         },
     }
 
-    #[derive(Clone, PartialEq, Deserialize, Serialize)]
+    #[derive(Clone, Eq, PartialEq, Deserialize, Serialize)]
     #[serde(tag = "set_tweak", rename = "sound")]
     pub(crate) struct SoundTweak {
         value: String,
     }
 
-    #[derive(Clone, PartialEq, Deserialize, Serialize)]
+    #[derive(Clone, Eq, PartialEq, Deserialize, Serialize)]
     #[serde(tag = "set_tweak", rename = "highlight")]
     pub(crate) struct HighlightTweak {
         #[serde(
