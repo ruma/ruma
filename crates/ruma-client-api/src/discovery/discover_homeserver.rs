@@ -88,7 +88,7 @@ impl IdentityServerInfo {
 
 /// Information about a discovered map tile server.
 #[cfg(feature = "unstable-msc3488")]
-#[derive(Clone, Debug, Deserialize, Hash, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Hash, Eq, PartialEq, PartialOrd, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct TileServerInfo {
     /// The URL of a map tile server's `style.json` file.
