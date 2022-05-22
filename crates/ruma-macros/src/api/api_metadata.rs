@@ -1,6 +1,6 @@
 //! Details of the `metadata` section of the procedural macro.
 
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 
 use quote::ToTokens;
 use syn::{
@@ -115,7 +115,7 @@ impl Parse for Metadata {
                 FieldValue::Added(v) => set_field(&mut added, v)?,
                 FieldValue::Deprecated(v) => set_field(&mut deprecated, v)?,
                 FieldValue::Removed(v) => set_field(&mut removed, v)?,
-                FieldValue::History(h) => {
+                FieldValue::History(_h) => {
                     // println!("history: `{:#?}`", h);
                 }
             }
@@ -331,16 +331,11 @@ pub enum MiscVersioning {
     Removed { deprecated: MatrixVersionLiteral, removed: MatrixVersionLiteral },
 }
 
-fn ref_version(
-    set: &mut HashSet<MatrixVersionLiteral>,
-    value: MatrixVersionLiteral,
-) -> syn::Result<()> {
-    if let Some(version) = set.get(&value) {
-        let mut error = syn::Error::new_spanned(value, "duplicate version reference");
-        error.combine(syn::Error::new_spanned(version, "first one here"));
-        Err(error)
+fn ref_version(set: &mut BTreeSet<(u8, u8)>, value: MatrixVersionLiteral) -> syn::Result<()> {
+    if let Some(_) = set.get(&value.into_parts()) {
+        Err(syn::Error::new_spanned(value, "duplicate version reference"))
     } else {
-        set.insert(value);
+        set.insert(value.into_parts());
         Ok(())
     }
 }
@@ -358,7 +353,7 @@ impl Parse for History {
             .into_iter()
             .collect();
 
-        let mut versions: HashSet<MatrixVersionLiteral> = HashSet::new();
+        let mut versions: BTreeSet<(u8, u8)> = BTreeSet::new();
 
         for entry in &entries {
             match entry {
