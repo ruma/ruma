@@ -24,7 +24,7 @@ pub trait Verifier {
 }
 
 /// A verifier for Ed25519 digital signatures.
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Default)]
 pub struct Ed25519Verifier;
 
 impl Verifier for Ed25519Verifier {
