@@ -6,7 +6,7 @@ use js_int::{int, Int};
 use serde::{Deserialize, Serialize};
 
 /// The power level requirements for specific notification types.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct NotificationPowerLevels {
     /// The level required to trigger an `@room` notification.
@@ -33,6 +33,10 @@ impl NotificationPowerLevels {
             "room" => Some(&self.room),
             _ => None,
         }
+    }
+
+    pub(crate) fn is_default(&self) -> bool {
+        self.room == default_power_level()
     }
 }
 

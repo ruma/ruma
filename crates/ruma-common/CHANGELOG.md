@@ -3,6 +3,7 @@
 Breaking changes:
 
 * Add `user_id` field to `PushConditionRoomCtx`
+* Remove `PartialEq` implementation on `NotificationPowerLevels`
 
 Improvements:
 

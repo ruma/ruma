@@ -135,7 +135,7 @@ pub struct RoomPowerLevelsEventContent {
     /// The power level requirements for specific notification types.
     ///
     /// This is a mapping from `key` to power level for that notifications key.
-    #[serde(default, skip_serializing_if = "crate::serde::is_default")]
+    #[serde(default, skip_serializing_if = "NotificationPowerLevels::is_default")]
     pub notifications: NotificationPowerLevels,
 }
 
