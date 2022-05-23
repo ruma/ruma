@@ -4,7 +4,9 @@ use matches::assert_matches;
 use ruma_common::{
     event_id,
     events::{
-        call::{answer::CallAnswerEventContent, SessionDescription, SessionDescriptionType},
+        call::{
+            answer::CallAnswerEventContent, AnswerSessionDescription, AnswerSessionDescriptionType,
+        },
         room::{ImageInfo, MediaSource, ThumbnailInfo},
         sticker::StickerEventContent,
         AnyMessageLikeEvent, AnyMessageLikeEventContent, AnySyncMessageLikeEvent, MessageLikeEvent,
@@ -136,8 +138,8 @@ fn deserialize_message_call_answer_content() {
             .deserialize_content(MessageLikeEventType::CallAnswer)
             .unwrap(),
         AnyMessageLikeEventContent::CallAnswer(CallAnswerEventContent {
-            answer: SessionDescription {
-                session_type: SessionDescriptionType::Answer,
+            answer: AnswerSessionDescription {
+                session_type: AnswerSessionDescriptionType::Answer,
                 sdp,
                 ..
             },
@@ -170,8 +172,8 @@ fn deserialize_message_call_answer() {
         from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
         AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: CallAnswerEventContent {
-                answer: SessionDescription {
-                    session_type: SessionDescriptionType::Answer,
+                answer: AnswerSessionDescription {
+                    session_type: AnswerSessionDescriptionType::Answer,
                     sdp,
                     ..
                 },
@@ -296,8 +298,8 @@ fn deserialize_message_then_convert_to_full() {
         sync_ev.into_full_event(rid.to_owned()),
         AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: CallAnswerEventContent {
-                answer: SessionDescription {
-                    session_type: SessionDescriptionType::Answer,
+                answer: AnswerSessionDescription {
+                    session_type: AnswerSessionDescriptionType::Answer,
                     sdp,
                     ..
                 },

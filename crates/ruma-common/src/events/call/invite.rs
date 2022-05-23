@@ -6,7 +6,7 @@ use js_int::UInt;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::SessionDescription;
+use super::OfferSessionDescription;
 
 /// The content of an `m.call.invite` event.
 ///
@@ -25,9 +25,7 @@ pub struct CallInviteEventContent {
     pub lifetime: UInt,
 
     /// The session description object.
-    ///
-    /// The session description type must be *offer*.
-    pub offer: SessionDescription,
+    pub offer: OfferSessionDescription,
 
     /// The version of the VoIP specification this messages adheres to.
     pub version: UInt,
@@ -35,7 +33,12 @@ pub struct CallInviteEventContent {
 
 impl CallInviteEventContent {
     /// Creates a new `InviteEventContent` with the given call ID, lifetime and VoIP version.
-    pub fn new(call_id: String, lifetime: UInt, offer: SessionDescription, version: UInt) -> Self {
+    pub fn new(
+        call_id: String,
+        lifetime: UInt,
+        offer: OfferSessionDescription,
+        version: UInt,
+    ) -> Self {
         Self { call_id, lifetime, offer, version }
     }
 }

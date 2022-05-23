@@ -2,53 +2,75 @@
 //!
 //! This module also contains types shared by events in its child namespaces.
 
-use serde::{Deserialize, Serialize};
-
-use crate::{serde::StringEnum, PrivOwnedStr};
-
 pub mod answer;
 pub mod candidates;
 pub mod hangup;
 pub mod invite;
 
-/// A VoIP session description.
+use serde::{Deserialize, Serialize};
+
+use crate::{serde::StringEnum, PrivOwnedStr};
+
+/// A VoIP answer session description.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct SessionDescription {
+pub struct AnswerSessionDescription {
     /// The type of session description.
     #[serde(rename = "type")]
-    pub session_type: SessionDescriptionType,
+    pub session_type: AnswerSessionDescriptionType,
 
     /// The SDP text of the session description.
     pub sdp: String,
 }
 
-impl SessionDescription {
-    /// Creates a new `SessionDescription` with the given session type and SDP text.
-    pub fn new(session_type: SessionDescriptionType, sdp: String) -> Self {
-        Self { session_type, sdp }
+impl AnswerSessionDescription {
+    /// Creates a new `AnswerSessionDescription` with the given SDP text.
+    pub fn new(sdp: String) -> Self {
+        Self { session_type: AnswerSessionDescriptionType::Answer, sdp }
     }
 }
 
-/// The type of VoIP session description.
+/// The type of VoIP answer session description.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
-pub enum SessionDescriptionType {
+pub enum AnswerSessionDescriptionType {
     /// An answer.
     Answer,
-
-    /// An offer.
-    Offer,
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
 
-impl SessionDescriptionType {
-    /// Creates a string slice from this `SessionDescriptionType`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
+/// A VoIP offer session description.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct OfferSessionDescription {
+    /// The type of session description.
+    #[serde(rename = "type")]
+    pub session_type: OfferSessionDescriptionType,
+
+    /// The SDP text of the session description.
+    pub sdp: String,
+}
+
+impl OfferSessionDescription {
+    /// Creates a new `OfferSessionDescription` with the given SDP text.
+    pub fn new(sdp: String) -> Self {
+        Self { session_type: OfferSessionDescriptionType::Offer, sdp }
     }
+}
+
+/// The type of VoIP offer session description.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum OfferSessionDescriptionType {
+    /// An offer.
+    Offer,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
 }
