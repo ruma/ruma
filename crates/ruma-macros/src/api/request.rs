@@ -1,7 +1,6 @@
 use std::{
     collections::{BTreeMap, BTreeSet},
     convert::{TryFrom, TryInto},
-    mem,
 };
 
 use proc_macro2::TokenStream;
@@ -10,11 +9,11 @@ use syn::{
     parse::{Parse, ParseStream},
     parse_quote,
     punctuated::Punctuated,
-    DeriveInput, Field, Generics, Ident, Lifetime, Lit, LitStr, Token, Type,
+    DeriveInput, Field, Generics, Ident, Lifetime, LitStr, Token, Type,
 };
 
 use super::{
-    attribute::{Meta, MetaNameValue, MetaValue},
+    attribute::{DeriveRequestMeta, RequestMeta},
     auth_scheme::AuthScheme,
     util::collect_lifetime_idents,
 };
@@ -62,28 +61,28 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
             continue;
         }
 
-        let meta = attr.parse_args_with(Punctuated::<_, Token![,]>::parse_terminated)?;
-        for MetaNameValue { name, value } in meta {
-            match value {
-                MetaValue::Type(t) if name == "authentication" => {
+        let metas =
+            attr.parse_args_with(Punctuated::<DeriveRequestMeta, Token![,]>::parse_terminated)?;
+        for meta in metas {
+            match meta {
+                DeriveRequestMeta::Authentication(t) => {
                     authentication = Some(parse_quote!(#t));
                 }
-                MetaValue::Type(t) if name == "method" => {
+                DeriveRequestMeta::Method(t) => {
                     method = Some(parse_quote!(#t));
                 }
-                MetaValue::Type(t) if name == "error_ty" => {
+                DeriveRequestMeta::ErrorTy(t) => {
                     error_ty = Some(t);
                 }
-                MetaValue::Lit(Lit::Str(s)) if name == "unstable" => {
+                DeriveRequestMeta::UnstablePath(s) => {
                     unstable_path = Some(s);
                 }
-                MetaValue::Lit(Lit::Str(s)) if name == "r0" => {
+                DeriveRequestMeta::R0Path(s) => {
                     r0_path = Some(s);
                 }
-                MetaValue::Lit(Lit::Str(s)) if name == "stable" => {
+                DeriveRequestMeta::StablePath(s) => {
                     stable_path = Some(s);
                 }
-                _ => unreachable!("invalid ruma_api({}) attribute", name),
             }
         }
     }
@@ -405,17 +404,18 @@ enum RequestField {
 
 impl RequestField {
     /// Creates a new `RequestField`.
-    fn new(kind: RequestFieldKind, field: Field, header: Option<Ident>) -> Self {
-        match kind {
-            RequestFieldKind::Body => RequestField::Body(field),
-            RequestFieldKind::Header => {
-                RequestField::Header(field, header.expect("missing header name"))
+    fn new(field: Field, kind_attr: Option<RequestMeta>) -> Self {
+        if let Some(attr) = kind_attr {
+            match attr {
+                RequestMeta::NewtypeBody => RequestField::NewtypeBody(field),
+                RequestMeta::RawBody => RequestField::RawBody(field),
+                RequestMeta::Path => RequestField::Path(field),
+                RequestMeta::Query => RequestField::Query(field),
+                RequestMeta::QueryMap => RequestField::QueryMap(field),
+                RequestMeta::Header(header) => RequestField::Header(field, header),
             }
-            RequestFieldKind::NewtypeBody => RequestField::NewtypeBody(field),
-            RequestFieldKind::RawBody => RequestField::RawBody(field),
-            RequestFieldKind::Path => RequestField::Path(field),
-            RequestFieldKind::Query => RequestField::Query(field),
-            RequestFieldKind::QueryMap => RequestField::QueryMap(field),
+        } else {
+            RequestField::Body(field)
         }
     }
 
@@ -477,55 +477,22 @@ impl TryFrom<Field> for RequestField {
     type Error = syn::Error;
 
     fn try_from(mut field: Field) -> syn::Result<Self> {
-        let mut field_kind = None;
-        let mut header = None;
+        let (mut api_attrs, attrs) =
+            field.attrs.into_iter().partition::<Vec<_>, _>(|attr| attr.path.is_ident("ruma_api"));
+        field.attrs = attrs;
 
-        for attr in mem::take(&mut field.attrs) {
-            let meta = match Meta::from_attribute(&attr)? {
-                Some(m) => m,
-                None => {
-                    field.attrs.push(attr);
-                    continue;
-                }
-            };
-
-            if field_kind.is_some() {
+        let kind_attr = match api_attrs.as_slice() {
+            [] => None,
+            [_] => Some(api_attrs.pop().unwrap().parse_args::<RequestMeta>()?),
+            _ => {
                 return Err(syn::Error::new_spanned(
-                    attr,
-                    "There can only be one field kind attribute",
+                    &api_attrs[1],
+                    "multiple field kind attribute found, there can only be one",
                 ));
             }
+        };
 
-            field_kind = Some(match meta {
-                Meta::Word(ident) => match &ident.to_string()[..] {
-                    "body" => RequestFieldKind::NewtypeBody,
-                    "raw_body" => RequestFieldKind::RawBody,
-                    "path" => RequestFieldKind::Path,
-                    "query" => RequestFieldKind::Query,
-                    "query_map" => RequestFieldKind::QueryMap,
-                    _ => {
-                        return Err(syn::Error::new_spanned(
-                            ident,
-                            "Invalid #[ruma_api] argument, expected one of \
-                            `body`, `raw_body`, `path`, `query`, `query_map`",
-                        ));
-                    }
-                },
-                Meta::NameValue(MetaNameValue { name, value }) => {
-                    if name != "header" {
-                        return Err(syn::Error::new_spanned(
-                            name,
-                            "Invalid #[ruma_api] argument with value, expected `header`",
-                        ));
-                    }
-
-                    header = Some(value);
-                    RequestFieldKind::Header
-                }
-            });
-        }
-
-        Ok(RequestField::new(field_kind.unwrap_or(RequestFieldKind::Body), field, header))
+        Ok(RequestField::new(field, kind_attr))
     }
 }
 
@@ -539,16 +506,4 @@ impl ToTokens for RequestField {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.field().to_tokens(tokens)
     }
-}
-
-/// The types of fields that a request can have, without their values.
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum RequestFieldKind {
-    Body,
-    Header,
-    NewtypeBody,
-    RawBody,
-    Path,
-    Query,
-    QueryMap,
 }
