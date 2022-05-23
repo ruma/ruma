@@ -33,6 +33,6 @@ rustflags = [
     "-Wclippy::unreadable_literal",
     "-Wclippy::unseparated_literal_suffix",
     "-Wclippy::wildcard_imports",
-    # Temporary: Lint triggers in macro-generated code
-    "-Aexplicit_outlives_requirements",
+    # https://github.com/rust-lang/rust-clippy/issues/8875
+    "-Aclippy::derive_partial_eq_without_eq",
 ]
