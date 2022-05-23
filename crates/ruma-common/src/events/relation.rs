@@ -19,7 +19,7 @@ pub struct BundledAnnotation {
     /// The key used for the annotation.
     pub key: String,
 
-    /// The type of the annotation
+    /// The type of the annotation.
     #[serde(rename = "type")]
     pub annotation_type: AnnotationType,
 
