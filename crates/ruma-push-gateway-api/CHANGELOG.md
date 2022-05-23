@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Remove `PartialEq` implementation for `NotificationCounts`
+
 # 0.5.0
 
 Breaking changes:

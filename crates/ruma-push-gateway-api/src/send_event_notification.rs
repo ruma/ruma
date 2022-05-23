@@ -8,7 +8,7 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/push-gateway-api/#post_matrixpushv1notify
 
-    use js_int::UInt;
+    use js_int::{uint, UInt};
     use ruma_common::{
         api::ruma_api,
         events::RoomEventType,
@@ -126,7 +126,7 @@ pub mod v1 {
         /// Current number of unacknowledged communications for the recipient user.
         ///
         /// Counts whose value is zero should be omitted.
-        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        #[serde(default, skip_serializing_if = "NotificationCounts::is_default")]
         pub counts: NotificationCounts,
 
         /// An array of devices that the notification should be sent to.
@@ -176,7 +176,7 @@ pub mod v1 {
     }
 
     /// Type for passing information about notification counts.
-    #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq)]
+    #[derive(Clone, Debug, Default, Deserialize, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct NotificationCounts {
         /// The number of unread messages a user has across all of the rooms they
@@ -195,6 +195,10 @@ pub mod v1 {
         /// counts.
         pub fn new(unread: UInt, missed_calls: UInt) -> Self {
             NotificationCounts { unread, missed_calls }
+        }
+
+        fn is_default(&self) -> bool {
+            self.unread == uint!(0) && self.missed_calls == uint!(0)
         }
     }
 
