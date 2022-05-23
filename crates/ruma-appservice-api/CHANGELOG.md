@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Remove `PartialEq` implementation for `Namespace`
+
 # 0.6.0
 
 Breaking changes:
