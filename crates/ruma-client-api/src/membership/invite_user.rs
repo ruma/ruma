@@ -62,9 +62,8 @@ pub mod v3 {
     }
 
     /// Distinguishes between invititations by Matrix or third party identifiers.
-    #[derive(Clone, Debug, PartialEq, Incoming, Serialize)]
+    #[derive(Clone, Debug, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-    #[incoming_derive(PartialEq)]
     #[serde(untagged)]
     pub enum InvitationRecipient<'a> {
         /// Used to invite user by their Matrix identifier.
@@ -79,11 +78,11 @@ pub mod v3 {
 
     #[cfg(test)]
     mod tests {
+        use matches::assert_matches;
         use ruma_common::{thirdparty::Medium, user_id};
         use serde_json::{from_value as from_json_value, json};
 
         use super::IncomingInvitationRecipient;
-        use crate::membership::IncomingInvite3pid;
 
         #[test]
         fn deserialize_invite_by_user_id() {
@@ -91,9 +90,12 @@ pub mod v3 {
                 json!({ "user_id": "@carl:example.org" }),
             )
             .unwrap();
-            let user_id = user_id!("@carl:example.org").to_owned();
-            let recipient = IncomingInvitationRecipient::UserId { user_id };
-            assert_eq!(incoming, recipient);
+
+            assert_matches!(
+                incoming,
+                IncomingInvitationRecipient::UserId { user_id }
+                if user_id == user_id!("@carl:example.org")
+            );
         }
 
         #[test]
@@ -105,13 +107,16 @@ pub mod v3 {
                 "address": "carl@example.org"
             }))
             .unwrap();
-            let recipient = IncomingInvitationRecipient::ThirdPartyId(IncomingInvite3pid {
-                id_server: "example.org".into(),
-                id_access_token: "abcdefghijklmnop".into(),
-                medium: Medium::Email,
-                address: "carl@example.org".into(),
-            });
-            assert_eq!(incoming, recipient);
+
+            let third_party_id = match incoming {
+                IncomingInvitationRecipient::UserId { .. } => panic!("wrong variant"),
+                IncomingInvitationRecipient::ThirdPartyId(id) => id,
+            };
+
+            assert_eq!(third_party_id.id_server, "example.org");
+            assert_eq!(third_party_id.id_access_token, "abcdefghijklmnop");
+            assert_eq!(third_party_id.medium, Medium::Email);
+            assert_eq!(third_party_id.address, "carl@example.org");
         }
     }
 }

@@ -57,7 +57,7 @@ impl Response {
 }
 
 /// Information about a discovered homeserver.
-#[derive(Clone, Debug, Deserialize, Hash, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Hash, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct HomeserverInfo {
     /// The base URL for the homeserver for client-server connections.
@@ -72,7 +72,7 @@ impl HomeserverInfo {
 }
 
 /// Information about a discovered identity server.
-#[derive(Clone, Debug, Deserialize, Hash, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Hash, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct IdentityServerInfo {
     /// The base URL for the identity server for client-server connections.
@@ -88,7 +88,7 @@ impl IdentityServerInfo {
 
 /// Information about a discovered map tile server.
 #[cfg(feature = "unstable-msc3488")]
-#[derive(Clone, Debug, Deserialize, Hash, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Hash, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct TileServerInfo {
     /// The URL of a map tile server's `style.json` file.
