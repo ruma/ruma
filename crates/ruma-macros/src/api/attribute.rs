@@ -2,77 +2,147 @@
 
 use syn::{
     parse::{Parse, ParseStream},
-    Ident, Lit, Token, Type,
+    Ident, LitStr, Token, Type,
 };
 
-/// Value type used for request and response struct attributes
-#[allow(clippy::large_enum_variant)]
-pub enum MetaValue {
-    Lit(Lit),
-    Type(Type),
+mod kw {
+    syn::custom_keyword!(body);
+    syn::custom_keyword!(raw_body);
+    syn::custom_keyword!(path);
+    syn::custom_keyword!(query);
+    syn::custom_keyword!(query_map);
+    syn::custom_keyword!(header);
+    syn::custom_keyword!(authentication);
+    syn::custom_keyword!(method);
+    syn::custom_keyword!(error_ty);
+    syn::custom_keyword!(unstable);
+    syn::custom_keyword!(r0);
+    syn::custom_keyword!(stable);
+    syn::custom_keyword!(manual_body_serde);
 }
 
-impl Parse for MetaValue {
+pub enum RequestMeta {
+    NewtypeBody,
+    RawBody,
+    Path,
+    Query,
+    QueryMap,
+    Header(Ident),
+}
+
+impl Parse for RequestMeta {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        if input.peek(Lit) {
-            input.parse().map(Self::Lit)
-        } else {
-            input.parse().map(Self::Type)
-        }
-    }
-}
-
-/// Like syn::MetaNameValue, but expects an identifier as the value.
-///
-/// Also, we don't care about the the span of the equals sign, so we don't have the `eq_token` field
-/// from syn::MetaNameValue.
-pub struct MetaNameValue<V> {
-    /// The part left of the equals sign
-    pub name: Ident,
-
-    /// The part right of the equals sign
-    pub value: V,
-}
-
-impl<V: Parse> Parse for MetaNameValue<V> {
-    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let ident = input.parse()?;
-        let _: Token![=] = input.parse()?;
-        Ok(MetaNameValue { name: ident, value: input.parse()? })
-    }
-}
-
-/// Like syn::Meta, but only parses ruma_api attributes
-pub enum Meta<T> {
-    /// A single word, like `query` in `#[ruma_api(query)]`
-    Word(Ident),
-
-    /// A name-value pair, like `header = CONTENT_TYPE` in `#[ruma_api(header = CONTENT_TYPE)]`
-    NameValue(MetaNameValue<T>),
-}
-
-impl<T: Parse> Meta<T> {
-    /// Check if the given attribute is a ruma_api attribute.
-    ///
-    /// If it is, parse it.
-    pub fn from_attribute(attr: &syn::Attribute) -> syn::Result<Option<Self>> {
-        if attr.path.is_ident("ruma_api") {
-            attr.parse_args().map(Some)
-        } else {
-            Ok(None)
-        }
-    }
-}
-
-impl<T: Parse> Parse for Meta<T> {
-    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let ident = input.parse()?;
-
-        if input.peek(Token![=]) {
+        let lookahead = input.lookahead1();
+        if lookahead.peek(kw::body) {
+            let _: kw::body = input.parse()?;
+            Ok(Self::NewtypeBody)
+        } else if lookahead.peek(kw::raw_body) {
+            let _: kw::raw_body = input.parse()?;
+            Ok(Self::RawBody)
+        } else if lookahead.peek(kw::path) {
+            let _: kw::path = input.parse()?;
+            Ok(Self::Path)
+        } else if lookahead.peek(kw::query) {
+            let _: kw::query = input.parse()?;
+            Ok(Self::Query)
+        } else if lookahead.peek(kw::query_map) {
+            let _: kw::query_map = input.parse()?;
+            Ok(Self::QueryMap)
+        } else if lookahead.peek(kw::header) {
+            let _: kw::header = input.parse()?;
             let _: Token![=] = input.parse()?;
-            Ok(Meta::NameValue(MetaNameValue { name: ident, value: input.parse()? }))
+            input.parse().map(Self::Header)
         } else {
-            Ok(Meta::Word(ident))
+            Err(lookahead.error())
+        }
+    }
+}
+
+pub enum DeriveRequestMeta {
+    Authentication(Type),
+    Method(Type),
+    ErrorTy(Type),
+    UnstablePath(LitStr),
+    R0Path(LitStr),
+    StablePath(LitStr),
+}
+
+impl Parse for DeriveRequestMeta {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let lookahead = input.lookahead1();
+        if lookahead.peek(kw::authentication) {
+            let _: kw::authentication = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            input.parse().map(Self::Authentication)
+        } else if lookahead.peek(kw::method) {
+            let _: kw::method = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            input.parse().map(Self::Method)
+        } else if lookahead.peek(kw::error_ty) {
+            let _: kw::error_ty = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            input.parse().map(Self::ErrorTy)
+        } else if lookahead.peek(kw::unstable) {
+            let _: kw::unstable = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            input.parse().map(Self::UnstablePath)
+        } else if lookahead.peek(kw::r0) {
+            let _: kw::r0 = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            input.parse().map(Self::R0Path)
+        } else if lookahead.peek(kw::stable) {
+            let _: kw::stable = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            input.parse().map(Self::StablePath)
+        } else {
+            Err(lookahead.error())
+        }
+    }
+}
+
+pub enum ResponseMeta {
+    NewtypeBody,
+    RawBody,
+    Header(Ident),
+}
+
+impl Parse for ResponseMeta {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let lookahead = input.lookahead1();
+        if lookahead.peek(kw::body) {
+            let _: kw::body = input.parse()?;
+            Ok(Self::NewtypeBody)
+        } else if lookahead.peek(kw::raw_body) {
+            let _: kw::raw_body = input.parse()?;
+            Ok(Self::RawBody)
+        } else if lookahead.peek(kw::header) {
+            let _: kw::header = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            input.parse().map(Self::Header)
+        } else {
+            Err(lookahead.error())
+        }
+    }
+}
+
+#[allow(clippy::large_enum_variant)]
+pub enum DeriveResponseMeta {
+    ManualBodySerde,
+    ErrorTy(Type),
+}
+
+impl Parse for DeriveResponseMeta {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let lookahead = input.lookahead1();
+        if lookahead.peek(kw::manual_body_serde) {
+            let _: kw::manual_body_serde = input.parse()?;
+            Ok(Self::ManualBodySerde)
+        } else if lookahead.peek(kw::error_ty) {
+            let _: kw::error_ty = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            input.parse().map(Self::ErrorTy)
+        } else {
+            Err(lookahead.error())
         }
     }
 }

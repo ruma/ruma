@@ -1,6 +1,5 @@
 use std::{
     convert::{TryFrom, TryInto},
-    mem,
     ops::Not,
 };
 
@@ -13,7 +12,7 @@ use syn::{
     DeriveInput, Field, Generics, Ident, Lifetime, Token, Type,
 };
 
-use super::attribute::{Meta, MetaNameValue};
+use super::attribute::{DeriveResponseMeta, ResponseMeta};
 use crate::util::import_ruma_common;
 
 mod incoming;
@@ -33,18 +32,12 @@ pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
             continue;
         }
 
-        let metas = attr.parse_args_with(Punctuated::<Meta<Type>, Token![,]>::parse_terminated)?;
+        let metas =
+            attr.parse_args_with(Punctuated::<DeriveResponseMeta, Token![,]>::parse_terminated)?;
         for meta in metas {
             match meta {
-                Meta::Word(w) if w == "manual_body_serde" => {
-                    manual_body_serde = true;
-                }
-                Meta::NameValue(MetaNameValue { name, value }) if name == "error_ty" => {
-                    error_ty = Some(value);
-                }
-                Meta::Word(name) | Meta::NameValue(MetaNameValue { name, .. }) => {
-                    unreachable!("invalid ruma_api({}) attribute", name);
-                }
+                DeriveResponseMeta::ManualBodySerde => manual_body_serde = true,
+                DeriveResponseMeta::ErrorTy(t) => error_ty = Some(t),
             }
         }
     }
@@ -180,6 +173,19 @@ enum ResponseField {
 }
 
 impl ResponseField {
+    /// Creates a new `ResponseField`.
+    fn new(field: Field, kind_attr: Option<ResponseMeta>) -> Self {
+        if let Some(attr) = kind_attr {
+            match attr {
+                ResponseMeta::NewtypeBody => ResponseField::NewtypeBody(field),
+                ResponseMeta::RawBody => ResponseField::RawBody(field),
+                ResponseMeta::Header(header) => ResponseField::Header(field, header),
+            }
+        } else {
+            ResponseField::Body(field)
+        }
+    }
+
     /// Gets the inner `Field` value.
     fn field(&self) -> &Field {
         match self {
@@ -226,58 +232,22 @@ impl TryFrom<Field> for ResponseField {
             ));
         }
 
-        let mut field_kind = None;
-        let mut header = None;
+        let (mut api_attrs, attrs) =
+            field.attrs.into_iter().partition::<Vec<_>, _>(|attr| attr.path.is_ident("ruma_api"));
+        field.attrs = attrs;
 
-        for attr in mem::take(&mut field.attrs) {
-            let meta = match Meta::from_attribute(&attr)? {
-                Some(m) => m,
-                None => {
-                    field.attrs.push(attr);
-                    continue;
-                }
-            };
-
-            if field_kind.is_some() {
+        let kind_attr = match api_attrs.as_slice() {
+            [] => None,
+            [_] => Some(api_attrs.pop().unwrap().parse_args::<ResponseMeta>()?),
+            _ => {
                 return Err(syn::Error::new_spanned(
-                    attr,
-                    "There can only be one field kind attribute",
+                    &api_attrs[1],
+                    "multiple field kind attribute found, there can only be one",
                 ));
             }
+        };
 
-            field_kind = Some(match meta {
-                Meta::Word(ident) => match &ident.to_string()[..] {
-                    "body" => ResponseFieldKind::NewtypeBody,
-                    "raw_body" => ResponseFieldKind::RawBody,
-                    _ => {
-                        return Err(syn::Error::new_spanned(
-                            ident,
-                            "Invalid #[ruma_api] argument with value, expected `body`",
-                        ));
-                    }
-                },
-                Meta::NameValue(MetaNameValue { name, value }) => {
-                    if name != "header" {
-                        return Err(syn::Error::new_spanned(
-                            name,
-                            "Invalid #[ruma_api] argument with value, expected `header`",
-                        ));
-                    }
-
-                    header = Some(value);
-                    ResponseFieldKind::Header
-                }
-            });
-        }
-
-        Ok(match field_kind.unwrap_or(ResponseFieldKind::Body) {
-            ResponseFieldKind::Body => ResponseField::Body(field),
-            ResponseFieldKind::Header => {
-                ResponseField::Header(field, header.expect("missing header name"))
-            }
-            ResponseFieldKind::NewtypeBody => ResponseField::NewtypeBody(field),
-            ResponseFieldKind::RawBody => ResponseField::RawBody(field),
-        })
+        Ok(ResponseField::new(field, kind_attr))
     }
 }
 
@@ -291,14 +261,6 @@ impl ToTokens for ResponseField {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.field().to_tokens(tokens)
     }
-}
-
-/// The types of fields that a response can have, without their values.
-enum ResponseFieldKind {
-    Body,
-    Header,
-    NewtypeBody,
-    RawBody,
 }
 
 fn has_lifetime(ty: &Type) -> bool {
