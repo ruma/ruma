@@ -64,7 +64,7 @@ impl RoomOrAliasId {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 enum Variant {
     RoomId,
     RoomAliasId,
