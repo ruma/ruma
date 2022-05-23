@@ -20,7 +20,8 @@ pub struct BundledAnnotation {
     pub key: String,
 
     /// The type of the annotation
-    pub type_: AnnotationType,
+    #[serde(rename = "type")]
+    pub annotation_type: AnnotationType,
 
     /// Time of the bundled annotation being compiled on the server.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -34,7 +35,7 @@ pub struct BundledAnnotation {
 impl BundledAnnotation {
     /// Creates a new `BundledAnnotation` for a reaction.
     pub fn reaction(key: String, count: UInt) -> Self {
-        Self { key, type_: AnnotationType::Reaction, count, origin_server_ts: None }
+        Self { key, annotation_type: AnnotationType::Reaction, count, origin_server_ts: None }
     }
 }
 
