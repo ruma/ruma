@@ -36,12 +36,8 @@ pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
             attr.parse_args_with(Punctuated::<DeriveResponseMeta, Token![,]>::parse_terminated)?;
         for meta in metas {
             match meta {
-                DeriveResponseMeta::ManualBodySerde => {
-                    manual_body_serde = true;
-                }
-                DeriveResponseMeta::ErrorTy(t) => {
-                    error_ty = Some(t);
-                }
+                DeriveResponseMeta::ManualBodySerde => manual_body_serde = true,
+                DeriveResponseMeta::ErrorTy(t) => error_ty = Some(t),
             }
         }
     }

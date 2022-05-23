@@ -65,24 +65,12 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
             attr.parse_args_with(Punctuated::<DeriveRequestMeta, Token![,]>::parse_terminated)?;
         for meta in metas {
             match meta {
-                DeriveRequestMeta::Authentication(t) => {
-                    authentication = Some(parse_quote!(#t));
-                }
-                DeriveRequestMeta::Method(t) => {
-                    method = Some(parse_quote!(#t));
-                }
-                DeriveRequestMeta::ErrorTy(t) => {
-                    error_ty = Some(t);
-                }
-                DeriveRequestMeta::UnstablePath(s) => {
-                    unstable_path = Some(s);
-                }
-                DeriveRequestMeta::R0Path(s) => {
-                    r0_path = Some(s);
-                }
-                DeriveRequestMeta::StablePath(s) => {
-                    stable_path = Some(s);
-                }
+                DeriveRequestMeta::Authentication(t) => authentication = Some(parse_quote!(#t)),
+                DeriveRequestMeta::Method(t) => method = Some(parse_quote!(#t)),
+                DeriveRequestMeta::ErrorTy(t) => error_ty = Some(t),
+                DeriveRequestMeta::UnstablePath(s) => unstable_path = Some(s),
+                DeriveRequestMeta::R0Path(s) => r0_path = Some(s),
+                DeriveRequestMeta::StablePath(s) => stable_path = Some(s),
             }
         }
     }
