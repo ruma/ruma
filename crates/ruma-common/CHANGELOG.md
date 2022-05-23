@@ -4,6 +4,7 @@ Breaking changes:
 
 * Add `user_id` field to `PushConditionRoomCtx`
 * Remove `PartialEq` implementation on `NotificationPowerLevels`
+* Remove `PartialEq` implementation for `events::call::SessionDescription`
 
 Improvements:
 
