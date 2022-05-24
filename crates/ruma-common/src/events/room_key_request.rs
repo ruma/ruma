@@ -100,6 +100,7 @@ impl RequestedKeyInfo {
         sender_key: String,
         session_id: String,
     ) -> Self {
+        #[allow(deprecated)]
         Self { algorithm, room_id, sender_key, session_id }
     }
 }
