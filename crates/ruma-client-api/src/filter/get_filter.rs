@@ -56,7 +56,7 @@ pub mod v3 {
 
     #[cfg(all(test, any(feature = "client", feature = "server")))]
     mod tests {
-        use matches::assert_matches;
+        use assert_matches::assert_matches;
 
         #[cfg(feature = "client")]
         #[test]

@@ -1,5 +1,5 @@
+use assert_matches::assert_matches;
 use js_int::{uint, UInt};
-use matches::assert_matches;
 use ruma_common::{
     event_id, events::MessageLikeEvent, room_id, user_id, MilliSecondsSinceUnixEpoch,
 };

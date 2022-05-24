@@ -229,7 +229,7 @@ where
 mod tests {
     use std::borrow::Cow;
 
-    use matches::assert_matches;
+    use assert_matches::assert_matches;
 
     use super::ValOrVec;
 

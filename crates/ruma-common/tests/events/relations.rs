@@ -1,5 +1,5 @@
+use assert_matches::assert_matches;
 use assign::assign;
-use matches::assert_matches;
 use ruma_common::{
     event_id,
     events::room::message::{InReplyTo, MessageType, Relation, RoomMessageEventContent},

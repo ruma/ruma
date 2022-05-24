@@ -313,8 +313,8 @@ impl From<MegolmV1AesSha2ContentInit> for MegolmV1AesSha2Content {
 #[cfg(test)]
 mod tests {
     use crate::{event_id, serde::Raw};
+    use assert_matches::assert_matches;
     use js_int::uint;
-    use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{

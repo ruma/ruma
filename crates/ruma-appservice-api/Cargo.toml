@@ -27,5 +27,5 @@ serde_json = "1.0.61"
 tracing = { version = "0.1.25", optional = true }
 
 [dev-dependencies]
-matches = "0.1.8"
+assert_matches = "1.5.0"
 serde_yaml = "0.8.17"

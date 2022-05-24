@@ -1,9 +1,9 @@
 use std::borrow::Cow;
 
+use assert_matches::assert_matches;
 #[cfg(not(feature = "unstable-msc1767"))]
 use assign::assign;
 use js_int::uint;
-use matches::assert_matches;
 #[cfg(not(feature = "unstable-msc1767"))]
 use ruma_common::events::room::message::InReplyTo;
 #[cfg(any(feature = "unstable-msc2676", not(feature = "unstable-msc1767")))]

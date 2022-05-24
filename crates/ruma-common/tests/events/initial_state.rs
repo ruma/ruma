@@ -1,6 +1,6 @@
 use std::convert::TryFrom;
 
-use matches::assert_matches;
+use assert_matches::assert_matches;
 use ruma_common::{
     events::{AnyInitialStateEvent, InitialStateEvent},
     RoomName,

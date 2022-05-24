@@ -458,9 +458,9 @@ impl StrippedRoomMemberEvent {
 
 #[cfg(test)]
 mod tests {
+    use assert_matches::assert_matches;
     use js_int::uint;
     use maplit::btreemap;
-    use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json};
 
     use super::{MembershipState, RoomMemberEventContent, SignedContent, ThirdPartyInvite};

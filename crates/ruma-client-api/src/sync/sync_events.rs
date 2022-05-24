@@ -612,8 +612,8 @@ pub mod v3 {
 
     #[cfg(test)]
     mod tests {
+        use assert_matches::assert_matches;
         use assign::assign;
-        use matches::assert_matches;
         use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
         use super::Timeline;
@@ -675,7 +675,7 @@ pub mod v3 {
     mod server_tests {
         use std::time::Duration;
 
-        use matches::assert_matches;
+        use assert_matches::assert_matches;
         use ruma_common::{api::IncomingRequest as _, presence::PresenceState};
 
         use super::{IncomingFilter, IncomingRequest};

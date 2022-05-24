@@ -165,7 +165,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     use crate::{event_id, serde::Base64, user_id};
-    use matches::assert_matches;
+    use assert_matches::assert_matches;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };

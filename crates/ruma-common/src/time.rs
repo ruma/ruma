@@ -93,8 +93,8 @@ fn f64_to_uint(val: f64) -> UInt {
 mod tests {
     use std::time::{Duration, UNIX_EPOCH};
 
+    use assert_matches::assert_matches;
     use js_int::uint;
-    use matches::assert_matches;
     use serde::{Deserialize, Serialize};
     use serde_json::json;
 

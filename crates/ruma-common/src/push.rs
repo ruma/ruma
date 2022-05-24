@@ -474,8 +474,8 @@ impl PushFormat {
 mod tests {
     use std::collections::BTreeMap;
 
+    use assert_matches::assert_matches;
     use js_int::{int, uint};
-    use matches::assert_matches;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value,
         value::RawValue as RawJsonValue, Value as JsonValue,

@@ -320,7 +320,7 @@ pub mod v3 {
 
     #[cfg(test)]
     mod tests {
-        use matches::assert_matches;
+        use assert_matches::assert_matches;
         use serde_json::{from_value as from_json_value, json};
 
         use super::{IncomingLoginInfo, IncomingPassword, IncomingToken};

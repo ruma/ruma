@@ -312,9 +312,9 @@ mod tests {
     use std::collections::BTreeMap;
 
     use crate::{room_id, serde::Raw, user_id};
+    use assert_matches::assert_matches;
     use js_int::{int, uint};
     use maplit::btreemap;
-    use matches::assert_matches;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };

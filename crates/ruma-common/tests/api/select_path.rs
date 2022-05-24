@@ -1,5 +1,5 @@
+use assert_matches::assert_matches;
 use http::Method;
-use matches::assert_matches;
 use ruma_common::api::{
     error::IntoHttpError,
     select_path,

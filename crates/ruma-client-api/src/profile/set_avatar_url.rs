@@ -84,7 +84,7 @@ pub mod v3 {
 
     #[cfg(all(test, feature = "server"))]
     mod tests {
-        use matches::assert_matches;
+        use assert_matches::assert_matches;
         use ruma_common::api::IncomingRequest as _;
 
         use super::IncomingRequest;

@@ -136,7 +136,7 @@ pub enum SecretName {
 
 #[cfg(test)]
 mod test {
-    use matches::assert_matches;
+    use assert_matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{RequestAction, SecretName, ToDeviceSecretRequestEventContent};

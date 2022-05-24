@@ -1,5 +1,5 @@
+use assert_matches::assert_matches;
 use js_int::uint;
-use matches::assert_matches;
 use ruma_common::{
     event_id,
     events::{MessageLikeEvent, StateEvent, SyncMessageLikeEvent, SyncStateEvent},

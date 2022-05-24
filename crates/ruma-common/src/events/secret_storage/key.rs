@@ -96,8 +96,8 @@ pub enum SecretEncryptionAlgorithm {
 
 #[cfg(test)]
 mod tests {
+    use assert_matches::assert_matches;
     use js_int::uint;
-    use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{PassPhrase, SecretEncryptionAlgorithm, SecretStorageKeyEventContent};

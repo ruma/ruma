@@ -70,7 +70,7 @@ where
 #[cfg(not(feature = "unstable-pre-spec"))]
 #[cfg(test)]
 mod tests {
-    use matches::assert_matches;
+    use assert_matches::assert_matches;
     use serde_json::{json, to_value as to_json_value};
 
     use super::{deserialize, serialize};

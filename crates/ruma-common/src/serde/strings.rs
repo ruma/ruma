@@ -179,8 +179,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use assert_matches::assert_matches;
     use js_int::{int, Int};
-    use matches::assert_matches;
     use serde::Deserialize;
 
     use super::deserialize_v1_powerlevel;
