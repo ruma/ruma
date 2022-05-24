@@ -6,7 +6,7 @@ use ruma_common::api::error::{FromHttpResponseError, IntoHttpError};
 
 /// An error that can occur during client operations.
 #[derive(Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[non_exhaustive]
 pub enum Error<E, F> {
     /// Queried endpoint requires authentication but was called on an anonymous client.
     AuthenticationRequired,
