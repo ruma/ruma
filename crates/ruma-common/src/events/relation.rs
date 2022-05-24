@@ -33,7 +33,7 @@ pub struct BundledAnnotation {
 
 #[cfg(feature = "unstable-msc2677")]
 impl BundledAnnotation {
-    /// Creates a new `BundledAnnotation` with the given key, type and count.
+    /// Creates a new `BundledAnnotation` with the given type, key and count.
     pub fn new(annotation_type: AnnotationType, key: String, count: UInt) -> Self {
         Self { annotation_type, key, count, origin_server_ts: None }
     }
