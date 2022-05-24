@@ -9,6 +9,8 @@ Breaking changes:
 Improvements:
 
 * All push rules are now considered to not apply to events sent by the user themselves
+* Change `events::relation::BundledAnnotation` to a struct instead of an enum
+  * Remove `BundledReaction`
 
 # 0.9.2
 

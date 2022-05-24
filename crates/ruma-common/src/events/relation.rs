@@ -6,45 +6,56 @@ use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
 use super::AnySyncMessageLikeEvent;
-use crate::{serde::Raw, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedUserId};
+use crate::{
+    serde::{Raw, StringEnum},
+    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedUserId, PrivOwnedStr,
+};
 
-/// Summary of all reactions with the given key to an event.
-#[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq, Serialize)]
+/// Summary of all annotations to an event with the given key and type.
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq, Serialize)]
 #[cfg(feature = "unstable-msc2677")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct BundledReaction {
-    /// The key used for the reaction.
+pub struct BundledAnnotation {
+    /// The type of the annotation.
+    #[serde(rename = "type")]
+    pub annotation_type: AnnotationType,
+
+    /// The key used for the annotation.
     pub key: String,
 
-    /// Time of the bundled reaction being compiled on the server.
+    /// Time of the bundled annotation being compiled on the server.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
 
-    /// Number of reactions.
+    /// Number of annotations.
     pub count: UInt,
 }
 
 #[cfg(feature = "unstable-msc2677")]
-impl BundledReaction {
-    /// Creates a new `BundledReaction`.
-    pub fn new(
-        key: String,
-        origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
-        count: UInt,
-    ) -> Self {
-        Self { key, origin_server_ts, count }
+impl BundledAnnotation {
+    /// Creates a new `BundledAnnotation` with the given type, key and count.
+    pub fn new(annotation_type: AnnotationType, key: String, count: UInt) -> Self {
+        Self { annotation_type, key, count, origin_server_ts: None }
+    }
+
+    /// Creates a new `BundledAnnotation` for a reaction with the given key and count.
+    pub fn reaction(key: String, count: UInt) -> Self {
+        Self::new(AnnotationType::Reaction, key, count)
     }
 }
 
-/// Type of bundled annotation.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+/// Type of annotation.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[cfg(feature = "unstable-msc2677")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(tag = "type")]
-pub enum BundledAnnotation {
-    /// An emoji reaction and its count.
-    #[serde(rename = "m.reaction")]
-    Reaction(BundledReaction),
+pub enum AnnotationType {
+    /// A reaction.
+    #[ruma_enum(rename = "m.reaction")]
+    Reaction,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
 }
 
 /// The first chunk of annotations with a token for loading more.
