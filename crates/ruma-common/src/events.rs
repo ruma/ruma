@@ -146,6 +146,8 @@ pub mod notice;
 #[cfg(feature = "unstable-pdu")]
 pub mod pdu;
 pub mod policy;
+#[cfg(feature = "unstable-msc3381")]
+pub mod poll;
 pub mod presence;
 pub mod push_rules;
 #[cfg(feature = "unstable-msc2677")]
