@@ -91,7 +91,7 @@
 //!
 //! // The downside of this event is we cannot use it with event enums,
 //! // but could be deserialized from a `Raw<_>` that has failed to deserialize.
-//! matches::assert_matches!(
+//! assert_matches::assert_matches!(
 //!     serde_json::from_value::<OriginalSyncMessageLikeEvent<ReactionEventContent>>(json),
 //!     Ok(OriginalSyncMessageLikeEvent {
 //!         content: ReactionEventContent {
