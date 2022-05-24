@@ -66,7 +66,7 @@ pub mod v3 {
 
             use super::IncomingRequest;
 
-            assert_matches!(
+            let req = assert_matches!(
                 IncomingRequest::try_from_http_request(
                     http::Request::builder()
                         .method(http::Method::POST)
@@ -75,9 +75,11 @@ pub mod v3 {
                         .unwrap(),
                     &["@foo:bar.com"]
                 ),
-                Ok(IncomingRequest { user_id, filter })
-                if user_id == "@foo:bar.com" && filter.is_empty()
+                Ok(req) => req
             );
+
+            assert_eq!(req.user_id, "@foo:bar.com");
+            assert!(req.filter.is_empty());
         }
 
         #[cfg(feature = "client")]

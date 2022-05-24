@@ -56,8 +56,9 @@ fn config_with_optional_url() {
           aliases: []
           rooms: []
         "#;
-    assert_matches!(
+    let url = assert_matches!(
         serde_yaml::from_str(registration_config).unwrap(),
-        Registration { url, .. } if url == "null"
+        Registration { url, .. } => url
     );
+    assert_eq!(url, "null");
 }

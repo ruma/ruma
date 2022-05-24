@@ -516,7 +516,7 @@ mod tests {
     }
 
     #[test]
-    fn issue_366() -> serde_json::Result<()> {
+    fn issue_366() {
         let obj = json!({
             "lazy_load_members": true,
             "filter_json": { "contains_url": true, "types": ["m.room.message"] },
@@ -529,40 +529,24 @@ mod tests {
             "contains_url": true,
         });
 
-        assert_matches!(
-            from_json_value(obj)?,
-            IncomingRoomEventFilter {
-                types: Some(types),
-                not_types,
-                rooms: None,
-                not_rooms,
-                senders: None,
-                not_senders,
-                limit: None,
-                url_filter: Some(UrlFilter::EventsWithUrl),
-                lazy_load_options: LazyLoadOptions::Enabled { include_redundant_members: false },
-                #[cfg(feature = "unstable-msc3440")]
-                related_by_rel_types,
-                #[cfg(feature = "unstable-msc3440")]
-                related_by_senders
-            } if {
-                let valid = types == vec!["m.room.message".to_owned()]
-                && not_types.is_empty()
-                && not_rooms.is_empty()
-                && not_senders.is_empty();
+        let filter: IncomingRoomEventFilter = assert_matches!(from_json_value(obj), Ok(f) => f);
 
-                #[cfg(not(feature = "unstable-msc3440"))]
-                {
-                    valid
-                }
-
-                #[cfg(feature = "unstable-msc3440")]
-                {
-                    valid && related_by_rel_types.is_empty() && related_by_senders.is_empty()
-                }
-            }
+        assert_eq!(filter.types, Some(vec!["m.room.message".to_owned()]));
+        assert_eq!(filter.not_types, vec![""; 0]);
+        assert_eq!(filter.rooms, None);
+        assert_eq!(filter.not_rooms, vec![""; 0]);
+        assert_eq!(filter.senders, None);
+        assert_eq!(filter.not_senders, vec![""; 0]);
+        assert_eq!(filter.limit, None);
+        assert_eq!(filter.url_filter, Some(UrlFilter::EventsWithUrl));
+        assert_eq!(
+            filter.lazy_load_options,
+            LazyLoadOptions::Enabled { include_redundant_members: false }
         );
 
-        Ok(())
+        #[cfg(feature = "unstable-msc3440")]
+        assert_eq!(filter.related_by_rel_types, vec![]);
+        #[cfg(feature = "unstable-msc3440")]
+        assert_eq!(filter.related_by_senders, vec![""; 0]);
     }
 }
