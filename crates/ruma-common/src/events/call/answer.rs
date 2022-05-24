@@ -6,7 +6,7 @@ use js_int::UInt;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::SessionDescription;
+use super::AnswerSessionDescription;
 
 /// The content of an `m.call.answer` event.
 ///
@@ -16,9 +16,7 @@ use super::SessionDescription;
 #[ruma_event(type = "m.call.answer", kind = MessageLike)]
 pub struct CallAnswerEventContent {
     /// The VoIP session description object.
-    ///
-    /// The session description type must be *answer*.
-    pub answer: SessionDescription,
+    pub answer: AnswerSessionDescription,
 
     /// The ID of the call this event relates to.
     pub call_id: String,
@@ -29,7 +27,7 @@ pub struct CallAnswerEventContent {
 
 impl CallAnswerEventContent {
     /// Creates an `AnswerEventContent` with the given answer, call ID and VoIP version.
-    pub fn new(answer: SessionDescription, call_id: String, version: UInt) -> Self {
+    pub fn new(answer: AnswerSessionDescription, call_id: String, version: UInt) -> Self {
         Self { answer, call_id, version }
     }
 }

@@ -6,7 +6,7 @@ use ruma_common::{
 use serde_json::{from_value as from_json_value, json};
 
 use ruma_common::events::{
-    call::{answer::CallAnswerEventContent, SessionDescription, SessionDescriptionType},
+    call::{answer::CallAnswerEventContent, AnswerSessionDescription},
     AnyMessageLikeEvent, OriginalMessageLikeEvent,
 };
 
@@ -41,8 +41,7 @@ fn deserialize_message_event() {
             .unwrap(),
         AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: CallAnswerEventContent {
-                answer: SessionDescription {
-                    session_type: SessionDescriptionType::Answer,
+                answer: AnswerSessionDescription {
                     sdp,
                     ..
                 },
