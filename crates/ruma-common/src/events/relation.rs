@@ -34,7 +34,7 @@ pub struct BundledAnnotation {
 #[cfg(feature = "unstable-msc2677")]
 impl BundledAnnotation {
     /// Creates a new `BundledAnnotation` with the given key, type and count.
-    pub fn reaction(key: String, annotation_type: AnnotationType, count: UInt) -> Self {
+    pub fn new(key: String, annotation_type: AnnotationType, count: UInt) -> Self {
         Self { key, annotation_type, count, origin_server_ts: None }
     }
 
