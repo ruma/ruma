@@ -7,8 +7,7 @@ Breaking changes:
 * Remove `PartialEq` implementation for `events::call::SessionDescription`
 * Split `events::call::SessionDescription` into `AnswerSessionDescription`
   and `OfferSessionDescription`
-  * Split `SessionDescriptionType` into `AnswerSessionDescriptionType`
-    and `OfferSessionDescriptionType`
+  * Remove `SessionDescriptionType`
 
 Improvements:
 
