@@ -39,14 +39,12 @@ fn deserialize_ephemeral_typing() {
         "type": "m.typing"
     });
 
-    assert_matches!(
-        from_json_value::<AnyEphemeralRoomEvent>(json_data).unwrap(),
-        AnyEphemeralRoomEvent::Typing(EphemeralRoomEvent {
-            content: TypingEventContent { user_ids, .. },
-            room_id,
-        }) if user_ids[0] == user_id!("@carl:example.com")
-            && room_id == room_id!("!roomid:room.com")
+    let typing_event = assert_matches!(
+        from_json_value::<AnyEphemeralRoomEvent>(json_data),
+        Ok(AnyEphemeralRoomEvent::Typing(typing_event)) => typing_event
     );
+    assert_eq!(typing_event.content.user_ids[0], "@carl:example.com");
+    assert_eq!(typing_event.room_id, "!roomid:room.com");
 }
 
 #[test]
@@ -98,18 +96,16 @@ fn deserialize_ephemeral_receipt() {
         "type": "m.receipt"
     });
 
-    assert_matches!(
-        from_json_value::<AnyEphemeralRoomEvent>(json_data).unwrap(),
-        AnyEphemeralRoomEvent::Receipt(EphemeralRoomEvent {
-            content: ReceiptEventContent(receipts),
-            room_id,
-        }) if !receipts.is_empty() && receipts.contains_key(event_id)
-            && room_id == room_id!("!roomid:room.com")
-            && receipts
-                .get(event_id)
-                .map(|r| r.get(&ReceiptType::Read).unwrap().get(user_id).unwrap())
-                .map(|r| r.ts)
-                .unwrap()
-                == Some(MilliSecondsSinceUnixEpoch(uint!(1)))
+    let receipt_event = assert_matches!(
+        from_json_value::<AnyEphemeralRoomEvent>(json_data),
+        Ok(AnyEphemeralRoomEvent::Receipt(receipt_event)) => receipt_event
     );
+    let receipts = receipt_event.content.0;
+    assert!(!receipts.is_empty());
+    assert!(receipts.contains_key(event_id));
+    assert_eq!(receipt_event.room_id, "!roomid:room.com");
+    let event_receipts = assert_matches!(receipts.get(event_id), Some(r) => r);
+    let type_receipts = assert_matches!(event_receipts.get(&ReceiptType::Read), Some(r) => r);
+    let user_receipt = assert_matches!(type_receipts.get(user_id), Some(r) => r);
+    assert_eq!(user_receipt.ts, Some(MilliSecondsSinceUnixEpoch(uint!(1))));
 }
