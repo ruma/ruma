@@ -6,6 +6,9 @@
 
 use serde::de::{self, Deserializer, Unexpected};
 
+#[cfg(feature = "unstable-msc2746")]
+#[doc(inline)]
+pub use self::voip_id::{OwnedVoipId, VoipId};
 #[doc(inline)]
 pub use self::{
     client_secret::{ClientSecret, OwnedClientSecret},
@@ -58,6 +61,8 @@ mod server_name;
 mod session_id;
 mod signatures;
 mod transaction_id;
+#[cfg(feature = "unstable-msc2746")]
+mod voip_id;
 
 /// Generates a random identifier localpart.
 #[cfg(feature = "rand")]

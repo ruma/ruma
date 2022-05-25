@@ -9,9 +9,8 @@ Breaking changes:
 * Add `user_id` field to `PushConditionRoomCtx`
 * Remove `PartialEq` implementation on `NotificationPowerLevels`
 * Remove `PartialEq` implementation for `events::call::SessionDescription`
-* Split `events::call::SessionDescription` into `AnswerSessionDescription`
-  and `OfferSessionDescription`
-  * Remove `SessionDescriptionType`
+* Use new `events::call::AnswerSessionDescription` for `CallAnswerEventContent` 
+  and `OfferSessionDescription` for `CallInviteEventContent`
 
 Improvements:
 
@@ -19,6 +18,7 @@ Improvements:
 * Change `events::relation::BundledAnnotation` to a struct instead of an enum
   * Remove `BundledReaction`
 * Add unstable support for polls (MSC3381)
+* Add unstable support for Improved Signalling for 1:1 VoIP (MSC2746)
 
 # 0.9.2
 
