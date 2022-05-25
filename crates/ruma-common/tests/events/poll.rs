@@ -180,7 +180,10 @@ fn start_event_unstable_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    let message_event = assert_matches!(event, AnyMessageLikeEvent::PollStart(MessageLikeEvent::Original(message_event)) => message_event);
+    let message_event = assert_matches!(
+        event,
+        AnyMessageLikeEvent::PollStart(MessageLikeEvent::Original(message_event)) => message_event
+    );
     let poll_start = message_event.content.poll_start;
     assert_eq!(poll_start.question[0].body, "How's the weather?");
     assert_eq!(poll_start.kind, PollKind::Undisclosed);
@@ -217,7 +220,10 @@ fn start_event_stable_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    let message_event = assert_matches!(event, AnyMessageLikeEvent::PollStart(MessageLikeEvent::Original(message_event)) => message_event);
+    let message_event = assert_matches!(
+        event,
+        AnyMessageLikeEvent::PollStart(MessageLikeEvent::Original(message_event)) => message_event
+    );
     let poll_start = message_event.content.poll_start;
     assert_eq!(poll_start.question[0].body, "How's the weather?");
     assert_eq!(poll_start.kind, PollKind::Disclosed);
@@ -308,7 +314,11 @@ fn response_event_unstable_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    let message_event = assert_matches!(event, AnyMessageLikeEvent::PollResponse(MessageLikeEvent::Original(message_event)) => message_event);
+    let message_event = assert_matches!(
+        event,
+        AnyMessageLikeEvent::PollResponse(MessageLikeEvent::Original(message_event))
+            => message_event
+    );
     let answers = message_event.content.poll_response.answers;
     assert_eq!(answers.len(), 1);
     assert_eq!(answers[0], "my-answer");
@@ -338,7 +348,11 @@ fn response_event_stable_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    let message_event = assert_matches!(event, AnyMessageLikeEvent::PollResponse(MessageLikeEvent::Original(message_event)) => message_event);
+    let message_event = assert_matches!(
+        event,
+        AnyMessageLikeEvent::PollResponse(MessageLikeEvent::Original(message_event))
+            => message_event
+    );
     let answers = message_event.content.poll_response.answers;
     assert_eq!(answers.len(), 2);
     assert_eq!(answers[0], "first-answer");
@@ -419,7 +433,10 @@ fn end_event_unstable_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    let message_event = assert_matches!(event, AnyMessageLikeEvent::PollEnd(MessageLikeEvent::Original(message_event)) => message_event);
+    let message_event = assert_matches!(
+        event,
+        AnyMessageLikeEvent::PollEnd(MessageLikeEvent::Original(message_event)) => message_event
+    );
     assert_matches!(
         message_event.content.relates_to,
         ReferenceRelation { event_id, .. } if event_id == "$related_event:notareal.hs"
@@ -444,7 +461,10 @@ fn end_event_stable_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    let message_event = assert_matches!(event, AnyMessageLikeEvent::PollEnd(MessageLikeEvent::Original(message_event)) => message_event);
+    let message_event = assert_matches!(
+        event,
+        AnyMessageLikeEvent::PollEnd(MessageLikeEvent::Original(message_event)) => message_event
+    );
     assert_matches!(
         message_event.content.relates_to,
         ReferenceRelation { event_id, .. } if event_id == "$related_event:notareal.hs"
