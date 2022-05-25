@@ -28,6 +28,6 @@ rand = { version = "0.7", features = ["getrandom"] }
 ruma-common = { version = "0.9.2", path = "../ruma-common" }
 serde_json = "1.0.60"
 sha2 = "0.9.5"
+subslice = { version = "0.2.3", optional = true }
 thiserror = "1.0.26"
 tracing = { version = "0.1.25", optional = true }
-subslice = { version = "0.2.3", optional = true }
