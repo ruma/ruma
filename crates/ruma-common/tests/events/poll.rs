@@ -2,9 +2,9 @@
 
 use std::convert::TryInto;
 
+use assert_matches::assert_matches;
 use assign::assign;
 use js_int::uint;
-use matches::assert_matches;
 use ruma_common::{
     event_id,
     events::{
@@ -74,12 +74,9 @@ fn poll_answers_deserialization_truncate() {
 fn poll_answers_deserialization_not_enough() {
     let json_data = json!([]);
 
-    assert_matches!(
-        from_json_value::<PollAnswers>(json_data),
-        Err(err)
-            if err.is_data()
-            && format!("{}", err) == format!("{}", PollAnswersError::NotEnoughValues)
-    );
+    let err = from_json_value::<PollAnswers>(json_data).unwrap_err();
+    assert!(err.is_data());
+    assert_eq!(err.to_string(), PollAnswersError::NotEnoughValues.to_string());
 }
 
 #[test]
@@ -183,21 +180,19 @@ fn start_event_unstable_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    assert_matches!(event, AnyMessageLikeEvent::PollStart(MessageLikeEvent::Original(_)));
-    if let AnyMessageLikeEvent::PollStart(MessageLikeEvent::Original(message_event)) = event {
-        let poll_start = message_event.content.poll_start;
-        assert_eq!(poll_start.question[0].body, "How's the weather?");
-        assert_eq!(poll_start.kind, PollKind::Undisclosed);
-        assert_eq!(poll_start.max_selections, uint!(2));
-        let answers = poll_start.answers.answers();
-        assert_eq!(answers.len(), 3);
-        assert_eq!(answers[0].id, "not-bad");
-        assert_eq!(answers[0].answer[0].body, "Not bad…");
-        assert_eq!(answers[1].id, "fine");
-        assert_eq!(answers[1].answer[0].body, "Fine.");
-        assert_eq!(answers[2].id, "amazing");
-        assert_eq!(answers[2].answer[0].body, "Amazing!");
-    }
+    let message_event = assert_matches!(event, AnyMessageLikeEvent::PollStart(MessageLikeEvent::Original(message_event)) => message_event);
+    let poll_start = message_event.content.poll_start;
+    assert_eq!(poll_start.question[0].body, "How's the weather?");
+    assert_eq!(poll_start.kind, PollKind::Undisclosed);
+    assert_eq!(poll_start.max_selections, uint!(2));
+    let answers = poll_start.answers.answers();
+    assert_eq!(answers.len(), 3);
+    assert_eq!(answers[0].id, "not-bad");
+    assert_eq!(answers[0].answer[0].body, "Not bad…");
+    assert_eq!(answers[1].id, "fine");
+    assert_eq!(answers[1].answer[0].body, "Fine.");
+    assert_eq!(answers[2].id, "amazing");
+    assert_eq!(answers[2].answer[0].body, "Amazing!");
 }
 
 #[test]
@@ -222,21 +217,19 @@ fn start_event_stable_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    assert_matches!(event, AnyMessageLikeEvent::PollStart(MessageLikeEvent::Original(_)));
-    if let AnyMessageLikeEvent::PollStart(MessageLikeEvent::Original(message_event)) = event {
-        let poll_start = message_event.content.poll_start;
-        assert_eq!(poll_start.question[0].body, "How's the weather?");
-        assert_eq!(poll_start.kind, PollKind::Disclosed);
-        assert_eq!(poll_start.max_selections, uint!(1));
-        let answers = poll_start.answers.answers();
-        assert_eq!(answers.len(), 3);
-        assert_eq!(answers[0].id, "not-bad");
-        assert_eq!(answers[0].answer[0].body, "Not bad…");
-        assert_eq!(answers[1].id, "fine");
-        assert_eq!(answers[1].answer[0].body, "Fine.");
-        assert_eq!(answers[2].id, "amazing");
-        assert_eq!(answers[2].answer[0].body, "Amazing!");
-    }
+    let message_event = assert_matches!(event, AnyMessageLikeEvent::PollStart(MessageLikeEvent::Original(message_event)) => message_event);
+    let poll_start = message_event.content.poll_start;
+    assert_eq!(poll_start.question[0].body, "How's the weather?");
+    assert_eq!(poll_start.kind, PollKind::Disclosed);
+    assert_eq!(poll_start.max_selections, uint!(1));
+    let answers = poll_start.answers.answers();
+    assert_eq!(answers.len(), 3);
+    assert_eq!(answers[0].id, "not-bad");
+    assert_eq!(answers[0].answer[0].body, "Not bad…");
+    assert_eq!(answers[1].id, "fine");
+    assert_eq!(answers[1].answer[0].body, "Fine.");
+    assert_eq!(answers[2].id, "amazing");
+    assert_eq!(answers[2].answer[0].body, "Amazing!");
 }
 
 #[test]
@@ -315,16 +308,14 @@ fn response_event_unstable_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    assert_matches!(event, AnyMessageLikeEvent::PollResponse(MessageLikeEvent::Original(_)));
-    if let AnyMessageLikeEvent::PollResponse(MessageLikeEvent::Original(message_event)) = event {
-        let answers = message_event.content.poll_response.answers;
-        assert_eq!(answers.len(), 1);
-        assert_eq!(answers[0], "my-answer");
-        assert_matches!(
-            message_event.content.relates_to,
-            ReferenceRelation { event_id, .. } if event_id == "$related_event:notareal.hs"
-        );
-    }
+    let message_event = assert_matches!(event, AnyMessageLikeEvent::PollResponse(MessageLikeEvent::Original(message_event)) => message_event);
+    let answers = message_event.content.poll_response.answers;
+    assert_eq!(answers.len(), 1);
+    assert_eq!(answers[0], "my-answer");
+    assert_matches!(
+        message_event.content.relates_to,
+        ReferenceRelation { event_id, .. } if event_id == "$related_event:notareal.hs"
+    );
 }
 
 #[test]
@@ -347,17 +338,15 @@ fn response_event_stable_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    assert_matches!(event, AnyMessageLikeEvent::PollResponse(MessageLikeEvent::Original(_)));
-    if let AnyMessageLikeEvent::PollResponse(MessageLikeEvent::Original(message_event)) = event {
-        let answers = message_event.content.poll_response.answers;
-        assert_eq!(answers.len(), 2);
-        assert_eq!(answers[0], "first-answer");
-        assert_eq!(answers[1], "second-answer");
-        assert_matches!(
-            message_event.content.relates_to,
-            ReferenceRelation { event_id, .. } if event_id == "$related_event:notareal.hs"
-        );
-    }
+    let message_event = assert_matches!(event, AnyMessageLikeEvent::PollResponse(MessageLikeEvent::Original(message_event)) => message_event);
+    let answers = message_event.content.poll_response.answers;
+    assert_eq!(answers.len(), 2);
+    assert_eq!(answers[0], "first-answer");
+    assert_eq!(answers[1], "second-answer");
+    assert_matches!(
+        message_event.content.relates_to,
+        ReferenceRelation { event_id, .. } if event_id == "$related_event:notareal.hs"
+    );
 }
 
 #[test]
@@ -430,13 +419,11 @@ fn end_event_unstable_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    assert_matches!(event, AnyMessageLikeEvent::PollEnd(MessageLikeEvent::Original(_)));
-    if let AnyMessageLikeEvent::PollEnd(MessageLikeEvent::Original(message_event)) = event {
-        assert_matches!(
-            message_event.content.relates_to,
-            ReferenceRelation { event_id, .. } if event_id == "$related_event:notareal.hs"
-        );
-    }
+    let message_event = assert_matches!(event, AnyMessageLikeEvent::PollEnd(MessageLikeEvent::Original(message_event)) => message_event);
+    assert_matches!(
+        message_event.content.relates_to,
+        ReferenceRelation { event_id, .. } if event_id == "$related_event:notareal.hs"
+    );
 }
 
 #[test]
@@ -457,11 +444,9 @@ fn end_event_stable_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    assert_matches!(event, AnyMessageLikeEvent::PollEnd(MessageLikeEvent::Original(_)));
-    if let AnyMessageLikeEvent::PollEnd(MessageLikeEvent::Original(message_event)) = event {
-        assert_matches!(
-            message_event.content.relates_to,
-            ReferenceRelation { event_id, .. } if event_id == "$related_event:notareal.hs"
-        );
-    }
+    let message_event = assert_matches!(event, AnyMessageLikeEvent::PollEnd(MessageLikeEvent::Original(message_event)) => message_event);
+    assert_matches!(
+        message_event.content.relates_to,
+        ReferenceRelation { event_id, .. } if event_id == "$related_event:notareal.hs"
+    );
 }
