@@ -203,7 +203,7 @@ mod tests {
 
     #[test]
     fn deserialize_string() {
-        assert_matches!(from_json_value::<Action>(json!("notify")).unwrap(), Action::Notify);
+        assert_matches!(from_json_value::<Action>(json!("notify")), Ok(Action::Notify));
     }
 
     #[test]
@@ -212,10 +212,11 @@ mod tests {
             "set_tweak": "sound",
             "value": "default"
         });
-        assert_matches!(
-            &from_json_value::<Action>(json_data).unwrap(),
-            Action::SetTweak(Tweak::Sound(value)) if value == "default"
+        let value = assert_matches!(
+            from_json_value::<Action>(json_data),
+            Ok(Action::SetTweak(Tweak::Sound(value))) => value
         );
+        assert_eq!(value, "default");
     }
 
     #[test]
@@ -225,16 +226,16 @@ mod tests {
             "value": true
         });
         assert_matches!(
-            from_json_value::<Action>(json_data).unwrap(),
-            Action::SetTweak(Tweak::Highlight(true))
+            from_json_value::<Action>(json_data),
+            Ok(Action::SetTweak(Tweak::Highlight(true)))
         );
     }
 
     #[test]
     fn deserialize_tweak_highlight_with_default_value() {
         assert_matches!(
-            from_json_value::<Action>(json!({ "set_tweak": "highlight" })).unwrap(),
-            Action::SetTweak(Tweak::Highlight(true))
+            from_json_value::<Action>(json!({ "set_tweak": "highlight" })),
+            Ok(Action::SetTweak(Tweak::Highlight(true)))
         );
     }
 }
