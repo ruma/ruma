@@ -318,6 +318,8 @@ impl Parse for FieldValue {
 }
 
 #[derive(Debug)]
+// TODO(j0j0): remove after endpoint history is complete
+#[allow(dead_code)]
 pub struct History {
     entries: Vec<HistoryEntry>,
 
@@ -332,7 +334,7 @@ pub enum MiscVersioning {
 }
 
 fn set_ref_version(set: &mut BTreeSet<(u8, u8)>, value: &MatrixVersionLiteral) -> syn::Result<()> {
-    if let Some(_) = set.get(&value.to_parts()) {
+    if set.contains(&value.to_parts()) {
         Err(syn::Error::new_spanned(value, "duplicate version reference"))
     } else {
         set.insert(value.to_parts());
