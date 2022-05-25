@@ -11,9 +11,8 @@ use serde::{Deserialize, Serialize};
 use super::OfferSessionDescription;
 #[cfg(feature = "unstable-msc2746")]
 use super::{CallCapabilities, CallVersion};
-use crate::OwnedUserId;
 #[cfg(feature = "unstable-msc2746")]
-use crate::OwnedVoipId;
+use crate::{OwnedUserId, OwnedVoipId};
 
 /// The content of an `m.call.invite` event.
 ///

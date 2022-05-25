@@ -15,6 +15,7 @@ pub mod select_answer;
 #[cfg(feature = "unstable-msc2746")]
 mod version_serde;
 
+#[cfg(feature = "unstable-msc2746")]
 use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
