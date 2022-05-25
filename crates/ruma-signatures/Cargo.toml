@@ -14,7 +14,8 @@ version = "0.11.0"
 all-features = true
 
 [features]
-compat = ["tracing", "subslice"]
+compat = ["tracing"]
+ring-compat = ["subslice"]
 unstable-exhaustive-types = []
 unstable-msc2870 = []
 

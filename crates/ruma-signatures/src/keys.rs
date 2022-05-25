@@ -87,25 +87,33 @@ impl Ed25519KeyPair {
     /// generated from the private key. This is a fallback and extra validation against
     /// corruption or
     pub fn from_der(document: &[u8], version: String) -> Result<Self, Error> {
+        #[cfg(feature = "ring-compat")]
+        use self::compat::CompatibleDocument;
         use pkcs8::der::Decode;
 
-        let oak = PrivateKeyInfo::from_der(document).map_err(Error::DerParse)?;
+        #[cfg(feature = "ring-compat")]
+        let backing: Vec<u8>;
+        let oak;
+
+        #[cfg(feature = "ring-compat")]
+        {
+            oak = match CompatibleDocument::from_bytes(document) {
+                CompatibleDocument::WellFormed(bytes) => {
+                    PrivateKeyInfo::from_der(bytes).map_err(Error::DerParse)?
+                }
+                CompatibleDocument::CleanedFromRing(vec) => {
+                    backing = vec;
+                    PrivateKeyInfo::from_der(&backing).map_err(Error::DerParse)?
+                }
+            }
+        }
+
+        #[cfg(not(feature = "ring-compat"))]
+        {
+            oak = PrivateKeyInfo::from_der(document).map_err(Error::DerParse)?;
+        }
 
         Self::from_pkcs8_oak(oak, version)
-    }
-
-    #[cfg(feature = "compat")]
-    /// Initializes a new key pair, but will first check and alter the key - if necessary - for
-    /// `ring` compatibility.
-    ///
-    /// Otherwise, identical to [`from_der`](Ed25519KeyPair::from_der)
-    pub fn from_der_compat(document: &[u8], version: String) -> Result<Self, Error> {
-        use self::compat::CompatibleDocument;
-
-        match CompatibleDocument::from_bytes(document) {
-            CompatibleDocument::WellFormed(bytes) => Self::from_der(bytes, version),
-            CompatibleDocument::CleanedFromRing(vec) => Self::from_der(&vec, version),
-        }
     }
 
     /// Constructs a key pair from [`pkcs8::PrivateKeyInfo`].
@@ -191,7 +199,7 @@ impl Debug for Ed25519KeyPair {
     }
 }
 
-#[cfg(feature = "compat")]
+#[cfg(feature = "ring-compat")]
 pub mod compat {
     use subslice::SubsliceExt as _;
 
@@ -299,8 +307,8 @@ mod tests {
         assert_eq!(keypair.pubkey.as_bytes(), WELL_FORMED_PUBKEY);
     }
 
-    #[cfg(feature = "compat")]
-    mod compat_tests {
+    #[cfg(feature = "ring-compat")]
+    mod ring_compat {
         use super::Ed25519KeyPair;
 
         const RING_DOC: &[u8] = &[
@@ -321,7 +329,7 @@ mod tests {
 
         #[test]
         fn ring_key() {
-            let keypair = Ed25519KeyPair::from_der_compat(RING_DOC, "".to_owned()).unwrap();
+            let keypair = Ed25519KeyPair::from_der(RING_DOC, "".to_owned()).unwrap();
 
             assert_eq!(keypair.pubkey.as_bytes(), RING_PUBKEY);
         }
