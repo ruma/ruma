@@ -11,7 +11,7 @@ pub struct MatrixVersionLiteral {
 }
 
 impl MatrixVersionLiteral {
-    pub(crate) fn into_parts(&self) -> (u8, u8) {
+    pub(crate) fn to_parts(&self) -> (u8, u8) {
         (self.major.into(), self.minor)
     }
 }
