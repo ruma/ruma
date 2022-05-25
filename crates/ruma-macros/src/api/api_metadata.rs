@@ -331,11 +331,11 @@ pub enum MiscVersioning {
     Removed { deprecated: MatrixVersionLiteral, removed: MatrixVersionLiteral },
 }
 
-fn ref_version(set: &mut BTreeSet<(u8, u8)>, value: MatrixVersionLiteral) -> syn::Result<()> {
-    if let Some(_) = set.get(&value.into_parts()) {
+fn set_ref_version(set: &mut BTreeSet<(u8, u8)>, value: &MatrixVersionLiteral) -> syn::Result<()> {
+    if let Some(_) = set.get(&value.to_parts()) {
         Err(syn::Error::new_spanned(value, "duplicate version reference"))
     } else {
-        set.insert(value.into_parts());
+        set.insert(value.to_parts());
         Ok(())
     }
 }
@@ -358,15 +358,15 @@ impl Parse for History {
         for entry in &entries {
             match entry {
                 HistoryEntry::Deprecated { version } => {
-                    ref_version(&mut versions, version.clone())?;
+                    set_ref_version(&mut versions, version)?;
                     set_field(&mut deprecated, version.clone())?;
                 }
                 HistoryEntry::Removed { version } => {
-                    ref_version(&mut versions, version.clone())?;
+                    set_ref_version(&mut versions, version)?;
                     set_field(&mut removed, version.clone())?;
                 }
                 HistoryEntry::Stable { version, path: _ } => {
-                    ref_version(&mut versions, version.clone())?;
+                    set_ref_version(&mut versions, version)?;
                 }
                 _ => {}
             }
@@ -396,8 +396,8 @@ impl Parse for History {
         // Sort so that the order is [Unstable, Unstable, 1.0, 1.1, 1.2, 2.0, 2.1]
         // for optimized method purposes.
         entries.sort_by(|a, b| {
-            let a = a.version().map(|v| v.into_parts()).unwrap_or((0, 0));
-            let b = b.version().map(|v| v.into_parts()).unwrap_or((0, 0));
+            let a = a.version().map(|v| v.to_parts()).unwrap_or((0, 0));
+            let b = b.version().map(|v| v.to_parts()).unwrap_or((0, 0));
 
             a.cmp(&b)
         });
