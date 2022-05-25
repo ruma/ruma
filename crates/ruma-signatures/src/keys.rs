@@ -302,7 +302,7 @@ mod tests {
 
     #[test]
     fn well_formed_key() {
-        let keypair = Ed25519KeyPair::from_der(&WELL_FORMED_DOC, "".to_owned()).unwrap();
+        let keypair = Ed25519KeyPair::from_der(WELL_FORMED_DOC, "".to_owned()).unwrap();
 
         assert_eq!(keypair.pubkey.as_bytes(), WELL_FORMED_PUBKEY);
     }
