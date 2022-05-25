@@ -6,10 +6,7 @@ use std::{
 };
 
 use ed25519_dalek::{ExpandedSecretKey, PublicKey, SecretKey};
-use pkcs8::{
-    der::{Decodable, Encodable},
-    AlgorithmIdentifier, ObjectIdentifier, PrivateKeyInfo,
-};
+use pkcs8::{AlgorithmIdentifier, ObjectIdentifier, PrivateKeyInfo};
 use ruma_common::serde::Base64;
 
 use crate::{signatures::Signature, Algorithm, Error, ParseError};
@@ -24,7 +21,7 @@ pub trait KeyPair: Sized {
     fn sign(&self, message: &[u8]) -> Signature;
 }
 
-pub const ED25519_OID: ObjectIdentifier = ObjectIdentifier::new("1.3.101.112");
+pub const ED25519_OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.3.101.112");
 
 /// An Ed25519 key pair.
 pub struct Ed25519KeyPair {
@@ -90,9 +87,25 @@ impl Ed25519KeyPair {
     /// generated from the private key. This is a fallback and extra validation against
     /// corruption or
     pub fn from_der(document: &[u8], version: String) -> Result<Self, Error> {
+        use pkcs8::der::Decode;
+
         let oak = PrivateKeyInfo::from_der(document).map_err(Error::DerParse)?;
 
         Self::from_pkcs8_oak(oak, version)
+    }
+
+    #[cfg(feature = "compat")]
+    /// Initializes a new key pair, but will first check and alter the key - if necessary - for
+    /// `ring` compatibility.
+    ///
+    /// Otherwise, identical to [`from_der`](Ed25519KeyPair::from_der)
+    pub fn from_der_compat(document: &[u8], version: String) -> Result<Self, Error> {
+        use self::compat::CompatibleDocument;
+
+        match CompatibleDocument::from_bytes(document) {
+            CompatibleDocument::WellFormed(bytes) => Self::from_der(bytes, version),
+            CompatibleDocument::CleanedFromRing(vec) => Self::from_der(&vec, version),
+        }
     }
 
     /// Constructs a key pair from [`pkcs8::PrivateKeyInfo`].
@@ -127,6 +140,8 @@ impl Ed25519KeyPair {
     ///
     /// Returns an error if the generation failed.
     pub fn generate() -> Result<Vec<u8>, Error> {
+        use pkcs8::der::Encode;
+
         let secret = SecretKey::generate(&mut rand::rngs::OsRng);
 
         let public = PublicKey::from(&secret);
@@ -139,7 +154,6 @@ impl Ed25519KeyPair {
         let pkinfo = PrivateKeyInfo {
             algorithm: AlgorithmIdentifier { oid: ED25519_OID, parameters: None },
             private_key: private.as_ref(),
-            attributes: None,
             public_key: Some(public.as_bytes()),
         };
 
@@ -177,6 +191,71 @@ impl Debug for Ed25519KeyPair {
     }
 }
 
+#[cfg(feature = "compat")]
+pub mod compat {
+    use subslice::SubsliceExt as _;
+
+    #[derive(Debug)]
+    pub enum CompatibleDocument<'a> {
+        WellFormed(&'a [u8]),
+        CleanedFromRing(Vec<u8>),
+    }
+
+    impl<'a> CompatibleDocument<'a> {
+        pub fn from_bytes(bytes: &'a [u8]) -> Self {
+            if is_ring(bytes) {
+                Self::CleanedFromRing(fix_ring_doc(bytes.to_vec()))
+            } else {
+                Self::WellFormed(bytes)
+            }
+        }
+    }
+
+    // Ring uses a very specific template to generate its documents,
+    // and so this is essentially a sentinel value of that.
+    //
+    // It corresponds to CONTEXT-SPECIFIC[1](35) { BIT-STRING(32) {...} } in ASN.1
+    //
+    // A well-formed bit would look like just CONTEXT-SPECIFIC[1](32) { ... }
+    //
+    // Note: this is purely a sentinel value, don't take these bytes out of context
+    // to detect or fiddle with the document.
+    const RING_TEMPLATE_CONTEXT_SPECIFIC: &[u8] = &[0xA1, 0x23, 0x03, 0x21];
+
+    // A checked well-formed context-specific[1] prefix.
+    const WELL_FORMED_CONTEXT_ONE_PREFIX: &[u8] = &[0x81, 0x21];
+
+    // If present, removes a malfunctioning pubkey suffix and adjusts the length at the start.
+    fn fix_ring_doc(mut doc: Vec<u8>) -> Vec<u8> {
+        assert!(!doc.is_empty());
+        // Check if first tag is ASN.1 SEQUENCE
+        assert_eq!(doc[0], 0x30);
+        // Second byte asserts the length for the rest of the document
+        assert_eq!(doc[1] as usize, doc.len() - 2);
+
+        let idx = doc
+            .find(RING_TEMPLATE_CONTEXT_SPECIFIC)
+            .expect("Expected to find ring template in doc, but found none.");
+
+        // Snip off the malformed bit.
+        let suffix = doc.split_off(idx);
+
+        // Feed back an actual well-formed prefix.
+        doc.extend(WELL_FORMED_CONTEXT_ONE_PREFIX);
+
+        // Then give it the actual public key.
+        doc.extend(&suffix[4..]);
+
+        doc[1] = doc.len() as u8 - 2;
+
+        doc
+    }
+
+    fn is_ring<'a>(bytes: &'a [u8]) -> bool {
+        bytes.find(RING_TEMPLATE_CONTEXT_SPECIFIC).is_some()
+    }
+}
+
 /// A map from entity names to sets of public keys for that entity.
 ///
 /// "Entity" is generally a homeserver, e.g. "example.com".
@@ -191,19 +270,21 @@ pub type PublicKeySet = BTreeMap<String, Base64>;
 mod tests {
     use super::Ed25519KeyPair;
 
-    const RING_DOC: &[u8] = &[
-        0x30, 0x53, 0x02, 0x01, 0x01, 0x30, 0x05, 0x06, 0x03, 0x2B, 0x65, 0x70, 0x04, 0x22, 0x04,
-        0x20, 0x61, 0x9E, 0xD8, 0x25, 0xA6, 0x1D, 0x32, 0x29, 0xD7, 0xD8, 0x22, 0x03, 0xC6, 0x0E,
-        0x37, 0x48, 0xE9, 0xC9, 0x11, 0x96, 0x3B, 0x03, 0x15, 0x94, 0x19, 0x3A, 0x86, 0xEC, 0xE6,
-        0x2D, 0x73, 0xC0, 0xA1, 0x23, 0x03, 0x21, 0x00, 0x3D, 0xA6, 0xC8, 0xD1, 0x76, 0x2F, 0xD6,
-        0x49, 0xB8, 0x4F, 0xF6, 0xC6, 0x1D, 0x04, 0xEA, 0x4A, 0x70, 0xA8, 0xC9, 0xF0, 0x8F, 0x96,
-        0x7F, 0x6B, 0xD7, 0xDA, 0xE5, 0x2E, 0x88, 0x8D, 0xBA, 0x3E,
+    const WELL_FORMED_DOC: &[u8] = &[
+        0x30, 0x72, 0x02, 0x01, 0x01, 0x30, 0x05, 0x06, 0x03, 0x2B, 0x65, 0x70, 0x04, 0x22, 0x04,
+        0x20, 0xD4, 0xEE, 0x72, 0xDB, 0xF9, 0x13, 0x58, 0x4A, 0xD5, 0xB6, 0xD8, 0xF1, 0xF7, 0x69,
+        0xF8, 0xAD, 0x3A, 0xFE, 0x7C, 0x28, 0xCB, 0xF1, 0xD4, 0xFB, 0xE0, 0x97, 0xA8, 0x8F, 0x44,
+        0x75, 0x58, 0x42, 0xA0, 0x1F, 0x30, 0x1D, 0x06, 0x0A, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D,
+        0x01, 0x09, 0x09, 0x14, 0x31, 0x0F, 0x0C, 0x0D, 0x43, 0x75, 0x72, 0x64, 0x6C, 0x65, 0x20,
+        0x43, 0x68, 0x61, 0x69, 0x72, 0x73, 0x81, 0x21, 0x00, 0x19, 0xBF, 0x44, 0x09, 0x69, 0x84,
+        0xCD, 0xFE, 0x85, 0x41, 0xBA, 0xC1, 0x67, 0xDC, 0x3B, 0x96, 0xC8, 0x50, 0x86, 0xAA, 0x30,
+        0xB6, 0xB6, 0xCB, 0x0C, 0x5C, 0x38, 0xAD, 0x70, 0x31, 0x66, 0xE1,
     ];
 
-    const RING_PUBKEY: &[u8] = &[
-        0x3D, 0xA6, 0xC8, 0xD1, 0x76, 0x2F, 0xD6, 0x49, 0xB8, 0x4F, 0xF6, 0xC6, 0x1D, 0x04, 0xEA,
-        0x4A, 0x70, 0xA8, 0xC9, 0xF0, 0x8F, 0x96, 0x7F, 0x6B, 0xD7, 0xDA, 0xE5, 0x2E, 0x88, 0x8D,
-        0xBA, 0x3E,
+    const WELL_FORMED_PUBKEY: &[u8] = &[
+        0x19, 0xBF, 0x44, 0x09, 0x69, 0x84, 0xCD, 0xFE, 0x85, 0x41, 0xBA, 0xC1, 0x67, 0xDC, 0x3B,
+        0x96, 0xC8, 0x50, 0x86, 0xAA, 0x30, 0xB6, 0xB6, 0xCB, 0x0C, 0x5C, 0x38, 0xAD, 0x70, 0x31,
+        0x66, 0xE1,
     ];
 
     #[test]
@@ -212,9 +293,37 @@ mod tests {
     }
 
     #[test]
-    fn ring_key() {
-        let keypair = Ed25519KeyPair::from_der(RING_DOC, "".to_owned()).unwrap();
+    fn well_formed_key() {
+        let keypair = Ed25519KeyPair::from_der(&WELL_FORMED_DOC, "".to_owned()).unwrap();
 
-        assert_eq!(keypair.pubkey.as_bytes(), RING_PUBKEY);
+        assert_eq!(keypair.pubkey.as_bytes(), WELL_FORMED_PUBKEY);
+    }
+
+    #[cfg(feature = "compat")]
+    mod compat_tests {
+        use super::Ed25519KeyPair;
+
+        const RING_DOC: &[u8] = &[
+            0x30, 0x53, 0x02, 0x01, 0x01, 0x30, 0x05, 0x06, 0x03, 0x2B, 0x65, 0x70, 0x04, 0x22,
+            0x04, 0x20, 0x61, 0x9E, 0xD8, 0x25, 0xA6, 0x1D, 0x32, 0x29, 0xD7, 0xD8, 0x22, 0x03,
+            0xC6, 0x0E, 0x37, 0x48, 0xE9, 0xC9, 0x11, 0x96, 0x3B, 0x03, 0x15, 0x94, 0x19, 0x3A,
+            0x86, 0xEC, 0xE6, 0x2D, 0x73, 0xC0, 0xA1, 0x23, 0x03, 0x21, 0x00, 0x3D, 0xA6, 0xC8,
+            0xD1, 0x76, 0x2F, 0xD6, 0x49, 0xB8, 0x4F, 0xF6, 0xC6, 0x1D, 0x04, 0xEA, 0x4A, 0x70,
+            0xA8, 0xC9, 0xF0, 0x8F, 0x96, 0x7F, 0x6B, 0xD7, 0xDA, 0xE5, 0x2E, 0x88, 0x8D, 0xBA,
+            0x3E,
+        ];
+
+        const RING_PUBKEY: &[u8] = &[
+            0x3D, 0xA6, 0xC8, 0xD1, 0x76, 0x2F, 0xD6, 0x49, 0xB8, 0x4F, 0xF6, 0xC6, 0x1D, 0x04,
+            0xEA, 0x4A, 0x70, 0xA8, 0xC9, 0xF0, 0x8F, 0x96, 0x7F, 0x6B, 0xD7, 0xDA, 0xE5, 0x2E,
+            0x88, 0x8D, 0xBA, 0x3E,
+        ];
+
+        #[test]
+        fn ring_key() {
+            let keypair = Ed25519KeyPair::from_der_compat(RING_DOC, "".to_owned()).unwrap();
+
+            assert_eq!(keypair.pubkey.as_bytes(), RING_PUBKEY);
+        }
     }
 }
