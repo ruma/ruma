@@ -46,8 +46,13 @@ pub struct PollStartContent {
 
     /// The maximum number of responses a user is able to select.
     ///
+    /// Must be greater or equal to `1`.
+    ///
     /// Defaults to `1`.
-    #[serde(default = "PollStartContent::default_max_selections")]
+    #[serde(
+        default = "PollStartContent::default_max_selections",
+        skip_serializing_if = "PollStartContent::max_selections_is_default"
+    )]
     pub max_selections: UInt,
 
     /// The possible answers to the poll.
@@ -62,6 +67,10 @@ impl PollStartContent {
 
     fn default_max_selections() -> UInt {
         uint!(1)
+    }
+
+    fn max_selections_is_default(max_selections: &UInt) -> bool {
+        max_selections == &Self::default_max_selections()
     }
 }
 

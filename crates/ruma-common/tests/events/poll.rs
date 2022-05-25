@@ -102,7 +102,6 @@ fn start_content_serialization() {
             "org.matrix.msc3381.poll.start": {
                 "question": { "org.matrix.msc1767.text": "How's the weather?" },
                 "kind": "org.matrix.msc3381.poll.undisclosed",
-                "max_selections": 1,
                 "answers": [
                     { "id": "not-bad", "org.matrix.msc1767.text": "Not bad…"},
                     { "id": "fine", "org.matrix.msc1767.text": "Fine."},
