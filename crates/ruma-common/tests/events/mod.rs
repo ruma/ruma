@@ -13,6 +13,7 @@ mod location;
 mod message;
 mod message_event;
 mod pdu;
+mod poll;
 mod redacted;
 mod redaction;
 mod relations;
