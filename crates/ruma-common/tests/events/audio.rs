@@ -267,7 +267,7 @@ fn plain_content_deserialization() {
 
     let content = from_json_value::<AudioEventContent>(json_data).unwrap();
     assert_eq!(content.message.find_plain(), Some("Upload: my_new_song.webm"));
-    assert!(content.message.find_html().is_none());
+    assert_eq!(content.message.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     let waveform = content.audio.waveform.unwrap();
     assert_eq!(waveform.amplitudes().len(), 52);
@@ -297,7 +297,7 @@ fn encrypted_content_deserialization() {
 
     let content = from_json_value::<AudioEventContent>(json_data).unwrap();
     assert_eq!(content.message.find_plain(), Some("Upload: my_file.txt"));
-    assert!(content.message.find_html().is_none());
+    assert_eq!(content.message.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     assert!(content.file.encryption_info.is_some());
 }
@@ -337,14 +337,14 @@ fn message_event_deserialization() {
 
     let content = message_event.content;
     assert_eq!(content.message.find_plain(), Some("Upload: airplane_sound.opus"));
-    assert!(content.message.find_html().is_none());
+    assert_eq!(content.message.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     let info = content.file.info.unwrap();
     assert_eq!(info.name.as_deref(), Some("airplane_sound.opus"));
     assert_eq!(info.mimetype.as_deref(), Some("audio/opus"));
     assert_eq!(info.size, Some(uint!(123_774)));
     assert_eq!(content.audio.duration, Some(Duration::from_millis(5_300)));
-    assert!(content.audio.waveform.is_none());
+    assert_matches!(content.audio.waveform, None);
 }
 
 #[test]

@@ -162,7 +162,7 @@ fn plain_content_deserialization() {
 
     let content = from_json_value::<FileEventContent>(json_data).unwrap();
     assert_eq!(content.message.find_plain(), Some("Upload: my_file.txt"));
-    assert!(content.message.find_html().is_none());
+    assert_eq!(content.message.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
 }
 
@@ -189,7 +189,7 @@ fn encrypted_content_deserialization() {
 
     let content = from_json_value::<FileEventContent>(json_data).unwrap();
     assert_eq!(content.message.find_plain(), Some("Upload: my_file.txt"));
-    assert!(content.message.find_html().is_none());
+    assert_eq!(content.message.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     assert!(content.file.encryption_info.is_some());
 }
