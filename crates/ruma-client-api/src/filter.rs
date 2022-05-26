@@ -7,6 +7,8 @@ mod lazy_load;
 mod url;
 
 use js_int::UInt;
+#[cfg(feature = "unstable-msc3440")]
+use ruma_common::events::relation::RelationType;
 use ruma_common::{
     serde::{Incoming, StringEnum},
     OwnedRoomId, OwnedUserId,
@@ -37,30 +39,6 @@ impl Default for EventFormat {
     fn default() -> Self {
         Self::Client
     }
-}
-
-/// Relation types as defined in `rel_type` of an `m.relates_to` field.
-#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
-#[cfg(feature = "unstable-msc3440")]
-#[non_exhaustive]
-pub enum RelationType {
-    /// `m.annotation`, an annotation, principally used by reactions.
-    #[cfg(feature = "unstable-msc2677")]
-    #[ruma_enum(rename = "m.annotation")]
-    Annotation,
-
-    /// `m.replace`, a replacement.
-    #[cfg(feature = "unstable-msc2676")]
-    #[ruma_enum(rename = "m.replace")]
-    Replacement,
-
-    /// `m.thread`, a participant to a thread.
-    #[ruma_enum(rename = "io.element.thread", alias = "m.thread")]
-    Thread,
-
-    #[doc(hidden)]
-    _Custom(PrivOwnedStr),
 }
 
 /// Filters to be applied to room events.
