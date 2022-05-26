@@ -156,3 +156,28 @@ impl Relations {
         Self::default()
     }
 }
+
+/// Relation types as defined in `rel_type` of an `m.relates_to` field.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[cfg(any(feature = "unstable-msc3440", feature = "unstable-msc2675"))]
+#[non_exhaustive]
+pub enum RelationType {
+    /// `m.annotation`, an annotation, principally used by reactions.
+    #[cfg(feature = "unstable-msc2677")]
+    #[ruma_enum(rename = "m.annotation")]
+    Annotation,
+
+    /// `m.replace`, a replacement.
+    #[cfg(feature = "unstable-msc2676")]
+    #[ruma_enum(rename = "m.replace")]
+    Replacement,
+
+    /// `m.thread`, a participant to a thread.
+    #[cfg(feature = "unstable-msc3440")]
+    #[ruma_enum(rename = "io.element.thread", alias = "m.thread")]
+    Thread,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}

@@ -12,6 +12,11 @@ Improvements:
 * Add `ErrorKind::{UnableToAuthorizeJoin, UnableToGrantJoin}` encountered for restricted rooms
 * Add unstable support for timestamp massaging (MSC3316)
 
+Improvements:
+
+* Add unstable support for querying relating events (MSC2675)
+* Move `filter::RelationType` to `ruma_common::events::relations`
+
 # 0.14.1
 
 Improvements:
