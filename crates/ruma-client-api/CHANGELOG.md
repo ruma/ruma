@@ -5,6 +5,8 @@ Breaking changes:
 * Remove `PartialEq` implementations for a number of types
   * If the lack of such an `impl` causes problems, please open a GitHub issue
 
+# 0.14.1
+
 Improvements:
 
 * Add `From<&UserId>` and `From<&OwnedUserId>` implementations for `UserIdentifier`
