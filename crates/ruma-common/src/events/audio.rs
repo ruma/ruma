@@ -2,7 +2,7 @@
 //!
 //! [MSC3246]: https://github.com/matrix-org/matrix-spec-proposals/pull/3246
 
-use std::{convert::TryFrom, time::Duration};
+use std::time::Duration;
 
 use js_int::UInt;
 use ruma_macros::EventContent;

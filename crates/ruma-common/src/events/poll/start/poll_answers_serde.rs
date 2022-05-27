@@ -1,7 +1,5 @@
 //! `Serialize` and `Deserialize` implementations for extensible events (MSC1767).
 
-use std::convert::TryFrom;
-
 use serde::Deserialize;
 
 use super::{PollAnswer, PollAnswers, PollAnswersError};

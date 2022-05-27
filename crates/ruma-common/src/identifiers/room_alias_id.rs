@@ -10,7 +10,6 @@ use super::{matrix_uri::UriAction, server_name::ServerName, EventId, MatrixToUri
 /// needed.
 ///
 /// ```
-/// # use std::convert::TryFrom;
 /// # use ruma_common::RoomAliasId;
 /// assert_eq!(<&RoomAliasId>::try_from("#ruma:example.com").unwrap(), "#ruma:example.com");
 /// ```
@@ -61,8 +60,6 @@ impl RoomAliasId {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::{OwnedRoomAliasId, RoomAliasId};
     use crate::IdParseError;
 

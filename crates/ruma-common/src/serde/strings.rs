@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, convert::TryInto, fmt, marker::PhantomData};
+use std::{collections::BTreeMap, fmt, marker::PhantomData};
 
 use js_int::{Int, UInt};
 use serde::{

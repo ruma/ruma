@@ -1,5 +1,5 @@
 //! Endpoints for push notifications.
-use std::{convert::TryFrom, error::Error, fmt};
+use std::{error::Error, fmt};
 
 use ruma_common::{
     push::{

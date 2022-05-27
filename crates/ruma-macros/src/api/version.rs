@@ -1,4 +1,4 @@
-use std::{convert::TryInto, num::NonZeroU8};
+use std::num::NonZeroU8;
 
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote, ToTokens};

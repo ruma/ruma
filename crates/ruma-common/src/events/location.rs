@@ -2,8 +2,6 @@
 //!
 //! [MSC3488]: https://github.com/matrix-org/matrix-spec-proposals/pull/3488
 
-use std::convert::TryFrom;
-
 use js_int::UInt;
 use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};

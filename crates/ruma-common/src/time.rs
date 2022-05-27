@@ -1,7 +1,4 @@
-use std::{
-    convert::TryInto,
-    time::{Duration, SystemTime, UNIX_EPOCH},
-};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use js_int::{uint, UInt};
 use serde::{Deserialize, Serialize};
@@ -83,7 +80,6 @@ impl SecondsSinceUnixEpoch {
 
 #[cfg(all(target_arch = "wasm32", target_os = "unknown", feature = "js"))]
 fn f64_to_uint(val: f64) -> UInt {
-    use std::convert::TryFrom;
     // UInt::MAX milliseconds is ~285 616 years, we do not account for that
     // (or for dates before the unix epoch which would have to be negative)
     UInt::try_from(val as u64).expect("date out of range")

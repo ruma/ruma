@@ -1,7 +1,5 @@
 //! Types for the [`m.poll.start`] event.
 
-use std::convert::TryFrom;
-
 use js_int::{uint, UInt};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

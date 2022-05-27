@@ -27,8 +27,6 @@ impl RoomPinnedEventsEventContent {
 
 #[cfg(all(test, feature = "rand"))]
 mod tests {
-    use std::convert::TryInto;
-
     use super::RoomPinnedEventsEventContent;
     use crate::{
         events::{EmptyStateKey, OriginalStateEvent, StateUnsigned},

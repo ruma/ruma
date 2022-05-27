@@ -1,7 +1,6 @@
 use std::{
     borrow::Cow,
     collections::btree_map::{BTreeMap, Entry},
-    convert::TryFrom,
     fmt,
     time::Duration,
 };

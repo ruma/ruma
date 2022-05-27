@@ -1,6 +1,6 @@
 //! Matrix URIs.
 
-use std::{convert::TryFrom, fmt, str::FromStr};
+use std::{fmt, str::FromStr};
 
 use percent_encoding::{percent_decode_str, percent_encode, AsciiSet, CONTROLS};
 use ruma_identifiers_validation::{

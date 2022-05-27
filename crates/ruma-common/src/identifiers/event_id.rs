@@ -19,7 +19,6 @@ use super::ServerName;
 /// format.
 ///
 /// ```
-/// # use std::convert::TryFrom;
 /// # use ruma_common::EventId;
 /// // Original format
 /// assert_eq!(<&EventId>::try_from("$h29iv0s8:example.com").unwrap(), "$h29iv0s8:example.com");
@@ -78,8 +77,6 @@ impl EventId {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::{EventId, OwnedEventId};
     use crate::IdParseError;
 

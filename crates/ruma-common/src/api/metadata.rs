@@ -1,5 +1,4 @@
 use std::{
-    convert::TryFrom,
     fmt::{self, Display},
     str::FromStr,
 };

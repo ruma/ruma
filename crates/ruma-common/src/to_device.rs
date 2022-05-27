@@ -2,10 +2,7 @@
 //!
 //! [send-to-device]: https://spec.matrix.org/v1.2/client-server-api/#send-to-device-messaging
 
-use std::{
-    convert::TryFrom,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use serde::{
     de::{self, Unexpected},

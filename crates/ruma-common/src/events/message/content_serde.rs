@@ -1,7 +1,5 @@
 //! `Serialize` and `Deserialize` implementations for extensible events (MSC1767).
 
-use std::convert::TryFrom;
-
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 
 use super::{MessageContent, Text, TryFromExtensibleError};

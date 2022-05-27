@@ -2,8 +2,6 @@
 //!
 //! [`m.secret.request`]: https://spec.matrix.org/v1.2/client-server-api/#msecretrequest
 
-use std::convert::TryFrom;
-
 use ruma_macros::EventContent;
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 

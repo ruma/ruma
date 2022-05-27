@@ -1,8 +1,4 @@
-use std::{
-    collections::BTreeMap,
-    convert::{TryFrom, TryInto},
-    fmt,
-};
+use std::{collections::BTreeMap, fmt};
 
 use js_int::Int;
 use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
@@ -21,7 +17,6 @@ pub enum CanonicalJsonValue {
     ///
     /// ```
     /// # use serde_json::json;
-    /// # use std::convert::TryInto;
     /// # use ruma_common::serde::CanonicalJsonValue;
     /// let v: CanonicalJsonValue = json!(null).try_into().unwrap();
     /// ```
@@ -31,7 +26,6 @@ pub enum CanonicalJsonValue {
     ///
     /// ```
     /// # use serde_json::json;
-    /// # use std::convert::TryInto;
     /// # use ruma_common::serde::CanonicalJsonValue;
     /// let v: CanonicalJsonValue = json!(true).try_into().unwrap();
     /// ```
@@ -41,7 +35,6 @@ pub enum CanonicalJsonValue {
     ///
     /// ```
     /// # use serde_json::json;
-    /// # use std::convert::TryInto;
     /// # use ruma_common::serde::CanonicalJsonValue;
     /// let v: CanonicalJsonValue = json!(12).try_into().unwrap();
     /// ```
@@ -51,7 +44,6 @@ pub enum CanonicalJsonValue {
     ///
     /// ```
     /// # use serde_json::json;
-    /// # use std::convert::TryInto;
     /// # use ruma_common::serde::CanonicalJsonValue;
     /// let v: CanonicalJsonValue = json!("a string").try_into().unwrap();
     /// ```
@@ -61,7 +53,6 @@ pub enum CanonicalJsonValue {
     ///
     /// ```
     /// # use serde_json::json;
-    /// # use std::convert::TryInto;
     /// # use ruma_common::serde::CanonicalJsonValue;
     /// let v: CanonicalJsonValue = json!(["an", "array"]).try_into().unwrap();
     /// ```
@@ -73,7 +64,6 @@ pub enum CanonicalJsonValue {
     ///
     /// ```
     /// # use serde_json::json;
-    /// # use std::convert::TryInto;
     /// # use ruma_common::serde::CanonicalJsonValue;
     /// let v: CanonicalJsonValue = json!({ "an": "object" }).try_into().unwrap();
     /// ```
@@ -316,8 +306,6 @@ impl<'de> Deserialize<'de> for CanonicalJsonValue {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryInto;
-
     use serde_json::json;
 
     use super::CanonicalJsonValue;

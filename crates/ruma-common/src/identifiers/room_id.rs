@@ -10,7 +10,6 @@ use super::{matrix_uri::UriAction, EventId, MatrixToUri, MatrixUri, ServerName};
 /// into a string as needed.
 ///
 /// ```
-/// # use std::convert::TryFrom;
 /// # use ruma_common::RoomId;
 /// assert_eq!(<&RoomId>::try_from("!n8f893n9:example.com").unwrap(), "!n8f893n9:example.com");
 /// ```
@@ -110,8 +109,6 @@ impl RoomId {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::{OwnedRoomId, RoomId};
     use crate::IdParseError;
 

@@ -30,8 +30,6 @@ impl ClientSecret {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::ClientSecret;
 
     #[test]

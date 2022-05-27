@@ -10,7 +10,6 @@
 use std::{
     borrow::Borrow,
     collections::{HashMap, HashSet},
-    convert::TryInto,
     sync::{
         atomic::{AtomicU64, Ordering::SeqCst},
         Arc,

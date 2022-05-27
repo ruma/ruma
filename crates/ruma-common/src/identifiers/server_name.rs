@@ -53,8 +53,6 @@ impl ServerName {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::ServerName;
 
     #[test]

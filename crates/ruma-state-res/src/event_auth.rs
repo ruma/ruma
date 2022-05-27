@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, collections::BTreeSet, convert::TryFrom};
+use std::{borrow::Borrow, collections::BTreeSet};
 
 use js_int::{int, Int};
 use ruma_common::{

@@ -41,8 +41,6 @@ impl DeviceKeyId {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::{DeviceKeyId, OwnedDeviceKeyId};
     use crate::identifiers::{crypto_algorithms::DeviceKeyAlgorithm, IdParseError};
 

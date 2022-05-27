@@ -1,6 +1,6 @@
 //! Matrix room version identifiers.
 
-use std::{cmp::Ordering, convert::TryFrom, str::FromStr};
+use std::{cmp::Ordering, str::FromStr};
 
 use ruma_macros::DisplayAsRefStr;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -13,7 +13,6 @@ use super::IdParseError;
 /// or serialized back into a string as needed.
 ///
 /// ```
-/// # use std::convert::TryFrom;
 /// # use ruma_common::RoomVersionId;
 /// assert_eq!(RoomVersionId::try_from("1").unwrap().as_ref(), "1");
 /// ```
@@ -246,8 +245,6 @@ impl AsRef<str> for CustomRoomVersion {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::RoomVersionId;
     use crate::IdParseError;
 

@@ -1,4 +1,4 @@
-use std::{convert::TryInto, error::Error, io, process::exit, time::Duration};
+use std::{error::Error, io, process::exit, time::Duration};
 
 use futures_util::future::{join, join_all};
 use ruma::{

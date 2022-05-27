@@ -10,7 +10,6 @@ use super::{matrix_uri::UriAction, IdParseError, MatrixToUri, MatrixUri, ServerN
 /// into a string as needed.
 ///
 /// ```
-/// # use std::convert::TryFrom;
 /// # use ruma_common::UserId;
 /// assert_eq!(<&UserId>::try_from("@carl:example.com").unwrap(), "@carl:example.com");
 /// ```
@@ -155,8 +154,6 @@ use ruma_macros::IdZst;
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::{OwnedUserId, UserId};
     use crate::{server_name, IdParseError};
 

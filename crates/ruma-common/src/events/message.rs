@@ -49,7 +49,7 @@
 //! [MSC3245]: https://github.com/matrix-org/matrix-spec-proposals/pull/3245
 //! [MSC3381]: https://github.com/matrix-org/matrix-spec-proposals/pull/3381
 //! [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
-use std::{convert::TryFrom, ops::Deref};
+use std::ops::Deref;
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

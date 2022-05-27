@@ -3,7 +3,6 @@
 use std::{
     borrow::Cow,
     collections::{BTreeMap, BTreeSet},
-    convert::TryFrom,
     mem,
 };
 
@@ -876,10 +875,7 @@ fn is_third_party_invite(object: &CanonicalJsonObject) -> Result<bool, Error> {
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        collections::BTreeMap,
-        convert::{TryFrom, TryInto},
-    };
+    use std::collections::BTreeMap;
 
     use ruma_common::{
         serde::{Base64, CanonicalJsonValue},

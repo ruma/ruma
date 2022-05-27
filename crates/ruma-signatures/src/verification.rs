@@ -1,7 +1,5 @@
 //! Verification of digital signatures.
 
-use std::convert::TryInto;
-
 use ed25519_dalek::{PublicKey, Verifier as _};
 
 use crate::{Error, ParseError, VerificationError};

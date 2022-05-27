@@ -1,7 +1,5 @@
 #![cfg(feature = "unstable-msc3381")]
 
-use std::convert::TryInto;
-
 use assert_matches::assert_matches;
 use assign::assign;
 use js_int::uint;

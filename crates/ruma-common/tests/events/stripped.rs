@@ -1,5 +1,3 @@
-use std::convert::TryFrom;
-
 use js_int::uint;
 use ruma_common::{
     events::{

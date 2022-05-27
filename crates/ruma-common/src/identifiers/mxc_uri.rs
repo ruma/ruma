@@ -61,8 +61,6 @@ impl MxcUri {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryInto;
-
     use ruma_identifiers_validation::error::MxcUriError;
 
     use super::{MxcUri, OwnedMxcUri};

@@ -1,4 +1,4 @@
-use std::{convert::TryInto, fmt};
+use std::fmt;
 
 use serde::Serialize;
 use serde_json::{Error as JsonError, Value as JsonValue};
@@ -43,7 +43,7 @@ pub fn to_canonical_value<T: Serialize>(value: T) -> Result<value::CanonicalJson
 
 #[cfg(test)]
 mod tests {
-    use std::{collections::BTreeMap, convert::TryInto};
+    use std::collections::BTreeMap;
 
     use js_int::int;
     use serde_json::{from_str as from_json_str, json, to_string as to_json_string};

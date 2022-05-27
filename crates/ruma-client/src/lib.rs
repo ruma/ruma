@@ -65,7 +65,6 @@
 //! #     .homeserver_url(homeserver_url)
 //! #     .build::<ruma_client::http_client::Dummy>()
 //! #     .await?;
-//! use std::convert::TryFrom;
 //!
 //! use ruma_client_api::alias::get_alias;
 //! use ruma_common::{api::MatrixVersion, room_alias_id, room_id};

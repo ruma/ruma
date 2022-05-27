@@ -3,7 +3,7 @@
 //!
 //! Delegates to `js_int::UInt` to ensure integer size is within bounds.
 
-use std::{convert::TryFrom, time::Duration};
+use std::time::Duration;
 
 use js_int::UInt;
 use serde::{
