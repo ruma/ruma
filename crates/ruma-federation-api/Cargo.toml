@@ -1,7 +1,6 @@
 [package]
 categories = ["api-bindings", "web-programming"]
 description = "Types for the endpoints in the Matrix server-server API."
-edition = "2021"
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"
@@ -9,6 +8,8 @@ name = "ruma-federation-api"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
 version = "0.5.0"
+edition = "2021"
+rust-version = "1.59"
 
 [package.metadata.docs.rs]
 all-features = true

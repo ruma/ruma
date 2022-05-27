@@ -1,7 +1,6 @@
 [package]
 categories = ["api-bindings", "web-programming"]
 description = "A Matrix client library."
-edition = "2021"
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"
@@ -9,6 +8,8 @@ name = "ruma-client"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
 version = "0.9.0"
+edition = "2021"
+rust-version = "1.59"
 
 [package.metadata.docs.rs]
 all-features = true
