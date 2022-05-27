@@ -23,8 +23,7 @@ use crate::{serde::StringEnum, PrivOwnedStr};
 
 /// A VoIP session description.
 ///
-/// With the `unstable-msc2746` feature, this is the same type as WebRTC's
-/// [`RTCSessionDescriptionInit`].
+/// This is the same type as WebRTC's [`RTCSessionDescriptionInit`].
 ///
 /// [`RTCSessionDescriptionInit`]: (https://www.w3.org/TR/webrtc/#dom-rtcsessiondescriptioninit):
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -51,7 +50,7 @@ impl SessionDescription {
 
 /// The type of VoIP session description.
 ///
-/// With the `unstable-msc2746` feature, this is the same type as WebRTC's [`RTCSdpType`].
+/// This is the same type as WebRTC's [`RTCSdpType`].
 ///
 /// [`RTCSdpType`]: (https://www.w3.org/TR/webrtc/#dom-rtcsdptype):
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
@@ -59,17 +58,19 @@ impl SessionDescription {
 #[ruma_enum(rename_all = "lowercase")]
 #[non_exhaustive]
 pub enum SessionDescriptionType {
-    /// An answer.
+    /// The description must be treated as an SDP final answer, and the offer-answer exchange must
+    /// be considered complete.
     Answer,
 
-    /// An offer.
+    /// The description must be treated as an SDP offer.
     Offer,
 
-    /// An answer that is not final.
+    /// The description must be treated as an SDP answer, but not final.
     #[cfg(feature = "unstable-msc2746")]
     PrAnswer,
 
-    /// Cancel the current negotiation and rollback to the stable state.
+    /// The description must be treated as cancelling the current SDP negotiation and moving the
+    /// SDP offer back to what it was in the previous stable state.
     #[cfg(feature = "unstable-msc2746")]
     Rollback,
 
