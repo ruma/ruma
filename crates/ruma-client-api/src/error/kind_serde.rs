@@ -206,6 +206,10 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             },
             ErrCode::CannotLeaveServerNoticeRoom => ErrorKind::CannotLeaveServerNoticeRoom,
             ErrCode::WeakPassword => ErrorKind::WeakPassword,
+            #[cfg(feature = "unstable-msc2246")]
+            ErrCode::NotYetUploaded => ErrorKind::NotYetUploaded,
+            #[cfg(feature = "unstable-msc2246")]
+            ErrCode::CannotOverwriteMedia => ErrorKind::CannotOverwriteMedia,
             ErrCode::_Custom(errcode) => ErrorKind::_Custom { errcode, extra },
         })
     }
@@ -247,6 +251,15 @@ enum ErrCode {
     ResourceLimitExceeded,
     CannotLeaveServerNoticeRoom,
     WeakPassword,
+    #[cfg(feature = "unstable-msc2246")]
+    #[ruma_enum(rename = "FI.MAU.MSC2246_NOT_YET_UPLOADED", alias = "M_NOT_YET_UPLOADED")]
+    NotYetUploaded,
+    #[cfg(feature = "unstable-msc2246")]
+    #[ruma_enum(
+        rename = "FI.MAU.MSC2246_CANNOT_OVERWRITE_MEDIA",
+        alias = "M_CANNOT_OVERWRITE_MEDIA"
+    )]
+    CannotOverwriteMedia,
     _Custom(PrivOwnedStr),
 }
 

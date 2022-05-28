@@ -141,6 +141,14 @@ pub enum ErrorKind {
     /// M_WEAK_PASSWORD
     WeakPassword,
 
+    /// FI.MAU.MSC2246_NOT_YET_UPLOADED
+    #[cfg(feature = "unstable-msc2246")]
+    NotYetUploaded,
+
+    /// FI.MAU.MSC2246_CANNOT_OVERWRITE_MEDIA
+    #[cfg(feature = "unstable-msc2246")]
+    CannotOverwriteMedia,
+
     #[doc(hidden)]
     _Custom { errcode: PrivOwnedStr, extra: Extra },
 }
@@ -185,6 +193,10 @@ impl AsRef<str> for ErrorKind {
             Self::ResourceLimitExceeded { .. } => "M_RESOURCE_LIMIT_EXCEEDED",
             Self::CannotLeaveServerNoticeRoom => "M_CANNOT_LEAVE_SERVER_NOTICE_ROOM",
             Self::WeakPassword => "M_WEAK_PASSWORD",
+            #[cfg(feature = "unstable-msc2246")]
+            Self::NotYetUploaded => "FI.MAU.MSC2246_NOT_YET_UPLOADED",
+            #[cfg(feature = "unstable-msc2246")]
+            Self::CannotOverwriteMedia => "FI.MAU.MSC2246_CANNOT_OVERWRITE_MEDIA",
             Self::_Custom { errcode, .. } => &errcode.0,
         }
     }
