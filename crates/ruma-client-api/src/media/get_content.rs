@@ -91,13 +91,7 @@ pub mod v3 {
         pub fn from_url(url: &'a MxcUri) -> Result<Self, IdParseError> {
             let (server_name, media_id) = url.parts()?;
 
-            Ok(Self {
-                media_id,
-                server_name,
-                allow_remote: true,
-                #[cfg(feature = "unstable-msc2246")]
-                max_stall_ms: None,
-            })
+            Ok(Self::new(media_id, server_name))
         }
     }
 
