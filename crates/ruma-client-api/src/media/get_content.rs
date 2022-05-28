@@ -5,6 +5,8 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixmediav3downloadservernamemediaid
 
+    #[cfg(feature = "unstable-msc2246")]
+    use js_int::UInt;
     use ruma_common::{api::ruma_api, IdParseError, MxcUri, ServerName};
 
     ruma_api! {
@@ -34,6 +36,21 @@ pub mod v3 {
             #[ruma_api(query)]
             #[serde(default = "ruma_common::serde::default_true", skip_serializing_if = "ruma_common::serde::is_true")]
             pub allow_remote: bool,
+
+
+            /// How long to wait for the media to be uploaded
+            ///
+            /// This uses the unstable prefix in
+            /// [MSC2246](https://github.com/matrix-org/matrix-spec-proposals/pull/2246)
+            #[ruma_api(query)]
+            #[cfg(feature = "unstable-msc2246")]
+            #[serde(
+                default,
+                skip_serializing_if = "ruma_common::serde::is_default",
+                rename = "fi.mau.msc2246.max_stall_ms",
+                alias = "max_stall_ms"
+            )]
+            pub max_stall_ms: Option<UInt>,
         }
 
         response: {
@@ -61,14 +78,26 @@ pub mod v3 {
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given media ID and server name.
         pub fn new(media_id: &'a str, server_name: &'a ServerName) -> Self {
-            Self { media_id, server_name, allow_remote: true }
+            Self {
+                media_id,
+                server_name,
+                allow_remote: true,
+                #[cfg(feature = "unstable-msc2246")]
+                max_stall_ms: None,
+            }
         }
 
         /// Creates a new `Request` with the given url.
         pub fn from_url(url: &'a MxcUri) -> Result<Self, IdParseError> {
             let (server_name, media_id) = url.parts()?;
 
-            Ok(Self { media_id, server_name, allow_remote: true })
+            Ok(Self {
+                media_id,
+                server_name,
+                allow_remote: true,
+                #[cfg(feature = "unstable-msc2246")]
+                max_stall_ms: None,
+            })
         }
     }
 
