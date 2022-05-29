@@ -44,7 +44,15 @@ impl CallAnswerEventContent {
         call_id: OwnedVoipId,
         version: VoipVersionId,
     ) -> Self {
-        Self { answer, call_id, party_id: None, version, capabilities: Default::default() }
+        Self {
+            answer,
+            call_id,
+            #[cfg(feature = "unstable-msc2746")]
+            party_id: None,
+            version,
+            #[cfg(feature = "unstable-msc2746")]
+            capabilities: Default::default(),
+        }
     }
 
     /// Convenience method to create a VoIP version 0 `CallAnswerEventContent` with all the required

@@ -57,7 +57,13 @@ pub struct CallHangupEventContent {
 impl CallHangupEventContent {
     /// Creates a new `CallHangupEventContent` with the given call ID and VoIP version.
     pub fn new(call_id: OwnedVoipId, version: VoipVersionId) -> Self {
-        Self { call_id, party_id: None, version, reason: Default::default() }
+        Self {
+            call_id,
+            #[cfg(feature = "unstable-msc2746")]
+            party_id: None,
+            version,
+            reason: Default::default(),
+        }
     }
 
     /// Convenience method to create a VoIP version 0 `CallHangupEventContent` with all the required

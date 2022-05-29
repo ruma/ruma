@@ -42,7 +42,13 @@ impl CallCandidatesEventContent {
     /// Creates a new `CallCandidatesEventContent` with the given call id, candidate list and VoIP
     /// version.
     pub fn new(call_id: OwnedVoipId, candidates: Vec<Candidate>, version: VoipVersionId) -> Self {
-        Self { call_id, candidates, version, party_id: None }
+        Self {
+            call_id,
+            candidates,
+            version,
+            #[cfg(feature = "unstable-msc2746")]
+            party_id: None,
+        }
     }
 
     /// Convenience method to create a VoIP version 0 `CallCandidatesEventContent` with all the

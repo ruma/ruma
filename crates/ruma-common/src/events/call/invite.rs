@@ -66,11 +66,14 @@ impl CallInviteEventContent {
     ) -> Self {
         Self {
             call_id,
+            #[cfg(feature = "unstable-msc2746")]
             party_id: None,
             lifetime,
             offer,
             version,
+            #[cfg(feature = "unstable-msc2746")]
             capabilities: Default::default(),
+            #[cfg(feature = "unstable-msc2746")]
             invitee: None,
         }
     }
