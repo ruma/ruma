@@ -12,11 +12,7 @@ pub mod negotiate;
 pub mod reject;
 #[cfg(feature = "unstable-msc2746")]
 pub mod select_answer;
-#[cfg(feature = "unstable-msc2746")]
-mod version_serde;
 
-#[cfg(feature = "unstable-msc2746")]
-use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
 use crate::{serde::StringEnum, PrivOwnedStr};
@@ -107,41 +103,6 @@ impl OfferSessionDescription {
     /// Creates a new `OfferSessionDescription` with the given SDP text.
     pub fn new(sdp: String) -> Self {
         Self { sdp }
-    }
-}
-
-/// The version of a VoIP call.
-#[cfg(feature = "unstable-msc2746")]
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub enum CallVersion {
-    /// A stable version.
-    ///
-    /// According to the fields and event types used, this can be `0` or `1`.
-    Stable(UInt),
-
-    /// A namespaced version.
-    Namespaced(String),
-}
-
-#[cfg(feature = "unstable-msc2746")]
-impl From<UInt> for CallVersion {
-    fn from(u: UInt) -> Self {
-        Self::Stable(u)
-    }
-}
-
-#[cfg(feature = "unstable-msc2746")]
-impl From<String> for CallVersion {
-    fn from(s: String) -> Self {
-        Self::Namespaced(s)
-    }
-}
-
-#[cfg(feature = "unstable-msc2746")]
-impl From<&str> for CallVersion {
-    fn from(s: &str) -> Self {
-        Self::from(s.to_owned())
     }
 }
 

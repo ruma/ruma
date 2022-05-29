@@ -2,14 +2,12 @@
 //!
 //! [MSC2746]: https://github.com/matrix-org/matrix-spec-proposals/pull/2746
 
-use js_int::uint;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::CallVersion;
-use crate::OwnedVoipId;
+use crate::{OwnedVoipId, VoipVersionId};
 
-/// **Added in version 1.** The content of an `m.call.select_answer` event.
+/// **Added in VoIP version 1.** The content of an `m.call.select_answer` event.
 ///
 /// This event is sent by the caller when it has chosen an answer.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
@@ -29,8 +27,8 @@ pub struct CallSelectAnswerEventContent {
 
     /// The version of the VoIP specification this messages adheres to.
     ///
-    /// Cannot be less than `1`.
-    pub version: CallVersion,
+    /// Cannot be older than `VoipVersionId::V1`.
+    pub version: VoipVersionId,
 }
 
 impl CallSelectAnswerEventContent {
@@ -40,7 +38,7 @@ impl CallSelectAnswerEventContent {
         call_id: OwnedVoipId,
         party_id: OwnedVoipId,
         selected_party_id: OwnedVoipId,
-        version: CallVersion,
+        version: VoipVersionId,
     ) -> Self {
         Self { call_id, party_id, selected_party_id, version }
     }
@@ -52,6 +50,6 @@ impl CallSelectAnswerEventContent {
         party_id: OwnedVoipId,
         selected_party_id: OwnedVoipId,
     ) -> Self {
-        Self::new(call_id, party_id, selected_party_id, uint!(1).into())
+        Self::new(call_id, party_id, selected_party_id, VoipVersionId::V1)
     }
 }

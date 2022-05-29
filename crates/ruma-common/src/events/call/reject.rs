@@ -2,16 +2,14 @@
 //!
 //! [MSC2746]: https://github.com/matrix-org/matrix-spec-proposals/pull/2746
 
-use js_int::uint;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::CallVersion;
-use crate::OwnedVoipId;
+use crate::{OwnedVoipId, VoipVersionId};
 
-/// **Added in version 1.** The content of an `m.call.reject` event.
+/// **Added in VoIP version 1.** The content of an `m.call.reject` event.
 ///
-/// Starting from version 1, this event is sent by the callee to reject an invite.
+/// Starting from VoIP version 1, this event is sent by the callee to reject an invite.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.call.reject", kind = MessageLike)]
@@ -24,19 +22,19 @@ pub struct CallRejectEventContent {
 
     /// The version of the VoIP specification this messages adheres to.
     ///
-    /// Cannot be less than `1`.
-    pub version: CallVersion,
+    /// Cannot be older than `VoipVersionId::V1`.
+    pub version: VoipVersionId,
 }
 
 impl CallRejectEventContent {
     /// Creates a `CallRejectEventContent` with the given call ID, VoIP version and party ID.
-    pub fn new(call_id: OwnedVoipId, party_id: OwnedVoipId, version: CallVersion) -> Self {
+    pub fn new(call_id: OwnedVoipId, party_id: OwnedVoipId, version: VoipVersionId) -> Self {
         Self { call_id, party_id, version }
     }
 
     /// Convenience method to create a version 1 `CallRejectEventContent` with all the required
     /// fields.
     pub fn version_1(call_id: OwnedVoipId, party_id: OwnedVoipId) -> Self {
-        Self::new(call_id, party_id, uint!(1).into())
+        Self::new(call_id, party_id, VoipVersionId::V1)
     }
 }

@@ -11,6 +11,7 @@ Breaking changes:
 * Remove `PartialEq` implementation for `events::call::SessionDescription`
 * Use new `events::call::AnswerSessionDescription` for `CallAnswerEventContent` 
   and `OfferSessionDescription` for `CallInviteEventContent`
+* Use new `VoipVersionId` and `VoipId` types for `events::call` events
 
 Improvements:
 

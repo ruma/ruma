@@ -1,10 +1,8 @@
 use assert_matches::assert_matches;
 use js_int::uint;
-#[cfg(feature = "unstable-msc2746")]
-use ruma_common::events::call::CallVersion;
 use ruma_common::{
     events::{AnyMessageLikeEvent, MessageLikeEvent},
-    MilliSecondsSinceUnixEpoch,
+    MilliSecondsSinceUnixEpoch, VoipVersionId,
 };
 use serde_json::{from_value as from_json_value, json};
 
@@ -25,7 +23,7 @@ fn deserialize_message_event() {
                 "sdp": "Hello"
             },
             "call_id": "foofoo",
-            "version": 1
+            "version": 0
         },
         "event_id": "$h29iv0s8:example.com",
         "origin_server_ts": 1,
@@ -48,8 +46,5 @@ fn deserialize_message_event() {
     let content = message_event.content;
     assert_eq!(content.answer.sdp, "Hello");
     assert_eq!(content.call_id, "foofoo");
-    #[cfg(not(feature = "unstable-msc2746"))]
-    assert_eq!(content.version, uint!(1));
-    #[cfg(feature = "unstable-msc2746")]
-    assert_eq!(content.version, CallVersion::Stable(uint!(1)));
+    assert_eq!(content.version, VoipVersionId::V0);
 }

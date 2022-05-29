@@ -1,8 +1,6 @@
 use assert_matches::assert_matches;
 use assign::assign;
 use js_int::{uint, UInt};
-#[cfg(feature = "unstable-msc2746")]
-use ruma_common::events::call::CallVersion;
 use ruma_common::{
     event_id,
     events::{
@@ -13,7 +11,7 @@ use ruma_common::{
     },
     mxc_uri, room_id,
     serde::Raw,
-    user_id, MilliSecondsSinceUnixEpoch,
+    user_id, MilliSecondsSinceUnixEpoch, VoipVersionId,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -128,7 +126,7 @@ fn deserialize_message_call_answer_content() {
             "sdp": "Hello"
         },
         "call_id": "foofoo",
-        "version": 1
+        "version": 0
     });
 
     let content = assert_matches!(
@@ -141,10 +139,7 @@ fn deserialize_message_call_answer_content() {
 
     assert_eq!(content.answer.sdp, "Hello");
     assert_eq!(content.call_id, "foofoo");
-    #[cfg(not(feature = "unstable-msc2746"))]
-    assert_eq!(content.version, uint!(1));
-    #[cfg(feature = "unstable-msc2746")]
-    assert_eq!(content.version, CallVersion::Stable(uint!(1)));
+    assert_eq!(content.version, VoipVersionId::V0);
 }
 
 #[test]
@@ -156,7 +151,7 @@ fn deserialize_message_call_answer() {
                 "sdp": "Hello"
             },
             "call_id": "foofoo",
-            "version": 1
+            "version": 0
         },
         "event_id": "$h29iv0s8:example.com",
         "origin_server_ts": 1,
@@ -178,10 +173,7 @@ fn deserialize_message_call_answer() {
     let content = message_event.content;
     assert_eq!(content.answer.sdp, "Hello");
     assert_eq!(content.call_id, "foofoo");
-    #[cfg(not(feature = "unstable-msc2746"))]
-    assert_eq!(content.version, uint!(1));
-    #[cfg(feature = "unstable-msc2746")]
-    assert_eq!(content.version, CallVersion::Stable(uint!(1)));
+    assert_eq!(content.version, VoipVersionId::V0);
 }
 
 #[test]
@@ -273,7 +265,7 @@ fn deserialize_message_then_convert_to_full() {
                 "sdp": "Hello"
             },
             "call_id": "foofoo",
-            "version": 1
+            "version": 0
         },
         "event_id": "$h29iv0s8:example.com",
         "origin_server_ts": 1,
@@ -296,8 +288,5 @@ fn deserialize_message_then_convert_to_full() {
     let content = message_event.content;
     assert_eq!(content.answer.sdp, "Hello");
     assert_eq!(content.call_id, "foofoo");
-    #[cfg(not(feature = "unstable-msc2746"))]
-    assert_eq!(content.version, uint!(1));
-    #[cfg(feature = "unstable-msc2746")]
-    assert_eq!(content.version, CallVersion::Stable(uint!(1)));
+    assert_eq!(content.version, VoipVersionId::V0);
 }

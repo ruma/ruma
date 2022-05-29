@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use super::SessionDescription;
 use crate::OwnedVoipId;
 
-/// **Added in version 1.** The content of an `m.call.negotiate` event.
+/// **Added in VoIP version 1.** The content of an `m.call.negotiate` event.
 ///
 /// This event is sent by either party after the call is established to renegotiate it. It can be
 /// used for media pause, hold/resume, ICE restarts and voice/video call up/downgrading.

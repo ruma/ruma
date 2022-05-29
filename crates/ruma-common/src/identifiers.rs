@@ -35,10 +35,12 @@ pub use self::{
     signatures::{DeviceSignatures, EntitySignatures, ServerSignatures, Signatures},
     transaction_id::{OwnedTransactionId, TransactionId},
     user_id::{OwnedUserId, UserId},
+    voip_version_id::VoipVersionId,
 };
 #[doc(inline)]
 pub use ruma_identifiers_validation::error::{
     Error as IdParseError, MatrixIdError, MatrixToError, MatrixUriError, MxcUriError,
+    VoipVersionIdError,
 };
 
 pub mod matrix_uri;
@@ -63,6 +65,8 @@ mod signatures;
 mod transaction_id;
 #[cfg(feature = "unstable-msc2746")]
 mod voip_id;
+#[cfg(feature = "unstable-msc2746")]
+mod voip_version_id;
 
 /// Generates a random identifier localpart.
 #[cfg(feature = "rand")]

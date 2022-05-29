@@ -4,15 +4,14 @@ use ruma_macros::IdZst;
 
 /// A VoIP identifier.
 ///
-/// VoIP identifiers in Matrix are opaque character sequences of `[0-9a-zA-Z._-]`. Their length must
-/// must not exceed 32 characters.
+/// VoIP IDs in Matrix are opaque strings. This type is provided simply for its semantic
+/// value.
 ///
 /// You can create one from a string (using `VoipId::parse()`) but the recommended way is to
 /// use `VoipId::new()` to generate a random one. If that function is not available for you,
 /// you need to activate this crate's `rand` Cargo feature.
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
-#[ruma_id(validate = ruma_identifiers_validation::voip_id::validate)]
 pub struct VoipId(str);
 
 impl VoipId {
@@ -33,7 +32,7 @@ mod tests {
     use super::VoipId;
 
     #[test]
-    fn valid_id() {
+    fn try_from() {
         assert!(<&VoipId>::try_from("this_-_a_valid_secret_1337").is_ok())
     }
 }

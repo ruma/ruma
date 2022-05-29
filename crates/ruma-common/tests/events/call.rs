@@ -14,34 +14,19 @@ use ruma_common::{
             negotiate::CallNegotiateEventContent,
             reject::CallRejectEventContent,
             select_answer::CallSelectAnswerEventContent,
-            AnswerSessionDescription, CallCapabilities, CallVersion, OfferSessionDescription,
+            AnswerSessionDescription, CallCapabilities, OfferSessionDescription,
             SessionDescription, SessionDescriptionType,
         },
         AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
     },
-    room_id, user_id, MilliSecondsSinceUnixEpoch, VoipId,
+    room_id, user_id, MilliSecondsSinceUnixEpoch, VoipVersionId,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 #[test]
-fn call_version_serialize() {
-    assert_eq!(to_json_value(&CallVersion::from(uint!(0))).unwrap(), json!(0));
-    assert_eq!(to_json_value(&CallVersion::from("org.matrix.1b")).unwrap(), json!("org.matrix.1b"));
-}
-
-#[test]
-fn call_version_deserialize() {
-    assert_eq!(from_json_value::<CallVersion>(json!(0)).unwrap(), CallVersion::Stable(uint!(0)));
-    assert_eq!(
-        from_json_value::<CallVersion>(json!("org.matrix.1b")).unwrap(),
-        CallVersion::Namespaced("org.matrix.1b".to_owned())
-    );
-}
-
-#[test]
 fn invite_content_serialization() {
     let event_content = CallInviteEventContent::version_0(
-        VoipId::parse("abcdef").unwrap(),
+        "abcdef".into(),
         uint!(30000),
         OfferSessionDescription::new("not a real sdp".to_owned()),
     );
@@ -64,8 +49,8 @@ fn invite_content_serialization() {
 fn invite_event_serialization() {
     let event = OriginalMessageLikeEvent {
         content: CallInviteEventContent::version_1(
-            VoipId::parse("abcdef").unwrap(),
-            VoipId::parse("9876").unwrap(),
+            "abcdef".into(),
+            "9876".into(),
             uint!(60000),
             OfferSessionDescription::new("not a real sdp".to_owned()),
             CallCapabilities::new(),
@@ -84,7 +69,7 @@ fn invite_event_serialization() {
                 "call_id": "abcdef",
                 "party_id": "9876",
                 "lifetime": 60000,
-                "version": 1,
+                "version": "1",
                 "offer": {
                     "type": "offer",
                     "sdp": "not a real sdp",
@@ -106,7 +91,7 @@ fn invite_event_deserialization() {
             "call_id": "abcdef",
             "party_id": "9876",
             "lifetime": 60000,
-            "version": 1,
+            "version": "1",
             "offer": {
                 "type": "offer",
                 "sdp": "not a real sdp",
@@ -128,7 +113,7 @@ fn invite_event_deserialization() {
     assert_eq!(content.call_id, "abcdef");
     assert_eq!(content.party_id.unwrap(), "9876");
     assert_eq!(content.lifetime, uint!(60000));
-    assert_eq!(content.version, CallVersion::Stable(uint!(1)));
+    assert_eq!(content.version, VoipVersionId::V1);
     assert_eq!(content.offer.sdp, "not a real sdp");
     assert!(!content.capabilities.dtmf);
 }
@@ -137,7 +122,7 @@ fn invite_event_deserialization() {
 fn answer_content_serialization() {
     let event_content = CallAnswerEventContent::version_0(
         AnswerSessionDescription::new("not a real sdp".to_owned()),
-        VoipId::parse("abcdef").unwrap(),
+        "abcdef".into(),
     );
 
     assert_eq!(
@@ -158,8 +143,8 @@ fn answer_event_serialization() {
     let event = OriginalMessageLikeEvent {
         content: CallAnswerEventContent::version_1(
             AnswerSessionDescription::new("not a real sdp".to_owned()),
-            VoipId::parse("abcdef").unwrap(),
-            VoipId::parse("9876").unwrap(),
+            "abcdef".into(),
+            "9876".into(),
             assign!(CallCapabilities::new(), { dtmf: true }),
         ),
         event_id: event_id!("$event:notareal.hs").to_owned(),
@@ -175,7 +160,7 @@ fn answer_event_serialization() {
             "content": {
                 "call_id": "abcdef",
                 "party_id": "9876",
-                "version": 1,
+                "version": "1",
                 "answer": {
                     "type": "answer",
                     "sdp": "not a real sdp",
@@ -223,7 +208,7 @@ fn answer_event_deserialization() {
     let content = message_event.content;
     assert_eq!(content.call_id, "abcdef");
     assert_eq!(content.party_id.unwrap(), "9876");
-    assert_eq!(content.version, CallVersion::Namespaced("org.matrix.1b".to_owned()));
+    assert_eq!(content.version.as_ref(), "org.matrix.1b");
     assert_eq!(content.answer.sdp, "not a real sdp");
     assert!(content.capabilities.dtmf);
 }
@@ -231,7 +216,7 @@ fn answer_event_deserialization() {
 #[test]
 fn candidates_content_serialization() {
     let event_content = CallCandidatesEventContent::version_0(
-        VoipId::parse("abcdef").unwrap(),
+        "abcdef".into(),
         vec![Candidate::new("not a real candidate".to_owned(), "0".to_owned(), uint!(0))],
     );
 
@@ -255,8 +240,8 @@ fn candidates_content_serialization() {
 fn candidates_event_serialization() {
     let event = OriginalMessageLikeEvent {
         content: CallCandidatesEventContent::version_1(
-            VoipId::parse("abcdef").unwrap(),
-            VoipId::parse("9876").unwrap(),
+            "abcdef".into(),
+            "9876".into(),
             vec![
                 Candidate::new("not a real candidate".to_owned(), "0".to_owned(), uint!(0)),
                 Candidate::new("another fake candidate".to_owned(), "0".to_owned(), uint!(1)),
@@ -275,7 +260,7 @@ fn candidates_event_serialization() {
             "content": {
                 "call_id": "abcdef",
                 "party_id": "9876",
-                "version": 1,
+                "version": "1",
                 "candidates": [
                     {
                         "candidate": "not a real candidate",
@@ -304,7 +289,7 @@ fn candidates_event_deserialization() {
         "content": {
             "call_id": "abcdef",
             "party_id": "9876",
-            "version": 1,
+            "version": "1",
             "candidates": [
                 {
                     "candidate": "not a real candidate",
@@ -333,7 +318,7 @@ fn candidates_event_deserialization() {
     let content = message_event.content;
     assert_eq!(content.call_id, "abcdef");
     assert_eq!(content.party_id.unwrap(), "9876");
-    assert_eq!(content.version, CallVersion::Stable(uint!(1)));
+    assert_eq!(content.version, VoipVersionId::V1);
     assert_eq!(content.candidates.len(), 2);
     assert_eq!(content.candidates[0].candidate, "not a real candidate");
     assert_eq!(content.candidates[0].sdp_mid, "0");
@@ -345,7 +330,7 @@ fn candidates_event_deserialization() {
 
 #[test]
 fn hangup_content_serialization() {
-    let event_content = CallHangupEventContent::version_0(VoipId::parse("abcdef").unwrap());
+    let event_content = CallHangupEventContent::version_0("abcdef".into());
 
     assert_eq!(
         to_json_value(&event_content).unwrap(),
@@ -361,8 +346,8 @@ fn hangup_content_serialization() {
 fn hangup_event_serialization() {
     let event = OriginalMessageLikeEvent {
         content: CallHangupEventContent::version_1(
-            VoipId::parse("abcdef").unwrap(),
-            VoipId::parse("9876").unwrap(),
+            "abcdef".into(),
+            "9876".into(),
             Reason::IceFailed,
         ),
         event_id: event_id!("$event:notareal.hs").to_owned(),
@@ -378,7 +363,7 @@ fn hangup_event_serialization() {
             "content": {
                 "call_id": "abcdef",
                 "party_id": "9876",
-                "version": 1,
+                "version": "1",
                 "reason": "ice_failed",
             },
             "event_id": "$event:notareal.hs",
@@ -396,7 +381,7 @@ fn hangup_event_deserialization() {
         "content": {
             "call_id": "abcdef",
             "party_id": "9876",
-            "version": 1,
+            "version": "1",
         },
         "event_id": "$event:notareal.hs",
         "origin_server_ts": 134_829_848,
@@ -413,7 +398,7 @@ fn hangup_event_deserialization() {
     let content = message_event.content;
     assert_eq!(content.call_id, "abcdef");
     assert_eq!(content.party_id.unwrap(), "9876");
-    assert_eq!(content.version, CallVersion::Stable(uint!(1)));
+    assert_eq!(content.version, VoipVersionId::V1);
     assert_eq!(content.reason, Reason::UserHangup);
 }
 
@@ -421,8 +406,8 @@ fn hangup_event_deserialization() {
 fn negotiate_event_serialization() {
     let event = OriginalMessageLikeEvent {
         content: CallNegotiateEventContent::new(
-            VoipId::parse("abcdef").unwrap(),
-            VoipId::parse("9876").unwrap(),
+            "abcdef".into(),
+            "9876".into(),
             uint!(30000),
             SessionDescription::new(SessionDescriptionType::Offer, "not a real sdp".to_owned()),
         ),
@@ -489,10 +474,7 @@ fn negotiate_event_deserialization() {
 #[test]
 fn reject_event_serialization() {
     let event = OriginalMessageLikeEvent {
-        content: CallRejectEventContent::version_1(
-            VoipId::parse("abcdef").unwrap(),
-            VoipId::parse("9876").unwrap(),
-        ),
+        content: CallRejectEventContent::version_1("abcdef".into(), "9876".into()),
         event_id: event_id!("$event:notareal.hs").to_owned(),
         sender: user_id!("@user:notareal.hs").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
@@ -506,7 +488,7 @@ fn reject_event_serialization() {
             "content": {
                 "call_id": "abcdef",
                 "party_id": "9876",
-                "version": 1,
+                "version": "1",
             },
             "event_id": "$event:notareal.hs",
             "origin_server_ts": 134_829_848,
@@ -523,7 +505,7 @@ fn reject_event_deserialization() {
         "content": {
             "call_id": "abcdef",
             "party_id": "9876",
-            "version": 1,
+            "version": "1",
         },
         "event_id": "$event:notareal.hs",
         "origin_server_ts": 134_829_848,
@@ -540,16 +522,16 @@ fn reject_event_deserialization() {
     let content = message_event.content;
     assert_eq!(content.call_id, "abcdef");
     assert_eq!(content.party_id, "9876");
-    assert_eq!(content.version, CallVersion::Stable(uint!(1)));
+    assert_eq!(content.version, VoipVersionId::V1);
 }
 
 #[test]
 fn select_answer_event_serialization() {
     let event = OriginalMessageLikeEvent {
         content: CallSelectAnswerEventContent::version_1(
-            VoipId::parse("abcdef").unwrap(),
-            VoipId::parse("9876").unwrap(),
-            VoipId::parse("6336").unwrap(),
+            "abcdef".into(),
+            "9876".into(),
+            "6336".into(),
         ),
         event_id: event_id!("$event:notareal.hs").to_owned(),
         sender: user_id!("@user:notareal.hs").to_owned(),
@@ -565,7 +547,7 @@ fn select_answer_event_serialization() {
                 "call_id": "abcdef",
                 "party_id": "9876",
                 "selected_party_id": "6336",
-                "version": 1,
+                "version": "1",
             },
             "event_id": "$event:notareal.hs",
             "origin_server_ts": 134_829_848,
@@ -583,7 +565,7 @@ fn select_answer_event_deserialization() {
             "call_id": "abcdef",
             "party_id": "9876",
             "selected_party_id": "6336",
-            "version": 1,
+            "version": "1",
         },
         "event_id": "$event:notareal.hs",
         "origin_server_ts": 134_829_848,
@@ -601,5 +583,5 @@ fn select_answer_event_deserialization() {
     assert_eq!(content.call_id, "abcdef");
     assert_eq!(content.party_id, "9876");
     assert_eq!(content.selected_party_id, "6336");
-    assert_eq!(content.version, CallVersion::Stable(uint!(1)));
+    assert_eq!(content.version, VoipVersionId::V1);
 }

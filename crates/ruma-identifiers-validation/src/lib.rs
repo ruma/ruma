@@ -16,6 +16,7 @@ pub mod server_name;
 pub mod session_id;
 pub mod user_id;
 pub mod voip_id;
+pub mod voip_version_id;
 
 pub use error::Error;
 
