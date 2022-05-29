@@ -1,5 +1,9 @@
 # [unreleased]
 
+Bug fixes:
+
+* Re-export `MatrixIdError`, `MatrixToError`, `MatrixUriError` and `MxcUriError`
+
 Breaking changes:
 
 * Add `user_id` field to `PushConditionRoomCtx`

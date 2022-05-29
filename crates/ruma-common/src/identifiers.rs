@@ -34,7 +34,9 @@ pub use self::{
     user_id::{OwnedUserId, UserId},
 };
 #[doc(inline)]
-pub use ruma_identifiers_validation::error::Error as IdParseError;
+pub use ruma_identifiers_validation::error::{
+    Error as IdParseError, MatrixIdError, MatrixToError, MatrixUriError, MxcUriError,
+};
 
 pub mod matrix_uri;
 pub mod user_id;
