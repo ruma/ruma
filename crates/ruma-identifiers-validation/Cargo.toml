@@ -15,5 +15,5 @@ all-features = true
 compat = []
 
 [dependencies]
-thiserror = "1.0.26"
 js_int = "0.2.0"
+thiserror = "1.0.26"
