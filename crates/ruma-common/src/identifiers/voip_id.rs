@@ -30,8 +30,6 @@ impl VoipId {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::VoipId;
 
     #[test]
