@@ -152,6 +152,8 @@ impl From<&str> for CallVersion {
 pub struct CallCapabilities {
     /// Whether this client supports [DTMF].
     ///
+    /// Defaults to `false`.
+    ///
     /// [DTMF]: https://w3c.github.io/webrtc-pc/#peer-to-peer-dtmf
     #[serde(rename = "m.call.dtmf", default)]
     pub dtmf: bool,
