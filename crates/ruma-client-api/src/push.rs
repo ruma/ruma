@@ -197,10 +197,7 @@ impl RuleKind {
 }
 
 /// Which kind a pusher is.
-///
-/// This type can hold an arbitrary string. To build this with a custom value, convert it from a
-/// string with `::from() / .into()`. To check for formats that are not available as a documented
-/// variant here, use its string representation, obtained through `.as_str()`.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
