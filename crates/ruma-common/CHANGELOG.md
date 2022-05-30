@@ -2,7 +2,8 @@
 
 Bug fixes:
 
-* Re-export `MatrixIdError`, `MatrixToError`, `MatrixUriError` and `MxcUriError`
+* Expose `MatrixIdError`, `MatrixToError`, `MatrixUriError` and `MxcUriError` at
+  the crate root
 
 Breaking changes:
 
