@@ -105,7 +105,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     use base64::{decode_config, STANDARD_NO_PAD};
-    use pkcs8::{der::Decodable, PrivateKeyInfo};
+    use pkcs8::{der::Decode, PrivateKeyInfo};
     use ruma_common::{serde::Base64, RoomVersionId};
     use serde_json::{from_str as from_json_str, to_string as to_json_string};
 
@@ -114,8 +114,8 @@ mod tests {
     };
 
     const PKCS8: &str = "\
-        MFMCAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
-        tA0T+6toSMDIQDdM+tpNzNWQM9NFpfgr4B9S7LHszOrVRp9NfKmeXS3aQ\
+        MFECAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
+        tA0T+6tgSEA3TPraTczVkDPTRaX4K+AfUuyx7Mzq1UafTXypnl0t2k=\
     ";
 
     /// Convenience method for getting the public key as a string

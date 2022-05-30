@@ -114,8 +114,8 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "uns
 ///
 /// ```rust
 /// const PKCS8: &str = "\
-///     MFMCAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
-///     tA0T+6toSMDIQDdM+tpNzNWQM9NFpfgr4B9S7LHszOrVRp9NfKmeXS3aQ\
+///     MFECAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
+///     tA0T+6tgSEA3TPraTczVkDPTRaX4K+AfUuyx7Mzq1UafTXypnl0t2k=\
 /// ";
 ///
 /// let document = base64::decode_config(&PKCS8, base64::STANDARD_NO_PAD).unwrap();
@@ -428,8 +428,8 @@ pub fn reference_hash(
 /// # use ruma_signatures::{hash_and_sign_event, Ed25519KeyPair};
 /// #
 /// const PKCS8: &str = "\
-///     MFMCAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
-///     tA0T+6toSMDIQDdM+tpNzNWQM9NFpfgr4B9S7LHszOrVRp9NfKmeXS3aQ\
+///     MFECAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
+///     tA0T+6tgSEA3TPraTczVkDPTRaX4K+AfUuyx7Mzq1UafTXypnl0t2k=\
 /// ";
 ///
 /// let document = base64::decode_config(&PKCS8, base64::STANDARD_NO_PAD).unwrap();
