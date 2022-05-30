@@ -261,13 +261,6 @@ pub enum MembershipState {
     _Custom(PrivOwnedStr),
 }
 
-impl MembershipState {
-    /// Creates a string slice from this `MembershipState`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 /// Information about a third party invitation.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]

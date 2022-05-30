@@ -328,6 +328,7 @@ pub fn derive_string_enum(input: TokenStream) -> TokenStream {
     fn expand_all(input: ItemEnum) -> syn::Result<proc_macro2::TokenStream> {
         let as_ref_str_impl = expand_enum_as_ref_str(&input)?;
         let from_string_impl = expand_enum_from_string(&input)?;
+        let as_str_impl = expand_as_str_as_ref_str(&input.ident)?;
         let display_impl = expand_display_as_ref_str(&input.ident)?;
         let serialize_impl = expand_serialize_as_ref_str(&input.ident)?;
         let deserialize_impl = expand_deserialize_from_cow_str(&input.ident)?;
@@ -335,6 +336,7 @@ pub fn derive_string_enum(input: TokenStream) -> TokenStream {
         Ok(quote! {
             #as_ref_str_impl
             #from_string_impl
+            #as_str_impl
             #display_impl
             #serialize_impl
             #deserialize_impl

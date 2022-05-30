@@ -63,13 +63,6 @@ pub enum Action {
     _Custom(PrivOwnedStr),
 }
 
-impl Action {
-    /// Creates a string slice from this `Action`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 /// Information about a requested key.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]

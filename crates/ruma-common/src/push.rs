@@ -463,13 +463,6 @@ pub enum PushFormat {
     _Custom(PrivOwnedStr),
 }
 
-impl PushFormat {
-    /// Creates a string slice from this `PushFormat`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;

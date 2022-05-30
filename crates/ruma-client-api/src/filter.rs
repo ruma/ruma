@@ -33,13 +33,6 @@ pub enum EventFormat {
     _Custom(PrivOwnedStr),
 }
 
-impl EventFormat {
-    /// Creates a string slice from this `EventFormat`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 impl Default for EventFormat {
     fn default() -> Self {
         Self::Client
@@ -68,14 +61,6 @@ pub enum RelationType {
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
-}
-
-#[cfg(feature = "unstable-msc3440")]
-impl RelationType {
-    /// Creates a string slice from this `RelationType`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
 }
 
 /// Filters to be applied to room events.

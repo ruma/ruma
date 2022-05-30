@@ -162,13 +162,6 @@ pub mod v1 {
         _Custom(PrivOwnedStr),
     }
 
-    impl NotificationPriority {
-        /// Creates a string slice from this `NotificationPriority`.
-        pub fn as_str(&self) -> &str {
-            self.as_ref()
-        }
-    }
-
     impl Default for NotificationPriority {
         fn default() -> Self {
             Self::High

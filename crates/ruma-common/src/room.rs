@@ -15,10 +15,3 @@ pub enum RoomType {
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
-
-impl RoomType {
-    /// Creates a string slice from this `RoomType`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}

@@ -189,13 +189,6 @@ pub enum RuleKind {
     _Custom(PrivOwnedStr),
 }
 
-impl RuleKind {
-    /// Creates a string slice from this `RuleKind`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 /// Which kind a pusher is.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
@@ -210,11 +203,4 @@ pub enum PusherKind {
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
-}
-
-impl PusherKind {
-    /// Creates a string slice from this `PusherKind`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
 }

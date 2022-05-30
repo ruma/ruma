@@ -248,13 +248,6 @@ pub enum PublicRoomJoinRule {
     _Custom(PrivOwnedStr),
 }
 
-impl PublicRoomJoinRule {
-    /// Returns the string name of this `PublicRoomJoinRule`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 impl Default for PublicRoomJoinRule {
     fn default() -> Self {
         Self::Public

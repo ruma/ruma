@@ -1484,13 +1484,6 @@ pub enum ServerNoticeType {
     _Custom(PrivOwnedStr),
 }
 
-impl ServerNoticeType {
-    /// Creates a string slice from this `ServerNoticeType`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 /// Types of usage limits.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
@@ -1507,13 +1500,6 @@ pub enum LimitType {
     _Custom(PrivOwnedStr),
 }
 
-impl LimitType {
-    /// Creates a string slice from this `LimitType`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 /// The format for the formatted representation of a message body.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
@@ -1525,13 +1511,6 @@ pub enum MessageFormat {
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
-}
-
-impl MessageFormat {
-    /// Creates a string slice from this `MessageFormat`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
 }
 
 /// Common message event content fields for message types that have separate plain-text and
