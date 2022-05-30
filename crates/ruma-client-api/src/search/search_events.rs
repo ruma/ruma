@@ -295,10 +295,7 @@ pub mod v3 {
     }
 
     /// The keys to search for.
-    ///
-    /// This type can hold an arbitrary string. To build this with a custom value, convert it from a
-    /// string with `::from() / .into()`. To check for formats that are not available as a
-    /// documented variant here, use its string representation, obtained through `.as_str()`.
+    #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
     #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
     #[non_exhaustive]
     pub enum SearchKeys {
@@ -326,10 +323,7 @@ pub mod v3 {
     }
 
     /// The order in which to search for results.
-    ///
-    /// This type can hold an arbitrary string. To build this with a custom value, convert it from a
-    /// string with `::from() / .into()`. To check for formats that are not available as a
-    /// documented variant here, use its string representation, obtained through `.as_str()`.
+    #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
     #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[ruma_enum(rename_all = "snake_case")]
