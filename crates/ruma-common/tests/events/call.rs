@@ -399,7 +399,7 @@ fn hangup_event_deserialization() {
     assert_eq!(content.call_id, "abcdef");
     assert_eq!(content.party_id.unwrap(), "9876");
     assert_eq!(content.version, VoipVersionId::V1);
-    assert_eq!(content.reason, Reason::UserHangup);
+    assert_eq!(content.reason, Some(Reason::UserHangup));
 }
 
 #[test]

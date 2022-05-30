@@ -3,6 +3,8 @@
 //! [`m.call.hangup`]: https://spec.matrix.org/v1.2/client-server-api/#mcallhangup
 
 use ruma_macros::EventContent;
+#[cfg(feature = "unstable-msc2746")]
+use serde::Serializer;
 use serde::{Deserialize, Serialize};
 
 use crate::{serde::StringEnum, OwnedVoipId, PrivOwnedStr, VoipVersionId};
@@ -39,19 +41,16 @@ pub struct CallHangupEventContent {
 
     /// Optional error reason for the hangup.
     ///
-    /// With the `unstable-msc2746` feature, this field is required.
-    #[cfg(not(feature = "unstable-msc2746"))]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    /// With the `unstable-msc2746` feature, this field defaults to `Some(Reason::UserHangup)`.
+    #[cfg_attr(not(feature = "unstable-msc2746"), serde(skip_serializing_if = "Option::is_none"))]
+    #[cfg_attr(
+        feature = "unstable-msc2746",
+        serde(
+            default = "Reason::option_with_default",
+            serialize_with = "Reason::serialize_option_with_default"
+        )
+    )]
     pub reason: Option<Reason>,
-
-    /// Error reason for the hangup.
-    ///
-    /// Defaults to [`Reason::UserHangup`] if it is missing.
-    ///
-    /// Without the `unstable-msc2746` feature, this field is optional.
-    #[cfg(feature = "unstable-msc2746")]
-    #[serde(default)]
-    pub reason: Reason,
 }
 
 impl CallHangupEventContent {
@@ -76,7 +75,7 @@ impl CallHangupEventContent {
     /// fields.
     #[cfg(feature = "unstable-msc2746")]
     pub fn version_1(call_id: OwnedVoipId, party_id: OwnedVoipId, reason: Reason) -> Self {
-        Self { call_id, party_id: Some(party_id), version: VoipVersionId::V1, reason }
+        Self { call_id, party_id: Some(party_id), version: VoipVersionId::V1, reason: Some(reason) }
     }
 }
 
@@ -130,6 +129,26 @@ impl Reason {
     /// Creates a string slice from this `Reason`.
     pub fn as_str(&self) -> &str {
         self.as_ref()
+    }
+
+    #[cfg(feature = "unstable-msc2746")]
+    fn serialize_option_with_default<S>(
+        reason: &Option<Reason>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        if let Some(reason) = &reason {
+            reason.serialize(serializer)
+        } else {
+            Self::default().serialize(serializer)
+        }
+    }
+
+    #[cfg(feature = "unstable-msc2746")]
+    fn option_with_default() -> Option<Self> {
+        Some(Self::default())
     }
 }
 
