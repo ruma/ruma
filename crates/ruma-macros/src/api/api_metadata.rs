@@ -397,12 +397,7 @@ impl Parse for History {
 
         // Sort so that the order is [Unstable, Unstable, 1.0, 1.1, 1.2, 2.0, 2.1]
         // for optimized method purposes.
-        entries.sort_by(|a, b| {
-            let a = a.version().map(|v| v.to_parts()).unwrap_or((0, 0));
-            let b = b.version().map(|v| v.to_parts()).unwrap_or((0, 0));
-
-            a.cmp(&b)
-        });
+        entries.sort_by_key(|a| a.version().map(|v| v.to_parts()).unwrap_or((0, 0)));
 
         Ok(History { entries, misc })
     }
