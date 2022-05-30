@@ -90,31 +90,31 @@ impl Ed25519KeyPair {
     /// generated from the private key. This is a fallback and extra validation against
     /// corruption or
     pub fn from_der(document: &[u8], version: String) -> Result<Self, Error> {
+        #[cfg(feature = "ring-compat")]
+        use self::compat::CompatibleDocument;
         use pkcs8::der::Decode;
 
+        #[cfg(feature = "ring-compat")]
+        let backing: Vec<u8>;
         let oak;
 
         #[cfg(feature = "ring-compat")]
         {
-            use self::compat::CompatibleDocument;
-
             oak = match CompatibleDocument::from_bytes(document) {
                 CompatibleDocument::WellFormed(bytes) => {
                     PrivateKeyInfo::from_der(bytes).map_err(Error::DerParse)?
                 }
                 CompatibleDocument::CleanedFromRing(vec) => {
-                    oak = PrivateKeyInfo::from_der(&vec).map_err(Error::DerParse)?;
+                    backing = vec;
 
-                    return Self::from_pkcs8_oak(oak, version);
+                    PrivateKeyInfo::from_der(&backing).map_err(Error::DerParse)?
                 }
             }
         }
-
         #[cfg(not(feature = "ring-compat"))]
         {
             oak = PrivateKeyInfo::from_der(document).map_err(Error::DerParse)?;
         }
-
         Self::from_pkcs8_oak(oak, version)
     }
 
