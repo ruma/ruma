@@ -4,7 +4,6 @@ use js_int::{uint, UInt};
 use ruma_common::{
     event_id,
     events::{
-        call::{answer::CallAnswerEventContent, AnswerSessionDescription},
         room::{ImageInfo, MediaSource, ThumbnailInfo},
         sticker::StickerEventContent,
         AnyMessageLikeEvent, AnyMessageLikeEventContent, AnySyncMessageLikeEvent, MessageLikeEvent,
@@ -12,7 +11,7 @@ use ruma_common::{
     },
     mxc_uri, room_id,
     serde::Raw,
-    user_id, MilliSecondsSinceUnixEpoch,
+    user_id, MilliSecondsSinceUnixEpoch, VoipVersionId,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -127,24 +126,20 @@ fn deserialize_message_call_answer_content() {
             "sdp": "Hello"
         },
         "call_id": "foofoo",
-        "version": 1
+        "version": 0
     });
 
-    assert_matches!(
+    let content = assert_matches!(
         from_json_value::<Raw<AnyMessageLikeEventContent>>(json_data)
             .unwrap()
             .deserialize_content(MessageLikeEventType::CallAnswer)
             .unwrap(),
-        AnyMessageLikeEventContent::CallAnswer(CallAnswerEventContent {
-            answer: AnswerSessionDescription {
-                sdp,
-                ..
-            },
-            call_id,
-            version,
-            ..
-        }) if sdp == "Hello" && call_id == "foofoo" && version == UInt::new(1).unwrap()
+        AnyMessageLikeEventContent::CallAnswer(content) => content
     );
+
+    assert_eq!(content.answer.sdp, "Hello");
+    assert_eq!(content.call_id, "foofoo");
+    assert_eq!(content.version, VoipVersionId::V0);
 }
 
 #[test]
@@ -156,7 +151,7 @@ fn deserialize_message_call_answer() {
                 "sdp": "Hello"
             },
             "call_id": "foofoo",
-            "version": 1
+            "version": 0
         },
         "event_id": "$h29iv0s8:example.com",
         "origin_server_ts": 1,
@@ -165,30 +160,20 @@ fn deserialize_message_call_answer() {
         "type": "m.call.answer"
     });
 
-    assert_matches!(
+    let message_event = assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(OriginalMessageLikeEvent {
-            content: CallAnswerEventContent {
-                answer: AnswerSessionDescription {
-                    sdp,
-                    ..
-                },
-                call_id,
-                version,
-                ..
-            },
-            event_id,
-            origin_server_ts,
-            room_id,
-            sender,
-            unsigned,
-        })) if sdp == "Hello" && call_id == "foofoo" && version == UInt::new(1).unwrap()
-            && event_id == event_id!("$h29iv0s8:example.com")
-            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
-            && room_id == room_id!("!roomid:room.com")
-            && sender == user_id!("@carl:example.com")
-            && unsigned.is_empty()
+        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(message_event)) => message_event
     );
+    assert_eq!(message_event.event_id, "$h29iv0s8:example.com");
+    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+    assert_eq!(message_event.room_id, "!roomid:room.com");
+    assert_eq!(message_event.sender, "@carl:example.com");
+    assert!(message_event.unsigned.is_empty());
+
+    let content = message_event.content;
+    assert_eq!(content.answer.sdp, "Hello");
+    assert_eq!(content.call_id, "foofoo");
+    assert_eq!(content.version, VoipVersionId::V0);
 }
 
 #[test]
@@ -280,7 +265,7 @@ fn deserialize_message_then_convert_to_full() {
                 "sdp": "Hello"
             },
             "call_id": "foofoo",
-            "version": 1
+            "version": 0
         },
         "event_id": "$h29iv0s8:example.com",
         "origin_server_ts": 1,
@@ -290,30 +275,18 @@ fn deserialize_message_then_convert_to_full() {
 
     let sync_ev: AnySyncMessageLikeEvent = from_json_value(json_data).unwrap();
 
-    assert_matches!(
+    let message_event = assert_matches!(
         sync_ev.into_full_event(rid.to_owned()),
-        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(OriginalMessageLikeEvent {
-            content: CallAnswerEventContent {
-                answer: AnswerSessionDescription {
-                    sdp,
-                    ..
-                },
-                call_id,
-                version,
-                ..
-            },
-            event_id,
-            origin_server_ts,
-            room_id,
-            sender,
-            unsigned,
-        })) if sdp == "Hello"
-            && call_id == "foofoo"
-            && version == uint!(1)
-            && event_id == "$h29iv0s8:example.com"
-            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
-            && room_id == "!roomid:room.com"
-            && sender == "@carl:example.com"
-            && unsigned.is_empty()
+        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(message_event)) => message_event
     );
+    assert_eq!(message_event.event_id, "$h29iv0s8:example.com");
+    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+    assert_eq!(message_event.room_id, "!roomid:room.com");
+    assert_eq!(message_event.sender, "@carl:example.com");
+    assert!(message_event.unsigned.is_empty());
+
+    let content = message_event.content;
+    assert_eq!(content.answer.sdp, "Hello");
+    assert_eq!(content.call_id, "foofoo");
+    assert_eq!(content.version, VoipVersionId::V0);
 }
