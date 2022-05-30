@@ -164,6 +164,7 @@ __ci = [
     "unstable-msc3554",
     "unstable-msc3618",
     "unstable-msc3723",
+    "unstable-msc3575",
 ]
 
 [dependencies]

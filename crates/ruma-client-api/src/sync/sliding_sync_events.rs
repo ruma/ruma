@@ -5,17 +5,15 @@ use std::{collections::BTreeMap, time::Duration};
 use js_int::UInt;
 use ruma_common::{
     api::ruma_api,
-    presence::PresenceState,
     events::{
-        presence::PresenceEvent, AnySyncRoomEvent, AnySyncStateEvent, AnyStrippedStateEvent,
-        EventType
+        AnySyncRoomEvent, AnySyncStateEvent, AnyStrippedStateEvent,
+        RoomEventType
     },
-    DeviceKeyAlgorithm, RoomId, UserId, OwnedRoomId,
+    OwnedRoomId,
     serde::Raw, serde::duration::opt_ms,
 };
 use serde::{Deserialize, Serialize};
 use super::sync_events::v3::UnreadNotificationsCount;
-use crate::filter::{FilterDefinition};
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -50,6 +48,26 @@ pub struct SyncRequestListFilters {
     /// invited rooms are returned.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_invite: Option<bool>,
+
+    /// Flag which only returns rooms which have an `m.room.tombstone` state event. If unset,
+    /// both tombstoned and un-tombstoned rooms are returned. If false, only un-tombstoned rooms
+    /// are returned. If true, only tombstoned rooms are returned.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_tombstoned: Option<bool>,
+
+    /// If specified, only rooms where the `m.room.create` event has a `type` matching one
+    /// of the strings in this array will be returned. If this field is unset, all rooms are
+    /// returned regardless of type. This can be used to get the initial set of spaces for an account.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub room_types: Option<Vec<String>>,
+
+    /// Same as "room_types" but inverted. This can be used to filter out spaces from the room list.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub not_room_types: Option<Vec<String>>,
+
+    /// Filter the room name. Case-insensitive partial matching e.g 'foo' matches 'abFooab'.
+    /// The term 'like' is inspired by SQL 'LIKE', and the text here is similar to '%foo%'.
+    pub room_name_like: Option<String>
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -66,7 +84,7 @@ pub struct SyncRequestList {
     /// Note that elements of this array are NOT sticky so they must be specified in full when they
     /// are changed.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub required_state: Option<Vec<(EventType, String)>>,
+    pub required_state: Option<Vec<(RoomEventType, String)>>,
 
     /// Sticky. The maximum number of timeline events to return per room
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -84,7 +102,7 @@ pub struct RoomSubscription {
     /// Note that elements of this array are NOT sticky so they must be specified in full when they
     /// are changed.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub required_state: Option<Vec<(EventType, String)>>,
+    pub required_state: Option<Vec<(RoomEventType, String)>>,
 
     /// Sticky. The maximum number of timeline events to return per room
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -154,13 +172,10 @@ ruma_api! {
 
         /// Updates to the sliding room list
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub ops: Option<Vec<Raw<SyncOp>>>,
+        pub lists: Vec<SyncList>,
 
-        /// The number of available rooms(?)
-        pub counts: Vec<UInt>,
-
-        /// Updates to subscribed rooms.
-        pub room_subscriptions: Option<BTreeMap<OwnedRoomId, Room>>,
+        /// The updates on rooms
+        pub rooms: Option<BTreeMap<OwnedRoomId, SlidingSyncRoom>>
     }
 
     error: crate::Error
@@ -179,9 +194,8 @@ impl Response {
         Self {
             initial: Default::default(),
             pos,
-            ops: Default::default(),
-            counts: Default::default(),
-            room_subscriptions: Default::default(),
+            lists: Default::default(),
+            rooms: Default::default(),
         }
     }
 }
@@ -199,23 +213,34 @@ pub enum SlidingOp {
 /// Updates to joined rooms.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct SyncList {
+    /// The sync operation to apply, if any
+    pub ops: Option<Vec<SyncOp>>,
+
+    /// The total number of rooms found for this filter
+    pub count: UInt,
+}
+
+/// Updates to joined rooms.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SyncOp {
-    /// Which room list this op refers to
-    pub list: UInt,
-
-    /// The range this list update applies to
-    pub range: (UInt, UInt),
-
     /// The sync operation to apply
     pub op: SlidingOp,
 
-    /// The list of room updates to apply
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub rooms: Option<Vec<Room>>,
+    /// The range this list update applies to
+    pub range: Option<(UInt, UInt)>,
 
-    /// On insert we are only receiving exactly one room
+    /// Or the specific index the update applies to
+    pub index: Option<UInt>,
+
+    /// The list of room_ids updates to apply
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub room: Option<Room>,
+    pub room_ids: Option<Vec<OwnedRoomId>>,
+
+    /// On insert we are only receiving exactly one room_id
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub room_id: Option<OwnedRoomId>,
 }
 
 /// Updates to joined rooms.
@@ -223,7 +248,7 @@ pub struct SyncOp {
 /// both updates in room subscriptions as well as ops.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct Room {
+pub struct SlidingSyncRoom {
     /// The room ID (only set on op updates due to the API being asymmetric)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub room_id: Option<String>,
@@ -264,7 +289,7 @@ pub struct Room {
     pub prev_batch: Option<String>,
 }
 
-impl Room {
+impl SlidingSyncRoom {
     /// Creates an empty `Room`.
     pub fn new() -> Self {
         Default::default()
