@@ -11,6 +11,9 @@ use ruma_common::serde::Base64;
 
 use crate::{signatures::Signature, Algorithm, Error, ParseError};
 
+#[cfg(feature = "ring-compat")]
+pub mod compat;
+
 /// A cryptographic key pair for digitally signing data.
 pub trait KeyPair: Sized {
     /// Signs a JSON object.
@@ -87,23 +90,22 @@ impl Ed25519KeyPair {
     /// generated from the private key. This is a fallback and extra validation against
     /// corruption or
     pub fn from_der(document: &[u8], version: String) -> Result<Self, Error> {
-        #[cfg(feature = "ring-compat")]
-        use self::compat::CompatibleDocument;
         use pkcs8::der::Decode;
 
-        #[cfg(feature = "ring-compat")]
-        let backing: Vec<u8>;
         let oak;
 
         #[cfg(feature = "ring-compat")]
         {
+            use self::compat::CompatibleDocument;
+
             oak = match CompatibleDocument::from_bytes(document) {
                 CompatibleDocument::WellFormed(bytes) => {
                     PrivateKeyInfo::from_der(bytes).map_err(Error::DerParse)?
                 }
                 CompatibleDocument::CleanedFromRing(vec) => {
-                    backing = vec;
-                    PrivateKeyInfo::from_der(&backing).map_err(Error::DerParse)?
+                    oak = PrivateKeyInfo::from_der(&vec).map_err(Error::DerParse)?;
+
+                    return Self::from_pkcs8_oak(oak, version);
                 }
             }
         }
@@ -196,71 +198,6 @@ impl Debug for Ed25519KeyPair {
             .field("public_key", &self.pubkey.as_bytes())
             .field("version", &self.version)
             .finish()
-    }
-}
-
-#[cfg(feature = "ring-compat")]
-pub mod compat {
-    use subslice::SubsliceExt as _;
-
-    #[derive(Debug)]
-    pub enum CompatibleDocument<'a> {
-        WellFormed(&'a [u8]),
-        CleanedFromRing(Vec<u8>),
-    }
-
-    impl<'a> CompatibleDocument<'a> {
-        pub fn from_bytes(bytes: &'a [u8]) -> Self {
-            if is_ring(bytes) {
-                Self::CleanedFromRing(fix_ring_doc(bytes.to_vec()))
-            } else {
-                Self::WellFormed(bytes)
-            }
-        }
-    }
-
-    // Ring uses a very specific template to generate its documents,
-    // and so this is essentially a sentinel value of that.
-    //
-    // It corresponds to CONTEXT-SPECIFIC[1](35) { BIT-STRING(32) {...} } in ASN.1
-    //
-    // A well-formed bit would look like just CONTEXT-SPECIFIC[1](32) { ... }
-    //
-    // Note: this is purely a sentinel value, don't take these bytes out of context
-    // to detect or fiddle with the document.
-    const RING_TEMPLATE_CONTEXT_SPECIFIC: &[u8] = &[0xA1, 0x23, 0x03, 0x21];
-
-    // A checked well-formed context-specific[1] prefix.
-    const WELL_FORMED_CONTEXT_ONE_PREFIX: &[u8] = &[0x81, 0x21];
-
-    // If present, removes a malfunctioning pubkey suffix and adjusts the length at the start.
-    fn fix_ring_doc(mut doc: Vec<u8>) -> Vec<u8> {
-        assert!(!doc.is_empty());
-        // Check if first tag is ASN.1 SEQUENCE
-        assert_eq!(doc[0], 0x30);
-        // Second byte asserts the length for the rest of the document
-        assert_eq!(doc[1] as usize, doc.len() - 2);
-
-        let idx = doc
-            .find(RING_TEMPLATE_CONTEXT_SPECIFIC)
-            .expect("Expected to find ring template in doc, but found none.");
-
-        // Snip off the malformed bit.
-        let suffix = doc.split_off(idx);
-
-        // Feed back an actual well-formed prefix.
-        doc.extend(WELL_FORMED_CONTEXT_ONE_PREFIX);
-
-        // Then give it the actual public key.
-        doc.extend(&suffix[4..]);
-
-        doc[1] = doc.len() as u8 - 2;
-
-        doc
-    }
-
-    fn is_ring<'a>(bytes: &'a [u8]) -> bool {
-        bytes.find(RING_TEMPLATE_CONTEXT_SPECIFIC).is_some()
     }
 }
 
