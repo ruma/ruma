@@ -33,13 +33,6 @@ pub enum HashAlgorithm {
     _Custom(PrivOwnedStr),
 }
 
-impl HashAlgorithm {
-    /// Creates a string slice from this `HashAlgorithm`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 /// A key agreement protocol.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
@@ -54,13 +47,6 @@ pub enum KeyAgreementProtocol {
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
-}
-
-impl KeyAgreementProtocol {
-    /// Creates a string slice from this `KeyAgreementProtocol`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
 }
 
 /// A message authentication code algorithm.
@@ -79,13 +65,6 @@ pub enum MessageAuthenticationCode {
     _Custom(PrivOwnedStr),
 }
 
-impl MessageAuthenticationCode {
-    /// Creates a string slice from this `MessageAuthenticationCode`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 /// A Short Authentication String method.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
@@ -100,13 +79,6 @@ pub enum ShortAuthenticationString {
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
-}
-
-impl ShortAuthenticationString {
-    /// Creates a string slice from this `ShortAuthenticationString`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
 }
 
 /// A relation which associates an `m.key.verification.request` with another key verification event.
@@ -148,13 +120,6 @@ pub enum VerificationMethod {
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
-}
-
-impl VerificationMethod {
-    /// Creates a string slice from this `VerificationMethod`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
 }
 
 #[cfg(test)]

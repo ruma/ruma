@@ -203,11 +203,4 @@ pub mod v3 {
         #[doc(hidden)]
         _Custom(PrivOwnedStr),
     }
-
-    impl RoomPreset {
-        /// Creates a string slice from this `RoomPreset`.
-        pub fn as_str(&self) -> &str {
-            self.as_ref()
-        }
-    }
 }

@@ -212,13 +212,6 @@ pub enum RoomVersionStability {
     _Custom(PrivOwnedStr),
 }
 
-impl RoomVersionStability {
-    /// Creates a string slice from this `RoomVersionStability`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 /// Information about the `m.set_displayname` capability
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]

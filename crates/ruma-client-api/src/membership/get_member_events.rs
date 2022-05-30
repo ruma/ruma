@@ -100,13 +100,6 @@ pub mod v3 {
         _Custom(PrivOwnedStr),
     }
 
-    impl MembershipEventFilter {
-        /// Creates a string slice from this `MembershipEventFilter`.
-        pub fn as_str(&self) -> &str {
-            self.as_ref()
-        }
-    }
-
     #[cfg(all(test, feature = "server"))]
     mod tests {
         use assert_matches::assert_matches;

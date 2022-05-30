@@ -47,10 +47,3 @@ pub enum FeedbackType {
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
-
-impl FeedbackType {
-    /// Creates a string slice from this `FeedbackType`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}

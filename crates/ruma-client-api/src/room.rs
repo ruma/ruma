@@ -26,13 +26,6 @@ pub enum Visibility {
     _Custom(PrivOwnedStr),
 }
 
-impl Visibility {
-    /// Creates a string slice from this `Visibility`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 impl Default for Visibility {
     fn default() -> Self {
         Self::Private

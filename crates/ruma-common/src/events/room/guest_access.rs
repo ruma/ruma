@@ -63,10 +63,3 @@ pub enum GuestAccess {
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
-
-impl GuestAccess {
-    /// Creates a string slice from this `GuestAccess`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}

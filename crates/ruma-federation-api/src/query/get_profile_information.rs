@@ -98,11 +98,4 @@ pub mod v1 {
         #[doc(hidden)]
         _Custom(PrivOwnedStr),
     }
-
-    impl ProfileField {
-        /// Creates a string slice from this `ProfileField`.
-        pub fn as_str(&self) -> &str {
-            self.as_ref()
-        }
-    }
 }

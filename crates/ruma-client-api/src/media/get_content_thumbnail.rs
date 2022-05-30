@@ -135,11 +135,4 @@ pub mod v3 {
         #[doc(hidden)]
         _Custom(PrivOwnedStr),
     }
-
-    impl Method {
-        /// Creates a string slice from this `Method`.
-        pub fn as_str(&self) -> &str {
-            self.as_ref()
-        }
-    }
 }

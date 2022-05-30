@@ -126,11 +126,6 @@ pub enum Reason {
 }
 
 impl Reason {
-    /// Creates a string slice from this `Reason`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-
     #[cfg(feature = "unstable-msc2746")]
     fn serialize_option_with_default<S>(
         reason: &Option<Reason>,

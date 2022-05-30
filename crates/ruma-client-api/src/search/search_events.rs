@@ -265,13 +265,6 @@ pub mod v3 {
         _Custom(PrivOwnedStr),
     }
 
-    impl GroupingKey {
-        /// Creates a string slice from this `GroupingKey`.
-        pub fn as_str(&self) -> &str {
-            self.as_ref()
-        }
-    }
-
     /// Requests that the server partitions the result set based on the provided list of keys.
     #[derive(Clone, Default, Debug, Incoming, Serialize)]
     #[incoming_derive(Default)]
@@ -313,13 +306,6 @@ pub mod v3 {
 
         #[doc(hidden)]
         _Custom(PrivOwnedStr),
-    }
-
-    impl SearchKeys {
-        /// Creates a string slice from this `SearchKeys`.
-        pub fn as_str(&self) -> &str {
-            self.as_ref()
-        }
     }
 
     /// The order in which to search for results.

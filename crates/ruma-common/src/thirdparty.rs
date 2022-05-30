@@ -234,13 +234,6 @@ pub enum Medium {
     _Custom(PrivOwnedStr),
 }
 
-impl Medium {
-    /// Creates a string slice from this `Medium`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 /// An identifier external to Matrix.
 ///
 /// To create an instance of this type, first create a `ThirdPartyIdentifierInit` and convert it to
