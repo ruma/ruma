@@ -249,10 +249,6 @@ pub struct SyncOp {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SlidingSyncRoom {
-    /// The room ID (only set on op updates due to the API being asymmetric)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub room_id: Option<String>,
-
     /// The name of the room as calculated by the server
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
