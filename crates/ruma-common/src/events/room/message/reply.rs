@@ -1,7 +1,5 @@
 use std::fmt;
 
-use indoc::formatdoc;
-
 use super::{FormattedBody, MessageType, OriginalRoomMessageEvent};
 
 pub fn get_message_quote_fallbacks(
@@ -44,17 +42,15 @@ fn get_quotes(
 
     (
         format!("> {emote_sign}<{sender}> {body}").replace('\n', "\n> "),
-        formatdoc!(
-            "
-            <mx-reply>
-                <blockquote>
-                    <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
-                    {emote_sign}<a href=\"https://matrix.to/#/{sender}\">{sender}</a>
-                    <br>
-                    {html_body}
-                </blockquote>
-            </mx-reply>
-            "
+        format!(
+            "<mx-reply>\
+                <blockquote>\
+                    <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a> \
+                    {emote_sign}<a href=\"https://matrix.to/#/{sender}\">{sender}</a>\
+                    <br>\
+                    {html_body}\
+                </blockquote>\
+            </mx-reply>"
         ),
     )
 }
@@ -98,8 +94,8 @@ mod tests {
     use super::OriginalRoomMessageEvent;
 
     #[test]
-    fn plain_quote_fallback_multiline() {
-        let (plain_quote, _html_quote) =
+    fn fallback_multiline() {
+        let (plain_quote, html_quote) =
             super::get_message_quote_fallbacks(&OriginalRoomMessageEvent {
                 content: RoomMessageEventContent::text_plain("multi\nline"),
                 event_id: event_id!("$1598361704261elfgc:localhost").to_owned(),
@@ -110,5 +106,16 @@ mod tests {
             });
 
         assert_eq!(plain_quote, "> <@alice:example.com> multi\n> line");
+        assert_eq!(
+            html_quote,
+            "<mx-reply>\
+                <blockquote>\
+                    <a href=\"https://matrix.to/#/!n8f893n9:example.com/$1598361704261elfgc:localhost\">In reply to</a> \
+                    <a href=\"https://matrix.to/#/@alice:example.com\">@alice:example.com</a>\
+                    <br>\
+                    multi\nline\
+                </blockquote>\
+            </mx-reply>"
+        );
     }
 }
