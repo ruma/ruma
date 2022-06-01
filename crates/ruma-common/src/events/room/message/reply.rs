@@ -55,11 +55,28 @@ fn get_quotes(
     )
 }
 
-fn formatted_or_plain_body<'a>(formatted: Option<&'a FormattedBody>, body: &'a str) -> &'a str {
+fn formatted_or_plain_body(formatted: Option<&FormattedBody>, body: &str) -> String {
     if let Some(formatted_body) = formatted {
-        &formatted_body.body
+        formatted_body.body.clone()
     } else {
-        body
+        let mut escaped_body = String::with_capacity(body.len());
+        for c in body.chars() {
+            let s = match c {
+                '&' => Some("&amp;"),
+                '<' => Some("&lt;"),
+                '>' => Some("&gt;"),
+                '"' => Some("&quot;"),
+                '\'' => Some("&apos;"),
+                '\n' => Some("<br>"),
+                _ => None,
+            };
+            if let Some(s) = s {
+                escaped_body.push_str(s);
+            } else {
+                escaped_body.push(c);
+            }
+        }
+        escaped_body
     }
 }
 
@@ -113,7 +130,7 @@ mod tests {
                     <a href=\"https://matrix.to/#/!n8f893n9:example.com/$1598361704261elfgc:localhost\">In reply to</a> \
                     <a href=\"https://matrix.to/#/@alice:example.com\">@alice:example.com</a>\
                     <br>\
-                    multi\nline\
+                    multi<br>line\
                 </blockquote>\
             </mx-reply>"
         );
