@@ -27,6 +27,8 @@ events = ["thiserror"]
 # TODO: Use weak dependency features once MSRV >= 1.60
 js = ["js-sys", "getrandom/js", "uuid/js"]
 markdown = ["pulldown-cmark"]
+# Should use dep:rand instead of the dependency being renamed, but that
+# breaks trybuild: https://github.com/dtolnay/trybuild/issues/171
 rand = ["rand_crate", "uuid"]
 unstable-exhaustive-types = []
 unstable-pdu = []
