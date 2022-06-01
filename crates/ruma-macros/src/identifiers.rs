@@ -70,7 +70,7 @@ pub fn expand_id_zst(input: ItemStruct) -> syn::Result<TokenStream> {
     let id_ty = quote! { #id #ty_generics };
     let owned_ty = quote! { #owned #ty_generics };
 
-    let partial_eq_string = expand_partial_eq_string(quote! { #id_ty }, &impl_generics);
+    let partial_eq_string = expand_partial_eq_string(id_ty.clone(), &impl_generics);
     // FIXME: Remove?
     let box_partial_eq_string = expand_partial_eq_string(quote! { Box<#id_ty> }, &impl_generics);
 
@@ -230,7 +230,7 @@ fn expand_owned_id(input: &ItemStruct) -> TokenStream {
     let id_ty = quote! { #id #ty_generics };
     let owned_ty = quote! { #owned #ty_generics };
 
-    let partial_eq_string = expand_partial_eq_string(quote! { #owned_ty }, &impl_generics);
+    let partial_eq_string = expand_partial_eq_string(owned_ty.clone(), &impl_generics);
 
     quote! {
         #[doc = #doc_header]
