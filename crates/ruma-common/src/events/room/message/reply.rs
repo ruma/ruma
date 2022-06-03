@@ -1,8 +1,8 @@
 use std::fmt;
 
-#[cfg(feature = "sanitize")]
-use super::sanitize_html;
 use super::{remove_plain_reply_fallback, FormattedBody, MessageType, OriginalRoomMessageEvent};
+#[cfg(feature = "sanitize")]
+use super::{sanitize_html, RemoveReplyFallback};
 
 fn get_message_quote_fallbacks(original_message: &OriginalRoomMessageEvent) -> (String, String) {
     match &original_message.content.msgtype {
@@ -60,7 +60,7 @@ fn formatted_or_plain_body(formatted: Option<&FormattedBody>, body: &str) -> Str
     if let Some(formatted_body) = formatted {
         #[cfg(feature = "sanitize")]
         {
-            sanitize_html(&formatted_body.body, true)
+            sanitize_html(&formatted_body.body, RemoveReplyFallback::Yes)
         }
 
         #[cfg(not(feature = "sanitize"))]

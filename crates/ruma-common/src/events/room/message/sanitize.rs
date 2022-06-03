@@ -7,7 +7,7 @@
 /// [tags and attributes]: https://spec.matrix.org/v1.2/client-server-api/#mroommessage-msgtypes
 /// [rich reply fallback]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
 #[cfg(feature = "sanitize")]
-pub fn sanitize_html(s: &str, remove_reply_fallback: bool) -> String {
+pub fn sanitize_html(s: &str, remove_reply_fallback: RemoveReplyFallback) -> String {
     let allowed_tags = [
         "font",
         "del",
@@ -67,13 +67,27 @@ pub fn sanitize_html(s: &str, remove_reply_fallback: bool) -> String {
         builder.add_tag_attributes(tag, attr);
     }
 
-    if remove_reply_fallback {
+    if remove_reply_fallback == RemoveReplyFallback::Yes {
         builder.add_clean_content_tags(["mx-reply"]);
     } else {
         builder.add_tags(["mx-reply"]);
     }
 
     builder.clean(s).to_string()
+}
+
+/// Whether to remove the [rich reply fallback] while sanitizing.
+///
+/// [rich reply fallback]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
+#[cfg(feature = "sanitize")]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[allow(clippy::exhaustive_enums)]
+pub enum RemoveReplyFallback {
+    /// Remove the rich reply fallback.
+    Yes,
+
+    /// Don't remove the rich reply fallback.
+    No,
 }
 
 /// Remove the [rich reply fallback] of the given plain text string.
@@ -98,7 +112,7 @@ pub fn remove_plain_reply_fallback(s: &str) -> &str {
 mod tests {
     use super::remove_plain_reply_fallback;
     #[cfg(feature = "sanitize")]
-    use super::sanitize_html;
+    use super::{sanitize_html, RemoveReplyFallback};
 
     #[test]
     #[cfg(feature = "sanitize")]
@@ -116,7 +130,7 @@ mod tests {
             <removed>This has no tag</removed>\
             <p>But this is inside a tag</p>\
             ",
-            false
+            RemoveReplyFallback::Yes
         );
 
         assert_eq!(
@@ -152,7 +166,7 @@ mod tests {
             <removed>This has no tag</removed>\
             <p>But this is inside a tag</p>\
             ",
-            true
+            RemoveReplyFallback::Yes
         );
 
         assert_eq!(

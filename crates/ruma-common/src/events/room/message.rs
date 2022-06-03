@@ -37,7 +37,7 @@ pub use location::{LocationInfo, LocationMessageEventContent};
 pub use notice::NoticeMessageEventContent;
 pub use sanitize::remove_plain_reply_fallback;
 #[cfg(feature = "sanitize")]
-pub use sanitize::sanitize_html;
+pub use sanitize::{sanitize_html, RemoveReplyFallback};
 pub use server_notice::{LimitType, ServerNoticeMessageEventContent, ServerNoticeType};
 pub use text::TextMessageEventContent;
 pub use video::{VideoInfo, VideoMessageEventContent};
@@ -355,7 +355,7 @@ impl RoomMessageEventContent {
     /// [tags and attributes]: https://spec.matrix.org/v1.2/client-server-api/#mroommessage-msgtypes
     /// [rich reply fallback]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
     #[cfg(feature = "sanitize")]
-    pub fn sanitize(&mut self, remove_reply_fallback: bool) {
+    pub fn sanitize(&mut self, remove_reply_fallback: RemoveReplyFallback) {
         match &mut self.msgtype {
             MessageType::Emote(EmoteMessageEventContent { body, formatted, .. })
             | MessageType::Notice(NoticeMessageEventContent { body, formatted, .. })
@@ -366,7 +366,7 @@ impl RoomMessageEventContent {
                     }
                     formatted
                 });
-                if remove_reply_fallback {
+                if remove_reply_fallback == RemoveReplyFallback::Yes {
                     *body = remove_plain_reply_fallback(body).to_owned();
                 }
             }
@@ -718,7 +718,7 @@ impl FormattedBody {
     /// [tags and attributes]: https://spec.matrix.org/v1.2/client-server-api/#mroommessage-msgtypes
     /// [rich reply fallback]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
     #[cfg(feature = "sanitize")]
-    pub fn sanitize_html(&self, remove_reply_fallback: bool) -> Option<String> {
+    pub fn sanitize_html(&self, remove_reply_fallback: RemoveReplyFallback) -> Option<String> {
         (self.format == MessageFormat::Html)
             .then(|| sanitize_html(&self.body, remove_reply_fallback))
     }
