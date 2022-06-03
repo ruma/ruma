@@ -17,7 +17,7 @@ pub mod v3 {
         },
         room::RoomType,
         serde::{Raw, StringEnum},
-        OwnedRoomId, OwnedUserId, RoomName, RoomVersionId,
+        OwnedRoomId, OwnedUserId, RoomVersionId,
     };
     use serde::{Deserialize, Serialize};
 
@@ -68,7 +68,7 @@ pub mod v3 {
             /// If this is included, an `m.room.name` event will be sent into the room to indicate the
             /// name of the room.
             #[serde(skip_serializing_if = "Option::is_none")]
-            pub name: Option<&'a RoomName>,
+            pub name: Option<&'a str>,
 
             /// Power level content to override in the default power level event.
             #[serde(skip_serializing_if = "Option::is_none")]

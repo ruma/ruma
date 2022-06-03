@@ -165,9 +165,8 @@ pub use ruma_common::{
     EntitySignatures, EventEncryptionAlgorithm, EventId, IdParseError, KeyId, KeyName, MatrixToUri,
     MatrixUri, MilliSecondsSinceUnixEpoch, MxcUri, OwnedClientSecret, OwnedDeviceId,
     OwnedDeviceKeyId, OwnedDeviceSigningKeyId, OwnedEventId, OwnedKeyId, OwnedKeyName, OwnedMxcUri,
-    OwnedRoomAliasId, OwnedRoomId, OwnedRoomName, OwnedRoomOrAliasId, OwnedServerName,
-    OwnedServerSigningKeyId, OwnedSessionId, OwnedSigningKeyId, OwnedTransactionId, OwnedUserId,
-    PrivOwnedStr, RoomAliasId, RoomId, RoomName, RoomOrAliasId, RoomVersionId,
-    SecondsSinceUnixEpoch, ServerName, ServerSignatures, ServerSigningKeyId, SessionId, Signatures,
-    SigningKeyAlgorithm, TransactionId, UserId,
+    OwnedRoomAliasId, OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName, OwnedServerSigningKeyId,
+    OwnedSessionId, OwnedSigningKeyId, OwnedTransactionId, OwnedUserId, PrivOwnedStr, RoomAliasId,
+    RoomId, RoomOrAliasId, RoomVersionId, SecondsSinceUnixEpoch, ServerName, ServerSignatures,
+    ServerSigningKeyId, SessionId, Signatures, SigningKeyAlgorithm, TransactionId, UserId,
 };

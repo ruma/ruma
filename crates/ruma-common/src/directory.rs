@@ -14,7 +14,7 @@ use serde::{
 };
 use serde_json::Value as JsonValue;
 
-use crate::{OwnedMxcUri, PrivOwnedStr, RoomName};
+use crate::{OwnedMxcUri, PrivOwnedStr};
 
 /// A chunk of a room list response, describing one room.
 ///
@@ -33,7 +33,7 @@ pub struct PublicRoomsChunk {
 
     /// The name of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<Box<RoomName>>,
+    pub name: Option<String>,
 
     /// The number of members joined to the room.
     pub num_joined_members: UInt,

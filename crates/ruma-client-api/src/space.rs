@@ -9,7 +9,7 @@ use ruma_common::{
     events::space::child::HierarchySpaceChildEvent,
     room::RoomType,
     serde::{Raw, StringEnum},
-    OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, RoomName,
+    OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -34,7 +34,7 @@ pub struct SpaceHierarchyRoomsChunk {
 
     /// The name of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<Box<RoomName>>,
+    pub name: Option<String>,
 
     /// The number of members joined to the room.
     pub num_joined_members: UInt,

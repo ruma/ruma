@@ -14,7 +14,7 @@ pub mod v1 {
         events::RoomEventType,
         push::{PushFormat, Tweak},
         serde::{Incoming, StringEnum},
-        EventId, RoomAliasId, RoomId, RoomName, SecondsSinceUnixEpoch, UserId,
+        EventId, RoomAliasId, RoomId, SecondsSinceUnixEpoch, UserId,
     };
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
@@ -98,7 +98,7 @@ pub mod v1 {
 
         /// The name of the room in which the event occurred.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_name: Option<&'a RoomName>,
+        pub room_name: Option<&'a str>,
 
         /// An alias to display for the room in which the event occurred.
         #[serde(skip_serializing_if = "Option::is_none")]

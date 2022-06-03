@@ -24,7 +24,6 @@ pub use self::{
     mxc_uri::{MxcUri, OwnedMxcUri},
     room_alias_id::{OwnedRoomAliasId, RoomAliasId},
     room_id::{OwnedRoomId, RoomId},
-    room_name::{OwnedRoomName, RoomName},
     room_or_room_alias_id::{OwnedRoomOrAliasId, RoomOrAliasId},
     room_version_id::RoomVersionId,
     server_name::{OwnedServerName, ServerName},
@@ -54,7 +53,6 @@ mod key_name;
 mod mxc_uri;
 mod room_alias_id;
 mod room_id;
-mod room_name;
 mod room_or_room_alias_id;
 mod room_version_id;
 mod server_name;

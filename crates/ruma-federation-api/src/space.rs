@@ -3,7 +3,7 @@
 use js_int::UInt;
 use ruma_common::{
     directory::PublicRoomJoinRule, events::space::child::HierarchySpaceChildEvent, room::RoomType,
-    serde::Raw, OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, RoomName,
+    serde::Raw, OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -26,7 +26,7 @@ pub struct SpaceHierarchyParentSummary {
 
     /// The name of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<Box<RoomName>>,
+    pub name: Option<String>,
 
     /// The number of members joined to the room.
     pub num_joined_members: UInt,
@@ -155,7 +155,7 @@ pub struct SpaceHierarchyChildSummary {
 
     /// The name of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<Box<RoomName>>,
+    pub name: Option<String>,
 
     /// The number of members joined to the room.
     pub num_joined_members: UInt,

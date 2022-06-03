@@ -10,7 +10,6 @@ pub mod mxc_uri;
 pub mod room_alias_id;
 pub mod room_id;
 pub mod room_id_or_alias_id;
-pub mod room_name;
 pub mod room_version_id;
 pub mod server_name;
 pub mod session_id;
