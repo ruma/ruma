@@ -96,7 +96,7 @@ impl Package {
             ..self.version.clone()
         };
 
-        let update = if changelog.starts_with(&format!("# {version}\n")) {
+        let update = if changelog.contains(&format!("# {version}\n")) {
             false
         } else if changelog.starts_with(&format!("# {version} (unreleased)\n"))
             || changelog.starts_with("# [unreleased]\n")
