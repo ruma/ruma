@@ -16,7 +16,6 @@ all-features = true
 
 [features]
 unstable-exhaustive-types = []
-helper = ["ruma-client-api", "tracing"]
 client = []
 server = []
 
