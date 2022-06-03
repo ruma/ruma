@@ -93,7 +93,7 @@ mod tests {
         assert_eq!(
             to_json_string(&json).unwrap(),
             r#"{"auth":{"mxid":"@john.doe:example.com","profile":{"display_name":"John Doe","three_pids":[{"address":"john.doe@example.org","medium":"email"},{"address":"123456789","medium":"msisdn"}]},"success":true}}"#
-        )
+        );
     }
 
     #[test]

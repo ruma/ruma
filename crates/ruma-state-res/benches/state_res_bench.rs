@@ -53,7 +53,7 @@ fn lexico_topo_sort(c: &mut Criterion) {
             let _ = state_res::lexicographical_topological_sort(&graph, |_id| {
                 Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0))))
             });
-        })
+        });
     });
 }
 
@@ -81,7 +81,7 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
                 Ok(state) => state,
                 Err(e) => panic!("{}", e),
             };
-        })
+        });
     });
 }
 
@@ -139,7 +139,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
                 Ok(state) => state,
                 Err(_) => panic!("resolution failed during benchmarking"),
             };
-        })
+        });
     });
 }
 

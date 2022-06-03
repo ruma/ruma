@@ -256,7 +256,7 @@ impl Parse for EventEnumEntry {
                 let alias = alias_attr.into_inner();
 
                 if alias.value().ends_with(".*") == has_suffix {
-                    aliases.push(alias)
+                    aliases.push(alias);
                 } else {
                     return Err(syn::Error::new_spanned(
                         &attr_list,

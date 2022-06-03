@@ -33,6 +33,6 @@ mod tests {
 
     #[test]
     fn try_from() {
-        assert!(<&VoipId>::try_from("this_-_a_valid_secret_1337").is_ok())
+        assert!(<&VoipId>::try_from("this_-_a_valid_secret_1337").is_ok());
     }
 }

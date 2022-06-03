@@ -329,6 +329,6 @@ impl Parse for EndpointPath {
 
 impl ToTokens for EndpointPath {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self.0.to_tokens(tokens)
+        self.0.to_tokens(tokens);
     }
 }

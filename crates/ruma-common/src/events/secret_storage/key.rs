@@ -147,7 +147,7 @@ mod tests {
             if name == *"my_key"
                 && iv == Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap()
                 && mac == Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap()
-        )
+        );
     }
 
     #[test]
@@ -216,7 +216,7 @@ mod tests {
                 && salt == *"rocksalt"
                 && iterations == uint!(8)
                 && bits == uint!(256)
-        )
+        );
     }
 
     #[test]
@@ -274,6 +274,6 @@ mod tests {
                 && name == *"my_key"
                 && iv == Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap()
                 && mac == Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap()
-        )
+        );
     }
 }

@@ -468,7 +468,7 @@ fn negotiate_event_deserialization() {
     assert_eq!(content.party_id, "9876");
     assert_eq!(content.lifetime, uint!(30000));
     assert_eq!(content.description.session_type, SessionDescriptionType::PrAnswer);
-    assert_eq!(content.description.sdp, "not a real sdp")
+    assert_eq!(content.description.sdp, "not a real sdp");
 }
 
 #[test]

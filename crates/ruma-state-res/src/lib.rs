@@ -738,7 +738,7 @@ mod tests {
                 "$END:foo"
             ],
             sorted_event_ids.iter().map(|id| id.to_string()).collect::<Vec<_>>()
-        )
+        );
     }
 
     #[test]
@@ -746,7 +746,7 @@ mod tests {
         for _ in 0..20 {
             // since we shuffle the eventIds before we sort them introducing randomness
             // seems like we should test this a few times
-            test_event_sort()
+            test_event_sort();
         }
     }
 
@@ -794,7 +794,7 @@ mod tests {
         let expected_state_ids =
             vec!["PA", "MA", "MB"].into_iter().map(event_id).collect::<Vec<_>>();
 
-        do_check(events, edges, expected_state_ids)
+        do_check(events, edges, expected_state_ids);
     }
 
     #[test]
@@ -855,7 +855,7 @@ mod tests {
 
         let expected_state_ids = vec!["PA2", "T2"].into_iter().map(event_id).collect::<Vec<_>>();
 
-        do_check(events, edges, expected_state_ids)
+        do_check(events, edges, expected_state_ids);
     }
 
     #[test]
@@ -902,7 +902,7 @@ mod tests {
         let expected_state_ids =
             vec!["T1", "MB", "PA"].into_iter().map(event_id).collect::<Vec<_>>();
 
-        do_check(events, edges, expected_state_ids)
+        do_check(events, edges, expected_state_ids);
     }
 
     #[test]
@@ -934,7 +934,7 @@ mod tests {
 
         let expected_state_ids = vec![event_id("JR")];
 
-        do_check(events, edges, expected_state_ids)
+        do_check(events, edges, expected_state_ids);
     }
 
     #[test]
@@ -975,7 +975,7 @@ mod tests {
 
         let expected_state_ids = vec!["PC"].into_iter().map(event_id).collect::<Vec<_>>();
 
-        do_check(events, edges, expected_state_ids)
+        do_check(events, edges, expected_state_ids);
     }
 
     #[test]
@@ -1052,7 +1052,7 @@ mod tests {
 
         let expected_state_ids = vec!["T4", "PA2"].into_iter().map(event_id).collect::<Vec<_>>();
 
-        do_check(events, edges, expected_state_ids)
+        do_check(events, edges, expected_state_ids);
     }
 
     #[test]
@@ -1082,7 +1082,7 @@ mod tests {
             Err(e) => panic!("{}", e),
         };
 
-        assert_eq!(expected, resolved)
+        assert_eq!(expected, resolved);
     }
 
     #[test]
@@ -1109,7 +1109,7 @@ mod tests {
                 .map(ToString::to_string)
                 .map(|s| s.replace('$', "").replace(":foo", ""))
                 .collect::<Vec<_>>()
-        )
+        );
     }
 
     #[test]
@@ -1202,9 +1202,9 @@ mod tests {
 
         for id in expected.iter().map(|i| event_id(i)) {
             // make sure our resolved events are equal to the expected list
-            assert!(resolved.values().any(|eid| eid == &id) || init.contains_key(&id), "{}", id)
+            assert!(resolved.values().any(|eid| eid == &id) || init.contains_key(&id), "{}", id);
         }
-        assert_eq!(expected.len(), resolved.len())
+        assert_eq!(expected.len(), resolved.len());
     }
 
     #[test]

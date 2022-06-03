@@ -231,7 +231,7 @@ mod test {
             if secret == "org.example.some.secret".into()
                     && requesting_device_id == "ABCDEFG"
                     && request_id == "randomly_generated_id_9573"
-        )
+        );
     }
 
     #[test]
@@ -251,7 +251,7 @@ mod test {
             }
             if requesting_device_id.as_str() == "ABCDEFG"
                     && request_id == "randomly_generated_id_9573"
-        )
+        );
     }
 
     #[test]
@@ -274,7 +274,7 @@ mod test {
             }
             if requesting_device_id == "XYZxyz"
                     && request_id == "this_is_a_request_id"
-        )
+        );
     }
 
     #[test]
@@ -295,6 +295,6 @@ mod test {
             if action == RequestAction::_Custom(PrivOwnedStr("my_custom_action".into()))
                 && requesting_device_id == "XYZxyz"
                 && request_id == "this_is_a_request_id"
-        )
+        );
     }
 }

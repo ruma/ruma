@@ -50,7 +50,11 @@ async fn run() -> Result<(), Box<dyn Error>> {
         })
         .await
         {
-            eprintln!("Failed to persist access token to disk. Re-authentication will be required on the next startup: {}", err)
+            eprintln!(
+                "Failed to persist access token to disk. \
+                 Re-authentication will be required on the next startup: {}",
+                err
+            );
         }
         client
     } else {
@@ -91,14 +95,14 @@ async fn run() -> Result<(), Box<dyn Error>> {
                 if let Err(err) =
                     handle_message(http_client, matrix_client, e, room_id, user_id).await
                 {
-                    eprintln!("failed to respond to message: {}", err)
+                    eprintln!("failed to respond to message: {}", err);
                 }
             }
         });
 
         let invite_futures = response.rooms.invite.iter().map(|(room_id, _)| async move {
             if let Err(err) = handle_invitations(http_client, matrix_client, room_id).await {
-                eprintln!("failed to accept invitation for room {}: {}", &room_id, err)
+                eprintln!("failed to accept invitation for room {}: {}", &room_id, err);
             }
         });
 
@@ -240,10 +244,9 @@ async fn read_config() -> io::Result<Config> {
                 "homeserver" => homeserver = Some(value.trim().to_owned()),
                 // TODO: infer domain from `homeserver`
                 "username" => {
-                    username =
-                        value.trim().to_owned().try_into().map_err(|e| {
-                            format!("invalid Matrix user ID format for `username`: {}", e)
-                        })
+                    username = value.trim().to_owned().try_into().map_err(|e| {
+                        format!("invalid Matrix user ID format for `username`: {}", e)
+                    });
                 }
                 "password" => password = Some(value.trim().to_owned()),
                 _ => {}
@@ -256,7 +259,7 @@ async fn read_config() -> io::Result<Config> {
         (homeserver, username) => {
             let mut error = String::from("Invalid config specified:");
             if homeserver.is_none() {
-                error.push_str("\n  required field `homeserver` is missing")
+                error.push_str("\n  required field `homeserver` is missing");
             }
             if let Err(e) = username {
                 error.push_str("\n  ");

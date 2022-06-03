@@ -100,7 +100,7 @@ fn deserialize_list_of_str() {
         Err(error) if error.to_string().contains("unsupported")
     );
 
-    assert_eq!(urlencoded::from_str("a=a&a=b"), Ok(vec![("a", vec!["a", "b"])]))
+    assert_eq!(urlencoded::from_str("a=a&a=b"), Ok(vec![("a", vec!["a", "b"])]));
 }
 
 #[test]

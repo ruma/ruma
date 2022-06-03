@@ -30,7 +30,7 @@ impl<T> ValOrVec<T> {
                     let existing_val = ptr::read(val);
                     vec.push(existing_val);
                     vec.push(new_val);
-                    ptr::write(self, ValOrVec::Vec(vec))
+                    ptr::write(self, ValOrVec::Vec(vec));
                 }
             }
             ValOrVec::Vec(vec) => vec.push(new_val),

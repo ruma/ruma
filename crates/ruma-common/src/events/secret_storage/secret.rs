@@ -102,7 +102,7 @@ mod tests {
                 if iv == &Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap()
                     && ciphertext == &Base64::parse("dGhpc2lzZGVmaW5pdGVseWNpcGhlcnRleHQ").unwrap()
                     && mac == &Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap()
-            )
+            );
         }
     }
 }

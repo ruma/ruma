@@ -622,7 +622,7 @@ mod tests {
                 && sender == "@alice:example.org"
                 && state_key == "@alice:example.org"
                 && unsigned.is_empty()
-        )
+        );
     }
 
     #[test]

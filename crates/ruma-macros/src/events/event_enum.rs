@@ -658,7 +658,7 @@ impl EventEnumVariant {
             }
         }
         if let Some(p) = prefix {
-            tokens.extend(quote! { #p :: })
+            tokens.extend(quote! { #p :: });
         }
         self.ident.to_tokens(&mut tokens);
 

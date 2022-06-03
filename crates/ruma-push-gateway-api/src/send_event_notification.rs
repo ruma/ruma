@@ -453,7 +453,7 @@ pub mod v1 {
                 ..Notification::default()
             };
 
-            assert_eq!(expected, to_json_value(notice).unwrap())
+            assert_eq!(expected, to_json_value(notice).unwrap());
         }
     }
 }

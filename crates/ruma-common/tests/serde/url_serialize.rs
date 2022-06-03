@@ -92,7 +92,7 @@ fn serialize_nested_list() {
     assert_matches!(
         urlencoded::to_string(params),
         Err(Error::Custom(s)) if s.contains("unsupported")
-    )
+    );
 }
 
 #[test]

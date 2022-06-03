@@ -667,7 +667,7 @@ pub mod v3 {
             assert!(query.contains("since=s72594_4483_1934"));
             assert!(query.contains("full_state=true"));
             assert!(query.contains("set_presence=offline"));
-            assert!(query.contains("timeout=30000"))
+            assert!(query.contains("timeout=30000"));
         }
     }
 

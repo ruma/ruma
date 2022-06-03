@@ -160,10 +160,10 @@ fn generate_enum(
                     _s if _s.starts_with(#prefix) => {
                         #ctor(::std::convert::From::from(_s.strip_prefix(#prefix).unwrap()))
                     }
-                })
+                });
             }
         } else {
-            from_str_match_arms.extend(quote! { #(#attrs)* #(#ev_types)|* => #ctor, })
+            from_str_match_arms.extend(quote! { #(#attrs)* #(#ev_types)|* => #ctor, });
         }
     }
 

@@ -47,13 +47,13 @@ mod tests {
     #[test]
     fn serialize_filter_events_with_url() {
         let events_with_url = UrlFilter::EventsWithUrl;
-        assert_eq!(to_json_value(events_with_url).unwrap(), json!(true))
+        assert_eq!(to_json_value(events_with_url).unwrap(), json!(true));
     }
 
     #[test]
     fn serialize_filter_events_without_url() {
         let events_without_url = UrlFilter::EventsWithoutUrl;
-        assert_eq!(to_json_value(events_without_url).unwrap(), json!(false))
+        assert_eq!(to_json_value(events_without_url).unwrap(), json!(false));
     }
 
     #[test]

@@ -738,7 +738,7 @@ mod tests {
             )
             .unwrap_err(),
             MatrixToError::UnknownArgument.into()
-        )
+        );
     }
 
     #[test]

@@ -783,7 +783,7 @@ pub fn redact_content_in_place(
     version: &RoomVersionId,
     event_type: impl AsRef<str>,
 ) {
-    object_retain_keys(object, allowed_content_keys_for(event_type.as_ref(), version))
+    object_retain_keys(object, allowed_content_keys_for(event_type.as_ref(), version));
 }
 
 fn object_retain_keys(object: &mut CanonicalJsonObject, keys: &[&str]) {
@@ -1065,8 +1065,8 @@ mod tests {
 
         let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V9);
 
-        assert!(verification_result.is_err()) // Should be Err(VerificationError::
-                                              // signature_not_found("domain-authorized")));
+        // Should be Err(VerificationError::signature_not_found("domain-authorized")));
+        assert!(verification_result.is_err());
     }
 
     #[test]
@@ -1152,7 +1152,9 @@ mod tests {
         if let Error::Verification(VerificationError::Signature(error)) = error_msg {
             // dalek doesn't expose InternalError :(
             // https://github.com/dalek-cryptography/ed25519-dalek/issues/174
-            assert!(format!("{:?}", error).contains("Some(Verification equation was not satisfied)"))
+            assert!(
+                format!("{:?}", error).contains("Some(Verification equation was not satisfied)")
+            );
         } else {
             panic!("Error was not VerificationError::Signature: {:?}", error_msg);
         };

@@ -256,7 +256,7 @@ impl Parse for ResponseField {
 
 impl ToTokens for ResponseField {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.field().to_tokens(tokens)
+        self.field().to_tokens(tokens);
     }
 }
 

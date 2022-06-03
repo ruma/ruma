@@ -489,6 +489,6 @@ impl Parse for RequestField {
 
 impl ToTokens for RequestField {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.field().to_tokens(tokens)
+        self.field().to_tokens(tokens);
     }
 }

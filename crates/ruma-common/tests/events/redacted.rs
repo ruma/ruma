@@ -131,7 +131,7 @@ fn redacted_aliases_deserialize() {
             }),
         )) if event_id == event_id!("$h29iv0s8:example.com")
             && aliases.is_none()
-    )
+    );
 }
 
 #[test]
@@ -156,7 +156,7 @@ fn redacted_deserialize_any_room() {
             }),
         )) if event_id == event_id!("$h29iv0s8:example.com")
             && room_id == room_id!("!roomid:room.com")
-    )
+    );
 }
 
 #[test]
@@ -194,7 +194,7 @@ fn redacted_deserialize_any_room_sync() {
                 ..
             }),
         )) if event_id == event_id!("$h29iv0s8:example.com")
-    )
+    );
 }
 
 #[test]
@@ -226,7 +226,7 @@ fn redacted_state_event_deserialize() {
         )) if event_id == event_id!("$h29iv0s8:example.com")
             && unsigned.redacted_because.is_some()
             && creator == user_id!("@carl:example.com")
-    )
+    );
 }
 
 #[test]
@@ -246,7 +246,7 @@ fn redacted_custom_event_serialize() {
     );
 
     let x = from_json_value::<AnySyncStateEvent>(redacted).unwrap();
-    assert_eq!(x.event_id(), event_id!("$h29iv0s8:example.com"))
+    assert_eq!(x.event_id(), event_id!("$h29iv0s8:example.com"));
 }
 
 /* #[test]

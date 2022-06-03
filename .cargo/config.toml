@@ -28,6 +28,7 @@ rustflags = [
     "-Wclippy::needless_borrow",
     "-Aclippy::new_without_default",
     "-Wclippy::nonstandard_macro_braces",
+    "-Wclippy::semicolon_if_nothing_returned",
     "-Wclippy::str_to_string",
     "-Wclippy::todo",
     "-Wclippy::unreadable_literal",
