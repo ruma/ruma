@@ -96,7 +96,9 @@ pub fn remove_plain_reply_fallback(s: &str) -> &str {
 
 #[cfg(test)]
 mod tests {
-    use super::{remove_plain_reply_fallback, sanitize_html};
+    use super::remove_plain_reply_fallback;
+    #[cfg(feature = "sanitize")]
+    use super::sanitize_html;
 
     #[test]
     #[cfg(feature = "sanitize")]
