@@ -6,10 +6,7 @@ use js_int::uint;
 use ruma_common::{
     event_id,
     events::{
-        location::{
-            AssetContent, AssetType, LocationContent, LocationEventContent, ZoomLevel,
-            ZoomLevelError,
-        },
+        location::{AssetType, LocationContent, LocationEventContent, ZoomLevel, ZoomLevelError},
         message::MessageContent,
         room::message::{
             InReplyTo, LocationMessageEventContent, MessageType, Relation, RoomMessageEventContent,
@@ -113,28 +110,15 @@ fn plain_content_deserialization() {
         },
     });
 
-    assert_matches!(
-        from_json_value::<LocationEventContent>(json_data)
-            .unwrap(),
-        LocationEventContent {
-            message,
-            location: LocationContent {
-                uri,
-                description: None,
-                zoom_level: None,
-                ..
-            },
-            asset: AssetContent {
-                type_: AssetType::Self_,
-                ..
-            },
-            ts: None,
-            ..
-        }
-        if message.find_plain() == Some("Alice was at geo:51.5008,0.1247;u=35")
-            && message.find_html().is_none()
-            && uri == "geo:51.5008,0.1247;u=35"
-    );
+    let ev = from_json_value::<LocationEventContent>(json_data).unwrap();
+
+    assert_eq!(ev.message.find_plain(), Some("Alice was at geo:51.5008,0.1247;u=35"));
+    assert_eq!(ev.message.find_html(), None);
+    assert_eq!(ev.location.uri, "geo:51.5008,0.1247;u=35");
+    assert_eq!(ev.location.description, None);
+    assert_matches!(ev.location.zoom_level, None);
+    assert_eq!(ev.asset.type_, AssetType::Self_);
+    assert_eq!(ev.ts, None);
 }
 
 #[test]
@@ -160,12 +144,9 @@ fn zoomlevel_deserialization_too_high() {
         "zoom_level": 30,
     });
 
-    assert_matches!(
-        from_json_value::<LocationContent>(json_data),
-        Err(err)
-            if err.is_data()
-            && format!("{err}") == format!("{}", ZoomLevelError::TooHigh)
-    );
+    let err = from_json_value::<LocationContent>(json_data).unwrap_err();
+    assert!(err.is_data());
+    assert_eq!(err.to_string(), ZoomLevelError::TooHigh.to_string());
 }
 
 #[test]
@@ -194,41 +175,27 @@ fn message_event_deserialization() {
         "type": "m.location",
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Location(MessageLikeEvent::Original(OriginalMessageLikeEvent {
-            content: LocationEventContent {
-                message,
-                location: LocationContent {
-                    uri,
-                    description: Some(description),
-                    zoom_level: Some(zoom_level),
-                    ..
-                },
-                asset: AssetContent {
-                    type_: AssetType::Self_,
-                    ..
-                },
-                ts: Some(ts),
-                ..
-            },
-            event_id,
-            origin_server_ts,
-            room_id,
-            sender,
-            unsigned
-        })) if event_id == event_id!("$event:notareal.hs")
-            && message.find_plain() == Some("Alice was at geo:51.5008,0.1247;u=35 as of Sat Nov 13 18:50:58 2021")
-            && message.find_html().is_none()
-            && uri == "geo:51.5008,0.1247;u=35"
-            && description == "Alice's whereabouts"
-            && zoom_level.get() == uint!(4)
-            && ts == MilliSecondsSinceUnixEpoch(uint!(1_636_829_458))
-            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
-            && room_id == room_id!("!roomid:notareal.hs")
-            && sender == user_id!("@user:notareal.hs")
-            && unsigned.is_empty()
+    let ev = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
+
+    let ev =
+        assert_matches!(ev, AnyMessageLikeEvent::Location(MessageLikeEvent::Original(ev)) => ev);
+
+    assert_eq!(
+        ev.content.message.find_plain(),
+        Some("Alice was at geo:51.5008,0.1247;u=35 as of Sat Nov 13 18:50:58 2021")
     );
+    assert_eq!(ev.content.message.find_html(), None);
+    assert_eq!(ev.content.location.uri, "geo:51.5008,0.1247;u=35");
+    assert_eq!(ev.content.location.description.as_deref(), Some("Alice's whereabouts"));
+    assert_eq!(ev.content.location.zoom_level.unwrap().get(), uint!(4));
+    assert_eq!(ev.content.asset.type_, AssetType::Self_);
+    assert_eq!(ev.content.ts, Some(MilliSecondsSinceUnixEpoch(uint!(1_636_829_458))));
+
+    assert_eq!(ev.event_id, event_id!("$event:notareal.hs"));
+    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
+    assert_eq!(ev.room_id, room_id!("!roomid:notareal.hs"));
+    assert_eq!(ev.sender, user_id!("@user:notareal.hs"));
+    assert!(ev.unsigned.is_empty());
 }
 
 #[test]
@@ -266,15 +233,14 @@ fn room_message_stable_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::Location(_));
-    if let MessageType::Location(content) = event_content.msgtype {
-        assert_eq!(content.body, "Alice was at geo:51.5008,0.1247;u=35");
-        assert_eq!(content.geo_uri, "geo:51.5008,0.1247;u=35");
-        let message = content.message.unwrap();
-        assert_eq!(message.len(), 1);
-        assert_eq!(message[0].body, "Alice was at geo:51.5008,0.1247;u=35");
-        assert_eq!(content.location.unwrap().uri, "geo:51.5008,0.1247;u=35");
-    }
+    let content = assert_matches!(event_content.msgtype, MessageType::Location(c) => c);
+
+    assert_eq!(content.body, "Alice was at geo:51.5008,0.1247;u=35");
+    assert_eq!(content.geo_uri, "geo:51.5008,0.1247;u=35");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 1);
+    assert_eq!(message[0].body, "Alice was at geo:51.5008,0.1247;u=35");
+    assert_eq!(content.location.unwrap().uri, "geo:51.5008,0.1247;u=35");
 }
 
 #[test]
@@ -290,13 +256,12 @@ fn room_message_unstable_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::Location(_));
-    if let MessageType::Location(content) = event_content.msgtype {
-        assert_eq!(content.body, "Alice was at geo:51.5008,0.1247;u=35");
-        assert_eq!(content.geo_uri, "geo:51.5008,0.1247;u=35");
-        let message = content.message.unwrap();
-        assert_eq!(message.len(), 1);
-        assert_eq!(message[0].body, "Alice was at geo:51.5008,0.1247;u=35");
-        assert_eq!(content.location.unwrap().uri, "geo:51.5008,0.1247;u=35");
-    }
+    let content = assert_matches!(event_content.msgtype, MessageType::Location(c) => c);
+
+    assert_eq!(content.body, "Alice was at geo:51.5008,0.1247;u=35");
+    assert_eq!(content.geo_uri, "geo:51.5008,0.1247;u=35");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 1);
+    assert_eq!(message[0].body, "Alice was at geo:51.5008,0.1247;u=35");
+    assert_eq!(content.location.unwrap().uri, "geo:51.5008,0.1247;u=35");
 }
