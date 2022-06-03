@@ -30,6 +30,7 @@ markdown = ["pulldown-cmark"]
 # Should use dep:rand instead of the dependency being renamed, but that
 # breaks trybuild: https://github.com/dtolnay/trybuild/issues/171
 rand = ["rand_crate", "uuid"]
+sanitize = ["ammonia"]
 unstable-exhaustive-types = []
 unstable-pdu = []
 unstable-pre-spec = []
@@ -49,6 +50,7 @@ unstable-msc3553 = ["unstable-msc3552"]
 unstable-msc3554 = ["unstable-msc1767"]
 
 [dependencies]
+ammonia = { version = "3.2.0", optional = true }
 base64 = "0.13.0"
 bytes = "1.0.1"
 form_urlencoded = "1.0.0"

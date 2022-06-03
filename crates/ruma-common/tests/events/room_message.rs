@@ -488,3 +488,98 @@ fn content_deserialization_failure() {
     });
     assert_matches!(from_json_value::<RoomMessageEventContent>(json_data), Err(_));
 }
+
+#[test]
+#[cfg(feature = "sanitize")]
+fn reply_sanitize() {
+    let first_message = OriginalRoomMessageEvent {
+        content: RoomMessageEventContent::text_html(
+            "# This is the first message",
+            "<h1>This is the first message</h1>",
+        ),
+        event_id: event_id!("$143273582443PhrSn:example.org").to_owned(),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
+        room_id: room_id!("!testroomid:example.org").to_owned(),
+        sender: user_id!("@user:example.org").to_owned(),
+        unsigned: MessageLikeUnsigned::default(),
+    };
+    let second_message = OriginalRoomMessageEvent {
+        content: RoomMessageEventContent::text_reply_html(
+            "This is the _second_ message",
+            "This is the <em>second</em> message",
+            &first_message,
+        ),
+        event_id: event_id!("$143273582443PhrSn:example.org").to_owned(),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
+        room_id: room_id!("!testroomid:example.org").to_owned(),
+        sender: user_id!("@user:example.org").to_owned(),
+        unsigned: MessageLikeUnsigned::default(),
+    };
+    let final_reply = RoomMessageEventContent::text_reply_html(
+        "This is **my** reply",
+        "This is <strong>my</strong> reply",
+        &second_message,
+    );
+
+    let (body, formatted) = assert_matches!(
+        first_message.content.msgtype,
+        MessageType::Text(TextMessageEventContent { body, formatted, .. }) => (body, formatted)
+    );
+    assert_eq!(body, "# This is the first message");
+    let formatted = formatted.unwrap();
+    assert_eq!(formatted.body, "<h1>This is the first message</h1>");
+
+    let (body, formatted) = assert_matches!(
+        second_message.content.msgtype,
+        MessageType::Text(TextMessageEventContent { body, formatted, .. }) => (body, formatted)
+    );
+    assert_eq!(
+        body,
+        "\
+        > <@user:example.org> # This is the first message\n\
+        This is the _second_ message\
+        "
+    );
+    let formatted = formatted.unwrap();
+    assert_eq!(
+        formatted.body,
+        "\
+        <mx-reply>\
+            <blockquote>\
+                <a href=\"https://matrix.to/#/!testroomid:example.org/$143273582443PhrSn:example.org\">In reply to</a> \
+                <a href=\"https://matrix.to/#/@user:example.org\">@user:example.org</a>\
+                <br>\
+                <h1>This is the first message</h1>\
+            </blockquote>\
+        </mx-reply>\
+        This is the <em>second</em> message\
+        "
+    );
+
+    let (body, formatted) = assert_matches!(
+        final_reply.msgtype,
+        MessageType::Text(TextMessageEventContent { body, formatted, .. }) => (body, formatted)
+    );
+    assert_eq!(
+        body,
+        "\
+        > <@user:example.org> This is the _second_ message\n\
+        This is **my** reply\
+        "
+    );
+    let formatted = formatted.unwrap();
+    assert_eq!(
+        formatted.body,
+        "\
+        <mx-reply>\
+            <blockquote>\
+                <a href=\"https://matrix.to/#/!testroomid:example.org/$143273582443PhrSn:example.org\">In reply to</a> \
+                <a href=\"https://matrix.to/#/@user:example.org\">@user:example.org</a>\
+                <br>\
+                This is the <em>second</em> message\
+            </blockquote>\
+        </mx-reply>\
+        This is <strong>my</strong> reply\
+        "
+    );
+}

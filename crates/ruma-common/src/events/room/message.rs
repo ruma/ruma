@@ -23,6 +23,7 @@ mod location;
 mod notice;
 mod relation_serde;
 mod reply;
+mod sanitize;
 mod server_notice;
 mod text;
 mod video;
@@ -34,6 +35,9 @@ pub use image::ImageMessageEventContent;
 pub use key_verification_request::KeyVerificationRequestEventContent;
 pub use location::{LocationInfo, LocationMessageEventContent};
 pub use notice::NoticeMessageEventContent;
+pub use sanitize::remove_plain_reply_fallback;
+#[cfg(feature = "sanitize")]
+pub use sanitize::sanitize_html;
 pub use server_notice::{LimitType, ServerNoticeMessageEventContent, ServerNoticeType};
 pub use text::TextMessageEventContent;
 pub use video::{VideoInfo, VideoMessageEventContent};
@@ -104,6 +108,12 @@ impl RoomMessageEventContent {
     /// the previous message, for which the room ID is required. If you want to reply to an
     /// [`OriginalSyncRoomMessageEvent`], you have to convert it first by calling
     /// [`.into_full_event()`][crate::events::OriginalSyncMessageLikeEvent::into_full_event].
+    ///
+    /// It is recommended to enable the `sanitize` feature when using this method as this will
+    /// avoid to have deeply nested [rich reply fallbacks] in chains of replies. This uses
+    /// [`sanitize_html()`] internally, with `remove_reply_fallback` set to `true`.
+    ///
+    /// [rich reply fallbacks]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
     pub fn text_reply_plain(
         reply: impl fmt::Display,
         original_message: &OriginalRoomMessageEvent,
@@ -126,6 +136,12 @@ impl RoomMessageEventContent {
     /// the previous message, for which the room ID is required. If you want to reply to an
     /// [`OriginalSyncRoomMessageEvent`], you have to convert it first by calling
     /// [`.into_full_event()`][crate::events::OriginalSyncMessageLikeEvent::into_full_event].
+    ///
+    /// It is recommended to enable the `sanitize` feature when using this method as this will
+    /// avoid to have deeply nested [rich reply fallbacks] in chains of replies. This uses
+    /// [`sanitize_html()`] internally, with `remove_reply_fallback` set to `true`.
+    ///
+    /// [rich reply fallbacks]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
     pub fn text_reply_html(
         reply: impl fmt::Display,
         html_reply: impl fmt::Display,
@@ -148,6 +164,12 @@ impl RoomMessageEventContent {
     /// the previous message, for which the room ID is required. If you want to reply to an
     /// [`OriginalSyncRoomMessageEvent`], you have to convert it first by calling
     /// [`.into_full_event()`][crate::events::OriginalSyncMessageLikeEvent::into_full_event].
+    ///
+    /// It is recommended to enable the `sanitize` feature when using this method as this will
+    /// avoid to have deeply nested [rich reply fallbacks] in chains of replies. This uses
+    /// [`sanitize_html()`] internally, with `remove_reply_fallback` set to `true`.
+    ///
+    /// [rich reply fallbacks]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
     pub fn notice_reply_plain(
         reply: impl fmt::Display,
         original_message: &OriginalRoomMessageEvent,
@@ -170,6 +192,12 @@ impl RoomMessageEventContent {
     /// the previous message, for which the room ID is required. If you want to reply to an
     /// [`OriginalSyncRoomMessageEvent`], you have to convert it first by calling
     /// [`.into_full_event()`][crate::events::OriginalSyncMessageLikeEvent::into_full_event].
+    ///
+    /// It is recommended to enable the `sanitize` feature when using this method as this will
+    /// avoid to have deeply nested [rich reply fallbacks] in chains of replies. This uses
+    /// [`sanitize_html()`] internally, with `remove_reply_fallback` set to `true`.
+    ///
+    /// [rich reply fallbacks]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
     pub fn notice_reply_html(
         reply: impl fmt::Display,
         html_reply: impl fmt::Display,
@@ -190,6 +218,12 @@ impl RoomMessageEventContent {
     ///
     /// If `message` is a text, an emote or a notice message, it is modified to include the rich
     /// reply fallback.
+    ///
+    /// It is recommended to enable the `sanitize` feature when using this method as this will
+    /// avoid to have deeply nested [rich reply fallbacks] in chains of replies. This uses
+    /// [`sanitize_html()`] internally, with `remove_reply_fallback` set to `true`.
+    ///
+    /// [rich reply fallbacks]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
     #[cfg(feature = "unstable-msc3440")]
     pub fn reply(
         message: MessageType,
@@ -240,6 +274,12 @@ impl RoomMessageEventContent {
     ///
     /// If `message` is a text, an emote or a notice message, and this is a reply in the thread, it
     /// is modified to include the rich reply fallback.
+    ///
+    /// It is recommended to enable the `sanitize` feature when using this method as this will
+    /// avoid to have deeply nested [rich reply fallbacks] in chains of replies. This uses
+    /// [`sanitize_html()`] internally, with `remove_reply_fallback` set to `true`.
+    ///
+    /// [rich reply fallbacks]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
     #[cfg(feature = "unstable-msc3440")]
     pub fn for_thread(
         message: MessageType,
@@ -300,6 +340,38 @@ impl RoomMessageEventContent {
     /// Return a reference to the message body.
     pub fn body(&self) -> &str {
         self.msgtype.body()
+    }
+
+    /// Sanitize this message.
+    ///
+    /// If this message contains HTML, this removes the [tags and attributes] that are not listed in
+    /// the Matrix specification.
+    ///
+    /// It can also optionally remove the [rich reply fallback] from the plain text and HTML
+    /// message.
+    ///
+    /// This method is only effective on text, notice and emote messages.
+    ///
+    /// [tags and attributes]: https://spec.matrix.org/v1.2/client-server-api/#mroommessage-msgtypes
+    /// [rich reply fallback]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
+    #[cfg(feature = "sanitize")]
+    pub fn sanitize(&mut self, remove_reply_fallback: bool) {
+        match &mut self.msgtype {
+            MessageType::Emote(EmoteMessageEventContent { body, formatted, .. })
+            | MessageType::Notice(NoticeMessageEventContent { body, formatted, .. })
+            | MessageType::Text(TextMessageEventContent { body, formatted, .. }) => {
+                formatted.as_mut().map(|formatted| {
+                    if let Some(body) = formatted.sanitize_html(remove_reply_fallback) {
+                        formatted.body = body;
+                    }
+                    formatted
+                });
+                if remove_reply_fallback {
+                    *body = remove_plain_reply_fallback(body).to_owned();
+                }
+            }
+            _ => {}
+        };
     }
 }
 
@@ -633,6 +705,22 @@ impl FormattedBody {
         pulldown_cmark::html::push_html(&mut html_body, pulldown_cmark::Parser::new(body));
 
         (html_body != format!("<p>{}</p>\n", body)).then(|| Self::html(html_body))
+    }
+
+    /// Sanitize this `FormattedBody` if its format is `MessageFormat::Html`.
+    ///
+    ///  This removes the [tags and attributes] that are not listed in the Matrix specification.
+    ///
+    /// It can also optionally remove the [rich reply fallback].
+    ///
+    /// Returns the sanitized HTML if the format is `MessageFormat::Html`.
+    ///
+    /// [tags and attributes]: https://spec.matrix.org/v1.2/client-server-api/#mroommessage-msgtypes
+    /// [rich reply fallback]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
+    #[cfg(feature = "sanitize")]
+    pub fn sanitize_html(&self, remove_reply_fallback: bool) -> Option<String> {
+        (self.format == MessageFormat::Html)
+            .then(|| sanitize_html(&self.body, remove_reply_fallback))
     }
 }
 

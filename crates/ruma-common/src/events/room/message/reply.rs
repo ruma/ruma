@@ -1,10 +1,10 @@
 use std::fmt;
 
-use super::{FormattedBody, MessageType, OriginalRoomMessageEvent};
+#[cfg(feature = "sanitize")]
+use super::sanitize_html;
+use super::{remove_plain_reply_fallback, FormattedBody, MessageType, OriginalRoomMessageEvent};
 
-pub fn get_message_quote_fallbacks(
-    original_message: &OriginalRoomMessageEvent,
-) -> (String, String) {
+fn get_message_quote_fallbacks(original_message: &OriginalRoomMessageEvent) -> (String, String) {
     match &original_message.content.msgtype {
         MessageType::Audio(_) => get_quotes("sent an audio file.", None, original_message, false),
         MessageType::Emote(content) => {
@@ -38,6 +38,7 @@ fn get_quotes(
 ) -> (String, String) {
     let OriginalRoomMessageEvent { room_id, event_id, sender, .. } = original_message;
     let emote_sign = is_emote.then(|| "* ").unwrap_or_default();
+    let body = remove_plain_reply_fallback(body);
     let html_body = formatted_or_plain_body(formatted, body);
 
     (
@@ -57,6 +58,12 @@ fn get_quotes(
 
 fn formatted_or_plain_body(formatted: Option<&FormattedBody>, body: &str) -> String {
     if let Some(formatted_body) = formatted {
+        #[cfg(feature = "sanitize")]
+        {
+            sanitize_html(&formatted_body.body, true)
+        }
+
+        #[cfg(not(feature = "sanitize"))]
         formatted_body.body.clone()
     } else {
         let mut escaped_body = String::with_capacity(body.len());
@@ -83,6 +90,13 @@ fn formatted_or_plain_body(formatted: Option<&FormattedBody>, body: &str) -> Str
 /// Get the plain and formatted body for a rich reply.
 ///
 /// Returns a `(plain, html)` tuple.
+///
+/// With the `sanitize` feature, [HTML tags and attributes] that are not allowed in the Matrix
+/// spec and previous [rich reply fallbacks] are removed from the previous message in the new rich
+/// reply fallback.
+///
+/// [HTML tags and attributes]: https://spec.matrix.org/v1.2/client-server-api/#mroommessage-msgtypes
+/// [rich reply fallbacks]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
 pub fn plain_and_formatted_reply_body(
     body: impl fmt::Display,
     formatted: Option<impl fmt::Display>,

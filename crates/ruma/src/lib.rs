@@ -37,9 +37,9 @@
 //!
 //! These features are only useful if you want to use a method that requires it:
 //!
-//! * `either`
 //! * `rand`
 //! * `markdown`
+//! * `sanitize`
 //!
 //! # Unstable features
 //!
