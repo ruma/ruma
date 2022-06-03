@@ -107,7 +107,7 @@ pub fn do_check(
                     .iter()
                     .map(|map| map
                         .iter()
-                        .map(|((ty, key), id)| format!("(({}{:?}), {})", ty, key, id))
+                        .map(|((ty, key), id)| format!("(({ty}{key:?}), {id})"))
                         .collect::<Vec<_>>())
                     .collect::<Vec<_>>()
             );
@@ -124,7 +124,7 @@ pub fn do_check(
             });
             match resolved {
                 Ok(state) => state,
-                Err(e) => panic!("resolution for {} failed: {}", node, e),
+                Err(e) => panic!("resolution for {node} failed: {e}"),
             }
         };
 
@@ -175,8 +175,7 @@ pub fn do_check(
     for node in expected_state_ids {
         let ev = event_map.get(&node).unwrap_or_else(|| {
             panic!(
-                "{} not found in {:?}",
-                node,
+                "{node} not found in {:?}",
                 event_map.keys().map(ToString::to_string).collect::<Vec<_>>()
             )
         });
@@ -214,7 +213,7 @@ impl<E: Event> TestStore<E> {
         self.0
             .get(event_id)
             .map(Arc::clone)
-            .ok_or_else(|| Error::NotFound(format!("{} not found", event_id)))
+            .ok_or_else(|| Error::NotFound(format!("{event_id} not found")))
     }
 
     /// Returns a Vec of the related auth events to the given `event`.
@@ -337,7 +336,7 @@ pub fn event_id(id: &str) -> OwnedEventId {
         return id.try_into().unwrap();
     }
 
-    format!("${}:foo", id).try_into().unwrap()
+    format!("${id}:foo").try_into().unwrap()
 }
 
 pub fn alice() -> &'static UserId {
@@ -380,7 +379,7 @@ pub fn to_init_pdu_event(
     content: Box<RawJsonValue>,
 ) -> Arc<PduEvent> {
     let ts = SERVER_TIMESTAMP.fetch_add(1, SeqCst);
-    let id = if id.contains('$') { id.to_owned() } else { format!("${}:foo", id) };
+    let id = if id.contains('$') { id.to_owned() } else { format!("${id}:foo") };
 
     let state_key = state_key.map(ToOwned::to_owned);
     Arc::new(PduEvent {
@@ -416,7 +415,7 @@ where
     S: AsRef<str>,
 {
     let ts = SERVER_TIMESTAMP.fetch_add(1, SeqCst);
-    let id = if id.contains('$') { id.to_owned() } else { format!("${}:foo", id) };
+    let id = if id.contains('$') { id.to_owned() } else { format!("${id}:foo") };
     let auth_events = auth_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
     let prev_events = prev_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
 

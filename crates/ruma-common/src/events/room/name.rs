@@ -135,7 +135,7 @@ mod tests {
         let from_raw: Raw<RoomNameEventContent> = from_json_value(long_content_json).unwrap();
 
         let result = from_raw.deserialize();
-        assert!(result.is_err(), "Result should be invalid: {:?}", result);
+        assert!(result.is_err(), "Result should be invalid: {result:?}");
     }
 
     #[test]

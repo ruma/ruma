@@ -22,7 +22,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Error::IntConvert => f.write_str("number found is not a valid `js_int::Int`"),
-            Error::SerDe(err) => write!(f, "serde Error: {}", err),
+            Error::SerDe(err) => write!(f, "serde Error: {err}"),
         }
     }
 }

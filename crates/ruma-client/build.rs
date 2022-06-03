@@ -11,7 +11,7 @@ fn main() {
         eprintln!("error: Only one tls features can be enabled.");
 
         for (f, a) in &tls_features {
-            eprintln!("  {}: {}", f, if *a { "enabled" } else { "disabled" });
+            eprintln!("  {f}: {}", if *a { "enabled" } else { "disabled" });
         }
 
         process::exit(1);

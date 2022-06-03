@@ -22,7 +22,7 @@ use tokio_stream::StreamExt as _;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     if let Err(e) = run().await {
-        eprintln!("{}", e);
+        eprintln!("{e}");
         exit(1)
     }
     Ok(())
@@ -33,7 +33,7 @@ type MatrixClient = client::Client<client::http_client::HyperNativeTls>;
 
 async fn run() -> Result<(), Box<dyn Error>> {
     let config =
-        read_config().await.map_err(|e| format!("configuration in ./config is invalid: {}", e))?;
+        read_config().await.map_err(|e| format!("configuration in ./config is invalid: {e}"))?;
     let http_client =
         hyper::Client::builder().build::<_, hyper::Body>(hyper_tls::HttpsConnector::new());
     let matrix_client = if let Some(state) = read_state().await.ok().flatten() {
@@ -52,8 +52,7 @@ async fn run() -> Result<(), Box<dyn Error>> {
         {
             eprintln!(
                 "Failed to persist access token to disk. \
-                 Re-authentication will be required on the next startup: {}",
-                err
+                 Re-authentication will be required on the next startup: {err}",
             );
         }
         client
@@ -95,14 +94,14 @@ async fn run() -> Result<(), Box<dyn Error>> {
                 if let Err(err) =
                     handle_message(http_client, matrix_client, e, room_id, user_id).await
                 {
-                    eprintln!("failed to respond to message: {}", err);
+                    eprintln!("failed to respond to message: {err}");
                 }
             }
         });
 
         let invite_futures = response.rooms.invite.iter().map(|(room_id, _)| async move {
             if let Err(err) = handle_invitations(http_client, matrix_client, room_id).await {
-                eprintln!("failed to accept invitation for room {}: {}", &room_id, err);
+                eprintln!("failed to accept invitation for room {room_id}: {err}");
             }
         });
 
@@ -127,14 +126,14 @@ async fn create_matrix_session(
             let reason = match e {
                 client::Error::AuthenticationRequired => "invalid credentials specified".to_owned(),
                 client::Error::Response(response_err) => {
-                    format!("failed to get a response from the server: {}", response_err)
+                    format!("failed to get a response from the server: {response_err}")
                 }
                 client::Error::FromHttpResponse(parse_err) => {
-                    format!("failed to parse log in response: {}", parse_err)
+                    format!("failed to parse log in response: {parse_err}")
                 }
                 _ => e.to_string(),
             };
-            return Err(format!("Failed to log in: {}", reason).into());
+            return Err(format!("Failed to log in: {reason}").into());
         }
 
         Ok(client)
@@ -184,12 +183,12 @@ async fn handle_invitations(
     matrix_client: &MatrixClient,
     room_id: &RoomId,
 ) -> Result<(), Box<dyn Error>> {
-    println!("invited to {}", &room_id);
+    println!("invited to {room_id}");
     matrix_client.send_request(join_room_by_id::v3::Request::new(room_id)).await?;
 
     let greeting = "Hello! My name is Mr. Bot! I like to tell jokes. Like this one: ";
     let joke = get_joke(http_client).await.unwrap_or_else(|_| "err... never mind.".to_owned());
-    let content = RoomMessageEventContent::text_plain(format!("{}\n{}", greeting, joke));
+    let content = RoomMessageEventContent::text_plain(format!("{greeting}\n{joke}"));
     let txn_id = TransactionId::new();
     let message = send_message_event::v3::Request::new(room_id, &txn_id, &content)?;
     matrix_client.send_request(message).await?;
@@ -244,9 +243,10 @@ async fn read_config() -> io::Result<Config> {
                 "homeserver" => homeserver = Some(value.trim().to_owned()),
                 // TODO: infer domain from `homeserver`
                 "username" => {
-                    username = value.trim().to_owned().try_into().map_err(|e| {
-                        format!("invalid Matrix user ID format for `username`: {}", e)
-                    });
+                    username =
+                        value.trim().to_owned().try_into().map_err(|e| {
+                            format!("invalid Matrix user ID format for `username`: {e}")
+                        });
                 }
                 "password" => password = Some(value.trim().to_owned()),
                 _ => {}

@@ -274,7 +274,7 @@ mod tests {
                     AllowRule::room_membership(room_id!("!users:example.org").to_owned())
                 ]
             ),
-            rule => panic!("Deserialized to wrong variant: {:?}", rule),
+            rule => panic!("Deserialized to wrong variant: {rule:?}"),
         }
     }
 

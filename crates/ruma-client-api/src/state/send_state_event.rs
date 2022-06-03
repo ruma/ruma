@@ -125,12 +125,10 @@ pub mod v3 {
                     &METADATA,
                     None,
                     Some(format_args!(
-                        "/_matrix/client/r0/rooms/{}/state/{}",
-                        room_id_percent, event_type_percent
+                        "/_matrix/client/r0/rooms/{room_id_percent}/state/{event_type_percent}",
                     )),
                     Some(format_args!(
-                        "/_matrix/client/v3/rooms/{}/state/{}",
-                        room_id_percent, event_type_percent
+                        "/_matrix/client/v3/rooms/{room_id_percent}/state/{event_type_percent}",
                     )),
                 )?
             );

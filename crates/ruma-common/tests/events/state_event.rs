@@ -287,7 +287,7 @@ fn deserialize_full_event_convert_to_sync() {
     let full_ev: AnyStateEvent = from_json_value(json_data).unwrap();
     let sync_ev = match AnySyncStateEvent::from(full_ev) {
         AnySyncStateEvent::RoomAliases(SyncStateEvent::Original(ev)) => ev,
-        ev => panic!("unexpected variant for event {:?}", ev),
+        ev => panic!("unexpected variant for event {ev:?}"),
     };
 
     assert_eq!(sync_ev.content.aliases, vec![room_alias_id!("#somewhere:localhost")]);

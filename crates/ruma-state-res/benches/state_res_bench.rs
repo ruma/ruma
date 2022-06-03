@@ -79,7 +79,7 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
                 |id| ev_map.get(id).map(Arc::clone),
             ) {
                 Ok(state) => state,
-                Err(e) => panic!("{}", e),
+                Err(e) => panic!("{e}"),
             };
         });
     });

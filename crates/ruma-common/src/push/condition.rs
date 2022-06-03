@@ -288,13 +288,13 @@ impl FlattenedJson {
         match value {
             JsonValue::Object(fields) => {
                 for (key, value) in fields {
-                    let path = if path.is_empty() { key } else { format!("{}.{}", path, key) };
+                    let path = if path.is_empty() { key } else { format!("{path}.{key}") };
                     self.flatten_value(value, path);
                 }
             }
             JsonValue::String(s) => {
                 if self.map.insert(path.clone(), s).is_some() {
-                    warn!("Duplicate path in flattened JSON: {}", path);
+                    warn!("Duplicate path in flattened JSON: {path}");
                 }
             }
             JsonValue::Number(_) | JsonValue::Bool(_) | JsonValue::Array(_) | JsonValue::Null => {}

@@ -317,7 +317,7 @@ mod tests {
         let json: CanonicalJsonValue =
             json!({ "city": "London", "street": "10 Downing Street" }).try_into().unwrap();
 
-        assert_eq!(format!("{}", json), CANONICAL_STR);
+        assert_eq!(format!("{json}"), CANONICAL_STR);
         assert_eq!(format!("{:#}", json), CANONICAL_STR);
     }
 }

@@ -717,7 +717,7 @@ impl fmt::Display for UiaaResponse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::AuthResponse(_) => write!(f, "User-Interactive Authentication required."),
-            Self::MatrixError(err) => write!(f, "{}", err),
+            Self::MatrixError(err) => write!(f, "{err}"),
         }
     }
 }

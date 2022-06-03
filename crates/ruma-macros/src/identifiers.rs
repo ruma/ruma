@@ -25,7 +25,7 @@ impl Parse for IdentifierInput {
 
 pub fn expand_id_zst(input: ItemStruct) -> syn::Result<TokenStream> {
     let id = &input.ident;
-    let owned = format_ident!("Owned{}", id);
+    let owned = format_ident!("Owned{id}");
 
     let owned_decl = expand_owned_id(&input);
 
@@ -222,9 +222,9 @@ pub fn expand_id_zst(input: ItemStruct) -> syn::Result<TokenStream> {
 
 fn expand_owned_id(input: &ItemStruct) -> TokenStream {
     let id = &input.ident;
-    let owned = format_ident!("Owned{}", id);
+    let owned = format_ident!("Owned{id}");
 
-    let doc_header = format!("Owned variant of {}", id);
+    let doc_header = format!("Owned variant of {id}");
     let (impl_generics, ty_generics, _where_clause) = input.generics.split_for_impl();
 
     let id_ty = quote! { #id #ty_generics };
@@ -405,7 +405,7 @@ fn expand_owned_id(input: &ItemStruct) -> TokenStream {
 
 fn expand_checked_impls(input: &ItemStruct, validate: Path) -> TokenStream {
     let id = &input.ident;
-    let owned = format_ident!("Owned{}", id);
+    let owned = format_ident!("Owned{id}");
 
     let (impl_generics, ty_generics, _where_clause) = input.generics.split_for_impl();
     let generic_params = &input.generics.params;
@@ -553,7 +553,7 @@ fn expand_checked_impls(input: &ItemStruct, validate: Path) -> TokenStream {
 
 fn expand_unchecked_impls(input: &ItemStruct) -> TokenStream {
     let id = &input.ident;
-    let owned = format_ident!("Owned{}", id);
+    let owned = format_ident!("Owned{id}");
 
     quote! {
         impl<'a> From<&'a str> for &'a #id {

@@ -225,6 +225,6 @@ impl MatrixVersion {
 impl Display for MatrixVersion {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let (major, minor) = self.into_parts();
-        f.write_str(&format!("v{}.{}", major, minor))
+        f.write_str(&format!("v{major}.{minor}"))
     }
 }

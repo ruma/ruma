@@ -139,7 +139,7 @@ impl MatrixId {
                 "roomid" => '!',
                 _ => return Err(MatrixIdError::UnknownType.into()),
             };
-            id = format!("{}/{}{}", id, sigil, id_without_sigil);
+            id = format!("{id}/{sigil}{id_without_sigil}");
         }
 
         Self::parse_with_sigil(&id)
@@ -462,7 +462,7 @@ impl MatrixUri {
 
 impl fmt::Display for MatrixUri {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}:{}", MATRIX_SCHEME, self.id().to_string_with_type())?;
+        write!(f, "{MATRIX_SCHEME}:{}", self.id().to_string_with_type())?;
 
         let mut first = true;
         for server_name in &self.via {

@@ -90,7 +90,7 @@ pub mod v1 {
                     let join = response.rooms.join.entry(room_id).or_default();
                     join.timeline.events.push(Raw::from_json(event_json));
                 } else {
-                    warn!("Event without room_id: {}", event_json);
+                    warn!("Event without room_id: {event_json}");
                 }
             }
 

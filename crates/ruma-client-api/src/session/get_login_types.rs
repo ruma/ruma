@@ -363,7 +363,7 @@ pub mod v3 {
 
             let mut identity_providers = match flow {
                 Some(LoginType::Sso(SsoLoginType { identity_providers })) => identity_providers,
-                _ => panic!("unexpected enum variant: {:?}", flow),
+                _ => panic!("unexpected enum variant: {flow:?}"),
             };
 
             let provider = identity_providers.pop();

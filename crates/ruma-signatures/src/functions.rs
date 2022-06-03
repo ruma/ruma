@@ -1104,7 +1104,7 @@ mod tests {
         if let Error::Verification(VerificationError::PublicKeyNotFound(entity)) = error_msg {
             assert_eq!(entity, "domain-sender");
         } else {
-            panic!("Error was not VerificationError::UnknownPublicKeysForEvent: {:?}", error_msg);
+            panic!("Error was not VerificationError::UnknownPublicKeysForEvent: {error_msg:?}");
         };
     }
 
@@ -1152,11 +1152,9 @@ mod tests {
         if let Error::Verification(VerificationError::Signature(error)) = error_msg {
             // dalek doesn't expose InternalError :(
             // https://github.com/dalek-cryptography/ed25519-dalek/issues/174
-            assert!(
-                format!("{:?}", error).contains("Some(Verification equation was not satisfied)")
-            );
+            assert!(format!("{error:?}").contains("Some(Verification equation was not satisfied)"));
         } else {
-            panic!("Error was not VerificationError::Signature: {:?}", error_msg);
+            panic!("Error was not VerificationError::Signature: {error_msg:?}");
         };
     }
 

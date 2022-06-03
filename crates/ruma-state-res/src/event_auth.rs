@@ -263,7 +263,7 @@ pub fn auth_check<E: Event>(
         }
 
         let target_user =
-            <&UserId>::try_from(state_key).map_err(|e| Error::InvalidPdu(format!("{}", e)))?;
+            <&UserId>::try_from(state_key).map_err(|e| Error::InvalidPdu(format!("{e}")))?;
 
         let user_for_join_auth =
             content.join_authorised_via_users_server.as_ref().and_then(|u| u.deserialize().ok());
@@ -697,7 +697,7 @@ fn valid_membership_change(
 fn can_send_event(event: impl Event, ple: Option<impl Event>, user_level: Int) -> bool {
     let event_type_power_level = get_send_level(event.event_type(), event.state_key(), ple);
 
-    debug!("{} ev_type {} usr {}", event.event_id(), event_type_power_level, user_level);
+    debug!("{} ev_type {event_type_power_level} usr {user_level}", event.event_id());
 
     if user_level < event_type_power_level {
         return false;
@@ -722,7 +722,7 @@ fn check_power_levels(
     match power_event.state_key() {
         Some("") => {}
         Some(key) => {
-            error!("m.room.power_levels event has non-empty state key: {}", key);
+            error!("m.room.power_levels event has non-empty state key: {key}");
             return None;
         }
         None => {
@@ -756,7 +756,7 @@ fn check_power_levels(
         user_levels_to_check.insert(user);
     }
 
-    debug!("users to check {:?}", user_levels_to_check);
+    debug!("users to check {user_levels_to_check:?}");
 
     let mut event_levels_to_check = BTreeSet::new();
     let old_list = &current_content.events;
@@ -765,7 +765,7 @@ fn check_power_levels(
         event_levels_to_check.insert(ev_id);
     }
 
-    debug!("events to check {:?}", event_levels_to_check);
+    debug!("events to check {event_levels_to_check:?}");
 
     let old_state = &current_content;
     let new_state = &user_content;

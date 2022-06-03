@@ -811,14 +811,14 @@ impl EventEnumVariation {
     pub fn to_sync(self) -> Self {
         match self {
             EventEnumVariation::None => EventEnumVariation::Sync,
-            _ => panic!("No sync form of {:?}", self),
+            _ => panic!("No sync form of {self:?}"),
         }
     }
 
     pub fn to_full(self) -> Self {
         match self {
             EventEnumVariation::Sync => EventEnumVariation::None,
-            _ => panic!("No full form of {:?}", self),
+            _ => panic!("No full form of {self:?}"),
         }
     }
 }

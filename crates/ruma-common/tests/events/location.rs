@@ -164,7 +164,7 @@ fn zoomlevel_deserialization_too_high() {
         from_json_value::<LocationContent>(json_data),
         Err(err)
             if err.is_data()
-            && format!("{}", err) == format!("{}", ZoomLevelError::TooHigh)
+            && format!("{err}") == format!("{}", ZoomLevelError::TooHigh)
     );
 }
 

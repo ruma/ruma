@@ -51,7 +51,7 @@ impl UserId {
             Self::parse(id).map(Into::into)
         } else {
             let _ = localpart_is_fully_conforming(id_str)?;
-            Ok(Self::from_borrowed(&format!("@{}:{}", id_str, server_name)).to_owned())
+            Ok(Self::from_borrowed(&format!("@{id_str}:{server_name}")).to_owned())
         }
     }
 
@@ -68,7 +68,7 @@ impl UserId {
             Self::parse_rc(id)
         } else {
             let _ = localpart_is_fully_conforming(id_str)?;
-            Ok(Self::from_rc(format!("@{}:{}", id_str, server_name).into()))
+            Ok(Self::from_rc(format!("@{id_str}:{server_name}").into()))
         }
     }
 
@@ -85,7 +85,7 @@ impl UserId {
             Self::parse_arc(id)
         } else {
             let _ = localpart_is_fully_conforming(id_str)?;
-            Ok(Self::from_arc(format!("@{}:{}", id_str, server_name).into()))
+            Ok(Self::from_arc(format!("@{id_str}:{server_name}").into()))
         }
     }
 

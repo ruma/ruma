@@ -30,10 +30,10 @@ impl<E: Display, F: Display> Display for Error<E, F> {
             Self::AuthenticationRequired => {
                 write!(f, "The queried endpoint requires authentication but was called with an anonymous client.")
             }
-            Self::IntoHttp(err) => write!(f, "HTTP request construction failed: {}", err),
-            Self::Url(err) => write!(f, "Invalid URL: {}", err),
-            Self::Response(err) => write!(f, "Couldn't obtain a response: {}", err),
-            Self::FromHttpResponse(err) => write!(f, "HTTP response conversion failed: {}", err),
+            Self::IntoHttp(err) => write!(f, "HTTP request construction failed: {err}"),
+            Self::Url(err) => write!(f, "Invalid URL: {err}"),
+            Self::Response(err) => write!(f, "Couldn't obtain a response: {err}"),
+            Self::FromHttpResponse(err) => write!(f, "HTTP response conversion failed: {err}"),
         }
     }
 }

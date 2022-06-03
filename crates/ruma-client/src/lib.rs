@@ -187,8 +187,8 @@ fn add_user_id_to_query<C: HttpClient + ?Sized, R: OutgoingRequest>(
         let extra_params = urlencoded::to_string(&[("user_id", user_id)]).unwrap();
         let uri = http_request.uri_mut();
         let new_path_and_query = match uri.query() {
-            Some(params) => format!("{}?{}&{}", uri.path(), params, extra_params),
-            None => format!("{}?{}", uri.path(), extra_params),
+            Some(params) => format!("{}?{params}&{extra_params}", uri.path()),
+            None => format!("{}?{extra_params}", uri.path()),
         };
         *uri = Uri::from_parts(assign!(uri.clone().into_parts(), {
             path_and_query: Some(new_path_and_query.parse()?),
