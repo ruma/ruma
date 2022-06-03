@@ -130,7 +130,7 @@ mod tests {
             <removed>This has no tag</removed>\
             <p>But this is inside a tag</p>\
             ",
-            RemoveReplyFallback::Yes
+            RemoveReplyFallback::No
         );
 
         assert_eq!(
