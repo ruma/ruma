@@ -79,7 +79,7 @@ pub mod v3 {
     #[cfg(test)]
     mod tests {
         use assert_matches::assert_matches;
-        use ruma_common::{thirdparty::Medium, user_id};
+        use ruma_common::thirdparty::Medium;
         use serde_json::{from_value as from_json_value, json};
 
         use super::IncomingInvitationRecipient;
@@ -91,11 +91,11 @@ pub mod v3 {
             )
             .unwrap();
 
-            assert_matches!(
+            let user_id = assert_matches!(
                 incoming,
-                IncomingInvitationRecipient::UserId { user_id }
-                if user_id == user_id!("@carl:example.org")
+                IncomingInvitationRecipient::UserId { user_id } => user_id
             );
+            assert_eq!(user_id, "@carl:example.org");
         }
 
         #[test]
@@ -108,10 +108,10 @@ pub mod v3 {
             }))
             .unwrap();
 
-            let third_party_id = match incoming {
-                IncomingInvitationRecipient::UserId { .. } => panic!("wrong variant"),
-                IncomingInvitationRecipient::ThirdPartyId(id) => id,
-            };
+            let third_party_id = assert_matches!(
+                incoming,
+                IncomingInvitationRecipient::ThirdPartyId(id) => id
+            );
 
             assert_eq!(third_party_id.id_server, "example.org");
             assert_eq!(third_party_id.id_access_token, "abcdefghijklmnop");

@@ -102,7 +102,6 @@ pub mod v3 {
 
     #[cfg(all(test, feature = "server"))]
     mod tests {
-        use assert_matches::assert_matches;
         use ruma_common::api::IncomingRequest as _;
 
         use super::{IncomingRequest, MembershipEventFilter};
@@ -123,17 +122,13 @@ pub mod v3 {
             let req = IncomingRequest::try_from_http_request(
                 http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
                 &["!dummy:example.org"],
-            );
+            )
+            .unwrap();
 
-            assert_matches!(
-                req,
-                Ok(IncomingRequest {
-                    room_id,
-                    at: Some(at),
-                    membership: None,
-                    not_membership: Some(MembershipEventFilter::Leave),
-                }) if room_id == "!dummy:example.org" && at == "1026"
-            );
+            assert_eq!(req.room_id, "!dummy:example.org");
+            assert_eq!(req.at.as_deref(), Some("1026"));
+            assert_eq!(req.membership, None);
+            assert_eq!(req.not_membership, Some(MembershipEventFilter::Leave));
         }
     }
 }
