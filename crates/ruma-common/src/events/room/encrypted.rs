@@ -312,7 +312,6 @@ impl From<MegolmV1AesSha2ContentInit> for MegolmV1AesSha2Content {
 
 #[cfg(test)]
 mod tests {
-    use crate::{event_id, serde::Raw};
     use assert_matches::assert_matches;
     use js_int::uint;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
@@ -321,6 +320,7 @@ mod tests {
         EncryptedEventScheme, InReplyTo, MegolmV1AesSha2Content, Relation,
         RoomEncryptedEventContent,
     };
+    use crate::{event_id, serde::Raw};
 
     #[test]
     fn serialization() {
@@ -369,24 +369,20 @@ mod tests {
 
         let content: RoomEncryptedEventContent = from_json_value(json_data).unwrap();
 
-        assert_matches!(
+        let scheme = assert_matches!(
             content.scheme,
-            EncryptedEventScheme::MegolmV1AesSha2(MegolmV1AesSha2Content {
-                ciphertext,
-                sender_key,
-                device_id,
-                session_id,
-            }) if ciphertext == "ciphertext"
-                && sender_key == "sender_key"
-                && device_id == "device_id"
-                && session_id == "session_id"
+            EncryptedEventScheme::MegolmV1AesSha2(scheme) => scheme
         );
+        assert_eq!(scheme.ciphertext, "ciphertext");
+        assert_eq!(scheme.sender_key, "sender_key");
+        assert_eq!(scheme.device_id, "device_id");
+        assert_eq!(scheme.session_id, "session_id");
 
-        assert_matches!(
+        let in_reply_to = assert_matches!(
             content.relates_to,
-            Some(Relation::Reply { in_reply_to })
-                if in_reply_to.event_id == event_id!("$h29iv0s8:example.com")
+            Some(Relation::Reply { in_reply_to }) => in_reply_to
         );
+        assert_eq!(in_reply_to.event_id, "$h29iv0s8:example.com");
     }
 
     #[test]
@@ -403,15 +399,14 @@ mod tests {
         });
         let content: RoomEncryptedEventContent = from_json_value(json_data).unwrap();
 
-        match content.scheme {
-            EncryptedEventScheme::OlmV1Curve25519AesSha2(c) => {
-                assert_eq!(c.sender_key, "test_key");
-                assert_eq!(c.ciphertext.len(), 1);
-                assert_eq!(c.ciphertext["test_curve_key"].body, "encrypted_body");
-                assert_eq!(c.ciphertext["test_curve_key"].message_type, uint!(1));
-            }
-            _ => panic!("Wrong content type, expected a OlmV1 content"),
-        }
+        let c = assert_matches!(
+            content.scheme,
+            EncryptedEventScheme::OlmV1Curve25519AesSha2(c) => c
+        );
+        assert_eq!(c.sender_key, "test_key");
+        assert_eq!(c.ciphertext.len(), 1);
+        assert_eq!(c.ciphertext["test_curve_key"].body, "encrypted_body");
+        assert_eq!(c.ciphertext["test_curve_key"].message_type, uint!(1));
     }
 
     #[test]

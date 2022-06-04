@@ -28,12 +28,14 @@ impl IgnoredUserListEventContent {
 
 #[cfg(test)]
 mod tests {
-    use crate::user_id;
     use assert_matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{IgnoredUserListEvent, IgnoredUserListEventContent};
-    use crate::events::{AnyGlobalAccountDataEvent, GlobalAccountDataEvent};
+    use super::IgnoredUserListEventContent;
+    use crate::{
+        events::{AnyGlobalAccountDataEvent, GlobalAccountDataEvent},
+        user_id,
+    };
 
     #[test]
     fn serialization() {
@@ -66,15 +68,10 @@ mod tests {
             "type": "m.ignored_user_list"
         });
 
-        assert_matches!(
-            from_json_value::<AnyGlobalAccountDataEvent>(json).unwrap(),
-            AnyGlobalAccountDataEvent::IgnoredUserList(
-                IgnoredUserListEvent {
-                    content: IgnoredUserListEventContent {
-                        ignored_users
-                    },
-                })
-         if ignored_users == vec![user_id!("@carl:example.com")]
+        let ev = assert_matches!(
+            from_json_value::<AnyGlobalAccountDataEvent>(json),
+            Ok(AnyGlobalAccountDataEvent::IgnoredUserList(ev)) => ev
         );
+        assert_eq!(ev.content.ignored_users, vec![user_id!("@carl:example.com")]);
     }
 }
