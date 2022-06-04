@@ -179,7 +179,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use assert_matches::assert_matches;
     use js_int::{int, Int};
     use serde::Deserialize;
 
@@ -192,32 +191,25 @@ mod tests {
     }
 
     #[test]
-    fn int_or_string() -> serde_json::Result<()> {
-        assert_matches!(
-            serde_json::from_value::<Test>(serde_json::json!({ "num": "0" }))?,
-            Test { num } if num == int!(0)
-        );
-
-        Ok(())
+    fn int_or_string() {
+        let test = serde_json::from_value::<Test>(serde_json::json!({ "num": "0" })).unwrap();
+        assert_eq!(test.num, int!(0));
     }
 
     #[test]
-    fn weird_plus_string() -> serde_json::Result<()> {
-        assert_matches!(
-            serde_json::from_value::<Test>(serde_json::json!({ "num": "  +0000000001000   " }))?,
-            Test { num } if num == int!(1000)
-        );
-
-        Ok(())
+    fn weird_plus_string() {
+        let test =
+            serde_json::from_value::<Test>(serde_json::json!({ "num": "  +0000000001000   " }))
+                .unwrap();
+        assert_eq!(test.num, int!(1000));
     }
 
     #[test]
-    fn weird_minus_string() -> serde_json::Result<()> {
-        assert_matches!(
-            serde_json::from_value::<Test>(serde_json::json!({ "num": "  \n\n-0000000000000001000   " }))?,
-            Test { num } if num == int!(-1000)
-        );
-
-        Ok(())
+    fn weird_minus_string() {
+        let test = serde_json::from_value::<Test>(
+            serde_json::json!({ "num": "  \n\n-0000000000000001000   " }),
+        )
+        .unwrap();
+        assert_eq!(test.num, int!(-1000));
     }
 }
