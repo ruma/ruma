@@ -203,56 +203,35 @@ fn deserialize_message_sticker() {
         "type": "m.sticker"
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Sticker(MessageLikeEvent::Original(OriginalMessageLikeEvent {
-            content: StickerEventContent {
-                body,
-                info: ImageInfo {
-                    height,
-                    width,
-                    mimetype: Some(mimetype),
-                    size,
-                    thumbnail_info: Some(thumbnail_info),
-                    thumbnail_source: Some(MediaSource::Plain(thumbnail_url)),
-                    #[cfg(feature = "unstable-msc2448")]
-                    blurhash: None,
-                    ..
-                },
-                url,
-                ..
-            },
-            event_id,
-            origin_server_ts,
-            room_id,
-            sender,
-            unsigned
-        })) if event_id == event_id!("$h29iv0s8:example.com")
-            && body == "Hello"
-            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
-            && room_id == room_id!("!roomid:room.com")
-            && sender == user_id!("@carl:example.com")
-            && height == UInt::new(423)
-            && width == UInt::new(1011)
-            && mimetype == "image/png"
-            && size == UInt::new(84242)
-            && thumbnail_url == "mxc://matrix.org/irnsNRS2879"
-            && matches!(
-                thumbnail_info.as_ref(),
-                ThumbnailInfo {
-                    width: thumb_width,
-                    height: thumb_height,
-                    mimetype: thumb_mimetype,
-                    size: thumb_size,
-                    ..
-                } if *thumb_width == UInt::new(800)
-                    && *thumb_height == UInt::new(334)
-                    && *thumb_mimetype == Some("image/png".into())
-                    && *thumb_size == UInt::new(82595)
-            )
-            && url == "mxc://matrix.org/jxPXTKpyydzdHJkdFNZjTZrD"
-            && unsigned.is_empty()
+    let message_event = assert_matches!(
+        from_json_value::<AnyMessageLikeEvent>(json_data),
+        Ok(AnyMessageLikeEvent::Sticker(MessageLikeEvent::Original(message_event))) => message_event
     );
+
+    assert_eq!(message_event.event_id, "$h29iv0s8:example.com");
+    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+    assert_eq!(message_event.room_id, "!roomid:room.com");
+    assert_eq!(message_event.sender, "@carl:example.com");
+    assert!(message_event.unsigned.is_empty());
+
+    let content = message_event.content;
+    assert_eq!(content.body, "Hello");
+    assert_eq!(content.info.height, Some(uint!(423)));
+    assert_eq!(content.info.width, Some(uint!(1011)));
+    assert_eq!(content.info.mimetype.as_deref(), Some("image/png"));
+    assert_eq!(content.info.size, Some(uint!(84242)));
+    assert_eq!(content.url, "mxc://matrix.org/jxPXTKpyydzdHJkdFNZjTZrD");
+
+    let thumbnail_url = assert_matches!(
+        content.info.thumbnail_source,
+        Some(MediaSource::Plain(thumbnail_url)) => thumbnail_url
+    );
+    assert_eq!(thumbnail_url, "mxc://matrix.org/irnsNRS2879");
+    let thumbnail_info = content.info.thumbnail_info.unwrap();
+    assert_eq!(thumbnail_info.width, Some(uint!(800)));
+    assert_eq!(thumbnail_info.height, Some(uint!(334)));
+    assert_eq!(thumbnail_info.mimetype.as_deref(), Some("image/png"));
+    assert_eq!(thumbnail_info.size, Some(uint!(82595)));
 }
 
 #[test]
