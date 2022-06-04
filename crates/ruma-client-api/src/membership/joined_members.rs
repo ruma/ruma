@@ -80,36 +80,34 @@ pub mod v3 {
 
     #[cfg(test)]
     mod test {
-        use assert_matches::assert_matches;
+        use ruma_common::mxc_uri;
         use serde_json::{from_value as from_json_value, json};
 
         use super::RoomMember;
 
         #[test]
         fn deserialize_room_member() {
-            assert_matches!(
-                from_json_value::<RoomMember>(json!({
-                    "display_name": "alice",
-                    "avatar_url": "mxc://localhost/wefuiwegh8742w",
-                })).unwrap(),
-                RoomMember {
-                    display_name: Some(display_name),
-                    avatar_url: Some(avatar_url),
-                } if display_name == "alice"
-                    && avatar_url == "mxc://localhost/wefuiwegh8742w"
+            let member = from_json_value::<RoomMember>(json!({
+                "display_name": "alice",
+                "avatar_url": "mxc://localhost/wefuiwegh8742w",
+            }))
+            .unwrap();
+            assert_eq!(member.display_name.as_deref(), Some("alice"));
+            assert_eq!(
+                member.avatar_url.as_deref(),
+                Some(mxc_uri!("mxc://localhost/wefuiwegh8742w"))
             );
 
             #[cfg(feature = "compat")]
-            assert_matches!(
-                from_json_value::<RoomMember>(json!({
+            {
+                let member = from_json_value::<RoomMember>(json!({
                     "display_name": "alice",
                     "avatar_url": "",
-                })).unwrap(),
-                RoomMember {
-                    display_name: Some(display_name),
-                    avatar_url: None,
-                } if display_name == "alice"
-            );
+                }))
+                .unwrap();
+                assert_eq!(member.display_name.as_deref(), Some("alice"));
+                assert_eq!(member.avatar_url, None);
+            }
         }
     }
 }

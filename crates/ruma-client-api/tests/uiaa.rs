@@ -1,7 +1,7 @@
 use assert_matches::assert_matches;
 use assign::assign;
 use ruma_client_api::{
-    error::{ErrorBody, ErrorKind},
+    error::ErrorKind,
     uiaa::{
         self, AuthData, AuthFlow, AuthType, IncomingAuthData, IncomingUserIdentifier, UiaaInfo,
         UiaaResponse,
@@ -15,15 +15,15 @@ use serde_json::{
 
 #[test]
 fn deserialize_user_identifier() {
-    assert_matches!(
+    let id = assert_matches!(
         from_json_value(json!({
             "type": "m.id.user",
             "user": "cheeky_monkey"
         }))
         .unwrap(),
-        IncomingUserIdentifier::UserIdOrLocalpart(id)
-        if id == "cheeky_monkey"
+        IncomingUserIdentifier::UserIdOrLocalpart(id) => id
     );
+    assert_eq!(id, "cheeky_monkey");
 }
 
 #[test]
@@ -32,9 +32,9 @@ fn serialize_auth_data_registration_token() {
         assign!(uiaa::RegistrationToken::new("mytoken"), { session: Some("session") }),
     );
 
-    assert_matches!(
-        to_json_value(auth_data),
-        Ok(val) if val == json!({
+    assert_eq!(
+        to_json_value(auth_data).unwrap(),
+        json!({
             "type": "m.login.registration_token",
             "token": "mytoken",
             "session": "session",
@@ -50,13 +50,12 @@ fn deserialize_auth_data_registration_token() {
         "session": "session",
     });
 
-    assert_matches!(
+    let data = assert_matches!(
         from_json_value(json),
-        Ok(IncomingAuthData::RegistrationToken(
-            uiaa::IncomingRegistrationToken { token, session: Some(session), .. },
-        ))
-        if token == "mytoken" && session == "session"
+        Ok(IncomingAuthData::RegistrationToken(data)) => data
     );
+    assert_eq!(data.token, "mytoken");
+    assert_eq!(data.session.as_deref(), Some("session"));
 }
 
 #[test]
@@ -70,13 +69,11 @@ fn serialize_auth_data_fallback() {
 fn deserialize_auth_data_fallback() {
     let json = json!({ "session": "opaque_session_id" });
 
-    assert_matches!(
+    let data = assert_matches!(
         from_json_value(json).unwrap(),
-        IncomingAuthData::FallbackAcknowledgement(
-            uiaa::IncomingFallbackAcknowledgement { session, .. },
-        )
-        if session == "opaque_session_id"
+        IncomingAuthData::FallbackAcknowledgement(data) => data
     );
+    assert_eq!(data.session, "opaque_session_id");
 }
 
 #[test]
@@ -126,32 +123,22 @@ fn deserialize_uiaa_info() {
         "session": "xxxxxx"
     });
 
-    assert_matches!(
-        from_json_value::<UiaaInfo>(json).unwrap(),
-        UiaaInfo {
-            auth_error: Some(ErrorBody {
-                kind: ErrorKind::Forbidden,
-                message: error_message,
-            }),
-            completed,
-            flows,
-            params,
-            session: Some(session),
-            ..
-        } if error_message == "Invalid password"
-            && completed == vec![AuthType::ReCaptcha]
-            && matches!(
-                flows.as_slice(),
-                [f1, f2]
-                if f1.stages == vec![AuthType::Password]
-                    && f2.stages == vec![AuthType::EmailIdentity, AuthType::Msisdn]
-            )
-            && from_json_str::<JsonValue>(params.get()).unwrap() == json!({
-                "example.type.baz": {
-                    "example_key": "foobar"
-                }
-            })
-            && session == "xxxxxx"
+    let info = from_json_value::<UiaaInfo>(json).unwrap();
+    assert_eq!(info.completed, vec![AuthType::ReCaptcha]);
+    assert_eq!(info.flows.len(), 2);
+    assert_eq!(info.flows[0].stages, vec![AuthType::Password]);
+    assert_eq!(info.flows[1].stages, vec![AuthType::EmailIdentity, AuthType::Msisdn]);
+    assert_eq!(info.session.as_deref(), Some("xxxxxx"));
+    let auth_error = info.auth_error.unwrap();
+    assert_eq!(auth_error.kind, ErrorKind::Forbidden);
+    assert_eq!(auth_error.message, "Invalid password");
+    assert_eq!(
+        from_json_str::<JsonValue>(info.params.get()).unwrap(),
+        json!({
+            "example.type.baz": {
+                "example_key": "foobar"
+            }
+        })
     );
 }
 
@@ -170,24 +157,19 @@ fn try_uiaa_response_into_http_response() {
     let uiaa_response =
         UiaaResponse::AuthResponse(uiaa_info).try_into_http_response::<Vec<u8>>().unwrap();
 
-    assert_matches!(
-        from_json_slice::<UiaaInfo>(uiaa_response.body()).unwrap(),
-        UiaaInfo {
-            flows,
-            completed,
-            params,
-            session: None,
-            auth_error: None,
-            ..
-        } if matches!(
-            flows.as_slice(),
-            [flow] if flow.stages == vec![AuthType::Password, AuthType::Dummy]
-        ) && completed == vec![AuthType::ReCaptcha]
-            && from_json_str::<JsonValue>(params.get()).unwrap() == json!({
-                "example.type.baz": {
-                    "example_key": "foobar"
-                }
-            })
+    let info = from_json_slice::<UiaaInfo>(uiaa_response.body()).unwrap();
+    assert_eq!(info.flows.len(), 1);
+    assert_eq!(info.flows[0].stages, vec![AuthType::Password, AuthType::Dummy]);
+    assert_eq!(info.completed, vec![AuthType::ReCaptcha]);
+    assert_eq!(info.session, None);
+    assert_matches!(info.auth_error, None);
+    assert_eq!(
+        from_json_str::<JsonValue>(info.params.get()).unwrap(),
+        json!({
+            "example.type.baz": {
+                "example_key": "foobar"
+            }
+        })
     );
     assert_eq!(uiaa_response.status(), http::status::StatusCode::UNAUTHORIZED);
 }
@@ -220,36 +202,24 @@ fn try_uiaa_response_from_http_response() {
         .body(json.as_bytes())
         .unwrap();
 
-    let parsed_uiaa_info = match UiaaResponse::try_from_http_response(http_response).unwrap() {
-        UiaaResponse::AuthResponse(uiaa_info) => uiaa_info,
-        _ => panic!("Expected UiaaResponse::AuthResponse"),
-    };
-
-    assert_matches!(
-        parsed_uiaa_info,
-        UiaaInfo {
-            auth_error: Some(ErrorBody {
-                kind: ErrorKind::Forbidden,
-                message: error_message,
-            }),
-            completed,
-            flows,
-            params,
-            session: Some(session),
-            ..
-        } if error_message == "Invalid password"
-            && completed == vec![AuthType::ReCaptcha]
-            && matches!(
-                flows.as_slice(),
-                [f1, f2]
-                if f1.stages == vec![AuthType::Password]
-                    && f2.stages == vec![AuthType::EmailIdentity, AuthType::Msisdn]
-            )
-            && from_json_str::<JsonValue>(params.get()).unwrap() == json!({
-                "example.type.baz": {
-                    "example_key": "foobar"
-                }
-            })
-            && session == "xxxxxx"
+    let info = assert_matches!(
+        UiaaResponse::try_from_http_response(http_response),
+        Ok(UiaaResponse::AuthResponse(info)) => info
+    );
+    assert_eq!(info.completed, vec![AuthType::ReCaptcha]);
+    assert_eq!(info.flows.len(), 2);
+    assert_eq!(info.flows[0].stages, vec![AuthType::Password]);
+    assert_eq!(info.flows[1].stages, vec![AuthType::EmailIdentity, AuthType::Msisdn]);
+    assert_eq!(info.session.as_deref(), Some("xxxxxx"));
+    let auth_error = info.auth_error.unwrap();
+    assert_eq!(auth_error.kind, ErrorKind::Forbidden);
+    assert_eq!(auth_error.message, "Invalid password");
+    assert_eq!(
+        from_json_str::<JsonValue>(info.params.get()).unwrap(),
+        json!({
+            "example.type.baz": {
+                "example_key": "foobar"
+            }
+        })
     );
 }

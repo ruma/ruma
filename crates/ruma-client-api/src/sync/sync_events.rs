@@ -612,7 +612,6 @@ pub mod v3 {
 
     #[cfg(test)]
     mod tests {
-        use assert_matches::assert_matches;
         use assign::assign;
         use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -624,14 +623,14 @@ pub mod v3 {
             let timeline_serialized = json!({ "limited": true });
             assert_eq!(to_json_value(timeline).unwrap(), timeline_serialized);
 
-            let timeline_deserialized = from_json_value(timeline_serialized);
-            assert_matches!(timeline_deserialized, Ok(Timeline { limited: true, .. }));
+            let timeline_deserialized = from_json_value::<Timeline>(timeline_serialized).unwrap();
+            assert!(timeline_deserialized.limited);
 
             let timeline_default = Timeline::default();
             assert_eq!(to_json_value(timeline_default).unwrap(), json!({}));
 
-            let timeline_default_deserialized = from_json_value(json!({}));
-            assert_matches!(timeline_default_deserialized, Ok(Timeline { limited: false, .. }));
+            let timeline_default_deserialized = from_json_value::<Timeline>(json!({})).unwrap();
+            assert!(!timeline_default_deserialized.limited);
         }
     }
 
@@ -702,8 +701,9 @@ pub mod v3 {
             )
             .unwrap();
 
-            assert_matches!(req.filter, Some(IncomingFilter::FilterId(id)) if id == "myfilter");
-            assert_eq!(req.since, Some("myts".into()));
+            let id = assert_matches!(req.filter, Some(IncomingFilter::FilterId(id)) => id);
+            assert_eq!(id, "myfilter");
+            assert_eq!(req.since.as_deref(), Some("myts"));
             assert!(!req.full_state);
             assert_eq!(req.set_presence, PresenceState::Offline);
             assert_eq!(req.timeout, Some(Duration::from_millis(5000)));
@@ -750,7 +750,8 @@ pub mod v3 {
             )
             .unwrap();
 
-            assert_matches!(req.filter, Some(IncomingFilter::FilterId(id)) if id == "EOKFFmdZYF");
+            let id = assert_matches!(req.filter, Some(IncomingFilter::FilterId(id)) => id);
+            assert_eq!(id, "EOKFFmdZYF");
             assert_eq!(req.since, None);
             assert!(!req.full_state);
             assert_eq!(req.set_presence, PresenceState::Online);

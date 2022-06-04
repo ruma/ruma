@@ -57,8 +57,6 @@ pub mod v3 {
 
     #[cfg(all(test, any(feature = "client", feature = "server")))]
     mod tests {
-        use assert_matches::assert_matches;
-
         #[cfg(feature = "server")]
         #[test]
         fn deserialize_request() {
@@ -66,17 +64,15 @@ pub mod v3 {
 
             use super::IncomingRequest;
 
-            let req = assert_matches!(
-                IncomingRequest::try_from_http_request(
-                    http::Request::builder()
-                        .method(http::Method::POST)
-                        .uri("https://matrix.org/_matrix/client/r0/user/@foo:bar.com/filter")
-                        .body(b"{}" as &[u8])
-                        .unwrap(),
-                    &["@foo:bar.com"]
-                ),
-                Ok(req) => req
-            );
+            let req = IncomingRequest::try_from_http_request(
+                http::Request::builder()
+                    .method(http::Method::POST)
+                    .uri("https://matrix.org/_matrix/client/r0/user/@foo:bar.com/filter")
+                    .body(b"{}" as &[u8])
+                    .unwrap(),
+                &["@foo:bar.com"],
+            )
+            .unwrap();
 
             assert_eq!(req.user_id, "@foo:bar.com");
             assert!(req.filter.is_empty());
@@ -92,15 +88,14 @@ pub mod v3 {
 
             use crate::filter::FilterDefinition;
 
-            assert_matches!(
-                super::Request::new(user_id!("@foo:bar.com"), FilterDefinition::default())
-                    .try_into_http_request::<Vec<u8>>(
-                        "https://matrix.org",
-                        SendAccessToken::IfRequired("tok"),
-                        &[MatrixVersion::V1_1]
-                    ),
-                Ok(res) if res.body() == b"{}"
-            );
+            let req = super::Request::new(user_id!("@foo:bar.com"), FilterDefinition::default())
+                .try_into_http_request::<Vec<u8>>(
+                    "https://matrix.org",
+                    SendAccessToken::IfRequired("tok"),
+                    &[MatrixVersion::V1_1],
+                )
+                .unwrap();
+            assert_eq!(req.body(), b"{}");
         }
     }
 }

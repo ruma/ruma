@@ -323,12 +323,12 @@ pub mod v3 {
         use assert_matches::assert_matches;
         use serde_json::{from_value as from_json_value, json};
 
-        use super::{IncomingLoginInfo, IncomingPassword, IncomingToken};
+        use super::{IncomingLoginInfo, IncomingToken};
         use crate::uiaa::IncomingUserIdentifier;
 
         #[test]
         fn deserialize_login_type() {
-            assert_matches!(
+            let login = assert_matches!(
                 from_json_value(json!({
                     "type": "m.login.password",
                     "identifier": {
@@ -338,19 +338,24 @@ pub mod v3 {
                     "password": "ilovebananas"
                 }))
                 .unwrap(),
-                IncomingLoginInfo::Password(IncomingPassword { identifier: IncomingUserIdentifier::UserIdOrLocalpart(user), password })
-                if user == "cheeky_monkey" && password == "ilovebananas"
+                IncomingLoginInfo::Password(login) => login
             );
+            let user = assert_matches!(
+                login.identifier,
+                IncomingUserIdentifier::UserIdOrLocalpart(user) => user
+            );
+            assert_eq!(user, "cheeky_monkey");
+            assert_eq!(login.password, "ilovebananas");
 
-            assert_matches!(
+            let token = assert_matches!(
                 from_json_value(json!({
                     "type": "m.login.token",
                     "token": "1234567890abcdef"
                 }))
                 .unwrap(),
-                IncomingLoginInfo::Token(IncomingToken { token })
-                if token == "1234567890abcdef"
+                IncomingLoginInfo::Token(IncomingToken { token }) => token
             );
+            assert_eq!(token, "1234567890abcdef");
         }
 
         #[test]
