@@ -58,28 +58,26 @@ impl Relation {
 
 #[cfg(test)]
 mod tests {
-    use crate::event_id;
     use assert_matches::assert_matches;
     use serde_json::{from_value as from_json_value, json};
 
-    use super::{ReactionEventContent, Relation};
+    use super::ReactionEventContent;
 
     #[test]
     fn deserialize() {
-        let ev_id = event_id!("$1598361704261elfgc:localhost");
-
         let json = json!({
             "m.relates_to": {
                 "rel_type": "m.annotation",
-                "event_id": ev_id,
+                "event_id": "$1598361704261elfgc:localhost",
                 "key": "🦛",
             }
         });
 
-        assert_matches!(
-            from_json_value::<ReactionEventContent>(json).unwrap(),
-            ReactionEventContent { relates_to: Relation { event_id, key } }
-            if event_id == ev_id && key == "🦛"
+        let relates_to = assert_matches!(
+            from_json_value::<ReactionEventContent>(json),
+            Ok(ReactionEventContent { relates_to }) => relates_to
         );
+        assert_eq!(relates_to.event_id, "$1598361704261elfgc:localhost");
+        assert_eq!(relates_to.key, "🦛");
     }
 }

@@ -74,12 +74,14 @@ impl KeyVerificationReadyEventContent {
 
 #[cfg(test)]
 mod tests {
-    use crate::{event_id, OwnedDeviceId};
-    use assert_matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{KeyVerificationReadyEventContent, ToDeviceKeyVerificationReadyEventContent};
-    use crate::events::key::verification::{Relation, VerificationMethod};
+    use crate::{
+        event_id,
+        events::key::verification::{Relation, VerificationMethod},
+        OwnedDeviceId,
+    };
 
     #[test]
     fn serialization() {
@@ -120,46 +122,30 @@ mod tests {
 
     #[test]
     fn deserialization() {
-        let id = event_id!("$1598361704261elfgc:localhost");
-        let device: OwnedDeviceId = "123".into();
-
         let json_data = json!({
-            "from_device": device,
+            "from_device": "123",
             "methods": ["m.sas.v1"],
             "m.relates_to": {
                 "rel_type": "m.reference",
-                "event_id": id,
+                "event_id": "$1598361704261elfgc:localhost",
             }
         });
 
-        assert_matches!(
-            from_json_value::<KeyVerificationReadyEventContent>(json_data).unwrap(),
-            KeyVerificationReadyEventContent {
-                from_device,
-                relates_to: Relation {
-                    event_id
-                },
-                methods,
-            } if from_device == device
-                && methods == vec![VerificationMethod::SasV1]
-                && event_id == id
-        );
+        let content = from_json_value::<KeyVerificationReadyEventContent>(json_data).unwrap();
+        assert_eq!(content.from_device, "123");
+        assert_eq!(content.methods, vec![VerificationMethod::SasV1]);
+        assert_eq!(content.relates_to.event_id, "$1598361704261elfgc:localhost");
 
         let json_data = json!({
-            "from_device": device,
+            "from_device": "123",
             "methods": ["m.sas.v1"],
             "transaction_id": "456",
         });
 
-        assert_matches!(
-            from_json_value::<ToDeviceKeyVerificationReadyEventContent>(json_data).unwrap(),
-            ToDeviceKeyVerificationReadyEventContent {
-                from_device,
-                transaction_id,
-                methods,
-            } if from_device == device
-                && methods == vec![VerificationMethod::SasV1]
-                && transaction_id == "456"
-        );
+        let content =
+            from_json_value::<ToDeviceKeyVerificationReadyEventContent>(json_data).unwrap();
+        assert_eq!(content.from_device, "123");
+        assert_eq!(content.methods, vec![VerificationMethod::SasV1]);
+        assert_eq!(content.transaction_id, "456");
     }
 }

@@ -71,11 +71,11 @@ mod tests {
     fn deserialize_plain() {
         let json = json!({ "thumbnail_url": "mxc://notareal.hs/abcdef" });
 
-        assert_matches!(
-            serde_json::from_value::<ThumbnailSourceTest>(json).unwrap(),
-            ThumbnailSourceTest { source: Some(MediaSource::Plain(url)) }
-            if url == "mxc://notareal.hs/abcdef"
+        let url = assert_matches!(
+            serde_json::from_value::<ThumbnailSourceTest>(json),
+            Ok(ThumbnailSourceTest { source: Some(MediaSource::Plain(url)) }) => url
         );
+        assert_eq!(url, "mxc://notareal.hs/abcdef");
     }
 
     #[test]
@@ -98,11 +98,11 @@ mod tests {
             },
         });
 
-        assert_matches!(
-            serde_json::from_value::<ThumbnailSourceTest>(json).unwrap(),
-            ThumbnailSourceTest { source: Some(MediaSource::Encrypted(file)) }
-            if file.url == "mxc://notareal.hs/abcdef"
+        let file = assert_matches!(
+            serde_json::from_value::<ThumbnailSourceTest>(json),
+            Ok(ThumbnailSourceTest { source: Some(MediaSource::Encrypted(file)) }) => file
         );
+        assert_eq!(file.url, "mxc://notareal.hs/abcdef");
     }
 
     #[test]
