@@ -311,7 +311,6 @@ impl FlattenedJson {
 mod tests {
     use std::collections::BTreeMap;
 
-    use crate::{room_id, serde::Raw, user_id};
     use assert_matches::assert_matches;
     use js_int::{int, uint};
     use maplit::btreemap;
@@ -320,7 +319,7 @@ mod tests {
     };
 
     use super::{FlattenedJson, PushCondition, PushConditionRoomCtx, RoomMemberCountIs, StrExt};
-    use crate::power_levels::NotificationPowerLevels;
+    use crate::{power_levels::NotificationPowerLevels, room_id, serde::Raw, user_id};
 
     #[test]
     fn serialize_event_match_condition() {
@@ -382,11 +381,12 @@ mod tests {
             "kind": "event_match",
             "pattern": "m.notice"
         });
-        assert_matches!(
+        let (key, pattern) = assert_matches!(
             from_json_value::<PushCondition>(json_data).unwrap(),
-            PushCondition::EventMatch { key, pattern }
-            if key == "content.msgtype" && pattern == "m.notice"
+            PushCondition::EventMatch { key, pattern } => (key, pattern)
         );
+        assert_eq!(key, "content.msgtype");
+        assert_eq!(pattern, "m.notice");
     }
 
     #[test]
@@ -403,11 +403,11 @@ mod tests {
             "is": "2",
             "kind": "room_member_count"
         });
-        assert_matches!(
+        let is = assert_matches!(
             from_json_value::<PushCondition>(json_data).unwrap(),
-            PushCondition::RoomMemberCount { is }
-            if is == RoomMemberCountIs::from(uint!(2))
+            PushCondition::RoomMemberCount { is } => is
         );
+        assert_eq!(is, RoomMemberCountIs::from(uint!(2)));
     }
 
     #[test]
@@ -416,12 +416,11 @@ mod tests {
             "key": "room",
             "kind": "sender_notification_permission"
         });
-        assert_matches!(
+        let key = assert_matches!(
             from_json_value::<PushCondition>(json_data).unwrap(),
-            PushCondition::SenderNotificationPermission {
-                key
-            } if key == "room"
+            PushCondition::SenderNotificationPermission { key } => key
         );
+        assert_eq!(key, "room");
     }
 
     #[test]
