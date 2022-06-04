@@ -50,22 +50,15 @@ fn serialize_redaction() {
 fn deserialize_redaction() {
     let json_data = redaction();
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::RoomRedaction(RoomRedactionEvent::Original(OriginalRoomRedactionEvent {
-            content: RoomRedactionEventContent { reason: Some(reas), .. },
-            redacts,
-            event_id,
-            origin_server_ts,
-            room_id,
-            sender,
-            unsigned,
-        })) if reas == "being a turd"
-            && event_id == event_id!("$h29iv0s8:example.com")
-            && redacts == event_id!("$nomore:example.com")
-            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
-            && room_id == room_id!("!roomid:room.com")
-            && sender == user_id!("@carl:example.com")
-            && unsigned.is_empty()
+    let ev = assert_matches!(
+        from_json_value::<AnyMessageLikeEvent>(json_data),
+        Ok(AnyMessageLikeEvent::RoomRedaction(RoomRedactionEvent::Original(ev))) => ev
     );
+    assert_eq!(ev.content.reason.as_deref(), Some("being a turd"));
+    assert_eq!(ev.event_id, "$h29iv0s8:example.com");
+    assert_eq!(ev.redacts, "$nomore:example.com");
+    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+    assert_eq!(ev.room_id, "!roomid:room.com");
+    assert_eq!(ev.sender, "@carl:example.com");
+    assert!(ev.unsigned.is_empty());
 }
