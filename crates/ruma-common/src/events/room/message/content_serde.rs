@@ -13,12 +13,16 @@ use super::{
 #[cfg(feature = "unstable-msc3246")]
 use super::{AudioContent, AudioInfo, AudioMessageEventContent};
 #[cfg(feature = "unstable-msc3551")]
-use super::{FileContent, FileInfo, FileMessageEventContent, MediaSource, MessageContent};
+use super::{FileContent, FileInfo, FileMessageEventContent, MessageContent};
 #[cfg(feature = "unstable-msc3552")]
-use super::{ImageContent, ImageInfo, ImageMessageEventContent, ThumbnailContent};
+use super::{ImageContent, ImageMessageEventContent, ThumbnailContent};
 use super::{MessageType, Relation, RoomMessageEventContent};
 #[cfg(feature = "unstable-msc3553")]
 use super::{VideoContent, VideoInfo, VideoMessageEventContent};
+#[cfg(feature = "unstable-msc3552")]
+use crate::events::room::ImageInfo;
+#[cfg(feature = "unstable-msc3551")]
+use crate::events::room::MediaSource;
 use crate::serde::from_raw_json_value;
 
 impl<'de> Deserialize<'de> for RoomMessageEventContent {
