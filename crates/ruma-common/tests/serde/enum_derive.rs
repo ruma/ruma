@@ -1,3 +1,6 @@
+// https://github.com/rust-lang/rust-clippy/issues/8875
+#![allow(clippy::derive_partial_eq_without_eq)]
+
 use ruma_common::serde::StringEnum;
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
