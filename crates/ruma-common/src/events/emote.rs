@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     message::MessageContent,
-    room::message::{EmoteMessageEventContent, Relation},
+    room::message::{EmoteMessageEventContent, MessageType, Relation, RoomMessageEventContent},
 };
 
 /// The payload for an extensible emote message.
@@ -68,5 +68,13 @@ impl EmoteEventContent {
         } else {
             Self { message: MessageContent::from_room_message_content(body, formatted), relates_to }
         }
+    }
+}
+
+impl From<EmoteEventContent> for RoomMessageEventContent {
+    fn from(content: EmoteEventContent) -> Self {
+        let EmoteEventContent { message, relates_to, .. } = content;
+
+        Self { msgtype: MessageType::Emote(message.into()), relates_to }
     }
 }

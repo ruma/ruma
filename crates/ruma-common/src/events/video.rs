@@ -12,7 +12,9 @@ use super::{
     file::FileContent,
     image::ThumbnailContent,
     message::MessageContent,
-    room::message::{Relation, VideoInfo, VideoMessageEventContent},
+    room::message::{
+        MessageType, Relation, RoomMessageEventContent, VideoInfo, VideoMessageEventContent,
+    },
 };
 
 /// The payload for an extensible video message.
@@ -124,6 +126,19 @@ impl VideoEventContent {
             .unwrap_or_default();
 
         Self { message, file, video, thumbnail, caption, relates_to }
+    }
+}
+
+impl From<VideoEventContent> for RoomMessageEventContent {
+    fn from(content: VideoEventContent) -> Self {
+        let VideoEventContent { message, file, video, thumbnail, caption, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::Video(VideoMessageEventContent::from_extensible_content(
+                message, file, video, thumbnail, caption,
+            )),
+            relates_to,
+        }
     }
 }
 

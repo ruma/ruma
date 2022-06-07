@@ -16,7 +16,9 @@ use waveform_serde::WaveformSerDeHelper;
 use super::{
     file::FileContent,
     message::MessageContent,
-    room::message::{AudioInfo, AudioMessageEventContent, Relation},
+    room::message::{
+        AudioInfo, AudioMessageEventContent, MessageType, Relation, RoomMessageEventContent,
+    },
 };
 
 /// The payload for an extensible audio message.
@@ -95,6 +97,19 @@ impl AudioEventContent {
         let audio = audio.or_else(|| info.as_deref().map(Into::into)).unwrap_or_default();
 
         Self { message, file, audio, relates_to }
+    }
+}
+
+impl From<AudioEventContent> for RoomMessageEventContent {
+    fn from(content: AudioEventContent) -> Self {
+        let AudioEventContent { message, file, audio, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::Audio(AudioMessageEventContent::from_extensible_content(
+                message, file, audio,
+            )),
+            relates_to,
+        }
     }
 }
 

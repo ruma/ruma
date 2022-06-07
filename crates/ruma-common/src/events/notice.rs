@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     message::MessageContent,
-    room::message::{NoticeMessageEventContent, Relation},
+    room::message::{MessageType, NoticeMessageEventContent, Relation, RoomMessageEventContent},
 };
 
 /// The payload for an extensible notice message.
@@ -68,5 +68,13 @@ impl NoticeEventContent {
         } else {
             Self { message: MessageContent::from_room_message_content(body, formatted), relates_to }
         }
+    }
+}
+
+impl From<NoticeEventContent> for RoomMessageEventContent {
+    fn from(content: NoticeEventContent) -> Self {
+        let NoticeEventContent { message, relates_to, .. } = content;
+
+        Self { msgtype: MessageType::Notice(message.into()), relates_to }
     }
 }

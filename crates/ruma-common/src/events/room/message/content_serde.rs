@@ -3,27 +3,42 @@
 use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-#[cfg(feature = "unstable-msc3245")]
-use super::VoiceContent;
-#[cfg(feature = "unstable-msc3488")]
-use super::{
-    AssetContent, LocationContent, LocationInfo, LocationMessageEventContent,
-    MilliSecondsSinceUnixEpoch,
-};
-#[cfg(feature = "unstable-msc3246")]
-use super::{AudioContent, AudioInfo, AudioMessageEventContent};
-#[cfg(feature = "unstable-msc3551")]
-use super::{FileContent, FileInfo, FileMessageEventContent, MessageContent};
 #[cfg(feature = "unstable-msc3552")]
-use super::{ImageContent, ImageMessageEventContent, ThumbnailContent};
+use super::ImageMessageEventContent;
+#[cfg(feature = "unstable-msc3246")]
+use super::{AudioInfo, AudioMessageEventContent};
+#[cfg(feature = "unstable-msc3551")]
+use super::{FileInfo, FileMessageEventContent};
+#[cfg(feature = "unstable-msc3488")]
+use super::{LocationInfo, LocationMessageEventContent};
 use super::{MessageType, Relation, RoomMessageEventContent};
 #[cfg(feature = "unstable-msc3553")]
-use super::{VideoContent, VideoInfo, VideoMessageEventContent};
+use super::{VideoInfo, VideoMessageEventContent};
+#[cfg(feature = "unstable-msc3246")]
+use crate::events::audio::AudioContent;
+#[cfg(feature = "unstable-msc3551")]
+use crate::events::file::FileContent;
+#[cfg(feature = "unstable-msc3552")]
+use crate::events::image::{ImageContent, ThumbnailContent};
+#[cfg(feature = "unstable-msc3488")]
+use crate::events::location::{AssetContent, LocationContent};
+#[cfg(any(
+    feature = "unstable-msc3246",
+    feature = "unstable-msc3488",
+    feature = "unstable-msc3551"
+))]
+use crate::events::message::MessageContent;
 #[cfg(feature = "unstable-msc3552")]
 use crate::events::room::ImageInfo;
 #[cfg(feature = "unstable-msc3551")]
 use crate::events::room::MediaSource;
+#[cfg(feature = "unstable-msc3553")]
+use crate::events::video::VideoContent;
+#[cfg(feature = "unstable-msc3245")]
+use crate::events::voice::VoiceContent;
 use crate::serde::from_raw_json_value;
+#[cfg(feature = "unstable-msc3488")]
+use crate::MilliSecondsSinceUnixEpoch;
 
 impl<'de> Deserialize<'de> for RoomMessageEventContent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

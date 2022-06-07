@@ -9,7 +9,7 @@ use super::{
     audio::AudioContent,
     file::FileContent,
     message::{MessageContent, TryFromExtensibleError},
-    room::message::{AudioMessageEventContent, Relation},
+    room::message::{AudioMessageEventContent, MessageType, Relation, RoomMessageEventContent},
 };
 
 /// The payload for an extensible voice message.
@@ -95,6 +95,19 @@ impl VoiceEventContent {
         };
 
         Ok(Self { message, file, audio, voice, relates_to })
+    }
+}
+
+impl From<VoiceEventContent> for RoomMessageEventContent {
+    fn from(content: VoiceEventContent) -> Self {
+        let VoiceEventContent { message, file, audio, voice, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::Audio(AudioMessageEventContent::from_extensible_voice_content(
+                message, file, audio, voice,
+            )),
+            relates_to,
+        }
     }
 }
 
