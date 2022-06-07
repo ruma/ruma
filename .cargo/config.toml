@@ -44,8 +44,6 @@ rustflags = [
     "-Wclippy::unreadable_literal",
     "-Wclippy::unseparated_literal_suffix",
     "-Wclippy::wildcard_imports",
-    # https://github.com/rust-lang/rust-clippy/issues/8875
-    "-Aclippy::derive_partial_eq_without_eq",
 ]
 
 # activate the target-applies-to-host feature.

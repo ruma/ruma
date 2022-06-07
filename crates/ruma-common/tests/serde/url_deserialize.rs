@@ -1,3 +1,6 @@
+// https://github.com/rust-lang/rust-clippy/issues/8875
+#![allow(clippy::derive_partial_eq_without_eq)]
+
 use assert_matches::assert_matches;
 use form_urlencoded::Serializer as Encoder;
 use ruma_common::serde::urlencoded;

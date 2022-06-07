@@ -4,6 +4,8 @@
 
 #![recursion_limit = "1024"]
 #![warn(missing_docs)]
+// https://github.com/rust-lang/rust-clippy/issues/8875
+#![allow(clippy::derive_partial_eq_without_eq)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 #[cfg(not(all(feature = "client", feature = "server")))]
