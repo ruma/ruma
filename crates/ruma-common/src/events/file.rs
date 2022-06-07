@@ -11,7 +11,10 @@ use serde::{Deserialize, Serialize};
 use super::{
     message::MessageContent,
     room::{
-        message::{AudioInfo, FileInfo, FileMessageEventContent, Relation, VideoInfo},
+        message::{
+            AudioInfo, FileInfo, FileMessageEventContent, MessageType, Relation,
+            RoomMessageEventContent, VideoInfo,
+        },
         EncryptedFile, ImageInfo, JsonWebKey, MediaSource,
     },
 };
@@ -112,6 +115,19 @@ impl FileEventContent {
         });
 
         Self { message, file, relates_to }
+    }
+}
+
+impl From<FileEventContent> for RoomMessageEventContent {
+    fn from(content: FileEventContent) -> Self {
+        let FileEventContent { message, file, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::File(FileMessageEventContent::from_extensible_content(
+                message, file,
+            )),
+            relates_to,
+        }
     }
 }
 

@@ -48,7 +48,6 @@
 //! [3488]: https://github.com/matrix-org/matrix-spec-proposals/pull/3488
 //! [MSC3245]: https://github.com/matrix-org/matrix-spec-proposals/pull/3245
 //! [MSC3381]: https://github.com/matrix-org/matrix-spec-proposals/pull/3381
-//! [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
 use std::ops::Deref;
 
 use ruma_macros::EventContent;
@@ -59,7 +58,10 @@ pub(crate) mod content_serde;
 
 use content_serde::MessageContentSerDeHelper;
 
-use super::room::message::{FormattedBody, MessageFormat, Relation, TextMessageEventContent};
+use super::room::message::{
+    FormattedBody, MessageFormat, MessageType, Relation, RoomMessageEventContent,
+    TextMessageEventContent,
+};
 
 /// The payload for an extensible text message.
 ///
@@ -119,6 +121,14 @@ impl MessageEventContent {
         } else {
             Self { message: MessageContent::from_room_message_content(body, formatted), relates_to }
         }
+    }
+}
+
+impl From<MessageEventContent> for RoomMessageEventContent {
+    fn from(content: MessageEventContent) -> Self {
+        let MessageEventContent { message, relates_to, .. } = content;
+
+        Self { msgtype: MessageType::Text(message.into()), relates_to }
     }
 }
 

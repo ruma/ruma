@@ -10,7 +10,7 @@ mod zoomlevel_serde;
 
 use super::{
     message::MessageContent,
-    room::message::{LocationMessageEventContent, Relation},
+    room::message::{LocationMessageEventContent, MessageType, Relation, RoomMessageEventContent},
 };
 use crate::{MilliSecondsSinceUnixEpoch, PrivOwnedStr};
 
@@ -83,6 +83,19 @@ impl LocationEventContent {
         let asset = asset.unwrap_or_default();
 
         Self { message, location, asset, ts, relates_to }
+    }
+}
+
+impl From<LocationEventContent> for RoomMessageEventContent {
+    fn from(content: LocationEventContent) -> Self {
+        let LocationEventContent { message, location, asset, ts, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::Location(LocationMessageEventContent::from_extensible_content(
+                message, location, asset, ts,
+            )),
+            relates_to,
+        }
     }
 }
 
