@@ -13,6 +13,16 @@ use super::IdParseError;
 #[ruma_id(validate = validate_session_id)]
 pub struct SessionId(str);
 
+impl SessionId {
+    #[doc(hidden)]
+    pub const fn _priv_const_new(s: &str) -> Result<&Self, IdParseError> {
+        match validate_session_id(s) {
+            Ok(()) => Ok(Self::from_borrowed(s)),
+            Err(e) => Err(e),
+        }
+    }
+}
+
 const fn validate_session_id(s: &str) -> Result<(), IdParseError> {
     if s.len() > 255 {
         return Err(IdParseError::MaximumLengthExceeded);

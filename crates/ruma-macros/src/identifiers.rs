@@ -78,7 +78,7 @@ pub fn expand_id_zst(input: ItemStruct) -> syn::Result<TokenStream> {
         #owned_decl
 
         impl #impl_generics #id_ty {
-            pub(super) fn from_borrowed(s: &str) -> &Self {
+            pub(super) const fn from_borrowed(s: &str) -> &Self {
                 unsafe { std::mem::transmute(s) }
             }
 

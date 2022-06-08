@@ -161,6 +161,19 @@ macro_rules! server_name {
     };
 }
 
+/// Compile-time checked `SessionId` construction.
+#[macro_export]
+macro_rules! session_id {
+    ($s:literal) => {{
+        const SESSION_ID: &$crate::SessionId = match $crate::SessionId::_priv_const_new($s) {
+            Ok(id) => id,
+            Err(_) => panic!("Invalid session ID"),
+        };
+
+        SESSION_ID
+    }};
+}
+
 /// Compile-time checked `MxcUri` construction.
 #[macro_export]
 macro_rules! mxc_uri {
