@@ -28,11 +28,8 @@ pub fn localpart_is_fully_conforming(localpart: &str) -> Result<bool, Error> {
     // See https://spec.matrix.org/v1.2/appendices/#historical-user-ids
     #[cfg(not(feature = "compat"))]
     if !is_fully_conforming && localpart.bytes().any(|b| b < 0x21 || b == b':' || b > 0x7E) {
-        Err(Error::InvalidCharacters)
-    } else {
-        Ok(is_fully_conforming)
+        return Err(Error::InvalidCharacters);
     }
 
-    #[cfg(feature = "compat")]
     Ok(is_fully_conforming)
 }
