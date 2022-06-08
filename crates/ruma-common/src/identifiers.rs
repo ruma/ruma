@@ -167,7 +167,7 @@ macro_rules! session_id {
     ($s:literal) => {{
         const SESSION_ID: &$crate::SessionId = match $crate::SessionId::_priv_const_new($s) {
             Ok(id) => id,
-            Err(_) => panic!("Invalid session ID"),
+            Err(e) => panic!("{}", e),
         };
 
         SESSION_ID
