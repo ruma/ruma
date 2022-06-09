@@ -10,7 +10,7 @@ network.
 [website]: https://www.ruma.io/
 [chat]: https://matrix.to/#/#ruma:matrix.org
 [docs]: https://docs.rs/ruma/
-[unstable-docs]: https://docs.ruma.io/
+[unstable-docs]: https://docs.ruma.io/ruma/
 
 ## Getting started
 
