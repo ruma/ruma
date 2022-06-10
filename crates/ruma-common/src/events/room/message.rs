@@ -23,7 +23,7 @@ mod location;
 mod notice;
 mod relation_serde;
 mod reply;
-mod sanitize;
+pub mod sanitize;
 mod server_notice;
 mod text;
 mod video;
@@ -35,9 +35,10 @@ pub use image::ImageMessageEventContent;
 pub use key_verification_request::KeyVerificationRequestEventContent;
 pub use location::{LocationInfo, LocationMessageEventContent};
 pub use notice::NoticeMessageEventContent;
-pub use sanitize::remove_plain_reply_fallback;
 #[cfg(feature = "sanitize")]
-pub use sanitize::{sanitize_html, RemoveReplyFallback};
+use sanitize::{
+    remove_plain_reply_fallback, sanitize_html, HtmlSanitizerMode, RemoveReplyFallback,
+};
 pub use server_notice::{LimitType, ServerNoticeMessageEventContent, ServerNoticeType};
 pub use text::TextMessageEventContent;
 pub use video::{VideoInfo, VideoMessageEventContent};
@@ -355,18 +356,24 @@ impl RoomMessageEventContent {
     /// [tags and attributes]: https://spec.matrix.org/v1.2/client-server-api/#mroommessage-msgtypes
     /// [rich reply fallback]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
     #[cfg(feature = "sanitize")]
-    pub fn sanitize(&mut self, remove_reply_fallback: RemoveReplyFallback) {
+    pub fn sanitize(
+        &mut self,
+        mode: HtmlSanitizerMode,
+        remove_reply_fallback: RemoveReplyFallback,
+    ) {
         match &mut self.msgtype {
             MessageType::Emote(EmoteMessageEventContent { body, formatted, .. })
             | MessageType::Notice(NoticeMessageEventContent { body, formatted, .. })
             | MessageType::Text(TextMessageEventContent { body, formatted, .. }) => {
                 formatted.as_mut().map(|formatted| {
-                    if let Some(body) = formatted.sanitize_html(remove_reply_fallback) {
+                    if let Some(body) = formatted.sanitize_html(mode, remove_reply_fallback) {
                         formatted.body = body;
                     }
                     formatted
                 });
-                if remove_reply_fallback == RemoveReplyFallback::Yes {
+                if remove_reply_fallback == RemoveReplyFallback::Yes
+                    && matches!(self.relates_to, Some(Relation::Reply { .. }))
+                {
                     *body = remove_plain_reply_fallback(body).to_owned();
                 }
             }
@@ -718,9 +725,13 @@ impl FormattedBody {
     /// [tags and attributes]: https://spec.matrix.org/v1.2/client-server-api/#mroommessage-msgtypes
     /// [rich reply fallback]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
     #[cfg(feature = "sanitize")]
-    pub fn sanitize_html(&self, remove_reply_fallback: RemoveReplyFallback) -> Option<String> {
+    pub fn sanitize_html(
+        &self,
+        mode: HtmlSanitizerMode,
+        remove_reply_fallback: RemoveReplyFallback,
+    ) -> Option<String> {
         (self.format == MessageFormat::Html)
-            .then(|| sanitize_html(&self.body, remove_reply_fallback))
+            .then(|| sanitize_html(&self.body, mode, remove_reply_fallback))
     }
 }
 
