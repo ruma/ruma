@@ -492,6 +492,8 @@ fn content_deserialization_failure() {
 #[test]
 #[cfg(feature = "sanitize")]
 fn reply_sanitize() {
+    use ruma_common::events::room::message::TextMessageEventContent;
+
     let first_message = OriginalRoomMessageEvent {
         content: RoomMessageEventContent::text_html(
             "# This is the first message",

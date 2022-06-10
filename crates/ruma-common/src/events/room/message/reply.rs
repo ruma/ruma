@@ -1,7 +1,8 @@
 use std::fmt;
 
 use super::{
-    remove_plain_reply_fallback, FormattedBody, MessageType, OriginalRoomMessageEvent, Relation,
+    sanitize::remove_plain_reply_fallback, FormattedBody, MessageType, OriginalRoomMessageEvent,
+    Relation,
 };
 #[cfg(feature = "sanitize")]
 use super::{sanitize_html, HtmlSanitizerMode, RemoveReplyFallback};
