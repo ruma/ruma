@@ -295,6 +295,7 @@ impl Default for ThirdPartyIdChangesCapability {
 mod tests {
     use std::borrow::Cow;
 
+    use assert_matches::assert_matches;
     use serde_json::json;
 
     use super::Capabilities;
@@ -335,7 +336,7 @@ mod tests {
         assert_eq!(iter_res.name(), "m.some_random_capability");
         assert_eq!(iter_res.value(), Cow::Borrowed(&json!({ "key": "value" })));
 
-        assert!(caps_iter.next().is_none());
+        assert_matches!(caps_iter.next(), None);
         Ok(())
     }
 }
