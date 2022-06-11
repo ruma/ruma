@@ -151,7 +151,7 @@ mod tests {
         );
 
         assert_eq!(
-            to_json_value(UserIdentifier::third_party_id("robot".into(), "01001110")).unwrap(),
+            to_json_value(UserIdentifier::third_party_id(&"robot".into(), "01001110")).unwrap(),
             json!({
                 "type": "m.id.thirdparty",
                 "medium": "robot",

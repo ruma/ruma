@@ -605,7 +605,7 @@ pub enum UserIdentifier<'a> {
 
 impl<'a> UserIdentifier<'a> {
     /// Creates a new `UserIdentifier` from the given third party identifier.
-    pub fn third_party_id(medium: Medium, address: &'a str) -> Self {
+    pub fn third_party_id(medium: &'a Medium, address: &'a str) -> Self {
         match medium {
             Medium::Email => Self::Email { address },
             Medium::Msisdn => Self::Msisdn { number: address },
@@ -614,12 +614,12 @@ impl<'a> UserIdentifier<'a> {
     }
 
     /// Get this `UserIdentifier` as a third party identifier if it is one.
-    pub fn as_third_party_id(&self) -> Option<(Medium, &'a str)> {
-        match *self {
-            Self::Email { address } => Some((Medium::Email, address)),
-            Self::Msisdn { number } => Some((Medium::Msisdn, number)),
-            Self::_CustomThirdParty(CustomThirdPartyId { ref medium, address }) => {
-                Some((medium.clone(), address))
+    pub fn as_third_party_id(&self) -> Option<(&'a Medium, &'a str)> {
+        match self {
+            Self::Email { address } => Some((&Medium::Email, address)),
+            Self::Msisdn { number } => Some((&Medium::Msisdn, number)),
+            Self::_CustomThirdParty(CustomThirdPartyId { medium, address }) => {
+                Some((medium, address))
             }
             _ => None,
         }
@@ -646,7 +646,7 @@ impl IncomingUserIdentifier {
             Self::Msisdn { number } => UserIdentifier::Msisdn { number },
             Self::PhoneNumber { country, phone } => UserIdentifier::PhoneNumber { country, phone },
             Self::_CustomThirdParty(id) => UserIdentifier::_CustomThirdParty(CustomThirdPartyId {
-                medium: id.medium.clone(),
+                medium: &id.medium,
                 address: &id.address,
             }),
         }
@@ -657,7 +657,7 @@ impl IncomingUserIdentifier {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[non_exhaustive]
 pub struct CustomThirdPartyId<'a> {
-    medium: Medium,
+    medium: &'a Medium,
     address: &'a str,
 }
 
