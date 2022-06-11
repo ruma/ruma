@@ -361,10 +361,7 @@ pub mod v3 {
         #[test]
         #[cfg(feature = "client")]
         fn serialize_login_request_body() {
-            use ruma_common::{
-                api::{MatrixVersion, OutgoingRequest, SendAccessToken},
-                thirdparty::Medium,
-            };
+            use ruma_common::api::{MatrixVersion, OutgoingRequest, SendAccessToken};
             use serde_json::Value as JsonValue;
 
             use super::{LoginInfo, Password, Request, Token};
@@ -394,10 +391,7 @@ pub mod v3 {
 
             let req: http::Request<Vec<u8>> = Request {
                 login_info: LoginInfo::Password(Password {
-                    identifier: UserIdentifier::ThirdPartyId {
-                        address: "hello@example.com",
-                        medium: Medium::Email,
-                    },
+                    identifier: UserIdentifier::Email { address: "hello@example.com" },
                     password: "deadbeef",
                 }),
                 device_id: None,
