@@ -901,7 +901,7 @@ mod tests {
         let matrix_uri =
             MatrixUri::parse("matrix:u/jplatte:notareal.hs").expect("Failed to create MatrixUri.");
         assert_eq!(matrix_uri.id(), &user_id!("@jplatte:notareal.hs").into());
-        assert!(matrix_uri.action().is_none());
+        assert_eq!(matrix_uri.action(), None);
 
         let matrix_uri = MatrixUri::parse("matrix:u/jplatte:notareal.hs?action=chat")
             .expect("Failed to create MatrixUri.");
@@ -915,8 +915,8 @@ mod tests {
         let matrix_uri = MatrixUri::parse("matrix:roomid/ruma:notareal.hs?via=notareal.hs")
             .expect("Failed to create MatrixToUri.");
         assert_eq!(matrix_uri.id(), &room_id!("!ruma:notareal.hs").into());
-        assert_eq!(matrix_uri.via(), &vec![server_name!("notareal.hs").to_owned()]);
-        assert!(matrix_uri.action().is_none());
+        assert_eq!(matrix_uri.via(), &[server_name!("notareal.hs").to_owned()]);
+        assert_eq!(matrix_uri.action(), None);
 
         let matrix_uri = MatrixUri::parse("matrix:r/ruma:notareal.hs/e/event:notareal.hs")
             .expect("Failed to create MatrixToUri.");
@@ -931,8 +931,8 @@ mod tests {
             matrix_uri.id(),
             &(room_id!("!ruma:notareal.hs"), event_id!("$event:notareal.hs")).into()
         );
-        assert!(matrix_uri.via().is_empty());
-        assert!(matrix_uri.action().is_none());
+        assert_eq!(matrix_uri.via().len(), 0);
+        assert_eq!(matrix_uri.action(), None);
 
         let matrix_uri =
             MatrixUri::parse("matrix:roomid/ruma:notareal.hs/e/event:notareal.hs?via=notareal.hs&action=join&via=anotherinexistant.hs")
