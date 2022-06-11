@@ -10,6 +10,7 @@ Improvements:
 
 * Add unstable support for refresh tokens (MSC2918)
 * Add `ErrorKind::{UnableToAuthorizeJoin, UnableToGrantJoin}` encountered for restricted rooms
+* Add unstable support for timestamp massaging (MSC3316)
 
 # 0.14.1
 

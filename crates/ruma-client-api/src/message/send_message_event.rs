@@ -5,6 +5,8 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#put_matrixclientv3roomsroomidsendeventtypetxnid
 
+    #[cfg(feature = "unstable-msc3316")]
+    use ruma_common::MilliSecondsSinceUnixEpoch;
     use ruma_common::{
         api::ruma_api,
         events::{AnyMessageLikeEventContent, MessageLikeEventContent, MessageLikeEventType},
@@ -45,6 +47,18 @@ pub mod v3 {
             /// The event content to send.
             #[ruma_api(body)]
             pub body: Raw<AnyMessageLikeEventContent>,
+
+            /// Timestamp to use for the `origin_server_ts` of the event.
+            ///
+            /// This is called [timestamp massaging] and can only be used by Appservices.
+            ///
+            /// Note that this does not change the position of the event in the timeline.
+            ///
+            /// [timestamp massaging]: https://github.com/matrix-org/matrix-spec-proposals/pull/3316
+            #[cfg(feature = "unstable-msc3316")]
+            #[ruma_api(query)]
+            #[serde(skip_serializing_if = "Option::is_none", rename = "ts")]
+            pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
         }
 
         response: {
@@ -75,6 +89,8 @@ pub mod v3 {
                 txn_id,
                 event_type: content.event_type(),
                 body: Raw::from_json(to_raw_json_value(content)?),
+                #[cfg(feature = "unstable-msc3316")]
+                timestamp: None,
             })
         }
 
@@ -86,7 +102,14 @@ pub mod v3 {
             event_type: MessageLikeEventType,
             body: Raw<AnyMessageLikeEventContent>,
         ) -> Self {
-            Self { room_id, event_type, txn_id, body }
+            Self {
+                room_id,
+                event_type,
+                txn_id,
+                body,
+                #[cfg(feature = "unstable-msc3316")]
+                timestamp: None,
+            }
         }
     }
 
