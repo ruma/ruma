@@ -252,7 +252,7 @@ mod tests {
         assert_eq!(raw.get_field::<A<'_>>("a")?, Some(A { b: vec!["c"] }));
 
         assert_eq!(raw.get_field::<u8>("b")?, None);
-        assert!(raw.get_field::<u8>("a").is_err());
+        raw.get_field::<u8>("a").unwrap_err();
 
         Ok(())
     }
