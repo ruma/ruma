@@ -411,11 +411,11 @@ mod tests {
 
     #[test]
     fn deserialization_failure() {
-        assert!(from_json_value::<Raw<RoomEncryptedEventContent>>(
-            json!({ "algorithm": "m.megolm.v1.aes-sha2" })
+        from_json_value::<Raw<RoomEncryptedEventContent>>(
+            json!({ "algorithm": "m.megolm.v1.aes-sha2" }),
         )
         .unwrap()
         .deserialize()
-        .is_err());
+        .unwrap_err();
     }
 }
