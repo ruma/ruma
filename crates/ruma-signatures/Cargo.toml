@@ -31,3 +31,6 @@ sha2 = "0.9.5"
 subslice = { version = "0.2.3", optional = true }
 thiserror = "1.0.26"
 tracing = { version = "0.1.25", optional = true }
+
+[dev-dependencies]
+assert_matches = "1.5.0"

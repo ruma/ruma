@@ -877,6 +877,7 @@ fn is_third_party_invite(object: &CanonicalJsonObject) -> Result<bool, Error> {
 mod tests {
     use std::collections::BTreeMap;
 
+    use assert_matches::assert_matches;
     use ruma_common::{
         serde::{Base64, CanonicalJsonValue},
         RoomVersionId, ServerSigningKeyId, SigningKeyAlgorithm,
@@ -949,11 +950,10 @@ mod tests {
         ).unwrap();
 
         let public_key_map = BTreeMap::new();
-        let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6);
+        let verification =
+            verify_event(&public_key_map, &signed_event, &RoomVersionId::V6).unwrap();
 
-        assert!(verification_result.is_ok());
-        let verification = verification_result.unwrap();
-        assert!(matches!(verification, Verified::Signatures));
+        assert_eq!(verification, Verified::Signatures);
     }
 
     #[test]
@@ -988,11 +988,10 @@ mod tests {
         add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
         add_key_to_map(&mut public_key_map, "domain-event", &key_pair_event);
 
-        let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V1);
+        let verification =
+            verify_event(&public_key_map, &signed_event, &RoomVersionId::V1).unwrap();
 
-        assert!(verification_result.is_ok());
-        let verification = verification_result.unwrap();
-        assert!(matches!(verification, Verified::Signatures));
+        assert_eq!(verification, Verified::Signatures);
     }
 
     #[test]
@@ -1027,11 +1026,10 @@ mod tests {
         add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
         add_key_to_map(&mut public_key_map, "domain-authorized", &key_pair_authorized);
 
-        let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V9);
+        let verification =
+            verify_event(&public_key_map, &signed_event, &RoomVersionId::V9).unwrap();
 
-        assert!(verification_result.is_ok());
-        let verification = verification_result.unwrap();
-        assert!(matches!(verification, Verified::Signatures));
+        assert_eq!(verification, Verified::Signatures);
     }
 
     #[test]
@@ -1065,8 +1063,11 @@ mod tests {
 
         let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V9);
 
-        // Should be Err(VerificationError::signature_not_found("domain-authorized")));
-        assert!(verification_result.is_err());
+        let server = assert_matches!(
+            verification_result,
+            Err(Error::Verification(VerificationError::SignatureNotFound(server))) => server
+        );
+        assert_eq!(server, "domain-authorized");
     }
 
     #[test]
@@ -1099,13 +1100,11 @@ mod tests {
         let public_key_map = BTreeMap::new();
         let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6);
 
-        assert!(verification_result.is_err());
-        let error_msg = verification_result.err().unwrap();
-        if let Error::Verification(VerificationError::PublicKeyNotFound(entity)) = error_msg {
-            assert_eq!(entity, "domain-sender");
-        } else {
-            panic!("Error was not VerificationError::UnknownPublicKeysForEvent: {error_msg:?}");
-        };
+        let entity = assert_matches!(
+            verification_result,
+            Err(Error::Verification(VerificationError::PublicKeyNotFound(entity))) => entity
+        );
+        assert_eq!(entity, "domain-sender");
     }
 
     #[test]
@@ -1147,15 +1146,13 @@ mod tests {
 
         let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6);
 
-        assert!(verification_result.is_err());
-        let error_msg = verification_result.err().unwrap();
-        if let Error::Verification(VerificationError::Signature(error)) = error_msg {
-            // dalek doesn't expose InternalError :(
-            // https://github.com/dalek-cryptography/ed25519-dalek/issues/174
-            assert!(format!("{error:?}").contains("Some(Verification equation was not satisfied)"));
-        } else {
-            panic!("Error was not VerificationError::Signature: {error_msg:?}");
-        };
+        let error = assert_matches!(
+            verification_result,
+            Err(Error::Verification(VerificationError::Signature(error))) => error
+        );
+        // dalek doesn't expose InternalError :(
+        // https://github.com/dalek-cryptography/ed25519-dalek/issues/174
+        assert!(format!("{error:?}").contains("Some(Verification equation was not satisfied)"));
     }
 
     fn generate_key_pair() -> Ed25519KeyPair {
