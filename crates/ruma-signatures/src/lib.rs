@@ -252,7 +252,7 @@ mod tests {
         let mut public_key_map = BTreeMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
-        assert!(verify_json(&public_key_map, &value).is_ok());
+        verify_json(&public_key_map, &value).unwrap();
     }
 
     #[test]
@@ -293,13 +293,13 @@ mod tests {
         let mut public_key_map = BTreeMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
-        assert!(verify_json(&public_key_map, &value).is_ok());
+        verify_json(&public_key_map, &value).unwrap();
 
         let reverse_value = from_json_str(
             r#"{"two":"Two","signatures":{"domain":{"ed25519:1":"t6Ehmh6XTDz7qNWI0QI5tNPSliWLPQP/+Fzz3LpdCS7q1k2G2/5b5Embs2j4uG3ZeivejrzqSVoBcdocRpa+AQ"}},"one":1}"#
         ).unwrap();
 
-        assert!(verify_json(&public_key_map, &reverse_value).is_ok());
+        verify_json(&public_key_map, &reverse_value).unwrap();
     }
 
     #[test]
@@ -312,7 +312,7 @@ mod tests {
         let mut public_key_map = BTreeMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
-        assert!(verify_json(&public_key_map, &value).is_err());
+        verify_json(&public_key_map, &value).unwrap_err();
     }
 
     #[test]
@@ -415,6 +415,6 @@ mod tests {
             }"#
         ).unwrap();
 
-        assert!(verify_event(&public_key_map, &value, &RoomVersionId::V5).is_ok());
+        verify_event(&public_key_map, &value, &RoomVersionId::V5).unwrap();
     }
 }

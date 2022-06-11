@@ -85,21 +85,21 @@ mod tests {
 
     #[test]
     fn valid_key_id() {
-        assert!(Signature::new("ed25519:abcdef", &[]).is_ok());
+        Signature::new("ed25519:abcdef", &[]).unwrap();
     }
 
     #[test]
     fn invalid_valid_key_id_length() {
-        assert!(Signature::new("ed25519:abcdef:123456", &[]).is_err());
+        Signature::new("ed25519:abcdef:123456", &[]).unwrap_err();
     }
 
     #[test]
     fn invalid_key_id_version() {
-        assert!(Signature::new("ed25519:abc!def", &[]).is_err());
+        Signature::new("ed25519:abc!def", &[]).unwrap_err();
     }
 
     #[test]
     fn invalid_key_id_algorithm() {
-        assert!(Signature::new("foobar:abcdef", &[]).is_err());
+        Signature::new("foobar:abcdef", &[]).unwrap_err();
     }
 }
