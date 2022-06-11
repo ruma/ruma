@@ -72,6 +72,7 @@ pub mod v3 {
 
     #[cfg(test)]
     mod tests {
+        use assert_matches::assert_matches;
         use serde_json::{
             from_value as from_json_value, json,
             value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue},
@@ -83,18 +84,18 @@ pub mod v3 {
         fn raw_json_deserialize() {
             type OptRawJson = Option<Box<RawJsonValue>>;
 
-            assert!(from_json_value::<OptRawJson>(json!(null)).unwrap().is_none());
-            assert!(from_json_value::<OptRawJson>(json!("test")).unwrap().is_some());
-            assert!(from_json_value::<OptRawJson>(json!({ "a": "b" })).unwrap().is_some());
+            assert_matches!(from_json_value::<OptRawJson>(json!(null)).unwrap(), None);
+            from_json_value::<OptRawJson>(json!("test")).unwrap().unwrap();
+            from_json_value::<OptRawJson>(json!({ "a": "b" })).unwrap().unwrap();
         }
 
         // For completeness sake, make sure serialization works too
         #[test]
         fn raw_json_serialize() {
-            assert!(to_raw_json_value(&json!(null)).is_ok());
-            assert!(to_raw_json_value(&json!("string")).is_ok());
-            assert!(to_raw_json_value(&json!({})).is_ok());
-            assert!(to_raw_json_value(&json!({ "a": "b" })).is_ok());
+            to_raw_json_value(&json!(null)).unwrap();
+            to_raw_json_value(&json!("string")).unwrap();
+            to_raw_json_value(&json!({})).unwrap();
+            to_raw_json_value(&json!({ "a": "b" })).unwrap();
         }
     }
 }
