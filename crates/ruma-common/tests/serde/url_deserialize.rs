@@ -55,7 +55,7 @@ fn deserialize_unit() {
     assert_eq!(urlencoded::from_str(""), Ok(()));
     assert_eq!(urlencoded::from_str("&"), Ok(()));
     assert_eq!(urlencoded::from_str("&&"), Ok(()));
-    assert!(urlencoded::from_str::<()>("first=23").is_err());
+    urlencoded::from_str::<()>("first=23").unwrap_err();
 }
 
 #[derive(Deserialize, Debug, PartialEq, Eq)]
@@ -152,7 +152,7 @@ fn deserialize_with_serde_attributes() {
 
 #[test]
 fn deserialize_nested_list() {
-    assert!(urlencoded::from_str::<Vec<(&str, Vec<Vec<bool>>)>>("a=b").is_err());
+    urlencoded::from_str::<Vec<(&str, Vec<Vec<bool>>)>>("a=b").unwrap_err();
 }
 
 #[test]
