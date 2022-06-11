@@ -86,7 +86,7 @@ fn invalid_uri_should_not_panic() {
         SendAccessToken::None,
         &[MatrixVersion::V1_1],
     );
-    assert!(result.is_err());
+    result.unwrap_err();
 }
 
 #[test]
