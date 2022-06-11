@@ -4,6 +4,7 @@ Breaking changes:
 
 * Remove `PartialEq` implementations for a number of types
   * If the lack of such an `impl` causes problems, please open a GitHub issue
+* Split `uiaa::UserIdentifier::ThirdParty` into two separate variants
 
 Improvements:
 
