@@ -10,6 +10,9 @@
 //! > ⚠ Some details might be missing because rustdoc has trouble with re-exports so you may need
 //! > to refer to other crates' documentations.
 //!
+//! > 🛈 For internal consistency, ruma uses American spelling for variable names. Actual values may
+//! > differ, as the matrix specification has a mix of British and American English.
+//!
 //! # API features
 //!
 //! Depending on which parts of Matrix are relevant to you, activate the following features:

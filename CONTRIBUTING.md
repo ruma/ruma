@@ -48,6 +48,11 @@ help you on your way:
 
 In general, try to replicate the coding style that is already present. Specifically:
 
+### Naming
+
+For internal consistency, ruma uses American spelling for variable names. Actual values may differ,
+as the matrix specification has a mix of British and American English.
+
 ### Common Types
 
 When writing endpoint definitions, use the following mapping from request /
