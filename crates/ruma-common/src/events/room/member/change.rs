@@ -46,6 +46,18 @@ pub enum MembershipChange<'a> {
     /// User had their invite revoked.
     InvitationRevoked,
 
+    /// User knocked.
+    Knocked,
+
+    /// User had their knock accepted.
+    KnockAccepted,
+
+    /// User retracted their knock.
+    KnockRetracted,
+
+    /// User had their knock denied.
+    KnockDenied,
+
     /// `displayname` or `avatar_url` changed.
     ProfileChanged {
         /// The details of the displayname change, if applicable.
@@ -82,6 +94,10 @@ impl<T: PartialEq> Change<T> {
 
 /// Internal function so all `RoomMemberEventContent` state event kinds can share the same
 /// implementation.
+///
+/// This must match the table for [`m.room.member`] in the spec.
+///
+/// [`m.room.member`]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
 pub(super) fn membership_change<'a>(
     details: MembershipDetails<'a>,
     prev_details: Option<MembershipDetails<'a>>,
@@ -97,12 +113,20 @@ pub(super) fn membership_change<'a>(
     };
 
     match (&prev_details.membership, &details.membership) {
-        (St::Invite, St::Invite) | (St::Leave, St::Leave) | (St::Ban, St::Ban) => Ch::None,
+        (St::Invite, St::Invite)
+        | (St::Leave, St::Leave)
+        | (St::Ban, St::Ban)
+        | (St::Knock, St::Knock) => Ch::None,
         (St::Invite, St::Join) | (St::Leave, St::Join) => Ch::Joined,
         (St::Invite, St::Leave) if sender == state_key => Ch::InvitationRevoked,
         (St::Invite, St::Leave) => Ch::InvitationRejected,
-        (St::Invite, St::Ban) | (St::Leave, St::Ban) => Ch::Banned,
-        (St::Join, St::Invite) | (St::Ban, St::Invite) | (St::Ban, St::Join) => Ch::Error,
+        (St::Invite, St::Ban) | (St::Leave, St::Ban) | (St::Knock, St::Ban) => Ch::Banned,
+        (St::Join, St::Invite)
+        | (St::Ban, St::Invite)
+        | (St::Ban, St::Join)
+        | (St::Join, St::Knock)
+        | (St::Ban, St::Knock)
+        | (St::Knock, St::Join) => Ch::Error,
         (St::Join, St::Join) => Ch::ProfileChanged {
             displayname_change: Change::new(prev_details.displayname, details.displayname),
             avatar_url_change: Change::new(prev_details.avatar_url, details.avatar_url),
@@ -112,6 +136,10 @@ pub(super) fn membership_change<'a>(
         (St::Join, St::Ban) => Ch::KickedAndBanned,
         (St::Leave, St::Invite) => Ch::Invited,
         (St::Ban, St::Leave) => Ch::Unbanned,
+        (St::Leave, St::Knock) | (St::Invite, St::Knock) => Ch::Knocked,
+        (St::Knock, St::Invite) => Ch::KnockAccepted,
+        (St::Knock, St::Leave) if sender == state_key => Ch::KnockRetracted,
+        (St::Knock, St::Leave) => Ch::KnockDenied,
         _ => Ch::NotImplemented,
     }
 }
