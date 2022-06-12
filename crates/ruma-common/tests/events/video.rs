@@ -222,7 +222,7 @@ fn plain_content_deserialization() {
     assert_eq!(content.video.width, None);
     assert_eq!(content.video.height, None);
     assert_eq!(content.video.duration, Some(Duration::from_millis(5_668)));
-    assert!(content.thumbnail.is_empty());
+    assert_eq!(content.thumbnail.len(), 0);
     let caption = content.caption.unwrap();
     assert_eq!(caption.find_plain(), Some("Look at my cat!"));
     assert_eq!(caption.find_html(), None);
@@ -308,7 +308,7 @@ fn message_event_deserialization() {
     assert_eq!(content.video.width, Some(uint!(1300)));
     assert_eq!(content.video.height, Some(uint!(837)));
     assert_eq!(content.video.duration, None);
-    assert!(content.thumbnail.is_empty());
+    assert_eq!(content.thumbnail.len(), 0);
 
     let info = content.file.info.unwrap();
     assert_eq!(info.name.as_deref(), Some("my_gnome.webm"));
