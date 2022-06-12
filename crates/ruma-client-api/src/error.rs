@@ -141,6 +141,12 @@ pub enum ErrorKind {
     /// M_WEAK_PASSWORD
     WeakPassword,
 
+    /// M_UNABLE_TO_AUTHORISE_JOIN
+    UnableToAuthorizeJoin,
+
+    /// M_UNABLE_TO_GRANT_JOIN
+    UnableToGrantJoin,
+
     /// FI.MAU.MSC2246_NOT_YET_UPLOADED
     #[cfg(feature = "unstable-msc2246")]
     NotYetUploaded,
@@ -193,6 +199,8 @@ impl AsRef<str> for ErrorKind {
             Self::ResourceLimitExceeded { .. } => "M_RESOURCE_LIMIT_EXCEEDED",
             Self::CannotLeaveServerNoticeRoom => "M_CANNOT_LEAVE_SERVER_NOTICE_ROOM",
             Self::WeakPassword => "M_WEAK_PASSWORD",
+            Self::UnableToAuthorizeJoin => "M_UNABLE_TO_AUTHORISE_JOIN",
+            Self::UnableToGrantJoin => "M_UNABLE_TO_GRANT_JOIN",
             #[cfg(feature = "unstable-msc2246")]
             Self::NotYetUploaded => "FI.MAU.MSC2246_NOT_YET_UPLOADED",
             #[cfg(feature = "unstable-msc2246")]
