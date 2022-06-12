@@ -682,7 +682,7 @@ mod tests {
             MatrixToUri::parse("https://matrix.to/#/%21ruma%3Anotareal.hs?via=notareal.hs")
                 .expect("Failed to create MatrixToUri.");
         assert_eq!(matrix_to.id(), &room_id!("!ruma:notareal.hs").into());
-        assert_eq!(matrix_to.via(), &vec![server_name!("notareal.hs").to_owned()]);
+        assert_eq!(matrix_to.via(), &[server_name!("notareal.hs").to_owned()]);
 
         let matrix_to =
             MatrixToUri::parse("https://matrix.to/#/%23ruma%3Anotareal.hs/%24event%3Anotareal.hs")
@@ -699,7 +699,7 @@ mod tests {
             matrix_to.id(),
             &(room_id!("!ruma:notareal.hs"), event_id!("$event:notareal.hs")).into()
         );
-        assert!(matrix_to.via().is_empty());
+        assert_eq!(matrix_to.via().len(), 0);
     }
 
     #[test]
