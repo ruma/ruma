@@ -43,6 +43,7 @@ fn deserialize_ephemeral_typing() {
         from_json_value::<AnyEphemeralRoomEvent>(json_data),
         Ok(AnyEphemeralRoomEvent::Typing(typing_event)) => typing_event
     );
+    assert_eq!(typing_event.content.user_ids.len(), 1);
     assert_eq!(typing_event.content.user_ids[0], "@carl:example.com");
     assert_eq!(typing_event.room_id, "!roomid:room.com");
 }
@@ -101,11 +102,10 @@ fn deserialize_ephemeral_receipt() {
         Ok(AnyEphemeralRoomEvent::Receipt(receipt_event)) => receipt_event
     );
     let receipts = receipt_event.content.0;
-    assert!(!receipts.is_empty());
-    assert!(receipts.contains_key(event_id));
+    assert_eq!(receipts.len(), 1);
     assert_eq!(receipt_event.room_id, "!roomid:room.com");
-    let event_receipts = assert_matches!(receipts.get(event_id), Some(r) => r);
-    let type_receipts = assert_matches!(event_receipts.get(&ReceiptType::Read), Some(r) => r);
-    let user_receipt = assert_matches!(type_receipts.get(user_id), Some(r) => r);
+    let event_receipts = receipts.get(event_id).unwrap();
+    let type_receipts = event_receipts.get(&ReceiptType::Read).unwrap();
+    let user_receipt = type_receipts.get(user_id).unwrap();
     assert_eq!(user_receipt.ts, Some(MilliSecondsSinceUnixEpoch(uint!(1))));
 }

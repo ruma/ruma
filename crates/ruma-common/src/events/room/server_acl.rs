@@ -85,8 +85,8 @@ mod tests {
             from_json_value(json_data).unwrap();
 
         assert!(server_acl_event.content.allow_ip_literals);
-        assert!(server_acl_event.content.allow.is_empty());
-        assert!(server_acl_event.content.deny.is_empty());
+        assert_eq!(server_acl_event.content.allow.len(), 0);
+        assert_eq!(server_acl_event.content.deny.len(), 0);
     }
 
     #[test]

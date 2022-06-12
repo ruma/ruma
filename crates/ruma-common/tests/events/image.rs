@@ -213,7 +213,7 @@ fn plain_content_deserialization() {
     assert_matches!(content.file.encryption_info, None);
     assert_eq!(content.image.width, Some(uint!(668)));
     assert_eq!(content.image.height, None);
-    assert!(content.thumbnail.is_empty());
+    assert_eq!(content.thumbnail.len(), 0);
     let caption = content.caption.unwrap();
     assert_eq!(caption.find_plain(), Some("Look at my cat!"));
 }
@@ -300,7 +300,7 @@ fn message_event_deserialization() {
     assert_eq!(info.size, Some(uint!(123_774)));
     assert_eq!(content.image.width, Some(uint!(1300)));
     assert_eq!(content.image.height, Some(uint!(837)));
-    assert!(content.thumbnail.is_empty());
+    assert_eq!(content.thumbnail.len(), 0);
 }
 
 #[test]
