@@ -22,7 +22,7 @@ jobs:
         id: cache
         with:
           path: target/debug/xtask
-          key: xtask-${{ hashFiles('xtask/src/**', 'xtask/Cargo.toml') }}
+          key: xtask-${{ hashFiles('xtask/**') }}
 
       - name: Install rust stable toolchain
         if: steps.cache.outputs.cache-hit != 'true'
