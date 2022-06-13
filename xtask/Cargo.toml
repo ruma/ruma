@@ -8,7 +8,7 @@ publish = false
 default = ["isahc", "semver", "toml_edit"]
 
 [dependencies]
-clap = { version = "3.1.6", features = ["derive"] }
+clap = { version = "~3.1", features = ["derive"] }
 isahc = { version = "1.7.0", features = ["json"], optional = true }
 semver = { version = "1.0.6", features = ["serde"], optional = true }
 serde = { version = "1.0.136", features = ["derive"] }

@@ -3,6 +3,7 @@ use clap::Args;
 use crate::{cmd, Result};
 
 #[derive(Args)]
+#[allow(deprecated)]
 pub struct DocTask {
     /// Open the browser when the docs are built.
     #[clap(long)]
