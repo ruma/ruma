@@ -31,7 +31,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: run
-          args: -p xtask -- doc --deny-warnings
+          args: -p xtask --no-default-features -- doc --deny-warnings
 
       - name: Deploy to docs branch
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
