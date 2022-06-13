@@ -23,9 +23,8 @@ impl DocTask {
         // Keep in sync with .github/workflows/docs.yml
         let mut cmd = cmd!(
             "
-            rustup run nightly cargo doc --no-deps --workspace
+            rustup run nightly cargo doc --all-features --no-deps --workspace
             --exclude ruma-macros --exclude ruma-identifiers-validation --exclude xtask
-            --all-features -Zrustdoc-map
             "
         )
         // Work around https://github.com/rust-lang/cargo/issues/10744
