@@ -1,0 +1,40 @@
+name: XTask
+
+env:
+  CARGO_TERM_COLOR: always
+
+on:
+  push:
+    branches: [main, next]
+  pull_request:
+    branches: [main, next]
+
+jobs:
+  build:
+    name: Get
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Check xtask cache
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: target/debug/xtask
+          key: xtask-${{ hashFiles('xtask/src/**', 'xtask/Cargo.toml') }}
+
+      - name: Install rust stable toolchain
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Build
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: -p xtask
