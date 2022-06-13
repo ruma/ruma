@@ -22,18 +22,10 @@ jobs:
         with:
           profile: minimal
           # Nightly needed for use of unstable options
-          # Pinned because of https://github.com/rust-lang/cargo/issues/10744
-          toolchain: nightly-2022-03-01
+          toolchain: nightly
           override: true
 
       - uses: Swatinem/rust-cache@v1
-
-      # lock_api 0.4.7 doesn't compile with our currently-pinned nightly
-      - name: Downgrade lock_api
-        uses: actions-rs/cargo@v1
-        with:
-          command: update
-          args: -p lock_api --precise 0.4.6
 
       - name: Build docs
         uses: actions-rs/cargo@v1

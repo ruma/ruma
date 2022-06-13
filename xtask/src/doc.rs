@@ -28,6 +28,8 @@ impl DocTask {
             --all-features -Zrustdoc-map
             "
         )
+        // Work around https://github.com/rust-lang/cargo/issues/10744
+        .env("CARGO_TARGET_APPLIES_TO_HOST", "true")
         .env("RUSTDOCFLAGS", rustdocflags);
 
         if self.open {
