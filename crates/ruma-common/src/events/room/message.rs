@@ -361,24 +361,19 @@ impl RoomMessageEventContent {
         mode: HtmlSanitizerMode,
         remove_reply_fallback: RemoveReplyFallback,
     ) {
-        match &mut self.msgtype {
-            MessageType::Emote(EmoteMessageEventContent { body, formatted, .. })
-            | MessageType::Notice(NoticeMessageEventContent { body, formatted, .. })
-            | MessageType::Text(TextMessageEventContent { body, formatted, .. }) => {
-                formatted.as_mut().map(|formatted| {
-                    if let Some(body) = formatted.sanitize_html(mode, remove_reply_fallback) {
-                        formatted.body = body;
-                    }
-                    formatted
-                });
-                if remove_reply_fallback == RemoveReplyFallback::Yes
-                    && matches!(self.relates_to, Some(Relation::Reply { .. }))
-                {
-                    *body = remove_plain_reply_fallback(body).to_owned();
-                }
+        if let MessageType::Emote(EmoteMessageEventContent { body, formatted, .. })
+        | MessageType::Notice(NoticeMessageEventContent { body, formatted, .. })
+        | MessageType::Text(TextMessageEventContent { body, formatted, .. }) = &mut self.msgtype
+        {
+            if let Some(formatted) = formatted {
+                formatted.sanitize_html(mode, remove_reply_fallback);
+            };
+            if remove_reply_fallback == RemoveReplyFallback::Yes
+                && matches!(self.relates_to, Some(Relation::Reply { .. }))
+            {
+                *body = remove_plain_reply_fallback(body).to_owned();
             }
-            _ => {}
-        };
+        }
     }
 }
 
@@ -716,7 +711,7 @@ impl FormattedBody {
 
     /// Sanitize this `FormattedBody` if its format is `MessageFormat::Html`.
     ///
-    ///  This removes the [tags and attributes] that are not listed in the Matrix specification.
+    /// This removes the [tags and attributes] that are not listed in the Matrix specification.
     ///
     /// It can also optionally remove the [rich reply fallback].
     ///
@@ -726,12 +721,13 @@ impl FormattedBody {
     /// [rich reply fallback]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
     #[cfg(feature = "sanitize")]
     pub fn sanitize_html(
-        &self,
+        &mut self,
         mode: HtmlSanitizerMode,
         remove_reply_fallback: RemoveReplyFallback,
-    ) -> Option<String> {
-        (self.format == MessageFormat::Html)
-            .then(|| sanitize_html(&self.body, mode, remove_reply_fallback))
+    ) {
+        if self.format == MessageFormat::Html {
+            self.body = sanitize_html(&self.body, mode, remove_reply_fallback);
+        }
     }
 }
 
