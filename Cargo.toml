@@ -4,3 +4,8 @@ members = ["crates/*", "examples/*", "xtask"]
 default-members = ["crates/*", "examples/*"]
 
 resolver = "2"
+
+[profile.dev]
+# Speeds up test times by more than 10% in a simple test
+# Set to 1 or 2 if you want to use a debugger in this workspace
+debug = 0
