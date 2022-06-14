@@ -1,0 +1,212 @@
+name: CI
+
+env:
+  CARGO_TERM_COLOR: always
+
+on:
+  push:
+    branches: [main, next]
+  pull_request:
+    branches: [main, next]
+
+jobs:
+  style:
+    name: Style
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Install rust nightly toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Check spelling
+        uses: crate-ci/typos@master
+
+      - name: Install cargo-sort
+        uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-sort
+
+      - name: Run lints
+        uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: -p xtask --no-default-features ci lint
+  
+  msrv:
+    name: Rust 1.60 / ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: Check All Features
+            cmd: msrv-all
+
+          - name: Check Client
+            cmd: msrv-client
+
+          - name: Check Ruma
+            cmd: msrv-ruma
+
+          - name: Check Owned IDs with Box
+            cmd: msrv-owned-id-box
+
+          - name: Check Owned IDs with Arc
+            cmd: msrv-owned-id-arc
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Install rust 1.60 toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: "1.60"
+
+      # Used to compile xtask
+      - name: Install rust stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: Swatinem/rust-cache@v1
+        with:
+          # A stable compiler update should automatically not reuse old caches.
+          # Add the MSRV as a stable cache key too so bumping it also gets us a
+          # fresh cache.
+          sharedKey: msrv1.60
+
+      - name: Run checks
+        uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: -p xtask --no-default-features ci ${{ matrix.cmd }}
+
+  stable:
+    name: Rust Stable / ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: Check All Features
+            cmd: stable-all
+
+          - name: Check Client
+            cmd: stable-client
+
+          - name: Check Common
+            cmd: stable-common
+
+          - name: Run Tests
+            cmd: test-all
+
+          - name: Run Doc Tests
+            cmd: test-doc
+
+          - name: Test Common Features
+            cmd: test-common
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Install rust stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Run checks
+        uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: -p xtask --no-default-features ci ${{ matrix.cmd }}
+
+  nightly:
+    name: Rust Nightly / ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: Check Formatting
+            cmd: fmt
+            components: rustfmt
+
+          - name: Full Features
+            cmd: nightly-full
+
+          - name: All Features
+            cmd: nightly-all
+
+          - name: Clippy Default Features
+            cmd: clippy-default
+            components: clippy
+
+          - name: Clippy All Features
+            cmd: clippy-all
+            components: clippy
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Install rust nightly toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+          components: ${{ matrix.components }}
+
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Run checks
+        uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: -p xtask --no-default-features ci ${{ matrix.cmd }}
+
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Install nightly rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          # Nightly needed for use of unstable options
+          toolchain: nightly
+          override: true
+
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Build docs
+        uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: -p xtask --no-default-features -- doc --deny-warnings
+
+      - name: Deploy to docs branch
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        uses: JamesIves/github-pages-deploy-action@4.1.4
+        with:
+          folder: target/doc
+          repository-name: ruma/docs.ruma.io
+          branch: main
+          ssh-key: ${{ secrets.DOCS_DEPLOY_KEY }}
