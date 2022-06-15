@@ -19,7 +19,6 @@ use crate::{cargo::Package, cmd, util::ask_yes_no, GithubConfig, Metadata, Resul
 const GITHUB_API_RUMA: &str = "https://api.github.com/repos/ruma/ruma";
 
 #[derive(Args)]
-#[allow(deprecated)]
 pub struct ReleaseArgs {
     /// The crate to release
     pub package: String,
