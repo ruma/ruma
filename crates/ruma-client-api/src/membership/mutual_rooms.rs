@@ -23,7 +23,6 @@ pub mod unstable {
             pub user_id: &'a UserId,
         }
 
-        #[derive(Default)]
         response: {
             /// A list of rooms the user is in together with the authenticated user.
             pub joined: Vec<OwnedRoomId>,
