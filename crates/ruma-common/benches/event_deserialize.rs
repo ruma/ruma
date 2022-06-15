@@ -7,7 +7,6 @@
 #![cfg(feature = "events")]
 #![allow(unused_imports, dead_code)]
 
-#[cfg(feature = "criterion")]
 use criterion::{criterion_group, criterion_main, Criterion};
 use ruma_common::{
     events::{
@@ -51,7 +50,6 @@ fn power_levels() -> serde_json::Value {
     })
 }
 
-#[cfg(feature = "criterion")]
 fn deserialize_any_room_event(c: &mut Criterion) {
     let json_data = power_levels();
 
@@ -62,7 +60,6 @@ fn deserialize_any_room_event(c: &mut Criterion) {
     });
 }
 
-#[cfg(feature = "criterion")]
 fn deserialize_any_state_event(c: &mut Criterion) {
     let json_data = power_levels();
 
@@ -73,7 +70,6 @@ fn deserialize_any_state_event(c: &mut Criterion) {
     });
 }
 
-#[cfg(feature = "criterion")]
 fn deserialize_specific_event(c: &mut Criterion) {
     let json_data = power_levels();
 
@@ -87,7 +83,6 @@ fn deserialize_specific_event(c: &mut Criterion) {
     });
 }
 
-#[cfg(feature = "criterion")]
 criterion_group!(
     benches,
     deserialize_any_room_event,
@@ -95,12 +90,4 @@ criterion_group!(
     deserialize_specific_event
 );
 
-#[cfg(feature = "criterion")]
 criterion_main!(benches);
-
-#[cfg(not(feature = "criterion"))]
-fn main() {
-    // To run the benchmarks the "criterion" feature must be enabled use:
-    // `cargo bench --features criterion --bench event_deserialize`
-    panic!("Enable the criterion feature to run benchmarks");
-}
