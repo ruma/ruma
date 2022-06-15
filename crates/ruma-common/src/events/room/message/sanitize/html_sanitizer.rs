@@ -1,150 +1,46 @@
-use std::collections::{BTreeMap, BTreeSet};
-
 use html5ever::{local_name, namespace_url, ns, QualName};
 use kuchiki::{parse_fragment, traits::TendrilSink, Attributes, ElementData, NodeData, NodeRef};
+use phf::{phf_map, phf_set, Map, Set};
 use wildmatch::WildMatch;
 
-use super::{
-    RemoveReplyFallback, ALLOWED_ATTRIBUTES_STRICT, ALLOWED_CLASSES_STRICT, ALLOWED_SCHEMES_COMPAT,
-    ALLOWED_SCHEMES_STRICT, ALLOWED_TAGS_STRICT_WITHOUT_REPLY, MAX_DEPTH_STRICT, RICH_REPLY_TAG,
-};
+use super::{HtmlSanitizerMode, RemoveReplyFallback};
 
 /// A sanitizer to filter [HTML tags and attributes] according to the Matrix specification.
 ///
 /// [HTML tags and attributes]: https://spec.matrix.org/v1.2/client-server-api/#mroommessage-msgtypes
 #[derive(Debug, Clone)]
-pub struct HtmlSanitizer<'a> {
-    /// HTML tags that will be left in the output of the sanitizer.
-    ///
-    /// If this is `None`, all the tags are allowed.
-    ///
-    /// If this is `Some`, tags that are not present in this list will be removed, but their
-    /// children will still be present in the output.
-    ///
-    /// To remove all tags, set this to `Some(Vec::new())`.
-    pub allowed_tags: Option<BTreeSet<&'a str>>,
+pub struct HtmlSanitizer {
+    /// The mode of the HTML sanitizer.
+    mode: HtmlSanitizerMode,
 
-    /// HTML tags whose content will be removed.
+    /// Whether to filter HTML tags and attributes.
     ///
-    /// These tags will be removed from the output with their children.
+    /// If this is `true`, tags and attributes that do not match the lists will be removed, but
+    /// the tags' children will still be present in the output.
     ///
-    /// If a tag is both in `allowed_tags` and `remove_content_tags`, the behavior is unexpected.
-    pub remove_content_tags: BTreeSet<&'a str>,
+    /// If this is `false`, all the tags and attributes are allowed.
+    filter_tags_attributes: bool,
 
-    /// HTML attributes per tag that will be left in the output of the sanitizer.
+    /// Whether to remove replies.
     ///
-    /// If this is `None`, all the attributes are allowed on all tags.
+    /// If this is `true`, the rich reply fallback will be removed.
     ///
-    /// If this is `Some`, attributes that are not present in this list will be removed, even on
-    /// tags that are not listed.
-    ///
-    /// To remove all attributes, set this to `Some(BTreeMap::new())`.
-    pub allowed_attributes: Option<BTreeMap<&'a str, BTreeSet<&'a str>>>,
-
-    /// URI scheme per tag and attribute tuple that will be left in the output of the sanitizer.
-    ///
-    /// If this is `None`, all the URIs are allowed.
-    ///
-    /// If this is `Some`, URIs that are not present in this list will be removed. Tags and
-    /// attributes tuples that are not in this list are ignored.
-    ///
-    /// If no attribute that allows a URI is allowed, this will have no effect.
-    pub allowed_schemes: Option<BTreeMap<(&'a str, &'a str), BTreeSet<&'a str>>>,
-
-    /// Class name per tag that will be left in the output of the sanitizer.
-    ///
-    /// The class names to match allow the following wildcards:
-    ///
-    /// * `?` matches exactly one occurrence of any character.
-    /// * `*` matches arbitrary many (including zero) occurrences of any character.
-    ///
-    /// If this is `None`, all the class names are allowed.
-    ///
-    /// If this is `Some`, class names that are not present in this list will be removed. Tags that
-    /// are not in this list are ignored.
-    ///
-    /// If no `class` attribute is allowed, this will have no effect.
-    pub allowed_classes: Option<BTreeMap<&'a str, BTreeSet<&'a str>>>,
-
-    /// The maximum depth at which tags can be nested.
-    ///
-    /// If this is `None`, any depth is allowed.
-    ///
-    /// If this is `Some`, all tags deeper than this will be removed.
-    pub max_depth: Option<u32>,
+    /// If this is `false`, the rich reply tag will be allowed.
+    remove_replies: bool,
 }
 
-impl<'a> HtmlSanitizer<'a> {
-    /// Constructs a `HTMLSanitizer` configured with the strict lists.
+impl HtmlSanitizer {
+    /// Constructs a `HTMLSanitizer` that will filter the tags and attributes according to the given
+    /// mode.
     ///
     /// It can also optionally remove the [rich reply fallback].
     ///
     /// [rich reply fallback]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
-    pub fn new(remove_reply_fallback: RemoveReplyFallback) -> Self {
-        let (allowed_tags, remove_content_tags) =
-            if remove_reply_fallback == RemoveReplyFallback::Yes {
-                let allowed_tags = BTreeSet::from(ALLOWED_TAGS_STRICT_WITHOUT_REPLY);
-                let remove_content_tags = BTreeSet::from([RICH_REPLY_TAG]);
-                (allowed_tags, remove_content_tags)
-            } else {
-                let allowed_tags = BTreeSet::from_iter(
-                    ALLOWED_TAGS_STRICT_WITHOUT_REPLY.into_iter().chain([RICH_REPLY_TAG]),
-                );
-                let remove_content_tags = BTreeSet::new();
-                (allowed_tags, remove_content_tags)
-            };
-
-        let allowed_attributes = BTreeMap::from_iter(
-            ALLOWED_ATTRIBUTES_STRICT
-                .into_iter()
-                .map(|(s, attrs)| (s, BTreeSet::from_iter(attrs.iter().copied()))),
-        );
-        let allowed_schemes = BTreeMap::from_iter(
-            ALLOWED_SCHEMES_STRICT
-                .into_iter()
-                .map(|(s, attrs)| (s, BTreeSet::from_iter(attrs.iter().copied()))),
-        );
-        let allowed_classes = BTreeMap::from_iter(
-            ALLOWED_CLASSES_STRICT
-                .into_iter()
-                .map(|(s, attrs)| (s, BTreeSet::from_iter(attrs.iter().copied()))),
-        );
+    pub fn new(mode: HtmlSanitizerMode, remove_reply_fallback: RemoveReplyFallback) -> Self {
         Self {
-            allowed_tags: Some(allowed_tags),
-            remove_content_tags,
-            allowed_attributes: Some(allowed_attributes),
-            allowed_schemes: Some(allowed_schemes),
-            allowed_classes: Some(allowed_classes),
-            max_depth: Some(MAX_DEPTH_STRICT),
-        }
-    }
-
-    /// Constructs a `HTMLSanitizer` configured with the compat lists.
-    ///
-    /// Defaults to using the strict lists for the fields without compat lists.
-    ///
-    /// It can also optionally remove the [rich reply fallback].
-    ///
-    /// [rich reply fallback]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
-    pub fn compat(remove_reply_fallback: RemoveReplyFallback) -> Self {
-        let mut sanitizer = Self::new(remove_reply_fallback);
-        if let Some(allowed_schemes) = sanitizer.allowed_schemes.as_mut() {
-            for (key, schemes) in ALLOWED_SCHEMES_COMPAT {
-                allowed_schemes.entry(key).or_default().extend(schemes.iter().copied());
-            }
-        }
-        sanitizer
-    }
-
-    /// Constructs a `HTMLSanitizer` that does nothing.
-    pub fn empty() -> Self {
-        Self {
-            allowed_tags: None,
-            remove_content_tags: BTreeSet::new(),
-            allowed_attributes: None,
-            allowed_schemes: None,
-            allowed_classes: None,
-            max_depth: None,
+            mode,
+            filter_tags_attributes: true,
+            remove_replies: remove_reply_fallback == RemoveReplyFallback::Yes,
         }
     }
 
@@ -152,9 +48,11 @@ impl<'a> HtmlSanitizer<'a> {
     ///
     /// [rich reply fallback]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
     pub fn reply_fallback_remover() -> Self {
-        let mut sanitizer = Self::empty();
-        sanitizer.remove_content_tags = BTreeSet::from([RICH_REPLY_TAG]);
-        sanitizer
+        Self {
+            mode: HtmlSanitizerMode::Strict,
+            filter_tags_attributes: false,
+            remove_replies: true,
+        }
     }
 
     /// Clean the given HTML string with this sanitizer.
@@ -194,7 +92,7 @@ impl<'a> HtmlSanitizer<'a> {
 
                 if matches!(action, ElementAction::Ignore | ElementAction::Remove) {
                     node.detach();
-                } else {
+                } else if self.filter_tags_attributes {
                     self.clean_attributes(&mut attributes.borrow_mut(), tag);
                 }
             }
@@ -204,18 +102,25 @@ impl<'a> HtmlSanitizer<'a> {
     }
 
     fn element_action(&self, tag: &str, attributes: &Attributes, depth: u32) -> ElementAction {
-        if self.remove_content_tags.contains(tag)
-            || self.max_depth.filter(|d| *d <= depth).is_some()
+        if (self.remove_replies && tag == RICH_REPLY_TAG)
+            || (self.filter_tags_attributes && depth >= MAX_DEPTH_STRICT)
         {
             ElementAction::Remove
-        } else if self.allowed_tags.as_ref().filter(|tags| !tags.contains(tag)).is_some() {
+        } else if self.filter_tags_attributes
+            && (!ALLOWED_TAGS_WITHOUT_REPLY_STRICT.contains(tag) && tag != RICH_REPLY_TAG)
+        {
             ElementAction::Ignore
-        } else if let Some(allowed_schemes) = &self.allowed_schemes {
+        } else if self.filter_tags_attributes {
+            let allowed_schemes = if self.mode == HtmlSanitizerMode::Strict {
+                &ALLOWED_SCHEMES_STRICT
+            } else {
+                &ALLOWED_SCHEMES_COMPAT
+            };
             for (name, val) in &attributes.map {
                 let attr: &str = &name.local;
 
                 // Check if there is a (tag, attr) tuple entry.
-                if let Some(schemes) = allowed_schemes.get(&(tag, attr)) {
+                if let Some(schemes) = allowed_schemes.get(&*format!("{tag}:{attr}")) {
                     // Check if the scheme is allowed.
                     if !schemes.iter().any(|scheme| val.value.starts_with(&format!("{scheme}:"))) {
                         return ElementAction::Ignore;
@@ -235,16 +140,13 @@ impl<'a> HtmlSanitizer<'a> {
             .filter_map(|(name, mut val)| {
                 let attr: &str = &name.local;
 
-                if let Some(allowed_attributes) = &self.allowed_attributes {
-                    if allowed_attributes.get(tag).filter(|attrs| attrs.contains(attr)).is_none() {
-                        return Some(attr.to_owned());
-                    }
+                if ALLOWED_ATTRIBUTES_STRICT.get(tag).filter(|attrs| attrs.contains(attr)).is_none()
+                {
+                    return Some(attr.to_owned());
                 }
 
-                if let Some(allowed_classes) =
-                    self.allowed_classes.as_ref().filter(|_| attr == "class")
-                {
-                    if let Some(classes) = allowed_classes.get(tag) {
+                if attr == "class" {
+                    if let Some(classes) = ALLOWED_CLASSES_STRICT.get(tag) {
                         let attr_classes = val.value.split_whitespace().filter(|attr_class| {
                             for class in classes.iter() {
                                 if WildMatch::new(class).matches(attr_class) {
@@ -292,13 +194,77 @@ enum ElementAction {
     Remove,
 }
 
+/// List of HTML tags allowed in the Matrix specification, without the rich reply fallback tag.
+static ALLOWED_TAGS_WITHOUT_REPLY_STRICT: Set<&str> = phf_set! {
+    "font", "del", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "p", "a",
+    "ul", "ol", "sup", "sub", "li", "b", "i", "u", "strong", "em", "strike",
+    "code", "hr", "br", "div", "table", "thead", "tbody", "tr", "th", "td",
+    "caption", "pre", "span", "img", "details", "summary",
+};
+
+/// The HTML tag name for a rich reply fallback.
+const RICH_REPLY_TAG: &str = "mx-reply";
+
+/// Allowed attributes per HTML tag according to the Matrix specification.
+static ALLOWED_ATTRIBUTES_STRICT: Map<&str, &Set<&str>> = phf_map! {
+    "font" => &ALLOWED_ATTRIBUTES_FONT_STRICT,
+    "span" => &ALLOWED_ATTRIBUTES_SPAN_STRICT,
+    "a" => &ALLOWED_ATTRIBUTES_A_STRICT,
+    "img" => &ALLOWED_ATTRIBUTES_IMG_STRICT,
+    "ol" => &ALLOWED_ATTRIBUTES_OL_STRICT,
+    "code" => &ALLOWED_ATTRIBUTES_CODE_STRICT,
+};
+static ALLOWED_ATTRIBUTES_FONT_STRICT: Set<&str> =
+    phf_set! { "data-mx-bg-color", "data-mx-color", "color" };
+static ALLOWED_ATTRIBUTES_SPAN_STRICT: Set<&str> =
+    phf_set! { "data-mx-bg-color", "data-mx-color", "data-mx-spoiler" };
+static ALLOWED_ATTRIBUTES_A_STRICT: Set<&str> = phf_set! { "name", "target", "href" };
+static ALLOWED_ATTRIBUTES_IMG_STRICT: Set<&str> =
+    phf_set! { "width", "height", "alt", "title", "src" };
+static ALLOWED_ATTRIBUTES_OL_STRICT: Set<&str> = phf_set! { "start" };
+static ALLOWED_ATTRIBUTES_CODE_STRICT: Set<&str> = phf_set! { "class" };
+
+/// Allowed schemes of URIs per HTML tag and attribute tuple according to the Matrix specification.
+static ALLOWED_SCHEMES_STRICT: Map<&str, &Set<&str>> = phf_map! {
+    "a:href" => &ALLOWED_SCHEMES_A_HREF_STRICT,
+    "img:src" => &ALLOWED_SCHEMES_IMG_SRC_STRICT,
+};
+static ALLOWED_SCHEMES_A_HREF_STRICT: Set<&str> =
+    phf_set! { "http", "https", "ftp", "mailto", "magnet" };
+static ALLOWED_SCHEMES_IMG_SRC_STRICT: Set<&str> = phf_set! { "mxc" };
+
+/// Extra allowed schemes of URIs per HTML tag and attribute tuple.
+///
+/// This is a convenience list to add schemes that can be encountered but are not listed in the
+/// Matrix specification. It consists of:
+///
+/// * The `matrix` scheme for `a` tags (see [matrix-org/matrix-spec#1108]).
+///
+/// To get a complete list, add these to `ALLOWED_SCHEMES_STRICT`.
+///
+/// [matrix-org/matrix-spec#1108]: https://github.com/matrix-org/matrix-spec/issues/1108
+static ALLOWED_SCHEMES_COMPAT: Map<&str, &Set<&str>> = phf_map! {
+    "a:href" => &ALLOWED_SCHEMES_A_HREF_COMPAT,
+    "img:src" => &ALLOWED_SCHEMES_IMG_SRC_STRICT,
+};
+static ALLOWED_SCHEMES_A_HREF_COMPAT: Set<&str> =
+    phf_set! { "http", "https", "ftp", "mailto", "magnet", "matrix" };
+
+/// Allowed classes per HTML tag according to the Matrix specification.
+static ALLOWED_CLASSES_STRICT: Map<&str, &Set<&str>> =
+    phf_map! { "code" => &ALLOWED_CLASSES_CODE_STRICT };
+static ALLOWED_CLASSES_CODE_STRICT: Set<&str> = phf_set! { "language-*" };
+
+/// Max depth of nested HTML tags allowed by the Matrix specification.
+const MAX_DEPTH_STRICT: u32 = 100;
+
 #[cfg(test)]
 mod tests {
-    use super::{HtmlSanitizer, RemoveReplyFallback};
+    use super::{HtmlSanitizer, HtmlSanitizerMode, RemoveReplyFallback};
 
     #[test]
     fn valid_input() {
-        let sanitizer = HtmlSanitizer::new(RemoveReplyFallback::Yes);
+        let sanitizer = HtmlSanitizer::new(HtmlSanitizerMode::Strict, RemoveReplyFallback::Yes);
         let sanitized = sanitizer.clean(
             "\
             <ul><li>This</li><li>has</li><li>no</li><li>tag</li></ul>\
@@ -321,7 +287,7 @@ mod tests {
 
     #[test]
     fn tags_remove() {
-        let sanitizer = HtmlSanitizer::new(RemoveReplyFallback::No);
+        let sanitizer = HtmlSanitizer::new(HtmlSanitizerMode::Strict, RemoveReplyFallback::No);
         let sanitized = sanitizer.clean(
             "\
             <mx-reply>\
@@ -356,7 +322,7 @@ mod tests {
 
     #[test]
     fn tags_remove_without_reply() {
-        let sanitizer = HtmlSanitizer::new(RemoveReplyFallback::Yes);
+        let sanitizer = HtmlSanitizer::new(HtmlSanitizerMode::Strict, RemoveReplyFallback::Yes);
         let sanitized = sanitizer.clean(
             "\
             <mx-reply>\
@@ -410,7 +376,7 @@ mod tests {
 
     #[test]
     fn attrs_remove() {
-        let sanitizer = HtmlSanitizer::new(RemoveReplyFallback::No);
+        let sanitizer = HtmlSanitizer::new(HtmlSanitizerMode::Strict, RemoveReplyFallback::No);
         let sanitized = sanitizer.clean(
             "\
             <h1 id=\"anchor1\">Title for important stuff</h1>\
@@ -429,7 +395,7 @@ mod tests {
 
     #[test]
     fn img_remove_scheme() {
-        let sanitizer = HtmlSanitizer::new(RemoveReplyFallback::No);
+        let sanitizer = HtmlSanitizer::new(HtmlSanitizerMode::Strict, RemoveReplyFallback::No);
         let sanitized = sanitizer.clean(
             "\
             <p>Look at that picture:</p>\
@@ -447,7 +413,7 @@ mod tests {
 
     #[test]
     fn link_remove_scheme() {
-        let sanitizer = HtmlSanitizer::new(RemoveReplyFallback::No);
+        let sanitizer = HtmlSanitizer::new(HtmlSanitizerMode::Strict, RemoveReplyFallback::No);
         let sanitized = sanitizer.clean(
             "\
             <p>Go see <a href=\"file://local/file.html\">my local website</a></p>\
@@ -464,7 +430,7 @@ mod tests {
 
     #[test]
     fn link_compat_scheme() {
-        let sanitizer = HtmlSanitizer::new(RemoveReplyFallback::No);
+        let sanitizer = HtmlSanitizer::new(HtmlSanitizerMode::Strict, RemoveReplyFallback::No);
         let sanitized = sanitizer.clean(
             "\
             <p>Join <a href=\"matrix:r/myroom:notareal.hs\">my room</a></p>\
@@ -479,7 +445,7 @@ mod tests {
             "
         );
 
-        let sanitizer = HtmlSanitizer::compat(RemoveReplyFallback::No);
+        let sanitizer = HtmlSanitizer::new(HtmlSanitizerMode::Compat, RemoveReplyFallback::No);
         let sanitized = sanitizer.clean(
             "\
             <p>Join <a href=\"matrix:r/myroom:notareal.hs\">my room</a></p>\
@@ -497,7 +463,7 @@ mod tests {
 
     #[test]
     fn class_remove() {
-        let sanitizer = HtmlSanitizer::new(RemoveReplyFallback::No);
+        let sanitizer = HtmlSanitizer::new(HtmlSanitizerMode::Strict, RemoveReplyFallback::No);
         let sanitized = sanitizer.clean(
             "\
             <pre><code class=\"language-rust custom-class\">
@@ -520,28 +486,20 @@ mod tests {
 
     #[test]
     fn depth_remove() {
-        let mut sanitizer = HtmlSanitizer::new(RemoveReplyFallback::No);
-        sanitizer.max_depth = Some(2);
-        let sanitized = sanitizer.clean(
-            "\
-            <div>\
-                <p>\
-                    <span>I am in too deep!</span>\
-                    I should be fine.\
-                </p>\
-            </div>\
-            ",
-        );
+        let sanitizer = HtmlSanitizer::new(HtmlSanitizerMode::Strict, RemoveReplyFallback::No);
+        let deeply_nested_html: String = std::iter::repeat("<div>")
+            .take(100)
+            .chain(Some(
+                "<span>I am in too deep!</span>\
+                I should be fine.",
+            ))
+            .chain(std::iter::repeat("</div>").take(100))
+            .collect();
+        println!("{deeply_nested_html}");
 
-        assert_eq!(
-            sanitized,
-            "\
-            <div>\
-                <p>\
-                    I should be fine.\
-                </p>\
-            </div>\
-            "
-        );
+        let sanitized = sanitizer.clean(&deeply_nested_html);
+
+        assert!(sanitized.contains("I should be fine."));
+        assert!(!sanitized.contains("I am in too deep!"));
     }
 }

@@ -6,83 +6,6 @@ mod html_sanitizer;
 #[cfg(feature = "sanitize")]
 use html_sanitizer::HtmlSanitizer;
 
-/// List of HTML tags allowed in the Matrix specification, without the rich reply fallback tag.
-pub const ALLOWED_TAGS_STRICT_WITHOUT_REPLY: [&str; 38] = [
-    "font",
-    "del",
-    "h1",
-    "h2",
-    "h3",
-    "h4",
-    "h5",
-    "h6",
-    "blockquote",
-    "p",
-    "a",
-    "ul",
-    "ol",
-    "sup",
-    "sub",
-    "li",
-    "b",
-    "i",
-    "u",
-    "strong",
-    "em",
-    "strike",
-    "code",
-    "hr",
-    "br",
-    "div",
-    "table",
-    "thead",
-    "tbody",
-    "tr",
-    "th",
-    "td",
-    "caption",
-    "pre",
-    "span",
-    "img",
-    "details",
-    "summary",
-];
-
-/// The HTML tag name for a rich reply fallback.
-pub const RICH_REPLY_TAG: &str = "mx-reply";
-
-/// Allowed attributes per HTML tag according to the Matrix specification.
-pub const ALLOWED_ATTRIBUTES_STRICT: [(&str, &[&str]); 6] = [
-    ("font", &["data-mx-bg-color", "data-mx-color", "color"]),
-    ("span", &["data-mx-bg-color", "data-mx-color", "data-mx-spoiler"]),
-    ("a", &["name", "target", "href"]),
-    ("img", &["width", "height", "alt", "title", "src"]),
-    ("ol", &["start"]),
-    ("code", &["class"]),
-];
-
-/// Allowed schemes of URIs per HTML tag and attribute tuple according to the Matrix specification.
-pub const ALLOWED_SCHEMES_STRICT: [((&str, &str), &[&str]); 2] =
-    [(("a", "href"), &["http", "https", "ftp", "mailto", "magnet"]), (("img", "src"), &["mxc"])];
-
-/// Extra allowed schemes of URIs per HTML tag and attribute tuple.
-///
-/// This is a convenience list to add schemes that can be encountered but are not listed in the
-/// Matrix specification. It consists of:
-///
-/// * The `matrix` scheme for `a` tags (see [matrix-org/matrix-spec#1108]).
-///
-/// To get a complete list, add these to `ALLOWED_SCHEMES_STRICT`.
-///
-/// [matrix-org/matrix-spec#1108]: https://github.com/matrix-org/matrix-spec/issues/1108
-pub const ALLOWED_SCHEMES_COMPAT: [((&str, &str), &[&str]); 1] = [(("a", "href"), &["matrix"])];
-
-/// Allowed classes per HTML tag according to the Matrix specification.
-pub const ALLOWED_CLASSES_STRICT: [(&str, &[&str]); 1] = [("code", &["language-*"])];
-
-/// Max depth of nested HTML tags allowed by the Matrix specification.
-pub const MAX_DEPTH_STRICT: u32 = 100;
-
 /// Sanitize the given HTML string.
 ///
 /// This removes the [tags and attributes] that are not listed in the Matrix specification.
@@ -97,11 +20,7 @@ pub fn sanitize_html(
     mode: HtmlSanitizerMode,
     remove_reply_fallback: RemoveReplyFallback,
 ) -> String {
-    let sanitizer = if mode == HtmlSanitizerMode::Compat {
-        HtmlSanitizer::compat(remove_reply_fallback)
-    } else {
-        HtmlSanitizer::new(remove_reply_fallback)
-    };
+    let sanitizer = HtmlSanitizer::new(mode, remove_reply_fallback);
     sanitizer.clean(s)
 }
 
@@ -113,14 +32,10 @@ pub fn sanitize_html(
 #[allow(clippy::exhaustive_enums)]
 pub enum HtmlSanitizerMode {
     /// Keep only the tags and attributes listed in the Matrix specification.
-    ///
-    /// This uses the `STRICT` constants.
     Strict,
 
-    /// Keeps all the tags ant attributes in `Strict` mode, and others that are not in this section
+    /// Keeps all the tags and attributes in `Strict` mode, and others that are not in this section
     /// of the spec, but might be encountered.
-    ///
-    /// This uses the `COMPAT` constants when available, otherwise it uses the `STRICT` constants.
     Compat,
 }
 
@@ -193,7 +108,7 @@ mod tests {
             <p>But this is inside a tag</p>\
             ",
             HtmlSanitizerMode::Strict,
-            RemoveReplyFallback::No
+            RemoveReplyFallback::No,
         );
 
         assert_eq!(
