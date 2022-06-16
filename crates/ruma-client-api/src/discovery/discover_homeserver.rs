@@ -117,8 +117,10 @@ impl TileServerInfo {
 #[derive(Clone, Debug, Deserialize, Hash, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct AuthenticationServerInfo {
-    /// The base URL for the identity server for client-server connections.
+    /// The OIDC Provider that is trusted by the homeserver.
     pub issuer: String,
+    /// The URL where the user is able to access the account management
+    /// capabilities of the OIDC Provider.
     pub account: Option<String>,
 }
 
