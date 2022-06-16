@@ -122,6 +122,7 @@ pub struct AuthenticationServerInfo {
 
     /// The URL where the user is able to access the account management
     /// capabilities of the OIDC Provider.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub account: Option<String>,
 }
 
