@@ -16,6 +16,7 @@ Improvements:
 
 * Add unstable support for querying relating events (MSC2675)
 * Move `filter::RelationType` to `ruma_common::events::relations`
+* Add unstable support for discovering an OpenID Connect server (MSC2965)
 
 # 0.14.1
 
