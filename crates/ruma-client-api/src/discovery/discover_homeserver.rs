@@ -119,6 +119,7 @@ impl TileServerInfo {
 pub struct AuthenticationServerInfo {
     /// The OIDC Provider that is trusted by the homeserver.
     pub issuer: String,
+
     /// The URL where the user is able to access the account management
     /// capabilities of the OIDC Provider.
     pub account: Option<String>,
