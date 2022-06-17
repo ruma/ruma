@@ -25,17 +25,21 @@ ruma_api! {
         pub homeserver: HomeserverInfo,
 
         /// Information about the identity server to connect to.
-        #[serde(rename = "m.identity_server")]
+        #[serde(rename = "m.identity_server", skip_serializing_if = "Option::is_none")]
         pub identity_server: Option<IdentityServerInfo>,
 
         /// Information about the tile server to use to display location data.
         #[cfg(feature = "unstable-msc3488")]
-        #[serde(rename = "org.matrix.msc3488.tile_server", alias = "m.tile_server")]
+        #[serde(
+            rename = "org.matrix.msc3488.tile_server",
+            alias = "m.tile_server",
+            skip_serializing_if = "Option::is_none",
+        )]
         pub tile_server: Option<TileServerInfo>,
 
         /// Information about the authentication server to connect to when using OpenID Connect.
         #[cfg(feature = "unstable-msc2965")]
-        #[serde(rename = "m.authentication")]
+        #[serde(rename = "m.authentication", skip_serializing_if = "Option::is_none")]
         pub authentication: Option<AuthenticationServerInfo>,
     }
 
