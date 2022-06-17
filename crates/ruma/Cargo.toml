@@ -17,6 +17,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 api = ["ruma-common/api"]
+canonical-json = ["ruma-common/canonical-json"]
 client = ["ruma-client"]
 events = ["ruma-common/events"]
 signatures = ["ruma-signatures"]

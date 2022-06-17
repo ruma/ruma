@@ -52,7 +52,7 @@ pub use functions::{
     redact_in_place, reference_hash, sign_json, verify_event, verify_json,
 };
 pub use keys::{Ed25519KeyPair, KeyPair, PublicKeyMap, PublicKeySet};
-pub use ruma_common::serde::{CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue};
+pub use ruma_common::{CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue};
 pub use signatures::Signature;
 pub use verification::Verified;
 

@@ -8,8 +8,8 @@ use std::{
 
 use base64::{encode_config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
 use ruma_common::{
-    serde::{base64::Standard, Base64, CanonicalJsonObject, CanonicalJsonValue},
-    OwnedEventId, OwnedServerName, RoomVersionId, UserId,
+    serde::{base64::Standard, Base64},
+    CanonicalJsonObject, CanonicalJsonValue, OwnedEventId, OwnedServerName, RoomVersionId, UserId,
 };
 use serde_json::{from_str as from_json_str, to_string as to_json_string};
 use sha2::{digest::Digest, Sha256};
@@ -881,8 +881,7 @@ mod tests {
 
     use assert_matches::assert_matches;
     use ruma_common::{
-        serde::{Base64, CanonicalJsonValue},
-        RoomVersionId, ServerSigningKeyId, SigningKeyAlgorithm,
+        serde::Base64, CanonicalJsonValue, RoomVersionId, ServerSigningKeyId, SigningKeyAlgorithm,
     };
     use serde_json::json;
 

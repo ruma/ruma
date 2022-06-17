@@ -25,6 +25,8 @@ extern crate self as ruma_common;
 #[cfg(feature = "api")]
 pub mod api;
 pub mod authentication;
+#[cfg(feature = "canonical-json")]
+pub mod canonical_json;
 pub mod directory;
 pub mod encryption;
 #[cfg(feature = "events")]
@@ -42,8 +44,12 @@ pub mod to_device;
 
 use std::fmt;
 
-pub use identifiers::*;
-pub use time::{MilliSecondsSinceUnixEpoch, SecondsSinceUnixEpoch};
+#[cfg(feature = "canonical-json")]
+pub use self::canonical_json::{CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue};
+pub use self::{
+    identifiers::*,
+    time::{MilliSecondsSinceUnixEpoch, SecondsSinceUnixEpoch},
+};
 
 // Wrapper around `Box<str>` that cannot be used in a meaningful way outside of
 // this crate. Used for string enums because their `_Custom` variant can't be

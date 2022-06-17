@@ -1,16 +1,19 @@
+//! Canonical JSON types and related functions.
+
 use std::fmt;
 
 use serde::Serialize;
 use serde_json::{Error as JsonError, Value as JsonValue};
 
-pub mod value;
+mod value;
 
-use value::Object as CanonicalJsonObject;
+pub use self::value::{CanonicalJsonObject, CanonicalJsonValue};
 
 /// The set of possible errors when serializing to canonical JSON.
+#[cfg(feature = "canonical-json")]
 #[derive(Debug)]
 #[allow(clippy::exhaustive_enums)]
-pub enum Error {
+pub enum CanonicalJsonError {
     /// The numeric value failed conversion to js_int::Int.
     IntConvert,
 
@@ -18,27 +21,31 @@ pub enum Error {
     SerDe(JsonError),
 }
 
-impl fmt::Display for Error {
+impl fmt::Display for CanonicalJsonError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::IntConvert => f.write_str("number found is not a valid `js_int::Int`"),
-            Error::SerDe(err) => write!(f, "serde Error: {err}"),
+            CanonicalJsonError::IntConvert => {
+                f.write_str("number found is not a valid `js_int::Int`")
+            }
+            CanonicalJsonError::SerDe(err) => write!(f, "serde Error: {err}"),
         }
     }
 }
 
-impl std::error::Error for Error {}
+impl std::error::Error for CanonicalJsonError {}
 
 /// Fallible conversion from a `serde_json::Map` to a `CanonicalJsonObject`.
 pub fn try_from_json_map(
     json: serde_json::Map<String, JsonValue>,
-) -> Result<CanonicalJsonObject, Error> {
+) -> Result<CanonicalJsonObject, CanonicalJsonError> {
     json.into_iter().map(|(k, v)| Ok((k, v.try_into()?))).collect()
 }
 
 /// Fallible conversion from any value that impl's `Serialize` to a `CanonicalJsonValue`.
-pub fn to_canonical_value<T: Serialize>(value: T) -> Result<value::CanonicalJsonValue, Error> {
-    serde_json::to_value(value).map_err(Error::SerDe)?.try_into()
+pub fn to_canonical_value<T: Serialize>(
+    value: T,
+) -> Result<value::CanonicalJsonValue, CanonicalJsonError> {
+    serde_json::to_value(value).map_err(CanonicalJsonError::SerDe)?.try_into()
 }
 
 #[cfg(test)]

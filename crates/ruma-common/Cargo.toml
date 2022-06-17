@@ -22,6 +22,7 @@ client = []
 server = []
 
 api = ["http", "thiserror"]
+canonical-json = []
 compat = ["ruma-macros/compat", "ruma-identifiers-validation/compat"]
 events = ["thiserror"]
 js = ["js-sys", "getrandom?/js", "uuid?/js"]
