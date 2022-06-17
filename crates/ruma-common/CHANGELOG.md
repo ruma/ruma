@@ -17,6 +17,8 @@ Breaking changes:
   * Room name size limits were never enforced by servers
     ([Spec change removing the size limit][spec])
 * Remove `RoomMessageFeedbackEvent` and associated types and variants according to MSC3582
+* Move `CanonicalJson`, `CanonicalJsonObject` and `CanonicalJsonError` out of
+  the `serde` module and behind the cargo feature flag `canonical-json`
 
 [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/3669
 

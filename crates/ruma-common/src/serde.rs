@@ -11,7 +11,6 @@ use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 pub mod base64;
 mod buf;
 pub mod can_be_empty;
-mod canonical_json;
 mod cow;
 pub mod duration;
 mod empty;
@@ -26,11 +25,6 @@ pub use self::{
     base64::{Base64, Base64DecodeError},
     buf::{json_to_buf, slice_to_buf},
     can_be_empty::{is_empty, CanBeEmpty},
-    canonical_json::{
-        to_canonical_value, try_from_json_map,
-        value::{CanonicalJsonValue, Object as CanonicalJsonObject},
-        Error as CanonicalJsonError,
-    },
     cow::deserialize_cow_str,
     empty::vec_as_map_of_empty,
     raw::Raw,

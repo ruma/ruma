@@ -4,12 +4,14 @@ use js_int::Int;
 use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
 use serde_json::{to_string as to_json_string, Value as JsonValue};
 
-use super::Error;
+use super::CanonicalJsonError;
 
 /// The inner type of `CanonicalJsonValue::Object`.
-pub type Object = BTreeMap<String, CanonicalJsonValue>;
+#[cfg(feature = "canonical-json")]
+pub type CanonicalJsonObject = BTreeMap<String, CanonicalJsonValue>;
 
 /// Represents a canonical JSON value as per the Matrix specification.
+#[cfg(feature = "canonical-json")]
 #[derive(Clone, Eq, PartialEq)]
 #[allow(clippy::exhaustive_enums)]
 pub enum CanonicalJsonValue {
@@ -67,7 +69,7 @@ pub enum CanonicalJsonValue {
     /// # use ruma_common::serde::CanonicalJsonValue;
     /// let v: CanonicalJsonValue = json!({ "an": "object" }).try_into().unwrap();
     /// ```
-    Object(Object),
+    Object(CanonicalJsonObject),
 }
 
 impl CanonicalJsonValue {
@@ -104,7 +106,7 @@ impl CanonicalJsonValue {
     }
 
     /// If the `CanonicalJsonValue` is an `Object`, return a reference to the inner value.
-    pub fn as_object(&self) -> Option<&Object> {
+    pub fn as_object(&self) -> Option<&CanonicalJsonObject> {
         match self {
             Self::Object(o) => Some(o),
             _ => None,
@@ -120,7 +122,7 @@ impl CanonicalJsonValue {
     }
 
     /// If the `CanonicalJsonValue` is an `Object`, return a mutable reference to the inner value.
-    pub fn as_object_mut(&mut self) -> Option<&mut Object> {
+    pub fn as_object_mut(&mut self) -> Option<&mut CanonicalJsonObject> {
         match self {
             Self::Object(o) => Some(o),
             _ => None,
@@ -195,14 +197,14 @@ impl fmt::Display for CanonicalJsonValue {
 }
 
 impl TryFrom<JsonValue> for CanonicalJsonValue {
-    type Error = Error;
+    type Error = CanonicalJsonError;
 
     fn try_from(val: JsonValue) -> Result<Self, Self::Error> {
         Ok(match val {
             JsonValue::Bool(b) => Self::Bool(b),
             JsonValue::Number(num) => Self::Integer(
-                Int::try_from(num.as_i64().ok_or(Error::IntConvert)?)
-                    .map_err(|_| Error::IntConvert)?,
+                Int::try_from(num.as_i64().ok_or(CanonicalJsonError::IntConvert)?)
+                    .map_err(|_| CanonicalJsonError::IntConvert)?,
             ),
             JsonValue::Array(vec) => {
                 Self::Array(vec.into_iter().map(TryInto::try_into).collect::<Result<Vec<_>, _>>()?)
@@ -211,7 +213,7 @@ impl TryFrom<JsonValue> for CanonicalJsonValue {
             JsonValue::Object(obj) => Self::Object(
                 obj.into_iter()
                     .map(|(k, v)| Ok((k, v.try_into()?)))
-                    .collect::<Result<Object, _>>()?,
+                    .collect::<Result<CanonicalJsonObject, _>>()?,
             ),
             JsonValue::Null => Self::Null,
         })
@@ -267,7 +269,7 @@ variant_impls!(Bool(bool));
 variant_impls!(Integer(Int));
 variant_impls!(String(String));
 variant_impls!(Array(Vec<CanonicalJsonValue>));
-variant_impls!(Object(Object));
+variant_impls!(Object(CanonicalJsonObject));
 
 impl Serialize for CanonicalJsonValue {
     #[inline]
