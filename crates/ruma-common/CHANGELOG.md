@@ -28,6 +28,7 @@ Improvements:
 * Add unstable support for Improved Signalling for 1:1 VoIP (MSC2746)
 * Add support for knocking in `events::room::member::MembershipChange`
 * Add `MatrixVersion::V1_3`
+* Deprecate the `sender_key` and `device_id` fields for encrypted events (MSC3700)
 
 # 0.9.2
 
