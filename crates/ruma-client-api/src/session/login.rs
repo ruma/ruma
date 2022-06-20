@@ -5,7 +5,6 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3login
 
-    #[cfg(feature = "unstable-msc2918")]
     use std::time::Duration;
 
     use ruma_common::{
@@ -48,8 +47,9 @@ pub mod v3 {
             #[serde(skip_serializing_if = "Option::is_none")]
             pub initial_device_display_name: Option<&'a str>,
 
-            /// If set to `true`, the client supports refresh tokens.
-            #[cfg(feature = "unstable-msc2918")]
+            /// If set to `true`, the client supports [refresh tokens].
+            ///
+            /// [refresh tokens]: https://spec.matrix.org/v1.3/client-server-api/#refreshing-access-tokens
             #[serde(
                 default,
                 skip_serializing_if = "ruma_common::serde::is_default",
@@ -85,11 +85,13 @@ pub mod v3 {
             #[serde(skip_serializing_if = "Option::is_none")]
             pub well_known: Option<DiscoveryInfo>,
 
-            /// A refresh token for the account.
+            /// A [refresh token] for the account.
             ///
             /// This token can be used to obtain a new access token when it expires by calling the
-            /// `/refresh` endpoint.
-            #[cfg(feature = "unstable-msc2918")]
+            /// [`refresh_token`] endpoint.
+            ///
+            /// [refresh token]: https://spec.matrix.org/v1.3/client-server-api/#refreshing-access-tokens
+            /// [`refresh_token`]: crate::session::refresh_token
             #[serde(skip_serializing_if = "Option::is_none")]
             pub refresh_token: Option<String>,
 
@@ -100,7 +102,6 @@ pub mod v3 {
             /// re-login to obtain a new access token.
             ///
             /// If this is `None`, the client can assume that the access token will not expire.
-            #[cfg(feature = "unstable-msc2918")]
             #[serde(
                 with = "ruma_common::serde::duration::opt_ms",
                 default,
@@ -120,7 +121,6 @@ pub mod v3 {
                 login_info,
                 device_id: None,
                 initial_device_display_name: None,
-                #[cfg(feature = "unstable-msc2918")]
                 refresh_token: false,
             }
         }
@@ -135,9 +135,7 @@ pub mod v3 {
                 home_server: None,
                 device_id,
                 well_known: None,
-                #[cfg(feature = "unstable-msc2918")]
                 refresh_token: None,
-                #[cfg(feature = "unstable-msc2918")]
                 expires_in: None,
             }
         }
@@ -424,7 +422,6 @@ pub mod v3 {
                 login_info: LoginInfo::Token(Token { token: "0xdeadbeef" }),
                 device_id: None,
                 initial_device_display_name: Some("test"),
-                #[cfg(feature = "unstable-msc2918")]
                 refresh_token: false,
             }
             .try_into_http_request(
@@ -451,7 +448,6 @@ pub mod v3 {
                 }),
                 device_id: None,
                 initial_device_display_name: Some("test"),
-                #[cfg(feature = "unstable-msc2918")]
                 refresh_token: false,
             }
             .try_into_http_request(

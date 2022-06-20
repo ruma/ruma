@@ -20,10 +20,10 @@
 //!
 //! Application Service identity assertion is disabled for this endpoint.
 
-pub mod unstable {
-    //! `/unstable/` (MSC2918)
+pub mod v3 {
+    //! `/v3/` ([spec])
     //!
-    //! [MSC2918]: https://github.com/matrix-org/matrix-spec-proposals/pull/2918
+    //! [spec]: https://spec.matrix.org/v1.3/client-server-api/#post_matrixclientv3refresh
 
     use std::time::Duration;
 
@@ -35,8 +35,10 @@ pub mod unstable {
             method: POST,
             name: "refresh",
             unstable_path: "/_matrix/client/unstable/org.matrix.msc2918/refresh",
+            stable_path: "/_matrix/client/v3/refresh",
             rate_limited: true,
             authentication: None,
+            added: 1.3,
         }
 
         request: {

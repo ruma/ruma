@@ -7,7 +7,6 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3register
 
-    #[cfg(feature = "unstable-msc2918")]
     use std::time::Duration;
 
     use ruma_common::{api::ruma_api, DeviceId, OwnedDeviceId, OwnedUserId};
@@ -85,8 +84,9 @@ pub mod v3 {
             #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
             pub login_type: Option<&'a LoginType>,
 
-            /// If set to `true`, the client supports refresh tokens.
-            #[cfg(feature = "unstable-msc2918")]
+            /// If set to `true`, the client supports [refresh tokens].
+            ///
+            /// [refresh tokens]: https://spec.matrix.org/v1.3/client-server-api/#refreshing-access-tokens
             #[serde(
                 default,
                 skip_serializing_if = "ruma_common::serde::is_default",
@@ -115,13 +115,15 @@ pub mod v3 {
             /// Required if the request's `inhibit_login` was set to `false`.
             pub device_id: Option<OwnedDeviceId>,
 
-            /// A refresh token for the account.
+            /// A [refresh token] for the account.
             ///
             /// This token can be used to obtain a new access token when it expires by calling the
-            /// `/refresh` endpoint.
+            /// [`refresh_token`] endpoint.
             ///
             /// Omitted if the request's `inhibit_login` was set to `true`.
-            #[cfg(feature = "unstable-msc2918")]
+            ///
+            /// [refresh token]: https://spec.matrix.org/v1.3/client-server-api/#refreshing-access-tokens
+            /// [`refresh_token`]: crate::session::refresh_token
             #[serde(skip_serializing_if = "Option::is_none")]
             pub refresh_token: Option<String>,
 
@@ -134,7 +136,6 @@ pub mod v3 {
             /// If this is `None`, the client can assume that the access token will not expire.
             ///
             /// Omitted if the request's `inhibit_login` was set to `true`.
-            #[cfg(feature = "unstable-msc2918")]
             #[serde(
                 with = "ruma_common::serde::duration::opt_ms",
                 default,
@@ -161,9 +162,7 @@ pub mod v3 {
                 access_token: None,
                 user_id,
                 device_id: None,
-                #[cfg(feature = "unstable-msc2918")]
                 refresh_token: None,
-                #[cfg(feature = "unstable-msc2918")]
                 expires_in: None,
             }
         }
