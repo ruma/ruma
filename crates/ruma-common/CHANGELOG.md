@@ -31,6 +31,7 @@ Improvements:
 * Deprecate the `sender_key` and `device_id` fields for encrypted events (MSC3700)
 * Move the `relations` field of `events::unsigned` types out of `unstable-msc2675`
 * Deserialize stringified integers for power levels without the `compat` feature
+* Add `JoinRule::KnockRestricted` (MSC3787)
 
 # 0.9.2
 

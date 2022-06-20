@@ -37,6 +37,12 @@ impl RoomJoinRulesEventContent {
     pub fn restricted(allow: Vec<AllowRule>) -> Self {
         Self { join_rule: JoinRule::Restricted(Restricted::new(allow)) }
     }
+
+    /// Creates a new `RoomJoinRulesEventContent` with the knock restricted rule and the given set
+    /// of allow rules.
+    pub fn knock_restricted(allow: Vec<AllowRule>) -> Self {
+        Self { join_rule: JoinRule::KnockRestricted(Restricted::new(allow)) }
+    }
 }
 
 impl<'de> Deserialize<'de> for RoomJoinRulesEventContent {
@@ -97,6 +103,11 @@ pub enum JoinRule {
     #[serde(rename = "restricted")]
     Restricted(Restricted),
 
+    /// Users can join the room if they are invited, or if they meet any of the conditions
+    /// described in a set of [`AllowRule`]s, or they can request an invite to the room.
+    #[serde(rename = "knock_restricted")]
+    KnockRestricted(Restricted),
+
     /// Anyone can join the room without any prior action.
     #[serde(rename = "public")]
     Public,
@@ -114,6 +125,7 @@ impl JoinRule {
             JoinRule::Knock => "knock",
             JoinRule::Private => "private",
             JoinRule::Restricted(_) => "restricted",
+            JoinRule::KnockRestricted(_) => "knock_restricted",
             JoinRule::Public => "public",
             JoinRule::_Custom(rule) => &rule.0,
         }
@@ -143,6 +155,7 @@ impl<'de> Deserialize<'de> for JoinRule {
             "knock" => Ok(Self::Knock),
             "private" => Ok(Self::Private),
             "restricted" => from_raw_json_value(&json).map(Self::Restricted),
+            "knock_restricted" => from_raw_json_value(&json).map(Self::KnockRestricted),
             "public" => Ok(Self::Public),
             _ => Ok(Self::_Custom(PrivOwnedStr(join_rule.into()))),
         }
