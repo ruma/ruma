@@ -278,11 +278,3 @@ jobs:
           repository-name: ruma/docs.ruma.io
           branch: main
           ssh-key: ${{ secrets.DOCS_DEPLOY_KEY }}
-      
-      - name: Compress docs
-        run: tar --zstd -cf docs.tar.zstd target/doc
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: docs
-          path: docs.tar.zstd
