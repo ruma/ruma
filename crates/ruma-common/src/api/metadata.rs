@@ -6,6 +6,7 @@ use std::{
 use http::Method;
 
 use super::{error::UnknownVersionError, AuthScheme};
+use crate::RoomVersionId;
 
 /// Metadata about an API endpoint.
 #[derive(Clone, Debug)]
@@ -226,6 +227,20 @@ impl MatrixVersion {
             (1, 2) => Ok(MatrixVersion::V1_2),
             (1, 3) => Ok(MatrixVersion::V1_3),
             _ => Err(UnknownVersionError),
+        }
+    }
+
+    /// Get the default [`RoomVersionId`] for this `MatrixVersion`.
+    pub fn default_room_version(&self) -> RoomVersionId {
+        match self {
+            // <https://matrix.org/docs/spec/index.html#complete-list-of-room-versions>
+            MatrixVersion::V1_0
+            // <https://spec.matrix.org/v1.1/rooms/#complete-list-of-room-versions>
+            | MatrixVersion::V1_1
+            // <https://spec.matrix.org/v1.2/rooms/#complete-list-of-room-versions>
+            | MatrixVersion::V1_2 => RoomVersionId::V6,
+            // <https://spec.matrix.org/v1.3/rooms/#complete-list-of-room-versions>
+            MatrixVersion::V1_3 => RoomVersionId::V9,
         }
     }
 }
