@@ -2,9 +2,7 @@ use js_int::Int;
 use serde::{Deserialize, Serialize};
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 
-#[cfg(feature = "unstable-msc2675")]
-use super::relation::Relations;
-use super::{room::redaction::SyncRoomRedactionEvent, StateEventContent};
+use super::{relation::Relations, room::redaction::SyncRoomRedactionEvent, StateEventContent};
 use crate::{serde::Raw, OwnedTransactionId};
 
 /// Extra information about a message event that is not incorporated into the event's hash.
@@ -24,8 +22,9 @@ pub struct MessageLikeUnsigned {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transaction_id: Option<OwnedTransactionId>,
 
-    /// Server-compiled information from other events relating to this event.
-    #[cfg(feature = "unstable-msc2675")]
+    /// [Bundled aggregations] of related child events.
+    ///
+    /// [Bundled aggregations]: https://spec.matrix.org/v1.3/client-server-api/#aggregations
     #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]
     pub relations: Option<Relations>,
 }
@@ -42,15 +41,7 @@ impl MessageLikeUnsigned {
     /// events. Do not use it to determine whether an incoming `unsigned` field was present - it
     /// could still have been present but contained none of the known fields.
     pub fn is_empty(&self) -> bool {
-        #[cfg(not(feature = "unstable-msc2675"))]
-        {
-            self.age.is_none() && self.transaction_id.is_none()
-        }
-
-        #[cfg(feature = "unstable-msc2675")]
-        {
-            self.age.is_none() && self.transaction_id.is_none() && self.relations.is_none()
-        }
+        self.age.is_none() && self.transaction_id.is_none() && self.relations.is_none()
     }
 }
 
@@ -75,8 +66,9 @@ pub struct StateUnsigned<C: StateEventContent> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prev_content: Option<C>,
 
-    /// Server-compiled information from other events relating to this event.
-    #[cfg(feature = "unstable-msc2675")]
+    /// [Bundled aggregations] of related child events.
+    ///
+    /// [Bundled aggregations]: https://spec.matrix.org/v1.3/client-server-api/#aggregations
     #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]
     pub relations: Option<Relations>,
 }
@@ -84,13 +76,7 @@ pub struct StateUnsigned<C: StateEventContent> {
 impl<C: StateEventContent> StateUnsigned<C> {
     /// Create a new `Unsigned` with fields set to `None`.
     pub fn new() -> Self {
-        Self {
-            age: None,
-            transaction_id: None,
-            prev_content: None,
-            #[cfg(feature = "unstable-msc2675")]
-            relations: None,
-        }
+        Self { age: None, transaction_id: None, prev_content: None, relations: None }
     }
 
     /// Whether this unsigned data is empty (all fields are `None`).
@@ -99,18 +85,10 @@ impl<C: StateEventContent> StateUnsigned<C> {
     /// events. Do not use it to determine whether an incoming `unsigned` field was present - it
     /// could still have been present but contained none of the known fields.
     pub fn is_empty(&self) -> bool {
-        #[cfg(not(feature = "unstable-msc2675"))]
-        {
-            self.age.is_none() && self.transaction_id.is_none() && self.prev_content.is_none()
-        }
-
-        #[cfg(feature = "unstable-msc2675")]
-        {
-            self.age.is_none()
-                && self.transaction_id.is_none()
-                && self.prev_content.is_none()
-                && self.relations.is_none()
-        }
+        self.age.is_none()
+            && self.transaction_id.is_none()
+            && self.prev_content.is_none()
+            && self.relations.is_none()
     }
 }
 
@@ -128,7 +106,6 @@ impl<C: StateEventContent> StateUnsigned<C> {
             #[serde(skip_serializing_if = "Option::is_none")]
             transaction_id: Option<OwnedTransactionId>,
             prev_content: Option<Raw<C>>,
-            #[cfg(feature = "unstable-msc2675")]
             #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]
             relations: Option<Relations>,
         }
@@ -140,7 +117,6 @@ impl<C: StateEventContent> StateUnsigned<C> {
         Ok(Self {
             age: raw.age,
             transaction_id: raw.transaction_id,
-            #[cfg(feature = "unstable-msc2675")]
             relations: raw.relations,
             prev_content,
         })
@@ -154,7 +130,6 @@ impl<C: StateEventContent> StateUnsigned<C> {
             age: self.age,
             transaction_id: self.transaction_id.clone(),
             prev_content: self.prev_content.as_ref().map(f),
-            #[cfg(feature = "unstable-msc2675")]
             relations: self.relations.clone(),
         }
     }
