@@ -6,6 +6,10 @@ use std::{
 
 use crate::Result;
 
+/// Authorized links to the old specs.
+const WHITELIST: &[&str] =
+    &["https://matrix.org/docs/spec/index.html#complete-list-of-room-versions"];
+
 pub(crate) fn check_spec_links(path: &Path) -> Result<()> {
     println!("Checking Matrix Spec links are up-to-date...");
     walk_dirs(path, "https://matrix.org/docs/spec/", |_| false)?;
@@ -33,7 +37,9 @@ fn walk_dirs(path: &Path, split: &str, version_match: fn(&str) -> bool) -> Resul
                 while content.read_line(&mut buf)? > 0 {
                     // If for some reason a line has 2 spec links
                     for (idx, _) in buf.match_indices(split) {
-                        if !version_match(&buf[idx + split.len()..]) {
+                        if !WHITELIST.iter().any(|url| buf[idx..].starts_with(url))
+                            && !version_match(&buf[idx + split.len()..])
+                        {
                             return err(&path, &buf);
                         }
                     }
