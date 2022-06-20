@@ -32,7 +32,6 @@ pub mod push;
 pub mod read_marker;
 pub mod receipt;
 pub mod redact;
-#[cfg(feature = "unstable-msc2675")]
 pub mod relations;
 pub mod room;
 pub mod search;

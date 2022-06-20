@@ -126,7 +126,6 @@ unstable-msc2448 = [
 unstable-msc2654 = ["ruma-client-api?/unstable-msc2654"]
 unstable-msc2666 = ["ruma-client-api?/unstable-msc2666"]
 unstable-msc2675 = [
-    "ruma-client-api?/unstable-msc2675",
     "ruma-common/unstable-msc2675",
 ]
 unstable-msc2676 = [
