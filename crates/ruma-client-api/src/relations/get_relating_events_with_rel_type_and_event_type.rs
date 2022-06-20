@@ -4,9 +4,9 @@
 //! using the given `rel_type` and having the given `event_type`.
 
 pub mod v1 {
-    //! `/unstable/` ([MSC2675])
+    //! `/v1/` ([spec])
     //!
-    //! [MSC2675]: https://github.com/matrix-org/matrix-spec-proposals/pull/2675
+    //! [spec]: https://spec.matrix.org/v1.3/client-server-api/#get_matrixclientv1roomsroomidrelationseventidreltypeeventtype
 
     use js_int::UInt;
     use ruma_common::{
@@ -22,8 +22,10 @@ pub mod v1 {
             method: GET,
             name: "get_relating_events_with_rel_type_and_event_type",
             unstable_path: "/_matrix/client/unstable/rooms/:room_id/relations/:event_id/:rel_type/:event_type",
+            stable_path: "/_matrix/client/v1/rooms/:room_id/relations/:event_id/:rel_type/:event_type",
             rate_limited: false,
             authentication: AccessToken,
+            added: 1.3,
         }
 
         request: {
