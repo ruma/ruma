@@ -152,6 +152,11 @@ pub enum MatrixVersion {
     ///
     /// See <https://spec.matrix.org/v1.2/>.
     V1_2,
+
+    /// Version 1.3 of the Matrix specification, released in Q2 2022.
+    ///
+    /// See <https://spec.matrix.org/v1.3/>.
+    V1_3,
 }
 
 impl TryFrom<&str> for MatrixVersion {
@@ -167,6 +172,7 @@ impl TryFrom<&str> for MatrixVersion {
             "r0.5.0" | "r0.6.0" | "r0.6.1" => V1_0,
             "v1.1" => V1_1,
             "v1.2" => V1_2,
+            "v1.3" => V1_3,
             _ => return Err(UnknownVersionError),
         })
     }
@@ -208,6 +214,7 @@ impl MatrixVersion {
             MatrixVersion::V1_0 => (1, 0),
             MatrixVersion::V1_1 => (1, 1),
             MatrixVersion::V1_2 => (1, 2),
+            MatrixVersion::V1_3 => (1, 3),
         }
     }
 
@@ -217,6 +224,7 @@ impl MatrixVersion {
             (1, 0) => Ok(MatrixVersion::V1_0),
             (1, 1) => Ok(MatrixVersion::V1_1),
             (1, 2) => Ok(MatrixVersion::V1_2),
+            (1, 3) => Ok(MatrixVersion::V1_3),
             _ => Err(UnknownVersionError),
         }
     }
