@@ -164,6 +164,11 @@ pub enum SpaceRoomJoinRule {
     /// only be seen by users inside the room.
     Restricted,
 
+    /// Users can join the room if they are invited, or if they meet any of the conditions
+    /// described in a set of [`AllowRule`](ruma_common::events::room::join_rules::AllowRule)s, or
+    /// they can request an invite to the room.
+    KnockRestricted,
+
     /// Anyone can join the room without any prior action.
     Public,
 
