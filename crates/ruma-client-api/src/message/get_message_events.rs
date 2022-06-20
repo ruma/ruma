@@ -41,13 +41,6 @@ pub mod v3 {
             ///
             /// If this is `None`, the server will return messages from the start or end of the
             /// history visible to the user, depending on the value of [`dir`][Self::dir].
-            ///
-            /// *Note: This field is marked required in v1.2 of the specification, but that is
-            /// changing, most likely as part of v1.3. To frontload the breaking change, this field
-            /// is optional already even though v1.2 is the latest version at the time of writing.
-            /// The specification change can be found [here].*
-            ///
-            /// [here]: https://github.com/matrix-org/matrix-spec/pull/1002
             #[ruma_api(query)]
             pub from: Option<&'a str>,
 
