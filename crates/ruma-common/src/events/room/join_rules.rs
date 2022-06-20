@@ -81,35 +81,29 @@ impl SyncRoomJoinRulesEvent {
 /// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(tag = "join_rule")]
+#[serde(tag = "join_rule", rename_all = "snake_case")]
 pub enum JoinRule {
     /// A user who wishes to join the room must first receive an invite to the room from someone
     /// already inside of the room.
-    #[serde(rename = "invite")]
     Invite,
 
     /// Users can join the room if they are invited, or they can request an invite to the room.
     ///
     /// They can be allowed (invited) or denied (kicked/banned) access.
-    #[serde(rename = "knock")]
     Knock,
 
     /// Reserved but not yet implemented by the Matrix specification.
-    #[serde(rename = "private")]
     Private,
 
     /// Users can join the room if they are invited, or if they meet any of the conditions
     /// described in a set of [`AllowRule`]s.
-    #[serde(rename = "restricted")]
     Restricted(Restricted),
 
     /// Users can join the room if they are invited, or if they meet any of the conditions
     /// described in a set of [`AllowRule`]s, or they can request an invite to the room.
-    #[serde(rename = "knock_restricted")]
     KnockRestricted(Restricted),
 
     /// Anyone can join the room without any prior action.
-    #[serde(rename = "public")]
     Public,
 
     #[doc(hidden)]
