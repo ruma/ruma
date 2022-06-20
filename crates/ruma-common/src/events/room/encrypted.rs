@@ -264,17 +264,11 @@ pub struct MegolmV1AesSha2Content {
     pub ciphertext: String,
 
     /// The Curve25519 key of the sender.
-    #[cfg_attr(
-        feature = "unstable-msc3700",
-        deprecated = "this field still needs to be sent but should not be used when received"
-    )]
+    #[deprecated = "this field still needs to be sent but should not be used when received"]
     pub sender_key: String,
 
     /// The ID of the sending device.
-    #[cfg_attr(
-        feature = "unstable-msc3700",
-        deprecated = "this field still needs to be sent but should not be used when received"
-    )]
+    #[deprecated = "this field still needs to be sent but should not be used when received"]
     pub device_id: OwnedDeviceId,
 
     /// The ID of the session used to encrypt the message.
@@ -317,7 +311,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{
-        EncryptedEventScheme, InReplyTo, MegolmV1AesSha2Content, Relation,
+        EncryptedEventScheme, InReplyTo, MegolmV1AesSha2ContentInit, Relation,
         RoomEncryptedEventContent,
     };
     use crate::{event_id, serde::Raw};
@@ -325,12 +319,15 @@ mod tests {
     #[test]
     fn serialization() {
         let key_verification_start_content = RoomEncryptedEventContent {
-            scheme: EncryptedEventScheme::MegolmV1AesSha2(MegolmV1AesSha2Content {
-                ciphertext: "ciphertext".into(),
-                sender_key: "sender_key".into(),
-                device_id: "device_id".into(),
-                session_id: "session_id".into(),
-            }),
+            scheme: EncryptedEventScheme::MegolmV1AesSha2(
+                MegolmV1AesSha2ContentInit {
+                    ciphertext: "ciphertext".into(),
+                    sender_key: "sender_key".into(),
+                    device_id: "device_id".into(),
+                    session_id: "session_id".into(),
+                }
+                .into(),
+            ),
             relates_to: Some(Relation::Reply {
                 in_reply_to: InReplyTo { event_id: event_id!("$h29iv0s8:example.com").to_owned() },
             }),
@@ -353,6 +350,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn deserialization() {
         let json_data = json!({
             "algorithm": "m.megolm.v1.aes-sha2",
