@@ -81,7 +81,6 @@ event_enum! {
         "m.reaction" => super::reaction,
         "m.room.encrypted" => super::room::encrypted,
         "m.room.message" => super::room::message,
-        "m.room.message.feedback" => super::room::message::feedback,
         "m.room.redaction" => super::room::redaction,
         "m.sticker" => super::sticker,
         #[cfg(feature = "unstable-msc3553")]
@@ -358,7 +357,6 @@ impl AnyMessageLikeEventContent {
             | Self::CallInvite(_)
             | Self::CallHangup(_)
             | Self::CallCandidates(_)
-            | Self::RoomMessageFeedback(_)
             | Self::RoomRedaction(_)
             | Self::Sticker(_)
             | Self::_Custom { .. } => None,
