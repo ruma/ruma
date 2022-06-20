@@ -30,6 +30,7 @@ Improvements:
 * Add `MatrixVersion::V1_3`
 * Deprecate the `sender_key` and `device_id` fields for encrypted events (MSC3700)
 * Move the `relations` field of `events::unsigned` types out of `unstable-msc2675`
+* Deserialize stringified integers for power levels without the `compat` feature
 
 # 0.9.2
 
