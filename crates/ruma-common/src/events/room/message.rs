@@ -16,7 +16,6 @@ use crate::{
 mod audio;
 mod content_serde;
 mod emote;
-pub mod feedback;
 mod file;
 mod image;
 mod key_verification_request;

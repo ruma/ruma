@@ -16,6 +16,7 @@ Breaking changes:
 * Remove `RoomName` / `OwnedRoomName` and replace usages with `str` / `String`
   * Room name size limits were never enforced by servers
     ([Spec change removing the size limit][spec])
+* Remove `RoomMessageFeedbackEvent` and associated types and variants according to MSC3582
 
 [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/3669
 
