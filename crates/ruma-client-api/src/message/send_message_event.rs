@@ -5,13 +5,11 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#put_matrixclientv3roomsroomidsendeventtypetxnid
 
-    #[cfg(feature = "unstable-msc3316")]
-    use ruma_common::MilliSecondsSinceUnixEpoch;
     use ruma_common::{
         api::ruma_api,
         events::{AnyMessageLikeEventContent, MessageLikeEventContent, MessageLikeEventType},
         serde::Raw,
-        OwnedEventId, RoomId, TransactionId,
+        MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, TransactionId,
     };
     use serde_json::value::to_raw_value as to_raw_json_value;
 
@@ -54,8 +52,7 @@ pub mod v3 {
             ///
             /// Note that this does not change the position of the event in the timeline.
             ///
-            /// [timestamp massaging]: https://github.com/matrix-org/matrix-spec-proposals/pull/3316
-            #[cfg(feature = "unstable-msc3316")]
+            /// [timestamp massaging]: https://spec.matrix.org/v1.3/application-service-api/#timestamp-massaging
             #[ruma_api(query)]
             #[serde(skip_serializing_if = "Option::is_none", rename = "ts")]
             pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
@@ -89,7 +86,6 @@ pub mod v3 {
                 txn_id,
                 event_type: content.event_type(),
                 body: Raw::from_json(to_raw_json_value(content)?),
-                #[cfg(feature = "unstable-msc3316")]
                 timestamp: None,
             })
         }
@@ -102,14 +98,7 @@ pub mod v3 {
             event_type: MessageLikeEventType,
             body: Raw<AnyMessageLikeEventContent>,
         ) -> Self {
-            Self {
-                room_id,
-                event_type,
-                txn_id,
-                body,
-                #[cfg(feature = "unstable-msc3316")]
-                timestamp: None,
-            }
+            Self { room_id, event_type, txn_id, body, timestamp: None }
         }
     }
 

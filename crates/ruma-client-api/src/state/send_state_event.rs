@@ -5,13 +5,11 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#put_matrixclientv3roomsroomidstateeventtypestatekey
 
-    #[cfg(feature = "unstable-msc3316")]
-    use ruma_common::MilliSecondsSinceUnixEpoch;
     use ruma_common::{
         api::ruma_api,
         events::{AnyStateEventContent, StateEventContent, StateEventType},
         serde::{Incoming, Raw},
-        OwnedEventId, RoomId,
+        MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId,
     };
     use serde_json::value::to_raw_value as to_raw_json_value;
 
@@ -60,8 +58,7 @@ pub mod v3 {
         ///
         /// Note that this does not change the position of the event in the timeline.
         ///
-        /// [timestamp massaging]: https://github.com/matrix-org/matrix-spec-proposals/pull/3316
-        #[cfg(feature = "unstable-msc3316")]
+        /// [timestamp massaging]: https://spec.matrix.org/v1.3/application-service-api/#timestamp-massaging
         pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
     }
 
@@ -85,7 +82,6 @@ pub mod v3 {
                 state_key,
                 event_type: content.event_type(),
                 body: Raw::from_json(to_raw_json_value(content)?),
-                #[cfg(feature = "unstable-msc3316")]
                 timestamp: None,
             })
         }
@@ -98,14 +94,7 @@ pub mod v3 {
             state_key: &'a str,
             body: Raw<AnyStateEventContent>,
         ) -> Self {
-            Self {
-                room_id,
-                event_type,
-                state_key,
-                body,
-                #[cfg(feature = "unstable-msc3316")]
-                timestamp: None,
-            }
+            Self { room_id, event_type, state_key, body, timestamp: None }
         }
     }
 
@@ -160,12 +149,9 @@ pub mod v3 {
                 url.push_str(&Cow::from(utf8_percent_encode(self.state_key, NON_ALPHANUMERIC)));
             }
 
-            #[cfg(feature = "unstable-msc3316")]
-            {
-                let request_query = RequestQuery { timestamp: self.timestamp };
-                url.push('?');
-                url.push_str(&ruma_common::serde::urlencoded::to_string(request_query)?);
-            }
+            let request_query = RequestQuery { timestamp: self.timestamp };
+            url.push('?');
+            url.push_str(&ruma_common::serde::urlencoded::to_string(request_query)?);
 
             let http_request = http::Request::builder()
                 .method(http::Method::PUT)
@@ -225,33 +211,24 @@ pub mod v3 {
                     (a, b, "".into())
                 };
 
-            #[cfg(feature = "unstable-msc3316")]
             let request_query: RequestQuery =
                 ruma_common::serde::urlencoded::from_str(request.uri().query().unwrap_or(""))?;
 
             let body = serde_json::from_slice(request.body().as_ref())?;
 
-            Ok(Self {
-                room_id,
-                event_type,
-                state_key,
-                body,
-                #[cfg(feature = "unstable-msc3316")]
-                timestamp: request_query.timestamp,
-            })
+            Ok(Self { room_id, event_type, state_key, body, timestamp: request_query.timestamp })
         }
     }
 
     /// Data in the request's query string.
-    #[cfg(feature = "unstable-msc3316")]
     #[derive(Debug)]
     #[cfg_attr(feature = "client", derive(serde::Serialize))]
     #[cfg_attr(feature = "server", derive(serde::Deserialize))]
     struct RequestQuery {
         /// Timestamp to use for the `origin_server_ts` of the event.
         #[serde(
-            rename = "org.matrix.msc3316.ts",
-            alias = "ts",
+            alias = "org.matrix.msc3316.ts",
+            rename = "ts",
             skip_serializing_if = "Option::is_none"
         )]
         pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
