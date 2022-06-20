@@ -36,6 +36,72 @@ impl fmt::Display for CanonicalJsonError {
 
 impl std::error::Error for CanonicalJsonError {}
 
+/// Errors that can happen in redaction.
+#[cfg(feature = "canonical-json")]
+#[derive(Debug)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub enum RedactionError {
+    /// The field `field` is not of the correct type `of_type` ([`JsonType`]).
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    NotOfType {
+        /// The field name.
+        field: String,
+        /// The expected JSON type.
+        of_type: JsonType,
+    },
+
+    /// The given required field is missing from a JSON object.
+    JsonFieldMissingFromObject(String),
+}
+
+impl fmt::Display for RedactionError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            RedactionError::NotOfType { field, of_type } => {
+                write!(f, "Value in {field:?} must be a JSON {of_type:?}")
+            }
+            RedactionError::JsonFieldMissingFromObject(field) => {
+                write!(f, "JSON object must contain the field {field:?}")
+            }
+        }
+    }
+}
+
+impl std::error::Error for RedactionError {}
+
+impl RedactionError {
+    fn not_of_type(target: &str, of_type: JsonType) -> Self {
+        Self::NotOfType { field: target.to_owned(), of_type }
+    }
+
+    fn field_missing_from_object(target: &str) -> Self {
+        Self::JsonFieldMissingFromObject(target.to_owned())
+    }
+}
+
+/// A JSON type enum for [`RedactionError`] variants.
+#[derive(Debug)]
+#[allow(clippy::exhaustive_enums)]
+pub enum JsonType {
+    /// A JSON Object.
+    Object,
+
+    /// A JSON String.
+    String,
+
+    /// A JSON Integer.
+    Integer,
+
+    /// A JSON Array.
+    Array,
+
+    /// A JSON Boolean.
+    Boolean,
+
+    /// JSON Null.
+    Null,
+}
+
 /// Fallible conversion from a `serde_json::Map` to a `CanonicalJsonObject`.
 pub fn try_from_json_map(
     json: serde_json::Map<String, JsonValue>,
@@ -74,7 +140,7 @@ pub fn to_canonical_value<T: Serialize>(
 pub fn redact(
     object: &CanonicalJsonObject,
     version: &RoomVersionId,
-) -> Result<CanonicalJsonObject, ()> {
+) -> Result<CanonicalJsonObject, RedactionError> {
     let mut val = object.clone();
     redact_in_place(&mut val, version)?;
     Ok(val)
@@ -85,21 +151,24 @@ pub fn redact(
 /// Functionally equivalent to `redact`, only;
 /// * upon error, the event is not touched.
 /// * this'll redact the event in-place.
-pub fn redact_in_place(event: &mut CanonicalJsonObject, version: &RoomVersionId) -> Result<(), ()> {
+pub fn redact_in_place(
+    event: &mut CanonicalJsonObject,
+    version: &RoomVersionId,
+) -> Result<(), RedactionError> {
     // Get the content keys here instead of the event type, because we cant teach rust that this is
     // a disjoint borrow.
     let allowed_content_keys: &[&str] = match event.get("type") {
         Some(CanonicalJsonValue::String(event_type)) => {
             allowed_content_keys_for(event_type, version)
         }
-        Some(_) => return Err(()),
-        None => return Err(()),
+        Some(_) => return Err(RedactionError::not_of_type("type", JsonType::String)),
+        None => return Err(RedactionError::field_missing_from_object("type")),
     };
 
     if let Some(content_value) = event.get_mut("content") {
         let content = match content_value {
             CanonicalJsonValue::Object(map) => map,
-            _ => return Err(()),
+            _ => return Err(RedactionError::not_of_type("content", JsonType::Object)),
         };
 
         object_retain_keys(content, allowed_content_keys);

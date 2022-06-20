@@ -8,6 +8,7 @@ use std::{
 
 use base64::{encode_config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
 use ruma_common::{
+    canonical_json::{redact, JsonType},
     serde::{base64::Standard, Base64},
     CanonicalJsonObject, CanonicalJsonValue, OwnedEventId, OwnedServerName, RoomVersionId, UserId,
 };
@@ -18,7 +19,7 @@ use crate::{
     keys::{KeyPair, PublicKeyMap},
     split_id,
     verification::{Ed25519Verifier, Verified, Verifier},
-    Error, JsonError, JsonType, ParseError, VerificationError,
+    Error, JsonError, ParseError, VerificationError,
 };
 
 const MAX_PDU_BYTES: usize = 65_535;
