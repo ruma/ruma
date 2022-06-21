@@ -563,8 +563,10 @@ fn valid_membership_change(
                 true
             } else if room_version.restricted_join_rules
                 && matches!(join_rules, JoinRule::Restricted(_))
+                || room_version.knock_restricted_join_rule
+                    && matches!(join_rules, JoinRule::KnockRestricted(_))
             {
-                // If the join_rule is restricted
+                // If the join_rule is restricted or knock_restricted
                 if matches!(
                     target_user_current_membership,
                     MembershipState::Invite | MembershipState::Join
@@ -673,9 +675,12 @@ fn valid_membership_change(
             }
         }
         MembershipState::Knock if room_version.allow_knocking => {
-            // 1. If the `join_rule` is anything other than `knock`, reject.
-            if join_rules != JoinRule::Knock {
-                warn!("Join rule is not set to knock, knocking is not allowed");
+            // 1. If the `join_rule` is anything other than `knock` or `knock_restricted`, reject.
+            if join_rules != JoinRule::Knock
+                || room_version.knock_restricted_join_rule
+                    && matches!(join_rules, JoinRule::KnockRestricted(_))
+            {
+                warn!("Join rule is not set to knock or knock_restricted, knocking is not allowed");
                 false
             } else {
                 // 2. If `sender` does not match `state_key`, reject.
