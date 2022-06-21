@@ -66,6 +66,14 @@ pub struct RoomVersion {
     ///
     /// See: [MSC3289](https://github.com/matrix-org/matrix-spec-proposals/pull/3289) for more information.
     pub restricted_join_rules: bool,
+    /// Adds support for the knock_restricted join rule.
+    ///
+    /// See: [MSC3787](https://github.com/matrix-org/matrix-spec-proposals/pull/3787) for more information.
+    pub knock_restricted_join_rule: bool,
+    /// Enforces integer power levels.
+    ///
+    /// See: [MSC3667](https://github.com/matrix-org/matrix-spec-proposals/pull/3667) for more information.
+    pub integer_power_levels: bool,
 }
 
 impl RoomVersion {
@@ -80,6 +88,8 @@ impl RoomVersion {
         extra_redaction_checks: false,
         allow_knocking: false,
         restricted_join_rules: false,
+        knock_restricted_join_rule: false,
+        integer_power_levels: false,
     };
 
     pub const V2: Self = Self { state_res: StateResolutionVersion::V2, ..Self::V1 };
@@ -104,6 +114,9 @@ impl RoomVersion {
 
     pub const V9: Self = Self::V8;
 
+    pub const V10: Self =
+        Self { knock_restricted_join_rule: true, integer_power_levels: true, ..Self::V9 };
+
     pub fn new(version: &RoomVersionId) -> Result<Self> {
         Ok(match version {
             RoomVersionId::V1 => Self::V1,
@@ -115,6 +128,7 @@ impl RoomVersion {
             RoomVersionId::V7 => Self::V7,
             RoomVersionId::V8 => Self::V8,
             RoomVersionId::V9 => Self::V9,
+            RoomVersionId::V10 => Self::V10,
             ver => return Err(Error::Unsupported(format!("found version `{ver}`"))),
         })
     }
