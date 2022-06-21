@@ -45,12 +45,14 @@ static ALLOWED_KEYS: &[&str] = &[
 fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'static [&'static str] {
     match event_type {
         "m.room.member" => match version {
-            RoomVersionId::V9 => &["membership", "join_authorised_via_users_server"],
+            RoomVersionId::V9 | RoomVersionId::V10 => {
+                &["membership", "join_authorised_via_users_server"]
+            }
             _ => &["membership"],
         },
         "m.room.create" => &["creator"],
         "m.room.join_rules" => match version {
-            RoomVersionId::V8 | RoomVersionId::V9 => &["join_rule", "allow"],
+            RoomVersionId::V8 | RoomVersionId::V9 | RoomVersionId::V10 => &["join_rule", "allow"],
             _ => &["join_rule"],
         },
         "m.room.power_levels" => &[
@@ -844,7 +846,7 @@ fn servers_to_check_signatures(
         | RoomVersionId::V6
         | RoomVersionId::V7 => {}
         // TODO: And for all future versions that have join_authorised_via_users_server
-        RoomVersionId::V8 | RoomVersionId::V9 => {
+        RoomVersionId::V8 | RoomVersionId::V9 | RoomVersionId::V10 => {
             if let Some(authorized_user) = object
                 .get("content")
                 .and_then(|c| c.as_object())
