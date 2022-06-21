@@ -21,6 +21,10 @@ use tracing::{debug, error, info, warn};
 
 use crate::{room_version::RoomVersion, Error, Event, PowerLevelsContentFields, Result};
 
+mod int_power_levels;
+
+use int_power_levels::IntRoomPowerLevelsEventContent;
+
 // FIXME: field extracting could be bundled for `content`
 #[derive(Deserialize)]
 struct GetMembership {
@@ -745,22 +749,26 @@ fn check_power_levels(
         }
     }
 
+    // - If any of the keys users_default, events_default, state_default, ban, redact, kick, or
+    //   invite in content are present and not an integer, reject.
+    // - If either of the keys events or notifications in content are present and not a dictionary
+    //   with values that are integers, reject.
+    // - If users key in content is not a dictionary with keys that are valid user IDs with values
+    //   that are integers, reject.
+    let user_content: RoomPowerLevelsEventContent =
+        deserialize_power_levels(power_event.content().get(), room_version)?;
+
+    // Validation of users is done in Ruma, synapse for loops validating user_ids and integers here
+    info!("validation of power event finished");
+
     let current_state = match previous_power_event {
         Some(current_state) => current_state,
         // If there is no previous m.room.power_levels event in the room, allow
         None => return Some(true),
     };
 
-    // If users key in content is not a dictionary with keys that are valid user IDs
-    // with values that are integers (or a string that is an integer), reject.
-    let user_content =
-        from_json_str::<RoomPowerLevelsEventContent>(power_event.content().get()).unwrap();
-
-    let current_content =
-        from_json_str::<RoomPowerLevelsEventContent>(current_state.content().get()).unwrap();
-
-    // Validation of users is done in Ruma, synapse for loops validating user_ids and integers here
-    info!("validation of power event finished");
+    let current_content: RoomPowerLevelsEventContent =
+        deserialize_power_levels(current_state.content().get(), room_version)?;
 
     let mut user_levels_to_check = BTreeSet::new();
     let old_list = &current_content.users;
@@ -862,6 +870,31 @@ fn check_power_levels(
     }
 
     Some(true)
+}
+
+fn deserialize_power_levels(
+    content: &str,
+    room_version: &RoomVersion,
+) -> Option<RoomPowerLevelsEventContent> {
+    if room_version.integer_power_levels {
+        match from_json_str::<IntRoomPowerLevelsEventContent>(content) {
+            Ok(content) => Some(content.into()),
+            Err(_) => {
+                error!("m.room.power_levels event is not valid with integer values");
+                None
+            }
+        }
+    } else {
+        match from_json_str(content) {
+            Ok(content) => Some(content),
+            Err(_) => {
+                error!(
+                    "m.room.power_levels event is not valid with integer or string integer values"
+                );
+                None
+            }
+        }
+    }
 }
 
 fn get_deserialize_levels(
