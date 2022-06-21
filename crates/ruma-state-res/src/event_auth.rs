@@ -223,7 +223,20 @@ pub fn auth_check<E: Event>(
         return Ok(false);
     }
 
-    // [synapse] checks for federation here
+    // If the create event content has the field m.federate set to false and the sender domain of
+    // the event does not match the sender domain of the create event, reject.
+    #[derive(Deserialize)]
+    struct RoomCreateContentFederate {
+        federate: bool,
+    }
+    let room_create_content: RoomCreateContentFederate =
+        from_json_str(room_create_event.content().get())?;
+    if !room_create_content.federate
+        && room_create_event.sender().server_name() != incoming_event.sender().server_name()
+    {
+        warn!("room is not federated and event's sender domain does not match create event's sender domain");
+        return Ok(false);
+    }
 
     // Only in some room versions 6 and below
     if room_version.special_case_aliases_auth {
