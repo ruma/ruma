@@ -53,6 +53,9 @@ pub enum RoomVersionId {
     /// A version 9 room.
     V9,
 
+    /// A version 10 room.
+    V10,
+
     #[doc(hidden)]
     _Custom(CustomRoomVersion),
 }
@@ -72,6 +75,7 @@ impl RoomVersionId {
             Self::V7 => "7",
             Self::V8 => "8",
             Self::V9 => "9",
+            Self::V10 => "10",
             Self::_Custom(version) => version.as_str(),
         }
     }
@@ -94,6 +98,7 @@ impl From<RoomVersionId> for String {
             RoomVersionId::V7 => "7".to_owned(),
             RoomVersionId::V8 => "8".to_owned(),
             RoomVersionId::V9 => "9".to_owned(),
+            RoomVersionId::V10 => "10".to_owned(),
             RoomVersionId::_Custom(version) => version.into(),
         }
     }
@@ -160,6 +165,7 @@ where
         "7" => RoomVersionId::V7,
         "8" => RoomVersionId::V8,
         "9" => RoomVersionId::V9,
+        "10" => RoomVersionId::V10,
         custom => {
             ruma_identifiers_validation::room_version_id::validate(custom)?;
             RoomVersionId::_Custom(CustomRoomVersion(room_version_id.into()))

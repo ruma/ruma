@@ -144,7 +144,7 @@ impl RedactContent for RoomMemberEventContent {
         RedactedRoomMemberEventContent {
             membership: self.membership,
             join_authorized_via_users_server: match _version {
-                RoomVersionId::V9 => self.join_authorized_via_users_server,
+                RoomVersionId::V9 | RoomVersionId::V10 => self.join_authorized_via_users_server,
                 _ => None,
             },
         }

@@ -33,6 +33,7 @@ Improvements:
 * Move the `relations` field of `events::unsigned` types out of `unstable-msc2675`
 * Deserialize stringified integers for power levels without the `compat` feature
 * Add `JoinRule::KnockRestricted` (MSC3787)
+* Add `MatrixVersionId::V10` (MSC3604)
 
 # 0.9.2
 
