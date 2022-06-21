@@ -5,7 +5,7 @@
 //! See the documentation for the individual macros for usage details.
 
 #![warn(missing_docs)]
-// https://github.com/rust-lang/rust-clippy/issues/8875
+// https://github.com/rust-lang/rust-clippy/issues/9029
 #![allow(clippy::derive_partial_eq_without_eq)]
 
 use identifiers::expand_id_zst;

@@ -4,7 +4,7 @@
 //! `.cargo/config`. Run commands as `cargo xtask [command]`.
 
 #![allow(clippy::exhaustive_structs)]
-// https://github.com/rust-lang/rust-clippy/issues/8875
+// https://github.com/rust-lang/rust-clippy/issues/9029
 #![allow(clippy::derive_partial_eq_without_eq)]
 
 use std::path::PathBuf;
