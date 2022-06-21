@@ -219,7 +219,6 @@ impl fmt::Display for ErrorKind {
 /// A Matrix Error without a status code.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(clippy::exhaustive_structs)]
-#[cfg_attr(test, derive(PartialEq))]
 pub struct ErrorBody {
     /// A value which can be used to handle an error message.
     #[serde(flatten)]
@@ -301,12 +300,7 @@ mod tests {
         }))
         .unwrap();
 
-        assert_eq!(
-            deserialized,
-            ErrorBody {
-                kind: ErrorKind::Forbidden,
-                message: "You are not authorized to ban users in this room.".into(),
-            }
-        );
+        assert_eq!(deserialized.kind, ErrorKind::Forbidden);
+        assert_eq!(deserialized.message, "You are not authorized to ban users in this room.");
     }
 }

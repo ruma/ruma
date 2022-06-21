@@ -6,8 +6,6 @@
 //! [client-api]: https://spec.matrix.org/v1.2/client-server-api/
 
 #![warn(missing_docs)]
-// https://github.com/rust-lang/rust-clippy/issues/8875
-#![allow(clippy::derive_partial_eq_without_eq)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 pub mod account;
