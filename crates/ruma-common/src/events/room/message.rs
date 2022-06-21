@@ -188,7 +188,8 @@ impl RoomMessageEventContent {
 
     /// Create a new reply with the given message and optionally forwards the [`Relation::Thread`].
     ///
-    /// If `message` is a text or notice message, it is modified to include the rich reply fallback.
+    /// If `message` is a text, an emote or a notice message, it is modified to include the rich
+    /// reply fallback.
     #[cfg(feature = "unstable-msc3440")]
     pub fn reply(
         message: MessageType,
@@ -204,6 +205,15 @@ impl RoomMessageEventContent {
                 );
 
                 MessageType::Text(TextMessageEventContent::html(body, html_body))
+            }
+            MessageType::Emote(EmoteMessageEventContent { body, formatted, .. }) => {
+                let (body, html_body) = reply::plain_and_formatted_reply_body(
+                    body,
+                    formatted.map(|f| f.body),
+                    original_message,
+                );
+
+                MessageType::Emote(EmoteMessageEventContent::html(body, html_body))
             }
             MessageType::Notice(NoticeMessageEventContent { body, formatted, .. }) => {
                 let (body, html_body) = reply::plain_and_formatted_reply_body(
@@ -239,8 +249,8 @@ impl RoomMessageEventContent {
     /// thread is created. If it doesn't, a new thread with `previous_message` as the root is
     /// created.
     ///
-    /// If `message` is a text or notice message, and this is a reply in the thread, it is modified
-    /// to include the rich reply fallback.
+    /// If `message` is a text, an emote or a notice message, and this is a reply in the thread, it
+    /// is modified to include the rich reply fallback.
     #[cfg(feature = "unstable-msc3440")]
     pub fn for_thread(
         message: MessageType,
@@ -258,6 +268,15 @@ impl RoomMessageEventContent {
                     );
 
                     MessageType::Text(TextMessageEventContent::html(body, html_body))
+                }
+                MessageType::Emote(EmoteMessageEventContent { body, formatted, .. }) => {
+                    let (body, html_body) = reply::plain_and_formatted_reply_body(
+                        body,
+                        formatted.map(|f| f.body),
+                        previous_message,
+                    );
+
+                    MessageType::Emote(EmoteMessageEventContent::html(body, html_body))
                 }
                 MessageType::Notice(NoticeMessageEventContent { body, formatted, .. }) => {
                     let (body, html_body) = reply::plain_and_formatted_reply_body(
