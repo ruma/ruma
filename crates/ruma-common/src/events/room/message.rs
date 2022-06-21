@@ -239,33 +239,39 @@ impl RoomMessageEventContent {
     /// thread is created. If it doesn't, a new thread with `previous_message` as the root is
     /// created.
     ///
-    /// If `message` is a text or notice message, it is modified to include the rich reply fallback.
+    /// If `message` is a text or notice message, and this is a reply in the thread, it is modified
+    /// to include the rich reply fallback.
     #[cfg(feature = "unstable-msc3440")]
     pub fn for_thread(
         message: MessageType,
         previous_message: &OriginalRoomMessageEvent,
         is_reply: ReplyInThread,
     ) -> Self {
-        let msgtype = match message {
-            MessageType::Text(TextMessageEventContent { body, formatted, .. }) => {
-                let (body, html_body) = reply::plain_and_formatted_reply_body(
-                    body,
-                    formatted.map(|f| f.body),
-                    previous_message,
-                );
+        let msgtype = if is_reply == ReplyInThread::Yes {
+            // If this is a real reply, add the rich reply fallback.
+            match message {
+                MessageType::Text(TextMessageEventContent { body, formatted, .. }) => {
+                    let (body, html_body) = reply::plain_and_formatted_reply_body(
+                        body,
+                        formatted.map(|f| f.body),
+                        previous_message,
+                    );
 
-                MessageType::Text(TextMessageEventContent::html(body, html_body))
-            }
-            MessageType::Notice(NoticeMessageEventContent { body, formatted, .. }) => {
-                let (body, html_body) = reply::plain_and_formatted_reply_body(
-                    body,
-                    formatted.map(|f| f.body),
-                    previous_message,
-                );
+                    MessageType::Text(TextMessageEventContent::html(body, html_body))
+                }
+                MessageType::Notice(NoticeMessageEventContent { body, formatted, .. }) => {
+                    let (body, html_body) = reply::plain_and_formatted_reply_body(
+                        body,
+                        formatted.map(|f| f.body),
+                        previous_message,
+                    );
 
-                MessageType::Notice(NoticeMessageEventContent::html(body, html_body))
+                    MessageType::Notice(NoticeMessageEventContent::html(body, html_body))
+                }
+                _ => message,
             }
-            _ => message,
+        } else {
+            message
         };
 
         let thread_root = if let Some(Relation::Thread(Thread { event_id, .. })) =
