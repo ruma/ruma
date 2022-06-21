@@ -4,6 +4,7 @@ Improvements:
 
 * Add `m.federate` to `auth_check`:
   <https://github.com/matrix-org/matrix-spec/pull/1103>
+* Add `RoomVersion::V10` (MSC3604)
 
 # 0.7.0
 
