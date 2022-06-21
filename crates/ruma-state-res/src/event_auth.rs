@@ -227,6 +227,7 @@ pub fn auth_check<E: Event>(
     // the event does not match the sender domain of the create event, reject.
     #[derive(Deserialize)]
     struct RoomCreateContentFederate {
+        #[serde(rename = "m.federate", default = "ruma_common::serde::default_true")]
         federate: bool,
     }
     let room_create_content: RoomCreateContentFederate =
