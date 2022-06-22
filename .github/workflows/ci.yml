@@ -251,7 +251,9 @@ jobs:
         run: target/debug/xtask doc --deny-warnings
 
       - name: Deploy PR preview
+        id: deploy_preview
         if: github.event_name == 'pull_request'
+        continue-on-error: true
         uses: dswistowski/surge-sh-action@v1.0.1
         with:
           domain: pr-${{ github.event.number }}--ruma-docs.surge.sh
@@ -260,7 +262,7 @@ jobs:
           token: ${{ secrets.SURGE_TOKEN }}
 
       - name: Comment deploy PR preview URL
-        if: github.event_name == 'pull_request'
+        if: steps.deploy_preview.outcome == 'success'
         uses: Beakyn/gha-comment-pull-request@v1.0.2
         env:
           GITHUB_TOKEN: ${{ github.token }}
