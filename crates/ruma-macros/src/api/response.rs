@@ -100,6 +100,7 @@ impl Response {
 
             quote! {
                 /// Data in the response body.
+                #[cfg(any(feature = "client", feature = "server"))]
                 #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
                 #serde_derives
                 #serde_attr
