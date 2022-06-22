@@ -1,9 +1,11 @@
-use html5ever::{local_name, namespace_url, ns, QualName};
-use kuchiki::{parse_fragment, traits::TendrilSink, Attributes, ElementData, NodeData, NodeRef};
+use html5ever::{tendril::StrTendril, Attribute};
 use phf::{phf_map, phf_set, Map, Set};
 use wildmatch::WildMatch;
 
-use super::{HtmlSanitizerMode, RemoveReplyFallback};
+use super::{
+    html_fragment::{ElementData, Fragment, NodeData},
+    HtmlSanitizerMode, RemoveReplyFallback,
+};
 
 /// A sanitizer to filter [HTML tags and attributes] according to the Matrix specification.
 ///
@@ -57,104 +59,115 @@ impl HtmlSanitizer {
 
     /// Clean the given HTML string with this sanitizer.
     pub fn clean(&self, html: &str) -> String {
-        let mut parser =
-            parse_fragment(QualName::new(None, ns!(html), local_name!("div")), Vec::new());
-        parser.process(html.into());
-        let dom = parser.finish();
-        let root = dom.first_child().unwrap();
+        let mut fragment = Fragment::parse_html(html);
 
-        for child in root.children() {
-            self.clean_node(child, 0);
+        let root = fragment.nodes[0].first_child.unwrap();
+        let mut next_child = fragment.nodes[root].first_child;
+        while let Some(child) = next_child {
+            next_child = fragment.nodes[child].next_sibling;
+            self.clean_node(&mut fragment, child, 0);
         }
 
-        let mut buf: Vec<u8> = Vec::new();
-        for child in root.children() {
-            child.serialize(&mut buf).unwrap();
-        }
-
-        String::from_utf8(buf).unwrap()
+        fragment.to_string()
     }
 
-    fn clean_node(&self, node: NodeRef, depth: u32) {
-        match node.data() {
-            NodeData::Element(ElementData { name, attributes, .. }) => {
-                let tag: &str = &name.local;
-                let action = self.element_action(tag, &attributes.borrow(), depth);
+    fn clean_node(&self, fragment: &mut Fragment, node_id: usize, depth: u32) {
+        let action = self.node_action(fragment, node_id, depth);
 
-                if action != ElementAction::Remove {
-                    for child in node.children() {
-                        if action == ElementAction::Ignore {
-                            node.insert_before(child.clone());
-                        }
-                        self.clean_node(child, depth + 1);
-                    }
+        if action != NodeAction::Remove {
+            let mut next_child = fragment.nodes[node_id].first_child;
+            while let Some(child) = next_child {
+                next_child = fragment.nodes[child].next_sibling;
+
+                if action == NodeAction::Ignore {
+                    fragment.insert_before(node_id, child)
                 }
 
-                if matches!(action, ElementAction::Ignore | ElementAction::Remove) {
-                    node.detach();
-                } else if self.filter_tags_attributes {
-                    self.clean_attributes(&mut attributes.borrow_mut(), tag);
-                }
+                self.clean_node(fragment, child, depth + 1);
             }
-            NodeData::Text(_) => {}
-            _ => node.detach(),
         }
-    }
 
-    fn element_action(&self, tag: &str, attributes: &Attributes, depth: u32) -> ElementAction {
-        if (self.remove_replies && tag == RICH_REPLY_TAG)
-            || (self.filter_tags_attributes && depth >= MAX_DEPTH_STRICT)
-        {
-            ElementAction::Remove
-        } else if self.filter_tags_attributes
-            && (!ALLOWED_TAGS_WITHOUT_REPLY_STRICT.contains(tag) && tag != RICH_REPLY_TAG)
-        {
-            ElementAction::Ignore
+        if matches!(action, NodeAction::Ignore | NodeAction::Remove) {
+            fragment.detach(node_id);
         } else if self.filter_tags_attributes {
-            let allowed_schemes = if self.mode == HtmlSanitizerMode::Strict {
-                &ALLOWED_SCHEMES_STRICT
-            } else {
-                &ALLOWED_SCHEMES_COMPAT
-            };
-            for (name, val) in &attributes.map {
-                let attr: &str = &name.local;
-
-                // Check if there is a (tag, attr) tuple entry.
-                if let Some(schemes) = allowed_schemes.get(&*format!("{tag}:{attr}")) {
-                    // Check if the scheme is allowed.
-                    if !schemes.iter().any(|scheme| val.value.starts_with(&format!("{scheme}:"))) {
-                        return ElementAction::Ignore;
-                    }
-                }
+            if let Some(data) = fragment.nodes[node_id].as_element_mut() {
+                self.clean_element_attributes(data);
             }
-            ElementAction::None
-        } else {
-            ElementAction::None
         }
     }
 
-    fn clean_attributes(&self, attributes: &mut Attributes, tag: &str) {
-        let removed_attributes: Vec<_> = attributes
-            .map
-            .iter_mut()
-            .filter_map(|(name, mut val)| {
-                let attr: &str = &name.local;
+    fn node_action(&self, fragment: &Fragment, node_id: usize, depth: u32) -> NodeAction {
+        match &fragment.nodes[node_id].data {
+            NodeData::Element(ElementData { name, attrs, .. }) => {
+                let tag: &str = &name.local;
 
-                if ALLOWED_ATTRIBUTES_STRICT.get(tag).filter(|attrs| attrs.contains(attr)).is_none()
+                if (self.remove_replies && tag == RICH_REPLY_TAG)
+                    || (self.filter_tags_attributes && depth >= MAX_DEPTH_STRICT)
                 {
-                    return Some(attr.to_owned());
+                    NodeAction::Remove
+                } else if self.filter_tags_attributes
+                    && (!ALLOWED_TAGS_WITHOUT_REPLY_STRICT.contains(tag) && tag != RICH_REPLY_TAG)
+                {
+                    NodeAction::Ignore
+                } else if self.filter_tags_attributes {
+                    let allowed_schemes = if self.mode == HtmlSanitizerMode::Strict {
+                        &ALLOWED_SCHEMES_STRICT
+                    } else {
+                        &ALLOWED_SCHEMES_COMPAT
+                    };
+                    for attr in attrs.iter() {
+                        let value = &attr.value;
+                        let attr: &str = &attr.name.local;
+
+                        // Check if there is a (tag, attr) tuple entry.
+                        if let Some(schemes) = allowed_schemes.get(&*format!("{tag}:{attr}")) {
+                            // Check if the scheme is allowed.
+                            if !schemes
+                                .iter()
+                                .any(|scheme| value.starts_with(&format!("{scheme}:")))
+                            {
+                                return NodeAction::Ignore;
+                            }
+                        }
+                    }
+                    NodeAction::None
+                } else {
+                    NodeAction::None
+                }
+            }
+            NodeData::Text(_) => NodeAction::None,
+            _ => NodeAction::Remove,
+        }
+    }
+
+    fn clean_element_attributes(&self, data: &mut ElementData) {
+        let ElementData { name, attrs } = data;
+        let tag: &str = &name.local;
+
+        let actions: Vec<_> = attrs
+            .iter()
+            .filter_map(|attr| {
+                let value = &attr.value;
+                let name: &str = &attr.name.local;
+
+                if ALLOWED_ATTRIBUTES_STRICT.get(tag).filter(|attrs| attrs.contains(name)).is_none()
+                {
+                    return Some(AttributeAction::Remove(attr.to_owned()));
                 }
 
-                if attr == "class" {
+                if name == "class" {
                     if let Some(classes) = ALLOWED_CLASSES_STRICT.get(tag) {
-                        let attr_classes = val.value.split_whitespace().filter(|attr_class| {
+                        let mut changed = false;
+                        let attr_classes = value.split_whitespace().filter(|attr_class| {
                             for class in classes.iter() {
                                 if WildMatch::new(class).matches(attr_class) {
                                     return true;
                                 }
                             }
+                            changed = true;
                             false
                         });
+
                         let folded_classes = attr_classes.fold(String::new(), |mut a, b| {
                             a.reserve(b.len() + 1);
                             a.push_str(b);
@@ -163,10 +176,15 @@ impl HtmlSanitizer {
                         });
                         let final_classes = folded_classes.trim_end();
 
-                        if final_classes.is_empty() {
-                            return Some(attr.to_owned());
-                        } else if val.value != final_classes {
-                            val.value = final_classes.to_owned();
+                        if changed {
+                            if final_classes.is_empty() {
+                                return Some(AttributeAction::Remove(attr.to_owned()));
+                            } else {
+                                return Some(AttributeAction::ReplaceValue(
+                                    attr.to_owned(),
+                                    final_classes.to_owned().into(),
+                                ));
+                            }
                         }
                     }
                 }
@@ -175,15 +193,25 @@ impl HtmlSanitizer {
             })
             .collect();
 
-        for name in removed_attributes {
-            attributes.remove(name);
+        for action in actions {
+            match action {
+                AttributeAction::ReplaceValue(attr, value) => {
+                    if let Some(mut attr) = attrs.take(&attr) {
+                        attr.value = value;
+                        attrs.insert(attr);
+                    }
+                }
+                AttributeAction::Remove(attr) => {
+                    attrs.remove(&attr);
+                }
+            }
         }
     }
 }
 
 /// The possible actions to apply to an element node.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum ElementAction {
+#[derive(Debug, PartialEq, Eq)]
+enum NodeAction {
     /// Don't do anything.
     None,
 
@@ -192,6 +220,16 @@ enum ElementAction {
 
     /// Remove the element and its children.
     Remove,
+}
+
+/// The possible actions to apply to an element node.
+#[derive(Debug)]
+enum AttributeAction {
+    /// Replace the value of the attribute.
+    ReplaceValue(Attribute, StrTendril),
+
+    /// Remove the element and its children.
+    Remove(Attribute),
 }
 
 /// List of HTML tags allowed in the Matrix specification, without the rich reply fallback tag.
@@ -495,7 +533,6 @@ mod tests {
             ))
             .chain(std::iter::repeat("</div>").take(100))
             .collect();
-        println!("{deeply_nested_html}");
 
         let sanitized = sanitizer.clean(&deeply_nested_html);
 

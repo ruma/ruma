@@ -1,6 +1,8 @@
 //! Convenience methods and types to sanitize text messages.
 
 #[cfg(feature = "sanitize")]
+mod html_fragment;
+#[cfg(feature = "sanitize")]
 mod html_sanitizer;
 
 #[cfg(feature = "sanitize")]
