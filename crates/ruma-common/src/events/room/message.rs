@@ -196,32 +196,21 @@ impl RoomMessageEventContent {
         original_message: &OriginalRoomMessageEvent,
         forward_thread: ForwardThread,
     ) -> Self {
+        let make_reply = |body, formatted: Option<FormattedBody>| {
+            reply::plain_and_formatted_reply_body(body, formatted.map(|f| f.body), original_message)
+        };
+
         let msgtype = match message {
             MessageType::Text(TextMessageEventContent { body, formatted, .. }) => {
-                let (body, html_body) = reply::plain_and_formatted_reply_body(
-                    body,
-                    formatted.map(|f| f.body),
-                    original_message,
-                );
-
+                let (body, html_body) = make_reply(body, formatted);
                 MessageType::Text(TextMessageEventContent::html(body, html_body))
             }
             MessageType::Emote(EmoteMessageEventContent { body, formatted, .. }) => {
-                let (body, html_body) = reply::plain_and_formatted_reply_body(
-                    body,
-                    formatted.map(|f| f.body),
-                    original_message,
-                );
-
+                let (body, html_body) = make_reply(body, formatted);
                 MessageType::Emote(EmoteMessageEventContent::html(body, html_body))
             }
             MessageType::Notice(NoticeMessageEventContent { body, formatted, .. }) => {
-                let (body, html_body) = reply::plain_and_formatted_reply_body(
-                    body,
-                    formatted.map(|f| f.body),
-                    original_message,
-                );
-
+                let (body, html_body) = make_reply(body, formatted);
                 MessageType::Notice(NoticeMessageEventContent::html(body, html_body))
             }
             _ => message,
@@ -257,34 +246,23 @@ impl RoomMessageEventContent {
         previous_message: &OriginalRoomMessageEvent,
         is_reply: ReplyInThread,
     ) -> Self {
+        let make_reply = |body, formatted: Option<FormattedBody>| {
+            reply::plain_and_formatted_reply_body(body, formatted.map(|f| f.body), previous_message)
+        };
+
         let msgtype = if is_reply == ReplyInThread::Yes {
             // If this is a real reply, add the rich reply fallback.
             match message {
                 MessageType::Text(TextMessageEventContent { body, formatted, .. }) => {
-                    let (body, html_body) = reply::plain_and_formatted_reply_body(
-                        body,
-                        formatted.map(|f| f.body),
-                        previous_message,
-                    );
-
+                    let (body, html_body) = make_reply(body, formatted);
                     MessageType::Text(TextMessageEventContent::html(body, html_body))
                 }
                 MessageType::Emote(EmoteMessageEventContent { body, formatted, .. }) => {
-                    let (body, html_body) = reply::plain_and_formatted_reply_body(
-                        body,
-                        formatted.map(|f| f.body),
-                        previous_message,
-                    );
-
+                    let (body, html_body) = make_reply(body, formatted);
                     MessageType::Emote(EmoteMessageEventContent::html(body, html_body))
                 }
                 MessageType::Notice(NoticeMessageEventContent { body, formatted, .. }) => {
-                    let (body, html_body) = reply::plain_and_formatted_reply_body(
-                        body,
-                        formatted.map(|f| f.body),
-                        previous_message,
-                    );
-
+                    let (body, html_body) = make_reply(body, formatted);
                     MessageType::Notice(NoticeMessageEventContent::html(body, html_body))
                 }
                 _ => message,
