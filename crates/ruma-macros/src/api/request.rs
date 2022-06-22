@@ -197,6 +197,7 @@ impl Request {
             let derive_deserialize = lifetimes.is_empty().then(|| quote! { #serde::Deserialize });
 
             quote! {
+                #[cfg(any(feature = "client", feature = "server"))]
                 /// Data in the request body.
                 #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
                 #[cfg_attr(feature = "client", derive(#serde::Serialize))]
@@ -224,6 +225,7 @@ impl Request {
             let derive_deserialize = lifetimes.is_empty().then(|| quote! { #serde::Deserialize });
 
             quote! {
+                #[cfg(any(feature = "client", feature = "server"))]
                 /// Data in the request's query string.
                 #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
                 #[cfg_attr(feature = "client", derive(#serde::Serialize))]

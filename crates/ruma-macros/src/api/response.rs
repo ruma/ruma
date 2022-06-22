@@ -99,6 +99,7 @@ impl Response {
             let fields = self.fields.iter().filter_map(ResponseField::as_body_field);
 
             quote! {
+                #[cfg(any(feature = "client", feature = "server"))]
                 /// Data in the response body.
                 #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
                 #serde_derives
