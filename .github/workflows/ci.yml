@@ -71,7 +71,7 @@ jobs:
 
       - name: Run lints
         run: target/debug/xtask ci lint
-  
+
   msrv:
     name: Rust 1.60 / ${{ matrix.name }}
     needs: xtask
@@ -249,7 +249,7 @@ jobs:
 
       - name: Build docs
         run: target/debug/xtask doc --deny-warnings
-      
+
       - name: Deploy PR preview
         if: ${{ github.event_name == 'pull_request' }}
         uses: dswistowski/surge-sh-action@v1.0.1
@@ -258,7 +258,7 @@ jobs:
           project: target/doc
           login: ${{ secrets.SURGE_LOGIN }}
           token: ${{ secrets.SURGE_TOKEN }}
-      
+
       - name: Comment deploy PR preview URL
         if: ${{ github.event_name == 'pull_request' }}
         uses: Beakyn/gha-comment-pull-request@v1.0.2

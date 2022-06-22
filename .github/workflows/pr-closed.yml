@@ -17,7 +17,7 @@ jobs:
         env:
           SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
           SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
-      
+
       - name: Remove preview URL
         uses: Beakyn/gha-comment-pull-request@v1.0.2
         id: deploy-preview
