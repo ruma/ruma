@@ -514,6 +514,14 @@ mod tests {
         assert!("Ruma Dev👩‍💻".matches_word("👩‍💻"));
         assert!("Ruma Dev👩‍💻".matches_word("Dev👩‍💻"));
 
+        // Regex syntax is escaped
+        assert!(!"matrix".matches_word(r"\w*"));
+        assert!(r"\w".matches_word(r"\w*"));
+        assert!(!"matrix".matches_word("[a-z]*"));
+        assert!("[a-z] and [0-9]".matches_word("[a-z]*"));
+        assert!(!"m".matches_word("[[:alpha:]]?"));
+        assert!("[[:alpha:]]!".matches_word("[[:alpha:]]?"));
+
         // From the spec: <https://spec.matrix.org/v1.3/client-server-api/#conditions-1>
         assert!("An example event.".matches_word("ex*ple"));
         assert!("exple".matches_word("ex*ple"));
