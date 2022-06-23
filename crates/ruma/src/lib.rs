@@ -73,9 +73,6 @@
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
 
-#[doc(inline)]
-pub use ruma_common::serde;
-
 #[cfg(feature = "client")]
 #[doc(inline)]
 pub use ruma_client as client;
@@ -163,8 +160,8 @@ pub use ruma_client::Client;
 pub use ruma_common::{
     authentication, device_id, device_key_id, directory, encryption, event_id, exports, matrix_uri,
     mxc_uri, power_levels, presence, push, receipt, room, room_alias_id, room_id, room_version_id,
-    serde::Incoming, server_name, server_signing_key_id, thirdparty, to_device, user_id,
-    ClientSecret, DeviceId, DeviceKeyAlgorithm, DeviceKeyId, DeviceSignatures, DeviceSigningKeyId,
+    serde, server_name, server_signing_key_id, thirdparty, to_device, user_id, ClientSecret,
+    DeviceId, DeviceKeyAlgorithm, DeviceKeyId, DeviceSignatures, DeviceSigningKeyId,
     EntitySignatures, EventEncryptionAlgorithm, EventId, IdParseError, KeyId, KeyName, MatrixToUri,
     MatrixUri, MilliSecondsSinceUnixEpoch, MxcUri, OwnedClientSecret, OwnedDeviceId,
     OwnedDeviceKeyId, OwnedDeviceSigningKeyId, OwnedEventId, OwnedKeyId, OwnedKeyName, OwnedMxcUri,
