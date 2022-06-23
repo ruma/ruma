@@ -170,3 +170,7 @@ pub use ruma_common::{
     RoomId, RoomOrAliasId, RoomVersionId, SecondsSinceUnixEpoch, ServerName, ServerSignatures,
     ServerSigningKeyId, SessionId, Signatures, SigningKeyAlgorithm, TransactionId, UserId,
 };
+#[cfg(feature = "canonical-json")]
+pub use ruma_common::{
+    canonical_json, CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue,
+};
