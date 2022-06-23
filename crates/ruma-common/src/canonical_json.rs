@@ -120,7 +120,7 @@ pub fn to_canonical_value<T: Serialize>(
 ///
 /// This is part of the process of signing an event.
 ///
-/// Redaction is also suggested when a verifying an event with `verify_event` returns
+/// Redaction is also suggested when verifying an event with `verify_event` returns
 /// `Verified::Signatures`. See the documentation for `Verified` for details.
 ///
 /// Returns a new JSON object with all applicable fields redacted.
@@ -155,8 +155,8 @@ pub fn redact_in_place(
     event: &mut CanonicalJsonObject,
     version: &RoomVersionId,
 ) -> Result<(), RedactionError> {
-    // Get the content keys here instead of the event type, because we cant teach rust that this is
-    // a disjoint borrow.
+    // Get the content keys here even if they're only needed inside the branch below, because we
+    // can't teach rust that this is a disjoint borrow with `get_mut("content")`.
     let allowed_content_keys: &[&str] = match event.get("type") {
         Some(CanonicalJsonValue::String(event_type)) => {
             allowed_content_keys_for(event_type, version)
