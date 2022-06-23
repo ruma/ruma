@@ -88,7 +88,6 @@ compat = [
     "ruma-common/compat",
     "ruma-client-api?/compat",
     "ruma-federation-api?/compat",
-    "ruma-signatures?/compat",
     "ruma-state-res?/compat",
 ]
 
