@@ -7,6 +7,7 @@ use html5ever::{
     tree_builder::{NodeOrText, TreeSink},
     Attribute, ParseOpts, QualName,
 };
+use tracing::warn;
 
 /// An HTML fragment.
 ///
@@ -106,7 +107,9 @@ impl TreeSink for Fragment {
         self
     }
 
-    fn parse_error(&mut self, _msg: std::borrow::Cow<'static, str>) {}
+    fn parse_error(&mut self, msg: std::borrow::Cow<'static, str>) {
+        warn!("HTML parse error: {msg}");
+    }
 
     fn get_document(&mut self) -> Self::Handle {
         0
