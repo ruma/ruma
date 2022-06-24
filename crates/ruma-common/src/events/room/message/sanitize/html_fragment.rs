@@ -376,3 +376,21 @@ pub struct ElementData {
     /// The attributes of the element.
     pub attrs: BTreeSet<Attribute>,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Fragment;
+
+    #[test]
+    fn sanity() {
+        let html = "\
+            <h1>Title</h1>\
+            <div>\
+                <p>This is some <em>text</em></p>\
+            </div>\
+        ";
+        assert_eq!(Fragment::parse_html(html).to_string(), html);
+
+        assert_eq!(Fragment::parse_html("").to_string(), "");
+    }
+}
