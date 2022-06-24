@@ -36,8 +36,8 @@ pub enum HtmlSanitizerMode {
     /// Keep only the tags and attributes listed in the Matrix specification.
     Strict,
 
-    /// Keeps all the tags and attributes in `Strict` mode, and others that are not in this section
-    /// of the spec, but might be encountered.
+    /// Like `Strict` mode, with additional tags and attributes that are not yet included in
+    /// the spec, but are reasonable to keep.
     Compat,
 }
 
