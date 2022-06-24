@@ -43,7 +43,10 @@ fn get_quotes(
     let is_reply = matches!(content.relates_to, Some(Relation::Reply { .. }));
     let emote_sign = is_emote.then(|| "* ").unwrap_or_default();
     let body = is_reply.then(|| remove_plain_reply_fallback(body)).unwrap_or(body);
+    #[cfg(feature = "unstable-sanitize")]
     let html_body = formatted_or_plain_body(formatted, body, is_reply);
+    #[cfg(not(feature = "unstable-sanitize"))]
+    let html_body = formatted_or_plain_body(formatted, body);
 
     (
         format!("> {emote_sign}<{sender}> {body}").replace('\n', "\n> "),
@@ -63,11 +66,11 @@ fn get_quotes(
 fn formatted_or_plain_body(
     formatted: Option<&FormattedBody>,
     body: &str,
-    _is_reply: bool,
+    #[cfg(feature = "unstable-sanitize")] is_reply: bool,
 ) -> String {
     if let Some(formatted_body) = formatted {
         #[cfg(feature = "unstable-sanitize")]
-        if _is_reply {
+        if is_reply {
             sanitize_html(&formatted_body.body, HtmlSanitizerMode::Strict, RemoveReplyFallback::Yes)
         } else {
             formatted_body.body.clone()
