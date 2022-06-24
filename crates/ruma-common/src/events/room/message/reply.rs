@@ -1,10 +1,13 @@
 use std::fmt;
 
-use super::{FormattedBody, MessageType, OriginalRoomMessageEvent};
+use super::{
+    sanitize::remove_plain_reply_fallback, FormattedBody, MessageType, OriginalRoomMessageEvent,
+    Relation,
+};
+#[cfg(feature = "unstable-sanitize")]
+use super::{sanitize_html, HtmlSanitizerMode, RemoveReplyFallback};
 
-pub fn get_message_quote_fallbacks(
-    original_message: &OriginalRoomMessageEvent,
-) -> (String, String) {
+fn get_message_quote_fallbacks(original_message: &OriginalRoomMessageEvent) -> (String, String) {
     match &original_message.content.msgtype {
         MessageType::Audio(_) => get_quotes("sent an audio file.", None, original_message, false),
         MessageType::Emote(content) => {
@@ -36,8 +39,13 @@ fn get_quotes(
     original_message: &OriginalRoomMessageEvent,
     is_emote: bool,
 ) -> (String, String) {
-    let OriginalRoomMessageEvent { room_id, event_id, sender, .. } = original_message;
+    let OriginalRoomMessageEvent { room_id, event_id, sender, content, .. } = original_message;
+    let is_reply = matches!(content.relates_to, Some(Relation::Reply { .. }));
     let emote_sign = is_emote.then(|| "* ").unwrap_or_default();
+    let body = is_reply.then(|| remove_plain_reply_fallback(body)).unwrap_or(body);
+    #[cfg(feature = "unstable-sanitize")]
+    let html_body = formatted_or_plain_body(formatted, body, is_reply);
+    #[cfg(not(feature = "unstable-sanitize"))]
     let html_body = formatted_or_plain_body(formatted, body);
 
     (
@@ -55,18 +63,31 @@ fn get_quotes(
     )
 }
 
-fn formatted_or_plain_body(formatted: Option<&FormattedBody>, body: &str) -> String {
+fn formatted_or_plain_body(
+    formatted: Option<&FormattedBody>,
+    body: &str,
+    #[cfg(feature = "unstable-sanitize")] is_reply: bool,
+) -> String {
     if let Some(formatted_body) = formatted {
+        #[cfg(feature = "unstable-sanitize")]
+        if is_reply {
+            sanitize_html(&formatted_body.body, HtmlSanitizerMode::Strict, RemoveReplyFallback::Yes)
+        } else {
+            formatted_body.body.clone()
+        }
+
+        #[cfg(not(feature = "unstable-sanitize"))]
         formatted_body.body.clone()
     } else {
         let mut escaped_body = String::with_capacity(body.len());
         for c in body.chars() {
+            // Escape reserved HTML entities and new lines.
+            // <https://developer.mozilla.org/en-US/docs/Glossary/Entity#reserved_characters>
             let s = match c {
                 '&' => Some("&amp;"),
                 '<' => Some("&lt;"),
                 '>' => Some("&gt;"),
                 '"' => Some("&quot;"),
-                '\'' => Some("&apos;"),
                 '\n' => Some("<br>"),
                 _ => None,
             };
@@ -83,6 +104,13 @@ fn formatted_or_plain_body(formatted: Option<&FormattedBody>, body: &str) -> Str
 /// Get the plain and formatted body for a rich reply.
 ///
 /// Returns a `(plain, html)` tuple.
+///
+/// With the `sanitize` feature, [HTML tags and attributes] that are not allowed in the Matrix
+/// spec and previous [rich reply fallbacks] are removed from the previous message in the new rich
+/// reply fallback.
+///
+/// [HTML tags and attributes]: https://spec.matrix.org/v1.2/client-server-api/#mroommessage-msgtypes
+/// [rich reply fallbacks]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
 pub fn plain_and_formatted_reply_body(
     body: impl fmt::Display,
     formatted: Option<impl fmt::Display>,
