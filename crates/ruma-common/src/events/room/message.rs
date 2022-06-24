@@ -35,7 +35,7 @@ pub use image::ImageMessageEventContent;
 pub use key_verification_request::KeyVerificationRequestEventContent;
 pub use location::{LocationInfo, LocationMessageEventContent};
 pub use notice::NoticeMessageEventContent;
-#[cfg(feature = "sanitize")]
+#[cfg(feature = "unstable-sanitize")]
 use sanitize::{
     remove_plain_reply_fallback, sanitize_html, HtmlSanitizerMode, RemoveReplyFallback,
 };
@@ -305,7 +305,7 @@ impl RoomMessageEventContent {
     ///
     /// [tags and attributes]: https://spec.matrix.org/v1.2/client-server-api/#mroommessage-msgtypes
     /// [rich reply fallback]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
-    #[cfg(feature = "sanitize")]
+    #[cfg(feature = "unstable-sanitize")]
     pub fn sanitize(
         &mut self,
         mode: HtmlSanitizerMode,
@@ -669,7 +669,7 @@ impl FormattedBody {
     ///
     /// [tags and attributes]: https://spec.matrix.org/v1.2/client-server-api/#mroommessage-msgtypes
     /// [rich reply fallback]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
-    #[cfg(feature = "sanitize")]
+    #[cfg(feature = "unstable-sanitize")]
     pub fn sanitize_html(
         &mut self,
         mode: HtmlSanitizerMode,

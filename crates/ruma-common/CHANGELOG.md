@@ -39,7 +39,7 @@ Improvements:
 * Deserialize stringified integers for power levels without the `compat` feature
 * Add `JoinRule::KnockRestricted` (MSC3787)
 * Add `MatrixVersionId::V10` (MSC3604)
-* Add methods to sanitize messages according to the spec behind the `sanitize` feature
+* Add methods to sanitize messages according to the spec behind the `unstable-sanitize` feature
   * Can also remove rich reply fallbacks
 
 # 0.9.2

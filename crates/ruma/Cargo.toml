@@ -61,7 +61,6 @@ js = ["ruma-common/js"]
 # Convenience features
 rand = ["ruma-common/rand"]
 markdown = ["ruma-common/markdown"]
-sanitize = ["ruma-common/sanitize"]
 
 # Everything except compat, js and unstable features
 full = [
@@ -78,7 +77,6 @@ full = [
     "push-gateway-api",
     "rand",
     "markdown",
-    "sanitize",
 ]
 
 # Increase compatibility with other parts of the Matrix ecosystem, at the
@@ -118,6 +116,7 @@ unstable-pre-spec = [
     "ruma-federation-api?/unstable-pre-spec",
     "ruma-push-gateway-api?/unstable-pre-spec",
 ]
+unstable-sanitize = ["ruma-common/unstable-sanitize"]
 unstable-msc1767 = ["ruma-common/unstable-msc1767"]
 unstable-msc2246 = ["ruma-client-api?/unstable-msc2246"]
 unstable-msc2448 = [
@@ -159,6 +158,7 @@ unstable-msc3723 = ["ruma-federation-api?/unstable-msc3723"]
 __ci = [
     "full",
     "unstable-pre-spec",
+    "unstable-sanitize",
     "unstable-msc1767",
     "unstable-msc2448",
     "unstable-msc2666",

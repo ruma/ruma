@@ -30,10 +30,10 @@ markdown = ["pulldown-cmark"]
 # Should use dep:rand instead of the dependency being renamed, but that
 # breaks trybuild: https://github.com/dtolnay/trybuild/issues/171
 rand = ["rand_crate", "uuid"]
-sanitize = ["html5ever", "phf"]
 unstable-exhaustive-types = []
 unstable-pdu = []
 unstable-pre-spec = []
+unstable-sanitize = ["html5ever", "phf"]
 unstable-msc1767 = []
 unstable-msc2448 = []
 unstable-msc2676 = []

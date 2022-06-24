@@ -1,11 +1,11 @@
 //! Convenience methods and types to sanitize text messages.
 
-#[cfg(feature = "sanitize")]
+#[cfg(feature = "unstable-sanitize")]
 mod html_fragment;
-#[cfg(feature = "sanitize")]
+#[cfg(feature = "unstable-sanitize")]
 mod html_sanitizer;
 
-#[cfg(feature = "sanitize")]
+#[cfg(feature = "unstable-sanitize")]
 use html_sanitizer::HtmlSanitizer;
 
 /// Sanitize the given HTML string.
@@ -16,7 +16,7 @@ use html_sanitizer::HtmlSanitizer;
 ///
 /// [tags and attributes]: https://spec.matrix.org/v1.2/client-server-api/#mroommessage-msgtypes
 /// [rich reply fallback]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
-#[cfg(feature = "sanitize")]
+#[cfg(feature = "unstable-sanitize")]
 pub fn sanitize_html(
     s: &str,
     mode: HtmlSanitizerMode,
@@ -29,7 +29,7 @@ pub fn sanitize_html(
 /// What HTML [tags and attributes] should be kept by the sanitizer.
 ///
 /// [tags and attributes]: https://spec.matrix.org/v1.2/client-server-api/#mroommessage-msgtypes
-#[cfg(feature = "sanitize")]
+#[cfg(feature = "unstable-sanitize")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[allow(clippy::exhaustive_enums)]
 pub enum HtmlSanitizerMode {
@@ -44,7 +44,7 @@ pub enum HtmlSanitizerMode {
 /// Whether to remove the [rich reply fallback] while sanitizing.
 ///
 /// [rich reply fallback]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
-#[cfg(feature = "sanitize")]
+#[cfg(feature = "unstable-sanitize")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[allow(clippy::exhaustive_enums)]
 pub enum RemoveReplyFallback {
@@ -61,7 +61,7 @@ pub enum RemoveReplyFallback {
 /// from the output.
 ///
 /// [rich reply fallback]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
-#[cfg(feature = "sanitize")]
+#[cfg(feature = "unstable-sanitize")]
 pub fn remove_html_reply_fallback(s: &str) -> String {
     let sanitizer = HtmlSanitizer::reply_fallback_remover();
     sanitizer.clean(s)
@@ -85,13 +85,13 @@ pub fn remove_plain_reply_fallback(mut s: &str) -> &str {
 #[cfg(test)]
 mod tests {
     use super::remove_plain_reply_fallback;
-    #[cfg(feature = "sanitize")]
+    #[cfg(feature = "unstable-sanitize")]
     use super::{
         remove_html_reply_fallback, sanitize_html, HtmlSanitizerMode, RemoveReplyFallback,
     };
 
     #[test]
-    #[cfg(feature = "sanitize")]
+    #[cfg(feature = "unstable-sanitize")]
     fn sanitize() {
         let sanitized = sanitize_html(
             "\
@@ -128,7 +128,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "sanitize")]
+    #[cfg(feature = "unstable-sanitize")]
     fn sanitize_without_reply() {
         let sanitized = sanitize_html(
             "\
@@ -157,7 +157,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "sanitize")]
+    #[cfg(feature = "unstable-sanitize")]
     fn remove_html_reply() {
         let without_reply = remove_html_reply_fallback(
             "\

@@ -4,7 +4,7 @@ use super::{
     sanitize::remove_plain_reply_fallback, FormattedBody, MessageType, OriginalRoomMessageEvent,
     Relation,
 };
-#[cfg(feature = "sanitize")]
+#[cfg(feature = "unstable-sanitize")]
 use super::{sanitize_html, HtmlSanitizerMode, RemoveReplyFallback};
 
 fn get_message_quote_fallbacks(original_message: &OriginalRoomMessageEvent) -> (String, String) {
@@ -66,14 +66,14 @@ fn formatted_or_plain_body(
     _is_reply: bool,
 ) -> String {
     if let Some(formatted_body) = formatted {
-        #[cfg(feature = "sanitize")]
+        #[cfg(feature = "unstable-sanitize")]
         if _is_reply {
             sanitize_html(&formatted_body.body, HtmlSanitizerMode::Strict, RemoveReplyFallback::Yes)
         } else {
             formatted_body.body.clone()
         }
 
-        #[cfg(not(feature = "sanitize"))]
+        #[cfg(not(feature = "unstable-sanitize"))]
         formatted_body.body.clone()
     } else {
         let mut escaped_body = String::with_capacity(body.len());
