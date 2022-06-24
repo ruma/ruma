@@ -13,13 +13,6 @@ mod room_member_count_is;
 
 pub use room_member_count_is::{ComparisonOperator, RoomMemberCountIs};
 
-/// The characters that are defined as a word boundary in the [Matrix spec].
-///
-/// Any character not in the sets `[A-Z]`, `[a-z]`, `[0-9]` or `_`.
-///
-/// [Matrix spec]: https://spec.matrix.org/v1.3/client-server-api/#conditions-1
-const WORD_BOUNDARY_CHARACTERS: &str = "[^A-Za-z0-9_]";
-
 /// A condition that must apply for an associated push rule's action to be taken.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -279,10 +272,9 @@ impl StrExt for str {
                 chunks.push(chunk.wildcards_to_regex());
             }
 
-            let regex = format!(
-                "(?:^|{WORD_BOUNDARY_CHARACTERS}){}(?:{WORD_BOUNDARY_CHARACTERS}|$)",
-                chunks.concat()
-            );
+            // The word characters in ASCII compatible mode (with the `-u` flag) match the
+            // definition in the spec: any character not in the set `[A-Za-z0-9_]`.
+            let regex = format!(r"(?-u:^|\W|\b){}(?-u:\b|\W|$)", chunks.concat());
             Regex::new(&regex).ok().filter(|re| re.is_match(self)).is_some()
         } else {
             match self.find(pattern) {
@@ -530,13 +522,33 @@ mod tests {
 
     #[test]
     fn patterns_match() {
-        // Word matching
+        // Word matching without glob
         assert!("foo bar".matches_pattern("foo", true));
         assert!("Foo bar".matches_pattern("foo", true));
         assert!(!"foobar".matches_pattern("foo", true));
-        assert!("foo bar".matches_pattern("foo*", true));
         assert!("".matches_pattern("", true));
         assert!(!"foo".matches_pattern("", true));
+        assert!("foo bar".matches_pattern("foo bar", true));
+        assert!(" foo bar ".matches_pattern("foo bar", true));
+        assert!("baz foo bar baz".matches_pattern("foo bar", true));
+        assert!("foo baré".matches_pattern("foo bar", true));
+        assert!(!"bar foo".matches_pattern("foo bar", true));
+        assert!("foo bar".matches_pattern("foo ", true));
+        assert!("foo ".matches_pattern("foo ", true));
+        assert!("foo  ".matches_pattern("foo ", true));
+        assert!(" foo  ".matches_pattern("foo ", true));
+
+        // Word matching with glob
+        assert!("foo bar".matches_pattern("foo*", true));
+        assert!("foo bar".matches_pattern("foo b?r", true));
+        assert!(" foo bar ".matches_pattern("foo b?r", true));
+        assert!("baz foo bar baz".matches_pattern("foo b?r", true));
+        assert!("foo baré".matches_pattern("foo b?r", true));
+        assert!(!"bar foo".matches_pattern("foo b?r", true));
+        assert!("foo bar".matches_pattern("f*o ", true));
+        assert!("foo ".matches_pattern("f*o ", true));
+        assert!("foo  ".matches_pattern("f*o ", true));
+        assert!(" foo  ".matches_pattern("f*o ", true));
 
         // Glob matching
         assert!(!"foo bar".matches_pattern("foo", false));
