@@ -39,7 +39,6 @@
 //!
 //! * `rand`
 //! * `markdown`
-//! * `sanitize`
 //!
 //! # Unstable features
 //!
@@ -51,6 +50,8 @@
 //! * `unstable-mscXXXX`, where `XXXX` is the MSC number -- Upcoming Matrix features that may be
 //!   subject to change or removal.
 //! * `unstable-pre-spec` -- Undocumented Matrix features that may be subject to change or removal.
+//! * `unstable-sanitize` -- Convenience methods for spec-compliant HTML sanitization that have not
+//!   been thoroughly tested.
 //!
 //! # Common features
 //!
