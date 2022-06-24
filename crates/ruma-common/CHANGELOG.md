@@ -4,8 +4,8 @@ Bug fixes:
 
 * Expose `MatrixIdError`, `MatrixToError`, `MatrixUriError` and `MxcUriError` at
   the crate root
-* Allow wildcards for push conditions on `content.body`
-  * The spec clarified the behavior of the `event_match` condition:
+* Fix matching of `event_match` condition
+  * The spec clarified its behavior:
     <https://github.com/matrix-org/matrix-spec-proposals/pull/3690> 
 
 Breaking changes:

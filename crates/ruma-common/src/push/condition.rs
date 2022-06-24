@@ -155,7 +155,7 @@ trait CharExt {
 
 impl CharExt for char {
     fn is_word_char(&self) -> bool {
-        self.is_alphanumeric() || *self == '_'
+        self.is_ascii_alphanumeric() || *self == '_'
     }
 }
 
