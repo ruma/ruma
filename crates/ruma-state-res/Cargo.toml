@@ -15,7 +15,6 @@ rust-version = "1.60"
 all-features = true
 
 [features]
-compat = []
 unstable-exhaustive-types = []
 
 [dependencies]

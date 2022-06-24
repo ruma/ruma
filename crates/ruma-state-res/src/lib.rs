@@ -337,18 +337,13 @@ where
 
 #[derive(Deserialize)]
 struct PowerLevelsContentFields {
-    #[cfg_attr(
-        feature = "compat",
-        serde(deserialize_with = "ruma_common::serde::btreemap_deserialize_v1_powerlevel_values")
+    #[serde(
+        default,
+        deserialize_with = "ruma_common::serde::btreemap_deserialize_v1_powerlevel_values"
     )]
-    #[serde(default)]
     users: BTreeMap<OwnedUserId, Int>,
 
-    #[cfg_attr(
-        feature = "compat",
-        serde(deserialize_with = "ruma_common::serde::deserialize_v1_powerlevel")
-    )]
-    #[serde(default)]
+    #[serde(default, deserialize_with = "ruma_common::serde::deserialize_v1_powerlevel")]
     users_default: Int,
 }
 
