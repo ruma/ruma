@@ -11,7 +11,7 @@ use tracing::warn;
 
 /// An HTML fragment.
 ///
-/// To get the serialized HTML, use its `ToString` implementation.
+/// To get the serialized HTML, use its `Display` implementation.
 #[derive(Debug)]
 pub struct Fragment {
     pub nodes: Vec<Node>,
