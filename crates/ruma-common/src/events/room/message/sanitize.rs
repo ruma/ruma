@@ -70,19 +70,16 @@ pub fn remove_html_reply_fallback(s: &str) -> String {
 /// Remove the [rich reply fallback] of the given plain text string.
 ///
 /// [rich reply fallback]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
-pub fn remove_plain_reply_fallback(s: &str) -> &str {
-    if !s.starts_with("> ") {
-        s
-    } else {
-        let mut start = 0;
-        for (pos, _) in s.match_indices('\n') {
-            if !&s[pos + 1..].starts_with("> ") {
-                start = pos + 1;
-                break;
-            }
+pub fn remove_plain_reply_fallback(mut s: &str) -> &str {
+    while s.starts_with("> ") {
+        if let Some((_line, rest)) = s.split_once('\n') {
+            s = rest;
+        } else {
+            return "";
         }
-        &s[start..]
     }
+
+    s
 }
 
 #[cfg(test)]
