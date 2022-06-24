@@ -19,11 +19,14 @@ use serde::{de::IgnoredAny, Deserialize};
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 use tracing::{debug, error, info, warn};
 
-use crate::{room_version::RoomVersion, Error, Event, PowerLevelsContentFields, Result};
-
-mod int_power_levels;
-
-use int_power_levels::IntRoomPowerLevelsEventContent;
+use crate::{
+    power_levels::{
+        deserialize_power_levels, deserialize_power_levels_content_fields,
+        deserialize_power_levels_content_invite, deserialize_power_levels_content_redact,
+    },
+    room_version::RoomVersion,
+    Error, Event, Result,
+};
 
 // FIXME: field extracting could be bundled for `content`
 #[derive(Deserialize)]
@@ -35,11 +38,6 @@ struct GetMembership {
 struct RoomMemberContentFields {
     membership: Option<Raw<MembershipState>>,
     join_authorised_via_users_server: Option<Raw<OwnedUserId>>,
-}
-
-#[derive(Deserialize)]
-struct PowerLevelsContentInvite {
-    invite: Int,
 }
 
 /// For the given event `kind` what are the relevant auth events that are needed to authenticate
@@ -337,14 +335,11 @@ pub fn auth_check<E: Event>(
 
     // If type is m.room.third_party_invite
     let sender_power_level = if let Some(pl) = &power_levels_event {
-        if let Ok(content) = from_json_str::<PowerLevelsContentFields>(pl.content().get()) {
-            if let Some(level) = content.users.get(sender) {
-                *level
-            } else {
-                content.users_default
-            }
+        let content = deserialize_power_levels_content_fields(pl.content().get(), room_version)?;
+        if let Some(level) = content.users.get(sender) {
+            *level
         } else {
-            int!(0) // TODO if this fails DB error?
+            content.users_default
         }
     } else {
         // If no power level event found the creator gets 100 everyone else gets 0
@@ -359,7 +354,8 @@ pub fn auth_check<E: Event>(
     if *incoming_event.event_type() == RoomEventType::RoomThirdPartyInvite {
         let invite_level = match &power_levels_event {
             Some(power_levels) => {
-                from_json_str::<PowerLevelsContentInvite>(power_levels.content().get())?.invite
+                deserialize_power_levels_content_invite(power_levels.content().get(), room_version)?
+                    .invite
             }
             None => int!(0),
         };
@@ -408,15 +404,12 @@ pub fn auth_check<E: Event>(
     if room_version.extra_redaction_checks
         && *incoming_event.event_type() == RoomEventType::RoomRedaction
     {
-        #[derive(Deserialize)]
-        struct PowerLevelsContentRedact {
-            redact: Int,
-        }
-
-        let redact_level = power_levels_event
-            .and_then(|pl| from_json_str::<PowerLevelsContentRedact>(pl.content().get()).ok())
-            .map(|c| c.redact)
-            .unwrap_or_else(|| int!(50));
+        let redact_level = match power_levels_event {
+            Some(pl) => {
+                deserialize_power_levels_content_redact(pl.content().get(), room_version)?.redact
+            }
+            None => int!(50),
+        };
 
         if !check_redaction(room_version, incoming_event, sender_power_level, redact_level)? {
             return Ok(false);
@@ -500,22 +493,18 @@ fn valid_membership_change(
         // Is the authorised user allowed to invite users into this room
         let (auth_user_pl, invite_level) = if let Some(pl) = &power_levels_event {
             // TODO Refactor all powerlevel parsing
-            let invite = match from_json_str::<PowerLevelsContentInvite>(pl.content().get()) {
-                Ok(power_levels) => power_levels.invite,
-                _ => int!(0),
+            let invite =
+                deserialize_power_levels_content_invite(pl.content().get(), room_version)?.invite;
+
+            let content =
+                deserialize_power_levels_content_fields(pl.content().get(), room_version)?;
+            let user_pl = if let Some(level) = content.users.get(user_for_join_auth) {
+                *level
+            } else {
+                content.users_default
             };
 
-            if let Ok(content) = from_json_str::<PowerLevelsContentFields>(pl.content().get()) {
-                let user_pl = if let Some(level) = content.users.get(user_for_join_auth) {
-                    *level
-                } else {
-                    content.users_default
-                };
-
-                (user_pl, invite)
-            } else {
-                (int!(0), invite)
-            }
+            (user_pl, invite)
         } else {
             (int!(0), int!(0))
         };
@@ -875,31 +864,6 @@ fn check_power_levels(
     }
 
     Some(true)
-}
-
-fn deserialize_power_levels(
-    content: &str,
-    room_version: &RoomVersion,
-) -> Option<RoomPowerLevelsEventContent> {
-    if room_version.integer_power_levels {
-        match from_json_str::<IntRoomPowerLevelsEventContent>(content) {
-            Ok(content) => Some(content.into()),
-            Err(_) => {
-                error!("m.room.power_levels event is not valid with integer values");
-                None
-            }
-        }
-    } else {
-        match from_json_str(content) {
-            Ok(content) => Some(content),
-            Err(_) => {
-                error!(
-                    "m.room.power_levels event is not valid with integer or string integer values"
-                );
-                None
-            }
-        }
-    }
 }
 
 fn get_deserialize_levels(

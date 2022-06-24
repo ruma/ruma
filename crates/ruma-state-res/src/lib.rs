@@ -1,7 +1,7 @@
 use std::{
     borrow::Borrow,
     cmp::Reverse,
-    collections::{BTreeMap, BinaryHeap, HashMap, HashSet},
+    collections::{BinaryHeap, HashMap, HashSet},
     hash::Hash,
 };
 
@@ -12,14 +12,14 @@ use ruma_common::{
         room::member::{MembershipState, RoomMemberEventContent},
         RoomEventType, StateEventType,
     },
-    EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, RoomVersionId,
+    EventId, MilliSecondsSinceUnixEpoch, RoomVersionId,
 };
-use serde::Deserialize;
 use serde_json::from_str as from_json_str;
 use tracing::{debug, info, trace, warn};
 
 mod error;
 pub mod event_auth;
+mod power_levels;
 pub mod room_version;
 mod state_event;
 #[cfg(test)]
@@ -27,6 +27,7 @@ mod test_utils;
 
 pub use error::{Error, Result};
 pub use event_auth::{auth_check, auth_types_for_event};
+use power_levels::PowerLevelsContentFields;
 pub use room_version::RoomVersion;
 pub use state_event::Event;
 
@@ -333,18 +334,6 @@ where
     }
 
     Ok(sorted)
-}
-
-#[derive(Deserialize)]
-struct PowerLevelsContentFields {
-    #[serde(
-        default,
-        deserialize_with = "ruma_common::serde::btreemap_deserialize_v1_powerlevel_values"
-    )]
-    users: BTreeMap<OwnedUserId, Int>,
-
-    #[serde(default, deserialize_with = "ruma_common::serde::deserialize_v1_powerlevel")]
-    users_default: Int,
 }
 
 /// Find the power level for the sender of `event_id` or return a default value of zero.
