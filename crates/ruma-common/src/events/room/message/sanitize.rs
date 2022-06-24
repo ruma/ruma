@@ -147,7 +147,7 @@ mod tests {
             <p>But this is inside a tag</p>\
             ",
             HtmlSanitizerMode::Strict,
-            RemoveReplyFallback::Yes
+            RemoveReplyFallback::Yes,
         );
 
         assert_eq!(
@@ -195,7 +195,9 @@ mod tests {
 
         assert_eq!(
             remove_plain_reply_fallback(
-                "> <@user:notareal.hs> Replied to on\n> two lines\nThis is my reply"
+                "> <@user:notareal.hs> Replied to on\n\
+                 > two lines\n\
+                 This is my reply"
             ),
             "This is my reply"
         );

@@ -317,7 +317,7 @@ impl RoomMessageEventContent {
         {
             if let Some(formatted) = formatted {
                 formatted.sanitize_html(mode, remove_reply_fallback);
-            };
+            }
             if remove_reply_fallback == RemoveReplyFallback::Yes
                 && matches!(self.relates_to, Some(Relation::Reply { .. }))
             {
@@ -661,7 +661,7 @@ impl FormattedBody {
 
     /// Sanitize this `FormattedBody` if its format is `MessageFormat::Html`.
     ///
-    /// This removes the [tags and attributes] that are not listed in the Matrix specification.
+    /// This removes any [tags and attributes] that are not listed in the Matrix specification.
     ///
     /// It can also optionally remove the [rich reply fallback].
     ///
