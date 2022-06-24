@@ -1,5 +1,11 @@
 # [unreleased]
 
+Bug fixes:
+
+* Change default `invite` power level to `0`
+  * The spec was determined to be wrong about the default:
+    <https://github.com/matrix-org/matrix-spec/pull/1021>
+
 Improvements:
 
 * Add `m.federate` to `auth_check`:

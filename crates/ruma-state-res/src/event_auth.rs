@@ -361,7 +361,7 @@ pub fn auth_check<E: Event>(
             Some(power_levels) => {
                 from_json_str::<PowerLevelsContentInvite>(power_levels.content().get())?.invite
             }
-            None => int!(50),
+            None => int!(0),
         };
 
         if sender_power_level < invite_level {
@@ -502,7 +502,7 @@ fn valid_membership_change(
             // TODO Refactor all powerlevel parsing
             let invite = match from_json_str::<PowerLevelsContentInvite>(pl.content().get()) {
                 Ok(power_levels) => power_levels.invite,
-                _ => int!(50),
+                _ => int!(0),
             };
 
             if let Ok(content) = from_json_str::<PowerLevelsContentFields>(pl.content().get()) {
