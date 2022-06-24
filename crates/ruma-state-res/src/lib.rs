@@ -341,14 +341,14 @@ struct PowerLevelsContentFields {
         feature = "compat",
         serde(deserialize_with = "ruma_common::serde::btreemap_deserialize_v1_powerlevel_values")
     )]
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(default)]
     users: BTreeMap<OwnedUserId, Int>,
 
     #[cfg_attr(
         feature = "compat",
         serde(deserialize_with = "ruma_common::serde::deserialize_v1_powerlevel")
     )]
-    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+    #[serde(default)]
     users_default: Int,
 }
 
