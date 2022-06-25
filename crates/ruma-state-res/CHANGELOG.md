@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+* Add `m.federate` to `auth_check`:
+  <https://github.com/matrix-org/matrix-spec/pull/1103>
+
 # 0.7.0
 
 Breaking changes:
