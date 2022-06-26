@@ -66,7 +66,9 @@ fn parse_token_with_colons<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Optio
 
 fn parse_quoted<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<Vec<u8>> {
     tokens.optional(|t| {
-        t.token(&b'"').then(|| ())?;
+        if !(t.token(&b'"')) {
+            return None;
+        }
         let mut buffer = Vec::new();
         loop {
             match t.next()? {
@@ -122,7 +124,9 @@ fn parse_xmatrix_field<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<(S
             }
         })?;
 
-        t.token(&b'=').then(|| ())?;
+        if !t.token(&b'=') {
+            return None;
+        }
 
         let value = parse_quoted(t).or_else(|| parse_token_with_colons(t))?;
 
@@ -132,7 +136,10 @@ fn parse_xmatrix_field<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<(S
 
 fn parse_xmatrix<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<XMatrix> {
     tokens.optional(|t| {
-        t.tokens(b"X-Matrix ".into_tokens()).then(|| ())?;
+        if !t.tokens(b"X-Matrix ".into_tokens()) {
+            debug!("Failed to parse X-Matrix credentials, didn't start with 'X-Matrix '");
+            return None;
+        }
         let mut origin = None;
         let mut destination = None;
         let mut key = None;
