@@ -110,7 +110,7 @@ fn parse_quoted<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<Vec<u8>> 
 fn parse_xmatrix_field<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<(String, Vec<u8>)> {
     tokens.optional(|t| {
         let name = parse_token(t).and_then(|name| {
-            let name = dbg!(std::str::from_utf8(&name).ok()?.to_ascii_lowercase());
+            let name = std::str::from_utf8(&name).ok()?.to_ascii_lowercase();
             match name.as_str() {
                 "origin" | "destination" | "key" | "sig" => Some(name),
                 name => {
