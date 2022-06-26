@@ -69,10 +69,9 @@ fn parse_quoted<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<Vec<u8>> 
         t.token(&b'"').then(|| ())?;
         let mut buffer = Vec::new();
         loop {
-            match t.peek()? {
+            match t.next()? {
                 // quoted pair
                 b'\\' => {
-                    t.next()?;
                     let escaped = t.next().filter(|c| {
                         if is_quoted_pair(**c) {
                             true
@@ -90,7 +89,7 @@ fn parse_quoted<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<Vec<u8>> 
                 // end of quote
                 b'"' => break,
                 // regular character
-                c if is_qdtext(*c) => buffer.push(*t.next()?),
+                c if is_qdtext(*c) => buffer.push(*c),
                 // Invalid character
                 c => {
                     debug!(
@@ -102,7 +101,6 @@ fn parse_quoted<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<Vec<u8>> 
                 }
             }
         }
-        t.token(&b'"').then(|| ())?;
         Some(buffer)
     })
 }
