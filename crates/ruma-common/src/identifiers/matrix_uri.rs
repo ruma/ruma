@@ -571,9 +571,18 @@ mod tests {
         );
         assert_eq!(
             room_id!("!ruma:notareal.hs")
-                .matrix_to_event_uri(event_id!("$event:notareal.hs"))
+                .matrix_to_event_uri(event_id!("$event:notareal.hs"), Vec::<OwnedServerName>::new())
                 .to_string(),
             "https://matrix.to/#/%21ruma%3Anotareal.hs/%24event%3Anotareal.hs"
+        );
+        assert_eq!(
+            room_id!("!ruma:notareal.hs")
+                .matrix_to_event_uri(
+                    event_id!("$event:notareal.hs"),
+                    vec![server_name!("notareal.hs")]
+                )
+                .to_string(),
+            "https://matrix.to/#/%21ruma%3Anotareal.hs/%24event%3Anotareal.hs?via=notareal.hs"
         );
     }
 
@@ -821,6 +830,15 @@ mod tests {
                 .matrix_event_uri(event_id!("$event:notareal.hs"), Vec::<OwnedServerName>::new())
                 .to_string(),
             "matrix:roomid/ruma:notareal.hs/e/event:notareal.hs"
+        );
+        assert_eq!(
+            room_id!("!ruma:notareal.hs")
+                .matrix_event_uri(
+                    event_id!("$event:notareal.hs"),
+                    vec![server_name!("notareal.hs")]
+                )
+                .to_string(),
+            "matrix:roomid/ruma:notareal.hs/e/event:notareal.hs?via=notareal.hs"
         );
     }
 
