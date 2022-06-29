@@ -16,7 +16,6 @@ all-features = true
 [features]
 ring-compat = ["subslice"]
 unstable-exhaustive-types = []
-unstable-msc2870 = []
 
 [dependencies]
 base64 = "0.13.0"
