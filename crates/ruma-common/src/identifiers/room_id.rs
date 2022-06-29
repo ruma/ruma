@@ -67,8 +67,15 @@ impl RoomId {
     }
 
     /// Create a `matrix.to` URI for an event scoped under this room ID.
-    pub fn matrix_to_event_uri(&self, ev_id: impl Into<OwnedEventId>) -> MatrixToUri {
-        MatrixToUri::new((self.to_owned(), ev_id.into()).into(), Vec::new())
+    pub fn matrix_to_event_uri<T>(&self, ev_id: impl Into<OwnedEventId>, via: T) -> MatrixToUri
+    where
+        T: IntoIterator,
+        T::Item: Into<OwnedServerName>,
+    {
+        MatrixToUri::new(
+            (self.to_owned(), ev_id.into()).into(),
+            via.into_iter().map(Into::into).collect(),
+        )
     }
 
     /// Create a `matrix:` URI for this room ID.
