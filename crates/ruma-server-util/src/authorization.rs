@@ -86,7 +86,7 @@ fn parse_quoted<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<Vec<u8>> 
                             false
                         }
                     })?;
-                    buffer.push(*escaped)
+                    buffer.push(*escaped);
                 }
                 // end of quote
                 b'"' => break,
@@ -252,7 +252,7 @@ mod tests {
         );
         let origin = "origin.hs.example.com".try_into().unwrap();
         let key = "ed25519:key1".try_into().unwrap();
-        let sig = "ABCDEF...".to_string();
+        let sig = "ABCDEF...".to_owned();
         let credentials: XMatrix = Credentials::decode(&header).unwrap();
         assert_eq!(credentials.origin, origin);
         assert_eq!(credentials.destination, None);
@@ -270,7 +270,7 @@ mod tests {
         let origin: OwnedServerName = "origin.hs.example.com".try_into().unwrap();
         let destination: OwnedServerName = "destination.hs.example.com".try_into().unwrap();
         let key = "ed25519:key1".try_into().unwrap();
-        let sig = "ABCDEF...".to_string();
+        let sig = "ABCDEF...".to_owned();
         let credentials: XMatrix = Credentials::decode(&header).unwrap();
         assert_eq!(credentials.origin, origin);
         assert_eq!(credentials.destination, Some(destination.clone()));
