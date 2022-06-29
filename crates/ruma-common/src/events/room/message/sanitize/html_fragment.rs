@@ -160,9 +160,9 @@ impl TreeSink for Fragment {
         child: NodeOrText<Self::Handle>,
     ) {
         if self.nodes[*element].parent.is_some() {
-            self.append_before_sibling(element, child)
+            self.append_before_sibling(element, child);
         } else {
-            self.append(prev_element, child)
+            self.append(prev_element, child);
         }
     }
 
@@ -200,15 +200,15 @@ impl TreeSink for Fragment {
                     prev_text.push_tendril(&text);
                 } else {
                     let index = self.new_node(NodeData::Text(text));
-                    self.insert_before(*sibling, index)
+                    self.insert_before(*sibling, index);
                 }
             }
         }
     }
 
-    fn add_attrs_if_missing(&mut self, target: &Self::Handle, attrs: Vec<html5ever::Attribute>) {
+    fn add_attrs_if_missing(&mut self, target: &Self::Handle, attrs: Vec<Attribute>) {
         let target = self.nodes[*target].as_element_mut().unwrap();
-        target.attrs.extend(attrs.into_iter())
+        target.attrs.extend(attrs.into_iter());
     }
 
     fn remove_from_parent(&mut self, target: &Self::Handle) {

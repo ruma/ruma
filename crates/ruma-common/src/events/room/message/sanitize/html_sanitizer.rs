@@ -80,7 +80,7 @@ impl HtmlSanitizer {
                 next_child = fragment.nodes[child].next_sibling;
 
                 if action == NodeAction::Ignore {
-                    fragment.insert_before(node_id, child)
+                    fragment.insert_before(node_id, child);
                 }
 
                 self.clean_node(fragment, child, depth + 1);

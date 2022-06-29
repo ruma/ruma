@@ -112,7 +112,7 @@ pub fn try_from_json_map(
 /// Fallible conversion from any value that impl's `Serialize` to a `CanonicalJsonValue`.
 pub fn to_canonical_value<T: Serialize>(
     value: T,
-) -> Result<value::CanonicalJsonValue, CanonicalJsonError> {
+) -> Result<CanonicalJsonValue, CanonicalJsonError> {
     serde_json::to_value(value).map_err(CanonicalJsonError::SerDe)?.try_into()
 }
 
