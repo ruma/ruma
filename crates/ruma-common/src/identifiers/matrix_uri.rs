@@ -197,39 +197,75 @@ impl MatrixId {
     }
 }
 
+impl From<OwnedRoomId> for MatrixId {
+    fn from(room_id: OwnedRoomId) -> Self {
+        Self::Room(room_id)
+    }
+}
+
 impl From<&RoomId> for MatrixId {
     fn from(room_id: &RoomId) -> Self {
-        Self::Room(room_id.into())
+        room_id.to_owned().into()
+    }
+}
+
+impl From<OwnedRoomAliasId> for MatrixId {
+    fn from(room_alias: OwnedRoomAliasId) -> Self {
+        Self::RoomAlias(room_alias)
     }
 }
 
 impl From<&RoomAliasId> for MatrixId {
     fn from(room_alias: &RoomAliasId) -> Self {
-        Self::RoomAlias(room_alias.into())
+        room_alias.to_owned().into()
+    }
+}
+
+impl From<OwnedUserId> for MatrixId {
+    fn from(user_id: OwnedUserId) -> Self {
+        Self::User(user_id)
     }
 }
 
 impl From<&UserId> for MatrixId {
     fn from(user_id: &UserId) -> Self {
-        Self::User(user_id.into())
+        user_id.to_owned().into()
+    }
+}
+
+impl From<(OwnedRoomOrAliasId, OwnedEventId)> for MatrixId {
+    fn from(ids: (OwnedRoomOrAliasId, OwnedEventId)) -> Self {
+        Self::Event(ids.0, ids.1)
     }
 }
 
 impl From<(&RoomOrAliasId, &EventId)> for MatrixId {
     fn from(ids: (&RoomOrAliasId, &EventId)) -> Self {
-        Self::Event(ids.0.into(), ids.1.into())
+        (ids.0.to_owned(), ids.1.to_owned()).into()
+    }
+}
+
+impl From<(OwnedRoomId, OwnedEventId)> for MatrixId {
+    fn from(ids: (OwnedRoomId, OwnedEventId)) -> Self {
+        Self::Event(ids.0.into(), ids.1)
     }
 }
 
 impl From<(&RoomId, &EventId)> for MatrixId {
     fn from(ids: (&RoomId, &EventId)) -> Self {
-        Self::Event(<&RoomOrAliasId>::from(ids.0).into(), ids.1.into())
+        (ids.0.to_owned(), ids.1.to_owned()).into()
+    }
+}
+
+impl From<(OwnedRoomAliasId, OwnedEventId)> for MatrixId {
+    fn from(ids: (OwnedRoomAliasId, OwnedEventId)) -> Self {
+        Self::Event(ids.0.into(), ids.1)
     }
 }
 
 impl From<(&RoomAliasId, &EventId)> for MatrixId {
     fn from(ids: (&RoomAliasId, &EventId)) -> Self {
-        Self::Event(<&RoomOrAliasId>::from(ids.0).into(), ids.1.into())
+        (ids.0.to_owned(), ids.1.to_owned()).into()
     }
 }
 

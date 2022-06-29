@@ -41,6 +41,7 @@ Improvements:
 * Add `MatrixVersionId::V10` (MSC3604)
 * Add methods to sanitize messages according to the spec behind the `unstable-sanitize` feature
   * Can also remove rich reply fallbacks
+* Implement `From<Owned*Id>` for `identifiers::matrix_uri::MatrixId`
 
 # 0.9.2
 
