@@ -2,7 +2,9 @@
 
 use ruma_macros::IdZst;
 
-use super::{matrix_uri::UriAction, EventId, MatrixToUri, MatrixUri, ServerName};
+use super::{
+    matrix_uri::UriAction, MatrixToUri, MatrixUri, OwnedEventId, OwnedServerName, ServerName,
+};
 
 /// A Matrix [room ID].
 ///
@@ -56,13 +58,17 @@ impl RoomId {
     ///     "https://matrix.to/#/%21somewhere%3Aexample.org?via=example.org&via=alt.example.org"
     /// );
     /// ```
-    pub fn matrix_to_uri<'a>(&self, via: impl IntoIterator<Item = &'a ServerName>) -> MatrixToUri {
-        MatrixToUri::new(self.into(), via.into_iter().collect())
+    pub fn matrix_to_uri<T>(&self, via: T) -> MatrixToUri
+    where
+        T: IntoIterator,
+        T::Item: Into<OwnedServerName>,
+    {
+        MatrixToUri::new(self.into(), via.into_iter().map(Into::into).collect())
     }
 
     /// Create a `matrix.to` URI for an event scoped under this room ID.
-    pub fn matrix_to_event_uri(&self, ev_id: &EventId) -> MatrixToUri {
-        MatrixToUri::new((self, ev_id).into(), Vec::new())
+    pub fn matrix_to_event_uri(&self, ev_id: impl Into<OwnedEventId>) -> MatrixToUri {
+        MatrixToUri::new((self.to_owned(), ev_id.into()).into(), Vec::new())
     }
 
     /// Create a `matrix:` URI for this room ID.
@@ -81,25 +87,29 @@ impl RoomId {
     ///     "matrix:roomid/somewhere:example.org?via=example.org&via=alt.example.org&action=join"
     /// );
     /// ```
-    pub fn matrix_uri<'a>(
-        &self,
-        via: impl IntoIterator<Item = &'a ServerName>,
-        join: bool,
-    ) -> MatrixUri {
+    pub fn matrix_uri<T>(&self, via: T, join: bool) -> MatrixUri
+    where
+        T: IntoIterator,
+        T::Item: Into<OwnedServerName>,
+    {
         MatrixUri::new(
             self.into(),
-            via.into_iter().collect(),
+            via.into_iter().map(Into::into).collect(),
             Some(UriAction::Join).filter(|_| join),
         )
     }
 
     /// Create a `matrix:` URI for an event scoped under this room ID.
-    pub fn matrix_event_uri<'a>(
-        &self,
-        ev_id: &EventId,
-        via: impl IntoIterator<Item = &'a ServerName>,
-    ) -> MatrixUri {
-        MatrixUri::new((self, ev_id).into(), via.into_iter().collect(), None)
+    pub fn matrix_event_uri<T>(&self, ev_id: impl Into<OwnedEventId>, via: T) -> MatrixUri
+    where
+        T: IntoIterator,
+        T::Item: Into<OwnedServerName>,
+    {
+        MatrixUri::new(
+            (self.to_owned(), ev_id.into()).into(),
+            via.into_iter().map(Into::into).collect(),
+            None,
+        )
     }
 
     fn colon_idx(&self) -> usize {

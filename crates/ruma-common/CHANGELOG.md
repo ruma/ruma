@@ -22,6 +22,7 @@ Breaking changes:
 * Remove `RoomMessageFeedbackEvent` and associated types and variants according to MSC3582
 * Move `CanonicalJson`, `CanonicalJsonObject` and `CanonicalJsonError` out of
   the `serde` module and behind the cargo feature flag `canonical-json`
+* Make identifiers matrix URI constructors generic over owned parameters
 
 [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/3669
 

@@ -11,7 +11,7 @@ use url::Url;
 
 use super::{
     EventId, OwnedEventId, OwnedRoomAliasId, OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName,
-    OwnedUserId, RoomAliasId, RoomId, RoomOrAliasId, ServerName, UserId,
+    OwnedUserId, RoomAliasId, RoomId, RoomOrAliasId, UserId,
 };
 use crate::PrivOwnedStr;
 
@@ -282,8 +282,8 @@ pub struct MatrixToUri {
 }
 
 impl MatrixToUri {
-    pub(crate) fn new(id: MatrixId, via: Vec<&ServerName>) -> Self {
-        Self { id, via: via.into_iter().map(ToOwned::to_owned).collect() }
+    pub(crate) fn new(id: MatrixId, via: Vec<OwnedServerName>) -> Self {
+        Self { id, via }
     }
 
     /// The identifier represented by this `matrix.to` URI.
@@ -446,8 +446,8 @@ pub struct MatrixUri {
 }
 
 impl MatrixUri {
-    pub(crate) fn new(id: MatrixId, via: Vec<&ServerName>, action: Option<UriAction>) -> Self {
-        Self { id, via: via.into_iter().map(ToOwned::to_owned).collect(), action }
+    pub(crate) fn new(id: MatrixId, via: Vec<OwnedServerName>, action: Option<UriAction>) -> Self {
+        Self { id, via, action }
     }
 
     /// The identifier represented by this `matrix:` URI.
@@ -544,7 +544,7 @@ mod tests {
     use super::{MatrixId, MatrixToUri, MatrixUri};
     use crate::{
         event_id, matrix_uri::UriAction, room_alias_id, room_id, server_name, user_id,
-        RoomOrAliasId,
+        OwnedServerName, RoomOrAliasId,
     };
 
     #[test]
@@ -818,7 +818,7 @@ mod tests {
         );
         assert_eq!(
             room_id!("!ruma:notareal.hs")
-                .matrix_event_uri(event_id!("$event:notareal.hs"), vec![])
+                .matrix_event_uri(event_id!("$event:notareal.hs"), Vec::<OwnedServerName>::new())
                 .to_string(),
             "matrix:roomid/ruma:notareal.hs/e/event:notareal.hs"
         );

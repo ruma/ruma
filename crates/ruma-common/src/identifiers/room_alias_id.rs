@@ -2,7 +2,7 @@
 
 use ruma_macros::IdZst;
 
-use super::{matrix_uri::UriAction, server_name::ServerName, EventId, MatrixToUri, MatrixUri};
+use super::{matrix_uri::UriAction, server_name::ServerName, MatrixToUri, MatrixUri, OwnedEventId};
 
 /// A Matrix [room alias ID].
 ///
@@ -37,8 +37,8 @@ impl RoomAliasId {
     }
 
     /// Create a `matrix.to` URI for an event scoped under this room alias ID.
-    pub fn matrix_to_event_uri(&self, ev_id: &EventId) -> MatrixToUri {
-        MatrixToUri::new((self, ev_id).into(), Vec::new())
+    pub fn matrix_to_event_uri(&self, ev_id: impl Into<OwnedEventId>) -> MatrixToUri {
+        MatrixToUri::new((self.to_owned(), ev_id.into()).into(), Vec::new())
     }
 
     /// Create a `matrix:` URI for this room alias ID.
@@ -49,8 +49,8 @@ impl RoomAliasId {
     }
 
     /// Create a `matrix:` URI for an event scoped under this room alias ID.
-    pub fn matrix_event_uri(&self, ev_id: &EventId) -> MatrixUri {
-        MatrixUri::new((self, ev_id).into(), Vec::new(), None)
+    pub fn matrix_event_uri(&self, ev_id: impl Into<OwnedEventId>) -> MatrixUri {
+        MatrixUri::new((self.to_owned(), ev_id.into()).into(), Vec::new(), None)
     }
 
     fn colon_idx(&self) -> usize {
