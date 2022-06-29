@@ -52,6 +52,7 @@ impl From<RedactionError> for Error {
             RedactionError::JsonFieldMissingFromObject(field) => {
                 JsonError::JsonFieldMissingFromObject(field).into()
             }
+            #[allow(unreachable_patterns)]
             _ => unreachable!(),
         }
     }
