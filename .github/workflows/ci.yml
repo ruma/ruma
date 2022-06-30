@@ -253,10 +253,7 @@ jobs:
       - name: Compress docs
         if: github.event_name == 'pull_request'
         run: |
-          cd target
-          tar --zstd -cf docs.tar.zstd doc
-          cd ..
-          mv target/docs.tar.zstd .
+          tar --zstd -cf docs.tar.zstd -C target doc
 
       - name: Upload docs as artifact
         if: github.event_name == 'pull_request'
