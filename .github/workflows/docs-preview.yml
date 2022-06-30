@@ -42,6 +42,7 @@ jobs:
 
       - name: Deploy PR preview
         continue-on-error: true
+        id: deploy_preview
         uses: dswistowski/surge-sh-action@v1.0.1
         with:
           domain: pr-${{ github.event.workflow_run.pull_requests[0].number }}--ruma-docs.surge.sh
@@ -50,6 +51,7 @@ jobs:
           token: ${{ secrets.SURGE_TOKEN }}
 
       - name: Comment PR preview URL
+        if: steps.deploy_preview.outcome == 'success'
         uses: Beakyn/gha-comment-pull-request@v1.0.2
         env:
           GITHUB_TOKEN: ${{ github.token }}
