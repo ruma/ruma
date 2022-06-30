@@ -51,6 +51,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
+          pull-request-number: ${{ steps.get_pr.outputs.prnumber }}
           description-message: |
             ----
             Preview Removed
