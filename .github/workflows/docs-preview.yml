@@ -24,7 +24,7 @@ jobs:
                 run_id: context.payload.workflow_run.id,
             });
             let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
-              return artifact.name == "docs"
+              return artifact.name == "docs";
             })[0];
             let download = await github.rest.actions.downloadArtifact({
                 owner: context.repo.owner,
