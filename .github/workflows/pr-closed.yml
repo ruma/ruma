@@ -7,20 +7,7 @@ on:
 
 jobs:
   docs:
-    name: Remove Docs Preview
+    name: Trigger
     runs-on: ubuntu-latest
     steps:
-      - name: Teardown
-        uses: adrianjost/actions-surge.sh-teardown@v1.0.3
-        with:
-          regex: pr-${{ github.event.number }}--ruma-docs.surge.sh
-        env:
-          SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
-          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
-
-      - name: Remove preview URL
-        uses: Beakyn/gha-comment-pull-request@v1.0.2
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          description-message: Preview removed
+      - run: 'echo "PR number: ${{ github.event.number }}"'

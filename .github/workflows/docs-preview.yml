@@ -1,0 +1,59 @@
+name: Docs Preview
+
+env:
+  CARGO_TERM_COLOR: always
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.pull_requests[0] != null  
+    steps:
+      - name: Download artifact
+        uses: actions/github-script@v6
+        with:
+          script: |
+            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: context.payload.workflow_run.id,
+            });
+            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "docs"
+            })[0];
+            let download = await github.rest.actions.downloadArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: matchArtifact.id,
+                archive_format: 'zip',
+            });
+            let fs = require('fs');
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/docs.zip`, Buffer.from(download.data));
+      
+      - name: Unzip artifact
+        run: |
+          unzip docs.zip
+          tar -xf docs.tar.zstd
+
+      - name: Deploy PR preview
+        continue-on-error: true
+        uses: dswistowski/surge-sh-action@v1.0.1
+        with:
+          domain: pr-${{ github.event.workflow_run.pull_requests[0].number }}--ruma-docs.surge.sh
+          project: doc
+          login: ${{ secrets.SURGE_LOGIN }}
+          token: ${{ secrets.SURGE_TOKEN }}
+
+      - name: Comment PR preview URL
+        uses: Beakyn/gha-comment-pull-request@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          description-message: |
+            ----
+            Preview: https://pr-${{ github.event.workflow_run.pull_requests[0].number }}--ruma-docs.surge.sh
