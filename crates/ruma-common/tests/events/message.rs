@@ -59,6 +59,36 @@ fn plain_text_content_serialization() {
 }
 
 #[test]
+fn unknown_mimetype_content_serialization() {
+    let message_event_content = MessageEventContent::from(
+        MessageContent::try_from(vec![
+            Text::plain("> <@test:example.com> test\n\ntest reply"),
+            Text::new(
+                "application/json",
+                r#"{ "quote": "<@test:example.com> test", "reply": "test reply" }"#,
+            ),
+        ])
+        .unwrap(),
+    );
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "org.matrix.msc1767.message": [
+                {
+                    "body": "> <@test:example.com> test\n\ntest reply",
+                    "mimetype": "text/plain",
+                },
+                {
+                    "body": r#"{ "quote": "<@test:example.com> test", "reply": "test reply" }"#,
+                    "mimetype": "application/json",
+                },
+            ]
+        })
+    );
+}
+
+#[test]
 #[cfg(feature = "markdown")]
 fn markdown_content_serialization() {
     let formatted_message = MessageEventContent::markdown("Testing **bold** and _italic_!");
