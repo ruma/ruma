@@ -153,7 +153,7 @@ impl VideoMessageEventContent {
     /// Create a new `VideoMessageEventContent` with the given message, file info, video info,
     /// thumbnails and captions.
     #[cfg(feature = "unstable-msc3553")]
-    pub fn from_extensible_content(
+    pub(crate) fn from_extensible_content(
         message: MessageContent,
         file: FileContent,
         video: Box<VideoContent>,
@@ -240,7 +240,7 @@ impl VideoInfo {
 
     /// Create a `VideoInfo` from the given file info, video info and thumbnail.
     #[cfg(feature = "unstable-msc3553")]
-    pub fn from_extensible_content(
+    fn from_extensible_content(
         file_info: Option<&FileContentInfo>,
         video: &VideoContent,
         thumbnail: &[ThumbnailContent],

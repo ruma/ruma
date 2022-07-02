@@ -132,7 +132,7 @@ impl AudioMessageEventContent {
 
     /// Create a new `AudioMessageEventContent` with the given message, file info and audio info.
     #[cfg(feature = "unstable-msc3246")]
-    pub fn from_extensible_content(
+    pub(crate) fn from_extensible_content(
         message: MessageContent,
         file: FileContent,
         audio: AudioContent,
@@ -203,7 +203,7 @@ impl AudioInfo {
     ///
     /// Returns `None` if the `AudioInfo` would be empty.
     #[cfg(feature = "unstable-msc3246")]
-    pub fn from_extensible_content(
+    fn from_extensible_content(
         file_info: Option<&FileContentInfo>,
         audio: &AudioContent,
     ) -> Option<Self> {

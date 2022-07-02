@@ -165,7 +165,7 @@ impl ImageInfo {
 
     /// Create an `ImageInfo` from the given file info, image info and thumbnail.
     #[cfg(feature = "unstable-msc3552")]
-    pub fn from_extensible_content(
+    fn from_extensible_content(
         file_info: Option<&FileContentInfo>,
         image: &ImageContent,
         thumbnail: &[ThumbnailContent],
@@ -235,7 +235,7 @@ impl ThumbnailInfo {
     ///
     /// Returns `None` if `file_info` and `image` are `None`.
     #[cfg(feature = "unstable-msc3552")]
-    pub fn from_extensible_content(
+    fn from_extensible_content(
         file_info: Option<&ThumbnailFileContentInfo>,
         image: Option<&ImageContent>,
     ) -> Option<Self> {
@@ -280,7 +280,7 @@ pub struct EncryptedFile {
 #[cfg(feature = "unstable-msc3551")]
 impl EncryptedFile {
     /// Create an `EncryptedFile` from the given url and encryption info.
-    pub fn from_extensible_content(url: &MxcUri, encryption_info: &EncryptedContent) -> Self {
+    fn from_extensible_content(url: &MxcUri, encryption_info: &EncryptedContent) -> Self {
         let EncryptedContent { key, iv, hashes, v } = encryption_info.to_owned();
         Self { url: url.to_owned(), key, iv, hashes, v }
     }

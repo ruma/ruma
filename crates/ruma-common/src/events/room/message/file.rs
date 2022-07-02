@@ -101,7 +101,7 @@ impl FileMessageEventContent {
 
     /// Create a new `FileMessageEventContent` with the given message and file info.
     #[cfg(feature = "unstable-msc3551")]
-    pub fn from_extensible_content(message: MessageContent, file: FileContent) -> Self {
+    pub(crate) fn from_extensible_content(message: MessageContent, file: FileContent) -> Self {
         let body = if let Some(body) = message.find_plain() {
             body.to_owned()
         } else {

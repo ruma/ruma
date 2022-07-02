@@ -177,7 +177,10 @@ impl MessageContent {
     }
 
     /// Create a new `MessageContent` from the given body and optional formatted body.
-    pub fn from_room_message_content(body: String, formatted: Option<FormattedBody>) -> Self {
+    pub(crate) fn from_room_message_content(
+        body: String,
+        formatted: Option<FormattedBody>,
+    ) -> Self {
         if let Some(FormattedBody { body: html_body, .. }) =
             formatted.filter(|formatted| formatted.format == MessageFormat::Html)
         {
