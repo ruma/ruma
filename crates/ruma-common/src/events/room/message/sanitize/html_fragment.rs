@@ -345,7 +345,7 @@ impl Node {
 
                 Ok(())
             }
-            NodeData::Text(ref text) => serializer.write_text(&**text),
+            NodeData::Text(ref text) => serializer.write_text(text),
             _ => Ok(()),
         }
     }
