@@ -154,10 +154,8 @@ fn event_serialization() {
         to_json_value(&event).unwrap(),
         json!({
             "content": {
-                "org.matrix.msc1767.message": [
-                    { "body": "Upload: <strong>my_lava_lamp.webm</strong>", "mimetype": "text/html"},
-                    { "body": "Upload: my_lava_lamp.webm", "mimetype": "text/plain"},
-                ],
+                "org.matrix.msc1767.html": "Upload: <strong>my_lava_lamp.webm</strong>",
+                "org.matrix.msc1767.text": "Upload: my_lava_lamp.webm",
                 "m.file": {
                     "url": "mxc://notareal.hs/abcdef",
                     "name": "my_lava_lamp.webm",
