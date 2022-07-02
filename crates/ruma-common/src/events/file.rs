@@ -209,7 +209,7 @@ impl FileContentInfo {
 
     /// Create a new `FileContentInfo` with the given filename, mimetype and size.
     ///
-    /// Returns `None` if all parameters are `None`.
+    /// Returns `None` if the `FileContentInfo` would be empty.
     pub(crate) fn from_room_message_content(
         filename: Option<String>,
         mimetype: Option<String>,

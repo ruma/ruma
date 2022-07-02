@@ -164,6 +164,8 @@ impl ImageInfo {
     }
 
     /// Create an `ImageInfo` from the given file info, image info and thumbnail.
+    ///
+    /// Returns `None` if the `ImageInfo` would be empty.
     #[cfg(feature = "unstable-msc3552")]
     fn from_extensible_content(
         file_info: Option<&FileContentInfo>,
@@ -233,7 +235,7 @@ impl ThumbnailInfo {
 
     /// Create a `ThumbnailInfo` with the given file info and image info.
     ///
-    /// Returns `None` if `file_info` and `image` are `None`.
+    /// Returns `None` if the `ThumbnailInfo` would be empty.
     #[cfg(feature = "unstable-msc3552")]
     fn from_extensible_content(
         file_info: Option<&ThumbnailFileContentInfo>,

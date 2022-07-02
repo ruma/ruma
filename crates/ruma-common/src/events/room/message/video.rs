@@ -239,6 +239,8 @@ impl VideoInfo {
     }
 
     /// Create a `VideoInfo` from the given file info, video info and thumbnail.
+    ///
+    /// Returns `None` if the `VideoInfo` would be empty.
     #[cfg(feature = "unstable-msc3553")]
     fn from_extensible_content(
         file_info: Option<&FileContentInfo>,
