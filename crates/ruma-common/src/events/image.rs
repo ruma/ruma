@@ -163,7 +163,7 @@ impl ImageContent {
 
     /// Creates a new `ImageContent` with the given optional width and height.
     ///
-    /// Returns `None` if both parameters are `None`.
+    /// Returns `None` if the `ImageContent` would be empty.
     pub(crate) fn from_room_message_content(
         width: Option<UInt>,
         height: Option<UInt>,
@@ -253,8 +253,6 @@ impl ThumbnailFileContent {
     }
 
     /// Create a `ThumbnailFileContent` with the given thumbnail source and info.
-    ///
-    /// Returns `None` if no thumbnail was found.
     fn from_room_message_content(
         source: MediaSource,
         mimetype: Option<String>,
@@ -295,7 +293,7 @@ impl ThumbnailFileContentInfo {
 
     /// Creates a new `ThumbnailFileContentInfo` with the given optional MIME type and size.
     ///
-    /// Returns `None` if both the mimetype and the size are `None`.
+    /// Returns `None` if the `ThumbnailFileContentInfo` would be empty.
     fn from_room_message_content(mimetype: Option<String>, size: Option<UInt>) -> Option<Self> {
         if mimetype.is_none() && size.is_none() {
             None
