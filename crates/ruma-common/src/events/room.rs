@@ -8,7 +8,7 @@ use js_int::UInt;
 use serde::{de, Deserialize, Serialize};
 
 #[cfg(feature = "unstable-msc3551")]
-use super::file::{EncryptedContent, FileContent};
+use super::file::{EncryptedContent, EncryptedContentInit, FileContent};
 #[cfg(feature = "unstable-msc3552")]
 use super::{
     file::FileContentInfo,
@@ -53,6 +53,19 @@ pub enum MediaSource {
     /// The encryption info of the encrypted media file.
     #[serde(rename = "file")]
     Encrypted(Box<EncryptedFile>),
+}
+
+#[cfg(feature = "unstable-msc3551")]
+impl MediaSource {
+    pub(crate) fn into_extensible_content(self) -> (OwnedMxcUri, Option<EncryptedContent>) {
+        match self {
+            MediaSource::Plain(url) => (url, None),
+            MediaSource::Encrypted(encrypted_file) => {
+                let EncryptedFile { url, key, iv, hashes, v } = *encrypted_file;
+                (url, Some(EncryptedContentInit { key, iv, hashes, v }.into()))
+            }
+        }
+    }
 }
 
 // Custom implementation of `Deserialize`, because serde doesn't guarantee what variant will be
