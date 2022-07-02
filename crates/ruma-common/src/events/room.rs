@@ -2,6 +2,9 @@
 //!
 //! This module also contains types shared by events in its child namespaces.
 
+// https://github.com/rust-lang/rust-clippy/issues/9111
+#![allow(clippy::needless_borrow)]
+
 use std::collections::BTreeMap;
 
 use js_int::UInt;
