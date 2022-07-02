@@ -172,10 +172,8 @@ fn event_serialization() {
         to_json_value(&event).unwrap(),
         json!({
             "content": {
-                "org.matrix.msc1767.message": [
-                    { "body": "Upload: <strong>my_mix.mp3</strong>", "mimetype": "text/html"},
-                    { "body": "Upload: my_mix.mp3", "mimetype": "text/plain"},
-                ],
+                "org.matrix.msc1767.html": "Upload: <strong>my_mix.mp3</strong>",
+                "org.matrix.msc1767.text": "Upload: my_mix.mp3",
                 "m.file": {
                     "url": "mxc://notareal.hs/abcdef",
                     "name": "my_mix.mp3",

@@ -192,10 +192,8 @@ fn formatted_body_serialization() {
             "msgtype": "m.text",
             "format": "org.matrix.custom.html",
             "formatted_body": "Hello, <em>World</em>!",
-            "org.matrix.msc1767.message": [
-                { "body": "Hello, <em>World</em>!", "mimetype": "text/html" },
-                { "body": "Hello, World!", "mimetype": "text/plain" },
-            ],
+            "org.matrix.msc1767.html": "Hello, <em>World</em>!",
+            "org.matrix.msc1767.text": "Hello, World!",
         })
     );
 }
@@ -253,10 +251,8 @@ fn markdown_content_serialization() {
             "formatted_body": "<p>Testing <strong>bold</strong> and <em>italic</em>!</p>\n",
             "format": "org.matrix.custom.html",
             "msgtype": "m.text",
-            "org.matrix.msc1767.message": [
-                { "body": "<p>Testing <strong>bold</strong> and <em>italic</em>!</p>\n", "mimetype": "text/html" },
-                { "body": "Testing **bold** and _italic_!", "mimetype": "text/plain" },
-            ],
+            "org.matrix.msc1767.html": "<p>Testing <strong>bold</strong> and <em>italic</em>!</p>\n",
+            "org.matrix.msc1767.text": "Testing **bold** and _italic_!",
         })
     );
 
@@ -306,10 +302,8 @@ fn markdown_content_serialization() {
             "formatted_body": "<p>Testing</p>\n<p>Several</p>\n<p>Paragraphs.</p>\n",
             "format": "org.matrix.custom.html",
             "msgtype": "m.text",
-            "org.matrix.msc1767.message": [
-                { "body": "<p>Testing</p>\n<p>Several</p>\n<p>Paragraphs.</p>\n", "mimetype": "text/html" },
-                { "body": "Testing\n\nSeveral\n\nParagraphs.", "mimetype": "text/plain" },
-            ],
+            "org.matrix.msc1767.html": "<p>Testing</p>\n<p>Several</p>\n<p>Paragraphs.</p>\n",
+            "org.matrix.msc1767.text": "Testing\n\nSeveral\n\nParagraphs.",
         })
     );
 }

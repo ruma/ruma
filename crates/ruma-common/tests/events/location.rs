@@ -70,16 +70,8 @@ fn event_serialization() {
         to_json_value(&event).unwrap(),
         json!({
             "content": {
-                "org.matrix.msc1767.message": [
-                    {
-                        "body": "Alice was at <strong>geo:51.5008,0.1247;u=35</strong> as of <em>Sat Nov 13 18:50:58 2021</em>",
-                        "mimetype": "text/html",
-                    },
-                    {
-                        "body": "Alice was at geo:51.5008,0.1247;u=35 as of Sat Nov 13 18:50:58 2021",
-                        "mimetype": "text/plain",
-                    },
-                ],
+                "org.matrix.msc1767.html": "Alice was at <strong>geo:51.5008,0.1247;u=35</strong> as of <em>Sat Nov 13 18:50:58 2021</em>",
+                "org.matrix.msc1767.text": "Alice was at geo:51.5008,0.1247;u=35 as of Sat Nov 13 18:50:58 2021",
                 "m.location": {
                     "uri": "geo:51.5008,0.1247;u=35",
                     "description": "Alice's whereabouts",
