@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "unstable-msc3552")]
 use crate::events::{
-    file::FileContent,
+    file::{FileContent, FileContentInfo},
     image::{ImageContent, ThumbnailContent},
     message::MessageContent,
 };
@@ -89,17 +89,30 @@ impl ImageMessageEventContent {
             #[cfg(feature = "unstable-msc3552")]
             file: Some(FileContent::plain(
                 url.clone(),
-                info.as_deref().map(|info| Box::new(info.into())),
+                info.as_deref().and_then(|info| {
+                    FileContentInfo::from_room_message_content(
+                        None,
+                        info.mimetype.to_owned(),
+                        info.size,
+                    )
+                    .map(Box::new)
+                }),
             )),
             #[cfg(feature = "unstable-msc3552")]
-            image: Some(Box::new(info.as_deref().map_or_else(ImageContent::default, Into::into))),
+            image: Some(Box::new(
+                info.as_deref()
+                    .and_then(|info| {
+                        ImageContent::from_room_message_content(info.width, info.height)
+                    })
+                    .unwrap_or_default(),
+            )),
             #[cfg(feature = "unstable-msc3552")]
             thumbnail: info
                 .as_deref()
                 .and_then(|info| {
                     ThumbnailContent::from_room_message_content(
-                        info.thumbnail_source.as_ref(),
-                        info.thumbnail_info.as_deref(),
+                        info.thumbnail_source.to_owned(),
+                        info.thumbnail_info.to_owned(),
                     )
                 })
                 .map(|thumbnail| vec![thumbnail]),
