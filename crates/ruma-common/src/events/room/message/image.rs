@@ -147,7 +147,7 @@ impl ImageMessageEventContent {
     /// Create a new `ImageMessageEventContent` with the given message, file info, image info,
     /// thumbnails and captions.
     #[cfg(feature = "unstable-msc3552")]
-    pub fn from_extensible_content(
+    pub(crate) fn from_extensible_content(
         message: MessageContent,
         file: FileContent,
         image: Box<ImageContent>,

@@ -165,7 +165,7 @@ impl FileContent {
     }
 
     /// Create a new `FileContent` with the given media source, file info and filename.
-    pub fn from_room_message_content(
+    pub(crate) fn from_room_message_content(
         source: MediaSource,
         filename: Option<String>,
         mimetype: Option<String>,
@@ -210,7 +210,7 @@ impl FileContentInfo {
     /// Create a new `FileContentInfo` with the given filename, mimetype and size.
     ///
     /// Returns `None` if all parameters are `None`.
-    pub fn from_room_message_content(
+    pub(crate) fn from_room_message_content(
         filename: Option<String>,
         mimetype: Option<String>,
         size: Option<UInt>,

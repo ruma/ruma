@@ -203,7 +203,7 @@ impl ThumbnailContent {
     /// Create a `ThumbnailContent` with the given thumbnail source and info.
     ///
     /// Returns `None` if no thumbnail was found.
-    pub fn from_room_message_content(
+    pub(crate) fn from_room_message_content(
         source: Option<MediaSource>,
         info: Option<Box<ThumbnailInfo>>,
     ) -> Option<Self> {

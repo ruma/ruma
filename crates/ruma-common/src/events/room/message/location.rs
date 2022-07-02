@@ -82,7 +82,7 @@ impl LocationMessageEventContent {
     /// Create a new `LocationMessageEventContent` with the given message, location info, asset and
     /// timestamp.
     #[cfg(feature = "unstable-msc3488")]
-    pub fn from_extensible_content(
+    pub(crate) fn from_extensible_content(
         message: MessageContent,
         location: LocationContent,
         asset: AssetContent,
