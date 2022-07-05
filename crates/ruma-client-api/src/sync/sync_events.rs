@@ -400,10 +400,7 @@ pub mod v3 {
 
         /// Creates a `State` with events
         pub fn with_events(events: Vec<Raw<AnySyncStateEvent>>) -> Self {
-            State {
-                events,
-                ..Default::default()
-            }
+            State { events, ..Default::default() }
         }
     }
 
@@ -539,7 +536,6 @@ pub mod v3 {
             InvitedRoom { invite_state, ..Default::default() }
         }
     }
-
 
     /// The state of a room that the user has been invited to.
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]

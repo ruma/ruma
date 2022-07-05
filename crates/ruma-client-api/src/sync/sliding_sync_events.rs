@@ -2,50 +2,48 @@
 
 use std::{collections::BTreeMap, time::Duration};
 
+use super::sync_events::v3::UnreadNotificationsCount;
 use js_int::UInt;
 use ruma_common::{
     api::ruma_api,
-    events::{
-        AnySyncRoomEvent, AnySyncStateEvent, AnyStrippedStateEvent,
-        RoomEventType
-    },
+    events::{AnyStrippedStateEvent, AnySyncRoomEvent, AnySyncStateEvent, RoomEventType},
+    serde::{duration::opt_ms, Raw},
     OwnedRoomId,
-    serde::Raw, serde::duration::opt_ms,
 };
 use serde::{Deserialize, Serialize};
-use super::sync_events::v3::UnreadNotificationsCount;
 
+/// Filter for a sliding sync list, set at request.
+///
+/// All fields are applied with AND operators, hence if is_dm:true and is_encrypted:true
+/// then only Encrypted DM rooms will be returned. The absence of fields implies no filter
+/// on that criteria: it does NOT imply 'false'.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SyncRequestListFilters {
-    // All fields are applied with AND operators, hence if is_dm:true and is_encrypted:true
-    // then only Encrypted DM rooms will be returned. The absence of fields implies no filter
-    // on that criteria: it does NOT imply 'false'.
     // These fields may be expanded through use of extensions.
-
     /// Sticky. Flag which only returns rooms present (or not) in the DM section of account data.
     /// If unset, both DM rooms and non-DM rooms are returned. If false, only non-DM rooms
     /// are returned. If true, only DM rooms are returned.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_dm: Option<bool>,
 
-    /// Sticky. A list of spaces which target rooms must be a part of. For every invited/joined room for
-    /// this user, ensure that there is a parent space event which is in this list. If unset, all
-    /// rooms are included. Servers MUST NOT navigate subspaces. It is up to the client to
-    /// give a complete list of spaces to navigate. Only rooms directly in these spaces will be
-    /// returned.
+    /// Sticky. A list of spaces which target rooms must be a part of. For every invited/joined
+    /// room for this user, ensure that there is a parent space event which is in this list. If
+    /// unset, all rooms are included. Servers MUST NOT navigate subspaces. It is up to the
+    /// client to give a complete list of spaces to navigate. Only rooms directly in these
+    /// spaces will be returned.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub spaces: Option<Vec<String>>,
 
-    /// Sticky. Flag which only returns rooms which have an `m.room.encryption` state event. If unset,
-    /// both encrypted and unencrypted rooms are returned. If false, only unencrypted rooms
-    /// are returned. If true, only encrypted rooms are returned.
+    /// Sticky. Flag which only returns rooms which have an `m.room.encryption` state event. If
+    /// unset, both encrypted and unencrypted rooms are returned. If false, only unencrypted
+    /// rooms are returned. If true, only encrypted rooms are returned.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_encrypted: Option<bool>,
 
-    /// Sticky. Flag which only returns rooms the user is currently invited to. If unset, both invited
-    /// and joined rooms are returned. If false, no invited rooms are returned. If true, only
-    /// invited rooms are returned.
+    /// Sticky. Flag which only returns rooms the user is currently invited to. If unset, both
+    /// invited and joined rooms are returned. If false, no invited rooms are returned. If
+    /// true, only invited rooms are returned.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_invite: Option<bool>,
 
@@ -57,19 +55,22 @@ pub struct SyncRequestListFilters {
 
     /// If specified, only rooms where the `m.room.create` event has a `type` matching one
     /// of the strings in this array will be returned. If this field is unset, all rooms are
-    /// returned regardless of type. This can be used to get the initial set of spaces for an account.
+    /// returned regardless of type. This can be used to get the initial set of spaces for an
+    /// account.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub room_types: Option<Vec<String>>,
 
-    /// Same as "room_types" but inverted. This can be used to filter out spaces from the room list.
+    /// Same as "room_types" but inverted. This can be used to filter out spaces from the room
+    /// list.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub not_room_types: Option<Vec<String>>,
 
     /// Filter the room name. Case-insensitive partial matching e.g 'foo' matches 'abFooab'.
     /// The term 'like' is inspired by SQL 'LIKE', and the text here is similar to '%foo%'.
-    pub room_name_like: Option<String>
+    pub room_name_like: Option<String>,
 }
 
+/// Sliding Sync Request for each list
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SyncRequestList {
@@ -95,6 +96,7 @@ pub struct SyncRequestList {
     pub filters: Option<Raw<SyncRequestListFilters>>,
 }
 
+/// The RoomSubscriptions of the SlidingSync Request
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomSubscription {
@@ -109,6 +111,7 @@ pub struct RoomSubscription {
     pub timeline_limit: Option<UInt>,
 }
 
+/// Sliding Sync Request
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SyncRequest {
@@ -200,13 +203,20 @@ impl Response {
     }
 }
 
+/// Opertaion applied to the specific SlidingSyncList
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(rename_all="UPPERCASE")]
+#[serde(rename_all = "UPPERCASE")]
 pub enum SlidingOp {
+    /// Full reset of the given window
     Sync,
+    /// Insert an item at the given point, moves all following entry by
+    /// one to the next Empty or Invalid field
     Insert,
+    /// Drop this entry, moves all following entry up by one
     Delete,
+    /// These have changed
     Update,
+    /// Mark these as invaldiated
     Invalidate,
 }
 
@@ -261,7 +271,7 @@ pub struct SlidingSyncRoom {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_dm: Option<bool>,
 
-    /// This is not-yet-accepted invite, with the folowing sync state events
+    /// This is not-yet-accepted invite, with the following sync state events
     /// the room must be considered in invite state as long as the Option is not None
     /// even if there are no state events.
     #[serde(skip_serializing_if = "Option::is_none")]
