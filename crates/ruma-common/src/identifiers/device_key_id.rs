@@ -41,8 +41,6 @@ impl DeviceKeyId {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::{DeviceKeyId, OwnedDeviceKeyId};
     use crate::identifiers::{crypto_algorithms::DeviceKeyAlgorithm, IdParseError};
 
@@ -87,7 +85,7 @@ mod tests {
 
     #[test]
     fn empty_device_id_ok() {
-        assert!(<&DeviceKeyId>::try_from("ed25519:").is_ok());
+        <&DeviceKeyId>::try_from("ed25519:").unwrap();
     }
 
     #[test]

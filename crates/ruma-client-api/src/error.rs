@@ -141,6 +141,20 @@ pub enum ErrorKind {
     /// M_WEAK_PASSWORD
     WeakPassword,
 
+    /// M_UNABLE_TO_AUTHORISE_JOIN
+    UnableToAuthorizeJoin,
+
+    /// M_UNABLE_TO_GRANT_JOIN
+    UnableToGrantJoin,
+
+    /// FI.MAU.MSC2246_NOT_YET_UPLOADED
+    #[cfg(feature = "unstable-msc2246")]
+    NotYetUploaded,
+
+    /// FI.MAU.MSC2246_CANNOT_OVERWRITE_MEDIA
+    #[cfg(feature = "unstable-msc2246")]
+    CannotOverwriteMedia,
+
     #[doc(hidden)]
     _Custom { errcode: PrivOwnedStr, extra: Extra },
 }
@@ -185,6 +199,12 @@ impl AsRef<str> for ErrorKind {
             Self::ResourceLimitExceeded { .. } => "M_RESOURCE_LIMIT_EXCEEDED",
             Self::CannotLeaveServerNoticeRoom => "M_CANNOT_LEAVE_SERVER_NOTICE_ROOM",
             Self::WeakPassword => "M_WEAK_PASSWORD",
+            Self::UnableToAuthorizeJoin => "M_UNABLE_TO_AUTHORISE_JOIN",
+            Self::UnableToGrantJoin => "M_UNABLE_TO_GRANT_JOIN",
+            #[cfg(feature = "unstable-msc2246")]
+            Self::NotYetUploaded => "FI.MAU.MSC2246_NOT_YET_UPLOADED",
+            #[cfg(feature = "unstable-msc2246")]
+            Self::CannotOverwriteMedia => "FI.MAU.MSC2246_CANNOT_OVERWRITE_MEDIA",
             Self::_Custom { errcode, .. } => &errcode.0,
         }
     }
@@ -199,7 +219,6 @@ impl fmt::Display for ErrorKind {
 /// A Matrix Error without a status code.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(clippy::exhaustive_structs)]
-#[cfg_attr(test, derive(PartialEq))]
 pub struct ErrorBody {
     /// A value which can be used to handle an error message.
     #[serde(flatten)]
@@ -281,12 +300,7 @@ mod tests {
         }))
         .unwrap();
 
-        assert_eq!(
-            deserialized,
-            ErrorBody {
-                kind: ErrorKind::Forbidden,
-                message: "You are not authorized to ban users in this room.".into(),
-            }
-        );
+        assert_eq!(deserialized.kind, ErrorKind::Forbidden);
+        assert_eq!(deserialized.message, "You are not authorized to ban users in this room.");
     }
 }

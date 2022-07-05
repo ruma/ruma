@@ -79,12 +79,11 @@ impl StaticEventContent for PresenceEventContent {
 
 #[cfg(test)]
 mod tests {
-    use crate::{mxc_uri, presence::PresenceState, user_id};
     use js_int::uint;
-    use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{PresenceEvent, PresenceEventContent};
+    use crate::{mxc_uri, presence::PresenceState, user_id};
 
     #[test]
     fn serialization() {
@@ -129,27 +128,21 @@ mod tests {
             "type": "m.presence"
         });
 
-        assert_matches!(
-            from_json_value::<PresenceEvent>(json).unwrap(),
-            PresenceEvent {
-                content: PresenceEventContent {
-                    avatar_url: Some(avatar_url),
-                    currently_active: Some(false),
-                    displayname: None,
-                    last_active_ago: Some(last_active_ago),
-                    presence: PresenceState::Online,
-                    status_msg: Some(status_msg),
-                },
-                sender,
-            } if avatar_url == "mxc://localhost/wefuiwegh8742w"
-                && status_msg == "Making cupcakes"
-                && sender == "@example:localhost"
-                && last_active_ago == uint!(2_478_593)
+        let ev = from_json_value::<PresenceEvent>(json).unwrap();
+        assert_eq!(
+            ev.content.avatar_url.as_deref(),
+            Some(mxc_uri!("mxc://localhost/wefuiwegh8742w"))
         );
+        assert_eq!(ev.content.currently_active, Some(false));
+        assert_eq!(ev.content.displayname, None);
+        assert_eq!(ev.content.last_active_ago, Some(uint!(2_478_593)));
+        assert_eq!(ev.content.presence, PresenceState::Online);
+        assert_eq!(ev.content.status_msg.as_deref(), Some("Making cupcakes"));
+        assert_eq!(ev.sender, "@example:localhost");
 
         #[cfg(feature = "compat")]
-        assert_matches!(
-            from_json_value::<PresenceEvent>(json!({
+        {
+            let json = json!({
                 "content": {
                     "avatar_url": "",
                     "currently_active": false,
@@ -159,20 +152,16 @@ mod tests {
                 },
                 "sender": "@example:localhost",
                 "type": "m.presence"
-            })).unwrap(),
-            PresenceEvent {
-                content: PresenceEventContent {
-                    avatar_url: None,
-                    currently_active: Some(false),
-                    displayname: None,
-                    last_active_ago: Some(last_active_ago),
-                    presence: PresenceState::Online,
-                    status_msg: Some(status_msg),
-                },
-                sender,
-            } if status_msg == "Making cupcakes"
-                && sender == "@example:localhost"
-                && last_active_ago == uint!(2_478_593)
-        );
+            });
+
+            let ev = from_json_value::<PresenceEvent>(json).unwrap();
+            assert_eq!(ev.content.avatar_url, None);
+            assert_eq!(ev.content.currently_active, Some(false));
+            assert_eq!(ev.content.displayname, None);
+            assert_eq!(ev.content.last_active_ago, Some(uint!(2_478_593)));
+            assert_eq!(ev.content.presence, PresenceState::Online);
+            assert_eq!(ev.content.status_msg.as_deref(), Some("Making cupcakes"));
+            assert_eq!(ev.sender, "@example:localhost");
+        }
     }
 }

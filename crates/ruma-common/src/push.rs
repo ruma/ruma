@@ -463,19 +463,12 @@ pub enum PushFormat {
     _Custom(PrivOwnedStr),
 }
 
-impl PushFormat {
-    /// Creates a string slice from this `PushFormat`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;
 
+    use assert_matches::assert_matches;
     use js_int::{int, uint};
-    use matches::assert_matches;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value,
         value::RawValue as RawJsonValue, Value as JsonValue,
@@ -544,7 +537,7 @@ mod tests {
         assert_eq!(rule.unwrap().rule_id, ".m.rule.call");
 
         let rule = set.override_.get(".m.rule.doesntexist");
-        assert!(rule.is_none());
+        assert_matches!(rule, None);
     }
 
     #[test]
@@ -576,29 +569,29 @@ mod tests {
 
         let rule_opt = iter.next();
         assert!(rule_opt.is_some());
-        assert_matches!(
+        let rule_id = assert_matches!(
             rule_opt.unwrap(),
-            AnyPushRule::Override(ConditionalPushRule { rule_id, .. })
-            if rule_id == ".m.rule.call"
+            AnyPushRule::Override(ConditionalPushRule { rule_id, .. }) => rule_id
         );
+        assert_eq!(rule_id, ".m.rule.call");
 
         let rule_opt = iter.next();
         assert!(rule_opt.is_some());
-        assert_matches!(
+        let rule_id = assert_matches!(
             rule_opt.unwrap(),
-            AnyPushRule::Override(ConditionalPushRule { rule_id, .. })
-            if rule_id == "!roomid:matrix.org"
+            AnyPushRule::Override(ConditionalPushRule { rule_id, .. }) => rule_id
         );
+        assert_eq!(rule_id, "!roomid:matrix.org");
 
         let rule_opt = iter.next();
         assert!(rule_opt.is_some());
-        assert_matches!(
+        let rule_id = assert_matches!(
             rule_opt.unwrap(),
-            AnyPushRule::Override(ConditionalPushRule { rule_id, .. })
-            if rule_id == ".m.rule.suppress_notices"
+            AnyPushRule::Override(ConditionalPushRule { rule_id, .. }) => rule_id
         );
+        assert_eq!(rule_id, ".m.rule.suppress_notices");
 
-        assert!(iter.next().is_none());
+        assert_matches!(iter.next(), None);
     }
 
     #[test]
@@ -822,7 +815,7 @@ mod tests {
 
     #[test]
     fn deserialize_patterned_push_rule() {
-        let rule = from_json_value(json!({
+        let rule = from_json_value::<PatternedPushRule>(json!({
             "actions": [
                 "notify",
                 {
@@ -840,21 +833,18 @@ mod tests {
             "enabled": true
         }))
         .unwrap();
-        assert_matches!(
-            rule,
-            PatternedPushRule {
-                actions: _,
-                default: true,
-                enabled: true,
-                pattern,
-                rule_id,
-            }
-            if pattern == "user_id" && rule_id == ".m.rule.contains_user_name"
-        );
+        assert!(rule.default);
+        assert!(rule.enabled);
+        assert_eq!(rule.pattern, "user_id");
+        assert_eq!(rule.rule_id, ".m.rule.contains_user_name");
 
         let mut iter = rule.actions.iter();
         assert_matches!(iter.next(), Some(Action::Notify));
-        assert_matches!(iter.next(), Some(Action::SetTweak(Tweak::Sound(sound))) if sound == "default");
+        let sound = assert_matches!(
+            iter.next(),
+            Some(Action::SetTweak(Tweak::Sound(sound))) => sound
+        );
+        assert_eq!(sound, "default");
         assert_matches!(iter.next(), Some(Action::SetTweak(Tweak::Highlight(true))));
         assert_matches!(iter.next(), None);
     }
@@ -919,53 +909,53 @@ mod tests {
 
         let rule_opt = iter.next();
         assert!(rule_opt.is_some());
-        assert_matches!(
+        let rule_id = assert_matches!(
             rule_opt.unwrap(),
-            AnyPushRule::Override(ConditionalPushRule { rule_id, .. })
-            if rule_id == "!roomid:server.name"
+            AnyPushRule::Override(ConditionalPushRule { rule_id, .. }) => rule_id
         );
+        assert_eq!(rule_id, "!roomid:server.name");
 
         let rule_opt = iter.next();
         assert!(rule_opt.is_some());
-        assert_matches!(
+        let rule_id = assert_matches!(
             rule_opt.unwrap(),
-            AnyPushRule::Override(ConditionalPushRule { rule_id, .. })
-            if rule_id == ".m.rule.call"
+            AnyPushRule::Override(ConditionalPushRule { rule_id, .. }) => rule_id
         );
+        assert_eq!(rule_id, ".m.rule.call");
 
         let rule_opt = iter.next();
         assert!(rule_opt.is_some());
-        assert_matches!(
+        let rule_id = assert_matches!(
             rule_opt.unwrap(),
-            AnyPushRule::Content(PatternedPushRule { rule_id, .. })
-            if rule_id == ".m.rule.contains_user_name"
+            AnyPushRule::Content(PatternedPushRule { rule_id, .. }) => rule_id
         );
+        assert_eq!(rule_id, ".m.rule.contains_user_name");
 
         let rule_opt = iter.next();
         assert!(rule_opt.is_some());
-        assert_matches!(
+        let rule_id = assert_matches!(
             rule_opt.unwrap(),
-            AnyPushRule::Content(PatternedPushRule { rule_id, .. })
-            if rule_id == "ruma"
+            AnyPushRule::Content(PatternedPushRule { rule_id, .. }) => rule_id
         );
+        assert_eq!(rule_id, "ruma");
 
         let rule_opt = iter.next();
         assert!(rule_opt.is_some());
-        assert_matches!(
+        let rule_id = assert_matches!(
             rule_opt.unwrap(),
-            AnyPushRule::Room(SimplePushRule { rule_id, .. })
-            if rule_id == "!roomid:server.name"
+            AnyPushRule::Room(SimplePushRule { rule_id, .. }) => rule_id
         );
+        assert_eq!(rule_id, "!roomid:server.name");
 
         let rule_opt = iter.next();
         assert!(rule_opt.is_some());
-        assert_matches!(
+        let rule_id = assert_matches!(
             rule_opt.unwrap(),
-            AnyPushRule::Underride(ConditionalPushRule { rule_id, .. })
-            if rule_id == ".m.rule.room_one_to_one"
+            AnyPushRule::Underride(ConditionalPushRule { rule_id, .. }) => rule_id
         );
+        assert_eq!(rule_id, ".m.rule.room_one_to_one");
 
-        assert!(iter.next().is_none());
+        assert_matches!(iter.next(), None);
     }
 
     #[test]
@@ -1179,11 +1169,11 @@ mod tests {
         });
         set.add(three_conditions);
 
-        assert_matches!(
+        let sound = assert_matches!(
             set.get_actions(&message, context_one_to_one),
-            [Action::SetTweak(Tweak::Sound(sound))]
-            if sound == "content"
+            [Action::SetTweak(Tweak::Sound(sound))] => sound
         );
+        assert_eq!(sound, "content");
 
         let new_message = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
@@ -1197,10 +1187,10 @@ mod tests {
         )
         .unwrap();
 
-        assert_matches!(
+        let sound = assert_matches!(
             set.get_actions(&new_message, context_one_to_one),
-            [Action::SetTweak(Tweak::Sound(sound))]
-            if sound == "three"
+            [Action::SetTweak(Tweak::Sound(sound))] => sound
         );
+        assert_eq!(sound, "three");
     }
 }

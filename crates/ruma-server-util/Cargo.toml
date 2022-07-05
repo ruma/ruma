@@ -1,0 +1,25 @@
+[package]
+categories = ["api-bindings", "web-programming"]
+description = "Utilities for implementing Matrix server applications."
+homepage = "https://www.ruma.io/"
+keywords = ["matrix", "chat", "messaging", "ruma"]
+license = "MIT"
+name = "ruma-server-util"
+readme = "README.md"
+repository = "https://github.com/ruma/ruma"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.60"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[dependencies]
+headers = "0.3"
+ruma-common = { version = "0.9.2", path = "../ruma-common" }
+tracing = "0.1.25"
+yap = "0.7.2"
+
+[dev-dependencies]
+tracing-subscriber = "0.3.3"

@@ -6,7 +6,7 @@ use ruma_common::api::error::{FromHttpResponseError, IntoHttpError};
 
 /// An error that can occur during client operations.
 #[derive(Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[non_exhaustive]
 pub enum Error<E, F> {
     /// Queried endpoint requires authentication but was called on an anonymous client.
     AuthenticationRequired,
@@ -30,10 +30,10 @@ impl<E: Display, F: Display> Display for Error<E, F> {
             Self::AuthenticationRequired => {
                 write!(f, "The queried endpoint requires authentication but was called with an anonymous client.")
             }
-            Self::IntoHttp(err) => write!(f, "HTTP request construction failed: {}", err),
-            Self::Url(err) => write!(f, "Invalid URL: {}", err),
-            Self::Response(err) => write!(f, "Couldn't obtain a response: {}", err),
-            Self::FromHttpResponse(err) => write!(f, "HTTP response conversion failed: {}", err),
+            Self::IntoHttp(err) => write!(f, "HTTP request construction failed: {err}"),
+            Self::Url(err) => write!(f, "Invalid URL: {err}"),
+            Self::Response(err) => write!(f, "Couldn't obtain a response: {err}"),
+            Self::FromHttpResponse(err) => write!(f, "HTTP response conversion failed: {err}"),
         }
     }
 }

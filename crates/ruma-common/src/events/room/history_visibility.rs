@@ -79,10 +79,3 @@ pub enum HistoryVisibility {
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
-
-impl HistoryVisibility {
-    /// Creates a string slice from this `HistoryVisibility`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}

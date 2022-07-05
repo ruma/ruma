@@ -1,5 +1,13 @@
 # [unreleased]
 
+Breaking changes:
+
+* Remove `PartialEq` implementation for `Namespace`
+* Remove `push_events::v1::IncomingRequest::try_into_sync_response` and the
+  `helper` Cargo feature that was gating it
+  * This API is no longer being used by the only known consumer
+  * If you were using it, please let us know!
+
 # 0.6.0
 
 Breaking changes:

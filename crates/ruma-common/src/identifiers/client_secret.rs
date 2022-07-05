@@ -30,12 +30,10 @@ impl ClientSecret {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::ClientSecret;
 
     #[test]
     fn valid_secret() {
-        assert!(<&ClientSecret>::try_from("this_=_a_valid_secret_1337").is_ok())
+        <&ClientSecret>::try_from("this_=_a_valid_secret_1337").unwrap();
     }
 }

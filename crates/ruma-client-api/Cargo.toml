@@ -7,8 +7,9 @@ license = "MIT"
 name = "ruma-client-api"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.14.0"
-edition = "2018"
+version = "0.14.1"
+edition = "2021"
+rust-version = "1.60"
 
 [package.metadata.docs.rs]
 all-features = true
@@ -17,8 +18,13 @@ rustdoc-args = ["--cfg", "docsrs"]
 [features]
 compat = []
 unstable-exhaustive-types = []
+unstable-msc2246 = []
+unstable-msc2666 = []
 unstable-msc2448 = []
 unstable-msc2654 = []
+unstable-msc2676 = []
+unstable-msc2677 = []
+unstable-msc2965 = []
 unstable-msc3440 = []
 unstable-msc3488 = []
 unstable-msc3575 = []
@@ -37,4 +43,4 @@ serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.61"
 
 [dev-dependencies]
-matches = "0.1.8"
+assert_matches = "1.5.0"

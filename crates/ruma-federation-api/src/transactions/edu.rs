@@ -318,8 +318,8 @@ impl SigningKeyUpdateContent {
 
 #[cfg(test)]
 mod test {
+    use assert_matches::assert_matches;
     use js_int::uint;
-    use matches::assert_matches;
     use ruma_common::{room_id, user_id};
     use serde_json::json;
 
@@ -364,10 +364,10 @@ mod test {
             prev_id,
             deleted,
             keys,
-        } = match &edu {
-            Edu::DeviceListUpdate(u) => u,
-            _ => panic!("Unexpected Edu variant: {:#?}", edu),
-        };
+        } = assert_matches!(
+            &edu,
+            Edu::DeviceListUpdate(u) => u
+        );
 
         assert_eq!(user_id, "@john:example.com");
         assert_eq!(device_id, "QBUAZIFURK");
@@ -400,10 +400,10 @@ mod test {
             prev_id,
             deleted,
             keys,
-        } = match &edu {
-            Edu::DeviceListUpdate(u) => u,
-            _ => panic!("Unexpected Edu variant: {:#?}", edu),
-        };
+        } = assert_matches!(
+            &edu,
+            Edu::DeviceListUpdate(u) => u
+        );
 
         assert_eq!(user_id, "@john:example.com");
         assert_eq!(device_id, "QBUAZIFURK");
@@ -437,11 +437,11 @@ mod test {
         });
 
         let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
-        assert_matches!(
+        let receipts = assert_matches!(
             &edu,
-            Edu::Receipt(ReceiptContent { receipts })
-                if receipts.get(room_id!("!some_room:example.org")).is_some()
+            Edu::Receipt(ReceiptContent { receipts }) => receipts
         );
+        assert!(receipts.get(room_id!("!some_room:example.org")).is_some());
 
         assert_eq!(serde_json::to_value(&edu).unwrap(), json);
     }
@@ -458,14 +458,13 @@ mod test {
         });
 
         let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
-        assert_matches!(
+        let content = assert_matches!(
             &edu,
-            Edu::Typing(TypingContent {
-                room_id, user_id, typing
-            }) if room_id == "!somewhere:matrix.org"
-                && user_id == "@john:matrix.org"
-                && *typing
+            Edu::Typing(content) => content
         );
+        assert_eq!(content.room_id, "!somewhere:matrix.org");
+        assert_eq!(content.user_id, "@john:matrix.org");
+        assert!(content.typing);
 
         assert_eq!(serde_json::to_value(&edu).unwrap(), json);
     }
@@ -492,15 +491,14 @@ mod test {
         });
 
         let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
-        assert_matches!(
+        let content = assert_matches!(
             &edu,
-            Edu::DirectToDevice(DirectDeviceContent {
-                sender, ev_type, message_id, messages
-            }) if sender == "@john:example.com"
-                && *ev_type == ToDeviceEventType::RoomKeyRequest
-                && message_id == "hiezohf6Hoo7kaev"
-                && messages.get(user_id!("@alice:example.org")).is_some()
+            Edu::DirectToDevice(content) => content
         );
+        assert_eq!(content.sender, "@john:example.com");
+        assert_eq!(content.ev_type, ToDeviceEventType::RoomKeyRequest);
+        assert_eq!(content.message_id, "hiezohf6Hoo7kaev");
+        assert!(content.messages.get(user_id!("@alice:example.org")).is_some());
 
         assert_eq!(serde_json::to_value(&edu).unwrap(), json);
     }
@@ -546,14 +544,13 @@ mod test {
         });
 
         let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
-        assert_matches!(
+        let content = assert_matches!(
             &edu,
-            Edu::SigningKeyUpdate(SigningKeyUpdateContent {
-                user_id,
-                master_key: Some(_),
-                self_signing_key: Some(_),
-            }) if user_id == "@alice:example.com"
+            Edu::SigningKeyUpdate(content) => content
         );
+        assert_eq!(content.user_id, "@alice:example.com");
+        assert!(content.master_key.is_some());
+        assert!(content.self_signing_key.is_some());
 
         assert_eq!(serde_json::to_value(&edu).unwrap(), json);
     }

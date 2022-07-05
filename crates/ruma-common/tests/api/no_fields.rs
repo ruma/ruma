@@ -60,7 +60,7 @@ fn empty_get_request_http_repr() {
         .unwrap();
 
     // ... but GET requests' bodies should be empty.
-    assert!(http_req.body().is_empty());
+    assert_eq!(http_req.body().len(), 0);
 }
 
 #[test]

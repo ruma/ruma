@@ -43,6 +43,12 @@ event_enum! {
         "m.call.invite" => super::call::invite,
         "m.call.hangup" => super::call::hangup,
         "m.call.candidates" => super::call::candidates,
+        #[cfg(feature = "unstable-msc2746")]
+        "m.call.negotiate" => super::call::negotiate,
+        #[cfg(feature = "unstable-msc2746")]
+        "m.call.reject" => super::call::reject,
+        #[cfg(feature = "unstable-msc2746")]
+        "m.call.select_answer" => super::call::select_answer,
         #[cfg(feature = "unstable-msc1767")]
         "m.emote" => super::emote,
         #[cfg(feature = "unstable-msc3551")]
@@ -62,11 +68,19 @@ event_enum! {
         "m.message" => super::message,
         #[cfg(feature = "unstable-msc1767")]
         "m.notice" => super::notice,
+        #[cfg(feature = "unstable-msc3381")]
+        #[ruma_enum(alias = "m.poll.start")]
+        "org.matrix.msc3381.poll.start" => super::poll::start,
+        #[cfg(feature = "unstable-msc3381")]
+        #[ruma_enum(alias = "m.poll.response")]
+        "org.matrix.msc3381.poll.response" => super::poll::response,
+        #[cfg(feature = "unstable-msc3381")]
+        #[ruma_enum(alias = "m.poll.end")]
+        "org.matrix.msc3381.poll.end" => super::poll::end,
         #[cfg(feature = "unstable-msc2677")]
         "m.reaction" => super::reaction,
         "m.room.encrypted" => super::room::encrypted,
         "m.room.message" => super::room::message,
-        "m.room.message.feedback" => super::room::message::feedback,
         "m.room.redaction" => super::room::redaction,
         "m.sticker" => super::sticker,
         #[cfg(feature = "unstable-msc3553")]
@@ -280,6 +294,8 @@ impl AnyMessageLikeEventContent {
             mac::KeyVerificationMacEventContent, ready::KeyVerificationReadyEventContent,
             start::KeyVerificationStartEventContent,
         };
+        #[cfg(feature = "unstable-msc3381")]
+        use super::poll::{end::PollEndEventContent, response::PollResponseEventContent};
 
         match self {
             #[rustfmt::skip]
@@ -325,11 +341,22 @@ impl AnyMessageLikeEventContent {
             Self::Image(ev) => ev.relates_to.clone().map(Into::into),
             #[cfg(feature = "unstable-msc3553")]
             Self::Video(ev) => ev.relates_to.clone().map(Into::into),
+            #[cfg(feature = "unstable-msc3381")]
+            Self::PollResponse(PollResponseEventContent { relates_to, .. })
+            | Self::PollEnd(PollEndEventContent { relates_to, .. }) => {
+                let super::poll::ReferenceRelation { event_id } = relates_to;
+                Some(encrypted::Relation::Reference(encrypted::Reference {
+                    event_id: event_id.clone(),
+                }))
+            }
+            #[cfg(feature = "unstable-msc3381")]
+            Self::PollStart(_) => None,
+            #[cfg(feature = "unstable-msc2746")]
+            Self::CallNegotiate(_) | Self::CallReject(_) | Self::CallSelectAnswer(_) => None,
             Self::CallAnswer(_)
             | Self::CallInvite(_)
             | Self::CallHangup(_)
             | Self::CallCandidates(_)
-            | Self::RoomMessageFeedback(_)
             | Self::RoomRedaction(_)
             | Self::Sticker(_)
             | Self::_Custom { .. } => None,

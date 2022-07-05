@@ -77,7 +77,7 @@ where
     let mut buf = vec![];
     reader
         .read_to_end(&mut buf)
-        .map_err(|e| de::Error::custom(format_args!("could not read input: {}", e)))?;
+        .map_err(|e| de::Error::custom(format_args!("could not read input: {e}")))?;
     from_bytes(&buf)
 }
 

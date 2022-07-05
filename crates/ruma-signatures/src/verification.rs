@@ -1,7 +1,5 @@
 //! Verification of digital signatures.
 
-use std::convert::TryInto;
-
 use ed25519_dalek::{PublicKey, Verifier as _};
 
 use crate::{Error, ParseError, VerificationError};
@@ -24,7 +22,7 @@ pub trait Verifier {
 }
 
 /// A verifier for Ed25519 digital signatures.
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Default)]
 pub struct Ed25519Verifier;
 
 impl Verifier for Ed25519Verifier {
@@ -49,7 +47,7 @@ impl Verifier for Ed25519Verifier {
 /// calculated during verification. This is not necessarily an error condition, as it may indicate
 /// that the event has been redacted. In this case, receiving homeservers should store a redacted
 /// version of the event.
-#[derive(Clone, Debug, Hash, PartialEq)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 #[allow(clippy::exhaustive_enums)]
 pub enum Verified {
     /// All signatures are valid and the content hashes match.

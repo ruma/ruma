@@ -1,5 +1,13 @@
 # [unreleased]
 
+Breaking changes:
+
+* Remove `room_name` module
+  * Room name size limits were never enforced, so they are now just regular
+    `String`s in Ruma ([Spec change removing the size limit][spec])
+
+[spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/3669
+
 # 0.8.1
 
 Improvements:

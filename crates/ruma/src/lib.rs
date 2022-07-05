@@ -10,6 +10,9 @@
 //! > ⚠ Some details might be missing because rustdoc has trouble with re-exports so you may need
 //! > to refer to other crates' documentations.
 //!
+//! > 🛈 For internal consistency, ruma uses American spelling for variable names. Actual values may
+//! > differ, as the matrix specification has a mix of British and American English.
+//!
 //! # API features
 //!
 //! Depending on which parts of Matrix are relevant to you, activate the following features:
@@ -34,7 +37,6 @@
 //!
 //! These features are only useful if you want to use a method that requires it:
 //!
-//! * `either`
 //! * `rand`
 //! * `markdown`
 //!
@@ -48,6 +50,8 @@
 //! * `unstable-mscXXXX`, where `XXXX` is the MSC number -- Upcoming Matrix features that may be
 //!   subject to change or removal.
 //! * `unstable-pre-spec` -- Undocumented Matrix features that may be subject to change or removal.
+//! * `unstable-sanitize` -- Convenience methods for spec-compliant HTML sanitization that have not
+//!   been thoroughly tested.
 //!
 //! # Common features
 //!
@@ -69,9 +73,6 @@
 
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
-
-#[doc(inline)]
-pub use ruma_common::serde;
 
 #[cfg(feature = "client")]
 #[doc(inline)]
@@ -160,14 +161,17 @@ pub use ruma_client::Client;
 pub use ruma_common::{
     authentication, device_id, device_key_id, directory, encryption, event_id, exports, matrix_uri,
     mxc_uri, power_levels, presence, push, receipt, room, room_alias_id, room_id, room_version_id,
-    serde::Incoming, server_name, server_signing_key_id, thirdparty, to_device, user_id,
-    ClientSecret, DeviceId, DeviceKeyAlgorithm, DeviceKeyId, DeviceSignatures, DeviceSigningKeyId,
+    serde, server_name, server_signing_key_id, thirdparty, to_device, user_id, ClientSecret,
+    DeviceId, DeviceKeyAlgorithm, DeviceKeyId, DeviceSignatures, DeviceSigningKeyId,
     EntitySignatures, EventEncryptionAlgorithm, EventId, IdParseError, KeyId, KeyName, MatrixToUri,
     MatrixUri, MilliSecondsSinceUnixEpoch, MxcUri, OwnedClientSecret, OwnedDeviceId,
     OwnedDeviceKeyId, OwnedDeviceSigningKeyId, OwnedEventId, OwnedKeyId, OwnedKeyName, OwnedMxcUri,
-    OwnedRoomAliasId, OwnedRoomId, OwnedRoomName, OwnedRoomOrAliasId, OwnedServerName,
-    OwnedServerSigningKeyId, OwnedSessionId, OwnedSigningKeyId, OwnedTransactionId, OwnedUserId,
-    PrivOwnedStr, RoomAliasId, RoomId, RoomName, RoomOrAliasId, RoomVersionId,
-    SecondsSinceUnixEpoch, ServerName, ServerSignatures, ServerSigningKeyId, SessionId, Signatures,
-    SigningKeyAlgorithm, TransactionId, UserId,
+    OwnedRoomAliasId, OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName, OwnedServerSigningKeyId,
+    OwnedSessionId, OwnedSigningKeyId, OwnedTransactionId, OwnedUserId, PrivOwnedStr, RoomAliasId,
+    RoomId, RoomOrAliasId, RoomVersionId, SecondsSinceUnixEpoch, ServerName, ServerSignatures,
+    ServerSigningKeyId, SessionId, Signatures, SigningKeyAlgorithm, TransactionId, UserId,
+};
+#[cfg(feature = "canonical-json")]
+pub use ruma_common::{
+    canonical_json, CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue,
 };

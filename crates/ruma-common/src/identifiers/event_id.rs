@@ -19,7 +19,6 @@ use super::ServerName;
 /// format.
 ///
 /// ```
-/// # use std::convert::TryFrom;
 /// # use ruma_common::EventId;
 /// // Original format
 /// assert_eq!(<&EventId>::try_from("$h29iv0s8:example.com").unwrap(), "$h29iv0s8:example.com");
@@ -78,8 +77,6 @@ impl EventId {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::{EventId, OwnedEventId};
     use crate::IdParseError;
 
@@ -97,7 +94,7 @@ mod tests {
             <&EventId>::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk")
                 .expect("Failed to create EventId."),
             "$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk"
-        )
+        );
     }
 
     #[test]
@@ -106,7 +103,7 @@ mod tests {
             <&EventId>::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg")
                 .expect("Failed to create EventId."),
             "$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg"
-        )
+        );
     }
 
     #[cfg(feature = "rand")]

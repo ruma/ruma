@@ -22,120 +22,93 @@ use crate::{
 #[ruma_event(type = "m.room.power_levels", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomPowerLevelsEventContent {
     /// The level required to ban a user.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
-    #[cfg_attr(
-        feature = "compat",
-        serde(deserialize_with = "crate::serde::deserialize_v1_powerlevel")
+    #[serde(
+        default = "default_power_level",
+        skip_serializing_if = "is_default_power_level",
+        deserialize_with = "crate::serde::deserialize_v1_powerlevel"
     )]
-    #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     #[ruma_event(skip_redaction)]
     pub ban: Int,
 
     /// The level required to send specific event types.
     ///
     /// This is a mapping from event type to power level required.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
-    #[cfg_attr(
-        feature = "compat",
-        serde(deserialize_with = "crate::serde::btreemap_deserialize_v1_powerlevel_values")
+    #[serde(
+        default,
+        skip_serializing_if = "BTreeMap::is_empty",
+        deserialize_with = "crate::serde::btreemap_deserialize_v1_powerlevel_values"
     )]
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     #[ruma_event(skip_redaction)]
     pub events: BTreeMap<RoomEventType, Int>,
 
     /// The default level required to send message events.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
-    #[cfg_attr(
-        feature = "compat",
-        serde(deserialize_with = "crate::serde::deserialize_v1_powerlevel")
+    #[serde(
+        default,
+        skip_serializing_if = "crate::serde::is_default",
+        deserialize_with = "crate::serde::deserialize_v1_powerlevel"
     )]
-    #[serde(default, skip_serializing_if = "crate::serde::is_default")]
     #[ruma_event(skip_redaction)]
     pub events_default: Int,
 
     /// The level required to invite a user.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
-    #[cfg_attr(
-        feature = "compat",
-        serde(deserialize_with = "crate::serde::deserialize_v1_powerlevel")
+    #[serde(
+        default,
+        skip_serializing_if = "crate::serde::is_default",
+        deserialize_with = "crate::serde::deserialize_v1_powerlevel"
     )]
-    #[serde(default, skip_serializing_if = "crate::serde::is_default")]
     pub invite: Int,
 
     /// The level required to kick a user.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
-    #[cfg_attr(
-        feature = "compat",
-        serde(deserialize_with = "crate::serde::deserialize_v1_powerlevel")
+    #[serde(
+        default = "default_power_level",
+        skip_serializing_if = "is_default_power_level",
+        deserialize_with = "crate::serde::deserialize_v1_powerlevel"
     )]
-    #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     #[ruma_event(skip_redaction)]
     pub kick: Int,
 
     /// The level required to redact an event.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
-    #[cfg_attr(
-        feature = "compat",
-        serde(deserialize_with = "crate::serde::deserialize_v1_powerlevel")
+    #[serde(
+        default = "default_power_level",
+        skip_serializing_if = "is_default_power_level",
+        deserialize_with = "crate::serde::deserialize_v1_powerlevel"
     )]
-    #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     #[ruma_event(skip_redaction)]
     pub redact: Int,
 
     /// The default level required to send state events.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
-    #[cfg_attr(
-        feature = "compat",
-        serde(deserialize_with = "crate::serde::deserialize_v1_powerlevel")
+    #[serde(
+        default = "default_power_level",
+        skip_serializing_if = "is_default_power_level",
+        deserialize_with = "crate::serde::deserialize_v1_powerlevel"
     )]
-    #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     #[ruma_event(skip_redaction)]
     pub state_default: Int,
 
     /// The power levels for specific users.
     ///
     /// This is a mapping from `user_id` to power level for that user.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
-    #[cfg_attr(
-        feature = "compat",
-        serde(deserialize_with = "crate::serde::btreemap_deserialize_v1_powerlevel_values")
+    #[serde(
+        default,
+        skip_serializing_if = "BTreeMap::is_empty",
+        deserialize_with = "crate::serde::btreemap_deserialize_v1_powerlevel_values"
     )]
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     #[ruma_event(skip_redaction)]
     pub users: BTreeMap<OwnedUserId, Int>,
 
     /// The default power level for every user in the room.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
-    #[cfg_attr(
-        feature = "compat",
-        serde(deserialize_with = "crate::serde::deserialize_v1_powerlevel")
+    #[serde(
+        default,
+        skip_serializing_if = "crate::serde::is_default",
+        deserialize_with = "crate::serde::deserialize_v1_powerlevel"
     )]
-    #[serde(default, skip_serializing_if = "crate::serde::is_default")]
     #[ruma_event(skip_redaction)]
     pub users_default: Int,
 
     /// The power level requirements for specific notification types.
     ///
     /// This is a mapping from `key` to power level for that notifications key.
-    #[serde(default, skip_serializing_if = "crate::serde::is_default")]
+    #[serde(default, skip_serializing_if = "NotificationPowerLevels::is_default")]
     pub notifications: NotificationPowerLevels,
 }
 

@@ -1,6 +1,7 @@
-use std::{collections::BTreeMap, convert::TryFrom, ops::RangeBounds, str::FromStr};
+use std::{collections::BTreeMap, ops::RangeBounds, str::FromStr};
 
 use js_int::{Int, UInt};
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::{to_value as to_json_value, value::Value as JsonValue};
 use tracing::{instrument, warn};
@@ -147,7 +148,7 @@ trait CharExt {
 
 impl CharExt for char {
     fn is_word_char(&self) -> bool {
-        self.is_alphanumeric() || *self == '_'
+        self.is_ascii_alphanumeric() || *self == '_'
     }
 }
 
@@ -169,17 +170,27 @@ trait StrExt {
 
     /// Matches this string against `pattern`.
     ///
+    /// The pattern can be a glob with wildcards `*` and `?`.
+    ///
     /// The match is case insensitive.
     ///
-    /// If `match_words` is `true`, looks for `pattern` as a substring of `self`,
-    /// and checks that it is separated from other words. Otherwise, checks
-    /// `pattern` as a glob with wildcards `*` and `?`.
+    /// If `match_words` is `true`, checks that the pattern is separated from other words.
     fn matches_pattern(&self, pattern: &str, match_words: bool) -> bool;
 
     /// Matches this string against `pattern`, with word boundaries.
     ///
+    /// The pattern can be a glob with wildcards `*` and `?`.
+    ///
+    /// A word boundary is defined as the start or end of the value, or any character not in the
+    /// sets `[A-Z]`, `[a-z]`, `[0-9]` or `_`.
+    ///
     /// The match is case sensitive.
     fn matches_word(&self, pattern: &str) -> bool;
+
+    /// Translate the wildcards in `self` to a regex syntax.
+    ///
+    /// `self` must only contain wildcards.
+    fn wildcards_to_regex(&self) -> String;
 }
 
 impl StrExt for str {
@@ -229,40 +240,91 @@ impl StrExt for str {
             return false;
         }
 
-        match self.find(pattern) {
-            Some(start) => {
-                let end = start + pattern.len();
+        let has_wildcards = pattern.contains(|c| matches!(c, '?' | '*'));
 
-                // Look if the match has word boundaries.
-                let word_boundary_start = !self.char_at(start).is_word_char()
-                    || self.find_prev_char(start).map_or(true, |c| !c.is_word_char());
+        if has_wildcards {
+            let mut chunks: Vec<String> = vec![];
+            let mut prev_wildcard = false;
+            let mut chunk_start = 0;
 
-                if word_boundary_start {
-                    let word_boundary_end = end == self.len()
-                        || !self.find_prev_char(end).unwrap().is_word_char()
-                        || !self.char_at(end).is_word_char();
-
-                    if word_boundary_end {
-                        return true;
+            for (i, c) in pattern.char_indices() {
+                if matches!(c, '?' | '*') && !prev_wildcard {
+                    if i != 0 {
+                        chunks.push(regex::escape(&pattern[chunk_start..i]));
+                        chunk_start = i;
                     }
+
+                    prev_wildcard = true;
+                } else if prev_wildcard {
+                    let chunk = &pattern[chunk_start..i];
+                    chunks.push(chunk.wildcards_to_regex());
+
+                    chunk_start = i;
+                    prev_wildcard = false;
                 }
-
-                // Find next word.
-                let non_word_str = &self[start..];
-                let non_word = match non_word_str.find(|c: char| !c.is_word_char()) {
-                    Some(pos) => pos,
-                    None => return false,
-                };
-
-                let word_str = &non_word_str[non_word..];
-                let word = match word_str.find(|c: char| c.is_word_char()) {
-                    Some(pos) => pos,
-                    None => return false,
-                };
-
-                word_str[word..].matches_word(pattern)
             }
-            None => false,
+
+            let len = pattern.len();
+            if !prev_wildcard {
+                chunks.push(regex::escape(&pattern[chunk_start..len]));
+            } else if prev_wildcard {
+                let chunk = &pattern[chunk_start..len];
+                chunks.push(chunk.wildcards_to_regex());
+            }
+
+            // The word characters in ASCII compatible mode (with the `-u` flag) match the
+            // definition in the spec: any character not in the set `[A-Za-z0-9_]`.
+            let regex = format!(r"(?-u:^|\W|\b){}(?-u:\b|\W|$)", chunks.concat());
+            Regex::new(&regex).ok().filter(|re| re.is_match(self)).is_some()
+        } else {
+            match self.find(pattern) {
+                Some(start) => {
+                    let end = start + pattern.len();
+
+                    // Look if the match has word boundaries.
+                    let word_boundary_start = !self.char_at(start).is_word_char()
+                        || self.find_prev_char(start).map_or(true, |c| !c.is_word_char());
+
+                    if word_boundary_start {
+                        let word_boundary_end = end == self.len()
+                            || !self.find_prev_char(end).unwrap().is_word_char()
+                            || !self.char_at(end).is_word_char();
+
+                        if word_boundary_end {
+                            return true;
+                        }
+                    }
+
+                    // Find next word.
+                    let non_word_str = &self[start..];
+                    let non_word = match non_word_str.find(|c: char| !c.is_word_char()) {
+                        Some(pos) => pos,
+                        None => return false,
+                    };
+
+                    let word_str = &non_word_str[non_word..];
+                    let word = match word_str.find(|c: char| c.is_word_char()) {
+                        Some(pos) => pos,
+                        None => return false,
+                    };
+
+                    word_str[word..].matches_word(pattern)
+                }
+                None => false,
+            }
+        }
+    }
+
+    fn wildcards_to_regex(&self) -> String {
+        // Simplify pattern to avoid performance issues:
+        // - The glob `?**?**?` is equivalent to the glob `???*`
+        // - The glob `???*` is equivalent to the regex `.{3,}`
+        let question_marks = self.matches('?').count();
+
+        if self.contains('*') {
+            format!(".{{{question_marks},}}")
+        } else {
+            format!(".{{{question_marks}}}")
         }
     }
 }
@@ -288,13 +350,13 @@ impl FlattenedJson {
         match value {
             JsonValue::Object(fields) => {
                 for (key, value) in fields {
-                    let path = if path.is_empty() { key } else { format!("{}.{}", path, key) };
+                    let path = if path.is_empty() { key } else { format!("{path}.{key}") };
                     self.flatten_value(value, path);
                 }
             }
             JsonValue::String(s) => {
                 if self.map.insert(path.clone(), s).is_some() {
-                    warn!("Duplicate path in flattened JSON: {}", path);
+                    warn!("Duplicate path in flattened JSON: {path}");
                 }
             }
             JsonValue::Number(_) | JsonValue::Bool(_) | JsonValue::Array(_) | JsonValue::Null => {}
@@ -311,16 +373,15 @@ impl FlattenedJson {
 mod tests {
     use std::collections::BTreeMap;
 
-    use crate::{room_id, serde::Raw, user_id};
+    use assert_matches::assert_matches;
     use js_int::{int, uint};
     use maplit::btreemap;
-    use matches::assert_matches;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
 
     use super::{FlattenedJson, PushCondition, PushConditionRoomCtx, RoomMemberCountIs, StrExt};
-    use crate::power_levels::NotificationPowerLevels;
+    use crate::{power_levels::NotificationPowerLevels, room_id, serde::Raw, user_id};
 
     #[test]
     fn serialize_event_match_condition() {
@@ -382,11 +443,12 @@ mod tests {
             "kind": "event_match",
             "pattern": "m.notice"
         });
-        assert_matches!(
+        let (key, pattern) = assert_matches!(
             from_json_value::<PushCondition>(json_data).unwrap(),
-            PushCondition::EventMatch { key, pattern }
-            if key == "content.msgtype" && pattern == "m.notice"
+            PushCondition::EventMatch { key, pattern } => (key, pattern)
         );
+        assert_eq!(key, "content.msgtype");
+        assert_eq!(pattern, "m.notice");
     }
 
     #[test]
@@ -403,11 +465,11 @@ mod tests {
             "is": "2",
             "kind": "room_member_count"
         });
-        assert_matches!(
+        let is = assert_matches!(
             from_json_value::<PushCondition>(json_data).unwrap(),
-            PushCondition::RoomMemberCount { is }
-            if is == RoomMemberCountIs::from(uint!(2))
+            PushCondition::RoomMemberCount { is } => is
         );
+        assert_eq!(is, RoomMemberCountIs::from(uint!(2)));
     }
 
     #[test]
@@ -416,12 +478,11 @@ mod tests {
             "key": "room",
             "kind": "sender_notification_permission"
         });
-        assert_matches!(
+        let key = assert_matches!(
             from_json_value::<PushCondition>(json_data).unwrap(),
-            PushCondition::SenderNotificationPermission {
-                key
-            } if key == "room"
+            PushCondition::SenderNotificationPermission { key } => key
         );
+        assert_eq!(key, "room");
     }
 
     #[test]
@@ -444,17 +505,50 @@ mod tests {
         assert!("Ruma Dev👩‍💻".matches_word("Dev"));
         assert!("Ruma Dev👩‍💻".matches_word("👩‍💻"));
         assert!("Ruma Dev👩‍💻".matches_word("Dev👩‍💻"));
+
+        // Regex syntax is escaped
+        assert!(!"matrix".matches_word(r"\w*"));
+        assert!(r"\w".matches_word(r"\w*"));
+        assert!(!"matrix".matches_word("[a-z]*"));
+        assert!("[a-z] and [0-9]".matches_word("[a-z]*"));
+        assert!(!"m".matches_word("[[:alpha:]]?"));
+        assert!("[[:alpha:]]!".matches_word("[[:alpha:]]?"));
+
+        // From the spec: <https://spec.matrix.org/v1.3/client-server-api/#conditions-1>
+        assert!("An example event.".matches_word("ex*ple"));
+        assert!("exple".matches_word("ex*ple"));
+        assert!("An exciting triple-whammy".matches_word("ex*ple"));
     }
 
     #[test]
     fn patterns_match() {
-        // Word matching
+        // Word matching without glob
         assert!("foo bar".matches_pattern("foo", true));
         assert!("Foo bar".matches_pattern("foo", true));
         assert!(!"foobar".matches_pattern("foo", true));
-        assert!(!"foo bar".matches_pattern("foo*", true));
         assert!("".matches_pattern("", true));
         assert!(!"foo".matches_pattern("", true));
+        assert!("foo bar".matches_pattern("foo bar", true));
+        assert!(" foo bar ".matches_pattern("foo bar", true));
+        assert!("baz foo bar baz".matches_pattern("foo bar", true));
+        assert!("foo baré".matches_pattern("foo bar", true));
+        assert!(!"bar foo".matches_pattern("foo bar", true));
+        assert!("foo bar".matches_pattern("foo ", true));
+        assert!("foo ".matches_pattern("foo ", true));
+        assert!("foo  ".matches_pattern("foo ", true));
+        assert!(" foo  ".matches_pattern("foo ", true));
+
+        // Word matching with glob
+        assert!("foo bar".matches_pattern("foo*", true));
+        assert!("foo bar".matches_pattern("foo b?r", true));
+        assert!(" foo bar ".matches_pattern("foo b?r", true));
+        assert!("baz foo bar baz".matches_pattern("foo b?r", true));
+        assert!("foo baré".matches_pattern("foo b?r", true));
+        assert!(!"bar foo".matches_pattern("foo b?r", true));
+        assert!("foo bar".matches_pattern("f*o ", true));
+        assert!("foo ".matches_pattern("f*o ", true));
+        assert!("foo  ".matches_pattern("f*o ", true));
+        assert!(" foo  ".matches_pattern("f*o ", true));
 
         // Glob matching
         assert!(!"foo bar".matches_pattern("foo", false));
@@ -468,6 +562,12 @@ mod tests {
         assert!("".matches_pattern("", false));
         assert!("".matches_pattern("*", false));
         assert!(!"foo".matches_pattern("", false));
+
+        // From the spec: <https://spec.matrix.org/v1.3/client-server-api/#conditions-1>
+        assert!("Lunch plans".matches_pattern("lunc?*", false));
+        assert!("LUNCH".matches_pattern("lunc?*", false));
+        assert!(!" lunch".matches_pattern("lunc?*", false));
+        assert!(!"lunc".matches_pattern("lunc?*", false));
     }
 
     #[test]

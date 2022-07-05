@@ -30,6 +30,10 @@ pub enum Error {
     #[error("invalid Matrix Content URI: {0}")]
     InvalidMxcUri(#[from] MxcUriError),
 
+    /// The value isn't a valid VoIP version Id.
+    #[error("invalid VoIP version ID: {0}")]
+    InvalidVoipVersionId(#[from] VoipVersionIdError),
+
     /// The server name part of the the ID string is not a valid server name.
     #[error("server name is not a valid IP address or domain name")]
     InvalidServerName,
@@ -147,6 +151,15 @@ pub enum MatrixUriError {
     /// The string contains an unknown query item.
     #[error("unknown query item")]
     UnknownQueryItem,
+}
+
+/// An error occurred while validating a `VoipVersionId`.
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, thiserror::Error)]
+#[non_exhaustive]
+pub enum VoipVersionIdError {
+    /// The value of the `UInt` is not 0.
+    #[error("UInt value is not 0")]
+    WrongUintValue,
 }
 
 #[cfg(test)]

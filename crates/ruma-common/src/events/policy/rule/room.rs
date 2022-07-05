@@ -17,8 +17,6 @@ pub struct PolicyRuleRoomEventContent(pub PolicyRuleEventContent);
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryInto;
-
     use js_int::int;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -89,9 +87,6 @@ mod tests {
             }
         });
 
-        assert!(from_json_value::<Raw<OriginalPolicyRuleRoomEvent>>(json)
-            .unwrap()
-            .deserialize()
-            .is_ok());
+        from_json_value::<Raw<OriginalPolicyRuleRoomEvent>>(json).unwrap().deserialize().unwrap();
     }
 }

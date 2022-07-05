@@ -115,7 +115,7 @@ impl fmt::Display for RoomMemberCountIs {
             Op::Le => "<=",
         };
 
-        write!(f, "{}{}", prefix, self.count)
+        write!(f, "{prefix}{}", self.count)
     }
 }
 

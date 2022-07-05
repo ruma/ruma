@@ -60,7 +60,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Error::Custom(ref msg) => msg.fmt(f),
-            Error::Utf8(ref err) => write!(f, "invalid UTF-8: {}", err),
+            Error::Utf8(ref err) => write!(f, "invalid UTF-8: {err}"),
         }
     }
 }
@@ -85,7 +85,7 @@ impl error::Error for Error {
 
 impl ser::Error for Error {
     fn custom<T: fmt::Display>(msg: T) -> Self {
-        Error::Custom(format!("{}", msg).into())
+        Error::Custom(format!("{msg}").into())
     }
 }
 

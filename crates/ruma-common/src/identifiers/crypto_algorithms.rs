@@ -57,7 +57,6 @@ pub enum EventEncryptionAlgorithm {
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[non_exhaustive]
-#[cfg_attr(feature = "serde", derive(DeserializeFromCowStr, SerializeAsRefStr))]
 pub enum KeyDerivationAlgorithm {
     /// PBKDF2
     #[ruma_enum(rename = "m.pbkdf2")]

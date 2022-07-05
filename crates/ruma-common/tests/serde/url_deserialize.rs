@@ -1,5 +1,5 @@
+use assert_matches::assert_matches;
 use form_urlencoded::Serializer as Encoder;
-use matches::assert_matches;
 use ruma_common::serde::urlencoded;
 use serde::Deserialize;
 
@@ -52,7 +52,7 @@ fn deserialize_unit() {
     assert_eq!(urlencoded::from_str(""), Ok(()));
     assert_eq!(urlencoded::from_str("&"), Ok(()));
     assert_eq!(urlencoded::from_str("&&"), Ok(()));
-    assert!(urlencoded::from_str::<()>("first=23").is_err());
+    urlencoded::from_str::<()>("first=23").unwrap_err();
 }
 
 #[derive(Deserialize, Debug, PartialEq, Eq)]
@@ -100,7 +100,7 @@ fn deserialize_list_of_str() {
         Err(error) if error.to_string().contains("unsupported")
     );
 
-    assert_eq!(urlencoded::from_str("a=a&a=b"), Ok(vec![("a", vec!["a", "b"])]))
+    assert_eq!(urlencoded::from_str("a=a&a=b"), Ok(vec![("a", vec!["a", "b"])]));
 }
 
 #[test]
@@ -149,7 +149,7 @@ fn deserialize_with_serde_attributes() {
 
 #[test]
 fn deserialize_nested_list() {
-    assert!(urlencoded::from_str::<Vec<(&str, Vec<Vec<bool>>)>>("a=b").is_err());
+    urlencoded::from_str::<Vec<(&str, Vec<Vec<bool>>)>>("a=b").unwrap_err();
 }
 
 #[test]

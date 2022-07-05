@@ -4,8 +4,6 @@
 // FIXME: Remove once lint doesn't trigger on std::convert::TryFrom in identifiers/macros.rs anymore
 #![allow(unused_qualifications)]
 
-use std::convert::TryFrom;
-
 use serde::de::{self, Deserializer, Unexpected};
 
 #[doc(inline)]
@@ -26,7 +24,6 @@ pub use self::{
     mxc_uri::{MxcUri, OwnedMxcUri},
     room_alias_id::{OwnedRoomAliasId, RoomAliasId},
     room_id::{OwnedRoomId, RoomId},
-    room_name::{OwnedRoomName, RoomName},
     room_or_room_alias_id::{OwnedRoomOrAliasId, RoomOrAliasId},
     room_version_id::RoomVersionId,
     server_name::{OwnedServerName, ServerName},
@@ -34,9 +31,14 @@ pub use self::{
     signatures::{DeviceSignatures, EntitySignatures, ServerSignatures, Signatures},
     transaction_id::{OwnedTransactionId, TransactionId},
     user_id::{OwnedUserId, UserId},
+    voip_id::{OwnedVoipId, VoipId},
+    voip_version_id::VoipVersionId,
 };
 #[doc(inline)]
-pub use ruma_identifiers_validation::error::Error as IdParseError;
+pub use ruma_identifiers_validation::error::{
+    Error as IdParseError, MatrixIdError, MatrixToError, MatrixUriError, MxcUriError,
+    VoipVersionIdError,
+};
 
 pub mod matrix_uri;
 pub mod user_id;
@@ -51,13 +53,14 @@ mod key_name;
 mod mxc_uri;
 mod room_alias_id;
 mod room_id;
-mod room_name;
 mod room_or_room_alias_id;
 mod room_version_id;
 mod server_name;
 mod session_id;
 mod signatures;
 mod transaction_id;
+mod voip_id;
+mod voip_version_id;
 
 /// Generates a random identifier localpart.
 #[cfg(feature = "rand")]
@@ -156,6 +159,19 @@ macro_rules! server_name {
     ($s:literal) => {
         $crate::_macros::server_name!($crate, $s)
     };
+}
+
+/// Compile-time checked `SessionId` construction.
+#[macro_export]
+macro_rules! session_id {
+    ($s:literal) => {{
+        const SESSION_ID: &$crate::SessionId = match $crate::SessionId::_priv_const_new($s) {
+            Ok(id) => id,
+            Err(e) => panic!("{}", e),
+        };
+
+        SESSION_ID
+    }};
 }
 
 /// Compile-time checked `MxcUri` construction.

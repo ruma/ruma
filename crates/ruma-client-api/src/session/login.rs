@@ -5,6 +5,8 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3login
 
+    use std::time::Duration;
+
     use ruma_common::{
         api::ruma_api,
         serde::{Incoming, JsonObject},
@@ -44,6 +46,17 @@ pub mod v3 {
             /// Ignored if `device_id` corresponds to a known device.
             #[serde(skip_serializing_if = "Option::is_none")]
             pub initial_device_display_name: Option<&'a str>,
+
+            /// If set to `true`, the client supports [refresh tokens].
+            ///
+            /// [refresh tokens]: https://spec.matrix.org/v1.3/client-server-api/#refreshing-access-tokens
+            #[serde(
+                default,
+                skip_serializing_if = "ruma_common::serde::is_default",
+                rename = "org.matrix.msc2918.refresh_token",
+                alias = "refresh_token",
+            )]
+            pub refresh_token: bool,
         }
 
         response: {
@@ -71,6 +84,31 @@ pub mod v3 {
             /// If present, clients SHOULD use the provided object to reconfigure themselves.
             #[serde(skip_serializing_if = "Option::is_none")]
             pub well_known: Option<DiscoveryInfo>,
+
+            /// A [refresh token] for the account.
+            ///
+            /// This token can be used to obtain a new access token when it expires by calling the
+            /// [`refresh_token`] endpoint.
+            ///
+            /// [refresh token]: https://spec.matrix.org/v1.3/client-server-api/#refreshing-access-tokens
+            /// [`refresh_token`]: crate::session::refresh_token
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub refresh_token: Option<String>,
+
+            /// The lifetime of the access token, in milliseconds.
+            ///
+            /// Once the access token has expired, a new access token can be obtained by using the
+            /// provided refresh token. If no refresh token is provided, the client will need to
+            /// re-login to obtain a new access token.
+            ///
+            /// If this is `None`, the client can assume that the access token will not expire.
+            #[serde(
+                with = "ruma_common::serde::duration::opt_ms",
+                default,
+                skip_serializing_if = "Option::is_none",
+                rename = "expires_in_ms",
+            )]
+            pub expires_in: Option<Duration>,
         }
 
         error: crate::Error
@@ -79,14 +117,27 @@ pub mod v3 {
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given login info.
         pub fn new(login_info: LoginInfo<'a>) -> Self {
-            Self { login_info, device_id: None, initial_device_display_name: None }
+            Self {
+                login_info,
+                device_id: None,
+                initial_device_display_name: None,
+                refresh_token: false,
+            }
         }
     }
 
     impl Response {
         /// Creates a new `Response` with the given user ID, access token and device ID.
         pub fn new(user_id: OwnedUserId, access_token: String, device_id: OwnedDeviceId) -> Self {
-            Self { user_id, access_token, home_server: None, device_id, well_known: None }
+            Self {
+                user_id,
+                access_token,
+                home_server: None,
+                device_id,
+                well_known: None,
+                refresh_token: None,
+                expires_in: None,
+            }
         }
     }
 
@@ -320,15 +371,15 @@ pub mod v3 {
 
     #[cfg(test)]
     mod tests {
-        use matches::assert_matches;
+        use assert_matches::assert_matches;
         use serde_json::{from_value as from_json_value, json};
 
-        use super::{IncomingLoginInfo, IncomingPassword, IncomingToken};
+        use super::{IncomingLoginInfo, IncomingToken};
         use crate::uiaa::IncomingUserIdentifier;
 
         #[test]
         fn deserialize_login_type() {
-            assert_matches!(
+            let login = assert_matches!(
                 from_json_value(json!({
                     "type": "m.login.password",
                     "identifier": {
@@ -338,28 +389,30 @@ pub mod v3 {
                     "password": "ilovebananas"
                 }))
                 .unwrap(),
-                IncomingLoginInfo::Password(IncomingPassword { identifier: IncomingUserIdentifier::UserIdOrLocalpart(user), password })
-                if user == "cheeky_monkey" && password == "ilovebananas"
+                IncomingLoginInfo::Password(login) => login
             );
+            let user = assert_matches!(
+                login.identifier,
+                IncomingUserIdentifier::UserIdOrLocalpart(user) => user
+            );
+            assert_eq!(user, "cheeky_monkey");
+            assert_eq!(login.password, "ilovebananas");
 
-            assert_matches!(
+            let token = assert_matches!(
                 from_json_value(json!({
                     "type": "m.login.token",
                     "token": "1234567890abcdef"
                 }))
                 .unwrap(),
-                IncomingLoginInfo::Token(IncomingToken { token })
-                if token == "1234567890abcdef"
+                IncomingLoginInfo::Token(IncomingToken { token }) => token
             );
+            assert_eq!(token, "1234567890abcdef");
         }
 
         #[test]
         #[cfg(feature = "client")]
         fn serialize_login_request_body() {
-            use ruma_common::{
-                api::{MatrixVersion, OutgoingRequest, SendAccessToken},
-                thirdparty::Medium,
-            };
+            use ruma_common::api::{MatrixVersion, OutgoingRequest, SendAccessToken};
             use serde_json::Value as JsonValue;
 
             use super::{LoginInfo, Password, Request, Token};
@@ -369,6 +422,7 @@ pub mod v3 {
                 login_info: LoginInfo::Token(Token { token: "0xdeadbeef" }),
                 device_id: None,
                 initial_device_display_name: Some("test"),
+                refresh_token: false,
             }
             .try_into_http_request(
                 "https://homeserver.tld",
@@ -389,14 +443,12 @@ pub mod v3 {
 
             let req: http::Request<Vec<u8>> = Request {
                 login_info: LoginInfo::Password(Password {
-                    identifier: UserIdentifier::ThirdPartyId {
-                        address: "hello@example.com",
-                        medium: Medium::Email,
-                    },
+                    identifier: UserIdentifier::Email { address: "hello@example.com" },
                     password: "deadbeef",
                 }),
                 device_id: None,
                 initial_device_display_name: Some("test"),
+                refresh_token: false,
             }
             .try_into_http_request(
                 "https://homeserver.tld",

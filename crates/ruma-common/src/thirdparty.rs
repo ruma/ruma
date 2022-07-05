@@ -234,13 +234,6 @@ pub enum Medium {
     _Custom(PrivOwnedStr),
 }
 
-impl Medium {
-    /// Creates a string slice from this `Medium`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 /// An identifier external to Matrix.
 ///
 /// To create an instance of this type, first create a `ThirdPartyIdentifierInit` and convert it to
@@ -291,8 +284,6 @@ impl From<ThirdPartyIdentifierInit> for ThirdPartyIdentifier {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryInto;
-
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{Medium, ThirdPartyIdentifier};

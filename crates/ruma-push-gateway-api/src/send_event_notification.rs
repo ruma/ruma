@@ -8,13 +8,13 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/push-gateway-api/#post_matrixpushv1notify
 
-    use js_int::UInt;
+    use js_int::{uint, UInt};
     use ruma_common::{
         api::ruma_api,
         events::RoomEventType,
         push::{PushFormat, Tweak},
         serde::{Incoming, StringEnum},
-        EventId, RoomAliasId, RoomId, RoomName, SecondsSinceUnixEpoch, UserId,
+        EventId, RoomAliasId, RoomId, SecondsSinceUnixEpoch, UserId,
     };
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
@@ -98,7 +98,7 @@ pub mod v1 {
 
         /// The name of the room in which the event occurred.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_name: Option<&'a RoomName>,
+        pub room_name: Option<&'a str>,
 
         /// An alias to display for the room in which the event occurred.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -126,7 +126,7 @@ pub mod v1 {
         /// Current number of unacknowledged communications for the recipient user.
         ///
         /// Counts whose value is zero should be omitted.
-        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        #[serde(default, skip_serializing_if = "NotificationCounts::is_default")]
         pub counts: NotificationCounts,
 
         /// An array of devices that the notification should be sent to.
@@ -146,7 +146,7 @@ pub mod v1 {
     /// notifications in a way that will preserve battery power on mobile devices.
     ///
     /// This type can hold an arbitrary string. To build this with a custom value, convert it from a
-    /// string with `::from() / .into()`. To check for formats that are not available as a
+    /// string with `::from() / .into()`. To check for values that are not available as a
     /// documented variant here, use its string representation, obtained through `.as_str()`.
     #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
     #[ruma_enum(rename_all = "snake_case")]
@@ -162,13 +162,6 @@ pub mod v1 {
         _Custom(PrivOwnedStr),
     }
 
-    impl NotificationPriority {
-        /// Creates a string slice from this `NotificationPriority`.
-        pub fn as_str(&self) -> &str {
-            self.as_ref()
-        }
-    }
-
     impl Default for NotificationPriority {
         fn default() -> Self {
             Self::High
@@ -176,7 +169,7 @@ pub mod v1 {
     }
 
     /// Type for passing information about notification counts.
-    #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq)]
+    #[derive(Clone, Debug, Default, Deserialize, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct NotificationCounts {
         /// The number of unread messages a user has across all of the rooms they
@@ -195,6 +188,10 @@ pub mod v1 {
         /// counts.
         pub fn new(unread: UInt, missed_calls: UInt) -> Self {
             NotificationCounts { unread, missed_calls }
+        }
+
+        fn is_default(&self) -> bool {
+            self.unread == uint!(0) && self.missed_calls == uint!(0)
         }
     }
 
@@ -456,7 +453,7 @@ pub mod v1 {
                 ..Notification::default()
             };
 
-            assert_eq!(expected, to_json_value(notice).unwrap())
+            assert_eq!(expected, to_json_value(notice).unwrap());
         }
     }
 }

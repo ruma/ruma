@@ -30,7 +30,7 @@ pub struct Package {
 impl Package {
     /// Update the version of this crate.
     pub fn update_version(&mut self, version: &Version, dry_run: bool) -> Result<()> {
-        println!("Updating {} to version {}…", self.name, version);
+        println!("Updating {} to version {version}…", self.name);
 
         if !dry_run {
             let mut document = read_file(&self.manifest_path)?.parse::<Document>()?;
@@ -96,9 +96,9 @@ impl Package {
             ..self.version.clone()
         };
 
-        let update = if changelog.starts_with(&format!("# {}\n", version)) {
+        let update = if changelog.contains(&format!("# {version}\n")) {
             false
-        } else if changelog.starts_with(&format!("# {} (unreleased)\n", version))
+        } else if changelog.starts_with(&format!("# {version} (unreleased)\n"))
             || changelog.starts_with("# [unreleased]\n")
         {
             update
@@ -124,12 +124,8 @@ impl Package {
         };
 
         if update {
-            let changelog = format!(
-                "# [unreleased]\n\n# {}\n\n{}\n{}",
-                self.version,
-                changes,
-                &changelog[changes_end..]
-            );
+            let rest = &changelog[changes_end..];
+            let changelog = format!("# [unreleased]\n\n# {}\n\n{changes}\n{rest}", self.version);
 
             write_file(&changelog_path, changelog)?;
         }
@@ -140,7 +136,7 @@ impl Package {
     /// Check if the current version of the crate is published on crates.io.
     pub fn is_published(&self, client: &HttpClient) -> Result<bool> {
         let response: CratesIoCrate =
-            client.get(format!("{}/{}/{}", CRATESIO_API, self.name, self.version))?.json()?;
+            client.get(format!("{CRATESIO_API}/{}/{}", self.name, self.version))?.json()?;
 
         Ok(response.version.is_some())
     }

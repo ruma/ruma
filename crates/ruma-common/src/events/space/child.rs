@@ -72,7 +72,6 @@ pub struct HierarchySpaceChildEvent {
 #[cfg(test)]
 mod tests {
     use js_int::uint;
-    use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{HierarchySpaceChildEvent, SpaceChildEventContent};
@@ -145,21 +144,14 @@ mod tests {
             "type": "m.space.child"
         });
 
-        assert_matches!(
-            from_json_value::<HierarchySpaceChildEvent>(json).unwrap(),
-            HierarchySpaceChildEvent {
-                content: SpaceChildEventContent {
-                    via: Some(via),
-                    order: None,
-                    suggested: None,
-                },
-                origin_server_ts,
-                sender,
-                state_key,
-            } if via[0] == "example.org"
-                && origin_server_ts.get() == uint!(1_629_413_349)
-                && sender == "@alice:example.org"
-                && state_key == "!a:example.org"
-        );
+        let ev = from_json_value::<HierarchySpaceChildEvent>(json).unwrap();
+        assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1_629_413_349)));
+        assert_eq!(ev.sender, "@alice:example.org");
+        assert_eq!(ev.state_key, "!a:example.org");
+        let via = ev.content.via.unwrap();
+        assert_eq!(via.len(), 1);
+        assert_eq!(via[0], "example.org");
+        assert_eq!(ev.content.order, None);
+        assert_eq!(ev.content.suggested, None);
     }
 }

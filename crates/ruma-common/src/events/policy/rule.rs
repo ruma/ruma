@@ -44,10 +44,3 @@ pub enum Recommendation {
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
-
-impl Recommendation {
-    /// Creates a string slice from this `Recommendation`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}

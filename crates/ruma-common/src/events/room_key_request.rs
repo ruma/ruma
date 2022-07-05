@@ -63,13 +63,6 @@ pub enum Action {
     _Custom(PrivOwnedStr),
 }
 
-impl Action {
-    /// Creates a string slice from this `Action`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 /// Information about a requested key.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -81,10 +74,7 @@ pub struct RequestedKeyInfo {
     pub room_id: OwnedRoomId,
 
     /// The Curve25519 key of the device which initiated the session originally.
-    #[cfg_attr(
-        feature = "unstable-msc3700",
-        deprecated = "this field still needs to be sent but should not be used when received"
-    )]
+    #[deprecated = "this field still needs to be sent but should not be used when received"]
     pub sender_key: String,
 
     /// The ID of the session that the key is for.
@@ -100,6 +90,7 @@ impl RequestedKeyInfo {
         sender_key: String,
         session_id: String,
     ) -> Self {
+        #[allow(deprecated)]
         Self { algorithm, room_id, sender_key, session_id }
     }
 }

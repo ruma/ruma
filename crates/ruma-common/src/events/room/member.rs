@@ -144,7 +144,7 @@ impl RedactContent for RoomMemberEventContent {
         RedactedRoomMemberEventContent {
             membership: self.membership,
             join_authorized_via_users_server: match _version {
-                RoomVersionId::V9 => self.join_authorized_via_users_server,
+                RoomVersionId::V9 | RoomVersionId::V10 => self.join_authorized_via_users_server,
                 _ => None,
             },
         }
@@ -259,13 +259,6 @@ pub enum MembershipState {
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
-}
-
-impl MembershipState {
-    /// Creates a string slice from this `MembershipState`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
 }
 
 /// Information about a third party invitation.
@@ -458,15 +451,15 @@ impl StrippedRoomMemberEvent {
 
 #[cfg(test)]
 mod tests {
+    use assert_matches::assert_matches;
     use js_int::uint;
     use maplit::btreemap;
-    use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json};
 
-    use super::{MembershipState, RoomMemberEventContent, SignedContent, ThirdPartyInvite};
+    use super::{MembershipState, RoomMemberEventContent};
     use crate::{
-        events::{OriginalStateEvent, StateUnsigned},
-        server_name, server_signing_key_id, MilliSecondsSinceUnixEpoch,
+        events::OriginalStateEvent, mxc_uri, server_name, server_signing_key_id, user_id,
+        MilliSecondsSinceUnixEpoch,
     };
 
     #[test]
@@ -483,30 +476,19 @@ mod tests {
             "state_key": "@carl:example.com"
         });
 
-        assert_matches!(
-            from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap(),
-            OriginalStateEvent {
-                content: RoomMemberEventContent {
-                    avatar_url: None,
-                    displayname: None,
-                    is_direct: None,
-                    membership: MembershipState::Join,
-                    third_party_invite: None,
-                    ..
-                },
-                event_id,
-                origin_server_ts,
-                room_id,
-                sender,
-                state_key,
-                unsigned,
-            } if event_id == "$h29iv0s8:example.com"
-                && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
-                && room_id == "!n8f893n9:example.com"
-                && sender == "@carl:example.com"
-                && state_key == "@carl:example.com"
-                && unsigned.is_empty()
-        );
+        let ev = from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap();
+        assert_eq!(ev.event_id, "$h29iv0s8:example.com");
+        assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+        assert_eq!(ev.room_id, "!n8f893n9:example.com");
+        assert_eq!(ev.sender, "@carl:example.com");
+        assert_eq!(ev.state_key, "@carl:example.com");
+        assert!(ev.unsigned.is_empty());
+
+        assert_eq!(ev.content.avatar_url, None);
+        assert_eq!(ev.content.displayname, None);
+        assert_eq!(ev.content.is_direct, None);
+        assert_eq!(ev.content.membership, MembershipState::Join);
+        assert_matches!(ev.content.third_party_invite, None);
     }
 
     #[test]
@@ -529,39 +511,24 @@ mod tests {
         });
 
         let ev = from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap();
-
-        assert_matches!(
-            ev.content,
-            RoomMemberEventContent {
-                avatar_url: None,
-                displayname: None,
-                is_direct: None,
-                membership: MembershipState::Join,
-                third_party_invite: None,
-                ..
-            }
-        );
-
         assert_eq!(ev.event_id, "$h29iv0s8:example.com");
         assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
         assert_eq!(ev.room_id, "!n8f893n9:example.com");
         assert_eq!(ev.sender, "@carl:example.com");
         assert_eq!(ev.state_key, "@carl:example.com");
 
-        assert_matches!(
-            ev.unsigned,
-            StateUnsigned {
-                prev_content: Some(RoomMemberEventContent {
-                    avatar_url: None,
-                    displayname: None,
-                    is_direct: None,
-                    membership: MembershipState::Join,
-                    third_party_invite: None,
-                    ..
-                }),
-                ..
-            }
-        );
+        assert_eq!(ev.content.avatar_url, None);
+        assert_eq!(ev.content.displayname, None);
+        assert_eq!(ev.content.is_direct, None);
+        assert_eq!(ev.content.membership, MembershipState::Join);
+        assert_matches!(ev.content.third_party_invite, None);
+
+        let prev_content = ev.unsigned.prev_content.unwrap();
+        assert_eq!(prev_content.avatar_url, None);
+        assert_eq!(prev_content.displayname, None);
+        assert_eq!(prev_content.is_direct, None);
+        assert_eq!(prev_content.membership, MembershipState::Join);
+        assert_matches!(prev_content.third_party_invite, None);
     }
 
     #[test]
@@ -593,43 +560,34 @@ mod tests {
             "state_key": "@alice:example.org"
         });
 
-        assert_matches!(
-            from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap(),
-            OriginalStateEvent {
-                content: RoomMemberEventContent {
-                    avatar_url: Some(avatar_url),
-                    displayname: Some(displayname),
-                    is_direct: Some(true),
-                    membership: MembershipState::Invite,
-                    third_party_invite: Some(ThirdPartyInvite {
-                        display_name: third_party_displayname,
-                        signed: SignedContent { mxid, signatures, token },
-                    }),
-                    ..
-                },
-                event_id,
-                origin_server_ts,
-                room_id,
-                sender,
-                state_key,
-                unsigned,
-            } if avatar_url == "mxc://example.org/SEsfnsuifSDFSSEF"
-                && displayname == "Alice Margatroid"
-                && third_party_displayname == "alice"
-                && mxid == "@alice:example.org"
-                && signatures == btreemap! {
-                    server_name!("magic.forest").to_owned() => btreemap! {
-                        server_signing_key_id!("ed25519:3").to_owned() => "foobar".to_owned()
-                    }
+        let ev = from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap();
+        assert_eq!(ev.event_id, "$143273582443PhrSn:example.org");
+        assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(233)));
+        assert_eq!(ev.room_id, "!jEsUZKDJdhlrceRyVU:example.org");
+        assert_eq!(ev.sender, "@alice:example.org");
+        assert_eq!(ev.state_key, "@alice:example.org");
+        assert!(ev.unsigned.is_empty());
+
+        assert_eq!(
+            ev.content.avatar_url.as_deref(),
+            Some(mxc_uri!("mxc://example.org/SEsfnsuifSDFSSEF"))
+        );
+        assert_eq!(ev.content.displayname.as_deref(), Some("Alice Margatroid"));
+        assert_eq!(ev.content.is_direct, Some(true));
+        assert_eq!(ev.content.membership, MembershipState::Invite);
+
+        let third_party_invite = ev.content.third_party_invite.unwrap();
+        assert_eq!(third_party_invite.display_name, "alice");
+        assert_eq!(third_party_invite.signed.mxid, "@alice:example.org");
+        assert_eq!(
+            third_party_invite.signed.signatures,
+            btreemap! {
+                server_name!("magic.forest").to_owned() => btreemap! {
+                    server_signing_key_id!("ed25519:3").to_owned() => "foobar".to_owned()
                 }
-                && token == "abc123"
-                && event_id == "$143273582443PhrSn:example.org"
-                && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(233))
-                && room_id == "!jEsUZKDJdhlrceRyVU:example.org"
-                && sender == "@alice:example.org"
-                && state_key == "@alice:example.org"
-                && unsigned.is_empty()
-        )
+            }
+        );
+        assert_eq!(third_party_invite.signed.token, "abc123");
     }
 
     #[test]
@@ -666,52 +624,40 @@ mod tests {
             },
         });
 
-        assert_matches!(
-            from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap(),
-            OriginalStateEvent {
-                content: RoomMemberEventContent {
-                    avatar_url: None,
-                    displayname: None,
-                    is_direct: None,
-                    membership: MembershipState::Join,
-                    third_party_invite: None,
-                    ..
-                },
-                event_id,
-                origin_server_ts,
-                room_id,
-                sender,
-                state_key,
-                unsigned: StateUnsigned {
-                    prev_content: Some(RoomMemberEventContent {
-                        avatar_url: Some(avatar_url),
-                        displayname: Some(displayname),
-                        is_direct: Some(true),
-                        membership: MembershipState::Invite,
-                        third_party_invite: Some(ThirdPartyInvite {
-                            display_name: third_party_displayname,
-                            signed: SignedContent { mxid, signatures, token },
-                        }),
-                        ..
-                    }),
-                    ..
-                },
-            } if event_id == "$143273582443PhrSn:example.org"
-                && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(233))
-                && room_id == "!jEsUZKDJdhlrceRyVU:example.org"
-                && sender == "@alice:example.org"
-                && state_key == "@alice:example.org"
-                && avatar_url == "mxc://example.org/SEsfnsuifSDFSSEF"
-                && displayname == "Alice Margatroid"
-                && third_party_displayname == "alice"
-                && mxid == "@alice:example.org"
-                && signatures == btreemap! {
-                    server_name!("magic.forest").to_owned() => btreemap! {
-                        server_signing_key_id!("ed25519:3").to_owned() => "foobar".to_owned()
-                    }
-                }
-                && token == "abc123"
+        let ev = from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap();
+        assert_eq!(ev.event_id, "$143273582443PhrSn:example.org");
+        assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(233)));
+        assert_eq!(ev.room_id, "!jEsUZKDJdhlrceRyVU:example.org");
+        assert_eq!(ev.sender, "@alice:example.org");
+        assert_eq!(ev.state_key, "@alice:example.org");
+
+        assert_eq!(ev.content.avatar_url, None);
+        assert_eq!(ev.content.displayname, None);
+        assert_eq!(ev.content.is_direct, None);
+        assert_eq!(ev.content.membership, MembershipState::Join);
+        assert_matches!(ev.content.third_party_invite, None);
+
+        let prev_content = ev.unsigned.prev_content.unwrap();
+        assert_eq!(
+            prev_content.avatar_url.as_deref(),
+            Some(mxc_uri!("mxc://example.org/SEsfnsuifSDFSSEF"))
         );
+        assert_eq!(prev_content.displayname.as_deref(), Some("Alice Margatroid"));
+        assert_eq!(prev_content.is_direct, Some(true));
+        assert_eq!(prev_content.membership, MembershipState::Invite);
+
+        let third_party_invite = prev_content.third_party_invite.unwrap();
+        assert_eq!(third_party_invite.display_name, "alice");
+        assert_eq!(third_party_invite.signed.mxid, "@alice:example.org");
+        assert_eq!(
+            third_party_invite.signed.signatures,
+            btreemap! {
+                server_name!("magic.forest").to_owned() => btreemap! {
+                    server_signing_key_id!("ed25519:3").to_owned() => "foobar".to_owned()
+                }
+            }
+        );
+        assert_eq!(third_party_invite.signed.token, "abc123");
     }
 
     #[test]
@@ -729,31 +675,22 @@ mod tests {
             "state_key": "@carl:example.com"
         });
 
-        assert_matches!(
-            from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap(),
-            OriginalStateEvent {
-                content: RoomMemberEventContent {
-                    avatar_url: None,
-                    displayname: None,
-                    is_direct: None,
-                    membership: MembershipState::Join,
-                    third_party_invite: None,
-                    join_authorized_via_users_server: Some(authed),
-                    ..
-                },
-                event_id,
-                origin_server_ts,
-                room_id,
-                sender,
-                state_key,
-                unsigned,
-            } if event_id == "$h29iv0s8:example.com"
-                && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
-                && room_id == "!n8f893n9:example.com"
-                && sender == "@carl:example.com"
-                && authed == "@notcarl:example.com"
-                && state_key == "@carl:example.com"
-                && unsigned.is_empty()
+        let ev = from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap();
+        assert_eq!(ev.event_id, "$h29iv0s8:example.com");
+        assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+        assert_eq!(ev.room_id, "!n8f893n9:example.com");
+        assert_eq!(ev.sender, "@carl:example.com");
+        assert_eq!(ev.state_key, "@carl:example.com");
+        assert!(ev.unsigned.is_empty());
+
+        assert_eq!(ev.content.avatar_url, None);
+        assert_eq!(ev.content.displayname, None);
+        assert_eq!(ev.content.is_direct, None);
+        assert_eq!(ev.content.membership, MembershipState::Join);
+        assert_matches!(ev.content.third_party_invite, None);
+        assert_eq!(
+            ev.content.join_authorized_via_users_server.as_deref(),
+            Some(user_id!("@notcarl:example.com"))
         );
     }
 }

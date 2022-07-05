@@ -1,5 +1,5 @@
 //! Endpoints for push notifications.
-use std::{convert::TryFrom, error::Error, fmt};
+use std::{error::Error, fmt};
 
 use ruma_common::{
     push::{
@@ -189,18 +189,8 @@ pub enum RuleKind {
     _Custom(PrivOwnedStr),
 }
 
-impl RuleKind {
-    /// Creates a string slice from this `RuleKind`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 /// Which kind a pusher is.
-///
-/// This type can hold an arbitrary string. To build this with a custom value, convert it from a
-/// string with `::from() / .into()`. To check for formats that are not available as a documented
-/// variant here, use its string representation, obtained through `.as_str()`.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
@@ -213,11 +203,4 @@ pub enum PusherKind {
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
-}
-
-impl PusherKind {
-    /// Creates a string slice from this `PusherKind`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
 }

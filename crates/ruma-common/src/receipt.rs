@@ -17,10 +17,3 @@ pub enum ReceiptType {
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
-
-impl ReceiptType {
-    /// Creates a string slice from this `ReceiptType`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}

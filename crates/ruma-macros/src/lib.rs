@@ -5,6 +5,8 @@
 //! See the documentation for the individual macros for usage details.
 
 #![warn(missing_docs)]
+// https://github.com/rust-lang/rust-clippy/issues/9029
+#![allow(clippy::derive_partial_eq_without_eq)]
 
 use identifiers::expand_id_zst;
 use proc_macro::TokenStream;
@@ -33,6 +35,7 @@ use self::{
     },
     identifiers::IdentifierInput,
     serde::{
+        as_str_as_ref_str::expand_as_str_as_ref_str,
         deserialize_from_cow_str::expand_deserialize_from_cow_str,
         display_as_ref_str::expand_display_as_ref_str,
         enum_as_ref_str::expand_enum_as_ref_str,
@@ -267,6 +270,13 @@ pub fn derive_enum_from_string(input: TokenStream) -> TokenStream {
 // FIXME: The following macros aren't actually interested in type details beyond name (and possibly
 //        generics in the future). They probably shouldn't use `DeriveInput`.
 
+/// Derive the `as_str()` method using the `AsRef<str>` implementation of the type.
+#[proc_macro_derive(AsStrAsRefStr, attributes(ruma_enum))]
+pub fn derive_as_str_as_ref_str(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_as_str_as_ref_str(&input.ident).unwrap_or_else(syn::Error::into_compile_error).into()
+}
+
 /// Derive the `fmt::Display` trait using the `AsRef<str>` implementation of the type.
 #[proc_macro_derive(DisplayAsRefStr)]
 pub fn derive_display_as_ref_str(input: TokenStream) -> TokenStream {
@@ -320,6 +330,7 @@ pub fn derive_string_enum(input: TokenStream) -> TokenStream {
     fn expand_all(input: ItemEnum) -> syn::Result<proc_macro2::TokenStream> {
         let as_ref_str_impl = expand_enum_as_ref_str(&input)?;
         let from_string_impl = expand_enum_from_string(&input)?;
+        let as_str_impl = expand_as_str_as_ref_str(&input.ident)?;
         let display_impl = expand_display_as_ref_str(&input.ident)?;
         let serialize_impl = expand_serialize_as_ref_str(&input.ident)?;
         let deserialize_impl = expand_deserialize_from_cow_str(&input.ident)?;
@@ -327,6 +338,7 @@ pub fn derive_string_enum(input: TokenStream) -> TokenStream {
         Ok(quote! {
             #as_ref_str_impl
             #from_string_impl
+            #as_str_impl
             #display_impl
             #serialize_impl
             #deserialize_impl

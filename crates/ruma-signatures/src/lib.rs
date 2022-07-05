@@ -46,13 +46,12 @@
 
 use ruma_common::serde::{AsRefStr, DisplayAsRefStr};
 
-pub use error::{Error, JsonError, JsonType, ParseError, VerificationError};
+pub use error::{Error, JsonError, ParseError, VerificationError};
 pub use functions::{
-    canonical_json, content_hash, hash_and_sign_event, redact, redact_content_in_place,
-    redact_in_place, reference_hash, sign_json, verify_event, verify_json,
+    canonical_json, content_hash, hash_and_sign_event, reference_hash, sign_json, verify_event,
+    verify_json,
 };
 pub use keys::{Ed25519KeyPair, KeyPair, PublicKeyMap, PublicKeySet};
-pub use ruma_common::serde::{CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue};
 pub use signatures::Signature;
 pub use verification::Verified;
 
@@ -105,7 +104,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     use base64::{decode_config, STANDARD_NO_PAD};
-    use pkcs8::{der::Decodable, PrivateKeyInfo};
+    use pkcs8::{der::Decode, PrivateKeyInfo};
     use ruma_common::{serde::Base64, RoomVersionId};
     use serde_json::{from_str as from_json_str, to_string as to_json_string};
 
@@ -114,8 +113,8 @@ mod tests {
     };
 
     const PKCS8: &str = "\
-        MFMCAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
-        tA0T+6toSMDIQDdM+tpNzNWQM9NFpfgr4B9S7LHszOrVRp9NfKmeXS3aQ\
+        MFECAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
+        tA0T+6tgSEA3TPraTczVkDPTRaX4K+AfUuyx7Mzq1UafTXypnl0t2k=\
     ";
 
     /// Convenience method for getting the public key as a string
@@ -252,7 +251,7 @@ mod tests {
         let mut public_key_map = BTreeMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
-        assert!(verify_json(&public_key_map, &value).is_ok());
+        verify_json(&public_key_map, &value).unwrap();
     }
 
     #[test]
@@ -293,13 +292,13 @@ mod tests {
         let mut public_key_map = BTreeMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
-        assert!(verify_json(&public_key_map, &value).is_ok());
+        verify_json(&public_key_map, &value).unwrap();
 
         let reverse_value = from_json_str(
             r#"{"two":"Two","signatures":{"domain":{"ed25519:1":"t6Ehmh6XTDz7qNWI0QI5tNPSliWLPQP/+Fzz3LpdCS7q1k2G2/5b5Embs2j4uG3ZeivejrzqSVoBcdocRpa+AQ"}},"one":1}"#
         ).unwrap();
 
-        assert!(verify_json(&public_key_map, &reverse_value).is_ok());
+        verify_json(&public_key_map, &reverse_value).unwrap();
     }
 
     #[test]
@@ -312,7 +311,7 @@ mod tests {
         let mut public_key_map = BTreeMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
-        assert!(verify_json(&public_key_map, &value).is_err());
+        verify_json(&public_key_map, &value).unwrap_err();
     }
 
     #[test]
@@ -415,6 +414,6 @@ mod tests {
             }"#
         ).unwrap();
 
-        assert!(verify_event(&public_key_map, &value, &RoomVersionId::V5).is_ok());
+        verify_event(&public_key_map, &value, &RoomVersionId::V5).unwrap();
     }
 }

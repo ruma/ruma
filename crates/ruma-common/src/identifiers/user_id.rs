@@ -10,7 +10,6 @@ use super::{matrix_uri::UriAction, IdParseError, MatrixToUri, MatrixUri, ServerN
 /// into a string as needed.
 ///
 /// ```
-/// # use std::convert::TryFrom;
 /// # use ruma_common::UserId;
 /// assert_eq!(<&UserId>::try_from("@carl:example.com").unwrap(), "@carl:example.com");
 /// ```
@@ -52,7 +51,7 @@ impl UserId {
             Self::parse(id).map(Into::into)
         } else {
             let _ = localpart_is_fully_conforming(id_str)?;
-            Ok(Self::from_borrowed(&format!("@{}:{}", id_str, server_name)).to_owned())
+            Ok(Self::from_borrowed(&format!("@{id_str}:{server_name}")).to_owned())
         }
     }
 
@@ -69,7 +68,7 @@ impl UserId {
             Self::parse_rc(id)
         } else {
             let _ = localpart_is_fully_conforming(id_str)?;
-            Ok(Self::from_rc(format!("@{}:{}", id_str, server_name).into()))
+            Ok(Self::from_rc(format!("@{id_str}:{server_name}").into()))
         }
     }
 
@@ -86,7 +85,7 @@ impl UserId {
             Self::parse_arc(id)
         } else {
             let _ = localpart_is_fully_conforming(id_str)?;
-            Ok(Self::from_arc(format!("@{}:{}", id_str, server_name).into()))
+            Ok(Self::from_arc(format!("@{id_str}:{server_name}").into()))
         }
     }
 
@@ -155,8 +154,6 @@ use ruma_macros::IdZst;
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::{OwnedUserId, UserId};
     use crate::{server_name, IdParseError};
 
@@ -198,15 +195,15 @@ mod tests {
         let user_id = "@τ:example.com";
         let server_name = server_name!("example.com");
 
-        assert!(<&UserId>::try_from(user_id).is_err());
-        assert!(UserId::parse_with_server_name(user_id, server_name).is_err());
-        assert!(UserId::parse_with_server_name(localpart, server_name).is_err());
-        assert!(UserId::parse_with_server_name_rc(user_id, server_name).is_err());
-        assert!(UserId::parse_with_server_name_rc(localpart, server_name).is_err());
-        assert!(UserId::parse_with_server_name_arc(user_id, server_name).is_err());
-        assert!(UserId::parse_with_server_name_arc(localpart, server_name).is_err());
-        assert!(UserId::parse_rc(user_id).is_err());
-        assert!(UserId::parse_arc(user_id).is_err());
+        <&UserId>::try_from(user_id).unwrap_err();
+        UserId::parse_with_server_name(user_id, server_name).unwrap_err();
+        UserId::parse_with_server_name(localpart, server_name).unwrap_err();
+        UserId::parse_with_server_name_rc(user_id, server_name).unwrap_err();
+        UserId::parse_with_server_name_rc(localpart, server_name).unwrap_err();
+        UserId::parse_with_server_name_arc(user_id, server_name).unwrap_err();
+        UserId::parse_with_server_name_arc(localpart, server_name).unwrap_err();
+        UserId::parse_rc(user_id).unwrap_err();
+        UserId::parse_arc(user_id).unwrap_err();
     }
 
     #[test]

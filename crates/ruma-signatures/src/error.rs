@@ -1,5 +1,7 @@
 use ruma_common::{
-    serde::Base64DecodeError, EventId, OwnedEventId, OwnedServerName, RoomVersionId,
+    canonical_json::{JsonType, RedactionError},
+    serde::Base64DecodeError,
+    EventId, OwnedEventId, OwnedServerName, RoomVersionId,
 };
 use thiserror::Error;
 
@@ -41,11 +43,26 @@ pub enum Error {
     PduSize,
 }
 
+impl From<RedactionError> for Error {
+    fn from(err: RedactionError) -> Self {
+        match err {
+            RedactionError::NotOfType { field: target, of_type, .. } => {
+                JsonError::NotOfType { target, of_type }.into()
+            }
+            RedactionError::JsonFieldMissingFromObject(field) => {
+                JsonError::JsonFieldMissingFromObject(field).into()
+            }
+            #[allow(unreachable_patterns)]
+            _ => unreachable!(),
+        }
+    }
+}
+
 /// All errors related to JSON validation/parsing.
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum JsonError {
-    /// Signals that `target` is not of type `of_type` ([`JsonType`]).
+    /// `target` is not of the correct type `of_type` ([`JsonType`]).
     #[error("Value in {target:?} must be a JSON {of_type:?}")]
     NotOfType {
         /// An arbitrary "target" that doesn't have the required type.
@@ -65,11 +82,11 @@ pub enum JsonError {
         of_type: JsonType,
     },
 
-    /// Signals that a specific field is missing from a JSON object.
+    /// The given required field is missing from a JSON object.
     #[error("JSON object must contain the field {0:?}")]
     JsonFieldMissingFromObject(String),
 
-    /// Signals a key missing from a JSON object.
+    /// A key is missing from a JSON object.
     ///
     /// Note that this is different from [`JsonError::JsonFieldMissingFromObject`],
     /// this error talks about an expected identifying key (`"ed25519:abcd"`)
@@ -115,29 +132,6 @@ impl JsonError {
         }
         .into()
     }
-}
-
-/// A JSON type enum for [`JsonError`] variants.
-#[derive(Debug)]
-#[allow(clippy::exhaustive_enums)]
-pub enum JsonType {
-    /// A JSON Object.
-    Object,
-
-    /// A JSON String.
-    String,
-
-    /// A JSON Integer.
-    Integer,
-
-    /// A JSON Array.
-    Array,
-
-    /// A JSON Boolean.
-    Boolean,
-
-    /// JSON Null.
-    Null,
 }
 
 /// Errors relating to verification of events and signatures.

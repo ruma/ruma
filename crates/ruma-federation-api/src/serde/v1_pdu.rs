@@ -70,7 +70,7 @@ where
 #[cfg(not(feature = "unstable-pre-spec"))]
 #[cfg(test)]
 mod tests {
-    use matches::assert_matches;
+    use assert_matches::assert_matches;
     use serde_json::{json, to_value as to_json_value};
 
     use super::{deserialize, serialize};
@@ -136,7 +136,7 @@ mod tests {
         assert_eq!(
             failed_room_state.unwrap_err().to_string(),
             "invalid type: map, expected a PDU wrapped in an array.",
-        )
+        );
     }
 
     #[test]

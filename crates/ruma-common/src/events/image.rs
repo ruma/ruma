@@ -10,7 +10,7 @@ use super::{
     file::{EncryptedContent, FileContent},
     message::MessageContent,
     room::{
-        message::{ImageMessageEventContent, Relation},
+        message::{ImageMessageEventContent, MessageType, Relation, RoomMessageEventContent},
         ImageInfo, MediaSource, ThumbnailInfo,
     },
 };
@@ -125,6 +125,19 @@ impl ImageEventContent {
             .unwrap_or_default();
 
         Self { message, file, image, thumbnail, caption, relates_to }
+    }
+}
+
+impl From<ImageEventContent> for RoomMessageEventContent {
+    fn from(content: ImageEventContent) -> Self {
+        let ImageEventContent { message, file, image, thumbnail, caption, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::Image(ImageMessageEventContent::from_extensible_content(
+                message, file, image, thumbnail, caption,
+            )),
+            relates_to,
+        }
     }
 }
 

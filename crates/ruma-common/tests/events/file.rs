@@ -1,12 +1,12 @@
 #![cfg(feature = "unstable-msc3551")]
 
+use assert_matches::assert_matches;
 use assign::assign;
 use js_int::uint;
-use matches::assert_matches;
 use ruma_common::{
     event_id,
     events::{
-        file::{EncryptedContentInit, FileContent, FileContentInfo, FileEventContent},
+        file::{EncryptedContentInit, FileContentInfo, FileEventContent},
         message::MessageContent,
         room::{
             message::{
@@ -160,14 +160,10 @@ fn plain_content_deserialization() {
         }
     });
 
-    assert_matches!(
-        from_json_value::<FileEventContent>(json_data)
-            .unwrap(),
-        FileEventContent { message, file, .. }
-        if message.find_plain() == Some("Upload: my_file.txt")
-            && message.find_html().is_none()
-            && file.url.as_str() == "mxc://notareal.hs/abcdef"
-    );
+    let content = from_json_value::<FileEventContent>(json_data).unwrap();
+    assert_eq!(content.message.find_plain(), Some("Upload: my_file.txt"));
+    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
 }
 
 #[test]
@@ -191,15 +187,11 @@ fn encrypted_content_deserialization() {
         }
     });
 
-    assert_matches!(
-        from_json_value::<FileEventContent>(json_data)
-            .unwrap(),
-        FileEventContent { message, file, .. }
-        if message.find_plain() == Some("Upload: my_file.txt")
-            && message.find_html().is_none()
-            && file.url.as_str() == "mxc://notareal.hs/abcdef"
-            && file.encryption_info.is_some()
-    );
+    let content = from_json_value::<FileEventContent>(json_data).unwrap();
+    assert_eq!(content.message.find_plain(), Some("Upload: my_file.txt"));
+    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
+    assert!(content.file.encryption_info.is_some());
 }
 
 #[test]
@@ -224,35 +216,23 @@ fn message_event_deserialization() {
         "type": "m.file",
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::File(MessageLikeEvent::Original(OriginalMessageLikeEvent {
-            content: FileEventContent {
-                message,
-                file: FileContent {
-                    url,
-                    info: Some(info),
-                    ..
-                },
-                ..
-            },
-            event_id,
-            origin_server_ts,
-            room_id,
-            sender,
-            unsigned
-        })) if event_id == event_id!("$event:notareal.hs")
-            && message.find_plain() == Some("Upload: my_file.txt")
-            && message.find_html() == Some("Upload: <strong>my_file.txt</strong>")
-            && url.as_str() == "mxc://notareal.hs/abcdef"
-            && info.name.as_deref() == Some("my_file.txt")
-            && info.mimetype.as_deref() == Some("text/plain")
-            && info.size == Some(uint!(774))
-            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
-            && room_id == room_id!("!roomid:notareal.hs")
-            && sender == user_id!("@user:notareal.hs")
-            && unsigned.is_empty()
+    let message_event = assert_matches!(
+        from_json_value::<AnyMessageLikeEvent>(json_data),
+        Ok(AnyMessageLikeEvent::File(MessageLikeEvent::Original(message_event))) => message_event
     );
+    assert_eq!(message_event.event_id, "$event:notareal.hs");
+    let content = message_event.content;
+    assert_eq!(content.message.find_plain(), Some("Upload: my_file.txt"));
+    assert_eq!(content.message.find_html(), Some("Upload: <strong>my_file.txt</strong>"));
+    assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
+    let info = content.file.info.unwrap();
+    assert_eq!(info.name.as_deref(), Some("my_file.txt"));
+    assert_eq!(info.mimetype.as_deref(), Some("text/plain"));
+    assert_eq!(info.size, Some(uint!(774)));
+    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
+    assert_eq!(message_event.room_id, "!roomid:notareal.hs");
+    assert_eq!(message_event.sender, "@user:notareal.hs");
+    assert!(message_event.unsigned.is_empty());
 }
 
 #[test]
@@ -357,20 +337,16 @@ fn room_message_plain_content_stable_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::File(_));
-    if let MessageType::File(content) = event_content.msgtype {
-        assert_eq!(content.body, "Upload: my_file.txt");
-        assert_matches!(content.source, MediaSource::Plain(_));
-        if let MediaSource::Plain(url) = content.source {
-            assert_eq!(url, "mxc://notareal.hs/file");
-        }
-        let message = content.message.unwrap();
-        assert_eq!(message.len(), 1);
-        assert_eq!(message[0].body, "Upload: my_file.txt");
-        let file = content.file.unwrap();
-        assert_eq!(file.url, "mxc://notareal.hs/file");
-        assert!(!file.is_encrypted());
-    }
+    let content = assert_matches!(event_content.msgtype, MessageType::File(content) => content);
+    assert_eq!(content.body, "Upload: my_file.txt");
+    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
+    assert_eq!(url, "mxc://notareal.hs/file");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 1);
+    assert_eq!(message[0].body, "Upload: my_file.txt");
+    let file = content.file.unwrap();
+    assert_eq!(file.url, "mxc://notareal.hs/file");
+    assert!(!file.is_encrypted());
 }
 
 #[test]
@@ -386,20 +362,16 @@ fn room_message_plain_content_unstable_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::File(_));
-    if let MessageType::File(content) = event_content.msgtype {
-        assert_eq!(content.body, "Upload: my_file.txt");
-        assert_matches!(content.source, MediaSource::Plain(_));
-        if let MediaSource::Plain(url) = content.source {
-            assert_eq!(url, "mxc://notareal.hs/file");
-        }
-        let message = content.message.unwrap();
-        assert_eq!(message.len(), 1);
-        assert_eq!(message[0].body, "Upload: my_file.txt");
-        let file = content.file.unwrap();
-        assert_eq!(file.url, "mxc://notareal.hs/file");
-        assert!(!file.is_encrypted());
-    }
+    let content = assert_matches!(event_content.msgtype, MessageType::File(content) => content);
+    assert_eq!(content.body, "Upload: my_file.txt");
+    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
+    assert_eq!(url, "mxc://notareal.hs/file");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 1);
+    assert_eq!(message[0].body, "Upload: my_file.txt");
+    let file = content.file.unwrap();
+    assert_eq!(file.url, "mxc://notareal.hs/file");
+    assert!(!file.is_encrypted());
 }
 
 #[test]
@@ -441,20 +413,16 @@ fn room_message_encrypted_content_stable_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::File(_));
-    if let MessageType::File(content) = event_content.msgtype {
-        assert_eq!(content.body, "Upload: my_file.txt");
-        assert_matches!(content.source, MediaSource::Encrypted(_));
-        if let MediaSource::Encrypted(encrypted_file) = content.source {
-            assert_eq!(encrypted_file.url, "mxc://notareal.hs/file");
-        }
-        let message = content.message.unwrap();
-        assert_eq!(message.len(), 1);
-        assert_eq!(message[0].body, "Upload: my_file.txt");
-        let file = content.file.unwrap();
-        assert_eq!(file.url, "mxc://notareal.hs/file");
-        assert!(file.is_encrypted());
-    }
+    let content = assert_matches!(event_content.msgtype, MessageType::File(content) => content);
+    assert_eq!(content.body, "Upload: my_file.txt");
+    let encrypted_file = assert_matches!(content.source, MediaSource::Encrypted(f) => f);
+    assert_eq!(encrypted_file.url, "mxc://notareal.hs/file");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 1);
+    assert_eq!(message[0].body, "Upload: my_file.txt");
+    let file = content.file.unwrap();
+    assert_eq!(file.url, "mxc://notareal.hs/file");
+    assert!(file.is_encrypted());
 }
 
 #[test]
@@ -496,18 +464,14 @@ fn room_message_encrypted_content_unstable_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::File(_));
-    if let MessageType::File(content) = event_content.msgtype {
-        assert_eq!(content.body, "Upload: my_file.txt");
-        assert_matches!(content.source, MediaSource::Encrypted(_));
-        if let MediaSource::Encrypted(encrypted_file) = content.source {
-            assert_eq!(encrypted_file.url, "mxc://notareal.hs/file");
-        }
-        let message = content.message.unwrap();
-        assert_eq!(message.len(), 1);
-        assert_eq!(message[0].body, "Upload: my_file.txt");
-        let file = content.file.unwrap();
-        assert_eq!(file.url, "mxc://notareal.hs/file");
-        assert!(file.is_encrypted());
-    }
+    let content = assert_matches!(event_content.msgtype, MessageType::File(content) => content);
+    assert_eq!(content.body, "Upload: my_file.txt");
+    let encrypted_file = assert_matches!(content.source, MediaSource::Encrypted(f) => f);
+    assert_eq!(encrypted_file.url, "mxc://notareal.hs/file");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 1);
+    assert_eq!(message[0].body, "Upload: my_file.txt");
+    let file = content.file.unwrap();
+    assert_eq!(file.url, "mxc://notareal.hs/file");
+    assert!(file.is_encrypted());
 }

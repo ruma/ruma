@@ -6,18 +6,14 @@ use js_int::{int, Int};
 use serde::{Deserialize, Serialize};
 
 /// The power level requirements for specific notification types.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct NotificationPowerLevels {
     /// The level required to trigger an `@room` notification.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
-    #[cfg_attr(
-        feature = "compat",
-        serde(deserialize_with = "crate::serde::deserialize_v1_powerlevel")
+    #[serde(
+        default = "default_power_level",
+        deserialize_with = "crate::serde::deserialize_v1_powerlevel"
     )]
-    #[serde(default = "default_power_level")]
     pub room: Int,
 }
 
@@ -33,6 +29,10 @@ impl NotificationPowerLevels {
             "room" => Some(&self.room),
             _ => None,
         }
+    }
+
+    pub(crate) fn is_default(&self) -> bool {
+        self.room == default_power_level()
     }
 }
 

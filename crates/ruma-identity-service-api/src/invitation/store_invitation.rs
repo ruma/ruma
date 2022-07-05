@@ -8,8 +8,7 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/v1.2/identity-service-api/#post_matrixidentityv2store-invite
 
     use ruma_common::{
-        api::ruma_api, room::RoomType, thirdparty::Medium, MxcUri, RoomAliasId, RoomId, RoomName,
-        UserId,
+        api::ruma_api, room::RoomType, thirdparty::Medium, MxcUri, RoomAliasId, RoomId, UserId,
     };
     use serde::{ser::SerializeSeq, Deserialize, Serialize};
 
@@ -61,7 +60,7 @@ pub mod v2 {
             ///
             /// This should be retrieved from the `m.room.name` state event.
             #[serde(skip_serializing_if = "Option::is_none")]
-            pub room_name: Option<&'a RoomName>,
+            pub room_name: Option<&'a str>,
 
             /// The type of the room to which the user is invited.
             ///

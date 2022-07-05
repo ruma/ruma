@@ -9,7 +9,7 @@ use ruma_common::{
     events::space::child::HierarchySpaceChildEvent,
     room::RoomType,
     serde::{Raw, StringEnum},
-    OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, RoomName,
+    OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -34,7 +34,7 @@ pub struct SpaceHierarchyRoomsChunk {
 
     /// The name of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<Box<RoomName>>,
+    pub name: Option<String>,
 
     /// The number of members joined to the room.
     pub num_joined_members: UInt,
@@ -163,6 +163,11 @@ pub enum SpaceRoomJoinRule {
     /// These rules are not made available as part of a space hierarchy listing response and can
     /// only be seen by users inside the room.
     Restricted,
+
+    /// Users can join the room if they are invited, or if they meet any of the conditions
+    /// described in a set of [`AllowRule`](ruma_common::events::room::join_rules::AllowRule)s, or
+    /// they can request an invite to the room.
+    KnockRestricted,
 
     /// Anyone can join the room without any prior action.
     Public,

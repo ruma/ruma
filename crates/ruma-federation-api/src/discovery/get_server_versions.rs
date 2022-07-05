@@ -1,7 +1,7 @@
 //! Endpoint to receive metadata about implemented matrix versions.
 
 pub mod msc3723 {
-    //! [GET /_matrix/federation/versions](https://github.com/matrix-org/matrix-doc/pull/3723)
+    //! [GET /_matrix/federation/versions](https://github.com/matrix-org/matrix-spec-proposals/pull/3723)
 
     use ruma_common::api::ruma_api;
 

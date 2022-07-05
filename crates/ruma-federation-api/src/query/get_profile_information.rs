@@ -81,8 +81,9 @@ pub mod v1 {
     /// Profile fields to specify in query.
     ///
     /// This type can hold an arbitrary string. To build this with a custom value, convert it from a
-    /// string with `::from() / .into()`. To check for formats that are not available as a
-    /// documented variant here, use its string representation, obtained through `.as_str()`.
+    /// string with `::from() / .into()`. To check for values that are not available as a
+    /// documented variant here, use its string representation, obtained through
+    /// [`.as_str()`](Self::as_str()).
     #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
     #[non_exhaustive]
     pub enum ProfileField {
@@ -96,12 +97,5 @@ pub mod v1 {
 
         #[doc(hidden)]
         _Custom(PrivOwnedStr),
-    }
-
-    impl ProfileField {
-        /// Creates a string slice from this `ProfileField`.
-        pub fn as_str(&self) -> &str {
-            self.as_ref()
-        }
     }
 }

@@ -7,8 +7,9 @@ homepage = "https://www.ruma.io/"
 repository = "https://github.com/ruma/ruma"
 readme = "README.md"
 license = "MIT"
-version = "0.6.2"
-edition = "2018"
+version = "0.6.3"
+edition = "2021"
+rust-version = "1.60"
 
 [package.metadata.docs.rs]
 all-features = true
@@ -16,6 +17,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 api = ["ruma-common/api"]
+canonical-json = ["ruma-common/canonical-json"]
 client = ["ruma-client"]
 events = ["ruma-common/events"]
 signatures = ["ruma-signatures"]
@@ -84,25 +86,23 @@ full = [
 # missing with this feature.
 compat = [
     "ruma-common/compat",
-    "ruma-client-api/compat",
-    "ruma-signatures/compat",
-    "ruma-state-res/compat",
+    "ruma-client-api?/compat",
+    "ruma-federation-api?/compat",
 ]
 
-# Helper features that aren't exactly part of the spec but could be helpful
-# for crate consumers
-appservice-api-helper = ["ruma-appservice-api/helper"]
+# Specific compatibility for past ring public/private key documents.
+ring-compat = ["ruma-signatures/ring-compat"]
 
 # unstable: by using any of these, you opt out of all semver guarantees Ruma
 #           otherwise provides!
 unstable-exhaustive-types = [
     "ruma-common/unstable-exhaustive-types",
-    "ruma-appservice-api/unstable-exhaustive-types",
-    "ruma-client-api/unstable-exhaustive-types",
-    "ruma-federation-api/unstable-exhaustive-types",
-    "ruma-identity-service-api/unstable-exhaustive-types",
-    "ruma-push-gateway-api/unstable-exhaustive-types",
-    "ruma-state-res/unstable-exhaustive-types"
+    "ruma-appservice-api?/unstable-exhaustive-types",
+    "ruma-client-api?/unstable-exhaustive-types",
+    "ruma-federation-api?/unstable-exhaustive-types",
+    "ruma-identity-service-api?/unstable-exhaustive-types",
+    "ruma-push-gateway-api?/unstable-exhaustive-types",
+    "ruma-state-res?/unstable-exhaustive-types"
 ]
 unstable-extensible-events = [
     "unstable-msc3246",
@@ -112,28 +112,38 @@ unstable-extensible-events = [
 unstable-pdu = ["ruma-common/unstable-pdu"]
 unstable-pre-spec = [
     "ruma-common/unstable-pre-spec",
-    "ruma-federation-api/unstable-pre-spec",
-    "ruma-push-gateway-api/unstable-pre-spec",
+    "ruma-federation-api?/unstable-pre-spec",
+    "ruma-push-gateway-api?/unstable-pre-spec",
 ]
+unstable-sanitize = ["ruma-common/unstable-sanitize"]
 unstable-msc1767 = ["ruma-common/unstable-msc1767"]
+unstable-msc2246 = ["ruma-client-api?/unstable-msc2246"]
 unstable-msc2448 = [
-    "ruma-client-api/unstable-msc2448",
+    "ruma-client-api?/unstable-msc2448",
     "ruma-common/unstable-msc2448",
-    "ruma-federation-api/unstable-msc2448"
+    "ruma-federation-api?/unstable-msc2448"
 ]
-unstable-msc2654 = ["ruma-client-api/unstable-msc2654"]
-unstable-msc2675 = ["ruma-common/unstable-msc2675"]
-unstable-msc2676 = ["ruma-common/unstable-msc2676"]
-unstable-msc2677 = ["ruma-common/unstable-msc2677"]
-unstable-msc2870 = ["ruma-signatures/unstable-msc2870"]
+unstable-msc2654 = ["ruma-client-api?/unstable-msc2654"]
+unstable-msc2666 = ["ruma-client-api?/unstable-msc2666"]
+unstable-msc2676 = [
+    "ruma-client-api?/unstable-msc2676",
+    "ruma-common/unstable-msc2676",
+]
+unstable-msc2677 = [
+    "ruma-client-api?/unstable-msc2677",
+    "ruma-common/unstable-msc2677",
+]
+unstable-msc2746 = ["ruma-common/unstable-msc2746"]
+unstable-msc2870 = ["ruma-common/unstable-msc2870"]
 unstable-msc3245 = ["ruma-common/unstable-msc3245"]
 unstable-msc3246 = ["ruma-common/unstable-msc3246"]
+unstable-msc3381 = ["ruma-common/unstable-msc3381"]
 unstable-msc3440 = [
-    "ruma-client-api/unstable-msc3440",
+    "ruma-client-api?/unstable-msc3440",
     "ruma-common/unstable-msc3440",
 ]
 unstable-msc3488 = [
-    "ruma-client-api/unstable-msc3488",
+    "ruma-client-api?/unstable-msc3488",
     "ruma-common/unstable-msc3488",
 ]
 unstable-msc3551 = ["ruma-common/unstable-msc3551"]
@@ -143,19 +153,23 @@ unstable-msc3554 = ["ruma-common/unstable-msc3554"]
 unstable-msc3618 = ["ruma-federation-api/unstable-msc3618"]
 unstable-msc3723 = ["ruma-federation-api/unstable-msc3723"]
 unstable-msc3575 = ["ruma-client-api/unstable-msc3575"]
+
 # Private feature, only used in test / benchmarking code
 __ci = [
     "full",
     "unstable-pre-spec",
+    "unstable-sanitize",
     "unstable-msc1767",
     "unstable-msc2448",
+    "unstable-msc2666",
     "unstable-msc2654",
-    "unstable-msc2675",
     "unstable-msc2676",
     "unstable-msc2677",
+    "unstable-msc2746",
     "unstable-msc2870",
     "unstable-msc3245",
     "unstable-msc3246",
+    "unstable-msc3381",
     "unstable-msc3440",
     "unstable-msc3488",
     "unstable-msc3551",
@@ -178,7 +192,7 @@ ruma-signatures = { version = "0.11.0", path = "../ruma-signatures", optional = 
 ruma-state-res = { version = "0.7.0", path = "../ruma-state-res", optional = true }
 
 ruma-appservice-api = { version = "0.6.0", path = "../ruma-appservice-api", optional = true }
-ruma-client-api = { version = "0.14.0", path = "../ruma-client-api", optional = true }
+ruma-client-api = { version = "0.14.1", path = "../ruma-client-api", optional = true }
 ruma-federation-api = { version = "0.5.0", path = "../ruma-federation-api", optional = true }
 ruma-identity-service-api = { version = "0.5.0", path = "../ruma-identity-service-api", optional = true }
 ruma-push-gateway-api = { version = "0.5.0", path = "../ruma-push-gateway-api", optional = true }

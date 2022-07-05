@@ -1,5 +1,5 @@
+use assert_matches::assert_matches;
 use assign::assign;
-use matches::assert_matches;
 use ruma_common::{
     event_id,
     events::room::message::{InReplyTo, MessageType, Relation, RoomMessageEventContent},
@@ -8,26 +8,25 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 
 #[test]
 fn reply_deserialize() {
-    let ev_id = event_id!("$1598361704261elfgc:localhost");
-
     let json = json!({
         "msgtype": "m.text",
         "body": "<text msg>",
         "m.relates_to": {
             "m.in_reply_to": {
-                "event_id": ev_id,
+                "event_id": "$1598361704261elfgc:localhost",
             },
         },
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json).unwrap(),
-        RoomMessageEventContent {
+    let event_id = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json),
+        Ok(RoomMessageEventContent {
             msgtype: MessageType::Text(_),
             relates_to: Some(Relation::Reply { in_reply_to: InReplyTo { event_id, .. }, .. }),
             ..
-        } if event_id == ev_id
+        }) => event_id
     );
+    assert_eq!(event_id, "$1598361704261elfgc:localhost");
 }
 
 #[test]
@@ -123,8 +122,6 @@ fn replacement_serialize() {
 #[test]
 #[cfg(feature = "unstable-msc2676")]
 fn replacement_deserialize() {
-    use ruma_common::events::room::message::Replacement;
-
     let json = json!({
         "msgtype": "m.text",
         "body": "<text msg>",
@@ -138,15 +135,17 @@ fn replacement_deserialize() {
         },
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json).unwrap(),
-        RoomMessageEventContent {
+    let replacement = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json),
+        Ok(RoomMessageEventContent {
             msgtype: MessageType::Text(_),
-            relates_to: Some(Relation::Replacement(Replacement { event_id, new_content, .. })),
+            relates_to: Some(Relation::Replacement(replacement)),
             ..
-        } if event_id == "$1598361704261elfgc"
-          && matches!(&new_content.msgtype, MessageType::Text(text) if text.body == "Hello! My name is bar")
+        }) => replacement
     );
+    assert_eq!(replacement.event_id, "$1598361704261elfgc");
+    let text = assert_matches!(replacement.new_content.msgtype, MessageType::Text(text) => text);
+    assert_eq!(text.body, "Hello! My name is bar");
 }
 
 #[test]
@@ -256,8 +255,6 @@ fn thread_reply_serialize() {
 #[test]
 #[cfg(feature = "unstable-msc3440")]
 fn thread_stable_deserialize() {
-    use ruma_common::events::room::message::Thread;
-
     let json = json!({
         "msgtype": "m.text",
         "body": "<text msg>",
@@ -270,30 +267,22 @@ fn thread_stable_deserialize() {
         },
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json).unwrap(),
-        RoomMessageEventContent {
+    let thread = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json),
+        Ok(RoomMessageEventContent {
             msgtype: MessageType::Text(_),
-            relates_to: Some(Relation::Thread(
-                Thread {
-                    event_id,
-                    in_reply_to: InReplyTo { event_id: reply_to_event_id, .. },
-                    is_falling_back,
-                    ..
-                },
-            )),
+            relates_to: Some(Relation::Thread(thread)),
             ..
-        } if event_id == "$1598361704261elfgc"
-          && reply_to_event_id == "$latesteventid"
-          && !is_falling_back
+        }) => thread
     );
+    assert_eq!(thread.event_id, "$1598361704261elfgc");
+    assert_eq!(thread.in_reply_to.event_id, "$latesteventid");
+    assert!(!thread.is_falling_back);
 }
 
 #[test]
 #[cfg(feature = "unstable-msc3440")]
 fn thread_unstable_deserialize() {
-    use ruma_common::events::room::message::Thread;
-
     let json = json!({
         "msgtype": "m.text",
         "body": "<text msg>",
@@ -306,21 +295,15 @@ fn thread_unstable_deserialize() {
         },
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json).unwrap(),
-        RoomMessageEventContent {
+    let thread = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json),
+        Ok(RoomMessageEventContent {
             msgtype: MessageType::Text(_),
-            relates_to: Some(Relation::Thread(
-                Thread {
-                    event_id,
-                    in_reply_to: InReplyTo { event_id: reply_to_event_id, .. },
-                    is_falling_back,
-                    ..
-                },
-            )),
+            relates_to: Some(Relation::Thread(thread)),
             ..
-        } if event_id == "$1598361704261elfgc"
-          && reply_to_event_id == "$latesteventid"
-          && !is_falling_back
+        }) => thread
     );
+    assert_eq!(thread.event_id, "$1598361704261elfgc");
+    assert_eq!(thread.in_reply_to.event_id, "$latesteventid");
+    assert!(!thread.is_falling_back);
 }

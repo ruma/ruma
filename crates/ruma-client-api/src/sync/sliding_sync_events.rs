@@ -131,7 +131,7 @@ ruma_api! {
         name: "sync",
         added: 1.0,
         stable_path: "/_matrix/client/v3/sync",
-        //unstable_path: "/_matrix/client/unstable/org.matrix.msc3575/sync",
+        // unstable_path: "/_matrix/client/unstable/org.matrix.msc3575/sync",
         rate_limited: false,
         authentication: AccessToken,
     }
@@ -171,7 +171,7 @@ ruma_api! {
         pub pos: String,
 
         /// Updates to the sliding room list
-        #[serde(skip_serializing_if = "Option::is_none")]
+        #[serde()]
         pub lists: Vec<SyncList>,
 
         /// The updates on rooms

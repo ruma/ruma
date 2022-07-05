@@ -42,6 +42,19 @@ impl Ruleset {
                 ConditionalPushRule::tombstone(),
                 ConditionalPushRule::roomnotif(),
             ],
+            #[cfg(feature = "unstable-msc3381")]
+            underride: indexset![
+                ConditionalPushRule::call(),
+                ConditionalPushRule::encrypted_room_one_to_one(),
+                ConditionalPushRule::room_one_to_one(),
+                ConditionalPushRule::message(),
+                ConditionalPushRule::encrypted(),
+                ConditionalPushRule::poll_start_one_to_one(),
+                ConditionalPushRule::poll_start(),
+                ConditionalPushRule::poll_end_one_to_one(),
+                ConditionalPushRule::poll_end(),
+            ],
+            #[cfg(not(feature = "unstable-msc3381"))]
             underride: indexset![
                 ConditionalPushRule::call(),
                 ConditionalPushRule::encrypted_room_one_to_one(),
@@ -272,6 +285,68 @@ impl ConditionalPushRule {
             enabled: true,
             conditions: vec![EventMatch { key: "type".into(), pattern: "m.room.encrypted".into() }],
             actions: vec![Notify, SetTweak(Tweak::Highlight(false))],
+        }
+    }
+
+    /// Matches a poll start event sent in a room with exactly two members.
+    ///
+    /// This rule should be kept in sync with `.m.rule.room_one_to_one` by the server.
+    #[cfg(feature = "unstable-msc3381")]
+    pub fn poll_start_one_to_one() -> Self {
+        Self {
+            rule_id: ".m.rule.poll_start_one_to_one".into(),
+            default: true,
+            enabled: true,
+            conditions: vec![
+                RoomMemberCount { is: RoomMemberCountIs::from(js_int::uint!(2)) },
+                EventMatch { key: "type".into(), pattern: "m.poll.start".into() },
+            ],
+            actions: vec![Notify, SetTweak(Tweak::Sound("default".into()))],
+        }
+    }
+
+    /// Matches a poll start event sent in any room.
+    ///
+    /// This rule should be kept in sync with `.m.rule.message` by the server.
+    #[cfg(feature = "unstable-msc3381")]
+    pub fn poll_start() -> Self {
+        Self {
+            rule_id: ".m.rule.poll_start".into(),
+            default: true,
+            enabled: true,
+            conditions: vec![EventMatch { key: "type".into(), pattern: "m.poll.start".into() }],
+            actions: vec![Notify],
+        }
+    }
+
+    /// Matches a poll end event sent in a room with exactly two members.
+    ///
+    /// This rule should be kept in sync with `.m.rule.room_one_to_one` by the server.
+    #[cfg(feature = "unstable-msc3381")]
+    pub fn poll_end_one_to_one() -> Self {
+        Self {
+            rule_id: ".m.rule.poll_end_one_to_one".into(),
+            default: true,
+            enabled: true,
+            conditions: vec![
+                RoomMemberCount { is: RoomMemberCountIs::from(js_int::uint!(2)) },
+                EventMatch { key: "type".into(), pattern: "m.poll.end".into() },
+            ],
+            actions: vec![Notify, SetTweak(Tweak::Sound("default".into()))],
+        }
+    }
+
+    /// Matches a poll end event sent in any room.
+    ///
+    /// This rule should be kept in sync with `.m.rule.message` by the server.
+    #[cfg(feature = "unstable-msc3381")]
+    pub fn poll_end() -> Self {
+        Self {
+            rule_id: ".m.rule.poll_end".into(),
+            default: true,
+            enabled: true,
+            conditions: vec![EventMatch { key: "type".into(), pattern: "m.poll.end".into() }],
+            actions: vec![Notify],
         }
     }
 }

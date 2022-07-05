@@ -264,17 +264,11 @@ pub struct MegolmV1AesSha2Content {
     pub ciphertext: String,
 
     /// The Curve25519 key of the sender.
-    #[cfg_attr(
-        feature = "unstable-msc3700",
-        deprecated = "this field still needs to be sent but should not be used when received"
-    )]
+    #[deprecated = "this field still needs to be sent but should not be used when received"]
     pub sender_key: String,
 
     /// The ID of the sending device.
-    #[cfg_attr(
-        feature = "unstable-msc3700",
-        deprecated = "this field still needs to be sent but should not be used when received"
-    )]
+    #[deprecated = "this field still needs to be sent but should not be used when received"]
     pub device_id: OwnedDeviceId,
 
     /// The ID of the session used to encrypt the message.
@@ -305,31 +299,35 @@ impl From<MegolmV1AesSha2ContentInit> for MegolmV1AesSha2Content {
     /// Creates a new `MegolmV1AesSha2Content` from the given init struct.
     fn from(init: MegolmV1AesSha2ContentInit) -> Self {
         let MegolmV1AesSha2ContentInit { ciphertext, sender_key, device_id, session_id } = init;
+        #[allow(deprecated)]
         Self { ciphertext, sender_key, device_id, session_id }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{event_id, serde::Raw};
+    use assert_matches::assert_matches;
     use js_int::uint;
-    use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{
-        EncryptedEventScheme, InReplyTo, MegolmV1AesSha2Content, Relation,
+        EncryptedEventScheme, InReplyTo, MegolmV1AesSha2ContentInit, Relation,
         RoomEncryptedEventContent,
     };
+    use crate::{event_id, serde::Raw};
 
     #[test]
     fn serialization() {
         let key_verification_start_content = RoomEncryptedEventContent {
-            scheme: EncryptedEventScheme::MegolmV1AesSha2(MegolmV1AesSha2Content {
-                ciphertext: "ciphertext".into(),
-                sender_key: "sender_key".into(),
-                device_id: "device_id".into(),
-                session_id: "session_id".into(),
-            }),
+            scheme: EncryptedEventScheme::MegolmV1AesSha2(
+                MegolmV1AesSha2ContentInit {
+                    ciphertext: "ciphertext".into(),
+                    sender_key: "sender_key".into(),
+                    device_id: "device_id".into(),
+                    session_id: "session_id".into(),
+                }
+                .into(),
+            ),
             relates_to: Some(Relation::Reply {
                 in_reply_to: InReplyTo { event_id: event_id!("$h29iv0s8:example.com").to_owned() },
             }),
@@ -352,6 +350,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn deserialization() {
         let json_data = json!({
             "algorithm": "m.megolm.v1.aes-sha2",
@@ -368,24 +367,20 @@ mod tests {
 
         let content: RoomEncryptedEventContent = from_json_value(json_data).unwrap();
 
-        assert_matches!(
+        let scheme = assert_matches!(
             content.scheme,
-            EncryptedEventScheme::MegolmV1AesSha2(MegolmV1AesSha2Content {
-                ciphertext,
-                sender_key,
-                device_id,
-                session_id,
-            }) if ciphertext == "ciphertext"
-                && sender_key == "sender_key"
-                && device_id == "device_id"
-                && session_id == "session_id"
+            EncryptedEventScheme::MegolmV1AesSha2(scheme) => scheme
         );
+        assert_eq!(scheme.ciphertext, "ciphertext");
+        assert_eq!(scheme.sender_key, "sender_key");
+        assert_eq!(scheme.device_id, "device_id");
+        assert_eq!(scheme.session_id, "session_id");
 
-        assert_matches!(
+        let in_reply_to = assert_matches!(
             content.relates_to,
-            Some(Relation::Reply { in_reply_to })
-                if in_reply_to.event_id == event_id!("$h29iv0s8:example.com")
+            Some(Relation::Reply { in_reply_to }) => in_reply_to
         );
+        assert_eq!(in_reply_to.event_id, "$h29iv0s8:example.com");
     }
 
     #[test]
@@ -402,24 +397,23 @@ mod tests {
         });
         let content: RoomEncryptedEventContent = from_json_value(json_data).unwrap();
 
-        match content.scheme {
-            EncryptedEventScheme::OlmV1Curve25519AesSha2(c) => {
-                assert_eq!(c.sender_key, "test_key");
-                assert_eq!(c.ciphertext.len(), 1);
-                assert_eq!(c.ciphertext["test_curve_key"].body, "encrypted_body");
-                assert_eq!(c.ciphertext["test_curve_key"].message_type, uint!(1));
-            }
-            _ => panic!("Wrong content type, expected a OlmV1 content"),
-        }
+        let c = assert_matches!(
+            content.scheme,
+            EncryptedEventScheme::OlmV1Curve25519AesSha2(c) => c
+        );
+        assert_eq!(c.sender_key, "test_key");
+        assert_eq!(c.ciphertext.len(), 1);
+        assert_eq!(c.ciphertext["test_curve_key"].body, "encrypted_body");
+        assert_eq!(c.ciphertext["test_curve_key"].message_type, uint!(1));
     }
 
     #[test]
     fn deserialization_failure() {
-        assert!(from_json_value::<Raw<RoomEncryptedEventContent>>(
-            json!({ "algorithm": "m.megolm.v1.aes-sha2" })
+        from_json_value::<Raw<RoomEncryptedEventContent>>(
+            json!({ "algorithm": "m.megolm.v1.aes-sha2" }),
         )
         .unwrap()
         .deserialize()
-        .is_err());
+        .unwrap_err();
     }
 }

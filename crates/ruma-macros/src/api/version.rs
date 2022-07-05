@@ -1,4 +1,4 @@
-use std::{convert::TryInto, num::NonZeroU8};
+use std::num::NonZeroU8;
 
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote, ToTokens};
@@ -28,11 +28,11 @@ impl Parse for MatrixVersionLiteral {
         })?;
 
         let major: NonZeroU8 = ver[0].parse().map_err(|e| {
-            Error::new_spanned(&fl, format!("major number failed to parse as >0 number: {}", e))
+            Error::new_spanned(&fl, format!("major number failed to parse as >0 number: {e}"))
         })?;
         let minor: u8 = ver[1]
             .parse()
-            .map_err(|e| Error::new_spanned(&fl, format!("minor number failed to parse: {}", e)))?;
+            .map_err(|e| Error::new_spanned(&fl, format!("minor number failed to parse: {e}")))?;
 
         Ok(Self { major, minor })
     }

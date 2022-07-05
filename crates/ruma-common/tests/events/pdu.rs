@@ -1,6 +1,6 @@
 #![cfg(all(feature = "unstable-pdu"))]
 
-use std::{collections::BTreeMap, convert::TryInto};
+use std::collections::BTreeMap;
 
 use js_int::uint;
 use ruma_common::{

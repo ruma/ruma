@@ -7,6 +7,8 @@ mod lazy_load;
 mod url;
 
 use js_int::UInt;
+#[cfg(feature = "unstable-msc3440")]
+use ruma_common::events::relation::RelationType;
 use ruma_common::{
     serde::{Incoming, StringEnum},
     OwnedRoomId, OwnedUserId,
@@ -33,51 +35,9 @@ pub enum EventFormat {
     _Custom(PrivOwnedStr),
 }
 
-impl EventFormat {
-    /// Creates a string slice from this `EventFormat`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 impl Default for EventFormat {
     fn default() -> Self {
         Self::Client
-    }
-}
-
-/// Relation types as defined in `rel_type` of an `m.relates_to` field.
-///
-/// This type can hold an arbitrary string. To build this with a custom value, convert it from a
-/// string with `::from() / .into()`. To check for formats that are not available as a documented
-/// variant here, use its string representation, obtained through `.as_str()`.
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
-#[cfg(feature = "unstable-msc3440")]
-#[non_exhaustive]
-pub enum RelationType {
-    /// `m.annotation`, an annotation, principally used by reactions.
-    #[cfg(feature = "unstable-msc2677")]
-    #[ruma_enum(rename = "m.annotation")]
-    Annotation,
-
-    /// `m.replace`, a replacement.
-    #[cfg(feature = "unstable-msc2676")]
-    #[ruma_enum(rename = "m.replace")]
-    Replacement,
-
-    /// `m.thread`, a participant to a thread.
-    #[ruma_enum(rename = "io.element.thread", alias = "m.thread")]
-    Thread,
-
-    #[doc(hidden)]
-    _Custom(PrivOwnedStr),
-}
-
-#[cfg(feature = "unstable-msc3440")]
-impl RelationType {
-    /// Creates a string slice from this `RelationType`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
     }
 }
 
@@ -475,7 +435,7 @@ can_be_empty!(IncomingRoomFilter);
 
 #[cfg(test)]
 mod tests {
-    use matches::assert_matches;
+    use assert_matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{
@@ -516,7 +476,7 @@ mod tests {
     }
 
     #[test]
-    fn issue_366() -> serde_json::Result<()> {
+    fn issue_366() {
         let obj = json!({
             "lazy_load_members": true,
             "filter_json": { "contains_url": true, "types": ["m.room.message"] },
@@ -529,40 +489,24 @@ mod tests {
             "contains_url": true,
         });
 
-        assert_matches!(
-            from_json_value(obj)?,
-            IncomingRoomEventFilter {
-                types: Some(types),
-                not_types,
-                rooms: None,
-                not_rooms,
-                senders: None,
-                not_senders,
-                limit: None,
-                url_filter: Some(UrlFilter::EventsWithUrl),
-                lazy_load_options: LazyLoadOptions::Enabled { include_redundant_members: false },
-                #[cfg(feature = "unstable-msc3440")]
-                related_by_rel_types,
-                #[cfg(feature = "unstable-msc3440")]
-                related_by_senders
-            } if {
-                let valid = types == vec!["m.room.message".to_owned()]
-                && not_types.is_empty()
-                && not_rooms.is_empty()
-                && not_senders.is_empty();
+        let filter: IncomingRoomEventFilter = assert_matches!(from_json_value(obj), Ok(f) => f);
 
-                #[cfg(not(feature = "unstable-msc3440"))]
-                {
-                    valid
-                }
-
-                #[cfg(feature = "unstable-msc3440")]
-                {
-                    valid && related_by_rel_types.is_empty() && related_by_senders.is_empty()
-                }
-            }
+        assert_eq!(filter.types, Some(vec!["m.room.message".to_owned()]));
+        assert_eq!(filter.not_types, vec![""; 0]);
+        assert_eq!(filter.rooms, None);
+        assert_eq!(filter.not_rooms, vec![""; 0]);
+        assert_eq!(filter.senders, None);
+        assert_eq!(filter.not_senders, vec![""; 0]);
+        assert_eq!(filter.limit, None);
+        assert_eq!(filter.url_filter, Some(UrlFilter::EventsWithUrl));
+        assert_eq!(
+            filter.lazy_load_options,
+            LazyLoadOptions::Enabled { include_redundant_members: false }
         );
 
-        Ok(())
+        #[cfg(feature = "unstable-msc3440")]
+        assert_eq!(filter.related_by_rel_types, vec![]);
+        #[cfg(feature = "unstable-msc3440")]
+        assert_eq!(filter.related_by_senders, vec![""; 0]);
     }
 }

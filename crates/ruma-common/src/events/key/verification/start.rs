@@ -199,19 +199,23 @@ impl From<SasV1ContentInit> for SasV1Content {
 mod tests {
     use std::collections::BTreeMap;
 
-    use crate::{event_id, serde::Base64, user_id};
-    use matches::assert_matches;
+    use assert_matches::assert_matches;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
 
     use super::{
         HashAlgorithm, KeyAgreementProtocol, KeyVerificationStartEventContent,
-        MessageAuthenticationCode, ReciprocateV1Content, SasV1Content, SasV1ContentInit,
+        MessageAuthenticationCode, ReciprocateV1Content, SasV1ContentInit,
         ShortAuthenticationString, StartMethod, ToDeviceKeyVerificationStartEventContent,
         _CustomContent,
     };
-    use crate::events::{key::verification::Relation, ToDeviceEvent};
+    use crate::{
+        event_id,
+        events::{key::verification::Relation, ToDeviceEvent},
+        serde::Base64,
+        user_id,
+    };
 
     #[test]
     fn serialization() {
@@ -366,26 +370,21 @@ mod tests {
         });
 
         // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
-        assert_matches!(
-            from_json_value::<ToDeviceKeyVerificationStartEventContent>(json).unwrap(),
-            ToDeviceKeyVerificationStartEventContent {
-                from_device,
-                transaction_id,
-                method: StartMethod::SasV1(SasV1Content {
-                    hashes,
-                    key_agreement_protocols,
-                    message_authentication_codes,
-                    short_authentication_string,
-                })
-            } if from_device == "123"
-                && transaction_id == "456"
-                && hashes == vec![HashAlgorithm::Sha256]
-                && key_agreement_protocols == vec![KeyAgreementProtocol::Curve25519]
-                && message_authentication_codes == vec![MessageAuthenticationCode::HkdfHmacSha256]
-                && short_authentication_string == vec![ShortAuthenticationString::Decimal]
-        );
+        let content = from_json_value::<ToDeviceKeyVerificationStartEventContent>(json).unwrap();
+        assert_eq!(content.from_device, "123");
+        assert_eq!(content.transaction_id, "456");
 
-        let sender = user_id!("@example:localhost");
+        let sas = assert_matches!(
+            content.method,
+            StartMethod::SasV1(sas) => sas
+        );
+        assert_eq!(sas.hashes, vec![HashAlgorithm::Sha256]);
+        assert_eq!(sas.key_agreement_protocols, vec![KeyAgreementProtocol::Curve25519]);
+        assert_eq!(
+            sas.message_authentication_codes,
+            vec![MessageAuthenticationCode::HkdfHmacSha256]
+        );
+        assert_eq!(sas.short_authentication_string, vec![ShortAuthenticationString::Decimal]);
 
         let json = json!({
             "content": {
@@ -398,33 +397,26 @@ mod tests {
                 "short_authentication_string": ["decimal"]
             },
             "type": "m.key.verification.start",
-            "sender": sender
+            "sender": "@example:localhost",
         });
 
-        assert_matches!(
-            from_json_value::<ToDeviceEvent<ToDeviceKeyVerificationStartEventContent>>(json).unwrap(),
-            ToDeviceEvent {
-                sender,
-                content: ToDeviceKeyVerificationStartEventContent {
-                    from_device,
-                    transaction_id,
-                    method: StartMethod::SasV1(SasV1Content {
-                        hashes,
-                        key_agreement_protocols,
-                        message_authentication_codes,
-                        short_authentication_string,
-                    })
-                }
-            } if from_device == "123"
-                && sender == user_id!("@example:localhost")
-                && transaction_id == "456"
-                && hashes == vec![HashAlgorithm::Sha256]
-                && key_agreement_protocols == vec![KeyAgreementProtocol::Curve25519]
-                && message_authentication_codes == vec![MessageAuthenticationCode::HkdfHmacSha256]
-                && short_authentication_string == vec![ShortAuthenticationString::Decimal]
-        );
+        let ev = from_json_value::<ToDeviceEvent<ToDeviceKeyVerificationStartEventContent>>(json)
+            .unwrap();
+        assert_eq!(ev.sender, "@example:localhost");
+        assert_eq!(ev.content.from_device, "123");
+        assert_eq!(ev.content.transaction_id, "456");
 
-        let sender = user_id!("@example:localhost");
+        let sas = assert_matches!(
+            ev.content.method,
+            StartMethod::SasV1(sas) => sas
+        );
+        assert_eq!(sas.hashes, vec![HashAlgorithm::Sha256]);
+        assert_eq!(sas.key_agreement_protocols, vec![KeyAgreementProtocol::Curve25519]);
+        assert_eq!(
+            sas.message_authentication_codes,
+            vec![MessageAuthenticationCode::HkdfHmacSha256]
+        );
+        assert_eq!(sas.short_authentication_string, vec![ShortAuthenticationString::Decimal]);
 
         let json = json!({
             "content": {
@@ -434,58 +426,48 @@ mod tests {
                 "test": "field",
             },
             "type": "m.key.verification.start",
-            "sender": sender,
+            "sender": "@example:localhost",
         });
 
-        assert_matches!(
-            from_json_value::<ToDeviceEvent<ToDeviceKeyVerificationStartEventContent>>(json).unwrap(),
-            ToDeviceEvent {
-                sender,
-                content: ToDeviceKeyVerificationStartEventContent {
-                    from_device,
-                    transaction_id,
-                    method: StartMethod::_Custom(_CustomContent { method, data })
-                }
-            } if from_device == "123"
-                && sender == user_id!("@example:localhost")
-                && transaction_id == "456"
-                && method == "m.sas.custom"
-                && data.get("test").unwrap() == &JsonValue::from("field")
+        let ev = from_json_value::<ToDeviceEvent<ToDeviceKeyVerificationStartEventContent>>(json)
+            .unwrap();
+        assert_eq!(ev.sender, "@example:localhost");
+        assert_eq!(ev.content.from_device, "123");
+        assert_eq!(ev.content.transaction_id, "456");
+
+        let custom = assert_matches!(
+            ev.content.method,
+            StartMethod::_Custom(custom) => custom
         );
+        assert_eq!(custom.method, "m.sas.custom");
+        assert_eq!(custom.data.get("test"), Some(&JsonValue::from("field")));
 
-        {
-            let json = json!({
-                "content": {
-                    "from_device": "123",
-                    "method": "m.reciprocate.v1",
-                    "secret": "c2VjcmV0Cg",
-                    "transaction_id": "456",
-                },
-                "type": "m.key.verification.start",
-                "sender": sender,
-            });
+        let json = json!({
+            "content": {
+                "from_device": "123",
+                "method": "m.reciprocate.v1",
+                "secret": "c2VjcmV0Cg",
+                "transaction_id": "456",
+            },
+            "type": "m.key.verification.start",
+            "sender": "@example:localhost",
+        });
 
-            assert_matches!(
-                from_json_value::<ToDeviceEvent<ToDeviceKeyVerificationStartEventContent>>(json).unwrap(),
-                ToDeviceEvent {
-                    sender,
-                    content: ToDeviceKeyVerificationStartEventContent {
-                        from_device,
-                        transaction_id,
-                        method: StartMethod::ReciprocateV1(ReciprocateV1Content { secret }),
-                    }
-                } if from_device == "123"
-                    && sender == user_id!("@example:localhost")
-                    && transaction_id == "456"
-                    && secret.encode() == "c2VjcmV0Cg"
-            );
-        }
+        let ev = from_json_value::<ToDeviceEvent<ToDeviceKeyVerificationStartEventContent>>(json)
+            .unwrap();
+        assert_eq!(ev.sender, "@example:localhost");
+        assert_eq!(ev.content.from_device, "123");
+        assert_eq!(ev.content.transaction_id, "456");
+
+        let reciprocate = assert_matches!(
+            ev.content.method,
+            StartMethod::ReciprocateV1(reciprocate) => reciprocate
+        );
+        assert_eq!(reciprocate.secret.encode(), "c2VjcmV0Cg");
     }
 
     #[test]
     fn in_room_deserialization() {
-        let id = event_id!("$1598361704261elfgc:localhost");
-
         let json = json!({
             "from_device": "123",
             "method": "m.sas.v1",
@@ -495,29 +477,26 @@ mod tests {
             "short_authentication_string": ["decimal"],
             "m.relates_to": {
                 "rel_type": "m.reference",
-                "event_id": id,
+                "event_id": "$1598361704261elfgc:localhost",
             }
         });
 
         // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
-        assert_matches!(
-            from_json_value::<KeyVerificationStartEventContent>(json).unwrap(),
-            KeyVerificationStartEventContent {
-                from_device,
-                relates_to: Relation { event_id },
-                method: StartMethod::SasV1(SasV1Content {
-                    hashes,
-                    key_agreement_protocols,
-                    message_authentication_codes,
-                    short_authentication_string,
-                })
-            } if from_device == "123"
-                && event_id == id
-                && hashes == vec![HashAlgorithm::Sha256]
-                && key_agreement_protocols == vec![KeyAgreementProtocol::Curve25519]
-                && message_authentication_codes == vec![MessageAuthenticationCode::HkdfHmacSha256]
-                && short_authentication_string == vec![ShortAuthenticationString::Decimal]
+        let content = from_json_value::<KeyVerificationStartEventContent>(json).unwrap();
+        assert_eq!(content.from_device, "123");
+        assert_eq!(content.relates_to.event_id, "$1598361704261elfgc:localhost");
+
+        let sas = assert_matches!(
+            content.method,
+            StartMethod::SasV1(sas) => sas
         );
+        assert_eq!(sas.hashes, vec![HashAlgorithm::Sha256]);
+        assert_eq!(sas.key_agreement_protocols, vec![KeyAgreementProtocol::Curve25519]);
+        assert_eq!(
+            sas.message_authentication_codes,
+            vec![MessageAuthenticationCode::HkdfHmacSha256]
+        );
+        assert_eq!(sas.short_authentication_string, vec![ShortAuthenticationString::Decimal]);
 
         let json = json!({
             "from_device": "123",
@@ -525,19 +504,18 @@ mod tests {
             "secret": "c2VjcmV0Cg",
             "m.relates_to": {
                 "rel_type": "m.reference",
-                "event_id": id,
+                "event_id": "$1598361704261elfgc:localhost",
             }
         });
 
-        assert_matches!(
-            from_json_value::<KeyVerificationStartEventContent>(json).unwrap(),
-            KeyVerificationStartEventContent {
-                from_device,
-                relates_to: Relation { event_id },
-                method: StartMethod::ReciprocateV1(ReciprocateV1Content { secret }),
-            } if from_device == "123"
-                && event_id == id
-                && secret.encode() == "c2VjcmV0Cg"
+        let content = from_json_value::<KeyVerificationStartEventContent>(json).unwrap();
+        assert_eq!(content.from_device, "123");
+        assert_eq!(content.relates_to.event_id, "$1598361704261elfgc:localhost");
+
+        let reciprocate = assert_matches!(
+            content.method,
+            StartMethod::ReciprocateV1(reciprocate) => reciprocate
         );
+        assert_eq!(reciprocate.secret.encode(), "c2VjcmV0Cg");
     }
 }

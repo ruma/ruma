@@ -4,7 +4,7 @@
 
 #![allow(clippy::exhaustive_structs, clippy::redundant_allocation)]
 
-use ruma::{Incoming, UserId};
+use ruma::{serde::Incoming, UserId};
 
 #[allow(unused)]
 pub struct Thing<'t, T> {

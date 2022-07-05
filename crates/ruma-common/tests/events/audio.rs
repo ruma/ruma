@@ -2,9 +2,9 @@
 
 use std::time::Duration;
 
+use assert_matches::assert_matches;
 use assign::assign;
 use js_int::uint;
-use matches::assert_matches;
 use ruma_common::{
     event_id,
     events::{
@@ -33,22 +33,17 @@ fn waveform_deserialization_pass() {
         13, 34, 987, 937, 345, 648, 1, 366, 235, 125, 904, 783, 734,
     ]);
 
-    assert_matches!(
-        from_json_value::<Waveform>(json_data),
-        Ok(waveform) if waveform.amplitudes().len() == 52
-    );
+    let waveform = from_json_value::<Waveform>(json_data).unwrap();
+    assert_eq!(waveform.amplitudes().len(), 52);
 }
 
 #[test]
 fn waveform_deserialization_not_enough() {
     let json_data = json!([]);
 
-    assert_matches!(
-        from_json_value::<Waveform>(json_data),
-        Err(err)
-            if err.is_data()
-            && format!("{}", err) == format!("{}", WaveformError::NotEnoughValues)
-    );
+    let err = from_json_value::<Waveform>(json_data).unwrap_err();
+    assert!(err.is_data());
+    assert_eq!(err.to_string(), WaveformError::NotEnoughValues.to_string());
 }
 
 #[test]
@@ -58,10 +53,8 @@ fn waveform_deserialization_clamp_amplitude() {
         2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000,
     ]);
 
-    assert_matches!(
-        from_json_value::<Waveform>(json_data).unwrap(),
-        waveform if waveform.amplitudes().iter().all(|amp| amp.get() == Amplitude::MAX.into())
-    );
+    let waveform = from_json_value::<Waveform>(json_data).unwrap();
+    assert!(waveform.amplitudes().iter().all(|amp| amp.get() == Amplitude::MAX.into()));
 }
 
 #[test]
@@ -272,20 +265,12 @@ fn plain_content_deserialization() {
         }
     });
 
-    assert_matches!(
-        from_json_value::<AudioEventContent>(json_data)
-            .unwrap(),
-        AudioEventContent {
-            message,
-            file,
-            audio: AudioContent { duration: None, waveform: Some(waveform), .. },
-            ..
-        }
-        if message.find_plain() == Some("Upload: my_new_song.webm")
-            && message.find_html().is_none()
-            && file.url == "mxc://notareal.hs/abcdef"
-            && waveform.amplitudes().len() == 52
-    );
+    let content = from_json_value::<AudioEventContent>(json_data).unwrap();
+    assert_eq!(content.message.find_plain(), Some("Upload: my_new_song.webm"));
+    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
+    let waveform = content.audio.waveform.unwrap();
+    assert_eq!(waveform.amplitudes().len(), 52);
 }
 
 #[test]
@@ -310,20 +295,11 @@ fn encrypted_content_deserialization() {
         "m.audio": {},
     });
 
-    assert_matches!(
-        from_json_value::<AudioEventContent>(json_data)
-            .unwrap(),
-        AudioEventContent {
-            message,
-            file,
-            audio: AudioContent { duration: None, waveform: None, .. },
-            ..
-        }
-        if message.find_plain() == Some("Upload: my_file.txt")
-            && message.find_html().is_none()
-            && file.url == "mxc://notareal.hs/abcdef"
-            && file.encryption_info.is_some()
-    );
+    let content = from_json_value::<AudioEventContent>(json_data).unwrap();
+    assert_eq!(content.message.find_plain(), Some("Upload: my_file.txt"));
+    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
+    assert!(content.file.encryption_info.is_some());
 }
 
 #[test]
@@ -348,38 +324,27 @@ fn message_event_deserialization() {
         "type": "m.audio",
     });
 
-    assert_matches!(
+    let message_event = assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Audio(MessageLikeEvent::Original(OriginalMessageLikeEvent {
-            content: AudioEventContent {
-                message,
-                file: FileContent {
-                    url,
-                    info: Some(info),
-                    ..
-                },
-                audio,
-                ..
-            },
-            event_id,
-            origin_server_ts,
-            room_id,
-            sender,
-            unsigned
-        })) if event_id == event_id!("$event:notareal.hs")
-            && message.find_plain() == Some("Upload: airplane_sound.opus")
-            && message.find_html().is_none()
-            && url == "mxc://notareal.hs/abcdef"
-            && info.name.as_deref() == Some("airplane_sound.opus")
-            && info.mimetype.as_deref() == Some("audio/opus")
-            && info.size == Some(uint!(123_774))
-            && audio.duration == Some(Duration::from_millis(5_300))
-            && audio.waveform.is_none()
-            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
-            && room_id == room_id!("!roomid:notareal.hs")
-            && sender == user_id!("@user:notareal.hs")
-            && unsigned.is_empty()
+        AnyMessageLikeEvent::Audio(MessageLikeEvent::Original(message_event)) => message_event
     );
+
+    assert_eq!(message_event.event_id, "$event:notareal.hs");
+    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
+    assert_eq!(message_event.room_id, "!roomid:notareal.hs");
+    assert_eq!(message_event.sender, "@user:notareal.hs");
+    assert!(message_event.unsigned.is_empty());
+
+    let content = message_event.content;
+    assert_eq!(content.message.find_plain(), Some("Upload: airplane_sound.opus"));
+    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
+    let info = content.file.info.unwrap();
+    assert_eq!(info.name.as_deref(), Some("airplane_sound.opus"));
+    assert_eq!(info.mimetype.as_deref(), Some("audio/opus"));
+    assert_eq!(info.size, Some(uint!(123_774)));
+    assert_eq!(content.audio.duration, Some(Duration::from_millis(5_300)));
+    assert_matches!(content.audio.waveform, None);
 }
 
 #[test]
@@ -420,20 +385,16 @@ fn room_message_stable_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::Audio(_));
-    if let MessageType::Audio(content) = event_content.msgtype {
-        assert_eq!(content.body, "Upload: my_song.mp3");
-        assert_matches!(content.source, MediaSource::Plain(_));
-        if let MediaSource::Plain(url) = content.source {
-            assert_eq!(url, "mxc://notareal.hs/file");
-        }
-        let message = content.message.unwrap();
-        assert_eq!(message.len(), 1);
-        assert_eq!(message[0].body, "Upload: my_song.mp3");
-        let file = content.file.unwrap();
-        assert_eq!(file.url, "mxc://notareal.hs/file");
-        assert!(!file.is_encrypted());
-    }
+    let content = assert_matches!(event_content.msgtype, MessageType::Audio(content) => content);
+    assert_eq!(content.body, "Upload: my_song.mp3");
+    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
+    assert_eq!(url, "mxc://notareal.hs/file");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 1);
+    assert_eq!(message[0].body, "Upload: my_song.mp3");
+    let file = content.file.unwrap();
+    assert_eq!(file.url, "mxc://notareal.hs/file");
+    assert!(!file.is_encrypted());
 }
 
 #[test]
@@ -450,18 +411,14 @@ fn room_message_unstable_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::Audio(_));
-    if let MessageType::Audio(content) = event_content.msgtype {
-        assert_eq!(content.body, "Upload: my_song.mp3");
-        assert_matches!(content.source, MediaSource::Plain(_));
-        if let MediaSource::Plain(url) = content.source {
-            assert_eq!(url, "mxc://notareal.hs/file");
-        }
-        let message = content.message.unwrap();
-        assert_eq!(message.len(), 1);
-        assert_eq!(message[0].body, "Upload: my_song.mp3");
-        let file = content.file.unwrap();
-        assert_eq!(file.url, "mxc://notareal.hs/file");
-        assert!(!file.is_encrypted());
-    }
+    let content = assert_matches!(event_content.msgtype, MessageType::Audio(content) => content);
+    assert_eq!(content.body, "Upload: my_song.mp3");
+    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
+    assert_eq!(url, "mxc://notareal.hs/file");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 1);
+    assert_eq!(message[0].body, "Upload: my_song.mp3");
+    let file = content.file.unwrap();
+    assert_eq!(file.url, "mxc://notareal.hs/file");
+    assert!(!file.is_encrypted());
 }

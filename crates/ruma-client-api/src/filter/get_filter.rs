@@ -56,19 +56,16 @@ pub mod v3 {
 
     #[cfg(all(test, any(feature = "client", feature = "server")))]
     mod tests {
-        use matches::assert_matches;
-
         #[cfg(feature = "client")]
         #[test]
         fn deserialize_response() {
             use ruma_common::api::IncomingResponse;
 
-            assert_matches!(
-                super::Response::try_from_http_response(
-                    http::Response::builder().body(b"{}" as &[u8]).unwrap(),
-                ),
-                Ok(super::Response { filter }) if filter.is_empty()
-            );
+            let res = super::Response::try_from_http_response(
+                http::Response::builder().body(b"{}" as &[u8]).unwrap(),
+            )
+            .unwrap();
+            assert!(res.filter.is_empty());
         }
 
         #[cfg(feature = "server")]
@@ -78,11 +75,10 @@ pub mod v3 {
 
             use crate::filter::IncomingFilterDefinition;
 
-            assert_matches!(
-                super::Response::new(IncomingFilterDefinition::default())
-                    .try_into_http_response::<Vec<u8>>(),
-                Ok(res) if res.body() == b"{}"
-            );
+            let res = super::Response::new(IncomingFilterDefinition::default())
+                .try_into_http_response::<Vec<u8>>()
+                .unwrap();
+            assert_eq!(res.body(), b"{}");
         }
     }
 }

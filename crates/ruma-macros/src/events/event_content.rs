@@ -23,33 +23,30 @@ mod kw {
     syn::custom_keyword!(type_fragment);
     // The type to use for a state events' `state_key` field.
     syn::custom_keyword!(state_key_type);
+    // Another type string accepted for deserialization.
+    syn::custom_keyword!(alias);
 }
 
-/// Parses attributes for `*EventContent` derives.
+/// Parses struct attributes for `*EventContent` derives.
 ///
 /// `#[ruma_event(type = "m.room.alias")]`
-enum EventMeta {
+enum EventStructMeta {
     /// Variant holds the "m.whatever" event type.
     Type(LitStr),
 
     Kind(EventKind),
 
-    /// Fields marked with `#[ruma_event(skip_redaction)]` are kept when the event is
-    /// redacted.
-    SkipRedaction,
-
     /// This attribute signals that the events redacted form is manually implemented and should not
     /// be generated.
     CustomRedacted,
 
-    /// The given field holds a part of the event type (replaces the `*` in a `m.foo.*` event
-    /// type).
-    TypeFragment,
-
     StateKeyType(Box<Type>),
+
+    /// Variant that holds alternate event type accepted for deserialization.
+    Alias(LitStr),
 }
 
-impl EventMeta {
+impl EventStructMeta {
     fn get_event_type(&self) -> Option<&LitStr> {
         match self {
             Self::Type(t) => Some(t),
@@ -70,43 +67,76 @@ impl EventMeta {
             _ => None,
         }
     }
+
+    fn get_alias(&self) -> Option<&LitStr> {
+        match self {
+            Self::Alias(t) => Some(t),
+            _ => None,
+        }
+    }
 }
 
-impl Parse for EventMeta {
+impl Parse for EventStructMeta {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
         if lookahead.peek(Token![type]) {
             let _: Token![type] = input.parse()?;
             let _: Token![=] = input.parse()?;
-            input.parse().map(EventMeta::Type)
+            input.parse().map(EventStructMeta::Type)
         } else if lookahead.peek(kw::kind) {
             let _: kw::kind = input.parse()?;
             let _: Token![=] = input.parse()?;
-            input.parse().map(EventMeta::Kind)
-        } else if lookahead.peek(kw::skip_redaction) {
-            let _: kw::skip_redaction = input.parse()?;
-            Ok(EventMeta::SkipRedaction)
+            input.parse().map(EventStructMeta::Kind)
         } else if lookahead.peek(kw::custom_redacted) {
             let _: kw::custom_redacted = input.parse()?;
-            Ok(EventMeta::CustomRedacted)
-        } else if lookahead.peek(kw::type_fragment) {
-            let _: kw::type_fragment = input.parse()?;
-            Ok(EventMeta::TypeFragment)
+            Ok(EventStructMeta::CustomRedacted)
         } else if lookahead.peek(kw::state_key_type) {
             let _: kw::state_key_type = input.parse()?;
             let _: Token![=] = input.parse()?;
-            input.parse().map(EventMeta::StateKeyType)
+            input.parse().map(EventStructMeta::StateKeyType)
+        } else if lookahead.peek(kw::alias) {
+            let _: kw::alias = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            input.parse().map(EventStructMeta::Alias)
         } else {
             Err(lookahead.error())
         }
     }
 }
 
-struct MetaAttrs(Vec<EventMeta>);
+/// Parses field attributes for `*EventContent` derives.
+///
+/// `#[ruma_event(skip_redaction)]`
+enum EventFieldMeta {
+    /// Fields marked with `#[ruma_event(skip_redaction)]` are kept when the event is
+    /// redacted.
+    SkipRedaction,
+
+    /// The given field holds a part of the event type (replaces the `*` in a `m.foo.*` event
+    /// type).
+    TypeFragment,
+}
+
+impl Parse for EventFieldMeta {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let lookahead = input.lookahead1();
+        if lookahead.peek(kw::skip_redaction) {
+            let _: kw::skip_redaction = input.parse()?;
+            Ok(EventFieldMeta::SkipRedaction)
+        } else if lookahead.peek(kw::type_fragment) {
+            let _: kw::type_fragment = input.parse()?;
+            Ok(EventFieldMeta::TypeFragment)
+        } else {
+            Err(lookahead.error())
+        }
+    }
+}
+
+struct MetaAttrs(Vec<EventStructMeta>);
 
 impl MetaAttrs {
     fn is_custom(&self) -> bool {
-        self.0.iter().any(|a| matches!(a, &EventMeta::CustomRedacted))
+        self.0.iter().any(|a| matches!(a, &EventStructMeta::CustomRedacted))
     }
 
     fn get_event_type(&self) -> Option<&LitStr> {
@@ -120,11 +150,16 @@ impl MetaAttrs {
     fn get_state_key_type(&self) -> Option<&Type> {
         self.0.iter().find_map(|a| a.get_state_key_type())
     }
+
+    fn get_aliases(&self) -> impl Iterator<Item = &LitStr> {
+        self.0.iter().filter_map(|a| a.get_alias())
+    }
 }
 
 impl Parse for MetaAttrs {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let attrs = syn::punctuated::Punctuated::<EventMeta, Token![,]>::parse_terminated(input)?;
+        let attrs =
+            syn::punctuated::Punctuated::<EventStructMeta, Token![,]>::parse_terminated(input)?;
         Ok(Self(attrs.into_iter().collect()))
     }
 }
@@ -227,6 +262,16 @@ pub fn expand_event_content(
         ));
     }
 
+    let aliases: Vec<_> = content_attr.iter().flat_map(|attrs| attrs.get_aliases()).collect();
+    for alias in &aliases {
+        if alias.value().ends_with(".*") != prefix.is_some() {
+            return Err(syn::Error::new_spanned(
+                event_type,
+                "aliases should have the same `.*` suffix, or lack thereof, as the main event type",
+            ));
+        }
+    }
+
     // We only generate redacted content structs for state and message-like events
     let redacted_event_content = needs_redacted(&content_attr, event_kind).then(|| {
         generate_redacted_event_content(
@@ -235,6 +280,7 @@ pub fn expand_event_content(
             event_type,
             event_kind,
             state_key_type.as_ref(),
+            &aliases,
             ruma_common,
         )
         .unwrap_or_else(syn::Error::into_compile_error)
@@ -246,6 +292,7 @@ pub fn expand_event_content(
         event_type,
         event_kind,
         state_key_type.as_ref(),
+        &aliases,
         ruma_common,
     )
     .unwrap_or_else(syn::Error::into_compile_error);
@@ -270,6 +317,7 @@ fn generate_redacted_event_content<'a>(
     event_type: &LitStr,
     event_kind: Option<EventKind>,
     state_key_type: Option<&TokenStream>,
+    aliases: &[&LitStr],
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
     assert!(
@@ -281,7 +329,7 @@ fn generate_redacted_event_content<'a>(
     let serde_json = quote! { #ruma_common::exports::serde_json };
 
     let doc = format!("Redacted form of [`{}`]", ident);
-    let redacted_ident = format_ident!("Redacted{}", ident);
+    let redacted_ident = format_ident!("Redacted{ident}");
 
     let kept_redacted_fields: Vec<_> = fields
         .map(|f| {
@@ -291,7 +339,7 @@ fn generate_redacted_event_content<'a>(
                 .iter()
                 .map(|a| -> syn::Result<_> {
                     if a.path.is_ident("ruma_event") {
-                        if let EventMeta::SkipRedaction = a.parse_args()? {
+                        if let EventFieldMeta::SkipRedaction = a.parse_args()? {
                             keep_field = true;
                         }
 
@@ -354,6 +402,7 @@ fn generate_redacted_event_content<'a>(
         event_type,
         event_kind,
         state_key_type,
+        aliases,
         ruma_common,
     )
     .unwrap_or_else(syn::Error::into_compile_error);
@@ -361,6 +410,12 @@ fn generate_redacted_event_content<'a>(
     let static_event_content_impl = event_kind.map(|k| {
         generate_static_event_content_impl(&redacted_ident, k, true, event_type, ruma_common)
     });
+
+    let mut event_types = aliases.to_owned();
+    event_types.push(event_type);
+    let event_types = quote! {
+        [#(#event_types,)*]
+    };
 
     Ok(quote! {
         // this is the non redacted event content's impl
@@ -387,9 +442,9 @@ fn generate_redacted_event_content<'a>(
         #[automatically_derived]
         impl #ruma_common::events::RedactedEventContent for #redacted_ident {
             fn empty(ev_type: &str) -> #serde_json::Result<Self> {
-                if ev_type != #event_type {
+                if !#event_types.contains(&ev_type) {
                     return Err(#serde::de::Error::custom(
-                        format!("expected event type `{}`, found `{}`", #event_type, ev_type)
+                        format!("expected event type as one of `{:?}`, found `{}`", #event_types, ev_type)
                     ));
                 }
 
@@ -438,7 +493,7 @@ fn generate_event_type_aliases(
     .iter()
     .filter_map(|&var| Some((var, event_kind.to_event_ident(var).ok()?)))
     .map(|(var, ev_struct)| {
-        let ev_type = format_ident!("{}{}", var, ev_type_s);
+        let ev_type = format_ident!("{var}{ev_type_s}");
 
         let doc_text = match var {
             EventKindVariation::None | EventKindVariation::Original => "",
@@ -455,7 +510,7 @@ fn generate_event_type_aliases(
         let ev_type_doc = format!("An `{}` event{}.", event_type, doc_text);
 
         let content_struct = if var.is_redacted() {
-            Cow::Owned(format_ident!("Redacted{}", ident))
+            Cow::Owned(format_ident!("Redacted{ident}"))
         } else {
             Cow::Borrowed(ident)
         };
@@ -476,6 +531,7 @@ fn generate_event_content_impl<'a>(
     event_type: &LitStr,
     event_kind: Option<EventKind>,
     state_key_type: Option<&TokenStream>,
+    aliases: &[&'a LitStr],
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let serde = quote! { #ruma_common::exports::serde };
@@ -491,7 +547,7 @@ fn generate_event_content_impl<'a>(
                 .find_map(|f| {
                     f.attrs.iter().filter(|a| a.path.is_ident("ruma_event")).find_map(|a| {
                         match a.parse_args() {
-                            Ok(EventMeta::TypeFragment) => Some(Ok(f)),
+                            Ok(EventFieldMeta::TypeFragment) => Some(Ok(f)),
                             Ok(_) => None,
                             Err(e) => Some(Err(e)),
                         }
@@ -565,24 +621,41 @@ fn generate_event_content_impl<'a>(
         }
     });
 
-    let from_parts_fn_impl = if let Some((type_prefix, type_fragment_field)) = &type_suffix_data {
+    let event_types = aliases.iter().chain([&event_type]);
+
+    let from_parts_fn_impl = if let Some((_, type_fragment_field)) = &type_suffix_data {
+        let type_prefixes = event_types.map(|ev_type| {
+            ev_type
+                .value()
+                .strip_suffix('*')
+                .expect("aliases have already been checked to have the same suffix")
+                .to_owned()
+        });
+        let type_prefixes = quote! {
+            [#(#type_prefixes,)*]
+        };
+
         quote! {
-            if let Some(type_fragment) = ev_type.strip_prefix(#type_prefix) {
+            if let Some(type_fragment) = #type_prefixes.iter().find_map(|prefix| ev_type.strip_prefix(prefix)) {
                 let mut content: Self = #serde_json::from_str(content.get())?;
                 content.#type_fragment_field = type_fragment.to_owned();
 
                 ::std::result::Result::Ok(content)
             } else {
                 ::std::result::Result::Err(#serde::de::Error::custom(
-                    ::std::format!("expected event type starting with `{}`, found `{}`", #type_prefix, ev_type)
+                    ::std::format!("expected event type starting with one of `{:?}`, found `{}`", #type_prefixes, ev_type)
                 ))
             }
         }
     } else {
+        let event_types = quote! {
+            [#(#event_types,)*]
+        };
+
         quote! {
-            if ev_type != #event_type {
+            if !#event_types.contains(&ev_type) {
                 return ::std::result::Result::Err(#serde::de::Error::custom(
-                    ::std::format!("expected event type `{}`, found `{}`", #event_type, ev_type)
+                    ::std::format!("expected event type as one of `{:?}`, found `{}`", #event_types, ev_type)
                 ));
             }
 

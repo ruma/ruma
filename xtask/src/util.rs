@@ -9,7 +9,7 @@ pub fn ask_yes_no(question: &str) -> Result<bool> {
     let mut input = String::new();
     let stdin = stdin();
 
-    print!("{} [y/N]: ", question);
+    print!("{question} [y/N]: ");
     stdout().flush()?;
 
     let mut handle = stdin.lock();

@@ -1,6 +1,7 @@
 #![cfg(feature = "events")]
 
 mod audio;
+mod call;
 mod enums;
 mod ephemeral_event;
 mod event;
@@ -13,6 +14,7 @@ mod location;
 mod message;
 mod message_event;
 mod pdu;
+mod poll;
 mod redacted;
 mod redaction;
 mod relations;

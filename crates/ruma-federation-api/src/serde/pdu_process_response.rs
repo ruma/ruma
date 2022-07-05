@@ -127,11 +127,11 @@ mod tests {
         let response = deserialize(json).unwrap();
         let event_id = event_id!("$someevent:matrix.org");
 
-        assert!(response.get(event_id).unwrap().is_ok());
+        response.get(event_id).unwrap().as_ref().unwrap();
     }
 
     #[test]
-    fn desieralize_empty_error_is_err() {
+    fn deserialize_empty_error_is_err() {
         let json = json!({
             "$someevent:matrix.org": { "error": "" }
         });
@@ -149,6 +149,6 @@ mod tests {
             "$someevent:matrix.org": {}
         });
         let response = deserialize(json).unwrap();
-        assert!(response.get(event_id!("$someevent:matrix.org")).unwrap().is_ok());
+        response.get(event_id!("$someevent:matrix.org")).unwrap().as_ref().unwrap();
     }
 }

@@ -2,10 +2,7 @@
 //!
 //! [send-to-device]: https://spec.matrix.org/v1.2/client-server-api/#send-to-device-messaging
 
-use std::{
-    convert::TryFrom,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use serde::{
     de::{self, Unexpected},
@@ -28,7 +25,7 @@ pub enum DeviceIdOrAllDevices {
 impl Display for DeviceIdOrAllDevices {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            DeviceIdOrAllDevices::DeviceId(device_id) => write!(f, "{}", device_id),
+            DeviceIdOrAllDevices::DeviceId(device_id) => write!(f, "{device_id}"),
             DeviceIdOrAllDevices::AllDevices => write!(f, "*"),
         }
     }

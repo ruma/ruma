@@ -2,9 +2,9 @@
 
 use std::time::Duration;
 
+use assert_matches::assert_matches;
 use assign::assign;
 use js_int::uint;
-use matches::assert_matches;
 use ruma_common::{
     event_id,
     events::{
@@ -214,25 +214,24 @@ fn plain_content_deserialization() {
         ]
     });
 
-    assert_matches!(
-        from_json_value::<VideoEventContent>(json_data)
-            .unwrap(),
-        VideoEventContent { message, file, video, thumbnail, caption: Some(caption), .. }
-        if message.find_plain() == Some("Video: my_cat.mp4")
-            && message.find_html().is_none()
-            && file.url == "mxc://notareal.hs/abcdef"
-            && video.width.is_none()
-            && video.height.is_none()
-            && video.duration == Some(Duration::from_millis(5_668))
-            && thumbnail.is_empty()
-            && caption.find_plain() == Some("Look at my cat!")
-    );
+    let content = from_json_value::<VideoEventContent>(json_data).unwrap();
+    assert_eq!(content.message.find_plain(), Some("Video: my_cat.mp4"));
+    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
+    assert_matches!(content.file.encryption_info, None);
+    assert_eq!(content.video.width, None);
+    assert_eq!(content.video.height, None);
+    assert_eq!(content.video.duration, Some(Duration::from_millis(5_668)));
+    assert_eq!(content.thumbnail.len(), 0);
+    let caption = content.caption.unwrap();
+    assert_eq!(caption.find_plain(), Some("Look at my cat!"));
+    assert_eq!(caption.find_html(), None);
 }
 
 #[test]
 fn encrypted_content_deserialization() {
     let json_data = json!({
-        "m.text": "Upload: my_cat.mp4",
+        "m.text": "Video: my_cat.mp4",
         "m.file": {
             "url": "mxc://notareal.hs/abcdef",
             "key": {
@@ -256,19 +255,17 @@ fn encrypted_content_deserialization() {
         ]
     });
 
-    assert_matches!(
-        from_json_value::<VideoEventContent>(json_data)
-            .unwrap(),
-        VideoEventContent { message, file, video, thumbnail, caption: None, .. }
-        if message.find_plain() == Some("Upload: my_cat.mp4")
-            && message.find_html().is_none()
-            && file.url == "mxc://notareal.hs/abcdef"
-            && file.encryption_info.is_some()
-            && video.width.is_none()
-            && video.height.is_none()
-            && video.duration.is_none()
-            && thumbnail[0].file.url == "mxc://notareal.hs/thumbnail"
-    );
+    let content = from_json_value::<VideoEventContent>(json_data).unwrap();
+    assert_eq!(content.message.find_plain(), Some("Video: my_cat.mp4"));
+    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
+    assert!(content.file.encryption_info.is_some());
+    assert_eq!(content.video.width, None);
+    assert_eq!(content.video.height, None);
+    assert_eq!(content.video.duration, None);
+    assert_eq!(content.thumbnail.len(), 1);
+    assert_eq!(content.thumbnail[0].file.url, "mxc://notareal.hs/thumbnail");
+    assert_matches!(content.caption, None);
 }
 
 #[test]
@@ -294,42 +291,29 @@ fn message_event_deserialization() {
         "type": "m.video",
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Video(MessageLikeEvent::Original(OriginalMessageLikeEvent {
-            content: VideoEventContent {
-                message,
-                file: FileContent {
-                    url,
-                    info: Some(info),
-                    ..
-                },
-                video,
-                thumbnail,
-                caption: None,
-                ..
-            },
-            event_id,
-            origin_server_ts,
-            room_id,
-            sender,
-            unsigned
-        })) if event_id == event_id!("$event:notareal.hs")
-            && message.find_plain() == Some("Upload: my_gnome.webm")
-            && message.find_html().is_none()
-            && url == "mxc://notareal.hs/abcdef"
-            && info.name.as_deref() == Some("my_gnome.webm")
-            && info.mimetype.as_deref() == Some("video/webm")
-            && info.size == Some(uint!(123_774))
-            && video.width == Some(uint!(1300))
-            && video.height == Some(uint!(837))
-            && video.duration.is_none()
-            && thumbnail.is_empty()
-            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
-            && room_id == room_id!("!roomid:notareal.hs")
-            && sender == user_id!("@user:notareal.hs")
-            && unsigned.is_empty()
+    let ev = assert_matches!(
+        from_json_value::<AnyMessageLikeEvent>(json_data),
+        Ok(AnyMessageLikeEvent::Video(MessageLikeEvent::Original(ev))) => ev
     );
+    assert_eq!(ev.event_id, "$event:notareal.hs");
+    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
+    assert_eq!(ev.room_id, "!roomid:notareal.hs");
+    assert_eq!(ev.sender, "@user:notareal.hs");
+    assert!(ev.unsigned.is_empty());
+
+    let content = ev.content;
+    assert_eq!(content.message.find_plain(), Some("Upload: my_gnome.webm"));
+    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
+    assert_eq!(content.video.width, Some(uint!(1300)));
+    assert_eq!(content.video.height, Some(uint!(837)));
+    assert_eq!(content.video.duration, None);
+    assert_eq!(content.thumbnail.len(), 0);
+
+    let info = content.file.info.unwrap();
+    assert_eq!(info.name.as_deref(), Some("my_gnome.webm"));
+    assert_eq!(info.mimetype.as_deref(), Some("video/webm"));
+    assert_eq!(info.size, Some(uint!(123_774)));
 }
 
 #[test]
@@ -370,20 +354,16 @@ fn room_message_stable_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::Video(_));
-    if let MessageType::Video(content) = event_content.msgtype {
-        assert_eq!(content.body, "Upload: my_video.mp4");
-        assert_matches!(content.source, MediaSource::Plain(_));
-        if let MediaSource::Plain(url) = content.source {
-            assert_eq!(url, "mxc://notareal.hs/file");
-        }
-        let message = content.message.unwrap();
-        assert_eq!(message.len(), 1);
-        assert_eq!(message[0].body, "Upload: my_video.mp4");
-        let file = content.file.unwrap();
-        assert_eq!(file.url, "mxc://notareal.hs/file");
-        assert!(!file.is_encrypted());
-    }
+    let content = assert_matches!(event_content.msgtype, MessageType::Video(content) => content);
+    assert_eq!(content.body, "Upload: my_video.mp4");
+    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
+    assert_eq!(url, "mxc://notareal.hs/file");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 1);
+    assert_eq!(message[0].body, "Upload: my_video.mp4");
+    let file = content.file.unwrap();
+    assert_eq!(file.url, "mxc://notareal.hs/file");
+    assert!(!file.is_encrypted());
 }
 
 #[test]
@@ -400,18 +380,14 @@ fn room_message_unstable_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::Video(_));
-    if let MessageType::Video(content) = event_content.msgtype {
-        assert_eq!(content.body, "Upload: my_video.mp4");
-        assert_matches!(content.source, MediaSource::Plain(_));
-        if let MediaSource::Plain(url) = content.source {
-            assert_eq!(url, "mxc://notareal.hs/file");
-        }
-        let message = content.message.unwrap();
-        assert_eq!(message.len(), 1);
-        assert_eq!(message[0].body, "Upload: my_video.mp4");
-        let file = content.file.unwrap();
-        assert_eq!(file.url, "mxc://notareal.hs/file");
-        assert!(!file.is_encrypted());
-    }
+    let content = assert_matches!(event_content.msgtype, MessageType::Video(content) => content);
+    assert_eq!(content.body, "Upload: my_video.mp4");
+    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
+    assert_eq!(url, "mxc://notareal.hs/file");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 1);
+    assert_eq!(message[0].body, "Upload: my_video.mp4");
+    let file = content.file.unwrap();
+    assert_eq!(file.url, "mxc://notareal.hs/file");
+    assert!(!file.is_encrypted());
 }

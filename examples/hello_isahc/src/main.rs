@@ -1,4 +1,4 @@
-use std::{convert::TryFrom, env, process::exit};
+use std::{env, process::exit};
 
 use ruma::{
     api::client::{alias::get_alias, membership::join_room_by_id, message::send_message_event},

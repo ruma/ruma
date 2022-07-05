@@ -49,12 +49,10 @@ impl KeyVerificationDoneEventContent {
 
 #[cfg(test)]
 mod tests {
-    use crate::event_id;
-    use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::KeyVerificationDoneEventContent;
-    use crate::events::key::verification::Relation;
+    use crate::{event_id, events::key::verification::Relation};
 
     #[test]
     fn serialization() {
@@ -74,22 +72,14 @@ mod tests {
 
     #[test]
     fn deserialization() {
-        let id = event_id!("$1598361704261elfgc:localhost");
-
         let json_data = json!({
             "m.relates_to": {
                 "rel_type": "m.reference",
-                "event_id": id,
+                "event_id": "$1598361704261elfgc:localhost",
             }
         });
 
-        assert_matches!(
-            from_json_value::<KeyVerificationDoneEventContent>(json_data).unwrap(),
-            KeyVerificationDoneEventContent {
-                relates_to: Relation {
-                    event_id
-                },
-            } if *event_id == *id
-        );
+        let content = from_json_value::<KeyVerificationDoneEventContent>(json_data).unwrap();
+        assert_eq!(content.relates_to.event_id, "$1598361704261elfgc:localhost");
     }
 }

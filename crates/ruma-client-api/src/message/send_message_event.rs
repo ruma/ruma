@@ -9,7 +9,7 @@ pub mod v3 {
         api::ruma_api,
         events::{AnyMessageLikeEventContent, MessageLikeEventContent, MessageLikeEventType},
         serde::Raw,
-        OwnedEventId, RoomId, TransactionId,
+        MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, TransactionId,
     };
     use serde_json::value::to_raw_value as to_raw_json_value;
 
@@ -45,6 +45,17 @@ pub mod v3 {
             /// The event content to send.
             #[ruma_api(body)]
             pub body: Raw<AnyMessageLikeEventContent>,
+
+            /// Timestamp to use for the `origin_server_ts` of the event.
+            ///
+            /// This is called [timestamp massaging] and can only be used by Appservices.
+            ///
+            /// Note that this does not change the position of the event in the timeline.
+            ///
+            /// [timestamp massaging]: https://spec.matrix.org/v1.3/application-service-api/#timestamp-massaging
+            #[ruma_api(query)]
+            #[serde(skip_serializing_if = "Option::is_none", rename = "ts")]
+            pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
         }
 
         response: {
@@ -75,6 +86,7 @@ pub mod v3 {
                 txn_id,
                 event_type: content.event_type(),
                 body: Raw::from_json(to_raw_json_value(content)?),
+                timestamp: None,
             })
         }
 
@@ -86,7 +98,7 @@ pub mod v3 {
             event_type: MessageLikeEventType,
             body: Raw<AnyMessageLikeEventContent>,
         ) -> Self {
-            Self { room_id, event_type, txn_id, body }
+            Self { room_id, event_type, txn_id, body, timestamp: None }
         }
     }
 

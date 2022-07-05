@@ -10,6 +10,8 @@ pub mod joined_members;
 pub mod joined_rooms;
 pub mod kick_user;
 pub mod leave_room;
+#[cfg(feature = "unstable-msc2666")]
+pub mod mutual_rooms;
 pub mod unban_user;
 
 use std::collections::BTreeMap;
@@ -54,9 +56,8 @@ impl<'a> ThirdPartySigned<'a> {
 ///
 /// To create an instance of this type, first create a `Invite3pidInit` and convert it via
 /// `Invite3pid::from` / `.into()`.
-#[derive(Clone, Debug, PartialEq, Incoming, Serialize)]
+#[derive(Clone, Debug, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[incoming_derive(PartialEq)]
 pub struct Invite3pid<'a> {
     /// Hostname and port of identity server to be used for account lookups.
     pub id_server: &'a str,

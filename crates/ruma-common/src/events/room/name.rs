@@ -5,7 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{events::EmptyStateKey, RoomName};
+use crate::events::EmptyStateKey;
 
 /// The content of an `m.room.name` event.
 ///
@@ -16,22 +16,21 @@ use crate::{events::EmptyStateKey, RoomName};
 pub struct RoomNameEventContent {
     /// The name of the room.
     #[serde(default, deserialize_with = "crate::serde::empty_string_as_none")]
-    pub name: Option<Box<RoomName>>,
+    pub name: Option<String>,
 }
 
 impl RoomNameEventContent {
     /// Create a new `RoomNameEventContent` with the given name.
-    pub fn new(name: Option<Box<RoomName>>) -> Self {
+    pub fn new(name: Option<String>) -> Self {
+        let name = name.filter(|n| !n.is_empty());
         Self { name }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryInto;
-
+    use assert_matches::assert_matches;
     use js_int::{int, uint};
-    use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::RoomNameEventContent;
@@ -46,7 +45,7 @@ mod tests {
     #[test]
     fn serialization_with_optional_fields_as_none() {
         let name_event = OriginalStateEvent {
-            content: RoomNameEventContent { name: "The room name".try_into().ok() },
+            content: RoomNameEventContent { name: Some("The room name".to_owned()) },
             event_id: event_id!("$h29iv0s8:example.com").to_owned(),
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
             room_id: room_id!("!n8f893n9:example.com").to_owned(),
@@ -74,7 +73,7 @@ mod tests {
     #[test]
     fn serialization_with_all_fields() {
         let name_event = OriginalStateEvent {
-            content: RoomNameEventContent { name: "The room name".try_into().ok() },
+            content: RoomNameEventContent { name: Some("The room name".to_owned()) },
             event_id: event_id!("$h29iv0s8:example.com").to_owned(),
             origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
             room_id: room_id!("!n8f893n9:example.com").to_owned(),
@@ -82,7 +81,7 @@ mod tests {
             state_key: EmptyStateKey,
             unsigned: StateUnsigned {
                 age: Some(int!(100)),
-                prev_content: Some(RoomNameEventContent { name: "The old name".try_into().ok() }),
+                prev_content: Some(RoomNameEventContent { name: Some("The old name".to_owned()) }),
                 ..StateUnsigned::default()
             },
         };
@@ -128,19 +127,6 @@ mod tests {
     }
 
     #[test]
-    fn name_fails_validation_when_too_long() {
-        // "XXXX .." 256 times
-        let long_string: String = "X".repeat(256);
-        assert_eq!(long_string.len(), 256);
-
-        let long_content_json = json!({ "name": &long_string });
-        let from_raw: Raw<RoomNameEventContent> = from_json_value(long_content_json).unwrap();
-
-        let result = from_raw.deserialize();
-        assert!(result.is_err(), "Result should be invalid: {:?}", result);
-    }
-
-    #[test]
     fn json_with_empty_name_creates_content_as_none() {
         let long_content_json = json!({ "name": "" });
         let from_raw: Raw<RoomNameEventContent> = from_json_value(long_content_json).unwrap();
@@ -150,7 +136,7 @@ mod tests {
     #[test]
     fn new_with_empty_name_creates_content_as_none() {
         assert_matches!(
-            RoomNameEventContent::new("".try_into().ok()),
+            RoomNameEventContent::new(Some("".to_owned())),
             RoomNameEventContent { name: None }
         );
     }

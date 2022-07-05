@@ -7,6 +7,7 @@ use quote::{format_ident, IdentFragment};
 use syn::{
     braced,
     parse::{self, Parse, ParseStream},
+    punctuated::Punctuated,
     Attribute, Ident, LitStr, Path, Token,
 };
 
@@ -14,6 +15,7 @@ use syn::{
 mod kw {
     syn::custom_keyword!(kind);
     syn::custom_keyword!(events);
+    syn::custom_keyword!(alias);
 }
 
 // If the variants of this enum change `to_event_path` needs to be updated as well.
@@ -57,7 +59,7 @@ impl EventKindVariation {
         match self {
             EventKindVariation::Original => EventKindVariation::Redacted,
             EventKindVariation::OriginalSync => EventKindVariation::RedactedSync,
-            _ => panic!("No redacted form of {:?}", self),
+            _ => panic!("No redacted form of {self:?}"),
         }
     }
 
@@ -65,7 +67,7 @@ impl EventKindVariation {
         match self {
             EventKindVariation::OriginalSync => EventKindVariation::Original,
             EventKindVariation::RedactedSync => EventKindVariation::Redacted,
-            _ => panic!("No original (unredacted) form of {:?}", self),
+            _ => panic!("No original (unredacted) form of {self:?}"),
         }
     }
 }
@@ -133,7 +135,7 @@ impl EventKind {
                 Self::MessageLike | Self::RoomRedaction | Self::State,
                 V::Original | V::OriginalSync | V::Redacted | V::RedactedSync,
             )
-            | (Self::State, V::Stripped | V::Initial) => Ok(format_ident!("{}{}", var, self)),
+            | (Self::State, V::Stripped | V::Initial) => Ok(format_ident!("{var}{self}")),
             _ => Err(syn::Error::new(
                 Span::call_site(),
                 format!(
@@ -230,18 +232,41 @@ pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation
 
 pub struct EventEnumEntry {
     pub attrs: Vec<Attribute>,
+    pub aliases: Vec<LitStr>,
     pub ev_type: LitStr,
     pub ev_path: Path,
 }
 
 impl Parse for EventEnumEntry {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let attrs = input.call(Attribute::parse_outer)?;
+        let (ruma_enum_attrs, attrs) = input
+            .call(Attribute::parse_outer)?
+            .into_iter()
+            .partition::<Vec<_>, _>(|attr| attr.path.is_ident("ruma_enum"));
         let ev_type: LitStr = input.parse()?;
         let _: Token![=>] = input.parse()?;
         let ev_path = input.call(Path::parse_mod_style)?;
+        let has_suffix = ev_type.value().ends_with(".*");
 
-        Ok(Self { attrs, ev_type, ev_path })
+        let mut aliases = Vec::with_capacity(ruma_enum_attrs.len());
+        for attr_list in ruma_enum_attrs {
+            for alias_attr in attr_list
+                .parse_args_with(Punctuated::<EventEnumAliasAttr, Token![,]>::parse_terminated)?
+            {
+                let alias = alias_attr.into_inner();
+
+                if alias.value().ends_with(".*") == has_suffix {
+                    aliases.push(alias);
+                } else {
+                    return Err(syn::Error::new_spanned(
+                        &attr_list,
+                        "aliases should have the same `.*` suffix, or lack thereof, as the main event type",
+                    ));
+                }
+            }
+        }
+
+        Ok(Self { attrs, aliases, ev_type, ev_path })
     }
 }
 
@@ -283,5 +308,22 @@ impl Parse for EventEnumInput {
             enums.push(EventEnumDecl { attrs, kind, events });
         }
         Ok(EventEnumInput { enums })
+    }
+}
+
+pub struct EventEnumAliasAttr(LitStr);
+
+impl EventEnumAliasAttr {
+    pub fn into_inner(self) -> LitStr {
+        self.0
+    }
+}
+
+impl Parse for EventEnumAliasAttr {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let _: kw::alias = input.parse()?;
+        let _: Token![=] = input.parse()?;
+        let s: LitStr = input.parse()?;
+        Ok(Self(s))
     }
 }

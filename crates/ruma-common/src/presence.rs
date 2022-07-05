@@ -34,10 +34,3 @@ impl Default for &'_ PresenceState {
         &PresenceState::Online
     }
 }
-
-impl PresenceState {
-    /// Creates a string slice from this `PresenceState`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}

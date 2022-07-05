@@ -91,7 +91,7 @@
 //!
 //! // The downside of this event is we cannot use it with event enums,
 //! // but could be deserialized from a `Raw<_>` that has failed to deserialize.
-//! matches::assert_matches!(
+//! assert_matches::assert_matches!(
 //!     serde_json::from_value::<OriginalSyncMessageLikeEvent<ReactionEventContent>>(json),
 //!     Ok(OriginalSyncMessageLikeEvent {
 //!         content: ReactionEventContent {
@@ -146,12 +146,13 @@ pub mod notice;
 #[cfg(feature = "unstable-pdu")]
 pub mod pdu;
 pub mod policy;
+#[cfg(feature = "unstable-msc3381")]
+pub mod poll;
 pub mod presence;
 pub mod push_rules;
 #[cfg(feature = "unstable-msc2677")]
 pub mod reaction;
 pub mod receipt;
-#[cfg(feature = "unstable-msc2675")]
 pub mod relation;
 pub mod room;
 pub mod room_key;
@@ -167,12 +168,11 @@ pub mod video;
 #[cfg(feature = "unstable-msc3245")]
 pub mod voice;
 
-#[cfg(feature = "unstable-msc2675")]
-pub use self::relation::Relations;
 pub use self::{
     content::*,
     enums::*,
     kinds::*,
+    relation::Relations,
     state_key::EmptyStateKey,
     unsigned::{MessageLikeUnsigned, RedactedUnsigned, StateUnsigned},
 };

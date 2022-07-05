@@ -3,14 +3,14 @@
 use std::{
     borrow::Cow,
     collections::{BTreeMap, BTreeSet},
-    convert::TryFrom,
     mem,
 };
 
 use base64::{encode_config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
 use ruma_common::{
-    serde::{base64::Standard, Base64, CanonicalJsonObject, CanonicalJsonValue},
-    OwnedEventId, OwnedServerName, RoomVersionId, UserId,
+    canonical_json::{redact, JsonType},
+    serde::{base64::Standard, Base64},
+    CanonicalJsonObject, CanonicalJsonValue, OwnedEventId, OwnedServerName, RoomVersionId, UserId,
 };
 use serde_json::{from_str as from_json_str, to_string as to_json_string};
 use sha2::{digest::Digest, Sha256};
@@ -19,69 +19,10 @@ use crate::{
     keys::{KeyPair, PublicKeyMap},
     split_id,
     verification::{Ed25519Verifier, Verified, Verifier},
-    Error, JsonError, JsonType, ParseError, VerificationError,
+    Error, JsonError, ParseError, VerificationError,
 };
 
 const MAX_PDU_BYTES: usize = 65_535;
-
-/// The fields that are allowed to remain in an event during redaction.
-static ALLOWED_KEYS: &[&str] = &[
-    "event_id",
-    "type",
-    "room_id",
-    "sender",
-    "state_key",
-    "content",
-    "hashes",
-    "signatures",
-    "depth",
-    "prev_events",
-    "prev_state",
-    "auth_events",
-    "origin",
-    "origin_server_ts",
-    "membership",
-];
-
-fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'static [&'static str] {
-    match event_type {
-        "m.room.member" => match version {
-            RoomVersionId::V9 => &["membership", "join_authorised_via_users_server"],
-            _ => &["membership"],
-        },
-        "m.room.create" => &["creator"],
-        "m.room.join_rules" => match version {
-            RoomVersionId::V8 | RoomVersionId::V9 => &["join_rule", "allow"],
-            _ => &["join_rule"],
-        },
-        "m.room.power_levels" => &[
-            "ban",
-            "events",
-            "events_default",
-            "kick",
-            "redact",
-            "state_default",
-            "users",
-            "users_default",
-        ],
-        "m.room.aliases" => match version {
-            RoomVersionId::V1
-            | RoomVersionId::V2
-            | RoomVersionId::V3
-            | RoomVersionId::V4
-            | RoomVersionId::V5 => &["aliases"],
-            // All other room versions, including custom ones, are treated by version 6 rules.
-            // TODO: Should we return an error for unknown versions instead?
-            _ => &[],
-        },
-        #[cfg(feature = "unstable-msc2870")]
-        "m.room.server_acl" if version.as_str() == "org.matrix.msc2870" => {
-            &["allow", "deny", "allow_ip_literals"]
-        }
-        "m.room.history_visibility" => &["history_visibility"],
-        _ => &[],
-    }
-}
 
 /// The fields to remove from a JSON object when converting JSON into the "canonical" form.
 static CANONICAL_JSON_FIELDS_TO_REMOVE: &[&str] = &["signatures", "unsigned"];
@@ -115,8 +56,8 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "uns
 ///
 /// ```rust
 /// const PKCS8: &str = "\
-///     MFMCAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
-///     tA0T+6toSMDIQDdM+tpNzNWQM9NFpfgr4B9S7LHszOrVRp9NfKmeXS3aQ\
+///     MFECAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
+///     tA0T+6tgSEA3TPraTczVkDPTRaX4K+AfUuyx7Mzq1UafTXypnl0t2k=\
 /// ";
 ///
 /// let document = base64::decode_config(&PKCS8, base64::STANDARD_NO_PAD).unwrap();
@@ -429,8 +370,8 @@ pub fn reference_hash(
 /// # use ruma_signatures::{hash_and_sign_event, Ed25519KeyPair};
 /// #
 /// const PKCS8: &str = "\
-///     MFMCAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
-///     tA0T+6toSMDIQDdM+tpNzNWQM9NFpfgr4B9S7LHszOrVRp9NfKmeXS3aQ\
+///     MFECAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
+///     tA0T+6tgSEA3TPraTczVkDPTRaX4K+AfUuyx7Mzq1UafTXypnl0t2k=\
 /// ";
 ///
 /// let document = base64::decode_config(&PKCS8, base64::STANDARD_NO_PAD).unwrap();
@@ -707,96 +648,6 @@ fn canonical_json_with_fields_to_remove(
     to_json_string(&owned_object).map_err(|e| Error::Json(e.into()))
 }
 
-/// Redacts an event using the rules specified in the Matrix client-server specification.
-///
-/// This is part of the process of signing an event.
-///
-/// Redaction is also suggested when a verifying an event with `verify_event` returns
-/// `Verified::Signatures`. See the documentation for `Verified` for details.
-///
-/// Returns a new JSON object with all applicable fields redacted.
-///
-/// # Parameters
-///
-/// * object: A JSON object to redact.
-///
-/// # Errors
-///
-/// Returns an error if:
-///
-/// * `object` contains a field called `content` that is not a JSON object.
-/// * `object` contains a field called `hashes` that is not a JSON object.
-/// * `object` contains a field called `signatures` that is not a JSON object.
-/// * `object` is missing the `type` field or the field is not a JSON string.
-pub fn redact(
-    object: &CanonicalJsonObject,
-    version: &RoomVersionId,
-) -> Result<CanonicalJsonObject, Error> {
-    let mut val = object.clone();
-    redact_in_place(&mut val, version)?;
-    Ok(val)
-}
-
-/// Redacts an event using the rules specified in the Matrix client-server specification.
-///
-/// Functionally equivalent to `redact`, only;
-/// * upon error, the event is not touched.
-/// * this'll redact the event in-place.
-pub fn redact_in_place(
-    event: &mut CanonicalJsonObject,
-    version: &RoomVersionId,
-) -> Result<(), Error> {
-    // Get the content keys here instead of the event type, because we cant teach rust that this is
-    // a disjoint borrow.
-    let allowed_content_keys: &[&str] = match event.get("type") {
-        Some(CanonicalJsonValue::String(event_type)) => {
-            allowed_content_keys_for(event_type, version)
-        }
-        Some(_) => return Err(JsonError::not_of_type("type", JsonType::String)),
-        None => return Err(JsonError::field_missing_from_object("type")),
-    };
-
-    if let Some(content_value) = event.get_mut("content") {
-        let content = match content_value {
-            CanonicalJsonValue::Object(map) => map,
-            _ => return Err(JsonError::not_of_type("content", JsonType::Object)),
-        };
-
-        object_retain_keys(content, allowed_content_keys);
-    }
-
-    let mut old_event = mem::take(event);
-
-    for &key in ALLOWED_KEYS {
-        if let Some(value) = old_event.remove(key) {
-            event.insert(key.to_owned(), value);
-        }
-    }
-
-    Ok(())
-}
-
-/// Redacts event content using the rules specified in the Matrix client-server specification.
-///
-/// Edits the `object` in-place.
-pub fn redact_content_in_place(
-    object: &mut CanonicalJsonObject,
-    version: &RoomVersionId,
-    event_type: impl AsRef<str>,
-) {
-    object_retain_keys(object, allowed_content_keys_for(event_type.as_ref(), version))
-}
-
-fn object_retain_keys(object: &mut CanonicalJsonObject, keys: &[&str]) {
-    let mut old_content = mem::take(object);
-
-    for &key in keys {
-        if let Some(value) = old_content.remove(key) {
-            object.insert(key.to_owned(), value);
-        }
-    }
-}
-
 /// Extracts the server names to check signatures for given event.
 ///
 /// It will return the sender's server (unless it's a third party invite) and the event id server
@@ -845,7 +696,7 @@ fn servers_to_check_signatures(
         | RoomVersionId::V6
         | RoomVersionId::V7 => {}
         // TODO: And for all future versions that have join_authorised_via_users_server
-        RoomVersionId::V8 | RoomVersionId::V9 => {
+        RoomVersionId::V8 | RoomVersionId::V9 | RoomVersionId::V10 => {
             if let Some(authorized_user) = object
                 .get("content")
                 .and_then(|c| c.as_object())
@@ -876,14 +727,11 @@ fn is_third_party_invite(object: &CanonicalJsonObject) -> Result<bool, Error> {
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        collections::BTreeMap,
-        convert::{TryFrom, TryInto},
-    };
+    use std::collections::BTreeMap;
 
+    use assert_matches::assert_matches;
     use ruma_common::{
-        serde::{Base64, CanonicalJsonValue},
-        RoomVersionId, ServerSigningKeyId, SigningKeyAlgorithm,
+        serde::Base64, CanonicalJsonValue, RoomVersionId, ServerSigningKeyId, SigningKeyAlgorithm,
     };
     use serde_json::json;
 
@@ -953,11 +801,10 @@ mod tests {
         ).unwrap();
 
         let public_key_map = BTreeMap::new();
-        let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6);
+        let verification =
+            verify_event(&public_key_map, &signed_event, &RoomVersionId::V6).unwrap();
 
-        assert!(verification_result.is_ok());
-        let verification = verification_result.unwrap();
-        assert!(matches!(verification, Verified::Signatures));
+        assert_eq!(verification, Verified::Signatures);
     }
 
     #[test]
@@ -992,11 +839,10 @@ mod tests {
         add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
         add_key_to_map(&mut public_key_map, "domain-event", &key_pair_event);
 
-        let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V1);
+        let verification =
+            verify_event(&public_key_map, &signed_event, &RoomVersionId::V1).unwrap();
 
-        assert!(verification_result.is_ok());
-        let verification = verification_result.unwrap();
-        assert!(matches!(verification, Verified::Signatures));
+        assert_eq!(verification, Verified::Signatures);
     }
 
     #[test]
@@ -1031,11 +877,10 @@ mod tests {
         add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
         add_key_to_map(&mut public_key_map, "domain-authorized", &key_pair_authorized);
 
-        let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V9);
+        let verification =
+            verify_event(&public_key_map, &signed_event, &RoomVersionId::V9).unwrap();
 
-        assert!(verification_result.is_ok());
-        let verification = verification_result.unwrap();
-        assert!(matches!(verification, Verified::Signatures));
+        assert_eq!(verification, Verified::Signatures);
     }
 
     #[test]
@@ -1069,8 +914,11 @@ mod tests {
 
         let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V9);
 
-        assert!(verification_result.is_err()) // Should be Err(VerificationError::
-                                              // signature_not_found("domain-authorized")));
+        let server = assert_matches!(
+            verification_result,
+            Err(Error::Verification(VerificationError::SignatureNotFound(server))) => server
+        );
+        assert_eq!(server, "domain-authorized");
     }
 
     #[test]
@@ -1103,13 +951,11 @@ mod tests {
         let public_key_map = BTreeMap::new();
         let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6);
 
-        assert!(verification_result.is_err());
-        let error_msg = verification_result.err().unwrap();
-        if let Error::Verification(VerificationError::PublicKeyNotFound(entity)) = error_msg {
-            assert_eq!(entity, "domain-sender");
-        } else {
-            panic!("Error was not VerificationError::UnknownPublicKeysForEvent: {:?}", error_msg);
-        };
+        let entity = assert_matches!(
+            verification_result,
+            Err(Error::Verification(VerificationError::PublicKeyNotFound(entity))) => entity
+        );
+        assert_eq!(entity, "domain-sender");
     }
 
     #[test]
@@ -1151,15 +997,13 @@ mod tests {
 
         let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6);
 
-        assert!(verification_result.is_err());
-        let error_msg = verification_result.err().unwrap();
-        if let Error::Verification(VerificationError::Signature(error)) = error_msg {
-            // dalek doesn't expose InternalError :(
-            // https://github.com/dalek-cryptography/ed25519-dalek/issues/174
-            assert!(format!("{:?}", error).contains("Some(Verification equation was not satisfied)"))
-        } else {
-            panic!("Error was not VerificationError::Signature: {:?}", error_msg);
-        };
+        let error = assert_matches!(
+            verification_result,
+            Err(Error::Verification(VerificationError::Signature(error))) => error
+        );
+        // dalek doesn't expose InternalError :(
+        // https://github.com/dalek-cryptography/ed25519-dalek/issues/174
+        assert!(format!("{error:?}").contains("Some(Verification equation was not satisfied)"));
     }
 
     fn generate_key_pair() -> Ed25519KeyPair {

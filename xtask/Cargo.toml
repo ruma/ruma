@@ -1,14 +1,14 @@
 [package]
 name = "xtask"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 publish = false
 
 [features]
 default = ["isahc", "semver", "toml_edit"]
 
 [dependencies]
-clap = { version = "3.1.6", features = ["derive"] }
+clap = { version = "3.2.4", features = ["derive"] }
 isahc = { version = "1.7.0", features = ["json"], optional = true }
 semver = { version = "1.0.6", features = ["serde"], optional = true }
 serde = { version = "1.0.136", features = ["derive"] }

@@ -13,10 +13,3 @@ pub enum TokenType {
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
-
-impl TokenType {
-    /// Creates a string slice from this `TokenType`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}

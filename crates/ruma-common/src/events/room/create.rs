@@ -87,7 +87,7 @@ fn default_room_version_id() -> RoomVersionId {
 
 #[cfg(test)]
 mod tests {
-    use matches::assert_matches;
+    use assert_matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{RoomCreateEventContent, RoomType};
@@ -140,16 +140,12 @@ mod tests {
             "room_version": "4"
         });
 
-        assert_matches!(
-            from_json_value::<RoomCreateEventContent>(json).unwrap(),
-            RoomCreateEventContent {
-                creator,
-                federate: true,
-                room_version: RoomVersionId::V4,
-                predecessor: None,
-                room_type: None,
-            } if creator == "@carl:example.com"
-        );
+        let content = from_json_value::<RoomCreateEventContent>(json).unwrap();
+        assert_eq!(content.creator, "@carl:example.com");
+        assert!(content.federate);
+        assert_eq!(content.room_version, RoomVersionId::V4);
+        assert_matches!(content.predecessor, None);
+        assert_eq!(content.room_type, None);
     }
 
     #[test]
@@ -161,15 +157,11 @@ mod tests {
             "type": "m.space"
         });
 
-        assert_matches!(
-            from_json_value::<RoomCreateEventContent>(json).unwrap(),
-            RoomCreateEventContent {
-                creator,
-                federate: true,
-                room_version: RoomVersionId::V4,
-                predecessor: None,
-                room_type
-            } if creator == "@carl:example.com" && room_type == Some(RoomType::Space)
-        );
+        let content = from_json_value::<RoomCreateEventContent>(json).unwrap();
+        assert_eq!(content.creator, "@carl:example.com");
+        assert!(content.federate);
+        assert_eq!(content.room_version, RoomVersionId::V4);
+        assert_matches!(content.predecessor, None);
+        assert_eq!(content.room_type, Some(RoomType::Space));
     }
 }

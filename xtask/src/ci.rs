@@ -9,7 +9,7 @@ mod spec_links;
 
 use spec_links::check_spec_links;
 
-const MSRV: &str = "1.55";
+const MSRV: &str = "1.60";
 const NIGHTLY: &str = "nightly";
 
 #[derive(Args)]
@@ -52,6 +52,8 @@ pub enum CiCmd {
     Fmt,
     /// Check ruma crate with `full` features (nightly)
     NightlyFull,
+    /// Check all crates with all features (nightly)
+    NightlyAll,
     /// Lint default features with clippy (nightly)
     ClippyDefault,
     /// Lint ruma-common with clippy on a wasm target (nightly)
@@ -103,6 +105,7 @@ impl CiTask {
             Some(CiCmd::Nightly) => self.nightly()?,
             Some(CiCmd::Fmt) => self.fmt()?,
             Some(CiCmd::NightlyFull) => self.nightly_full()?,
+            Some(CiCmd::NightlyAll) => self.nightly_all()?,
             Some(CiCmd::ClippyDefault) => self.clippy_default()?,
             Some(CiCmd::ClippyWasm) => self.clippy_wasm()?,
             Some(CiCmd::ClippyAll) => self.clippy_all()?,
@@ -218,6 +221,16 @@ impl CiTask {
     /// Check ruma crate with full feature with the nightly version.
     fn nightly_full(&self) -> Result<()> {
         cmd!("rustup run {NIGHTLY} cargo check -p ruma --features full").run().map_err(Into::into)
+    }
+
+    /// Check all crates with all features with the nightly version.
+    ///
+    /// Also checks that all features that are used in the code exist.
+    fn nightly_all(&self) -> Result<()> {
+        cmd!("rustup run {NIGHTLY} cargo check --workspace --all-features -Z unstable-options -Z check-cfg=features")
+            .env("RUSTFLAGS", "-D warnings")
+            .run()
+            .map_err(Into::into)
     }
 
     /// Check ruma-common with `ruma_identifiers_storage="Box"`

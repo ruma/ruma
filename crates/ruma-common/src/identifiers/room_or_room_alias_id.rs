@@ -1,6 +1,6 @@
 //! Matrix identifiers for places where a room ID or room alias ID are used interchangeably.
 
-use std::{convert::TryFrom, hint::unreachable_unchecked};
+use std::hint::unreachable_unchecked;
 
 use ruma_macros::IdZst;
 
@@ -13,7 +13,6 @@ use super::{server_name::ServerName, OwnedRoomAliasId, OwnedRoomId, RoomAliasId,
 /// string slice, the variant is determined by the leading sigil character.
 ///
 /// ```
-/// # use std::convert::TryFrom;
 /// # use ruma_common::RoomOrAliasId;
 /// assert_eq!(<&RoomOrAliasId>::try_from("#ruma:example.com").unwrap(), "#ruma:example.com");
 ///
@@ -64,7 +63,7 @@ impl RoomOrAliasId {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 enum Variant {
     RoomId,
     RoomAliasId,
@@ -144,8 +143,6 @@ impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomAliasId {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::{OwnedRoomOrAliasId, RoomOrAliasId};
     use crate::IdParseError;
 
