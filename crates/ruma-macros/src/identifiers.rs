@@ -313,21 +313,21 @@ fn expand_owned_id(input: &ItemStruct) -> TokenStream {
             }
         }
 
-        impl #impl_generics Into<Box<#id_ty>> for #owned_ty {
-            fn into(self) -> Box<#id_ty> {
+        impl #impl_generics From<#owned_ty> for Box<#id_ty> {
+            fn from(a: #owned_ty) -> Box<#id_ty> {
                 #[cfg(not(any(ruma_identifiers_storage = "Arc")))]
-                {self.inner}
+                {a.inner}
                 #[cfg(ruma_identifiers_storage = "Arc")]
-                {self.inner.as_ref().into()}
+                {a.inner.as_ref().into()}
             }
         }
 
-        impl #impl_generics Into<std::sync::Arc<#id_ty>> for #owned_ty {
-            fn into(self) -> std::sync::Arc<#id_ty> {
+        impl #impl_generics From<#owned_ty> for std::sync::Arc<#id_ty> {
+            fn from(a: #owned_ty) -> std::sync::Arc<#id_ty> {
                 #[cfg(not(any(ruma_identifiers_storage = "Arc")))]
-                {self.inner.into()}
+                {a.inner.into()}
                 #[cfg(ruma_identifiers_storage = "Arc")]
-                {self.inner}
+                {a.inner}
             }
         }
 
