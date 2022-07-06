@@ -313,6 +313,24 @@ fn expand_owned_id(input: &ItemStruct) -> TokenStream {
             }
         }
 
+        impl #impl_generics Into<Box<#id_ty>> for #owned_ty {
+            fn into(self) -> Box<#id_ty> {
+                #[cfg(not(any(ruma_identifiers_storage = "Arc")))]
+                {self.inner}
+                #[cfg(ruma_identifiers_storage = "Arc")]
+                {self.inner.as_ref().into()}
+            }
+        }
+
+        impl #impl_generics Into<std::sync::Arc<#id_ty>> for #owned_ty {
+            fn into(self) -> std::sync::Arc<#id_ty> {
+                #[cfg(not(any(ruma_identifiers_storage = "Arc")))]
+                {self.inner.into()}
+                #[cfg(ruma_identifiers_storage = "Arc")]
+                {self.inner}
+            }
+        }
+
         impl #impl_generics std::fmt::Display for #owned_ty {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 write!(f, "{}", self.as_str())
@@ -396,6 +414,18 @@ fn expand_owned_id(input: &ItemStruct) -> TokenStream {
         }
 
         impl #impl_generics PartialEq<#owned_ty> for Box<#id_ty> {
+            fn eq(&self, other: &#owned_ty) -> bool {
+                AsRef::<#id_ty>::as_ref(self) == AsRef::<#id_ty>::as_ref(other)
+            }
+        }
+
+        impl #impl_generics PartialEq<std::sync::Arc<#id_ty>> for #owned_ty {
+            fn eq(&self, other: &std::sync::Arc<#id_ty>) -> bool {
+                AsRef::<#id_ty>::as_ref(self) == AsRef::<#id_ty>::as_ref(other)
+            }
+        }
+
+        impl #impl_generics PartialEq<#owned_ty> for std::sync::Arc<#id_ty> {
             fn eq(&self, other: &#owned_ty) -> bool {
                 AsRef::<#id_ty>::as_ref(self) == AsRef::<#id_ty>::as_ref(other)
             }
