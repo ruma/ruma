@@ -68,7 +68,14 @@ impl FileMessageEventContent {
             #[cfg(feature = "unstable-msc3551")]
             file: Some(FileContent::plain(
                 url.clone(),
-                info.as_deref().map(|info| Box::new(info.into())),
+                info.as_deref().and_then(|info| {
+                    FileContentInfo::from_room_message_content(
+                        None,
+                        info.mimetype.to_owned(),
+                        info.size.to_owned(),
+                    )
+                    .map(Box::new)
+                }),
             )),
             body,
             filename: None,
@@ -94,14 +101,17 @@ impl FileMessageEventContent {
 
     /// Create a new `FileMessageEventContent` with the given message and file info.
     #[cfg(feature = "unstable-msc3551")]
-    pub fn from_extensible_content(message: MessageContent, file: FileContent) -> Self {
+    pub(crate) fn from_extensible_content(message: MessageContent, file: FileContent) -> Self {
         let body = if let Some(body) = message.find_plain() {
             body.to_owned()
         } else {
             message[0].body.clone()
         };
         let filename = file.info.as_deref().and_then(|info| info.name.clone());
-        let info = file.info.as_deref().map(|info| Box::new(info.into()));
+        let info = file.info.as_deref().and_then(|info| {
+            FileInfo::from_extensible_content(info.mimetype.to_owned(), info.size.to_owned())
+                .map(Box::new)
+        });
         let source = (&file).into();
 
         Self { message: Some(message), file: Some(file), body, filename, source, info }
@@ -138,12 +148,16 @@ impl FileInfo {
     pub fn new() -> Self {
         Self::default()
     }
-}
 
-#[cfg(feature = "unstable-msc3551")]
-impl From<&FileContentInfo> for FileInfo {
-    fn from(info: &FileContentInfo) -> Self {
-        let FileContentInfo { mimetype, size, .. } = info;
-        Self { mimetype: mimetype.to_owned(), size: size.to_owned(), ..Default::default() }
+    /// Creates a `FileInfo` with the given optional mimetype and size.
+    ///
+    /// Returns `None` if the `FileInfo` would be empty.
+    #[cfg(feature = "unstable-msc3551")]
+    fn from_extensible_content(mimetype: Option<String>, size: Option<UInt>) -> Option<Self> {
+        if mimetype.is_none() && size.is_none() {
+            None
+        } else {
+            Some(Self { mimetype, size, ..Default::default() })
+        }
     }
 }

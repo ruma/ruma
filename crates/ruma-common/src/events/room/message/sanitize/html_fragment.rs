@@ -318,7 +318,7 @@ impl Node {
         S: Serializer,
     {
         match &self.data {
-            NodeData::Element(ref data) => {
+            NodeData::Element(data) => {
                 serializer.start_elem(
                     data.name.clone(),
                     data.attrs.iter().map(|attr| (&attr.name, &*attr.value)),
@@ -345,7 +345,7 @@ impl Node {
 
                 Ok(())
             }
-            NodeData::Text(ref text) => serializer.write_text(&**text),
+            NodeData::Text(text) => serializer.write_text(text),
             _ => Ok(()),
         }
     }

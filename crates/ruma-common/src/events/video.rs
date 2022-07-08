@@ -105,25 +105,29 @@ impl VideoEventContent {
             thumbnail,
             caption,
         } = content;
+        let VideoInfo {
+            duration,
+            height,
+            width,
+            mimetype,
+            size,
+            thumbnail_info,
+            thumbnail_source,
+            ..
+        } = info.map(|info| *info).unwrap_or_default();
 
         let message = message.unwrap_or_else(|| MessageContent::plain(body));
         let file = file.unwrap_or_else(|| {
-            FileContent::from_room_message_content(source, info.as_deref(), None)
+            FileContent::from_room_message_content(source, None, mimetype, size)
         });
-        let video =
-            video.or_else(|| info.as_deref().map(|info| Box::new(info.into()))).unwrap_or_default();
-        let thumbnail = thumbnail
-            .or_else(|| {
-                info.as_deref()
-                    .and_then(|info| {
-                        ThumbnailContent::from_room_message_content(
-                            info.thumbnail_source.as_ref(),
-                            info.thumbnail_info.as_deref(),
-                        )
-                    })
-                    .map(|thumbnail| vec![thumbnail])
-            })
-            .unwrap_or_default();
+        let video = video.unwrap_or_else(|| {
+            Box::new(VideoContent::from_room_message_content(height, width, duration))
+        });
+        let thumbnail = thumbnail.unwrap_or_else(|| {
+            ThumbnailContent::from_room_message_content(thumbnail_source, thumbnail_info)
+                .into_iter()
+                .collect()
+        });
 
         Self { message, file, video, thumbnail, caption, relates_to }
     }
@@ -169,15 +173,17 @@ impl VideoContent {
         Self::default()
     }
 
+    /// Creates a new `VideoContent` with the given optional height, width and duration.
+    pub(crate) fn from_room_message_content(
+        height: Option<UInt>,
+        width: Option<UInt>,
+        duration: Option<Duration>,
+    ) -> Self {
+        Self { height, width, duration }
+    }
+
     /// Whether this `VideoContent` is empty.
     pub fn is_empty(&self) -> bool {
         self.height.is_none() && self.width.is_none() && self.duration.is_none()
-    }
-}
-
-impl From<&VideoInfo> for VideoContent {
-    fn from(info: &VideoInfo) -> Self {
-        let VideoInfo { height, width, duration, .. } = info;
-        Self { height: height.to_owned(), width: width.to_owned(), duration: duration.to_owned() }
     }
 }

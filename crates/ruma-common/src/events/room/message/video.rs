@@ -91,17 +91,34 @@ impl VideoMessageEventContent {
             #[cfg(feature = "unstable-msc3553")]
             file: Some(FileContent::plain(
                 url.clone(),
-                info.as_deref().map(|info| Box::new(info.into())),
+                info.as_deref().and_then(|info| {
+                    FileContentInfo::from_room_message_content(
+                        None,
+                        info.mimetype.to_owned(),
+                        info.size.to_owned(),
+                    )
+                    .map(Box::new)
+                }),
             )),
             #[cfg(feature = "unstable-msc3553")]
-            video: Some(Box::new(info.as_deref().map_or_else(VideoContent::default, Into::into))),
+            video: Some(Box::new(
+                info.as_deref()
+                    .map(|info| {
+                        VideoContent::from_room_message_content(
+                            info.height,
+                            info.width,
+                            info.duration,
+                        )
+                    })
+                    .unwrap_or_default(),
+            )),
             #[cfg(feature = "unstable-msc3553")]
             thumbnail: info
                 .as_deref()
                 .and_then(|info| {
                     ThumbnailContent::from_room_message_content(
-                        info.thumbnail_source.as_ref(),
-                        info.thumbnail_info.as_deref(),
+                        info.thumbnail_source.to_owned(),
+                        info.thumbnail_info.to_owned(),
                     )
                 })
                 .map(|thumbnail| vec![thumbnail]),
@@ -136,7 +153,7 @@ impl VideoMessageEventContent {
     /// Create a new `VideoMessageEventContent` with the given message, file info, video info,
     /// thumbnails and captions.
     #[cfg(feature = "unstable-msc3553")]
-    pub fn from_extensible_content(
+    pub(crate) fn from_extensible_content(
         message: MessageContent,
         file: FileContent,
         video: Box<VideoContent>,
@@ -222,8 +239,10 @@ impl VideoInfo {
     }
 
     /// Create a `VideoInfo` from the given file info, video info and thumbnail.
+    ///
+    /// Returns `None` if the `VideoInfo` would be empty.
     #[cfg(feature = "unstable-msc3553")]
-    pub fn from_extensible_content(
+    fn from_extensible_content(
         file_info: Option<&FileContentInfo>,
         video: &VideoContent,
         thumbnail: &[ThumbnailContent],
