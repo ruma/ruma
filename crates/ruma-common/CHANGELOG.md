@@ -23,6 +23,7 @@ Breaking changes:
 * Move `CanonicalJson`, `CanonicalJsonObject` and `CanonicalJsonError` out of
   the `serde` module and behind the cargo feature flag `canonical-json`
 * Make identifiers matrix URI constructors generic over owned parameters
+  * Split `RoomId` matrix URI constructors between methods with and without routing
 * Allow to add routing servers to `RoomId::matrix_to_event_uri()`
 
 [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/3669

@@ -46,6 +46,29 @@ impl RoomId {
 
     /// Create a `matrix.to` URI for this room ID.
     ///
+    /// Note that it is recommended to provide servers that should know the room to be able to find
+    /// it with its room ID. For that use [`RoomId::matrix_to_uri_via()`].
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ruma_common::{room_id, server_name};
+    ///
+    /// assert_eq!(
+    ///     room_id!("!somewhere:example.org").matrix_to_uri().to_string(),
+    ///     "https://matrix.to/#/%21somewhere%3Aexample.org"
+    /// );
+    /// ```
+    pub fn matrix_to_uri(&self) -> MatrixToUri {
+        MatrixToUri::new(self.into(), vec![])
+    }
+
+    /// Create a `matrix.to` URI for this room ID with a list of servers that should know it.
+    ///
+    /// To get the list of servers, it is recommended to use the [routing algorithm] from the spec.
+    ///
+    /// If you don't have a list of servers, you can use [`RoomId::matrix_to_uri()`] instead.
+    ///
     /// # Example
     ///
     /// ```
@@ -53,12 +76,14 @@ impl RoomId {
     ///
     /// assert_eq!(
     ///     room_id!("!somewhere:example.org")
-    ///         .matrix_to_uri([&*server_name!("example.org"), &*server_name!("alt.example.org")])
+    ///         .matrix_to_uri_via([&*server_name!("example.org"), &*server_name!("alt.example.org")])
     ///         .to_string(),
     ///     "https://matrix.to/#/%21somewhere%3Aexample.org?via=example.org&via=alt.example.org"
     /// );
     /// ```
-    pub fn matrix_to_uri<T>(&self, via: T) -> MatrixToUri
+    ///
+    /// [routing algorithm]: https://spec.matrix.org/v1.3/appendices/#routing
+    pub fn matrix_to_uri_via<T>(&self, via: T) -> MatrixToUri
     where
         T: IntoIterator,
         T::Item: Into<OwnedServerName>,
@@ -67,7 +92,22 @@ impl RoomId {
     }
 
     /// Create a `matrix.to` URI for an event scoped under this room ID.
-    pub fn matrix_to_event_uri<T>(&self, ev_id: impl Into<OwnedEventId>, via: T) -> MatrixToUri
+    ///
+    /// Note that it is recommended to provide servers that should know the room to be able to find
+    /// it with its room ID. For that use [`RoomId::matrix_to_event_uri_via()`].
+    pub fn matrix_to_event_uri(&self, ev_id: impl Into<OwnedEventId>) -> MatrixToUri {
+        MatrixToUri::new((self.to_owned(), ev_id.into()).into(), vec![])
+    }
+
+    /// Create a `matrix.to` URI for an event scoped under this room ID with a list of servers that
+    /// should know it.
+    ///
+    /// To get the list of servers, it is recommended to use the [routing algorithm] from the spec.
+    ///
+    /// If you don't have a list of servers, you can use [`RoomId::matrix_to_event_uri()`] instead.
+    ///
+    /// [routing algorithm]: https://spec.matrix.org/v1.3/appendices/#routing
+    pub fn matrix_to_event_uri_via<T>(&self, ev_id: impl Into<OwnedEventId>, via: T) -> MatrixToUri
     where
         T: IntoIterator,
         T::Item: Into<OwnedServerName>,
@@ -82,6 +122,31 @@ impl RoomId {
     ///
     /// If `join` is `true`, a click on the URI should join the room.
     ///
+    /// Note that it is recommended to provide servers that should know the room to be able to find
+    /// it with its room ID. For that use [`RoomId::matrix_uri_via()`].
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ruma_common::{room_id, server_name};
+    ///
+    /// assert_eq!(
+    ///     room_id!("!somewhere:example.org").matrix_uri(false).to_string(),
+    ///     "matrix:roomid/somewhere:example.org"
+    /// );
+    /// ```
+    pub fn matrix_uri(&self, join: bool) -> MatrixUri {
+        MatrixUri::new(self.into(), vec![], Some(UriAction::Join).filter(|_| join))
+    }
+
+    /// Create a `matrix:` URI for this room ID with a list of servers that should know it.
+    ///
+    /// To get the list of servers, it is recommended to use the [routing algorithm] from the spec.
+    ///
+    /// If you don't have a list of servers, you can use [`RoomId::matrix_uri()`] instead.
+    ///
+    /// If `join` is `true`, a click on the URI should join the room.
+    ///
     /// # Example
     ///
     /// ```
@@ -89,12 +154,17 @@ impl RoomId {
     ///
     /// assert_eq!(
     ///     room_id!("!somewhere:example.org")
-    ///         .matrix_uri([&*server_name!("example.org"), &*server_name!("alt.example.org")], true)
+    ///         .matrix_uri_via(
+    ///             [&*server_name!("example.org"), &*server_name!("alt.example.org")],
+    ///             true
+    ///         )
     ///         .to_string(),
     ///     "matrix:roomid/somewhere:example.org?via=example.org&via=alt.example.org&action=join"
     /// );
     /// ```
-    pub fn matrix_uri<T>(&self, via: T, join: bool) -> MatrixUri
+    ///
+    /// [routing algorithm]: https://spec.matrix.org/v1.3/appendices/#routing
+    pub fn matrix_uri_via<T>(&self, via: T, join: bool) -> MatrixUri
     where
         T: IntoIterator,
         T::Item: Into<OwnedServerName>,
@@ -107,7 +177,22 @@ impl RoomId {
     }
 
     /// Create a `matrix:` URI for an event scoped under this room ID.
-    pub fn matrix_event_uri<T>(&self, ev_id: impl Into<OwnedEventId>, via: T) -> MatrixUri
+    ///
+    /// Note that it is recommended to provide servers that should know the room to be able to find
+    /// it with its room ID. For that use [`RoomId::matrix_event_uri_via()`].
+    pub fn matrix_event_uri(&self, ev_id: impl Into<OwnedEventId>) -> MatrixUri {
+        MatrixUri::new((self.to_owned(), ev_id.into()).into(), vec![], None)
+    }
+
+    /// Create a `matrix:` URI for an event scoped under this room ID with a list of servers that
+    /// should know it.
+    ///
+    /// To get the list of servers, it is recommended to use the [routing algorithm] from the spec.
+    ///
+    /// If you don't have a list of servers, you can use [`RoomId::matrix_event_uri()`] instead.
+    ///
+    /// [routing algorithm]: https://spec.matrix.org/v1.3/appendices/#routing
+    pub fn matrix_event_uri_via<T>(&self, ev_id: impl Into<OwnedEventId>, via: T) -> MatrixUri
     where
         T: IntoIterator,
         T::Item: Into<OwnedServerName>,
