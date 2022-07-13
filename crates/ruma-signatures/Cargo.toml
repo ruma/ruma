@@ -14,7 +14,7 @@ edition = "2021"
 all-features = true
 
 [features]
-ring-compat = ["subslice"]
+ring-compat = ["dep:subslice"]
 unstable-exhaustive-types = []
 
 [dependencies]
