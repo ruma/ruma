@@ -72,7 +72,7 @@
 //! clicking **Feature flags** in the toolbar at the top.
 
 #![warn(missing_docs)]
-#![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 #[cfg(feature = "client")]
 #[doc(inline)]
@@ -95,59 +95,19 @@ pub use ruma_state_res as state_res;
 pub mod api {
     pub use ruma_common::api::*;
 
-    #[cfg(feature = "ruma-appservice-api")]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(
-            feature = "appservice-api",
-            feature = "appservice-api-c",
-            feature = "appservice-api-s"
-        )))
-    )]
+    #[cfg(any(feature = "appservice-api-c", feature = "appservice-api-s"))]
     #[doc(inline)]
     pub use ruma_appservice_api as appservice;
-    #[cfg(feature = "ruma-client-api")]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(
-            feature = "client-api",
-            feature = "client-api-c",
-            feature = "client-api-s"
-        )))
-    )]
+    #[cfg(any(feature = "client-api-c", feature = "client-api-s"))]
     #[doc(inline)]
     pub use ruma_client_api as client;
-    #[cfg(feature = "ruma-federation-api")]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(
-            feature = "federation-api",
-            feature = "federation-api-c",
-            feature = "federation-api-s"
-        )))
-    )]
+    #[cfg(any(feature = "federation-api-c", feature = "federation-api-s"))]
     #[doc(inline)]
     pub use ruma_federation_api as federation;
-    #[cfg(feature = "ruma-identity-service-api")]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(
-            feature = "identity-service-api",
-            feature = "identity-service-api-c",
-            feature = "identity-service-api-s"
-        )))
-    )]
+    #[cfg(any(feature = "identity-service-api-c", feature = "identity-service-api-s"))]
     #[doc(inline)]
     pub use ruma_identity_service_api as identity_service;
-    #[cfg(feature = "ruma-push-gateway-api")]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(
-            feature = "push-gateway-api",
-            feature = "push-gateway-api-c",
-            feature = "push-gateway-api-s"
-        )))
-    )]
+    #[cfg(any(feature = "push-gateway-api-c", feature = "push-gateway-api-s"))]
     #[doc(inline)]
     pub use ruma_push_gateway_api as push_gateway;
 }
