@@ -16,18 +16,20 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-client-api = ["ruma-client-api"]
+client-api = ["dep:ruma-client-api"]
 
 # HTTP clients
-hyper-native-tls = ["hyper", "hyper-tls"]
+hyper = ["dep:hyper"]
+hyper-native-tls = ["hyper", "dep:hyper-tls"]
 hyper-rustls = ["hyper", "dep:hyper-rustls"]
 isahc = ["dep:isahc", "futures-lite"]
-reqwest-native-tls = ["reqwest", "reqwest/native-tls"]
-reqwest-native-tls-alpn = ["reqwest", "reqwest/native-tls-alpn"]
-reqwest-native-tls-vendored = ["reqwest", "reqwest/native-tls-vendored"]
-reqwest-rustls-manual-roots = ["reqwest", "reqwest/rustls-tls-manual-roots"]
-reqwest-rustls-webpki-roots = ["reqwest", "reqwest/rustls-tls-webpki-roots"]
-reqwest-rustls-native-roots = ["reqwest", "reqwest/rustls-tls-native-roots"]
+reqwest = ["dep:reqwest"]
+reqwest-native-tls = ["reqwest", "reqwest?/native-tls"]
+reqwest-native-tls-alpn = ["reqwest", "reqwest?/native-tls-alpn"]
+reqwest-native-tls-vendored = ["reqwest", "reqwest?/native-tls-vendored"]
+reqwest-rustls-manual-roots = ["reqwest", "reqwest?/rustls-tls-manual-roots"]
+reqwest-rustls-webpki-roots = ["reqwest", "reqwest?/rustls-tls-webpki-roots"]
+reqwest-rustls-native-roots = ["reqwest", "reqwest?/rustls-tls-native-roots"]
 
 [dependencies]
 assign = "1.1.1"
