@@ -99,10 +99,10 @@ pub mod v3 {
         /// Creates a new `Request` with the given parameters.
         ///
         /// All other parameters will be defaulted.
-        pub fn new(room_id: &'a RoomId, from: &'a str, dir: Direction) -> Self {
+        pub fn new(room_id: &'a RoomId, from: Option<&'a str>, dir: Direction) -> Self {
             Self {
                 room_id,
-                from: Some(from),
+                from,
                 to: None,
                 dir,
                 limit: default_limit(),
@@ -113,13 +113,13 @@ pub mod v3 {
         /// Creates a new `Request` with the given room ID and from token, and `dir` set to
         /// `Backward`.
         pub fn backward(room_id: &'a RoomId, from: &'a str) -> Self {
-            Self::new(room_id, from, Direction::Backward)
+            Self::new(room_id, Some(from), Direction::Backward)
         }
 
         /// Creates a new `Request` with the given room ID and from token, and `dir` set to
         /// `Forward`.
         pub fn forward(room_id: &'a RoomId, from: &'a str) -> Self {
-            Self::new(room_id, from, Direction::Forward)
+            Self::new(room_id, Some(from), Direction::Forward)
         }
 
         /// Creates a new `Request` to fetch messages from the very start of the available history
