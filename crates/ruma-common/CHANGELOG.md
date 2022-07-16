@@ -45,6 +45,7 @@ Improvements:
 * Add methods to sanitize messages according to the spec behind the `unstable-sanitize` feature
   * Can also remove rich reply fallbacks
 * Implement `From<Owned*Id>` for `identifiers::matrix_uri::MatrixId`
+* Add unstable default push rule to ignore room server ACLs events (MSC3786)
 
 # 0.9.2
 
