@@ -26,6 +26,8 @@ impl Ruleset {
                 ConditionalPushRule::member_event(),
                 ConditionalPushRule::contains_display_name(),
                 ConditionalPushRule::tombstone(),
+                #[cfg(feature = "unstable-msc3786")]
+                ConditionalPushRule::server_acl(),
                 ConditionalPushRule::roomnotif(),
                 #[cfg(feature = "unstable-msc2677")]
                 ConditionalPushRule::reaction(),
@@ -167,6 +169,23 @@ impl ConditionalPushRule {
             enabled: true,
             rule_id: ".m.rule.reaction".into(),
             conditions: vec![EventMatch { key: "type".into(), pattern: "m.reaction".into() }],
+        }
+    }
+
+    /// Matches [room server ACLs].
+    ///
+    /// [room server ACLs]: https://spec.matrix.org/v1.3/client-server-api/#server-access-control-lists-acls-for-rooms
+    #[cfg(feature = "unstable-msc3786")]
+    pub fn server_acl() -> Self {
+        Self {
+            actions: vec![],
+            default: true,
+            enabled: true,
+            rule_id: ".org.matrix.msc3786.rule.room.server_acl".into(),
+            conditions: vec![
+                EventMatch { key: "type".into(), pattern: "m.room.server_acl".into() },
+                EventMatch { key: "state_key".into(), pattern: "".into() },
+            ],
         }
     }
 }
