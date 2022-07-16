@@ -57,7 +57,7 @@ form_urlencoded = "1.0.0"
 getrandom = { version = "0.2.6", optional = true }
 html5ever = { version = "0.25.2", optional = true }
 http = { version = "0.2.2", optional = true }
-indexmap = { version = "1.6.2", features = ["serde-1"] }
+indexmap = { version = "1.9.1", features = ["serde"] }
 itoa = "1.0.1"
 js_int = { version = "0.2.0", features = ["serde"] }
 js_option = "0.1.0"
