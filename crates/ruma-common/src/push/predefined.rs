@@ -1,8 +1,6 @@
 ///! Constructors for [predefined push rules].
 ///!
 ///! [predefined push rules]: https://spec.matrix.org/v1.2/client-server-api/#predefined-rules
-use indexmap::indexset;
-
 use super::{
     Action::*, ConditionalPushRule, PatternedPushRule, PushCondition::*, RoomMemberCountIs,
     Ruleset, Tweak,
@@ -20,9 +18,8 @@ impl Ruleset {
     ///   user's ID (for instance those to send notifications when they are mentioned).
     pub fn server_default(user_id: &UserId) -> Self {
         Self {
-            content: indexset![PatternedPushRule::contains_user_name(user_id)],
-            #[cfg(feature = "unstable-msc2677")]
-            override_: indexset![
+            content: [PatternedPushRule::contains_user_name(user_id)].into(),
+            override_: [
                 ConditionalPushRule::master(),
                 ConditionalPushRule::suppress_notices(),
                 ConditionalPushRule::invite_for_me(user_id),
@@ -30,38 +27,26 @@ impl Ruleset {
                 ConditionalPushRule::contains_display_name(),
                 ConditionalPushRule::tombstone(),
                 ConditionalPushRule::roomnotif(),
+                #[cfg(feature = "unstable-msc2677")]
                 ConditionalPushRule::reaction(),
-            ],
-            #[cfg(not(feature = "unstable-msc2677"))]
-            override_: indexset![
-                ConditionalPushRule::master(),
-                ConditionalPushRule::suppress_notices(),
-                ConditionalPushRule::invite_for_me(user_id),
-                ConditionalPushRule::member_event(),
-                ConditionalPushRule::contains_display_name(),
-                ConditionalPushRule::tombstone(),
-                ConditionalPushRule::roomnotif(),
-            ],
-            #[cfg(feature = "unstable-msc3381")]
-            underride: indexset![
+            ]
+            .into(),
+            underride: [
                 ConditionalPushRule::call(),
                 ConditionalPushRule::encrypted_room_one_to_one(),
                 ConditionalPushRule::room_one_to_one(),
                 ConditionalPushRule::message(),
                 ConditionalPushRule::encrypted(),
+                #[cfg(feature = "unstable-msc3381")]
                 ConditionalPushRule::poll_start_one_to_one(),
+                #[cfg(feature = "unstable-msc3381")]
                 ConditionalPushRule::poll_start(),
+                #[cfg(feature = "unstable-msc3381")]
                 ConditionalPushRule::poll_end_one_to_one(),
+                #[cfg(feature = "unstable-msc3381")]
                 ConditionalPushRule::poll_end(),
-            ],
-            #[cfg(not(feature = "unstable-msc3381"))]
-            underride: indexset![
-                ConditionalPushRule::call(),
-                ConditionalPushRule::encrypted_room_one_to_one(),
-                ConditionalPushRule::room_one_to_one(),
-                ConditionalPushRule::message(),
-                ConditionalPushRule::encrypted(),
-            ],
+            ]
+            .into(),
             ..Default::default()
         }
     }
