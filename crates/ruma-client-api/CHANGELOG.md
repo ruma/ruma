@@ -6,6 +6,7 @@ Breaking changes:
   * If the lack of such an `impl` causes problems, please open a GitHub issue
 * Split `uiaa::UserIdentifier::ThirdParty` into two separate variants
 * Make `message::get_message_events::v3::Request::new`'s `from` parameter optional
+* `receipt::create_receipt` uses its own `ReceiptType`
 
 Improvements:
 
@@ -16,6 +17,7 @@ Improvements:
 * Move `filter::RelationType` to `ruma_common::events::relations`
 * Add unstable support for discovering an OpenID Connect server (MSC2965)
 * Add `SpaceRoomJoinRule::KnockRestricted` (MSC3787)
+* Add unstable support for private read receipts (MSC2285)
 
 # 0.14.1
 
