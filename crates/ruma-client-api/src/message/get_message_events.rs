@@ -111,42 +111,56 @@ pub mod v3 {
             }
         }
 
-        /// Creates a new `Request` with the given room ID and from token, and `dir` set to
-        /// `Backward`.
-        pub fn backward(room_id: &'a RoomId, from: &'a str) -> Self {
-            assign!(Self::new(room_id, Direction::Backward), { from: Some(from) })
+        /// Creates a new `Request` with the given room ID and optional `from` token, and `dir` set
+        /// to `Backward`.
+        ///
+        /// `Request::backward(room_id, Some(from))` can also be written as
+        /// `Request::backward_from(room_id, from)`.\
+        /// `Request::backward(room_id, None)` can also be written as `Request::from_end(room_id)`.
+        pub fn backward(room_id: &'a RoomId, from: Option<&'a str>) -> Self {
+            assign!(Self::new(room_id, Direction::Backward), { from })
         }
 
-        /// Creates a new `Request` with the given room ID and from token, and `dir` set to
+        /// Creates a new `Request` with the given room ID and optional `from` token, and `dir` set
+        /// to `Forward`.
+        ///
+        /// `Request::forward(room_id, Some(from))` can also be written as
+        /// `Request::forward_from(room_id, from)`.\
+        /// `Request::forward(room_id, None)` can also be written as `Request::from_start(room_id)`.
+        pub fn forward(room_id: &'a RoomId, from: Option<&'a str>) -> Self {
+            assign!(Self::new(room_id, Direction::Forward), { from })
+        }
+
+        /// Creates a new `Request` with the given room ID and `from` token, and `dir` set to
+        /// `Backward`.
+        ///
+        /// Equivalent to `Request::backward(room_id, Some(from))`.
+        pub fn backward_from(room_id: &'a RoomId, from: &'a str) -> Self {
+            Self::backward(room_id, Some(from))
+        }
+
+        /// Creates a new `Request` with the given room ID and `from` token, and `dir` set to
         /// `Forward`.
-        pub fn forward(room_id: &'a RoomId, from: &'a str) -> Self {
-            assign!(Self::new(room_id, Direction::Forward), { from: Some(from) })
+        ///
+        /// Equivalent to `Request::forward(room_id, Some(from))`.
+        pub fn forward_from(room_id: &'a RoomId, from: &'a str) -> Self {
+            Self::forward(room_id, Some(from))
         }
 
         /// Creates a new `Request` to fetch messages from the very start of the available history
         /// for a given room.
+        ///
+        /// Equivalent to `Request::forward(room_id, None)`.
         pub fn from_start(room_id: &'a RoomId) -> Self {
-            Self {
-                room_id,
-                from: None,
-                to: None,
-                dir: Direction::Forward,
-                limit: default_limit(),
-                filter: RoomEventFilter::default(),
-            }
+            Self::forward(room_id, None)
         }
 
         /// Creates a new `Request` to fetch messages from the very end of the available history for
         /// a given room.
+        ///
+        /// Equivalent to `Request::backward(room_id, None)`.
         pub fn from_end(room_id: &'a RoomId) -> Self {
-            Self {
-                room_id,
-                from: None,
-                to: None,
-                dir: Direction::Backward,
-                limit: default_limit(),
-                filter: RoomEventFilter::default(),
-            }
+            Self::backward(room_id, None)
         }
     }
 

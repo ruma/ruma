@@ -5,9 +5,12 @@ Breaking changes:
 * Remove `PartialEq` implementations for a number of types
   * If the lack of such an `impl` causes problems, please open a GitHub issue
 * Split `uiaa::UserIdentifier::ThirdParty` into two separate variants
-* Remove `message::get_message_events::v3::Request::new`'s `from` parameter
-  * This parameter is now optional, and can be set after initial construction, or by using one of
-    the other constructors
+* Update `message::get_message_events::v3::Request`'s constructors because the `from` field is now
+  optional
+  * `new` has no `from` parameter anymore
+  * `backward` and `forward` now have `from` as an optional parameter
+  * Constructors `backward_from` and `forward_from` have been added with the previous signatures of
+    `backward` and `forward`
 * `receipt::create_receipt` uses its own `ReceiptType`
 
 Improvements:
