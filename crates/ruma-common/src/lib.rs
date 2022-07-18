@@ -35,7 +35,6 @@ mod identifiers;
 pub mod power_levels;
 pub mod presence;
 pub mod push;
-pub mod receipt;
 pub mod room;
 pub mod serde;
 pub mod thirdparty;

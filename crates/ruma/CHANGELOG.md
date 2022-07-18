@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+* The `receipt` module is no longer exported.
+  * `ReceiptType` has been split into two types under `events` and `api::client`.
+
 # 0.6.3
 
 Bug fixes:
