@@ -25,6 +25,7 @@ Breaking changes:
 * Make identifiers matrix URI constructors generic over owned parameters
   * Split `RoomId` matrix URI constructors between methods with and without routing
 * Allow to add routing servers to `RoomId::matrix_to_event_uri()`
+* Move `receipt::ReceiptType` to `events::receipt`
 
 [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/3669
 
@@ -46,6 +47,7 @@ Improvements:
   * Can also remove rich reply fallbacks
 * Implement `From<Owned*Id>` for `identifiers::matrix_uri::MatrixId`
 * Add unstable default push rule to ignore room server ACLs events (MSC3786)
+* Add unstable support for private read receipts (MSC2285)
 
 # 0.9.2
 
