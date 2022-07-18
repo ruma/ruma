@@ -5,6 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3roomsroomidmessages
 
+    use assign::assign;
     use js_int::{uint, UInt};
     use ruma_common::{
         api::ruma_api,
@@ -96,13 +97,13 @@ pub mod v3 {
     }
 
     impl<'a> Request<'a> {
-        /// Creates a new `Request` with the given parameters.
+        /// Creates a new `Request` with the given room ID and direction.
         ///
         /// All other parameters will be defaulted.
-        pub fn new(room_id: &'a RoomId, from: Option<&'a str>, dir: Direction) -> Self {
+        pub fn new(room_id: &'a RoomId, dir: Direction) -> Self {
             Self {
                 room_id,
-                from,
+                from: None,
                 to: None,
                 dir,
                 limit: default_limit(),
@@ -113,13 +114,13 @@ pub mod v3 {
         /// Creates a new `Request` with the given room ID and from token, and `dir` set to
         /// `Backward`.
         pub fn backward(room_id: &'a RoomId, from: &'a str) -> Self {
-            Self::new(room_id, Some(from), Direction::Backward)
+            assign!(Self::new(room_id, Direction::Backward), { from: Some(from) })
         }
 
         /// Creates a new `Request` with the given room ID and from token, and `dir` set to
         /// `Forward`.
         pub fn forward(room_id: &'a RoomId, from: &'a str) -> Self {
-            Self::new(room_id, Some(from), Direction::Forward)
+            assign!(Self::new(room_id, Direction::Forward), { from: Some(from) })
         }
 
         /// Creates a new `Request` to fetch messages from the very start of the available history
