@@ -203,7 +203,7 @@ impl Response {
     }
 }
 
-/// Opertaion applied to the specific SlidingSyncList
+/// Operation applied to the specific SlidingSyncList
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum SlidingOp {
