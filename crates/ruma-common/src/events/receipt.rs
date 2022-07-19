@@ -7,19 +7,15 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use ruma_macros::EventContent;
+use ruma_macros::{EventContent, OrdAsRefStr, PartialEqAsRefStr, PartialOrdAsRefStr, StringEnum};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    receipt::ReceiptType, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedUserId, UserId,
-};
+use crate::{EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedUserId, PrivOwnedStr, UserId};
 
 /// The content of an `m.receipt` event.
 ///
 /// A mapping of event ID to a collection of receipts for this event ID. The event ID is the ID of
 /// the event being acknowledged and *not* an ID for the receipt itself.
-///
-/// Informs the client who has read a message specified by it's event id.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.receipt", kind = EphemeralRoom)]
@@ -55,6 +51,45 @@ impl DerefMut for ReceiptEventContent {
 
 /// A collection of receipts.
 pub type Receipts = BTreeMap<ReceiptType, UserReceipts>;
+
+/// The type of receipt.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, Debug, PartialOrdAsRefStr, OrdAsRefStr, PartialEqAsRefStr, Eq, StringEnum)]
+#[non_exhaustive]
+pub enum ReceiptType {
+    /// A [public read receipt].
+    ///
+    /// Indicates that the given event has been presented to the user. It is
+    /// also the point from where the unread notifications count is computed.
+    ///
+    /// This receipt is federated to other users.
+    ///
+    /// If both `Read` and `ReadPrivate` are present, the one that references
+    /// the most recent event is used to get the latest read receipt.
+    ///
+    /// [public read receipt]: https://spec.matrix.org/v1.3/client-server-api/#receipts
+    #[ruma_enum(rename = "m.read")]
+    Read,
+
+    /// A [private read receipt].
+    ///
+    /// Indicates that the given event has been presented to the user. It is
+    /// also the point from where the unread notifications count is computed.
+    ///
+    /// This read receipt is not federated so only the user and their homeserver
+    /// are aware of it.
+    ///
+    /// If both `Read` and `ReadPrivate` are present, the one that references
+    /// the most recent event is used to get the latest read receipt.
+    ///
+    /// [private read receipt]: https://github.com/matrix-org/matrix-spec-proposals/pull/2285
+    #[cfg(feature = "unstable-msc2285")]
+    #[ruma_enum(rename = "org.matrix.msc2285.read.private", alias = "m.read.private")]
+    ReadPrivate,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}
 
 /// A mapping of user ID to receipt.
 ///

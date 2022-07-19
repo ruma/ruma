@@ -544,7 +544,7 @@ mod tests {
     use super::{MatrixId, MatrixToUri, MatrixUri};
     use crate::{
         event_id, matrix_uri::UriAction, room_alias_id, room_id, server_name, user_id,
-        OwnedServerName, RoomOrAliasId,
+        RoomOrAliasId,
     };
 
     #[test]
@@ -558,8 +558,12 @@ mod tests {
             "https://matrix.to/#/%23ruma%3Anotareal.hs"
         );
         assert_eq!(
+            room_id!("!ruma:notareal.hs").matrix_to_uri().to_string(),
+            "https://matrix.to/#/%21ruma%3Anotareal.hs"
+        );
+        assert_eq!(
             room_id!("!ruma:notareal.hs")
-                .matrix_to_uri(vec![server_name!("notareal.hs")])
+                .matrix_to_uri_via(vec![server_name!("notareal.hs")])
                 .to_string(),
             "https://matrix.to/#/%21ruma%3Anotareal.hs?via=notareal.hs"
         );
@@ -571,13 +575,13 @@ mod tests {
         );
         assert_eq!(
             room_id!("!ruma:notareal.hs")
-                .matrix_to_event_uri(event_id!("$event:notareal.hs"), Vec::<OwnedServerName>::new())
+                .matrix_to_event_uri(event_id!("$event:notareal.hs"))
                 .to_string(),
             "https://matrix.to/#/%21ruma%3Anotareal.hs/%24event%3Anotareal.hs"
         );
         assert_eq!(
             room_id!("!ruma:notareal.hs")
-                .matrix_to_event_uri(
+                .matrix_to_event_uri_via(
                     event_id!("$event:notareal.hs"),
                     vec![server_name!("notareal.hs")]
                 )
@@ -805,14 +809,18 @@ mod tests {
             "matrix:r/ruma:notareal.hs?action=join"
         );
         assert_eq!(
+            room_id!("!ruma:notareal.hs").matrix_uri(false).to_string(),
+            "matrix:roomid/ruma:notareal.hs"
+        );
+        assert_eq!(
             room_id!("!ruma:notareal.hs")
-                .matrix_uri(vec![server_name!("notareal.hs")], false)
+                .matrix_uri_via(vec![server_name!("notareal.hs")], false)
                 .to_string(),
             "matrix:roomid/ruma:notareal.hs?via=notareal.hs"
         );
         assert_eq!(
             room_id!("!ruma:notareal.hs")
-                .matrix_uri(
+                .matrix_uri_via(
                     vec![server_name!("notareal.hs"), server_name!("anotherunreal.hs")],
                     true
                 )
@@ -827,13 +835,13 @@ mod tests {
         );
         assert_eq!(
             room_id!("!ruma:notareal.hs")
-                .matrix_event_uri(event_id!("$event:notareal.hs"), Vec::<OwnedServerName>::new())
+                .matrix_event_uri(event_id!("$event:notareal.hs"))
                 .to_string(),
             "matrix:roomid/ruma:notareal.hs/e/event:notareal.hs"
         );
         assert_eq!(
             room_id!("!ruma:notareal.hs")
-                .matrix_event_uri(
+                .matrix_event_uri_via(
                     event_id!("$event:notareal.hs"),
                     vec![server_name!("notareal.hs")]
                 )

@@ -8,7 +8,7 @@ use crate::events::voice::VoiceContent;
 #[cfg(feature = "unstable-msc3246")]
 use crate::events::{
     audio::AudioContent,
-    file::{FileContent, FileContentInfo},
+    file::{EncryptedContent, FileContent, FileContentInfo},
     message::MessageContent,
 };
 use crate::{
@@ -84,10 +84,22 @@ impl AudioMessageEventContent {
             #[cfg(feature = "unstable-msc3246")]
             file: Some(FileContent::plain(
                 url.clone(),
-                info.as_deref().map(|info| Box::new(info.into())),
+                info.as_deref().and_then(|info| {
+                    FileContentInfo::from_room_message_content(
+                        None,
+                        info.mimetype.to_owned(),
+                        info.size.to_owned(),
+                    )
+                    .map(Box::new)
+                }),
             )),
             #[cfg(feature = "unstable-msc3246")]
-            audio: Some(info.as_deref().map_or_else(AudioContent::default, Into::into)),
+            audio: Some(
+                info.as_deref()
+                    .and_then(|info| info.duration)
+                    .map(AudioContent::from_room_message_content)
+                    .unwrap_or_default(),
+            ),
             #[cfg(feature = "unstable-msc3245")]
             voice: None,
             body,
@@ -103,7 +115,11 @@ impl AudioMessageEventContent {
             #[cfg(feature = "unstable-msc3246")]
             message: Some(MessageContent::plain(body.clone())),
             #[cfg(feature = "unstable-msc3246")]
-            file: Some(FileContent::encrypted(file.url.clone(), (&file).into(), None)),
+            file: Some(FileContent::encrypted(
+                file.url.clone(),
+                EncryptedContent::from(&file),
+                None,
+            )),
             #[cfg(feature = "unstable-msc3246")]
             audio: Some(AudioContent::default()),
             #[cfg(feature = "unstable-msc3245")]
@@ -116,7 +132,7 @@ impl AudioMessageEventContent {
 
     /// Create a new `AudioMessageEventContent` with the given message, file info and audio info.
     #[cfg(feature = "unstable-msc3246")]
-    pub fn from_extensible_content(
+    pub(crate) fn from_extensible_content(
         message: MessageContent,
         file: FileContent,
         audio: AudioContent,
@@ -184,19 +200,24 @@ impl AudioInfo {
     }
 
     /// Create an `AudioInfo` from the given file info and audio info.
+    ///
+    /// Returns `None` if the `AudioInfo` would be empty.
     #[cfg(feature = "unstable-msc3246")]
-    pub fn from_extensible_content(
+    fn from_extensible_content(
         file_info: Option<&FileContentInfo>,
         audio: &AudioContent,
     ) -> Option<Self> {
-        if file_info.is_none() && audio.is_empty() {
+        let (mimetype, size) = file_info
+            .map(|info| {
+                let FileContentInfo { mimetype, size, .. } = info;
+                (mimetype.to_owned(), size.to_owned())
+            })
+            .unwrap_or_default();
+        let AudioContent { duration, .. } = audio;
+
+        if duration.is_none() && mimetype.is_none() && size.is_none() {
             None
         } else {
-            let (mimetype, size) = file_info
-                .map(|info| (info.mimetype.to_owned(), info.size.to_owned()))
-                .unwrap_or_default();
-            let AudioContent { duration, .. } = audio;
-
             Some(Self { duration: duration.to_owned(), mimetype, size })
         }
     }

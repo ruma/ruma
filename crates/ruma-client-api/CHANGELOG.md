@@ -5,6 +5,13 @@ Breaking changes:
 * Remove `PartialEq` implementations for a number of types
   * If the lack of such an `impl` causes problems, please open a GitHub issue
 * Split `uiaa::UserIdentifier::ThirdParty` into two separate variants
+* Update `message::get_message_events::v3::Request`'s constructors because the `from` field is now
+  optional
+  * `new` has no `from` parameter anymore
+  * `backward` and `forward` now have `from` as an optional parameter
+  * Constructors `backward_from` and `forward_from` have been added with the previous signatures of
+    `backward` and `forward`
+* `receipt::create_receipt` uses its own `ReceiptType`
 
 Improvements:
 
@@ -15,6 +22,7 @@ Improvements:
 * Move `filter::RelationType` to `ruma_common::events::relations`
 * Add unstable support for discovering an OpenID Connect server (MSC2965)
 * Add `SpaceRoomJoinRule::KnockRestricted` (MSC3787)
+* Add unstable support for private read receipts (MSC2285)
 
 # 0.14.1
 

@@ -5,7 +5,13 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3roomsroomidreceiptreceipttypeeventid
 
-    use ruma_common::{api::ruma_api, receipt::ReceiptType, EventId, RoomId};
+    use ruma_common::{
+        api::ruma_api,
+        serde::{OrdAsRefStr, PartialEqAsRefStr, PartialOrdAsRefStr, StringEnum},
+        EventId, RoomId,
+    };
+
+    use crate::PrivOwnedStr;
 
     ruma_api! {
         metadata: {
@@ -51,5 +57,48 @@ pub mod v3 {
         pub fn new() -> Self {
             Self {}
         }
+    }
+
+    /// The type of receipt.
+    #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+    #[derive(Clone, Debug, PartialOrdAsRefStr, OrdAsRefStr, PartialEqAsRefStr, Eq, StringEnum)]
+    #[non_exhaustive]
+    pub enum ReceiptType {
+        /// A [public read receipt].
+        ///
+        /// Indicates that the given event has been presented to the user.
+        ///
+        /// This receipt is federated to other users.
+        ///
+        /// [public read receipt]: https://spec.matrix.org/v1.3/client-server-api/#receipts
+        #[ruma_enum(rename = "m.read")]
+        Read,
+
+        /// A [private read receipt].
+        ///
+        /// Indicates that the given event has been presented to the user.
+        ///
+        /// This read receipt is not federated so only the user and their homeserver
+        /// are aware of it.
+        ///
+        /// [private read receipt]: https://github.com/matrix-org/matrix-spec-proposals/pull/2285
+        #[cfg(feature = "unstable-msc2285")]
+        #[ruma_enum(rename = "org.matrix.msc2285.read.private", alias = "m.read.private")]
+        ReadPrivate,
+
+        /// A [fully read marker].
+        ///
+        /// Indicates that the given event has been read by the user.
+        ///
+        /// This is actually not a receipt, but a piece of room account data. It is
+        /// provided here for convenience.
+        ///
+        /// [fully read marker]: https://spec.matrix.org/v1.3/client-server-api/#fully-read-markers
+        #[cfg(feature = "unstable-msc2285")]
+        #[ruma_enum(rename = "m.fully_read")]
+        FullyRead,
+
+        #[doc(hidden)]
+        _Custom(PrivOwnedStr),
     }
 }

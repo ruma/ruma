@@ -39,7 +39,11 @@ ruma_api! {
 
         /// Information about the authentication server to connect to when using OpenID Connect.
         #[cfg(feature = "unstable-msc2965")]
-        #[serde(rename = "m.authentication", skip_serializing_if = "Option::is_none")]
+        #[serde(
+            rename = "org.matrix.msc2965.authentication",
+            alias = "m.authentication",
+            skip_serializing_if = "Option::is_none"
+        )]
         pub authentication: Option<AuthenticationServerInfo>,
     }
 
