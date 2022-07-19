@@ -112,6 +112,9 @@ pub mod v3 {
 
         /// Creates a new `Request` with the given room ID and `dir` set to `Backward`.
         ///
+        /// If the returned request is sent without `from` being set, pagination will start at the
+        /// end of (the accessible part of) the room timeline.
+        ///
         /// # Example
         ///
         /// ```rust
@@ -125,6 +128,9 @@ pub mod v3 {
         }
 
         /// Creates a new `Request` with the given room ID and `dir` set to `Forward`.
+        ///
+        /// If the returned request is sent without `from` being set, pagination will start at the
+        /// beginning of (the accessible part of) the room timeline.
         ///
         /// # Example
         ///
