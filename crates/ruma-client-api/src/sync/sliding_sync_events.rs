@@ -132,9 +132,9 @@ ruma_api! {
         description: "Get all new events in a sliding window of rooms since the last sync or a given point of time.",
         method: POST,
         name: "sync",
-        added: 1.0,
-        stable_path: "/_matrix/client/v3/sync",
-        // unstable_path: "/_matrix/client/unstable/org.matrix.msc3575/sync",
+        // added: 1.4,
+        // stable_path: "/_matrix/client/v4/sync",
+        unstable_path: "/_matrix/client/unstable/org.matrix.msc3575/sync",
         rate_limited: false,
         authentication: AccessToken,
     }
