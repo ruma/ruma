@@ -21,6 +21,7 @@ Improvements:
 * Add unstable support for discovering an OpenID Connect server (MSC2965)
 * Add `SpaceRoomJoinRule::KnockRestricted` (MSC3787)
 * Add unstable support for private read receipts (MSC2285)
+* Add unstable support for API scope restriction (MSC2967)
 
 # 0.14.1
 
