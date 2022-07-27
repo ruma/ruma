@@ -2,7 +2,7 @@
 
 use std::{collections::BTreeMap, time::Duration};
 
-use super::sync_events::v3::UnreadNotificationsCount;
+use super::UnreadNotificationsCount;
 use js_int::UInt;
 use ruma_common::{
     api::ruma_api,
@@ -214,8 +214,6 @@ pub enum SlidingOp {
     Insert,
     /// Drop this entry, moves all following entry up by one
     Delete,
-    /// These have changed
-    Update,
     /// Mark these as invaldiated
     Invalidate,
 }
@@ -245,11 +243,9 @@ pub struct SyncOp {
     pub index: Option<UInt>,
 
     /// The list of room_ids updates to apply
-    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub room_ids: Option<Vec<OwnedRoomId>>,
 
-    /// On insert we are only receiving exactly one room_id
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    /// On insert and delete we are only receiving exactly one room_id
     pub room_id: Option<OwnedRoomId>,
 }
 
