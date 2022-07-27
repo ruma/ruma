@@ -12,121 +12,6 @@ use ruma_common::{
 };
 use serde::{Deserialize, Serialize};
 
-/// Filter for a sliding sync list, set at request.
-///
-/// All fields are applied with AND operators, hence if is_dm:true and is_encrypted:true
-/// then only Encrypted DM rooms will be returned. The absence of fields implies no filter
-/// on that criteria: it does NOT imply 'false'.
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct SyncRequestListFilters {
-    // These fields may be expanded through use of extensions.
-    /// Sticky. Flag which only returns rooms present (or not) in the DM section of account data.
-    /// If unset, both DM rooms and non-DM rooms are returned. If false, only non-DM rooms
-    /// are returned. If true, only DM rooms are returned.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_dm: Option<bool>,
-
-    /// Sticky. A list of spaces which target rooms must be a part of. For every invited/joined
-    /// room for this user, ensure that there is a parent space event which is in this list. If
-    /// unset, all rooms are included. Servers MUST NOT navigate subspaces. It is up to the
-    /// client to give a complete list of spaces to navigate. Only rooms directly in these
-    /// spaces will be returned.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub spaces: Option<Vec<String>>,
-
-    /// Sticky. Flag which only returns rooms which have an `m.room.encryption` state event. If
-    /// unset, both encrypted and unencrypted rooms are returned. If false, only unencrypted
-    /// rooms are returned. If true, only encrypted rooms are returned.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_encrypted: Option<bool>,
-
-    /// Sticky. Flag which only returns rooms the user is currently invited to. If unset, both
-    /// invited and joined rooms are returned. If false, no invited rooms are returned. If
-    /// true, only invited rooms are returned.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_invite: Option<bool>,
-
-    /// Flag which only returns rooms which have an `m.room.tombstone` state event. If unset,
-    /// both tombstoned and un-tombstoned rooms are returned. If false, only un-tombstoned rooms
-    /// are returned. If true, only tombstoned rooms are returned.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_tombstoned: Option<bool>,
-
-    /// If specified, only rooms where the `m.room.create` event has a `type` matching one
-    /// of the strings in this array will be returned. If this field is unset, all rooms are
-    /// returned regardless of type. This can be used to get the initial set of spaces for an
-    /// account.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub room_types: Option<Vec<String>>,
-
-    /// Same as "room_types" but inverted. This can be used to filter out spaces from the room
-    /// list.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub not_room_types: Option<Vec<String>>,
-
-    /// Filter the room name. Case-insensitive partial matching e.g 'foo' matches 'abFooab'.
-    /// The term 'like' is inspired by SQL 'LIKE', and the text here is similar to '%foo%'.
-    pub room_name_like: Option<String>,
-}
-
-/// Sliding Sync Request for each list
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct SyncRequestList {
-    /// The ranges of rooms we're interested in
-    pub ranges: Vec<(UInt, UInt)>,
-
-    /// Sticky. The sort ordering applied to this list of rooms
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub sort: Option<Vec<String>>,
-
-    /// Sticky. Required state for each room returned. An array of event type and state key tuples.
-    /// Note that elements of this array are NOT sticky so they must be specified in full when they
-    /// are changed.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub required_state: Option<Vec<(RoomEventType, String)>>,
-
-    /// Sticky. The maximum number of timeline events to return per room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timeline_limit: Option<UInt>,
-
-    /// Sticky. Filters to apply to the list before sorting.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub filters: Option<Raw<SyncRequestListFilters>>,
-}
-
-/// The RoomSubscriptions of the SlidingSync Request
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct RoomSubscription {
-    /// Sticky. Required state for each room returned. An array of event type and state key tuples.
-    /// Note that elements of this array are NOT sticky so they must be specified in full when they
-    /// are changed.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub required_state: Option<Vec<(RoomEventType, String)>>,
-
-    /// Sticky. The maximum number of timeline events to return per room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timeline_limit: Option<UInt>,
-}
-
-/// Sliding Sync Request
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct SyncRequest {
-    /// The lists of rooms we're interested in
-    pub lists: Vec<Raw<SyncRequestList>>,
-
-    /// Specific rooms and event types that we want to receive events from
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub room_subscriptions: Option<BTreeMap<OwnedRoomId, RoomSubscription>>,
-
-    /// Specific rooms we no longer want to receive events from
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub unsubscribe_rooms: Option<Vec<OwnedRoomId>>,
-}
-
 ruma_api! {
     metadata: {
         description: "Get all new events in a sliding window of rooms since the last sync or a given point of time.",
@@ -149,7 +34,7 @@ ruma_api! {
         #[ruma_api(query)]
         pub pos: Option<&'a str>,
 
-        /// The maximum time to poll in milliseconds before returning this request.
+        /// The maximum time to poll before responding to this request.
         #[serde(
             with = "opt_ms",
             default,
@@ -158,7 +43,7 @@ ruma_api! {
         #[ruma_api(query)]
         pub timeout: Option<Duration>,
 
-        /// The sync request body to send
+        /// The sync request body to send.
         #[ruma_api(body)]
         pub body: SyncRequest,
 
@@ -167,21 +52,154 @@ ruma_api! {
     response: {
         /// Present and true if this response describes an initial sync
         /// (i.e. after the `pos` token has been discard by the server?)
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub initial: Option<bool>,
+        #[serde(default)]
+        pub initial: bool,
 
         /// The token to supply in the `pos` param of the next `/sync` request.
         pub pos: String,
 
-        /// Updates to the sliding room list
-        #[serde()]
+        /// Updates to the sliding room list.
         pub lists: Vec<SyncList>,
 
-        /// The updates on rooms
-        pub rooms: Option<BTreeMap<OwnedRoomId, SlidingSyncRoom>>
+        /// The updates on rooms.
+        pub rooms: BTreeMap<OwnedRoomId, SlidingSyncRoom>
     }
 
     error: crate::Error
+}
+
+/// Filter for a sliding sync list, set at request.
+///
+/// All fields are applied with AND operators, hence if `is_dm`  is `true` and `is_encrypted` is
+/// `true` then only encrypted DM rooms will be returned. The absence of fields implies no filter
+/// on that criteria: it does NOT imply `false`.
+///
+/// Filters are considered _sticky_, meaning that the filter only has to be provided once and their
+/// parameters 'sticks' for future requests until a new filter overwrites them.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct SyncRequestListFilters {
+    // These fields may be expanded through use of extensions.
+    /// Whether to return DMs, non-DM rooms or both.
+    ///
+    /// Flag which only returns rooms present (or not) in the DM section of account data.
+    /// If unset, both DM rooms and non-DM rooms are returned. If false, only non-DM rooms
+    /// are returned. If true, only DM rooms are returned.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_dm: Option<bool>,
+
+    /// Only list rooms that are spaces of these or all
+    ///
+    /// A list of spaces which target rooms must be a part of. For every invited/joined
+    /// room for this user, ensure that there is a parent space event which is in this list. If
+    /// unset, all rooms are included. Servers MUST NOT navigate subspaces. It is up to the
+    /// client to give a complete list of spaces to navigate. Only rooms directly in these
+    /// spaces will be returned.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub spaces: Option<Vec<String>>,
+
+    /// Whether to return encrypted, non-encrypted rooms or both.
+    ///
+    /// Flag which only returns rooms which have an `m.room.encryption` state event. If
+    /// unset, both encrypted and unencrypted rooms are returned. If false, only unencrypted
+    /// rooms are returned. If true, only encrypted rooms are returned.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_encrypted: Option<bool>,
+
+    /// Whether to return invited Rooms, only joined rooms or both.
+    ///
+    /// Flag which only returns rooms the user is currently invited to. If unset, both
+    /// invited and joined rooms are returned. If false, no invited rooms are returned. If
+    /// true, only invited rooms are returned.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_invite: Option<bool>,
+
+    /// Whether to return Rooms with tombstones, only rooms without tombstones or both.
+    ///
+    /// Flag which only returns rooms which have an `m.room.tombstone` state event. If unset,
+    /// both tombstoned and un-tombstoned rooms are returned. If false, only un-tombstoned rooms
+    /// are returned. If true, only tombstoned rooms are returned.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_tombstoned: Option<bool>,
+
+    /// Only list rooms of given create-types or all
+    ///
+    /// If specified, only rooms where the `m.room.create` event has a `type` matching one
+    /// of the strings in this array will be returned. If this field is unset, all rooms are
+    /// returned regardless of type. This can be used to get the initial set of spaces for an
+    /// account.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub room_types: Option<Vec<String>>,
+
+    /// Only list rooms that are not of these create-types, or all
+    ///
+    /// Same as "room_types" but inverted. This can be used to filter out spaces from the room
+    /// list.
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    pub not_room_types: Vec<String>,
+
+    /// Only list rooms matching the given string, or all
+    ///
+    /// Filter the room name. Case-insensitive partial matching e.g 'foo' matches 'abFooab'.
+    /// The term 'like' is inspired by SQL 'LIKE', and the text here is similar to '%foo%'.
+    pub room_name_like: Option<String>,
+}
+
+/// Sliding Sync Request for each list
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct SyncRequestList {
+    /// The ranges of rooms we're interested in.
+    pub ranges: Vec<(UInt, UInt)>,
+
+    /// The sort ordering applied to this list of rooms. Sticky
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sort: Option<Vec<String>>,
+
+    /// Required state for each room returned. An array of event type and state key tuples.
+    /// Note that elements of this array are NOT sticky so they must be specified in full when they
+    /// are changed. Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub required_state: Option<Vec<(RoomEventType, String)>>,
+
+    /// The maximum number of timeline events to return per room. Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timeline_limit: Option<UInt>,
+
+    /// Filters to apply to the list before sorting. Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filters: Option<Raw<SyncRequestListFilters>>,
+}
+
+/// The RoomSubscriptions of the SlidingSync Request
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct RoomSubscription {
+    /// Required state for each room returned. An array of event type and state key tuples.
+    /// Note that elements of this array are NOT sticky so they must be specified in full when they
+    /// are changed. Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub required_state: Option<Vec<(RoomEventType, String)>>,
+
+    /// The maximum number of timeline events to return per room. Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timeline_limit: Option<UInt>,
+}
+
+/// Sliding Sync Request
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct SyncRequest {
+    /// The lists of rooms we're interested in.
+    pub lists: Vec<Raw<SyncRequestList>>,
+
+    /// Specific rooms and event types that we want to receive events from.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub room_subscriptions: Option<BTreeMap<OwnedRoomId, RoomSubscription>>,
+
+    /// Specific rooms we no longer want to receive events from.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub unsubscribe_rooms: Option<Vec<OwnedRoomId>>,
 }
 
 impl Request<'_> {

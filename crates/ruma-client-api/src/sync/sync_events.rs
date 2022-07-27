@@ -1,14 +1,12 @@
 //! `GET /_matrix/client/*/sync`
 
-use serde::{self, Serialize, Deserialize};
 use js_int::UInt;
+use serde::{self, Deserialize, Serialize};
 
 pub mod v3;
 
 #[cfg(feature = "unstable-msc3575")]
 pub mod v4;
-
-
 
 /// Unread notifications count.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]

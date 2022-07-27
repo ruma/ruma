@@ -1,10 +1,10 @@
-
 //! `/v3/` ([spec])
 //!
 //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3sync
 
 use std::{collections::BTreeMap, time::Duration};
 
+use super::UnreadNotificationsCount;
 use js_int::UInt;
 use ruma_common::{
     api::ruma_api,
@@ -18,7 +18,6 @@ use ruma_common::{
     DeviceKeyAlgorithm, OwnedRoomId, OwnedUserId,
 };
 use serde::{Deserialize, Serialize};
-use super::UnreadNotificationsCount;
 
 use crate::filter::{FilterDefinition, IncomingFilterDefinition};
 
