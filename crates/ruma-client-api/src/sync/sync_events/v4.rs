@@ -224,6 +224,7 @@ impl Response {
 /// Operation applied to the specific SlidingSyncList
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "UPPERCASE")]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum SlidingOp {
     /// Full reset of the given window
     Sync,
