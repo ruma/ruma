@@ -6,8 +6,6 @@ use std::{
 use assign::assign;
 use async_stream::try_stream;
 use futures_core::stream::Stream;
-#[cfg(feature = "unstable-msc3575")]
-use ruma_client_api::sync::syncv3_events;
 use ruma_client_api::{
     account::register::{self, RegistrationKind},
     session::login::{self, v3::LoginInfo},
@@ -221,29 +219,6 @@ impl<C: HttpClient> Client<C> {
                     .await?;
 
                 since = response.next_batch.clone();
-                yield response;
-            }
-        }
-    }
-
-    /// Convenience method that represents repeated calls to the syncv3_events endpoint as a stream.
-    #[cfg(feature = "unstable-msc3575")]
-    pub fn syncv3<'a>(
-        &'a self,
-        mut pos: String,
-        timeout: Option<Duration>,
-    ) -> impl Stream<Item = Result<syncv3_events::Response, Error<C::Error, ruma_client_api::Error>>> + 'a
-    {
-        try_stream! {
-            loop {
-                let response = self
-                    .send_request(assign!(syncv3_events::Request::new(), {
-                        pos: Some(&pos),
-                        timeout,
-                    }))
-                    .await?;
-
-                pos = response.pos.clone();
                 yield response;
             }
         }
