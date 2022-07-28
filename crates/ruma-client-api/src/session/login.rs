@@ -53,8 +53,7 @@ pub mod v3 {
             #[serde(
                 default,
                 skip_serializing_if = "ruma_common::serde::is_default",
-                rename = "org.matrix.msc2918.refresh_token",
-                alias = "refresh_token",
+                alias = "org.matrix.msc2918.refresh_token",
             )]
             pub refresh_token: bool,
         }
