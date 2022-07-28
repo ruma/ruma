@@ -14,10 +14,6 @@ use ruma_common::{
 use serde::{de, Deserialize, Serialize};
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
-// There is one more edu_type synapse recognizes with the note:
-// FIXME: switch to "m.signing_key_update" when MSC1756 is merged into the
-// spec from "org.matrix.signing_key_update"
-
 /// Type for passing ephemeral data to homeservers.
 #[derive(Clone, Debug, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
