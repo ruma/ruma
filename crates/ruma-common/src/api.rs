@@ -240,7 +240,7 @@ impl<'a> SendAccessToken<'a> {
 }
 
 /// A request type for a Matrix API endpoint, used for sending requests.
-pub trait OutgoingRequest: Sized {
+pub trait OutgoingRequest: Sized + Clone {
     /// A type capturing the expected error conditions the server can return.
     type EndpointError: EndpointError;
 
