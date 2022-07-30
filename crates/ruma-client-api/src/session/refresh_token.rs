@@ -43,7 +43,7 @@ pub mod v3 {
 
         request: {
             /// The refresh token.
-            pub refresh_token: String,
+            pub refresh_token: &'a str,
         }
 
         response: {
@@ -70,9 +70,9 @@ pub mod v3 {
         error: crate::Error
     }
 
-    impl Request {
+    impl<'a> Request<'a> {
         /// Creates a new `Request` with the given refresh token.
-        pub fn new(refresh_token: String) -> Self {
+        pub fn new(refresh_token: &'a str) -> Self {
             Self { refresh_token }
         }
     }
