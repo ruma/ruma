@@ -1,15 +1,18 @@
 //! Common types for room directory endpoints.
 
-use crate::{
-    serde::{Incoming, StringEnum},
-    OwnedRoomAliasId, OwnedRoomId,
-};
 use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "unstable-msc3827")]
+mod filter_room_type_serde;
 mod room_network_serde;
 
-use crate::{OwnedMxcUri, PrivOwnedStr};
+#[cfg(feature = "unstable-msc3827")]
+use crate::room::RoomType;
+use crate::{
+    serde::{Incoming, StringEnum},
+    OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, PrivOwnedStr,
+};
 
 /// A chunk of a room list response, describing one room.
 ///
@@ -62,6 +65,19 @@ pub struct PublicRoomsChunk {
     /// The join rule of the room.
     #[serde(default, skip_serializing_if = "crate::serde::is_default")]
     pub join_rule: PublicRoomJoinRule,
+
+    /// The type of room from `m.room.create`, if any.
+    ///
+    /// This field uses the unstable prefix from [MSC3827].
+    ///
+    /// [MSC3827]: https://github.com/matrix-org/matrix-spec-proposals/pull/3827
+    #[cfg(feature = "unstable-msc3827")]
+    #[serde(
+        rename = "org.matrix.msc3827.room_type",
+        alias = "room_type",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub room_type: Option<RoomType>,
 }
 
 /// Initial set of mandatory fields of `PublicRoomsChunk`.
@@ -101,6 +117,8 @@ impl From<PublicRoomsChunkInit> for PublicRoomsChunk {
             guest_can_join,
             avatar_url: None,
             join_rule: PublicRoomJoinRule::default(),
+            #[cfg(feature = "unstable-msc3827")]
+            room_type: None,
         }
     }
 }
@@ -113,6 +131,22 @@ pub struct Filter<'a> {
     /// A string to search for in the room metadata, e.g. name, topic, canonical alias etc.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub generic_search_term: Option<&'a str>,
+
+    /// The room types to include in the results.
+    ///
+    /// Includes all room types if it is empty.
+    ///
+    /// This field uses the unstable prefix from [MSC3827].
+    ///
+    /// [MSC3827]: https://github.com/matrix-org/matrix-spec-proposals/pull/3827
+    #[cfg(feature = "unstable-msc3827")]
+    #[serde(
+        rename = "org.matrix.msc3827.room_types",
+        alias = "room_types",
+        default,
+        skip_serializing_if = "Vec::is_empty"
+    )]
+    pub room_types: Vec<RoomTypeFilter>,
 }
 
 impl Filter<'_> {
@@ -171,11 +205,68 @@ impl Default for PublicRoomJoinRule {
     }
 }
 
+/// An enum of possible room types to filter.
+///
+/// This type can hold an arbitrary string. To build this with a custom value, convert it from an
+/// `Option<string>` with `::from()` / `.into()`. [`RoomTypeFilter::Default`] can be constructed
+/// from `None`.
+///
+/// To check for values that are not available as a documented variant here, use its string
+/// representation, obtained through [`.as_str()`](Self::as_str()).
+#[cfg(feature = "unstable-msc3827")]
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum RoomTypeFilter {
+    /// The default room type, defined without a `room_type`.
+    Default,
+
+    /// A space.
+    Space,
+
+    /// A custom room type.
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}
+
+#[cfg(feature = "unstable-msc3827")]
+impl RoomTypeFilter {
+    /// Get the string representation of this `RoomTypeFilter`.
+    ///
+    /// [`RoomTypeFilter::Default`] returns `None`.
+    pub fn as_str(&self) -> Option<&str> {
+        match self {
+            RoomTypeFilter::Default => None,
+            RoomTypeFilter::Space => Some("m.space"),
+            RoomTypeFilter::_Custom(s) => Some(&s.0),
+        }
+    }
+}
+
+#[cfg(feature = "unstable-msc3827")]
+impl<T> From<Option<T>> for RoomTypeFilter
+where
+    T: AsRef<str> + Into<Box<str>>,
+{
+    fn from(s: Option<T>) -> Self {
+        match s {
+            None => Self::Default,
+            Some(s) => match s.as_ref() {
+                "m.space" => Self::Space,
+                _ => Self::_Custom(PrivOwnedStr(s.into())),
+            },
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "unstable-msc3827")]
+    use assert_matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{IncomingRoomNetwork, RoomNetwork};
+    #[cfg(feature = "unstable-msc3827")]
+    use super::RoomTypeFilter;
+    use super::{Filter, IncomingFilter, IncomingRoomNetwork, RoomNetwork};
 
     #[test]
     fn serialize_matrix_network_only() {
@@ -241,5 +332,60 @@ mod tests {
             from_json_value::<IncomingRoomNetwork>(json).unwrap_err().to_string().as_str(),
             "`include_all_networks = true` and `third_party_instance_id` are mutually exclusive."
         );
+    }
+
+    #[test]
+    fn serialize_filter_empty() {
+        let filter = Filter::default();
+        let json = json!({});
+        assert_eq!(to_json_value(filter).unwrap(), json);
+    }
+
+    #[test]
+    fn deserialize_filter_empty() {
+        let json = json!({});
+        let filter = from_json_value::<IncomingFilter>(json).unwrap();
+        assert_eq!(filter.generic_search_term, None);
+        #[cfg(feature = "unstable-msc3827")]
+        assert_eq!(filter.room_types.len(), 0);
+    }
+
+    #[cfg(feature = "unstable-msc3827")]
+    #[test]
+    fn serialize_filter_room_types() {
+        let filter = Filter {
+            generic_search_term: None,
+            room_types: vec![
+                RoomTypeFilter::Default,
+                RoomTypeFilter::Space,
+                Some("custom_type").into(),
+            ],
+        };
+        let json = json!({ "org.matrix.msc3827.room_types": [null, "m.space", "custom_type"] });
+        assert_eq!(to_json_value(filter).unwrap(), json);
+    }
+
+    #[cfg(feature = "unstable-msc3827")]
+    #[test]
+    fn deserialize_filter_room_types_unstable() {
+        let json = json!({ "org.matrix.msc3827.room_types": [null, "m.space", "custom_type"] });
+        let filter = from_json_value::<IncomingFilter>(json).unwrap();
+        assert_eq!(filter.room_types.len(), 3);
+        assert_eq!(filter.room_types[0], RoomTypeFilter::Default);
+        assert_eq!(filter.room_types[1], RoomTypeFilter::Space);
+        assert_matches!(filter.room_types[2], RoomTypeFilter::_Custom(_));
+        assert_eq!(filter.room_types[2].as_str(), Some("custom_type"));
+    }
+
+    #[cfg(feature = "unstable-msc3827")]
+    #[test]
+    fn deserialize_filter_room_types_stable() {
+        let json = json!({ "room_types": [null, "m.space", "custom_type"] });
+        let filter = from_json_value::<IncomingFilter>(json).unwrap();
+        assert_eq!(filter.room_types.len(), 3);
+        assert_eq!(filter.room_types[0], RoomTypeFilter::Default);
+        assert_eq!(filter.room_types[1], RoomTypeFilter::Space);
+        assert_matches!(filter.room_types[2], RoomTypeFilter::_Custom(_));
+        assert_eq!(filter.room_types[2].as_str(), Some("custom_type"));
     }
 }

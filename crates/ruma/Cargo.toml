@@ -167,6 +167,7 @@ unstable-msc3554 = ["ruma-common/unstable-msc3554"]
 unstable-msc3618 = ["ruma-federation-api?/unstable-msc3618"]
 unstable-msc3723 = ["ruma-federation-api?/unstable-msc3723"]
 unstable-msc3786 = ["ruma-common/unstable-msc3786"]
+unstable-msc3827 = ["ruma-common/unstable-msc3827"]
 
 # Private feature, only used in test / benchmarking code
 __ci = [
@@ -196,6 +197,7 @@ __ci = [
     "unstable-msc3618",
     "unstable-msc3723",
     "unstable-msc3786",
+    "unstable-msc3827",
 ]
 
 [dependencies]
