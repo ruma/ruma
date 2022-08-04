@@ -98,6 +98,20 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 }
 
 /// Generates an implementation of `ruma_common::events::EventContent`.
+///
+/// Also generates type aliases depending on the kind of event, with the final `Content` of the type
+/// name removed and prefixed added. For instance, a message-like event content type
+/// `FooEventContent` will have the following aliases generated:
+///
+/// * `type FooEvent = MessageLikeEvent<FooEventContent>`
+/// * `type SyncFooEvent = SyncMessageLikeEvent<FooEventContent>`
+/// * `type OriginalFooEvent = OriginalMessageLikeEvent<FooEventContent>`
+/// * `type OriginalSyncFooEvent = OriginalSyncMessageLikeEvent<FooEventContent>`
+/// * `type RedactedFooEvent = RedactedMessageLikeEvent<FooEventContent>`
+/// * `type RedactedSyncFooEvent = RedactedSyncMessageLikeEvent<FooEventContent>`
+///
+/// You can use `cargo doc` to find out more details, its `--document-private-items` flag also lets
+/// you generate documentation for binaries or private parts of a library.
 #[proc_macro_derive(EventContent, attributes(ruma_event))]
 pub fn derive_event_content(input: TokenStream) -> TokenStream {
     let ruma_common = import_ruma_common();
