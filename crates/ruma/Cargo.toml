@@ -20,7 +20,7 @@ api = ["ruma-common/api"]
 canonical-json = ["ruma-common/canonical-json"]
 client = ["dep:ruma-client"]
 events = ["ruma-common/events"]
-signatures = ["dep:ruma-signatures"]
+signatures = ["dep:ruma-signatures", "canonical-json"]
 state-res = ["dep:ruma-state-res"]
 
 # ruma-client feature flags
