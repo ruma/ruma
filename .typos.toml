@@ -3,3 +3,5 @@
 # Or if we're able to ignore certain lines.
 NAX = "NAX"
 Nd = "Nd"
+# thead html tag is not a typo, upstream PR pending
+thead = "thead"
