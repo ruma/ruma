@@ -147,10 +147,8 @@ fn image_event_serialization() {
         to_json_value(&event).unwrap(),
         json!({
             "content": {
-                "org.matrix.msc1767.message": [
-                    { "body": "Upload: <strong>my_house.jpg</strong>", "mimetype": "text/html"},
-                    { "body": "Upload: my_house.jpg", "mimetype": "text/plain"},
-                ],
+                "org.matrix.msc1767.html": "Upload: <strong>my_house.jpg</strong>",
+                "org.matrix.msc1767.text": "Upload: my_house.jpg",
                 "m.file": {
                     "url": "mxc://notareal.hs/abcdef",
                     "name": "my_house.jpg",

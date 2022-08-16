@@ -18,41 +18,49 @@ rustdoc-args = ["--cfg", "docsrs"]
 [features]
 api = ["ruma-common/api"]
 canonical-json = ["ruma-common/canonical-json"]
-client = ["ruma-client"]
+client = ["dep:ruma-client"]
 events = ["ruma-common/events"]
-signatures = ["ruma-signatures"]
-state-res = ["ruma-state-res"]
+signatures = ["dep:ruma-signatures", "canonical-json"]
+state-res = ["dep:ruma-state-res"]
 
 # ruma-client feature flags
-client-ext-client-api = ["client", "ruma-client/client-api"]
-client-hyper = ["client", "ruma-client/hyper"]
-client-hyper-native-tls = ["client", "ruma-client/hyper-native-tls"]
-client-isahc = ["client", "ruma-client/isahc"]
-client-reqwest = ["client", "ruma-client/reqwest"]
-client-reqwest-native-tls = ["client", "ruma-client/reqwest-native-tls"]
-client-reqwest-native-tls-vendored = ["client", "ruma-client/reqwest-native-tls-vendored"]
-client-reqwest-rustls-manual-roots = ["client", "ruma-client/reqwest-rustls-manual-roots"]
-client-reqwest-rustls-webpki-roots = ["client", "ruma-client/reqwest-rustls-webpki-roots"]
-client-reqwest-rustls-native-roots = ["client", "ruma-client/reqwest-rustls-native-roots"]
+client-ext-client-api = ["client", "ruma-client?/client-api"]
+client-hyper = ["client", "ruma-client?/hyper"]
+client-hyper-native-tls = ["client", "ruma-client?/hyper-native-tls"]
+client-isahc = ["client", "ruma-client?/isahc"]
+client-reqwest = ["client", "ruma-client?/reqwest"]
+client-reqwest-native-tls = ["client", "ruma-client?/reqwest-native-tls"]
+client-reqwest-native-tls-vendored = ["client", "ruma-client?/reqwest-native-tls-vendored"]
+client-reqwest-rustls-manual-roots = ["client", "ruma-client?/reqwest-rustls-manual-roots"]
+client-reqwest-rustls-webpki-roots = ["client", "ruma-client?/reqwest-rustls-webpki-roots"]
+client-reqwest-rustls-native-roots = ["client", "ruma-client?/reqwest-rustls-native-roots"]
 
-appservice-api-c = ["api", "events", "ruma-appservice-api/client"]
-appservice-api-s = ["api", "events", "ruma-appservice-api/server"]
+appservice-api-c = ["api", "events", "dep:ruma-appservice-api", "ruma-appservice-api?/client"]
+appservice-api-s = ["api", "events", "dep:ruma-appservice-api", "ruma-appservice-api?/server"]
 appservice-api = ["appservice-api-c", "appservice-api-s"]
 
-client-api-c = ["api", "events", "ruma-client-api/client"]
-client-api-s = ["api", "events", "ruma-client-api/server"]
+client-api-c = ["api", "events", "dep:ruma-client-api", "ruma-client-api?/client"]
+client-api-s = ["api", "events", "dep:ruma-client-api", "ruma-client-api?/server"]
 client-api = ["client-api-c", "client-api-s"]
 
-federation-api-c = ["api", "signatures", "ruma-federation-api/client"]
-federation-api-s = ["api", "signatures", "ruma-federation-api/server"]
+federation-api-c = ["api", "signatures", "dep:ruma-federation-api", "ruma-federation-api?/client"]
+federation-api-s = ["api", "signatures", "dep:ruma-federation-api", "ruma-federation-api?/server"]
 federation-api = ["federation-api-c", "federation-api-s"]
 
-identity-service-api-c = ["api", "ruma-identity-service-api/client"]
-identity-service-api-s = ["api", "ruma-identity-service-api/server"]
+identity-service-api-c = [
+    "api",
+    "dep:ruma-identity-service-api",
+    "ruma-identity-service-api?/client",
+]
+identity-service-api-s = [
+    "api",
+    "dep:ruma-identity-service-api",
+    "ruma-identity-service-api?/server",
+]
 identity-service-api = ["identity-service-api-c", "identity-service-api-s"]
 
-push-gateway-api-c = ["api", "ruma-push-gateway-api/client"]
-push-gateway-api-s = ["api", "ruma-push-gateway-api/server"]
+push-gateway-api-c = ["api", "dep:ruma-push-gateway-api", "ruma-push-gateway-api?/client"]
+push-gateway-api-s = ["api", "dep:ruma-push-gateway-api", "ruma-push-gateway-api?/server"]
 push-gateway-api = ["push-gateway-api-c", "push-gateway-api-s"]
 
 # Required for randomness, current system time in browser environments
@@ -91,7 +99,7 @@ compat = [
 ]
 
 # Specific compatibility for past ring public/private key documents.
-ring-compat = ["ruma-signatures/ring-compat"]
+ring-compat = ["dep:ruma-signatures", "ruma-signatures?/ring-compat"]
 
 # unstable: by using any of these, you opt out of all semver guarantees Ruma
 #           otherwise provides!
@@ -139,6 +147,8 @@ unstable-msc2677 = [
 ]
 unstable-msc2746 = ["ruma-common/unstable-msc2746"]
 unstable-msc2870 = ["ruma-common/unstable-msc2870"]
+unstable-msc2965 = ["ruma-client-api?/unstable-msc2965"]
+unstable-msc2967 = ["ruma-client-api?/unstable-msc2967"]
 unstable-msc3245 = ["ruma-common/unstable-msc3245"]
 unstable-msc3246 = ["ruma-common/unstable-msc3246"]
 unstable-msc3381 = ["ruma-common/unstable-msc3381"]
@@ -158,6 +168,7 @@ unstable-msc3575 = ["ruma-client-api/unstable-msc3575"]
 unstable-msc3618 = ["ruma-federation-api?/unstable-msc3618"]
 unstable-msc3723 = ["ruma-federation-api?/unstable-msc3723"]
 unstable-msc3786 = ["ruma-common/unstable-msc3786"]
+unstable-msc3827 = ["ruma-common/unstable-msc3827"]
 
 # Private feature, only used in test / benchmarking code
 __ci = [
@@ -173,6 +184,8 @@ __ci = [
     "unstable-msc2677",
     "unstable-msc2746",
     "unstable-msc2870",
+    "unstable-msc2965",
+    "unstable-msc2967",
     "unstable-msc3245",
     "unstable-msc3246",
     "unstable-msc3381",
@@ -186,6 +199,7 @@ __ci = [
     "unstable-msc3618",
     "unstable-msc3723",
     "unstable-msc3786",
+    "unstable-msc3827",
 ]
 
 [dependencies]

@@ -5,7 +5,6 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3roomsroomidmessages
 
-    use assign::assign;
     use js_int::{uint, UInt};
     use ruma_common::{
         api::ruma_api,
@@ -111,56 +110,46 @@ pub mod v3 {
             }
         }
 
-        /// Creates a new `Request` with the given room ID and optional `from` token, and `dir` set
-        /// to `Backward`.
+        /// Creates a new `Request` with the given room ID and `dir` set to `Backward`.
         ///
-        /// `Request::backward(room_id, Some(from))` can also be written as
-        /// `Request::backward_from(room_id, from)`.\
-        /// `Request::backward(room_id, None)` can also be written as `Request::from_end(room_id)`.
-        pub fn backward(room_id: &'a RoomId, from: Option<&'a str>) -> Self {
-            assign!(Self::new(room_id, Direction::Backward), { from })
+        /// If the returned request is sent without `from` being set, pagination will start at the
+        /// end of (the accessible part of) the room timeline.
+        ///
+        /// # Example
+        ///
+        /// ```rust
+        /// # use ruma_client_api::message::get_message_events;
+        /// # let room_id = ruma_common::room_id!("!a:example.org");
+        /// # let token = "prev_batch token";
+        /// let request = get_message_events::v3::Request::backward(room_id).from(token);
+        /// ```
+        pub fn backward(room_id: &'a RoomId) -> Self {
+            Self::new(room_id, Direction::Backward)
         }
 
-        /// Creates a new `Request` with the given room ID and optional `from` token, and `dir` set
-        /// to `Forward`.
+        /// Creates a new `Request` with the given room ID and `dir` set to `Forward`.
         ///
-        /// `Request::forward(room_id, Some(from))` can also be written as
-        /// `Request::forward_from(room_id, from)`.\
-        /// `Request::forward(room_id, None)` can also be written as `Request::from_start(room_id)`.
-        pub fn forward(room_id: &'a RoomId, from: Option<&'a str>) -> Self {
-            assign!(Self::new(room_id, Direction::Forward), { from })
+        /// If the returned request is sent without `from` being set, pagination will start at the
+        /// beginning of (the accessible part of) the room timeline.
+        ///
+        /// # Example
+        ///
+        /// ```rust
+        /// # use ruma_client_api::message::get_message_events;
+        /// # let room_id = ruma_common::room_id!("!a:example.org");
+        /// # let token = "end token";
+        /// let request = get_message_events::v3::Request::forward(room_id).from(token);
+        /// ```
+        pub fn forward(room_id: &'a RoomId) -> Self {
+            Self::new(room_id, Direction::Forward)
         }
 
-        /// Creates a new `Request` with the given room ID and `from` token, and `dir` set to
-        /// `Backward`.
+        /// Creates a new `Request` from `self` with the `from` field set to the given value.
         ///
-        /// Equivalent to `Request::backward(room_id, Some(from))`.
-        pub fn backward_from(room_id: &'a RoomId, from: &'a str) -> Self {
-            Self::backward(room_id, Some(from))
-        }
-
-        /// Creates a new `Request` with the given room ID and `from` token, and `dir` set to
-        /// `Forward`.
-        ///
-        /// Equivalent to `Request::forward(room_id, Some(from))`.
-        pub fn forward_from(room_id: &'a RoomId, from: &'a str) -> Self {
-            Self::forward(room_id, Some(from))
-        }
-
-        /// Creates a new `Request` to fetch messages from the very start of the available history
-        /// for a given room.
-        ///
-        /// Equivalent to `Request::forward(room_id, None)`.
-        pub fn from_start(room_id: &'a RoomId) -> Self {
-            Self::forward(room_id, None)
-        }
-
-        /// Creates a new `Request` to fetch messages from the very end of the available history for
-        /// a given room.
-        ///
-        /// Equivalent to `Request::backward(room_id, None)`.
-        pub fn from_end(room_id: &'a RoomId) -> Self {
-            Self::backward(room_id, None)
+        /// Since the field is public, you can also assign to it directly. This method merely acts
+        /// as a shorthand for that, because it is very common to set this field.
+        pub fn from(self, from: impl Into<Option<&'a str>>) -> Self {
+            Self { from: from.into(), ..self }
         }
     }
 

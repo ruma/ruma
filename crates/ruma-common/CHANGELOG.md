@@ -26,6 +26,7 @@ Breaking changes:
   * Split `RoomId` matrix URI constructors between methods with and without routing
 * Allow to add routing servers to `RoomId::matrix_to_event_uri()`
 * Move `receipt::ReceiptType` to `events::receipt`
+* Make `Clone` as supertrait of `api::OutgoingRequest`
 
 [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/3669
 
@@ -48,6 +49,7 @@ Improvements:
 * Implement `From<Owned*Id>` for `identifiers::matrix_uri::MatrixId`
 * Add unstable default push rule to ignore room server ACLs events (MSC3786)
 * Add unstable support for private read receipts (MSC2285)
+* Add unstable support for filtering public rooms by room type (MSC3827)
 
 # 0.9.2
 

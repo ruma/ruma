@@ -17,7 +17,7 @@ use ruma_common::{
 use serde::{Deserialize, Serialize};
 
 /// A request to create a new room alias.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Request {
     pub room_id: OwnedRoomId,         // body
     pub room_alias: OwnedRoomAliasId, // path

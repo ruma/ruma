@@ -1,4 +1,3 @@
-msrv = "1.60"
 avoid-breaking-exported-api = false
 disallowed-methods = [
     # https://github.com/serde-rs/json/issues/160

@@ -14,6 +14,14 @@ pub(crate) struct MessageContentSerDeHelper {
     #[serde(rename = "org.matrix.msc1767.text")]
     text_unstable: Option<String>,
 
+    /// HTML short form, stable name.
+    #[serde(rename = "m.html")]
+    html_stable: Option<String>,
+
+    /// HTML short form, unstable name.
+    #[serde(rename = "org.matrix.msc1767.html")]
+    html_unstable: Option<String>,
+
     /// Long form, stable name.
     #[serde(rename = "m.message")]
     message_stable: Option<Vec<Text>>,
@@ -30,16 +38,26 @@ impl TryFrom<MessageContentSerDeHelper> for MessageContent {
         let MessageContentSerDeHelper {
             text_stable,
             text_unstable,
+            html_stable,
+            html_unstable,
             message_stable,
             message_unstable,
         } = helper;
 
         if let Some(message) = message_stable.or(message_unstable) {
             Ok(Self(message))
-        } else if let Some(text) = text_stable.or(text_unstable) {
-            Ok(Self::plain(text))
         } else {
-            Err(TryFromExtensibleError::MissingField("m.message or m.text".to_owned()))
+            let message: Vec<_> = html_stable
+                .or(html_unstable)
+                .map(Text::html)
+                .into_iter()
+                .chain(text_stable.or(text_unstable).map(Text::plain))
+                .collect();
+            if !message.is_empty() {
+                Ok(Self(message))
+            } else {
+                Err(TryFromExtensibleError::MissingField("m.message, m.text or m.html".to_owned()))
+            }
         }
     }
 }
@@ -49,13 +67,30 @@ impl Serialize for MessageContent {
     where
         S: serde::Serializer,
     {
-        let mut st = serializer.serialize_struct("MessageContent", 1)?;
-        if self.len() == 1 && self[0].mimetype == "text/plain" {
-            st.serialize_field("org.matrix.msc1767.text", &self[0].body)?;
+        #[cfg(feature = "unstable-msc3554")]
+        let has_shortcut = |message: &Text| {
+            matches!(&*message.mimetype, "text/plain" | "text/html") && message.lang.is_none()
+        };
+
+        #[cfg(not(feature = "unstable-msc3554"))]
+        let has_shortcut =
+            |message: &Text| matches!(&*message.mimetype, "text/plain" | "text/html");
+
+        if self.iter().all(has_shortcut) {
+            let mut st = serializer.serialize_struct("MessageContent", self.len())?;
+            for message in self.iter() {
+                if message.mimetype == "text/plain" {
+                    st.serialize_field("org.matrix.msc1767.text", &message.body)?;
+                } else if message.mimetype == "text/html" {
+                    st.serialize_field("org.matrix.msc1767.html", &message.body)?;
+                }
+            }
+            st.end()
         } else {
+            let mut st = serializer.serialize_struct("MessageContent", 1)?;
             st.serialize_field("org.matrix.msc1767.message", &self.0)?;
+            st.end()
         }
-        st.end()
     }
 }
 
