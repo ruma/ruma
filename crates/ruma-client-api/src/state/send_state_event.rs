@@ -5,6 +5,8 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#put_matrixclientv3roomsroomidstateeventtypestatekey
 
+    use std::borrow::Borrow;
+
     use ruma_common::{
         api::ruma_api,
         events::{AnyStateEventContent, StateEventContent, StateEventType},
@@ -69,17 +71,19 @@ pub mod v3 {
         ///
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
-        pub fn new<T>(
+        pub fn new<T, K>(
             room_id: &'a RoomId,
-            state_key: &'a str,
+            state_key: &'a K,
             content: &'a T,
         ) -> serde_json::Result<Self>
         where
             T: StateEventContent,
+            T::StateKey: Borrow<K>,
+            K: AsRef<str> + ?Sized,
         {
             Ok(Self {
                 room_id,
-                state_key,
+                state_key: state_key.as_ref(),
                 event_type: content.event_type(),
                 body: Raw::from_json(to_raw_json_value(content)?),
                 timestamp: None,
