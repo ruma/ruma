@@ -70,6 +70,7 @@ pub struct SpaceHierarchyRoomsChunk {
     pub join_rule: SpaceRoomJoinRule,
 
     /// The type of room from `m.room.create`, if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub room_type: Option<RoomType>,
 
     /// The stripped `m.space.child` events of the space-room.
