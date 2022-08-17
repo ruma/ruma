@@ -3,7 +3,7 @@ use std::fmt;
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use crate::serde::Raw;
+use crate::serde::{CanBeEmpty, Raw};
 
 use super::{
     EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEventType,
@@ -161,9 +161,6 @@ trait_aliases! {
     /// An alias for `EventContent<EventType = EphemeralRoomEventType>`.
     trait EphemeralRoomEventContent = EventContent<EventType = EphemeralRoomEventType>;
 
-    /// An alias for `EventContent<EventType = MessageLikeEventType>`.
-    trait MessageLikeEventContent = EventContent<EventType = MessageLikeEventType>;
-
     /// An alias for `MessageLikeEventContent + RedactedEventContent`.
     trait RedactedMessageLikeEventContent = MessageLikeEventContent, RedactedEventContent;
 
@@ -172,6 +169,12 @@ trait_aliases! {
 
     /// An alias for `EventContent<EventType = ToDeviceEventType>`.
     trait ToDeviceEventContent = EventContent<EventType = ToDeviceEventType>;
+}
+
+/// An alias for `EventContent<EventType = MessageLikeEventType>`.
+pub trait MessageLikeEventContent: EventContent<EventType = MessageLikeEventType> {
+    /// The type of the event's `unsigned` field.
+    type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty + DeserializeOwned + Serialize;
 }
 
 /// An alias for `EventContent<EventType = StateEventType>`.

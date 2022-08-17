@@ -3,7 +3,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 
 use super::{relation::Relations, room::redaction::SyncRoomRedactionEvent, StateEventContent};
-use crate::{serde::Raw, OwnedTransactionId};
+use crate::{
+    serde::{CanBeEmpty, Raw},
+    OwnedTransactionId,
+};
 
 /// Extra information about a message event that is not incorporated into the event's hash.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -34,13 +37,15 @@ impl MessageLikeUnsigned {
     pub fn new() -> Self {
         Self::default()
     }
+}
 
+impl CanBeEmpty for MessageLikeUnsigned {
     /// Whether this unsigned data is empty (all fields are `None`).
     ///
     /// This method is used to determine whether to skip serializing the `unsigned` field in room
     /// events. Do not use it to determine whether an incoming `unsigned` field was present - it
     /// could still have been present but contained none of the known fields.
-    pub fn is_empty(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.age.is_none() && self.transaction_id.is_none() && self.relations.is_none()
     }
 }
@@ -78,13 +83,15 @@ impl<C: StateEventContent> StateUnsigned<C> {
     pub fn new() -> Self {
         Self { age: None, transaction_id: None, prev_content: None, relations: None }
     }
+}
 
+impl<C: StateEventContent> CanBeEmpty for StateUnsigned<C> {
     /// Whether this unsigned data is empty (all fields are `None`).
     ///
     /// This method is used to determine whether to skip serializing the `unsigned` field in room
     /// events. Do not use it to determine whether an incoming `unsigned` field was present - it
     /// could still have been present but contained none of the known fields.
-    pub fn is_empty(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.age.is_none()
             && self.transaction_id.is_none()
             && self.prev_content.is_none()
@@ -160,13 +167,15 @@ impl RedactedUnsigned {
     pub fn new_because(redacted_because: Box<SyncRoomRedactionEvent>) -> Self {
         Self { redacted_because: Some(redacted_because) }
     }
+}
 
+impl CanBeEmpty for RedactedUnsigned {
     /// Whether this unsigned data is empty (`redacted_because` is `None`).
     ///
     /// This method is used to determine whether to skip serializing the `unsigned` field in
     /// redacted room events. Do not use it to determine whether an incoming `unsigned` field
     /// was present - it could still have been present but contained none of the known fields.
-    pub fn is_empty(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.redacted_because.is_none()
     }
 }

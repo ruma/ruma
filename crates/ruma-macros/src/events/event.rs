@@ -86,7 +86,7 @@ fn expand_serialize_event(
                 }
             } else if name == "unsigned" {
                 quote! {
-                    if !self.unsigned.is_empty() {
+                    if !#ruma_common::serde::is_empty(&self.unsigned) {
                         state.serialize_field("unsigned", &self.unsigned)?;
                     }
                 }
@@ -376,16 +376,16 @@ fn expand_redact_event(
     let where_clause = generics.make_where_clause();
     where_clause.predicates.push(parse_quote! { #ty_param: #ruma_common::events::RedactContent });
 
-    let redacted_event_content_bound = if kind == EventKind::State {
-        quote! {
+    let redacted_event_content_bound = match kind {
+        EventKind::MessageLike => quote! { #ruma_common::events::MessageLikeEventContent },
+        EventKind::State => quote! {
             #ruma_common::events::StateEventContent<StateKey = #ty_param::StateKey>
-        }
-    } else {
-        quote! {
+        },
+        _ => quote! {
             #ruma_common::events::EventContent<
                 EventType = #ruma_common::events::#redacted_event_type_enum
             >
-        }
+        },
     };
     where_clause.predicates.push(parse_quote! {
         <#ty_param as #ruma_common::events::RedactContent>::Redacted:

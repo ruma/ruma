@@ -2,6 +2,7 @@ use assert_matches::assert_matches;
 use js_int::uint;
 use ruma_common::{
     events::{AnyMessageLikeEvent, MessageLikeEvent},
+    serde::CanBeEmpty,
     MilliSecondsSinceUnixEpoch, VoipVersionId,
 };
 use serde_json::{from_value as from_json_value, json};

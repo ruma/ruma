@@ -6,11 +6,10 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
     room::redaction::SyncRoomRedactionEvent, EphemeralRoomEventContent, EventContent,
-    GlobalAccountDataEventContent, MessageLikeEventContent, MessageLikeEventType,
-    MessageLikeUnsigned, Redact, RedactContent, RedactedEventContent,
-    RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
-    RedactionDeHelper, RoomAccountDataEventContent, StateEventContent, StateEventType,
-    StateUnsigned, ToDeviceEventContent,
+    GlobalAccountDataEventContent, MessageLikeEventContent, MessageLikeEventType, Redact,
+    RedactContent, RedactedEventContent, RedactedMessageLikeEventContent,
+    RedactedStateEventContent, RedactedUnsigned, RedactionDeHelper, RoomAccountDataEventContent,
+    StateEventContent, StateEventType, StateUnsigned, ToDeviceEventContent,
 };
 use crate::{
     serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
@@ -70,7 +69,7 @@ pub struct OriginalMessageLikeEvent<C: MessageLikeEventContent> {
     pub room_id: OwnedRoomId,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: MessageLikeUnsigned,
+    pub unsigned: C::Unsigned,
 }
 
 /// An unredacted message-like event without a `room_id`.
@@ -92,7 +91,7 @@ pub struct OriginalSyncMessageLikeEvent<C: MessageLikeEventContent> {
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: MessageLikeUnsigned,
+    pub unsigned: C::Unsigned,
 }
 
 /// A redacted message-like event.
