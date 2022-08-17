@@ -103,8 +103,6 @@ impl Response {
         }
     }
 }
-
-
 /// Filter for a sliding sync list, set at request.
 ///
 /// All fields are applied with AND operators, hence if `is_dm`  is `true` and `is_encrypted` is
