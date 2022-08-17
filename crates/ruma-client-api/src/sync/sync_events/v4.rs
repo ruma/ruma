@@ -79,7 +79,7 @@ ruma_api! {
         pub lists: Vec<SyncList>,
 
         /// The updates on rooms.
-        #[serde(default = "BTreeMap::default", skip_serializing_if = "BTreeMap::is_empty")]
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
         pub rooms: BTreeMap<OwnedRoomId, SlidingSyncRoom>
     }
 
@@ -161,6 +161,10 @@ pub struct SyncRequestListFilters {
     /// Filter the room name. Case-insensitive partial matching e.g 'foo' matches 'abFooab'.
     /// The term 'like' is inspired by SQL 'LIKE', and the text here is similar to '%foo%'.
     pub room_name_like: Option<String>,
+
+    /// Extensions may add further fields to the filters
+    #[serde(flatten, default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub extensions: BTreeMap<String, serde_json::Value>,
 }
 
 /// Sliding Sync Request for each list
