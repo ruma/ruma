@@ -85,6 +85,26 @@ ruma_api! {
     error: crate::Error
 }
 
+impl Request<'_> {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given pos.
+    pub fn new(pos: String) -> Self {
+        Self {
+            initial: Default::default(),
+            pos,
+            lists: Default::default(),
+            rooms: Default::default(),
+        }
+    }
+}
+
+
 /// Filter for a sliding sync list, set at request.
 ///
 /// All fields are applied with AND operators, hence if `is_dm`  is `true` and `is_encrypted` is
@@ -220,25 +240,6 @@ pub struct RoomSubscription {
     pub timeline_limit: Option<UInt>,
 }
 
-impl Request<'_> {
-    /// Creates an empty `Request`.
-    pub fn new() -> Self {
-        Default::default()
-    }
-}
-
-impl Response {
-    /// Creates a new `Response` with the given pos.
-    pub fn new(pos: String) -> Self {
-        Self {
-            initial: Default::default(),
-            pos,
-            lists: Default::default(),
-            rooms: Default::default(),
-        }
-    }
-}
-
 /// Operation applied to the specific SlidingSyncList
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "UPPERCASE")]
@@ -332,12 +333,5 @@ impl SlidingSyncRoom {
     /// Creates an empty `Room`.
     pub fn new() -> Self {
         Default::default()
-    }
-
-    /// Returns true if there are no updates in the room.
-    pub fn is_empty(&self) -> bool {
-        self.unread_notifications.is_empty()
-            && self.timeline.is_empty()
-            && self.required_state.is_empty()
     }
 }
