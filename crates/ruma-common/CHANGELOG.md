@@ -27,6 +27,9 @@ Breaking changes:
 * Allow to add routing servers to `RoomId::matrix_to_event_uri()`
 * Move `receipt::ReceiptType` to `events::receipt`
 * Make `Clone` as supertrait of `api::OutgoingRequest`
+* `RoomMemberEvent` and related types now have a custom unsigned type including the
+  `invite_room_state` field, instead of the `MessageLikeUnsigned` type used by other message-like
+  events
 
 [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/3669
 
