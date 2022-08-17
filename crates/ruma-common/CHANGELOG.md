@@ -28,6 +28,9 @@ Breaking changes:
 * Move `receipt::ReceiptType` to `events::receipt`
 * Make `Clone` as supertrait of `api::OutgoingRequest`
 * Rename `Any[Sync]RoomEvent` to `Any[Sync]TimelineEvent`
+* `RoomMemberEvent` and related types now have a custom unsigned type including the
+  `invite_room_state` field, instead of the `StateUnsigned` type used by other state
+  events
 
 [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/3669
 
