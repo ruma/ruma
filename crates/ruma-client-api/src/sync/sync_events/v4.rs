@@ -34,7 +34,7 @@ ruma_api! {
         #[ruma_api(query)]
         pub pos: Option<&'a str>,
 
-        /// allows clients to know what request params reached the server,
+        /// Allows clients to know what request params reached the server,
         /// functionally similar to txn IDs on /send for events.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub txn_id: Option<&'a str>,
@@ -49,25 +49,24 @@ ruma_api! {
         pub timeout: Option<Duration>,
 
         /// The lists of rooms we're interested in.
-        pub lists: Vec<SyncRequestList>,
+        pub lists: &'a [SyncRequestList],
 
         /// Specific rooms and event types that we want to receive events from.
-        #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
         pub room_subscriptions: BTreeMap<OwnedRoomId, RoomSubscription>,
 
         /// Specific rooms we no longer want to receive events from.
-        #[serde(skip_serializing_if = "Vec::is_empty")]
-        pub unsubscribe_rooms: Vec<OwnedRoomId>,
+        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        pub unsubscribe_rooms: &'a [OwnedRoomId],
 
-        /// Extensions API
+        /// Extensions API.
         #[serde(skip_serializing_if = "BTreeMap::is_empty")]
         pub extensions: BTreeMap<String, serde_json::Value>,
-
     }
 
     response: {
-        /// Present and true if this response describes an initial sync
-        /// (i.e. after the `pos` token has been discard by the server?)
+        /// Whether this response describes an initial sync (i.e. after the `pos` token has been
+        /// discard by the server?).
         #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub initial: bool,
 
@@ -97,7 +96,6 @@ ruma_api! {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SyncRequestListFilters {
-    // These fields may be expanded through use of extensions.
     /// Whether to return DMs, non-DM rooms or both.
     ///
     /// Flag which only returns rooms present (or not) in the DM section of account data.
@@ -162,19 +160,19 @@ pub struct SyncRequestListFilters {
     /// The term 'like' is inspired by SQL 'LIKE', and the text here is similar to '%foo%'.
     pub room_name_like: Option<String>,
 
-    /// Extensions may add further fields to the filters
+    /// Extensions may add further fields to the filters.
     #[serde(flatten, default, skip_serializing_if = "BTreeMap::is_empty")]
     pub extensions: BTreeMap<String, serde_json::Value>,
 }
 
-/// Sliding Sync Request for each list
+/// Sliding Sync Request for each list.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SyncRequestList {
     /// The ranges of rooms we're interested in.
     pub ranges: Vec<(UInt, UInt)>,
 
-    /// The sort ordering applied to this list of rooms. Sticky
+    /// The sort ordering applied to this list of rooms. Sticky.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub sort: Vec<String>,
 
@@ -198,9 +196,11 @@ pub struct SyncRequestList {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomSubscription {
     /// Required state for each room returned. An array of event type and state key tuples.
+    ///
     /// Note that elements of this array are NOT sticky so they must be specified in full when they
     /// are changed. Sticky.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub required_state: Vec<(RoomEventType, String)>,
 
     /// The maximum number of timeline events to return per room. Sticky.
@@ -232,14 +232,14 @@ impl Response {
 #[serde(rename_all = "UPPERCASE")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum SlidingOp {
-    /// Full reset of the given window
+    /// Full reset of the given window.
     Sync,
     /// Insert an item at the given point, moves all following entry by
-    /// one to the next Empty or Invalid field
+    /// one to the next Empty or Invalid field.
     Insert,
-    /// Drop this entry, moves all following entry up by one
+    /// Drop this entry, moves all following entry up by one.
     Delete,
-    /// Mark these as invaldiated
+    /// Mark these as invaldiated.
     Invalidate,
 }
 
@@ -247,11 +247,11 @@ pub enum SlidingOp {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SyncList {
-    /// The sync operation to apply, if any
+    /// The sync operation to apply, if any.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub ops: Vec<SyncOp>,
 
-    /// The total number of rooms found for this filter
+    /// The total number of rooms found for this filter.
     pub count: UInt,
 }
 
@@ -259,38 +259,36 @@ pub struct SyncList {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SyncOp {
-    /// The sync operation to apply
+    /// The sync operation to apply.
     pub op: SlidingOp,
 
-    /// The range this list update applies to
+    /// The range this list update applies to.
     pub range: Option<(UInt, UInt)>,
 
-    /// Or the specific index the update applies to
+    /// Or the specific index the update applies to.
     pub index: Option<UInt>,
 
-    /// The list of room_ids updates to apply
+    /// The list of room_ids updates to apply.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub room_ids: Vec<OwnedRoomId>,
 
-    /// On insert and delete we are only receiving exactly one room_id
+    /// On insert and delete we are only receiving exactly one room_id.
     pub room_id: Option<OwnedRoomId>,
 }
 
 /// Updates to joined rooms.
-/// XXX: it'd be much nicer if we could use the same object to describe
-/// both updates in room subscriptions as well as ops.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SlidingSyncRoom {
-    /// The name of the room as calculated by the server
+    /// The name of the room as calculated by the server.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
 
-    /// Was this an initial response
+    /// Was this an initial response.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub initial: Option<bool>,
 
-    /// This is a direct message
+    /// This is a direct message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_dm: Option<bool>,
 
@@ -313,7 +311,7 @@ pub struct SlidingSyncRoom {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub required_state: Vec<Raw<AnySyncStateEvent>>,
 
-    /// The prev_batch allowing you to paginate through the messages before the given ones
+    /// The prev_batch allowing you to paginate through the messages before the given ones.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prev_batch: Option<String>,
 }
