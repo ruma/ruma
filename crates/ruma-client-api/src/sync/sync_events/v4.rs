@@ -34,6 +34,11 @@ ruma_api! {
         #[ruma_api(query)]
         pub pos: Option<&'a str>,
 
+        /// allows clients to know what request params reached the server,
+        /// functionally similar to txn IDs on /send for events.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub txn_id: Option<&'a str>,
+
         /// The maximum time to poll before responding to this request.
         #[serde(
             with = "opt_ms",
@@ -43,25 +48,38 @@ ruma_api! {
         #[ruma_api(query)]
         pub timeout: Option<Duration>,
 
-        /// The sync request body to send.
-        #[ruma_api(body)]
-        pub body: SyncRequest,
+        /// The lists of rooms we're interested in.
+        pub lists: Vec<SyncRequestList>,
+
+        /// Specific rooms and event types that we want to receive events from.
+        #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+        pub room_subscriptions: BTreeMap<OwnedRoomId, RoomSubscription>,
+
+        /// Specific rooms we no longer want to receive events from.
+        #[serde(skip_serializing_if = "Vec::is_empty")]
+        pub unsubscribe_rooms: Vec<OwnedRoomId>,
+
+        /// Extensions API
+        #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+        pub extensions: BTreeMap<String, serde_json::Value>,
 
     }
 
     response: {
         /// Present and true if this response describes an initial sync
         /// (i.e. after the `pos` token has been discard by the server?)
-        #[serde(default)]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub initial: bool,
 
         /// The token to supply in the `pos` param of the next `/sync` request.
         pub pos: String,
 
         /// Updates to the sliding room list.
+        #[serde(default = "Vec::new", skip_serializing_if = "Vec::is_empty")]
         pub lists: Vec<SyncList>,
 
         /// The updates on rooms.
+        #[serde(default = "BTreeMap::default", skip_serializing_if = "BTreeMap::is_empty")]
         pub rooms: BTreeMap<OwnedRoomId, SlidingSyncRoom>
     }
 
@@ -95,8 +113,8 @@ pub struct SyncRequestListFilters {
     /// unset, all rooms are included. Servers MUST NOT navigate subspaces. It is up to the
     /// client to give a complete list of spaces to navigate. Only rooms directly in these
     /// spaces will be returned.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub spaces: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub spaces: Vec<String>,
 
     /// Whether to return encrypted, non-encrypted rooms or both.
     ///
@@ -128,8 +146,8 @@ pub struct SyncRequestListFilters {
     /// of the strings in this array will be returned. If this field is unset, all rooms are
     /// returned regardless of type. This can be used to get the initial set of spaces for an
     /// account.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub room_types: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub room_types: Vec<String>,
 
     /// Only list rooms that are not of these create-types, or all
     ///
@@ -153,14 +171,14 @@ pub struct SyncRequestList {
     pub ranges: Vec<(UInt, UInt)>,
 
     /// The sort ordering applied to this list of rooms. Sticky
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub sort: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub sort: Vec<String>,
 
     /// Required state for each room returned. An array of event type and state key tuples.
     /// Note that elements of this array are NOT sticky so they must be specified in full when they
     /// are changed. Sticky.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub required_state: Option<Vec<(RoomEventType, String)>>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub required_state: Vec<(RoomEventType, String)>,
 
     /// The maximum number of timeline events to return per room. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -168,7 +186,7 @@ pub struct SyncRequestList {
 
     /// Filters to apply to the list before sorting. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub filters: Option<Raw<SyncRequestListFilters>>,
+    pub filters: Option<SyncRequestListFilters>,
 }
 
 /// The RoomSubscriptions of the SlidingSync Request
@@ -178,28 +196,12 @@ pub struct RoomSubscription {
     /// Required state for each room returned. An array of event type and state key tuples.
     /// Note that elements of this array are NOT sticky so they must be specified in full when they
     /// are changed. Sticky.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub required_state: Option<Vec<(RoomEventType, String)>>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub required_state: Vec<(RoomEventType, String)>,
 
     /// The maximum number of timeline events to return per room. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timeline_limit: Option<UInt>,
-}
-
-/// Sliding Sync Request
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct SyncRequest {
-    /// The lists of rooms we're interested in.
-    pub lists: Vec<Raw<SyncRequestList>>,
-
-    /// Specific rooms and event types that we want to receive events from.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub room_subscriptions: Option<BTreeMap<OwnedRoomId, RoomSubscription>>,
-
-    /// Specific rooms we no longer want to receive events from.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub unsubscribe_rooms: Option<Vec<OwnedRoomId>>,
 }
 
 impl Request<'_> {
@@ -242,7 +244,8 @@ pub enum SlidingOp {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SyncList {
     /// The sync operation to apply, if any
-    pub ops: Option<Vec<SyncOp>>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub ops: Vec<SyncOp>,
 
     /// The total number of rooms found for this filter
     pub count: UInt,
@@ -262,7 +265,8 @@ pub struct SyncOp {
     pub index: Option<UInt>,
 
     /// The list of room_ids updates to apply
-    pub room_ids: Option<Vec<OwnedRoomId>>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub room_ids: Vec<OwnedRoomId>,
 
     /// On insert and delete we are only receiving exactly one room_id
     pub room_id: Option<OwnedRoomId>,
@@ -289,8 +293,8 @@ pub struct SlidingSyncRoom {
     /// This is not-yet-accepted invite, with the following sync state events
     /// the room must be considered in invite state as long as the Option is not None
     /// even if there are no state events.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub invite_state: Option<Vec<Raw<AnyStrippedStateEvent>>>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub invite_state: Vec<Raw<AnyStrippedStateEvent>>,
 
     /// Counts of unread notifications for this room.
     #[serde(flatten, default, skip_serializing_if = "UnreadNotificationsCount::is_empty")]
