@@ -28,7 +28,7 @@ pub mod v3 {
             ///
             /// If this is `None`, the display name won't be changed.
             #[serde(skip_serializing_if = "Option::is_none")]
-            pub display_name: Option<String>,
+            pub display_name: Option<&'a str>,
         }
 
         #[derive(Default)]
