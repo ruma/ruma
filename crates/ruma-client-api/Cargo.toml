@@ -29,6 +29,7 @@ unstable-msc2965 = []
 unstable-msc2967 = []
 unstable-msc3440 = []
 unstable-msc3488 = []
+unstable-msc3575 = []
 client = []
 server = []
 

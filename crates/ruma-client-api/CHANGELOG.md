@@ -2,6 +2,7 @@
 
 Breaking changes:
 
+* `UnreadNotificationsCount` has moved from `sync::sync_events::v3` to `sync::sync_events`
 * Remove `PartialEq` implementations for a number of types
   * If the lack of such an `impl` causes problems, please open a GitHub issue
 * Split `uiaa::UserIdentifier::ThirdParty` into two separate variants
