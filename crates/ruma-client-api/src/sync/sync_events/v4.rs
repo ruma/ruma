@@ -12,6 +12,10 @@ use ruma_common::{
 };
 use serde::{Deserialize, Serialize};
 
+fn skip_if_false(inp: &bool) -> bool {
+    !bool
+}
+
 ruma_api! {
     metadata: {
         description: "Get all new events in a sliding window of rooms since the last sync or a given point of time.",
@@ -169,6 +173,18 @@ pub struct SyncRequestListFilters {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SyncRequestList {
+    /// Put this list into the all-rooms-mode.
+    ///
+    /// Settings this to true will inform the server that, no matter how slow
+    /// that might be, the clients wants all rooms the filters apply to. When operating
+    /// in this mode, `ranges` and  `sort` will be ignored  there will be no movement operations
+    /// (`DELETE` followed by `INSERT`) as the client has the entire list and can work out whatever
+    /// sort order they wish. There will still be `DELETE` and `INSERT` operations when rooms are
+    /// left or joined respectively. In addition, there will be an initial `SYNC` operation to let
+    /// the client know which rooms in the rooms object were from this list.
+    #[serde(default, skip_serializing_if = "skip_if_false")]
+    pub slow_get_all_rooms: bool,
+
     /// The ranges of rooms we're interested in.
     pub ranges: Vec<(UInt, UInt)>,
 
