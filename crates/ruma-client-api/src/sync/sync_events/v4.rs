@@ -12,10 +12,6 @@ use ruma_common::{
 };
 use serde::{Deserialize, Serialize};
 
-fn skip_if_false(inp: &bool) -> bool {
-    !bool
-}
-
 ruma_api! {
     metadata: {
         description: "Get all new events in a sliding window of rooms since the last sync or a given point of time.",
@@ -78,12 +74,12 @@ ruma_api! {
         pub pos: String,
 
         /// Updates to the sliding room list.
-        #[serde(default = "Vec::new", skip_serializing_if = "Vec::is_empty")]
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub lists: Vec<SyncList>,
 
         /// The updates on rooms.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub rooms: BTreeMap<OwnedRoomId, SlidingSyncRoom>
+        pub rooms: BTreeMap<OwnedRoomId, SlidingSyncRoom>,
     }
 
     error: crate::Error
@@ -108,7 +104,7 @@ pub struct SyncRequestListFilters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_dm: Option<bool>,
 
-    /// Only list rooms that are spaces of these or all
+    /// Only list rooms that are spaces of these or all.
     ///
     /// A list of spaces which target rooms must be a part of. For every invited/joined
     /// room for this user, ensure that there is a parent space event which is in this list. If
@@ -142,7 +138,7 @@ pub struct SyncRequestListFilters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_tombstoned: Option<bool>,
 
-    /// Only list rooms of given create-types or all
+    /// Only list rooms of given create-types or all.
     ///
     /// If specified, only rooms where the `m.room.create` event has a `type` matching one
     /// of the strings in this array will be returned. If this field is unset, all rooms are
@@ -151,14 +147,14 @@ pub struct SyncRequestListFilters {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub room_types: Vec<String>,
 
-    /// Only list rooms that are not of these create-types, or all
+    /// Only list rooms that are not of these create-types, or all.
     ///
     /// Same as "room_types" but inverted. This can be used to filter out spaces from the room
     /// list.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub not_room_types: Vec<String>,
 
-    /// Only list rooms matching the given string, or all
+    /// Only list rooms matching the given string, or all.
     ///
     /// Filter the room name. Case-insensitive partial matching e.g 'foo' matches 'abFooab'.
     /// The term 'like' is inspired by SQL 'LIKE', and the text here is similar to '%foo%'.
@@ -182,20 +178,20 @@ pub struct SyncRequestList {
     /// sort order they wish. There will still be `DELETE` and `INSERT` operations when rooms are
     /// left or joined respectively. In addition, there will be an initial `SYNC` operation to let
     /// the client know which rooms in the rooms object were from this list.
-    #[serde(default, skip_serializing_if = "skip_if_false")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub slow_get_all_rooms: bool,
 
     /// The ranges of rooms we're interested in.
     pub ranges: Vec<(UInt, UInt)>,
 
     /// The sort ordering applied to this list of rooms. Sticky.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub sort: Vec<String>,
 
     /// Required state for each room returned. An array of event type and state key tuples.
     /// Note that elements of this array are NOT sticky so they must be specified in full when they
     /// are changed. Sticky.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub required_state: Vec<(RoomEventType, String)>,
 
     /// The maximum number of timeline events to return per room. Sticky.
