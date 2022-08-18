@@ -11,6 +11,7 @@ Breaking changes:
   * Since `backward` and `forward` are equivalent to `from_end` and `from_start`, those are removed
   * A new method `.from()` was added to easily set this field after initial construction
 * `receipt::create_receipt` uses its own `ReceiptType`
+* Reorder parameters in `{set_global_account_data, set_room_account_data}::Request::{new, new_raw}`
 
 Improvements:
 
