@@ -9,7 +9,9 @@ use super::{
     audio::AudioContent,
     file::FileContent,
     message::{MessageContent, TryFromExtensibleError},
-    room::message::{AudioMessageEventContent, Relation},
+    room::message::{
+        AudioInfo, AudioMessageEventContent, MessageType, Relation, RoomMessageEventContent,
+    },
 };
 
 /// The payload for an extensible voice message.
@@ -82,12 +84,15 @@ impl VoiceEventContent {
         relates_to: Option<Relation>,
     ) -> Result<Self, TryFromExtensibleError> {
         let AudioMessageEventContent { body, source, info, message, file, audio, voice } = content;
+        let AudioInfo { duration, mimetype, size } = info.map(|info| *info).unwrap_or_default();
 
         let message = message.unwrap_or_else(|| MessageContent::plain(body));
         let file = file.unwrap_or_else(|| {
-            FileContent::from_room_message_content(source, info.as_deref(), None)
+            FileContent::from_room_message_content(source, None, mimetype, size)
         });
-        let audio = audio.or_else(|| info.as_deref().map(Into::into)).unwrap_or_default();
+        let audio = audio
+            .or_else(|| duration.map(AudioContent::from_room_message_content))
+            .unwrap_or_default();
         let voice = if let Some(voice) = voice {
             voice
         } else {
@@ -95,6 +100,19 @@ impl VoiceEventContent {
         };
 
         Ok(Self { message, file, audio, voice, relates_to })
+    }
+}
+
+impl From<VoiceEventContent> for RoomMessageEventContent {
+    fn from(content: VoiceEventContent) -> Self {
+        let VoiceEventContent { message, file, audio, voice, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::Audio(AudioMessageEventContent::from_extensible_voice_content(
+                message, file, audio, voice,
+            )),
+            relates_to,
+        }
     }
 }
 

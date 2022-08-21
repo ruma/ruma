@@ -198,6 +198,7 @@ impl Request {
 
             quote! {
                 /// Data in the request body.
+                #[cfg(any(feature = "client", feature = "server"))]
                 #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
                 #[cfg_attr(feature = "client", derive(#serde::Serialize))]
                 #[cfg_attr(
@@ -225,6 +226,7 @@ impl Request {
 
             quote! {
                 /// Data in the request's query string.
+                #[cfg(any(feature = "client", feature = "server"))]
                 #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
                 #[cfg_attr(feature = "client", derive(#serde::Serialize))]
                 #[cfg_attr(
@@ -489,6 +491,6 @@ impl Parse for RequestField {
 
 impl ToTokens for RequestField {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.field().to_tokens(tokens)
+        self.field().to_tokens(tokens);
     }
 }

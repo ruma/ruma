@@ -369,7 +369,6 @@ fn serialize_and_deserialize_from_display_form() {
     serde_json_eq(EventType::RoomJoinRules, json!("m.room.join_rules"));
     serde_json_eq(EventType::RoomMember, json!("m.room.member"));
     serde_json_eq(EventType::RoomMessage, json!("m.room.message"));
-    serde_json_eq(EventType::RoomMessageFeedback, json!("m.room.message.feedback"));
     serde_json_eq(EventType::RoomName, json!("m.room.name"));
     serde_json_eq(EventType::RoomPinnedEvents, json!("m.room.pinned_events"));
     serde_json_eq(EventType::RoomPowerLevels, json!("m.room.power_levels"));

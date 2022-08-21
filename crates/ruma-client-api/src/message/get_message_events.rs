@@ -41,13 +41,6 @@ pub mod v3 {
             ///
             /// If this is `None`, the server will return messages from the start or end of the
             /// history visible to the user, depending on the value of [`dir`][Self::dir].
-            ///
-            /// *Note: This field is marked required in v1.2 of the specification, but that is
-            /// changing, most likely as part of v1.3. To frontload the breaking change, this field
-            /// is optional already even though v1.2 is the latest version at the time of writing.
-            /// The specification change can be found [here].*
-            ///
-            /// [here]: https://github.com/matrix-org/matrix-spec/pull/1002
             #[ruma_api(query)]
             pub from: Option<&'a str>,
 
@@ -103,13 +96,13 @@ pub mod v3 {
     }
 
     impl<'a> Request<'a> {
-        /// Creates a new `Request` with the given parameters.
+        /// Creates a new `Request` with the given room ID and direction.
         ///
         /// All other parameters will be defaulted.
-        pub fn new(room_id: &'a RoomId, from: &'a str, dir: Direction) -> Self {
+        pub fn new(room_id: &'a RoomId, dir: Direction) -> Self {
             Self {
                 room_id,
-                from: Some(from),
+                from: None,
                 to: None,
                 dir,
                 limit: default_limit(),
@@ -117,42 +110,46 @@ pub mod v3 {
             }
         }
 
-        /// Creates a new `Request` with the given room ID and from token, and `dir` set to
-        /// `Backward`.
-        pub fn backward(room_id: &'a RoomId, from: &'a str) -> Self {
-            Self::new(room_id, from, Direction::Backward)
+        /// Creates a new `Request` with the given room ID and `dir` set to `Backward`.
+        ///
+        /// If the returned request is sent without `from` being set, pagination will start at the
+        /// end of (the accessible part of) the room timeline.
+        ///
+        /// # Example
+        ///
+        /// ```rust
+        /// # use ruma_client_api::message::get_message_events;
+        /// # let room_id = ruma_common::room_id!("!a:example.org");
+        /// # let token = "prev_batch token";
+        /// let request = get_message_events::v3::Request::backward(room_id).from(token);
+        /// ```
+        pub fn backward(room_id: &'a RoomId) -> Self {
+            Self::new(room_id, Direction::Backward)
         }
 
-        /// Creates a new `Request` with the given room ID and from token, and `dir` set to
-        /// `Forward`.
-        pub fn forward(room_id: &'a RoomId, from: &'a str) -> Self {
-            Self::new(room_id, from, Direction::Forward)
+        /// Creates a new `Request` with the given room ID and `dir` set to `Forward`.
+        ///
+        /// If the returned request is sent without `from` being set, pagination will start at the
+        /// beginning of (the accessible part of) the room timeline.
+        ///
+        /// # Example
+        ///
+        /// ```rust
+        /// # use ruma_client_api::message::get_message_events;
+        /// # let room_id = ruma_common::room_id!("!a:example.org");
+        /// # let token = "end token";
+        /// let request = get_message_events::v3::Request::forward(room_id).from(token);
+        /// ```
+        pub fn forward(room_id: &'a RoomId) -> Self {
+            Self::new(room_id, Direction::Forward)
         }
 
-        /// Creates a new `Request` to fetch messages from the very start of the available history
-        /// for a given room.
-        pub fn from_start(room_id: &'a RoomId) -> Self {
-            Self {
-                room_id,
-                from: None,
-                to: None,
-                dir: Direction::Forward,
-                limit: default_limit(),
-                filter: RoomEventFilter::default(),
-            }
-        }
-
-        /// Creates a new `Request` to fetch messages from the very end of the available history for
-        /// a given room.
-        pub fn from_end(room_id: &'a RoomId) -> Self {
-            Self {
-                room_id,
-                from: None,
-                to: None,
-                dir: Direction::Backward,
-                limit: default_limit(),
-                filter: RoomEventFilter::default(),
-            }
+        /// Creates a new `Request` from `self` with the `from` field set to the given value.
+        ///
+        /// Since the field is public, you can also assign to it directly. This method merely acts
+        /// as a shorthand for that, because it is very common to set this field.
+        pub fn from(self, from: impl Into<Option<&'a str>>) -> Self {
+            Self { from: from.into(), ..self }
         }
     }
 

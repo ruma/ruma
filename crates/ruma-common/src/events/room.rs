@@ -2,13 +2,16 @@
 //!
 //! This module also contains types shared by events in its child namespaces.
 
+// https://github.com/rust-lang/rust-clippy/issues/9111
+#![allow(clippy::needless_borrow)]
+
 use std::collections::BTreeMap;
 
 use js_int::UInt;
 use serde::{de, Deserialize, Serialize};
 
 #[cfg(feature = "unstable-msc3551")]
-use super::file::{EncryptedContent, FileContent};
+use super::file::{EncryptedContent, EncryptedContentInit, FileContent};
 #[cfg(feature = "unstable-msc3552")]
 use super::{
     file::FileContentInfo,
@@ -53,6 +56,19 @@ pub enum MediaSource {
     /// The encryption info of the encrypted media file.
     #[serde(rename = "file")]
     Encrypted(Box<EncryptedFile>),
+}
+
+#[cfg(feature = "unstable-msc3551")]
+impl MediaSource {
+    pub(crate) fn into_extensible_content(self) -> (OwnedMxcUri, Option<EncryptedContent>) {
+        match self {
+            MediaSource::Plain(url) => (url, None),
+            MediaSource::Encrypted(encrypted_file) => {
+                let EncryptedFile { url, key, iv, hashes, v } = *encrypted_file;
+                (url, Some(EncryptedContentInit { key, iv, hashes, v }.into()))
+            }
+        }
+    }
 }
 
 // Custom implementation of `Deserialize`, because serde doesn't guarantee what variant will be
@@ -151,8 +167,10 @@ impl ImageInfo {
     }
 
     /// Create an `ImageInfo` from the given file info, image info and thumbnail.
+    ///
+    /// Returns `None` if the `ImageInfo` would be empty.
     #[cfg(feature = "unstable-msc3552")]
-    pub fn from_extensible_content(
+    fn from_extensible_content(
         file_info: Option<&FileContentInfo>,
         image: &ImageContent,
         thumbnail: &[ThumbnailContent],
@@ -220,9 +238,9 @@ impl ThumbnailInfo {
 
     /// Create a `ThumbnailInfo` with the given file info and image info.
     ///
-    /// Returns `None` if `file_info` and `image` are `None`.
+    /// Returns `None` if the `ThumbnailInfo` would be empty.
     #[cfg(feature = "unstable-msc3552")]
-    pub fn from_extensible_content(
+    fn from_extensible_content(
         file_info: Option<&ThumbnailFileContentInfo>,
         image: Option<&ImageContent>,
     ) -> Option<Self> {
@@ -267,7 +285,7 @@ pub struct EncryptedFile {
 #[cfg(feature = "unstable-msc3551")]
 impl EncryptedFile {
     /// Create an `EncryptedFile` from the given url and encryption info.
-    pub fn from_extensible_content(url: &MxcUri, encryption_info: &EncryptedContent) -> Self {
+    fn from_extensible_content(url: &MxcUri, encryption_info: &EncryptedContent) -> Self {
         let EncryptedContent { key, iv, hashes, v } = encryption_info.to_owned();
         Self { url: url.to_owned(), key, iv, hashes, v }
     }

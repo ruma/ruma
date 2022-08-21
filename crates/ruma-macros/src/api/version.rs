@@ -34,11 +34,11 @@ impl Parse for MatrixVersionLiteral {
         })?;
 
         let major: NonZeroU8 = ver[0].parse().map_err(|e| {
-            Error::new_spanned(&fl, format!("major number failed to parse as >0 number: {}", e))
+            Error::new_spanned(&fl, format!("major number failed to parse as >0 number: {e}"))
         })?;
         let minor: u8 = ver[1]
             .parse()
-            .map_err(|e| Error::new_spanned(&fl, format!("minor number failed to parse: {}", e)))?;
+            .map_err(|e| Error::new_spanned(&fl, format!("minor number failed to parse: {e}")))?;
 
         Ok(Self { major, minor })
     }

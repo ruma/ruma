@@ -100,6 +100,7 @@ impl Response {
 
             quote! {
                 /// Data in the response body.
+                #[cfg(any(feature = "client", feature = "server"))]
                 #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
                 #serde_derives
                 #serde_attr
@@ -256,7 +257,7 @@ impl Parse for ResponseField {
 
 impl ToTokens for ResponseField {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.field().to_tokens(tokens)
+        self.field().to_tokens(tokens);
     }
 }
 

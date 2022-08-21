@@ -286,12 +286,14 @@ pub mod v3 {
     #[cfg(test)]
     mod tests {
         use assert_matches::assert_matches;
+        use ruma_common::mxc_uri;
         use serde::{Deserialize, Serialize};
-        use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+        use serde_json::{
+            from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
+        };
 
         use super::{
-            CustomLoginType, IdentityProvider, IdentityProviderBrand, LoginType, PasswordLoginType,
-            SsoLoginType, TokenLoginType,
+            IdentityProvider, IdentityProviderBrand, LoginType, SsoLoginType, TokenLoginType,
         };
 
         #[derive(Debug, Deserialize, Serialize)]
@@ -301,43 +303,40 @@ pub mod v3 {
 
         #[test]
         fn deserialize_password_login_type() {
-            assert_matches!(
-                from_json_value::<Wrapper>(json!({
-                    "flows": [
-                        { "type": "m.login.password" }
-                    ],
-                })),
-                Ok(Wrapper { flows })
-                if flows.len() == 1
-                    && matches!(flows[0], LoginType::Password(PasswordLoginType {}))
-            );
+            let wrapper = from_json_value::<Wrapper>(json!({
+                "flows": [
+                    { "type": "m.login.password" }
+                ],
+            }))
+            .unwrap();
+            assert_eq!(wrapper.flows.len(), 1);
+            assert_matches!(wrapper.flows[0], LoginType::Password(_));
         }
 
         #[test]
         fn deserialize_custom_login_type() {
-            assert_matches!(
-                from_json_value::<Wrapper>(json!({
-                    "flows": [
-                        {
-                            "type": "io.ruma.custom",
-                            "color": "green",
-                        }
-                    ],
-                })),
-                Ok(Wrapper { flows })
-                if flows.len() == 1
-                    && matches!(
-                        &flows[0],
-                        LoginType::_Custom(CustomLoginType { type_, data })
-                            if type_ == "io.ruma.custom"
-                            && data == json!({ "color": "green" }).as_object().unwrap()
-                    )
+            let wrapper = from_json_value::<Wrapper>(json!({
+                "flows": [
+                    {
+                        "type": "io.ruma.custom",
+                        "color": "green",
+                    }
+                ],
+            }))
+            .unwrap();
+            assert_eq!(wrapper.flows.len(), 1);
+            let custom = assert_matches!(
+                &wrapper.flows[0],
+                LoginType::_Custom(custom) => custom
             );
+            assert_eq!(custom.type_, "io.ruma.custom");
+            assert_eq!(custom.data.len(), 1);
+            assert_eq!(custom.data.get("color"), Some(&JsonValue::from("green")));
         }
 
         #[test]
         fn deserialize_sso_login_type() {
-            let mut wrapper = from_json_value::<Wrapper>(json!({
+            let wrapper = from_json_value::<Wrapper>(json!({
                 "flows": [
                     {
                         "type": "m.login.sso",
@@ -357,39 +356,26 @@ pub mod v3 {
                 ],
             }))
             .unwrap();
+            assert_eq!(wrapper.flows.len(), 1);
+            let flow = &wrapper.flows[0];
 
-            let flow = wrapper.flows.pop();
-            assert_matches!(wrapper.flows.as_slice(), []);
-
-            let mut identity_providers = match flow {
-                Some(LoginType::Sso(SsoLoginType { identity_providers })) => identity_providers,
-                _ => panic!("unexpected enum variant: {:?}", flow),
-            };
-
-            let provider = identity_providers.pop();
-            assert_matches!(
-                provider,
-                Some(IdentityProvider {
-                    id,
-                    name,
-                    icon: None,
-                    brand: None,
-                }) if id == "custom"
-                    && name == "Custom"
+            let identity_providers = assert_matches!(
+                flow,
+                LoginType::Sso(SsoLoginType { identity_providers }) => identity_providers
             );
+            assert_eq!(identity_providers.len(), 2);
 
-            let provider = identity_providers.pop();
-            assert_matches!(
-                provider,
-                Some(IdentityProvider {
-                    id,
-                    name,
-                    icon: Some(icon),
-                    brand: Some(IdentityProviderBrand::GitLab),
-                }) if id == "oidc-gitlab"
-                    && name == "GitLab"
-                    && icon == "mxc://localhost/gitlab-icon"
-            );
+            let provider = &identity_providers[0];
+            assert_eq!(provider.id, "oidc-gitlab");
+            assert_eq!(provider.name, "GitLab");
+            assert_eq!(provider.icon.as_deref(), Some(mxc_uri!("mxc://localhost/gitlab-icon")));
+            assert_eq!(provider.brand, Some(IdentityProviderBrand::GitLab));
+
+            let provider = &identity_providers[1];
+            assert_eq!(provider.id, "custom");
+            assert_eq!(provider.name, "Custom");
+            assert_eq!(provider.icon, None);
+            assert_eq!(provider.brand, None);
         }
 
         #[test]

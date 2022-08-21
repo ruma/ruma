@@ -19,7 +19,14 @@ use serde::{de::IgnoredAny, Deserialize};
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 use tracing::{debug, error, info, warn};
 
-use crate::{room_version::RoomVersion, Error, Event, PowerLevelsContentFields, Result};
+use crate::{
+    power_levels::{
+        deserialize_power_levels, deserialize_power_levels_content_fields,
+        deserialize_power_levels_content_invite, deserialize_power_levels_content_redact,
+    },
+    room_version::RoomVersion,
+    Error, Event, Result,
+};
 
 // FIXME: field extracting could be bundled for `content`
 #[derive(Deserialize)]
@@ -31,11 +38,6 @@ struct GetMembership {
 struct RoomMemberContentFields {
     membership: Option<Raw<MembershipState>>,
     join_authorised_via_users_server: Option<Raw<OwnedUserId>>,
-}
-
-#[derive(Deserialize)]
-struct PowerLevelsContentInvite {
-    invite: Int,
 }
 
 /// For the given event `kind` what are the relevant auth events that are needed to authenticate
@@ -223,7 +225,21 @@ pub fn auth_check<E: Event>(
         return Ok(false);
     }
 
-    // [synapse] checks for federation here
+    // If the create event content has the field m.federate set to false and the sender domain of
+    // the event does not match the sender domain of the create event, reject.
+    #[derive(Deserialize)]
+    struct RoomCreateContentFederate {
+        #[serde(rename = "m.federate", default = "ruma_common::serde::default_true")]
+        federate: bool,
+    }
+    let room_create_content: RoomCreateContentFederate =
+        from_json_str(room_create_event.content().get())?;
+    if !room_create_content.federate
+        && room_create_event.sender().server_name() != incoming_event.sender().server_name()
+    {
+        warn!("room is not federated and event's sender domain does not match create event's sender domain");
+        return Ok(false);
+    }
 
     // Only in some room versions 6 and below
     if room_version.special_case_aliases_auth {
@@ -263,7 +279,7 @@ pub fn auth_check<E: Event>(
         }
 
         let target_user =
-            <&UserId>::try_from(state_key).map_err(|e| Error::InvalidPdu(format!("{}", e)))?;
+            <&UserId>::try_from(state_key).map_err(|e| Error::InvalidPdu(format!("{e}")))?;
 
         let user_for_join_auth =
             content.join_authorised_via_users_server.as_ref().and_then(|u| u.deserialize().ok());
@@ -319,14 +335,11 @@ pub fn auth_check<E: Event>(
 
     // If type is m.room.third_party_invite
     let sender_power_level = if let Some(pl) = &power_levels_event {
-        if let Ok(content) = from_json_str::<PowerLevelsContentFields>(pl.content().get()) {
-            if let Some(level) = content.users.get(sender) {
-                *level
-            } else {
-                content.users_default
-            }
+        let content = deserialize_power_levels_content_fields(pl.content().get(), room_version)?;
+        if let Some(level) = content.users.get(sender) {
+            *level
         } else {
-            int!(0) // TODO if this fails DB error?
+            content.users_default
         }
     } else {
         // If no power level event found the creator gets 100 everyone else gets 0
@@ -341,9 +354,10 @@ pub fn auth_check<E: Event>(
     if *incoming_event.event_type() == RoomEventType::RoomThirdPartyInvite {
         let invite_level = match &power_levels_event {
             Some(power_levels) => {
-                from_json_str::<PowerLevelsContentInvite>(power_levels.content().get())?.invite
+                deserialize_power_levels_content_invite(power_levels.content().get(), room_version)?
+                    .invite
             }
-            None => int!(50),
+            None => int!(0),
         };
 
         if sender_power_level < invite_level {
@@ -390,15 +404,12 @@ pub fn auth_check<E: Event>(
     if room_version.extra_redaction_checks
         && *incoming_event.event_type() == RoomEventType::RoomRedaction
     {
-        #[derive(Deserialize)]
-        struct PowerLevelsContentRedact {
-            redact: Int,
-        }
-
-        let redact_level = power_levels_event
-            .and_then(|pl| from_json_str::<PowerLevelsContentRedact>(pl.content().get()).ok())
-            .map(|c| c.redact)
-            .unwrap_or_else(|| int!(50));
+        let redact_level = match power_levels_event {
+            Some(pl) => {
+                deserialize_power_levels_content_redact(pl.content().get(), room_version)?.redact
+            }
+            None => int!(50),
+        };
 
         if !check_redaction(room_version, incoming_event, sender_power_level, redact_level)? {
             return Ok(false);
@@ -482,22 +493,18 @@ fn valid_membership_change(
         // Is the authorised user allowed to invite users into this room
         let (auth_user_pl, invite_level) = if let Some(pl) = &power_levels_event {
             // TODO Refactor all powerlevel parsing
-            let invite = match from_json_str::<PowerLevelsContentInvite>(pl.content().get()) {
-                Ok(power_levels) => power_levels.invite,
-                _ => int!(50),
+            let invite =
+                deserialize_power_levels_content_invite(pl.content().get(), room_version)?.invite;
+
+            let content =
+                deserialize_power_levels_content_fields(pl.content().get(), room_version)?;
+            let user_pl = if let Some(level) = content.users.get(user_for_join_auth) {
+                *level
+            } else {
+                content.users_default
             };
 
-            if let Ok(content) = from_json_str::<PowerLevelsContentFields>(pl.content().get()) {
-                let user_pl = if let Some(level) = content.users.get(user_for_join_auth) {
-                    *level
-                } else {
-                    content.users_default
-                };
-
-                (user_pl, invite)
-            } else {
-                (int!(0), invite)
-            }
+            (user_pl, invite)
         } else {
             (int!(0), int!(0))
         };
@@ -545,8 +552,10 @@ fn valid_membership_change(
                 true
             } else if room_version.restricted_join_rules
                 && matches!(join_rules, JoinRule::Restricted(_))
+                || room_version.knock_restricted_join_rule
+                    && matches!(join_rules, JoinRule::KnockRestricted(_))
             {
-                // If the join_rule is restricted
+                // If the join_rule is restricted or knock_restricted
                 if matches!(
                     target_user_current_membership,
                     MembershipState::Invite | MembershipState::Join
@@ -655,9 +664,12 @@ fn valid_membership_change(
             }
         }
         MembershipState::Knock if room_version.allow_knocking => {
-            // 1. If the `join_rule` is anything other than `knock`, reject.
-            if join_rules != JoinRule::Knock {
-                warn!("Join rule is not set to knock, knocking is not allowed");
+            // 1. If the `join_rule` is anything other than `knock` or `knock_restricted`, reject.
+            if join_rules != JoinRule::Knock
+                || room_version.knock_restricted_join_rule
+                    && matches!(join_rules, JoinRule::KnockRestricted(_))
+            {
+                warn!("Join rule is not set to knock or knock_restricted, knocking is not allowed");
                 false
             } else {
                 // 2. If `sender` does not match `state_key`, reject.
@@ -697,7 +709,7 @@ fn valid_membership_change(
 fn can_send_event(event: impl Event, ple: Option<impl Event>, user_level: Int) -> bool {
     let event_type_power_level = get_send_level(event.event_type(), event.state_key(), ple);
 
-    debug!("{} ev_type {} usr {}", event.event_id(), event_type_power_level, user_level);
+    debug!("{} ev_type {event_type_power_level} usr {user_level}", event.event_id());
 
     if user_level < event_type_power_level {
         return false;
@@ -722,7 +734,7 @@ fn check_power_levels(
     match power_event.state_key() {
         Some("") => {}
         Some(key) => {
-            error!("m.room.power_levels event has non-empty state key: {}", key);
+            error!("m.room.power_levels event has non-empty state key: {key}");
             return None;
         }
         None => {
@@ -731,22 +743,26 @@ fn check_power_levels(
         }
     }
 
+    // - If any of the keys users_default, events_default, state_default, ban, redact, kick, or
+    //   invite in content are present and not an integer, reject.
+    // - If either of the keys events or notifications in content are present and not a dictionary
+    //   with values that are integers, reject.
+    // - If users key in content is not a dictionary with keys that are valid user IDs with values
+    //   that are integers, reject.
+    let user_content: RoomPowerLevelsEventContent =
+        deserialize_power_levels(power_event.content().get(), room_version)?;
+
+    // Validation of users is done in Ruma, synapse for loops validating user_ids and integers here
+    info!("validation of power event finished");
+
     let current_state = match previous_power_event {
         Some(current_state) => current_state,
         // If there is no previous m.room.power_levels event in the room, allow
         None => return Some(true),
     };
 
-    // If users key in content is not a dictionary with keys that are valid user IDs
-    // with values that are integers (or a string that is an integer), reject.
-    let user_content =
-        from_json_str::<RoomPowerLevelsEventContent>(power_event.content().get()).unwrap();
-
-    let current_content =
-        from_json_str::<RoomPowerLevelsEventContent>(current_state.content().get()).unwrap();
-
-    // Validation of users is done in Ruma, synapse for loops validating user_ids and integers here
-    info!("validation of power event finished");
+    let current_content: RoomPowerLevelsEventContent =
+        deserialize_power_levels(current_state.content().get(), room_version)?;
 
     let mut user_levels_to_check = BTreeSet::new();
     let old_list = &current_content.users;
@@ -756,7 +772,7 @@ fn check_power_levels(
         user_levels_to_check.insert(user);
     }
 
-    debug!("users to check {:?}", user_levels_to_check);
+    debug!("users to check {user_levels_to_check:?}");
 
     let mut event_levels_to_check = BTreeSet::new();
     let old_list = &current_content.events;
@@ -765,7 +781,7 @@ fn check_power_levels(
         event_levels_to_check.insert(ev_id);
     }
 
-    debug!("events to check {:?}", event_levels_to_check);
+    debug!("events to check {event_levels_to_check:?}");
 
     let old_state = &current_content;
     let new_state = &user_content;

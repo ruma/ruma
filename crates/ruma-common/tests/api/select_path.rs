@@ -31,7 +31,7 @@ const R: &str = "r";
 fn select_stable() {
     let meta = Metadata { added: Some(V1_1), ..BASE };
 
-    let res = select_path(&[V1_0, V1_1], &meta, None, None, Some(format_args!("{}", S)))
+    let res = select_path(&[V1_0, V1_1], &meta, None, None, Some(format_args!("{S}")))
         .unwrap()
         .to_string();
 
@@ -43,7 +43,7 @@ fn select_unstable() {
     let meta = BASE;
 
     let res =
-        select_path(&[V1_0], &meta, Some(format_args!("{}", U)), None, None).unwrap().to_string();
+        select_path(&[V1_0], &meta, Some(format_args!("{U}")), None, None).unwrap().to_string();
 
     assert_eq!(res, U);
 }
@@ -53,7 +53,7 @@ fn select_r0() {
     let meta = Metadata { added: Some(V1_0), ..BASE };
 
     let res =
-        select_path(&[V1_0], &meta, None, Some(format_args!("{}", R)), Some(format_args!("{}", S)))
+        select_path(&[V1_0], &meta, None, Some(format_args!("{R}")), Some(format_args!("{S}")))
             .unwrap()
             .to_string();
 
@@ -67,9 +67,9 @@ fn select_removed_err() {
     let res = select_path(
         &[V1_2],
         &meta,
-        Some(format_args!("{}", U)),
-        Some(format_args!("{}", R)),
-        Some(format_args!("{}", S)),
+        Some(format_args!("{U}")),
+        Some(format_args!("{R}")),
+        Some(format_args!("{S}")),
     )
     .unwrap_err();
 
@@ -81,7 +81,7 @@ fn partially_removed_but_stable() {
     let meta = Metadata { added: Some(V1_0), deprecated: Some(V1_1), removed: Some(V1_2), ..BASE };
 
     let res =
-        select_path(&[V1_1], &meta, None, Some(format_args!("{}", R)), Some(format_args!("{}", S)))
+        select_path(&[V1_1], &meta, None, Some(format_args!("{R}")), Some(format_args!("{S}")))
             .unwrap()
             .to_string();
 
@@ -93,7 +93,7 @@ fn no_unstable() {
     let meta = Metadata { added: Some(V1_1), ..BASE };
 
     let res =
-        select_path(&[V1_0], &meta, None, Some(format_args!("{}", R)), Some(format_args!("{}", S)))
+        select_path(&[V1_0], &meta, None, Some(format_args!("{R}")), Some(format_args!("{S}")))
             .unwrap_err();
 
     assert_matches!(res, IntoHttpError::NoUnstablePath);

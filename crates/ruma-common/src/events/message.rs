@@ -48,7 +48,6 @@
 //! [3488]: https://github.com/matrix-org/matrix-spec-proposals/pull/3488
 //! [MSC3245]: https://github.com/matrix-org/matrix-spec-proposals/pull/3245
 //! [MSC3381]: https://github.com/matrix-org/matrix-spec-proposals/pull/3381
-//! [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
 use std::ops::Deref;
 
 use ruma_macros::EventContent;
@@ -59,12 +58,18 @@ pub(crate) mod content_serde;
 
 use content_serde::MessageContentSerDeHelper;
 
-use super::room::message::{FormattedBody, MessageFormat, Relation, TextMessageEventContent};
+use super::room::message::{
+    FormattedBody, MessageFormat, MessageType, Relation, RoomMessageEventContent,
+    TextMessageEventContent,
+};
 
 /// The payload for an extensible text message.
 ///
 /// This is the new primary type introduced in [MSC1767] and should not be sent before the end of
 /// the transition period. See the documentation of the [`message`] module for more information.
+///
+/// To construct a `MessageEventContent` with a custom [`MessageContent`], convert it with
+/// `MessageEventContent::from()` / `.into()`.
 ///
 /// `MessageEventContent` can be converted to a [`RoomMessageEventContent`] with a
 /// [`MessageType::Text`]. You can convert it back with
@@ -122,10 +127,27 @@ impl MessageEventContent {
     }
 }
 
+impl From<MessageContent> for MessageEventContent {
+    fn from(message: MessageContent) -> Self {
+        Self { message, relates_to: None }
+    }
+}
+
+impl From<MessageEventContent> for RoomMessageEventContent {
+    fn from(content: MessageEventContent) -> Self {
+        let MessageEventContent { message, relates_to, .. } = content;
+
+        Self { msgtype: MessageType::Text(message.into()), relates_to }
+    }
+}
+
 /// Text message content.
 ///
 /// A `MessageContent` must contain at least one message to be used as a fallback text
 /// representation.
+///
+/// To construct a `MessageContent` with custom MIME types, construct a `Vec<Text>` first and use
+/// its `.try_from()` / `.try_into()` implementation that will only fail if the `Vec` is empty.
 #[derive(Clone, Debug, Deserialize)]
 #[serde(try_from = "MessageContentSerDeHelper")]
 pub struct MessageContent(pub(crate) Vec<Text>);
@@ -167,7 +189,10 @@ impl MessageContent {
     }
 
     /// Create a new `MessageContent` from the given body and optional formatted body.
-    pub fn from_room_message_content(body: String, formatted: Option<FormattedBody>) -> Self {
+    pub(crate) fn from_room_message_content(
+        body: String,
+        formatted: Option<FormattedBody>,
+    ) -> Self {
         if let Some(FormattedBody { body: html_body, .. }) =
             formatted.filter(|formatted| formatted.format == MessageFormat::Html)
         {
@@ -218,7 +243,11 @@ impl Deref for MessageContent {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Text {
-    /// The mime type of the `body`.
+    /// The MIME type of the `body`.
+    ///
+    /// This must follow the format defined in [RFC6838].
+    ///
+    /// [RFC6838]: https://datatracker.ietf.org/doc/html/rfc6838
     #[serde(default = "Text::default_mimetype")]
     pub mimetype: String,
 
@@ -236,24 +265,24 @@ pub struct Text {
 }
 
 impl Text {
-    /// Creates a new plain text message body.
-    pub fn plain(body: impl Into<String>) -> Self {
+    /// Creates a new `Text` with the given MIME type and body.
+    pub fn new(mimetype: impl Into<String>, body: impl Into<String>) -> Self {
         Self {
-            mimetype: "text/plain".to_owned(),
+            mimetype: mimetype.into(),
             body: body.into(),
             #[cfg(feature = "unstable-msc3554")]
             lang: None,
         }
     }
 
+    /// Creates a new plain text message body.
+    pub fn plain(body: impl Into<String>) -> Self {
+        Self::new("text/plain", body)
+    }
+
     /// Creates a new HTML-formatted message body.
     pub fn html(body: impl Into<String>) -> Self {
-        Self {
-            mimetype: "text/html".to_owned(),
-            body: body.into(),
-            #[cfg(feature = "unstable-msc3554")]
-            lang: None,
-        }
+        Self::new("text/html", body)
     }
 
     /// Creates a new HTML-formatted message body by parsing the Markdown in `body`.

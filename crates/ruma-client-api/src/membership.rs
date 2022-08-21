@@ -10,6 +10,8 @@ pub mod joined_members;
 pub mod joined_rooms;
 pub mod kick_user;
 pub mod leave_room;
+#[cfg(feature = "unstable-msc2666")]
+pub mod mutual_rooms;
 pub mod unban_user;
 
 use std::collections::BTreeMap;

@@ -59,7 +59,7 @@ impl EventKindVariation {
         match self {
             EventKindVariation::Original => EventKindVariation::Redacted,
             EventKindVariation::OriginalSync => EventKindVariation::RedactedSync,
-            _ => panic!("No redacted form of {:?}", self),
+            _ => panic!("No redacted form of {self:?}"),
         }
     }
 
@@ -67,7 +67,7 @@ impl EventKindVariation {
         match self {
             EventKindVariation::OriginalSync => EventKindVariation::Original,
             EventKindVariation::RedactedSync => EventKindVariation::Redacted,
-            _ => panic!("No original (unredacted) form of {:?}", self),
+            _ => panic!("No original (unredacted) form of {self:?}"),
         }
     }
 }
@@ -135,7 +135,7 @@ impl EventKind {
                 Self::MessageLike | Self::RoomRedaction | Self::State,
                 V::Original | V::OriginalSync | V::Redacted | V::RedactedSync,
             )
-            | (Self::State, V::Stripped | V::Initial) => Ok(format_ident!("{}{}", var, self)),
+            | (Self::State, V::Stripped | V::Initial) => Ok(format_ident!("{var}{self}")),
             _ => Err(syn::Error::new(
                 Span::call_site(),
                 format!(
@@ -256,7 +256,7 @@ impl Parse for EventEnumEntry {
                 let alias = alias_attr.into_inner();
 
                 if alias.value().ends_with(".*") == has_suffix {
-                    aliases.push(alias)
+                    aliases.push(alias);
                 } else {
                     return Err(syn::Error::new_spanned(
                         &attr_list,

@@ -10,7 +10,7 @@ network.
 [website]: https://www.ruma.io/
 [chat]: https://matrix.to/#/#ruma:matrix.org
 [docs]: https://docs.rs/ruma/
-[unstable-docs]: https://docs.ruma.io/
+[unstable-docs]: https://docs.ruma.io/ruma/
 
 ## Getting started
 
@@ -24,13 +24,13 @@ dependencies:
 
 ```toml
 # crates.io release
-ruma = { version = "0.5.0", features = ["..."] }
+ruma = { version = "0.6.0", features = ["..."] }
 # git dependency
 ruma = { git = "https://github.com/ruma/ruma", branch = "main", features = ["..."] }
 ```
 
 `ruma` re-exports all of the other crates, so you don't have to worry about
-them. Check out the documentation [on docs.rs][docs] (or on
+them as a user. Check out the documentation [on docs.rs][docs] (or on
 [docs.ruma.io][unstable-docs] if you use use the git dependency).
 
 [matrix-rust-sdk]: https://github.com/matrix-org/matrix-rust-sdk#readme
@@ -38,8 +38,7 @@ them. Check out the documentation [on docs.rs][docs] (or on
 
 ## Status
 
-As of 2022-01-31, we support all events and REST endpoints of the v1 version of
-the Matrix specification, with v1.1 and v1.2 coverage in progress.
+Ruma 0.6 supports all events and REST endpoints of Matrix v1.0, v1.1 and v1.2.
 
 Various changes from in-progress or finished MSCs are also implemented, gated
 behind the `unstable-mscXXXX` (where `XXXX` is the MSC number) Cargo features.
@@ -53,7 +52,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Minimum Rust version
 
-Ruma currently requires Rust 1.59. In general, we will never require beta or
+Ruma currently requires Rust 1.60. In general, we will never require beta or
 nightly for crates.io releases of our crates, and we will try to avoid releasing
 crates that depend on features that were only just stabilized.
 

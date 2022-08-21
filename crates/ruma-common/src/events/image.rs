@@ -10,7 +10,7 @@ use super::{
     file::{EncryptedContent, FileContent},
     message::MessageContent,
     room::{
-        message::{ImageMessageEventContent, Relation},
+        message::{ImageMessageEventContent, MessageType, Relation, RoomMessageEventContent},
         ImageInfo, MediaSource, ThumbnailInfo,
     },
 };
@@ -104,27 +104,36 @@ impl ImageEventContent {
             thumbnail,
             caption,
         } = content;
+        let ImageInfo { height, width, mimetype, size, thumbnail_info, thumbnail_source, .. } =
+            info.map(|info| *info).unwrap_or_default();
 
         let message = message.unwrap_or_else(|| MessageContent::plain(body));
         let file = file.unwrap_or_else(|| {
-            FileContent::from_room_message_content(source, info.as_deref(), None)
+            FileContent::from_room_message_content(source, None, mimetype, size)
         });
-        let image =
-            image.or_else(|| info.as_deref().map(|info| Box::new(info.into()))).unwrap_or_default();
-        let thumbnail = thumbnail
-            .or_else(|| {
-                info.as_deref()
-                    .and_then(|info| {
-                        ThumbnailContent::from_room_message_content(
-                            info.thumbnail_source.as_ref(),
-                            info.thumbnail_info.as_deref(),
-                        )
-                    })
-                    .map(|thumbnail| vec![thumbnail])
-            })
+        let image = image
+            .or_else(|| ImageContent::from_room_message_content(width, height).map(Box::new))
             .unwrap_or_default();
+        let thumbnail = thumbnail.unwrap_or_else(|| {
+            ThumbnailContent::from_room_message_content(thumbnail_source, thumbnail_info)
+                .into_iter()
+                .collect()
+        });
 
         Self { message, file, image, thumbnail, caption, relates_to }
+    }
+}
+
+impl From<ImageEventContent> for RoomMessageEventContent {
+    fn from(content: ImageEventContent) -> Self {
+        let ImageEventContent { message, file, image, thumbnail, caption, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::Image(ImageMessageEventContent::from_extensible_content(
+                message, file, image, thumbnail, caption,
+            )),
+            relates_to,
+        }
     }
 }
 
@@ -152,23 +161,23 @@ impl ImageContent {
         Self { height: Some(height), width: Some(width) }
     }
 
+    /// Creates a new `ImageContent` with the given optional width and height.
+    ///
+    /// Returns `None` if the `ImageContent` would be empty.
+    pub(crate) fn from_room_message_content(
+        width: Option<UInt>,
+        height: Option<UInt>,
+    ) -> Option<Self> {
+        if width.is_none() && height.is_none() {
+            None
+        } else {
+            Some(Self { width, height })
+        }
+    }
+
     /// Whether this `ImageContent` is empty.
     pub fn is_empty(&self) -> bool {
         self.height.is_none() && self.width.is_none()
-    }
-}
-
-impl From<&ImageInfo> for ImageContent {
-    fn from(info: &ImageInfo) -> Self {
-        let ImageInfo { height, width, .. } = info;
-        Self { height: height.to_owned(), width: width.to_owned() }
-    }
-}
-
-impl From<&ThumbnailInfo> for ImageContent {
-    fn from(info: &ThumbnailInfo) -> Self {
-        let ThumbnailInfo { height, width, .. } = info;
-        Self { height: height.to_owned(), width: width.to_owned() }
     }
 }
 
@@ -194,14 +203,15 @@ impl ThumbnailContent {
     /// Create a `ThumbnailContent` with the given thumbnail source and info.
     ///
     /// Returns `None` if no thumbnail was found.
-    pub fn from_room_message_content(
-        thumbnail_source: Option<&MediaSource>,
-        thumbnail_info: Option<&ThumbnailInfo>,
+    pub(crate) fn from_room_message_content(
+        source: Option<MediaSource>,
+        info: Option<Box<ThumbnailInfo>>,
     ) -> Option<Self> {
-        thumbnail_source.map(|thumbnail_source| {
-            let file =
-                ThumbnailFileContent::from_room_message_content(thumbnail_source, thumbnail_info);
-            let image = thumbnail_info.map(|info| Box::new(info.into()));
+        source.map(|source| {
+            let ThumbnailInfo { height, width, mimetype, size } = *info.unwrap_or_default();
+
+            let file = ThumbnailFileContent::from_room_message_content(source, mimetype, size);
+            let image = ImageContent::from_room_message_content(width, height).map(Box::new);
 
             Self { file, image }
         })
@@ -243,21 +253,16 @@ impl ThumbnailFileContent {
     }
 
     /// Create a `ThumbnailFileContent` with the given thumbnail source and info.
-    ///
-    /// Returns `None` if no thumbnail was found.
     fn from_room_message_content(
-        thumbnail_source: &MediaSource,
-        thumbnail_info: Option<&ThumbnailInfo>,
+        source: MediaSource,
+        mimetype: Option<String>,
+        size: Option<UInt>,
     ) -> Self {
-        match thumbnail_source {
-            MediaSource::Plain(url) => {
-                Self::plain(url.to_owned(), thumbnail_info.map(|info| Box::new(info.into())))
-            }
-            MediaSource::Encrypted(file) => Self::encrypted(
-                file.url.clone(),
-                (&**file).into(),
-                thumbnail_info.map(|info| Box::new(info.into())),
-            ),
+        let info =
+            ThumbnailFileContentInfo::from_room_message_content(mimetype, size).map(Box::new);
+        match source.into_extensible_content() {
+            (url, None) => Self::plain(url, info),
+            (url, Some(encryption_info)) => Self::encrypted(url, encryption_info, info),
         }
     }
 
@@ -285,11 +290,15 @@ impl ThumbnailFileContentInfo {
     pub fn new() -> Self {
         Self::default()
     }
-}
 
-impl From<&ThumbnailInfo> for ThumbnailFileContentInfo {
-    fn from(info: &ThumbnailInfo) -> Self {
-        let ThumbnailInfo { mimetype, size, .. } = info;
-        Self { mimetype: mimetype.to_owned(), size: size.to_owned() }
+    /// Creates a new `ThumbnailFileContentInfo` with the given optional MIME type and size.
+    ///
+    /// Returns `None` if the `ThumbnailFileContentInfo` would be empty.
+    fn from_room_message_content(mimetype: Option<String>, size: Option<UInt>) -> Option<Self> {
+        if mimetype.is_none() && size.is_none() {
+            None
+        } else {
+            Some(Self { mimetype, size })
+        }
     }
 }

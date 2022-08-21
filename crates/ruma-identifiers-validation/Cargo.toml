@@ -6,7 +6,7 @@ repository = "https://github.com/ruma/ruma"
 license = "MIT"
 version = "0.8.1"
 edition = "2021"
-rust-version = "1.59"
+rust-version = "1.60"
 
 [package.metadata.docs.rs]
 all-features = true
@@ -15,4 +15,5 @@ all-features = true
 compat = []
 
 [dependencies]
+js_int = "0.2.0"
 thiserror = "1.0.26"

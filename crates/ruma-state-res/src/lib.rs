@@ -1,7 +1,7 @@
 use std::{
     borrow::Borrow,
     cmp::Reverse,
-    collections::{BTreeMap, BinaryHeap, HashMap, HashSet},
+    collections::{BinaryHeap, HashMap, HashSet},
     hash::Hash,
 };
 
@@ -12,14 +12,14 @@ use ruma_common::{
         room::member::{MembershipState, RoomMemberEventContent},
         RoomEventType, StateEventType,
     },
-    EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, RoomVersionId,
+    EventId, MilliSecondsSinceUnixEpoch, RoomVersionId,
 };
-use serde::Deserialize;
 use serde_json::from_str as from_json_str;
 use tracing::{debug, info, trace, warn};
 
 mod error;
 pub mod event_auth;
+mod power_levels;
 pub mod room_version;
 mod state_event;
 #[cfg(test)]
@@ -27,6 +27,7 @@ mod test_utils;
 
 pub use error::{Error, Result};
 pub use event_auth::{auth_check, auth_types_for_event};
+use power_levels::PowerLevelsContentFields;
 pub use room_version::RoomVersion;
 pub use state_event::Event;
 
@@ -70,7 +71,7 @@ where
     let (clean, conflicting) = separate(state_sets.into_iter());
 
     info!("non conflicting events: {}", clean.len());
-    trace!("{:?}", clean);
+    trace!("{clean:?}");
 
     if conflicting.is_empty() {
         info!("no conflicting state found");
@@ -78,7 +79,7 @@ where
     }
 
     info!("conflicting events: {}", conflicting.len());
-    debug!("{:?}", conflicting);
+    debug!("{conflicting:?}");
 
     // `all_conflicted` contains unique items
     // synapse says `full_set = {eid for eid in full_conflicted_set if eid in event_map}`
@@ -89,7 +90,7 @@ where
         .collect();
 
     info!("full conflicted set: {}", all_conflicted.len());
-    debug!("{:?}", all_conflicted);
+    debug!("{all_conflicted:?}");
 
     // We used to check that all events are events from the correct room
     // this is now a check the caller of `resolve` must make.
@@ -106,7 +107,7 @@ where
         reverse_topological_power_sort(control_events, &all_conflicted, &fetch_event)?;
 
     debug!("sorted control events: {}", sorted_control_levels.len());
-    trace!("{:?}", sorted_control_levels);
+    trace!("{sorted_control_levels:?}");
 
     let room_version = RoomVersion::new(room_version)?;
     // Sequentially auth check each control event.
@@ -114,7 +115,7 @@ where
         iterative_auth_check(&room_version, &sorted_control_levels, clean.clone(), &fetch_event)?;
 
     debug!("resolved control events: {}", resolved_control.len());
-    trace!("{:?}", resolved_control);
+    trace!("{resolved_control:?}");
 
     // At this point the control_events have been resolved we now have to
     // sort the remaining events using the mainline of the resolved power level.
@@ -129,16 +130,16 @@ where
         .collect::<Vec<_>>();
 
     debug!("events left to resolve: {}", events_to_resolve.len());
-    trace!("{:?}", events_to_resolve);
+    trace!("{events_to_resolve:?}");
 
     // This "epochs" power level event
     let power_event = resolved_control.get(&(StateEventType::RoomPowerLevels, "".into()));
 
-    debug!("power event: {:?}", power_event);
+    debug!("power event: {power_event:?}");
 
     let sorted_left_events = mainline_sort(&events_to_resolve, power_event.cloned(), &fetch_event)?;
 
-    trace!("events left, sorted: {:?}", sorted_left_events);
+    trace!("events left, sorted: {sorted_left_events:?}");
 
     let mut resolved_state = iterative_auth_check(
         &room_version,
@@ -230,7 +231,7 @@ fn reverse_topological_power_sort<E: Event>(
     let mut event_to_pl = HashMap::new();
     for event_id in graph.keys() {
         let pl = get_power_level_for_sender(event_id.borrow(), &fetch_event)?;
-        info!("{} power level {}", event_id, pl);
+        info!("{event_id} power level {pl}");
 
         event_to_pl.insert(event_id.clone(), pl);
 
@@ -335,23 +336,6 @@ where
     Ok(sorted)
 }
 
-#[derive(Deserialize)]
-struct PowerLevelsContentFields {
-    #[cfg_attr(
-        feature = "compat",
-        serde(deserialize_with = "ruma_common::serde::btreemap_deserialize_v1_powerlevel_values")
-    )]
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    users: BTreeMap<OwnedUserId, Int>,
-
-    #[cfg_attr(
-        feature = "compat",
-        serde(deserialize_with = "ruma_common::serde::deserialize_v1_powerlevel")
-    )]
-    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
-    users_default: Int,
-}
-
 /// Find the power level for the sender of `event_id` or return a default value of zero.
 ///
 /// Do NOT use this any where but topological sort, we find the power level for the eventId
@@ -361,7 +345,7 @@ fn get_power_level_for_sender<E: Event>(
     event_id: &EventId,
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) -> serde_json::Result<Int> {
-    info!("fetch event ({}) senders power level", event_id);
+    info!("fetch event ({event_id}) senders power level");
 
     let event = fetch_event(event_id);
     let mut pl = None;
@@ -382,7 +366,7 @@ fn get_power_level_for_sender<E: Event>(
 
     if let Some(ev) = event {
         if let Some(&user_level) = content.users.get(ev.sender()) {
-            debug!("found {} at power_level {}", ev.sender(), user_level);
+            debug!("found {} at power_level {user_level}", ev.sender());
             return Ok(user_level);
         }
     }
@@ -407,13 +391,13 @@ fn iterative_auth_check<E: Event + Clone>(
 ) -> Result<StateMap<E::Id>> {
     info!("starting iterative auth check");
 
-    debug!("performing auth checks on {:?}", events_to_check);
+    debug!("performing auth checks on {events_to_check:?}");
 
     let mut resolved_state = unconflicted_state;
 
     for event_id in events_to_check {
         let event = fetch_event(event_id.borrow())
-            .ok_or_else(|| Error::NotFound(format!("Failed to find {}", event_id)))?;
+            .ok_or_else(|| Error::NotFound(format!("Failed to find {event_id}")))?;
         let state_key = event
             .state_key()
             .ok_or_else(|| Error::InvalidPdu("State event had no state key".to_owned()))?;
@@ -430,7 +414,7 @@ fn iterative_auth_check<E: Event + Clone>(
                     ev,
                 );
             } else {
-                warn!("auth event id for {} is missing {}", aid, event_id);
+                warn!("auth event id for {aid} is missing {event_id}");
             }
         }
 
@@ -463,7 +447,7 @@ fn iterative_auth_check<E: Event + Clone>(
             resolved_state.insert(event.event_type().with_state_key(state_key), event_id.clone());
         } else {
             // synapse passes here on AuthError. We do not add this event to resolved_state.
-            warn!("event {} failed the authentication check", event_id);
+            warn!("event {event_id} failed the authentication check");
         }
 
         // TODO: if these functions are ever made async here
@@ -498,11 +482,11 @@ fn mainline_sort<E: Event>(
         mainline.push(p.clone());
 
         let event = fetch_event(p.borrow())
-            .ok_or_else(|| Error::NotFound(format!("Failed to find {}", p)))?;
+            .ok_or_else(|| Error::NotFound(format!("Failed to find {p}")))?;
         pl = None;
         for aid in event.auth_events() {
             let ev = fetch_event(aid.borrow())
-                .ok_or_else(|| Error::NotFound(format!("Failed to find {}", aid)))?;
+                .ok_or_else(|| Error::NotFound(format!("Failed to find {aid}")))?;
             if is_type_and_key(&ev, &RoomEventType::RoomPowerLevels, "") {
                 pl = Some(aid.to_owned());
                 break;
@@ -561,7 +545,7 @@ fn get_mainline_depth<E: Event>(
         event = None;
         for aid in sort_ev.auth_events() {
             let aev = fetch_event(aid.borrow())
-                .ok_or_else(|| Error::NotFound(format!("Failed to find {}", aid)))?;
+                .ok_or_else(|| Error::NotFound(format!("Failed to find {aid}")))?;
             if is_type_and_key(&aev, &RoomEventType::RoomPowerLevels, "") {
                 event = Some(aev);
                 break;
@@ -738,7 +722,7 @@ mod tests {
                 "$END:foo"
             ],
             sorted_event_ids.iter().map(|id| id.to_string()).collect::<Vec<_>>()
-        )
+        );
     }
 
     #[test]
@@ -746,7 +730,7 @@ mod tests {
         for _ in 0..20 {
             // since we shuffle the eventIds before we sort them introducing randomness
             // seems like we should test this a few times
-            test_event_sort()
+            test_event_sort();
         }
     }
 
@@ -794,7 +778,7 @@ mod tests {
         let expected_state_ids =
             vec!["PA", "MA", "MB"].into_iter().map(event_id).collect::<Vec<_>>();
 
-        do_check(events, edges, expected_state_ids)
+        do_check(events, edges, expected_state_ids);
     }
 
     #[test]
@@ -855,7 +839,7 @@ mod tests {
 
         let expected_state_ids = vec!["PA2", "T2"].into_iter().map(event_id).collect::<Vec<_>>();
 
-        do_check(events, edges, expected_state_ids)
+        do_check(events, edges, expected_state_ids);
     }
 
     #[test]
@@ -902,7 +886,7 @@ mod tests {
         let expected_state_ids =
             vec!["T1", "MB", "PA"].into_iter().map(event_id).collect::<Vec<_>>();
 
-        do_check(events, edges, expected_state_ids)
+        do_check(events, edges, expected_state_ids);
     }
 
     #[test]
@@ -934,7 +918,7 @@ mod tests {
 
         let expected_state_ids = vec![event_id("JR")];
 
-        do_check(events, edges, expected_state_ids)
+        do_check(events, edges, expected_state_ids);
     }
 
     #[test]
@@ -975,7 +959,7 @@ mod tests {
 
         let expected_state_ids = vec!["PC"].into_iter().map(event_id).collect::<Vec<_>>();
 
-        do_check(events, edges, expected_state_ids)
+        do_check(events, edges, expected_state_ids);
     }
 
     #[test]
@@ -1052,7 +1036,7 @@ mod tests {
 
         let expected_state_ids = vec!["T4", "PA2"].into_iter().map(event_id).collect::<Vec<_>>();
 
-        do_check(events, edges, expected_state_ids)
+        do_check(events, edges, expected_state_ids);
     }
 
     #[test]
@@ -1079,10 +1063,10 @@ mod tests {
             |id| ev_map.get(id).map(Arc::clone),
         ) {
             Ok(state) => state,
-            Err(e) => panic!("{}", e),
+            Err(e) => panic!("{e}"),
         };
 
-        assert_eq!(expected, resolved)
+        assert_eq!(expected, resolved);
     }
 
     #[test]
@@ -1109,7 +1093,7 @@ mod tests {
                 .map(ToString::to_string)
                 .map(|s| s.replace('$', "").replace(":foo", ""))
                 .collect::<Vec<_>>()
-        )
+        );
     }
 
     #[test]
@@ -1179,14 +1163,14 @@ mod tests {
             |id| ev_map.get(id).map(Arc::clone),
         ) {
             Ok(state) => state,
-            Err(e) => panic!("{}", e),
+            Err(e) => panic!("{e}"),
         };
 
         debug!(
             "{:#?}",
             resolved
                 .iter()
-                .map(|((ty, key), id)| format!("(({}{:?}), {})", ty, key, id))
+                .map(|((ty, key), id)| format!("(({ty}{key:?}), {id})"))
                 .collect::<Vec<_>>()
         );
 
@@ -1202,9 +1186,9 @@ mod tests {
 
         for id in expected.iter().map(|i| event_id(i)) {
             // make sure our resolved events are equal to the expected list
-            assert!(resolved.values().any(|eid| eid == &id) || init.contains_key(&id), "{}", id)
+            assert!(resolved.values().any(|eid| eid == &id) || init.contains_key(&id), "{id}");
         }
-        assert_eq!(expected.len(), resolved.len())
+        assert_eq!(expected.len(), resolved.len());
     }
 
     #[test]

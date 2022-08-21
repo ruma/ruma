@@ -7,6 +7,8 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3register
 
+    use std::time::Duration;
+
     use ruma_common::{api::ruma_api, DeviceId, OwnedDeviceId, OwnedUserId};
 
     use super::{LoginType, RegistrationKind};
@@ -81,12 +83,24 @@ pub mod v3 {
             /// [admin]: https://spec.matrix.org/v1.2/application-service-api/#server-admin-style-permissions
             #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
             pub login_type: Option<&'a LoginType>,
+
+            /// If set to `true`, the client supports [refresh tokens].
+            ///
+            /// [refresh tokens]: https://spec.matrix.org/v1.3/client-server-api/#refreshing-access-tokens
+            #[serde(
+                default,
+                skip_serializing_if = "ruma_common::serde::is_default",
+                alias = "org.matrix.msc2918.refresh_token",
+            )]
+            pub refresh_token: bool,
         }
 
         response: {
             /// An access token for the account.
             ///
             /// This access token can then be used to authorize other requests.
+            ///
+            /// Required if the request's `inhibit_login` was set to `false`.
             #[serde(skip_serializing_if = "Option::is_none")]
             pub access_token: Option<String>,
 
@@ -96,7 +110,38 @@ pub mod v3 {
             /// ID of the registered device.
             ///
             /// Will be the same as the corresponding parameter in the request, if one was specified.
+            ///
+            /// Required if the request's `inhibit_login` was set to `false`.
             pub device_id: Option<OwnedDeviceId>,
+
+            /// A [refresh token] for the account.
+            ///
+            /// This token can be used to obtain a new access token when it expires by calling the
+            /// [`refresh_token`] endpoint.
+            ///
+            /// Omitted if the request's `inhibit_login` was set to `true`.
+            ///
+            /// [refresh token]: https://spec.matrix.org/v1.3/client-server-api/#refreshing-access-tokens
+            /// [`refresh_token`]: crate::session::refresh_token
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub refresh_token: Option<String>,
+
+            /// The lifetime of the access token, in milliseconds.
+            ///
+            /// Once the access token has expired, a new access token can be obtained by using the
+            /// provided refresh token. If no refresh token is provided, the client will need to
+            /// re-login to obtain a new access token.
+            ///
+            /// If this is `None`, the client can assume that the access token will not expire.
+            ///
+            /// Omitted if the request's `inhibit_login` was set to `true`.
+            #[serde(
+                with = "ruma_common::serde::duration::opt_ms",
+                default,
+                skip_serializing_if = "Option::is_none",
+                rename = "expires_in_ms",
+            )]
+            pub expires_in: Option<Duration>,
         }
 
         error: UiaaResponse
@@ -112,7 +157,13 @@ pub mod v3 {
     impl Response {
         /// Creates a new `Response` with the given user ID.
         pub fn new(user_id: OwnedUserId) -> Self {
-            Self { access_token: None, user_id, device_id: None }
+            Self {
+                access_token: None,
+                user_id,
+                device_id: None,
+                refresh_token: None,
+                expires_in: None,
+            }
         }
     }
 }

@@ -84,36 +84,38 @@ pub mod v3 {
 
     #[cfg(all(test, feature = "server"))]
     mod tests {
-        use assert_matches::assert_matches;
         use ruma_common::api::IncomingRequest as _;
 
         use super::IncomingRequest;
 
         #[test]
         fn deserialize_unset_request() {
-            assert_matches!(
-                IncomingRequest::try_from_http_request(
-                    http::Request::builder()
-                        .method("PUT")
-                        .uri("https://bar.org/_matrix/client/r0/profile/@foo:bar.org/avatar_url")
-                        .body(&[] as &[u8]).unwrap(),
-                    &["@foo:bar.org"],
-                ).unwrap(),
-                IncomingRequest { user_id, avatar_url: None, .. } if user_id == "@foo:bar.org"
-            );
+            let req = IncomingRequest::try_from_http_request(
+                http::Request::builder()
+                    .method("PUT")
+                    .uri("https://bar.org/_matrix/client/r0/profile/@foo:bar.org/avatar_url")
+                    .body(&[] as &[u8])
+                    .unwrap(),
+                &["@foo:bar.org"],
+            )
+            .unwrap();
+            assert_eq!(req.user_id, "@foo:bar.org");
+            assert_eq!(req.avatar_url, None);
 
             #[cfg(feature = "compat")]
-            assert_matches!(
-                IncomingRequest::try_from_http_request(
+            {
+                let req = IncomingRequest::try_from_http_request(
                     http::Request::builder()
                         .method("PUT")
                         .uri("https://bar.org/_matrix/client/r0/profile/@foo:bar.org/avatar_url")
                         .body(serde_json::to_vec(&serde_json::json!({ "avatar_url": "" })).unwrap())
                         .unwrap(),
                     &["@foo:bar.org"],
-                ).unwrap(),
-                IncomingRequest { user_id, avatar_url: None, .. } if user_id == "@foo:bar.org"
-            );
+                )
+                .unwrap();
+                assert_eq!(req.user_id, "@foo:bar.org");
+                assert_eq!(req.avatar_url, None);
+            }
         }
     }
 }

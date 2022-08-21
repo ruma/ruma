@@ -329,7 +329,7 @@ fn generate_redacted_event_content<'a>(
     let serde_json = quote! { #ruma_common::exports::serde_json };
 
     let doc = format!("Redacted form of [`{}`]", ident);
-    let redacted_ident = format_ident!("Redacted{}", ident);
+    let redacted_ident = format_ident!("Redacted{ident}");
 
     let kept_redacted_fields: Vec<_> = fields
         .map(|f| {
@@ -493,7 +493,7 @@ fn generate_event_type_aliases(
     .iter()
     .filter_map(|&var| Some((var, event_kind.to_event_ident(var).ok()?)))
     .map(|(var, ev_struct)| {
-        let ev_type = format_ident!("{}{}", var, ev_type_s);
+        let ev_type = format_ident!("{var}{ev_type_s}");
 
         let doc_text = match var {
             EventKindVariation::None | EventKindVariation::Original => "",
@@ -510,7 +510,7 @@ fn generate_event_type_aliases(
         let ev_type_doc = format!("An `{}` event{}.", event_type, doc_text);
 
         let content_struct = if var.is_redacted() {
-            Cow::Owned(format_ident!("Redacted{}", ident))
+            Cow::Owned(format_ident!("Redacted{ident}"))
         } else {
             Cow::Borrowed(ident)
         };

@@ -133,21 +133,19 @@ mod tests {
             "mac": "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U"
         });
 
-        assert_matches!(
-            from_json_value(json).unwrap(),
-            SecretStorageKeyEventContent {
-                key_id: _,
-                name,
-                algorithm: SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
-                    iv,
-                    mac,
-                },
-                passphrase: None,
-            }
-            if name == *"my_key"
-                && iv == Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap()
-                && mac == Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap()
-        )
+        let content = from_json_value::<SecretStorageKeyEventContent>(json).unwrap();
+        assert_eq!(content.name, "my_key");
+        assert_matches!(content.passphrase, None);
+
+        let (iv, mac) = assert_matches!(
+            content.algorithm,
+            SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
+                iv,
+                mac,
+            } => (iv, mac)
+        );
+        assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
+        assert_eq!(mac.encode(), "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U");
     }
 
     #[test]
@@ -194,29 +192,24 @@ mod tests {
             }
         });
 
-        assert_matches!(
-            from_json_value(json).unwrap(),
-            SecretStorageKeyEventContent {
-                key_id: _key,
-                name,
-                algorithm: SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
-                    iv,
-                    mac,
-                },
-                passphrase: Some(PassPhrase {
-                    algorithm: KeyDerivationAlgorithm::Pbkfd2,
-                    salt,
-                    iterations,
-                    bits
-                })
-            }
-            if name == *"my_key"
-                && iv == Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap()
-                && mac == Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap()
-                && salt == *"rocksalt"
-                && iterations == uint!(8)
-                && bits == uint!(256)
-        )
+        let content = from_json_value::<SecretStorageKeyEventContent>(json).unwrap();
+        assert_eq!(content.name, "my_key");
+
+        let passphrase = content.passphrase.unwrap();
+        assert_eq!(passphrase.algorithm, KeyDerivationAlgorithm::Pbkfd2);
+        assert_eq!(passphrase.salt, "rocksalt");
+        assert_eq!(passphrase.iterations, uint!(8));
+        assert_eq!(passphrase.bits, uint!(256));
+
+        let (iv, mac) = assert_matches!(
+            content.algorithm,
+            SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
+                iv,
+                mac,
+            } => (iv, mac)
+        );
+        assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
+        assert_eq!(mac.encode(), "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U");
     }
 
     #[test]
@@ -257,23 +250,20 @@ mod tests {
             }
         });
 
-        assert_matches!(
-            from_json_value(json).unwrap(),
-            GlobalAccountDataEvent {
-                content: SecretStorageKeyEventContent {
-                    key_id,
-                    name,
-                    algorithm: SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
-                        iv,
-                        mac,
-                    },
-                    passphrase: None,
-                }
-            }
-            if key_id == *"my_key_id"
-                && name == *"my_key"
-                && iv == Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap()
-                && mac == Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap()
-        )
+        let ev =
+            from_json_value::<GlobalAccountDataEvent<SecretStorageKeyEventContent>>(json).unwrap();
+        assert_eq!(ev.content.key_id, "my_key_id");
+        assert_eq!(ev.content.name, "my_key");
+        assert_matches!(ev.content.passphrase, None);
+
+        let (iv, mac) = assert_matches!(
+            ev.content.algorithm,
+            SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
+                iv,
+                mac,
+            } => (iv, mac)
+        );
+        assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
+        assert_eq!(mac.encode(), "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U");
     }
 }

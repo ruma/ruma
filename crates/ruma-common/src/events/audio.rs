@@ -16,7 +16,9 @@ use waveform_serde::WaveformSerDeHelper;
 use super::{
     file::FileContent,
     message::MessageContent,
-    room::message::{AudioInfo, AudioMessageEventContent, Relation},
+    room::message::{
+        AudioInfo, AudioMessageEventContent, MessageType, Relation, RoomMessageEventContent,
+    },
 };
 
 /// The payload for an extensible audio message.
@@ -87,14 +89,32 @@ impl AudioEventContent {
             #[cfg(feature = "unstable-msc3245")]
             voice: _,
         } = content;
+        let AudioInfo { duration, mimetype, size } = info.map(|info| *info).unwrap_or_default();
 
         let message = message.unwrap_or_else(|| MessageContent::plain(body));
         let file = file.unwrap_or_else(|| {
-            FileContent::from_room_message_content(source, info.as_deref(), None)
+            FileContent::from_room_message_content(source, None, mimetype, size)
         });
-        let audio = audio.or_else(|| info.as_deref().map(Into::into)).unwrap_or_default();
+        let audio = audio.unwrap_or_else(|| {
+            let mut content = AudioContent::new();
+            content.duration = duration;
+            content
+        });
 
         Self { message, file, audio, relates_to }
+    }
+}
+
+impl From<AudioEventContent> for RoomMessageEventContent {
+    fn from(content: AudioEventContent) -> Self {
+        let AudioEventContent { message, file, audio, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::Audio(AudioMessageEventContent::from_extensible_content(
+                message, file, audio,
+            )),
+            relates_to,
+        }
     }
 }
 
@@ -121,16 +141,14 @@ impl AudioContent {
         Self::default()
     }
 
+    /// Creates a new `AudioContent` with the given duration.
+    pub(crate) fn from_room_message_content(duration: Duration) -> Self {
+        Self { duration: Some(duration), ..Default::default() }
+    }
+
     /// Whether this `AudioContent` is empty.
     pub fn is_empty(&self) -> bool {
         self.duration.is_none() && self.waveform.is_none()
-    }
-}
-
-impl From<&AudioInfo> for AudioContent {
-    fn from(info: &AudioInfo) -> Self {
-        let AudioInfo { duration, .. } = info;
-        Self { duration: duration.to_owned(), ..Default::default() }
     }
 }
 

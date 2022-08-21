@@ -5,6 +5,8 @@
 //! See the documentation for the individual macros for usage details.
 
 #![warn(missing_docs)]
+// https://github.com/rust-lang/rust-clippy/issues/9029
+#![allow(clippy::derive_partial_eq_without_eq)]
 
 use identifiers::expand_id_zst;
 use proc_macro::TokenStream;
@@ -33,6 +35,7 @@ use self::{
     },
     identifiers::IdentifierInput,
     serde::{
+        as_str_as_ref_str::expand_as_str_as_ref_str,
         deserialize_from_cow_str::expand_deserialize_from_cow_str,
         display_as_ref_str::expand_display_as_ref_str,
         enum_as_ref_str::expand_enum_as_ref_str,
@@ -95,6 +98,20 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 }
 
 /// Generates an implementation of `ruma_common::events::EventContent`.
+///
+/// Also generates type aliases depending on the kind of event, with the final `Content` of the type
+/// name removed and prefixed added. For instance, a message-like event content type
+/// `FooEventContent` will have the following aliases generated:
+///
+/// * `type FooEvent = MessageLikeEvent<FooEventContent>`
+/// * `type SyncFooEvent = SyncMessageLikeEvent<FooEventContent>`
+/// * `type OriginalFooEvent = OriginalMessageLikeEvent<FooEventContent>`
+/// * `type OriginalSyncFooEvent = OriginalSyncMessageLikeEvent<FooEventContent>`
+/// * `type RedactedFooEvent = RedactedMessageLikeEvent<FooEventContent>`
+/// * `type RedactedSyncFooEvent = RedactedSyncMessageLikeEvent<FooEventContent>`
+///
+/// You can use `cargo doc` to find out more details, its `--document-private-items` flag also lets
+/// you generate documentation for binaries or private parts of a library.
 #[proc_macro_derive(EventContent, attributes(ruma_event))]
 pub fn derive_event_content(input: TokenStream) -> TokenStream {
     let ruma_common = import_ruma_common();
@@ -267,6 +284,13 @@ pub fn derive_enum_from_string(input: TokenStream) -> TokenStream {
 // FIXME: The following macros aren't actually interested in type details beyond name (and possibly
 //        generics in the future). They probably shouldn't use `DeriveInput`.
 
+/// Derive the `as_str()` method using the `AsRef<str>` implementation of the type.
+#[proc_macro_derive(AsStrAsRefStr, attributes(ruma_enum))]
+pub fn derive_as_str_as_ref_str(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_as_str_as_ref_str(&input.ident).unwrap_or_else(syn::Error::into_compile_error).into()
+}
+
 /// Derive the `fmt::Display` trait using the `AsRef<str>` implementation of the type.
 #[proc_macro_derive(DisplayAsRefStr)]
 pub fn derive_display_as_ref_str(input: TokenStream) -> TokenStream {
@@ -320,6 +344,7 @@ pub fn derive_string_enum(input: TokenStream) -> TokenStream {
     fn expand_all(input: ItemEnum) -> syn::Result<proc_macro2::TokenStream> {
         let as_ref_str_impl = expand_enum_as_ref_str(&input)?;
         let from_string_impl = expand_enum_from_string(&input)?;
+        let as_str_impl = expand_as_str_as_ref_str(&input.ident)?;
         let display_impl = expand_display_as_ref_str(&input.ident)?;
         let serialize_impl = expand_serialize_as_ref_str(&input.ident)?;
         let deserialize_impl = expand_deserialize_from_cow_str(&input.ident)?;
@@ -327,6 +352,7 @@ pub fn derive_string_enum(input: TokenStream) -> TokenStream {
         Ok(quote! {
             #as_ref_str_impl
             #from_string_impl
+            #as_str_impl
             #display_impl
             #serialize_impl
             #deserialize_impl
@@ -346,12 +372,8 @@ pub fn fake_derive_serde(_input: TokenStream) -> TokenStream {
     TokenStream::new()
 }
 
-/// A procedural macro for easily generating API endpoints.
-///
-/// Note that for technical reasons, the `ruma_api!` macro is only documented in [ruma-common], not
-/// here.
-///
-/// [ruma-common]: https://github.com/ruma/ruma/tree/main/ruma-common
+/// > ⚠ If this is the only documentation you see, please navigate to the docs for
+/// > `ruma_common::api::ruma_api`, where actual documentation can be found.
 #[proc_macro]
 pub fn ruma_api(input: TokenStream) -> TokenStream {
     let api = parse_macro_input!(input as Api);

@@ -29,10 +29,8 @@ fn poll_answers_deserialization_valid() {
         { "id": "bbb", "m.text": "Second answer" },
     ]);
 
-    assert_matches!(
-        from_json_value::<PollAnswers>(json_data),
-        Ok(answers) if answers.answers().len() == 2
-    );
+    let answers = from_json_value::<PollAnswers>(json_data).unwrap();
+    assert_eq!(answers.answers().len(), 2);
 }
 
 #[test]
@@ -62,10 +60,8 @@ fn poll_answers_deserialization_truncate() {
         { "id": "vvv", "m.text": "22th answer" },
     ]);
 
-    assert_matches!(
-        from_json_value::<PollAnswers>(json_data),
-        Ok(answers) if answers.answers().len() == 20
-    );
+    let answers = from_json_value::<PollAnswers>(json_data).unwrap();
+    assert_eq!(answers.answers().len(), 20);
 }
 
 #[test]
@@ -320,10 +316,11 @@ fn response_event_unstable_deserialization() {
     let answers = message_event.content.poll_response.answers;
     assert_eq!(answers.len(), 1);
     assert_eq!(answers[0], "my-answer");
-    assert_matches!(
+    let event_id = assert_matches!(
         message_event.content.relates_to,
-        ReferenceRelation { event_id, .. } if event_id == "$related_event:notareal.hs"
+        ReferenceRelation { event_id, .. } => event_id
     );
+    assert_eq!(event_id, "$related_event:notareal.hs");
 }
 
 #[test]
@@ -355,10 +352,11 @@ fn response_event_stable_deserialization() {
     assert_eq!(answers.len(), 2);
     assert_eq!(answers[0], "first-answer");
     assert_eq!(answers[1], "second-answer");
-    assert_matches!(
+    let event_id = assert_matches!(
         message_event.content.relates_to,
-        ReferenceRelation { event_id, .. } if event_id == "$related_event:notareal.hs"
+        ReferenceRelation { event_id, .. } => event_id
     );
+    assert_eq!(event_id, "$related_event:notareal.hs");
 }
 
 #[test]
@@ -435,10 +433,11 @@ fn end_event_unstable_deserialization() {
         event,
         AnyMessageLikeEvent::PollEnd(MessageLikeEvent::Original(message_event)) => message_event
     );
-    assert_matches!(
+    let event_id = assert_matches!(
         message_event.content.relates_to,
-        ReferenceRelation { event_id, .. } if event_id == "$related_event:notareal.hs"
+        ReferenceRelation { event_id, .. } => event_id
     );
+    assert_eq!(event_id, "$related_event:notareal.hs");
 }
 
 #[test]
@@ -463,8 +462,9 @@ fn end_event_stable_deserialization() {
         event,
         AnyMessageLikeEvent::PollEnd(MessageLikeEvent::Original(message_event)) => message_event
     );
-    assert_matches!(
+    let event_id = assert_matches!(
         message_event.content.relates_to,
-        ReferenceRelation { event_id, .. } if event_id == "$related_event:notareal.hs"
+        ReferenceRelation { event_id, .. } => event_id
     );
+    assert_eq!(event_id, "$related_event:notareal.hs");
 }

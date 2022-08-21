@@ -61,6 +61,17 @@ impl<T> Raw<T> {
         Self { json, _ev: PhantomData }
     }
 
+    /// Convert an owned `String` of JSON data to `Raw<T>`.
+    ///
+    /// This function is equivalent to `serde_json::from_str::<Raw<T>>` except that an allocation
+    /// and copy is avoided if both of the following are true:
+    ///
+    /// * the input has no leading or trailing whitespace, and
+    /// * the input has capacity equal to its length.
+    pub fn from_json_string(json: String) -> serde_json::Result<Self> {
+        RawJsonValue::from_string(json).map(Self::from_json)
+    }
+
     /// Access the underlying json value.
     pub fn json(&self) -> &RawJsonValue {
         &self.json
@@ -251,8 +262,8 @@ mod tests {
         assert_eq!(raw.get_field::<&RawJsonValue>("a")?.unwrap().get(), r#"{ "b": [  "c"] }"#);
         assert_eq!(raw.get_field::<A<'_>>("a")?, Some(A { b: vec!["c"] }));
 
-        assert!(raw.get_field::<u8>("b")?.is_none());
-        assert!(raw.get_field::<u8>("a").is_err());
+        assert_eq!(raw.get_field::<u8>("b")?, None);
+        raw.get_field::<u8>("a").unwrap_err();
 
         Ok(())
     }

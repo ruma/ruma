@@ -30,6 +30,7 @@ pub mod push;
 pub mod read_marker;
 pub mod receipt;
 pub mod redact;
+pub mod relations;
 pub mod room;
 pub mod search;
 pub mod server;

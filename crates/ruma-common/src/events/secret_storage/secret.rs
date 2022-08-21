@@ -47,9 +47,8 @@ mod tests {
     use assert_matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use crate::serde::Base64;
-
     use super::{SecretEncryptedData, SecretEventContent};
+    use crate::serde::Base64;
 
     #[test]
     fn test_secret_serialization() {
@@ -90,19 +89,18 @@ mod tests {
         });
 
         let deserialized: SecretEventContent = from_json_value(json).unwrap();
+        let secret_data = deserialized.encrypted.get("key_one").unwrap();
 
-        if let Some(secret_data) = deserialized.encrypted.get("key_one") {
-            assert_matches!(
-                secret_data,
-                SecretEncryptedData::AesHmacSha2EncryptedData {
-                    iv,
-                    ciphertext,
-                    mac
-                }
-                if iv == &Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap()
-                    && ciphertext == &Base64::parse("dGhpc2lzZGVmaW5pdGVseWNpcGhlcnRleHQ").unwrap()
-                    && mac == &Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap()
-            )
-        }
+        let (iv, ciphertext, mac) = assert_matches!(
+            secret_data,
+            SecretEncryptedData::AesHmacSha2EncryptedData {
+                iv,
+                ciphertext,
+                mac
+            } => (iv, ciphertext, mac)
+        );
+        assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
+        assert_eq!(ciphertext.encode(), "dGhpc2lzZGVmaW5pdGVseWNpcGhlcnRleHQ");
+        assert_eq!(mac.encode(), "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U");
     }
 }

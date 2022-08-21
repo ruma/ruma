@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "unstable-msc3552")]
 use super::{
-    file::FileContent,
+    file::{FileContent, FileContentInfo},
     image::{ImageContent, ThumbnailContent},
     message::MessageContent,
 };
@@ -96,13 +96,20 @@ impl StickerEventContent {
             #[cfg(feature = "unstable-msc3552")]
             message: Some(MessageContent::plain(body.clone())),
             #[cfg(feature = "unstable-msc3552")]
-            file: Some(FileContent::plain(url.clone(), Some(Box::new((&info).into())))),
+            file: Some(FileContent::plain(
+                url.clone(),
+                FileContentInfo::from_room_message_content(None, info.mimetype.clone(), info.size)
+                    .map(Box::new),
+            )),
             #[cfg(feature = "unstable-msc3552")]
-            image: Some(Box::new((&info).into())),
+            image: Some(Box::new(
+                ImageContent::from_room_message_content(info.width, info.height)
+                    .unwrap_or_default(),
+            )),
             #[cfg(feature = "unstable-msc3552")]
             thumbnail: ThumbnailContent::from_room_message_content(
-                info.thumbnail_source.as_ref(),
-                info.thumbnail_info.as_deref(),
+                info.thumbnail_source.clone(),
+                info.thumbnail_info.clone(),
             )
             .map(|thumbnail| vec![thumbnail]),
             #[cfg(feature = "unstable-msc3552")]

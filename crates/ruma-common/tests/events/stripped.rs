@@ -1,10 +1,11 @@
+use assert_matches::assert_matches;
 use js_int::uint;
 use ruma_common::{
     events::{
         room::{join_rules::JoinRule, topic::RoomTopicEventContent},
         AnyStrippedStateEvent, EmptyStateKey, StrippedStateEvent,
     },
-    mxc_uri, user_id, RoomName,
+    mxc_uri, user_id,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -73,37 +74,25 @@ fn deserialize_stripped_state_events() {
         }
     });
 
-    let event = from_json_value::<AnyStrippedStateEvent>(name_event).unwrap();
-    match event {
-        AnyStrippedStateEvent::RoomName(event) => {
-            assert_eq!(event.content.name, Some(Box::<RoomName>::try_from("Ruma").unwrap()));
-            assert_eq!(event.sender.to_string(), "@example:localhost");
-        }
-        _ => unreachable!(),
-    }
+    let ev = from_json_value::<AnyStrippedStateEvent>(name_event).unwrap();
+    let ev = assert_matches!(ev, AnyStrippedStateEvent::RoomName(ev) => ev);
+    assert_eq!(ev.content.name.as_deref(), Some("Ruma"));
+    assert_eq!(ev.sender.to_string(), "@example:localhost");
 
-    let event = from_json_value::<AnyStrippedStateEvent>(join_rules_event).unwrap();
-    match event {
-        AnyStrippedStateEvent::RoomJoinRules(event) => {
-            assert_eq!(event.content.join_rule, JoinRule::Public);
-            assert_eq!(event.sender.to_string(), "@example:localhost");
-        }
-        _ => unreachable!(),
-    }
+    let ev = from_json_value::<AnyStrippedStateEvent>(join_rules_event).unwrap();
+    let ev = assert_matches!(ev,AnyStrippedStateEvent::RoomJoinRules(ev)=>ev );
+    assert_eq!(ev.content.join_rule, JoinRule::Public);
+    assert_eq!(ev.sender.to_string(), "@example:localhost");
 
-    let event = from_json_value::<AnyStrippedStateEvent>(avatar_event).unwrap();
-    match event {
-        AnyStrippedStateEvent::RoomAvatar(event) => {
-            let image_info = event.content.info.unwrap();
+    let ev = from_json_value::<AnyStrippedStateEvent>(avatar_event).unwrap();
+    let ev = assert_matches!(ev, AnyStrippedStateEvent::RoomAvatar(ev) => ev);
+    assert_eq!(ev.content.url.unwrap(), mxc_uri!("mxc://example.com/iMag3"));
+    assert_eq!(ev.sender.to_string(), "@example:localhost");
 
-            assert_eq!(image_info.height.unwrap(), uint!(128));
-            assert_eq!(image_info.width.unwrap(), uint!(128));
-            assert_eq!(image_info.mimetype.unwrap(), "image/jpeg");
-            assert_eq!(image_info.size.unwrap(), uint!(1024));
-            assert_eq!(image_info.thumbnail_info.unwrap().size.unwrap(), uint!(32));
-            assert_eq!(event.content.url.unwrap(), mxc_uri!("mxc://example.com/iMag3"));
-            assert_eq!(event.sender.to_string(), "@example:localhost");
-        }
-        _ => unreachable!(),
-    }
+    let image_info = ev.content.info.unwrap();
+    assert_eq!(image_info.height, Some(uint!(128)));
+    assert_eq!(image_info.width, Some(uint!(128)));
+    assert_eq!(image_info.mimetype.as_deref(), Some("image/jpeg"));
+    assert_eq!(image_info.size, Some(uint!(1024)));
+    assert_eq!(image_info.thumbnail_info.unwrap().size, Some(uint!(32)));
 }

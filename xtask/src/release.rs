@@ -63,7 +63,7 @@ impl ReleaseTask {
             .clone()
             .into_iter()
             .find(|p| p.name == name)
-            .ok_or(format!("Package {} not found in cargo metadata", name))?;
+            .ok_or(format!("Package {name} not found in cargo metadata"))?;
 
         let config = crate::Config::load()?.github;
 
@@ -87,12 +87,11 @@ impl ReleaseTask {
         let publish_only = self.package.name == "ruma-identifiers-validation";
 
         println!(
-            "Starting {} for {}…",
+            "Starting {} for {title}…",
             match prerelease {
                 true => "pre-release",
                 false => "release",
             },
-            title
         );
 
         if self.is_released()? {
@@ -246,7 +245,7 @@ impl ReleaseTask {
 
         if !self.dry_run {
             let instructions = "Ready to commit the changes. [continue/abort/diff]: ";
-            print!("{}", instructions);
+            print!("{instructions}");
             stdout().flush()?;
 
             let mut handle = stdin.lock();
@@ -272,7 +271,7 @@ impl ReleaseTask {
                         println!("Unknown command.");
                     }
                 }
-                print!("{}", instructions);
+                print!("{instructions}");
                 stdout().flush()?;
 
                 input.clear();
@@ -292,11 +291,8 @@ impl ReleaseTask {
 
     /// Check if the tag for the current version of the crate has been pushed on GitHub.
     fn is_released(&self) -> Result<bool> {
-        let response = self.http_client.get(format!(
-            "{}/releases/tags/{}",
-            GITHUB_API_RUMA,
-            self.tag_name()
-        ))?;
+        let response =
+            self.http_client.get(format!("{GITHUB_API_RUMA}/releases/tags/{}", self.tag_name()))?;
 
         Ok(response.status() == StatusCode::OK)
     }
@@ -400,7 +396,7 @@ impl VersionExt for Version {
     fn increment_pre_number(&mut self) {
         if let Some((prefix, num)) = self.pre.as_str().rsplit_once('.') {
             if let Ok(num) = num.parse::<u8>() {
-                self.pre = semver::Prerelease::new(&format!("{}.{}", prefix, num + 1)).unwrap();
+                self.pre = semver::Prerelease::new(&format!("{prefix}.{}", num + 1)).unwrap();
             }
         }
     }

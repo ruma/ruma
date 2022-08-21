@@ -219,19 +219,14 @@ mod test {
             "request_id": "randomly_generated_id_9573"
         });
 
-        assert_matches!(
-            from_json_value(json).unwrap(),
-            ToDeviceSecretRequestEventContent {
-                action: RequestAction::Request(
-                    secret
-                ),
-                requesting_device_id,
-                request_id,
-            }
-            if secret == "org.example.some.secret".into()
-                    && requesting_device_id == "ABCDEFG"
-                    && request_id == "randomly_generated_id_9573"
-        )
+        let content = from_json_value::<ToDeviceSecretRequestEventContent>(json).unwrap();
+        assert_eq!(content.requesting_device_id, "ABCDEFG");
+        assert_eq!(content.request_id, "randomly_generated_id_9573");
+        let secret = assert_matches!(
+            content.action,
+            RequestAction::Request(secret) => secret
+        );
+        assert_eq!(secret.as_str(), "org.example.some.secret");
     }
 
     #[test]
@@ -242,16 +237,10 @@ mod test {
             "request_id": "randomly_generated_id_9573"
         });
 
-        assert_matches!(
-            from_json_value(json).unwrap(),
-            ToDeviceSecretRequestEventContent {
-                action: RequestAction::RequestCancellation,
-                requesting_device_id,
-                request_id,
-            }
-            if requesting_device_id.as_str() == "ABCDEFG"
-                    && request_id == "randomly_generated_id_9573"
-        )
+        let content = from_json_value::<ToDeviceSecretRequestEventContent>(json).unwrap();
+        assert_eq!(content.requesting_device_id, "ABCDEFG");
+        assert_eq!(content.request_id, "randomly_generated_id_9573");
+        assert_matches!(content.action, RequestAction::RequestCancellation);
     }
 
     #[test]
@@ -263,18 +252,14 @@ mod test {
             "request_id": "this_is_a_request_id"
         });
 
-        assert_matches!(
-            from_json_value(json).unwrap(),
-            ToDeviceSecretRequestEventContent {
-                action: RequestAction::Request(
-                    SecretName::RecoveryKey
-                ),
-                requesting_device_id,
-                request_id,
-            }
-            if requesting_device_id == "XYZxyz"
-                    && request_id == "this_is_a_request_id"
-        )
+        let content = from_json_value::<ToDeviceSecretRequestEventContent>(json).unwrap();
+        assert_eq!(content.requesting_device_id, "XYZxyz");
+        assert_eq!(content.request_id, "this_is_a_request_id");
+        let secret = assert_matches!(
+            content.action,
+            RequestAction::Request(secret) => secret
+        );
+        assert_eq!(secret, SecretName::RecoveryKey);
     }
 
     #[test]
@@ -285,16 +270,9 @@ mod test {
             "request_id": "this_is_a_request_id"
         });
 
-        assert_matches!(
-            from_json_value::<ToDeviceSecretRequestEventContent>(json).unwrap(),
-            ToDeviceSecretRequestEventContent {
-                action,
-                requesting_device_id,
-                request_id,
-            }
-            if action == RequestAction::_Custom(PrivOwnedStr("my_custom_action".into()))
-                && requesting_device_id == "XYZxyz"
-                && request_id == "this_is_a_request_id"
-        )
+        let content = from_json_value::<ToDeviceSecretRequestEventContent>(json).unwrap();
+        assert_eq!(content.requesting_device_id, "XYZxyz");
+        assert_eq!(content.request_id, "this_is_a_request_id");
+        assert_eq!(content.action, RequestAction::_Custom(PrivOwnedStr("my_custom_action".into())));
     }
 }

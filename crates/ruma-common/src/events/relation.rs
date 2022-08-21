@@ -1,15 +1,22 @@
-//! Types describing event relations after MSC 2674, 2675, 2676, 2677.
+//! Types describing [relationships between events].
+//!
+//! [relationships between events]: https://spec.matrix.org/v1.3/client-server-api/#forming-relationships-between-events
 
 use std::fmt::Debug;
 
+#[cfg(any(feature = "unstable-msc2677", feature = "unstable-msc3440"))]
 use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "unstable-msc3440")]
 use super::AnySyncMessageLikeEvent;
-use crate::{
-    serde::{Raw, StringEnum},
-    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedUserId, PrivOwnedStr,
-};
+#[cfg(feature = "unstable-msc3440")]
+use crate::serde::Raw;
+#[cfg(feature = "unstable-msc2677")]
+use crate::MilliSecondsSinceUnixEpoch;
+use crate::{serde::StringEnum, PrivOwnedStr};
+#[cfg(feature = "unstable-msc2676")]
+use crate::{OwnedEventId, OwnedUserId};
 
 /// Summary of all annotations to an event with the given key and type.
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq, Serialize)]
@@ -130,7 +137,9 @@ impl BundledThread {
     }
 }
 
-/// Precompiled list of relations to this event grouped by relation type.
+/// [Bundled aggregations] of related child events.
+///
+/// [Bundled aggregations]: https://spec.matrix.org/v1.3/client-server-api/#aggregations
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Relations {
@@ -155,4 +164,28 @@ impl Relations {
     pub fn new() -> Self {
         Self::default()
     }
+}
+
+/// Relation types as defined in `rel_type` of an `m.relates_to` field.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[non_exhaustive]
+pub enum RelationType {
+    /// `m.annotation`, an annotation, principally used by reactions.
+    #[cfg(feature = "unstable-msc2677")]
+    #[ruma_enum(rename = "m.annotation")]
+    Annotation,
+
+    /// `m.replace`, a replacement.
+    #[cfg(feature = "unstable-msc2676")]
+    #[ruma_enum(rename = "m.replace")]
+    Replacement,
+
+    /// `m.thread`, a participant to a thread.
+    #[cfg(feature = "unstable-msc3440")]
+    #[ruma_enum(rename = "io.element.thread", alias = "m.thread")]
+    Thread,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
 }

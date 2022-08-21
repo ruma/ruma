@@ -10,8 +10,7 @@ use ruma_common::{
         message::{MessageContent, MessageEventContent, Text},
         notice::NoticeEventContent,
         room::message::{
-            EmoteMessageEventContent, InReplyTo, MessageType, NoticeMessageEventContent, Relation,
-            RoomMessageEventContent, TextMessageEventContent,
+            EmoteMessageEventContent, InReplyTo, MessageType, Relation, RoomMessageEventContent,
         },
         AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
     },
@@ -21,10 +20,8 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 
 #[test]
 fn try_from_valid() {
-    assert_matches!(
-        MessageContent::try_from(vec![Text::plain("A message")]),
-        Ok(message) if message.len() == 1
-    );
+    let message = MessageContent::try_from(vec![Text::plain("A message")]).unwrap();
+    assert_eq!(message.len(), 1);
 }
 
 #[test]
@@ -40,10 +37,8 @@ fn html_content_serialization() {
     assert_eq!(
         to_json_value(&message_event_content).unwrap(),
         json!({
-            "org.matrix.msc1767.message": [
-                { "body": "Hello, <em>World</em>!", "mimetype": "text/html"},
-                { "body": "Hello, World!", "mimetype": "text/plain"},
-            ]
+            "org.matrix.msc1767.html": "Hello, <em>World</em>!",
+            "org.matrix.msc1767.text": "Hello, World!",
         })
     );
 }
@@ -62,6 +57,36 @@ fn plain_text_content_serialization() {
 }
 
 #[test]
+fn unknown_mimetype_content_serialization() {
+    let message_event_content = MessageEventContent::from(
+        MessageContent::try_from(vec![
+            Text::plain("> <@test:example.com> test\n\ntest reply"),
+            Text::new(
+                "application/json",
+                r#"{ "quote": "<@test:example.com> test", "reply": "test reply" }"#,
+            ),
+        ])
+        .unwrap(),
+    );
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "org.matrix.msc1767.message": [
+                {
+                    "body": "> <@test:example.com> test\n\ntest reply",
+                    "mimetype": "text/plain",
+                },
+                {
+                    "body": r#"{ "quote": "<@test:example.com> test", "reply": "test reply" }"#,
+                    "mimetype": "application/json",
+                },
+            ]
+        })
+    );
+}
+
+#[test]
 #[cfg(feature = "markdown")]
 fn markdown_content_serialization() {
     let formatted_message = MessageEventContent::markdown("Testing **bold** and _italic_!");
@@ -69,10 +94,8 @@ fn markdown_content_serialization() {
     assert_eq!(
         to_json_value(&formatted_message).unwrap(),
         json!({
-            "org.matrix.msc1767.message": [
-                { "body": "<p>Testing <strong>bold</strong> and <em>italic</em>!</p>\n", "mimetype": "text/html"},
-                { "body": "Testing **bold** and _italic_!", "mimetype": "text/plain"},
-            ]
+            "org.matrix.msc1767.html": "<p>Testing <strong>bold</strong> and <em>italic</em>!</p>\n",
+            "org.matrix.msc1767.text": "Testing **bold** and _italic_!",
         })
     );
 
@@ -91,10 +114,8 @@ fn markdown_content_serialization() {
     assert_eq!(
         to_json_value(&plain_message_paragraphs).unwrap(),
         json!({
-            "org.matrix.msc1767.message": [
-                { "body": "<p>Testing</p>\n<p>Several</p>\n<p>Paragraphs.</p>\n", "mimetype": "text/html"},
-                { "body": "Testing\n\nSeveral\n\nParagraphs.", "mimetype": "text/plain"},
-            ]
+            "org.matrix.msc1767.html": "<p>Testing</p>\n<p>Several</p>\n<p>Paragraphs.</p>\n",
+            "org.matrix.msc1767.text": "Testing\n\nSeveral\n\nParagraphs.",
         })
     );
 }
@@ -154,13 +175,9 @@ fn plain_text_content_unstable_deserialization() {
         "org.matrix.msc1767.text": "This is my body",
     });
 
-    assert_matches!(
-        from_json_value::<MessageEventContent>(json_data)
-            .unwrap(),
-        MessageEventContent { message, .. }
-        if message.find_plain() == Some("This is my body")
-            && message.find_html().is_none()
-    );
+    let content = from_json_value::<MessageEventContent>(json_data).unwrap();
+    assert_eq!(content.message.find_plain(), Some("This is my body"));
+    assert_eq!(content.message.find_html(), None);
 }
 
 #[test]
@@ -169,17 +186,59 @@ fn plain_text_content_stable_deserialization() {
         "m.text": "This is my body",
     });
 
-    assert_matches!(
-        from_json_value::<MessageEventContent>(json_data)
-            .unwrap(),
-        MessageEventContent { message, .. }
-        if message.find_plain() == Some("This is my body")
-            && message.find_html().is_none()
-    );
+    let content = from_json_value::<MessageEventContent>(json_data).unwrap();
+    assert_eq!(content.message.find_plain(), Some("This is my body"));
+    assert_eq!(content.message.find_html(), None);
 }
 
 #[test]
-fn html_text_content_unstable_deserialization() {
+fn html_content_unstable_deserialization() {
+    let json_data = json!({
+        "org.matrix.msc1767.html": "Hello, <em>New World</em>!",
+    });
+
+    let content = from_json_value::<MessageEventContent>(json_data).unwrap();
+    assert_eq!(content.message.find_plain(), None);
+    assert_eq!(content.message.find_html(), Some("Hello, <em>New World</em>!"));
+}
+
+#[test]
+fn html_content_stable_deserialization() {
+    let json_data = json!({
+        "m.html": "Hello, <em>New World</em>!",
+    });
+
+    let content = from_json_value::<MessageEventContent>(json_data).unwrap();
+    assert_eq!(content.message.find_plain(), None);
+    assert_eq!(content.message.find_html(), Some("Hello, <em>New World</em>!"));
+}
+
+#[test]
+fn html_and_text_content_unstable_deserialization() {
+    let json_data = json!({
+        "org.matrix.msc1767.html": "Hello, <em>New World</em>!",
+        "org.matrix.msc1767.text": "Hello, New World!",
+    });
+
+    let content = from_json_value::<MessageEventContent>(json_data).unwrap();
+    assert_eq!(content.message.find_plain(), Some("Hello, New World!"));
+    assert_eq!(content.message.find_html(), Some("Hello, <em>New World</em>!"));
+}
+
+#[test]
+fn html_and_text_content_stable_deserialization() {
+    let json_data = json!({
+        "m.html": "Hello, <em>New World</em>!",
+        "m.text": "Hello, New World!",
+    });
+
+    let content = from_json_value::<MessageEventContent>(json_data).unwrap();
+    assert_eq!(content.message.find_plain(), Some("Hello, New World!"));
+    assert_eq!(content.message.find_html(), Some("Hello, <em>New World</em>!"));
+}
+
+#[test]
+fn message_content_unstable_deserialization() {
     let json_data = json!({
         "org.matrix.msc1767.message": [
             { "body": "Hello, <em>New World</em>!", "mimetype": "text/html"},
@@ -187,17 +246,13 @@ fn html_text_content_unstable_deserialization() {
         ]
     });
 
-    assert_matches!(
-        from_json_value::<MessageEventContent>(json_data)
-            .unwrap(),
-        MessageEventContent { message, .. }
-        if message.find_plain() == Some("Hello, New World!")
-            && message.find_html() == Some("Hello, <em>New World</em>!")
-    );
+    let content = from_json_value::<MessageEventContent>(json_data).unwrap();
+    assert_eq!(content.message.find_plain(), Some("Hello, New World!"));
+    assert_eq!(content.message.find_html(), Some("Hello, <em>New World</em>!"));
 }
 
 #[test]
-fn html_text_content_stable_deserialization() {
+fn message_content_stable_deserialization() {
     let json_data = json!({
         "m.message": [
             { "body": "Hello, <em>New World</em>!", "mimetype": "text/html"},
@@ -205,13 +260,9 @@ fn html_text_content_stable_deserialization() {
         ]
     });
 
-    assert_matches!(
-        from_json_value::<MessageEventContent>(json_data)
-            .unwrap(),
-        MessageEventContent { message, .. }
-        if message.find_plain() == Some("Hello, New World!")
-            && message.find_html() == Some("Hello, <em>New World</em>!")
-    );
+    let content = from_json_value::<MessageEventContent>(json_data).unwrap();
+    assert_eq!(content.message.find_plain(), Some("Hello, New World!"));
+    assert_eq!(content.message.find_html(), Some("Hello, <em>New World</em>!"));
 }
 
 #[test]
@@ -225,18 +276,15 @@ fn relates_to_content_deserialization() {
         }
     });
 
-    assert_matches!(
-        from_json_value::<MessageEventContent>(json_data)
-            .unwrap(),
-        MessageEventContent {
-            message,
-            relates_to: Some(Relation::Reply { in_reply_to: InReplyTo { event_id, .. } }),
-            ..
-        }
-        if message.find_plain() == Some("> <@test:example.com> test\n\ntest reply")
-            && message.find_html().is_none()
-            && event_id == event_id!("$15827405538098VGFWH:example.com")
+    let content = from_json_value::<MessageEventContent>(json_data).unwrap();
+    assert_eq!(content.message.find_plain(), Some("> <@test:example.com> test\n\ntest reply"));
+    assert_eq!(content.message.find_html(), None);
+
+    let event_id = assert_matches!(
+        content.relates_to,
+        Some(Relation::Reply { in_reply_to: InReplyTo { event_id, .. } }) => event_id
     );
+    assert_eq!(event_id, "$15827405538098VGFWH:example.com");
 }
 
 #[test]
@@ -252,25 +300,16 @@ fn message_event_deserialization() {
         "type": "m.message",
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Message(MessageLikeEvent::Original(OriginalMessageLikeEvent {
-            content: MessageEventContent {
-                message,
-                ..
-            },
-            event_id,
-            origin_server_ts,
-            room_id,
-            sender,
-            unsigned
-        })) if event_id == event_id!("$event:notareal.hs")
-            && message.find_plain() == Some("Hello, World!")
-            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
-            && room_id == room_id!("!roomid:notareal.hs")
-            && sender == user_id!("@user:notareal.hs")
-            && unsigned.is_empty()
+    let message_event = assert_matches!(
+        from_json_value::<AnyMessageLikeEvent>(json_data),
+        Ok(AnyMessageLikeEvent::Message(MessageLikeEvent::Original(message_event))) => message_event
     );
+    assert_eq!(message_event.event_id, "$event:notareal.hs");
+    assert_eq!(message_event.content.message.find_plain(), Some("Hello, World!"));
+    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
+    assert_eq!(message_event.room_id, "!roomid:notareal.hs");
+    assert_eq!(message_event.sender, "@user:notareal.hs");
+    assert!(message_event.unsigned.is_empty());
 }
 
 #[test]
@@ -281,21 +320,17 @@ fn room_message_plain_text_stable_deserialization() {
         "m.text": "test",
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data)
-            .unwrap(),
-        RoomMessageEventContent {
-            msgtype: MessageType::Text(TextMessageEventContent {
-                body,
-                formatted: None,
-                message: Some(message),
-                ..
-            }),
+    let content = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data),
+        Ok(RoomMessageEventContent {
+            msgtype: MessageType::Text(content),
             ..
-        } if body == "test"
-          && message.len() == 1
-          && message[0].body == "test"
+        }) => content
     );
+    assert_eq!(content.body, "test");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 1);
+    assert_eq!(message[0].body, "test");
 }
 
 #[test]
@@ -306,25 +341,75 @@ fn room_message_plain_text_unstable_deserialization() {
         "org.matrix.msc1767.text": "test",
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data)
-            .unwrap(),
-        RoomMessageEventContent {
-            msgtype: MessageType::Text(TextMessageEventContent {
-                body,
-                formatted: None,
-                message: Some(message),
-                ..
-            }),
+    let content = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data),
+        Ok(RoomMessageEventContent {
+            msgtype: MessageType::Text(content),
             ..
-        } if body == "test"
-          && message.len() == 1
-          && message[0].body == "test"
+        }) => content
     );
+    assert_eq!(content.body, "test");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 1);
+    assert_eq!(message[0].body, "test");
 }
 
 #[test]
-fn room_message_html_text_stable_deserialization() {
+fn room_message_html_and_text_stable_deserialization() {
+    let json_data = json!({
+        "body": "test",
+        "formatted_body": "<h1>test</h1>",
+        "format": "org.matrix.custom.html",
+        "msgtype": "m.text",
+        "m.html": "<h1>test</h1>",
+        "m.text": "test",
+    });
+
+    let content = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data),
+        Ok(RoomMessageEventContent {
+            msgtype: MessageType::Text(content),
+            ..
+        }) => content
+    );
+    assert_eq!(content.body, "test");
+    let formatted = content.formatted.unwrap();
+    assert_eq!(formatted.body, "<h1>test</h1>");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 2);
+    assert_eq!(message[0].body, "<h1>test</h1>");
+    assert_eq!(message[1].body, "test");
+}
+
+#[test]
+fn room_message_html_and_text_unstable_deserialization() {
+    let json_data = json!({
+        "body": "test",
+        "formatted_body": "<h1>test</h1>",
+        "format": "org.matrix.custom.html",
+        "msgtype": "m.text",
+        "org.matrix.msc1767.html": "<h1>test</h1>",
+        "org.matrix.msc1767.text": "test",
+    });
+
+    let content = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data),
+        Ok(RoomMessageEventContent {
+            msgtype: MessageType::Text(content),
+            ..
+        }) => content
+    );
+    assert_eq!(content.body, "test");
+    let formatted = content.formatted.unwrap();
+    assert_eq!(formatted.body, "<h1>test</h1>");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 2);
+    assert_eq!(message[0].body, "<h1>test</h1>");
+    assert_eq!(message[1].body, "test");
+}
+
+#[test]
+fn room_message_message_stable_deserialization() {
     let json_data = json!({
         "body": "test",
         "formatted_body": "<h1>test</h1>",
@@ -336,27 +421,24 @@ fn room_message_html_text_stable_deserialization() {
         ],
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data)
-            .unwrap(),
-        RoomMessageEventContent {
-            msgtype: MessageType::Text(TextMessageEventContent {
-                body,
-                formatted: Some(formatted),
-                message: Some(message),
-                ..
-            }),
+    let content = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data),
+        Ok(RoomMessageEventContent {
+            msgtype: MessageType::Text(content),
             ..
-        } if body == "test"
-            && formatted.body == "<h1>test</h1>"
-            && message.len() == 2
-            && message[0].body == "<h1>test</h1>"
-            && message[1].body == "test"
+        }) => content
     );
+    assert_eq!(content.body, "test");
+    let formatted = content.formatted.unwrap();
+    assert_eq!(formatted.body, "<h1>test</h1>");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 2);
+    assert_eq!(message[0].body, "<h1>test</h1>");
+    assert_eq!(message[1].body, "test");
 }
 
 #[test]
-fn room_message_html_text_unstable_deserialization() {
+fn room_message_message_unstable_deserialization() {
     let json_data = json!({
         "body": "test",
         "formatted_body": "<h1>test</h1>",
@@ -368,23 +450,20 @@ fn room_message_html_text_unstable_deserialization() {
         ],
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data)
-            .unwrap(),
-        RoomMessageEventContent {
-            msgtype: MessageType::Text(TextMessageEventContent {
-                body,
-                formatted: Some(formatted),
-                message: Some(message),
-                ..
-            }),
+    let content = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data),
+        Ok(RoomMessageEventContent {
+            msgtype: MessageType::Text(content),
             ..
-        } if body == "test"
-            && formatted.body == "<h1>test</h1>"
-            && message.len() == 2
-            && message[0].body == "<h1>test</h1>"
-            && message[1].body == "test"
+        }) => content
     );
+    assert_eq!(content.body, "test");
+    let formatted = content.formatted.unwrap();
+    assert_eq!(formatted.body, "<h1>test</h1>");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 2);
+    assert_eq!(message[0].body, "<h1>test</h1>");
+    assert_eq!(message[1].body, "test");
 }
 
 #[test]
@@ -444,26 +523,20 @@ fn notice_event_stable_deserialization() {
         "type": "m.notice",
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Notice(MessageLikeEvent::Original(OriginalMessageLikeEvent {
-            content: NoticeEventContent {
-                message,
-                ..
-            },
-            event_id,
-            origin_server_ts,
-            room_id,
-            sender,
-            unsigned
-        })) if event_id == event_id!("$event:notareal.hs")
-            && message.find_plain() == Some("Hello, I'm a robot!")
-            && message.find_html() == Some("Hello, I'm a <em>robot</em>!")
-            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
-            && room_id == room_id!("!roomid:notareal.hs")
-            && sender == user_id!("@user:notareal.hs")
-            && unsigned.is_empty()
+    let message_event = assert_matches!(
+        from_json_value::<AnyMessageLikeEvent>(json_data),
+        Ok(AnyMessageLikeEvent::Notice(MessageLikeEvent::Original(message_event))) => message_event
     );
+
+    assert_eq!(message_event.event_id, "$event:notareal.hs");
+    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
+    assert_eq!(message_event.room_id, "!roomid:notareal.hs");
+    assert_eq!(message_event.sender, "@user:notareal.hs");
+    assert!(message_event.unsigned.is_empty());
+
+    let message = message_event.content.message;
+    assert_eq!(message.find_plain(), Some("Hello, I'm a robot!"));
+    assert_eq!(message.find_html(), Some("Hello, I'm a <em>robot</em>!"));
 }
 
 #[test]
@@ -482,26 +555,20 @@ fn notice_event_unstable_deserialization() {
         "type": "m.notice",
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Notice(MessageLikeEvent::Original(OriginalMessageLikeEvent {
-            content: NoticeEventContent {
-                message,
-                ..
-            },
-            event_id,
-            origin_server_ts,
-            room_id,
-            sender,
-            unsigned
-        })) if event_id == event_id!("$event:notareal.hs")
-            && message.find_plain() == Some("Hello, I'm a robot!")
-            && message.find_html() == Some("Hello, I'm a <em>robot</em>!")
-            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
-            && room_id == room_id!("!roomid:notareal.hs")
-            && sender == user_id!("@user:notareal.hs")
-            && unsigned.is_empty()
+    let message_event = assert_matches!(
+        from_json_value::<AnyMessageLikeEvent>(json_data),
+        Ok(AnyMessageLikeEvent::Notice(MessageLikeEvent::Original(message_event))) => message_event
     );
+
+    assert_eq!(message_event.event_id, "$event:notareal.hs");
+    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
+    assert_eq!(message_event.room_id, "!roomid:notareal.hs");
+    assert_eq!(message_event.sender, "@user:notareal.hs");
+    assert!(message_event.unsigned.is_empty());
+
+    let message = message_event.content.message;
+    assert_eq!(message.find_plain(), Some("Hello, I'm a robot!"));
+    assert_eq!(message.find_html(), Some("Hello, I'm a <em>robot</em>!"));
 }
 
 #[test]
@@ -512,21 +579,17 @@ fn room_message_notice_stable_deserialization() {
         "m.text": "test",
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data)
-            .unwrap(),
-        RoomMessageEventContent {
-            msgtype: MessageType::Notice(NoticeMessageEventContent {
-                body,
-                formatted: None,
-                message: Some(message),
-                ..
-            }),
+    let content = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data),
+        Ok(RoomMessageEventContent {
+            msgtype: MessageType::Notice(content),
             ..
-        } if body == "test"
-          && message.len() == 1
-          && message[0].body == "test"
+        }) => content
     );
+    assert_eq!(content.body, "test");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 1);
+    assert_eq!(message[0].body, "test");
 }
 
 #[test]
@@ -537,21 +600,17 @@ fn room_message_notice_unstable_deserialization() {
         "org.matrix.msc1767.text": "test",
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data)
-            .unwrap(),
-        RoomMessageEventContent {
-            msgtype: MessageType::Notice(NoticeMessageEventContent {
-                body,
-                formatted: None,
-                message: Some(message),
-                ..
-            }),
+    let content = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data),
+        Ok(RoomMessageEventContent {
+            msgtype: MessageType::Notice(content),
             ..
-        } if body == "test"
-          && message.len() == 1
-          && message[0].body == "test"
+        }) => content
     );
+    assert_eq!(content.body, "test");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 1);
+    assert_eq!(message[0].body, "test");
 }
 
 #[test]
@@ -572,10 +631,8 @@ fn emote_event_serialization() {
         to_json_value(&event).unwrap(),
         json!({
             "content": {
-                "org.matrix.msc1767.message": [
-                    { "body": "is testing some <code>code</code>…", "mimetype": "text/html" },
-                    { "body": "is testing some code…", "mimetype": "text/plain" },
-                ]
+                "org.matrix.msc1767.html": "is testing some <code>code</code>…",
+                "org.matrix.msc1767.text": "is testing some code…",
             },
             "event_id": "$event:notareal.hs",
             "origin_server_ts": 134_829_848,
@@ -615,26 +672,20 @@ fn emote_event_stable_deserialization() {
         "type": "m.emote",
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Emote(MessageLikeEvent::Original(OriginalMessageLikeEvent {
-            content: EmoteEventContent {
-                message,
-                ..
-            },
-            event_id,
-            origin_server_ts,
-            room_id,
-            sender,
-            unsigned
-        })) if event_id == event_id!("$event:notareal.hs")
-            && message.find_plain() == Some("is testing some code…")
-            && message.find_html().is_none()
-            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
-            && room_id == room_id!("!roomid:notareal.hs")
-            && sender == user_id!("@user:notareal.hs")
-            && unsigned.is_empty()
+    let message_event = assert_matches!(
+        from_json_value::<AnyMessageLikeEvent>(json_data),
+        Ok(AnyMessageLikeEvent::Emote(MessageLikeEvent::Original(message_event))) => message_event
     );
+
+    assert_eq!(message_event.event_id, "$event:notareal.hs");
+    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
+    assert_eq!(message_event.room_id, "!roomid:notareal.hs");
+    assert_eq!(message_event.sender, "@user:notareal.hs");
+    assert!(message_event.unsigned.is_empty());
+
+    let message = message_event.content.message;
+    assert_eq!(message.find_plain(), Some("is testing some code…"));
+    assert_eq!(message.find_html(), None);
 }
 
 #[test]
@@ -650,26 +701,20 @@ fn emote_event_unstable_deserialization() {
         "type": "m.emote",
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Emote(MessageLikeEvent::Original(OriginalMessageLikeEvent {
-            content: EmoteEventContent {
-                message,
-                ..
-            },
-            event_id,
-            origin_server_ts,
-            room_id,
-            sender,
-            unsigned
-        })) if event_id == event_id!("$event:notareal.hs")
-            && message.find_plain() == Some("is testing some code…")
-            && message.find_html().is_none()
-            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(134_829_848))
-            && room_id == room_id!("!roomid:notareal.hs")
-            && sender == user_id!("@user:notareal.hs")
-            && unsigned.is_empty()
+    let message_event = assert_matches!(
+        from_json_value::<AnyMessageLikeEvent>(json_data),
+        Ok(AnyMessageLikeEvent::Emote(MessageLikeEvent::Original(message_event))) => message_event
     );
+
+    assert_eq!(message_event.event_id, "$event:notareal.hs");
+    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
+    assert_eq!(message_event.room_id, "!roomid:notareal.hs");
+    assert_eq!(message_event.sender, "@user:notareal.hs");
+    assert!(message_event.unsigned.is_empty());
+
+    let message = message_event.content.message;
+    assert_eq!(message.find_plain(), Some("is testing some code…"));
+    assert_eq!(message.find_html(), None);
 }
 
 #[test]
@@ -680,21 +725,17 @@ fn room_message_emote_stable_deserialization() {
         "m.text": "test",
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data)
-            .unwrap(),
-        RoomMessageEventContent {
-            msgtype: MessageType::Emote(EmoteMessageEventContent {
-                body,
-                formatted: None,
-                message: Some(message),
-                ..
-            }),
+    let content = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data),
+        Ok(RoomMessageEventContent {
+            msgtype: MessageType::Emote(content),
             ..
-        } if body == "test"
-          && message.len() == 1
-          && message[0].body == "test"
+        }) => content
     );
+    assert_eq!(content.body, "test");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 1);
+    assert_eq!(message[0].body, "test");
 }
 
 #[test]
@@ -705,21 +746,17 @@ fn room_message_emote_unstable_deserialization() {
         "org.matrix.msc1767.text": "test",
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data)
-            .unwrap(),
-        RoomMessageEventContent {
-            msgtype: MessageType::Emote(EmoteMessageEventContent {
-                body,
-                formatted: None,
-                message: Some(message),
-                ..
-            }),
+    let content = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data),
+        Ok(RoomMessageEventContent {
+            msgtype: MessageType::Emote(content),
             ..
-        } if body == "test"
-          && message.len() == 1
-          && message[0].body == "test"
+        }) => content
     );
+    assert_eq!(content.body, "test");
+    let message = content.message.unwrap();
+    assert_eq!(message.len(), 1);
+    assert_eq!(message[0].body, "test");
 }
 
 #[test]

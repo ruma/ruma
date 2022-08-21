@@ -127,13 +127,6 @@ pub enum CancelCode {
     _Custom(PrivOwnedStr),
 }
 
-impl CancelCode {
-    /// Creates a string slice from this `CancelCode`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};

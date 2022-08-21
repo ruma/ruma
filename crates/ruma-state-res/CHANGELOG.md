@@ -1,5 +1,19 @@
 # [unreleased]
 
+Bug fixes:
+
+* Change default `invite` power level to `0`
+  * The spec was determined to be wrong about the default:
+    <https://github.com/matrix-org/matrix-spec/pull/1021>
+
+Improvements:
+
+* Add `m.federate` to `auth_check`:
+  <https://github.com/matrix-org/matrix-spec/pull/1103>
+* Add `RoomVersion::V10` (MSC3604)
+* Deserialize stringified integers for power levels without the `compat` feature
+  * Removes the `compat` feature
+
 # 0.7.0
 
 Breaking changes:

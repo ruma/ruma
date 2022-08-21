@@ -1,46 +1,219 @@
-//! Helper module for the Serialize / Deserialize impl's for the User struct
+//! Helper module for the Serialize / Deserialize impl's for the UserIdentifier struct
 //! in the parent module.
 
-use ruma_common::{serde::Incoming, thirdparty::Medium};
-use serde::Serialize;
+use ruma_common::{serde::from_raw_json_value, thirdparty::Medium};
+use serde::{de, ser::SerializeStruct, Deserialize, Deserializer, Serialize};
+use serde_json::value::RawValue as RawJsonValue;
 
-// The following structs could just be used in place of the one in the parent module, but
-// that one is arguably much easier to deal with.
-#[derive(Clone, Debug, PartialEq, Eq, Incoming, Serialize)]
-#[serde(tag = "type")]
-pub(crate) enum UserIdentifier<'a> {
-    #[serde(rename = "m.id.user")]
-    UserIdOrLocalpart { user: &'a str },
-    #[serde(rename = "m.id.thirdparty")]
-    ThirdPartyId { medium: Medium, address: &'a str },
-    #[serde(rename = "m.id.phone")]
-    PhoneNumber { country: &'a str, phone: &'a str },
+use super::{
+    CustomThirdPartyId, IncomingCustomThirdPartyId, IncomingUserIdentifier, UserIdentifier,
+};
+
+impl<'a> Serialize for UserIdentifier<'a> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut id;
+        match self {
+            Self::UserIdOrLocalpart(user) => {
+                id = serializer.serialize_struct("UserIdentifier", 2)?;
+                id.serialize_field("type", "m.id.user")?;
+                id.serialize_field("user", user)?;
+            }
+            Self::PhoneNumber { country, phone } => {
+                id = serializer.serialize_struct("UserIdentifier", 3)?;
+                id.serialize_field("type", "m.id.phone")?;
+                id.serialize_field("country", country)?;
+                id.serialize_field("phone", phone)?;
+            }
+            Self::Email { address } => {
+                id = serializer.serialize_struct("UserIdentifier", 3)?;
+                id.serialize_field("type", "m.id.thirdparty")?;
+                id.serialize_field("medium", &Medium::Email)?;
+                id.serialize_field("address", address)?;
+            }
+            Self::Msisdn { number } => {
+                id = serializer.serialize_struct("UserIdentifier", 3)?;
+                id.serialize_field("type", "m.id.thirdparty")?;
+                id.serialize_field("medium", &Medium::Msisdn)?;
+                id.serialize_field("address", number)?;
+            }
+            Self::_CustomThirdParty(CustomThirdPartyId { medium, address }) => {
+                id = serializer.serialize_struct("UserIdentifier", 3)?;
+                id.serialize_field("type", "m.id.thirdparty")?;
+                id.serialize_field("medium", &medium)?;
+                id.serialize_field("address", address)?;
+            }
+        }
+        id.end()
+    }
 }
 
-impl<'a> From<super::UserIdentifier<'a>> for UserIdentifier<'a> {
-    fn from(id: super::UserIdentifier<'a>) -> Self {
-        use UserIdentifier as SerdeId;
+impl<'de> Deserialize<'de> for IncomingUserIdentifier {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
 
-        use super::UserIdentifier as SuperId;
+        #[derive(Deserialize)]
+        #[serde(tag = "type")]
+        enum ExtractType {
+            #[serde(rename = "m.id.user")]
+            User,
+            #[serde(rename = "m.id.phone")]
+            Phone,
+            #[serde(rename = "m.id.thirdparty")]
+            ThirdParty,
+        }
 
-        match id {
-            SuperId::UserIdOrLocalpart(user) => SerdeId::UserIdOrLocalpart { user },
-            SuperId::ThirdPartyId { address, medium } => SerdeId::ThirdPartyId { address, medium },
-            SuperId::PhoneNumber { country, phone } => SerdeId::PhoneNumber { country, phone },
+        #[derive(Deserialize)]
+        struct UserIdOrLocalpart {
+            user: String,
+        }
+
+        #[derive(Deserialize)]
+        struct ThirdPartyId {
+            medium: Medium,
+            address: String,
+        }
+
+        #[derive(Deserialize)]
+        struct PhoneNumber {
+            country: String,
+            phone: String,
+        }
+
+        let id_type = serde_json::from_str::<ExtractType>(json.get()).map_err(de::Error::custom)?;
+
+        match id_type {
+            ExtractType::User => from_raw_json_value(&json)
+                .map(|user_id: UserIdOrLocalpart| Self::UserIdOrLocalpart(user_id.user)),
+            ExtractType::Phone => from_raw_json_value(&json)
+                .map(|nb: PhoneNumber| Self::PhoneNumber { country: nb.country, phone: nb.phone }),
+            ExtractType::ThirdParty => {
+                let ThirdPartyId { medium, address } = from_raw_json_value(&json)?;
+                match medium {
+                    Medium::Email => Ok(Self::Email { address }),
+                    Medium::Msisdn => Ok(Self::Msisdn { number: address }),
+                    _ => {
+                        Ok(Self::_CustomThirdParty(IncomingCustomThirdPartyId { medium, address }))
+                    }
+                }
+            }
         }
     }
 }
 
-impl From<IncomingUserIdentifier> for super::IncomingUserIdentifier {
-    fn from(id: IncomingUserIdentifier) -> super::IncomingUserIdentifier {
-        use IncomingUserIdentifier as SerdeId;
+#[cfg(test)]
+mod tests {
+    use crate::uiaa::{IncomingUserIdentifier, UserIdentifier};
+    use assert_matches::assert_matches;
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-        use super::IncomingUserIdentifier as SuperId;
+    #[test]
+    fn serialize() {
+        assert_eq!(
+            to_json_value(UserIdentifier::UserIdOrLocalpart("@user:notareal.hs")).unwrap(),
+            json!({
+                "type": "m.id.user",
+                "user": "@user:notareal.hs",
+            })
+        );
 
-        match id {
-            SerdeId::UserIdOrLocalpart { user } => SuperId::UserIdOrLocalpart(user),
-            SerdeId::ThirdPartyId { address, medium } => SuperId::ThirdPartyId { address, medium },
-            SerdeId::PhoneNumber { country, phone } => SuperId::PhoneNumber { country, phone },
-        }
+        assert_eq!(
+            to_json_value(UserIdentifier::PhoneNumber { country: "33", phone: "0102030405" })
+                .unwrap(),
+            json!({
+                "type": "m.id.phone",
+                "country": "33",
+                "phone": "0102030405",
+            })
+        );
+
+        assert_eq!(
+            to_json_value(UserIdentifier::Email { address: "me@myprovider.net" }).unwrap(),
+            json!({
+                "type": "m.id.thirdparty",
+                "medium": "email",
+                "address": "me@myprovider.net",
+            })
+        );
+
+        assert_eq!(
+            to_json_value(UserIdentifier::Msisdn { number: "330102030405" }).unwrap(),
+            json!({
+                "type": "m.id.thirdparty",
+                "medium": "msisdn",
+                "address": "330102030405",
+            })
+        );
+
+        assert_eq!(
+            to_json_value(UserIdentifier::third_party_id(&"robot".into(), "01001110")).unwrap(),
+            json!({
+                "type": "m.id.thirdparty",
+                "medium": "robot",
+                "address": "01001110",
+            })
+        );
+    }
+
+    #[test]
+    fn deserialize() {
+        let json = json!({
+            "type": "m.id.user",
+            "user": "@user:notareal.hs",
+        });
+        let user = assert_matches!(
+            from_json_value(json),
+            Ok(IncomingUserIdentifier::UserIdOrLocalpart(user)) => user
+        );
+        assert_eq!(user, "@user:notareal.hs");
+
+        let json = json!({
+            "type": "m.id.phone",
+            "country": "33",
+            "phone": "0102030405",
+        });
+        let (country, phone) = assert_matches!(
+            from_json_value(json),
+            Ok(IncomingUserIdentifier::PhoneNumber { country, phone }) => (country, phone)
+        );
+        assert_eq!(country, "33");
+        assert_eq!(phone, "0102030405");
+
+        let json = json!({
+            "type": "m.id.thirdparty",
+            "medium": "email",
+            "address": "me@myprovider.net",
+        });
+        let address = assert_matches!(
+            from_json_value(json),
+            Ok(IncomingUserIdentifier::Email { address }) => address
+        );
+        assert_eq!(address, "me@myprovider.net");
+
+        let json = json!({
+            "type": "m.id.thirdparty",
+            "medium": "msisdn",
+            "address": "330102030405",
+        });
+        let number = assert_matches!(
+            from_json_value(json),
+            Ok(IncomingUserIdentifier::Msisdn { number }) => number
+        );
+        assert_eq!(number, "330102030405");
+
+        let json = json!({
+            "type": "m.id.thirdparty",
+            "medium": "robot",
+            "address": "01110010",
+        });
+        let id = from_json_value::<IncomingUserIdentifier>(json).unwrap();
+        let (medium, address) = id.to_outgoing().as_third_party_id().unwrap();
+        assert_eq!(medium.as_str(), "robot");
+        assert_eq!(address, "01110010");
     }
 }

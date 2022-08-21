@@ -25,7 +25,7 @@ pub fn collect_lifetime_idents(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
         }
     }
 
-    Visitor(lifetimes).visit_type(ty)
+    Visitor(lifetimes).visit_type(ty);
 }
 
 pub fn all_cfgs_expr(cfgs: &[Attribute]) -> Option<TokenStream> {

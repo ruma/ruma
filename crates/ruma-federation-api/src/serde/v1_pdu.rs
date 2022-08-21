@@ -136,7 +136,7 @@ mod tests {
         assert_eq!(
             failed_room_state.unwrap_err().to_string(),
             "invalid type: map, expected a PDU wrapped in an array.",
-        )
+        );
     }
 
     #[test]

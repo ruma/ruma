@@ -43,6 +43,12 @@ event_enum! {
         "m.call.invite" => super::call::invite,
         "m.call.hangup" => super::call::hangup,
         "m.call.candidates" => super::call::candidates,
+        #[cfg(feature = "unstable-msc2746")]
+        "m.call.negotiate" => super::call::negotiate,
+        #[cfg(feature = "unstable-msc2746")]
+        "m.call.reject" => super::call::reject,
+        #[cfg(feature = "unstable-msc2746")]
+        "m.call.select_answer" => super::call::select_answer,
         #[cfg(feature = "unstable-msc1767")]
         "m.emote" => super::emote,
         #[cfg(feature = "unstable-msc3551")]
@@ -75,7 +81,6 @@ event_enum! {
         "m.reaction" => super::reaction,
         "m.room.encrypted" => super::room::encrypted,
         "m.room.message" => super::room::message,
-        "m.room.message.feedback" => super::room::message::feedback,
         "m.room.redaction" => super::room::redaction,
         "m.sticker" => super::sticker,
         #[cfg(feature = "unstable-msc3553")]
@@ -346,11 +351,12 @@ impl AnyMessageLikeEventContent {
             }
             #[cfg(feature = "unstable-msc3381")]
             Self::PollStart(_) => None,
+            #[cfg(feature = "unstable-msc2746")]
+            Self::CallNegotiate(_) | Self::CallReject(_) | Self::CallSelectAnswer(_) => None,
             Self::CallAnswer(_)
             | Self::CallInvite(_)
             | Self::CallHangup(_)
             | Self::CallCandidates(_)
-            | Self::RoomMessageFeedback(_)
             | Self::RoomRedaction(_)
             | Self::Sticker(_)
             | Self::_Custom { .. } => None,

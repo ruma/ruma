@@ -562,38 +562,67 @@ pub struct IncomingCustomAuthData {
 }
 
 /// Identification information for the user.
-#[derive(Clone, Debug, PartialEq, Eq, Incoming, Serialize)]
-#[serde(from = "user_serde::IncomingUserIdentifier", into = "user_serde::UserIdentifier<'_>")]
+#[derive(Clone, Debug, PartialEq, Eq, Incoming)]
+#[incoming_derive(!Deserialize)]
 #[allow(clippy::exhaustive_enums)]
 pub enum UserIdentifier<'a> {
     /// Either a fully qualified Matrix user ID, or just the localpart (as part of the 'identifier'
     /// field).
     UserIdOrLocalpart(&'a str),
 
-    /// Third party identifier (as part of the 'identifier' field).
-    ThirdPartyId {
-        /// Third party identifier for the user.
+    /// An email address.
+    Email {
+        /// The email address.
         address: &'a str,
-
-        /// The medium of the identifier.
-        medium: Medium,
     },
 
-    /// Same as third-party identification with medium == msisdn, but with a non-canonicalised
-    /// phone number.
+    /// A phone number in the MSISDN format.
+    Msisdn {
+        /// The phone number according to the [E.164] numbering plan.
+        ///
+        /// [E.164]: https://www.itu.int/rec/T-REC-E.164-201011-I/en
+        number: &'a str,
+    },
+
+    /// A phone number as a separate country code and phone number.
+    ///
+    /// The homeserver will be responsible for canonicalizing this to the MSISDN format.
     PhoneNumber {
         /// The country that the phone number is from.
+        ///
+        /// This is a two-letter uppercase [ISO-3166-1 alpha-2] country code.
+        ///
+        /// [ISO-3166-1 alpha-2]: https://www.iso.org/iso-3166-country-codes.html
         country: &'a str,
 
         /// The phone number.
         phone: &'a str,
     },
+
+    #[doc(hidden)]
+    _CustomThirdParty(CustomThirdPartyId<'a>),
 }
 
 impl<'a> UserIdentifier<'a> {
-    /// Creates a [`UserIdentifier::ThirdPartyId`] from an email address.
-    pub fn email(address: &'a str) -> Self {
-        Self::ThirdPartyId { address, medium: Medium::Email }
+    /// Creates a new `UserIdentifier` from the given third party identifier.
+    pub fn third_party_id(medium: &'a Medium, address: &'a str) -> Self {
+        match medium {
+            Medium::Email => Self::Email { address },
+            Medium::Msisdn => Self::Msisdn { number: address },
+            _ => Self::_CustomThirdParty(CustomThirdPartyId { medium, address }),
+        }
+    }
+
+    /// Get this `UserIdentifier` as a third party identifier if it is one.
+    pub fn as_third_party_id(&self) -> Option<(&'a Medium, &'a str)> {
+        match self {
+            Self::Email { address } => Some((&Medium::Email, address)),
+            Self::Msisdn { number } => Some((&Medium::Msisdn, number)),
+            Self::_CustomThirdParty(CustomThirdPartyId { medium, address }) => {
+                Some((medium, address))
+            }
+            _ => None,
+        }
     }
 }
 
@@ -613,12 +642,31 @@ impl IncomingUserIdentifier {
     pub(crate) fn to_outgoing(&self) -> UserIdentifier<'_> {
         match self {
             Self::UserIdOrLocalpart(id) => UserIdentifier::UserIdOrLocalpart(id),
-            Self::ThirdPartyId { address, medium } => {
-                UserIdentifier::ThirdPartyId { address, medium: medium.clone() }
-            }
+            Self::Email { address } => UserIdentifier::Email { address },
+            Self::Msisdn { number } => UserIdentifier::Msisdn { number },
             Self::PhoneNumber { country, phone } => UserIdentifier::PhoneNumber { country, phone },
+            Self::_CustomThirdParty(id) => UserIdentifier::_CustomThirdParty(CustomThirdPartyId {
+                medium: &id.medium,
+                address: &id.address,
+            }),
         }
     }
+}
+
+#[doc(hidden)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[non_exhaustive]
+pub struct CustomThirdPartyId<'a> {
+    medium: &'a Medium,
+    address: &'a str,
+}
+
+#[doc(hidden)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[non_exhaustive]
+pub struct IncomingCustomThirdPartyId {
+    medium: Medium,
+    address: String,
 }
 
 /// Credentials for third-party authentication (e.g. email / phone number).
@@ -717,7 +765,7 @@ impl fmt::Display for UiaaResponse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::AuthResponse(_) => write!(f, "User-Interactive Authentication required."),
-            Self::MatrixError(err) => write!(f, "{}", err),
+            Self::MatrixError(err) => write!(f, "{err}"),
         }
     }
 }

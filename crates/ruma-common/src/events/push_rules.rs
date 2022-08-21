@@ -235,6 +235,6 @@ mod tests {
             "type": "m.push_rules"
         });
 
-        assert!(from_json_value::<PushRulesEvent>(json_data).is_ok());
+        from_json_value::<PushRulesEvent>(json_data).unwrap();
     }
 }

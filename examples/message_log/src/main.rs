@@ -58,7 +58,7 @@ async fn log_messages(
                     }),
                 )) = event
                 {
-                    println!("{:?} in {:?}: {}", sender, room_id, msg_body);
+                    println!("{sender} in {room_id}: {msg_body}");
                 }
             }
         }

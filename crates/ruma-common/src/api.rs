@@ -240,7 +240,7 @@ impl<'a> SendAccessToken<'a> {
 }
 
 /// A request type for a Matrix API endpoint, used for sending requests.
-pub trait OutgoingRequest: Sized {
+pub trait OutgoingRequest: Sized + Clone {
     /// A type capturing the expected error conditions the server can return.
     type EndpointError: EndpointError;
 
@@ -309,10 +309,10 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
 
         let path_and_query_with_user_id = match &parts.path_and_query {
             Some(path_and_query) => match path_and_query.query() {
-                Some(_) => format!("{}&{}", path_and_query, user_id_query),
-                None => format!("{}?{}", path_and_query, user_id_query),
+                Some(_) => format!("{path_and_query}&{user_id_query}"),
+                None => format!("{path_and_query}?{user_id_query}"),
             },
-            None => format!("/?{}", user_id_query),
+            None => format!("/?{user_id_query}"),
         };
 
         parts.path_and_query =

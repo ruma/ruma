@@ -37,6 +37,12 @@ impl RoomJoinRulesEventContent {
     pub fn restricted(allow: Vec<AllowRule>) -> Self {
         Self { join_rule: JoinRule::Restricted(Restricted::new(allow)) }
     }
+
+    /// Creates a new `RoomJoinRulesEventContent` with the knock restricted rule and the given set
+    /// of allow rules.
+    pub fn knock_restricted(allow: Vec<AllowRule>) -> Self {
+        Self { join_rule: JoinRule::KnockRestricted(Restricted::new(allow)) }
+    }
 }
 
 impl<'de> Deserialize<'de> for RoomJoinRulesEventContent {
@@ -71,34 +77,33 @@ impl SyncRoomJoinRulesEvent {
 
 /// The rule used for users wishing to join this room.
 ///
-/// This type can hold an arbitrary string. To check for formats that are not available as a
+/// This type can hold an arbitrary string. To check for values that are not available as a
 /// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(tag = "join_rule")]
+#[serde(tag = "join_rule", rename_all = "snake_case")]
 pub enum JoinRule {
     /// A user who wishes to join the room must first receive an invite to the room from someone
     /// already inside of the room.
-    #[serde(rename = "invite")]
     Invite,
 
     /// Users can join the room if they are invited, or they can request an invite to the room.
     ///
     /// They can be allowed (invited) or denied (kicked/banned) access.
-    #[serde(rename = "knock")]
     Knock,
 
     /// Reserved but not yet implemented by the Matrix specification.
-    #[serde(rename = "private")]
     Private,
 
     /// Users can join the room if they are invited, or if they meet any of the conditions
     /// described in a set of [`AllowRule`]s.
-    #[serde(rename = "restricted")]
     Restricted(Restricted),
 
+    /// Users can join the room if they are invited, or if they meet any of the conditions
+    /// described in a set of [`AllowRule`]s, or they can request an invite to the room.
+    KnockRestricted(Restricted),
+
     /// Anyone can join the room without any prior action.
-    #[serde(rename = "public")]
     Public,
 
     #[doc(hidden)]
@@ -114,6 +119,7 @@ impl JoinRule {
             JoinRule::Knock => "knock",
             JoinRule::Private => "private",
             JoinRule::Restricted(_) => "restricted",
+            JoinRule::KnockRestricted(_) => "knock_restricted",
             JoinRule::Public => "public",
             JoinRule::_Custom(rule) => &rule.0,
         }
@@ -143,6 +149,7 @@ impl<'de> Deserialize<'de> for JoinRule {
             "knock" => Ok(Self::Knock),
             "private" => Ok(Self::Private),
             "restricted" => from_raw_json_value(&json).map(Self::Restricted),
+            "knock_restricted" => from_raw_json_value(&json).map(Self::KnockRestricted),
             "public" => Ok(Self::Public),
             _ => Ok(Self::_Custom(PrivOwnedStr(join_rule.into()))),
         }
@@ -274,7 +281,7 @@ mod tests {
                     AllowRule::room_membership(room_id!("!users:example.org").to_owned())
                 ]
             ),
-            rule => panic!("Deserialized to wrong variant: {:?}", rule),
+            rule => panic!("Deserialized to wrong variant: {rule:?}"),
         }
     }
 

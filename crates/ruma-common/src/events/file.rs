@@ -11,8 +11,10 @@ use serde::{Deserialize, Serialize};
 use super::{
     message::MessageContent,
     room::{
-        message::{AudioInfo, FileInfo, FileMessageEventContent, Relation, VideoInfo},
-        EncryptedFile, ImageInfo, JsonWebKey, MediaSource,
+        message::{
+            FileInfo, FileMessageEventContent, MessageType, Relation, RoomMessageEventContent,
+        },
+        EncryptedFile, JsonWebKey, MediaSource,
     },
 };
 use crate::{serde::Base64, OwnedMxcUri};
@@ -105,13 +107,27 @@ impl FileEventContent {
         relates_to: Option<Relation>,
     ) -> Self {
         let FileMessageEventContent { body, filename, source, info, message, file } = content;
+        let FileInfo { mimetype, size, .. } = info.map(|info| *info).unwrap_or_default();
 
         let message = message.unwrap_or_else(|| MessageContent::plain(body));
         let file = file.unwrap_or_else(|| {
-            FileContent::from_room_message_content(source, info.as_deref(), filename)
+            FileContent::from_room_message_content(source, filename, mimetype, size)
         });
 
         Self { message, file, relates_to }
+    }
+}
+
+impl From<FileEventContent> for RoomMessageEventContent {
+    fn from(content: FileEventContent) -> Self {
+        let FileEventContent { message, file, relates_to } = content;
+
+        Self {
+            msgtype: MessageType::File(FileMessageEventContent::from_extensible_content(
+                message, file,
+            )),
+            relates_to,
+        }
     }
 }
 
@@ -149,18 +165,17 @@ impl FileContent {
     }
 
     /// Create a new `FileContent` with the given media source, file info and filename.
-    pub fn from_room_message_content(
+    pub(crate) fn from_room_message_content(
         source: MediaSource,
-        info: Option<impl Into<FileContentInfo>>,
         filename: Option<String>,
+        mimetype: Option<String>,
+        size: Option<UInt>,
     ) -> Self {
-        let (url, encryption_info) = match source {
-            MediaSource::Plain(url) => (url, None),
-            MediaSource::Encrypted(file) => (file.url.clone(), Some(Box::new((&*file).into()))),
-        };
-        let info = FileContentInfo::from_room_message_content(info, filename).map(Box::new);
+        let (url, encryption_info) = source.into_extensible_content();
+        let info =
+            FileContentInfo::from_room_message_content(filename, mimetype, size).map(Box::new);
 
-        Self { url, encryption_info, info }
+        Self { url, encryption_info: encryption_info.map(Box::new), info }
     }
 
     /// Whether the file is encrypted.
@@ -192,48 +207,19 @@ impl FileContentInfo {
         Self::default()
     }
 
-    /// Create a new `FileContentInfo` with the given file info and filename.
+    /// Create a new `FileContentInfo` with the given filename, mimetype and size.
     ///
-    /// Returns `None` if both parameters are `None`.
-    pub fn from_room_message_content(
-        info: Option<impl Into<FileContentInfo>>,
+    /// Returns `None` if the `FileContentInfo` would be empty.
+    pub(crate) fn from_room_message_content(
         filename: Option<String>,
+        mimetype: Option<String>,
+        size: Option<UInt>,
     ) -> Option<Self> {
-        if filename.is_none() && info.is_none() {
+        if filename.is_none() && mimetype.is_none() && size.is_none() {
             None
         } else {
-            let mut info: Self = info.map(Into::into).unwrap_or_default();
-            info.name = filename;
-            Some(info)
+            Some(Self { name: filename, mimetype, size })
         }
-    }
-}
-
-impl From<&AudioInfo> for FileContentInfo {
-    fn from(info: &AudioInfo) -> Self {
-        let AudioInfo { mimetype, size, .. } = info;
-        Self { mimetype: mimetype.to_owned(), size: size.to_owned(), ..Default::default() }
-    }
-}
-
-impl From<&FileInfo> for FileContentInfo {
-    fn from(info: &FileInfo) -> Self {
-        let FileInfo { mimetype, size, .. } = info;
-        Self { mimetype: mimetype.to_owned(), size: size.to_owned(), ..Default::default() }
-    }
-}
-
-impl From<&ImageInfo> for FileContentInfo {
-    fn from(info: &ImageInfo) -> Self {
-        let ImageInfo { mimetype, size, .. } = info;
-        Self { mimetype: mimetype.to_owned(), size: size.to_owned(), ..Default::default() }
-    }
-}
-
-impl From<&VideoInfo> for FileContentInfo {
-    fn from(info: &VideoInfo) -> Self {
-        let VideoInfo { mimetype, size, .. } = info;
-        Self { mimetype: mimetype.to_owned(), size: size.to_owned(), ..Default::default() }
     }
 }
 
@@ -294,7 +280,7 @@ impl From<EncryptedContentInit> for EncryptedContent {
 
 impl From<&EncryptedFile> for EncryptedContent {
     fn from(encrypted: &EncryptedFile) -> Self {
-        let EncryptedFile { key, iv, hashes, v, .. } = encrypted.to_owned();
-        Self { key, iv, hashes, v }
+        let EncryptedFile { key, iv, hashes, v, .. } = encrypted;
+        Self { key: key.to_owned(), iv: iv.to_owned(), hashes: hashes.to_owned(), v: v.to_owned() }
     }
 }

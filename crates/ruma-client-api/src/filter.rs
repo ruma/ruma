@@ -7,6 +7,8 @@ mod lazy_load;
 mod url;
 
 use js_int::UInt;
+#[cfg(feature = "unstable-msc3440")]
+use ruma_common::events::relation::RelationType;
 use ruma_common::{
     serde::{Incoming, StringEnum},
     OwnedRoomId, OwnedUserId,
@@ -33,51 +35,9 @@ pub enum EventFormat {
     _Custom(PrivOwnedStr),
 }
 
-impl EventFormat {
-    /// Creates a string slice from this `EventFormat`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
-
 impl Default for EventFormat {
     fn default() -> Self {
         Self::Client
-    }
-}
-
-/// Relation types as defined in `rel_type` of an `m.relates_to` field.
-///
-/// This type can hold an arbitrary string. To build this with a custom value, convert it from a
-/// string with `::from() / .into()`. To check for formats that are not available as a documented
-/// variant here, use its string representation, obtained through `.as_str()`.
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
-#[cfg(feature = "unstable-msc3440")]
-#[non_exhaustive]
-pub enum RelationType {
-    /// `m.annotation`, an annotation, principally used by reactions.
-    #[cfg(feature = "unstable-msc2677")]
-    #[ruma_enum(rename = "m.annotation")]
-    Annotation,
-
-    /// `m.replace`, a replacement.
-    #[cfg(feature = "unstable-msc2676")]
-    #[ruma_enum(rename = "m.replace")]
-    Replacement,
-
-    /// `m.thread`, a participant to a thread.
-    #[ruma_enum(rename = "io.element.thread", alias = "m.thread")]
-    Thread,
-
-    #[doc(hidden)]
-    _Custom(PrivOwnedStr),
-}
-
-#[cfg(feature = "unstable-msc3440")]
-impl RelationType {
-    /// Creates a string slice from this `RelationType`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
     }
 }
 

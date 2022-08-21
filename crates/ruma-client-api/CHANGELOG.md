@@ -2,8 +2,28 @@
 
 Breaking changes:
 
+* `UnreadNotificationsCount` has moved from `sync::sync_events::v3` to `sync::sync_events`
 * Remove `PartialEq` implementations for a number of types
   * If the lack of such an `impl` causes problems, please open a GitHub issue
+* Split `uiaa::UserIdentifier::ThirdParty` into two separate variants
+* Remove the `from` parameter from `message::get_message_events::v3::Request`'s constructors
+  * This affects `new`, `backward` and `forward`
+  * Since `backward` and `forward` are equivalent to `from_end` and `from_start`, those are removed
+  * A new method `.from()` was added to easily set this field after initial construction
+* `receipt::create_receipt` uses its own `ReceiptType`
+* Reorder parameters in `{set_global_account_data, set_room_account_data}::Request::{new, new_raw}`
+
+Improvements:
+
+* Add support for refresh tokens (MSC2918)
+* Add `ErrorKind::{UnableToAuthorizeJoin, UnableToGrantJoin}` encountered for restricted rooms
+* Add support for timestamp massaging (MSC3316)
+* Add support for querying relating events (MSC2675)
+* Move `filter::RelationType` to `ruma_common::events::relations`
+* Add unstable support for discovering an OpenID Connect server (MSC2965)
+* Add `SpaceRoomJoinRule::KnockRestricted` (MSC3787)
+* Add unstable support for private read receipts (MSC2285)
+* Add unstable support for API scope restriction (MSC2967)
 
 # 0.14.1
 

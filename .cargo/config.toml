@@ -28,11 +28,13 @@ rustflags = [
     "-Wclippy::needless_borrow",
     "-Aclippy::new_without_default",
     "-Wclippy::nonstandard_macro_braces",
+    "-Wclippy::semicolon_if_nothing_returned",
     "-Wclippy::str_to_string",
     "-Wclippy::todo",
     "-Wclippy::unreadable_literal",
     "-Wclippy::unseparated_literal_suffix",
     "-Wclippy::wildcard_imports",
-    # https://github.com/rust-lang/rust-clippy/issues/8875
-    "-Aclippy::derive_partial_eq_without_eq",
 ]
+
+[unstable]
+rustdoc-map = true

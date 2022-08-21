@@ -10,6 +10,10 @@
 //! > ⚠ Some details might be missing because rustdoc has trouble with re-exports so you may need
 //! > to refer to other crates' documentations.
 //!
+//! > 🛈 For internal consistency, Ruma uses American spelling for variable names. Names may differ
+//! > in the serialized representation, as the Matrix specification has a mix of British and
+//! > American English.
+//!
 //! # API features
 //!
 //! Depending on which parts of Matrix are relevant to you, activate the following features:
@@ -34,7 +38,6 @@
 //!
 //! These features are only useful if you want to use a method that requires it:
 //!
-//! * `either`
 //! * `rand`
 //! * `markdown`
 //!
@@ -48,6 +51,8 @@
 //! * `unstable-mscXXXX`, where `XXXX` is the MSC number -- Upcoming Matrix features that may be
 //!   subject to change or removal.
 //! * `unstable-pre-spec` -- Undocumented Matrix features that may be subject to change or removal.
+//! * `unstable-sanitize` -- Convenience methods for spec-compliant HTML sanitization that have not
+//!   been thoroughly tested.
 //!
 //! # Common features
 //!
@@ -68,10 +73,7 @@
 //! clicking **Feature flags** in the toolbar at the top.
 
 #![warn(missing_docs)]
-#![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
-
-#[doc(inline)]
-pub use ruma_common::serde;
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 #[cfg(feature = "client")]
 #[doc(inline)]
@@ -94,59 +96,19 @@ pub use ruma_state_res as state_res;
 pub mod api {
     pub use ruma_common::api::*;
 
-    #[cfg(feature = "ruma-appservice-api")]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(
-            feature = "appservice-api",
-            feature = "appservice-api-c",
-            feature = "appservice-api-s"
-        )))
-    )]
+    #[cfg(any(feature = "appservice-api-c", feature = "appservice-api-s"))]
     #[doc(inline)]
     pub use ruma_appservice_api as appservice;
-    #[cfg(feature = "ruma-client-api")]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(
-            feature = "client-api",
-            feature = "client-api-c",
-            feature = "client-api-s"
-        )))
-    )]
+    #[cfg(any(feature = "client-api-c", feature = "client-api-s"))]
     #[doc(inline)]
     pub use ruma_client_api as client;
-    #[cfg(feature = "ruma-federation-api")]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(
-            feature = "federation-api",
-            feature = "federation-api-c",
-            feature = "federation-api-s"
-        )))
-    )]
+    #[cfg(any(feature = "federation-api-c", feature = "federation-api-s"))]
     #[doc(inline)]
     pub use ruma_federation_api as federation;
-    #[cfg(feature = "ruma-identity-service-api")]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(
-            feature = "identity-service-api",
-            feature = "identity-service-api-c",
-            feature = "identity-service-api-s"
-        )))
-    )]
+    #[cfg(any(feature = "identity-service-api-c", feature = "identity-service-api-s"))]
     #[doc(inline)]
     pub use ruma_identity_service_api as identity_service;
-    #[cfg(feature = "ruma-push-gateway-api")]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(
-            feature = "push-gateway-api",
-            feature = "push-gateway-api-c",
-            feature = "push-gateway-api-s"
-        )))
-    )]
+    #[cfg(any(feature = "push-gateway-api-c", feature = "push-gateway-api-s"))]
     #[doc(inline)]
     pub use ruma_push_gateway_api as push_gateway;
 }
@@ -159,15 +121,18 @@ pub use js_int::{int, uint, Int, UInt};
 pub use ruma_client::Client;
 pub use ruma_common::{
     authentication, device_id, device_key_id, directory, encryption, event_id, exports, matrix_uri,
-    mxc_uri, power_levels, presence, push, receipt, room, room_alias_id, room_id, room_version_id,
-    serde::Incoming, server_name, server_signing_key_id, thirdparty, to_device, user_id,
-    ClientSecret, DeviceId, DeviceKeyAlgorithm, DeviceKeyId, DeviceSignatures, DeviceSigningKeyId,
-    EntitySignatures, EventEncryptionAlgorithm, EventId, IdParseError, KeyId, KeyName, MatrixToUri,
-    MatrixUri, MilliSecondsSinceUnixEpoch, MxcUri, OwnedClientSecret, OwnedDeviceId,
-    OwnedDeviceKeyId, OwnedDeviceSigningKeyId, OwnedEventId, OwnedKeyId, OwnedKeyName, OwnedMxcUri,
-    OwnedRoomAliasId, OwnedRoomId, OwnedRoomName, OwnedRoomOrAliasId, OwnedServerName,
-    OwnedServerSigningKeyId, OwnedSessionId, OwnedSigningKeyId, OwnedTransactionId, OwnedUserId,
-    PrivOwnedStr, RoomAliasId, RoomId, RoomName, RoomOrAliasId, RoomVersionId,
-    SecondsSinceUnixEpoch, ServerName, ServerSignatures, ServerSigningKeyId, SessionId, Signatures,
-    SigningKeyAlgorithm, TransactionId, UserId,
+    mxc_uri, power_levels, presence, push, room, room_alias_id, room_id, room_version_id, serde,
+    server_name, server_signing_key_id, thirdparty, to_device, user_id, ClientSecret, DeviceId,
+    DeviceKeyAlgorithm, DeviceKeyId, DeviceSignatures, DeviceSigningKeyId, EntitySignatures,
+    EventEncryptionAlgorithm, EventId, IdParseError, KeyId, KeyName, MatrixToUri, MatrixUri,
+    MilliSecondsSinceUnixEpoch, MxcUri, OwnedClientSecret, OwnedDeviceId, OwnedDeviceKeyId,
+    OwnedDeviceSigningKeyId, OwnedEventId, OwnedKeyId, OwnedKeyName, OwnedMxcUri, OwnedRoomAliasId,
+    OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName, OwnedServerSigningKeyId, OwnedSessionId,
+    OwnedSigningKeyId, OwnedTransactionId, OwnedUserId, PrivOwnedStr, RoomAliasId, RoomId,
+    RoomOrAliasId, RoomVersionId, SecondsSinceUnixEpoch, ServerName, ServerSignatures,
+    ServerSigningKeyId, SessionId, Signatures, SigningKeyAlgorithm, TransactionId, UserId,
+};
+#[cfg(feature = "canonical-json")]
+pub use ruma_common::{
+    canonical_json, CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue,
 };

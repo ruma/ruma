@@ -94,7 +94,7 @@ mod tests {
             <&EventId>::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk")
                 .expect("Failed to create EventId."),
             "$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk"
-        )
+        );
     }
 
     #[test]
@@ -103,7 +103,7 @@ mod tests {
             <&EventId>::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg")
                 .expect("Failed to create EventId."),
             "$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg"
-        )
+        );
     }
 
     #[cfg(feature = "rand")]

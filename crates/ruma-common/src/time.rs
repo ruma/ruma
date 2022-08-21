@@ -89,7 +89,6 @@ fn f64_to_uint(val: f64) -> UInt {
 mod tests {
     use std::time::{Duration, UNIX_EPOCH};
 
-    use assert_matches::assert_matches;
     use js_int::uint;
     use serde::{Deserialize, Serialize};
     use serde_json::json;
@@ -106,12 +105,9 @@ mod tests {
     fn deserialize() {
         let json = json!({ "millis": 3000, "secs": 60 });
 
-        assert_matches!(
-            serde_json::from_value::<SystemTimeTest>(json),
-            Ok(SystemTimeTest { millis, secs })
-            if millis.to_system_time() == Some(UNIX_EPOCH + Duration::from_millis(3000))
-                && secs.to_system_time() == Some(UNIX_EPOCH + Duration::from_secs(60))
-        );
+        let time = serde_json::from_value::<SystemTimeTest>(json).unwrap();
+        assert_eq!(time.millis.to_system_time(), Some(UNIX_EPOCH + Duration::from_millis(3000)));
+        assert_eq!(time.secs.to_system_time(), Some(UNIX_EPOCH + Duration::from_secs(60)));
     }
 
     #[test]
@@ -121,9 +117,7 @@ mod tests {
                 .unwrap(),
             secs: SecondsSinceUnixEpoch(uint!(0)),
         };
-        assert_matches!(
-            serde_json::to_value(&request),
-            Ok(value) if value == json!({ "millis": 2000, "secs": 0 })
-        );
+
+        assert_eq!(serde_json::to_value(&request).unwrap(), json!({ "millis": 2000, "secs": 0 }));
     }
 }

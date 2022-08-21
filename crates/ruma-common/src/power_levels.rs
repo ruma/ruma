@@ -10,14 +10,10 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct NotificationPowerLevels {
     /// The level required to trigger an `@room` notification.
-    ///
-    /// If you activate the `compat` feature, deserialization will work for stringified
-    /// integers too.
-    #[cfg_attr(
-        feature = "compat",
-        serde(deserialize_with = "crate::serde::deserialize_v1_powerlevel")
+    #[serde(
+        default = "default_power_level",
+        deserialize_with = "crate::serde::deserialize_v1_powerlevel"
     )]
-    #[serde(default = "default_power_level")]
     pub room: Int,
 }
 

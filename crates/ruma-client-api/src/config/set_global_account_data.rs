@@ -61,7 +61,7 @@ pub mod v3 {
         ///
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
-        pub fn new<T>(data: &'a T, user_id: &'a UserId) -> serde_json::Result<Self>
+        pub fn new<T>(user_id: &'a UserId, data: &'a T) -> serde_json::Result<Self>
         where
             T: GlobalAccountDataEventContent,
         {
@@ -74,9 +74,9 @@ pub mod v3 {
 
         /// Creates a new `Request` with the given raw data, event type and user ID.
         pub fn new_raw(
-            data: Raw<AnyGlobalAccountDataEventContent>,
-            event_type: GlobalAccountDataEventType,
             user_id: &'a UserId,
+            event_type: GlobalAccountDataEventType,
+            data: Raw<AnyGlobalAccountDataEventContent>,
         ) -> Self {
             Self { user_id, event_type, data }
         }

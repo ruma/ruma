@@ -15,7 +15,7 @@ use ruma_common::{
         room::{
             message::{
                 AudioMessageEventContent, KeyVerificationRequestEventContent, MessageType,
-                OriginalRoomMessageEvent, RoomMessageEventContent, TextMessageEventContent,
+                OriginalRoomMessageEvent, RoomMessageEventContent,
             },
             MediaSource,
         },
@@ -192,10 +192,8 @@ fn formatted_body_serialization() {
             "msgtype": "m.text",
             "format": "org.matrix.custom.html",
             "formatted_body": "Hello, <em>World</em>!",
-            "org.matrix.msc1767.message": [
-                { "body": "Hello, <em>World</em>!", "mimetype": "text/html" },
-                { "body": "Hello, World!", "mimetype": "text/plain" },
-            ],
+            "org.matrix.msc1767.html": "Hello, <em>World</em>!",
+            "org.matrix.msc1767.text": "Hello, World!",
         })
     );
 }
@@ -228,6 +226,8 @@ fn plain_text_content_serialization() {
 #[test]
 #[cfg(feature = "markdown")]
 fn markdown_content_serialization() {
+    use ruma_common::events::room::message::TextMessageEventContent;
+
     let formatted_message = RoomMessageEventContent::new(MessageType::Text(
         TextMessageEventContent::markdown("Testing **bold** and _italic_!"),
     ));
@@ -251,10 +251,8 @@ fn markdown_content_serialization() {
             "formatted_body": "<p>Testing <strong>bold</strong> and <em>italic</em>!</p>\n",
             "format": "org.matrix.custom.html",
             "msgtype": "m.text",
-            "org.matrix.msc1767.message": [
-                { "body": "<p>Testing <strong>bold</strong> and <em>italic</em>!</p>\n", "mimetype": "text/html" },
-                { "body": "Testing **bold** and _italic_!", "mimetype": "text/plain" },
-            ],
+            "org.matrix.msc1767.html": "<p>Testing <strong>bold</strong> and <em>italic</em>!</p>\n",
+            "org.matrix.msc1767.text": "Testing **bold** and _italic_!",
         })
     );
 
@@ -304,10 +302,8 @@ fn markdown_content_serialization() {
             "formatted_body": "<p>Testing</p>\n<p>Several</p>\n<p>Paragraphs.</p>\n",
             "format": "org.matrix.custom.html",
             "msgtype": "m.text",
-            "org.matrix.msc1767.message": [
-                { "body": "<p>Testing</p>\n<p>Several</p>\n<p>Paragraphs.</p>\n", "mimetype": "text/html" },
-                { "body": "Testing\n\nSeveral\n\nParagraphs.", "mimetype": "text/plain" },
-            ],
+            "org.matrix.msc1767.html": "<p>Testing</p>\n<p>Several</p>\n<p>Paragraphs.</p>\n",
+            "org.matrix.msc1767.text": "Testing\n\nSeveral\n\nParagraphs.",
         })
     );
 }
@@ -345,39 +341,33 @@ fn edit_deserialization_061() {
         "msgtype": "m.text",
         "m.relates_to": {
             "rel_type": "m.replace",
-            "event_id": event_id!("$1598361704261elfgc:localhost"),
+            "event_id": "$1598361704261elfgc:localhost",
         },
         "m.new_content": {
             "body": "bar",
         },
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data).unwrap(),
-        RoomMessageEventContent {
-            msgtype: MessageType::Text(TextMessageEventContent {
-                body,
-                formatted: None,
-                ..
-            }),
-            relates_to: Some(_),
-            ..
-        } if body == "s/foo/bar"
+    let content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    assert!(content.relates_to.is_some());
+
+    let text = assert_matches!(
+        content.msgtype,
+        MessageType::Text(text) => text
     );
+    assert_eq!(text.body, "s/foo/bar");
+    assert_matches!(text.formatted, None);
 }
 
 #[test]
 #[cfg(feature = "unstable-msc2676")]
 fn edit_deserialization_future() {
-    use ruma_common::events::room::message::Replacement;
-
-    let ev_id = event_id!("$1598361704261elfgc:localhost");
     let json_data = json!({
         "body": "s/foo/bar",
         "msgtype": "m.text",
         "m.relates_to": {
             "rel_type": "m.replace",
-            "event_id": ev_id,
+            "event_id": "$1598361704261elfgc:localhost",
         },
         "m.new_content": {
             "body": "bar",
@@ -385,30 +375,27 @@ fn edit_deserialization_future() {
         },
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data).unwrap(),
-        RoomMessageEventContent {
-            msgtype: MessageType::Text(TextMessageEventContent {
-                body,
-                formatted: None,
-                ..
-            }),
-            relates_to: Some(Relation::Replacement(Replacement { event_id, new_content, .. })),
-            ..
-        } if body == "s/foo/bar"
-            && event_id == ev_id
-            && matches!(
-                &*new_content,
-                RoomMessageEventContent {
-                    msgtype: MessageType::Text(TextMessageEventContent {
-                        body,
-                        formatted: None,
-                        ..
-                    }),
-                    ..
-                } if body == "bar"
-            )
+    let content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+
+    let text = assert_matches!(
+        content.msgtype,
+        MessageType::Text(text) => text
     );
+    assert_eq!(text.body, "s/foo/bar");
+    assert_matches!(text.formatted, None);
+
+    let replacement = assert_matches!(
+        content.relates_to,
+        Some(Relation::Replacement(replacement)) => replacement
+    );
+    assert_eq!(replacement.event_id, "$1598361704261elfgc:localhost");
+
+    let new_text = assert_matches!(
+        replacement.new_content.msgtype,
+        MessageType::Text(new_text) => new_text
+    );
+    assert_eq!(new_text.body, "bar");
+    assert_matches!(new_text.formatted, None);
 }
 
 #[test]
@@ -428,22 +415,18 @@ fn verification_request_deserialization() {
         ]
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data).unwrap(),
-        RoomMessageEventContent {
-            msgtype: MessageType::VerificationRequest(KeyVerificationRequestEventContent {
-                body,
-                to,
-                from_device,
-                methods,
-                ..
-            }),
+    let verification = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data),
+        Ok(RoomMessageEventContent {
+            msgtype: MessageType::VerificationRequest(verification),
             ..
-        } if body == "@example:localhost is requesting to verify your key, ..."
-            && to == user_id
-            && from_device == device_id
-            && methods.contains(&VerificationMethod::SasV1)
+        }) => verification
     );
+    assert_eq!(verification.body, "@example:localhost is requesting to verify your key, ...");
+    assert_eq!(verification.to, user_id);
+    assert_eq!(verification.from_device, device_id);
+    assert_eq!(verification.methods.len(), 3);
+    assert!(verification.methods.contains(&VerificationMethod::SasV1));
 }
 
 #[test]
@@ -478,19 +461,17 @@ fn content_deserialization() {
         "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd"
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data)
-            .unwrap(),
-        RoomMessageEventContent {
-            msgtype: MessageType::Audio(AudioMessageEventContent {
-                body,
-                info: None,
-                source: MediaSource::Plain(url),
-                ..
-            }),
+    let audio = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data),
+        Ok(RoomMessageEventContent {
+            msgtype: MessageType::Audio(audio),
             ..
-        } if body == "test" && url == "mxc://example.org/ffed755USFFxlgbQYZGtryd"
+        }) => audio
     );
+    assert_eq!(audio.body, "test");
+    assert_matches!(audio.info, None);
+    let url = assert_matches!(audio.source, MediaSource::Plain(url) => url);
+    assert_eq!(url, "mxc://example.org/ffed755USFFxlgbQYZGtryd");
 }
 
 #[test]
@@ -499,5 +480,102 @@ fn content_deserialization_failure() {
         "body": "test","msgtype": "m.location",
         "url": "http://example.com/audio.mp3"
     });
-    assert!(from_json_value::<RoomMessageEventContent>(json_data).is_err());
+    assert_matches!(from_json_value::<RoomMessageEventContent>(json_data), Err(_));
+}
+
+#[test]
+#[cfg(feature = "unstable-sanitize")]
+fn reply_sanitize() {
+    use ruma_common::events::room::message::TextMessageEventContent;
+
+    let first_message = OriginalRoomMessageEvent {
+        content: RoomMessageEventContent::text_html(
+            "# This is the first message",
+            "<h1>This is the first message</h1>",
+        ),
+        event_id: event_id!("$143273582443PhrSn:example.org").to_owned(),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
+        room_id: room_id!("!testroomid:example.org").to_owned(),
+        sender: user_id!("@user:example.org").to_owned(),
+        unsigned: MessageLikeUnsigned::default(),
+    };
+    let second_message = OriginalRoomMessageEvent {
+        content: RoomMessageEventContent::text_reply_html(
+            "This is the _second_ message",
+            "This is the <em>second</em> message",
+            &first_message,
+        ),
+        event_id: event_id!("$143273582443PhrSn:example.org").to_owned(),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
+        room_id: room_id!("!testroomid:example.org").to_owned(),
+        sender: user_id!("@user:example.org").to_owned(),
+        unsigned: MessageLikeUnsigned::default(),
+    };
+    let final_reply = RoomMessageEventContent::text_reply_html(
+        "This is **my** reply",
+        "This is <strong>my</strong> reply",
+        &second_message,
+    );
+
+    let (body, formatted) = assert_matches!(
+        first_message.content.msgtype,
+        MessageType::Text(TextMessageEventContent { body, formatted, .. }) => (body, formatted)
+    );
+    assert_eq!(body, "# This is the first message");
+    let formatted = formatted.unwrap();
+    assert_eq!(formatted.body, "<h1>This is the first message</h1>");
+
+    let (body, formatted) = assert_matches!(
+        second_message.content.msgtype,
+        MessageType::Text(TextMessageEventContent { body, formatted, .. }) => (body, formatted)
+    );
+    assert_eq!(
+        body,
+        "\
+        > <@user:example.org> # This is the first message\n\
+        This is the _second_ message\
+        "
+    );
+    let formatted = formatted.unwrap();
+    assert_eq!(
+        formatted.body,
+        "\
+        <mx-reply>\
+            <blockquote>\
+                <a href=\"https://matrix.to/#/!testroomid:example.org/$143273582443PhrSn:example.org\">In reply to</a> \
+                <a href=\"https://matrix.to/#/@user:example.org\">@user:example.org</a>\
+                <br>\
+                <h1>This is the first message</h1>\
+            </blockquote>\
+        </mx-reply>\
+        This is the <em>second</em> message\
+        "
+    );
+
+    let (body, formatted) = assert_matches!(
+        final_reply.msgtype,
+        MessageType::Text(TextMessageEventContent { body, formatted, .. }) => (body, formatted)
+    );
+    assert_eq!(
+        body,
+        "\
+        > <@user:example.org> This is the _second_ message\n\
+        This is **my** reply\
+        "
+    );
+    let formatted = formatted.unwrap();
+    assert_eq!(
+        formatted.body,
+        "\
+        <mx-reply>\
+            <blockquote>\
+                <a href=\"https://matrix.to/#/!testroomid:example.org/$143273582443PhrSn:example.org\">In reply to</a> \
+                <a href=\"https://matrix.to/#/@user:example.org\">@user:example.org</a>\
+                <br>\
+                This is the <em>second</em> message\
+            </blockquote>\
+        </mx-reply>\
+        This is <strong>my</strong> reply\
+        "
+    );
 }

@@ -161,8 +161,8 @@ impl<E, F> FromHttpResponseError<Result<E, F>> {
 impl<E: fmt::Display> fmt::Display for FromHttpResponseError<E> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Deserialization(err) => write!(f, "deserialization failed: {}", err),
-            Self::Server(err) => write!(f, "the server returned an error: {}", err),
+            Self::Deserialization(err) => write!(f, "deserialization failed: {err}"),
+            Self::Server(err) => write!(f, "the server returned an error: {err}"),
         }
     }
 }

@@ -28,11 +28,15 @@ pub mod v3 {
         }
 
         request: {
-            /// Arbitrary JSON to store as config data.
+            /// The ID of the user to set account_data for.
             ///
-            /// To create a `RawJsonValue`, use `serde_json::value::to_raw_value`.
-            #[ruma_api(body)]
-            pub data: Raw<AnyRoomAccountDataEventContent>,
+            /// The access token must be authorized to make requests for this user ID.
+            #[ruma_api(path)]
+            pub user_id: &'a UserId,
+
+            /// The ID of the room to set account_data on.
+            #[ruma_api(path)]
+            pub room_id: &'a RoomId,
 
             /// The event type of the account_data to set.
             ///
@@ -40,15 +44,11 @@ pub mod v3 {
             #[ruma_api(path)]
             pub event_type: RoomAccountDataEventType,
 
-            /// The ID of the room to set account_data on.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
-
-            /// The ID of the user to set account_data for.
+            /// Arbitrary JSON to store as config data.
             ///
-            /// The access token must be authorized to make requests for this user ID.
-            #[ruma_api(path)]
-            pub user_id: &'a UserId,
+            /// To create a `RawJsonValue`, use `serde_json::value::to_raw_value`.
+            #[ruma_api(body)]
+            pub data: Raw<AnyRoomAccountDataEventContent>,
         }
 
         #[derive(Default)]
@@ -65,29 +65,29 @@ pub mod v3 {
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
         pub fn new<T>(
-            data: &'a T,
-            room_id: &'a RoomId,
             user_id: &'a UserId,
+            room_id: &'a RoomId,
+            data: &'a T,
         ) -> serde_json::Result<Self>
         where
             T: RoomAccountDataEventContent,
         {
             Ok(Self {
-                data: Raw::from_json(to_raw_json_value(data)?),
-                event_type: data.event_type(),
-                room_id,
                 user_id,
+                room_id,
+                event_type: data.event_type(),
+                data: Raw::from_json(to_raw_json_value(data)?),
             })
         }
 
         /// Creates a new `Request` with the given raw data, event type, room ID and user ID.
         pub fn new_raw(
-            data: Raw<AnyRoomAccountDataEventContent>,
-            event_type: RoomAccountDataEventType,
-            room_id: &'a RoomId,
             user_id: &'a UserId,
+            room_id: &'a RoomId,
+            event_type: RoomAccountDataEventType,
+            data: Raw<AnyRoomAccountDataEventContent>,
         ) -> Self {
-            Self { data, event_type, room_id, user_id }
+            Self { user_id, room_id, event_type, data }
         }
     }
 

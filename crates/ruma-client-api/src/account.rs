@@ -59,10 +59,3 @@ pub enum ThirdPartyIdRemovalStatus {
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
-
-impl ThirdPartyIdRemovalStatus {
-    /// Creates a string slice from this `ThirdPartyIdRemovalStatus`.
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}

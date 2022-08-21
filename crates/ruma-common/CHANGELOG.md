@@ -1,13 +1,34 @@
 # [unreleased]
 
+Bug fixes:
+
+* Expose `MatrixIdError`, `MatrixToError`, `MatrixUriError` and `MxcUriError` at
+  the crate root
+* Fix matching of `event_match` condition
+  * The spec clarified its behavior:
+    <https://github.com/matrix-org/matrix-spec-proposals/pull/3690> 
+
 Breaking changes:
 
 * Add `user_id` field to `PushConditionRoomCtx`
 * Remove `PartialEq` implementation on `NotificationPowerLevels`
 * Remove `PartialEq` implementation for `events::call::SessionDescription`
-* Split `events::call::SessionDescription` into `AnswerSessionDescription`
-  and `OfferSessionDescription`
-  * Remove `SessionDescriptionType`
+* Use new `events::call::AnswerSessionDescription` for `CallAnswerEventContent` 
+  and `OfferSessionDescription` for `CallInviteEventContent`
+* Use new `VoipVersionId` and `VoipId` types for `events::call` events
+* Remove `RoomName` / `OwnedRoomName` and replace usages with `str` / `String`
+  * Room name size limits were never enforced by servers
+    ([Spec change removing the size limit][spec])
+* Remove `RoomMessageFeedbackEvent` and associated types and variants according to MSC3582
+* Move `CanonicalJson`, `CanonicalJsonObject` and `CanonicalJsonError` out of
+  the `serde` module and behind the cargo feature flag `canonical-json`
+* Make identifiers matrix URI constructors generic over owned parameters
+  * Split `RoomId` matrix URI constructors between methods with and without routing
+* Allow to add routing servers to `RoomId::matrix_to_event_uri()`
+* Move `receipt::ReceiptType` to `events::receipt`
+* Make `Clone` as supertrait of `api::OutgoingRequest`
+
+[spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/3669
 
 Improvements:
 
@@ -15,6 +36,20 @@ Improvements:
 * Change `events::relation::BundledAnnotation` to a struct instead of an enum
   * Remove `BundledReaction`
 * Add unstable support for polls (MSC3381)
+* Add unstable support for Improved Signalling for 1:1 VoIP (MSC2746)
+* Add support for knocking in `events::room::member::MembershipChange`
+* Add `MatrixVersion::V1_3`
+* Deprecate the `sender_key` and `device_id` fields for encrypted events (MSC3700)
+* Move the `relations` field of `events::unsigned` types out of `unstable-msc2675`
+* Deserialize stringified integers for power levels without the `compat` feature
+* Add `JoinRule::KnockRestricted` (MSC3787)
+* Add `MatrixVersionId::V10` (MSC3604)
+* Add methods to sanitize messages according to the spec behind the `unstable-sanitize` feature
+  * Can also remove rich reply fallbacks
+* Implement `From<Owned*Id>` for `identifiers::matrix_uri::MatrixId`
+* Add unstable default push rule to ignore room server ACLs events (MSC3786)
+* Add unstable support for private read receipts (MSC2285)
+* Add unstable support for filtering public rooms by room type (MSC3827)
 
 # 0.9.2
 

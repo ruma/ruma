@@ -34,13 +34,15 @@ fn registration_deserialization() {
     assert_eq!(observed.rate_limited, None);
     assert_eq!(observed.protocols, None);
 
+    assert_eq!(observed.namespaces.users.len(), 1);
     assert!(observed.namespaces.users[0].exclusive);
     assert_eq!(observed.namespaces.users[0].regex, "@_irc_bridge_.*");
 
+    assert_eq!(observed.namespaces.aliases.len(), 1);
     assert!(!observed.namespaces.aliases[0].exclusive);
     assert_eq!(observed.namespaces.aliases[0].regex, "#_irc_bridge_.*");
 
-    assert!(observed.namespaces.rooms.is_empty());
+    assert_eq!(observed.namespaces.rooms.len(), 0);
 }
 
 #[test]

@@ -87,9 +87,6 @@ mod tests {
             }
         });
 
-        assert!(from_json_value::<Raw<OriginalPolicyRuleRoomEvent>>(json)
-            .unwrap()
-            .deserialize()
-            .is_ok());
+        from_json_value::<Raw<OriginalPolicyRuleRoomEvent>>(json).unwrap().deserialize().unwrap();
     }
 }

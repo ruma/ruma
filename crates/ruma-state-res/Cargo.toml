@@ -9,13 +9,12 @@ readme = "README.md"
 license = "MIT"
 version = "0.7.0"
 edition = "2021"
-rust-version = "1.59"
+rust-version = "1.60"
 
 [package.metadata.docs.rs]
 all-features = true
 
 [features]
-compat = []
 unstable-exhaustive-types = []
 
 [dependencies]
@@ -27,8 +26,10 @@ serde_json = "1.0.60"
 thiserror = "1.0.26"
 tracing = "0.1.26"
 
+# dev-dependencies can't be optional, so this is a regular dependency
+criterion = { version = "0.3.3", optional = true }
+
 [dev-dependencies]
-criterion = "0.3.3"
 maplit = "1.0.2"
 rand = "0.8.3"
 ruma-common = { version = "0.9.2", path = "../ruma-common", features = ["unstable-pdu"] }
@@ -37,3 +38,4 @@ tracing-subscriber = "0.3.3"
 [[bench]]
 name = "state_res_bench"
 harness = false
+required-features = ["criterion"]
