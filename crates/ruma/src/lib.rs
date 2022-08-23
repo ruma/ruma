@@ -117,6 +117,8 @@ pub mod api {
 pub use assign::assign;
 #[doc(no_inline)]
 pub use js_int::{int, uint, Int, UInt};
+#[doc(no_inline)]
+pub use js_option::JsOption;
 #[cfg(feature = "client-ext-client-api")]
 pub use ruma_client::Client;
 pub use ruma_common::{
