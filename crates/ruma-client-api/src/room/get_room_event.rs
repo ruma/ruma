@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3roomsroomideventeventid
 
-    use ruma_common::{api::ruma_api, events::AnyRoomEvent, serde::Raw, EventId, RoomId};
+    use ruma_common::{api::ruma_api, events::AnyTimelineEvent, serde::Raw, EventId, RoomId};
 
     ruma_api! {
         metadata: {
@@ -32,7 +32,7 @@ pub mod v3 {
         response: {
             /// Arbitrary JSON of the event body.
             #[ruma_api(body)]
-            pub event: Raw<AnyRoomEvent>,
+            pub event: Raw<AnyTimelineEvent>,
         }
 
         error: crate::Error
@@ -47,7 +47,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given event.
-        pub fn new(event: Raw<AnyRoomEvent>) -> Self {
+        pub fn new(event: Raw<AnyTimelineEvent>) -> Self {
             Self { event }
         }
     }

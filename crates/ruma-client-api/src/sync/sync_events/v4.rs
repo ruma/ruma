@@ -6,7 +6,7 @@ use super::UnreadNotificationsCount;
 use js_int::UInt;
 use ruma_common::{
     api::ruma_api,
-    events::{AnyStrippedStateEvent, AnySyncRoomEvent, AnySyncStateEvent, RoomEventType},
+    events::{AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent, RoomEventType},
     serde::{duration::opt_ms, Raw},
     OwnedRoomId,
 };
@@ -315,7 +315,7 @@ pub struct SlidingSyncRoom {
 
     /// The timeline of messages and state changes in the room.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub timeline: Vec<Raw<AnySyncRoomEvent>>,
+    pub timeline: Vec<Raw<AnySyncTimelineEvent>>,
 
     /// Updates to the state at the beginning of the `timeline`.
     /// A list of state events.

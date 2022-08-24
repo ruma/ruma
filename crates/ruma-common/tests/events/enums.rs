@@ -16,8 +16,8 @@ use ruma_common::{
             message::{MessageType, RoomMessageEventContent},
             power_levels::RoomPowerLevelsEventContent,
         },
-        AnyEphemeralRoomEvent, AnyMessageLikeEvent, AnyRoomEvent, AnyStateEvent,
-        AnySyncMessageLikeEvent, AnySyncRoomEvent, AnySyncStateEvent, EphemeralRoomEventType,
+        AnyEphemeralRoomEvent, AnyMessageLikeEvent, AnyStateEvent, AnySyncMessageLikeEvent,
+        AnySyncStateEvent, AnySyncTimelineEvent, AnyTimelineEvent, EphemeralRoomEventType,
         GlobalAccountDataEventType, MessageLikeEventType, MessageLikeUnsigned,
         OriginalMessageLikeEvent, OriginalStateEvent, OriginalSyncMessageLikeEvent,
         OriginalSyncStateEvent, RoomAccountDataEventType, StateEventType, ToDeviceEventType,
@@ -128,8 +128,8 @@ fn power_event_sync_deserialization() {
     });
 
     let ban = assert_matches!(
-        from_json_value::<AnySyncRoomEvent>(json_data),
-        Ok(AnySyncRoomEvent::State(
+        from_json_value::<AnySyncTimelineEvent>(json_data),
+        Ok(AnySyncTimelineEvent::State(
             AnySyncStateEvent::RoomPowerLevels(SyncStateEvent::Original(
                 OriginalSyncStateEvent {
                     content: RoomPowerLevelsEventContent {
@@ -148,8 +148,8 @@ fn message_event_sync_deserialization() {
     let json_data = message_event_sync();
 
     let text_content = assert_matches!(
-        from_json_value::<AnySyncRoomEvent>(json_data),
-        Ok(AnySyncRoomEvent::MessageLike(
+        from_json_value::<AnySyncTimelineEvent>(json_data),
+        Ok(AnySyncTimelineEvent::MessageLike(
             AnySyncMessageLikeEvent::RoomMessage(SyncMessageLikeEvent::Original(
                 OriginalSyncMessageLikeEvent {
                     content: RoomMessageEventContent {
@@ -171,8 +171,8 @@ fn aliases_event_sync_deserialization() {
     let json_data = aliases_event_sync();
 
     let ev = assert_matches!(
-        from_json_value::<AnySyncRoomEvent>(json_data),
-        Ok(AnySyncRoomEvent::State(AnySyncStateEvent::RoomAliases(SyncStateEvent::Original(
+        from_json_value::<AnySyncTimelineEvent>(json_data),
+        Ok(AnySyncTimelineEvent::State(AnySyncStateEvent::RoomAliases(SyncStateEvent::Original(
             ev,
         )))) => ev
     );
@@ -185,8 +185,8 @@ fn message_room_event_deserialization() {
     let json_data = message_event();
 
     let text_content = assert_matches!(
-        from_json_value::<AnyRoomEvent>(json_data),
-        Ok(AnyRoomEvent::MessageLike(
+        from_json_value::<AnyTimelineEvent>(json_data),
+        Ok(AnyTimelineEvent::MessageLike(
             AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(
                 OriginalMessageLikeEvent {
                     content: RoomMessageEventContent {
@@ -232,8 +232,8 @@ fn alias_room_event_deserialization() {
     let json_data = aliases_event();
 
     let aliases = assert_matches!(
-        from_json_value::<AnyRoomEvent>(json_data),
-        Ok(AnyRoomEvent::State(
+        from_json_value::<AnyTimelineEvent>(json_data),
+        Ok(AnyTimelineEvent::State(
             AnyStateEvent::RoomAliases(StateEvent::Original(OriginalStateEvent {
                 content: RoomAliasesEventContent {
                     aliases,
@@ -251,8 +251,8 @@ fn message_event_deserialization() {
     let json_data = message_event();
 
     let text_content = assert_matches!(
-        from_json_value::<AnyRoomEvent>(json_data),
-        Ok(AnyRoomEvent::MessageLike(
+        from_json_value::<AnyTimelineEvent>(json_data),
+        Ok(AnyTimelineEvent::MessageLike(
             AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(OriginalMessageLikeEvent {
                 content: RoomMessageEventContent {
                     msgtype: MessageType::Text(text_content),
@@ -272,8 +272,8 @@ fn alias_event_deserialization() {
     let json_data = aliases_event();
 
     let aliases = assert_matches!(
-        from_json_value::<AnyRoomEvent>(json_data),
-        Ok(AnyRoomEvent::State(
+        from_json_value::<AnyTimelineEvent>(json_data),
+        Ok(AnyTimelineEvent::State(
             AnyStateEvent::RoomAliases(StateEvent::Original(OriginalStateEvent {
                 content: RoomAliasesEventContent {
                     aliases,
@@ -291,8 +291,8 @@ fn alias_event_field_access() {
     let json_data = aliases_event();
 
     let state_event = assert_matches!(
-        from_json_value::<AnyRoomEvent>(json_data.clone()),
-        Ok(AnyRoomEvent::State(state_event)) => state_event
+        from_json_value::<AnyTimelineEvent>(json_data.clone()),
+        Ok(AnyTimelineEvent::State(state_event)) => state_event
     );
     assert_eq!(state_event.state_key(), "room.com");
     assert_eq!(state_event.room_id(), "!room:room.com");

@@ -10,7 +10,7 @@ use ruma_common::{
     api::ruma_api,
     events::{
         presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
-        AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncRoomEvent, AnySyncStateEvent,
+        AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncStateEvent, AnySyncTimelineEvent,
         AnyToDeviceEvent,
     },
     presence::PresenceState,
@@ -336,7 +336,7 @@ pub struct Timeline {
 
     /// A list of events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub events: Vec<Raw<AnySyncRoomEvent>>,
+    pub events: Vec<Raw<AnySyncTimelineEvent>>,
 }
 
 impl Timeline {

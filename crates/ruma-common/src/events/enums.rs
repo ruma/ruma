@@ -158,7 +158,7 @@ macro_rules! room_ev_accessor {
 /// Any room event.
 #[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
 #[derive(Clone, Debug, EventEnumFromEvent)]
-pub enum AnyRoomEvent {
+pub enum AnyTimelineEvent {
     /// Any message-like event.
     MessageLike(AnyMessageLikeEvent),
 
@@ -166,7 +166,7 @@ pub enum AnyRoomEvent {
     State(AnyStateEvent),
 }
 
-impl AnyRoomEvent {
+impl AnyTimelineEvent {
     room_ev_accessor!(origin_server_ts: MilliSecondsSinceUnixEpoch);
     room_ev_accessor!(room_id: &RoomId);
     room_ev_accessor!(event_id: &EventId);
@@ -186,7 +186,7 @@ impl AnyRoomEvent {
 /// Sync room events are room event without a `room_id`, as returned in `/sync` responses.
 #[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
 #[derive(Clone, Debug, EventEnumFromEvent)]
-pub enum AnySyncRoomEvent {
+pub enum AnySyncTimelineEvent {
     /// Any sync message-like event.
     MessageLike(AnySyncMessageLikeEvent),
 
@@ -194,7 +194,7 @@ pub enum AnySyncRoomEvent {
     State(AnySyncStateEvent),
 }
 
-impl AnySyncRoomEvent {
+impl AnySyncTimelineEvent {
     room_ev_accessor!(origin_server_ts: MilliSecondsSinceUnixEpoch);
     room_ev_accessor!(event_id: &EventId);
     room_ev_accessor!(sender: &UserId);
@@ -207,11 +207,11 @@ impl AnySyncRoomEvent {
         }
     }
 
-    /// Converts `self` to an `AnyRoomEvent` by adding the given a room ID.
-    pub fn into_full_event(self, room_id: OwnedRoomId) -> AnyRoomEvent {
+    /// Converts `self` to an `AnyTimelineEvent` by adding the given a room ID.
+    pub fn into_full_event(self, room_id: OwnedRoomId) -> AnyTimelineEvent {
         match self {
-            Self::MessageLike(ev) => AnyRoomEvent::MessageLike(ev.into_full_event(room_id)),
-            Self::State(ev) => AnyRoomEvent::State(ev.into_full_event(room_id)),
+            Self::MessageLike(ev) => AnyTimelineEvent::MessageLike(ev.into_full_event(room_id)),
+            Self::State(ev) => AnyTimelineEvent::State(ev.into_full_event(room_id)),
         }
     }
 }
@@ -222,7 +222,7 @@ struct EventDeHelper {
     pub state_key: Option<de::IgnoredAny>,
 }
 
-impl<'de> Deserialize<'de> for AnyRoomEvent {
+impl<'de> Deserialize<'de> for AnyTimelineEvent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: de::Deserializer<'de>,
@@ -231,14 +231,14 @@ impl<'de> Deserialize<'de> for AnyRoomEvent {
         let EventDeHelper { state_key } = from_raw_json_value(&json)?;
 
         if state_key.is_some() {
-            Ok(AnyRoomEvent::State(from_raw_json_value(&json)?))
+            Ok(AnyTimelineEvent::State(from_raw_json_value(&json)?))
         } else {
-            Ok(AnyRoomEvent::MessageLike(from_raw_json_value(&json)?))
+            Ok(AnyTimelineEvent::MessageLike(from_raw_json_value(&json)?))
         }
     }
 }
 
-impl<'de> Deserialize<'de> for AnySyncRoomEvent {
+impl<'de> Deserialize<'de> for AnySyncTimelineEvent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: de::Deserializer<'de>,
@@ -247,14 +247,14 @@ impl<'de> Deserialize<'de> for AnySyncRoomEvent {
         let EventDeHelper { state_key } = from_raw_json_value(&json)?;
 
         if state_key.is_some() {
-            Ok(AnySyncRoomEvent::State(from_raw_json_value(&json)?))
+            Ok(AnySyncTimelineEvent::State(from_raw_json_value(&json)?))
         } else {
-            Ok(AnySyncRoomEvent::MessageLike(from_raw_json_value(&json)?))
+            Ok(AnySyncTimelineEvent::MessageLike(from_raw_json_value(&json)?))
         }
     }
 }
 
-impl Redact for AnyRoomEvent {
+impl Redact for AnyTimelineEvent {
     type Redacted = Self;
 
     /// Redacts `self`, referencing the given event in `unsigned.redacted_because`.
@@ -268,7 +268,7 @@ impl Redact for AnyRoomEvent {
     }
 }
 
-impl Redact for AnySyncRoomEvent {
+impl Redact for AnySyncTimelineEvent {
     type Redacted = Self;
 
     /// Redacts `self`, referencing the given event in `unsigned.redacted_because`.

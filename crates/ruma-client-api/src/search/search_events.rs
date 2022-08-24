@@ -10,7 +10,7 @@ pub mod v3 {
     use js_int::{uint, UInt};
     use ruma_common::{
         api::ruma_api,
-        events::{AnyRoomEvent, AnyStateEvent},
+        events::{AnyStateEvent, AnyTimelineEvent},
         serde::{Incoming, Raw, StringEnum},
         OwnedEventId, OwnedMxcUri, OwnedRoomId, OwnedUserId,
     };
@@ -198,11 +198,11 @@ pub mod v3 {
 
         /// Events just after the result.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub events_after: Vec<Raw<AnyRoomEvent>>,
+        pub events_after: Vec<Raw<AnyTimelineEvent>>,
 
         /// Events just before the result.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub events_before: Vec<Raw<AnyRoomEvent>>,
+        pub events_before: Vec<Raw<AnyTimelineEvent>>,
 
         /// The historic profile information of the users that sent the events returned.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
@@ -441,7 +441,7 @@ pub mod v3 {
 
         /// The event that matched.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub result: Option<Raw<AnyRoomEvent>>,
+        pub result: Option<Raw<AnyTimelineEvent>>,
     }
 
     impl SearchResult {
