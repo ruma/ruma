@@ -4,7 +4,7 @@
 
 use std::{collections::BTreeMap, time::Duration};
 
-use super::{UnreadNotificationsCount, DeviceLists};
+use super::{DeviceLists, UnreadNotificationsCount};
 use js_int::UInt;
 use ruma_common::{
     api::ruma_api,

@@ -34,7 +34,6 @@ impl UnreadNotificationsCount {
     }
 }
 
-
 /// Information on E2E device updates.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]

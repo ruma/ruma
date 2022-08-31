@@ -2,11 +2,14 @@
 
 use std::{collections::BTreeMap, time::Duration};
 
-use super::{UnreadNotificationsCount, DeviceLists};
+use super::{DeviceLists, UnreadNotificationsCount};
 use js_int::UInt;
 use ruma_common::{
     api::ruma_api,
-    events::{AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent, RoomEventType, AnyToDeviceEvent},
+    events::{
+        AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent, AnyStrippedStateEvent,
+        AnySyncStateEvent, AnySyncTimelineEvent, AnyToDeviceEvent, RoomEventType,
+    },
     serde::{duration::opt_ms, Raw},
     DeviceKeyAlgorithm, OwnedRoomId,
 };
@@ -381,7 +384,10 @@ pub struct ExtensionsRequest {
 
 impl ExtensionsRequest {
     fn is_empty(&self) -> bool {
-        !(self.to_device.is_some() || self.e2ee.is_some() || self.account_data.is_some() || !self.other.is_empty())
+        !(self.to_device.is_some()
+            || self.e2ee.is_some()
+            || self.account_data.is_some()
+            || !self.other.is_empty())
     }
 }
 
@@ -458,15 +464,29 @@ pub struct E2EEResponse {
     pub device_unused_fallback_key_types: Option<Vec<DeviceKeyAlgorithm>>,
 }
 
-
 /// AccountData Extension request.
+///
+/// Currently unspecc'ed. Taken from the reference implementation
+/// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/account_data.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct AccountDataRequest {
+    /// Activate or deactivate this extension. Sticky.
+    pub enabled: Option<bool>,
 }
 
 /// AccountData Extension response.
+///
+/// Currently unspecc'ed. Taken from the reference implementation
+/// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/account_data.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct AccountDataResponse {
+    /// The global private data created by this user.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub global: Vec<Raw<AnyGlobalAccountDataEvent>>,
+
+    /// The private data that this user has attached to each room.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub rooms: BTreeMap<OwnedRoomId, Vec<Raw<AnyRoomAccountDataEvent>>>,
 }
