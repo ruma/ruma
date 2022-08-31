@@ -337,6 +337,18 @@ pub struct SlidingSyncRoom {
     /// The prev_batch allowing you to paginate through the messages before the given ones.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prev_batch: Option<String>,
+
+    /// True if the number of events returned was limited by the limit on the filter.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub limited: Option<bool>,
+
+    /// The number of users with membership of `join`, including the client’s own user ID.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub joined_count: Option<UInt>,
+
+    /// The number of users with membership of `invite`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub invited_count: Option<UInt>,
 }
 
 impl SlidingSyncRoom {
