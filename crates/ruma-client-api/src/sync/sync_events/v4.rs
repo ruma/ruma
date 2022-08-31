@@ -402,7 +402,7 @@ pub struct ExtensionsResponse {
 
 /// ToDevice Messages Extension request.
 ///
-/// Currently unspecc'ed. Taken from the reference implementation
+/// Not yet part of the spec proposal. Taken from the reference implementation
 /// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/todevice.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -417,7 +417,7 @@ pub struct ToDeviceRequest {
 
 /// ToDevice Messages Extension response.
 ///
-/// Currently unspecc'ed. Taken from the reference implementation
+/// Not yet part of the spec proposal. Taken from the reference implementation
 /// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/todevice.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -431,7 +431,7 @@ pub struct ToDeviceResponse {
 
 /// E2EE Extension request.
 ///
-/// Currently unspecc'ed. Taken from the reference implementation
+/// Not yet part of the spec proposal. Taken from the reference implementation
 /// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/e2ee.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -442,7 +442,7 @@ pub struct E2EERequest {
 
 /// E2EE Extension response.
 ///
-/// Currently unspecc'ed. Taken from the reference implementation
+/// Not yet part of the spec proposal. Taken from the reference implementation
 /// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/e2ee.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -466,7 +466,7 @@ pub struct E2EEResponse {
 
 /// AccountData Extension request.
 ///
-/// Currently unspecc'ed. Taken from the reference implementation
+/// Not yet part of the spec proposal. Taken from the reference implementation
 /// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/account_data.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -477,7 +477,7 @@ pub struct AccountDataRequest {
 
 /// AccountData Extension response.
 ///
-/// Currently unspecc'ed. Taken from the reference implementation
+/// Not yet part of the spec proposal. Taken from the reference implementation
 /// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/account_data.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
