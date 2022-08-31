@@ -2,13 +2,13 @@
 
 use std::{collections::BTreeMap, time::Duration};
 
-use super::UnreadNotificationsCount;
+use super::{UnreadNotificationsCount, DeviceLists};
 use js_int::UInt;
 use ruma_common::{
     api::ruma_api,
     events::{AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent, RoomEventType, AnyToDeviceEvent},
     serde::{duration::opt_ms, Raw},
-    OwnedRoomId,
+    DeviceKeyAlgorithm, OwnedRoomId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -424,15 +424,38 @@ pub struct ToDeviceResponse {
 }
 
 /// E2EE Extension request.
+///
+/// Currently unspecc'ed. Taken from the reference implementation
+/// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/e2ee.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct E2EERequest {
+    /// Activate or deactivate this extension. Sticky.
+    pub enabled: Option<bool>,
 }
 
 /// E2EE Extension response.
+///
+/// Currently unspecc'ed. Taken from the reference implementation
+/// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/e2ee.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct E2EEResponse {
+    /// Information on E2E device updates.
+    ///
+    /// Only present on an incremental sync.
+    #[serde(default, skip_serializing_if = "DeviceLists::is_empty")]
+    pub device_lists: DeviceLists,
+    /// For each key algorithm, the number of unclaimed one-time keys
+    /// currently held on the server for a device.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub device_one_time_keys_count: BTreeMap<DeviceKeyAlgorithm, UInt>,
+    /// For each key algorithm, the number of unclaimed one-time keys
+    /// currently held on the server for a device.
+    ///
+    /// The presence of this field indicates that the server supports
+    /// fallback keys.
+    pub device_unused_fallback_key_types: Option<Vec<DeviceKeyAlgorithm>>,
 }
 
 

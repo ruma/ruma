@@ -1,5 +1,10 @@
 # [unreleased]
 
+
+Breaking changes:
+
+*  `DeviceList` has moved from `sync::sync_events::v3` to `sync::sync_events`
+
 # 0.15.0
 
 Breaking changes:
