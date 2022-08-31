@@ -6,7 +6,7 @@ use super::UnreadNotificationsCount;
 use js_int::UInt;
 use ruma_common::{
     api::ruma_api,
-    events::{AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent, RoomEventType},
+    events::{AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent, RoomEventType, AnyToDeviceEvent},
     serde::{duration::opt_ms, Raw},
     OwnedRoomId,
 };
@@ -395,15 +395,32 @@ pub struct ExtensionsResponse {
 }
 
 /// ToDevice Messages Extension request.
+///
+/// Currently unspecc'ed. Taken from the reference implementation
+/// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/todevice.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ToDeviceRequest {
+    /// Activate or deactivate this extension. Sticky.
+    pub enabled: Option<bool>,
+    /// Max number of to-device messages per response.
+    pub limit: Option<UInt>,
+    /// Give messages since this token only.
+    pub since: Option<String>,
 }
 
 /// ToDevice Messages Extension response.
+///
+/// Currently unspecc'ed. Taken from the reference implementation
+/// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/todevice.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ToDeviceResponse {
+    /// Fetch the next batch from this entry.
+    pub next_batch: String,
+    /// The ToDevice Events.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub events: Vec<Raw<AnyToDeviceEvent>>,
 }
 
 /// E2EE Extension request.
