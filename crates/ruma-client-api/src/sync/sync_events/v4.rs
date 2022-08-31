@@ -60,8 +60,8 @@ ruma_api! {
         pub unsubscribe_rooms: &'a [OwnedRoomId],
 
         /// Extensions API.
-        #[serde(skip_serializing_if = "BTreeMap::is_empty")]
-        pub extensions: BTreeMap<String, serde_json::Value>,
+        #[serde(skip_serializing_if = "ExtensionsRequest::is_empty")]
+        pub extensions: ExtensionsRequest,
     }
 
     response: {
@@ -80,6 +80,10 @@ ruma_api! {
         /// The updates on rooms.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
         pub rooms: BTreeMap<OwnedRoomId, SlidingSyncRoom>,
+
+        /// Extensions API.
+        #[serde(default)]
+        pub extensions: ExtensionsResponse,
     }
 
     error: crate::Error
@@ -100,9 +104,11 @@ impl Response {
             pos,
             lists: Default::default(),
             rooms: Default::default(),
+            extensions: Default::default(),
         }
     }
 }
+
 /// Filter for a sliding sync list, set at request.
 ///
 /// All fields are applied with AND operators, hence if `is_dm`  is `true` and `is_encrypted` is
@@ -356,4 +362,71 @@ impl SlidingSyncRoom {
     pub fn new() -> Self {
         Default::default()
     }
+}
+
+/// Configure Sliding-Sync extensions.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct ExtensionsRequest {
+    /// Request to devices messages with the given config.
+    pub to_device: Option<ToDeviceRequest>,
+    /// Configure the end-to-end-encryption extension.
+    pub e2ee: Option<E2EERequest>,
+    /// Configure the account data extension.
+    pub account_data: Option<AccountDataRequest>,
+    /// Extensions may add further fields to the list.
+    #[serde(flatten, default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub other: BTreeMap<String, serde_json::Value>,
+}
+
+impl ExtensionsRequest {
+    fn is_empty(&self) -> bool {
+        !(self.to_device.is_some() || self.e2ee.is_some() || self.account_data.is_some() || !self.other.is_empty())
+    }
+}
+
+/// Extensions specific response data.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct ExtensionsResponse {
+    to_device: Option<ToDeviceResponse>,
+    e2ee: Option<E2EEResponse>,
+    account_data: Option<AccountDataResponse>,
+}
+
+/// ToDevice Messages Extension request.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct ToDeviceRequest {
+}
+
+/// ToDevice Messages Extension response.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct ToDeviceResponse {
+}
+
+/// E2EE Extension request.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct E2EERequest {
+}
+
+/// E2EE Extension response.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct E2EEResponse {
+}
+
+
+/// AccountData Extension request.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct AccountDataRequest {
+}
+
+/// AccountData Extension response.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct AccountDataResponse {
 }
