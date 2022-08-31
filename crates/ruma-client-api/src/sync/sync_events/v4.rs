@@ -193,9 +193,9 @@ pub struct SyncRequestListFilters {
     pub tags: Vec<String>,
 
     /// Filter the room based on its room tags. Takes priority over `tags`. For example, a room
-    /// with tags A and B with filters tags:[A] not_tags:[B] would NOT be included because not_tags
-    /// takes priority over `tags`. This filter is useful if your Rooms list does NOT include the
-    /// list of favourite rooms again.
+    /// with tags A and B with filters `tags:[A]` `not_tags:[B]` would NOT be included because
+    /// `not_tags` takes priority over `tags`. This filter is useful if your Rooms list does
+    /// NOT include the list of favourite rooms again.
     #[serde(skip_serializing_if = "<[_]>::is_empty")]
     pub not_tags: Vec<String>,
 
