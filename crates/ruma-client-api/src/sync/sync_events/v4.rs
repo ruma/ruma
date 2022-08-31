@@ -169,7 +169,7 @@ pub struct SyncRequestListFilters {
     ///
     /// Same as "room_types" but inverted. This can be used to filter out spaces from the room
     /// list.
-    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    #[serde(skip_serializing_if = "<[_]>::is_empty")]
     pub not_room_types: Vec<String>,
 
     /// Only list rooms matching the given string, or all.
@@ -177,6 +177,18 @@ pub struct SyncRequestListFilters {
     /// Filter the room name. Case-insensitive partial matching e.g 'foo' matches 'abFooab'.
     /// The term 'like' is inspired by SQL 'LIKE', and the text here is similar to '%foo%'.
     pub room_name_like: Option<String>,
+
+    /// Filter the room based on its room tags. If multiple tags are present, a room can have
+    /// any one of the listed tags (OR'd).
+    #[serde(skip_serializing_if = "<[_]>::is_empty")]
+    pub tags: Vec<String>,
+
+    /// Filter the room based on its room tags. Takes priority over `tags`. For example, a room
+    /// with tags A and B with filters tags:[A] not_tags:[B] would NOT be included because not_tags
+    /// takes priority over `tags`. This filter is useful if your Rooms list does NOT include the
+    /// list of favourite rooms again.
+    #[serde(skip_serializing_if = "<[_]>::is_empty")]
+    pub not_tags: Vec<String>,
 
     /// Extensions may add further fields to the filters.
     #[serde(flatten, default, skip_serializing_if = "BTreeMap::is_empty")]
