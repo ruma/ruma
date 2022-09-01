@@ -216,6 +216,15 @@ impl AnySyncTimelineEvent {
     }
 }
 
+impl From<AnyTimelineEvent> for AnySyncTimelineEvent {
+    fn from(ev: AnyTimelineEvent) -> Self {
+        match ev {
+            AnyTimelineEvent::MessageLike(ev) => Self::MessageLike(ev.into()),
+            AnyTimelineEvent::State(ev) => Self::State(ev.into()),
+        }
+    }
+}
+
 #[derive(Deserialize)]
 #[allow(clippy::exhaustive_structs)]
 struct EventDeHelper {
