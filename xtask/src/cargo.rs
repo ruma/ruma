@@ -144,7 +144,7 @@ impl Package {
     /// Publish this package on crates.io.
     pub fn publish(&self, client: &HttpClient, dry_run: bool) -> Result<bool> {
         println!("Publishing {} {} on crates.io…", self.name, self.version);
-        let _dir = pushd(&self.manifest_path.parent().unwrap())?;
+        let _dir = pushd(self.manifest_path.parent().unwrap())?;
 
         if self.is_published(client)? {
             if ask_yes_no("This version is already published. Skip this step and continue?")? {

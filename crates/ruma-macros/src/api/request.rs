@@ -328,7 +328,7 @@ impl Request {
         let path_args: Vec<_> = path
             .value()
             .split('/')
-            .filter_map(|s| s.strip_prefix(':').map(&str::to_string))
+            .filter_map(|s| s.strip_prefix(':').map(str::to_string))
             .collect();
 
         let field_map: BTreeMap<_, _> =
