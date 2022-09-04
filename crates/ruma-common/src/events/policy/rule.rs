@@ -14,8 +14,8 @@ pub mod user;
 pub struct PolicyRuleEventContent {
     /// The entity affected by this rule.
     ///
-    /// Glob characters `*` and `?` can be used to match zero or more and one or more characters
-    /// respectively.
+    /// Glob characters `*` and `?` can be used to match zero or more characters or exactly one
+    /// character respectively.
     pub entity: String,
 
     /// The suggested action to take.
