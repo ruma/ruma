@@ -1,7 +1,7 @@
 //! Implementation of the top level `*Event` derive macro.
 
 use proc_macro2::{Span, TokenStream};
-use quote::quote;
+use quote::{format_ident, quote};
 use syn::{parse_quote, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, GenericParam};
 
 use super::{
@@ -359,7 +359,6 @@ fn expand_redact_event(
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let redacted_type = kind.to_event_ident(var.to_redacted())?;
-    let redacted_event_type_enum = kind.to_event_type_enum();
     let ident = &input.ident;
 
     let mut generics = input.generics.clone();
@@ -376,20 +375,14 @@ fn expand_redact_event(
     let where_clause = generics.make_where_clause();
     where_clause.predicates.push(parse_quote! { #ty_param: #ruma_common::events::RedactContent });
 
-    let redacted_event_content_bound = if kind == EventKind::State {
-        quote! {
-            #ruma_common::events::StateEventContent<StateKey = #ty_param::StateKey>
-        }
-    } else {
-        quote! {
-            #ruma_common::events::EventContent<
-                EventType = #ruma_common::events::#redacted_event_type_enum
-            >
-        }
+    let assoc_type_bounds =
+        (kind == EventKind::State).then(|| quote! { StateKey = #ty_param::StateKey });
+    let trait_name = format_ident!("Redacted{kind}Content");
+    let redacted_event_content_bound = quote! {
+        #ruma_common::events::#trait_name<#assoc_type_bounds>
     };
     where_clause.predicates.push(parse_quote! {
-        <#ty_param as #ruma_common::events::RedactContent>::Redacted:
-            #redacted_event_content_bound + #ruma_common::events::RedactedEventContent
+        <#ty_param as #ruma_common::events::RedactContent>::Redacted: #redacted_event_content_bound
     });
 
     let (impl_generics, ty_gen, where_clause) = generics.split_for_impl();

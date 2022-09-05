@@ -407,8 +407,10 @@ fn generate_redacted_event_content<'a>(
     )
     .unwrap_or_else(syn::Error::into_compile_error);
 
-    let static_event_content_impl = event_kind.map(|k| {
-        generate_static_event_content_impl(&redacted_ident, k, true, event_type, ruma_common)
+    let sub_trait_name = event_kind.map(|kind| format_ident!("Redacted{kind}Content"));
+
+    let static_event_content_impl = event_kind.map(|kind| {
+        generate_static_event_content_impl(&redacted_ident, kind, true, event_type, ruma_common)
     });
 
     let mut event_types = aliases.to_owned();
@@ -459,6 +461,9 @@ fn generate_redacted_event_content<'a>(
                 #has_deserialize_fields
             }
         }
+
+        #[automatically_derived]
+        impl #ruma_common::events::#sub_trait_name for #redacted_ident {}
 
         #static_event_content_impl
     })
@@ -611,12 +616,20 @@ fn generate_event_content_impl<'a>(
         }
     }
 
-    let state_event_content_impl = (event_kind == Some(EventKind::State)).then(|| {
-        assert!(state_key_type.is_some());
+    let sub_trait_impl = event_kind.map(|kind| {
+        let trait_name = format_ident!("{kind}Content");
+
+        let state_event_content_impl = (event_kind == Some(EventKind::State)).then(|| {
+            assert!(state_key_type.is_some());
+            quote! {
+                type StateKey = #state_key_type;
+            }
+        });
+
         quote! {
             #[automatically_derived]
-            impl #ruma_common::events::StateEventContent for #ident {
-                type StateKey = #state_key_type;
+            impl #ruma_common::events::#trait_name for #ident {
+                #state_event_content_impl
             }
         }
     });
@@ -682,7 +695,7 @@ fn generate_event_content_impl<'a>(
             }
         }
 
-        #state_event_content_impl
+        #sub_trait_impl
     })
 }
 

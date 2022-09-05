@@ -7,10 +7,9 @@ use serde_json::value::RawValue as RawJsonValue;
 use super::{
     room::redaction::SyncRoomRedactionEvent, EphemeralRoomEventContent, EventContent,
     GlobalAccountDataEventContent, MessageLikeEventContent, MessageLikeEventType,
-    MessageLikeUnsigned, Redact, RedactContent, RedactedEventContent,
-    RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
-    RedactionDeHelper, RoomAccountDataEventContent, StateEventContent, StateEventType,
-    StateUnsigned, ToDeviceEventContent,
+    MessageLikeUnsigned, Redact, RedactContent, RedactedMessageLikeEventContent,
+    RedactedStateEventContent, RedactedUnsigned, RedactionDeHelper, RoomAccountDataEventContent,
+    StateEventContent, StateEventType, StateUnsigned, ToDeviceEventContent,
 };
 use crate::{
     serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
@@ -151,7 +150,7 @@ pub struct RedactedSyncMessageLikeEvent<C: RedactedMessageLikeEventContent> {
 #[serde(untagged)]
 pub enum MessageLikeEvent<C: MessageLikeEventContent + RedactContent>
 where
-    C::Redacted: MessageLikeEventContent + RedactedEventContent,
+    C::Redacted: RedactedMessageLikeEventContent,
 {
     /// Original, unredacted form of the event.
     Original(OriginalMessageLikeEvent<C>),
@@ -169,7 +168,7 @@ where
 #[serde(untagged)]
 pub enum SyncMessageLikeEvent<C: MessageLikeEventContent + RedactContent>
 where
-    C::Redacted: MessageLikeEventContent + RedactedEventContent,
+    C::Redacted: RedactedMessageLikeEventContent,
 {
     /// Original, unredacted form of the event.
     Original(OriginalSyncMessageLikeEvent<C>),
@@ -336,7 +335,7 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
 #[serde(untagged)]
 pub enum StateEvent<C: StateEventContent + RedactContent>
 where
-    C::Redacted: StateEventContent + RedactedEventContent,
+    C::Redacted: RedactedStateEventContent,
 {
     /// Original, unredacted form of the event.
     Original(OriginalStateEvent<C>),
@@ -354,7 +353,7 @@ where
 #[serde(untagged)]
 pub enum SyncStateEvent<C: StateEventContent + RedactContent>
 where
-    C::Redacted: StateEventContent + RedactedEventContent,
+    C::Redacted: RedactedStateEventContent,
 {
     /// Original, unredacted form of the event.
     Original(OriginalSyncStateEvent<C>),
@@ -411,14 +410,14 @@ pub struct DecryptedMegolmV1Event<C: MessageLikeEventContent> {
 
 macro_rules! impl_possibly_redacted_event {
     (
-        $ty:ident ( $content_trait:ident, $event_type:ident )
+        $ty:ident ( $content_trait:ident, $redacted_content_trait:ident, $event_type:ident )
         $( where C::Redacted: $trait:ident<StateKey = C::StateKey>, )?
         { $($extra:tt)* }
     ) => {
         impl<C> $ty<C>
         where
             C: $content_trait + RedactContent,
-            C::Redacted: $content_trait + RedactedEventContent,
+            C::Redacted: $redacted_content_trait,
             $( C::Redacted: $trait<StateKey = C::StateKey>, )?
         {
             /// Returns the `type` of this event.
@@ -460,7 +459,7 @@ macro_rules! impl_possibly_redacted_event {
         impl<C> Redact for $ty<C>
         where
             C: $content_trait + RedactContent,
-            C::Redacted: $content_trait + RedactedEventContent,
+            C::Redacted: $redacted_content_trait,
             $( C::Redacted: $trait<StateKey = C::StateKey>, )?
         {
             type Redacted = Self;
@@ -476,7 +475,7 @@ macro_rules! impl_possibly_redacted_event {
         impl<'de, C> Deserialize<'de> for $ty<C>
         where
             C: $content_trait + RedactContent,
-            C::Redacted: $content_trait + RedactedEventContent,
+            C::Redacted: $redacted_content_trait,
             $( C::Redacted: $trait<StateKey = C::StateKey>, )?
         {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -496,44 +495,52 @@ macro_rules! impl_possibly_redacted_event {
     }
 }
 
-impl_possibly_redacted_event!(MessageLikeEvent(MessageLikeEventContent, MessageLikeEventType) {
-    /// Returns this event's `room_id` field.
-    pub fn room_id(&self) -> &RoomId {
-        match self {
-            Self::Original(ev) => &ev.room_id,
-            Self::Redacted(ev) => &ev.room_id,
+impl_possibly_redacted_event!(
+    MessageLikeEvent(
+        MessageLikeEventContent, RedactedMessageLikeEventContent, MessageLikeEventType
+    ) {
+        /// Returns this event's `room_id` field.
+        pub fn room_id(&self) -> &RoomId {
+            match self {
+                Self::Original(ev) => &ev.room_id,
+                Self::Redacted(ev) => &ev.room_id,
+            }
         }
-    }
 
-    /// Get the inner `OriginalMessageLikeEvent` if this is an unredacted event.
-    pub fn as_original(&self) -> Option<&OriginalMessageLikeEvent<C>> {
-        match self {
-            Self::Original(v) => Some(v),
-            _ => None,
+        /// Get the inner `OriginalMessageLikeEvent` if this is an unredacted event.
+        pub fn as_original(&self) -> Option<&OriginalMessageLikeEvent<C>> {
+            match self {
+                Self::Original(v) => Some(v),
+                _ => None,
+            }
         }
     }
-});
-
-impl_possibly_redacted_event!(SyncMessageLikeEvent(MessageLikeEventContent, MessageLikeEventType) {
-    /// Get the inner `OriginalSyncMessageLikeEvent` if this is an unredacted event.
-    pub fn as_original(&self) -> Option<&OriginalSyncMessageLikeEvent<C>> {
-        match self {
-            Self::Original(v) => Some(v),
-            _ => None,
-        }
-    }
-
-    /// Convert this sync event into a full event (one with a `room_id` field).
-    pub fn into_full_event(self, room_id: OwnedRoomId) -> MessageLikeEvent<C> {
-        match self {
-            Self::Original(ev) => MessageLikeEvent::Original(ev.into_full_event(room_id)),
-            Self::Redacted(ev) => MessageLikeEvent::Redacted(ev.into_full_event(room_id)),
-        }
-    }
-});
+);
 
 impl_possibly_redacted_event!(
-    StateEvent(StateEventContent, StateEventType)
+    SyncMessageLikeEvent(
+        MessageLikeEventContent, RedactedMessageLikeEventContent, MessageLikeEventType
+    ) {
+        /// Get the inner `OriginalSyncMessageLikeEvent` if this is an unredacted event.
+        pub fn as_original(&self) -> Option<&OriginalSyncMessageLikeEvent<C>> {
+            match self {
+                Self::Original(v) => Some(v),
+                _ => None,
+            }
+        }
+
+        /// Convert this sync event into a full event (one with a `room_id` field).
+        pub fn into_full_event(self, room_id: OwnedRoomId) -> MessageLikeEvent<C> {
+            match self {
+                Self::Original(ev) => MessageLikeEvent::Original(ev.into_full_event(room_id)),
+                Self::Redacted(ev) => MessageLikeEvent::Redacted(ev.into_full_event(room_id)),
+            }
+        }
+    }
+);
+
+impl_possibly_redacted_event!(
+    StateEvent(StateEventContent, RedactedStateEventContent, StateEventType)
     where
         C::Redacted: StateEventContent<StateKey = C::StateKey>,
     {
@@ -564,7 +571,7 @@ impl_possibly_redacted_event!(
 );
 
 impl_possibly_redacted_event!(
-    SyncStateEvent(StateEventContent, StateEventType)
+    SyncStateEvent(StateEventContent, RedactedStateEventContent, StateEventType)
     where
         C::Redacted: StateEventContent<StateKey = C::StateKey>,
     {
@@ -595,11 +602,11 @@ impl_possibly_redacted_event!(
 );
 
 macro_rules! impl_sync_from_full {
-    ($ty:ident, $full:ident, $content_trait:ident) => {
+    ($ty:ident, $full:ident, $content_trait:ident, $redacted_content_trait: ident) => {
         impl<C> From<$full<C>> for $ty<C>
         where
             C: $content_trait + RedactContent,
-            C::Redacted: $content_trait + RedactedEventContent,
+            C::Redacted: $redacted_content_trait,
         {
             fn from(full: $full<C>) -> Self {
                 match full {
@@ -611,5 +618,10 @@ macro_rules! impl_sync_from_full {
     };
 }
 
-impl_sync_from_full!(SyncMessageLikeEvent, MessageLikeEvent, MessageLikeEventContent);
-impl_sync_from_full!(SyncStateEvent, StateEvent, StateEventContent);
+impl_sync_from_full!(
+    SyncMessageLikeEvent,
+    MessageLikeEvent,
+    MessageLikeEventContent,
+    RedactedMessageLikeEventContent
+);
+impl_sync_from_full!(SyncStateEvent, StateEvent, StateEventContent, RedactedStateEventContent);

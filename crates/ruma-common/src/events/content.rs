@@ -136,39 +136,32 @@ pub enum EventKind {
     Presence,
 }
 
-/// An alias for `EventContent<EventType = GlobalAccountDataEventType>`.
+/// Content of a global account-data event.
 pub trait GlobalAccountDataEventContent:
     EventContent<EventType = GlobalAccountDataEventType>
 {
 }
-impl<T: EventContent<EventType = GlobalAccountDataEventType>> GlobalAccountDataEventContent for T {}
 
-/// An alias for `EventContent<EventType = RoomAccountDataEventType>`.
+/// Content of a room-specific account-data event.
 pub trait RoomAccountDataEventContent: EventContent<EventType = RoomAccountDataEventType> {}
-impl<T: EventContent<EventType = RoomAccountDataEventType>> RoomAccountDataEventContent for T {}
 
-/// An alias for `EventContent<EventType = EphemeralRoomEventType>`.
+/// Content of an ephemeral room event.
 pub trait EphemeralRoomEventContent: EventContent<EventType = EphemeralRoomEventType> {}
-impl<T: EventContent<EventType = EphemeralRoomEventType>> EphemeralRoomEventContent for T {}
 
-/// An alias for `EventContent<EventType = MessageLikeEventType>`.
+/// Content of a non-redacted message-like event.
 pub trait MessageLikeEventContent: EventContent<EventType = MessageLikeEventType> {}
-impl<T: EventContent<EventType = MessageLikeEventType>> MessageLikeEventContent for T {}
 
-/// An alias for `MessageLikeEventContent + RedactedEventContent`.
+/// Content of a redacted message-like event.
 pub trait RedactedMessageLikeEventContent: MessageLikeEventContent + RedactedEventContent {}
-impl<T: MessageLikeEventContent + RedactedEventContent> RedactedMessageLikeEventContent for T {}
 
-/// An alias for `StateEventContent + RedactedEventContent`.
-pub trait RedactedStateEventContent: StateEventContent + RedactedEventContent {}
-impl<T: StateEventContent + RedactedEventContent> RedactedStateEventContent for T {}
-
-/// An alias for `EventContent<EventType = ToDeviceEventType>`.
-pub trait ToDeviceEventContent: EventContent<EventType = ToDeviceEventType> {}
-impl<T: EventContent<EventType = ToDeviceEventType>> ToDeviceEventContent for T {}
-
-/// An alias for `EventContent<EventType = StateEventType>`.
+/// Content of a redacted state event.
 pub trait StateEventContent: EventContent<EventType = StateEventType> {
     /// The type of the event's `state_key` field.
     type StateKey: AsRef<str> + Clone + fmt::Debug + DeserializeOwned + Serialize;
 }
+
+/// Content of a non-redacted state event.
+pub trait RedactedStateEventContent: StateEventContent + RedactedEventContent {}
+
+/// Content of a to-device event.
+pub trait ToDeviceEventContent: EventContent<EventType = ToDeviceEventType> {}

@@ -2,9 +2,11 @@ use serde::Serialize;
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
-    EphemeralRoomEventType, EventContent, GlobalAccountDataEventType, HasDeserializeFields,
-    MessageLikeEventType, RedactContent, RedactedEventContent, RoomAccountDataEventType,
-    StateEventContent, StateEventType, ToDeviceEventType,
+    EphemeralRoomEventContent, EphemeralRoomEventType, EventContent, GlobalAccountDataEventContent,
+    GlobalAccountDataEventType, HasDeserializeFields, MessageLikeEventContent,
+    MessageLikeEventType, RedactContent, RedactedEventContent, RedactedMessageLikeEventContent,
+    RedactedStateEventContent, RoomAccountDataEventContent, RoomAccountDataEventType,
+    StateEventContent, StateEventType, ToDeviceEventContent, ToDeviceEventType,
 };
 use crate::RoomVersionId;
 
@@ -63,12 +65,23 @@ macro_rules! custom_room_event_content {
 }
 
 custom_event_content!(CustomGlobalAccountDataEventContent, GlobalAccountDataEventType);
-custom_event_content!(CustomRoomAccountDataEventContent, RoomAccountDataEventType);
-custom_event_content!(CustomEphemeralRoomEventContent, EphemeralRoomEventType);
-custom_room_event_content!(CustomMessageLikeEventContent, MessageLikeEventType);
-custom_room_event_content!(CustomStateEventContent, StateEventType);
-custom_event_content!(CustomToDeviceEventContent, ToDeviceEventType);
+impl GlobalAccountDataEventContent for CustomGlobalAccountDataEventContent {}
 
+custom_event_content!(CustomRoomAccountDataEventContent, RoomAccountDataEventType);
+impl RoomAccountDataEventContent for CustomRoomAccountDataEventContent {}
+
+custom_event_content!(CustomEphemeralRoomEventContent, EphemeralRoomEventType);
+impl EphemeralRoomEventContent for CustomEphemeralRoomEventContent {}
+
+custom_room_event_content!(CustomMessageLikeEventContent, MessageLikeEventType);
+impl MessageLikeEventContent for CustomMessageLikeEventContent {}
+impl RedactedMessageLikeEventContent for CustomMessageLikeEventContent {}
+
+custom_room_event_content!(CustomStateEventContent, StateEventType);
 impl StateEventContent for CustomStateEventContent {
     type StateKey = String;
 }
+impl RedactedStateEventContent for CustomStateEventContent {}
+
+custom_event_content!(CustomToDeviceEventContent, ToDeviceEventType);
+impl ToDeviceEventContent for CustomToDeviceEventContent {}

@@ -10,8 +10,8 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
     events::{
-        EventContent, HasDeserializeFields, RedactContent, RedactedEventContent, StateEventContent,
-        StateEventType,
+        EventContent, HasDeserializeFields, RedactContent, RedactedEventContent,
+        RedactedStateEventContent, StateEventContent, StateEventType,
     },
     serde::StringEnum,
     OwnedMxcUri, OwnedServerName, OwnedServerSigningKeyId, OwnedUserId, PrivOwnedStr,
@@ -203,6 +203,8 @@ impl EventContent for RedactedRoomMemberEventContent {
 impl StateEventContent for RedactedRoomMemberEventContent {
     type StateKey = OwnedUserId;
 }
+
+impl RedactedStateEventContent for RedactedRoomMemberEventContent {}
 
 // Since this redacted event has fields we leave the default `empty` method
 // that will error if called.
