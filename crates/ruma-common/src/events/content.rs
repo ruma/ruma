@@ -136,43 +136,36 @@ pub enum EventKind {
     Presence,
 }
 
-macro_rules! trait_aliases {
-    // need to use `,` instead of `+` because (1) path can't be followed by `+`
-    // and (2) `+` can't be used as a separator since it's a repetition operator
-    ($(
-        $( #[doc = $docs:literal] )*
-        trait $id:ident = $( $def:path ),+;
-    )*) => {
-        $(
-            $( #[doc = $docs] )*
-            pub trait $id: $($def+)+ {}
-            impl<T: $($def+)+> $id for T {}
-        )*
-    }
+/// An alias for `EventContent<EventType = GlobalAccountDataEventType>`.
+pub trait GlobalAccountDataEventContent:
+    EventContent<EventType = GlobalAccountDataEventType>
+{
 }
+impl<T: EventContent<EventType = GlobalAccountDataEventType>> GlobalAccountDataEventContent for T {}
 
-trait_aliases! {
-    /// An alias for `EventContent<EventType = GlobalAccountDataEventType>`.
-    trait GlobalAccountDataEventContent = EventContent<EventType = GlobalAccountDataEventType>;
+/// An alias for `EventContent<EventType = RoomAccountDataEventType>`.
+pub trait RoomAccountDataEventContent: EventContent<EventType = RoomAccountDataEventType> {}
+impl<T: EventContent<EventType = RoomAccountDataEventType>> RoomAccountDataEventContent for T {}
 
-    /// An alias for `EventContent<EventType = RoomAccountDataEventType>`.
-    trait RoomAccountDataEventContent = EventContent<EventType = RoomAccountDataEventType>;
+/// An alias for `EventContent<EventType = EphemeralRoomEventType>`.
+pub trait EphemeralRoomEventContent: EventContent<EventType = EphemeralRoomEventType> {}
+impl<T: EventContent<EventType = EphemeralRoomEventType>> EphemeralRoomEventContent for T {}
 
-    /// An alias for `EventContent<EventType = EphemeralRoomEventType>`.
-    trait EphemeralRoomEventContent = EventContent<EventType = EphemeralRoomEventType>;
+/// An alias for `EventContent<EventType = MessageLikeEventType>`.
+pub trait MessageLikeEventContent: EventContent<EventType = MessageLikeEventType> {}
+impl<T: EventContent<EventType = MessageLikeEventType>> MessageLikeEventContent for T {}
 
-    /// An alias for `EventContent<EventType = MessageLikeEventType>`.
-    trait MessageLikeEventContent = EventContent<EventType = MessageLikeEventType>;
+/// An alias for `MessageLikeEventContent + RedactedEventContent`.
+pub trait RedactedMessageLikeEventContent: MessageLikeEventContent + RedactedEventContent {}
+impl<T: MessageLikeEventContent + RedactedEventContent> RedactedMessageLikeEventContent for T {}
 
-    /// An alias for `MessageLikeEventContent + RedactedEventContent`.
-    trait RedactedMessageLikeEventContent = MessageLikeEventContent, RedactedEventContent;
+/// An alias for `StateEventContent + RedactedEventContent`.
+pub trait RedactedStateEventContent: StateEventContent + RedactedEventContent {}
+impl<T: StateEventContent + RedactedEventContent> RedactedStateEventContent for T {}
 
-    /// An alias for `StateEventContent + RedactedEventContent`.
-    trait RedactedStateEventContent = StateEventContent, RedactedEventContent;
-
-    /// An alias for `EventContent<EventType = ToDeviceEventType>`.
-    trait ToDeviceEventContent = EventContent<EventType = ToDeviceEventType>;
-}
+/// An alias for `EventContent<EventType = ToDeviceEventType>`.
+pub trait ToDeviceEventContent: EventContent<EventType = ToDeviceEventType> {}
+impl<T: EventContent<EventType = ToDeviceEventType>> ToDeviceEventContent for T {}
 
 /// An alias for `EventContent<EventType = StateEventType>`.
 pub trait StateEventContent: EventContent<EventType = StateEventType> {
