@@ -360,6 +360,10 @@ fn expand_content_enum(
     let variant_decls = variants.iter().map(|v| v.decl()).collect::<Vec<_>>();
     let variant_arms = variants.iter().map(|v| v.match_arm(quote! { Self })).collect::<Vec<_>>();
 
+    let sub_trait_name = format_ident!("{kind}Content");
+    let state_event_content_impl =
+        (kind == EventKind::State).then(|| quote! { type StateKey = String; });
+
     let from_impl = expand_from_impl(&ident, &content, variants);
 
     let serialize_custom_event_error_path =
@@ -407,6 +411,11 @@ fn expand_content_enum(
                     }
                 }
             }
+        }
+
+        #[automatically_derived]
+        impl #ruma_common::events::#sub_trait_name for #ident {
+            #state_event_content_impl
         }
 
         #from_impl
