@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.7.0
+
 Breaking changes:
 
 * The `receipt` module is no longer exported.
