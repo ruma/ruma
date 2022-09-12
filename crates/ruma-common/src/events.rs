@@ -174,7 +174,7 @@ pub use self::{
     kinds::*,
     relation::Relations,
     state_key::EmptyStateKey,
-    unsigned::{MessageLikeUnsigned, RedactedUnsigned, StateUnsigned},
+    unsigned::{MessageLikeUnsigned, RedactedUnsigned, StateUnsigned, StateUnsignedFromParts},
 };
 
 /// Trait to define the behavior of redacting an event.

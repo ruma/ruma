@@ -101,10 +101,14 @@ impl<C: StateEventContent> CanBeEmpty for StateUnsigned<C> {
 
 /// Helper functions for proc-macro code.
 ///
-/// Needs to be public for UI tests.
+/// Needs to be public for state events defined outside ruma-common.
 #[doc(hidden)]
-impl<C: StateEventContent> StateUnsigned<C> {
-    pub fn _from_parts(event_type: &str, object: &RawJsonValue) -> serde_json::Result<Self> {
+pub trait StateUnsignedFromParts: Sized {
+    fn _from_parts(event_type: &str, object: &RawJsonValue) -> serde_json::Result<Self>;
+}
+
+impl<C: StateEventContent> StateUnsignedFromParts for StateUnsigned<C> {
+    fn _from_parts(event_type: &str, object: &RawJsonValue) -> serde_json::Result<Self> {
         #[derive(Deserialize)]
         #[serde(bound = "")] // Disable default C: Deserialize bound
         struct WithRawPrevContent<C> {

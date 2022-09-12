@@ -228,8 +228,10 @@ fn expand_deserialize_event(
                 if has_prev_content(kind, var) {
                     quote! {
                         let unsigned = unsigned.map(|json| {
-                            #ruma_common::events::StateUnsigned::_from_parts(&event_type, &json)
-                                .map_err(#serde::de::Error::custom)
+                            #ruma_common::events::StateUnsignedFromParts::_from_parts(
+                                &event_type,
+                                &json,
+                            ).map_err(#serde::de::Error::custom)
                         }).transpose()?.unwrap_or_default();
                     }
                 } else {
