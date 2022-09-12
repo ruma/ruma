@@ -9,7 +9,7 @@ use super::{
     GlobalAccountDataEventContent, MessageLikeEventContent, MessageLikeEventType,
     MessageLikeUnsigned, Redact, RedactContent, RedactedMessageLikeEventContent,
     RedactedStateEventContent, RedactedUnsigned, RedactionDeHelper, RoomAccountDataEventContent,
-    StateEventContent, StateEventType, StateUnsigned, ToDeviceEventContent,
+    StateEventContent, StateEventType, ToDeviceEventContent,
 };
 use crate::{
     serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
@@ -205,7 +205,7 @@ pub struct OriginalStateEvent<C: StateEventContent> {
     pub state_key: C::StateKey,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: StateUnsigned<C>,
+    pub unsigned: C::Unsigned,
 }
 
 /// An unredacted state event without a `room_id`.
@@ -233,7 +233,7 @@ pub struct OriginalSyncStateEvent<C: StateEventContent> {
     pub state_key: C::StateKey,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: StateUnsigned<C>,
+    pub unsigned: C::Unsigned,
 }
 
 /// A stripped-down state event, used for previews of rooms the user has been invited to.

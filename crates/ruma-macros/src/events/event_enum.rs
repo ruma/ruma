@@ -361,8 +361,13 @@ fn expand_content_enum(
     let variant_arms = variants.iter().map(|v| v.match_arm(quote! { Self })).collect::<Vec<_>>();
 
     let sub_trait_name = format_ident!("{kind}Content");
-    let state_event_content_impl =
-        (kind == EventKind::State).then(|| quote! { type StateKey = String; });
+    let state_event_content_impl = (kind == EventKind::State).then(|| {
+        quote! {
+            type StateKey = String;
+            // FIXME: Not actually used
+            type Unsigned = #ruma_common::events::StateUnsigned<Self>;
+        }
+    });
 
     let from_impl = expand_from_impl(&ident, &content, variants);
 

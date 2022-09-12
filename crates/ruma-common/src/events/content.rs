@@ -3,11 +3,11 @@ use std::fmt;
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use crate::serde::Raw;
+use crate::serde::{CanBeEmpty, Raw};
 
 use super::{
     EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEventType,
-    RoomAccountDataEventType, StateEventType, ToDeviceEventType,
+    RoomAccountDataEventType, StateEventType, StateUnsignedFromParts, ToDeviceEventType,
 };
 
 /// The base trait that all event content types implement.
@@ -158,6 +158,9 @@ pub trait RedactedMessageLikeEventContent: MessageLikeEventContent + RedactedEve
 pub trait StateEventContent: EventContent<EventType = StateEventType> {
     /// The type of the event's `state_key` field.
     type StateKey: AsRef<str> + Clone + fmt::Debug + DeserializeOwned + Serialize;
+
+    /// The type of the event's `unsigned` field.
+    type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty + StateUnsignedFromParts + Serialize;
 }
 
 /// Content of a non-redacted state event.

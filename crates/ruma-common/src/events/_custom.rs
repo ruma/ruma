@@ -6,7 +6,7 @@ use super::{
     GlobalAccountDataEventType, HasDeserializeFields, MessageLikeEventContent,
     MessageLikeEventType, RedactContent, RedactedEventContent, RedactedMessageLikeEventContent,
     RedactedStateEventContent, RoomAccountDataEventContent, RoomAccountDataEventType,
-    StateEventContent, StateEventType, ToDeviceEventContent, ToDeviceEventType,
+    StateEventContent, StateEventType, StateUnsigned, ToDeviceEventContent, ToDeviceEventType,
 };
 use crate::RoomVersionId;
 
@@ -80,6 +80,7 @@ impl RedactedMessageLikeEventContent for CustomMessageLikeEventContent {}
 custom_room_event_content!(CustomStateEventContent, StateEventType);
 impl StateEventContent for CustomStateEventContent {
     type StateKey = String;
+    type Unsigned = StateUnsigned<Self>;
 }
 impl RedactedStateEventContent for CustomStateEventContent {}
 

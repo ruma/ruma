@@ -1,4 +1,5 @@
 //! Implementations of the EventContent derive macro.
+#![allow(clippy::too_many_arguments)] // FIXME
 
 use std::borrow::Cow;
 
@@ -23,6 +24,8 @@ mod kw {
     syn::custom_keyword!(type_fragment);
     // The type to use for a state events' `state_key` field.
     syn::custom_keyword!(state_key_type);
+    // The type to use for a state events' `unsigned` field.
+    syn::custom_keyword!(unsigned_type);
     // Another type string accepted for deserialization.
     syn::custom_keyword!(alias);
 }
@@ -41,6 +44,8 @@ enum EventStructMeta {
     CustomRedacted,
 
     StateKeyType(Box<Type>),
+
+    UnsignedType(Box<Type>),
 
     /// Variant that holds alternate event type accepted for deserialization.
     Alias(LitStr),
@@ -64,6 +69,13 @@ impl EventStructMeta {
     fn get_state_key_type(&self) -> Option<&Type> {
         match self {
             Self::StateKeyType(ty) => Some(ty),
+            _ => None,
+        }
+    }
+
+    fn get_unsigned_type(&self) -> Option<&Type> {
+        match self {
+            Self::UnsignedType(ty) => Some(ty),
             _ => None,
         }
     }
@@ -94,6 +106,10 @@ impl Parse for EventStructMeta {
             let _: kw::state_key_type = input.parse()?;
             let _: Token![=] = input.parse()?;
             input.parse().map(EventStructMeta::StateKeyType)
+        } else if lookahead.peek(kw::unsigned_type) {
+            let _: kw::unsigned_type = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            input.parse().map(EventStructMeta::UnsignedType)
         } else if lookahead.peek(kw::alias) {
             let _: kw::alias = input.parse()?;
             let _: Token![=] = input.parse()?;
@@ -151,6 +167,10 @@ impl MetaAttrs {
         self.0.iter().find_map(|a| a.get_state_key_type())
     }
 
+    fn get_unsigned_type(&self) -> Option<&Type> {
+        self.0.iter().find_map(|a| a.get_unsigned_type())
+    }
+
     fn get_aliases(&self) -> impl Iterator<Item = &LitStr> {
         self.0.iter().filter_map(|a| a.get_alias())
     }
@@ -191,7 +211,7 @@ pub fn expand_event_content(
         _ => {
             return Err(syn::Error::new(
                 Span::call_site(),
-                "multiple event type attribute found, there can only be one",
+                "multiple event type attributes found, there can only be one",
             ));
         }
     };
@@ -204,7 +224,7 @@ pub fn expand_event_content(
         _ => {
             return Err(syn::Error::new(
                 Span::call_site(),
-                "multiple event kind attribute found, there can only be one",
+                "multiple event kind attributes found, there can only be one",
             ));
         }
     };
@@ -230,6 +250,19 @@ pub fn expand_event_content(
             return Err(syn::Error::new_spanned(
                 ty,
                 "state_key_type attribute is not valid for non-state event kinds",
+            ));
+        }
+    };
+
+    let unsigned_types: Vec<_> =
+        content_attr.iter().filter_map(|attrs| attrs.get_unsigned_type()).collect();
+    let unsigned_type = match unsigned_types.as_slice() {
+        [] => None,
+        [ty] => Some(quote! { #ty }),
+        _ => {
+            return Err(syn::Error::new(
+                Span::call_site(),
+                "multiple unsigned attributes found, there can only be one",
             ));
         }
     };
@@ -280,6 +313,7 @@ pub fn expand_event_content(
             event_type,
             event_kind,
             state_key_type.as_ref(),
+            unsigned_type.clone(),
             &aliases,
             ruma_common,
         )
@@ -292,6 +326,7 @@ pub fn expand_event_content(
         event_type,
         event_kind,
         state_key_type.as_ref(),
+        unsigned_type,
         &aliases,
         ruma_common,
     )
@@ -317,6 +352,7 @@ fn generate_redacted_event_content<'a>(
     event_type: &LitStr,
     event_kind: Option<EventKind>,
     state_key_type: Option<&TokenStream>,
+    unsigned_type: Option<TokenStream>,
     aliases: &[&LitStr],
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
@@ -402,6 +438,7 @@ fn generate_redacted_event_content<'a>(
         event_type,
         event_kind,
         state_key_type,
+        unsigned_type,
         aliases,
         ruma_common,
     )
@@ -536,6 +573,7 @@ fn generate_event_content_impl<'a>(
     event_type: &LitStr,
     event_kind: Option<EventKind>,
     state_key_type: Option<&TokenStream>,
+    unsigned_type: Option<TokenStream>,
     aliases: &[&'a LitStr],
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
@@ -621,8 +659,12 @@ fn generate_event_content_impl<'a>(
 
         let state_event_content_impl = (event_kind == Some(EventKind::State)).then(|| {
             assert!(state_key_type.is_some());
+            let unsigned_type = unsigned_type
+                .unwrap_or_else(|| quote! { #ruma_common::events::StateUnsigned<Self> });
+
             quote! {
                 type StateKey = #state_key_type;
+                type Unsigned = #unsigned_type;
             }
         });
 
