@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.10.0
+
 Bug fixes:
 
 * Expose `MatrixIdError`, `MatrixToError`, `MatrixUriError` and `MxcUriError` at
