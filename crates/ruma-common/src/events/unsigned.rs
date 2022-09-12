@@ -128,18 +128,6 @@ impl<C: StateEventContent> StateUnsigned<C> {
             prev_content,
         })
     }
-
-    pub fn _map_prev_content<T>(&self, f: impl FnOnce(&C) -> T) -> StateUnsigned<T>
-    where
-        T: StateEventContent,
-    {
-        StateUnsigned {
-            age: self.age,
-            transaction_id: self.transaction_id.clone(),
-            prev_content: self.prev_content.as_ref().map(f),
-            relations: self.relations.clone(),
-        }
-    }
 }
 
 impl<C: StateEventContent> Default for StateUnsigned<C> {
