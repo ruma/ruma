@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.12.0
+
 Breaking changes:
 
 * Remove pointless `PartialEq` implementation for `Ed25519Verifier`
