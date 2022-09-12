@@ -2,6 +2,8 @@
 
 Breaking changes:
 
+* Export nothing from the crate if neither the `client` nor the `server` feature is active
+  * This may partially be reverted in subsequent releases
 * `UnreadNotificationsCount` has moved from `sync::sync_events::v3` to `sync::sync_events`
 * Remove `PartialEq` implementations for a number of types
   * If the lack of such an `impl` causes problems, please open a GitHub issue
