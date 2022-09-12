@@ -8,7 +8,9 @@ use ruma_common::{
         },
         AnyMessageLikeEvent, MessageLikeUnsigned,
     },
-    room_id, user_id, MilliSecondsSinceUnixEpoch,
+    room_id,
+    serde::CanBeEmpty,
+    user_id, MilliSecondsSinceUnixEpoch,
 };
 use serde_json::{
     from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,

@@ -86,7 +86,7 @@ fn expand_serialize_event(
                 }
             } else if name == "unsigned" {
                 quote! {
-                    if !self.unsigned.is_empty() {
+                    if !#ruma_common::serde::is_empty(&self.unsigned) {
                         state.serialize_field("unsigned", &self.unsigned)?;
                     }
                 }

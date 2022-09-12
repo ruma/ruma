@@ -460,8 +460,8 @@ mod tests {
 
     use super::{MembershipState, RoomMemberEventContent};
     use crate::{
-        events::OriginalStateEvent, mxc_uri, server_name, server_signing_key_id, user_id,
-        MilliSecondsSinceUnixEpoch,
+        events::OriginalStateEvent, mxc_uri, serde::CanBeEmpty, server_name, server_signing_key_id,
+        user_id, MilliSecondsSinceUnixEpoch,
     };
 
     #[test]

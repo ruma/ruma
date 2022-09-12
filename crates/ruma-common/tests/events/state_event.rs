@@ -9,7 +9,7 @@ use ruma_common::{
         StateUnsigned, SyncStateEvent,
     },
     mxc_uri, room_alias_id, room_id,
-    serde::Raw,
+    serde::{CanBeEmpty, Raw},
     server_name, user_id, MilliSecondsSinceUnixEpoch,
 };
 use serde_json::{
