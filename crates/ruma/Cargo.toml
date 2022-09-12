@@ -213,7 +213,7 @@ ruma-client = { version = "0.9.0", path = "../ruma-client", optional = true }
 ruma-signatures = { version = "0.11.0", path = "../ruma-signatures", optional = true }
 ruma-state-res = { version = "0.7.0", path = "../ruma-state-res", optional = true }
 
-ruma-appservice-api = { version = "0.6.0", path = "../ruma-appservice-api", optional = true }
+ruma-appservice-api = { version = "0.7.0", path = "../ruma-appservice-api", optional = true }
 ruma-client-api = { version = "0.15.0", path = "../ruma-client-api", optional = true }
 ruma-federation-api = { version = "0.6.0", path = "../ruma-federation-api", optional = true }
 ruma-identity-service-api = { version = "0.6.0", path = "../ruma-identity-service-api", optional = true }
