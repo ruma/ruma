@@ -500,22 +500,22 @@ fn reply_sanitize() {
         unsigned: MessageLikeUnsigned::default(),
     };
     let second_message = OriginalRoomMessageEvent {
-        content: RoomMessageEventContent::text_reply_html(
+        content: RoomMessageEventContent::text_html(
             "This is the _second_ message",
             "This is the <em>second</em> message",
-            &first_message,
-        ),
+        )
+        .make_reply_to(&first_message),
         event_id: event_id!("$143273582443PhrSn:example.org").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
         room_id: room_id!("!testroomid:example.org").to_owned(),
         sender: user_id!("@user:example.org").to_owned(),
         unsigned: MessageLikeUnsigned::default(),
     };
-    let final_reply = RoomMessageEventContent::text_reply_html(
+    let final_reply = RoomMessageEventContent::text_html(
         "This is **my** reply",
         "This is <strong>my</strong> reply",
-        &second_message,
-    );
+    )
+    .make_reply_to(&second_message);
 
     let (body, formatted) = assert_matches!(
         first_message.content.msgtype,

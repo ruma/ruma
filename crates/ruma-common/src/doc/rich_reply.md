@@ -1,5 +1,5 @@
 <!-- Keep this comment so the content is always included as a new paragraph -->
-This constructor requires an [`OriginalRoomMessageEvent`] since it creates a permalink to
+This function requires an [`OriginalRoomMessageEvent`] since it creates a permalink to
 the previous message, for which the room ID is required. If you want to reply to an
 [`OriginalSyncRoomMessageEvent`], you have to convert it first by calling
 [`.into_full_event()`][crate::events::OriginalSyncMessageLikeEvent::into_full_event].
