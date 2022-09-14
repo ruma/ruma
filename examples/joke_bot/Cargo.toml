@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-ruma = { version = "0.7.0", path = "../../crates/ruma", features = ["client-api-c", "client-ext-client-api", "client-hyper-native-tls", "rand"] }
+ruma = { version = "0.7.1", path = "../../crates/ruma", features = ["client-api-c", "client-ext-client-api", "client-hyper-native-tls", "rand"] }
 # For building locally: use the git dependencies below.
 # Browse the source at this revision here: https://github.com/ruma/ruma/tree/f161c8117c706fc52089999e1f406cf34276ec9d
 # ruma = { git = "https://github.com/ruma/ruma", rev = "f161c8117c706fc52089999e1f406cf34276ec9d", features = ["client-api-c", "client", "client-hyper-native-tls", "events"] }
