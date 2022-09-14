@@ -1,5 +1,12 @@
 # [unreleased]
 
+# 0.10.1
+
+Improvements:
+
+* Add `RoomMessageEventContent::make_reply_to`
+  * Deprecate reply constructors in favor of the new method
+
 # 0.10.0
 
 Bug fixes:

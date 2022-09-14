@@ -17,7 +17,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 headers = "0.3"
-ruma-common = { version = "0.10.0", path = "../ruma-common" }
+ruma-common = { version = "0.10.1", path = "../ruma-common" }
 tracing = "0.1.25"
 yap = "0.7.2"
 
