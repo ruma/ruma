@@ -121,7 +121,7 @@ impl EventKind {
         matches!(self, Self::GlobalAccountData | Self::RoomAccountData)
     }
 
-    pub fn is_room(self) -> bool {
+    pub fn is_timeline(self) -> bool {
         matches!(self, Self::MessageLike | Self::RoomRedaction | Self::State)
     }
 

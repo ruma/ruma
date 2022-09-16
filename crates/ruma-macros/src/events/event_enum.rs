@@ -474,7 +474,7 @@ fn expand_accessor_methods(
     let self_variants: Vec<_> = variants.iter().map(|v| v.match_arm(quote! { Self })).collect();
 
     let maybe_redacted =
-        kind.is_room() && matches!(var, EventEnumVariation::None | EventEnumVariation::Sync);
+        kind.is_timeline() && matches!(var, EventEnumVariation::None | EventEnumVariation::Sync);
 
     let event_type_match_arms = if maybe_redacted {
         quote! {
