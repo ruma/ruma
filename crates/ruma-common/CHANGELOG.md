@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.10.3
+
 Bug fixes:
 
 * Fix ruma-common not compiling with the Cargo features `events` and
