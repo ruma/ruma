@@ -134,24 +134,22 @@ event_enum! {
     }
 }
 
-/// Declares an item with a doc attribute computed by some macro expression.
-/// This allows documentation to be dynamically generated based on input.
-/// Necessary to work around <https://github.com/rust-lang/rust/issues/52607>.
-macro_rules! doc_concat {
-    ( $( #[doc = $doc:expr] $( $thing:tt )* )* ) => ( $( #[doc = $doc] $( $thing )* )* );
-}
-
-macro_rules! room_ev_accessor {
-    ($field:ident: $ty:ty) => {
-        doc_concat! {
-            #[doc = concat!("Returns this event's `", stringify!($field), "` field.")]
+macro_rules! timeline_event_accessors {
+    (
+        $(
+            #[doc = $docs:literal]
+            pub fn $field:ident(&self) -> $ty:ty;
+        )*
+    ) => {
+        $(
+            #[doc = $docs]
             pub fn $field(&self) -> $ty {
                 match self {
                     Self::MessageLike(ev) => ev.$field(),
                     Self::State(ev) => ev.$field(),
                 }
             }
-        }
+        )*
     };
 }
 
@@ -167,17 +165,21 @@ pub enum AnyTimelineEvent {
 }
 
 impl AnyTimelineEvent {
-    room_ev_accessor!(origin_server_ts: MilliSecondsSinceUnixEpoch);
-    room_ev_accessor!(room_id: &RoomId);
-    room_ev_accessor!(event_id: &EventId);
-    room_ev_accessor!(sender: &UserId);
+    timeline_event_accessors! {
+        /// Returns this event's `origin_server_ts` field.
+        pub fn origin_server_ts(&self) -> MilliSecondsSinceUnixEpoch;
 
-    /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
-    pub fn transaction_id(&self) -> Option<&TransactionId> {
-        match self {
-            Self::MessageLike(ev) => ev.transaction_id(),
-            Self::State(ev) => ev.transaction_id(),
-        }
+        /// Returns this event's `room_id` field.
+        pub fn room_id(&self) -> &RoomId;
+
+        /// Returns this event's `event_id` field.
+        pub fn event_id(&self) -> &EventId;
+
+        /// Returns this event's `sender` field.
+        pub fn sender(&self) -> &UserId;
+
+        /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
+        pub fn transaction_id(&self) -> Option<&TransactionId>;
     }
 }
 
@@ -195,16 +197,18 @@ pub enum AnySyncTimelineEvent {
 }
 
 impl AnySyncTimelineEvent {
-    room_ev_accessor!(origin_server_ts: MilliSecondsSinceUnixEpoch);
-    room_ev_accessor!(event_id: &EventId);
-    room_ev_accessor!(sender: &UserId);
+    timeline_event_accessors! {
+        /// Returns this event's `origin_server_ts` field.
+        pub fn origin_server_ts(&self) -> MilliSecondsSinceUnixEpoch;
 
-    /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
-    pub fn transaction_id(&self) -> Option<&TransactionId> {
-        match self {
-            Self::MessageLike(ev) => ev.transaction_id(),
-            Self::State(ev) => ev.transaction_id(),
-        }
+        /// Returns this event's `event_id` field.
+        pub fn event_id(&self) -> &EventId;
+
+        /// Returns this event's `sender` field.
+        pub fn sender(&self) -> &UserId;
+
+        /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
+        pub fn transaction_id(&self) -> Option<&TransactionId>;
     }
 
     /// Converts `self` to an `AnyTimelineEvent` by adding the given a room ID.
