@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+* Fix ruma-common not compiling with the Cargo features `events` and
+  `unstable-msc2677` active, and `unstable-msc2676` active
+
 # 0.10.2
 
 Improvements:
