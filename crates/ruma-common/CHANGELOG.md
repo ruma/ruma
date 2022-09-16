@@ -1,5 +1,14 @@
 # [unreleased]
 
+# 0.10.2
+
+Improvements:
+
+* Add `relations` accessors to event enum types:
+  * `AnyMessageLikeEvent` and `AnySyncMessageLikeEvent`
+  * `AnyStateEvent` and `AnySyncStateEvent`
+  * `AnyTimelineEvent` and `AnySyncTimelineEvent`
+
 # 0.10.1
 
 Improvements:
