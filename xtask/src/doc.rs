@@ -20,16 +20,8 @@ impl DocTask {
             rustdocflags += " -Dwarnings";
         }
 
-        // Keep in sync with .github/workflows/docs.yml
-        let mut cmd = cmd!(
-            "
-            rustup run nightly cargo doc --all-features --no-deps --workspace
-            --exclude ruma-macros --exclude ruma-identifiers-validation --exclude xtask
-            "
-        )
-        // Work around https://github.com/rust-lang/cargo/issues/10744
-        .env("CARGO_TARGET_APPLIES_TO_HOST", "true")
-        .env("RUSTDOCFLAGS", rustdocflags);
+        let mut cmd = cmd!("rustup run nightly cargo doc --all-features --no-deps")
+            .env("RUSTDOCFLAGS", rustdocflags);
 
         if self.open {
             cmd = cmd.arg("--open");
