@@ -1,5 +1,9 @@
 # [unreleased]
 
+# 0.7.3
+
+Upgrades ruma-common minimum version to 0.10.3.
+
 # 0.7.2
 
 Upgrades ruma-common minimum version to 0.10.2.
