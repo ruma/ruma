@@ -575,8 +575,10 @@ fn expand_accessor_methods(
         }
     });
 
-    let txn_id_accessor = maybe_redacted.then(|| {
+    let maybe_redacted_accessors = maybe_redacted.then(|| {
         let variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
+        let variants2 = variants.clone();
+
         quote! {
             /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
             pub fn transaction_id(&self) -> Option<&#ruma_common::TransactionId> {
@@ -588,6 +590,20 @@ fn expand_accessor_methods(
                     )*
                     Self::_Custom(event) => {
                         event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_deref())
+                    }
+                }
+            }
+
+            /// Returns this event's `relations` from inside `unsigned`, if that field exists.
+            pub fn relations(&self) -> Option<&#ruma_common::events::Relations> {
+                match self {
+                    #(
+                        #variants2(event) => {
+                            event.as_original().and_then(|ev| ev.unsigned.relations.as_ref())
+                        }
+                    )*
+                    Self::_Custom(event) => {
+                        event.as_original().and_then(|ev| ev.unsigned.relations.as_ref())
                     }
                 }
             }
@@ -605,7 +621,7 @@ fn expand_accessor_methods(
             #content_accessor
             #( #methods )*
             #state_key_accessor
-            #txn_id_accessor
+            #maybe_redacted_accessors
         }
     })
 }
