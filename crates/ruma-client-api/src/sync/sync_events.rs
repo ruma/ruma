@@ -39,7 +39,7 @@ impl UnreadNotificationsCount {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct DeviceLists {
     /// List of users who have updated their device identity keys or who now
-    /// share an encrypted room with the client since the previous sync
+    /// share an encrypted room with the client since the previous sync.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub changed: Vec<OwnedUserId>,
 

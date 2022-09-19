@@ -63,8 +63,8 @@ ruma_api! {
         pub unsubscribe_rooms: &'a [OwnedRoomId],
 
         /// Extensions API.
-        #[serde(skip_serializing_if = "ExtensionsRequest::is_empty")]
-        pub extensions: ExtensionsRequest,
+        #[serde(default, skip_serializing_if = "ExtensionsConfig::is_empty")]
+        pub extensions: ExtensionsConfig,
     }
 
     response: {
@@ -85,8 +85,8 @@ ruma_api! {
         pub rooms: BTreeMap<OwnedRoomId, SlidingSyncRoom>,
 
         /// Extensions API.
-        #[serde(default)]
-        pub extensions: ExtensionsResponse,
+        #[serde(default, skip_serializing_if = "Extensions::is_empty")]
+        pub extensions: Extensions,
     }
 
     error: crate::Error
@@ -171,32 +171,37 @@ pub struct SyncRequestListFilters {
     /// of the strings in this array will be returned. If this field is unset, all rooms are
     /// returned regardless of type. This can be used to get the initial set of spaces for an
     /// account.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub room_types: Vec<String>,
 
     /// Only list rooms that are not of these create-types, or all.
     ///
     /// Same as "room_types" but inverted. This can be used to filter out spaces from the room
     /// list.
-    #[serde(skip_serializing_if = "<[_]>::is_empty")]
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub not_room_types: Vec<String>,
 
     /// Only list rooms matching the given string, or all.
     ///
     /// Filter the room name. Case-insensitive partial matching e.g 'foo' matches 'abFooab'.
     /// The term 'like' is inspired by SQL 'LIKE', and the text here is similar to '%foo%'.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub room_name_like: Option<String>,
 
-    /// Filter the room based on its room tags. If multiple tags are present, a room can have
+    /// Filter the room based on its room tags.
+    ///
+    /// If multiple tags are present, a room can have
     /// any one of the listed tags (OR'd).
-    #[serde(skip_serializing_if = "<[_]>::is_empty")]
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub tags: Vec<String>,
 
-    /// Filter the room based on its room tags. Takes priority over `tags`. For example, a room
+    /// Filter the room based on its room tags.
+    ///
+    /// Takes priority over `tags`. For example, a room
     /// with tags A and B with filters `tags:[A]` `not_tags:[B]` would NOT be included because
     /// `not_tags` takes priority over `tags`. This filter is useful if your Rooms list does
     /// NOT include the list of favourite rooms again.
-    #[serde(skip_serializing_if = "<[_]>::is_empty")]
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub not_tags: Vec<String>,
 
     /// Extensions may add further fields to the filters.
@@ -367,121 +372,142 @@ impl SlidingSyncRoom {
     }
 }
 
-/// Configure Sliding-Sync extensions.
+/// Sliding-Sync extension configuration.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct ExtensionsRequest {
+pub struct ExtensionsConfig {
     /// Request to devices messages with the given config.
-    pub to_device: Option<ToDeviceRequest>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub to_device: Option<ToDeviceConfig>,
+
     /// Configure the end-to-end-encryption extension.
-    pub e2ee: Option<E2EERequest>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub e2ee: Option<E2EEConfig>,
+
     /// Configure the account data extension.
-    pub account_data: Option<AccountDataRequest>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub account_data: Option<AccountDataConfig>,
+
     /// Extensions may add further fields to the list.
-    #[serde(flatten, default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub other: BTreeMap<String, serde_json::Value>,
+    #[serde(flatten)]
+    other: BTreeMap<String, serde_json::Value>,
 }
 
-impl ExtensionsRequest {
+impl ExtensionsConfig {
     fn is_empty(&self) -> bool {
-        !(self.to_device.is_some()
-            || self.e2ee.is_some()
-            || self.account_data.is_some()
-            || !self.other.is_empty())
+        self.to_device.is_none()
+            && self.e2ee.is_none()
+            && self.account_data.is_none()
+            && self.other.is_empty()
     }
 }
 
 /// Extensions specific response data.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct ExtensionsResponse {
-    to_device: Option<ToDeviceResponse>,
-    e2ee: Option<E2EEResponse>,
-    account_data: Option<AccountDataResponse>,
+pub struct Extensions {
+    /// To-device extension in response.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub to_device: Option<ToDevice>,
+
+    /// E2EE extension in response.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub e2ee: Option<E2EE>,
+
+    /// Account data extension in response.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub account_data: Option<AccountData>,
 }
 
-/// ToDevice Messages Extension request.
+/// To-device messages extension configuration.
 ///
-/// Not yet part of the spec proposal. Taken from the reference implementation
-/// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/todevice.go>
+/// According to [MSC3885](https://github.com/matrix-org/matrix-spec-proposals/pull/3885).
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct ToDeviceRequest {
+pub struct ToDeviceConfig {
     /// Activate or deactivate this extension. Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
+
     /// Max number of to-device messages per response.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<UInt>,
+
     /// Give messages since this token only.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub since: Option<String>,
 }
 
-/// ToDevice Messages Extension response.
+/// To-device messages extension response.
 ///
-/// Not yet part of the spec proposal. Taken from the reference implementation
-/// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/todevice.go>
+/// According to [MSC3885](https://github.com/matrix-org/matrix-spec-proposals/pull/3885).
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct ToDeviceResponse {
+pub struct ToDevice {
     /// Fetch the next batch from this entry.
     pub next_batch: String,
-    /// The ToDevice Events.
+
+    /// The to-device Events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnyToDeviceEvent>>,
 }
 
-/// E2EE Extension request.
+/// E2EE extension configuration.
 ///
-/// Not yet part of the spec proposal. Taken from the reference implementation
-/// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/e2ee.go>
+/// According to [MSC3884](https://github.com/matrix-org/matrix-spec-proposals/pull/3884).
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct E2EERequest {
+pub struct E2EEConfig {
     /// Activate or deactivate this extension. Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
 }
 
-/// E2EE Extension response.
+/// E2EE extension response data.
 ///
-/// Not yet part of the spec proposal. Taken from the reference implementation
-/// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/e2ee.go>
+/// According to [MSC3884](https://github.com/matrix-org/matrix-spec-proposals/pull/3884).
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct E2EEResponse {
-    /// Information on E2E device updates.
+pub struct E2EE {
+    /// Information on E2EE device updates.
     ///
     /// Only present on an incremental sync.
     #[serde(default, skip_serializing_if = "DeviceLists::is_empty")]
     pub device_lists: DeviceLists,
+
     /// For each key algorithm, the number of unclaimed one-time keys
     /// currently held on the server for a device.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub device_one_time_keys_count: BTreeMap<DeviceKeyAlgorithm, UInt>,
+
     /// For each key algorithm, the number of unclaimed one-time keys
     /// currently held on the server for a device.
     ///
     /// The presence of this field indicates that the server supports
     /// fallback keys.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub device_unused_fallback_key_types: Option<Vec<DeviceKeyAlgorithm>>,
 }
 
-/// AccountData Extension request.
+/// Account-data extension configuration.
 ///
 /// Not yet part of the spec proposal. Taken from the reference implementation
 /// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/account_data.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct AccountDataRequest {
+pub struct AccountDataConfig {
     /// Activate or deactivate this extension. Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
 }
 
-/// AccountData Extension response.
+/// Account-data extension response data.
 ///
 /// Not yet part of the spec proposal. Taken from the reference implementation
 /// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/account_data.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct AccountDataResponse {
+pub struct AccountData {
     /// The global private data created by this user.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub global: Vec<Raw<AnyGlobalAccountDataEvent>>,
