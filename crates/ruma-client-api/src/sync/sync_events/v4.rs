@@ -353,8 +353,8 @@ pub struct SlidingSyncRoom {
     pub prev_batch: Option<String>,
 
     /// True if the number of events returned was limited by the limit on the filter.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub limited: Option<bool>,
+    #[serde(default)]
+    pub limited: bool,
 
     /// The number of users with membership of `join`, including the client’s own user ID.
     #[serde(skip_serializing_if = "Option::is_none")]
