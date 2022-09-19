@@ -509,7 +509,7 @@ pub struct AccountDataConfig {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct AccountData {
     /// The global private data created by this user.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default, deserialize_with = "super::deserialize_null_default", skip_serializing_if = "Vec::is_empty")]
     pub global: Vec<Raw<AnyGlobalAccountDataEvent>>,
 
     /// The private data that this user has attached to each room.

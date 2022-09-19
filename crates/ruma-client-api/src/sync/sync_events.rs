@@ -40,12 +40,12 @@ impl UnreadNotificationsCount {
 pub struct DeviceLists {
     /// List of users who have updated their device identity keys or who now
     /// share an encrypted room with the client since the previous sync.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default, deserialize_with = "deserialize_null_default", skip_serializing_if = "Vec::is_empty")]
     pub changed: Vec<OwnedUserId>,
 
     /// List of users who no longer share encrypted rooms since the previous sync
     /// response.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default, deserialize_with = "deserialize_null_default", skip_serializing_if = "Vec::is_empty")]
     pub left: Vec<OwnedUserId>,
 }
 
@@ -59,4 +59,15 @@ impl DeviceLists {
     pub fn is_empty(&self) -> bool {
         self.changed.is_empty() && self.left.is_empty()
     }
+}
+
+// FIXME: hack until https://github.com/matrix-org/sliding-sync/issues/45 is fixed
+use serde::Deserializer;
+pub(crate) fn deserialize_null_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    T: Default + Deserialize<'de>,
+    D: Deserializer<'de>,
+{
+    let opt = Option::deserialize(deserializer)?;
+    Ok(opt.unwrap_or_default())
 }
