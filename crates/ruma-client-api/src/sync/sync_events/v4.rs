@@ -353,7 +353,7 @@ pub struct SlidingSyncRoom {
     pub prev_batch: Option<String>,
 
     /// True if the number of events returned was limited by the limit on the filter.
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub limited: bool,
 
     /// The number of users with membership of `join`, including the client’s own user ID.
