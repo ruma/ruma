@@ -419,6 +419,12 @@ pub struct Extensions {
     pub account_data: Option<AccountData>,
 }
 
+impl Extensions {
+    fn is_empty(&self) -> bool {
+        self.to_device.is_none() && self.e2ee.is_none() && self.account_data.is_none()
+    }
+}
+
 /// To-device messages extension configuration.
 ///
 /// According to [MSC3885](https://github.com/matrix-org/matrix-spec-proposals/pull/3885).
