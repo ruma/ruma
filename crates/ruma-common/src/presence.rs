@@ -6,7 +6,7 @@ use crate::{serde::StringEnum, PrivOwnedStr};
 
 /// A description of a user's connectivity and availability for chat.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum PresenceState {
@@ -14,6 +14,7 @@ pub enum PresenceState {
     Offline,
 
     /// Connected to the service.
+    #[default]
     Online,
 
     /// Connected to the service but not available for chat.
@@ -21,12 +22,6 @@ pub enum PresenceState {
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
-}
-
-impl Default for PresenceState {
-    fn default() -> Self {
-        Self::Online
-    }
 }
 
 impl Default for &'_ PresenceState {

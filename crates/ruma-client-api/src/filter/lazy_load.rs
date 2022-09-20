@@ -4,11 +4,12 @@ use serde::{ser::SerializeStruct as _, Deserialize, Serialize, Serializer};
 /// supported endpoints
 ///
 /// [lazy-loading]: https://spec.matrix.org/v1.2/client-server-api/#lazy-loading-room-members
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Deserialize)]
 #[serde(from = "LazyLoadJsonRepr")]
 #[allow(clippy::exhaustive_enums)]
 pub enum LazyLoadOptions {
     /// Disables lazy-loading of membership events.
+    #[default]
     Disabled,
 
     /// Enables lazy-loading of events.
@@ -25,13 +26,6 @@ impl LazyLoadOptions {
     /// Returns `true` is `self` is `Disabled`.
     pub fn is_disabled(&self) -> bool {
         matches!(self, Self::Disabled)
-    }
-}
-
-impl Default for LazyLoadOptions {
-    /// `LazyLoadOptions::Disabled`
-    fn default() -> Self {
-        Self::Disabled
     }
 }
 

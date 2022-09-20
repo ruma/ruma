@@ -86,6 +86,7 @@ impl CallHangupEventContent {
 /// `invite_timeout` for when the other party did not answer in time.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[cfg_attr(feature = "unstable-msc2746", derive(Default))]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum Reason {
@@ -105,6 +106,7 @@ pub enum Reason {
 
     /// The user chose to end the call.
     #[cfg(feature = "unstable-msc2746")]
+    #[default]
     UserHangup,
 
     /// The client was unable to start capturing media in such a way as it is unable to continue
@@ -144,12 +146,5 @@ impl Reason {
     #[cfg(feature = "unstable-msc2746")]
     fn option_with_default() -> Option<Self> {
         Some(Self::default())
-    }
-}
-
-#[cfg(feature = "unstable-msc2746")]
-impl Default for Reason {
-    fn default() -> Self {
-        Self::UserHangup
     }
 }

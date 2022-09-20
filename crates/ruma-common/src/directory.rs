@@ -185,7 +185,7 @@ impl<'a> Default for RoomNetwork<'a> {
 
 /// The rule used for users wishing to join a public room.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum PublicRoomJoinRule {
@@ -193,16 +193,11 @@ pub enum PublicRoomJoinRule {
     Knock,
 
     /// Anyone can join the room without any prior action.
+    #[default]
     Public,
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
-}
-
-impl Default for PublicRoomJoinRule {
-    fn default() -> Self {
-        Self::Public
-    }
 }
 
 /// An enum of possible room types to filter.

@@ -148,11 +148,12 @@ pub mod v1 {
     /// This type can hold an arbitrary string. To build this with a custom value, convert it from a
     /// string with `::from() / .into()`. To check for values that are not available as a
     /// documented variant here, use its string representation, obtained through `.as_str()`.
-    #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+    #[derive(Clone, Debug, Default, PartialEq, Eq, StringEnum)]
     #[ruma_enum(rename_all = "snake_case")]
     #[non_exhaustive]
     pub enum NotificationPriority {
         /// A high priority notification
+        #[default]
         High,
 
         /// A low priority notification
@@ -160,12 +161,6 @@ pub mod v1 {
 
         #[doc(hidden)]
         _Custom(PrivOwnedStr),
-    }
-
-    impl Default for NotificationPriority {
-        fn default() -> Self {
-            Self::High
-        }
     }
 
     /// Type for passing information about notification counts.
