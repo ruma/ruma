@@ -117,13 +117,6 @@ unstable-extensible-events = [
     "unstable-msc3488",
     "unstable-msc3553",
 ]
-unstable-pdu = ["ruma-common/unstable-pdu"]
-unstable-pre-spec = [
-    "ruma-common/unstable-pre-spec",
-    "ruma-federation-api?/unstable-pre-spec",
-    "ruma-push-gateway-api?/unstable-pre-spec",
-]
-unstable-sanitize = ["ruma-common/unstable-sanitize"]
 unstable-msc1767 = ["ruma-common/unstable-msc1767"]
 unstable-msc2246 = ["ruma-client-api?/unstable-msc2246"]
 unstable-msc2285 = [
@@ -169,11 +162,18 @@ unstable-msc3618 = ["ruma-federation-api?/unstable-msc3618"]
 unstable-msc3723 = ["ruma-federation-api?/unstable-msc3723"]
 unstable-msc3786 = ["ruma-common/unstable-msc3786"]
 unstable-msc3827 = ["ruma-common/unstable-msc3827"]
+unstable-pdu = ["ruma-common/unstable-pdu"]
+unstable-sanitize = ["ruma-common/unstable-sanitize"]
+unstable-unspecified = [
+    "ruma-common/unstable-unspecified",
+    "ruma-federation-api?/unstable-unspecified",
+    "ruma-push-gateway-api?/unstable-unspecified",
+]
 
 # Private feature, only used in test / benchmarking code
 __ci = [
     "full",
-    "unstable-pre-spec",
+    "unstable-unspecified",
     "unstable-sanitize",
     "unstable-msc1767",
     "unstable-msc2285",

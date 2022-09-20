@@ -44,9 +44,9 @@ pub mod v1 {
             ///
             /// Must not be more than 50 items.
             ///
-            /// With the `unstable-pre-spec` feature, sending `pdus` is optional.
+            /// With the `unstable-unspecified` feature, sending `pdus` is optional.
             /// See [matrix-spec#705](https://github.com/matrix-org/matrix-spec/issues/705).
-            #[cfg_attr(feature = "unstable-pre-spec", serde(default, skip_serializing_if = "<[_]>::is_empty"))]
+            #[cfg_attr(feature = "unstable-unspecified", serde(default, skip_serializing_if = "<[_]>::is_empty"))]
             pub pdus: &'a [Box<RawJsonValue>],
 
             /// List of ephemeral messages.

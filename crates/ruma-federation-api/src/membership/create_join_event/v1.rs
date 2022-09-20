@@ -56,7 +56,7 @@ impl Response {
     }
 }
 
-#[cfg(all(test, feature = "server", not(feature = "unstable-pre-spec")))]
+#[cfg(all(test, feature = "server", not(feature = "unstable-unspecified")))]
 mod tests {
     use ruma_common::api::OutgoingResponse;
     use serde_json::{from_slice as from_json_slice, json, Value as JsonValue};

@@ -18,7 +18,7 @@ use std::hash::{Hash, Hasher};
 
 use indexmap::{Equivalent, IndexSet};
 use serde::{Deserialize, Serialize};
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-unspecified")]
 use serde_json::Value as JsonValue;
 use tracing::instrument;
 
@@ -422,7 +422,7 @@ pub struct PusherData {
     ///
     /// [sygnal]: https://github.com/matrix-org/sygnal/blob/main/docs/applications.md#ios-applications-beware
     // Not specified, issue: https://github.com/matrix-org/matrix-spec/issues/921
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-unspecified")]
     #[serde(default, skip_serializing_if = "JsonValue::is_null")]
     pub default_payload: JsonValue,
 }
@@ -435,12 +435,12 @@ impl PusherData {
 
     /// Returns `true` if all fields are `None`.
     pub fn is_empty(&self) -> bool {
-        #[cfg(not(feature = "unstable-pre-spec"))]
+        #[cfg(not(feature = "unstable-unspecified"))]
         {
             self.url.is_none() && self.format.is_none()
         }
 
-        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg(feature = "unstable-unspecified")]
         {
             self.url.is_none() && self.format.is_none() && self.default_payload.is_null()
         }

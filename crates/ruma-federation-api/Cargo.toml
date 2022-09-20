@@ -20,10 +20,10 @@ compat = []
 client = []
 server = []
 unstable-exhaustive-types = []
-unstable-pre-spec = []
 unstable-msc2448 = []
 unstable-msc3618 = []
 unstable-msc3723 = []
+unstable-unspecified = []
 
 [dependencies]
 js_int = { version = "0.2.0", features = ["serde"] }

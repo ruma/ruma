@@ -43,7 +43,7 @@ Ruma 0.6 supports all events and REST endpoints of Matrix v1.0, v1.1 and v1.2.
 Various changes from in-progress or finished MSCs are also implemented, gated
 behind the `unstable-mscXXXX` (where `XXXX` is the MSC number) Cargo features.
 
-A few less formalized things are gated behind the `unstable-pre-spec` Cargo
+A few less formalized things are gated behind the `unstable-unspecified` Cargo
 feature.
 
 ## Contributing
