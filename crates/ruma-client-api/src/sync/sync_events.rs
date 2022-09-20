@@ -40,12 +40,20 @@ impl UnreadNotificationsCount {
 pub struct DeviceLists {
     /// List of users who have updated their device identity keys or who now
     /// share an encrypted room with the client since the previous sync.
-    #[serde(default, deserialize_with = "deserialize_null_default", skip_serializing_if = "Vec::is_empty")]
+    #[serde(
+        default,
+        deserialize_with = "deserialize_null_default",
+        skip_serializing_if = "Vec::is_empty"
+    )]
     pub changed: Vec<OwnedUserId>,
 
     /// List of users who no longer share encrypted rooms since the previous sync
     /// response.
-    #[serde(default, deserialize_with = "deserialize_null_default", skip_serializing_if = "Vec::is_empty")]
+    #[serde(
+        default,
+        deserialize_with = "deserialize_null_default",
+        skip_serializing_if = "Vec::is_empty"
+    )]
     pub left: Vec<OwnedUserId>,
 }
 
