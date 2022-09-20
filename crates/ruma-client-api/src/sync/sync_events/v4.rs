@@ -454,7 +454,11 @@ pub struct ToDevice {
     pub next_batch: String,
 
     /// The to-device Events.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(
+        default,
+        deserialize_with = "super::deserialize_null_default",
+        skip_serializing_if = "Vec::is_empty"
+    )]
     pub events: Vec<Raw<AnyToDeviceEvent>>,
 }
 
@@ -478,12 +482,20 @@ pub struct E2EE {
     /// Information on E2EE device updates.
     ///
     /// Only present on an incremental sync.
-    #[serde(default, skip_serializing_if = "DeviceLists::is_empty")]
+    #[serde(
+        default,
+        deserialize_with = "super::deserialize_null_default",
+        skip_serializing_if = "DeviceLists::is_empty"
+    )]
     pub device_lists: DeviceLists,
 
     /// For each key algorithm, the number of unclaimed one-time keys
     /// currently held on the server for a device.
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(
+        default,
+        deserialize_with = "super::deserialize_null_default",
+        skip_serializing_if = "BTreeMap::is_empty"
+    )]
     pub device_one_time_keys_count: BTreeMap<DeviceKeyAlgorithm, UInt>,
 
     /// For each key algorithm, the number of unclaimed one-time keys
@@ -523,6 +535,10 @@ pub struct AccountData {
     pub global: Vec<Raw<AnyGlobalAccountDataEvent>>,
 
     /// The private data that this user has attached to each room.
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(
+        default,
+        deserialize_with = "super::deserialize_null_default",
+        skip_serializing_if = "BTreeMap::is_empty"
+    )]
     pub rooms: BTreeMap<OwnedRoomId, Vec<Raw<AnyRoomAccountDataEvent>>>,
 }
