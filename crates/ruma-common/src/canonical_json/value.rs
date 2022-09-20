@@ -12,7 +12,7 @@ pub type CanonicalJsonObject = BTreeMap<String, CanonicalJsonValue>;
 
 /// Represents a canonical JSON value as per the Matrix specification.
 #[cfg(feature = "canonical-json")]
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Default, Eq, PartialEq)]
 #[allow(clippy::exhaustive_enums)]
 pub enum CanonicalJsonValue {
     /// Represents a JSON null value.
@@ -22,6 +22,7 @@ pub enum CanonicalJsonValue {
     /// # use ruma_common::CanonicalJsonValue;
     /// let v: CanonicalJsonValue = json!(null).try_into().unwrap();
     /// ```
+    #[default]
     Null,
 
     /// Represents a JSON boolean.
@@ -152,12 +153,6 @@ impl CanonicalJsonValue {
     /// Returns `true` if the `CanonicalJsonValue` is an `Object`.
     pub fn is_object(&self) -> bool {
         matches!(self, Self::Object(_))
-    }
-}
-
-impl Default for CanonicalJsonValue {
-    fn default() -> Self {
-        Self::Null
     }
 }
 

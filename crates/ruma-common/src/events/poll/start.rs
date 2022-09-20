@@ -74,10 +74,11 @@ impl PollStartContent {
 
 /// The kind of poll.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, StringEnum)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum PollKind {
     /// The results are revealed once the poll is closed.
+    #[default]
     #[ruma_enum(rename = "org.matrix.msc3381.poll.undisclosed", alias = "m.poll.undisclosed")]
     Undisclosed,
 
@@ -87,12 +88,6 @@ pub enum PollKind {
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
-}
-
-impl Default for PollKind {
-    fn default() -> Self {
-        Self::Undisclosed
-    }
 }
 
 /// The answers to a poll.
