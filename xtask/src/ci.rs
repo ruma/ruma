@@ -9,7 +9,7 @@ mod spec_links;
 
 use spec_links::check_spec_links;
 
-const MSRV: &str = "1.60";
+const MSRV: &str = "1.62";
 const NIGHTLY: &str = "nightly";
 
 #[derive(Args)]

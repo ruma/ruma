@@ -201,7 +201,7 @@ where
         *id_counts.entry(id).or_default() += 1;
     }
 
-    id_counts.into_iter().filter_map(move |(id, count)| (count < num_sets).then(move || id))
+    id_counts.into_iter().filter_map(move |(id, count)| (count < num_sets).then_some(id))
 }
 
 /// Events are sorted from "earliest" to "latest".
@@ -437,7 +437,7 @@ fn iterative_auth_check<E: Event + Clone>(
         // The key for this is (eventType + a state_key of the signed token not sender) so
         // search for it
         let current_third_party = auth_events.iter().find_map(|(_, pdu)| {
-            (*pdu.event_type() == RoomEventType::RoomThirdPartyInvite).then(|| pdu)
+            (*pdu.event_type() == RoomEventType::RoomThirdPartyInvite).then_some(pdu)
         });
 
         if auth_check(room_version, &event, current_third_party, |ty, key| {

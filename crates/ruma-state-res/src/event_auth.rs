@@ -473,10 +473,10 @@ fn valid_membership_change(
     let sender_power = power_levels
         .users
         .get(sender)
-        .or_else(|| sender_is_joined.then(|| &power_levels.users_default));
+        .or_else(|| sender_is_joined.then_some(&power_levels.users_default));
 
     let target_power = power_levels.users.get(target_user).or_else(|| {
-        (target_membership == MembershipState::Join).then(|| &power_levels.users_default)
+        (target_membership == MembershipState::Join).then_some(&power_levels.users_default)
     });
 
     let mut join_rules = JoinRule::Invite;

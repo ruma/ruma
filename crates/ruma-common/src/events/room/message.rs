@@ -149,7 +149,7 @@ impl RoomMessageEventContent {
 
             (*body, *formatted_body) = reply::plain_and_formatted_reply_body(
                 body.as_str(),
-                (!formatted_body.is_empty()).then(|| formatted_body.as_str()),
+                (!formatted_body.is_empty()).then_some(formatted_body.as_str()),
                 original_message,
             );
         }

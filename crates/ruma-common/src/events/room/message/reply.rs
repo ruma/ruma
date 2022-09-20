@@ -11,7 +11,7 @@ fn get_message_quote_fallbacks(original_message: &OriginalRoomMessageEvent) -> (
     let get_quotes = |body: &str, formatted: Option<&FormattedBody>, is_emote: bool| {
         let OriginalRoomMessageEvent { room_id, event_id, sender, content, .. } = original_message;
         let is_reply = matches!(content.relates_to, Some(Relation::Reply { .. }));
-        let emote_sign = is_emote.then(|| "* ").unwrap_or_default();
+        let emote_sign = is_emote.then_some("* ").unwrap_or_default();
         let body = is_reply.then(|| remove_plain_reply_fallback(body)).unwrap_or(body);
         #[cfg(feature = "unstable-sanitize")]
         let html_body = formatted_or_plain_body(formatted, body, is_reply);
