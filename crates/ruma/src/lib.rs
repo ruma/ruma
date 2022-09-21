@@ -122,20 +122,4 @@ pub use js_int::{int, uint, Int, UInt};
 pub use js_option::JsOption;
 #[cfg(feature = "client-ext-client-api")]
 pub use ruma_client::Client;
-pub use ruma_common::{
-    authentication, device_id, device_key_id, directory, encryption, event_id, exports, matrix_uri,
-    mxc_uri, power_levels, presence, push, room, room_alias_id, room_id, room_version_id, serde,
-    server_name, server_signing_key_id, thirdparty, to_device, user_id, ClientSecret, DeviceId,
-    DeviceKeyAlgorithm, DeviceKeyId, DeviceSignatures, DeviceSigningKeyId, EntitySignatures,
-    EventEncryptionAlgorithm, EventId, IdParseError, KeyId, KeyName, MatrixToUri, MatrixUri,
-    MilliSecondsSinceUnixEpoch, MxcUri, OwnedClientSecret, OwnedDeviceId, OwnedDeviceKeyId,
-    OwnedDeviceSigningKeyId, OwnedEventId, OwnedKeyId, OwnedKeyName, OwnedMxcUri, OwnedRoomAliasId,
-    OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName, OwnedServerSigningKeyId, OwnedSessionId,
-    OwnedSigningKeyId, OwnedTransactionId, OwnedUserId, PrivOwnedStr, RoomAliasId, RoomId,
-    RoomOrAliasId, RoomVersionId, SecondsSinceUnixEpoch, ServerName, ServerSignatures,
-    ServerSigningKeyId, SessionId, Signatures, SigningKeyAlgorithm, TransactionId, UserId,
-};
-#[cfg(feature = "canonical-json")]
-pub use ruma_common::{
-    canonical_json, CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue,
-};
+pub use ruma_common::*;
