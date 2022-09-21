@@ -1,5 +1,12 @@
 # [unreleased]
 
+# 0.7.4
+
+Improvements:
+
+* Fix missing re-exports from `ruma-common`
+* Upgrade `ruma-client-api` minimum version to 0.15.1
+
 # 0.7.3
 
 Upgrades ruma-common minimum version to 0.10.3.
