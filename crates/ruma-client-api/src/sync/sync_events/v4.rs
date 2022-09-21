@@ -420,7 +420,10 @@ pub struct Extensions {
 }
 
 impl Extensions {
-    fn is_empty(&self) -> bool {
+    /// Whether extension data was given.
+    ///
+    /// True if neither to-device, e2ee nor account data are to be found.
+    pub fn is_empty(&self) -> bool {
         self.to_device.is_none() && self.e2ee.is_none() && self.account_data.is_none()
     }
 }
