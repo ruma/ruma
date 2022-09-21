@@ -1,5 +1,11 @@
 # [unreleased]
 
+
+Improvements:
+
+* `DeviceLists` has moved from `sync::sync_events::v3` to `sync::sync_events`
+  * It is still available under the old location for backwards compatibility
+
 # 0.15.0
 
 Breaking changes:
