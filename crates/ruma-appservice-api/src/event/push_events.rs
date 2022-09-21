@@ -11,6 +11,15 @@ pub mod v1 {
         api::ruma_api, events::AnyTimelineEvent, serde::Raw, OwnedTransactionId, TransactionId,
     };
 
+    #[cfg(feature = "unstable-msc3202")]
+    use js_int::UInt;
+    #[cfg(feature = "unstable-msc3202")]
+    use ruma_common::{DeviceKeyAlgorithm, OwnedDeviceId, OwnedUserId};
+    #[cfg(feature = "unstable-msc3202")]
+    use serde::{Deserialize, Serialize};
+    #[cfg(feature = "unstable-msc3202")]
+    use std::collections::BTreeMap;
+
     ruma_api! {
         metadata: {
             description: "This API is called by the homeserver when it wants to push an event (or batch of events) to the application service.",
@@ -31,6 +40,33 @@ pub mod v1 {
 
             /// A list of events.
             pub events: &'a [Raw<AnyTimelineEvent>],
+
+            /// Information on E2E device updates.
+            #[cfg(feature = "unstable-msc3202")]
+            #[serde(
+                default,
+                skip_serializing_if = "DeviceLists::is_empty",
+                rename = "org.matrix.msc3202.device_lists"
+            )]
+            pub device_lists: DeviceLists,
+
+            /// The number of unclaimed one-time keys currently held on the server for this device, for each algorithm.
+            #[cfg(feature = "unstable-msc3202")]
+            #[serde(
+                default,
+                skip_serializing_if = "BTreeMap::is_empty",
+                rename = "org.matrix.msc3202.device_one_time_keys_count"
+            )]
+            pub device_one_time_keys_count: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, BTreeMap<DeviceKeyAlgorithm, UInt>>>,
+
+            /// A list of key algorithms for which the server has an unused fallback key for the device.
+            #[cfg(feature = "unstable-msc3202")]
+            #[serde(
+                default,
+                skip_serializing_if = "BTreeMap::is_empty",
+                rename = "org.matrix.msc3202.device_unused_fallback_key_types"
+            )]
+            pub device_unused_fallback_key_types: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Vec<DeviceKeyAlgorithm>>>,
         }
 
         #[derive(Default)]
@@ -40,7 +76,16 @@ pub mod v1 {
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given transaction ID and list of events.
         pub fn new(txn_id: &'a TransactionId, events: &'a [Raw<AnyTimelineEvent>]) -> Self {
-            Self { txn_id, events }
+            Self {
+                txn_id,
+                events,
+                #[cfg(feature = "unstable-msc3202")]
+                device_lists: DeviceLists::new(),
+                #[cfg(feature = "unstable-msc3202")]
+                device_one_time_keys_count: BTreeMap::new(),
+                #[cfg(feature = "unstable-msc3202")]
+                device_unused_fallback_key_types: BTreeMap::new(),
+            }
         }
     }
 
@@ -50,7 +95,16 @@ pub mod v1 {
             txn_id: OwnedTransactionId,
             events: Vec<Raw<AnyTimelineEvent>>,
         ) -> IncomingRequest {
-            IncomingRequest { txn_id, events }
+            IncomingRequest {
+                txn_id,
+                events,
+                #[cfg(feature = "unstable-msc3202")]
+                device_lists: DeviceLists::new(),
+                #[cfg(feature = "unstable-msc3202")]
+                device_one_time_keys_count: BTreeMap::new(),
+                #[cfg(feature = "unstable-msc3202")]
+                device_unused_fallback_key_types: BTreeMap::new(),
+            }
         }
     }
 
@@ -58,6 +112,35 @@ pub mod v1 {
         /// Creates an empty `Response`.
         pub fn new() -> Self {
             Self {}
+        }
+    }
+
+    /// Information on E2E device updates.
+    #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg(feature = "unstable-msc3202")]
+    pub struct DeviceLists {
+        /// List of users who have updated their device identity keys or who now
+        /// share an encrypted room with the client since the previous sync.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub changed: Vec<OwnedUserId>,
+
+        /// List of users who no longer share encrypted rooms since the previous sync
+        /// response.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub left: Vec<OwnedUserId>,
+    }
+
+    #[cfg(feature = "unstable-msc3202")]
+    impl DeviceLists {
+        /// Creates an empty `DeviceLists`.
+        pub fn new() -> Self {
+            Default::default()
+        }
+
+        /// Returns true if there are no device list updates.
+        pub fn is_empty(&self) -> bool {
+            self.changed.is_empty() && self.left.is_empty()
         }
     }
 
