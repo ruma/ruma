@@ -158,9 +158,9 @@ where
 ///
 /// The return tuple looks like `(unconflicted, conflicted)`.
 ///
-/// State is determined to be conflicting if for the given key (EventType, StateKey) there is not
-/// exactly one eventId. This includes missing events, if one state_set includes an event that none
-/// of the other have this is a conflicting event.
+/// State is determined to be conflicting if for the given key (StateEventType, StateKey) there is
+/// not exactly one event ID. This includes missing events, if one state_set includes an event that
+/// none of the other have this is a conflicting event.
 fn separate<'a, Id>(
     state_sets_iter: impl Iterator<Item = &'a StateMap<Id>> + Clone,
 ) -> (StateMap<Id>, StateMap<Vec<Id>>)
