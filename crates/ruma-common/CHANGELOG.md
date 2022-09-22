@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+* Remove deprecated `EventType` enum
+* Remove deprecated constructors for `RoomMessageEventContent`
+
 # 0.10.3
 
 Bug fixes:

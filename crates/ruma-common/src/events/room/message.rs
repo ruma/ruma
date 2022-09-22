@@ -2,7 +2,7 @@
 //!
 //! [`m.room.message`]: https://spec.matrix.org/v1.2/client-server-api/#mroommessage
 
-use std::{borrow::Cow, fmt};
+use std::borrow::Cow;
 
 use ruma_macros::EventContent;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -159,60 +159,6 @@ impl RoomMessageEventContent {
         });
 
         self
-    }
-
-    /// Creates a plain text reply to a message.
-    #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
-    #[deprecated = "\
-        use [`Self::text_plain`](#method.text_plain)`(reply).`\
-        [`make_reply_to`](#method.make_reply_to)`(original_message)` instead\
-    "]
-    pub fn text_reply_plain(
-        reply: impl fmt::Display,
-        original_message: &OriginalRoomMessageEvent,
-    ) -> Self {
-        Self::text_plain(reply.to_string()).make_reply_to(original_message)
-    }
-
-    /// Creates a html text reply to a message.
-    #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
-    #[deprecated = "\
-        use [`Self::text_html`](#method.text_html)`(reply, html_reply).`\
-        [`make_reply_to`](#method.make_reply_to)`(original_message)` instead\
-    "]
-    pub fn text_reply_html(
-        reply: impl fmt::Display,
-        html_reply: impl fmt::Display,
-        original_message: &OriginalRoomMessageEvent,
-    ) -> Self {
-        Self::text_html(reply.to_string(), html_reply.to_string()).make_reply_to(original_message)
-    }
-
-    /// Creates a plain text notice reply to a message.
-    #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
-    #[deprecated = "\
-        use [`Self::notice_plain`](#method.notice_plain)`(reply).`\
-        [`make_reply_to`](#method.make_reply_to)`(original_message)` instead\
-    "]
-    pub fn notice_reply_plain(
-        reply: impl fmt::Display,
-        original_message: &OriginalRoomMessageEvent,
-    ) -> Self {
-        Self::notice_plain(reply.to_string()).make_reply_to(original_message)
-    }
-
-    /// Creates a html text notice reply to a message.
-    #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
-    #[deprecated = "\
-        use [`Self::notice_html`](#method.notice_html)`(reply, html_reply).`\
-        [`make_reply_to`](#method.make_reply_to)`(original_message)` instead\
-    "]
-    pub fn notice_reply_html(
-        reply: impl fmt::Display,
-        html_reply: impl fmt::Display,
-        original_message: &OriginalRoomMessageEvent,
-    ) -> Self {
-        Self::notice_html(reply.to_string(), html_reply.to_string()).make_reply_to(original_message)
     }
 
     /// Create a new reply with the given message and optionally forwards the [`Relation::Thread`].
