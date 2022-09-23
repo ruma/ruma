@@ -5,6 +5,10 @@ Breaking changes:
 * Remove `sync::sync_events::v3::DeviceLists` re-export
   * Use `sync::sync_events::DeviceLists` instead
 
+Improvements:
+
+* Add `M_BAD_ALIAS` to `error::ErrorKind`
+
 # 0.15.1
 
 Improvements:
