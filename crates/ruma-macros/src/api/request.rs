@@ -345,14 +345,6 @@ impl Request {
         let path_fields: Vec<_> =
             self.fields.iter().filter_map(RequestField::as_path_field).collect();
 
-        // let path = if let Some(lit) = path { lit } else { return Ok(()) };
-
-        // let path_args: Vec<_> = path
-        //     .value()
-        //     .split('/')
-        //     .filter_map(|s| s.strip_prefix(':').map(&str::to_string))
-        //     .collect();
-
         let field_map: BTreeMap<_, _> =
             path_fields.iter().map(|&f| (f.ident.as_ref().unwrap().to_string(), f)).collect();
 

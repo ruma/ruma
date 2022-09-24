@@ -7,7 +7,7 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::ruma_api, events::AnySyncRoomEvent, push::Action, serde::Raw,
+        api::ruma_api, events::AnySyncTimelineEvent, push::Action, serde::Raw,
         MilliSecondsSinceUnixEpoch, OwnedRoomId,
     };
     use serde::{Deserialize, Serialize};
@@ -83,7 +83,7 @@ pub mod v3 {
         pub actions: Vec<Action>,
 
         /// The event that triggered the notification.
-        pub event: Raw<AnySyncRoomEvent>,
+        pub event: Raw<AnySyncTimelineEvent>,
 
         /// The profile tag of the rule that matched this event.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -105,7 +105,7 @@ pub mod v3 {
         /// timestamp.
         pub fn new(
             actions: Vec<Action>,
-            event: Raw<AnySyncRoomEvent>,
+            event: Raw<AnySyncTimelineEvent>,
             read: bool,
             room_id: OwnedRoomId,
             ts: MilliSecondsSinceUnixEpoch,

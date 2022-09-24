@@ -1,7 +1,7 @@
 [workspace]
 members = ["crates/*", "examples/*", "xtask"]
-# xtask should only be compiled when invoked explicitly
-default-members = ["crates/*", "examples/*"]
+# Only compile / check / document the public crates by default
+default-members = ["crates/*"]
 
 resolver = "2"
 

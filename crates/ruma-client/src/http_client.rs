@@ -68,7 +68,7 @@ pub trait HttpClientExt: HttpClient {
         access_token: SendAccessToken<'_>,
         for_versions: &[MatrixVersion],
         request: R,
-    ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>> {
+    ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a + Send>> {
         self.send_customized_matrix_request(
             homeserver_url,
             access_token,
@@ -88,7 +88,7 @@ pub trait HttpClientExt: HttpClient {
         for_versions: &[MatrixVersion],
         request: R,
         customize: F,
-    ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>>
+    ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a + Send>>
     where
         R: OutgoingRequest + 'a,
         F: FnOnce(&mut http::Request<Self::RequestBody>) -> Result<(), ResponseError<Self, R>> + 'a,

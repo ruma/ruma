@@ -8,7 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.2/application-service-api/#put_matrixappv1transactionstxnid
 
     use ruma_common::{
-        api::ruma_api, events::AnyRoomEvent, serde::Raw, OwnedTransactionId, TransactionId,
+        api::ruma_api, events::AnyTimelineEvent, serde::Raw, OwnedTransactionId, TransactionId,
     };
 
     ruma_api! {
@@ -30,7 +30,7 @@ pub mod v1 {
             pub txn_id: &'a TransactionId,
 
             /// A list of events.
-            pub events: &'a [Raw<AnyRoomEvent>],
+            pub events: &'a [Raw<AnyTimelineEvent>],
         }
 
         #[derive(Default)]
@@ -39,14 +39,17 @@ pub mod v1 {
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given transaction ID and list of events.
-        pub fn new(txn_id: &'a TransactionId, events: &'a [Raw<AnyRoomEvent>]) -> Self {
+        pub fn new(txn_id: &'a TransactionId, events: &'a [Raw<AnyTimelineEvent>]) -> Self {
             Self { txn_id, events }
         }
     }
 
     impl IncomingRequest {
         /// Creates an `IncomingRequest` with the given transaction ID and list of events.
-        pub fn new(txn_id: OwnedTransactionId, events: Vec<Raw<AnyRoomEvent>>) -> IncomingRequest {
+        pub fn new(
+            txn_id: OwnedTransactionId,
+            events: Vec<Raw<AnyTimelineEvent>>,
+        ) -> IncomingRequest {
             IncomingRequest { txn_id, events }
         }
     }

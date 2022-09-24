@@ -11,8 +11,8 @@ use ruma_common::{
                 OriginalSyncRoomRedactionEvent, RoomRedactionEventContent, SyncRoomRedactionEvent,
             },
         },
-        AnyMessageLikeEvent, AnyRoomEvent, AnySyncMessageLikeEvent, AnySyncRoomEvent,
-        AnySyncStateEvent, EventContent, MessageLikeEvent, MessageLikeUnsigned, RedactContent,
+        AnyMessageLikeEvent, AnySyncMessageLikeEvent, AnySyncStateEvent, AnySyncTimelineEvent,
+        AnyTimelineEvent, EventContent, MessageLikeEvent, MessageLikeUnsigned, RedactContent,
         RedactedSyncMessageLikeEvent, RedactedSyncStateEvent, RedactedUnsigned,
         SyncMessageLikeEvent, SyncStateEvent,
     },
@@ -122,8 +122,8 @@ fn redacted_aliases_deserialize() {
     let actual = to_json_value(&redacted).unwrap();
 
     let redacted = assert_matches!(
-        from_json_value::<AnySyncRoomEvent>(actual),
-        Ok(AnySyncRoomEvent::State(AnySyncStateEvent::RoomAliases(
+        from_json_value::<AnySyncTimelineEvent>(actual),
+        Ok(AnySyncTimelineEvent::State(AnySyncStateEvent::RoomAliases(
             SyncStateEvent::Redacted(redacted),
         ))) => redacted
     );
@@ -145,8 +145,8 @@ fn redacted_deserialize_any_room() {
     let actual = to_json_value(&redacted).unwrap();
 
     let redacted = assert_matches!(
-        from_json_value::<AnyRoomEvent>(actual),
-        Ok(AnyRoomEvent::MessageLike(AnyMessageLikeEvent::RoomMessage(
+        from_json_value::<AnyTimelineEvent>(actual),
+        Ok(AnyTimelineEvent::MessageLike(AnyMessageLikeEvent::RoomMessage(
             MessageLikeEvent::Redacted(redacted),
         ))) => redacted
     );
@@ -157,8 +157,8 @@ fn redacted_deserialize_any_room() {
 #[test]
 fn redacted_deserialize_any_room_sync() {
     let mut unsigned = RedactedUnsigned::default();
-    // The presence of `redacted_because` triggers the event enum (AnySyncRoomEvent in this case)
-    // to return early with `RedactedContent` instead of failing to deserialize according
+    // The presence of `redacted_because` triggers the event enum (AnySyncTimelineEvent in this
+    // case) to return early with `RedactedContent` instead of failing to deserialize according
     // to the event type string.
     unsigned.redacted_because =
         Some(Box::new(SyncRoomRedactionEvent::Original(OriginalSyncRoomRedactionEvent {
@@ -181,8 +181,8 @@ fn redacted_deserialize_any_room_sync() {
     let actual = to_json_value(&redacted).unwrap();
 
     let redacted = assert_matches!(
-        from_json_value::<AnySyncRoomEvent>(actual),
-        Ok(AnySyncRoomEvent::MessageLike(AnySyncMessageLikeEvent::RoomMessage(
+        from_json_value::<AnySyncTimelineEvent>(actual),
+        Ok(AnySyncTimelineEvent::MessageLike(AnySyncMessageLikeEvent::RoomMessage(
             SyncMessageLikeEvent::Redacted(redacted),
         ))) => redacted
     );
@@ -204,8 +204,8 @@ fn redacted_state_event_deserialize() {
     });
 
     let redacted = assert_matches!(
-        from_json_value::<AnySyncRoomEvent>(redacted),
-        Ok(AnySyncRoomEvent::State(AnySyncStateEvent::RoomCreate(
+        from_json_value::<AnySyncTimelineEvent>(redacted),
+        Ok(AnySyncTimelineEvent::State(AnySyncStateEvent::RoomCreate(
             SyncStateEvent::Redacted(redacted),
         ))) => redacted
     );
@@ -226,8 +226,8 @@ fn redacted_custom_event_deserialize() {
     });
 
     let state_ev = assert_matches!(
-        from_json_value::<AnySyncRoomEvent>(redacted),
-        Ok(AnySyncRoomEvent::State(state_ev)) => state_ev
+        from_json_value::<AnySyncTimelineEvent>(redacted),
+        Ok(AnySyncTimelineEvent::State(state_ev)) => state_ev
     );
     assert_eq!(state_ev.event_id(), "$h29iv0s8:example.com");
 }

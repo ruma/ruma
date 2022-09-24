@@ -8,7 +8,7 @@ pub mod v3 {
     use js_int::{uint, UInt};
     use ruma_common::{
         api::ruma_api,
-        events::{AnyRoomEvent, AnyStateEvent},
+        events::{AnyStateEvent, AnyTimelineEvent},
         serde::Raw,
         RoomId,
     };
@@ -85,7 +85,7 @@ pub mod v3 {
 
             /// A list of room events.
             #[serde(default)]
-            pub chunk: Vec<Raw<AnyRoomEvent>>,
+            pub chunk: Vec<Raw<AnyTimelineEvent>>,
 
             /// A list of state events relevant to showing the `chunk`.
             #[serde(default, skip_serializing_if = "Vec::is_empty")]

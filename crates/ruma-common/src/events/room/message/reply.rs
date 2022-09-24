@@ -8,59 +8,44 @@ use super::{
 use super::{sanitize_html, HtmlSanitizerMode, RemoveReplyFallback};
 
 fn get_message_quote_fallbacks(original_message: &OriginalRoomMessageEvent) -> (String, String) {
+    let get_quotes = |body: &str, formatted: Option<&FormattedBody>, is_emote: bool| {
+        let OriginalRoomMessageEvent { room_id, event_id, sender, content, .. } = original_message;
+        let is_reply = matches!(content.relates_to, Some(Relation::Reply { .. }));
+        let emote_sign = is_emote.then_some("* ").unwrap_or_default();
+        let body = is_reply.then(|| remove_plain_reply_fallback(body)).unwrap_or(body);
+        #[cfg(feature = "unstable-sanitize")]
+        let html_body = formatted_or_plain_body(formatted, body, is_reply);
+        #[cfg(not(feature = "unstable-sanitize"))]
+        let html_body = formatted_or_plain_body(formatted, body);
+
+        (
+            format!("> {emote_sign}<{sender}> {body}").replace('\n', "\n> "),
+            format!(
+                "<mx-reply>\
+                        <blockquote>\
+                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a> \
+                            {emote_sign}<a href=\"https://matrix.to/#/{sender}\">{sender}</a>\
+                            <br>\
+                            {html_body}\
+                        </blockquote>\
+                    </mx-reply>"
+            ),
+        )
+    };
+
     match &original_message.content.msgtype {
-        MessageType::Audio(_) => get_quotes("sent an audio file.", None, original_message, false),
-        MessageType::Emote(content) => {
-            get_quotes(&content.body, content.formatted.as_ref(), original_message, true)
-        }
-        MessageType::File(_) => get_quotes("sent a file.", None, original_message, false),
-        MessageType::Image(_) => get_quotes("sent an image.", None, original_message, false),
-        MessageType::Location(_) => get_quotes("sent a location.", None, original_message, false),
-        MessageType::Notice(content) => {
-            get_quotes(&content.body, content.formatted.as_ref(), original_message, false)
-        }
-        MessageType::ServerNotice(content) => {
-            get_quotes(&content.body, None, original_message, false)
-        }
-        MessageType::Text(content) => {
-            get_quotes(&content.body, content.formatted.as_ref(), original_message, false)
-        }
-        MessageType::Video(_) => get_quotes("sent a video.", None, original_message, false),
-        MessageType::_Custom(content) => get_quotes(&content.body, None, original_message, false),
-        MessageType::VerificationRequest(content) => {
-            get_quotes(&content.body, None, original_message, false)
-        }
+        MessageType::Audio(_) => get_quotes("sent an audio file.", None, false),
+        MessageType::Emote(c) => get_quotes(&c.body, c.formatted.as_ref(), true),
+        MessageType::File(_) => get_quotes("sent a file.", None, false),
+        MessageType::Image(_) => get_quotes("sent an image.", None, false),
+        MessageType::Location(_) => get_quotes("sent a location.", None, false),
+        MessageType::Notice(c) => get_quotes(&c.body, c.formatted.as_ref(), false),
+        MessageType::ServerNotice(c) => get_quotes(&c.body, None, false),
+        MessageType::Text(c) => get_quotes(&c.body, c.formatted.as_ref(), false),
+        MessageType::Video(_) => get_quotes("sent a video.", None, false),
+        MessageType::VerificationRequest(content) => get_quotes(&content.body, None, false),
+        MessageType::_Custom(content) => get_quotes(&content.body, None, false),
     }
-}
-
-fn get_quotes(
-    body: &str,
-    formatted: Option<&FormattedBody>,
-    original_message: &OriginalRoomMessageEvent,
-    is_emote: bool,
-) -> (String, String) {
-    let OriginalRoomMessageEvent { room_id, event_id, sender, content, .. } = original_message;
-    let is_reply = matches!(content.relates_to, Some(Relation::Reply { .. }));
-    let emote_sign = is_emote.then(|| "* ").unwrap_or_default();
-    let body = is_reply.then(|| remove_plain_reply_fallback(body)).unwrap_or(body);
-    #[cfg(feature = "unstable-sanitize")]
-    let html_body = formatted_or_plain_body(formatted, body, is_reply);
-    #[cfg(not(feature = "unstable-sanitize"))]
-    let html_body = formatted_or_plain_body(formatted, body);
-
-    (
-        format!("> {emote_sign}<{sender}> {body}").replace('\n', "\n> "),
-        format!(
-            "<mx-reply>\
-                <blockquote>\
-                    <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a> \
-                    {emote_sign}<a href=\"https://matrix.to/#/{sender}\">{sender}</a>\
-                    <br>\
-                    {html_body}\
-                </blockquote>\
-            </mx-reply>"
-        ),
-    )
 }
 
 fn formatted_or_plain_body(
@@ -119,10 +104,9 @@ pub fn plain_and_formatted_reply_body(
     let (quoted, quoted_html) = get_message_quote_fallbacks(original_message);
 
     let plain = format!("{quoted}\n{body}");
-    let html = if let Some(formatted) = formatted {
-        format!("{quoted_html}{formatted}")
-    } else {
-        format!("{quoted_html}{body}")
+    let html = match formatted {
+        Some(formatted) => format!("{quoted_html}{formatted}"),
+        None => format!("{quoted_html}{body}"),
     };
 
     (plain, html)
@@ -160,7 +144,7 @@ mod tests {
                     <br>\
                     multi<br>line\
                 </blockquote>\
-            </mx-reply>"
+            </mx-reply>",
         );
     }
 }

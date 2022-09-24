@@ -18,7 +18,7 @@ pub mod v1 {
     };
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-unspecified")]
     use serde_json::value::Value as JsonValue;
 
     use crate::PrivOwnedStr;
@@ -148,11 +148,12 @@ pub mod v1 {
     /// This type can hold an arbitrary string. To build this with a custom value, convert it from a
     /// string with `::from() / .into()`. To check for values that are not available as a
     /// documented variant here, use its string representation, obtained through `.as_str()`.
-    #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+    #[derive(Clone, Debug, Default, PartialEq, Eq, StringEnum)]
     #[ruma_enum(rename_all = "snake_case")]
     #[non_exhaustive]
     pub enum NotificationPriority {
         /// A high priority notification
+        #[default]
         High,
 
         /// A low priority notification
@@ -160,12 +161,6 @@ pub mod v1 {
 
         #[doc(hidden)]
         _Custom(PrivOwnedStr),
-    }
-
-    impl Default for NotificationPriority {
-        fn default() -> Self {
-            Self::High
-        }
     }
 
     /// Type for passing information about notification counts.
@@ -256,7 +251,7 @@ pub mod v1 {
         ///
         /// [sygnal]: https://github.com/matrix-org/sygnal/blob/main/docs/applications.md#ios-applications-beware
         // Not specified, issue: https://github.com/matrix-org/matrix-spec/issues/921
-        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg(feature = "unstable-unspecified")]
         #[serde(default, skip_serializing_if = "JsonValue::is_null")]
         pub default_payload: JsonValue,
     }
@@ -269,12 +264,12 @@ pub mod v1 {
 
         /// Returns `true` if all fields are `None`.
         pub fn is_empty(&self) -> bool {
-            #[cfg(not(feature = "unstable-pre-spec"))]
+            #[cfg(not(feature = "unstable-unspecified"))]
             {
                 self.format.is_none()
             }
 
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-unspecified")]
             {
                 self.format.is_none() && self.default_payload.is_null()
             }
@@ -285,14 +280,14 @@ pub mod v1 {
         fn from(data: ruma_common::push::PusherData) -> Self {
             let ruma_common::push::PusherData {
                 format,
-                #[cfg(feature = "unstable-pre-spec")]
+                #[cfg(feature = "unstable-unspecified")]
                 default_payload,
                 ..
             } = data;
 
             Self {
                 format,
-                #[cfg(feature = "unstable-pre-spec")]
+                #[cfg(feature = "unstable-unspecified")]
                 default_payload,
             }
         }

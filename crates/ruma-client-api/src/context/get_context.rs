@@ -8,7 +8,7 @@ pub mod v3 {
     use js_int::{uint, UInt};
     use ruma_common::{
         api::ruma_api,
-        events::{AnyRoomEvent, AnyStateEvent},
+        events::{AnyStateEvent, AnyTimelineEvent},
         serde::Raw,
         EventId, RoomId,
     };
@@ -66,16 +66,16 @@ pub mod v3 {
             /// A list of room events that happened just before the requested event,
             /// in reverse-chronological order.
             #[serde(default, skip_serializing_if = "Vec::is_empty")]
-            pub events_before: Vec<Raw<AnyRoomEvent>>,
+            pub events_before: Vec<Raw<AnyTimelineEvent>>,
 
             /// Details of the requested event.
             #[serde(skip_serializing_if = "Option::is_none")]
-            pub event: Option<Raw<AnyRoomEvent>>,
+            pub event: Option<Raw<AnyTimelineEvent>>,
 
             /// A list of room events that happened just after the requested event,
             /// in chronological order.
             #[serde(default, skip_serializing_if = "Vec::is_empty")]
-            pub events_after: Vec<Raw<AnyRoomEvent>>,
+            pub events_after: Vec<Raw<AnyTimelineEvent>>,
 
             /// The state of the room at the last event returned.
             #[serde(default, skip_serializing_if = "Vec::is_empty")]

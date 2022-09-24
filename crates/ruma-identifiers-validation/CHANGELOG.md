@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.9.0
+
 Breaking changes:
 
 * Remove `room_name` module

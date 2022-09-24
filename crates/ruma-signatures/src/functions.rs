@@ -332,7 +332,7 @@ pub fn reference_hash(
     let hash = Sha256::digest(json.as_bytes());
 
     Ok(encode_config(
-        &hash,
+        hash,
         match version {
             RoomVersionId::V1 | RoomVersionId::V2 | RoomVersionId::V3 => STANDARD_NO_PAD,
             // Room versions higher than version 3 are url safe base64 encoded

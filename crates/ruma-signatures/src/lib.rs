@@ -226,7 +226,7 @@ mod tests {
     #[test]
     fn sign_empty_json() {
         let key_pair = Ed25519KeyPair::from_der(
-            decode_config(&PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
+            decode_config(PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
             "1".into(),
         )
         .unwrap();
@@ -257,7 +257,7 @@ mod tests {
     #[test]
     fn sign_minimal_json() {
         let key_pair = Ed25519KeyPair::from_der(
-            decode_config(&PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
+            decode_config(PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
             "1".into(),
         )
         .unwrap();
@@ -317,7 +317,7 @@ mod tests {
     #[test]
     fn sign_minimal_event() {
         let key_pair = Ed25519KeyPair::from_der(
-            decode_config(&PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
+            decode_config(PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
             "1".into(),
         )
         .unwrap();
@@ -351,7 +351,7 @@ mod tests {
     #[test]
     fn sign_redacted_event() {
         let key_pair = Ed25519KeyPair::from_der(
-            decode_config(&PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
+            decode_config(PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
             "1".into(),
         )
         .unwrap();

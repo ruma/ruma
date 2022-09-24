@@ -184,7 +184,7 @@ fn add_user_id_to_query<C: HttpClient + ?Sized, R: OutgoingRequest>(
     use ruma_common::serde::urlencoded;
 
     move |http_request| {
-        let extra_params = urlencoded::to_string(&[("user_id", user_id)]).unwrap();
+        let extra_params = urlencoded::to_string([("user_id", user_id)]).unwrap();
         let uri = http_request.uri_mut();
         let new_path_and_query = match uri.query() {
             Some(params) => format!("{}?{params}&{extra_params}", uri.path()),

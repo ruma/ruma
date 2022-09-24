@@ -1,6 +1,6 @@
 [package]
 name = "ruma-common"
-version = "0.9.2"
+version = "0.10.3"
 description = "Common types for other ruma crates."
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
@@ -8,7 +8,7 @@ license = "MIT"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
 edition = "2021"
-rust-version = "1.60"
+rust-version = "1.62"
 
 [package.metadata.docs.rs]
 all-features = true
@@ -31,9 +31,6 @@ markdown = ["pulldown-cmark"]
 # https://github.com/dtolnay/trybuild/issues/171
 rand = ["dep:rand_crate", "dep:uuid"]
 unstable-exhaustive-types = []
-unstable-pdu = []
-unstable-pre-spec = []
-unstable-sanitize = ["dep:html5ever", "dep:phf"]
 unstable-msc1767 = []
 unstable-msc2285 = []
 unstable-msc2448 = []
@@ -52,6 +49,9 @@ unstable-msc3553 = ["unstable-msc3552"]
 unstable-msc3554 = ["unstable-msc1767"]
 unstable-msc3786 = []
 unstable-msc3827 = []
+unstable-pdu = []
+unstable-sanitize = ["dep:html5ever", "dep:phf"]
+unstable-unspecified = []
 
 [dependencies]
 base64 = "0.13.0"
@@ -69,8 +69,8 @@ phf = { version = "0.10.1", features = ["macros"], optional = true }
 pulldown-cmark = { version = "0.9.1", default-features = false, optional = true }
 rand_crate = { package = "rand", version = "0.8.3", optional = true }
 regex = { version = "1.5.6", default-features = false, features = ["std", "perf"] }
-ruma-identifiers-validation = { version = "0.8.1", path = "../ruma-identifiers-validation", default-features = false }
-ruma-macros = { version = "0.9.2", path = "../ruma-macros" }
+ruma-identifiers-validation = { version = "0.9.0", path = "../ruma-identifiers-validation", default-features = false }
+ruma-macros = { version = "0.10.3", path = "../ruma-macros" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = { version = "1.0.64", features = ["raw_value"] }
 thiserror = { version = "1.0.26", optional = true }

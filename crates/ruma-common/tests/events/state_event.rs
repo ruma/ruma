@@ -4,12 +4,12 @@ use js_int::uint;
 use ruma_common::{
     event_id,
     events::{
-        room::aliases::RoomAliasesEventContent, AnyRoomEvent, AnyStateEvent, AnyStateEventContent,
-        AnySyncStateEvent, OriginalStateEvent, StateEvent, StateEventType, StateUnsigned,
-        SyncStateEvent,
+        room::aliases::RoomAliasesEventContent, AnyStateEvent, AnyStateEventContent,
+        AnySyncStateEvent, AnyTimelineEvent, OriginalStateEvent, StateEvent, StateEventType,
+        StateUnsigned, SyncStateEvent,
     },
     mxc_uri, room_alias_id, room_id,
-    serde::Raw,
+    serde::{CanBeEmpty, Raw},
     server_name, user_id, MilliSecondsSinceUnixEpoch,
 };
 use serde_json::{
@@ -214,8 +214,8 @@ fn deserialize_member_event_with_top_level_membership_field() {
     });
 
     let ev = assert_matches!(
-        from_json_value::<AnyRoomEvent>(json_data),
-        Ok(AnyRoomEvent::State(AnyStateEvent::RoomMember(StateEvent::Original(ev)))) => ev
+        from_json_value::<AnyTimelineEvent>(json_data),
+        Ok(AnyTimelineEvent::State(AnyStateEvent::RoomMember(StateEvent::Original(ev)))) => ev
     );
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
     assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));

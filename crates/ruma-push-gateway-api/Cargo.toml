@@ -1,6 +1,6 @@
 [package]
 name = "ruma-push-gateway-api"
-version = "0.5.0"
+version = "0.6.0"
 description = "Types for the endpoints in the Matrix push gateway API."
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
@@ -8,19 +8,19 @@ license = "MIT"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
 edition = "2021"
-rust-version = "1.60"
+rust-version = "1.62"
 
 [package.metadata.docs.rs]
 all-features = true
 
 [features]
 unstable-exhaustive-types = []
-unstable-pre-spec = []
+unstable-unspecified = []
 client = []
 server = []
 
 [dependencies]
 js_int = { version = "0.2.0", features = ["serde"] }
-ruma-common = { version = "0.9.2", path = "../ruma-common", features = ["api", "events"] }
+ruma-common = { version = "0.10.3", path = "../ruma-common", features = ["api", "events"] }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.61"

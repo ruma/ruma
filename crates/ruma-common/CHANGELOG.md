@@ -1,5 +1,35 @@
 # [unreleased]
 
+Breaking changes:
+
+* Remove deprecated `EventType` enum
+* Remove deprecated constructors for `RoomMessageEventContent`
+
+# 0.10.3
+
+Bug fixes:
+
+* Fix ruma-common not compiling with the Cargo features `events` and
+  `unstable-msc2677` active, and `unstable-msc2676` inactive
+
+# 0.10.2
+
+Improvements:
+
+* Add `relations` accessors to event enum types:
+  * `AnyMessageLikeEvent` and `AnySyncMessageLikeEvent`
+  * `AnyStateEvent` and `AnySyncStateEvent`
+  * `AnyTimelineEvent` and `AnySyncTimelineEvent`
+
+# 0.10.1
+
+Improvements:
+
+* Add `RoomMessageEventContent::make_reply_to`
+  * Deprecate reply constructors in favor of the new method
+
+# 0.10.0
+
 Bug fixes:
 
 * Expose `MatrixIdError`, `MatrixToError`, `MatrixUriError` and `MxcUriError` at
@@ -27,6 +57,10 @@ Breaking changes:
 * Allow to add routing servers to `RoomId::matrix_to_event_uri()`
 * Move `receipt::ReceiptType` to `events::receipt`
 * Make `Clone` as supertrait of `api::OutgoingRequest`
+* Rename `Any[Sync]RoomEvent` to `Any[Sync]TimelineEvent`
+* `RoomMemberEvent` and related types now have a custom unsigned type including the
+  `invite_room_state` field, instead of the `StateUnsigned` type used by other state
+  events
 
 [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/3669
 

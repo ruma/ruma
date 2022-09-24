@@ -47,10 +47,6 @@ pub fn expand_event_type_enum(
     let mut res = TokenStream::new();
 
     res.extend(
-        generate_enum("EventType", &all, &ruma_common)
-            .unwrap_or_else(syn::Error::into_compile_error),
-    );
-    res.extend(
         generate_enum("RoomEventType", &room, &ruma_common)
             .unwrap_or_else(syn::Error::into_compile_error),
     );
@@ -89,12 +85,6 @@ fn generate_enum(
 ) -> syn::Result<TokenStream> {
     let serde = quote! { #ruma_common::exports::serde };
     let enum_doc = format!("The type of `{}` this is.", ident.strip_suffix("Type").unwrap());
-
-    let deprecated_attr = (ident == "EventType").then(|| {
-        quote! {
-            #[deprecated = "use a fine-grained event type enum like RoomEventType instead"]
-        }
-    });
 
     let ident = Ident::new(ident, Span::call_site());
 
@@ -204,7 +194,6 @@ fn generate_enum(
         /// This type can hold an arbitrary string. To build events with a custom type, convert it
         /// from a string with `::from() / .into()`. To check for events that are not available as a
         /// documented variant here, use its string representation, obtained through `.to_string()`.
-        #deprecated_attr
         #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
         pub enum #ident {

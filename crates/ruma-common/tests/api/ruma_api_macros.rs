@@ -3,7 +3,7 @@
 pub mod some_endpoint {
     use ruma_common::{
         api::ruma_api,
-        events::{tag::TagEvent, AnyRoomEvent},
+        events::{tag::TagEvent, AnyTimelineEvent},
         serde::Raw,
         OwnedUserId,
     };
@@ -52,7 +52,7 @@ pub mod some_endpoint {
             pub event: Raw<TagEvent>,
 
             // ... and to allow unknown events when the endpoint deals with event collections.
-            pub list_of_events: Vec<Raw<AnyRoomEvent>>,
+            pub list_of_events: Vec<Raw<AnyTimelineEvent>>,
         }
     }
 }

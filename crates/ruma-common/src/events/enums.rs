@@ -5,7 +5,7 @@ use serde_json::value::RawValue as RawJsonValue;
 use super::{
     key,
     room::{encrypted, redaction::SyncRoomRedactionEvent},
-    Redact,
+    Redact, Relations,
 };
 use crate::{
     serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, RoomId,
@@ -134,31 +134,29 @@ event_enum! {
     }
 }
 
-/// Declares an item with a doc attribute computed by some macro expression.
-/// This allows documentation to be dynamically generated based on input.
-/// Necessary to work around <https://github.com/rust-lang/rust/issues/52607>.
-macro_rules! doc_concat {
-    ( $( #[doc = $doc:expr] $( $thing:tt )* )* ) => ( $( #[doc = $doc] $( $thing )* )* );
-}
-
-macro_rules! room_ev_accessor {
-    ($field:ident: $ty:ty) => {
-        doc_concat! {
-            #[doc = concat!("Returns this event's `", stringify!($field), "` field.")]
+macro_rules! timeline_event_accessors {
+    (
+        $(
+            #[doc = $docs:literal]
+            pub fn $field:ident(&self) -> $ty:ty;
+        )*
+    ) => {
+        $(
+            #[doc = $docs]
             pub fn $field(&self) -> $ty {
                 match self {
                     Self::MessageLike(ev) => ev.$field(),
                     Self::State(ev) => ev.$field(),
                 }
             }
-        }
+        )*
     };
 }
 
 /// Any room event.
 #[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
 #[derive(Clone, Debug, EventEnumFromEvent)]
-pub enum AnyRoomEvent {
+pub enum AnyTimelineEvent {
     /// Any message-like event.
     MessageLike(AnyMessageLikeEvent),
 
@@ -166,18 +164,25 @@ pub enum AnyRoomEvent {
     State(AnyStateEvent),
 }
 
-impl AnyRoomEvent {
-    room_ev_accessor!(origin_server_ts: MilliSecondsSinceUnixEpoch);
-    room_ev_accessor!(room_id: &RoomId);
-    room_ev_accessor!(event_id: &EventId);
-    room_ev_accessor!(sender: &UserId);
+impl AnyTimelineEvent {
+    timeline_event_accessors! {
+        /// Returns this event's `origin_server_ts` field.
+        pub fn origin_server_ts(&self) -> MilliSecondsSinceUnixEpoch;
 
-    /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
-    pub fn transaction_id(&self) -> Option<&TransactionId> {
-        match self {
-            Self::MessageLike(ev) => ev.transaction_id(),
-            Self::State(ev) => ev.transaction_id(),
-        }
+        /// Returns this event's `room_id` field.
+        pub fn room_id(&self) -> &RoomId;
+
+        /// Returns this event's `event_id` field.
+        pub fn event_id(&self) -> &EventId;
+
+        /// Returns this event's `sender` field.
+        pub fn sender(&self) -> &UserId;
+
+        /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
+        pub fn transaction_id(&self) -> Option<&TransactionId>;
+
+        /// Returns this event's `relations` from inside `unsigned`, if that field exists.
+        pub fn relations(&self) -> Option<&Relations>;
     }
 }
 
@@ -186,7 +191,7 @@ impl AnyRoomEvent {
 /// Sync room events are room event without a `room_id`, as returned in `/sync` responses.
 #[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
 #[derive(Clone, Debug, EventEnumFromEvent)]
-pub enum AnySyncRoomEvent {
+pub enum AnySyncTimelineEvent {
     /// Any sync message-like event.
     MessageLike(AnySyncMessageLikeEvent),
 
@@ -194,24 +199,38 @@ pub enum AnySyncRoomEvent {
     State(AnySyncStateEvent),
 }
 
-impl AnySyncRoomEvent {
-    room_ev_accessor!(origin_server_ts: MilliSecondsSinceUnixEpoch);
-    room_ev_accessor!(event_id: &EventId);
-    room_ev_accessor!(sender: &UserId);
+impl AnySyncTimelineEvent {
+    timeline_event_accessors! {
+        /// Returns this event's `origin_server_ts` field.
+        pub fn origin_server_ts(&self) -> MilliSecondsSinceUnixEpoch;
 
-    /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
-    pub fn transaction_id(&self) -> Option<&TransactionId> {
-        match self {
-            Self::MessageLike(ev) => ev.transaction_id(),
-            Self::State(ev) => ev.transaction_id(),
-        }
+        /// Returns this event's `event_id` field.
+        pub fn event_id(&self) -> &EventId;
+
+        /// Returns this event's `sender` field.
+        pub fn sender(&self) -> &UserId;
+
+        /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
+        pub fn transaction_id(&self) -> Option<&TransactionId>;
+
+        /// Returns this event's `relations` from inside `unsigned`, if that field exists.
+        pub fn relations(&self) -> Option<&Relations>;
     }
 
-    /// Converts `self` to an `AnyRoomEvent` by adding the given a room ID.
-    pub fn into_full_event(self, room_id: OwnedRoomId) -> AnyRoomEvent {
+    /// Converts `self` to an `AnyTimelineEvent` by adding the given a room ID.
+    pub fn into_full_event(self, room_id: OwnedRoomId) -> AnyTimelineEvent {
         match self {
-            Self::MessageLike(ev) => AnyRoomEvent::MessageLike(ev.into_full_event(room_id)),
-            Self::State(ev) => AnyRoomEvent::State(ev.into_full_event(room_id)),
+            Self::MessageLike(ev) => AnyTimelineEvent::MessageLike(ev.into_full_event(room_id)),
+            Self::State(ev) => AnyTimelineEvent::State(ev.into_full_event(room_id)),
+        }
+    }
+}
+
+impl From<AnyTimelineEvent> for AnySyncTimelineEvent {
+    fn from(ev: AnyTimelineEvent) -> Self {
+        match ev {
+            AnyTimelineEvent::MessageLike(ev) => Self::MessageLike(ev.into()),
+            AnyTimelineEvent::State(ev) => Self::State(ev.into()),
         }
     }
 }
@@ -222,7 +241,7 @@ struct EventDeHelper {
     pub state_key: Option<de::IgnoredAny>,
 }
 
-impl<'de> Deserialize<'de> for AnyRoomEvent {
+impl<'de> Deserialize<'de> for AnyTimelineEvent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: de::Deserializer<'de>,
@@ -231,14 +250,14 @@ impl<'de> Deserialize<'de> for AnyRoomEvent {
         let EventDeHelper { state_key } = from_raw_json_value(&json)?;
 
         if state_key.is_some() {
-            Ok(AnyRoomEvent::State(from_raw_json_value(&json)?))
+            Ok(AnyTimelineEvent::State(from_raw_json_value(&json)?))
         } else {
-            Ok(AnyRoomEvent::MessageLike(from_raw_json_value(&json)?))
+            Ok(AnyTimelineEvent::MessageLike(from_raw_json_value(&json)?))
         }
     }
 }
 
-impl<'de> Deserialize<'de> for AnySyncRoomEvent {
+impl<'de> Deserialize<'de> for AnySyncTimelineEvent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: de::Deserializer<'de>,
@@ -247,14 +266,14 @@ impl<'de> Deserialize<'de> for AnySyncRoomEvent {
         let EventDeHelper { state_key } = from_raw_json_value(&json)?;
 
         if state_key.is_some() {
-            Ok(AnySyncRoomEvent::State(from_raw_json_value(&json)?))
+            Ok(AnySyncTimelineEvent::State(from_raw_json_value(&json)?))
         } else {
-            Ok(AnySyncRoomEvent::MessageLike(from_raw_json_value(&json)?))
+            Ok(AnySyncTimelineEvent::MessageLike(from_raw_json_value(&json)?))
         }
     }
 }
 
-impl Redact for AnyRoomEvent {
+impl Redact for AnyTimelineEvent {
     type Redacted = Self;
 
     /// Redacts `self`, referencing the given event in `unsigned.redacted_because`.
@@ -268,7 +287,7 @@ impl Redact for AnyRoomEvent {
     }
 }
 
-impl Redact for AnySyncRoomEvent {
+impl Redact for AnySyncTimelineEvent {
     type Redacted = Self;
 
     /// Redacts `self`, referencing the given event in `unsigned.redacted_because`.

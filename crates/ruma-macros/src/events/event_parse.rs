@@ -121,7 +121,7 @@ impl EventKind {
         matches!(self, Self::GlobalAccountData | Self::RoomAccountData)
     }
 
-    pub fn is_room(self) -> bool {
+    pub fn is_timeline(self) -> bool {
         matches!(self, Self::MessageLike | Self::RoomRedaction | Self::State)
     }
 
@@ -281,9 +281,9 @@ pub struct EventEnumDecl {
     /// An array of valid matrix event types.
     ///
     /// This will generate the variants of the event type "kind". There needs to be a corresponding
-    /// variant in `ruma_common::events::EventType` for this event (converted to a valid Rust-style
-    /// type name by stripping `m.`, replacing the remaining dots by underscores and then
-    /// converting from snake_case to CamelCase).
+    /// variant in the `*EventType` enum for this event kind (converted to a valid Rust-style type
+    /// name by stripping `m.`, replacing the remaining dots by underscores and then converting
+    /// from snake_case to CamelCase).
     pub events: Vec<EventEnumEntry>,
 }
 

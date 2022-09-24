@@ -2,7 +2,7 @@
 //!
 //! [`m.room.message`]: https://spec.matrix.org/v1.2/client-server-api/#mroommessage
 
-use std::{borrow::Cow, fmt};
+use std::borrow::Cow;
 
 use ruma_macros::EventContent;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -103,76 +103,62 @@ impl RoomMessageEventContent {
         Self::new(MessageType::Notice(NoticeMessageEventContent::markdown(body)))
     }
 
-    /// Creates a plain text reply to a message.
+    /// Turns `self` into a reply to the given message.
+    ///
+    /// Takes the `body` / `formatted_body` (if any) in `self` for the main text and prepends a
+    /// quoted version of `original_message`. Also sets the `in_reply_to` field inside `relates_to`.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
-    pub fn text_reply_plain(
-        reply: impl fmt::Display,
-        original_message: &OriginalRoomMessageEvent,
-    ) -> Self {
-        let formatted: Option<&str> = None;
-        let (body, html_body) =
-            reply::plain_and_formatted_reply_body(reply, formatted, original_message);
+    ///
+    /// # Panics
+    ///
+    /// Panics if `self` has a `formatted_body` with a format other than HTML.
+    #[track_caller]
+    pub fn make_reply_to(mut self, original_message: &OriginalRoomMessageEvent) -> Self {
+        let empty_formatted_body = || FormattedBody::html(String::new());
 
-        Self {
-            relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo { event_id: original_message.event_id.to_owned() },
-            }),
-            ..Self::text_html(body, html_body)
+        let (body, formatted) = {
+            match &mut self.msgtype {
+                MessageType::Emote(m) => {
+                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
+                }
+                MessageType::Notice(m) => {
+                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
+                }
+                MessageType::Text(m) => {
+                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
+                }
+                MessageType::Audio(m) => (&mut m.body, None),
+                MessageType::File(m) => (&mut m.body, None),
+                MessageType::Image(m) => (&mut m.body, None),
+                MessageType::Location(m) => (&mut m.body, None),
+                MessageType::ServerNotice(m) => (&mut m.body, None),
+                MessageType::Video(m) => (&mut m.body, None),
+                MessageType::VerificationRequest(m) => (&mut m.body, None),
+                MessageType::_Custom(m) => (&mut m.body, None),
+            }
+        };
+
+        if let Some(f) = formatted {
+            assert_eq!(
+                f.format,
+                MessageFormat::Html,
+                "make_reply_to can't handle non-HTML formatted messages"
+            );
+
+            let formatted_body = &mut f.body;
+
+            (*body, *formatted_body) = reply::plain_and_formatted_reply_body(
+                body.as_str(),
+                (!formatted_body.is_empty()).then_some(formatted_body.as_str()),
+                original_message,
+            );
         }
-    }
 
-    /// Creates a html text reply to a message.
-    #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
-    pub fn text_reply_html(
-        reply: impl fmt::Display,
-        html_reply: impl fmt::Display,
-        original_message: &OriginalRoomMessageEvent,
-    ) -> Self {
-        let (body, html_body) =
-            reply::plain_and_formatted_reply_body(reply, Some(html_reply), original_message);
+        self.relates_to = Some(Relation::Reply {
+            in_reply_to: InReplyTo { event_id: original_message.event_id.to_owned() },
+        });
 
-        Self {
-            relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo { event_id: original_message.event_id.clone() },
-            }),
-            ..Self::text_html(body, html_body)
-        }
-    }
-
-    /// Creates a plain text notice reply to a message.
-    #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
-    pub fn notice_reply_plain(
-        reply: impl fmt::Display,
-        original_message: &OriginalRoomMessageEvent,
-    ) -> Self {
-        let formatted: Option<&str> = None;
-        let (body, html_body) =
-            reply::plain_and_formatted_reply_body(reply, formatted, original_message);
-
-        Self {
-            relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo { event_id: original_message.event_id.to_owned() },
-            }),
-            ..Self::notice_html(body, html_body)
-        }
-    }
-
-    /// Creates a html text notice reply to a message.
-    #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
-    pub fn notice_reply_html(
-        reply: impl fmt::Display,
-        html_reply: impl fmt::Display,
-        original_message: &OriginalRoomMessageEvent,
-    ) -> Self {
-        let (body, html_body) =
-            reply::plain_and_formatted_reply_body(reply, Some(html_reply), original_message);
-
-        Self {
-            relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo { event_id: original_message.event_id.clone() },
-            }),
-            ..Self::notice_html(body, html_body)
-        }
+        self
     }
 
     /// Create a new reply with the given message and optionally forwards the [`Relation::Thread`].

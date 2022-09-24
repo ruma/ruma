@@ -169,7 +169,7 @@ pub mod v3 {
 }
 
 /// The kind of account being registered.
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum RegistrationKind {
@@ -179,13 +179,8 @@ pub enum RegistrationKind {
     Guest,
 
     /// A regular user account
+    #[default]
     User,
-}
-
-impl Default for RegistrationKind {
-    fn default() -> Self {
-        Self::User
-    }
 }
 
 /// The login type.

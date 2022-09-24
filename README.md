@@ -24,7 +24,7 @@ dependencies:
 
 ```toml
 # crates.io release
-ruma = { version = "0.6.0", features = ["..."] }
+ruma = { version = "0.7.4", features = ["..."] }
 # git dependency
 ruma = { git = "https://github.com/ruma/ruma", branch = "main", features = ["..."] }
 ```
@@ -38,12 +38,12 @@ them as a user. Check out the documentation [on docs.rs][docs] (or on
 
 ## Status
 
-Ruma 0.6 supports all events and REST endpoints of Matrix v1.0, v1.1 and v1.2.
+Ruma 0.7 supports all events and REST endpoints of Matrix v1.3.
 
 Various changes from in-progress or finished MSCs are also implemented, gated
 behind the `unstable-mscXXXX` (where `XXXX` is the MSC number) Cargo features.
 
-A few less formalized things are gated behind the `unstable-pre-spec` Cargo
+A few less formalized things are gated behind the `unstable-unspecified` Cargo
 feature.
 
 ## Contributing
@@ -52,7 +52,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Minimum Rust version
 
-Ruma currently requires Rust 1.60. In general, we will never require beta or
+Ruma currently requires Rust 1.62. In general, we will never require beta or
 nightly for crates.io releases of our crates, and we will try to avoid releasing
 crates that depend on features that were only just stabilized.
 

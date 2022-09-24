@@ -4,18 +4,18 @@
 
 use std::{collections::BTreeMap, time::Duration};
 
-use super::UnreadNotificationsCount;
+use super::{DeviceLists, UnreadNotificationsCount};
 use js_int::UInt;
 use ruma_common::{
     api::ruma_api,
     events::{
         presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
-        AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncRoomEvent, AnySyncStateEvent,
+        AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncStateEvent, AnySyncTimelineEvent,
         AnyToDeviceEvent,
     },
     presence::PresenceState,
     serde::{Incoming, Raw},
-    DeviceKeyAlgorithm, OwnedRoomId, OwnedUserId,
+    DeviceKeyAlgorithm, OwnedRoomId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -336,7 +336,7 @@ pub struct Timeline {
 
     /// A list of events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub events: Vec<Raw<AnySyncRoomEvent>>,
+    pub events: Vec<Raw<AnySyncTimelineEvent>>,
 }
 
 impl Timeline {
@@ -576,33 +576,6 @@ impl ToDevice {
     /// Returns true if there are no to-device events.
     pub fn is_empty(&self) -> bool {
         self.events.is_empty()
-    }
-}
-
-/// Information on E2E device updates.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct DeviceLists {
-    /// List of users who have updated their device identity keys or who now
-    /// share an encrypted room with the client since the previous sync
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub changed: Vec<OwnedUserId>,
-
-    /// List of users who no longer share encrypted rooms since the previous sync
-    /// response.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub left: Vec<OwnedUserId>,
-}
-
-impl DeviceLists {
-    /// Creates an empty `DeviceLists`.
-    pub fn new() -> Self {
-        Default::default()
-    }
-
-    /// Returns true if there are no device list updates.
-    pub fn is_empty(&self) -> bool {
-        self.changed.is_empty() && self.left.is_empty()
     }
 }
 

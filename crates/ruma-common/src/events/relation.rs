@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use super::AnySyncMessageLikeEvent;
 #[cfg(feature = "unstable-msc3440")]
 use crate::serde::Raw;
-#[cfg(feature = "unstable-msc2677")]
+#[cfg(any(feature = "unstable-msc2676", feature = "unstable-msc2677"))]
 use crate::MilliSecondsSinceUnixEpoch;
 use crate::{serde::StringEnum, PrivOwnedStr};
 #[cfg(feature = "unstable-msc2676")]

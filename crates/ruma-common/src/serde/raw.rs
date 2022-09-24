@@ -25,14 +25,14 @@ use serde_json::value::{to_raw_value as to_raw_json_value, RawValue as RawJsonVa
 /// # use serde::Deserialize;
 /// # use ruma_common::serde::Raw;
 /// # #[derive(Deserialize)]
-/// # struct AnyRoomEvent;
+/// # struct AnyTimelineEvent;
 ///
 /// let json = r#"{ "type": "imagine a full event", "content": {...} }"#;
 ///
-/// let deser = serde_json::from_str::<Raw<AnyRoomEvent>>(json)
+/// let deser = serde_json::from_str::<Raw<AnyTimelineEvent>>(json)
 ///     .unwrap() // the first Result from serde_json::from_str, will not fail
 ///     .deserialize() // deserialize to the inner type
-///     .unwrap(); // finally get to the AnyRoomEvent
+///     .unwrap(); // finally get to the AnyTimelineEvent
 /// ```
 #[repr(transparent)]
 pub struct Raw<T> {

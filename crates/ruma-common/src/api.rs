@@ -302,7 +302,7 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
     ) -> Result<http::Request<T>, IntoHttpError> {
         let mut http_request =
             self.try_into_http_request(base_url, access_token, considering_versions)?;
-        let user_id_query = crate::serde::urlencoded::to_string(&[("user_id", user_id)])?;
+        let user_id_query = crate::serde::urlencoded::to_string([("user_id", user_id)])?;
 
         let uri = http_request.uri().to_owned();
         let mut parts = uri.into_parts();

@@ -10,7 +10,7 @@ use ruma_common::{
         MessageLikeEventType, MessageLikeUnsigned, OriginalMessageLikeEvent,
     },
     mxc_uri, room_id,
-    serde::Raw,
+    serde::{CanBeEmpty, Raw},
     user_id, MilliSecondsSinceUnixEpoch, VoipVersionId,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};

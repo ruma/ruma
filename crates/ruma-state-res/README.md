@@ -13,7 +13,7 @@ pub trait Event {
 }
 
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
-pub type StateMap<T> = BTreeMap<(EventType, Option<String>), T>;
+pub type StateMap<T> = BTreeMap<(StateEventType, Option<String>), T>;
 
 /// A mapping of `EventId` to `T`, usually a `OriginalStateEvent`.
 pub type EventMap<T> = BTreeMap<OwnedEventId, T>;
@@ -40,6 +40,6 @@ impl StateResolution {
 
 
 
-The `StateStore` trait is an abstraction around what ever database your server (or maybe even client) uses to store __P__[]()ersistant __D__[]()ata __U__[]()nits.
+The `StateStore` trait is an abstraction around what ever database your server (or maybe even client) uses to store **P**ersistent **D**ata **U**nits.
 
 We use `ruma`s types when deserializing any PDU or it's contents which helps avoid a lot of type checking logic [synapse](https://github.com/matrix-org/synapse) must do while authenticating event chains.

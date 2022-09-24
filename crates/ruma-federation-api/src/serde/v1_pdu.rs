@@ -67,7 +67,7 @@ where
     }
 }
 
-#[cfg(not(feature = "unstable-pre-spec"))]
+#[cfg(not(feature = "unstable-unspecified"))]
 #[cfg(test)]
 mod tests {
     use assert_matches::assert_matches;

@@ -3,11 +3,11 @@ use std::fmt;
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use crate::serde::Raw;
+use crate::serde::{CanBeEmpty, Raw};
 
 use super::{
     EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEventType,
-    RoomAccountDataEventType, StateEventType, ToDeviceEventType,
+    RoomAccountDataEventType, StateEventType, StateUnsignedFromParts, ToDeviceEventType,
 };
 
 /// The base trait that all event content types implement.
@@ -136,46 +136,35 @@ pub enum EventKind {
     Presence,
 }
 
-macro_rules! trait_aliases {
-    // need to use `,` instead of `+` because (1) path can't be followed by `+`
-    // and (2) `+` can't be used as a separator since it's a repetition operator
-    ($(
-        $( #[doc = $docs:literal] )*
-        trait $id:ident = $( $def:path ),+;
-    )*) => {
-        $(
-            $( #[doc = $docs] )*
-            pub trait $id: $($def+)+ {}
-            impl<T: $($def+)+> $id for T {}
-        )*
-    }
+/// Content of a global account-data event.
+pub trait GlobalAccountDataEventContent:
+    EventContent<EventType = GlobalAccountDataEventType>
+{
 }
 
-trait_aliases! {
-    /// An alias for `EventContent<EventType = GlobalAccountDataEventType>`.
-    trait GlobalAccountDataEventContent = EventContent<EventType = GlobalAccountDataEventType>;
+/// Content of a room-specific account-data event.
+pub trait RoomAccountDataEventContent: EventContent<EventType = RoomAccountDataEventType> {}
 
-    /// An alias for `EventContent<EventType = RoomAccountDataEventType>`.
-    trait RoomAccountDataEventContent = EventContent<EventType = RoomAccountDataEventType>;
+/// Content of an ephemeral room event.
+pub trait EphemeralRoomEventContent: EventContent<EventType = EphemeralRoomEventType> {}
 
-    /// An alias for `EventContent<EventType = EphemeralRoomEventType>`.
-    trait EphemeralRoomEventContent = EventContent<EventType = EphemeralRoomEventType>;
+/// Content of a non-redacted message-like event.
+pub trait MessageLikeEventContent: EventContent<EventType = MessageLikeEventType> {}
 
-    /// An alias for `EventContent<EventType = MessageLikeEventType>`.
-    trait MessageLikeEventContent = EventContent<EventType = MessageLikeEventType>;
+/// Content of a redacted message-like event.
+pub trait RedactedMessageLikeEventContent: MessageLikeEventContent + RedactedEventContent {}
 
-    /// An alias for `MessageLikeEventContent + RedactedEventContent`.
-    trait RedactedMessageLikeEventContent = MessageLikeEventContent, RedactedEventContent;
-
-    /// An alias for `StateEventContent + RedactedEventContent`.
-    trait RedactedStateEventContent = StateEventContent, RedactedEventContent;
-
-    /// An alias for `EventContent<EventType = ToDeviceEventType>`.
-    trait ToDeviceEventContent = EventContent<EventType = ToDeviceEventType>;
-}
-
-/// An alias for `EventContent<EventType = StateEventType>`.
+/// Content of a redacted state event.
 pub trait StateEventContent: EventContent<EventType = StateEventType> {
     /// The type of the event's `state_key` field.
     type StateKey: AsRef<str> + Clone + fmt::Debug + DeserializeOwned + Serialize;
+
+    /// The type of the event's `unsigned` field.
+    type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty + StateUnsignedFromParts + Serialize;
 }
+
+/// Content of a non-redacted state event.
+pub trait RedactedStateEventContent: StateEventContent + RedactedEventContent {}
+
+/// Content of a to-device event.
+pub trait ToDeviceEventContent: EventContent<EventType = ToDeviceEventType> {}

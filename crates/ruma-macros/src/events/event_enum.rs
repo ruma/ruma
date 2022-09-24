@@ -360,6 +360,15 @@ fn expand_content_enum(
     let variant_decls = variants.iter().map(|v| v.decl()).collect::<Vec<_>>();
     let variant_arms = variants.iter().map(|v| v.match_arm(quote! { Self })).collect::<Vec<_>>();
 
+    let sub_trait_name = format_ident!("{kind}Content");
+    let state_event_content_impl = (kind == EventKind::State).then(|| {
+        quote! {
+            type StateKey = String;
+            // FIXME: Not actually used
+            type Unsigned = #ruma_common::events::StateUnsigned<Self>;
+        }
+    });
+
     let from_impl = expand_from_impl(&ident, &content, variants);
 
     let serialize_custom_event_error_path =
@@ -407,6 +416,11 @@ fn expand_content_enum(
                     }
                 }
             }
+        }
+
+        #[automatically_derived]
+        impl #ruma_common::events::#sub_trait_name for #ident {
+            #state_event_content_impl
         }
 
         #from_impl
@@ -460,7 +474,7 @@ fn expand_accessor_methods(
     let self_variants: Vec<_> = variants.iter().map(|v| v.match_arm(quote! { Self })).collect();
 
     let maybe_redacted =
-        kind.is_room() && matches!(var, EventEnumVariation::None | EventEnumVariation::Sync);
+        kind.is_timeline() && matches!(var, EventEnumVariation::None | EventEnumVariation::Sync);
 
     let event_type_match_arms = if maybe_redacted {
         quote! {
@@ -561,8 +575,10 @@ fn expand_accessor_methods(
         }
     });
 
-    let txn_id_accessor = maybe_redacted.then(|| {
+    let maybe_redacted_accessors = maybe_redacted.then(|| {
         let variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
+        let variants2 = variants.clone();
+
         quote! {
             /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
             pub fn transaction_id(&self) -> Option<&#ruma_common::TransactionId> {
@@ -574,6 +590,20 @@ fn expand_accessor_methods(
                     )*
                     Self::_Custom(event) => {
                         event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_deref())
+                    }
+                }
+            }
+
+            /// Returns this event's `relations` from inside `unsigned`, if that field exists.
+            pub fn relations(&self) -> Option<&#ruma_common::events::Relations> {
+                match self {
+                    #(
+                        #variants2(event) => {
+                            event.as_original().and_then(|ev| ev.unsigned.relations.as_ref())
+                        }
+                    )*
+                    Self::_Custom(event) => {
+                        event.as_original().and_then(|ev| ev.unsigned.relations.as_ref())
                     }
                 }
             }
@@ -591,7 +621,7 @@ fn expand_accessor_methods(
             #content_accessor
             #( #methods )*
             #state_key_accessor
-            #txn_id_accessor
+            #maybe_redacted_accessors
         }
     })
 }

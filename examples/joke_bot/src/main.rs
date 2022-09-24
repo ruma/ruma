@@ -9,7 +9,7 @@ use ruma::{
     assign, client,
     events::{
         room::message::{MessageType, RoomMessageEventContent},
-        AnySyncMessageLikeEvent, AnySyncRoomEvent, SyncMessageLikeEvent,
+        AnySyncMessageLikeEvent, AnySyncTimelineEvent, SyncMessageLikeEvent,
     },
     presence::PresenceState,
     serde::Raw,
@@ -145,11 +145,11 @@ async fn create_matrix_session(
 async fn handle_message(
     http_client: &HttpClient,
     matrix_client: &MatrixClient,
-    e: &Raw<AnySyncRoomEvent>,
+    e: &Raw<AnySyncTimelineEvent>,
     room_id: &RoomId,
     bot_user_id: &UserId,
 ) -> Result<(), Box<dyn Error>> {
-    if let Ok(AnySyncRoomEvent::MessageLike(AnySyncMessageLikeEvent::RoomMessage(
+    if let Ok(AnySyncTimelineEvent::MessageLike(AnySyncMessageLikeEvent::RoomMessage(
         SyncMessageLikeEvent::Original(m),
     ))) = e.deserialize()
     {

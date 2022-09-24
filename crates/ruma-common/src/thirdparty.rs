@@ -90,7 +90,7 @@ pub struct ProtocolInstance {
     /// A unique identifier across all instances.
     ///
     /// See [matrix-spec#833](https://github.com/matrix-org/matrix-spec/issues/833).
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-unspecified")]
     pub instance_id: String,
 }
 
@@ -113,7 +113,7 @@ pub struct ProtocolInstanceInit {
     /// A unique identifier across all instances.
     ///
     /// See [matrix-spec#833](https://github.com/matrix-org/matrix-spec/issues/833).
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-unspecified")]
     pub instance_id: String,
 }
 
@@ -123,7 +123,7 @@ impl From<ProtocolInstanceInit> for ProtocolInstance {
             desc,
             fields,
             network_id,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-unspecified")]
             instance_id,
         } = init;
         Self {
@@ -131,7 +131,7 @@ impl From<ProtocolInstanceInit> for ProtocolInstance {
             icon: None,
             fields,
             network_id,
-            #[cfg(feature = "unstable-pre-spec")]
+            #[cfg(feature = "unstable-unspecified")]
             instance_id,
         }
     }

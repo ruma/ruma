@@ -18,7 +18,7 @@ use crate::{OwnedRoomId, OwnedUserId};
 /// user.
 ///
 /// Informs the client about the rooms that are considered direct by a user.
-#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.direct", kind = GlobalAccountData)]
 pub struct DirectEventContent(pub BTreeMap<OwnedUserId, Vec<OwnedRoomId>>);

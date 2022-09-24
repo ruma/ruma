@@ -10,10 +10,11 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 /// One of `==`, `<`, `>`, `>=` or `<=`.
 ///
 /// Used by `RoomMemberCountIs`. Defaults to `==`.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
 #[allow(clippy::exhaustive_enums)]
 pub enum ComparisonOperator {
     /// Equals
+    #[default]
     Eq,
 
     /// Less than
@@ -27,12 +28,6 @@ pub enum ComparisonOperator {
 
     /// Less or equal
     Le,
-}
-
-impl Default for ComparisonOperator {
-    fn default() -> Self {
-        ComparisonOperator::Eq
-    }
 }
 
 /// A decimal integer optionally prefixed by one of `==`, `<`, `>`, `>=` or `<=`.

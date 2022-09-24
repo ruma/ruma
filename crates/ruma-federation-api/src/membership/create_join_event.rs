@@ -12,7 +12,7 @@ use serde_json::value::RawValue as RawJsonValue;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomState {
-    #[cfg(not(feature = "unstable-pre-spec"))]
+    #[cfg(not(feature = "unstable-unspecified"))]
     /// The resident server's DNS name.
     pub origin: String,
 
@@ -24,7 +24,7 @@ pub struct RoomState {
     pub state: Vec<Box<RawJsonValue>>,
 }
 
-#[cfg(feature = "unstable-pre-spec")]
+#[cfg(feature = "unstable-unspecified")]
 impl Default for RoomState {
     fn default() -> Self {
         Self::new()
@@ -32,19 +32,19 @@ impl Default for RoomState {
 }
 
 impl RoomState {
-    #[cfg(not(feature = "unstable-pre-spec"))]
+    #[cfg(not(feature = "unstable-unspecified"))]
     /// Creates an empty `RoomState` with the given `origin`.
     ///
-    /// With the `unstable-pre-spec` feature, this method doesn't take any parameters.
+    /// With the `unstable-unspecified` feature, this method doesn't take any parameters.
     /// See [matrix-spec#374](https://github.com/matrix-org/matrix-spec/issues/374).
     pub fn new(origin: String) -> Self {
         Self { origin, auth_chain: Vec::new(), state: Vec::new() }
     }
 
-    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg(feature = "unstable-unspecified")]
     /// Creates an empty `RoomState` with the given `origin`.
     ///
-    /// Without the `unstable-pre-spec` feature, this method takes a parameter for the origin
+    /// Without the `unstable-unspecified` feature, this method takes a parameter for the origin
     /// See [matrix-spec#374](https://github.com/matrix-org/matrix-spec/issues/374).
     pub fn new() -> Self {
         Self { auth_chain: Vec::new(), state: Vec::new() }
