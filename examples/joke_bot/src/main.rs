@@ -99,7 +99,7 @@ async fn run() -> Result<(), Box<dyn Error>> {
             }
         });
 
-        let invite_futures = response.rooms.invite.iter().map(|(room_id, _)| async move {
+        let invite_futures = response.rooms.invite.keys().map(|room_id| async move {
             if let Err(err) = handle_invitations(http_client, matrix_client, room_id).await {
                 eprintln!("failed to accept invitation for room {room_id}: {err}");
             }
