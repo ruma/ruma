@@ -10,7 +10,7 @@ use ruma_common::{
             FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError, ServerError,
         },
         AuthScheme, EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata,
-        OutgoingRequest, OutgoingResponse, SendAccessToken,
+        OutgoingRequest, OutgoingResponse, PathData, SendAccessToken, VersionHistory,
     },
     OwnedRoomAliasId, OwnedRoomId,
 };
@@ -27,14 +27,33 @@ const METADATA: Metadata = Metadata {
     description: "Add an alias to a room.",
     method: Method::PUT,
     name: "create_alias",
-    unstable_path: Some("/_matrix/client/unstable/directory/room/:room_alias"),
-    r0_path: Some("/_matrix/client/r0/directory/room/:room_alias"),
-    stable_path: Some("/_matrix/client/v3/directory/room/:room_alias"),
     rate_limited: false,
     authentication: AuthScheme::None,
-    added: Some(MatrixVersion::V1_0),
-    deprecated: Some(MatrixVersion::V1_1),
-    removed: Some(MatrixVersion::V1_2),
+
+    history: VersionHistory {
+        unstable_paths: &[PathData {
+            canon: "/_matrix/client/unstable/directory/room/:room_alias",
+            parts: &["/_matrix/client/unstable/directory/room/", ""],
+        }],
+        path_versions: &[
+            (
+                MatrixVersion::V1_0,
+                PathData {
+                    canon: "/_matrix/client/r0/directory/room/:room_alias",
+                    parts: &["/_matrix/client/r0/directory/room/", ""],
+                },
+            ),
+            (
+                MatrixVersion::V1_1,
+                PathData {
+                    canon: "/_matrix/client/v3/directory/room/:room_alias",
+                    parts: &["/_matrix/client/v3/directory/room/", ""],
+                },
+            ),
+        ],
+        deprecated: Some(MatrixVersion::V1_2),
+        removed: Some(MatrixVersion::V1_3),
+    },
 };
 
 impl OutgoingRequest for Request {
@@ -52,13 +71,9 @@ impl OutgoingRequest for Request {
         let url = format!(
             "{}{}",
             base_url,
-            ruma_common::api::select_path(
-                considering_versions,
-                &METADATA,
-                Some(format_args!("/_matrix/client/unstable/directory/room/{}", self.room_alias)),
-                Some(format_args!("/_matrix/client/r0/directory/room/{}", self.room_alias)),
-                Some(format_args!("/_matrix/client/v3/directory/room/{}", self.room_alias)),
-            )?
+            ruma_common::api::select_path(considering_versions, &METADATA)?
+                .format(&[&self.room_alias])
+                .expect("the argument count is checked via macro or manually")
         );
 
         let request_body = RequestBody { room_id: self.room_id };

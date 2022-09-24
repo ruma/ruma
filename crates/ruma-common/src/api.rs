@@ -196,7 +196,7 @@ pub use ruma_macros::ruma_api;
 pub mod error;
 mod metadata;
 
-pub use metadata::{MatrixVersion, Metadata, VersioningDecision};
+pub use metadata::{MatrixVersion, Metadata, PathData, VersionHistory, VersioningDecision};
 
 use error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
 
@@ -406,13 +406,10 @@ pub enum AuthScheme {
 pub fn select_path<'a>(
     versions: &'_ [MatrixVersion],
     metadata: &'_ Metadata,
-    unstable: Option<fmt::Arguments<'a>>,
-    r0: Option<fmt::Arguments<'a>>,
-    stable: Option<fmt::Arguments<'a>>,
-) -> Result<fmt::Arguments<'a>, IntoHttpError> {
+) -> Result<PathData, IntoHttpError> {
     match metadata.versioning_decision_for(versions) {
         VersioningDecision::Removed => Err(IntoHttpError::EndpointRemoved(
-            metadata.removed.expect("VersioningDecision::Removed implies metadata.removed"),
+            metadata.history.removed.expect("VersioningDecision::Removed implies metadata.removed"),
         )),
         VersioningDecision::Stable { any_deprecated, all_deprecated, any_removed } => {
             if any_removed {
@@ -443,15 +440,13 @@ pub fn select_path<'a>(
                 );
             }
 
-            if let Some(r0) = r0 {
-                if versions.iter().all(|&v| v == MatrixVersion::V1_0) {
-                    // Endpoint was added in 1.0, we return the r0 variant.
-                    return Ok(r0);
-                }
-            }
-
-            Ok(stable.expect("metadata.added enforces the stable path to exist"))
+            Ok(metadata
+                .history
+                .stable_endpoint_for(versions)
+                .expect("VersioningDecision::Stable implies a stable path to exist"))
         }
-        VersioningDecision::Unstable => unstable.ok_or(IntoHttpError::NoUnstablePath),
+        VersioningDecision::Unstable => {
+            metadata.history.unstable().ok_or(IntoHttpError::NoUnstablePath)
+        }
     }
 }

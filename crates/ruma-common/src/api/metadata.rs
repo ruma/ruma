@@ -5,7 +5,10 @@ use std::{
 
 use http::Method;
 
-use super::{error::UnknownVersionError, AuthScheme};
+use super::{
+    error::{IncorrectArgumentCount, UnknownVersionError},
+    AuthScheme,
+};
 use crate::RoomVersionId;
 
 /// Metadata about an API endpoint.
@@ -21,42 +24,14 @@ pub struct Metadata {
     /// A unique identifier for this endpoint.
     pub name: &'static str,
 
-    /// The unstable path of this endpoint's URL, often `None`, used for developmental
-    /// purposes.
-    pub unstable_path: Option<&'static str>,
-
-    /// The pre-v1.1 version of this endpoint's URL, `None` for post-v1.1 endpoints,
-    /// supplemental to `stable_path`.
-    pub r0_path: Option<&'static str>,
-
-    /// The path of this endpoint's URL, with variable names where path parameters should be
-    /// filled in during a request.
-    pub stable_path: Option<&'static str>,
-
     /// Whether or not this endpoint is rate limited by the server.
     pub rate_limited: bool,
 
     /// What authentication scheme the server uses for this endpoint.
     pub authentication: AuthScheme,
 
-    /// The matrix version that this endpoint was added in.
-    ///
-    /// Is None when this endpoint is unstable/unreleased.
-    pub added: Option<MatrixVersion>,
-
-    /// The matrix version that deprecated this endpoint.
-    ///
-    /// Deprecation often precedes one matrix version before removal.
-    ///
-    /// This will make [`try_into_http_request`](super::OutgoingRequest::try_into_http_request)
-    /// emit a warning, see the corresponding documentation for more information.
-    pub deprecated: Option<MatrixVersion>,
-
-    /// The matrix version that removed this endpoint.
-    ///
-    /// This will make [`try_into_http_request`](super::OutgoingRequest::try_into_http_request)
-    /// emit an error, see the corresponding documentation for more information.
-    pub removed: Option<MatrixVersion>,
+    /// All info pertaining to an endpoint's (historic) paths, deprecation version, and removal.
+    pub history: VersionHistory,
 }
 
 impl Metadata {
@@ -78,12 +53,148 @@ impl Metadata {
             |version: MatrixVersion| versions.iter().all(|v| v.is_superset_of(version));
 
         // Check if all versions removed this endpoint.
+        if self.history.removed.map(greater_or_equal_all).unwrap_or(false) {
+            return VersioningDecision::Removed;
+        }
+
+        // Check if *any* version marks this endpoint as stable.
+        if self.history.added_version().map(greater_or_equal_any).unwrap_or(false) {
+            let all_deprecated = self.history.deprecated.map(greater_or_equal_all).unwrap_or(false);
+
+            return VersioningDecision::Stable {
+                any_deprecated: all_deprecated
+                    || self.history.deprecated.map(greater_or_equal_any).unwrap_or(false),
+                all_deprecated,
+                any_removed: self.history.removed.map(greater_or_equal_any).unwrap_or(false),
+            };
+        }
+
+        VersioningDecision::Unstable
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct PathData {
+    /// The "Canonical" path, formatted with axum-ready :-prefixed path argument names.
+    pub canon: &'static str,
+
+    /// The parts of the path, meant for positional arguments to be interleaved with.
+    ///
+    /// For example, a `"/hello/:there"` path would produce a `&["/hello/", ""]` parts slice.
+    pub parts: &'static [&'static str],
+}
+
+impl PathData {
+    pub fn arg_count(&self) -> usize {
+        self.parts.len() - 1
+    }
+
+    pub fn format(&self, args: &'_ [&dyn Display]) -> Result<String, IncorrectArgumentCount> {
+        if self.arg_count() != args.len() {
+            return Err(IncorrectArgumentCount { expected: self.arg_count(), got: args.len() });
+        };
+
+        let mut f_str = String::new();
+
+        for (i, arg) in args.iter().enumerate() {
+            // This is checked through comparing arg count above,
+            // self.parts is always one element more than args.
+            f_str.push_str(self.parts[i]);
+
+            f_str.push_str(&arg.to_string());
+        }
+
+        f_str.push_str(self.parts.last().expect("path parts has at least 1 element"));
+
+        Ok(f_str)
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        self.canon
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct PathParts();
+
+impl PathParts {}
+
+// type EndpointPath = &'static str;
+
+#[derive(Clone, Debug)]
+pub struct VersionHistory {
+    /// A list of unstable paths over this endpoint's history.
+    ///
+    /// For endpoint querying purposes, the last item will be used.
+    pub unstable_paths: &'static [PathData],
+
+    /// A list of path versions, mapped to matrix versions.
+    ///
+    /// Sorted (ascending) by matrix version, will not mix major versions.
+    pub path_versions: &'static [(MatrixVersion, PathData)],
+
+    /// The matrix version that deprecated this endpoint.
+    ///
+    /// Deprecation often precedes one matrix version before removal.
+    ///
+    /// This will make [`try_into_http_request`](super::OutgoingRequest::try_into_http_request)
+    /// emit a warning, see the corresponding documentation for more information.
+    pub deprecated: Option<MatrixVersion>,
+
+    /// The matrix version that removed this endpoint.
+    ///
+    /// This will make [`try_into_http_request`](super::OutgoingRequest::try_into_http_request)
+    /// emit an error, see the corresponding documentation for more information.
+    pub removed: Option<MatrixVersion>,
+}
+
+impl VersionHistory {
+    /// Will return the *first* version this path was added in.
+    ///
+    /// Is None when this endpoint is unstable/unreleased.
+    pub fn added_version(&self) -> Option<MatrixVersion> {
+        self.path_versions.first().map(|(x, _)| *x)
+    }
+
+    /// Picks the last unstable path, if it exists.
+    pub fn unstable(&self) -> Option<PathData> {
+        self.unstable_paths.last().map(|x| *x)
+    }
+
+    /// Enumerates all raw paths, for use in server URL routers.
+    pub fn all_raw(&self) -> Vec<&'static str> {
+        let mut v = Vec::new();
+
+        v.extend(self.unstable_paths.iter().map(|p| p.as_str()));
+
+        v.extend(self.path_versions.iter().map(|(_, y)| y.as_str()));
+
+        v
+    }
+
+    /// Will decide how a particular set of matrix versions sees an endpoint.
+    ///
+    /// It will pick `Removed` over `Stable`, and `Stable` over `Unstable`.
+    ///
+    /// In other words, if in any version it tells it supports the endpoint in a stable fashion,
+    /// this will return `Stable`, even if *some* versions in this set will denote deprecation or
+    /// removal.
+    ///
+    /// If resulting [`VersioningDecision`] is `Stable`, it will also detail if any version denoted
+    /// deprecation or removal.
+    pub fn versioning_decision_for(&self, versions: &[MatrixVersion]) -> VersioningDecision {
+        let greater_or_equal_any =
+            |version: MatrixVersion| versions.iter().any(|v| v.is_superset_of(version));
+        let greater_or_equal_all =
+            |version: MatrixVersion| versions.iter().all(|v| v.is_superset_of(version));
+
+        // Check if all versions removed this endpoint.
         if self.removed.map(greater_or_equal_all).unwrap_or(false) {
             return VersioningDecision::Removed;
         }
 
         // Check if *any* version marks this endpoint as stable.
-        if self.added.map(greater_or_equal_any).unwrap_or(false) {
+        if self.added_version().map(greater_or_equal_any).unwrap_or(false) {
             let all_deprecated = self.deprecated.map(greater_or_equal_all).unwrap_or(false);
 
             return VersioningDecision::Stable {
@@ -96,6 +207,29 @@ impl Metadata {
 
         VersioningDecision::Unstable
     }
+
+    /// The path that should be used to query the endpoint, given a series of versions.
+    ///
+    /// This will pick the latest path that the version accepts.
+    ///
+    /// This will return an endpoint in the following format;
+    /// - `/_matrix/client/versions`
+    /// - `/_matrix/client/hello/:world` (`:world` is a path replacement parameter)
+    ///
+    /// Note: This will not keep in mind endpoint removals, check with
+    /// [`versioning_decision_for`](VersionHistory::versioning_decision_for) to see if this endpoint
+    /// is still available.
+    pub fn stable_endpoint_for(&self, versions: &[MatrixVersion]) -> Option<PathData> {
+        // Go reverse, to check the "latest" version first.
+        for (ver, path) in self.path_versions.iter().rev() {
+            // Check if any of the versions are equal or greater than the version the path needs.
+            if versions.iter().any(|v| v.is_superset_of(*ver)) {
+                return Some(*path);
+            }
+        }
+
+        None
+    }
 }
 
 /// A versioning "decision" derived from a set of matrix versions.
@@ -105,9 +239,6 @@ pub enum VersioningDecision {
     /// The unstable endpoint should be used.
     Unstable,
     /// The stable endpoint should be used.
-    ///
-    /// Note, in the special case that all versions note [v1.0](MatrixVersion::V1_0), and the
-    /// [`r0_path`](Metadata::r0_path) is not `None`, that path should be used.
     Stable {
         /// If any version denoted deprecation.
         any_deprecated: bool,

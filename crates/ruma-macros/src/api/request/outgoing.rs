@@ -14,27 +14,7 @@ impl Request {
         let method = &self.method;
         let error_ty = &self.error_ty;
 
-        let (unstable_path, r0_path, stable_path) = if self.has_path_fields() {
-            let path_format_args_call_with_percent_encoding = |s: &LitStr| -> TokenStream {
-                util::path_format_args_call(s.value(), &percent_encoding)
-            };
-
-            (
-                self.unstable_path.as_ref().map(path_format_args_call_with_percent_encoding),
-                self.r0_path.as_ref().map(path_format_args_call_with_percent_encoding),
-                self.stable_path.as_ref().map(path_format_args_call_with_percent_encoding),
-            )
-        } else {
-            (
-                self.unstable_path.as_ref().map(|path| quote! { format_args!(#path) }),
-                self.r0_path.as_ref().map(|path| quote! { format_args!(#path) }),
-                self.stable_path.as_ref().map(|path| quote! { format_args!(#path) }),
-            )
-        };
-
-        let unstable_path = util::map_option_literal(&unstable_path);
-        let r0_path = util::map_option_literal(&r0_path);
-        let stable_path = util::map_option_literal(&stable_path);
+        let path_args = self.slice_of_ordered_borrowed_percent_encoded_args(&percent_encoding);
 
         let request_query_string = if let Some(field) = self.query_map_field() {
             let field_name = field.ident.as_ref().expect("expected field to have identifier");
@@ -203,7 +183,7 @@ impl Request {
                         .uri(::std::format!(
                             "{}{}{}",
                             base_url.strip_suffix('/').unwrap_or(base_url),
-                            #ruma_common::api::select_path(considering_versions, &metadata, #unstable_path, #r0_path, #stable_path)?,
+                            #ruma_common::api::select_path(considering_versions, &metadata)?.format(#path_args).unwrap(),
                             #request_query_string,
                         ));
 

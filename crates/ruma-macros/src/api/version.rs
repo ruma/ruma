@@ -16,6 +16,14 @@ impl MatrixVersionLiteral {
     }
 }
 
+impl TryFrom<(u8, u8)> for MatrixVersionLiteral {
+    type Error = std::num::TryFromIntError;
+
+    fn try_from(value: (u8, u8)) -> Result<Self, Self::Error> {
+        Ok(MatrixVersionLiteral { major: value.0.try_into()?, minor: value.1 })
+    }
+}
+
 impl Parse for MatrixVersionLiteral {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let fl: LitFloat = input.parse()?;

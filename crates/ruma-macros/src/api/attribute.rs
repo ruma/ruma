@@ -2,7 +2,7 @@
 
 use syn::{
     parse::{Parse, ParseStream},
-    Ident, LitStr, Token, Type,
+    ExprArray, Ident, LitStr, Token, Type,
 };
 
 mod kw {
@@ -15,9 +15,7 @@ mod kw {
     syn::custom_keyword!(authentication);
     syn::custom_keyword!(method);
     syn::custom_keyword!(error_ty);
-    syn::custom_keyword!(unstable);
-    syn::custom_keyword!(r0);
-    syn::custom_keyword!(stable);
+    syn::custom_keyword!(path_args);
     syn::custom_keyword!(manual_body_serde);
 }
 
@@ -62,9 +60,7 @@ pub enum DeriveRequestMeta {
     Authentication(Type),
     Method(Type),
     ErrorTy(Type),
-    UnstablePath(LitStr),
-    R0Path(LitStr),
-    StablePath(LitStr),
+    PathArgs(ExprArray),
 }
 
 impl Parse for DeriveRequestMeta {
@@ -82,18 +78,10 @@ impl Parse for DeriveRequestMeta {
             let _: kw::error_ty = input.parse()?;
             let _: Token![=] = input.parse()?;
             input.parse().map(Self::ErrorTy)
-        } else if lookahead.peek(kw::unstable) {
-            let _: kw::unstable = input.parse()?;
+        } else if lookahead.peek(kw::path_args) {
+            let _: kw::path_args = input.parse()?;
             let _: Token![=] = input.parse()?;
-            input.parse().map(Self::UnstablePath)
-        } else if lookahead.peek(kw::r0) {
-            let _: kw::r0 = input.parse()?;
-            let _: Token![=] = input.parse()?;
-            input.parse().map(Self::R0Path)
-        } else if lookahead.peek(kw::stable) {
-            let _: kw::stable = input.parse()?;
-            let _: Token![=] = input.parse()?;
-            input.parse().map(Self::StablePath)
+            input.parse().map(Self::PathArgs)
         } else {
             Err(lookahead.error())
         }

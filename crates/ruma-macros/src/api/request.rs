@@ -19,6 +19,24 @@ use crate::util::import_ruma_common;
 mod incoming;
 mod outgoing;
 
+fn extract_slice_lit_str(slice: syn::ExprArray) -> syn::Result<Vec<String>> {
+    let mut strings = Vec::with_capacity(slice.elems.len());
+
+    for elem in slice.elems {
+        if let syn::Expr::Lit(literal) = elem {
+            if let syn::Lit::Str(lit_s) = literal.lit {
+                strings.push(lit_s.value());
+            } else {
+                return Err(syn::Error::new_spanned(literal, "literal is not a string"));
+            }
+        } else {
+            return Err(syn::Error::new_spanned(elem, "expression is not a literal"));
+        }
+    }
+
+    Ok(strings)
+}
+
 pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
     let fields = match input.data {
         syn::Data::Struct(s) => s.fields,
@@ -49,9 +67,7 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
     let mut authentication = None;
     let mut error_ty = None;
     let mut method = None;
-    let mut unstable_path = None;
-    let mut r0_path = None;
-    let mut stable_path = None;
+    let mut path_args = None;
 
     for attr in input.attrs {
         if !attr.path.is_ident("ruma_api") {
@@ -65,9 +81,7 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
                 DeriveRequestMeta::Authentication(t) => authentication = Some(parse_quote!(#t)),
                 DeriveRequestMeta::Method(t) => method = Some(parse_quote!(#t)),
                 DeriveRequestMeta::ErrorTy(t) => error_ty = Some(t),
-                DeriveRequestMeta::UnstablePath(s) => unstable_path = Some(s),
-                DeriveRequestMeta::R0Path(s) => r0_path = Some(s),
-                DeriveRequestMeta::StablePath(s) => stable_path = Some(s),
+                DeriveRequestMeta::PathArgs(a) => path_args = Some(extract_slice_lit_str(a)?),
             }
         }
     }
@@ -79,9 +93,7 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
         lifetimes,
         authentication: authentication.expect("missing authentication attribute"),
         method: method.expect("missing method attribute"),
-        unstable_path,
-        r0_path,
-        stable_path,
+        path_args: path_args.expect("missing path_args attribute"),
         error_ty: error_ty.expect("missing error_ty attribute"),
     };
 
@@ -105,9 +117,7 @@ struct Request {
 
     authentication: AuthScheme,
     method: Ident,
-    unstable_path: Option<LitStr>,
-    r0_path: Option<LitStr>,
-    stable_path: Option<LitStr>,
+    path_args: Vec<String>,
     error_ty: Type,
 }
 
@@ -157,17 +167,9 @@ impl Request {
             .map(|f| (f.ident.as_ref().unwrap().to_string(), f))
             .collect();
 
-        self.stable_path
-            .as_ref()
-            .or(self.r0_path.as_ref())
-            .or(self.unstable_path.as_ref())
-            .expect("one of the paths to be defined")
-            .value()
-            .split('/')
-            .filter_map(|s| {
-                s.strip_prefix(':')
-                    .map(|s| *map.get(s).expect("path args have already been checked"))
-            })
+        self.path_args
+            .iter()
+            .map(|s| *map.get(s).expect("path args have already been checked"))
             .collect::<Vec<_>>()
             .into_iter()
     }
@@ -252,12 +254,7 @@ impl Request {
     pub(super) fn check(&self) -> syn::Result<()> {
         // TODO: highlight problematic fields
 
-        let path_fields: Vec<_> =
-            self.fields.iter().filter_map(RequestField::as_path_field).collect();
-
-        self.check_path(&path_fields, self.unstable_path.as_ref())?;
-        self.check_path(&path_fields, self.r0_path.as_ref())?;
-        self.check_path(&path_fields, self.stable_path.as_ref())?;
+        self.check_fields()?;
 
         let newtype_body_fields = self.fields.iter().filter(|field| {
             matches!(field, RequestField::NewtypeBody(_) | RequestField::RawBody(_))
@@ -322,37 +319,60 @@ impl Request {
         Ok(())
     }
 
-    fn check_path(&self, fields: &[&Field], path: Option<&LitStr>) -> syn::Result<()> {
-        let path = if let Some(lit) = path { lit } else { return Ok(()) };
+    pub fn slice_of_ordered_borrowed_percent_encoded_args(
+        &self,
+        percent_encoding: &TokenStream,
+    ) -> TokenStream {
+        let mut format_args = Vec::new();
 
-        let path_args: Vec<_> = path
-            .value()
-            .split('/')
-            .filter_map(|s| s.strip_prefix(':').map(&str::to_string))
-            .collect();
+        for arg in &self.path_args {
+            let path_var = Ident::new(arg, proc_macro2::Span::call_site());
+
+            format_args.push(quote! {
+                &#percent_encoding::utf8_percent_encode(
+                    &::std::string::ToString::to_string(&self.#path_var),
+                    #percent_encoding::NON_ALPHANUMERIC,
+                )
+            });
+        }
+
+        quote! {
+            &[ #(#format_args),* ]
+        }
+    }
+
+    pub fn check_fields(&self) -> syn::Result<()> {
+        let path_fields: Vec<_> =
+            self.fields.iter().filter_map(RequestField::as_path_field).collect();
+
+        // let path = if let Some(lit) = path { lit } else { return Ok(()) };
+
+        // let path_args: Vec<_> = path
+        //     .value()
+        //     .split('/')
+        //     .filter_map(|s| s.strip_prefix(':').map(&str::to_string))
+        //     .collect();
 
         let field_map: BTreeMap<_, _> =
-            fields.iter().map(|&f| (f.ident.as_ref().unwrap().to_string(), f)).collect();
+            path_fields.iter().map(|&f| (f.ident.as_ref().unwrap().to_string(), f)).collect();
 
         // test if all macro fields exist in the path
         for (name, field) in field_map.iter() {
-            if !path_args.contains(name) {
+            if !self.path_args.contains(name) {
                 return Err({
-                    let mut err = syn::Error::new_spanned(
+                    syn::Error::new_spanned(
                         field,
-                        "this path argument field is not defined in...",
-                    );
-                    err.combine(syn::Error::new_spanned(path, "...this path."));
-                    err
+                        "this path argument field is not defined any path",
+                    )
                 });
             }
         }
 
         // test if all path fields exists in macro fields
-        for arg in &path_args {
+        for arg in &self.path_args {
             if !field_map.contains_key(arg) {
                 return Err(syn::Error::new_spanned(
-                    path,
+                    &self.ident,
                     format!(
                         "a corresponding request path argument field for \"{}\" does not exist",
                         arg

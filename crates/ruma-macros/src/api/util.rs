@@ -85,3 +85,41 @@ pub fn path_format_args_call(
         format_args!(#format_string, #(#format_args),*)
     }
 }
+
+pub fn path_into_format_parts(path: &str) -> Vec<String> {
+    let mut parts = Vec::new();
+
+    // Note: this assumes that `:` does not appear anywhere else in a path string
+    let mut iter = path.split(":");
+
+    // First part is always either full string, or first part until an argument
+    parts.push(iter.next().expect("split gives always at least 1 element").to_string());
+
+    'chunks: for chunk in iter {
+        for (i, c) in chunk.chars().enumerate() {
+            if c == '/' {
+                parts.push((&chunk[i..]).to_string());
+
+                continue 'chunks;
+            }
+        }
+
+        if !chunk.contains("/") {
+            parts.push("".to_string())
+        }
+    }
+
+    parts
+}
+
+#[test]
+fn check_format_parts() {
+    assert_eq!(path_into_format_parts("/testing"), vec!["/testing"]);
+    assert_eq!(path_into_format_parts("/testing/:abc"), vec!["/testing/", ""]);
+    assert_eq!(path_into_format_parts("/testing/:abc/"), vec!["/testing/", "/"]);
+    assert_eq!(path_into_format_parts("/testing/:abc/:dce"), vec!["/testing/", "/", ""]);
+    assert_eq!(
+        path_into_format_parts("/testing/:abc/element/:dce"),
+        vec!["/testing/", "/element/", ""]
+    );
+}

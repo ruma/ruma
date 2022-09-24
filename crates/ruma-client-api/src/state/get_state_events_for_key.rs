@@ -92,17 +92,9 @@ pub mod v3 {
             let mut url = format!(
                 "{}{}",
                 base_url.strip_suffix('/').unwrap_or(base_url),
-                ruma_common::api::select_path(
-                    considering_versions,
-                    &METADATA,
-                    None,
-                    Some(format_args!(
-                        "/_matrix/client/r0/rooms/{room_id_percent}/state/{event_type_percent}",
-                    )),
-                    Some(format_args!(
-                        "/_matrix/client/v3/rooms/{room_id_percent}/state/{event_type_percent}",
-                    )),
-                )?
+                ruma_common::api::select_path(considering_versions, &METADATA,)?
+                    .format(&[&room_id_percent, &event_type_percent])
+                    .unwrap()
             );
 
             if !self.state_key.is_empty() {

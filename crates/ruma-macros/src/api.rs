@@ -59,14 +59,15 @@ impl Api {
         let description = &metadata.description;
         let method = &metadata.method;
         let name = &metadata.name;
-        let unstable_path = util::map_option_literal(&metadata.unstable_path);
-        let r0_path = util::map_option_literal(&metadata.r0_path);
-        let stable_path = util::map_option_literal(&metadata.stable_path);
+        // let unstable_path = util::map_option_literal(&metadata.unstable_path);
+        // let r0_path = util::map_option_literal(&metadata.r0_path);
+        // let stable_path = util::map_option_literal(&metadata.stable_path);
         let rate_limited = &self.metadata.rate_limited;
         let authentication = &self.metadata.authentication;
-        let added = util::map_option_literal(&metadata.added);
-        let deprecated = util::map_option_literal(&metadata.deprecated);
-        let removed = util::map_option_literal(&metadata.removed);
+        // let added = util::map_option_literal(&metadata.added);
+        // let deprecated = util::map_option_literal(&metadata.deprecated);
+        // let removed = util::map_option_literal(&metadata.removed);
+        let history = &self.metadata.history;
 
         let error_ty = self.error_ty.map_or_else(
             || quote! { #ruma_common::api::error::MatrixError },
@@ -86,14 +87,9 @@ impl Api {
                 description: #description,
                 method: #http::Method::#method,
                 name: #name,
-                unstable_path: #unstable_path,
-                r0_path: #r0_path,
-                stable_path: #stable_path,
-                added: #added,
-                deprecated: #deprecated,
-                removed: #removed,
                 rate_limited: #rate_limited,
                 authentication: #ruma_common::api::AuthScheme::#authentication,
+                history: #history,
             };
 
             #request
