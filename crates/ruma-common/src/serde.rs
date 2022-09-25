@@ -13,7 +13,6 @@ mod buf;
 pub mod can_be_empty;
 mod cow;
 pub mod duration;
-mod empty;
 pub mod json_string;
 mod raw;
 pub mod single_element_seq;
@@ -26,7 +25,6 @@ pub use self::{
     buf::{json_to_buf, slice_to_buf},
     can_be_empty::{is_empty, CanBeEmpty},
     cow::deserialize_cow_str,
-    empty::vec_as_map_of_empty,
     raw::Raw,
     strings::{
         btreemap_deserialize_v1_powerlevel_values, deserialize_v1_powerlevel, empty_string_as_none,
