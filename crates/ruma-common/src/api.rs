@@ -12,7 +12,7 @@
 //!
 //! [apis]: https://spec.matrix.org/v1.2/#matrix-apis
 
-use std::{convert::TryInto as _, error::Error as StdError, fmt};
+use std::{convert::TryInto as _, error::Error as StdError};
 
 use bytes::BufMut;
 use tracing::warn;
@@ -403,7 +403,7 @@ pub enum AuthScheme {
 //
 // This function needs to be public, yet hidden, as all `try_into_http_request`s would be using it.
 #[doc(hidden)]
-pub fn select_path<'a>(
+pub fn select_path(
     versions: &'_ [MatrixVersion],
     metadata: &'_ Metadata,
 ) -> Result<PathData, IntoHttpError> {

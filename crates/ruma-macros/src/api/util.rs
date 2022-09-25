@@ -2,7 +2,7 @@
 
 use std::collections::BTreeSet;
 
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{parse_quote, visit::Visit, Attribute, Lifetime, NestedMeta, Type};
 
@@ -55,57 +55,26 @@ pub fn extract_cfg(attr: &Attribute) -> Option<NestedMeta> {
     Some(list.nested.pop().unwrap().into_value())
 }
 
-pub fn path_format_args_call(
-    mut format_string: String,
-    percent_encoding: &TokenStream,
-) -> TokenStream {
-    let mut format_args = Vec::new();
-
-    while let Some(start_of_segment) = format_string.find(':') {
-        // ':' should only ever appear at the start of a segment
-        assert_eq!(&format_string[start_of_segment - 1..start_of_segment], "/");
-
-        let end_of_segment = match format_string[start_of_segment..].find('/') {
-            Some(rel_pos) => start_of_segment + rel_pos,
-            None => format_string.len(),
-        };
-
-        let path_var =
-            Ident::new(&format_string[start_of_segment + 1..end_of_segment], Span::call_site());
-        format_args.push(quote! {
-            #percent_encoding::utf8_percent_encode(
-                &::std::string::ToString::to_string(&self.#path_var),
-                #percent_encoding::NON_ALPHANUMERIC,
-            )
-        });
-        format_string.replace_range(start_of_segment..end_of_segment, "{}");
-    }
-
-    quote! {
-        format_args!(#format_string, #(#format_args),*)
-    }
-}
-
 pub fn path_into_format_parts(path: &str) -> Vec<String> {
     let mut parts = Vec::new();
 
     // Note: this assumes that `:` does not appear anywhere else in a path string
-    let mut iter = path.split(":");
+    let mut iter = path.split(':');
 
     // First part is always either full string, or first part until an argument
-    parts.push(iter.next().expect("split gives always at least 1 element").to_string());
+    parts.push(iter.next().expect("split gives always at least 1 element").to_owned());
 
     'chunks: for chunk in iter {
         for (i, c) in chunk.chars().enumerate() {
             if c == '/' {
-                parts.push((&chunk[i..]).to_string());
+                parts.push(chunk[i..].to_owned());
 
                 continue 'chunks;
             }
         }
 
-        if !chunk.contains("/") {
-            parts.push("".to_string())
+        if !chunk.contains('/') {
+            parts.push("".to_owned());
         }
     }
 

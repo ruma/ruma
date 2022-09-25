@@ -528,7 +528,7 @@ impl ToTokens for History {
                 deprecated: #deprecated,
                 removed: #removed,
             }
-        })
+        });
     }
 }
 

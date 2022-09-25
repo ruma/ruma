@@ -6,7 +6,7 @@ use syn::{
     parse::{Parse, ParseStream},
     parse_quote,
     punctuated::Punctuated,
-    DeriveInput, Field, Generics, Ident, Lifetime, LitStr, Token, Type,
+    DeriveInput, Field, Generics, Ident, Lifetime, Token, Type,
 };
 
 use super::{

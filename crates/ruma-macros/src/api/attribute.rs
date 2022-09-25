@@ -2,7 +2,7 @@
 
 use syn::{
     parse::{Parse, ParseStream},
-    ExprArray, Ident, LitStr, Token, Type,
+    ExprArray, Ident, Token, Type,
 };
 
 mod kw {

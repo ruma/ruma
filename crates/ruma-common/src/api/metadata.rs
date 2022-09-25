@@ -73,7 +73,9 @@ impl Metadata {
     }
 }
 
+/// Data for a single endpoint path variant, together with convenience methods.
 #[derive(Clone, Copy, Debug)]
+#[allow(clippy::exhaustive_structs)]
 pub struct PathData {
     /// The "Canonical" path, formatted with axum-ready :-prefixed path argument names.
     pub canon: &'static str,
@@ -85,10 +87,14 @@ pub struct PathData {
 }
 
 impl PathData {
-    pub fn arg_count(&self) -> usize {
+    /// The amount of arguments this path variant expects to receive.
+    pub const fn arg_count(&self) -> usize {
         self.parts.len() - 1
     }
 
+    /// Formatting this path with a slice of positional arguments.
+    ///
+    /// Note: An incorrect amount of arguments will result in an error.
     pub fn format(&self, args: &'_ [&dyn Display]) -> Result<String, IncorrectArgumentCount> {
         if self.arg_count() != args.len() {
             return Err(IncorrectArgumentCount { expected: self.arg_count(), got: args.len() });
@@ -109,6 +115,9 @@ impl PathData {
         Ok(f_str)
     }
 
+    /// Return the "canonical" form of this endpoint as a static string.
+    ///
+    /// The canonical form is axum-ready, with the path arguments :-prefixed.
     pub fn as_str(&self) -> &'static str {
         self.canon
     }
@@ -121,7 +130,12 @@ impl PathParts {}
 
 // type EndpointPath = &'static str;
 
+/// The complete history of this endpoint as far ruma knows, together with all variants on versions
+/// stable and unstable.
+///
+/// The amount and positioning of path variables are the same over all path variants.
 #[derive(Clone, Debug)]
+#[allow(clippy::exhaustive_structs)]
 pub struct VersionHistory {
     /// A list of unstable paths over this endpoint's history.
     ///
@@ -158,7 +172,7 @@ impl VersionHistory {
 
     /// Picks the last unstable path, if it exists.
     pub fn unstable(&self) -> Option<PathData> {
-        self.unstable_paths.last().map(|x| *x)
+        self.unstable_paths.last().copied()
     }
 
     /// Enumerates all raw paths, for use in server URL routers.

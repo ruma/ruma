@@ -293,12 +293,15 @@ impl fmt::Display for UnknownVersionError {
 
 impl StdError for UnknownVersionError {}
 
-// An error that happens when an incorrect amount of arguments have been passed to PathData parts
-// formatting.
+/// An error that happens when an incorrect amount of arguments have been passed to PathData parts
+/// formatting.
 #[derive(Debug)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct IncorrectArgumentCount {
+    /// The expected amount of arguments.
     pub expected: usize,
+
+    /// The amount of arguments received.
     pub got: usize,
 }
 
