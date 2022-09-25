@@ -73,56 +73,6 @@ impl Metadata {
     }
 }
 
-/// Data for a single endpoint path variant, together with convenience methods.
-#[derive(Clone, Copy, Debug)]
-#[allow(clippy::exhaustive_structs)]
-pub struct PathData {
-    /// The "Canonical" path, formatted with axum-ready :-prefixed path argument names.
-    pub canon: &'static str,
-
-    /// The parts of the path, meant for positional arguments to be interleaved with.
-    ///
-    /// For example, a `"/hello/:there"` path would produce a `&["/hello/", ""]` parts slice.
-    pub parts: &'static [&'static str],
-}
-
-impl PathData {
-    /// The amount of arguments this path variant expects to receive.
-    pub const fn arg_count(&self) -> usize {
-        self.parts.len() - 1
-    }
-
-    /// Formatting this path with a slice of positional arguments.
-    ///
-    /// Note: An incorrect amount of arguments will result in an error.
-    pub fn format(&self, args: &'_ [&dyn Display]) -> Result<String, IncorrectArgumentCount> {
-        if self.arg_count() != args.len() {
-            return Err(IncorrectArgumentCount { expected: self.arg_count(), got: args.len() });
-        };
-
-        let mut f_str = String::new();
-
-        for (i, arg) in args.iter().enumerate() {
-            // This is checked through comparing arg count above,
-            // self.parts is always one element more than args.
-            f_str.push_str(self.parts[i]);
-
-            f_str.push_str(&arg.to_string());
-        }
-
-        f_str.push_str(self.parts.last().expect("path parts has at least 1 element"));
-
-        Ok(f_str)
-    }
-
-    /// Return the "canonical" form of this endpoint as a static string.
-    ///
-    /// The canonical form is axum-ready, with the path arguments :-prefixed.
-    pub fn as_str(&self) -> &'static str {
-        self.canon
-    }
-}
-
 #[derive(Clone, Copy)]
 pub struct PathParts();
 
@@ -253,6 +203,56 @@ impl VersionHistory {
         }
 
         None
+    }
+}
+
+/// Data for a single endpoint path variant, together with convenience methods.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[allow(clippy::exhaustive_structs)]
+pub struct PathData {
+    /// The "Canonical" path, formatted with axum-ready :-prefixed path argument names.
+    pub canon: &'static str,
+
+    /// The parts of the path, meant for positional arguments to be interleaved with.
+    ///
+    /// For example, a `"/hello/:there"` path would produce a `&["/hello/", ""]` parts slice.
+    pub parts: &'static [&'static str],
+}
+
+impl PathData {
+    /// The amount of arguments this path variant expects to receive.
+    pub const fn arg_count(&self) -> usize {
+        self.parts.len() - 1
+    }
+
+    /// Formatting this path with a slice of positional arguments.
+    ///
+    /// Note: An incorrect amount of arguments will result in an error.
+    pub fn format(&self, args: &'_ [&dyn Display]) -> Result<String, IncorrectArgumentCount> {
+        if self.arg_count() != args.len() {
+            return Err(IncorrectArgumentCount { expected: self.arg_count(), got: args.len() });
+        };
+
+        let mut f_str = String::new();
+
+        for (i, arg) in args.iter().enumerate() {
+            // This is checked through comparing arg count above,
+            // self.parts is always one element more than args.
+            f_str.push_str(self.parts[i]);
+
+            f_str.push_str(&arg.to_string());
+        }
+
+        f_str.push_str(self.parts.last().expect("path parts has at least 1 element"));
+
+        Ok(f_str)
+    }
+
+    /// Return the "canonical" form of this endpoint as a static string.
+    ///
+    /// The canonical form is axum-ready, with the path arguments :-prefixed.
+    pub fn as_str(&self) -> &'static str {
+        self.canon
     }
 }
 

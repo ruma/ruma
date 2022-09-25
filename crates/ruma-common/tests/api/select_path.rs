@@ -3,98 +3,121 @@ use http::Method;
 use ruma_common::api::{
     error::IntoHttpError,
     select_path,
-    MatrixVersion::{V1_0, V1_1, V1_2},
-    Metadata,
+    MatrixVersion::{self, V1_0, V1_1, V1_2, V1_3},
+    Metadata, PathData, VersionHistory,
 };
 
 const BASE: Metadata = Metadata {
     description: "",
     method: Method::GET,
     name: "test_endpoint",
-    unstable_path: Some("/unstable/path"),
-    r0_path: Some("/r0/path"),
-    stable_path: Some("/stable/path"),
     rate_limited: false,
     authentication: ruma_common::api::AuthScheme::None,
-    added: None,
-    deprecated: None,
-    removed: None,
+
+    history: VersionHistory {
+        unstable_paths: &[],
+        stable_paths: &[],
+        deprecated: None,
+        removed: None,
+    },
 };
 
-const U: &str = "u";
-const S: &str = "s";
-const R: &str = "r";
+const UNSTABLE_PATH: PathData = PathData { canon: "/unstable/path", parts: &["/unstable/path"] };
+const V1_0_PATH: (MatrixVersion, PathData) =
+    (V1_0, PathData { canon: "/r0/path", parts: &["/r0/path"] });
+const V1_1_PATH: (MatrixVersion, PathData) =
+    (V1_1, PathData { canon: "/stable/path", parts: &["/stable/path"] });
 
 // TODO add test that can hook into tracing and verify the deprecation warning is emitted
 
 #[test]
-fn select_stable() {
-    let meta = Metadata { added: Some(V1_1), ..BASE };
+fn select_latest_stable() {
+    const META: Metadata = Metadata {
+        history: VersionHistory {
+            unstable_paths: &[UNSTABLE_PATH],
+            stable_paths: &[V1_0_PATH, V1_1_PATH],
+            ..BASE.history
+        },
+        ..BASE
+    };
 
-    let res = select_path(&[V1_0, V1_1], &meta, None, None, Some(format_args!("{S}")))
-        .unwrap()
-        .to_string();
+    let res = select_path(&[V1_0, V1_1], &META).unwrap();
 
-    assert_eq!(res, S);
+    assert_eq!(res, &V1_1_PATH.1);
 }
 
 #[test]
-fn select_unstable() {
-    let meta = BASE;
+fn select_fallback_unstable() {
+    const META: Metadata = Metadata {
+        history: VersionHistory {
+            unstable_paths: &[UNSTABLE_PATH],
+            stable_paths: &[V1_1_PATH],
+            ..BASE.history
+        },
+        ..BASE
+    };
 
-    let res =
-        select_path(&[V1_0], &meta, Some(format_args!("{U}")), None, None).unwrap().to_string();
+    let res = select_path(&[V1_0], &META).unwrap();
 
-    assert_eq!(res, U);
+    assert_eq!(res, &UNSTABLE_PATH);
 }
 
 #[test]
-fn select_r0() {
-    let meta = Metadata { added: Some(V1_0), ..BASE };
+fn select_constrained_stable() {
+    const META: Metadata = Metadata {
+        history: VersionHistory {
+            unstable_paths: &[UNSTABLE_PATH],
+            stable_paths: &[V1_0_PATH, V1_1_PATH],
+            ..BASE.history
+        },
+        ..BASE
+    };
 
-    let res =
-        select_path(&[V1_0], &meta, None, Some(format_args!("{R}")), Some(format_args!("{S}")))
-            .unwrap()
-            .to_string();
+    let res = select_path(&[V1_0], &META).unwrap();
 
-    assert_eq!(res, R);
+    assert_eq!(res, &V1_0_PATH.1);
 }
 
 #[test]
 fn select_removed_err() {
-    let meta = Metadata { added: Some(V1_0), deprecated: Some(V1_1), removed: Some(V1_2), ..BASE };
+    const META: Metadata = Metadata {
+        history: VersionHistory {
+            unstable_paths: &[UNSTABLE_PATH],
+            stable_paths: &[V1_0_PATH, V1_1_PATH],
+            deprecated: Some(V1_2),
+            removed: Some(V1_3),
+        },
+        ..BASE
+    };
 
-    let res = select_path(
-        &[V1_2],
-        &meta,
-        Some(format_args!("{U}")),
-        Some(format_args!("{R}")),
-        Some(format_args!("{S}")),
-    )
-    .unwrap_err();
+    let res = select_path(&[V1_3], &META).unwrap_err();
 
-    assert_matches!(res, IntoHttpError::EndpointRemoved(V1_2));
+    assert_matches!(res, IntoHttpError::EndpointRemoved(V1_3));
 }
 
 #[test]
-fn partially_removed_but_stable() {
-    let meta = Metadata { added: Some(V1_0), deprecated: Some(V1_1), removed: Some(V1_2), ..BASE };
+fn partially_deprecated_but_stable() {
+    const META: Metadata = Metadata {
+        history: VersionHistory {
+            unstable_paths: &[UNSTABLE_PATH],
+            stable_paths: &[V1_0_PATH],
+            deprecated: Some(V1_1),
+            removed: Some(V1_2),
+        },
+        ..BASE
+    };
 
-    let res =
-        select_path(&[V1_1], &meta, None, Some(format_args!("{R}")), Some(format_args!("{S}")))
-            .unwrap()
-            .to_string();
+    let res = select_path(&[V1_1], &META).unwrap();
 
-    assert_eq!(res, S);
+    assert_eq!(res, &V1_0_PATH.1);
 }
 
 #[test]
 fn no_unstable() {
-    let meta = Metadata { added: Some(V1_1), ..BASE };
+    const META: Metadata =
+        Metadata { history: VersionHistory { stable_paths: &[V1_1_PATH], ..BASE.history }, ..BASE };
 
-    let res =
-        select_path(&[V1_0], &meta, None, Some(format_args!("{R}")), Some(format_args!("{S}")))
-            .unwrap_err();
+    let res = select_path(&[V1_0], &META).unwrap_err();
 
     assert_matches!(res, IntoHttpError::NoUnstablePath);
 }
