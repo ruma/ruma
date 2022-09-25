@@ -127,103 +127,121 @@ impl Parse for Metadata {
         let missing_field =
             |name| syn::Error::new_spanned(metadata_kw, format!("missing field `{}`", name));
 
-        // Todo: we could construct the history anyways from the scrapped-together legacy fields,
-        //  and compare for an extra sanity check
-        let history = match history {
-            None => {
-                let stable_or_r0 = stable_path.as_ref().or(r0_path.as_ref());
+        // Construct a History object if none exists, or if one of the legacy fields are defined.
+        //
+        // If both history is defined, and one of the legacy fields are used, we'll use this as a
+        // sanity check later on to see if the legacy fields and the history object are the same.
+        // (If they're not, we raise an error.)
+        let constructed_history = if history.is_none()
+            || (stable_path.is_some()
+                || r0_path.is_some()
+                || unstable_path.is_some()
+                || added.is_some()
+                || deprecated.is_some()
+                || removed.is_some())
+        {
+            let stable_or_r0 = stable_path.as_ref().or(r0_path.as_ref());
 
-                if let Some(path) = stable_or_r0 {
-                    if added.is_none() {
-                        return Err(syn::Error::new_spanned(
-                            path,
-                            "stable path was defined, while `added` version was not defined",
-                        ));
-                    }
-                }
-
-                if let Some(deprecated) = &deprecated {
-                    if added.is_none() {
-                        return Err(syn::Error::new_spanned(
-                            deprecated,
-                            "deprecated version is defined while added version is not defined",
-                        ));
-                    }
-                }
-
-                // note: It is possible that matrix will remove endpoints in a single version, while
-                // not having a deprecation version inbetween, but that would not be
-                // allowed by their own deprecation policy, so lets just assume
-                // there's always a deprecation version before a removal one.
-                //
-                // If matrix does so anyways, we can just alter this.
-                if let Some(removed) = &removed {
-                    if deprecated.is_none() {
-                        return Err(syn::Error::new_spanned(
-                            removed,
-                            "removed version is defined while deprecated version is not defined",
-                        ));
-                    }
-                }
-
-                if let Some(added) = &added {
-                    if stable_or_r0.is_none() {
-                        return Err(syn::Error::new_spanned(
-                            added,
-                            "added version is defined, but no stable or r0 path exists",
-                        ));
-                    }
-                }
-
-                if let Some(r0) = &r0_path {
-                    let added =
-                        added.as_ref().expect("we error if r0 or stable is defined without added");
-
-                    if added.major.get() == 1 && added.minor > 0 {
-                        return Err(syn::Error::new_spanned(
-                            r0,
-                            "r0 defined while added version is newer than v1.0",
-                        ));
-                    }
-
-                    if stable_path.is_none() {
-                        return Err(syn::Error::new_spanned(r0, "r0 defined without stable path"));
-                    }
-
-                    if !r0.value().contains("/r0/") {
-                        return Err(syn::Error::new_spanned(
-                            r0,
-                            "r0 endpoint does not contain /r0/",
-                        ));
-                    }
-                }
-
-                if let Some(stable) = &stable_path {
-                    if stable.value().contains("/r0/") {
-                        return Err(syn::Error::new_spanned(
-                            stable,
-                            "stable endpoint contains /r0/ (did you make a copy-paste error?)",
-                        ));
-                    }
-                }
-
-                if unstable_path.is_none() && r0_path.is_none() && stable_path.is_none() {
+            if let Some(path) = stable_or_r0 {
+                if added.is_none() {
                     return Err(syn::Error::new_spanned(
-                        metadata_kw,
-                        "need to define one of [r0_path, stable_path, unstable_path]",
+                        path,
+                        "stable path was defined, while `added` version was not defined",
+                    ));
+                }
+            }
+
+            if let Some(deprecated) = &deprecated {
+                if added.is_none() {
+                    return Err(syn::Error::new_spanned(
+                        deprecated,
+                        "deprecated version is defined while added version is not defined",
+                    ));
+                }
+            }
+
+            // note: It is possible that matrix will remove endpoints in a single version, while
+            // not having a deprecation version inbetween, but that would not be
+            // allowed by their own deprecation policy, so lets just assume
+            // there's always a deprecation version before a removal one.
+            //
+            // If matrix does so anyways, we can just alter this.
+            if let Some(removed) = &removed {
+                if deprecated.is_none() {
+                    return Err(syn::Error::new_spanned(
+                        removed,
+                        "removed version is defined while deprecated version is not defined",
+                    ));
+                }
+            }
+
+            if let Some(added) = &added {
+                if stable_or_r0.is_none() {
+                    return Err(syn::Error::new_spanned(
+                        added,
+                        "added version is defined, but no stable or r0 path exists",
+                    ));
+                }
+            }
+
+            if let Some(r0) = &r0_path {
+                let added =
+                    added.as_ref().expect("we error if r0 or stable is defined without added");
+
+                if added.major.get() == 1 && added.minor > 0 {
+                    return Err(syn::Error::new_spanned(
+                        r0,
+                        "r0 defined while added version is newer than v1.0",
                     ));
                 }
 
-                History::construct(
-                    deprecated,
-                    removed,
-                    unstable_path,
-                    r0_path,
-                    stable_path.zip(added),
-                )
+                if stable_path.is_none() {
+                    return Err(syn::Error::new_spanned(r0, "r0 defined without stable path"));
+                }
+
+                if !r0.value().contains("/r0/") {
+                    return Err(syn::Error::new_spanned(r0, "r0 endpoint does not contain /r0/"));
+                }
             }
 
-            Some(h) => h,
+            if let Some(stable) = &stable_path {
+                if stable.value().contains("/r0/") {
+                    return Err(syn::Error::new_spanned(
+                        stable,
+                        "stable endpoint contains /r0/ (did you make a copy-paste error?)",
+                    ));
+                }
+            }
+
+            if unstable_path.is_none() && r0_path.is_none() && stable_path.is_none() {
+                return Err(syn::Error::new_spanned(
+                    metadata_kw,
+                    "need to define one of [r0_path, stable_path, unstable_path]",
+                ));
+            }
+
+            Some(History::construct(
+                deprecated,
+                removed,
+                unstable_path,
+                r0_path,
+                stable_path.zip(added),
+            ))
+        } else {
+            None
+        };
+
+        let history = if let Some(parsed_history) = history {
+            if let Some(constructed_history) = constructed_history {
+                if parsed_history != constructed_history {
+                    return Err(syn::Error::new_spanned(metadata_kw, format!("given information legacy history fields and composite history field does not align;\nlegacy: {:#?}\n\nhistory: {:#?}", constructed_history, parsed_history)));
+                }
+            }
+
+            parsed_history
+        } else {
+            constructed_history
+                .expect("constructed_history must exist if history field didn't exist")
         };
 
         Ok(Self {
@@ -335,7 +353,7 @@ impl Parse for FieldValue {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 #[allow(dead_code)]
 pub struct History {
     entries: Vec<HistoryEntry>,
@@ -353,13 +371,19 @@ impl History {
         r0_path: Option<EndpointPath>,
         stable_path_and_version: Option<(EndpointPath, MatrixVersionLiteral)>,
     ) -> Self {
+        let v1_0: MatrixVersionLiteral = (1, 0).try_into().expect("statically defined and checked");
+
         let unstable = unstable_path.map(|path| HistoryEntry::Unstable { path });
-        let r0 = r0_path.map(|path| HistoryEntry::Stable {
-            path,
-            version: (1, 0).try_into().expect("statically defined and checked"),
+        let r0 = r0_path.map(|path| HistoryEntry::Stable { path, version: v1_0.clone() });
+        let stable = stable_path_and_version.map(|(path, version)| {
+            let version = if r0.is_some() && version == v1_0 {
+                (1, 1).try_into().expect("statically defined and checked")
+            } else {
+                version
+            };
+
+            HistoryEntry::Stable { path, version }
         });
-        let stable =
-            stable_path_and_version.map(|(path, version)| HistoryEntry::Stable { path, version });
 
         let misc = match (deprecated, removed) {
             (None, None) => MiscVersioning::None,
@@ -385,7 +409,7 @@ impl History {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum MiscVersioning {
     None,
     Deprecated(MatrixVersionLiteral),
@@ -524,7 +548,7 @@ impl ToTokens for History {
         tokens.extend(quote! {
             ::ruma_common::api::VersionHistory {
                 unstable_paths: &[ #(#unstable),* ],
-                path_versions: &[ #(#versioned),* ],
+                stable_paths: &[ #(#versioned),* ],
                 deprecated: #deprecated,
                 removed: #removed,
             }

@@ -145,7 +145,7 @@ pub struct VersionHistory {
     /// A list of path versions, mapped to matrix versions.
     ///
     /// Sorted (ascending) by matrix version, will not mix major versions.
-    pub path_versions: &'static [(MatrixVersion, PathData)],
+    pub stable_paths: &'static [(MatrixVersion, PathData)],
 
     /// The matrix version that deprecated this endpoint.
     ///
@@ -167,23 +167,33 @@ impl VersionHistory {
     ///
     /// Is None when this endpoint is unstable/unreleased.
     pub fn added_version(&self) -> Option<MatrixVersion> {
-        self.path_versions.first().map(|(x, _)| *x)
+        self.stable_paths.first().map(|(x, _)| *x)
     }
 
     /// Picks the last unstable path, if it exists.
-    pub fn unstable(&self) -> Option<PathData> {
-        self.unstable_paths.last().copied()
+    pub fn unstable(&self) -> Option<&PathData> {
+        self.unstable_paths.last()
     }
 
-    /// Enumerates all raw paths, for use in server URL routers.
-    pub fn all_raw(&self) -> Vec<&'static str> {
+    /// Returns all path variants in canon form, for use in server routers.
+    pub fn all_paths(&self) -> Vec<&'static str> {
         let mut v = Vec::new();
 
         v.extend(self.unstable_paths.iter().map(|p| p.as_str()));
 
-        v.extend(self.path_versions.iter().map(|(_, y)| y.as_str()));
+        v.extend(self.stable_paths.iter().map(|(_, y)| y.as_str()));
 
         v
+    }
+
+    /// Returns all unstable path variants in canon form.
+    pub fn all_unstable_paths(&self) -> Vec<&'static str> {
+        self.unstable_paths.iter().map(|data| data.as_str()).collect()
+    }
+
+    /// Returns all stable path variants in canon form, with corresponding matrix version.
+    pub fn all_versioned_stable_paths(&self) -> Vec<(MatrixVersion, &'static str)> {
+        self.stable_paths.iter().map(|(version, data)| (*version, data.as_str())).collect()
     }
 
     /// Will decide how a particular set of matrix versions sees an endpoint.
@@ -233,12 +243,12 @@ impl VersionHistory {
     /// Note: This will not keep in mind endpoint removals, check with
     /// [`versioning_decision_for`](VersionHistory::versioning_decision_for) to see if this endpoint
     /// is still available.
-    pub fn stable_endpoint_for(&self, versions: &[MatrixVersion]) -> Option<PathData> {
+    pub fn stable_endpoint_for(&self, versions: &[MatrixVersion]) -> Option<&PathData> {
         // Go reverse, to check the "latest" version first.
-        for (ver, path) in self.path_versions.iter().rev() {
+        for (ver, path) in self.stable_paths.iter().rev() {
             // Check if any of the versions are equal or greater than the version the path needs.
             if versions.iter().any(|v| v.is_superset_of(*ver)) {
-                return Some(*path);
+                return Some(path);
             }
         }
 

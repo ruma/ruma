@@ -11,23 +11,21 @@ ruma_api! {
         name: "some_endpoint",
         unstable_path: "/_matrix/some/msc1234/endpoint/:baz",
         r0_path: "/_matrix/some/r0/endpoint/:baz",
-        stable_path: "/_matrix/some/v1/endpoint/:baz",
+        stable_path: "/_matrix/some/v3/endpoint/:baz",
         rate_limited: false,
         authentication: None,
         added: 1.0,
-        deprecated: 1.1,
-        removed: 1.2,
+        deprecated: 1.2,
+        removed: 1.3,
 
         history: {
-            unstable => "/a/path",
-            unstable => "/another/path",
+            unstable => "/_matrix/some/msc1234/endpoint/:baz",
 
-            1.0 => "/1.0",
-            1.1 => "/1.1",
-            1.2 => "/1.2",
+            1.0 => "/_matrix/some/r0/endpoint/:baz",
+            1.1 => "/_matrix/some/v3/endpoint/:baz",
 
-            1.3 => deprecated,
-            1.4 => removed,
+            1.2 => deprecated,
+            1.3 => removed,
         }
     }
 
@@ -72,11 +70,16 @@ ruma_api! {
 fn main() {
     use ruma_common::api::MatrixVersion;
 
-    assert_eq!(METADATA.unstable_path, Some("/_matrix/some/msc1234/endpoint/:baz"));
-    assert_eq!(METADATA.r0_path, Some("/_matrix/some/r0/endpoint/:baz"));
-    assert_eq!(METADATA.stable_path, Some("/_matrix/some/v1/endpoint/:baz"));
+    assert_eq!(METADATA.history.all_unstable_paths(), &["/_matrix/some/msc1234/endpoint/:baz"],);
+    assert_eq!(
+        METADATA.history.all_versioned_stable_paths(),
+        &[
+            (MatrixVersion::V1_0, "/_matrix/some/r0/endpoint/:baz"),
+            (MatrixVersion::V1_1, "/_matrix/some/v3/endpoint/:baz")
+        ]
+    );
 
-    assert_eq!(METADATA.added, Some(MatrixVersion::V1_0));
-    assert_eq!(METADATA.deprecated, Some(MatrixVersion::V1_1));
-    assert_eq!(METADATA.removed, Some(MatrixVersion::V1_2));
+    assert_eq!(METADATA.history.added_version(), Some(MatrixVersion::V1_0));
+    assert_eq!(METADATA.history.deprecated, Some(MatrixVersion::V1_2));
+    assert_eq!(METADATA.history.removed, Some(MatrixVersion::V1_3));
 }

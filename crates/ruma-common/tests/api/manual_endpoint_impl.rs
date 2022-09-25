@@ -35,7 +35,7 @@ const METADATA: Metadata = Metadata {
             canon: "/_matrix/client/unstable/directory/room/:room_alias",
             parts: &["/_matrix/client/unstable/directory/room/", ""],
         }],
-        path_versions: &[
+        stable_paths: &[
             (
                 MatrixVersion::V1_0,
                 PathData {

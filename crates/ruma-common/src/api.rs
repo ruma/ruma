@@ -403,10 +403,10 @@ pub enum AuthScheme {
 //
 // This function needs to be public, yet hidden, as all `try_into_http_request`s would be using it.
 #[doc(hidden)]
-pub fn select_path(
+pub fn select_path<'m>(
     versions: &'_ [MatrixVersion],
-    metadata: &'_ Metadata,
-) -> Result<PathData, IntoHttpError> {
+    metadata: &'m Metadata,
+) -> Result<&'m PathData, IntoHttpError> {
     match metadata.versioning_decision_for(versions) {
         VersioningDecision::Removed => Err(IntoHttpError::EndpointRemoved(
             metadata.history.removed.expect("VersioningDecision::Removed implies metadata.removed"),
