@@ -64,22 +64,22 @@ impl Response {
     fn has_body_fields(&self) -> bool {
         self.fields
             .iter()
-            .any(|f| matches!(f, ResponseField::Body(_) | &ResponseField::NewtypeBody(_)))
+            .any(|f| matches!(&f.kind, ResponseFieldKind::Body | &ResponseFieldKind::NewtypeBody))
     }
 
     /// Whether or not this request has a single newtype body field.
     fn has_newtype_body(&self) -> bool {
-        self.fields.iter().any(|f| matches!(f, ResponseField::NewtypeBody(_)))
+        self.fields.iter().any(|f| matches!(&f.kind, ResponseFieldKind::NewtypeBody))
     }
 
     /// Whether or not this request has a single raw body field.
     fn has_raw_body(&self) -> bool {
-        self.fields.iter().any(|f| matches!(f, ResponseField::RawBody(_)))
+        self.fields.iter().any(|f| matches!(&f.kind, ResponseFieldKind::RawBody))
     }
 
     /// Whether or not this request has any data in the URL path.
     fn has_header_fields(&self) -> bool {
-        self.fields.iter().any(|f| matches!(f, &ResponseField::Header(..)))
+        self.fields.iter().any(|f| matches!(&f.kind, &ResponseFieldKind::Header(_)))
     }
 
     fn expand_all(&self) -> TokenStream {
@@ -127,10 +127,9 @@ impl Response {
             "This macro doesn't support generic types"
         );
 
-        let newtype_body_fields = self
-            .fields
-            .iter()
-            .filter(|f| matches!(f, ResponseField::NewtypeBody(_) | ResponseField::RawBody(_)));
+        let newtype_body_fields = self.fields.iter().filter(|f| {
+            matches!(&f.kind, ResponseFieldKind::NewtypeBody | ResponseFieldKind::RawBody)
+        });
 
         let has_newtype_body_field = match newtype_body_fields.count() {
             0 => false,
@@ -143,7 +142,8 @@ impl Response {
             }
         };
 
-        let has_body_fields = self.fields.iter().any(|f| matches!(f, ResponseField::Body(_)));
+        let has_body_fields =
+            self.fields.iter().any(|f| matches!(&f.kind, ResponseFieldKind::Body));
         if has_newtype_body_field && has_body_fields {
             return Err(syn::Error::new_spanned(
                 &self.ident,
@@ -155,65 +155,60 @@ impl Response {
     }
 }
 
-/// The types of fields that a response can have.
-enum ResponseField {
+/// A field of the response struct.
+struct ResponseField {
+    inner: Field,
+    kind: ResponseFieldKind,
+}
+
+/// The kind of a response field.
+enum ResponseFieldKind {
     /// JSON data in the body of the response.
-    Body(Field),
+    Body,
 
     /// Data in an HTTP header.
-    Header(Field, Ident),
+    Header(Ident),
 
     /// A specific data type in the body of the response.
-    NewtypeBody(Field),
+    NewtypeBody,
 
     /// Arbitrary bytes in the body of the response.
-    RawBody(Field),
+    RawBody,
 }
 
 impl ResponseField {
     /// Creates a new `ResponseField`.
-    fn new(field: Field, kind_attr: Option<ResponseMeta>) -> Self {
-        if let Some(attr) = kind_attr {
-            match attr {
-                ResponseMeta::NewtypeBody => ResponseField::NewtypeBody(field),
-                ResponseMeta::RawBody => ResponseField::RawBody(field),
-                ResponseMeta::Header(header) => ResponseField::Header(field, header),
-            }
-        } else {
-            ResponseField::Body(field)
-        }
-    }
+    fn new(inner: Field, kind_attr: Option<ResponseMeta>) -> Self {
+        let kind = match kind_attr {
+            Some(ResponseMeta::NewtypeBody) => ResponseFieldKind::NewtypeBody,
+            Some(ResponseMeta::RawBody) => ResponseFieldKind::RawBody,
+            Some(ResponseMeta::Header(header)) => ResponseFieldKind::Header(header),
+            None => ResponseFieldKind::Body,
+        };
 
-    /// Gets the inner `Field` value.
-    fn field(&self) -> &Field {
-        match self {
-            ResponseField::Body(field)
-            | ResponseField::Header(field, _)
-            | ResponseField::NewtypeBody(field)
-            | ResponseField::RawBody(field) => field,
-        }
+        Self { inner, kind }
     }
 
     /// Return the contained field if this response field is a body kind.
     fn as_body_field(&self) -> Option<&Field> {
-        match self {
-            ResponseField::Body(field) | ResponseField::NewtypeBody(field) => Some(field),
+        match &self.kind {
+            ResponseFieldKind::Body | ResponseFieldKind::NewtypeBody => Some(&self.inner),
             _ => None,
         }
     }
 
     /// Return the contained field if this response field is a raw body kind.
     fn as_raw_body_field(&self) -> Option<&Field> {
-        match self {
-            ResponseField::RawBody(field) => Some(field),
+        match &self.kind {
+            ResponseFieldKind::RawBody => Some(&self.inner),
             _ => None,
         }
     }
 
     /// Return the contained field and HTTP header ident if this response field is a header kind.
     fn as_header_field(&self) -> Option<(&Field, &Ident)> {
-        match self {
-            ResponseField::Header(field, ident) => Some((field, ident)),
+        match &self.kind {
+            ResponseFieldKind::Header(ident) => Some((&self.inner, ident)),
             _ => None,
         }
     }
@@ -257,7 +252,7 @@ impl Parse for ResponseField {
 
 impl ToTokens for ResponseField {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.field().to_tokens(tokens);
+        self.inner.to_tokens(tokens);
     }
 }
 

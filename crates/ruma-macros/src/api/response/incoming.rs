@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Type;
 
-use super::{Response, ResponseField};
+use super::{Response, ResponseFieldKind};
 
 impl Response {
     pub fn expand_incoming(&self, error_ty: &Type, ruma_common: &TokenStream) -> TokenStream {
@@ -38,20 +38,20 @@ impl Response {
             let mut raw_body = None;
 
             for response_field in &self.fields {
-                let field = response_field.field();
+                let field = &response_field.inner;
                 let field_name =
                     field.ident.as_ref().expect("expected field to have an identifier");
                 let cfg_attrs =
                     field.attrs.iter().filter(|a| a.path.is_ident("cfg")).collect::<Vec<_>>();
 
-                fields.push(match response_field {
-                    ResponseField::Body(_) | ResponseField::NewtypeBody(_) => {
+                fields.push(match &response_field.kind {
+                    ResponseFieldKind::Body | ResponseFieldKind::NewtypeBody => {
                         quote! {
                             #( #cfg_attrs )*
                             #field_name: response_body.#field_name
                         }
                     }
-                    ResponseField::Header(_, header_name) => {
+                    ResponseFieldKind::Header(header_name) => {
                         let optional_header = match &field.ty {
                             syn::Type::Path(syn::TypePath {
                                 path: syn::Path { segments, .. },
@@ -81,7 +81,7 @@ impl Response {
                     // This field must be instantiated last to avoid `use of move value` error.
                     // We are guaranteed only one new body field because of a check in
                     // `parse_response`.
-                    ResponseField::RawBody(_) => {
+                    ResponseFieldKind::RawBody => {
                         raw_body = Some(quote! {
                             #( #cfg_attrs )*
                             #field_name: {
