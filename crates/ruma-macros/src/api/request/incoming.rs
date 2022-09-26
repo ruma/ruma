@@ -86,12 +86,7 @@ impl Request {
         let (parse_headers, header_vars) = if self.has_header_fields() {
             let (decls, names): (TokenStream, Vec<_>) = self
                 .header_fields()
-                .map(|request_field| {
-                    let (field, header_name) = match request_field {
-                        RequestField::Header(field, header_name) => (field, header_name),
-                        _ => panic!("expected request field to be header variant"),
-                    };
-
+                .map(|(field, header_name)| {
                     let cfg_attrs =
                         field.attrs.iter().filter(|a| a.path.is_ident("cfg")).collect::<Vec<_>>();
 

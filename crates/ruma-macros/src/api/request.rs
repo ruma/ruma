@@ -30,16 +30,16 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
         .into_iter()
         .map(|f| {
             let f = RequestField::try_from(f)?;
-            let ty = &f.field().ty;
+            let ty = &f.inner.ty;
 
-            match &f {
-                RequestField::Header(..) => collect_lifetime_idents(&mut lifetimes.header, ty),
-                RequestField::Body(_) => collect_lifetime_idents(&mut lifetimes.body, ty),
-                RequestField::NewtypeBody(_) => collect_lifetime_idents(&mut lifetimes.body, ty),
-                RequestField::RawBody(_) => collect_lifetime_idents(&mut lifetimes.body, ty),
-                RequestField::Path(_) => collect_lifetime_idents(&mut lifetimes.path, ty),
-                RequestField::Query(_) => collect_lifetime_idents(&mut lifetimes.query, ty),
-                RequestField::QueryMap(_) => collect_lifetime_idents(&mut lifetimes.query, ty),
+            match &f.kind {
+                RequestFieldKind::Header(_) => collect_lifetime_idents(&mut lifetimes.header, ty),
+                RequestFieldKind::Body => collect_lifetime_idents(&mut lifetimes.body, ty),
+                RequestFieldKind::NewtypeBody => collect_lifetime_idents(&mut lifetimes.body, ty),
+                RequestFieldKind::RawBody => collect_lifetime_idents(&mut lifetimes.body, ty),
+                RequestFieldKind::Path => collect_lifetime_idents(&mut lifetimes.path, ty),
+                RequestFieldKind::Query => collect_lifetime_idents(&mut lifetimes.query, ty),
+                RequestFieldKind::QueryMap => collect_lifetime_idents(&mut lifetimes.query, ty),
             }
 
             Ok(f)
@@ -119,23 +119,23 @@ impl Request {
     fn has_body_fields(&self) -> bool {
         self.fields
             .iter()
-            .any(|f| matches!(f, RequestField::Body(_) | RequestField::NewtypeBody(_)))
+            .any(|f| matches!(&f.kind, RequestFieldKind::Body | RequestFieldKind::NewtypeBody))
     }
 
     fn has_newtype_body(&self) -> bool {
-        self.fields.iter().any(|f| matches!(f, RequestField::NewtypeBody(_)))
+        self.fields.iter().any(|f| matches!(&f.kind, RequestFieldKind::NewtypeBody))
     }
 
     fn has_header_fields(&self) -> bool {
-        self.fields.iter().any(|f| matches!(f, RequestField::Header(..)))
+        self.fields.iter().any(|f| matches!(&f.kind, RequestFieldKind::Header(_)))
     }
 
     fn has_path_fields(&self) -> bool {
-        self.fields.iter().any(|f| matches!(f, RequestField::Path(_)))
+        self.fields.iter().any(|f| matches!(&f.kind, RequestFieldKind::Path))
     }
 
     fn has_query_fields(&self) -> bool {
-        self.fields.iter().any(|f| matches!(f, RequestField::Query(_)))
+        self.fields.iter().any(|f| matches!(&f.kind, RequestFieldKind::Query))
     }
 
     fn has_lifetimes(&self) -> bool {
@@ -145,8 +145,8 @@ impl Request {
             && self.lifetimes.header.is_empty())
     }
 
-    fn header_fields(&self) -> impl Iterator<Item = &RequestField> {
-        self.fields.iter().filter(|f| matches!(f, RequestField::Header(..)))
+    fn header_fields(&self) -> impl Iterator<Item = (&Field, &Ident)> {
+        self.fields.iter().filter_map(RequestField::as_header_field)
     }
 
     fn path_fields_ordered(&self) -> impl Iterator<Item = &Field> {
@@ -259,8 +259,8 @@ impl Request {
         self.check_path(&path_fields, self.r0_path.as_ref())?;
         self.check_path(&path_fields, self.stable_path.as_ref())?;
 
-        let newtype_body_fields = self.fields.iter().filter(|field| {
-            matches!(field, RequestField::NewtypeBody(_) | RequestField::RawBody(_))
+        let newtype_body_fields = self.fields.iter().filter(|f| {
+            matches!(&f.kind, RequestFieldKind::NewtypeBody | RequestFieldKind::RawBody)
         });
 
         let has_newtype_body_field = match newtype_body_fields.count() {
@@ -275,7 +275,7 @@ impl Request {
         };
 
         let query_map_fields =
-            self.fields.iter().filter(|f| matches!(f, RequestField::QueryMap(_)));
+            self.fields.iter().filter(|f| matches!(&f.kind, RequestFieldKind::QueryMap));
         let has_query_map_field = match query_map_fields.count() {
             0 => false,
             1 => true,
@@ -287,8 +287,9 @@ impl Request {
             }
         };
 
-        let has_body_fields = self.fields.iter().any(|f| matches!(f, RequestField::Body(_)));
-        let has_query_fields = self.fields.iter().any(|f| matches!(f, RequestField::Query(_)));
+        let has_body_fields = self.fields.iter().any(|f| matches!(&f.kind, RequestFieldKind::Body));
+        let has_query_fields =
+            self.fields.iter().any(|f| matches!(&f.kind, RequestFieldKind::Query));
 
         if has_newtype_body_field && has_body_fields {
             return Err(syn::Error::new_spanned(
@@ -365,97 +366,97 @@ impl Request {
     }
 }
 
-/// The types of fields that a request can have.
-enum RequestField {
+/// A field of the request struct.
+struct RequestField {
+    inner: Field,
+    kind: RequestFieldKind,
+}
+
+/// The kind of a request field.
+enum RequestFieldKind {
     /// JSON data in the body of the request.
-    Body(Field),
+    Body,
 
     /// Data in an HTTP header.
-    Header(Field, Ident),
+    Header(Ident),
 
     /// A specific data type in the body of the request.
-    NewtypeBody(Field),
+    NewtypeBody,
 
     /// Arbitrary bytes in the body of the request.
-    RawBody(Field),
+    RawBody,
 
     /// Data that appears in the URL path.
-    Path(Field),
+    Path,
 
     /// Data that appears in the query string.
-    Query(Field),
+    Query,
 
     /// Data that appears in the query string as dynamic key-value pairs.
-    QueryMap(Field),
+    QueryMap,
 }
 
 impl RequestField {
     /// Creates a new `RequestField`.
-    fn new(field: Field, kind_attr: Option<RequestMeta>) -> Self {
-        if let Some(attr) = kind_attr {
-            match attr {
-                RequestMeta::NewtypeBody => RequestField::NewtypeBody(field),
-                RequestMeta::RawBody => RequestField::RawBody(field),
-                RequestMeta::Path => RequestField::Path(field),
-                RequestMeta::Query => RequestField::Query(field),
-                RequestMeta::QueryMap => RequestField::QueryMap(field),
-                RequestMeta::Header(header) => RequestField::Header(field, header),
-            }
-        } else {
-            RequestField::Body(field)
-        }
+    fn new(inner: Field, kind_attr: Option<RequestMeta>) -> Self {
+        let kind = match kind_attr {
+            Some(RequestMeta::NewtypeBody) => RequestFieldKind::NewtypeBody,
+            Some(RequestMeta::RawBody) => RequestFieldKind::RawBody,
+            Some(RequestMeta::Path) => RequestFieldKind::Path,
+            Some(RequestMeta::Query) => RequestFieldKind::Query,
+            Some(RequestMeta::QueryMap) => RequestFieldKind::QueryMap,
+            Some(RequestMeta::Header(header)) => RequestFieldKind::Header(header),
+            None => RequestFieldKind::Body,
+        };
+
+        Self { inner, kind }
     }
 
     /// Return the contained field if this request field is a body kind.
     pub fn as_body_field(&self) -> Option<&Field> {
-        match self {
-            RequestField::Body(field) | RequestField::NewtypeBody(field) => Some(field),
+        match &self.kind {
+            RequestFieldKind::Body | RequestFieldKind::NewtypeBody => Some(&self.inner),
             _ => None,
         }
     }
 
     /// Return the contained field if this request field is a raw body kind.
     pub fn as_raw_body_field(&self) -> Option<&Field> {
-        match self {
-            RequestField::RawBody(field) => Some(field),
+        match &self.kind {
+            RequestFieldKind::RawBody => Some(&self.inner),
             _ => None,
         }
     }
 
     /// Return the contained field if this request field is a path kind.
     pub fn as_path_field(&self) -> Option<&Field> {
-        match self {
-            RequestField::Path(field) => Some(field),
+        match &self.kind {
+            RequestFieldKind::Path => Some(&self.inner),
             _ => None,
         }
     }
 
     /// Return the contained field if this request field is a query kind.
     pub fn as_query_field(&self) -> Option<&Field> {
-        match self {
-            RequestField::Query(field) => Some(field),
+        match &self.kind {
+            RequestFieldKind::Query => Some(&self.inner),
             _ => None,
         }
     }
 
     /// Return the contained field if this request field is a query map kind.
     pub fn as_query_map_field(&self) -> Option<&Field> {
-        match self {
-            RequestField::QueryMap(field) => Some(field),
+        match &self.kind {
+            RequestFieldKind::QueryMap => Some(&self.inner),
             _ => None,
         }
     }
 
-    /// Gets the inner `Field` value.
-    pub fn field(&self) -> &Field {
-        match self {
-            RequestField::Body(field)
-            | RequestField::Header(field, _)
-            | RequestField::NewtypeBody(field)
-            | RequestField::RawBody(field)
-            | RequestField::Path(field)
-            | RequestField::Query(field)
-            | RequestField::QueryMap(field) => field,
+    /// Return the contained field and header ident if this request field is a header kind.
+    pub fn as_header_field(&self) -> Option<(&Field, &Ident)> {
+        match &self.kind {
+            RequestFieldKind::Header(header_name) => Some((&self.inner, header_name)),
+            _ => None,
         }
     }
 }
@@ -491,6 +492,6 @@ impl Parse for RequestField {
 
 impl ToTokens for RequestField {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.field().to_tokens(tokens);
+        self.inner.to_tokens(tokens);
     }
 }

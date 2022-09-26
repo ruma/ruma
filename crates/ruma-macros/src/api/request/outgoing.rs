@@ -100,12 +100,7 @@ impl Request {
             TokenStream::new()
         };
 
-        header_kvs.extend(self.header_fields().map(|request_field| {
-            let (field, header_name) = match request_field {
-                RequestField::Header(field, header_name) => (field, header_name),
-                _ => unreachable!("expected request field to be header variant"),
-            };
-
+        header_kvs.extend(self.header_fields().map(|(field, header_name)| {
             let field_name = &field.ident;
 
             match &field.ty {
