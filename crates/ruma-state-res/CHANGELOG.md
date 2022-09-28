@@ -1,5 +1,11 @@
 # [unreleased]
 
+Bug fixes:
+
+* Fix third party invite event authorization. The event was not allowed even
+  after passing all the required checks, so it could fail further down the
+  algorithm.
+
 # 0.8.0
 
 Bug fixes:
