@@ -364,6 +364,9 @@ pub fn auth_check<E: Event>(
             warn!("sender's cannot send invites in this room");
             return Ok(false);
         }
+
+        info!("m.room.third_party_invite event was allowed");
+        return Ok(true);
     }
 
     // If the event type's required power level is greater than the sender's power level, reject
