@@ -60,9 +60,8 @@ impl Request {
                 let request_query = RequestQuery(self.#field_name);
                 assert_trait_impl(&request_query.0);
 
-                format_args!(
-                    "?{}",
-                    #ruma_common::serde::urlencoded::to_string(request_query)?
+                ::std::option::Option::Some(
+                    &#ruma_common::serde::urlencoded::to_string(request_query)?
                 )
             }}
         } else if self.has_query_fields() {
@@ -76,13 +75,12 @@ impl Request {
                     #request_query_init_fields
                 };
 
-                format_args!(
-                    "?{}",
-                    #ruma_common::serde::urlencoded::to_string(request_query)?
+                ::std::option::Option::Some(
+                    &#ruma_common::serde::urlencoded::to_string(request_query)?
                 )
             }}
         } else {
-            quote! { "" }
+            quote! { ::std::option::Option::None }
         };
 
         // If there are no body fields, the request body will be empty (not `{}`), so the
@@ -195,10 +193,15 @@ impl Request {
 
                     let mut req_builder = #http::Request::builder()
                         .method(#http::Method::#method)
-                        .uri(::std::format!(
-                            "{}{}{}",
-                            base_url.strip_suffix('/').unwrap_or(base_url),
-                            #ruma_common::api::select_path(considering_versions, &metadata, #unstable_path, #r0_path, #stable_path)?,
+                        .uri(#ruma_common::api::make_endpoint_url(
+                            base_url,
+                            #ruma_common::api::select_path(
+                                considering_versions,
+                                &metadata,
+                                #unstable_path,
+                                #r0_path,
+                                #stable_path,
+                            )?,
                             #request_query_string,
                         ));
 
