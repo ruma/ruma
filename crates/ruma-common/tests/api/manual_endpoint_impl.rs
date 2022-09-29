@@ -49,8 +49,7 @@ impl OutgoingRequest for Request {
         _access_token: SendAccessToken<'_>,
         considering_versions: &'_ [MatrixVersion],
     ) -> Result<http::Request<T>, IntoHttpError> {
-        let url = ruma_common::api::make_endpoint_url(
-            &METADATA,
+        let url = METADATA.make_endpoint_url(
             considering_versions,
             base_url,
             &[&self.room_alias],

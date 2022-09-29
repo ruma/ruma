@@ -173,8 +173,7 @@ impl Request {
 
                     let mut req_builder = #http::Request::builder()
                         .method(#http::Method::#method)
-                        .uri(#ruma_common::api::make_endpoint_url(
-                            &metadata,
+                        .uri(metadata.make_endpoint_url(
                             considering_versions,
                             base_url,
                             &[ #( &self.#path_fields ),* ],
