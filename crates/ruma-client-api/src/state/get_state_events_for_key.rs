@@ -85,8 +85,7 @@ pub mod v3 {
             use http::header;
             use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 
-            let mut url = ruma_common::api::make_endpoint_url(
-                &METADATA,
+            let mut url = METADATA.make_endpoint_url(
                 considering_versions,
                 base_url,
                 &[&self.room_id, &self.event_type],
