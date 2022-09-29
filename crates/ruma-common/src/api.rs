@@ -501,7 +501,7 @@ fn select_path<'a>(
 mod tests {
     use super::{
         error::IntoHttpError,
-        select_path, AuthScheme,
+        make_endpoint_url, select_path, AuthScheme,
         MatrixVersion::{V1_0, V1_1, V1_2},
         Metadata,
     };
@@ -523,6 +523,36 @@ mod tests {
     };
 
     // TODO add test that can hook into tracing and verify the deprecation warning is emitted
+
+    #[test]
+    fn make_simple_endpoint_url() {
+        let meta = Metadata { added: Some(V1_0), stable_path: Some("/s"), ..BASE };
+        let url = make_endpoint_url(&meta, &[V1_0], "https://example.org", &[], None).unwrap();
+        assert_eq!(url, "https://example.org/s");
+    }
+
+    #[test]
+    fn make_endpoint_url_with_path_args() {
+        let meta = Metadata { added: Some(V1_0), stable_path: Some("/s/:x"), ..BASE };
+        let url =
+            make_endpoint_url(&meta, &[V1_0], "https://example.org", &[&"123"], None).unwrap();
+        assert_eq!(url, "https://example.org/s/123");
+    }
+
+    #[test]
+    fn make_endpoint_url_with_query() {
+        let meta = Metadata { added: Some(V1_0), stable_path: Some("/s/"), ..BASE };
+        let url =
+            make_endpoint_url(&meta, &[V1_0], "https://example.org", &[], Some("foo=bar")).unwrap();
+        assert_eq!(url, "https://example.org/s/?foo=bar");
+    }
+
+    #[test]
+    #[should_panic]
+    fn make_endpoint_url_wrong_num_path_args() {
+        let meta = Metadata { added: Some(V1_0), stable_path: Some("/s/:x"), ..BASE };
+        _ = make_endpoint_url(&meta, &[V1_0], "https://example.org", &[], None);
+    }
 
     #[test]
     fn select_stable() {
