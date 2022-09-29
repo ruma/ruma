@@ -85,25 +85,13 @@ pub mod v3 {
             use http::header;
             use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 
-            let room_id_percent = utf8_percent_encode(self.room_id.as_str(), NON_ALPHANUMERIC);
-            let event_type = self.event_type.to_string();
-            let event_type_percent = utf8_percent_encode(&event_type, NON_ALPHANUMERIC);
-
-            let mut url = format!(
-                "{}{}",
-                base_url.strip_suffix('/').unwrap_or(base_url),
-                ruma_common::api::select_path(
-                    considering_versions,
-                    &METADATA,
-                    None,
-                    Some(format_args!(
-                        "/_matrix/client/r0/rooms/{room_id_percent}/state/{event_type_percent}",
-                    )),
-                    Some(format_args!(
-                        "/_matrix/client/v3/rooms/{room_id_percent}/state/{event_type_percent}",
-                    )),
-                )?
-            );
+            let mut url = ruma_common::api::make_endpoint_url(
+                &METADATA,
+                considering_versions,
+                base_url,
+                &[&self.room_id, &self.event_type],
+                None,
+            )?;
 
             if !self.state_key.is_empty() {
                 url.push('/');
