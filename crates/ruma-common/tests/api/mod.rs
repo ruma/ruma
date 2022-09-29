@@ -9,4 +9,3 @@ mod path_arg_ordering;
 mod ruma_api;
 mod ruma_api_lifetime;
 mod ruma_api_macros;
-mod select_path;

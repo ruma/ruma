@@ -1,40 +1,20 @@
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{Field, LitStr};
+use syn::Field;
 
 use super::{Request, RequestField};
-use crate::api::{auth_scheme::AuthScheme, util};
+use crate::api::auth_scheme::AuthScheme;
 
 impl Request {
     pub fn expand_outgoing(&self, ruma_common: &TokenStream) -> TokenStream {
         let bytes = quote! { #ruma_common::exports::bytes };
         let http = quote! { #ruma_common::exports::http };
-        let percent_encoding = quote! { #ruma_common::exports::percent_encoding };
 
         let method = &self.method;
         let error_ty = &self.error_ty;
 
-        let (unstable_path, r0_path, stable_path) = if self.has_path_fields() {
-            let path_format_args_call_with_percent_encoding = |s: &LitStr| -> TokenStream {
-                util::path_format_args_call(s.value(), &percent_encoding)
-            };
-
-            (
-                self.unstable_path.as_ref().map(path_format_args_call_with_percent_encoding),
-                self.r0_path.as_ref().map(path_format_args_call_with_percent_encoding),
-                self.stable_path.as_ref().map(path_format_args_call_with_percent_encoding),
-            )
-        } else {
-            (
-                self.unstable_path.as_ref().map(|path| quote! { format_args!(#path) }),
-                self.r0_path.as_ref().map(|path| quote! { format_args!(#path) }),
-                self.stable_path.as_ref().map(|path| quote! { format_args!(#path) }),
-            )
-        };
-
-        let unstable_path = util::map_option_literal(&unstable_path);
-        let r0_path = util::map_option_literal(&r0_path);
-        let stable_path = util::map_option_literal(&stable_path);
+        let path_fields =
+            self.path_fields_ordered().map(|f| f.ident.as_ref().expect("path fields have a name"));
 
         let request_query_string = if let Some(field) = self.query_map_field() {
             let field_name = field.ident.as_ref().expect("expected field to have identifier");
@@ -194,16 +174,12 @@ impl Request {
                     let mut req_builder = #http::Request::builder()
                         .method(#http::Method::#method)
                         .uri(#ruma_common::api::make_endpoint_url(
+                            &metadata,
+                            considering_versions,
                             base_url,
-                            #ruma_common::api::select_path(
-                                considering_versions,
-                                &metadata,
-                                #unstable_path,
-                                #r0_path,
-                                #stable_path,
-                            )?,
+                            &[ #( &self.#path_fields ),* ],
                             #request_query_string,
-                        ));
+                        )?);
 
                     if let Some(mut req_headers) = req_builder.headers_mut() {
                         #header_kvs

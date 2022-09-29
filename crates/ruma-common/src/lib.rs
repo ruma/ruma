@@ -72,7 +72,6 @@ pub mod exports {
     pub use bytes;
     #[cfg(feature = "api")]
     pub use http;
-    pub use percent_encoding;
     pub use ruma_macros;
     pub use serde;
     pub use serde_json;

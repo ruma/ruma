@@ -49,17 +49,13 @@ impl OutgoingRequest for Request {
         _access_token: SendAccessToken<'_>,
         considering_versions: &'_ [MatrixVersion],
     ) -> Result<http::Request<T>, IntoHttpError> {
-        let url = format!(
-            "{}{}",
+        let url = ruma_common::api::make_endpoint_url(
+            &METADATA,
+            considering_versions,
             base_url,
-            ruma_common::api::select_path(
-                considering_versions,
-                &METADATA,
-                Some(format_args!("/_matrix/client/unstable/directory/room/{}", self.room_alias)),
-                Some(format_args!("/_matrix/client/r0/directory/room/{}", self.room_alias)),
-                Some(format_args!("/_matrix/client/v3/directory/room/{}", self.room_alias)),
-            )?
-        );
+            &[&self.room_alias],
+            None,
+        )?;
 
         let request_body = RequestBody { room_id: self.room_id };
 
