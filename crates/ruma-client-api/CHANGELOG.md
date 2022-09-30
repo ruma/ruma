@@ -8,6 +8,8 @@ Breaking changes:
 Improvements:
 
 * Add `M_BAD_ALIAS` to `error::ErrorKind`
+* Remove the `unstable-msc3440` feature
+  * The fields added to `RoomEventFilter` were removed by MSC3856
 
 # 0.15.1
 
