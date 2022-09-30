@@ -12,9 +12,11 @@ pub mod v3 {
         serde::Raw,
         RoomId,
     };
-    use serde::{Deserialize, Serialize};
 
-    use crate::filter::{IncomingRoomEventFilter, RoomEventFilter};
+    use crate::{
+        filter::{IncomingRoomEventFilter, RoomEventFilter},
+        Direction,
+    };
 
     ruma_api! {
         metadata: {
@@ -169,19 +171,6 @@ pub mod v3 {
         *val == default_limit()
     }
 
-    /// The direction to return events from.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    #[allow(clippy::exhaustive_enums)]
-    pub enum Direction {
-        /// Return events backwards in time from the requested `from` token.
-        #[serde(rename = "b")]
-        Backward,
-
-        /// Return events forwards in time from the requested `from` token.
-        #[serde(rename = "f")]
-        Forward,
-    }
-
     #[cfg(all(test, feature = "client"))]
     mod tests {
         use js_int::uint;
@@ -190,8 +179,11 @@ pub mod v3 {
             room_id,
         };
 
-        use super::{Direction, Request};
-        use crate::filter::{LazyLoadOptions, RoomEventFilter};
+        use super::Request;
+        use crate::{
+            filter::{LazyLoadOptions, RoomEventFilter},
+            Direction,
+        };
 
         #[test]
         fn serialize_some_room_event_filter() {
