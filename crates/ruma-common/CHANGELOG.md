@@ -10,6 +10,7 @@ Improvements:
 
 * Add `MatrixVersion::V1_4`
 * Stabilize default room server ACL push rule
+* Stabilize `room_types` in `directory::Filter` and `room_type` in `directory::PublicRoomsChunk`
 
 # 0.10.3
 

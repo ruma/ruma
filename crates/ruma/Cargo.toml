@@ -157,7 +157,6 @@ unstable-msc3554 = ["ruma-common/unstable-msc3554"]
 unstable-msc3575 = ["ruma-client-api?/unstable-msc3575"]
 unstable-msc3618 = ["ruma-federation-api?/unstable-msc3618"]
 unstable-msc3723 = ["ruma-federation-api?/unstable-msc3723"]
-unstable-msc3827 = ["ruma-common/unstable-msc3827"]
 unstable-pdu = ["ruma-common/unstable-pdu"]
 unstable-sanitize = ["ruma-common/unstable-sanitize"]
 unstable-unspecified = [
@@ -194,7 +193,6 @@ __ci = [
     "unstable-msc3575",
     "unstable-msc3618",
     "unstable-msc3723",
-    "unstable-msc3827",
 ]
 
 [dependencies]
