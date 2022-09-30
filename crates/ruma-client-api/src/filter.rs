@@ -7,8 +7,6 @@ mod lazy_load;
 mod url;
 
 use js_int::UInt;
-#[cfg(feature = "unstable-msc3440")]
-use ruma_common::events::relation::RelationType;
 use ruma_common::{
     serde::{Incoming, StringEnum},
     OwnedRoomId, OwnedUserId,
@@ -99,32 +97,6 @@ pub struct RoomEventFilter<'a> {
     /// Defaults to `LazyLoadOptions::Disabled`.
     #[serde(flatten)]
     pub lazy_load_options: LazyLoadOptions,
-
-    /// A list of relation types to include.
-    ///
-    /// An event A is included in the filter only if there exists another event B which relates to
-    /// A with a `rel_type` which is defined in the list.
-    #[cfg(feature = "unstable-msc3440")]
-    #[serde(
-        rename = "io.element.relation_types",
-        alias = "related_by_rel_types",
-        default,
-        skip_serializing_if = "<[_]>::is_empty"
-    )]
-    pub related_by_rel_types: &'a [RelationType],
-
-    /// A list of senders to include.
-    ///
-    /// An event A is included in the filter only if there exists another event B which relates to
-    /// A, and which has a sender which is in the list.
-    #[cfg(feature = "unstable-msc3440")]
-    #[serde(
-        rename = "io.element.relation_senders",
-        alias = "related_by_senders",
-        default,
-        skip_serializing_if = "<[_]>::is_empty"
-    )]
-    pub related_by_senders: &'a [OwnedUserId],
 }
 
 impl<'a> RoomEventFilter<'a> {
@@ -142,7 +114,7 @@ impl<'a> RoomEventFilter<'a> {
 
     /// Returns `true` if all fields are empty.
     pub fn is_empty(&self) -> bool {
-        let empty = self.not_types.is_empty()
+        self.not_types.is_empty()
             && self.not_rooms.is_empty()
             && self.limit.is_none()
             && self.rooms.is_none()
@@ -150,20 +122,14 @@ impl<'a> RoomEventFilter<'a> {
             && self.senders.is_none()
             && self.types.is_none()
             && self.url_filter.is_none()
-            && self.lazy_load_options.is_disabled();
-
-        #[cfg(not(feature = "unstable-msc3440"))]
-        return empty;
-
-        #[cfg(feature = "unstable-msc3440")]
-        return empty && self.related_by_rel_types.is_empty() && self.related_by_senders.is_empty();
+            && self.lazy_load_options.is_disabled()
     }
 }
 
 impl IncomingRoomEventFilter {
     /// Returns `true` if all fields are empty.
     pub fn is_empty(&self) -> bool {
-        let empty = self.not_types.is_empty()
+        self.not_types.is_empty()
             && self.not_rooms.is_empty()
             && self.limit.is_none()
             && self.rooms.is_none()
@@ -171,13 +137,7 @@ impl IncomingRoomEventFilter {
             && self.senders.is_none()
             && self.types.is_none()
             && self.url_filter.is_none()
-            && self.lazy_load_options.is_disabled();
-
-        #[cfg(not(feature = "unstable-msc3440"))]
-        return empty;
-
-        #[cfg(feature = "unstable-msc3440")]
-        return empty && self.related_by_rel_types.is_empty() && self.related_by_senders.is_empty();
+            && self.lazy_load_options.is_disabled()
     }
 }
 
@@ -498,10 +458,5 @@ mod tests {
             filter.lazy_load_options,
             LazyLoadOptions::Enabled { include_redundant_members: false }
         );
-
-        #[cfg(feature = "unstable-msc3440")]
-        assert_eq!(filter.related_by_rel_types, vec![]);
-        #[cfg(feature = "unstable-msc3440")]
-        assert_eq!(filter.related_by_senders, vec![""; 0]);
     }
 }
