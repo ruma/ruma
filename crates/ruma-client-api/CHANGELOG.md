@@ -15,6 +15,7 @@ Improvements:
   * The fields added to `RoomEventFilter` were removed by MSC3856
 * Add support for the threads list API (MSC3856 / Matrix 1.4)
 * Stabilize support for private read receipts
+* Add support for the pagination direction parameter to `/relations` (MSC3715 / Matrix 1.4)
 
 # 0.15.1
 

@@ -10,6 +10,8 @@ pub mod v1 {
     use js_int::UInt;
     use ruma_common::{api::ruma_api, events::AnyMessageLikeEvent, serde::Raw, EventId, RoomId};
 
+    use crate::Direction;
+
     ruma_api! {
         metadata: {
             description: "Get the child events for a given parent event.",
@@ -35,8 +37,8 @@ pub mod v1 {
             ///
             /// If `None`, results start at the most recent topological event known to the server.
             ///
-            /// Can be a `next_batch` token from a previous call, or a returned  `start` token from
-            /// `/messages` or a `next_batch` token from `/sync`.
+            /// Can be a `next_batch` or `prev_batch` token from a previous call, or a returned
+            /// `start` token from `/messages` or a `next_batch` token from `/sync`.
             ///
             /// Note that when paginating the `from` token should be "after" the `to` token in
             /// terms of topological ordering, because it is only possible to paginate "backwards"
@@ -44,6 +46,13 @@ pub mod v1 {
             #[serde(skip_serializing_if = "Option::is_none")]
             #[ruma_api(query)]
             pub from: Option<&'a str>,
+
+            /// The direction to return events from.
+            ///
+            /// Defaults to [`Direction::Backward`].
+            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+            #[ruma_api(query)]
+            pub dir: Direction,
 
             /// The pagination token to stop returning results at.
             ///
@@ -96,7 +105,7 @@ pub mod v1 {
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given room ID and parent event ID.
         pub fn new(room_id: &'a RoomId, event_id: &'a EventId) -> Self {
-            Self { room_id, event_id, from: None, to: None, limit: None }
+            Self { room_id, event_id, dir: Direction::default(), from: None, to: None, limit: None }
         }
     }
 
