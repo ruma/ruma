@@ -6,6 +6,10 @@ Breaking changes:
 * Remove deprecated constructors for `RoomMessageEventContent`
 * Remove `serde::vec_as_map_of_empty` from the public API
 
+Improvements:
+
+* Add `MatrixVersion::V1_4`
+
 # 0.10.3
 
 Bug fixes:
