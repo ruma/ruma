@@ -17,6 +17,7 @@ pub(crate) fn check_spec_links(path: &Path) -> Result<()> {
         s.starts_with("v1.1")
             || s.starts_with("v1.2")
             || s.starts_with("v1.3")
+            || s.starts_with("v1.4")
             || s.starts_with("unstable")
     })?;
     Ok(())
