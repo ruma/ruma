@@ -67,7 +67,7 @@ pub enum ReceiptType {
     /// If both `Read` and `ReadPrivate` are present, the one that references
     /// the most recent event is used to get the latest read receipt.
     ///
-    /// [public read receipt]: https://spec.matrix.org/v1.3/client-server-api/#receipts
+    /// [public read receipt]: https://spec.matrix.org/v1.4/client-server-api/#receipts
     #[ruma_enum(rename = "m.read")]
     Read,
 
@@ -82,9 +82,8 @@ pub enum ReceiptType {
     /// If both `Read` and `ReadPrivate` are present, the one that references
     /// the most recent event is used to get the latest read receipt.
     ///
-    /// [private read receipt]: https://github.com/matrix-org/matrix-spec-proposals/pull/2285
-    #[cfg(feature = "unstable-msc2285")]
-    #[ruma_enum(rename = "org.matrix.msc2285.read.private", alias = "m.read.private")]
+    /// [private read receipt]: https://spec.matrix.org/v1.4/client-server-api/#private-read-receipts
+    #[ruma_enum(rename = "m.read.private")]
     ReadPrivate,
 
     #[doc(hidden)]
