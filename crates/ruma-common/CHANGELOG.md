@@ -9,6 +9,7 @@ Breaking changes:
 Improvements:
 
 * Add `MatrixVersion::V1_4`
+* Stabilize default room server ACL push rule
 
 # 0.10.3
 
