@@ -15,6 +15,8 @@ Improvements:
 * Stabilize support for private read receipts
 * Add stable support for threads
   * Move `Relation::Thread` and associated types and methods out of `unstable-msc3440`
+  * Add parameter to `RoomMessageEventContent::make_reply_to` to be thread-aware
+  * Add `RoomMessageEventContent::make_for_reply`
 
 # 0.10.3
 

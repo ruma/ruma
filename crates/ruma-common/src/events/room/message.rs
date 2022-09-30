@@ -106,14 +106,20 @@ impl RoomMessageEventContent {
     /// Turns `self` into a reply to the given message.
     ///
     /// Takes the `body` / `formatted_body` (if any) in `self` for the main text and prepends a
-    /// quoted version of `original_message`. Also sets the `in_reply_to` field inside `relates_to`.
+    /// quoted version of `original_message`. Also sets the `in_reply_to` field inside `relates_to`,
+    /// and optionally the `rel_type` to `m.thread` if the `original_message is in a thread and
+    /// thread forwarding is enabled.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
     ///
     /// # Panics
     ///
     /// Panics if `self` has a `formatted_body` with a format other than HTML.
     #[track_caller]
-    pub fn make_reply_to(mut self, original_message: &OriginalRoomMessageEvent) -> Self {
+    pub fn make_reply_to(
+        mut self,
+        original_message: &OriginalRoomMessageEvent,
+        forward_thread: ForwardThread,
+    ) -> Self {
         let empty_formatted_body = || FormattedBody::html(String::new());
 
         let (body, formatted) = {
@@ -154,43 +160,6 @@ impl RoomMessageEventContent {
             );
         }
 
-        self.relates_to = Some(Relation::Reply {
-            in_reply_to: InReplyTo { event_id: original_message.event_id.to_owned() },
-        });
-
-        self
-    }
-
-    /// Create a new reply with the given message and optionally forwards the [`Relation::Thread`].
-    ///
-    /// If `message` is a text, an emote or a notice message, it is modified to include the rich
-    /// reply fallback.
-    #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
-    pub fn reply(
-        message: MessageType,
-        original_message: &OriginalRoomMessageEvent,
-        forward_thread: ForwardThread,
-    ) -> Self {
-        let make_reply = |body, formatted: Option<FormattedBody>| {
-            reply::plain_and_formatted_reply_body(body, formatted.map(|f| f.body), original_message)
-        };
-
-        let msgtype = match message {
-            MessageType::Text(TextMessageEventContent { body, formatted, .. }) => {
-                let (body, html_body) = make_reply(body, formatted);
-                MessageType::Text(TextMessageEventContent::html(body, html_body))
-            }
-            MessageType::Emote(EmoteMessageEventContent { body, formatted, .. }) => {
-                let (body, html_body) = make_reply(body, formatted);
-                MessageType::Emote(EmoteMessageEventContent::html(body, html_body))
-            }
-            MessageType::Notice(NoticeMessageEventContent { body, formatted, .. }) => {
-                let (body, html_body) = make_reply(body, formatted);
-                MessageType::Notice(NoticeMessageEventContent::html(body, html_body))
-            }
-            _ => message,
-        };
-
         let relates_to = if let Some(Relation::Thread(Thread { event_id, .. })) = original_message
             .content
             .relates_to
@@ -203,48 +172,34 @@ impl RoomMessageEventContent {
                 in_reply_to: InReplyTo { event_id: original_message.event_id.clone() },
             }
         };
+        self.relates_to = Some(relates_to);
 
-        Self { msgtype, relates_to: Some(relates_to) }
+        self
     }
 
-    /// Create a new message for a thread that is optionally a reply.
+    /// Turns `self` into a new message for a thread, that is optionally a reply.
     ///
-    /// Looks for a [`Relation::Thread`] in `previous_message`. If it exists, a message for the same
-    /// thread is created. If it doesn't, a new thread with `previous_message` as the root is
+    /// Looks for a [`Relation::Thread`] in `previous_message`. If it exists, this message will be
+    /// in the same thread. If it doesn't, a new thread with `previous_message` as the root is
     /// created.
     ///
-    /// If `message` is a text, an emote or a notice message, and this is a reply in the thread, it
-    /// is modified to include the rich reply fallback.
+    /// If this is a reply within the thread, takes the `body` / `formatted_body` (if any) in `self`
+    /// for the main text and prepends a quoted version of `previous_message`. Also sets the
+    /// `in_reply_to` field inside `relates_to`.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
-    pub fn for_thread(
-        message: MessageType,
+    ///
+    /// # Panics
+    ///
+    /// Panics if this is a reply within the thread and `self` has a `formatted_body` with a format
+    /// other than HTML.
+    pub fn make_for_thread(
+        mut self,
         previous_message: &OriginalRoomMessageEvent,
         is_reply: ReplyWithinThread,
     ) -> Self {
-        let make_reply = |body, formatted: Option<FormattedBody>| {
-            reply::plain_and_formatted_reply_body(body, formatted.map(|f| f.body), previous_message)
-        };
-
-        let msgtype = if is_reply == ReplyWithinThread::Yes {
-            // If this is a real reply, add the rich reply fallback.
-            match message {
-                MessageType::Text(TextMessageEventContent { body, formatted, .. }) => {
-                    let (body, html_body) = make_reply(body, formatted);
-                    MessageType::Text(TextMessageEventContent::html(body, html_body))
-                }
-                MessageType::Emote(EmoteMessageEventContent { body, formatted, .. }) => {
-                    let (body, html_body) = make_reply(body, formatted);
-                    MessageType::Emote(EmoteMessageEventContent::html(body, html_body))
-                }
-                MessageType::Notice(NoticeMessageEventContent { body, formatted, .. }) => {
-                    let (body, html_body) = make_reply(body, formatted);
-                    MessageType::Notice(NoticeMessageEventContent::html(body, html_body))
-                }
-                _ => message,
-            }
-        } else {
-            message
-        };
+        if is_reply == ReplyWithinThread::Yes {
+            self = self.make_reply_to(previous_message, ForwardThread::No);
+        }
 
         let thread_root = if let Some(Relation::Thread(Thread { event_id, .. })) =
             &previous_message.content.relates_to
@@ -254,14 +209,13 @@ impl RoomMessageEventContent {
             previous_message.event_id.clone()
         };
 
-        Self {
-            msgtype,
-            relates_to: Some(Relation::Thread(Thread {
-                event_id: thread_root,
-                in_reply_to: InReplyTo { event_id: previous_message.event_id.clone() },
-                is_falling_back: is_reply == ReplyWithinThread::No,
-            })),
-        }
+        self.relates_to = Some(Relation::Thread(Thread {
+            event_id: thread_root,
+            in_reply_to: InReplyTo { event_id: previous_message.event_id.clone() },
+            is_falling_back: is_reply == ReplyWithinThread::No,
+        }));
+
+        self
     }
 
     /// Returns a reference to the `msgtype` string.

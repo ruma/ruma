@@ -486,7 +486,7 @@ fn content_deserialization_failure() {
 #[test]
 #[cfg(feature = "unstable-sanitize")]
 fn reply_sanitize() {
-    use ruma_common::events::room::message::TextMessageEventContent;
+    use ruma_common::events::room::message::{ForwardThread, TextMessageEventContent};
 
     let first_message = OriginalRoomMessageEvent {
         content: RoomMessageEventContent::text_html(
@@ -504,7 +504,7 @@ fn reply_sanitize() {
             "This is the _second_ message",
             "This is the <em>second</em> message",
         )
-        .make_reply_to(&first_message),
+        .make_reply_to(&first_message, ForwardThread::Yes),
         event_id: event_id!("$143273582443PhrSn:example.org").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
         room_id: room_id!("!testroomid:example.org").to_owned(),
@@ -515,7 +515,7 @@ fn reply_sanitize() {
         "This is **my** reply",
         "This is <strong>my</strong> reply",
     )
-    .make_reply_to(&second_message);
+    .make_reply_to(&second_message, ForwardThread::Yes);
 
     let (body, formatted) = assert_matches!(
         first_message.content.msgtype,
