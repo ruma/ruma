@@ -5,6 +5,9 @@ Bug fixes:
 * Fix third party invite event authorization. The event was not allowed even
   after passing all the required checks, so it could fail further down the
   algorithm.
+* Allow `invite` -> `knock` membership transition
+  * The spec was determined to be wrong about rejecting it:
+    <https://github.com/matrix-org/matrix-spec/pull/1175>
 
 # 0.8.0
 
