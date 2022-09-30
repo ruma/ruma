@@ -10,6 +10,7 @@ Improvements:
 * Add `M_BAD_ALIAS` to `error::ErrorKind`
 * Remove the `unstable-msc3440` feature
   * The fields added to `RoomEventFilter` were removed by MSC3856
+* Add support for the threads list API (MSC3856 / Matrix 1.4)
 
 # 0.15.1
 
