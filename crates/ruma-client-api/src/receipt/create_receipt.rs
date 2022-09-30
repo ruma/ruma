@@ -70,7 +70,7 @@ pub mod v3 {
         ///
         /// This receipt is federated to other users.
         ///
-        /// [public read receipt]: https://spec.matrix.org/v1.3/client-server-api/#receipts
+        /// [public read receipt]: https://spec.matrix.org/v1.4/client-server-api/#receipts
         #[ruma_enum(rename = "m.read")]
         Read,
 
@@ -81,9 +81,8 @@ pub mod v3 {
         /// This read receipt is not federated so only the user and their homeserver
         /// are aware of it.
         ///
-        /// [private read receipt]: https://github.com/matrix-org/matrix-spec-proposals/pull/2285
-        #[cfg(feature = "unstable-msc2285")]
-        #[ruma_enum(rename = "org.matrix.msc2285.read.private", alias = "m.read.private")]
+        /// [private read receipt]: https://spec.matrix.org/v1.4/client-server-api/#private-read-receipts
+        #[ruma_enum(rename = "m.read.private")]
         ReadPrivate,
 
         /// A [fully read marker].
@@ -93,8 +92,7 @@ pub mod v3 {
         /// This is actually not a receipt, but a piece of room account data. It is
         /// provided here for convenience.
         ///
-        /// [fully read marker]: https://spec.matrix.org/v1.3/client-server-api/#fully-read-markers
-        #[cfg(feature = "unstable-msc2285")]
+        /// [fully read marker]: https://spec.matrix.org/v1.4/client-server-api/#fully-read-markers
         #[ruma_enum(rename = "m.fully_read")]
         FullyRead,
 

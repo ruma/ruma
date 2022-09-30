@@ -32,24 +32,12 @@ pub mod v3 {
             ///
             /// The event MUST belong to the room.
             ///
-            /// With the `unstable-msc2285` feature, this field is optional.
-            #[cfg(not(feature = "unstable-msc2285"))]
-            #[serde(rename = "m.fully_read")]
-            pub fully_read: &'a EventId,
-
-            /// The event ID the fully-read marker should be located at.
-            ///
-            /// The event MUST belong to the room.
-            ///
             /// This is equivalent to calling the [`create_receipt`] endpoint with a
             /// [`ReceiptType::FullyRead`].
             ///
-            /// Without the `unstable-msc2285` feature, this field is required.
-            ///
             /// [`create_receipt`]: crate::receipt::create_receipt
             /// [`ReceiptType::FullyRead`]: crate::receipt::create_receipt::v3::ReceiptType::FullyRead
-            #[cfg(feature = "unstable-msc2285")]
-            #[serde(rename = "m.fully_read")]
+            #[serde(rename = "m.fully_read", skip_serializing_if = "Option::is_none")]
             pub fully_read: Option<&'a EventId>,
 
             /// The event ID to set the public read receipt location at.
@@ -69,8 +57,7 @@ pub mod v3 {
             ///
             /// [`create_receipt`]: crate::receipt::create_receipt
             /// [`ReceiptType::ReadPrivate`]: crate::receipt::create_receipt::v3::ReceiptType::ReadPrivate
-            #[cfg(feature = "unstable-msc2285")]
-            #[serde(rename = "org.matrix.msc2285.read.private", alias = "m.read.private", skip_serializing_if = "Option::is_none")]
+            #[serde(rename = "m.read.private", skip_serializing_if = "Option::is_none")]
             pub private_read_receipt: Option<&'a EventId>,
         }
 
@@ -81,19 +68,7 @@ pub mod v3 {
     }
 
     impl<'a> Request<'a> {
-        /// Creates a new `Request` with the given room ID and fully read event ID.
-        ///
-        /// With the `unstable-msc2285` feature, this method doesn't have the `fully_read`
-        /// parameter.
-        #[cfg(not(feature = "unstable-msc2285"))]
-        pub fn new(room_id: &'a RoomId, fully_read: &'a EventId) -> Self {
-            Self { room_id, fully_read, read_receipt: None }
-        }
-
         /// Creates a new `Request` with the given room ID.
-        ///
-        /// Without the `unstable-msc2285` feature, this method takes a `fully_read` parameter.
-        #[cfg(feature = "unstable-msc2285")]
         pub fn new(room_id: &'a RoomId) -> Self {
             Self { room_id, fully_read: None, read_receipt: None, private_read_receipt: None }
         }

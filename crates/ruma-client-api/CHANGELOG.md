@@ -4,6 +4,8 @@ Breaking changes:
 
 * Remove `sync::sync_events::v3::DeviceLists` re-export
   * Use `sync::sync_events::DeviceLists` instead
+* `fully_read` field in `read_marker::set_read_marker` is no longer required
+  * Remove the `fully_read` argument from `read_marker::set_read_marker::Request::new`
 
 Improvements:
 
@@ -11,6 +13,7 @@ Improvements:
 * Remove the `unstable-msc3440` feature
   * The fields added to `RoomEventFilter` were removed by MSC3856
 * Add support for the threads list API (MSC3856 / Matrix 1.4)
+* Stabilize support for private read receipts
 
 # 0.15.1
 
