@@ -6,6 +6,7 @@ Breaking changes:
   * Use `sync::sync_events::DeviceLists` instead
 * `fully_read` field in `read_marker::set_read_marker` is no longer required
   * Remove the `fully_read` argument from `read_marker::set_read_marker::Request::new`
+* Move `message::get_message_events::v3::Direction` to the root of the crate
 
 Improvements:
 
