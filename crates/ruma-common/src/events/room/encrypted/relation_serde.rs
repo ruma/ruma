@@ -4,10 +4,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use super::Annotation;
 #[cfg(feature = "unstable-msc2676")]
 use super::Replacement;
-#[cfg(feature = "unstable-msc3440")]
-use super::Thread;
-use super::{InReplyTo, Reference, Relation};
-#[cfg(feature = "unstable-msc3440")]
+use super::{InReplyTo, Reference, Relation, Thread};
 use crate::OwnedEventId;
 
 impl<'de> Deserialize<'de> for Relation {
@@ -17,7 +14,6 @@ impl<'de> Deserialize<'de> for Relation {
     {
         let ev = EventWithRelatesToJsonRepr::deserialize(deserializer)?;
 
-        #[cfg(feature = "unstable-msc3440")]
         if let Some(
             RelationJsonRepr::ThreadStable(ThreadStableJsonRepr { event_id, is_falling_back })
             | RelationJsonRepr::ThreadUnstable(ThreadUnstableJsonRepr { event_id, is_falling_back }),
@@ -40,7 +36,6 @@ impl<'de> Deserialize<'de> for Relation {
                 RelationJsonRepr::Replacement(Replacement { event_id }) => {
                     Relation::Replacement(Replacement { event_id })
                 }
-                #[cfg(feature = "unstable-msc3440")]
                 RelationJsonRepr::ThreadStable(_) | RelationJsonRepr::ThreadUnstable(_) => {
                     unreachable!()
                 }
@@ -80,11 +75,10 @@ impl Serialize for Relation {
             Relation::Reply { in_reply_to } => {
                 RelatesToJsonRepr { in_reply_to: Some(in_reply_to.clone()), ..Default::default() }
             }
-            #[cfg(feature = "unstable-msc3440")]
             Relation::Thread(Thread { event_id, in_reply_to, is_falling_back }) => {
                 RelatesToJsonRepr {
                     in_reply_to: Some(in_reply_to.clone()),
-                    relation: Some(RelationJsonRepr::ThreadUnstable(ThreadUnstableJsonRepr {
+                    relation: Some(RelationJsonRepr::ThreadStable(ThreadStableJsonRepr {
                         event_id: event_id.clone(),
                         is_falling_back: *is_falling_back,
                     })),
@@ -123,7 +117,6 @@ impl RelatesToJsonRepr {
 
 /// A thread relation without the reply fallback, with stable names.
 #[derive(Clone, Deserialize, Serialize)]
-#[cfg(feature = "unstable-msc3440")]
 struct ThreadStableJsonRepr {
     /// The ID of the root message in the thread.
     pub event_id: OwnedEventId,
@@ -136,7 +129,6 @@ struct ThreadStableJsonRepr {
 
 /// A thread relation without the reply fallback, with unstable names.
 #[derive(Clone, Deserialize, Serialize)]
-#[cfg(feature = "unstable-msc3440")]
 struct ThreadUnstableJsonRepr {
     /// The ID of the root message in the thread.
     pub event_id: OwnedEventId,
@@ -170,12 +162,10 @@ enum RelationJsonRepr {
     Replacement(Replacement),
 
     /// An event that belongs to a thread, with stable names.
-    #[cfg(feature = "unstable-msc3440")]
     #[serde(rename = "m.thread")]
     ThreadStable(ThreadStableJsonRepr),
 
     /// An event that belongs to a thread, with unstable names.
-    #[cfg(feature = "unstable-msc3440")]
     #[serde(rename = "io.element.thread")]
     ThreadUnstable(ThreadUnstableJsonRepr),
 

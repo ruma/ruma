@@ -13,6 +13,8 @@ Improvements:
 * Stabilize default room server ACL push rule
 * Stabilize `room_types` in `directory::Filter` and `room_type` in `directory::PublicRoomsChunk`
 * Stabilize support for private read receipts
+* Add stable support for threads
+  * Move `Relation::Thread` and associated types and methods out of `unstable-msc3440`
 
 # 0.10.3
 

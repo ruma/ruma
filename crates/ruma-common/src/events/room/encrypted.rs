@@ -102,7 +102,6 @@ pub enum Relation {
     Annotation(Annotation),
 
     /// An event that belongs to a thread.
-    #[cfg(feature = "unstable-msc3440")]
     Thread(Thread),
 
     #[doc(hidden)]
@@ -117,7 +116,6 @@ impl From<message::Relation> for Relation {
             message::Relation::Replacement(re) => {
                 Self::Replacement(Replacement { event_id: re.event_id })
             }
-            #[cfg(feature = "unstable-msc3440")]
             message::Relation::Thread(t) => Self::Thread(Thread {
                 event_id: t.event_id,
                 in_reply_to: t.in_reply_to,
@@ -178,7 +176,6 @@ impl Annotation {
 
 /// A thread relation for an event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg(feature = "unstable-msc3440")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Thread {
     /// The ID of the root message in the thread.
@@ -199,7 +196,6 @@ pub struct Thread {
     pub is_falling_back: bool,
 }
 
-#[cfg(feature = "unstable-msc3440")]
 impl Thread {
     /// Convenience method to create a regular `Thread` with the given event ID and latest
     /// message-like event ID.
