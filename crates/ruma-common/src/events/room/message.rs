@@ -166,7 +166,6 @@ impl RoomMessageEventContent {
     /// If `message` is a text, an emote or a notice message, it is modified to include the rich
     /// reply fallback.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
-    #[cfg(feature = "unstable-msc3440")]
     pub fn reply(
         message: MessageType,
         original_message: &OriginalRoomMessageEvent,
@@ -198,7 +197,7 @@ impl RoomMessageEventContent {
             .as_ref()
             .filter(|_| forward_thread == ForwardThread::Yes)
         {
-            Relation::Thread(Thread::reply(event_id.clone(), original_message.event_id.clone()))
+            Relation::Thread(Thread::plain(event_id.clone(), original_message.event_id.clone()))
         } else {
             Relation::Reply {
                 in_reply_to: InReplyTo { event_id: original_message.event_id.clone() },
@@ -217,17 +216,16 @@ impl RoomMessageEventContent {
     /// If `message` is a text, an emote or a notice message, and this is a reply in the thread, it
     /// is modified to include the rich reply fallback.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
-    #[cfg(feature = "unstable-msc3440")]
     pub fn for_thread(
         message: MessageType,
         previous_message: &OriginalRoomMessageEvent,
-        is_reply: ReplyInThread,
+        is_reply: ReplyWithinThread,
     ) -> Self {
         let make_reply = |body, formatted: Option<FormattedBody>| {
             reply::plain_and_formatted_reply_body(body, formatted.map(|f| f.body), previous_message)
         };
 
-        let msgtype = if is_reply == ReplyInThread::Yes {
+        let msgtype = if is_reply == ReplyWithinThread::Yes {
             // If this is a real reply, add the rich reply fallback.
             match message {
                 MessageType::Text(TextMessageEventContent { body, formatted, .. }) => {
@@ -261,7 +259,7 @@ impl RoomMessageEventContent {
             relates_to: Some(Relation::Thread(Thread {
                 event_id: thread_root,
                 in_reply_to: InReplyTo { event_id: previous_message.event_id.clone() },
-                is_falling_back: is_reply == ReplyInThread::No,
+                is_falling_back: is_reply == ReplyWithinThread::No,
             })),
         }
     }
@@ -314,15 +312,15 @@ impl RoomMessageEventContent {
 }
 
 /// Whether or not to forward a [`Relation::Thread`] when sending a reply.
-#[cfg(feature = "unstable-msc3440")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[allow(clippy::exhaustive_enums)]
 pub enum ForwardThread {
     /// The thread relation in the original message is forwarded if it exists.
     ///
-    /// This should be set if your client doesn't support threads (see [MSC3440]).
+    /// This should be set if your client doesn't render threads (see the [info
+    /// box for clients which are acutely aware of threads]).
     ///
-    /// [MSC3440]: https://github.com/matrix-org/matrix-spec-proposals/pull/3440
+    /// [info box for clients which are acutely aware of threads]: https://spec.matrix.org/v1.4/client-server-api/#fallback-for-unthreaded-clients
     Yes,
 
     /// Create a reply in the main conversation even if the original message is in a thread.
@@ -332,20 +330,21 @@ pub enum ForwardThread {
 }
 
 /// Whether or not the message is a reply inside a thread.
-#[cfg(feature = "unstable-msc3440")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[allow(clippy::exhaustive_enums)]
-pub enum ReplyInThread {
+pub enum ReplyWithinThread {
     /// This is a reply.
     ///
-    /// Create a proper reply _in_ the thread.
+    /// Create a [reply within the thread].
+    ///
+    /// [reply within the thread]: https://spec.matrix.org/v1.4/client-server-api/#replies-within-threads
     Yes,
 
     /// This is not a reply.
     ///
-    /// Create a regular message in the thread, with a reply fallback, according to [MSC3440].
+    /// Create a regular message in the thread, with a [fallback for unthreaded clients].
     ///
-    /// [MSC3440]: https://github.com/matrix-org/matrix-spec-proposals/pull/3440
+    /// [fallback for unthreaded clients]: https://spec.matrix.org/v1.4/client-server-api/#fallback-for-unthreaded-clients
     No,
 }
 
@@ -520,7 +519,6 @@ pub enum Relation {
     Replacement(Replacement),
 
     /// An event that belongs to a thread.
-    #[cfg(feature = "unstable-msc3440")]
     Thread(Thread),
 
     #[doc(hidden)]
@@ -564,7 +562,6 @@ impl Replacement {
 
 /// The content of a thread relation.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg(feature = "unstable-msc3440")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Thread {
     /// The ID of the root message in the thread.
@@ -585,7 +582,6 @@ pub struct Thread {
     pub is_falling_back: bool,
 }
 
-#[cfg(feature = "unstable-msc3440")]
 impl Thread {
     /// Convenience method to create a regular `Thread` with the given event ID and latest
     /// message-like event ID.

@@ -4,10 +4,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use super::Replacement;
 #[cfg(feature = "unstable-msc2676")]
 use super::RoomMessageEventContent;
-#[cfg(feature = "unstable-msc3440")]
-use super::Thread;
-use super::{InReplyTo, Relation};
-#[cfg(any(feature = "unstable-msc2676", feature = "unstable-msc3440"))]
+use super::{InReplyTo, Relation, Thread};
 use crate::OwnedEventId;
 
 impl<'de> Deserialize<'de> for Relation {
@@ -17,7 +14,6 @@ impl<'de> Deserialize<'de> for Relation {
     {
         let ev = EventWithRelatesToJsonRepr::deserialize(deserializer)?;
 
-        #[cfg(feature = "unstable-msc3440")]
         if let Some(
             RelationJsonRepr::ThreadStable(ThreadStableJsonRepr { event_id, is_falling_back })
             | RelationJsonRepr::ThreadUnstable(ThreadUnstableJsonRepr { event_id, is_falling_back }),
@@ -44,7 +40,6 @@ impl<'de> Deserialize<'de> for Relation {
                 // FIXME: Maybe we should log this, though at this point we don't even have
                 // access to the rel_type of the unknown relation.
                 RelationJsonRepr::Unknown => Relation::_Custom,
-                #[cfg(feature = "unstable-msc3440")]
                 RelationJsonRepr::ThreadStable(_) | RelationJsonRepr::ThreadUnstable(_) => {
                     unreachable!()
                 }
@@ -80,11 +75,10 @@ impl Serialize for Relation {
                     new_content: Some(new_content.clone()),
                 }
             }
-            #[cfg(feature = "unstable-msc3440")]
             Relation::Thread(Thread { event_id, in_reply_to, is_falling_back }) => {
                 EventWithRelatesToJsonRepr::new(RelatesToJsonRepr {
                     in_reply_to: Some(in_reply_to.clone()),
-                    relation: Some(RelationJsonRepr::ThreadUnstable(ThreadUnstableJsonRepr {
+                    relation: Some(RelationJsonRepr::ThreadStable(ThreadStableJsonRepr {
                         event_id: event_id.clone(),
                         is_falling_back: *is_falling_back,
                     })),
@@ -144,13 +138,11 @@ enum RelationJsonRepr {
     #[serde(rename = "m.replace")]
     Replacement(ReplacementJsonRepr),
 
-    /// An event that belongs to a thread, with unstable names.
-    #[cfg(feature = "unstable-msc3440")]
+    /// An event that belongs to a thread, with stable names.
     #[serde(rename = "m.thread")]
     ThreadStable(ThreadStableJsonRepr),
 
     /// An event that belongs to a thread, with unstable names.
-    #[cfg(feature = "unstable-msc3440")]
     #[serde(rename = "io.element.thread")]
     ThreadUnstable(ThreadUnstableJsonRepr),
 
@@ -170,7 +162,6 @@ struct ReplacementJsonRepr {
 
 /// A thread relation without the reply fallback, with stable names.
 #[derive(Clone, Deserialize, Serialize)]
-#[cfg(feature = "unstable-msc3440")]
 struct ThreadStableJsonRepr {
     /// The ID of the root message in the thread.
     event_id: OwnedEventId,
@@ -183,7 +174,6 @@ struct ThreadStableJsonRepr {
 
 /// A thread relation without the reply fallback, with unstable names.
 #[derive(Clone, Deserialize, Serialize)]
-#[cfg(feature = "unstable-msc3440")]
 struct ThreadUnstableJsonRepr {
     /// The ID of the root message in the thread.
     event_id: OwnedEventId,

@@ -4,17 +4,16 @@
 
 use std::fmt::Debug;
 
-#[cfg(any(feature = "unstable-msc2677", feature = "unstable-msc3440"))]
 use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "unstable-msc3440")]
-use super::AnySyncMessageLikeEvent;
-#[cfg(feature = "unstable-msc3440")]
-use crate::serde::Raw;
+use super::AnyMessageLikeEvent;
 #[cfg(any(feature = "unstable-msc2676", feature = "unstable-msc2677"))]
 use crate::MilliSecondsSinceUnixEpoch;
-use crate::{serde::StringEnum, PrivOwnedStr};
+use crate::{
+    serde::{Raw, StringEnum},
+    PrivOwnedStr,
+};
 #[cfg(feature = "unstable-msc2676")]
 use crate::{OwnedEventId, OwnedUserId};
 
@@ -112,11 +111,10 @@ impl BundledReplacement {
 
 /// A bundled thread.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg(feature = "unstable-msc3440")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct BundledThread {
     /// The latest event in the thread.
-    pub latest_event: Box<Raw<AnySyncMessageLikeEvent>>,
+    pub latest_event: Box<Raw<AnyMessageLikeEvent>>,
 
     /// The number of events in the thread.
     pub count: UInt,
@@ -125,11 +123,10 @@ pub struct BundledThread {
     pub current_user_participated: bool,
 }
 
-#[cfg(feature = "unstable-msc3440")]
 impl BundledThread {
     /// Creates a new `BundledThread` with the given event, count and user participated flag.
     pub fn new(
-        latest_event: Box<Raw<AnySyncMessageLikeEvent>>,
+        latest_event: Box<Raw<AnyMessageLikeEvent>>,
         count: UInt,
         current_user_participated: bool,
     ) -> Self {
@@ -154,8 +151,7 @@ pub struct Relations {
     pub replace: Option<BundledReplacement>,
 
     /// Thread relation.
-    #[cfg(feature = "unstable-msc3440")]
-    #[serde(rename = "io.element.thread", alias = "m.thread")]
+    #[serde(rename = "m.thread")]
     pub thread: Option<BundledThread>,
 }
 
@@ -182,8 +178,7 @@ pub enum RelationType {
     Replacement,
 
     /// `m.thread`, a participant to a thread.
-    #[cfg(feature = "unstable-msc3440")]
-    #[ruma_enum(rename = "io.element.thread", alias = "m.thread")]
+    #[ruma_enum(rename = "m.thread")]
     Thread,
 
     #[doc(hidden)]

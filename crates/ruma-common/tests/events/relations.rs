@@ -149,7 +149,6 @@ fn replacement_deserialize() {
 }
 
 #[test]
-#[cfg(feature = "unstable-msc3440")]
 fn thread_plain_serialize() {
     use ruma_common::events::room::message::Thread;
 
@@ -172,12 +171,12 @@ fn thread_plain_serialize() {
             "msgtype": "m.text",
             "body": "<text msg>",
             "m.relates_to": {
-                "rel_type": "io.element.thread",
+                "rel_type": "m.thread",
                 "event_id": "$1598361704261elfgc",
                 "m.in_reply_to": {
                     "event_id": "$latesteventid",
                 },
-                "io.element.show_reply": true,
+                "is_falling_back": true,
             },
         })
     );
@@ -190,19 +189,18 @@ fn thread_plain_serialize() {
             "body": "<text msg>",
             "org.matrix.msc1767.text": "<text msg>",
             "m.relates_to": {
-                "rel_type": "io.element.thread",
+                "rel_type": "m.thread",
                 "event_id": "$1598361704261elfgc",
                 "m.in_reply_to": {
                     "event_id": "$latesteventid",
                 },
-                "io.element.show_reply": true,
+                "is_falling_back": true,
             },
         })
     );
 }
 
 #[test]
-#[cfg(feature = "unstable-msc3440")]
 fn thread_reply_serialize() {
     use ruma_common::events::room::message::Thread;
 
@@ -225,7 +223,7 @@ fn thread_reply_serialize() {
             "msgtype": "m.text",
             "body": "<text msg>",
             "m.relates_to": {
-                "rel_type": "io.element.thread",
+                "rel_type": "m.thread",
                 "event_id": "$1598361704261elfgc",
                 "m.in_reply_to": {
                     "event_id": "$repliedtoeventid",
@@ -242,7 +240,7 @@ fn thread_reply_serialize() {
             "body": "<text msg>",
             "org.matrix.msc1767.text": "<text msg>",
             "m.relates_to": {
-                "rel_type": "io.element.thread",
+                "rel_type": "m.thread",
                 "event_id": "$1598361704261elfgc",
                 "m.in_reply_to": {
                     "event_id": "$repliedtoeventid",
@@ -253,7 +251,6 @@ fn thread_reply_serialize() {
 }
 
 #[test]
-#[cfg(feature = "unstable-msc3440")]
 fn thread_stable_deserialize() {
     let json = json!({
         "msgtype": "m.text",
@@ -281,7 +278,6 @@ fn thread_stable_deserialize() {
 }
 
 #[test]
-#[cfg(feature = "unstable-msc3440")]
 fn thread_unstable_deserialize() {
     let json = json!({
         "msgtype": "m.text",
