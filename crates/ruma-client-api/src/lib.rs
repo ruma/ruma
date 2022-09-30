@@ -41,6 +41,7 @@ pub mod state;
 pub mod sync;
 pub mod tag;
 pub mod thirdparty;
+pub mod threads;
 pub mod to_device;
 pub mod typing;
 pub mod uiaa;
