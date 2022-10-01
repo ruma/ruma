@@ -2,9 +2,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[cfg(feature = "unstable-msc2677")]
 use super::Annotation;
-#[cfg(feature = "unstable-msc2676")]
-use super::Replacement;
-use super::{InReplyTo, Reference, Relation, Thread};
+use super::{InReplyTo, Reference, Relation, Replacement, Thread};
 use crate::OwnedEventId;
 
 impl<'de> Deserialize<'de> for Relation {
@@ -32,7 +30,6 @@ impl<'de> Deserialize<'de> for Relation {
                 #[cfg(feature = "unstable-msc2677")]
                 RelationJsonRepr::Annotation(a) => Relation::Annotation(a),
                 RelationJsonRepr::Reference(r) => Relation::Reference(r),
-                #[cfg(feature = "unstable-msc2676")]
                 RelationJsonRepr::Replacement(Replacement { event_id }) => {
                     Relation::Replacement(Replacement { event_id })
                 }
@@ -67,7 +64,6 @@ impl Serialize for Relation {
                 relation: Some(RelationJsonRepr::Reference(r.clone())),
                 ..Default::default()
             },
-            #[cfg(feature = "unstable-msc2676")]
             Relation::Replacement(r) => RelatesToJsonRepr {
                 relation: Some(RelationJsonRepr::Replacement(r.clone())),
                 ..Default::default()
@@ -157,7 +153,6 @@ enum RelationJsonRepr {
     Reference(Reference),
 
     /// An event that replaces another event.
-    #[cfg(feature = "unstable-msc2676")]
     #[serde(rename = "m.replace")]
     Replacement(Replacement),
 

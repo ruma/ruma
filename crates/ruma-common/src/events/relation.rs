@@ -8,14 +8,10 @@ use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
 use super::AnyMessageLikeEvent;
-#[cfg(any(feature = "unstable-msc2676", feature = "unstable-msc2677"))]
-use crate::MilliSecondsSinceUnixEpoch;
 use crate::{
     serde::{Raw, StringEnum},
-    PrivOwnedStr,
+    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedUserId, PrivOwnedStr,
 };
-#[cfg(feature = "unstable-msc2676")]
-use crate::{OwnedEventId, OwnedUserId};
 
 /// Summary of all annotations to an event with the given key and type.
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq, Serialize)]
@@ -87,7 +83,6 @@ impl AnnotationChunk {
 
 /// A bundled replacement.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg(feature = "unstable-msc2676")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct BundledReplacement {
     /// The ID of the replacing event.
@@ -97,15 +92,17 @@ pub struct BundledReplacement {
     pub sender: OwnedUserId,
 
     /// Timestamp in milliseconds on originating homeserver when the latest replacement was sent.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 }
 
-#[cfg(feature = "unstable-msc2676")]
 impl BundledReplacement {
-    /// Creates a new `BundledReplacement` with the given event ID and sender.
-    pub fn new(event_id: OwnedEventId, sender: OwnedUserId) -> Self {
-        Self { event_id, sender, origin_server_ts: None }
+    /// Creates a new `BundledReplacement` with the given event ID, sender and timestamp.
+    pub fn new(
+        event_id: OwnedEventId,
+        sender: OwnedUserId,
+        origin_server_ts: MilliSecondsSinceUnixEpoch,
+    ) -> Self {
+        Self { event_id, sender, origin_server_ts }
     }
 }
 
@@ -146,7 +143,6 @@ pub struct Relations {
     pub annotation: Option<AnnotationChunk>,
 
     /// Replacement relation.
-    #[cfg(feature = "unstable-msc2676")]
     #[serde(rename = "m.replace")]
     pub replace: Option<BundledReplacement>,
 
@@ -173,7 +169,6 @@ pub enum RelationType {
     Annotation,
 
     /// `m.replace`, a replacement.
-    #[cfg(feature = "unstable-msc2676")]
     #[ruma_enum(rename = "m.replace")]
     Replacement,
 
