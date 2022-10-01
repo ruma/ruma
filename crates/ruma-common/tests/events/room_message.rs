@@ -1,13 +1,7 @@
 use std::borrow::Cow;
 
 use assert_matches::assert_matches;
-#[cfg(not(feature = "unstable-msc1767"))]
-use assign::assign;
 use js_int::uint;
-#[cfg(not(feature = "unstable-msc1767"))]
-use ruma_common::events::room::message::InReplyTo;
-#[cfg(any(feature = "unstable-msc2676", not(feature = "unstable-msc1767")))]
-use ruma_common::events::room::message::Relation;
 use ruma_common::{
     event_id,
     events::{
@@ -306,96 +300,6 @@ fn markdown_content_serialization() {
             "org.matrix.msc1767.text": "Testing\n\nSeveral\n\nParagraphs.",
         })
     );
-}
-
-#[test]
-#[cfg(not(feature = "unstable-msc1767"))]
-fn relates_to_content_serialization() {
-    let message_event_content =
-        assign!(RoomMessageEventContent::text_plain("> <@test:example.com> test\n\ntest reply"), {
-            relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo::new(
-                    event_id!("$15827405538098VGFWH:example.com").to_owned(),
-                ),
-            }),
-        });
-
-    let json_data = json!({
-        "body": "> <@test:example.com> test\n\ntest reply",
-        "msgtype": "m.text",
-        "m.relates_to": {
-            "m.in_reply_to": {
-                "event_id": "$15827405538098VGFWH:example.com"
-            }
-        }
-    });
-
-    assert_eq!(to_json_value(&message_event_content).unwrap(), json_data);
-}
-
-#[test]
-#[cfg(not(feature = "unstable-msc2676"))]
-fn edit_deserialization_061() {
-    let json_data = json!({
-        "body": "s/foo/bar",
-        "msgtype": "m.text",
-        "m.relates_to": {
-            "rel_type": "m.replace",
-            "event_id": "$1598361704261elfgc:localhost",
-        },
-        "m.new_content": {
-            "body": "bar",
-        },
-    });
-
-    let content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert!(content.relates_to.is_some());
-
-    let text = assert_matches!(
-        content.msgtype,
-        MessageType::Text(text) => text
-    );
-    assert_eq!(text.body, "s/foo/bar");
-    assert_matches!(text.formatted, None);
-}
-
-#[test]
-#[cfg(feature = "unstable-msc2676")]
-fn edit_deserialization_future() {
-    let json_data = json!({
-        "body": "s/foo/bar",
-        "msgtype": "m.text",
-        "m.relates_to": {
-            "rel_type": "m.replace",
-            "event_id": "$1598361704261elfgc:localhost",
-        },
-        "m.new_content": {
-            "body": "bar",
-            "msgtype": "m.text",
-        },
-    });
-
-    let content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-
-    let text = assert_matches!(
-        content.msgtype,
-        MessageType::Text(text) => text
-    );
-    assert_eq!(text.body, "s/foo/bar");
-    assert_matches!(text.formatted, None);
-
-    let replacement = assert_matches!(
-        content.relates_to,
-        Some(Relation::Replacement(replacement)) => replacement
-    );
-    assert_eq!(replacement.event_id, "$1598361704261elfgc:localhost");
-
-    let new_text = assert_matches!(
-        replacement.new_content.msgtype,
-        MessageType::Text(new_text) => new_text
-    );
-    assert_eq!(new_text.body, "bar");
-    assert_matches!(new_text.formatted, None);
 }
 
 #[test]
