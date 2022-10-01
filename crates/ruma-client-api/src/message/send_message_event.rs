@@ -36,9 +36,13 @@ pub mod v3 {
 
             /// The transaction ID for this event.
             ///
-            /// Clients should generate an ID unique across requests with the
-            /// same access token; it will be used by the server to ensure
-            /// idempotency of requests.
+            /// Clients should generate a unique ID across requests within the
+            /// same session. A session is identified by an access token, and
+            /// persists when the [access token is refreshed].
+            ///
+            /// It will be used by the server to ensure idempotency of requests.
+            ///
+            /// [access token is refreshed]: https://spec.matrix.org/v1.4/client-server-api/#refreshing-access-tokens
             #[ruma_api(path)]
             pub txn_id: &'a TransactionId,
 
