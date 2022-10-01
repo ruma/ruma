@@ -29,7 +29,15 @@ pub mod v3 {
             #[ruma_api(path)]
             pub event_type: &'a str,
 
-            /// A request identifier unique to the access token used to send the request.
+            /// The transaction ID for this event.
+            ///
+            /// Clients should generate a unique ID across requests within the
+            /// same session. A session is identified by an access token, and
+            /// persists when the [access token is refreshed].
+            ///
+            /// It will be used by the server to ensure idempotency of requests.
+            ///
+            /// [access token is refreshed]: https://spec.matrix.org/v1.4/client-server-api/#refreshing-access-tokens
             #[ruma_api(path)]
             pub txn_id: &'a TransactionId,
 
