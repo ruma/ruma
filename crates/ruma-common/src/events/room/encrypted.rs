@@ -91,7 +91,6 @@ pub enum Relation {
     },
 
     /// An event that replaces another event.
-    #[cfg(feature = "unstable-msc2676")]
     Replacement(Replacement),
 
     /// A reference to another event.
@@ -112,7 +111,6 @@ impl From<message::Relation> for Relation {
     fn from(rel: message::Relation) -> Self {
         match rel {
             message::Relation::Reply { in_reply_to } => Self::Reply { in_reply_to },
-            #[cfg(feature = "unstable-msc2676")]
             message::Relation::Replacement(re) => {
                 Self::Replacement(Replacement { event_id: re.event_id })
             }
@@ -126,13 +124,14 @@ impl From<message::Relation> for Relation {
     }
 }
 
-/// The event this relation belongs to replaces another event.
+/// The event this relation belongs to [replaces another event].
 ///
 /// In contrast to [`message::Replacement`](super::message::Replacement), this struct doesn't
 /// store the new content, since that is part of the encrypted content of an `m.room.encrypted`
 /// events.
+///
+/// [replaces another event]: https://spec.matrix.org/v1.4/client-server-api/#event-replacements
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg(feature = "unstable-msc2676")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Replacement {
     /// The ID of the event being replacing.

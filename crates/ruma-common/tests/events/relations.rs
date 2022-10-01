@@ -66,7 +66,6 @@ fn reply_serialize() {
 }
 
 #[test]
-#[cfg(feature = "unstable-msc2676")]
 fn replacement_serialize() {
     use ruma_common::events::room::message::Replacement;
 
@@ -120,7 +119,6 @@ fn replacement_serialize() {
 }
 
 #[test]
-#[cfg(feature = "unstable-msc2676")]
 fn replacement_deserialize() {
     let json = json!({
         "msgtype": "m.text",

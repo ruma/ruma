@@ -469,7 +469,6 @@ pub enum Relation {
     },
 
     /// An event that replaces another event.
-    #[cfg(feature = "unstable-msc2676")]
     Replacement(Replacement),
 
     /// An event that belongs to a thread.
@@ -494,9 +493,10 @@ impl InReplyTo {
     }
 }
 
-/// The event this relation belongs to replaces another event.
+/// The event this relation belongs to [replaces another event].
+///
+/// [replaces another event]: https://spec.matrix.org/v1.4/client-server-api/#event-replacements
 #[derive(Clone, Debug)]
-#[cfg(feature = "unstable-msc2676")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Replacement {
     /// The ID of the event being replaced.
@@ -506,7 +506,6 @@ pub struct Replacement {
     pub new_content: Box<RoomMessageEventContent>,
 }
 
-#[cfg(feature = "unstable-msc2676")]
 impl Replacement {
     /// Creates a new `Replacement` with the given event ID and new content.
     pub fn new(event_id: OwnedEventId, new_content: Box<RoomMessageEventContent>) -> Self {
