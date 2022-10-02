@@ -1,3 +1,4 @@
+use http::header::CONTENT_TYPE;
 use ruma_common::{
     api::ruma_api,
     events::{tag::TagEvent, AnyTimelineEvent},

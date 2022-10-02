@@ -10,6 +10,8 @@ pub mod v3 {
     use js_int::UInt;
     use ruma_common::{api::ruma_api, IdParseError, MxcUri, ServerName};
 
+    use crate::http_headers::CROSS_ORIGIN_RESOURCE_POLICY;
+
     ruma_api! {
         metadata: {
             description: "Retrieve content from the media store.",
@@ -71,6 +73,14 @@ pub mod v3 {
             /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition#Syntax
             #[ruma_api(header = CONTENT_DISPOSITION)]
             pub content_disposition: Option<String>,
+
+            /// The value of the `Cross-Origin-Resource-Policy` HTTP header.
+            ///
+            /// See [MDN] for the syntax.
+            ///
+            /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy#syntax
+            #[ruma_api(header = CROSS_ORIGIN_RESOURCE_POLICY)]
+            pub cross_origin_resource_policy: Option<String>,
         }
 
         error: crate::Error
@@ -98,8 +108,15 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given file contents.
+        ///
+        /// The Cross-Origin Resource Policy defaults to `cross-origin`.
         pub fn new(file: Vec<u8>) -> Self {
-            Self { file, content_type: None, content_disposition: None }
+            Self {
+                file,
+                content_type: None,
+                content_disposition: None,
+                cross_origin_resource_policy: Some("cross-origin".to_owned()),
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ pub mod unstable {
     //!
     //! [spec]: https://github.com/tulir/matrix-doc/blob/asynchronous_uploads/proposals/2246-asynchronous-uploads.md
 
+    use http::header::CONTENT_TYPE;
     use ruma_common::{api::ruma_api, IdParseError, MxcUri, ServerName};
 
     ruma_api! {

@@ -9,7 +9,7 @@ pub mod v3 {
     use js_int::UInt;
     use ruma_common::{api::ruma_api, serde::StringEnum, IdParseError, MxcUri, ServerName};
 
-    use crate::PrivOwnedStr;
+    use crate::{http_headers::CROSS_ORIGIN_RESOURCE_POLICY, PrivOwnedStr};
 
     ruma_api! {
         metadata: {
@@ -79,6 +79,14 @@ pub mod v3 {
             /// The content type of the thumbnail.
             #[ruma_api(header = CONTENT_TYPE)]
             pub content_type: Option<String>,
+
+            /// The value of the `Cross-Origin-Resource-Policy` HTTP header.
+            ///
+            /// See [MDN] for the syntax.
+            ///
+            /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy#syntax
+            #[ruma_api(header = CROSS_ORIGIN_RESOURCE_POLICY)]
+            pub cross_origin_resource_policy: Option<String>,
         }
 
         error: crate::Error
@@ -116,8 +124,14 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given thumbnail.
+        ///
+        /// The Cross-Origin Resource Policy defaults to `cross-origin`.
         pub fn new(file: Vec<u8>) -> Self {
-            Self { file, content_type: None }
+            Self {
+                file,
+                content_type: None,
+                cross_origin_resource_policy: Some("cross-origin".to_owned()),
+            }
         }
     }
 

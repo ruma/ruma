@@ -2,6 +2,7 @@
 // consume the request/response.
 
 mod newtype_body {
+    use http::header::CONTENT_TYPE;
     use ruma_common::{api::ruma_api, OwnedUserId};
 
     #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
@@ -42,6 +43,7 @@ mod newtype_body {
 }
 
 mod raw_body {
+    use http::header::CONTENT_TYPE;
     use ruma_common::{api::ruma_api, OwnedUserId};
 
     ruma_api! {
@@ -79,6 +81,7 @@ mod raw_body {
 }
 
 mod plain {
+    use http::header::CONTENT_TYPE;
     use ruma_common::{api::ruma_api, OwnedUserId};
 
     #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
