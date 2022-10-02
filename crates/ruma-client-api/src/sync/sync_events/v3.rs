@@ -15,7 +15,7 @@ use ruma_common::{
     },
     presence::PresenceState,
     serde::{Incoming, Raw},
-    DeviceKeyAlgorithm, OwnedRoomId,
+    DeviceKeyAlgorithm, OwnedEventId, OwnedRoomId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -243,9 +243,26 @@ pub struct JoinedRoom {
     #[serde(default, skip_serializing_if = "RoomSummary::is_empty")]
     pub summary: RoomSummary,
 
-    /// Counts of unread notifications for this room.
+    /// Counts of [unread notifications] for this room.
+    ///
+    /// If `unread_thread_notifications` was set to `true` in the [`RoomEventFilter`], these
+    /// include only the unread notifications for the main timeline.
+    ///
+    /// [unread notifications]: https://spec.matrix.org/v1.4/client-server-api/#receiving-notifications
+    /// [`RoomEventFilter`]: crate::filter::RoomEventFilter
     #[serde(default, skip_serializing_if = "UnreadNotificationsCount::is_empty")]
     pub unread_notifications: UnreadNotificationsCount,
+
+    /// Counts of [unread notifications] for threads in this room.
+    ///
+    /// This is a map from thread root ID to unread notifications in the thread.
+    ///
+    /// Only set if `unread_thread_notifications` was set to `true` in the [`RoomEventFilter`].
+    ///
+    /// [unread notifications]: https://spec.matrix.org/v1.4/client-server-api/#receiving-notifications
+    /// [`RoomEventFilter`]: crate::filter::RoomEventFilter
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub unread_thread_notifications: BTreeMap<OwnedEventId, UnreadNotificationsCount>,
 
     /// The timeline of messages and state changes in the room.
     #[serde(default, skip_serializing_if = "Timeline::is_empty")]
@@ -290,6 +307,7 @@ impl JoinedRoom {
     pub fn is_empty(&self) -> bool {
         let is_empty = self.summary.is_empty()
             && self.unread_notifications.is_empty()
+            && self.unread_thread_notifications.is_empty()
             && self.timeline.is_empty()
             && self.state.is_empty()
             && self.account_data.is_empty()
