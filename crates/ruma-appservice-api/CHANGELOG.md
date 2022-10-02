@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Add support for using the Authorization header (MSC2832 / Matrix 1.4)
+
 # 0.7.0
 
 Breaking changes:

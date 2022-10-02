@@ -18,7 +18,7 @@ pub mod v1 {
             name: "push_events",
             stable_path: "/_matrix/app/v1/transactions/:txn_id",
             rate_limited: false,
-            authentication: QueryOnlyAccessToken,
+            authentication: AccessToken,
             added: 1.0,
         }
 

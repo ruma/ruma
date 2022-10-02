@@ -16,7 +16,7 @@ pub mod v1 {
             name: "get_user_for_user_id",
             stable_path: "/_matrix/app/v1/thirdparty/user",
             rate_limited: false,
-            authentication: QueryOnlyAccessToken,
+            authentication: AccessToken,
             added: 1.0,
         }
 

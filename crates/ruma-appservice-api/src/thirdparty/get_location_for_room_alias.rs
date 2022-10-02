@@ -16,7 +16,7 @@ pub mod v1 {
             name: "get_location_for_room_alias",
             stable_path: "/_matrix/app/v1/thirdparty/location",
             rate_limited: false,
-            authentication: QueryOnlyAccessToken,
+            authentication: AccessToken,
             added: 1.0,
         }
 
