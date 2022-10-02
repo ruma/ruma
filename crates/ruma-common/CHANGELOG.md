@@ -22,6 +22,7 @@ Improvements:
   * Add parameter to `RoomMessageEventContent::make_reply_to` to be thread-aware
   * Add `RoomMessageEventContent::make_for_reply`
 * Stabilize support for event replacements (edits)
+* Add support for read receipts for threads (MSC3771 / Matrix 1.4)
 
 # 0.10.3
 
