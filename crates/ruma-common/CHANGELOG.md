@@ -5,6 +5,7 @@ Breaking changes:
 * Remove deprecated `EventType` enum
 * Remove deprecated constructors for `RoomMessageEventContent`
 * Remove `serde::vec_as_map_of_empty` from the public API
+* Remove the `api::AuthScheme::QueryOnlyAccessToken` variant, which is no longer used
 
 Improvements:
 

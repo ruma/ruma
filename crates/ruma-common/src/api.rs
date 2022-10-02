@@ -393,7 +393,4 @@ pub enum AuthScheme {
     /// Authentication is performed by including X-Matrix signatures in the request headers,
     /// as defined in the federation API.
     ServerSignatures,
-
-    /// Authentication is performed by setting the `access_token` query parameter.
-    QueryOnlyAccessToken,
 }
