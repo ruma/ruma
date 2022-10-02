@@ -19,7 +19,7 @@ pub mod v1 {
             name: "get_location_for_protocol",
             stable_path: "/_matrix/app/v1/thirdparty/location/:protocol",
             rate_limited: false,
-            authentication: QueryOnlyAccessToken,
+            authentication: AccessToken,
             added: 1.0,
         }
 

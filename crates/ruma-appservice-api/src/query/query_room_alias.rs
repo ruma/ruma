@@ -16,7 +16,7 @@ pub mod v1 {
             name: "query_room_alias",
             stable_path: "/_matrix/app/v1/rooms/:room_alias",
             rate_limited: false,
-            authentication: QueryOnlyAccessToken,
+            authentication: AccessToken,
             added: 1.0,
         }
 

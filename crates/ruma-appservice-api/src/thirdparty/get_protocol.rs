@@ -17,7 +17,7 @@ pub mod v1 {
             name: "get_protocol",
             stable_path: "/_matrix/app/v1/thirdparty/protocol/:protocol",
             rate_limited: false,
-            authentication: QueryOnlyAccessToken,
+            authentication: AccessToken,
             added: 1.0,
         }
 
