@@ -97,6 +97,15 @@ pub struct RoomEventFilter<'a> {
     /// Defaults to `LazyLoadOptions::Disabled`.
     #[serde(flatten)]
     pub lazy_load_options: LazyLoadOptions,
+
+    /// Whether to enable [per-thread notification counts].
+    ///
+    /// Only applies to the [`sync_events`] endpoint.
+    ///
+    /// [per-thread notification counts]: https://spec.matrix.org/v1.4/client-server-api/#receiving-notifications
+    /// [`sync_events`]: crate::sync::sync_events
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+    pub unread_thread_notifications: bool,
 }
 
 impl<'a> RoomEventFilter<'a> {
@@ -123,6 +132,7 @@ impl<'a> RoomEventFilter<'a> {
             && self.types.is_none()
             && self.url_filter.is_none()
             && self.lazy_load_options.is_disabled()
+            && !self.unread_thread_notifications
     }
 }
 
@@ -138,6 +148,7 @@ impl IncomingRoomEventFilter {
             && self.types.is_none()
             && self.url_filter.is_none()
             && self.lazy_load_options.is_disabled()
+            && !self.unread_thread_notifications
     }
 }
 

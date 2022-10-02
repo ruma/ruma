@@ -13,11 +13,11 @@ pub mod v4;
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct UnreadNotificationsCount {
-    /// The number of unread notifications for this room with the highlight flag set.
+    /// The number of unread notifications with the highlight flag set.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub highlight_count: Option<UInt>,
 
-    /// The total number of unread notifications for this room.
+    /// The total number of unread notifications.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub notification_count: Option<UInt>,
 }

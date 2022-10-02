@@ -16,6 +16,7 @@ Improvements:
 * Add support for the threads list API (MSC3856 / Matrix 1.4)
 * Stabilize support for private read receipts
 * Add support for the pagination direction parameter to `/relations` (MSC3715 / Matrix 1.4)
+* Add support for notifications for threads (MSC3773 / Matrix 1.4)
 
 # 0.15.1
 
