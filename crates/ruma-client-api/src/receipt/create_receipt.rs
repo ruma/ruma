@@ -7,6 +7,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::ruma_api,
+        events::receipt::ReceiptThread,
         serde::{OrdAsRefStr, PartialEqAsRefStr, PartialOrdAsRefStr, StringEnum},
         EventId, RoomId,
     };
@@ -37,6 +38,15 @@ pub mod v3 {
             /// The event ID to acknowledge up to.
             #[ruma_api(path)]
             pub event_id: &'a EventId,
+
+            /// The thread this receipt applies to.
+            ///
+            /// *Note* that this must be the default value if used with
+            /// [`ReceiptType::FullyRead`].
+            ///
+            /// Defaults to [`ReceiptThread::Unthreaded`].
+            #[serde(rename = "thread_id", skip_serializing_if = "ruma_common::serde::is_default")]
+            pub thread: ReceiptThread,
         }
 
         #[derive(Default)]
@@ -48,7 +58,7 @@ pub mod v3 {
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given room ID, receipt type and event ID.
         pub fn new(room_id: &'a RoomId, receipt_type: ReceiptType, event_id: &'a EventId) -> Self {
-            Self { room_id, receipt_type, event_id }
+            Self { room_id, receipt_type, event_id, thread: ReceiptThread::default() }
         }
     }
 

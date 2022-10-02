@@ -18,6 +18,7 @@ Improvements:
 * Add support for the pagination direction parameter to `/relations` (MSC3715 / Matrix 1.4)
 * Add support for notifications for threads (MSC3773 / Matrix 1.4)
 * Send CORP headers by default for media responses (MSC3828 / Matrix 1.4)
+* Add support for read receipts for threads (MSC3771 / Matrix 1.4)
 
 # 0.15.1
 
