@@ -5,6 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixmediav3upload
 
+    use http::header::CONTENT_TYPE;
     use ruma_common::{api::ruma_api, OwnedMxcUri};
 
     ruma_api! {

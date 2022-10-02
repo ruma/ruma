@@ -6,6 +6,10 @@ Breaking changes:
 * Remove deprecated constructors for `RoomMessageEventContent`
 * Remove `serde::vec_as_map_of_empty` from the public API
 * Remove the `api::AuthScheme::QueryOnlyAccessToken` variant, which is no longer used
+* The `#[ruma_api(header)]` attribute of the `ruma_api` macro now accepts an arbitrary
+  `http::header::HeaderName`
+  * To continue using constants from `http::header`, they must be imported in
+    the module calling the macro.
 
 Improvements:
 

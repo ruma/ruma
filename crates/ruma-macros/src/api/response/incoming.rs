@@ -60,7 +60,7 @@ impl Response {
                                 quote! {
                                     #( #cfg_attrs )*
                                     #field_name: {
-                                        headers.remove(#http::header::#header_name)
+                                        headers.remove(#header_name)
                                             .map(|h| h.to_str().map(|s| s.to_owned()))
                                             .transpose()?
                                     }
@@ -69,7 +69,7 @@ impl Response {
                             _ => quote! {
                                 #( #cfg_attrs )*
                                 #field_name: {
-                                    headers.remove(#http::header::#header_name)
+                                    headers.remove(#header_name)
                                         .expect("response missing expected header")
                                         .to_str()?
                                         .to_owned()

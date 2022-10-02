@@ -1,5 +1,6 @@
 #![allow(clippy::exhaustive_structs)]
 
+use http::header::CONTENT_TYPE;
 use ruma_common::{
     api::{
         ruma_api, IncomingRequest as _, MatrixVersion, OutgoingRequest as _,
@@ -121,7 +122,7 @@ fn request_with_user_id_serde() {
 mod without_query {
     use ruma_common::{api::MatrixVersion, OwnedUserId};
 
-    use super::{ruma_api, user_id, OutgoingRequestAppserviceExt, SendAccessToken};
+    use super::{ruma_api, user_id, OutgoingRequestAppserviceExt, SendAccessToken, CONTENT_TYPE};
 
     ruma_api! {
         metadata: {

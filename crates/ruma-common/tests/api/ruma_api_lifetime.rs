@@ -58,6 +58,7 @@ mod nested_types {
 }
 
 mod full_request_response {
+    use http::header::CONTENT_TYPE;
     use ruma_common::api::ruma_api;
 
     use super::{IncomingOtherThing, OtherThing};
@@ -92,6 +93,7 @@ mod full_request_response {
 }
 
 mod full_request_response_with_query_map {
+    use http::header::CONTENT_TYPE;
     use ruma_common::api::ruma_api;
 
     ruma_api! {

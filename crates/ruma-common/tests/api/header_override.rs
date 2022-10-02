@@ -1,6 +1,6 @@
 #![allow(clippy::exhaustive_structs)]
 
-use http::header::{Entry, CONTENT_TYPE};
+use http::header::{Entry, CONTENT_TYPE, LOCATION};
 use ruma_common::api::{
     ruma_api, MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken,
 };
