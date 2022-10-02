@@ -20,7 +20,7 @@ impl Response {
                         quote! {
                             if let Some(header) = self.#field_name {
                                 headers.insert(
-                                    #http::header::#header_name,
+                                    #header_name,
                                     header.parse()?,
                                 );
                             }
@@ -28,7 +28,7 @@ impl Response {
                     }
                     _ => quote! {
                         headers.insert(
-                            #http::header::#header_name,
+                            #header_name,
                             self.#field_name.parse()?,
                         );
                     },

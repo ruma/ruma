@@ -113,7 +113,7 @@ impl Request {
 
                     let decl = quote! {
                         #( #cfg_attrs )*
-                        let #field_name = match headers.get(#http::header::#header_name) {
+                        let #field_name = match headers.get(#header_name) {
                             Some(header_value) => {
                                 let str_value = header_value.to_str()?;
                                 #some_case

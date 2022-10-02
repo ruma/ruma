@@ -7,6 +7,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3loginssoredirectidpid
 
+    use http::header::LOCATION;
     use ruma_common::api::ruma_api;
 
     ruma_api! {

@@ -78,8 +78,9 @@ use crate::UserId;
 ///
 /// * `#[ruma_api(header = HEADER_NAME)]`: Fields with this attribute will be treated as HTTP
 ///   headers on the request. The value must implement `AsRef<str>`. Generally this is a
-///   `String`. The attribute value shown above as `HEADER_NAME` must be a header name constant
-///   from `http::header`, e.g. `CONTENT_TYPE`.
+///   `String`. The attribute value shown above as `HEADER_NAME` must be a `const` expression
+///   of the type `http::header::HeaderName`, like one of the constants from `http::header`,
+///   e.g. `CONTENT_TYPE`.
 /// * `#[ruma_api(path)]`: Fields with this attribute will be inserted into the matching path
 ///   component of the request URL.
 /// * `#[ruma_api(query)]`: Fields with this attribute will be inserting into the URL's query
@@ -123,6 +124,7 @@ use crate::UserId;
 ///
 /// ```
 /// pub mod some_endpoint {
+///     use http::header::CONTENT_TYPE;
 ///     use ruma_common::api::ruma_api;
 ///
 ///     ruma_api! {

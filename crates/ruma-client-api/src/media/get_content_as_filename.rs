@@ -5,6 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixmediav3downloadservernamemediaidfilename
 
+    use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
     use ruma_common::{api::ruma_api, IdParseError, MxcUri, ServerName};
 
     ruma_api! {
