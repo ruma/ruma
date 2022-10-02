@@ -125,7 +125,7 @@ impl Request {
                     );
                 }
             },
-            AuthScheme::QueryOnlyAccessToken(_) | AuthScheme::ServerSignatures(_) => quote! {},
+            AuthScheme::ServerSignatures(_) => quote! {},
         });
 
         let request_body = if let Some(field) = self.raw_body_field() {
