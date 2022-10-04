@@ -13,7 +13,7 @@ use super::{
     EventId, OwnedEventId, OwnedRoomAliasId, OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName,
     OwnedUserId, RoomAliasId, RoomId, RoomOrAliasId, UserId,
 };
-use crate::PrivOwnedStr;
+use crate::{PrivOwnedStr, ServerName};
 
 const MATRIX_TO_BASE_URL: &str = "https://matrix.to/#/";
 const MATRIX_SCHEME: &str = "matrix";
@@ -298,26 +298,47 @@ impl MatrixToUri {
 
     /// Try parsing a `&str` into a `MatrixToUri`.
     pub fn parse(s: &str) -> Result<Self, Error> {
-        let without_base = if let Some(stripped) = s.strip_prefix(MATRIX_TO_BASE_URL) {
-            stripped
-        } else {
-            return Err(MatrixToError::WrongBaseUrl.into());
-        };
+        // We do not rely on parsing with `url::Url` because the meaningful part
+        // of the URI is in its fragment part.
+        //
+        // Even if the fragment part looks like parts of a URI, non-url-encoded
+        // room aliases (starting with `#`) could be detected as fragments,
+        // messing up the URI parsing.
+        //
+        // A matrix.to URI looks like this: https://matrix.to/#/{MatrixId}?{query};
+        // where the MatrixId should be percent-encoded, but might not, and the query
+        // should also be percent-encoded.
 
-        let url = Url::parse(MATRIX_TO_BASE_URL.trim_end_matches("#/"))
-            .expect("matrix.to base URL is valid")
-            .join(without_base)
-            .map_err(|_| MatrixToError::InvalidUrl)?;
+        let s = s.strip_prefix(MATRIX_TO_BASE_URL).ok_or(MatrixToError::WrongBaseUrl)?;
+        let s = s.strip_suffix('/').unwrap_or(s);
 
-        let id = MatrixId::parse_with_sigil(url.path())?;
-        let mut via = vec![];
+        // Separate the identifiers and the query.
+        let mut parts = s.split('?');
 
-        for (key, value) in url.query_pairs() {
-            if key.as_ref() == "via" {
-                via.push(value.parse()?);
-            } else {
-                return Err(MatrixToError::UnknownArgument.into());
-            }
+        let ids_part = parts.next().expect("a split iterator yields at least one value");
+        let id = MatrixId::parse_with_sigil(ids_part)?;
+
+        // Parse the query for routing arguments.
+        let via = parts
+            .next()
+            .map(|query| {
+                // `form_urlencoded` takes care of percent-decoding the query.
+                let query_parts = form_urlencoded::parse(query.as_bytes());
+
+                query_parts
+                    .map(|(key, value)| {
+                        (key == "via")
+                            .then(|| ServerName::parse(&value))
+                            .unwrap_or_else(|| Err(MatrixToError::UnknownArgument.into()))
+                    })
+                    .collect::<Result<Vec<_>, _>>()
+            })
+            .transpose()?
+            .unwrap_or_default();
+
+        // That would mean there are two `?` in the URL which is not valid.
+        if parts.next().is_some() {
+            return Err(MatrixToError::InvalidUrl.into());
         }
 
         Ok(Self { id, via })
@@ -727,11 +748,15 @@ mod tests {
             .expect("Failed to create MatrixToUri.");
         assert_eq!(matrix_to.id(), &room_alias_id!("#ruma:notareal.hs").into());
 
-        let matrix_to =
-            MatrixToUri::parse("https://matrix.to/#/%21ruma%3Anotareal.hs?via=notareal.hs")
-                .expect("Failed to create MatrixToUri.");
+        let matrix_to = MatrixToUri::parse(
+            "https://matrix.to/#/%21ruma%3Anotareal.hs?via=notareal.hs&via=anotherunreal.hs",
+        )
+        .expect("Failed to create MatrixToUri.");
         assert_eq!(matrix_to.id(), &room_id!("!ruma:notareal.hs").into());
-        assert_eq!(matrix_to.via(), &[server_name!("notareal.hs").to_owned()]);
+        assert_eq!(
+            matrix_to.via(),
+            &[server_name!("notareal.hs").to_owned(), server_name!("anotherunreal.hs").to_owned(),]
+        );
 
         let matrix_to =
             MatrixToUri::parse("https://matrix.to/#/%23ruma%3Anotareal.hs/%24event%3Anotareal.hs")
@@ -743,6 +768,39 @@ mod tests {
 
         let matrix_to =
             MatrixToUri::parse("https://matrix.to/#/%21ruma%3Anotareal.hs/%24event%3Anotareal.hs")
+                .expect("Failed to create MatrixToUri.");
+        assert_eq!(
+            matrix_to.id(),
+            &(room_id!("!ruma:notareal.hs"), event_id!("$event:notareal.hs")).into()
+        );
+        assert_eq!(matrix_to.via().len(), 0);
+    }
+
+    #[test]
+    fn parse_matrixtouri_valid_uris_not_urlencoded() {
+        let matrix_to = MatrixToUri::parse("https://matrix.to/#/@jplatte:notareal.hs")
+            .expect("Failed to create MatrixToUri.");
+        assert_eq!(matrix_to.id(), &user_id!("@jplatte:notareal.hs").into());
+
+        let matrix_to = MatrixToUri::parse("https://matrix.to/#/#ruma:notareal.hs")
+            .expect("Failed to create MatrixToUri.");
+        assert_eq!(matrix_to.id(), &room_alias_id!("#ruma:notareal.hs").into());
+
+        let matrix_to = MatrixToUri::parse("https://matrix.to/#/!ruma:notareal.hs?via=notareal.hs")
+            .expect("Failed to create MatrixToUri.");
+        assert_eq!(matrix_to.id(), &room_id!("!ruma:notareal.hs").into());
+        assert_eq!(matrix_to.via(), &[server_name!("notareal.hs").to_owned()]);
+
+        let matrix_to =
+            MatrixToUri::parse("https://matrix.to/#/#ruma:notareal.hs/$event:notareal.hs")
+                .expect("Failed to create MatrixToUri.");
+        assert_eq!(
+            matrix_to.id(),
+            &(room_alias_id!("#ruma:notareal.hs"), event_id!("$event:notareal.hs")).into()
+        );
+
+        let matrix_to =
+            MatrixToUri::parse("https://matrix.to/#/!ruma:notareal.hs/$event:notareal.hs")
                 .expect("Failed to create MatrixToUri.");
         assert_eq!(
             matrix_to.id(),
