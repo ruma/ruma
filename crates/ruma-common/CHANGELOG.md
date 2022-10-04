@@ -1,5 +1,9 @@
 # [unreleased]
 
+Bug fixes:
+
+* Fix `MatrixToUri` parsing for non-url-encoded room aliases
+
 # 0.10.3
 
 Bug fixes:
