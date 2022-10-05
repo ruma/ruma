@@ -2,10 +2,206 @@
 //!
 //! Endpoint to push an event (or batch of events) to the application service.
 
+#[cfg(feature = "unstable-msc2409")]
+use js_int::UInt;
+#[cfg(feature = "unstable-msc2409")]
+use ruma_common::{
+    events::receipt::Receipt, presence::PresenceState, serde::from_raw_json_value, OwnedEventId,
+    OwnedRoomId, OwnedUserId,
+};
+#[cfg(feature = "unstable-msc2409")]
+use serde::{de, Deserialize, Serialize};
+#[cfg(feature = "unstable-msc2409")]
+use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
+#[cfg(feature = "unstable-msc2409")]
+use std::collections::BTreeMap;
+
+/// Type for passing ephemeral data to homeservers.
+#[derive(Clone, Debug, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg(feature = "unstable-msc2409")]
+pub enum Edu {
+    /// An EDU representing presence updates for users of the sending homeserver.
+    Presence(PresenceContent),
+
+    /// An EDU representing receipt updates for users of the sending homeserver.
+    Receipt(ReceiptContent),
+
+    /// A typing notification EDU for a user in a room.
+    Typing(TypingContent),
+
+    #[doc(hidden)]
+    #[serde(skip)]
+    _Custom(JsonValue),
+}
+
+#[derive(Debug, Deserialize)]
+#[cfg(feature = "unstable-msc2409")]
+struct EduDeHelper {
+    /// The message type field
+    r#type: String,
+    content: Box<RawJsonValue>,
+}
+
+#[cfg(feature = "unstable-msc2409")]
+impl<'de> Deserialize<'de> for Edu {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+        let EduDeHelper { r#type, content } = from_raw_json_value(&json)?;
+
+        Ok(match r#type.as_ref() {
+            "m.presence" => Self::Presence(from_raw_json_value(&content)?),
+            "m.receipt" => Self::Receipt(from_raw_json_value(&content)?),
+            "m.typing" => Self::Typing(from_raw_json_value(&content)?),
+            _ => Self::_Custom(from_raw_json_value(&content)?),
+        })
+    }
+}
+
+/// The content for "m.presence" Edu.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg(feature = "unstable-msc2409")]
+pub struct PresenceContent {
+    /// A list of presence updates that the receiving server is likely to be interested in.
+    pub push: Vec<PresenceUpdate>,
+}
+
+#[cfg(feature = "unstable-msc2409")]
+impl PresenceContent {
+    /// Creates a new `PresenceContent`.
+    pub fn new(push: Vec<PresenceUpdate>) -> Self {
+        Self { push }
+    }
+}
+
+/// An update to the presence of a user.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg(feature = "unstable-msc2409")]
+pub struct PresenceUpdate {
+    /// The user ID this presence EDU is for.
+    pub user_id: OwnedUserId,
+
+    /// The presence of the user.
+    pub presence: PresenceState,
+
+    /// An optional description to accompany the presence.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status_msg: Option<String>,
+
+    /// The number of milliseconds that have elapsed since the user last did something.
+    pub last_active_ago: UInt,
+
+    /// Whether or not the user is currently active.
+    ///
+    /// Defaults to false.
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+    pub currently_active: bool,
+}
+
+#[cfg(feature = "unstable-msc2409")]
+impl PresenceUpdate {
+    /// Creates a new `PresenceUpdate` with the given `user_id`, `presence` and `last_activity`.
+    pub fn new(user_id: OwnedUserId, presence: PresenceState, last_activity: UInt) -> Self {
+        Self {
+            user_id,
+            presence,
+            last_active_ago: last_activity,
+            status_msg: None,
+            currently_active: false,
+        }
+    }
+}
+
+/// The content for "m.receipt" Edu.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg(feature = "unstable-msc2409")]
+#[serde(transparent)]
+pub struct ReceiptContent(pub BTreeMap<OwnedRoomId, ReceiptMap>);
+
+#[cfg(feature = "unstable-msc2409")]
+impl ReceiptContent {
+    /// Creates a new `ReceiptContent`.
+    pub fn new(receipts: BTreeMap<OwnedRoomId, ReceiptMap>) -> Self {
+        Self(receipts)
+    }
+}
+
+/// Mapping between user and `ReceiptData`.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg(feature = "unstable-msc2409")]
+pub struct ReceiptMap {
+    /// Read receipts for users in the room.
+    #[serde(rename = "m.read")]
+    pub read: BTreeMap<OwnedUserId, ReceiptData>,
+}
+
+#[cfg(feature = "unstable-msc2409")]
+impl ReceiptMap {
+    /// Creates a new `ReceiptMap`.
+    pub fn new(read: BTreeMap<OwnedUserId, ReceiptData>) -> Self {
+        Self { read }
+    }
+}
+
+/// Metadata about the event that was last read and when.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg(feature = "unstable-msc2409")]
+pub struct ReceiptData {
+    /// Metadata for the read receipt.
+    pub data: Receipt,
+
+    /// The extremity event ID the user has read up to.
+    pub event_ids: Vec<OwnedEventId>,
+}
+
+#[cfg(feature = "unstable-msc2409")]
+impl ReceiptData {
+    /// Creates a new `ReceiptData`.
+    pub fn new(data: Receipt, event_ids: Vec<OwnedEventId>) -> Self {
+        Self { data, event_ids }
+    }
+}
+
+/// The content for "m.typing" Edu.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg(feature = "unstable-msc2409")]
+pub struct TypingContent {
+    /// The room where the user's typing status has been updated.
+    pub room_id: OwnedRoomId,
+
+    /// The user ID that has had their typing status changed.
+    pub user_id: OwnedUserId,
+
+    /// Whether the user is typing in the room or not.
+    pub typing: bool,
+}
+
+#[cfg(feature = "unstable-msc2409")]
+impl TypingContent {
+    /// Creates a new `TypingContent`.
+    pub fn new(room_id: OwnedRoomId, user_id: OwnedUserId, typing: bool) -> Self {
+        Self { room_id, user_id, typing }
+    }
+}
+
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
     //! [spec]: https://spec.matrix.org/v1.2/application-service-api/#put_matrixappv1transactionstxnid
+
+    #[cfg(feature = "unstable-msc2409")]
+    use super::Edu;
+    #[cfg(feature = "unstable-msc2409")]
+    use ruma_common::events::AnyToDeviceEvent;
 
     use ruma_common::{
         api::ruma_api, events::AnyTimelineEvent, serde::Raw, OwnedTransactionId, TransactionId,
@@ -55,7 +251,7 @@ pub mod v1 {
             #[serde(
                 default,
                 skip_serializing_if = "BTreeMap::is_empty",
-                rename = "org.matrix.msc3202.device_one_time_keys_count"
+                rename = "org.matrix.msc3202.device_one_time_keys_count"Doesesf2015
             )]
             pub device_one_time_keys_count: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, BTreeMap<DeviceKeyAlgorithm, UInt>>>,
 
@@ -64,9 +260,27 @@ pub mod v1 {
             #[serde(
                 default,
                 skip_serializing_if = "BTreeMap::is_empty",
-                rename = "org.matrix.msc3202.device_unused_fallback_key_types"
+                rename = "org.matrix.msc3202.device_unused_fallback_key_types",
             )]
             pub device_unused_fallback_key_types: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Vec<DeviceKeyAlgorithm>>>,
+
+            /// A list of EDUs
+            #[cfg(feature = "unstable-msc2409")]
+            #[serde(
+                default,
+                skip_serializing_if = "<[_]>::is_empty",
+                rename = "de.sorunome.msc2409.ephemeral"
+            )]
+            pub ephemeral: &'a [Edu],
+
+            /// A list of to-device messages
+            #[cfg(feature = "unstable-msc2409")]
+            #[serde(
+                default,
+                skip_serializing_if = "<[_]>::is_empty",
+                rename = "de.sorunome.msc2409.to_device"
+            )]
+            pub to_device: &'a [Raw<AnyToDeviceEvent>]
         }
 
         #[derive(Default)]
@@ -85,6 +299,10 @@ pub mod v1 {
                 device_one_time_keys_count: BTreeMap::new(),
                 #[cfg(feature = "unstable-msc3202")]
                 device_unused_fallback_key_types: BTreeMap::new(),
+                #[cfg(feature = "unstable-msc2409")]
+                ephemeral: &[],
+                #[cfg(feature = "unstable-msc2409")]
+                to_device: &[],
             }
         }
     }
@@ -104,6 +322,10 @@ pub mod v1 {
                 device_one_time_keys_count: BTreeMap::new(),
                 #[cfg(feature = "unstable-msc3202")]
                 device_unused_fallback_key_types: BTreeMap::new(),
+                #[cfg(feature = "unstable-msc2409")]
+                ephemeral: Vec::new(),
+                #[cfg(feature = "unstable-msc2409")]
+                to_device: Vec::new(),
             }
         }
     }
