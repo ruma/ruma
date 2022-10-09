@@ -91,7 +91,7 @@ impl UserId {
 
     /// Returns the user's localpart.
     pub fn localpart(&self) -> &str {
-        &self.as_str()[1..self.colon_idx() as usize]
+        &self.as_str()[1..self.colon_idx()]
     }
 
     /// Returns the server name of the user ID.
