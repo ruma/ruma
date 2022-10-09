@@ -133,7 +133,7 @@ impl ImageMessageEventContent {
             #[cfg(feature = "unstable-msc3552")]
             file: Some(FileContent::encrypted(file.url.clone(), (&file).into(), None)),
             #[cfg(feature = "unstable-msc3552")]
-            image: Some(Box::new(ImageContent::default())),
+            image: Some(Box::default()),
             #[cfg(feature = "unstable-msc3552")]
             thumbnail: None,
             #[cfg(feature = "unstable-msc3552")]

@@ -139,7 +139,7 @@ impl VideoMessageEventContent {
             #[cfg(feature = "unstable-msc3553")]
             file: Some(FileContent::encrypted(file.url.clone(), (&file).into(), None)),
             #[cfg(feature = "unstable-msc3553")]
-            video: Some(Box::new(VideoContent::default())),
+            video: Some(Box::default()),
             #[cfg(feature = "unstable-msc3553")]
             thumbnail: None,
             #[cfg(feature = "unstable-msc3553")]
