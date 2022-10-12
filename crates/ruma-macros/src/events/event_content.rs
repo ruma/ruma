@@ -28,6 +28,8 @@ mod kw {
     syn::custom_keyword!(unsigned_type);
     // Another type string accepted for deserialization.
     syn::custom_keyword!(alias);
+    // The content has a form without relation.
+    syn::custom_keyword!(without_relation);
 }
 
 /// Parses struct attributes for `*EventContent` derives.
@@ -49,6 +51,9 @@ enum EventStructMeta {
 
     /// Variant that holds alternate event type accepted for deserialization.
     Alias(LitStr),
+
+    /// This attribute signals that a form without relation should be generated.
+    WithoutRelation,
 }
 
 impl EventStructMeta {
@@ -114,6 +119,9 @@ impl Parse for EventStructMeta {
             let _: kw::alias = input.parse()?;
             let _: Token![=] = input.parse()?;
             input.parse().map(EventStructMeta::Alias)
+        } else if lookahead.peek(kw::without_relation) {
+            let _: kw::without_relation = input.parse()?;
+            Ok(EventStructMeta::WithoutRelation)
         } else {
             Err(lookahead.error())
         }
@@ -173,6 +181,10 @@ impl MetaAttrs {
 
     fn get_aliases(&self) -> impl Iterator<Item = &LitStr> {
         self.0.iter().filter_map(|a| a.get_alias())
+    }
+
+    fn has_without_relation(&self) -> bool {
+        self.0.iter().any(|a| matches!(*a, EventStructMeta::WithoutRelation))
     }
 }
 
@@ -320,6 +332,22 @@ pub fn expand_event_content(
         .unwrap_or_else(syn::Error::into_compile_error)
     });
 
+    let without_relations: Vec<_> =
+        content_attr.iter().filter(|attrs| attrs.has_without_relation()).collect();
+    let event_content_without_relation = match without_relations.as_slice() {
+        [] => None,
+        [_] => Some(
+            generate_event_content_without_relation(ident, fields.clone(), ruma_common)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        ),
+        _ => {
+            return Err(syn::Error::new(
+                Span::call_site(),
+                "multiple without_relation attributes found, there can only be one",
+            ))
+        }
+    };
+
     let event_content_impl = generate_event_content_impl(
         ident,
         fields,
@@ -340,6 +368,7 @@ pub fn expand_event_content(
 
     Ok(quote! {
         #redacted_event_content
+        #event_content_without_relation
         #event_content_impl
         #static_event_content_impl
         #type_aliases
@@ -503,6 +532,70 @@ fn generate_redacted_event_content<'a>(
         impl #ruma_common::events::#sub_trait_name for #redacted_ident {}
 
         #static_event_content_impl
+    })
+}
+
+fn generate_event_content_without_relation<'a>(
+    ident: &Ident,
+    fields: impl Iterator<Item = &'a Field>,
+    ruma_common: &TokenStream,
+) -> syn::Result<TokenStream> {
+    let serde = quote! { #ruma_common::exports::serde };
+
+    let type_doc = format!(
+        "Form of [`{ident}`] without relation.\n\n\
+        To construct this type, construct a [`{ident}`] and then use one of its `::from() / .into()` methods."
+    );
+    let without_relation_ident = format_ident!("{ident}WithoutRelation");
+
+    let with_relation_fn_doc =
+        format!("Transform `self` into a [`{ident}`] with the given relation.");
+
+    let (relates_to, other_fields) = fields.partition::<Vec<_>, _>(|f| {
+        f.ident.as_ref().filter(|ident| *ident == "relates_to").is_some()
+    });
+
+    let relates_to_type = relates_to.into_iter().next().map(|f| &f.ty).ok_or_else(|| {
+        syn::Error::new(
+            Span::call_site(),
+            "`without_relation` can only be used on events with a `relates_to` field",
+        )
+    })?;
+
+    let without_relation_fields = other_fields.iter().flat_map(|f| &f.ident).collect::<Vec<_>>();
+    let without_relation_struct = if other_fields.is_empty() {
+        quote! { ; }
+    } else {
+        quote! {
+            { #( #other_fields, )* }
+        }
+    };
+
+    Ok(quote! {
+        #[allow(unused_qualifications)]
+        #[automatically_derived]
+        impl ::std::convert::From<#ident> for #without_relation_ident {
+            fn from(c: #ident) -> Self {
+                Self {
+                    #( #without_relation_fields: c.#without_relation_fields, )*
+                }
+            }
+        }
+
+        #[doc = #type_doc]
+        #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
+        #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+        pub struct #without_relation_ident #without_relation_struct
+
+        impl #without_relation_ident {
+            #[doc = #with_relation_fn_doc]
+            pub fn with_relation(self, relates_to: #relates_to_type) -> #ident {
+                #ident {
+                    #( #without_relation_fields: self.#without_relation_fields, )*
+                    relates_to,
+                }
+            }
+        }
     })
 }
 

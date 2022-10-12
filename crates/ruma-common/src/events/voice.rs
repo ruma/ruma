@@ -29,7 +29,7 @@ use super::{
 /// [`MessageType::Audio`]: super::room::message::MessageType::Audio
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.voice", kind = MessageLike)]
+#[ruma_event(type = "m.voice", kind = MessageLike, without_relation)]
 pub struct VoiceEventContent {
     /// The text representation of the message.
     #[serde(flatten)]

@@ -81,7 +81,7 @@ use super::room::message::{
 /// [`MessageType::Text`]: super::room::message::MessageType::Text
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.message", kind = MessageLike)]
+#[ruma_event(type = "m.message", kind = MessageLike, without_relation)]
 pub struct MessageEventContent {
     /// The message's text content.
     #[serde(flatten)]

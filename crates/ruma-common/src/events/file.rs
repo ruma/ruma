@@ -34,7 +34,7 @@ use crate::{serde::Base64, OwnedMxcUri};
 /// [`MessageType::File`]: super::room::message::MessageType::File
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.file", kind = MessageLike)]
+#[ruma_event(type = "m.file", kind = MessageLike, without_relation)]
 pub struct FileEventContent {
     /// The text representation of the message.
     #[serde(flatten)]

@@ -25,7 +25,7 @@ use super::{
 /// [`MessageType::Notice`]: super::room::message::MessageType::Notice
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.notice", kind = MessageLike)]
+#[ruma_event(type = "m.notice", kind = MessageLike, without_relation)]
 pub struct NoticeEventContent {
     /// The message's text content.
     #[serde(flatten)]

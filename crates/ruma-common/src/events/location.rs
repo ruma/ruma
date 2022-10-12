@@ -29,7 +29,7 @@ use crate::{MilliSecondsSinceUnixEpoch, PrivOwnedStr};
 /// [`MessageType::Location`]: super::room::message::MessageType::Location
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.location", kind = MessageLike)]
+#[ruma_event(type = "m.location", kind = MessageLike, without_relation)]
 pub struct LocationEventContent {
     /// The text representation of the message.
     #[serde(flatten)]
