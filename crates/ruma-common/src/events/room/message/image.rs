@@ -143,36 +143,4 @@ impl ImageMessageEventContent {
             info: None,
         }
     }
-
-    /// Create a new `ImageMessageEventContent` with the given message, file info, image info,
-    /// thumbnails and captions.
-    #[cfg(feature = "unstable-msc3552")]
-    pub(crate) fn from_extensible_content(
-        message: MessageContent,
-        file: FileContent,
-        image: Box<ImageContent>,
-        thumbnail: Vec<ThumbnailContent>,
-        caption: Option<MessageContent>,
-    ) -> Self {
-        let body = if let Some(body) = message.find_plain() {
-            body.to_owned()
-        } else {
-            message[0].body.clone()
-        };
-        let source = (&file).into();
-        let info = ImageInfo::from_extensible_content(file.info.as_deref(), &image, &thumbnail)
-            .map(Box::new);
-        let thumbnail = if thumbnail.is_empty() { None } else { Some(thumbnail) };
-
-        Self {
-            message: Some(message),
-            file: Some(file),
-            image: Some(image),
-            thumbnail,
-            caption,
-            body,
-            source,
-            info,
-        }
-    }
 }

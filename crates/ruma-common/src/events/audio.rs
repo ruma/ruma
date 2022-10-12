@@ -13,27 +13,15 @@ mod waveform_serde;
 
 use waveform_serde::WaveformSerDeHelper;
 
-use super::{
-    file::FileContent,
-    message::MessageContent,
-    room::message::{
-        AudioInfo, AudioMessageEventContent, MessageType, Relation, RoomMessageEventContent,
-    },
-};
+use super::{file::FileContent, message::MessageContent, room::message::Relation};
 
 /// The payload for an extensible audio message.
 ///
 /// This is the new primary type introduced in [MSC3246] and should not be sent before the end of
 /// the transition period. See the documentation of the [`message`] module for more information.
 ///
-/// `AudioEventContent` can be converted to a [`RoomMessageEventContent`] with a
-/// [`MessageType::Audio`]. You can convert it back with
-/// [`AudioEventContent::from_audio_room_message()`].
-///
 /// [MSC3246]: https://github.com/matrix-org/matrix-spec-proposals/pull/3246
 /// [`message`]: super::message
-/// [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
-/// [`MessageType::Audio`]: super::room::message::MessageType::Audio
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.audio", kind = MessageLike, without_relation)]
@@ -69,52 +57,6 @@ impl AudioEventContent {
     /// Creates a new `AudioEventContent` with the given message and file.
     pub fn with_message(message: MessageContent, file: FileContent) -> Self {
         Self { message, file, audio: Default::default(), relates_to: None }
-    }
-
-    /// Create a new `AudioEventContent` from the given `AudioMessageEventContent` and optional
-    /// relation.
-    pub fn from_audio_room_message(
-        content: AudioMessageEventContent,
-        relates_to: Option<Relation>,
-    ) -> Self {
-        // Otherwise the `voice` field has an extra indentation
-        #[rustfmt::skip]
-        let AudioMessageEventContent {
-            body,
-            source,
-            info,
-            message,
-            file,
-            audio,
-            #[cfg(feature = "unstable-msc3245")]
-            voice: _,
-        } = content;
-        let AudioInfo { duration, mimetype, size } = info.map(|info| *info).unwrap_or_default();
-
-        let message = message.unwrap_or_else(|| MessageContent::plain(body));
-        let file = file.unwrap_or_else(|| {
-            FileContent::from_room_message_content(source, None, mimetype, size)
-        });
-        let audio = audio.unwrap_or_else(|| {
-            let mut content = AudioContent::new();
-            content.duration = duration;
-            content
-        });
-
-        Self { message, file, audio, relates_to }
-    }
-}
-
-impl From<AudioEventContent> for RoomMessageEventContent {
-    fn from(content: AudioEventContent) -> Self {
-        let AudioEventContent { message, file, audio, relates_to } = content;
-
-        Self {
-            msgtype: MessageType::Audio(AudioMessageEventContent::from_extensible_content(
-                message, file, audio,
-            )),
-            relates_to,
-        }
     }
 }
 

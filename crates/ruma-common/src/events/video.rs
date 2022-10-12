@@ -9,12 +9,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    file::FileContent,
-    image::ThumbnailContent,
-    message::MessageContent,
-    room::message::{
-        MessageType, Relation, RoomMessageEventContent, VideoInfo, VideoMessageEventContent,
-    },
+    file::FileContent, image::ThumbnailContent, message::MessageContent, room::message::Relation,
 };
 
 /// The payload for an extensible video message.
@@ -22,14 +17,8 @@ use super::{
 /// This is the new primary type introduced in [MSC3553] and should not be sent before the end of
 /// the transition period. See the documentation of the [`message`] module for more information.
 ///
-/// `VideoEventContent` can be converted to a [`RoomMessageEventContent`] with a
-/// [`MessageType::Video`]. You can convert it back with
-/// [`VideoEventContent::from_video_room_message()`].
-///
 /// [MSC3553]: https://github.com/matrix-org/matrix-spec-proposals/pull/3553
 /// [`message`]: super::message
-/// [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
-/// [`MessageType::Video`]: super::room::message::MessageType::Video
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.video", kind = MessageLike, without_relation)]
@@ -86,62 +75,6 @@ impl VideoEventContent {
             thumbnail: Default::default(),
             caption: Default::default(),
             relates_to: None,
-        }
-    }
-
-    /// Create a new `VideoEventContent` from the given `VideoMessageEventContent` and optional
-    /// relation.
-    pub fn from_video_room_message(
-        content: VideoMessageEventContent,
-        relates_to: Option<Relation>,
-    ) -> Self {
-        let VideoMessageEventContent {
-            body,
-            source,
-            info,
-            message,
-            file,
-            video,
-            thumbnail,
-            caption,
-        } = content;
-        let VideoInfo {
-            duration,
-            height,
-            width,
-            mimetype,
-            size,
-            thumbnail_info,
-            thumbnail_source,
-            ..
-        } = info.map(|info| *info).unwrap_or_default();
-
-        let message = message.unwrap_or_else(|| MessageContent::plain(body));
-        let file = file.unwrap_or_else(|| {
-            FileContent::from_room_message_content(source, None, mimetype, size)
-        });
-        let video = video.unwrap_or_else(|| {
-            Box::new(VideoContent::from_room_message_content(height, width, duration))
-        });
-        let thumbnail = thumbnail.unwrap_or_else(|| {
-            ThumbnailContent::from_room_message_content(thumbnail_source, thumbnail_info)
-                .into_iter()
-                .collect()
-        });
-
-        Self { message, file, video, thumbnail, caption, relates_to }
-    }
-}
-
-impl From<VideoEventContent> for RoomMessageEventContent {
-    fn from(content: VideoEventContent) -> Self {
-        let VideoEventContent { message, file, video, thumbnail, caption, relates_to } = content;
-
-        Self {
-            msgtype: MessageType::Video(VideoMessageEventContent::from_extensible_content(
-                message, file, video, thumbnail, caption,
-            )),
-            relates_to,
         }
     }
 }

@@ -5,24 +5,15 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::{
-    message::MessageContent,
-    room::message::{EmoteMessageEventContent, MessageType, Relation, RoomMessageEventContent},
-};
+use super::{message::MessageContent, room::message::Relation};
 
 /// The payload for an extensible emote message.
 ///
 /// This is the new primary type introduced in [MSC1767] and should not be sent before the end of
 /// the transition period. See the documentation of the [`message`] module for more information.
 ///
-/// `EmoteEventContent` can be converted to a [`RoomMessageEventContent`] with a
-/// [`MessageType::Emote`]. You can convert it back with
-/// [`EmoteEventContent::from_emote_room_message()`].
-///
 /// [MSC1767]: https://github.com/matrix-org/matrix-spec-proposals/pull/1767
 /// [`message`]: super::message
-/// [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
-/// [`MessageType::Emote`]: super::room::message::MessageType::Emote
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.emote", kind = MessageLike, without_relation)]
@@ -54,27 +45,5 @@ impl EmoteEventContent {
     #[cfg(feature = "markdown")]
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
         Self { message: MessageContent::markdown(body), relates_to: None }
-    }
-
-    /// Create a new `EmoteEventContent` from the given `EmoteMessageEventContent` and optional
-    /// relation.
-    pub fn from_emote_room_message(
-        content: EmoteMessageEventContent,
-        relates_to: Option<Relation>,
-    ) -> Self {
-        let EmoteMessageEventContent { body, formatted, message, .. } = content;
-        if let Some(message) = message {
-            Self { message, relates_to }
-        } else {
-            Self { message: MessageContent::from_room_message_content(body, formatted), relates_to }
-        }
-    }
-}
-
-impl From<EmoteEventContent> for RoomMessageEventContent {
-    fn from(content: EmoteEventContent) -> Self {
-        let EmoteEventContent { message, relates_to, .. } = content;
-
-        Self { msgtype: MessageType::Emote(message.into()), relates_to }
     }
 }

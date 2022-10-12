@@ -27,17 +27,9 @@
 //! the `unstable-mscXXXX` features (where `XXXX` is the number of the MSC).
 //!
 //! The recommended way to send transitional extensible events while they are unstable and during
-//! the transition period is to build one of the new primary types and then to convert it to a
-//! [`RoomMessageEventContent`] by using `.into()` or `RoomMessageEventContent::from()`. The
-//! provided constructors will copy the relevant data in the legacy fields.
-//!
-//! For incoming events, a `RoomMessageEventContent` can be converted to an extensible event with
-//! the relevant `from_*_room_message` method on the primary type. This conversion will work even
-//! with legacy `m.room.message` events that don't have extensible events content.
-//!
-//! It is also possible to enable extensible events support and continue using
-//! `RoomMessageEventContent`'s constructors. The data will be duplicated in both the legacy and
-//! extensible events fields.
+//! the transition period is to use the constructors and helper methods of
+//! [`RoomMessageEventContent`]. The data will be duplicated in both the legacy and extensible
+//! events fields as needed.
 //!
 //! [MSC1767]: https://github.com/matrix-org/matrix-spec-proposals/pull/1767
 //! [1767]: https://github.com/matrix-org/matrix-spec-proposals/pull/1767
@@ -48,6 +40,7 @@
 //! [3488]: https://github.com/matrix-org/matrix-spec-proposals/pull/3488
 //! [MSC3245]: https://github.com/matrix-org/matrix-spec-proposals/pull/3245
 //! [MSC3381]: https://github.com/matrix-org/matrix-spec-proposals/pull/3381
+//! [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
 use std::ops::Deref;
 
 use ruma_macros::EventContent;
@@ -58,10 +51,7 @@ pub(crate) mod content_serde;
 
 use content_serde::MessageContentSerDeHelper;
 
-use super::room::message::{
-    FormattedBody, MessageFormat, MessageType, Relation, RoomMessageEventContent,
-    TextMessageEventContent,
-};
+use super::room::message::Relation;
 
 /// The payload for an extensible text message.
 ///
@@ -71,14 +61,8 @@ use super::room::message::{
 /// To construct a `MessageEventContent` with a custom [`MessageContent`], convert it with
 /// `MessageEventContent::from()` / `.into()`.
 ///
-/// `MessageEventContent` can be converted to a [`RoomMessageEventContent`] with a
-/// [`MessageType::Text`]. You can convert it back with
-/// [`MessageEventContent::from_text_room_message()`].
-///
 /// [MSC1767]: https://github.com/matrix-org/matrix-spec-proposals/pull/1767
 /// [`message`]: super::message
-/// [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
-/// [`MessageType::Text`]: super::room::message::MessageType::Text
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.message", kind = MessageLike, without_relation)]
@@ -111,33 +95,11 @@ impl MessageEventContent {
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
         Self { message: MessageContent::markdown(body), relates_to: None }
     }
-
-    /// Create a new `MessageEventContent` from the given `TextMessageEventContent` and optional
-    /// relation.
-    pub fn from_text_room_message(
-        content: TextMessageEventContent,
-        relates_to: Option<Relation>,
-    ) -> Self {
-        let TextMessageEventContent { body, formatted, message, .. } = content;
-        if let Some(message) = message {
-            Self { message, relates_to }
-        } else {
-            Self { message: MessageContent::from_room_message_content(body, formatted), relates_to }
-        }
-    }
 }
 
 impl From<MessageContent> for MessageEventContent {
     fn from(message: MessageContent) -> Self {
         Self { message, relates_to: None }
-    }
-}
-
-impl From<MessageEventContent> for RoomMessageEventContent {
-    fn from(content: MessageEventContent) -> Self {
-        let MessageEventContent { message, relates_to, .. } = content;
-
-        Self { msgtype: MessageType::Text(message.into()), relates_to }
     }
 }
 
@@ -186,20 +148,6 @@ impl MessageContent {
         }
         message.push(Text::plain(body));
         Self(message)
-    }
-
-    /// Create a new `MessageContent` from the given body and optional formatted body.
-    pub(crate) fn from_room_message_content(
-        body: String,
-        formatted: Option<FormattedBody>,
-    ) -> Self {
-        if let Some(FormattedBody { body: html_body, .. }) =
-            formatted.filter(|formatted| formatted.format == MessageFormat::Html)
-        {
-            Self::html(body, html_body)
-        } else {
-            Self::plain(body)
-        }
     }
 
     /// Get the plain text representation of this message.

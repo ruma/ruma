@@ -78,33 +78,6 @@ impl LocationMessageEventContent {
             info: None,
         }
     }
-
-    /// Create a new `LocationMessageEventContent` with the given message, location info, asset and
-    /// timestamp.
-    #[cfg(feature = "unstable-msc3488")]
-    pub(crate) fn from_extensible_content(
-        message: MessageContent,
-        location: LocationContent,
-        asset: AssetContent,
-        ts: Option<MilliSecondsSinceUnixEpoch>,
-    ) -> Self {
-        let body = if let Some(body) = message.find_plain() {
-            body.to_owned()
-        } else {
-            message[0].body.clone()
-        };
-        let geo_uri = location.uri.clone();
-
-        Self {
-            message: Some(message),
-            location: Some(location),
-            asset: Some(asset),
-            ts,
-            body,
-            geo_uri,
-            info: None,
-        }
-    }
 }
 
 /// Thumbnail info associated with a location.

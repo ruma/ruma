@@ -5,24 +5,15 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::{
-    message::MessageContent,
-    room::message::{MessageType, NoticeMessageEventContent, Relation, RoomMessageEventContent},
-};
+use super::{message::MessageContent, room::message::Relation};
 
 /// The payload for an extensible notice message.
 ///
 /// This is the new primary type introduced in [MSC1767] and should not be sent before the end of
 /// the transition period. See the documentation of the [`message`] module for more information.
 ///
-/// `NoticeEventContent` can be converted to a [`RoomMessageEventContent`] with a
-/// [`MessageType::Notice`]. You can convert it back with
-/// [`NoticeEventContent::from_notice_room_message()`].
-///
 /// [MSC1767]: https://github.com/matrix-org/matrix-spec-proposals/pull/1767
 /// [`message`]: super::message
-/// [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
-/// [`MessageType::Notice`]: super::room::message::MessageType::Notice
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.notice", kind = MessageLike, without_relation)]
@@ -54,27 +45,5 @@ impl NoticeEventContent {
     #[cfg(feature = "markdown")]
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
         Self { message: MessageContent::markdown(body), relates_to: None }
-    }
-
-    /// Create a new `NoticeEventContent` from the given `NoticeMessageEventContent` and optional
-    /// relation.
-    pub fn from_notice_room_message(
-        content: NoticeMessageEventContent,
-        relates_to: Option<Relation>,
-    ) -> Self {
-        let NoticeMessageEventContent { body, formatted, message, .. } = content;
-        if let Some(message) = message {
-            Self { message, relates_to }
-        } else {
-            Self { message: MessageContent::from_room_message_content(body, formatted), relates_to }
-        }
-    }
-}
-
-impl From<NoticeEventContent> for RoomMessageEventContent {
-    fn from(content: NoticeEventContent) -> Self {
-        let NoticeEventContent { message, relates_to, .. } = content;
-
-        Self { msgtype: MessageType::Notice(message.into()), relates_to }
     }
 }
