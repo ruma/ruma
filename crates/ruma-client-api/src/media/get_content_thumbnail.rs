@@ -66,7 +66,6 @@ pub mod v3 {
                 default,
                 skip_serializing_if = "ruma_common::serde::is_default",
                 rename = "fi.mau.msc2246.max_stall_ms",
-                alias = "max_stall_ms"
             )]
             pub max_stall_ms: Option<UInt>,
         }

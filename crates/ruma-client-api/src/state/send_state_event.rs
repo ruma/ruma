@@ -217,11 +217,7 @@ pub mod v3 {
     #[cfg_attr(feature = "server", derive(serde::Deserialize))]
     struct RequestQuery {
         /// Timestamp to use for the `origin_server_ts` of the event.
-        #[serde(
-            alias = "org.matrix.msc3316.ts",
-            rename = "ts",
-            skip_serializing_if = "Option::is_none"
-        )]
+        #[serde(rename = "ts", skip_serializing_if = "Option::is_none")]
         pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
     }
 }

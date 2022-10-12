@@ -44,7 +44,6 @@ pub mod v3 {
                 default,
                 skip_serializing_if = "ruma_common::serde::is_default",
                 rename = "xyz.amorgan.generate_blurhash",
-                alias = "generate_blurhash"
             )]
             pub generate_blurhash: bool,
         }

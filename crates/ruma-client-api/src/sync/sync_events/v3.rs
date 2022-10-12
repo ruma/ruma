@@ -289,11 +289,7 @@ pub struct JoinedRoom {
     ///
     /// [MSC2654]: https://github.com/matrix-org/matrix-spec-proposals/pull/2654
     #[cfg(feature = "unstable-msc2654")]
-    #[serde(
-        rename = "org.matrix.msc2654.unread_count",
-        alias = "unread_count",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename = "org.matrix.msc2654.unread_count", skip_serializing_if = "Option::is_none")]
     pub unread_count: Option<UInt>,
 }
 

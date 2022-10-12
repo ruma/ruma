@@ -50,11 +50,7 @@ pub mod v3 {
             /// If set to `true`, the client supports [refresh tokens].
             ///
             /// [refresh tokens]: https://spec.matrix.org/v1.3/client-server-api/#refreshing-access-tokens
-            #[serde(
-                default,
-                skip_serializing_if = "ruma_common::serde::is_default",
-                alias = "org.matrix.msc2918.refresh_token",
-            )]
+            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
             pub refresh_token: bool,
         }
 
