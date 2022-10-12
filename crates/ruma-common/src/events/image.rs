@@ -31,7 +31,7 @@ use crate::OwnedMxcUri;
 /// [`MessageType::Image`]: super::room::message::MessageType::Image
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.image", kind = MessageLike)]
+#[ruma_event(type = "m.image", kind = MessageLike, without_relation)]
 pub struct ImageEventContent {
     /// The text representation of the message.
     #[serde(flatten)]

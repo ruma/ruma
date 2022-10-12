@@ -25,7 +25,7 @@ use super::{
 /// [`MessageType::Emote`]: super::room::message::MessageType::Emote
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.emote", kind = MessageLike)]
+#[ruma_event(type = "m.emote", kind = MessageLike, without_relation)]
 pub struct EmoteEventContent {
     /// The message's text content.
     #[serde(flatten)]

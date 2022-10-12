@@ -32,7 +32,7 @@ use super::{
 /// [`MessageType::Video`]: super::room::message::MessageType::Video
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.video", kind = MessageLike)]
+#[ruma_event(type = "m.video", kind = MessageLike, without_relation)]
 pub struct VideoEventContent {
     /// The text representation of the message.
     #[serde(flatten)]

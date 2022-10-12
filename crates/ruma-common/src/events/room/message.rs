@@ -457,6 +457,12 @@ impl From<MessageType> for RoomMessageEventContent {
     }
 }
 
+impl From<RoomMessageEventContent> for MessageType {
+    fn from(content: RoomMessageEventContent) -> Self {
+        content.msgtype
+    }
+}
+
 /// Message event relationship.
 #[derive(Clone, Debug)]
 #[allow(clippy::manual_non_exhaustive)]
