@@ -149,38 +149,6 @@ impl VideoMessageEventContent {
             info: None,
         }
     }
-
-    /// Create a new `VideoMessageEventContent` with the given message, file info, video info,
-    /// thumbnails and captions.
-    #[cfg(feature = "unstable-msc3553")]
-    pub(crate) fn from_extensible_content(
-        message: MessageContent,
-        file: FileContent,
-        video: Box<VideoContent>,
-        thumbnail: Vec<ThumbnailContent>,
-        caption: Option<MessageContent>,
-    ) -> Self {
-        let body = if let Some(body) = message.find_plain() {
-            body.to_owned()
-        } else {
-            message[0].body.clone()
-        };
-        let source = (&file).into();
-        let info = VideoInfo::from_extensible_content(file.info.as_deref(), &video, &thumbnail)
-            .map(Box::new);
-        let thumbnail = if thumbnail.is_empty() { None } else { Some(thumbnail) };
-
-        Self {
-            message: Some(message),
-            file: Some(file),
-            video: Some(video),
-            thumbnail,
-            caption,
-            body,
-            source,
-            info,
-        }
-    }
 }
 
 /// Metadata about a video.
@@ -236,48 +204,5 @@ impl VideoInfo {
     /// Creates an empty `VideoInfo`.
     pub fn new() -> Self {
         Self::default()
-    }
-
-    /// Create a `VideoInfo` from the given file info, video info and thumbnail.
-    ///
-    /// Returns `None` if the `VideoInfo` would be empty.
-    #[cfg(feature = "unstable-msc3553")]
-    fn from_extensible_content(
-        file_info: Option<&FileContentInfo>,
-        video: &VideoContent,
-        thumbnail: &[ThumbnailContent],
-    ) -> Option<Self> {
-        if file_info.is_none() && video.is_empty() && thumbnail.is_empty() {
-            None
-        } else {
-            let (mimetype, size) = file_info
-                .map(|info| (info.mimetype.to_owned(), info.size.to_owned()))
-                .unwrap_or_default();
-            let VideoContent { duration, height, width } = video.to_owned();
-            let (thumbnail_source, thumbnail_info) = thumbnail
-                .get(0)
-                .map(|thumbnail| {
-                    let source = (&thumbnail.file).into();
-                    let info = ThumbnailInfo::from_extensible_content(
-                        thumbnail.file.info.as_deref(),
-                        thumbnail.image.as_deref(),
-                    )
-                    .map(Box::new);
-                    (Some(source), info)
-                })
-                .unwrap_or_default();
-
-            Some(Self {
-                duration,
-                height,
-                width,
-                mimetype,
-                size,
-                thumbnail_info,
-                thumbnail_source,
-                #[cfg(feature = "unstable-msc2448")]
-                blurhash: None,
-            })
-        }
     }
 }

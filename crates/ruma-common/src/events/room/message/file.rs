@@ -98,24 +98,6 @@ impl FileMessageEventContent {
             info: None,
         }
     }
-
-    /// Create a new `FileMessageEventContent` with the given message and file info.
-    #[cfg(feature = "unstable-msc3551")]
-    pub(crate) fn from_extensible_content(message: MessageContent, file: FileContent) -> Self {
-        let body = if let Some(body) = message.find_plain() {
-            body.to_owned()
-        } else {
-            message[0].body.clone()
-        };
-        let filename = file.info.as_deref().and_then(|info| info.name.clone());
-        let info = file.info.as_deref().and_then(|info| {
-            FileInfo::from_extensible_content(info.mimetype.to_owned(), info.size.to_owned())
-                .map(Box::new)
-        });
-        let source = (&file).into();
-
-        Self { message: Some(message), file: Some(file), body, filename, source, info }
-    }
 }
 
 /// Metadata about a file.
@@ -147,17 +129,5 @@ impl FileInfo {
     /// Creates an empty `FileInfo`.
     pub fn new() -> Self {
         Self::default()
-    }
-
-    /// Creates a `FileInfo` with the given optional mimetype and size.
-    ///
-    /// Returns `None` if the `FileInfo` would be empty.
-    #[cfg(feature = "unstable-msc3551")]
-    fn from_extensible_content(mimetype: Option<String>, size: Option<UInt>) -> Option<Self> {
-        if mimetype.is_none() && size.is_none() {
-            None
-        } else {
-            Some(Self { mimetype, size, ..Default::default() })
-        }
     }
 }

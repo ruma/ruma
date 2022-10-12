@@ -9,10 +9,7 @@ use serde::{Deserialize, Serialize};
 use super::{
     file::{EncryptedContent, FileContent},
     message::MessageContent,
-    room::{
-        message::{ImageMessageEventContent, MessageType, Relation, RoomMessageEventContent},
-        ImageInfo, MediaSource, ThumbnailInfo,
-    },
+    room::{message::Relation, MediaSource, ThumbnailInfo},
 };
 use crate::OwnedMxcUri;
 
@@ -21,14 +18,8 @@ use crate::OwnedMxcUri;
 /// This is the new primary type introduced in [MSC3552] and should not be sent before the end of
 /// the transition period. See the documentation of the [`message`] module for more information.
 ///
-/// `ImageEventContent` can be converted to a [`RoomMessageEventContent`] with a
-/// [`MessageType::Image`]. You can convert it back with
-/// [`ImageEventContent::from_image_room_message()`].
-///
 /// [MSC3552]: https://github.com/matrix-org/matrix-spec-proposals/pull/3552
 /// [`message`]: super::message
-/// [`RoomMessageEventContent`]: super::room::message::RoomMessageEventContent
-/// [`MessageType::Image`]: super::room::message::MessageType::Image
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.image", kind = MessageLike, without_relation)]
@@ -85,54 +76,6 @@ impl ImageEventContent {
             thumbnail: Default::default(),
             caption: Default::default(),
             relates_to: None,
-        }
-    }
-
-    /// Create a new `ImageEventContent` from the given `ImageMessageEventContent` and optional
-    /// relation.
-    pub fn from_image_room_message(
-        content: ImageMessageEventContent,
-        relates_to: Option<Relation>,
-    ) -> Self {
-        let ImageMessageEventContent {
-            body,
-            source,
-            info,
-            message,
-            file,
-            image,
-            thumbnail,
-            caption,
-        } = content;
-        let ImageInfo { height, width, mimetype, size, thumbnail_info, thumbnail_source, .. } =
-            info.map(|info| *info).unwrap_or_default();
-
-        let message = message.unwrap_or_else(|| MessageContent::plain(body));
-        let file = file.unwrap_or_else(|| {
-            FileContent::from_room_message_content(source, None, mimetype, size)
-        });
-        let image = image
-            .or_else(|| ImageContent::from_room_message_content(width, height).map(Box::new))
-            .unwrap_or_default();
-        let thumbnail = thumbnail.unwrap_or_else(|| {
-            ThumbnailContent::from_room_message_content(thumbnail_source, thumbnail_info)
-                .into_iter()
-                .collect()
-        });
-
-        Self { message, file, image, thumbnail, caption, relates_to }
-    }
-}
-
-impl From<ImageEventContent> for RoomMessageEventContent {
-    fn from(content: ImageEventContent) -> Self {
-        let ImageEventContent { message, file, image, thumbnail, caption, relates_to } = content;
-
-        Self {
-            msgtype: MessageType::Image(ImageMessageEventContent::from_extensible_content(
-                message, file, image, thumbnail, caption,
-            )),
-            relates_to,
         }
     }
 }

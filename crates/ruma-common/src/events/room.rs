@@ -13,10 +13,7 @@ use serde::{de, Deserialize, Serialize};
 #[cfg(feature = "unstable-msc3551")]
 use super::file::{EncryptedContent, EncryptedContentInit, FileContent};
 #[cfg(feature = "unstable-msc3552")]
-use super::{
-    file::FileContentInfo,
-    image::{ImageContent, ThumbnailContent, ThumbnailFileContent, ThumbnailFileContentInfo},
-};
+use super::image::ThumbnailFileContent;
 #[cfg(feature = "unstable-msc3551")]
 use crate::MxcUri;
 use crate::{
@@ -165,48 +162,6 @@ impl ImageInfo {
     pub fn new() -> Self {
         Self::default()
     }
-
-    /// Create an `ImageInfo` from the given file info, image info and thumbnail.
-    ///
-    /// Returns `None` if the `ImageInfo` would be empty.
-    #[cfg(feature = "unstable-msc3552")]
-    fn from_extensible_content(
-        file_info: Option<&FileContentInfo>,
-        image: &ImageContent,
-        thumbnail: &[ThumbnailContent],
-    ) -> Option<Self> {
-        if file_info.is_none() && image.is_empty() && thumbnail.is_empty() {
-            None
-        } else {
-            let (mimetype, size) = file_info
-                .map(|info| (info.mimetype.to_owned(), info.size.to_owned()))
-                .unwrap_or_default();
-            let ImageContent { height, width } = image.to_owned();
-            let (thumbnail_source, thumbnail_info) = thumbnail
-                .get(0)
-                .map(|thumbnail| {
-                    let source = (&thumbnail.file).into();
-                    let info = ThumbnailInfo::from_extensible_content(
-                        thumbnail.file.info.as_deref(),
-                        thumbnail.image.as_deref(),
-                    )
-                    .map(Box::new);
-                    (Some(source), info)
-                })
-                .unwrap_or_default();
-
-            Some(Self {
-                height,
-                width,
-                mimetype,
-                size,
-                thumbnail_source,
-                thumbnail_info,
-                #[cfg(feature = "unstable-msc2448")]
-                blurhash: None,
-            })
-        }
-    }
 }
 
 /// Metadata about a thumbnail.
@@ -234,24 +189,6 @@ impl ThumbnailInfo {
     /// Creates an empty `ThumbnailInfo`.
     pub fn new() -> Self {
         Self::default()
-    }
-
-    /// Create a `ThumbnailInfo` with the given file info and image info.
-    ///
-    /// Returns `None` if the `ThumbnailInfo` would be empty.
-    #[cfg(feature = "unstable-msc3552")]
-    fn from_extensible_content(
-        file_info: Option<&ThumbnailFileContentInfo>,
-        image: Option<&ImageContent>,
-    ) -> Option<Self> {
-        if file_info.is_none() && image.is_none() {
-            None
-        } else {
-            let ThumbnailFileContentInfo { mimetype, size } =
-                file_info.map(ToOwned::to_owned).unwrap_or_default();
-            let ImageContent { height, width } = image.map(ToOwned::to_owned).unwrap_or_default();
-            Some(Self { height, width, mimetype, size })
-        }
     }
 }
 
