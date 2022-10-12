@@ -2,7 +2,7 @@
 //!
 //! The differences between the `RoomV1Pdu` schema and the `RoomV3Pdu` schema are that the
 //! `RoomV1Pdu` takes an `event_id` field (`RoomV3Pdu` does not), and `auth_events` and
-//! `prev_events` take `Vec<(OwnedEventId, EventHash)> rather than `Vec<OwnedEventId>` in
+//! `prev_events` take `Vec<(OwnedEventId, EventHash)>` rather than `Vec<OwnedEventId>` in
 //! `RoomV3Pdu`.
 
 use std::collections::BTreeMap;
