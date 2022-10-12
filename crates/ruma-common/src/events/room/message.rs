@@ -62,7 +62,7 @@ pub struct RoomMessageEventContent {
     ///
     /// [rich replies]: https://spec.matrix.org/v1.2/client-server-api/#rich-replies
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    pub relates_to: Option<Relation>,
+    pub relates_to: Option<Relation<MessageType>>,
 }
 
 impl RoomMessageEventContent {
@@ -467,7 +467,7 @@ impl From<RoomMessageEventContent> for MessageType {
 #[derive(Clone, Debug)]
 #[allow(clippy::manual_non_exhaustive)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub enum Relation {
+pub enum Relation<C> {
     /// An `m.in_reply_to` relation indicating that the event is a reply to another event.
     Reply {
         /// Information about another message being replied to.
@@ -475,7 +475,7 @@ pub enum Relation {
     },
 
     /// An event that replaces another event.
-    Replacement(Replacement),
+    Replacement(Replacement<C>),
 
     /// An event that belongs to a thread.
     Thread(Thread),
@@ -504,17 +504,17 @@ impl InReplyTo {
 /// [replaces another event]: https://spec.matrix.org/v1.4/client-server-api/#event-replacements
 #[derive(Clone, Debug)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct Replacement {
+pub struct Replacement<C> {
     /// The ID of the event being replaced.
     pub event_id: OwnedEventId,
 
     /// New content.
-    pub new_content: Box<RoomMessageEventContent>,
+    pub new_content: C,
 }
 
-impl Replacement {
+impl<C> Replacement<C> {
     /// Creates a new `Replacement` with the given event ID and new content.
-    pub fn new(event_id: OwnedEventId, new_content: Box<RoomMessageEventContent>) -> Self {
+    pub fn new(event_id: OwnedEventId, new_content: C) -> Self {
         Self { event_id, new_content }
     }
 }

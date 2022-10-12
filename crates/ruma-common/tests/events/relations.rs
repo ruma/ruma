@@ -75,7 +75,7 @@ fn replacement_serialize() {
             relates_to: Some(Relation::Replacement(
                 Replacement::new(
                     event_id!("$1598361704261elfgc").to_owned(),
-                    Box::new(RoomMessageEventContent::text_plain("This is the new content.")),
+                    RoomMessageEventContent::text_plain("This is the new content.").into(),
                 )
             ))
         }
@@ -142,7 +142,7 @@ fn replacement_deserialize() {
         }) => replacement
     );
     assert_eq!(replacement.event_id, "$1598361704261elfgc");
-    let text = assert_matches!(replacement.new_content.msgtype, MessageType::Text(text) => text);
+    let text = assert_matches!(replacement.new_content, MessageType::Text(text) => text);
     assert_eq!(text.body, "Hello! My name is bar");
 }
 

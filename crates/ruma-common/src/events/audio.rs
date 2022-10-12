@@ -40,7 +40,7 @@ pub struct AudioEventContent {
 
     /// Information about related messages.
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    pub relates_to: Option<Relation>,
+    pub relates_to: Option<Relation<AudioEventContentWithoutRelation>>,
 }
 
 impl AudioEventContent {

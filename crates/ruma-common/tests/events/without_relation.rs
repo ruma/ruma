@@ -1,10 +1,7 @@
 use assert_matches::assert_matches;
 use ruma_common::{
     event_id,
-    events::room::message::{
-        InReplyTo, MessageType, Relation, RoomMessageEventContent,
-        RoomMessageEventContentWithoutRelation,
-    },
+    events::room::message::{InReplyTo, MessageType, Relation, RoomMessageEventContent},
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -13,7 +10,7 @@ fn serialize_room_message_content_without_relation() {
     let mut content = RoomMessageEventContent::text_plain("Hello, world!");
     content.relates_to =
         Some(Relation::Reply { in_reply_to: InReplyTo::new(event_id!("$eventId").to_owned()) });
-    let without_relation = RoomMessageEventContentWithoutRelation::from(content);
+    let without_relation = MessageType::from(content);
 
     #[cfg(not(feature = "unstable-msc3246"))]
     assert_eq!(
@@ -43,8 +40,8 @@ fn deserialize_room_message_content_without_relation() {
     });
 
     let text = assert_matches!(
-        from_json_value::<RoomMessageEventContentWithoutRelation>(json_data),
-        Ok(RoomMessageEventContentWithoutRelation::Text(text)) => text
+        from_json_value::<MessageType>(json_data),
+        Ok(MessageType::Text(text)) => text
     );
     assert_eq!(text.body, "Hello, world!");
 }
@@ -54,8 +51,7 @@ fn convert_room_message_content_without_relation_to_full() {
     let mut content = RoomMessageEventContent::text_plain("Hello, world!");
     content.relates_to =
         Some(Relation::Reply { in_reply_to: InReplyTo::new(event_id!("$eventId").to_owned()) });
-    let new_content =
-        RoomMessageEventContent::from(RoomMessageEventContentWithoutRelation::from(content));
+    let new_content = RoomMessageEventContent::from(MessageType::from(content));
 
     let (text, relates_to) = assert_matches!(
         new_content,
