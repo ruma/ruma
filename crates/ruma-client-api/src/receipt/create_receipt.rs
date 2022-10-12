@@ -45,7 +45,7 @@ pub mod v3 {
             /// [`ReceiptType::FullyRead`].
             ///
             /// Defaults to [`ReceiptThread::Unthreaded`].
-            #[serde(rename = "thread_id", skip_serializing_if = "ruma_common::serde::is_default")]
+            #[serde(rename = "thread_id", default, skip_serializing_if = "ruma_common::serde::is_default")]
             pub thread: ReceiptThread,
         }
 
