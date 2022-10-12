@@ -11,7 +11,7 @@ use serde::{
     ser::{Error, Serialize, Serializer},
 };
 
-/// Serialize an Option<Duration>.
+/// Serialize an `Option<Duration>`.
 ///
 /// Will fail if integer is greater than the maximum integer that can be
 /// unambiguously represented by an f64.
@@ -28,7 +28,7 @@ where
     }
 }
 
-/// Deserializes an Option<Duration>.
+/// Deserializes an `Option<Duration>`.
 ///
 /// Will fail if integer is greater than the maximum integer that can be
 /// unambiguously represented by an f64.

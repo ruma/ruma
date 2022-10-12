@@ -144,7 +144,7 @@ impl Ed25519KeyPair {
     ///
     /// # Returns
     ///
-    /// Returns a Vec<u8> representing a DER-encoded PKCS#8 v2 document (with public key)
+    /// Returns a `Vec<u8>` representing a DER-encoded PKCS#8 v2 document (with public key)
     ///
     /// # Errors
     ///
