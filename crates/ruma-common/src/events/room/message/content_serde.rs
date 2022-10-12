@@ -47,8 +47,8 @@ impl<'de> Deserialize<'de> for RoomMessageEventContent {
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
         let mut deserializer = serde_json::Deserializer::from_str(json.get());
-        let relates_to =
-            Option::<Relation>::deserialize(&mut deserializer).map_err(de::Error::custom)?;
+        let relates_to = Option::<Relation<MessageType>>::deserialize(&mut deserializer)
+            .map_err(de::Error::custom)?;
 
         Ok(Self { msgtype: from_raw_json_value(&json)?, relates_to })
     }

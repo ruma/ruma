@@ -1,9 +1,12 @@
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use super::{InReplyTo, Relation, Replacement, RoomMessageEventContent, Thread};
+use super::{InReplyTo, Relation, Replacement, Thread};
 use crate::OwnedEventId;
 
-impl<'de> Deserialize<'de> for Relation {
+impl<'de, C> Deserialize<'de> for Relation<C>
+where
+    C: Deserialize<'de>,
+{
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -47,17 +50,22 @@ impl<'de> Deserialize<'de> for Relation {
     }
 }
 
-impl Serialize for Relation {
+impl<C> Serialize for Relation<C>
+where
+    C: Clone + Serialize,
+{
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
         #[allow(clippy::needless_update)]
         let json_repr = match self {
-            Relation::Reply { in_reply_to } => EventWithRelatesToJsonRepr::new(RelatesToJsonRepr {
-                in_reply_to: Some(in_reply_to.clone()),
-                ..Default::default()
-            }),
+            Relation::Reply { in_reply_to } => {
+                EventWithRelatesToJsonRepr::<C>::new(RelatesToJsonRepr {
+                    in_reply_to: Some(in_reply_to.clone()),
+                    ..Default::default()
+                })
+            }
             Relation::Replacement(Replacement { event_id, new_content }) => {
                 EventWithRelatesToJsonRepr {
                     relates_to: RelatesToJsonRepr {
@@ -79,25 +87,31 @@ impl Serialize for Relation {
                     ..Default::default()
                 })
             }
-            Relation::_Custom => EventWithRelatesToJsonRepr::default(),
+            Relation::_Custom => EventWithRelatesToJsonRepr::<C>::default(),
         };
 
         json_repr.serialize(serializer)
     }
 }
 
-#[derive(Default, Deserialize, Serialize)]
-struct EventWithRelatesToJsonRepr {
+#[derive(Deserialize, Serialize)]
+struct EventWithRelatesToJsonRepr<C> {
     #[serde(rename = "m.relates_to", default, skip_serializing_if = "RelatesToJsonRepr::is_empty")]
     relates_to: RelatesToJsonRepr,
 
     #[serde(rename = "m.new_content", skip_serializing_if = "Option::is_none")]
-    new_content: Option<Box<RoomMessageEventContent>>,
+    new_content: Option<C>,
 }
 
-impl EventWithRelatesToJsonRepr {
+impl<C> EventWithRelatesToJsonRepr<C> {
     fn new(relates_to: RelatesToJsonRepr) -> Self {
         Self { relates_to, new_content: None }
+    }
+}
+
+impl<C> Default for EventWithRelatesToJsonRepr<C> {
+    fn default() -> Self {
+        Self { relates_to: RelatesToJsonRepr::default(), new_content: None }
     }
 }
 

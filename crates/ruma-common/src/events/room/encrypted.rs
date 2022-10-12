@@ -107,8 +107,8 @@ pub enum Relation {
     _Custom,
 }
 
-impl From<message::Relation> for Relation {
-    fn from(rel: message::Relation) -> Self {
+impl<C> From<message::Relation<C>> for Relation {
+    fn from(rel: message::Relation<C>) -> Self {
         match rel {
             message::Relation::Reply { in_reply_to } => Self::Reply { in_reply_to },
             message::Relation::Replacement(re) => {
