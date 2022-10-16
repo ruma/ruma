@@ -55,7 +55,7 @@ pub struct SecretStorageKeyEventContent {
     pub key_id: String,
 
     /// The name of the key.
-    pub name: String,
+    pub name: Option<String>,
 
     /// The encryption algorithm used for this key.
     ///
@@ -70,8 +70,8 @@ pub struct SecretStorageKeyEventContent {
 
 impl SecretStorageKeyEventContent {
     /// Creates a `KeyDescription` with the given name.
-    pub fn new(key_id: String, name: String, algorithm: SecretEncryptionAlgorithm) -> Self {
-        Self { key_id, name, algorithm, passphrase: None }
+    pub fn new(key_id: String, algorithm: SecretEncryptionAlgorithm) -> Self {
+        Self { key_id, name: None, algorithm, passphrase: None }
     }
 }
 
@@ -105,14 +105,14 @@ mod tests {
 
     #[test]
     fn test_key_description_serialization() {
-        let content = SecretStorageKeyEventContent::new(
-            "my_key".into(),
+        let mut content = SecretStorageKeyEventContent::new(
             "my_key".into(),
             SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
                 iv: Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap(),
                 mac: Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap(),
             },
         );
+        content.name = Some("my_key".to_string());
 
         let json = json!({
             "name": "my_key",
@@ -134,7 +134,30 @@ mod tests {
         });
 
         let content = from_json_value::<SecretStorageKeyEventContent>(json).unwrap();
-        assert_eq!(content.name, "my_key");
+        assert_eq!(content.name.unwrap(), "my_key");
+        assert_matches!(content.passphrase, None);
+
+        let (iv, mac) = assert_matches!(
+            content.algorithm,
+            SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
+                iv,
+                mac,
+            } => (iv, mac)
+        );
+        assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
+        assert_eq!(mac.encode(), "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U");
+    }
+
+    #[test]
+    fn test_key_description_deserialization_without_name() {
+        let json = json!({
+            "algorithm": "m.secret_storage.v1.aes-hmac-sha2",
+            "iv": "YWJjZGVmZ2hpamtsbW5vcA",
+            "mac": "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U"
+        });
+
+        let content = from_json_value::<SecretStorageKeyEventContent>(json).unwrap();
+        assert!(content.name.is_none());
         assert_matches!(content.passphrase, None);
 
         let (iv, mac) = assert_matches!(
@@ -150,10 +173,9 @@ mod tests {
 
     #[test]
     fn test_key_description_with_passphrase_serialization() {
-        let content = SecretStorageKeyEventContent {
+        let mut content = SecretStorageKeyEventContent {
             passphrase: Some(PassPhrase::new("rocksalt".into(), uint!(8))),
             ..SecretStorageKeyEventContent::new(
-                "my_key".into(),
                 "my_key".into(),
                 SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
                     iv: Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap(),
@@ -161,6 +183,7 @@ mod tests {
                 },
             )
         };
+        content.name = Some("my_key".to_string());
 
         let json = json!({
             "name": "my_key",
@@ -193,7 +216,7 @@ mod tests {
         });
 
         let content = from_json_value::<SecretStorageKeyEventContent>(json).unwrap();
-        assert_eq!(content.name, "my_key");
+        assert_eq!(content.name.unwrap(), "my_key");
 
         let passphrase = content.passphrase.unwrap();
         assert_eq!(passphrase.algorithm, KeyDerivationAlgorithm::Pbkfd2);
@@ -214,16 +237,15 @@ mod tests {
 
     #[test]
     fn test_event_serialization() {
-        let event = GlobalAccountDataEvent {
-            content: SecretStorageKeyEventContent::new(
-                "my_key_id".into(),
-                "my_key".into(),
-                SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
-                    iv: Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap(),
-                    mac: Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap(),
-                },
-            ),
-        };
+        let mut content = SecretStorageKeyEventContent::new(
+            "my_key_id".into(),
+            SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
+                iv: Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap(),
+                mac: Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap(),
+            },
+        );
+        content.name = Some("my_key".to_string());
+        let event = GlobalAccountDataEvent { content };
 
         let json = json!({
             "type": "m.secret_storage.key.my_key_id",
@@ -253,7 +275,7 @@ mod tests {
         let ev =
             from_json_value::<GlobalAccountDataEvent<SecretStorageKeyEventContent>>(json).unwrap();
         assert_eq!(ev.content.key_id, "my_key_id");
-        assert_eq!(ev.content.name, "my_key");
+        assert_eq!(ev.content.name.unwrap(), "my_key");
         assert_matches!(ev.content.passphrase, None);
 
         let (iv, mac) = assert_matches!(
