@@ -112,7 +112,7 @@ mod tests {
                 mac: Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap(),
             },
         );
-        content.name = Some("my_key".to_string());
+        content.name = Some("my_key".to_owned());
 
         let json = json!({
             "name": "my_key",
@@ -183,7 +183,7 @@ mod tests {
                 },
             )
         };
-        content.name = Some("my_key".to_string());
+        content.name = Some("my_key".to_owned());
 
         let json = json!({
             "name": "my_key",
@@ -244,7 +244,7 @@ mod tests {
                 mac: Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap(),
             },
         );
-        content.name = Some("my_key".to_string());
+        content.name = Some("my_key".to_owned());
         let event = GlobalAccountDataEvent { content };
 
         let json = json!({
