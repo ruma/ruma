@@ -1,5 +1,9 @@
 # [unreleased]
 
+Bug fixes:
+
+* Add the `event` field to `RoomState` according to MSC3083 / Matrix v1.2
+
 # 0.6.0
 
 Breaking changes:

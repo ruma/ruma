@@ -22,6 +22,13 @@ pub struct RoomState {
 
     /// The room state.
     pub state: Vec<Box<RawJsonValue>>,
+
+    /// The signed copy of the membership event sent to other servers by the
+    /// resident server, including the resident server's signature.
+    ///
+    /// Required if the room version supports restricted join rules.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub event: Option<Box<RawJsonValue>>,
 }
 
 #[cfg(feature = "unstable-unspecified")]
@@ -38,7 +45,7 @@ impl RoomState {
     /// With the `unstable-unspecified` feature, this method doesn't take any parameters.
     /// See [matrix-spec#374](https://github.com/matrix-org/matrix-spec/issues/374).
     pub fn new(origin: String) -> Self {
-        Self { origin, auth_chain: Vec::new(), state: Vec::new() }
+        Self { origin, auth_chain: Vec::new(), state: Vec::new(), event: None }
     }
 
     #[cfg(feature = "unstable-unspecified")]
@@ -47,6 +54,6 @@ impl RoomState {
     /// Without the `unstable-unspecified` feature, this method takes a parameter for the origin
     /// See [matrix-spec#374](https://github.com/matrix-org/matrix-spec/issues/374).
     pub fn new() -> Self {
-        Self { auth_chain: Vec::new(), state: Vec::new() }
+        Self { auth_chain: Vec::new(), state: Vec::new(), event: None }
     }
 }
