@@ -264,8 +264,9 @@ pub mod v3 {
     }
 
     /// A token to supply as authentication.
-    #[derive(Clone, Debug, Incoming, Serialize)]
+    #[derive(Clone, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[incoming_derive(!Debug)]
     #[serde(tag = "type", rename = "m.login.token")]
     pub struct Token<'a> {
         /// The token.
@@ -283,6 +284,18 @@ pub mod v3 {
         /// Convert `IncomingToken` to `Token`.
         fn to_outgoing(&self) -> Token<'_> {
             Token { token: &self.token }
+        }
+    }
+
+    impl<'a> fmt::Debug for Token<'a> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            f.debug_struct("Token").finish_non_exhaustive()
+        }
+    }
+
+    impl fmt::Debug for IncomingToken {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            f.debug_struct("IncomingToken").finish_non_exhaustive()
         }
     }
 
