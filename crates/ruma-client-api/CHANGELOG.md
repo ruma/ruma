@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.15.2
+
+Bug fixes:
+
+* Don't include sensitive information in `Debug`-format of types from the `login` module
+
 # 0.15.1
 
 Improvements:
