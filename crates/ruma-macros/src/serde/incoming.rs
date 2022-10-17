@@ -59,27 +59,35 @@ pub fn expand_derive_incoming(mut ty_def: DeriveInput) -> syn::Result<TokenStrea
         });
     }
 
-    let mut derives = vec![quote! { Debug }];
+    let meta: Vec<Meta> = ty_def
+        .attrs
+        .iter()
+        .filter(|attr| attr.path.is_ident("incoming_derive"))
+        .map(|attr| attr.parse_args())
+        .collect::<syn::Result<_>>()?;
+
+    let mut derive_debug = true;
     let mut derive_deserialize = true;
 
-    derives.extend(
-        ty_def
-            .attrs
-            .iter()
-            .filter(|attr| attr.path.is_ident("incoming_derive"))
-            .map(|attr| attr.parse_args())
-            .collect::<syn::Result<Vec<Meta>>>()?
-            .into_iter()
-            .flat_map(|meta| meta.derive_macs)
-            .filter_map(|derive_mac| match derive_mac {
-                DeriveMac::Regular(id) => Some(quote! { #id }),
-                DeriveMac::NegativeDeserialize => {
-                    derive_deserialize = false;
-                    None
-                }
-            }),
-    );
+    let mut derives: Vec<_> = meta
+        .into_iter()
+        .flat_map(|m| m.derive_macs)
+        .filter_map(|derive_mac| match derive_mac {
+            DeriveMac::Regular(id) => Some(quote! { #id }),
+            DeriveMac::NegativeDebug => {
+                derive_debug = false;
+                None
+            }
+            DeriveMac::NegativeDeserialize => {
+                derive_deserialize = false;
+                None
+            }
+        })
+        .collect();
 
+    if derive_debug {
+        derives.push(quote! { ::std::fmt::Debug });
+    }
     derives.push(if derive_deserialize {
         quote! { #ruma_common::exports::serde::Deserialize }
     } else {
@@ -265,6 +273,7 @@ impl Parse for Meta {
 
 pub enum DeriveMac {
     Regular(Path),
+    NegativeDebug,
     NegativeDeserialize,
 }
 
@@ -274,14 +283,16 @@ impl Parse for DeriveMac {
             let _: Token![!] = input.parse()?;
             let mac: Ident = input.parse()?;
 
-            if mac != "Deserialize" {
-                return Err(syn::Error::new_spanned(
+            if mac == "Debug" {
+                Ok(Self::NegativeDebug)
+            } else if mac == "Deserialize" {
+                Ok(Self::NegativeDeserialize)
+            } else {
+                Err(syn::Error::new_spanned(
                     mac,
-                    "Negative incoming_derive can only be used for Deserialize",
-                ));
+                    "Negative incoming_derive can only be used for Debug and Deserialize",
+                ))
             }
-
-            Ok(Self::NegativeDeserialize)
         } else {
             let mac = input.parse()?;
             Ok(Self::Regular(mac))
