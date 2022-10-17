@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3login
 
-    use std::time::Duration;
+    use std::{fmt, time::Duration};
 
     use ruma_common::{
         api::ruma_api,
@@ -227,8 +227,9 @@ pub mod v3 {
     }
 
     /// An identifier and password to supply as authentication.
-    #[derive(Clone, Debug, Incoming, Serialize)]
+    #[derive(Clone, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[incoming_derive(!Debug)]
     #[serde(tag = "type", rename = "m.login.password")]
     pub struct Password<'a> {
         /// Identification information for the user.
@@ -249,6 +250,20 @@ pub mod v3 {
         /// Convert `IncomingPassword` to `Password`.
         fn to_outgoing(&self) -> Password<'_> {
             Password { identifier: self.identifier.to_outgoing(), password: &self.password }
+        }
+    }
+
+    impl<'a> fmt::Debug for Password<'a> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            f.debug_struct("Password").field("identifier", &self.identifier).finish_non_exhaustive()
+        }
+    }
+
+    impl fmt::Debug for IncomingPassword {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            f.debug_struct("IncomingPassword")
+                .field("identifier", &self.identifier)
+                .finish_non_exhaustive()
         }
     }
 
