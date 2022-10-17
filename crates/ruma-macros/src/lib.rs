@@ -261,6 +261,10 @@ pub fn user_id(input: TokenStream) -> TokenStream {
 /// Generating an 'Incoming' version of the type this derive macro is used on.
 ///
 /// This type will be a fully-owned version of the input type, using no lifetime generics.
+///
+/// By default, the generated type will derive `Debug` and `serde::Deserialize`. To derive
+/// additional traits, use `#[incoming_derive(ExtraDeriveMacro)]`. To disable the default derives,
+/// use `#[incoming_derive(!Debug, !Deserialize)]`.
 #[proc_macro_derive(Incoming, attributes(incoming_derive))]
 pub fn derive_incoming(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
