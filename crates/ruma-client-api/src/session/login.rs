@@ -323,7 +323,7 @@ pub mod v3 {
     }
 
     #[doc(hidden)]
-    #[derive(Clone, Debug, Serialize)]
+    #[derive(Clone, Serialize)]
     #[non_exhaustive]
     pub struct CustomLoginInfo<'a> {
         #[serde(rename = "type")]
@@ -332,14 +332,30 @@ pub mod v3 {
         extra: &'a JsonObject,
     }
 
+    impl<'a> fmt::Debug for CustomLoginInfo<'a> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            f.debug_struct("CustomLoginInfo")
+                .field("login_type", &self.login_type)
+                .finish_non_exhaustive()
+        }
+    }
+
     #[doc(hidden)]
-    #[derive(Clone, Debug, Deserialize)]
+    #[derive(Clone, Deserialize)]
     #[non_exhaustive]
     pub struct IncomingCustomLoginInfo {
         #[serde(rename = "type")]
         login_type: String,
         #[serde(flatten)]
         extra: JsonObject,
+    }
+
+    impl fmt::Debug for IncomingCustomLoginInfo {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            f.debug_struct("IncomingCustomLoginInfo")
+                .field("login_type", &self.login_type)
+                .finish_non_exhaustive()
+        }
     }
 
     /// Client configuration provided by the server.
