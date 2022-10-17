@@ -87,16 +87,21 @@ mod tests {
             }
         ]);
 
-        let RoomState { origin, auth_chain, state } = deserialize(response).unwrap();
+        let RoomState { origin, auth_chain, state, event } = deserialize(response).unwrap();
         assert_eq!(origin, "example.com");
         assert_matches!(auth_chain.as_slice(), []);
         assert_matches!(state.as_slice(), []);
+        assert_matches!(event, None);
     }
 
     #[test]
     fn serialize_response() {
-        let room_state =
-            RoomState { origin: "matrix.org".into(), auth_chain: Vec::new(), state: Vec::new() };
+        let room_state = RoomState {
+            origin: "matrix.org".into(),
+            auth_chain: Vec::new(),
+            state: Vec::new(),
+            event: None,
+        };
 
         let serialized = serialize(&room_state, serde_json::value::Serializer).unwrap();
         let expected = to_json_value(&json!(
@@ -142,9 +147,10 @@ mod tests {
     #[test]
     fn too_long_array() {
         let json = json!([200, { "origin": "", "auth_chain": [], "state": [] }, 200]);
-        let RoomState { origin, auth_chain, state } = deserialize(json).unwrap();
+        let RoomState { origin, auth_chain, state, event } = deserialize(json).unwrap();
         assert_eq!(origin, "");
         assert_matches!(auth_chain.as_slice(), []);
         assert_matches!(state.as_slice(), []);
+        assert_matches!(event, None);
     }
 }
