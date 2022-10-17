@@ -20,7 +20,7 @@ unstable-exhaustive-types = []
 [dependencies]
 itertools = "0.10.0"
 js_int = "0.2.0"
-ruma-common = { version = "0.10.3", path = "../ruma-common", features = ["events"] }
+ruma-common = { version = "0.10.4", path = "../ruma-common", features = ["events"] }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.60"
 thiserror = "1.0.26"
@@ -32,7 +32,7 @@ criterion = { version = "0.3.3", optional = true }
 [dev-dependencies]
 maplit = "1.0.2"
 rand = "0.8.3"
-ruma-common = { version = "0.10.3", path = "../ruma-common", features = ["unstable-pdu"] }
+ruma-common = { version = "0.10.4", path = "../ruma-common", features = ["unstable-pdu"] }
 tracing-subscriber = "0.3.3"
 
 [[bench]]

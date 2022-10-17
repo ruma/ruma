@@ -1,9 +1,5 @@
 # [unreleased]
 
-Bug fixes:
-
-* Fix `MatrixToUri` parsing for non-url-encoded room aliases
-
 Breaking changes:
 
 * Remove deprecated `EventType` enum
@@ -27,6 +23,12 @@ Improvements:
   * Add `RoomMessageEventContent::make_for_reply`
 * Stabilize support for event replacements (edits)
 * Add support for read receipts for threads (MSC3771 / Matrix 1.4)
+
+# 0.10.4
+
+Bug fixes:
+
+* Fix `MatrixToUri` parsing for non-url-encoded room aliases
 
 # 0.10.3
 
