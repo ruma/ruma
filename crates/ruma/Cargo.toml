@@ -207,7 +207,7 @@ assign = "1.1.1"
 js_int = "0.2.0"
 js_option = "0.1.1"
 
-ruma-common = { version = "0.10.4", path = "../ruma-common" }
+ruma-common = { version = "0.10.5", path = "../ruma-common" }
 
 ruma-client = { version = "0.10.0", path = "../ruma-client", optional = true }
 ruma-signatures = { version = "0.12.0", path = "../ruma-signatures", optional = true }

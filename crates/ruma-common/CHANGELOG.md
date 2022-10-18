@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.10.5
+
+Improvements:
+
+* Add support for `#[incoming_derive(!Debug)]` to the `Incoming` derive macro
+
 # 0.10.4
 
 Bug fixes:
