@@ -20,11 +20,15 @@ Improvements:
 * Send CORP headers by default for media responses (MSC3828 / Matrix 1.4)
 * Add support for read receipts for threads (MSC3771 / Matrix 1.4)
 
-# 0.15.2
+# 0.15.3
 
 Bug fixes:
 
 * Don't include sensitive information in `Debug`-format of types from the `login` module
+
+# 0.15.2
+
+Yanked since it the minimum version for the `ruma-common` dependency was wrong.
 
 # 0.15.1
 

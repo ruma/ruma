@@ -24,6 +24,12 @@ Improvements:
 * Stabilize support for event replacements (edits)
 * Add support for read receipts for threads (MSC3771 / Matrix 1.4)
 
+# 0.10.5
+
+Improvements:
+
+* Add support for `#[incoming_derive(!Debug)]` to the `Incoming` derive macro
+
 # 0.10.4
 
 Bug fixes:
