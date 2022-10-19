@@ -7,7 +7,7 @@ the previous message, for which the room ID is required. If you want to reply to
 If the message was edited, the previous message should be the original message that was edited,
 with the content of its replacement, to allow the fallback to be accurate at the time it is added.
 
-It is recommended to enable the `sanitize` feature when using this method as this will
+It is recommended to enable the `unstable-sanitize` feature when using this method as this will
 clean up nested [rich reply fallbacks] in chains of replies. This uses [`sanitize_html()`]
 internally, with [`RemoveReplyFallback::Yes`].
 
