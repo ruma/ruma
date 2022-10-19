@@ -9,7 +9,7 @@ use ruma_common::{
         room::{
             message::{
                 AudioMessageEventContent, KeyVerificationRequestEventContent, MessageType,
-                OriginalRoomMessageEvent, RoomMessageEventContent,
+                OriginalRoomMessageEvent, RoomMessageEventContent, TextMessageEventContent,
             },
             MediaSource,
         },
@@ -390,7 +390,7 @@ fn content_deserialization_failure() {
 #[test]
 #[cfg(feature = "unstable-sanitize")]
 fn reply_sanitize() {
-    use ruma_common::events::room::message::{ForwardThread, TextMessageEventContent};
+    use ruma_common::events::room::message::ForwardThread;
 
     let first_message = OriginalRoomMessageEvent {
         content: RoomMessageEventContent::text_html(
@@ -480,6 +480,75 @@ fn reply_sanitize() {
             </blockquote>\
         </mx-reply>\
         This is <strong>my</strong> reply\
+        "
+    );
+}
+
+#[test]
+fn make_replacement_no_reply() {
+    let content = RoomMessageEventContent::text_html(
+        "This is _an edited_ message.",
+        "This is <em>an edited</em> message.",
+    );
+    let event_id = event_id!("$143273582443PhrSn:example.org").to_owned();
+
+    let content = content.make_replacement(event_id, None);
+
+    let (body, formatted) = assert_matches!(
+        content.msgtype,
+        MessageType::Text(TextMessageEventContent { body, formatted, .. }) => (body, formatted)
+    );
+    assert_eq!(body, "* This is _an edited_ message.");
+    let formatted = formatted.unwrap();
+    assert_eq!(formatted.body, "* This is <em>an edited</em> message.");
+}
+
+#[test]
+fn make_replacement_with_reply() {
+    let replied_to_message = OriginalRoomMessageEvent {
+        content: RoomMessageEventContent::text_html(
+            "# This is the first message",
+            "<h1>This is the first message</h1>",
+        ),
+        event_id: event_id!("$143273582443PhrSn:example.org").to_owned(),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
+        room_id: room_id!("!testroomid:example.org").to_owned(),
+        sender: user_id!("@user:example.org").to_owned(),
+        unsigned: MessageLikeUnsigned::default(),
+    };
+
+    let content = RoomMessageEventContent::text_html(
+        "This is _an edited_ reply.",
+        "This is <em>an edited</em> reply.",
+    );
+    let event_id = event_id!("$143273582443PhrSn:example.org").to_owned();
+
+    let content = content.make_replacement(event_id, Some(&replied_to_message));
+
+    let (body, formatted) = assert_matches!(
+        content.msgtype,
+        MessageType::Text(TextMessageEventContent { body, formatted, .. }) => (body, formatted)
+    );
+    assert_eq!(
+        body,
+        "\
+        > <@user:example.org> # This is the first message\n\
+        * This is _an edited_ reply.\
+        "
+    );
+    let formatted = formatted.unwrap();
+    assert_eq!(
+        formatted.body,
+        "\
+        <mx-reply>\
+            <blockquote>\
+                <a href=\"https://matrix.to/#/!testroomid:example.org/$143273582443PhrSn:example.org\">In reply to</a> \
+                <a href=\"https://matrix.to/#/@user:example.org\">@user:example.org</a>\
+                <br>\
+                <h1>This is the first message</h1>\
+            </blockquote>\
+        </mx-reply>\
+        * This is <em>an edited</em> reply.\
         "
     );
 }
