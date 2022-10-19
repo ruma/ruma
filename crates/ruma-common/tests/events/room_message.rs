@@ -303,6 +303,28 @@ fn markdown_content_serialization() {
 }
 
 #[test]
+#[cfg(feature = "markdown")]
+fn markdown_detection() {
+    use ruma_common::events::room::message::FormattedBody;
+
+    // No markdown
+    let formatted_body = FormattedBody::markdown("A simple message.");
+    assert_matches!(formatted_body, None);
+
+    // Multiple paragraphs trigger markdown
+    let formatted_body = FormattedBody::markdown("A message\nwith\n\nmultiple\n\nparagraphs");
+    formatted_body.unwrap();
+
+    // HTML entities don't trigger markdown.
+    let formatted_body = FormattedBody::markdown("A message with & HTML < entities");
+    assert_matches!(formatted_body, None);
+
+    // HTML triggers markdown.
+    let formatted_body = FormattedBody::markdown("<span>An HTML message</span>");
+    formatted_body.unwrap();
+}
+
+#[test]
 fn verification_request_deserialization() {
     let user_id = user_id!("@example2:localhost");
     let device_id: OwnedDeviceId = "XOWLHHFSWM".into();

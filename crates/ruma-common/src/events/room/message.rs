@@ -592,12 +592,7 @@ impl FormattedBody {
     /// Returns `None` if no Markdown formatting was found.
     #[cfg(feature = "markdown")]
     pub fn markdown(body: impl AsRef<str>) -> Option<Self> {
-        let body = body.as_ref();
-        let mut html_body = String::new();
-
-        pulldown_cmark::html::push_html(&mut html_body, pulldown_cmark::Parser::new(body));
-
-        (html_body != format!("<p>{}</p>\n", body)).then(|| Self::html(html_body))
+        parse_markdown(body.as_ref()).map(Self::html)
     }
 
     /// Sanitize this `FormattedBody` if its format is `MessageFormat::Html`.
@@ -635,4 +630,44 @@ pub struct CustomEventContent {
     /// Remaining event content.
     #[serde(flatten)]
     data: JsonObject,
+}
+
+#[cfg(feature = "markdown")]
+pub(crate) fn parse_markdown(text: &str) -> Option<String> {
+    use pulldown_cmark::{Event, Parser, Tag};
+
+    let mut found_first_paragraph = false;
+
+    let has_markdown = Parser::new(text).any(|ref event| {
+        let is_text = matches!(event, Event::Text(_));
+        let is_break = matches!(event, Event::SoftBreak | Event::HardBreak);
+        let is_first_paragraph_start = if matches!(event,
+            Event::Start(tag)
+                if matches!(tag, Tag::Paragraph)
+        ) {
+            if found_first_paragraph {
+                false
+            } else {
+                found_first_paragraph = true;
+                true
+            }
+        } else {
+            false
+        };
+        let is_paragraph_end = matches!(event,
+                Event::End(tag)
+                if matches!(tag, Tag::Paragraph)
+        );
+
+        !is_text && !is_break && !is_first_paragraph_start && !is_paragraph_end
+    });
+
+    if !has_markdown {
+        return None;
+    }
+
+    let mut html_body = String::new();
+    pulldown_cmark::html::push_html(&mut html_body, Parser::new(text));
+
+    Some(html_body)
 }
