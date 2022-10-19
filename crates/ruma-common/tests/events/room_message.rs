@@ -325,6 +325,31 @@ fn markdown_detection() {
 }
 
 #[test]
+#[cfg(feature = "markdown")]
+fn markdown_options() {
+    use ruma_common::events::room::message::FormattedBody;
+
+    // Tables
+    let formatted_body = FormattedBody::markdown(
+        "|head1|head2|\n\
+        |---|---|\n\
+        |body1|body2|\
+        ",
+    );
+    assert_eq!(
+        formatted_body.unwrap().body,
+        "<table>\
+            <thead><tr><th>head1</th><th>head2</th></tr></thead>\
+            <tbody>\n<tr><td>body1</td><td>body2</td></tr>\n</tbody>\
+        </table>\n"
+    );
+
+    // Strikethrough
+    let formatted_body = FormattedBody::markdown("A message with a ~~strike~~");
+    assert_eq!(formatted_body.unwrap().body, "<p>A message with a <del>strike</del></p>\n");
+}
+
+#[test]
 fn verification_request_deserialization() {
     let user_id = user_id!("@example2:localhost");
     let device_id: OwnedDeviceId = "XOWLHHFSWM".into();

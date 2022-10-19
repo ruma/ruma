@@ -634,11 +634,13 @@ pub struct CustomEventContent {
 
 #[cfg(feature = "markdown")]
 pub(crate) fn parse_markdown(text: &str) -> Option<String> {
-    use pulldown_cmark::{Event, Parser, Tag};
+    use pulldown_cmark::{Event, Options, Parser, Tag};
+
+    const OPTIONS: Options = Options::ENABLE_TABLES.union(Options::ENABLE_STRIKETHROUGH);
 
     let mut found_first_paragraph = false;
 
-    let has_markdown = Parser::new(text).any(|ref event| {
+    let has_markdown = Parser::new_ext(text, OPTIONS).any(|ref event| {
         let is_text = matches!(event, Event::Text(_));
         let is_break = matches!(event, Event::SoftBreak | Event::HardBreak);
         let is_first_paragraph_start = if matches!(event,
@@ -667,7 +669,7 @@ pub(crate) fn parse_markdown(text: &str) -> Option<String> {
     }
 
     let mut html_body = String::new();
-    pulldown_cmark::html::push_html(&mut html_body, Parser::new(text));
+    pulldown_cmark::html::push_html(&mut html_body, Parser::new_ext(text, OPTIONS));
 
     Some(html_body)
 }
