@@ -60,7 +60,7 @@ pub struct RoomVersion {
     pub extra_redaction_checks: bool,
     /// Allow knocking in event authentication.
     ///
-    /// See [room v7 specification](https://spec.matrix.org/v1.2/rooms/v7/) for more information.
+    /// See [room v7 specification](https://spec.matrix.org/v1.4/rooms/v7/) for more information.
     pub allow_knocking: bool,
     /// Adds support for the restricted join rule.
     ///

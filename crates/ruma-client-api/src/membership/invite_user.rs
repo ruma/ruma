@@ -7,8 +7,8 @@ pub mod v3 {
     //! [by their Matrix identifier][spec-mxid], and one to invite a user
     //! [by their third party identifier][spec-3pid].
     //!
-    //! [spec-mxid]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3roomsroomidinvite
-    //! [spec-3pid]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3roomsroomidinvite-1
+    //! [spec-mxid]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3roomsroomidinvite
+    //! [spec-3pid]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3roomsroomidinvite-1
 
     use ruma_common::{api::ruma_api, serde::Incoming, RoomId, UserId};
     use serde::Serialize;

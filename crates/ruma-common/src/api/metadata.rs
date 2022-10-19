@@ -224,7 +224,7 @@ pub enum VersioningDecision {
 /// Every new minor version denotes stable support for endpoints in a *relatively*
 /// backwards-compatible manner.
 ///
-/// Matrix has a deprecation policy, read more about it here: <https://spec.matrix.org/v1.2/#deprecation-policy>.
+/// Matrix has a deprecation policy, read more about it here: <https://spec.matrix.org/v1.4/#deprecation-policy>.
 ///
 /// Ruma keeps track of when endpoints are added, deprecated, and removed. It'll automatically
 /// select the right endpoint stability variation to use depending on which Matrix versions you
@@ -235,7 +235,7 @@ pub enum VersioningDecision {
 pub enum MatrixVersion {
     /// Version 1.0 of the Matrix specification.
     ///
-    /// Retroactively defined as <https://spec.matrix.org/v1.2/#legacy-versioning>.
+    /// Retroactively defined as <https://spec.matrix.org/v1.4/#legacy-versioning>.
     V1_0,
 
     /// Version 1.1 of the Matrix specification, released in Q4 2021.
@@ -268,7 +268,7 @@ impl TryFrom<&str> for MatrixVersion {
         Ok(match value {
             // FIXME: these are likely not entirely correct; https://github.com/ruma/ruma/issues/852
             "v1.0" |
-            // Additional definitions according to https://spec.matrix.org/v1.2/#legacy-versioning
+            // Additional definitions according to https://spec.matrix.org/v1.4/#legacy-versioning
             "r0.5.0" | "r0.6.0" | "r0.6.1" => V1_0,
             "v1.1" => V1_1,
             "v1.2" => V1_2,

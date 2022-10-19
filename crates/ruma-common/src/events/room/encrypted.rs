@@ -1,6 +1,6 @@
 //! Types for the [`m.room.encrypted`] event.
 //!
-//! [`m.room.encrypted`]: https://spec.matrix.org/v1.2/client-server-api/#mroomencrypted
+//! [`m.room.encrypted`]: https://spec.matrix.org/v1.4/client-server-api/#mroomencrypted
 
 use std::collections::BTreeMap;
 

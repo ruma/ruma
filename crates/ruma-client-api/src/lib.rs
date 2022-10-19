@@ -3,7 +3,7 @@
 //! (De)serializable types for the [Matrix Client-Server API][client-api].
 //! These types can be shared by client and server code.
 //!
-//! [client-api]: https://spec.matrix.org/v1.2/client-server-api/
+//! [client-api]: https://spec.matrix.org/v1.4/client-server-api/
 
 #![cfg(any(feature = "client", feature = "server"))]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]

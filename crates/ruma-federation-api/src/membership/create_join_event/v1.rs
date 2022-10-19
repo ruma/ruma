@@ -1,6 +1,6 @@
 //! `/v1/` ([spec])
 //!
-//! [spec]: https://spec.matrix.org/v1.2/server-server-api/#put_matrixfederationv1send_joinroomideventid
+//! [spec]: https://spec.matrix.org/v1.4/server-server-api/#put_matrixfederationv1send_joinroomideventid
 
 use ruma_common::{api::ruma_api, EventId, RoomId};
 use serde_json::value::RawValue as RawJsonValue;

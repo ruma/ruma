@@ -1,6 +1,6 @@
 //! Types for the [`m.secret_storage.key.*`] event.
 //!
-//! [`m.secret_storage.key.*`]: https://spec.matrix.org/v1.2/client-server-api/#key-storage
+//! [`m.secret_storage.key.*`]: https://spec.matrix.org/v1.4/client-server-api/#key-storage
 
 use js_int::{uint, UInt};
 use serde::{Deserialize, Serialize};

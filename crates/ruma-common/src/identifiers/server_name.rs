@@ -8,7 +8,7 @@ use ruma_macros::IdZst;
 ///
 /// It consists of a host and an optional port (separated by a colon if present).
 ///
-/// [server name]: https://spec.matrix.org/v1.2/appendices/#server-name
+/// [server name]: https://spec.matrix.org/v1.4/appendices/#server-name
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
 #[ruma_id(validate = ruma_identifiers_validation::server_name::validate)]

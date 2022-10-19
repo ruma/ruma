@@ -14,7 +14,7 @@ use super::{matrix_uri::UriAction, IdParseError, MatrixToUri, MatrixUri, ServerN
 /// assert_eq!(<&UserId>::try_from("@carl:example.com").unwrap(), "@carl:example.com");
 /// ```
 ///
-/// [user ID]: https://spec.matrix.org/v1.2/appendices/#user-identifiers
+/// [user ID]: https://spec.matrix.org/v1.4/appendices/#user-identifiers
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
 #[ruma_id(validate = ruma_identifiers_validation::user_id::validate)]

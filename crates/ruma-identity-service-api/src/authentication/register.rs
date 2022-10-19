@@ -5,7 +5,7 @@
 pub mod v2 {
     //! `/v2/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/identity-service-api/#post_matrixidentityv2accountregister
+    //! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#post_matrixidentityv2accountregister
 
     use std::time::Duration;
 

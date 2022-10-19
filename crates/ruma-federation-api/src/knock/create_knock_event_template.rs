@@ -5,7 +5,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixfederationv1make_knockroomiduserid
+    //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#get_matrixfederationv1make_knockroomiduserid
 
     use ruma_common::{api::ruma_api, RoomId, RoomVersionId, UserId};
     use serde_json::value::RawValue as RawJsonValue;

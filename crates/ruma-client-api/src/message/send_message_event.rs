@@ -3,7 +3,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#put_matrixclientv3roomsroomidsendeventtypetxnid
+    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#put_matrixclientv3roomsroomidsendeventtypetxnid
 
     use ruma_common::{
         api::ruma_api,
@@ -56,7 +56,7 @@ pub mod v3 {
             ///
             /// Note that this does not change the position of the event in the timeline.
             ///
-            /// [timestamp massaging]: https://spec.matrix.org/v1.3/application-service-api/#timestamp-massaging
+            /// [timestamp massaging]: https://spec.matrix.org/v1.4/application-service-api/#timestamp-massaging
             #[ruma_api(query)]
             #[serde(skip_serializing_if = "Option::is_none", rename = "ts")]
             pub timestamp: Option<MilliSecondsSinceUnixEpoch>,

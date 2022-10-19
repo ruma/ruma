@@ -92,7 +92,7 @@ pub use ruma_state_res as state_res;
 /// (De)serializable types for various [Matrix APIs][apis] requests and responses and abstractions
 /// for them.
 ///
-/// [apis]: https://spec.matrix.org/v1.2/#matrix-apis
+/// [apis]: https://spec.matrix.org/v1.4/#matrix-apis
 #[cfg(feature = "api")]
 pub mod api {
     pub use ruma_common::api::*;

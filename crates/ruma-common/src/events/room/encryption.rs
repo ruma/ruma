@@ -1,6 +1,6 @@
 //! Types for the [`m.room.encryption`] event.
 //!
-//! [`m.room.encryption`]: https://spec.matrix.org/v1.2/client-server-api/#mroomencryption
+//! [`m.room.encryption`]: https://spec.matrix.org/v1.4/client-server-api/#mroomencryption
 
 use js_int::UInt;
 use ruma_macros::EventContent;

@@ -6,7 +6,7 @@
 pub mod v2 {
     //! `/v2/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixkeyv2queryservernamekeyid
+    //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#get_matrixkeyv2queryservernamekeyid
 
     use ruma_common::{api::ruma_api, serde::Raw, MilliSecondsSinceUnixEpoch, ServerName};
 

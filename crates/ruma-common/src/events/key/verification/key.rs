@@ -1,6 +1,6 @@
 //! Types for the [`m.key.verification.key`] event.
 //!
-//! [`m.key.verification.key`]: https://spec.matrix.org/v1.2/client-server-api/#mkeyverificationkey
+//! [`m.key.verification.key`]: https://spec.matrix.org/v1.4/client-server-api/#mkeyverificationkey
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

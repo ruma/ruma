@@ -1,6 +1,6 @@
 //! `/v3/` ([spec])
 //!
-//! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3capabilities
+//! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3capabilities
 
 use ruma_common::api::ruma_api;
 

@@ -1,6 +1,6 @@
 //! Types for the [`m.room.guest_access`] event.
 //!
-//! [`m.room.guest_access`]: https://spec.matrix.org/v1.2/client-server-api/#mroomguest_access
+//! [`m.room.guest_access`]: https://spec.matrix.org/v1.4/client-server-api/#mroomguest_access
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

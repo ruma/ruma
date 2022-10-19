@@ -11,7 +11,7 @@ use yap::{IntoTokens, TokenLocation, Tokens};
 /// [`headers::authorization::Credentials`] for automatically handling the encoding and decoding
 /// when using a web framework that supports typed headers.
 ///
-/// [spec]: https://spec.matrix.org/v1.3/server-server-api/#request-authentication
+/// [spec]: https://spec.matrix.org/v1.4/server-server-api/#request-authentication
 #[non_exhaustive]
 pub struct XMatrix {
     /// The server name of the sending server.

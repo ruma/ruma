@@ -5,7 +5,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#post_matrixfederationv1userkeysclaim
+    //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#post_matrixfederationv1userkeysclaim
 
     use std::collections::BTreeMap;
 

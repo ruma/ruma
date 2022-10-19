@@ -6,7 +6,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.3/client-server-api/#get_matrixclientv1roomsroomidrelationseventidreltypeeventtype
+    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv1roomsroomidrelationseventidreltypeeventtype
 
     use js_int::UInt;
     use ruma_common::{

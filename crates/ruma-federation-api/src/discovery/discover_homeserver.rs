@@ -1,6 +1,6 @@
 //! `GET /.well-known/matrix/server` ([spec])
 //!
-//! [spec]: https://spec.matrix.org/v1.2/server-server-api/#getwell-knownmatrixserver
+//! [spec]: https://spec.matrix.org/v1.4/server-server-api/#getwell-knownmatrixserver
 
 use ruma_common::{api::ruma_api, OwnedServerName};
 

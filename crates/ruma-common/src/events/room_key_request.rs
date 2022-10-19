@@ -1,6 +1,6 @@
 //! Types for the [`m.room_key_request`] event.
 //!
-//! [`m.room_key_request`]: https://spec.matrix.org/v1.2/client-server-api/#mroom_key_request
+//! [`m.room_key_request`]: https://spec.matrix.org/v1.4/client-server-api/#mroom_key_request
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

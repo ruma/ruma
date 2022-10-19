@@ -11,7 +11,7 @@ use super::ServerName;
 ///
 /// # Room versions
 ///
-/// Matrix specifies multiple [room versions](https://spec.matrix.org/v1.2/#room-versions) and the
+/// Matrix specifies multiple [room versions](https://spec.matrix.org/v1.4/#room-versions) and the
 /// format of event identifiers differ between them. The original format used by room versions 1 and
 /// 2 uses a short pseudorandom "localpart" followed by the hostname and port of the originating
 /// homeserver. Later room versions change event identifiers to be a hash of the event encoded with
@@ -34,7 +34,7 @@ use super::ServerName;
 /// );
 /// ```
 ///
-/// [event ID]: https://spec.matrix.org/v1.2/appendices/#room-ids-and-event-ids
+/// [event ID]: https://spec.matrix.org/v1.4/appendices/#room-ids-and-event-ids
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
 #[ruma_id(validate = ruma_identifiers_validation::event_id::validate)]

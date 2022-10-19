@@ -3,7 +3,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixmediav3downloadservernamemediaid
+    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixmediav3downloadservernamemediaid
 
     use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
     #[cfg(feature = "unstable-msc2246")]

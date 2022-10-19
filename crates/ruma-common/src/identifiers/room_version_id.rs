@@ -22,7 +22,7 @@ use super::IdParseError;
 /// written are represented by a hidden enum variant. You can still construct them the same, and
 /// check for them using one of `RoomVersionId`s `PartialEq` implementations or through `.as_str()`.
 ///
-/// [room version]: https://spec.matrix.org/v1.2/rooms/
+/// [room version]: https://spec.matrix.org/v1.4/rooms/
 #[derive(Clone, Debug, PartialEq, Eq, Hash, DisplayAsRefStr)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum RoomVersionId {
