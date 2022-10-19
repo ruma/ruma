@@ -218,6 +218,81 @@ impl RoomMessageEventContent {
         self
     }
 
+    /// Turns `self` into a [replacement] (or edit) for the message with the given event ID.
+    ///
+    /// This takes the content and sets it in `m.new_content`, and modifies the `content` to include
+    /// a fallback.
+    ///
+    /// If the message that is replaced is a reply to another message, the latter should also be
+    /// provided to be able to generate a rich reply fallback that takes the `body` /
+    /// `formatted_body` (if any) in `self` for the main text and prepends a quoted version of
+    /// `original_message`.
+    #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
+    ///
+    /// # Panics
+    ///
+    /// Panics if `self` has a `formatted_body` with a format other than HTML.
+    ///
+    /// [replacement]: https://spec.matrix.org/v1.4/client-server-api/#event-replacements
+    #[track_caller]
+    pub fn make_replacement(
+        mut self,
+        original_message_id: OwnedEventId,
+        replied_to_message: Option<&OriginalRoomMessageEvent>,
+    ) -> Self {
+        // Prepare relates_to with the untouched msgtype.
+        let relates_to = Relation::Replacement(Replacement {
+            event_id: original_message_id,
+            new_content: self.msgtype.clone(),
+        });
+
+        let empty_formatted_body = || FormattedBody::html(String::new());
+
+        let (body, formatted) = {
+            match &mut self.msgtype {
+                MessageType::Emote(m) => {
+                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
+                }
+                MessageType::Notice(m) => {
+                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
+                }
+                MessageType::Text(m) => {
+                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
+                }
+                MessageType::Audio(m) => (&mut m.body, None),
+                MessageType::File(m) => (&mut m.body, None),
+                MessageType::Image(m) => (&mut m.body, None),
+                MessageType::Location(m) => (&mut m.body, None),
+                MessageType::ServerNotice(m) => (&mut m.body, None),
+                MessageType::Video(m) => (&mut m.body, None),
+                MessageType::VerificationRequest(m) => (&mut m.body, None),
+                MessageType::_Custom(m) => (&mut m.body, None),
+            }
+        };
+
+        // Add replacement fallback.
+        *body = format!("* {body}");
+
+        if let Some(f) = formatted {
+            assert_eq!(
+                f.format,
+                MessageFormat::Html,
+                "make_replacement can't handle non-HTML formatted messages"
+            );
+
+            f.body = format!("* {}", f.body);
+        }
+
+        // Add reply fallback if needed.
+        if let Some(original_message) = replied_to_message {
+            self = self.make_reply_to(original_message, ForwardThread::No);
+        }
+
+        self.relates_to = Some(relates_to);
+
+        self
+    }
+
     /// Returns a reference to the `msgtype` string.
     ///
     /// If you want to access the message type-specific data rather than the message type itself,
