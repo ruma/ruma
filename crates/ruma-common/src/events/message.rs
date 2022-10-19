@@ -238,12 +238,9 @@ impl Text {
     /// Returns `None` if no Markdown formatting was found.
     #[cfg(feature = "markdown")]
     pub fn markdown(body: impl AsRef<str>) -> Option<Self> {
-        let body = body.as_ref();
-        let mut html_body = String::new();
+        use super::room::message::parse_markdown;
 
-        pulldown_cmark::html::push_html(&mut html_body, pulldown_cmark::Parser::new(body));
-
-        (html_body != format!("<p>{}</p>\n", body)).then(|| Self::html(html_body))
+        parse_markdown(body.as_ref()).map(Self::html)
     }
 
     fn default_mimetype() -> String {
