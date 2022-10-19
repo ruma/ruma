@@ -1,6 +1,6 @@
 ///! Constructors for [predefined push rules].
 ///!
-///! [predefined push rules]: https://spec.matrix.org/v1.2/client-server-api/#predefined-rules
+///! [predefined push rules]: https://spec.matrix.org/v1.4/client-server-api/#predefined-rules
 use super::{
     Action::*, ConditionalPushRule, PatternedPushRule, PushCondition::*, RoomMemberCountIs,
     Ruleset, Tweak,
@@ -10,7 +10,7 @@ use crate::UserId;
 impl Ruleset {
     /// The list of all [predefined push rules].
     ///
-    /// [predefined push rules]: https://spec.matrix.org/v1.2/client-server-api/#predefined-rules
+    /// [predefined push rules]: https://spec.matrix.org/v1.4/client-server-api/#predefined-rules
     ///
     /// # Parameters
     ///

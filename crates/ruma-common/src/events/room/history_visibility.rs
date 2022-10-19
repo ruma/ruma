@@ -1,6 +1,6 @@
 //! Types for the [`m.room.history_visibility`] event.
 //!
-//! [`m.room.history_visibility`]: https://spec.matrix.org/v1.2/client-server-api/#mroomhistory_visibility
+//! [`m.room.history_visibility`]: https://spec.matrix.org/v1.4/client-server-api/#mroomhistory_visibility
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

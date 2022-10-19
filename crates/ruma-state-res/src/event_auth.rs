@@ -143,7 +143,7 @@ pub fn auth_check<E: Event>(
 
     let sender = incoming_event.sender();
 
-    // Implementation of https://spec.matrix.org/v1.2/rooms/v1/#authorization-rules
+    // Implementation of https://spec.matrix.org/v1.4/rooms/v1/#authorization-rules
     //
     // 1. If type is m.room.create:
     if *incoming_event.event_type() == RoomEventType::RoomCreate {

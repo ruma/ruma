@@ -23,7 +23,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.3/client-server-api/#post_matrixclientv3refresh
+    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3refresh
 
     use std::time::Duration;
 

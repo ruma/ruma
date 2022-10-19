@@ -18,14 +18,14 @@ pub fn validate(s: &str) -> Result<(), Error> {
 /// due to Synapse allowing them over federation. This will likely be fixed in an upcoming room
 /// version; see [MSC2828](https://github.com/matrix-org/matrix-spec-proposals/pull/2828).
 pub fn localpart_is_fully_conforming(localpart: &str) -> Result<bool, Error> {
-    // See https://spec.matrix.org/v1.2/appendices/#user-identifiers
+    // See https://spec.matrix.org/v1.4/appendices/#user-identifiers
     let is_fully_conforming = localpart
         .bytes()
         .all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'z' | b'-' | b'.' | b'=' | b'_' | b'/'));
 
     // If it's not fully conforming, check if it contains characters that are also disallowed
     // for historical user IDs. If there are, return an error.
-    // See https://spec.matrix.org/v1.2/appendices/#historical-user-ids
+    // See https://spec.matrix.org/v1.4/appendices/#historical-user-ids
     #[cfg(not(feature = "compat"))]
     if !is_fully_conforming && localpart.bytes().any(|b| b < 0x21 || b == b':' || b > 0x7E) {
         return Err(Error::InvalidCharacters);

@@ -1,6 +1,6 @@
 //! Types for the [`m.forwarded_room_key`] event.
 //!
-//! [`m.forwarded_room_key`]: https://spec.matrix.org/v1.2/client-server-api/#mforwarded_room_key
+//! [`m.forwarded_room_key`]: https://spec.matrix.org/v1.4/client-server-api/#mforwarded_room_key
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

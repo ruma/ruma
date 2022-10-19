@@ -22,8 +22,8 @@ use super::{server_name::ServerName, OwnedRoomAliasId, OwnedRoomId, RoomAliasId,
 /// );
 /// ```
 ///
-/// [room ID]: https://spec.matrix.org/v1.2/appendices/#room-ids-and-event-ids
-/// [room alias ID]: https://spec.matrix.org/v1.2/appendices/#room-aliases
+/// [room ID]: https://spec.matrix.org/v1.4/appendices/#room-ids-and-event-ids
+/// [room alias ID]: https://spec.matrix.org/v1.4/appendices/#room-aliases
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
 #[ruma_id(validate = ruma_identifiers_validation::room_id_or_alias_id::validate)]

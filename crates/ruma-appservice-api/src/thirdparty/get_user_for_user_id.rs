@@ -5,7 +5,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/application-service-api/#get_matrixappv1thirdpartyuser
+    //! [spec]: https://spec.matrix.org/v1.4/application-service-api/#get_matrixappv1thirdpartyuser
 
     use ruma_common::{api::ruma_api, thirdparty::User, UserId};
 

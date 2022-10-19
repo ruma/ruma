@@ -5,7 +5,7 @@
 pub mod v2 {
     //! `/v2/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/identity-service-api/#post_matrixidentityv23pidunbind
+    //! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#post_matrixidentityv23pidunbind
 
     use ruma_common::{
         api::ruma_api, thirdparty::Medium, user_id::UserId, ClientSecret, OwnedSessionId,

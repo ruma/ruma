@@ -3,7 +3,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#put_matrixclientv3sendtodeviceeventtypetxnid
+    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#put_matrixclientv3sendtodeviceeventtypetxnid
 
     use std::collections::BTreeMap;
 

@@ -20,7 +20,7 @@ Here is a list of helpful resources you can consult:
 
 ## Documentation
 
-- [Matrix spec Documentation](https://spec.matrix.org/v1.2/)
+- [Matrix spec Documentation](https://spec.matrix.org/v1.4/)
 
 ## Chat Rooms
 
@@ -154,7 +154,7 @@ the latest minor version of the Matrix specification.
 
 ### Endpoint Module Structure
 
-Matrix uses [versioned endpoints](https://spec.matrix.org/v1.2/#endpoint-versioning) (with a few small exceptions),
+Matrix uses [versioned endpoints](https://spec.matrix.org/v1.4/#endpoint-versioning) (with a few small exceptions),
 we follow this versioning approach in modules as well.
 
 We structure endpoints and their versions like the following;
@@ -192,7 +192,7 @@ Then, in the subsequent version module, embed the version and specification link
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3sync
+    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3sync
 }
 ```
 

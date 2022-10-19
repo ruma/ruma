@@ -1,6 +1,6 @@
 //! Types for the [`m.fully_read`] event.
 //!
-//! [`m.fully_read`]: https://spec.matrix.org/v1.2/client-server-api/#mfully_read
+//! [`m.fully_read`]: https://spec.matrix.org/v1.4/client-server-api/#mfully_read
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

@@ -1,6 +1,6 @@
 //! `/v1/` ([spec])
 //!
-//! [spec]: https://spec.matrix.org/v1.2/server-server-api/#put_matrixfederationv1send_leaveroomideventid
+//! [spec]: https://spec.matrix.org/v1.4/server-server-api/#put_matrixfederationv1send_leaveroomideventid
 
 use js_int::UInt;
 use ruma_common::{

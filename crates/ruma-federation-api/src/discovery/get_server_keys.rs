@@ -8,7 +8,7 @@ pub mod v2 {
     //! Note: The specification includes `/{keyID}`, but this is deprecated, and the trailing slash
     //! then made optional.
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixkeyv2serverkeyid
+    //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#get_matrixkeyv2serverkeyid
 
     use ruma_common::{api::ruma_api, serde::Raw};
 

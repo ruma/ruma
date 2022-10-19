@@ -1,6 +1,6 @@
 //! Types for the [`m.call.answer`] event.
 //!
-//! [`m.call.answer`]: https://spec.matrix.org/v1.2/client-server-api/#mcallanswer
+//! [`m.call.answer`]: https://spec.matrix.org/v1.4/client-server-api/#mcallanswer
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

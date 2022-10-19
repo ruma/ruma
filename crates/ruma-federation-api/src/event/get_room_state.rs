@@ -5,7 +5,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixfederationv1stateroomid
+    //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#get_matrixfederationv1stateroomid
 
     use ruma_common::{api::ruma_api, EventId, RoomId};
     use serde_json::value::RawValue as RawJsonValue;

@@ -1,6 +1,6 @@
 //! Types for the [`m.policy.rule.room`] event.
 //!
-//! [`m.policy.rule.room`]: https://spec.matrix.org/v1.2/client-server-api/#mpolicyruleroom
+//! [`m.policy.rule.room`]: https://spec.matrix.org/v1.4/client-server-api/#mpolicyruleroom
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

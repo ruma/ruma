@@ -5,7 +5,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3room_keyskeys
+    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3room_keyskeys
 
     use std::collections::BTreeMap;
 

@@ -97,7 +97,7 @@ impl<T: PartialEq> Change<T> {
 ///
 /// This must match the table for [`m.room.member`] in the spec.
 ///
-/// [`m.room.member`]: https://spec.matrix.org/v1.2/client-server-api/#mroommember
+/// [`m.room.member`]: https://spec.matrix.org/v1.4/client-server-api/#mroommember
 pub(super) fn membership_change<'a>(
     details: MembershipDetails<'a>,
     prev_details: Option<MembershipDetails<'a>>,

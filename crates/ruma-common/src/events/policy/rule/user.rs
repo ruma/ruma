@@ -1,6 +1,6 @@
 //! Types for the [`m.policy.rule.user`] event.
 //!
-//! [`m.policy.rule.user`]: https://spec.matrix.org/v1.2/client-server-api/#mpolicyruleuser
+//! [`m.policy.rule.user`]: https://spec.matrix.org/v1.4/client-server-api/#mpolicyruleuser
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

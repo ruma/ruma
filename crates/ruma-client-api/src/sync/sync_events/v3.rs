@@ -1,6 +1,6 @@
 //! `/v3/` ([spec])
 //!
-//! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3sync
+//! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3sync
 
 use std::{collections::BTreeMap, time::Duration};
 

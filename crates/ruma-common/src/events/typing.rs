@@ -1,6 +1,6 @@
 //! Types for the [`m.typing`] event.
 //!
-//! [`m.typing`]: https://spec.matrix.org/v1.2/client-server-api/#mtyping
+//! [`m.typing`]: https://spec.matrix.org/v1.4/client-server-api/#mtyping
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

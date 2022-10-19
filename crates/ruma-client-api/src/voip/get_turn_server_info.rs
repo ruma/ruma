@@ -3,7 +3,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3voipturnserver
+    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3voipturnserver
 
     use std::time::Duration;
 

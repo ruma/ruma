@@ -3,7 +3,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3account3pidunbind
+    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3account3pidunbind
 
     use ruma_common::{api::ruma_api, thirdparty::Medium};
 

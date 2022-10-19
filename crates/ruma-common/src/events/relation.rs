@@ -1,6 +1,6 @@
 //! Types describing [relationships between events].
 //!
-//! [relationships between events]: https://spec.matrix.org/v1.3/client-server-api/#forming-relationships-between-events
+//! [relationships between events]: https://spec.matrix.org/v1.4/client-server-api/#forming-relationships-between-events
 
 use std::fmt::Debug;
 
@@ -133,7 +133,7 @@ impl BundledThread {
 
 /// [Bundled aggregations] of related child events.
 ///
-/// [Bundled aggregations]: https://spec.matrix.org/v1.3/client-server-api/#aggregations
+/// [Bundled aggregations]: https://spec.matrix.org/v1.4/client-server-api/#aggregations
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Relations {

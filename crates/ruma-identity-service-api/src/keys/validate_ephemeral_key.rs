@@ -5,7 +5,7 @@
 pub mod v2 {
     //! `/v2/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/identity-service-api/#get_matrixidentityv2pubkeyephemeralisvalid
+    //! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#get_matrixidentityv2pubkeyephemeralisvalid
 
     use ruma_common::{api::ruma_api, serde::Base64};
 

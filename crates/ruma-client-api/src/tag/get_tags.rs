@@ -3,7 +3,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3useruseridroomsroomidtags
+    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3useruseridroomsroomidtags
 
     use ruma_common::{api::ruma_api, events::tag::Tags, RoomId, UserId};
 

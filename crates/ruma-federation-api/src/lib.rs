@@ -3,7 +3,7 @@
 //! (De)serializable types for the [Matrix Server-Server API][federation-api].
 //! These types are used by server code.
 //!
-//! [federation-api]: https://spec.matrix.org/v1.2/server-server-api/
+//! [federation-api]: https://spec.matrix.org/v1.4/server-server-api/
 
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]

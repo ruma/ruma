@@ -1,6 +1,6 @@
 //! `GET /_matrix/static/client/login/` (fallback, [spec])
 //!
-//! [spec]: https://spec.matrix.org/v1.2/client-server-api/#login-fallback
+//! [spec]: https://spec.matrix.org/v1.4/client-server-api/#login-fallback
 
 use ruma_common::{api::ruma_api, DeviceId};
 

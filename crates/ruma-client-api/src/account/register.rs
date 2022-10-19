@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3register
+    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3register
 
     use std::time::Duration;
 
@@ -80,13 +80,13 @@ pub mod v3 {
             /// Appservices can [bypass the registration flows][admin] entirely by providing their
             /// token in the header and setting this login `type` to `m.login.application_service`.
             ///
-            /// [admin]: https://spec.matrix.org/v1.2/application-service-api/#server-admin-style-permissions
+            /// [admin]: https://spec.matrix.org/v1.4/application-service-api/#server-admin-style-permissions
             #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
             pub login_type: Option<&'a LoginType>,
 
             /// If set to `true`, the client supports [refresh tokens].
             ///
-            /// [refresh tokens]: https://spec.matrix.org/v1.3/client-server-api/#refreshing-access-tokens
+            /// [refresh tokens]: https://spec.matrix.org/v1.4/client-server-api/#refreshing-access-tokens
             #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
             pub refresh_token: bool,
         }
@@ -117,7 +117,7 @@ pub mod v3 {
             ///
             /// Omitted if the request's `inhibit_login` was set to `true`.
             ///
-            /// [refresh token]: https://spec.matrix.org/v1.3/client-server-api/#refreshing-access-tokens
+            /// [refresh token]: https://spec.matrix.org/v1.4/client-server-api/#refreshing-access-tokens
             /// [`refresh_token`]: crate::session::refresh_token
             #[serde(skip_serializing_if = "Option::is_none")]
             pub refresh_token: Option<String>,

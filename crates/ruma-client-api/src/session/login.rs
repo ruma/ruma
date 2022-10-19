@@ -3,7 +3,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3login
+    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3login
 
     use std::{fmt, time::Duration};
 
@@ -49,7 +49,7 @@ pub mod v3 {
 
             /// If set to `true`, the client supports [refresh tokens].
             ///
-            /// [refresh tokens]: https://spec.matrix.org/v1.3/client-server-api/#refreshing-access-tokens
+            /// [refresh tokens]: https://spec.matrix.org/v1.4/client-server-api/#refreshing-access-tokens
             #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
             pub refresh_token: bool,
         }
@@ -85,7 +85,7 @@ pub mod v3 {
             /// This token can be used to obtain a new access token when it expires by calling the
             /// [`refresh_token`] endpoint.
             ///
-            /// [refresh token]: https://spec.matrix.org/v1.3/client-server-api/#refreshing-access-tokens
+            /// [refresh token]: https://spec.matrix.org/v1.4/client-server-api/#refreshing-access-tokens
             /// [`refresh_token`]: crate::session::refresh_token
             #[serde(skip_serializing_if = "Option::is_none")]
             pub refresh_token: Option<String>,

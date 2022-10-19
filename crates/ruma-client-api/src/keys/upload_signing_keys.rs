@@ -3,7 +3,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3keysdevice_signingupload
+    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3keysdevice_signingupload
 
     use ruma_common::{api::ruma_api, encryption::CrossSigningKey, serde::Raw};
 

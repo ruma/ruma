@@ -3,7 +3,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/client-server-api/#get_matrixclientv3useruseridfilterfilterid
+    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3useruseridfilterfilterid
 
     use ruma_common::{api::ruma_api, UserId};
 

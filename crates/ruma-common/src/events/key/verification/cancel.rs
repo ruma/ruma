@@ -1,6 +1,6 @@
 //! Types for the [`m.key.verification.cancel`] event.
 //!
-//! [`m.key.verification.cancel`]: https://spec.matrix.org/v1.2/client-server-api/#mkeyverificationcancel
+//! [`m.key.verification.cancel`]: https://spec.matrix.org/v1.4/client-server-api/#mkeyverificationcancel
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

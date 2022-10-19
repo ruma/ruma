@@ -1,6 +1,6 @@
 //! Types for the [`m.ignored_user_list`] event.
 //!
-//! [`m.ignored_user_list`]: https://spec.matrix.org/v1.2/client-server-api/#mignored_user_list
+//! [`m.ignored_user_list`]: https://spec.matrix.org/v1.4/client-server-api/#mignored_user_list
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

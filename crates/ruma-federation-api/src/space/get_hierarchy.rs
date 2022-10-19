@@ -5,7 +5,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixfederationv1hierarchyroomid
+    //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#get_matrixfederationv1hierarchyroomid
 
     use ruma_common::{api::ruma_api, OwnedRoomId, RoomId};
 

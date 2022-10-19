@@ -1,6 +1,6 @@
 //! Types for the [`m.key.verification.mac`] event.
 //!
-//! [`m.key.verification.mac`]: https://spec.matrix.org/v1.2/client-server-api/#mkeyverificationmac
+//! [`m.key.verification.mac`]: https://spec.matrix.org/v1.4/client-server-api/#mkeyverificationmac
 
 use std::collections::BTreeMap;
 

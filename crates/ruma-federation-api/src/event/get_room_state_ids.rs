@@ -5,7 +5,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.2/server-server-api/#get_matrixfederationv1state_idsroomid
+    //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#get_matrixfederationv1state_idsroomid
 
     use ruma_common::{api::ruma_api, EventId, OwnedEventId, RoomId};
 

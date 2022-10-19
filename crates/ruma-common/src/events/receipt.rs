@@ -1,6 +1,6 @@
 //! Types for the [`m.receipt`] event.
 //!
-//! [`m.receipt`]: https://spec.matrix.org/v1.2/client-server-api/#mreceipt
+//! [`m.receipt`]: https://spec.matrix.org/v1.4/client-server-api/#mreceipt
 
 mod receipt_thread_serde;
 

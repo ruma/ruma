@@ -11,4 +11,4 @@ It is recommended to enable the `sanitize` feature when using this method as thi
 clean up nested [rich reply fallbacks] in chains of replies. This uses [`sanitize_html()`]
 internally, with [`RemoveReplyFallback::Yes`].
 
-[rich reply fallbacks]: https://spec.matrix.org/v1.2/client-server-api/#fallbacks-for-rich-replies
+[rich reply fallbacks]: https://spec.matrix.org/v1.4/client-server-api/#fallbacks-for-rich-replies

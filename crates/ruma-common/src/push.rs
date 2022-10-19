@@ -1,6 +1,6 @@
 //! Common types for the [push notifications module][push].
 //!
-//! [push]: https://spec.matrix.org/v1.2/client-server-api/#push-notifications
+//! [push]: https://spec.matrix.org/v1.4/client-server-api/#push-notifications
 //!
 //! ## Understanding the types of this module
 //!
@@ -450,7 +450,7 @@ impl PusherData {
 /// A special format that the homeserver should use when sending notifications to a Push Gateway.
 /// Currently, only "event_id_only" is supported as of [Push Gateway API r0.1.1][spec].
 ///
-/// [spec]: https://spec.matrix.org/v1.2/push-gateway-api/#homeserver-behaviour
+/// [spec]: https://spec.matrix.org/v1.4/push-gateway-api/#homeserver-behaviour
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
