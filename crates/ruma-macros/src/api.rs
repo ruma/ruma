@@ -12,7 +12,12 @@ use syn::{
     Attribute, Field, Token, Type,
 };
 
-use self::{api_metadata::Metadata, api_request::Request, api_response::Response};
+use self::{
+    api_metadata::Metadata,
+    api_request::Request,
+    api_response::Response,
+    request::{RequestField, RequestFieldKind},
+};
 use crate::util::import_ruma_common;
 
 mod api_metadata;
@@ -50,7 +55,8 @@ pub struct Api {
 
 impl Api {
     pub fn expand_all(self) -> TokenStream {
-        let maybe_error = ensure_feature_presence().map(syn::Error::to_compile_error);
+        let maybe_feature_error = ensure_feature_presence().map(syn::Error::to_compile_error);
+        let maybe_path_error = self.check_paths().err().map(syn::Error::into_compile_error);
 
         let ruma_common = import_ruma_common();
         let http = quote! { #ruma_common::exports::http };
@@ -79,7 +85,8 @@ impl Api {
         let metadata_doc = format!("Metadata for the `{}` API endpoint.", name.value());
 
         quote! {
-            #maybe_error
+            #maybe_feature_error
+            #maybe_path_error
 
             #[doc = #metadata_doc]
             pub const METADATA: #ruma_common::api::Metadata = #ruma_common::api::Metadata {
@@ -102,6 +109,54 @@ impl Api {
             #[cfg(not(any(feature = "client", feature = "server")))]
             type _SilenceUnusedError = #error_ty;
         }
+    }
+
+    fn check_paths(&self) -> syn::Result<()> {
+        let mut path_iter = self
+            .metadata
+            .unstable_path
+            .iter()
+            .chain(&self.metadata.r0_path)
+            .chain(&self.metadata.stable_path);
+
+        let path = path_iter.next().ok_or_else(|| {
+            syn::Error::new(Span::call_site(), "at least one path metadata field must be set")
+        })?;
+        let path_args = get_path_args(&path.value());
+
+        for extra_path in path_iter {
+            let extra_path_args = get_path_args(&extra_path.value());
+            if extra_path_args != path_args {
+                return Err(syn::Error::new(
+                    Span::call_site(),
+                    "paths have different path parameters",
+                ));
+            }
+        }
+
+        if let Some(req) = &self.request {
+            let path_field_names: Vec<_> = req
+                .fields
+                .iter()
+                .cloned()
+                .filter_map(|f| match RequestField::try_from(f) {
+                    Ok(RequestField { kind: RequestFieldKind::Path, inner }) => {
+                        Some(Ok(inner.ident.unwrap().to_string()))
+                    }
+                    Ok(_) => None,
+                    Err(e) => Some(Err(e)),
+                })
+                .collect::<syn::Result<_>>()?;
+
+            if path_args != path_field_names {
+                return Err(syn::Error::new_spanned(
+                    req.request_kw,
+                    "path fields must be in the same order as they appear in the path segments",
+                ));
+            }
+        }
+
+        Ok(())
     }
 }
 
@@ -214,4 +269,8 @@ fn ensure_feature_presence() -> Option<&'static syn::Error> {
     });
 
     RESULT.as_ref().err()
+}
+
+fn get_path_args(path: &str) -> Vec<String> {
+    path.split('/').filter_map(|s| s.strip_prefix(':').map(ToOwned::to_owned)).collect()
 }

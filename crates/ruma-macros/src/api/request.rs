@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
@@ -6,7 +6,7 @@ use syn::{
     parse::{Parse, ParseStream},
     parse_quote,
     punctuated::Punctuated,
-    DeriveInput, Field, Generics, Ident, Lifetime, LitStr, Token, Type,
+    DeriveInput, Field, Generics, Ident, Lifetime, Token, Type,
 };
 
 use super::{
@@ -49,9 +49,6 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
     let mut authentication = None;
     let mut error_ty = None;
     let mut method = None;
-    let mut unstable_path = None;
-    let mut r0_path = None;
-    let mut stable_path = None;
 
     for attr in input.attrs {
         if !attr.path.is_ident("ruma_api") {
@@ -65,9 +62,6 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
                 DeriveRequestMeta::Authentication(t) => authentication = Some(parse_quote!(#t)),
                 DeriveRequestMeta::Method(t) => method = Some(parse_quote!(#t)),
                 DeriveRequestMeta::ErrorTy(t) => error_ty = Some(t),
-                DeriveRequestMeta::UnstablePath(s) => unstable_path = Some(s),
-                DeriveRequestMeta::R0Path(s) => r0_path = Some(s),
-                DeriveRequestMeta::StablePath(s) => stable_path = Some(s),
             }
         }
     }
@@ -79,9 +73,6 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
         lifetimes,
         authentication: authentication.expect("missing authentication attribute"),
         method: method.expect("missing method attribute"),
-        unstable_path,
-        r0_path,
-        stable_path,
         error_ty: error_ty.expect("missing error_ty attribute"),
     };
 
@@ -105,9 +96,6 @@ struct Request {
 
     authentication: AuthScheme,
     method: Ident,
-    unstable_path: Option<LitStr>,
-    r0_path: Option<LitStr>,
-    stable_path: Option<LitStr>,
     error_ty: Type,
 }
 
@@ -149,27 +137,8 @@ impl Request {
         self.fields.iter().filter_map(RequestField::as_header_field)
     }
 
-    fn path_fields_ordered(&self) -> impl Iterator<Item = &Field> {
-        let map: BTreeMap<String, &Field> = self
-            .fields
-            .iter()
-            .filter_map(RequestField::as_path_field)
-            .map(|f| (f.ident.as_ref().unwrap().to_string(), f))
-            .collect();
-
-        self.stable_path
-            .as_ref()
-            .or(self.r0_path.as_ref())
-            .or(self.unstable_path.as_ref())
-            .expect("one of the paths to be defined")
-            .value()
-            .split('/')
-            .filter_map(|s| {
-                s.strip_prefix(':')
-                    .map(|s| *map.get(s).expect("path args have already been checked"))
-            })
-            .collect::<Vec<_>>()
-            .into_iter()
+    fn path_fields(&self) -> impl Iterator<Item = &Field> {
+        self.fields.iter().filter_map(RequestField::as_path_field)
     }
 
     fn raw_body_field(&self) -> Option<&Field> {
@@ -252,13 +221,6 @@ impl Request {
     pub(super) fn check(&self) -> syn::Result<()> {
         // TODO: highlight problematic fields
 
-        let path_fields: Vec<_> =
-            self.fields.iter().filter_map(RequestField::as_path_field).collect();
-
-        self.check_path(&path_fields, self.unstable_path.as_ref())?;
-        self.check_path(&path_fields, self.r0_path.as_ref())?;
-        self.check_path(&path_fields, self.stable_path.as_ref())?;
-
         let newtype_body_fields = self.fields.iter().filter(|f| {
             matches!(&f.kind, RequestFieldKind::NewtypeBody | RequestFieldKind::RawBody)
         });
@@ -322,58 +284,16 @@ impl Request {
 
         Ok(())
     }
-
-    fn check_path(&self, fields: &[&Field], path: Option<&LitStr>) -> syn::Result<()> {
-        let path = if let Some(lit) = path { lit } else { return Ok(()) };
-
-        let path_args: Vec<_> = path
-            .value()
-            .split('/')
-            .filter_map(|s| s.strip_prefix(':').map(str::to_string))
-            .collect();
-
-        let field_map: BTreeMap<_, _> =
-            fields.iter().map(|&f| (f.ident.as_ref().unwrap().to_string(), f)).collect();
-
-        // test if all macro fields exist in the path
-        for (name, field) in field_map.iter() {
-            if !path_args.contains(name) {
-                return Err({
-                    let mut err = syn::Error::new_spanned(
-                        field,
-                        "this path argument field is not defined in...",
-                    );
-                    err.combine(syn::Error::new_spanned(path, "...this path."));
-                    err
-                });
-            }
-        }
-
-        // test if all path fields exists in macro fields
-        for arg in &path_args {
-            if !field_map.contains_key(arg) {
-                return Err(syn::Error::new_spanned(
-                    path,
-                    format!(
-                        "a corresponding request path argument field for \"{}\" does not exist",
-                        arg
-                    ),
-                ));
-            }
-        }
-
-        Ok(())
-    }
 }
 
 /// A field of the request struct.
-struct RequestField {
-    inner: Field,
-    kind: RequestFieldKind,
+pub(super) struct RequestField {
+    pub(super) inner: Field,
+    pub(super) kind: RequestFieldKind,
 }
 
 /// The kind of a request field.
-enum RequestFieldKind {
+pub(super) enum RequestFieldKind {
     /// JSON data in the body of the request.
     Body,
 

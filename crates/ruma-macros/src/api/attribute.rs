@@ -2,7 +2,7 @@
 
 use syn::{
     parse::{Parse, ParseStream},
-    Ident, LitStr, Token, Type,
+    Ident, Token, Type,
 };
 
 mod kw {
@@ -62,9 +62,6 @@ pub enum DeriveRequestMeta {
     Authentication(Type),
     Method(Type),
     ErrorTy(Type),
-    UnstablePath(LitStr),
-    R0Path(LitStr),
-    StablePath(LitStr),
 }
 
 impl Parse for DeriveRequestMeta {
@@ -82,18 +79,6 @@ impl Parse for DeriveRequestMeta {
             let _: kw::error_ty = input.parse()?;
             let _: Token![=] = input.parse()?;
             input.parse().map(Self::ErrorTy)
-        } else if lookahead.peek(kw::unstable) {
-            let _: kw::unstable = input.parse()?;
-            let _: Token![=] = input.parse()?;
-            input.parse().map(Self::UnstablePath)
-        } else if lookahead.peek(kw::r0) {
-            let _: kw::r0 = input.parse()?;
-            let _: Token![=] = input.parse()?;
-            input.parse().map(Self::R0Path)
-        } else if lookahead.peek(kw::stable) {
-            let _: kw::stable = input.parse()?;
-            let _: Token![=] = input.parse()?;
-            input.parse().map(Self::StablePath)
         } else {
             Err(lookahead.error())
         }

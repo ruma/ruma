@@ -14,7 +14,7 @@ impl Request {
         let error_ty = &self.error_ty;
 
         let path_fields =
-            self.path_fields_ordered().map(|f| f.ident.as_ref().expect("path fields have a name"));
+            self.path_fields().map(|f| f.ident.as_ref().expect("path fields have a name"));
 
         let request_query_string = if let Some(field) = self.query_map_field() {
             let field_name = field.ident.as_ref().expect("expected field to have identifier");
