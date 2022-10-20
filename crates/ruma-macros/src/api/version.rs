@@ -4,10 +4,17 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote, ToTokens};
 use syn::{parse::Parse, Error, LitFloat};
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct MatrixVersionLiteral {
     pub(crate) major: NonZeroU8,
     pub(crate) minor: u8,
+}
+
+const ONE: NonZeroU8 = unsafe { NonZeroU8::new_unchecked(1) };
+
+impl MatrixVersionLiteral {
+    pub const V1_0: Self = Self { major: ONE, minor: 0 };
+    pub const V1_1: Self = Self { major: ONE, minor: 1 };
 }
 
 impl Parse for MatrixVersionLiteral {

@@ -10,7 +10,7 @@ use ruma_common::{
             FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError, ServerError,
         },
         AuthScheme, EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata,
-        OutgoingRequest, OutgoingResponse, SendAccessToken,
+        OutgoingRequest, OutgoingResponse, SendAccessToken, VersionHistory,
     },
     OwnedRoomAliasId, OwnedRoomId,
 };
@@ -27,14 +27,18 @@ const METADATA: Metadata = Metadata {
     description: "Add an alias to a room.",
     method: Method::PUT,
     name: "create_alias",
-    unstable_path: Some("/_matrix/client/unstable/directory/room/:room_alias"),
-    r0_path: Some("/_matrix/client/r0/directory/room/:room_alias"),
-    stable_path: Some("/_matrix/client/v3/directory/room/:room_alias"),
     rate_limited: false,
     authentication: AuthScheme::None,
-    added: Some(MatrixVersion::V1_0),
-    deprecated: Some(MatrixVersion::V1_1),
-    removed: Some(MatrixVersion::V1_2),
+
+    history: VersionHistory {
+        unstable_paths: &["/_matrix/client/unstable/directory/room/:room_alias"],
+        stable_paths: &[
+            (MatrixVersion::V1_0, "/_matrix/client/r0/directory/room/:room_alias"),
+            (MatrixVersion::V1_1, "/_matrix/client/v3/directory/room/:room_alias"),
+        ],
+        deprecated: Some(MatrixVersion::V1_2),
+        removed: Some(MatrixVersion::V1_3),
+    },
 };
 
 impl OutgoingRequest for Request {

@@ -1,6 +1,7 @@
 //! Details of the `metadata` section of the procedural macro.
 
-use quote::ToTokens;
+use proc_macro2::TokenStream;
+use quote::{quote, ToTokens};
 use syn::{
     braced,
     parse::{Parse, ParseStream},
@@ -35,29 +36,14 @@ pub struct Metadata {
     /// The name field.
     pub name: LitStr,
 
-    /// The unstable path field.
-    pub unstable_path: Option<EndpointPath>,
-
-    /// The pre-v1.1 path field.
-    pub r0_path: Option<EndpointPath>,
-
-    /// The stable path field.
-    pub stable_path: Option<EndpointPath>,
-
     /// The rate_limited field.
     pub rate_limited: LitBool,
 
     /// The authentication field.
     pub authentication: AuthScheme,
 
-    /// The added field.
-    pub added: Option<MatrixVersionLiteral>,
-
-    /// The deprecated field.
-    pub deprecated: Option<MatrixVersionLiteral>,
-
-    /// The removed field.
-    pub removed: Option<MatrixVersionLiteral>,
+    /// The version history field.
+    pub history: History,
 }
 
 fn set_field<T: ToTokens>(field: &mut Option<T>, value: T) -> syn::Result<()> {
@@ -116,97 +102,98 @@ impl Parse for Metadata {
         let missing_field =
             |name| syn::Error::new_spanned(metadata_kw, format!("missing field `{}`", name));
 
-        let stable_or_r0 = stable_path.as_ref().or(r0_path.as_ref());
+        // Construct the History object.
+        let history = {
+            let stable_or_r0 = stable_path.as_ref().or(r0_path.as_ref());
 
-        if let Some(path) = stable_or_r0 {
-            if added.is_none() {
+            if let Some(path) = stable_or_r0 {
+                if added.is_none() {
+                    return Err(syn::Error::new_spanned(
+                        path,
+                        "stable path was defined, while `added` version was not defined",
+                    ));
+                }
+            }
+
+            if let Some(deprecated) = &deprecated {
+                if added.is_none() {
+                    return Err(syn::Error::new_spanned(
+                        deprecated,
+                        "deprecated version is defined while added version is not defined",
+                    ));
+                }
+            }
+
+            // Note: It is possible that Matrix will remove endpoints in a single version, while
+            // not having a deprecation version inbetween, but that would not be allowed by their
+            // own deprecation policy, so lets just assume  there's always a deprecation version
+            // before a removal one.
+            //
+            // If Matrix does so anyways, we can just alter this.
+            if let Some(removed) = &removed {
+                if deprecated.is_none() {
+                    return Err(syn::Error::new_spanned(
+                        removed,
+                        "removed version is defined while deprecated version is not defined",
+                    ));
+                }
+            }
+
+            if let Some(added) = &added {
+                if stable_or_r0.is_none() {
+                    return Err(syn::Error::new_spanned(
+                        added,
+                        "added version is defined, but no stable or r0 path exists",
+                    ));
+                }
+            }
+
+            if let Some(r0) = &r0_path {
+                let added =
+                    added.as_ref().expect("we error if r0 or stable is defined without added");
+
+                if added.major.get() == 1 && added.minor > 0 {
+                    return Err(syn::Error::new_spanned(
+                        r0,
+                        "r0 defined while added version is newer than v1.0",
+                    ));
+                }
+
+                if stable_path.is_none() {
+                    return Err(syn::Error::new_spanned(r0, "r0 defined without stable path"));
+                }
+
+                if !r0.value().contains("/r0/") {
+                    return Err(syn::Error::new_spanned(r0, "r0 endpoint does not contain /r0/"));
+                }
+            }
+
+            if let Some(stable) = &stable_path {
+                if stable.value().contains("/r0/") {
+                    return Err(syn::Error::new_spanned(
+                        stable,
+                        "stable endpoint contains /r0/ (did you make a copy-paste error?)",
+                    ));
+                }
+            }
+
+            if unstable_path.is_none() && r0_path.is_none() && stable_path.is_none() {
                 return Err(syn::Error::new_spanned(
-                    path,
-                    "stable path was defined, while `added` version was not defined",
+                    metadata_kw,
+                    "need to define one of [r0_path, stable_path, unstable_path]",
                 ));
             }
-        }
 
-        if let Some(deprecated) = &deprecated {
-            if added.is_none() {
-                return Err(syn::Error::new_spanned(
-                    deprecated,
-                    "deprecated version is defined while added version is not defined",
-                ));
-            }
-        }
-
-        // note: It is possible that matrix will remove endpoints in a single version, while not
-        // having a deprecation version inbetween, but that would not be allowed by their own
-        // deprecation policy, so lets just assume there's always a deprecation version before a
-        // removal one.
-        //
-        // If matrix does so anyways, we can just alter this.
-        if let Some(removed) = &removed {
-            if deprecated.is_none() {
-                return Err(syn::Error::new_spanned(
-                    removed,
-                    "removed version is defined while deprecated version is not defined",
-                ));
-            }
-        }
-
-        if let Some(added) = &added {
-            if stable_or_r0.is_none() {
-                return Err(syn::Error::new_spanned(
-                    added,
-                    "added version is defined, but no stable or r0 path exists",
-                ));
-            }
-        }
-
-        if let Some(r0) = &r0_path {
-            let added = added.as_ref().expect("we error if r0 or stable is defined without added");
-
-            if added.major.get() == 1 && added.minor > 0 {
-                return Err(syn::Error::new_spanned(
-                    r0,
-                    "r0 defined while added version is newer than v1.0",
-                ));
-            }
-
-            if stable_path.is_none() {
-                return Err(syn::Error::new_spanned(r0, "r0 defined without stable path"));
-            }
-
-            if !r0.value().contains("/r0/") {
-                return Err(syn::Error::new_spanned(r0, "r0 endpoint does not contain /r0/"));
-            }
-        }
-
-        if let Some(stable) = &stable_path {
-            if stable.value().contains("/r0/") {
-                return Err(syn::Error::new_spanned(
-                    stable,
-                    "stable endpoint contains /r0/ (did you make a copy-paste error?)",
-                ));
-            }
-        }
-
-        if unstable_path.is_none() && r0_path.is_none() && stable_path.is_none() {
-            return Err(syn::Error::new_spanned(
-                metadata_kw,
-                "need to define one of [r0_path, stable_path, unstable_path]",
-            ));
-        }
+            History::construct(deprecated, removed, unstable_path, r0_path, stable_path.zip(added))
+        };
 
         Ok(Self {
             description: description.ok_or_else(|| missing_field("description"))?,
             method: method.ok_or_else(|| missing_field("method"))?,
             name: name.ok_or_else(|| missing_field("name"))?,
-            unstable_path,
-            r0_path,
-            stable_path,
             rate_limited: rate_limited.ok_or_else(|| missing_field("rate_limited"))?,
             authentication: authentication.ok_or_else(|| missing_field("authentication"))?,
-            added,
-            deprecated,
-            removed,
+            history,
         })
     }
 }
@@ -303,12 +290,126 @@ impl Parse for FieldValue {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, PartialEq)]
+pub struct History {
+    pub(super) entries: Vec<HistoryEntry>,
+    misc: MiscVersioning,
+}
+
+impl History {
+    // TODO(j0j0): remove after codebase conversion is complete
+    /// Construct a History object from legacy parts.
+    pub fn construct(
+        deprecated: Option<MatrixVersionLiteral>,
+        removed: Option<MatrixVersionLiteral>,
+        unstable_path: Option<EndpointPath>,
+        r0_path: Option<EndpointPath>,
+        stable_path_and_version: Option<(EndpointPath, MatrixVersionLiteral)>,
+    ) -> Self {
+        // Unfortunately can't `use` associated constants
+        const V1_0: MatrixVersionLiteral = MatrixVersionLiteral::V1_0;
+
+        let unstable = unstable_path.map(|path| HistoryEntry::Unstable { path });
+        let r0 = r0_path.map(|path| HistoryEntry::Stable { path, version: V1_0 });
+        let stable = stable_path_and_version.map(|(path, mut version)| {
+            // If added in 1.0 as r0, the new stable path must be from 1.1
+            if r0.is_some() && version == V1_0 {
+                version = MatrixVersionLiteral::V1_1;
+            }
+
+            HistoryEntry::Stable { path, version }
+        });
+
+        let misc = match (deprecated, removed) {
+            (None, None) => MiscVersioning::None,
+            (Some(deprecated), None) => MiscVersioning::Deprecated(deprecated),
+            (Some(deprecated), Some(removed)) => MiscVersioning::Removed { deprecated, removed },
+
+            (None, Some(_)) => unreachable!("removed implies deprecated"),
+        };
+
+        let entries = [unstable, r0, stable].into_iter().flatten().collect();
+
+        History { entries, misc }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum MiscVersioning {
+    None,
+    Deprecated(MatrixVersionLiteral),
+    Removed { deprecated: MatrixVersionLiteral, removed: MatrixVersionLiteral },
+}
+
+impl ToTokens for History {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        fn endpointpath_to_pathdata_ts(endpoint: &EndpointPath) -> String {
+            endpoint.value()
+        }
+
+        let unstable = self.entries.iter().filter_map(|e| match e {
+            HistoryEntry::Unstable { path } => Some(endpointpath_to_pathdata_ts(path)),
+            _ => None,
+        });
+        let versioned = self.entries.iter().filter_map(|e| match e {
+            HistoryEntry::Stable { path, version } => {
+                let path = endpointpath_to_pathdata_ts(path);
+                Some(quote! {( #version, #path )})
+            }
+            _ => None,
+        });
+
+        let (deprecated, removed) = match &self.misc {
+            MiscVersioning::None => (None, None),
+            MiscVersioning::Deprecated(deprecated) => (Some(deprecated), None),
+            MiscVersioning::Removed { deprecated, removed } => (Some(deprecated), Some(removed)),
+        };
+
+        let deprecated = util::map_option_literal(&deprecated);
+        let removed = util::map_option_literal(&removed);
+
+        tokens.extend(quote! {
+            ::ruma_common::api::VersionHistory {
+                unstable_paths: &[ #(#unstable),* ],
+                stable_paths: &[ #(#versioned),* ],
+                deprecated: #deprecated,
+                removed: #removed,
+            }
+        });
+    }
+}
+
+#[derive(Debug, PartialEq)]
+// Unused variants will be constructed when the macro input is updated
+#[allow(dead_code)]
+pub enum HistoryEntry {
+    Unstable { path: EndpointPath },
+    Stable { version: MatrixVersionLiteral, path: EndpointPath },
+    Deprecated { version: MatrixVersionLiteral },
+    Removed { version: MatrixVersionLiteral },
+}
+
+impl HistoryEntry {
+    pub(super) fn path(&self) -> Option<&EndpointPath> {
+        Some(match self {
+            HistoryEntry::Stable { version: _, path } => path,
+            HistoryEntry::Unstable { path } => path,
+
+            _ => return None,
+        })
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub struct EndpointPath(LitStr);
 
 impl EndpointPath {
     pub fn value(&self) -> String {
         self.0.value()
+    }
+
+    pub fn args(&self) -> Vec<String> {
+        self.value().split('/').filter_map(|s| s.strip_prefix(':')).map(String::from).collect()
     }
 }
 
@@ -328,7 +429,7 @@ impl Parse for EndpointPath {
 }
 
 impl ToTokens for EndpointPath {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         self.0.to_tokens(tokens);
     }
 }

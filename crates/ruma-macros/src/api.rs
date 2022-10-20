@@ -65,14 +65,9 @@ impl Api {
         let description = &metadata.description;
         let method = &metadata.method;
         let name = &metadata.name;
-        let unstable_path = util::map_option_literal(&metadata.unstable_path);
-        let r0_path = util::map_option_literal(&metadata.r0_path);
-        let stable_path = util::map_option_literal(&metadata.stable_path);
         let rate_limited = &self.metadata.rate_limited;
         let authentication = &self.metadata.authentication;
-        let added = util::map_option_literal(&metadata.added);
-        let deprecated = util::map_option_literal(&metadata.deprecated);
-        let removed = util::map_option_literal(&metadata.removed);
+        let history = &self.metadata.history;
 
         let error_ty = self.error_ty.map_or_else(
             || quote! { #ruma_common::api::error::MatrixError },
@@ -93,14 +88,9 @@ impl Api {
                 description: #description,
                 method: #http::Method::#method,
                 name: #name,
-                unstable_path: #unstable_path,
-                r0_path: #r0_path,
-                stable_path: #stable_path,
-                added: #added,
-                deprecated: #deprecated,
-                removed: #removed,
                 rate_limited: #rate_limited,
                 authentication: #ruma_common::api::AuthScheme::#authentication,
+                history: #history,
             };
 
             #request
@@ -112,20 +102,15 @@ impl Api {
     }
 
     fn check_paths(&self) -> syn::Result<()> {
-        let mut path_iter = self
-            .metadata
-            .unstable_path
-            .iter()
-            .chain(&self.metadata.r0_path)
-            .chain(&self.metadata.stable_path);
+        let mut path_iter = self.metadata.history.entries.iter().filter_map(|entry| entry.path());
 
         let path = path_iter.next().ok_or_else(|| {
             syn::Error::new(Span::call_site(), "at least one path metadata field must be set")
         })?;
-        let path_args = get_path_args(&path.value());
+        let path_args = path.args();
 
         for extra_path in path_iter {
-            let extra_path_args = get_path_args(&extra_path.value());
+            let extra_path_args = extra_path.args();
             if extra_path_args != path_args {
                 return Err(syn::Error::new(
                     Span::call_site(),
@@ -269,8 +254,4 @@ fn ensure_feature_presence() -> Option<&'static syn::Error> {
     });
 
     RESULT.as_ref().err()
-}
-
-fn get_path_args(path: &str) -> Vec<String> {
-    path.split('/').filter_map(|s| s.strip_prefix(':').map(ToOwned::to_owned)).collect()
 }

@@ -197,7 +197,7 @@ pub use ruma_macros::ruma_api;
 pub mod error;
 mod metadata;
 
-pub use metadata::{MatrixVersion, Metadata, VersioningDecision};
+pub use metadata::{MatrixVersion, Metadata, VersionHistory, VersioningDecision};
 
 use error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
 
