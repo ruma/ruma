@@ -23,13 +23,13 @@ pub mod v3 {
         }
 
         request: {
-            /// The user who has started to type.
-            #[ruma_api(path)]
-            pub user_id: &'a UserId,
-
             /// The room in which the user is typing.
             #[ruma_api(path)]
             pub room_id: &'a RoomId,
+
+            /// The user who has started to type.
+            #[ruma_api(path)]
+            pub user_id: &'a UserId,
 
             /// Whether the user is typing within a length of time or not.
             #[serde(flatten)]

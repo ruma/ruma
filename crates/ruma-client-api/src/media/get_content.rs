@@ -25,13 +25,13 @@ pub mod v3 {
         }
 
         request: {
-            /// The media ID from the mxc:// URI (the path component).
-            #[ruma_api(path)]
-            pub media_id: &'a str,
-
             /// The server name from the mxc:// URI (the authoritory component).
             #[ruma_api(path)]
             pub server_name: &'a ServerName,
+
+            /// The media ID from the mxc:// URI (the path component).
+            #[ruma_api(path)]
+            pub media_id: &'a str,
 
             /// Whether to fetch media deemed remote.
             ///
