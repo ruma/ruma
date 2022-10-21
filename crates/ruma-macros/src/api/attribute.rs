@@ -12,7 +12,6 @@ mod kw {
     syn::custom_keyword!(query);
     syn::custom_keyword!(query_map);
     syn::custom_keyword!(header);
-    syn::custom_keyword!(manual_body_serde);
 }
 
 pub enum RequestMeta {
@@ -71,23 +70,6 @@ impl Parse for ResponseMeta {
             let _: kw::header = input.parse()?;
             let _: Token![=] = input.parse()?;
             input.parse().map(Self::Header)
-        } else {
-            Err(lookahead.error())
-        }
-    }
-}
-
-#[allow(clippy::large_enum_variant)]
-pub enum DeriveResponseMeta {
-    ManualBodySerde,
-}
-
-impl Parse for DeriveResponseMeta {
-    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let lookahead = input.lookahead1();
-        if lookahead.peek(kw::manual_body_serde) {
-            let _: kw::manual_body_serde = input.parse()?;
-            Ok(Self::ManualBodySerde)
         } else {
             Err(lookahead.error())
         }

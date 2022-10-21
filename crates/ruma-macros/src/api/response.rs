@@ -4,16 +4,19 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
-    punctuated::Punctuated,
     visit::Visit,
-    DeriveInput, Field, Generics, Ident, Lifetime, Token, Type,
+    DeriveInput, Field, Generics, Ident, Lifetime, Type,
 };
 
-use super::attribute::{DeriveResponseMeta, ResponseMeta};
+use super::attribute::ResponseMeta;
 use crate::util::import_ruma_common;
 
 mod incoming;
 mod outgoing;
+
+mod kw {
+    syn::custom_keyword!(manual_body_serde);
+}
 
 pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
     let fields = match input.data {
@@ -28,13 +31,9 @@ pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
             continue;
         }
 
-        let metas =
-            attr.parse_args_with(Punctuated::<DeriveResponseMeta, Token![,]>::parse_terminated)?;
-        for meta in metas {
-            match meta {
-                DeriveResponseMeta::ManualBodySerde => manual_body_serde = true,
-            }
-        }
+        let _ = attr.parse_args::<kw::manual_body_serde>()?;
+
+        manual_body_serde = true;
     }
 
     let response =
