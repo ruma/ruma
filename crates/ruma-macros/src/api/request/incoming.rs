@@ -11,7 +11,6 @@ impl Request {
         let serde = quote! { #ruma_common::exports::serde };
         let serde_json = quote! { #ruma_common::exports::serde_json };
 
-        let method = &self.method;
         let error_ty = &self.error_ty;
 
         let incoming_request_type = if self.has_lifetimes() {
@@ -203,9 +202,9 @@ impl Request {
                     B: ::std::convert::AsRef<[::std::primitive::u8]>,
                     S: ::std::convert::AsRef<::std::primitive::str>,
                 {
-                    if request.method() != #http::Method::#method {
+                    if request.method() != METADATA.method {
                         return Err(#ruma_common::api::error::FromHttpRequestError::MethodMismatch {
-                            expected: #http::Method::#method,
+                            expected: METADATA.method,
                             received: request.method().clone(),
                         });
                     }

@@ -3,6 +3,7 @@ use std::{
     str::FromStr,
 };
 
+use bytes::BufMut;
 use http::Method;
 use percent_encoding::utf8_percent_encode;
 use tracing::warn;
@@ -11,7 +12,7 @@ use super::{
     error::{IntoHttpError, UnknownVersionError},
     AuthScheme,
 };
-use crate::RoomVersionId;
+use crate::{serde::slice_to_buf, RoomVersionId};
 
 /// Metadata about an API endpoint.
 #[derive(Clone, Debug)]
@@ -37,6 +38,21 @@ pub struct Metadata {
 }
 
 impl Metadata {
+    /// Returns an empty request body for this Matrix request.
+    ///
+    /// For `GET` requests, it returns an entirely empty buffer, for others it returns an empty JSON
+    /// object (`{}`).
+    pub fn empty_request_body<B>(&self) -> B
+    where
+        B: Default + BufMut,
+    {
+        if self.method == Method::GET {
+            Default::default()
+        } else {
+            slice_to_buf(b"{}")
+        }
+    }
+
     /// Generate the endpoint URL for this endpoint.
     pub fn make_endpoint_url(
         &self,

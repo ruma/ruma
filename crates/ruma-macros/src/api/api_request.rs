@@ -82,7 +82,6 @@ impl Request {
         );
         let struct_attributes = &self.attributes;
 
-        let method = &metadata.method;
         let authentication = &metadata.authentication;
 
         let request_ident = Ident::new("Request", self.request_kw.span());
@@ -101,11 +100,7 @@ impl Request {
             )]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             #[incoming_derive(!Deserialize, #ruma_macros::_FakeDeriveRumaApi)]
-            #[ruma_api(
-                method = #method,
-                authentication = #authentication,
-                error_ty = #error_ty,
-            )]
+            #[ruma_api(authentication = #authentication, error_ty = #error_ty)]
             #( #struct_attributes )*
             pub struct #request_ident < #(#lifetimes),* > {
                 #fields

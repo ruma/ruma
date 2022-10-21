@@ -48,7 +48,6 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
 
     let mut authentication = None;
     let mut error_ty = None;
-    let mut method = None;
 
     for attr in input.attrs {
         if !attr.path.is_ident("ruma_api") {
@@ -60,7 +59,6 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
         for meta in metas {
             match meta {
                 DeriveRequestMeta::Authentication(t) => authentication = Some(parse_quote!(#t)),
-                DeriveRequestMeta::Method(t) => method = Some(parse_quote!(#t)),
                 DeriveRequestMeta::ErrorTy(t) => error_ty = Some(t),
             }
         }
@@ -72,12 +70,17 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
         fields,
         lifetimes,
         authentication: authentication.expect("missing authentication attribute"),
-        method: method.expect("missing method attribute"),
         error_ty: error_ty.expect("missing error_ty attribute"),
     };
 
-    request.check()?;
-    Ok(request.expand_all())
+    let ruma_common = import_ruma_common();
+    let test = request.check(&ruma_common)?;
+    let types_impls = request.expand_all(&ruma_common);
+
+    Ok(quote! {
+        #types_impls
+        #test
+    })
 }
 
 #[derive(Default)]
@@ -95,7 +98,6 @@ struct Request {
     fields: Vec<RequestField>,
 
     authentication: AuthScheme,
-    method: Ident,
     error_ty: Type,
 }
 
@@ -149,8 +151,7 @@ impl Request {
         self.fields.iter().find_map(RequestField::as_query_map_field)
     }
 
-    fn expand_all(&self) -> TokenStream {
-        let ruma_common = import_ruma_common();
+    fn expand_all(&self, ruma_common: &TokenStream) -> TokenStream {
         let ruma_macros = quote! { #ruma_common::exports::ruma_macros };
         let serde = quote! { #ruma_common::exports::serde };
 
@@ -206,8 +207,8 @@ impl Request {
             }
         });
 
-        let outgoing_request_impl = self.expand_outgoing(&ruma_common);
-        let incoming_request_impl = self.expand_incoming(&ruma_common);
+        let outgoing_request_impl = self.expand_outgoing(ruma_common);
+        let incoming_request_impl = self.expand_incoming(ruma_common);
 
         quote! {
             #request_body_struct
@@ -218,7 +219,9 @@ impl Request {
         }
     }
 
-    pub(super) fn check(&self) -> syn::Result<()> {
+    pub(super) fn check(&self, ruma_common: &TokenStream) -> syn::Result<Option<TokenStream>> {
+        let http = quote! { #ruma_common::exports::http };
+
         // TODO: highlight problematic fields
 
         let newtype_body_fields = self.fields.iter().filter(|f| {
@@ -275,14 +278,17 @@ impl Request {
             ));
         }
 
-        if self.method == "GET" && (has_body_fields || has_newtype_body_field) {
-            return Err(syn::Error::new_spanned(
-                &self.ident,
-                "GET endpoints can't have body fields",
-            ));
-        }
-
-        Ok(())
+        Ok((has_body_fields || has_newtype_body_field).then(|| {
+            quote! {
+                #[::std::prelude::v1::test]
+                fn request_is_not_get() {
+                    ::std::assert_ne!(
+                        METADATA.method, #http::Method::GET,
+                        "GET endpoints can't have body fields",
+                    );
+                }
+            }
+        }))
     }
 }
 

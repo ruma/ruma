@@ -10,7 +10,6 @@ impl Request {
         let bytes = quote! { #ruma_common::exports::bytes };
         let http = quote! { #ruma_common::exports::http };
 
-        let method = &self.method;
         let error_ty = &self.error_ty;
 
         let path_fields =
@@ -137,10 +136,8 @@ impl Request {
             quote! {
                 #ruma_common::serde::json_to_buf(&RequestBody { #initializers })?
             }
-        } else if method == "GET" {
-            quote! { <T as ::std::default::Default>::default() }
         } else {
-            quote! { #ruma_common::serde::slice_to_buf(b"{}") }
+            quote! { METADATA.empty_request_body::<T>() }
         };
 
         let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
@@ -170,7 +167,7 @@ impl Request {
                     considering_versions: &'_ [#ruma_common::api::MatrixVersion],
                 ) -> ::std::result::Result<#http::Request<T>, #ruma_common::api::error::IntoHttpError> {
                     let mut req_builder = #http::Request::builder()
-                        .method(#http::Method::#method)
+                        .method(METADATA.method)
                         .uri(METADATA.make_endpoint_url(
                             considering_versions,
                             base_url,

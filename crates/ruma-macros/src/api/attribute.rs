@@ -13,7 +13,6 @@ mod kw {
     syn::custom_keyword!(query_map);
     syn::custom_keyword!(header);
     syn::custom_keyword!(authentication);
-    syn::custom_keyword!(method);
     syn::custom_keyword!(error_ty);
     syn::custom_keyword!(manual_body_serde);
 }
@@ -57,7 +56,6 @@ impl Parse for RequestMeta {
 
 pub enum DeriveRequestMeta {
     Authentication(Type),
-    Method(Type),
     ErrorTy(Type),
 }
 
@@ -68,10 +66,6 @@ impl Parse for DeriveRequestMeta {
             let _: kw::authentication = input.parse()?;
             let _: Token![=] = input.parse()?;
             input.parse().map(Self::Authentication)
-        } else if lookahead.peek(kw::method) {
-            let _: kw::method = input.parse()?;
-            let _: Token![=] = input.parse()?;
-            input.parse().map(Self::Method)
         } else if lookahead.peek(kw::error_ty) {
             let _: kw::error_ty = input.parse()?;
             let _: Token![=] = input.parse()?;
