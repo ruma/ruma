@@ -373,12 +373,6 @@ pub trait EndpointError: OutgoingResponse + StdError + Sized + Send + 'static {
     ) -> Result<Self, error::DeserializationError>;
 }
 
-/// Marker trait for requests that don't require authentication, for the client side.
-pub trait OutgoingNonAuthRequest: OutgoingRequest {}
-
-/// Marker trait for requests that don't require authentication, for the server side.
-pub trait IncomingNonAuthRequest: IncomingRequest {}
-
 /// Authentication scheme used by the endpoint.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[allow(clippy::exhaustive_enums)]

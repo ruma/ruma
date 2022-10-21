@@ -140,15 +140,6 @@ impl Request {
 
         let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
 
-        let non_auth_impl = matches!(self.authentication, AuthScheme::None(_)).then(|| {
-            quote! {
-                #[automatically_derived]
-                #[cfg(feature = "client")]
-                impl #impl_generics #ruma_common::api::OutgoingNonAuthRequest
-                    for Request #ty_generics #where_clause {}
-            }
-        });
-
         quote! {
             #[automatically_derived]
             #[cfg(feature = "client")]
@@ -182,8 +173,6 @@ impl Request {
                     Ok(http_request)
                 }
             }
-
-            #non_auth_impl
         }
     }
 }

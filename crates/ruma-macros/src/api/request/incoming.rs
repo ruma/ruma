@@ -3,7 +3,6 @@ use quote::quote;
 use syn::Field;
 
 use super::{Request, RequestField};
-use crate::api::auth_scheme::AuthScheme;
 
 impl Request {
     pub fn expand_incoming(&self, ruma_common: &TokenStream) -> TokenStream {
@@ -175,14 +174,6 @@ impl Request {
             vars(self.body_fields(), quote! { request_body })
         };
 
-        let non_auth_impl = matches!(self.authentication, AuthScheme::None(_)).then(|| {
-            quote! {
-                #[automatically_derived]
-                #[cfg(feature = "server")]
-                impl #ruma_common::api::IncomingNonAuthRequest for #incoming_request_type {}
-            }
-        });
-
         quote! {
             #[automatically_derived]
             #[cfg(feature = "server")]
@@ -222,8 +213,6 @@ impl Request {
                     })
                 }
             }
-
-            #non_auth_impl
         }
     }
 }
