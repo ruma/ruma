@@ -193,7 +193,7 @@ impl Request {
                 type EndpointError = #error_ty;
                 type OutgoingResponse = Response;
 
-                const METADATA: #ruma_common::api::Metadata = self::METADATA;
+                const METADATA: #ruma_common::api::Metadata = METADATA;
 
                 fn try_from_http_request<B, S>(
                     request: #http::Request<B>,

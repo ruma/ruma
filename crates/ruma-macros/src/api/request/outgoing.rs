@@ -161,7 +161,7 @@ impl Request {
                 type EndpointError = #error_ty;
                 type IncomingResponse = Response;
 
-                const METADATA: #ruma_common::api::Metadata = self::METADATA;
+                const METADATA: #ruma_common::api::Metadata = METADATA;
 
                 fn try_into_http_request<T: ::std::default::Default + #bytes::BufMut>(
                     self,
@@ -169,11 +169,9 @@ impl Request {
                     access_token: #ruma_common::api::SendAccessToken<'_>,
                     considering_versions: &'_ [#ruma_common::api::MatrixVersion],
                 ) -> ::std::result::Result<#http::Request<T>, #ruma_common::api::error::IntoHttpError> {
-                    let metadata = self::METADATA;
-
                     let mut req_builder = #http::Request::builder()
                         .method(#http::Method::#method)
-                        .uri(metadata.make_endpoint_url(
+                        .uri(METADATA.make_endpoint_url(
                             considering_versions,
                             base_url,
                             &[ #( &self.#path_fields ),* ],
