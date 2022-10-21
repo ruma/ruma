@@ -15,9 +15,6 @@ mod kw {
     syn::custom_keyword!(authentication);
     syn::custom_keyword!(method);
     syn::custom_keyword!(error_ty);
-    syn::custom_keyword!(unstable);
-    syn::custom_keyword!(r0);
-    syn::custom_keyword!(stable);
     syn::custom_keyword!(manual_body_serde);
 }
 
