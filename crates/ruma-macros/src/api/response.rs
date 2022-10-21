@@ -23,7 +23,6 @@ pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
 
     let fields = fields.into_iter().map(ResponseField::try_from).collect::<syn::Result<_>>()?;
     let mut manual_body_serde = false;
-    let mut error_ty = None;
     for attr in input.attrs {
         if !attr.path.is_ident("ruma_api") {
             continue;
@@ -34,18 +33,12 @@ pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
         for meta in metas {
             match meta {
                 DeriveResponseMeta::ManualBodySerde => manual_body_serde = true,
-                DeriveResponseMeta::ErrorTy(t) => error_ty = Some(t),
             }
         }
     }
 
-    let response = Response {
-        ident: input.ident,
-        generics: input.generics,
-        fields,
-        manual_body_serde,
-        error_ty: error_ty.unwrap(),
-    };
+    let response =
+        Response { ident: input.ident, generics: input.generics, fields, manual_body_serde };
 
     response.check()?;
     Ok(response.expand_all())
@@ -56,7 +49,6 @@ struct Response {
     generics: Generics,
     fields: Vec<ResponseField>,
     manual_body_serde: bool,
-    error_ty: Type,
 }
 
 impl Response {
@@ -109,7 +101,7 @@ impl Response {
         });
 
         let outgoing_response_impl = self.expand_outgoing(&ruma_common);
-        let incoming_response_impl = self.expand_incoming(&self.error_ty, &ruma_common);
+        let incoming_response_impl = self.expand_incoming(&ruma_common);
 
         quote! {
             #response_body_struct

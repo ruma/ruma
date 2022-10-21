@@ -6,7 +6,7 @@ use syn::{
     parse::{Parse, ParseStream},
     parse_quote,
     punctuated::Punctuated,
-    DeriveInput, Field, Generics, Ident, Lifetime, Token, Type,
+    DeriveInput, Field, Generics, Ident, Lifetime, Token,
 };
 
 use super::{
@@ -47,7 +47,6 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
         .collect::<syn::Result<_>>()?;
 
     let mut authentication = None;
-    let mut error_ty = None;
 
     for attr in input.attrs {
         if !attr.path.is_ident("ruma_api") {
@@ -59,7 +58,6 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
         for meta in metas {
             match meta {
                 DeriveRequestMeta::Authentication(t) => authentication = Some(parse_quote!(#t)),
-                DeriveRequestMeta::ErrorTy(t) => error_ty = Some(t),
             }
         }
     }
@@ -70,7 +68,6 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
         fields,
         lifetimes,
         authentication: authentication.expect("missing authentication attribute"),
-        error_ty: error_ty.expect("missing error_ty attribute"),
     };
 
     let ruma_common = import_ruma_common();
@@ -98,7 +95,6 @@ struct Request {
     fields: Vec<RequestField>,
 
     authentication: AuthScheme,
-    error_ty: Type,
 }
 
 impl Request {

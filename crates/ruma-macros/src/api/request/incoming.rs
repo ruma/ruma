@@ -11,8 +11,6 @@ impl Request {
         let serde = quote! { #ruma_common::exports::serde };
         let serde_json = quote! { #ruma_common::exports::serde_json };
 
-        let error_ty = &self.error_ty;
-
         let incoming_request_type = if self.has_lifetimes() {
             quote! { IncomingRequest }
         } else {
@@ -189,7 +187,7 @@ impl Request {
             #[automatically_derived]
             #[cfg(feature = "server")]
             impl #ruma_common::api::IncomingRequest for #incoming_request_type {
-                type EndpointError = #error_ty;
+                type EndpointError = self::EndpointError;
                 type OutgoingResponse = Response;
 
                 const METADATA: #ruma_common::api::Metadata = METADATA;

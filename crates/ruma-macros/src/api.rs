@@ -74,8 +74,8 @@ impl Api {
             |err_ty| quote! { #err_ty },
         );
 
-        let request = self.request.map(|req| req.expand(metadata, &error_ty, &ruma_common));
-        let response = self.response.map(|res| res.expand(metadata, &error_ty, &ruma_common));
+        let request = self.request.map(|req| req.expand(metadata, &ruma_common));
+        let response = self.response.map(|res| res.expand(metadata, &ruma_common));
 
         let metadata_doc = format!("Metadata for the `{}` API endpoint.", name.value());
 
@@ -93,11 +93,11 @@ impl Api {
                 history: #history,
             };
 
+            #[allow(unused)]
+            type EndpointError = #error_ty;
+
             #request
             #response
-
-            #[cfg(not(any(feature = "client", feature = "server")))]
-            type _SilenceUnusedError = #error_ty;
         }
     }
 

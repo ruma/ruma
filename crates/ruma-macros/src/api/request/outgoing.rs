@@ -10,8 +10,6 @@ impl Request {
         let bytes = quote! { #ruma_common::exports::bytes };
         let http = quote! { #ruma_common::exports::http };
 
-        let error_ty = &self.error_ty;
-
         let path_fields =
             self.path_fields().map(|f| f.ident.as_ref().expect("path fields have a name"));
 
@@ -155,7 +153,7 @@ impl Request {
             #[automatically_derived]
             #[cfg(feature = "client")]
             impl #impl_generics #ruma_common::api::OutgoingRequest for Request #ty_generics #where_clause {
-                type EndpointError = #error_ty;
+                type EndpointError = self::EndpointError;
                 type IncomingResponse = Response;
 
                 const METADATA: #ruma_common::api::Metadata = METADATA;

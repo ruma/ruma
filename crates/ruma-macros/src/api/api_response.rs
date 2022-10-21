@@ -19,12 +19,7 @@ pub(crate) struct Response {
 }
 
 impl Response {
-    pub(super) fn expand(
-        &self,
-        metadata: &Metadata,
-        error_ty: &TokenStream,
-        ruma_common: &TokenStream,
-    ) -> TokenStream {
+    pub(super) fn expand(&self, metadata: &Metadata, ruma_common: &TokenStream) -> TokenStream {
         let ruma_macros = quote! { #ruma_common::exports::ruma_macros };
 
         let docs =
@@ -44,7 +39,6 @@ impl Response {
             )]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             #[incoming_derive(!Deserialize, #ruma_macros::_FakeDeriveRumaApi)]
-            #[ruma_api(error_ty = #error_ty)]
             #( #struct_attributes )*
             pub struct #response_ident {
                 #fields
