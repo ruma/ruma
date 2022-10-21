@@ -4,13 +4,16 @@ use std::{
 };
 
 use bytes::BufMut;
-use http::Method;
+use http::{
+    header::{self, HeaderName, HeaderValue},
+    Method,
+};
 use percent_encoding::utf8_percent_encode;
 use tracing::warn;
 
 use super::{
     error::{IntoHttpError, UnknownVersionError},
-    AuthScheme,
+    AuthScheme, SendAccessToken,
 };
 use crate::{serde::slice_to_buf, RoomVersionId};
 
@@ -51,6 +54,33 @@ impl Metadata {
         } else {
             slice_to_buf(b"{}")
         }
+    }
+
+    /// Transform the `SendAccessToken` into an access token if the endpoint requires it, or if it
+    /// is `SendAccessToken::Force`.
+    ///
+    /// Fails if the endpoint requires an access token but the parameter is `SendAccessToken::None`,
+    /// or if the access token can't be converted to a [`HeaderValue`].
+    pub fn authorization_header(
+        &self,
+        access_token: SendAccessToken<'_>,
+    ) -> Result<Option<(HeaderName, HeaderValue)>, IntoHttpError> {
+        Ok(match self.authentication {
+            AuthScheme::None => match access_token.get_not_required_for_endpoint() {
+                Some(token) => Some((header::AUTHORIZATION, format!("Bearer {token}").try_into()?)),
+                None => None,
+            },
+
+            AuthScheme::AccessToken => {
+                let token = access_token
+                    .get_required_for_endpoint()
+                    .ok_or(IntoHttpError::NeedsAuthentication)?;
+
+                Some((header::AUTHORIZATION, format!("Bearer {token}").try_into()?))
+            }
+
+            AuthScheme::ServerSignatures => None,
+        })
     }
 
     /// Generate the endpoint URL for this endpoint.

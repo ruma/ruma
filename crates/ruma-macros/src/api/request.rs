@@ -4,16 +4,10 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
-    parse_quote,
-    punctuated::Punctuated,
-    DeriveInput, Field, Generics, Ident, Lifetime, Token,
+    DeriveInput, Field, Generics, Ident, Lifetime,
 };
 
-use super::{
-    attribute::{DeriveRequestMeta, RequestMeta},
-    auth_scheme::AuthScheme,
-    util::collect_lifetime_idents,
-};
+use super::{attribute::RequestMeta, util::collect_lifetime_idents};
 use crate::util::import_ruma_common;
 
 mod incoming;
@@ -46,29 +40,7 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
         })
         .collect::<syn::Result<_>>()?;
 
-    let mut authentication = None;
-
-    for attr in input.attrs {
-        if !attr.path.is_ident("ruma_api") {
-            continue;
-        }
-
-        let metas =
-            attr.parse_args_with(Punctuated::<DeriveRequestMeta, Token![,]>::parse_terminated)?;
-        for meta in metas {
-            match meta {
-                DeriveRequestMeta::Authentication(t) => authentication = Some(parse_quote!(#t)),
-            }
-        }
-    }
-
-    let request = Request {
-        ident: input.ident,
-        generics: input.generics,
-        fields,
-        lifetimes,
-        authentication: authentication.expect("missing authentication attribute"),
-    };
+    let request = Request { ident: input.ident, generics: input.generics, fields, lifetimes };
 
     let ruma_common = import_ruma_common();
     let test = request.check(&ruma_common)?;
@@ -93,8 +65,6 @@ struct Request {
     generics: Generics,
     lifetimes: RequestLifetimes,
     fields: Vec<RequestField>,
-
-    authentication: AuthScheme,
 }
 
 impl Request {

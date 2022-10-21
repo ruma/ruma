@@ -77,8 +77,6 @@ impl Request {
         );
         let struct_attributes = &self.attributes;
 
-        let authentication = &metadata.authentication;
-
         let request_ident = Ident::new("Request", self.request_kw.span());
         let lifetimes = self.all_lifetimes();
         let lifetimes = lifetimes.iter().map(|(lt, attr)| quote! { #attr #lt });
@@ -95,7 +93,6 @@ impl Request {
             )]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             #[incoming_derive(!Deserialize, #ruma_macros::_FakeDeriveRumaApi)]
-            #[ruma_api(authentication = #authentication)]
             #( #struct_attributes )*
             pub struct #request_ident < #(#lifetimes),* > {
                 #fields

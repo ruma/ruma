@@ -3,7 +3,6 @@ use quote::quote;
 use syn::Field;
 
 use super::{Request, RequestField};
-use crate::api::auth_scheme::AuthScheme;
 
 impl Request {
     pub fn expand_outgoing(&self, ruma_common: &TokenStream) -> TokenStream {
@@ -100,29 +99,8 @@ impl Request {
             }
         }));
 
-        header_kvs.extend(match self.authentication {
-            AuthScheme::AccessToken(_) => quote! {
-                req_headers.insert(
-                    #http::header::AUTHORIZATION,
-                    ::std::convert::TryFrom::<_>::try_from(::std::format!(
-                        "Bearer {}",
-                        access_token
-                            .get_required_for_endpoint()
-                            .ok_or(#ruma_common::api::error::IntoHttpError::NeedsAuthentication)?,
-                    ))?,
-                );
-            },
-            AuthScheme::None(_) => quote! {
-                if let Some(access_token) = access_token.get_not_required_for_endpoint() {
-                    req_headers.insert(
-                        #http::header::AUTHORIZATION,
-                        ::std::convert::TryFrom::<_>::try_from(
-                            ::std::format!("Bearer {}", access_token),
-                        )?
-                    );
-                }
-            },
-            AuthScheme::ServerSignatures(_) => quote! {},
+        header_kvs.extend(quote! {
+            req_headers.extend(METADATA.authorization_header(access_token)?);
         });
 
         let request_body = if let Some(field) = self.raw_body_field() {

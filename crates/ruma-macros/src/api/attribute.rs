@@ -2,7 +2,7 @@
 
 use syn::{
     parse::{Parse, ParseStream},
-    Ident, Token, Type,
+    Ident, Token,
 };
 
 mod kw {
@@ -12,7 +12,6 @@ mod kw {
     syn::custom_keyword!(query);
     syn::custom_keyword!(query_map);
     syn::custom_keyword!(header);
-    syn::custom_keyword!(authentication);
     syn::custom_keyword!(manual_body_serde);
 }
 
@@ -47,23 +46,6 @@ impl Parse for RequestMeta {
             let _: kw::header = input.parse()?;
             let _: Token![=] = input.parse()?;
             input.parse().map(Self::Header)
-        } else {
-            Err(lookahead.error())
-        }
-    }
-}
-
-pub enum DeriveRequestMeta {
-    Authentication(Type),
-}
-
-impl Parse for DeriveRequestMeta {
-    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let lookahead = input.lookahead1();
-        if lookahead.peek(kw::authentication) {
-            let _: kw::authentication = input.parse()?;
-            let _: Token![=] = input.parse()?;
-            input.parse().map(Self::Authentication)
         } else {
             Err(lookahead.error())
         }
