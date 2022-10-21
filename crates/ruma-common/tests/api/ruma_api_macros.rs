@@ -1,5 +1,6 @@
 #![allow(clippy::exhaustive_structs)]
 
+#[cfg(feature = "events")]
 pub mod some_endpoint {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
