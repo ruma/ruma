@@ -15,7 +15,7 @@ Breaking changes:
   * To continue using constants from `http::header`, they must be imported in
     the module calling the macro.
 * Make `name` optional on `SecretStorageKeyEventContent`. Default constructor has been
-  adjusted as well to do not require this field.
+  adjusted as well to not require this field.
 
 Improvements:
 
