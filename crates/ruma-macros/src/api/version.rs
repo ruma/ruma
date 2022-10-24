@@ -4,7 +4,7 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote, ToTokens};
 use syn::{parse::Parse, Error, LitFloat};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MatrixVersionLiteral {
     pub(crate) major: NonZeroU8,
     pub(crate) minor: u8,
@@ -15,6 +15,20 @@ const ONE: NonZeroU8 = unsafe { NonZeroU8::new_unchecked(1) };
 impl MatrixVersionLiteral {
     pub const V1_0: Self = Self { major: ONE, minor: 0 };
     pub const V1_1: Self = Self { major: ONE, minor: 1 };
+}
+
+impl Into<(u8, u8)> for &MatrixVersionLiteral {
+    fn into(self) -> (u8, u8) {
+        (self.major.into(), self.minor)
+    }
+}
+
+impl TryFrom<(u8, u8)> for MatrixVersionLiteral {
+    type Error = std::num::TryFromIntError;
+
+    fn try_from(value: (u8, u8)) -> Result<Self, Self::Error> {
+        Ok(MatrixVersionLiteral { major: value.0.try_into()?, minor: value.1 })
+    }
 }
 
 impl Parse for MatrixVersionLiteral {

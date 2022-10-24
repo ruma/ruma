@@ -1,5 +1,7 @@
 //! Details of the `metadata` section of the procedural macro.
 
+use std::collections::BTreeSet;
+
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
@@ -23,6 +25,9 @@ mod kw {
     syn::custom_keyword!(added);
     syn::custom_keyword!(deprecated);
     syn::custom_keyword!(removed);
+    syn::custom_keyword!(unstable);
+    syn::custom_keyword!(msc);
+    syn::custom_keyword!(history);
 }
 
 /// The result of processing the `metadata` section of the macro.
@@ -82,28 +87,44 @@ impl Parse for Metadata {
         let mut added = None;
         let mut deprecated = None;
         let mut removed = None;
+        let mut history = None;
 
         for field_value in field_values {
             match field_value {
                 FieldValue::Description(d) => set_field(&mut description, d)?,
                 FieldValue::Method(m) => set_field(&mut method, m)?,
                 FieldValue::Name(n) => set_field(&mut name, n)?,
-                FieldValue::UnstablePath(p) => set_field(&mut unstable_path, p)?,
-                FieldValue::R0Path(p) => set_field(&mut r0_path, p)?,
-                FieldValue::StablePath(p) => set_field(&mut stable_path, p)?,
                 FieldValue::RateLimited(rl) => set_field(&mut rate_limited, rl)?,
                 FieldValue::Authentication(a) => set_field(&mut authentication, a)?,
+
+                FieldValue::History(h) => set_field(&mut history, h)?,
+
                 FieldValue::Added(v) => set_field(&mut added, v)?,
                 FieldValue::Deprecated(v) => set_field(&mut deprecated, v)?,
                 FieldValue::Removed(v) => set_field(&mut removed, v)?,
+
+                FieldValue::UnstablePath(p) => set_field(&mut unstable_path, p)?,
+                FieldValue::R0Path(p) => set_field(&mut r0_path, p)?,
+                FieldValue::StablePath(p) => set_field(&mut stable_path, p)?,
             }
         }
 
         let missing_field =
             |name| syn::Error::new_spanned(metadata_kw, format!("missing field `{}`", name));
 
-        // Construct the History object.
-        let history = {
+        // Construct a History object if none exists, or if one of the legacy fields are defined.
+        //
+        // If both history is defined, and one of the legacy fields are used, we'll use this as a
+        // sanity check later on to see if the legacy fields and the history object are the same.
+        // (If they're not, we raise an error.)
+        let constructed_history = if history.is_none()
+            || (stable_path.is_some()
+                || r0_path.is_some()
+                || unstable_path.is_some()
+                || added.is_some()
+                || deprecated.is_some()
+                || removed.is_some())
+        {
             let stable_or_r0 = stable_path.as_ref().or(r0_path.as_ref());
 
             if let Some(path) = stable_or_r0 {
@@ -184,7 +205,28 @@ impl Parse for Metadata {
                 ));
             }
 
-            History::construct(deprecated, removed, unstable_path, r0_path, stable_path.zip(added))
+            Some(History::construct(
+                deprecated,
+                removed,
+                unstable_path,
+                r0_path,
+                stable_path.zip(added),
+            ))
+        } else {
+            None
+        };
+
+        let history = if let Some(parsed_history) = history {
+            if let Some(constructed_history) = constructed_history {
+                if parsed_history != constructed_history {
+                    return Err(syn::Error::new_spanned(metadata_kw, format!("the given information in legacy endpoint fields and composite history field does not agree;\nlegacy: {:#?}\n\nhistory: {:#?}", constructed_history, parsed_history)));
+                }
+            }
+
+            parsed_history
+        } else {
+            constructed_history
+                .expect("constructed_history must exist if history field didn't exist")
         };
 
         Ok(Self {
@@ -210,6 +252,7 @@ enum Field {
     Added,
     Deprecated,
     Removed,
+    History,
 }
 
 impl Parse for Field {
@@ -249,6 +292,9 @@ impl Parse for Field {
         } else if lookahead.peek(kw::removed) {
             let _: kw::removed = input.parse()?;
             Ok(Self::Removed)
+        } else if lookahead.peek(kw::history) {
+            let _: kw::history = input.parse()?;
+            Ok(Self::History)
         } else {
             Err(lookahead.error())
         }
@@ -267,6 +313,7 @@ enum FieldValue {
     Added(MatrixVersionLiteral),
     Deprecated(MatrixVersionLiteral),
     Removed(MatrixVersionLiteral),
+    History(History),
 }
 
 impl Parse for FieldValue {
@@ -286,6 +333,7 @@ impl Parse for FieldValue {
             Field::Added => Self::Added(input.parse()?),
             Field::Deprecated => Self::Deprecated(input.parse()?),
             Field::Removed => Self::Removed(input.parse()?),
+            Field::History => Self::History(input.parse()?),
         })
     }
 }
@@ -339,6 +387,98 @@ pub enum MiscVersioning {
     None,
     Deprecated(MatrixVersionLiteral),
     Removed { deprecated: MatrixVersionLiteral, removed: MatrixVersionLiteral },
+}
+
+impl Parse for History {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        fn set_ref_version(
+            set: &mut BTreeSet<(u8, u8)>,
+            value: &MatrixVersionLiteral,
+        ) -> syn::Result<()> {
+            if set.contains(&value.into()) {
+                Err(syn::Error::new_spanned(value, "duplicate version reference"))
+            } else {
+                set.insert(value.into());
+                Ok(())
+            }
+        }
+
+        let values;
+        braced!(values in input);
+
+        let mut deprecated = None;
+        let mut removed = None;
+
+        let mut entries: Vec<_> = values
+            .parse_terminated::<HistoryEntry, Token![,]>(HistoryEntry::parse)?
+            .into_iter()
+            .collect();
+
+        let mut versions: BTreeSet<(u8, u8)> = BTreeSet::new();
+
+        for entry in &entries {
+            match entry {
+                HistoryEntry::Deprecated { version } => {
+                    set_ref_version(&mut versions, version)?;
+                    set_field(&mut deprecated, version.clone())?;
+                }
+                HistoryEntry::Removed { version } => {
+                    set_ref_version(&mut versions, version)?;
+                    set_field(&mut removed, version.clone())?;
+                }
+                HistoryEntry::Stable { version, path: _ } => {
+                    set_ref_version(&mut versions, version)?;
+                }
+                _ => {}
+            }
+        }
+
+        let misc = match (deprecated, removed) {
+            (Some(d), Some(r)) => MiscVersioning::Removed { deprecated: d, removed: r },
+            (Some(d), None) => MiscVersioning::Deprecated(d),
+            (None, Some(v)) => {
+                // note: It is possible that matrix will remove endpoints in a single version, while
+                // not having a deprecation version inbetween, but that would not be
+                // allowed by their own deprecation policy, so lets just assume
+                // there's always a deprecation version before a removal one.
+                //
+                // If matrix does so anyways, we can just alter this.
+                return Err(syn::Error::new_spanned(
+                    v,
+                    "cannot define removed version without deprecated version",
+                ));
+            }
+
+            (None, None) => MiscVersioning::None,
+        };
+
+        entries.retain(|h| match h {
+            HistoryEntry::Unstable { path: _ } => true,
+            HistoryEntry::Stable { version: _, path: _ } => true,
+
+            HistoryEntry::Deprecated { version: _ } => false,
+            HistoryEntry::Removed { version: _ } => false,
+        });
+
+        // Sort so that the order is [Unstable, Unstable, 1.0, 1.1, 1.2, 2.0, 2.1]
+        // for optimized method purposes.
+        entries.sort_by_key(|a| a.version().map(Into::into).unwrap_or((0, 0)));
+
+        // Check if all path arguments are equal, and in order.
+        let mut last_args = None;
+        for entry in &entries {
+            let path = entry.path().expect("all non-path entries have been removed");
+            if let Some(args) = &last_args {
+                if &path.args() != args {
+                    return Err(syn::Error::new_spanned(&path.0, "path arguments are not equal"));
+                }
+            } else {
+                last_args = Some(path.args());
+            }
+        }
+
+        Ok(History { entries, misc })
+    }
 }
 
 impl ToTokens for History {
@@ -397,6 +537,63 @@ impl HistoryEntry {
 
             _ => return None,
         })
+    }
+
+    fn version(&self) -> Option<&MatrixVersionLiteral> {
+        Some(match self {
+            HistoryEntry::Deprecated { version } => version,
+            HistoryEntry::Removed { version } => version,
+            HistoryEntry::Stable { version, path: _ } => version,
+
+            _ => return None,
+        })
+    }
+}
+
+impl Parse for HistoryEntry {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let key: HistoryEntryKey = input.parse()?;
+        let _: syn::token::FatArrow = input.parse()?;
+
+        match key {
+            HistoryEntryKey::Unstable => Ok(HistoryEntry::Unstable { path: input.parse()? }),
+            HistoryEntryKey::Version(version) => {
+                let lookahead = input.lookahead1();
+
+                if lookahead.peek(kw::deprecated) {
+                    let _: kw::deprecated = input.parse()?;
+
+                    Ok(Self::Deprecated { version })
+                } else if lookahead.peek(kw::removed) {
+                    let _: kw::removed = input.parse()?;
+
+                    Ok(Self::Removed { version })
+                } else {
+                    Ok(HistoryEntry::Stable { version, path: input.parse()? })
+                }
+            }
+        }
+    }
+}
+
+pub enum HistoryEntryKey {
+    Unstable,
+    Version(MatrixVersionLiteral),
+}
+
+impl Parse for HistoryEntryKey {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let lookahead = input.lookahead1();
+
+        if lookahead.peek(kw::unstable) {
+            let _: kw::unstable = input.parse()?;
+
+            Ok(Self::Unstable)
+        } else {
+            let version: MatrixVersionLiteral = input.parse()?;
+
+            Ok(Self::Version(version))
+        }
     }
 }
 
