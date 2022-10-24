@@ -4,10 +4,14 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
-    DeriveInput, Field, Generics, Ident, Lifetime,
+    punctuated::Punctuated,
+    DeriveInput, Field, Generics, Ident, Lifetime, Token, Type,
 };
 
-use super::{attribute::RequestMeta, util::collect_lifetime_idents};
+use super::{
+    attribute::{DeriveRequestMeta, RequestMeta},
+    util::collect_lifetime_idents,
+};
 use crate::util::import_ruma_common;
 
 mod incoming;
@@ -40,7 +44,29 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
         })
         .collect::<syn::Result<_>>()?;
 
-    let request = Request { ident: input.ident, generics: input.generics, fields, lifetimes };
+    let mut error_ty = None;
+
+    for attr in input.attrs {
+        if !attr.path.is_ident("ruma_api") {
+            continue;
+        }
+
+        let metas =
+            attr.parse_args_with(Punctuated::<DeriveRequestMeta, Token![,]>::parse_terminated)?;
+        for meta in metas {
+            match meta {
+                DeriveRequestMeta::ErrorTy(t) => error_ty = Some(t),
+            }
+        }
+    }
+
+    let request = Request {
+        ident: input.ident,
+        generics: input.generics,
+        fields,
+        lifetimes,
+        error_ty: error_ty.expect("missing error_ty attribute"),
+    };
 
     let ruma_common = import_ruma_common();
     let test = request.check(&ruma_common)?;
@@ -65,6 +91,8 @@ struct Request {
     generics: Generics,
     lifetimes: RequestLifetimes,
     fields: Vec<RequestField>,
+
+    error_ty: Type,
 }
 
 impl Request {

@@ -1,10 +1,11 @@
 use proc_macro2::TokenStream;
 use quote::quote;
+use syn::Type;
 
 use super::{Response, ResponseFieldKind};
 
 impl Response {
-    pub fn expand_incoming(&self, ruma_common: &TokenStream) -> TokenStream {
+    pub fn expand_incoming(&self, error_ty: &Type, ruma_common: &TokenStream) -> TokenStream {
         let http = quote! { #ruma_common::exports::http };
         let serde_json = quote! { #ruma_common::exports::serde_json };
 
@@ -103,41 +104,37 @@ impl Response {
             }
         };
 
-        let method_body = quote! {
-            if response.status().as_u16() < 400 {
-                #extract_response_headers
-                #typed_response_body_decl
-
-                ::std::result::Result::Ok(Self {
-                    #response_init_fields
-                })
-            } else {
-                match <EndpointError as #ruma_common::api::EndpointError>::try_from_http_response(
-                    response
-                ) {
-                    ::std::result::Result::Ok(err) => {
-                        Err(#ruma_common::api::error::ServerError::Known(err).into())
-                    }
-                    ::std::result::Result::Err(response_err) => {
-                        Err(#ruma_common::api::error::ServerError::Unknown(response_err).into())
-                    }
-                }
-            }
-        };
-
         quote! {
             #[automatically_derived]
             #[cfg(feature = "client")]
             impl #ruma_common::api::IncomingResponse for Response {
-                type EndpointError = EndpointError;
+                type EndpointError = #error_ty;
 
                 fn try_from_http_response<T: ::std::convert::AsRef<[::std::primitive::u8]>>(
                     response: #http::Response<T>,
                 ) -> ::std::result::Result<
                     Self,
-                    #ruma_common::api::error::FromHttpResponseError<EndpointError>,
+                    #ruma_common::api::error::FromHttpResponseError<#error_ty>,
                 > {
-                    #method_body
+                    if response.status().as_u16() < 400 {
+                        #extract_response_headers
+                        #typed_response_body_decl
+
+                        ::std::result::Result::Ok(Self {
+                            #response_init_fields
+                        })
+                    } else {
+                        match <#error_ty as #ruma_common::api::EndpointError>::try_from_http_response(
+                            response
+                        ) {
+                            ::std::result::Result::Ok(err) => {
+                                Err(#ruma_common::api::error::ServerError::Known(err).into())
+                            }
+                            ::std::result::Result::Err(response_err) => {
+                                Err(#ruma_common::api::error::ServerError::Unknown(response_err).into())
+                            }
+                        }
+                    }
                 }
             }
         }

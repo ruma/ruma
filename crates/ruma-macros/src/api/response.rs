@@ -4,19 +4,16 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
+    punctuated::Punctuated,
     visit::Visit,
-    DeriveInput, Field, Generics, Ident, Lifetime, Type,
+    DeriveInput, Field, Generics, Ident, Lifetime, Token, Type,
 };
 
-use super::attribute::ResponseMeta;
+use super::attribute::{DeriveResponseMeta, ResponseMeta};
 use crate::util::import_ruma_common;
 
 mod incoming;
 mod outgoing;
-
-mod kw {
-    syn::custom_keyword!(manual_body_serde);
-}
 
 pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
     let fields = match input.data {
@@ -26,18 +23,29 @@ pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
 
     let fields = fields.into_iter().map(ResponseField::try_from).collect::<syn::Result<_>>()?;
     let mut manual_body_serde = false;
+    let mut error_ty = None;
     for attr in input.attrs {
         if !attr.path.is_ident("ruma_api") {
             continue;
         }
 
-        let _ = attr.parse_args::<kw::manual_body_serde>()?;
-
-        manual_body_serde = true;
+        let metas =
+            attr.parse_args_with(Punctuated::<DeriveResponseMeta, Token![,]>::parse_terminated)?;
+        for meta in metas {
+            match meta {
+                DeriveResponseMeta::ManualBodySerde => manual_body_serde = true,
+                DeriveResponseMeta::ErrorTy(t) => error_ty = Some(t),
+            }
+        }
     }
 
-    let response =
-        Response { ident: input.ident, generics: input.generics, fields, manual_body_serde };
+    let response = Response {
+        ident: input.ident,
+        generics: input.generics,
+        fields,
+        manual_body_serde,
+        error_ty: error_ty.unwrap(),
+    };
 
     response.check()?;
     Ok(response.expand_all())
@@ -48,6 +56,7 @@ struct Response {
     generics: Generics,
     fields: Vec<ResponseField>,
     manual_body_serde: bool,
+    error_ty: Type,
 }
 
 impl Response {
@@ -100,7 +109,7 @@ impl Response {
         });
 
         let outgoing_response_impl = self.expand_outgoing(&ruma_common);
-        let incoming_response_impl = self.expand_incoming(&ruma_common);
+        let incoming_response_impl = self.expand_incoming(&self.error_ty, &ruma_common);
 
         quote! {
             #response_body_struct
