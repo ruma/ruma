@@ -15,7 +15,7 @@ pub mod v3 {
             name: "report_content",
             r0_path: "/_matrix/client/r0/rooms/:room_id/report/:event_id",
             stable_path: "/_matrix/client/v3/rooms/:room_id/report/:event_id",
-            rate_limited:  false,
+            rate_limited: false,
             authentication: AccessToken,
             added: 1.0,
         }
