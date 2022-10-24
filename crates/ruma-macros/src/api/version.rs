@@ -15,10 +15,8 @@ const ONE: NonZeroU8 = unsafe { NonZeroU8::new_unchecked(1) };
 impl MatrixVersionLiteral {
     pub const V1_0: Self = Self { major: ONE, minor: 0 };
     pub const V1_1: Self = Self { major: ONE, minor: 1 };
-}
 
-impl Into<(u8, u8)> for &MatrixVersionLiteral {
-    fn into(self) -> (u8, u8) {
+    pub(super) fn to_parts(&self) -> (u8, u8) {
         (self.major.into(), self.minor)
     }
 }

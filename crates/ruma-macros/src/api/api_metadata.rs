@@ -395,10 +395,10 @@ impl Parse for History {
             set: &mut BTreeSet<(u8, u8)>,
             value: &MatrixVersionLiteral,
         ) -> syn::Result<()> {
-            if set.contains(&value.into()) {
+            if set.contains(&value.to_parts()) {
                 Err(syn::Error::new_spanned(value, "duplicate version reference"))
             } else {
-                set.insert(value.into());
+                set.insert(value.to_parts());
                 Ok(())
             }
         }
@@ -462,7 +462,7 @@ impl Parse for History {
 
         // Sort so that the order is [Unstable, Unstable, 1.0, 1.1, 1.2, 2.0, 2.1]
         // for optimized method purposes.
-        entries.sort_by_key(|a| a.version().map(Into::into).unwrap_or((0, 0)));
+        entries.sort_by_key(|a| a.version().map(MatrixVersionLiteral::to_parts).unwrap_or((0, 0)));
 
         // Check if all path arguments are equal, and in order.
         let mut last_args = None;
