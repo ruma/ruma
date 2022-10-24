@@ -98,7 +98,7 @@ impl Request {
             )]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             #[incoming_derive(!Deserialize, #ruma_macros::_FakeDeriveRumaApi)]
-            #[ruma_api(error_ty = #error_ty)]
+            #[ruma_api(error = #error_ty)]
             #( #struct_attributes )*
             pub struct #request_ident < #(#lifetimes),* > {
                 #fields

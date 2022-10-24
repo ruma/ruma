@@ -34,7 +34,7 @@ pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
         for meta in metas {
             match meta {
                 DeriveResponseMeta::ManualBodySerde => manual_body_serde = true,
-                DeriveResponseMeta::ErrorTy(t) => error_ty = Some(t),
+                DeriveResponseMeta::Error(t) => error_ty = Some(t),
             }
         }
     }

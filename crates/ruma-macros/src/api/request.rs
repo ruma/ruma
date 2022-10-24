@@ -55,7 +55,7 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
             attr.parse_args_with(Punctuated::<DeriveRequestMeta, Token![,]>::parse_terminated)?;
         for meta in metas {
             match meta {
-                DeriveRequestMeta::ErrorTy(t) => error_ty = Some(t),
+                DeriveRequestMeta::Error(t) => error_ty = Some(t),
             }
         }
     }

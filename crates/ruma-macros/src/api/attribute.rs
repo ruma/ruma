@@ -12,7 +12,7 @@ mod kw {
     syn::custom_keyword!(query);
     syn::custom_keyword!(query_map);
     syn::custom_keyword!(header);
-    syn::custom_keyword!(error_ty);
+    syn::custom_keyword!(error);
     syn::custom_keyword!(manual_body_serde);
 }
 
@@ -54,16 +54,16 @@ impl Parse for RequestMeta {
 }
 
 pub enum DeriveRequestMeta {
-    ErrorTy(Type),
+    Error(Type),
 }
 
 impl Parse for DeriveRequestMeta {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
-        if lookahead.peek(kw::error_ty) {
-            let _: kw::error_ty = input.parse()?;
+        if lookahead.peek(kw::error) {
+            let _: kw::error = input.parse()?;
             let _: Token![=] = input.parse()?;
-            input.parse().map(Self::ErrorTy)
+            input.parse().map(Self::Error)
         } else {
             Err(lookahead.error())
         }
@@ -98,7 +98,7 @@ impl Parse for ResponseMeta {
 #[allow(clippy::large_enum_variant)]
 pub enum DeriveResponseMeta {
     ManualBodySerde,
-    ErrorTy(Type),
+    Error(Type),
 }
 
 impl Parse for DeriveResponseMeta {
@@ -107,10 +107,10 @@ impl Parse for DeriveResponseMeta {
         if lookahead.peek(kw::manual_body_serde) {
             let _: kw::manual_body_serde = input.parse()?;
             Ok(Self::ManualBodySerde)
-        } else if lookahead.peek(kw::error_ty) {
-            let _: kw::error_ty = input.parse()?;
+        } else if lookahead.peek(kw::error) {
+            let _: kw::error = input.parse()?;
             let _: Token![=] = input.parse()?;
-            input.parse().map(Self::ErrorTy)
+            input.parse().map(Self::Error)
         } else {
             Err(lookahead.error())
         }
