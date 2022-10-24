@@ -5,7 +5,7 @@ use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
-    DeriveInput, Field, Generics, Ident, Lifetime, Token, Type,
+    DeriveInput, Field, Generics, Ident, ItemStruct, Lifetime, Token, Type,
 };
 
 use super::{
@@ -16,6 +16,38 @@ use crate::util::import_ruma_common;
 
 mod incoming;
 mod outgoing;
+
+pub fn expand_request(attr: RequestAttr, item: ItemStruct) -> TokenStream {
+    let ruma_common = import_ruma_common();
+    let ruma_macros = quote! { #ruma_common::exports::ruma_macros };
+
+    let error_ty = attr.0.first().map_or_else(
+        || quote! { #ruma_common::api::error::MatrixError },
+        |DeriveRequestMeta::Error(ty)| quote! { #ty },
+    );
+
+    quote! {
+        #[derive(
+            Clone,
+            Debug,
+            #ruma_macros::Request,
+            #ruma_common::serde::Incoming,
+            #ruma_common::serde::_FakeDeriveSerde,
+        )]
+        #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+        #[incoming_derive(!Deserialize, #ruma_macros::_FakeDeriveRumaApi)]
+        #[ruma_api(error = #error_ty)]
+        #item
+    }
+}
+
+pub struct RequestAttr(Punctuated<DeriveRequestMeta, Token![,]>);
+
+impl Parse for RequestAttr {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        Punctuated::<DeriveRequestMeta, Token![,]>::parse_terminated(input).map(Self)
+    }
+}
 
 pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
     let fields = match input.data {

@@ -25,7 +25,11 @@ mod serde;
 mod util;
 
 use self::{
-    api::{request::expand_derive_request, response::expand_derive_response, Api},
+    api::{
+        request::{expand_derive_request, expand_request},
+        response::expand_derive_response,
+        Api,
+    },
     events::{
         event::expand_event,
         event_content::expand_event_content,
@@ -382,6 +386,15 @@ pub fn fake_derive_serde(_input: TokenStream) -> TokenStream {
 pub fn ruma_api(input: TokenStream) -> TokenStream {
     let api = parse_macro_input!(input as Api);
     api.expand_all().into()
+}
+
+/// > ⚠ If this is the only documentation you see, please navigate to the docs for
+/// > `ruma_common::api::request`, where actual documentation can be found.
+#[proc_macro_attribute]
+pub fn request(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let attr = parse_macro_input!(attr);
+    let item = parse_macro_input!(item);
+    expand_request(attr, item).into()
 }
 
 /// Internal helper taking care of the request-specific parts of `ruma_api!`.

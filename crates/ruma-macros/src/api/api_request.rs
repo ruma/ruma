@@ -89,16 +89,7 @@ impl Request {
 
         quote! {
             #[doc = #docs]
-            #[derive(
-                Clone,
-                Debug,
-                #ruma_macros::Request,
-                #ruma_common::serde::Incoming,
-                #ruma_common::serde::_FakeDeriveSerde,
-            )]
-            #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-            #[incoming_derive(!Deserialize, #ruma_macros::_FakeDeriveRumaApi)]
-            #[ruma_api(error = #error_ty)]
+            #[#ruma_macros::request(error = #error_ty)]
             #( #struct_attributes )*
             pub struct #request_ident < #(#lifetimes),* > {
                 #fields

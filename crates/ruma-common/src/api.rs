@@ -194,6 +194,44 @@ use crate::UserId;
 /// ```
 pub use ruma_macros::ruma_api;
 
+/// Generates [`OutgoingRequest`] and [`IncomingRequest`] implementations.
+///
+/// The `OutgoingRequest` impl is be on the `Request` type this attribute is used on. It is
+/// feature-gated behind `cfg(feature = "client")`.
+///
+/// The `IncomingRequest` impl is be on `IncomingRequest`, which is either a type alias to
+/// `Request` or a fully-owned version of the same, depending of whether `Request` has any
+/// lifetime parameters.
+///
+/// The generated code expects a `METADATA` constant of type [`Metadata`] to be in scope,
+/// alongside a `Response` type that implements both [`OutgoingResponse`] and
+/// [`IncomingResponse`].
+///
+/// ## Attributes
+///
+/// To declare which part of the request a field belongs to:
+///
+/// * `#[ruma_api(header = HEADER_NAME)]`: Fields with this attribute will be treated as HTTP
+///   headers on the request. The value must implement `AsRef<str>`. Generally this is a
+///   `String`. The attribute value shown above as `HEADER_NAME` must be a `const` expression
+///   of the type `http::header::HeaderName`, like one of the constants from `http::header`,
+///   e.g. `CONTENT_TYPE`.
+/// * `#[ruma_api(path)]`: Fields with this attribute will be inserted into the matching path
+///   component of the request URL.
+/// * `#[ruma_api(query)]`: Fields with this attribute will be inserting into the URL's query
+///   string.
+/// * `#[ruma_api(query_map)]`: Instead of individual query fields, one query_map field, of any
+///   type that implements `IntoIterator<Item = (String, String)>` (e.g. `HashMap<String,
+///   String>`, can be used for cases where an endpoint supports arbitrary query parameters.
+/// * `#[ruma_api(body)]`: Use this if multiple endpoints should share a request body type, or
+///   the request body is better expressed as an `enum` rather than a `struct`. The value of
+///   the field will be used as the JSON body (rather than being a field in the request body
+///   object).
+/// * `#[ruma_api(raw_body)]`: Like `body` in that the field annotated with it represents the
+///   entire request body, but this attribute is for endpoints where the body can be anything,
+///   not just JSON. The field type must be `Vec<u8>`.
+pub use ruma_macros::request;
+
 pub mod error;
 mod metadata;
 
