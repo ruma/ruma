@@ -57,6 +57,7 @@ indexmap = { version = "1.9.1", features = ["serde"] }
 itoa = "1.0.1"
 js_int = { version = "0.2.0", features = ["serde"] }
 js_option = "0.1.0"
+konst = { version = "0.2.19", features = ["rust_1_64", "alloc"] }
 percent-encoding = "2.1.0"
 phf = { version = "0.10.1", features = ["macros"], optional = true }
 pulldown-cmark = { version = "0.9.1", default-features = false, optional = true }
@@ -83,7 +84,7 @@ assert_matches = "1.5.0"
 assign = "1.1.1"
 http = "0.2.2"
 maplit = "1.0.2"
-trybuild = "1.0.42"
+trybuild = "1.0.71"
 
 [[bench]]
 name = "event_deserialize"

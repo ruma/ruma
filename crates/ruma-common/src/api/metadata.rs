@@ -1,4 +1,5 @@
 use std::{
+    cmp::Ordering,
     fmt::{self, Display, Write},
     str::FromStr,
 };
@@ -158,6 +159,144 @@ pub struct VersionHistory {
 }
 
 impl VersionHistory {
+    /// Constructs an instance of [`VersionHistory`], erroring on compilation if it does not pass
+    /// invariants.
+    ///
+    /// Specifically, this checks the following invariants:
+    /// - Path Arguments are equal (in order, amount, and argument name) in all path strings
+    /// - In stable_paths:
+    ///   - matrix versions are in ascending order
+    ///   - no matrix version is referenced twice
+    /// - deprecated's version comes after the latest version mentioned in stable_paths, and only if
+    ///   any stable path is defined
+    /// - removed comes after deprecated, or after the latest referenced stable_paths, like
+    ///   deprecated
+    pub const fn new(
+        unstable_paths: &'static [&'static str],
+        stable_paths: &'static [(MatrixVersion, &'static str)],
+        deprecated: Option<MatrixVersion>,
+        removed: Option<MatrixVersion>,
+    ) -> Self {
+        use konst::{iter, slice, string};
+
+        const fn check_path_is_valid(path: &'static str) {
+            iter::for_each!(path_b in slice::iter(path.as_bytes()) => {
+                match *path_b {
+                    0x21..=0x7E => {},
+                    _ => panic!("path contains invalid (non-ascii or whitespace) characters")
+                }
+            });
+        }
+
+        const fn check_path_args_equal(first: &'static str, second: &'static str) {
+            let mut second_iter = string::split(second, "/").next();
+
+            iter::for_each!(first_s in string::split(first, "/") => {
+                if let Some(first_arg) = string::strip_prefix(first_s, ":") {
+                    let second_next_arg: Option<&'static str> = loop {
+                        let (second_s, second_n_iter) = match second_iter {
+                            Some(tuple) => tuple,
+                            None => break None,
+                        };
+
+                        let maybe_second_arg = string::strip_prefix(second_s, ":");
+
+                        second_iter = second_n_iter.next();
+
+                        if let Some(second_arg) = maybe_second_arg {
+                            break Some(second_arg);
+                        }
+                    };
+
+                    if let Some(second_next_arg) = second_next_arg {
+                        if !string::eq_str(second_next_arg, first_arg) {
+                            panic!("Path Arguments do not match");
+                        }
+                    } else {
+                        panic!("Amount of Path Arguments do not match");
+                    }
+                }
+            });
+
+            // If second iterator still has some values, empty first.
+            while let Some((second_s, second_n_iter)) = second_iter {
+                if string::starts_with(second_s, ":") {
+                    panic!("Amount of Path Arguments do not match");
+                }
+                second_iter = second_n_iter.next();
+            }
+        }
+
+        // The path we're going to use to compare all other paths with
+        let ref_path: &str = if let Some(s) = unstable_paths.first() {
+            s
+        } else if let Some((_, s)) = stable_paths.first() {
+            s
+        } else {
+            panic!("No paths supplied")
+        };
+
+        iter::for_each!(unstable_path in slice::iter(unstable_paths) => {
+            check_path_is_valid(unstable_path);
+            check_path_args_equal(ref_path, unstable_path);
+        });
+
+        let mut prev_seen_version: Option<MatrixVersion> = None;
+
+        iter::for_each!(stable_path in slice::iter(stable_paths) => {
+            check_path_is_valid(stable_path.1);
+            check_path_args_equal(ref_path, stable_path.1);
+
+            let current_version = stable_path.0;
+
+            if let Some(prev_seen_version) = prev_seen_version {
+                let cmp_result = current_version.const_ord(&prev_seen_version);
+
+                if cmp_result.is_eq() {
+                    // Found a duplicate, current == previous
+                    panic!("Duplicate matrix version in stable_paths")
+                } else if cmp_result.is_lt() {
+                    // Found an older version, current < previous
+                    panic!("No ascending order in stable_paths")
+                }
+            }
+
+            prev_seen_version = Some(current_version);
+        });
+
+        if let Some(deprecated) = deprecated {
+            if let Some(prev_seen_version) = prev_seen_version {
+                let ord_result = prev_seen_version.const_ord(&deprecated);
+                if ord_result.is_eq() {
+                    // prev_seen_version == deprecated
+                    panic!("deprecated version is equal to latest stable path version")
+                } else if ord_result.is_gt() {
+                    // prev_seen_version > deprecated
+                    panic!("deprecated version is older than latest stable path version")
+                }
+            } else {
+                panic!("Defined deprecated version while no stable path exists")
+            }
+        }
+
+        if let Some(removed) = removed {
+            if let Some(deprecated) = deprecated {
+                let ord_result = deprecated.const_ord(&removed);
+                if ord_result.is_eq() {
+                    // deprecated == removed
+                    panic!("removed version is equal to deprecated version")
+                } else if ord_result.is_gt() {
+                    // deprecated > removed
+                    panic!("removed version is older than deprecated version")
+                }
+            } else {
+                panic!("Defined removed version while no deprecated version exists")
+            }
+        }
+
+        VersionHistory { unstable_paths, stable_paths, deprecated, removed }
+    }
+
     // This function helps picks the right path (or an error) from a set of Matrix versions.
     fn select_path(
         &self,
@@ -409,7 +548,7 @@ impl MatrixVersion {
     }
 
     /// Decompose the Matrix version into its major and minor number.
-    pub fn into_parts(self) -> (u8, u8) {
+    pub const fn into_parts(self) -> (u8, u8) {
         match self {
             MatrixVersion::V1_0 => (1, 0),
             MatrixVersion::V1_1 => (1, 1),
@@ -428,6 +567,21 @@ impl MatrixVersion {
             (1, 3) => Ok(MatrixVersion::V1_3),
             (1, 4) => Ok(MatrixVersion::V1_4),
             _ => Err(UnknownVersionError),
+        }
+    }
+
+    // Internal function to do ordering in const-fn contexts
+    const fn const_ord(&self, other: &Self) -> Ordering {
+        let self_parts = self.into_parts();
+        let other_parts = other.into_parts();
+
+        use konst::primitive::cmp::cmp_u8;
+
+        let major_ord = cmp_u8(self_parts.0, other_parts.0);
+        if major_ord.is_ne() {
+            major_ord
+        } else {
+            cmp_u8(self_parts.1, other_parts.1)
         }
     }
 

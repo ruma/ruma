@@ -30,15 +30,15 @@ const METADATA: Metadata = Metadata {
     rate_limited: false,
     authentication: AuthScheme::None,
 
-    history: VersionHistory {
-        unstable_paths: &["/_matrix/client/unstable/directory/room/:room_alias"],
-        stable_paths: &[
+    history: VersionHistory::new(
+        &["/_matrix/client/unstable/directory/room/:room_alias"],
+        &[
             (MatrixVersion::V1_0, "/_matrix/client/r0/directory/room/:room_alias"),
             (MatrixVersion::V1_1, "/_matrix/client/v3/directory/room/:room_alias"),
         ],
-        deprecated: Some(MatrixVersion::V1_2),
-        removed: Some(MatrixVersion::V1_3),
-    },
+        Some(MatrixVersion::V1_2),
+        Some(MatrixVersion::V1_3),
+    ),
 };
 
 impl OutgoingRequest for Request {
