@@ -1,4 +1,5 @@
 use std::{
+    cmp::Ordering,
     fmt::{self, Display, Write},
     str::FromStr,
 };
@@ -193,11 +194,11 @@ impl VersionHistory {
             iter::for_each!(first_s in string::split(first, "/") => {
                 if let Some(first_arg) = string::strip_prefix(first_s, ":") {
                     let second_next_arg: Option<&'static str> = loop {
-                        let (second_s, second_n_iter) = match second_iter.next() {
+                        let (second_s, second_n_iter) = match second_iter {
                             Some(tuple) => tuple,
                             None => break None,
                         };
-                        
+
                         let maybe_second_arg = string::strip_prefix(second_s, ":");
 
                         second_iter = second_n_iter.next();
@@ -570,7 +571,7 @@ impl MatrixVersion {
     }
 
     // Internal function to do ordering in const-fn contexts
-    const fn const_ord(&self, other: &Self) -> std::cmp::Ordering {
+    const fn const_ord(&self, other: &Self) -> Ordering {
         let self_parts = self.into_parts();
         let other_parts = other.into_parts();
 
