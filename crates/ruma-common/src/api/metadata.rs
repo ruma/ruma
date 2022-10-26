@@ -178,11 +178,11 @@ impl VersionHistory {
     ) -> Self {
         use konst::{iter, slice, string};
 
-        const fn check_path_is_ascii(path: &'static str) {
+        const fn check_path_is_valid(path: &'static str) {
             iter::for_each! {path_b in slice::iter(path.as_bytes()) => {
                 match *path_b {
                     0x21..=0x7E => {},
-                    _ => panic!("path contains non-ascii characters")
+                    _ => panic!("path contains non-valid (non-ascii or whitespace) characters")
                 }
             }}
         }
@@ -237,14 +237,14 @@ impl VersionHistory {
         };
 
         iter::for_each! {unstable_path in slice::iter(unstable_paths) => {
-            check_path_is_ascii(*unstable_path);
+            check_path_is_valid(*unstable_path);
             check_path_args_equal(ref_path, *unstable_path);
         }};
 
         let mut prev_seen_version: Option<MatrixVersion> = None;
 
         iter::for_each! {stable_path in slice::iter(stable_paths) =>{
-            check_path_is_ascii(stable_path.1);
+            check_path_is_valid(stable_path.1);
             check_path_args_equal(ref_path, stable_path.1);
 
             let current_version = stable_path.0;
