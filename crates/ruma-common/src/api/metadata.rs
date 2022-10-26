@@ -237,8 +237,8 @@ impl VersionHistory {
         };
 
         iter::for_each! {unstable_path in slice::iter(unstable_paths) => {
-            check_path_is_valid(*unstable_path);
-            check_path_args_equal(ref_path, *unstable_path);
+            check_path_is_valid(unstable_path);
+            check_path_args_equal(ref_path, unstable_path);
         }};
 
         let mut prev_seen_version: Option<MatrixVersion> = None;
@@ -261,7 +261,7 @@ impl VersionHistory {
                 }
             }
 
-            prev_seen_version = Some(current_version)
+            prev_seen_version = Some(current_version);
         }};
 
         if let Some(deprecated) = deprecated {
@@ -579,9 +579,9 @@ impl MatrixVersion {
 
         let major_ord = cmp_u8(self_parts.0, other_parts.0);
         if major_ord.is_ne() {
-            return major_ord;
+            major_ord
         } else {
-            return cmp_u8(self_parts.1, other_parts.1);
+            cmp_u8(self_parts.1, other_parts.1)
         }
     }
 
