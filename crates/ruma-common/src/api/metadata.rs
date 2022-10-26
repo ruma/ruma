@@ -292,19 +292,6 @@ impl VersionHistory {
             } else {
                 panic!("Defined removed version while no deprecated version exists")
             }
-
-            if let Some(prev_seen_version) = prev_seen_version {
-                let ord_result = prev_seen_version.const_ord(&removed);
-                if ord_result.is_eq() {
-                    // prev_seen_version == removed
-                    panic!("removed version is equal to latest stable path version")
-                } else if ord_result.is_gt() {
-                    // prev_seen_version > removed
-                    panic!("removed version is older than latest stable path version")
-                }
-            } else {
-                panic!("Defined removed version while no stable path exists")
-            }
         }
 
         VersionHistory { unstable_paths, stable_paths, deprecated, removed }
@@ -590,7 +577,7 @@ impl MatrixVersion {
 
         use konst::primitive::cmp::cmp_u8;
 
-        let major_ord = cmp_u8(self_parts.0, other_parts.1);
+        let major_ord = cmp_u8(self_parts.0, other_parts.0);
         if major_ord.is_ne() {
             return major_ord;
         } else {
