@@ -42,8 +42,8 @@ pub fn expand_derive_incoming(mut ty_def: DeriveInput) -> syn::Result<TokenStrea
 
     if !found_lifetime {
         let doc = format!(
-            "Convenience type alias for [{}], for consistency with other [{}] types.",
-            &ty_def.ident, ident
+            "Convenience type alias for [{}], for consistency with other [{ident}] types.",
+            &ty_def.ident
         );
 
         let mut type_alias: ItemType = parse_quote! { type X = Y; };

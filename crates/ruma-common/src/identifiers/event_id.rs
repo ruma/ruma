@@ -49,8 +49,7 @@ impl EventId {
     #[cfg(feature = "rand")]
     #[allow(clippy::new_ret_no_self)]
     pub fn new(server_name: &ServerName) -> OwnedEventId {
-        Self::from_borrowed(&format!("${}:{}", super::generate_localpart(18), server_name))
-            .to_owned()
+        Self::from_borrowed(&format!("${}:{server_name}", super::generate_localpart(18))).to_owned()
     }
 
     /// Returns the event's unique ID.

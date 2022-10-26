@@ -772,7 +772,7 @@ fn lang_serialization() {
     .unwrap();
 
     assert_eq!(
-        to_json_value(&content).unwrap(),
+        to_json_value(content).unwrap(),
         json!({
             "org.matrix.msc1767.message": [
                 { "body": "Bonjour le monde !", "mimetype": "text/plain", "lang": "fr"},

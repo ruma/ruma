@@ -227,8 +227,8 @@ impl Credentials for XMatrix {
     fn encode(&self) -> HeaderValue {
         if let Some(destination) = &self.destination {
             format!(
-                "X-Matrix origin=\"{}\",destination=\"{}\",key=\"{}\",sig=\"{}\"",
-                self.origin, destination, self.key, self.sig
+                "X-Matrix origin=\"{}\",destination=\"{destination}\",key=\"{}\",sig=\"{}\"",
+                self.origin, self.key, self.sig
             )
         } else {
             format!("X-Matrix origin=\"{}\",key=\"{}\",sig=\"{}\"", self.origin, self.key, self.sig)

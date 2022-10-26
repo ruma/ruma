@@ -299,7 +299,7 @@ impl ReleaseTask {
 
     /// Create the release on GitHub with the given `config` and `credentials`.
     fn release(&self, body: &str) -> Result<()> {
-        let request = Request::post(format!("{}/releases", GITHUB_API_RUMA))
+        let request = Request::post(format!("{GITHUB_API_RUMA}/releases"))
             .authentication(Authentication::basic())
             .credentials(Credentials::new(&self.config.user, &self.config.token))
             .header("Accept", "application/vnd.github.v3+json")

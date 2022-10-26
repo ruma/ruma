@@ -42,7 +42,7 @@ pub(crate) fn m_prefix_name_to_type_name(name: &LitStr) -> syn::Result<Ident> {
     let name = name.strip_prefix("m.").ok_or_else(|| {
         syn::Error::new(
             span,
-            format!("well-known matrix events have to start with `m.` found `{}`", name),
+            format!("well-known matrix events have to start with `m.` found `{name}`"),
         )
     })?;
 

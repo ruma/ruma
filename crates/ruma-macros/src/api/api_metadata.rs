@@ -100,7 +100,7 @@ impl Parse for Metadata {
         }
 
         let missing_field =
-            |name| syn::Error::new_spanned(metadata_kw, format!("missing field `{}`", name));
+            |name| syn::Error::new_spanned(metadata_kw, format!("missing field `{name}`"));
 
         // Construct the History object.
         let history = {

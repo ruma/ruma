@@ -73,7 +73,7 @@ mod tests {
             }
         });
 
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_eq!(to_json_value(content).unwrap(), json);
     }
 
     #[test]

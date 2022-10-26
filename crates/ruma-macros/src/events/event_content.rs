@@ -393,7 +393,7 @@ fn generate_redacted_event_content<'a>(
     let serde = quote! { #ruma_common::exports::serde };
     let serde_json = quote! { #ruma_common::exports::serde_json };
 
-    let doc = format!("Redacted form of [`{}`]", ident);
+    let doc = format!("Redacted form of [`{ident}`]");
     let redacted_ident = format_ident!("Redacted{ident}");
 
     let kept_redacted_fields: Vec<_> = fields
@@ -450,7 +450,7 @@ fn generate_redacted_event_content<'a>(
     };
 
     let constructor = kept_redacted_fields.is_empty().then(|| {
-        let doc = format!("Creates an empty {}.", redacted_ident);
+        let doc = format!("Creates an empty {redacted_ident}.");
         quote! {
             impl #redacted_ident {
                 #[doc = #doc]
@@ -642,7 +642,7 @@ fn generate_event_type_aliases(
             }
             EventKindVariation::Initial => " for creating a room",
         };
-        let ev_type_doc = format!("An `{}` event{}.", event_type, doc_text);
+        let ev_type_doc = format!("An `{event_type}` event{doc_text}.");
 
         let content_struct = if var.is_redacted() {
             Cow::Owned(format_ident!("Redacted{ident}"))

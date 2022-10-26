@@ -433,7 +433,7 @@ mod tests {
     #[test]
     fn room_filter_definition_roundtrip() -> serde_json::Result<()> {
         let filter = RoomFilter::default();
-        let room_filter = to_json_value(&filter)?;
+        let room_filter = to_json_value(filter)?;
 
         let incoming_room_filter = from_json_value::<IncomingRoomFilter>(room_filter)?;
         assert!(incoming_room_filter.is_empty());

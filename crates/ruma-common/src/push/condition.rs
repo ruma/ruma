@@ -206,7 +206,7 @@ impl StrExt for str {
         let end = index + self.char_len(index);
         let char_str = &self[index..end];
         char::from_str(char_str)
-            .unwrap_or_else(|_| panic!("Could not convert str '{}' to char", char_str))
+            .unwrap_or_else(|_| panic!("Could not convert str '{char_str}' to char"))
     }
 
     fn find_prev_char(&self, index: usize) -> Option<char> {

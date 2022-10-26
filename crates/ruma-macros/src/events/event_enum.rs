@@ -541,7 +541,7 @@ fn expand_accessor_methods(
 
     let methods = EVENT_FIELDS.iter().map(|(name, has_field)| {
         has_field(kind, var).then(|| {
-            let docs = format!("Returns this event's `{}` field.", name);
+            let docs = format!("Returns this event's `{name}` field.");
             let ident = Ident::new(name, Span::call_site());
             let field_type = field_return_type(name, ruma_common);
             let variants = variants.iter().map(|v| v.match_arm(quote! { Self }));

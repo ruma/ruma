@@ -53,8 +53,8 @@ pub fn expand_id_zst(input: ItemStruct) -> syn::Result<TokenStream> {
     // So we don't have to insert #where_clause everywhere when it is always None in practice
     assert_eq!(where_clause, None, "where clauses on identifier types are not currently supported");
 
-    let as_str_docs = format!("Creates a string slice from this `{}`.", id);
-    let as_bytes_docs = format!("Creates a byte slice from this `{}`.", id);
+    let as_str_docs = format!("Creates a string slice from this `{id}`.");
+    let as_bytes_docs = format!("Creates a byte slice from this `{id}`.");
 
     let as_str_impl = match &input.fields {
         Fields::Named(_) | Fields::Unit => {
@@ -440,10 +440,10 @@ fn expand_checked_impls(input: &ItemStruct, validate: Path) -> TokenStream {
     let (impl_generics, ty_generics, _where_clause) = input.generics.split_for_impl();
     let generic_params = &input.generics.params;
 
-    let parse_doc_header = format!("Try parsing a `&str` into an `Owned{}`.", id);
-    let parse_box_doc_header = format!("Try parsing a `&str` into a `Box<{}>`.", id);
-    let parse_rc_docs = format!("Try parsing a `&str` into an `Rc<{}>`.", id);
-    let parse_arc_docs = format!("Try parsing a `&str` into an `Arc<{}>`.", id);
+    let parse_doc_header = format!("Try parsing a `&str` into an `Owned{id}`.");
+    let parse_box_doc_header = format!("Try parsing a `&str` into a `Box<{id}>`.");
+    let parse_rc_docs = format!("Try parsing a `&str` into an `Rc<{id}>`.");
+    let parse_arc_docs = format!("Try parsing a `&str` into an `Arc<{id}>`.");
 
     let id_ty = quote! { #id #ty_generics };
     let owned_ty = quote! { #owned #ty_generics };
