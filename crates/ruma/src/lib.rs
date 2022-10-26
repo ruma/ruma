@@ -95,7 +95,10 @@ pub use ruma_state_res as state_res;
 /// [apis]: https://spec.matrix.org/v1.4/#matrix-apis
 #[cfg(feature = "api")]
 pub mod api {
-    pub use ruma_common::api::*;
+    // The metadata macro is also exported at the crate root because `#[macro_export]` always
+    // places things at the crate root of the defining crate and we do a glob re-export of
+    // `ruma_common`, but here is the more logical (preferred) location.
+    pub use ruma_common::{api::*, metadata};
 
     #[cfg(any(feature = "appservice-api-c", feature = "appservice-api-s"))]
     #[doc(inline)]

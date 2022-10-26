@@ -559,7 +559,7 @@ impl MatrixVersion {
     }
 
     /// Try to turn a pair of (major, minor) version components back into a `MatrixVersion`.
-    pub fn from_parts(major: u8, minor: u8) -> Result<Self, UnknownVersionError> {
+    pub const fn from_parts(major: u8, minor: u8) -> Result<Self, UnknownVersionError> {
         match (major, minor) {
             (1, 0) => Ok(MatrixVersion::V1_0),
             (1, 1) => Ok(MatrixVersion::V1_1),
@@ -568,6 +568,48 @@ impl MatrixVersion {
             (1, 4) => Ok(MatrixVersion::V1_4),
             _ => Err(UnknownVersionError),
         }
+    }
+
+    /// Constructor for use by the `metadata!` macro.
+    ///
+    /// Accepts string literals and parses them.
+    #[doc(hidden)]
+    pub const fn from_lit(lit: &'static str) -> Self {
+        use konst::{option, primitive::parse_u8, result, string};
+
+        let major: u8;
+        let minor: u8;
+
+        let mut lit_iter = string::split(lit, ".").next();
+
+        {
+            let (checked_first, checked_split) = option::unwrap!(lit_iter); // First iteration always succeeds
+
+            major = result::unwrap_or_else!(parse_u8(checked_first), |_| panic!(
+                "major version is not a valid number"
+            ));
+
+            lit_iter = checked_split.next();
+        }
+
+        match lit_iter {
+            Some((checked_second, checked_split)) => {
+                minor = result::unwrap_or_else!(parse_u8(checked_second), |_| panic!(
+                    "minor version is not a valid number"
+                ));
+
+                lit_iter = checked_split.next();
+            }
+            None => panic!("could not find dot to denote second number"),
+        }
+
+        if lit_iter.is_some() {
+            panic!("version literal contains more than one dot")
+        }
+
+        result::unwrap_or_else!(Self::from_parts(major, minor), |_| panic!(
+            "not a valid version literal"
+        ))
     }
 
     // Internal function to do ordering in const-fn contexts
@@ -721,5 +763,12 @@ mod tests {
             hist.select_path(&[V1_0], "test_endpoint"),
             Err(IntoHttpError::NoUnstablePath)
         );
+    }
+
+    #[test]
+    fn version_literal() {
+        const LIT: MatrixVersion = MatrixVersion::from_lit("1.0");
+
+        assert_eq!(LIT, V1_0);
     }
 }
