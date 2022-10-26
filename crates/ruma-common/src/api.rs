@@ -428,3 +428,68 @@ pub enum AuthScheme {
     /// as defined in the federation API.
     ServerSignatures,
 }
+
+#[macro_export]
+macro_rules! metadata {
+    ( $( $field:ident: $rhs:tt ),+ $(,)? ) => {
+        $crate::api::Metadata {
+            $( $field: metadata!(@field $field: $rhs) ),+
+        }
+    };
+
+    ( @field method: $method:ident ) => { $crate::exports::http::Method::$method };
+
+    ( @field authentication: $scheme:ident ) => { $crate::api::AuthScheme::$scheme };
+
+    ( @field history: {
+        $( unstable => $unstable_path:literal ),*
+        $(, $( $version:literal => $rhs:tt ),+ )?
+        $(,)?
+    } ) => {
+        metadata! {
+            @history_impl
+            [ $($unstable_path),* ]
+            // Flip left and right to avoid macro parsing ambiguities
+            $( $( $rhs = $version ),+ )?
+        }
+    };
+
+    // Simple literal case: used for description, name, rate_limited
+    ( @field $_field:ident: $rhs:literal ) => { $rhs };
+
+    ( @history_impl
+        [ $($unstable_path:literal),* ]
+        $(
+            $( $stable_path:literal = $version:literal ),+
+            $(,
+                deprecated = $deprecated_version:literal
+                $(, removed = $removed_version:literal )?
+            )?
+        )?
+    ) => {
+        $crate::api::VersionHistory::new_lit(
+            &[ $( $unstable_path ),+ ],
+            &[ $($(( stringify!($version), $stable_path) ),+)? ],
+            metadata!(@optional_version $($( $deprecated_version )?)?),
+            metadata!(@optional_version $($($( $removed_version )?)?)?),
+        )
+    };
+
+    ( @optional_version ) => { None };
+    ( @optional_version $version:literal ) => { Some(stringify!($version)) }
+}
+
+const _: Metadata = metadata! {
+    description: "Gets the config for the media repository.",
+    method: GET,
+    name: "get_media_config",
+    rate_limited: true,
+    authentication: AccessToken,
+    history: {
+        unstable => "test",
+        1.0 => "/_matrix/media/r0/config",
+        1.1 => "/_matrix/media/v3/config",
+        1.2 => deprecated,
+        1.3 => removed,
+    }
+};
