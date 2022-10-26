@@ -179,49 +179,48 @@ impl VersionHistory {
         use konst::{iter, slice, string};
 
         const fn check_path_is_valid(path: &'static str) {
-            iter::for_each! {path_b in slice::iter(path.as_bytes()) => {
+            iter::for_each!(path_b in slice::iter(path.as_bytes()) => {
                 match *path_b {
                     0x21..=0x7E => {},
-                    _ => panic!("path contains non-valid (non-ascii or whitespace) characters")
+                    _ => panic!("path contains invalid (non-ascii or whitespace) characters")
                 }
-            }}
+            });
         }
 
         const fn check_path_args_equal(first: &'static str, second: &'static str) {
             let mut second_iter = string::split(second, "/").next();
 
             iter::for_each!(first_s in string::split(first, "/") => {
-
                 if let Some(first_arg) = string::strip_prefix(first_s, ":") {
                     let second_next_arg: Option<&'static str> = loop {
-                        if let Some((second_s, second_n_iter)) = second_iter {
-                            let maybe_second_arg = string::strip_prefix(second_s, ":");
+                        let (second_s, second_n_iter) = match second_iter.next() {
+                            Some(tuple) => tuple,
+                            None => break None,
+                        };
+                        
+                        let maybe_second_arg = string::strip_prefix(second_s, ":");
 
-                            second_iter = second_n_iter.next();
+                        second_iter = second_n_iter.next();
 
-                            if let Some(second_arg) = maybe_second_arg {
-                                break Some(second_arg);
-                            }
-                        } else {
-                            break None;
+                        if let Some(second_arg) = maybe_second_arg {
+                            break Some(second_arg);
                         }
                     };
 
                     if let Some(second_next_arg) = second_next_arg {
                         if !string::eq_str(second_next_arg, first_arg) {
-                            panic!("Path Arguments do not match")
+                            panic!("Path Arguments do not match");
                         }
                     } else {
-                        panic!("Amount of Path Arguments do not match")
+                        panic!("Amount of Path Arguments do not match");
                     }
                 }
-
             });
 
             // If second iterator still has some values, empty first.
             while let Some((second_s, second_n_iter)) = second_iter {
                 if string::starts_with(second_s, ":") {
-                    panic!("Amount of Path Arguments do not match")
+                    panic!("Amount of Path Arguments do not match");
                 }
                 second_iter = second_n_iter.next();
             }
@@ -236,14 +235,14 @@ impl VersionHistory {
             panic!("No paths supplied")
         };
 
-        iter::for_each! {unstable_path in slice::iter(unstable_paths) => {
+        iter::for_each!(unstable_path in slice::iter(unstable_paths) => {
             check_path_is_valid(unstable_path);
             check_path_args_equal(ref_path, unstable_path);
-        }};
+        });
 
         let mut prev_seen_version: Option<MatrixVersion> = None;
 
-        iter::for_each! {stable_path in slice::iter(stable_paths) =>{
+        iter::for_each!(stable_path in slice::iter(stable_paths) => {
             check_path_is_valid(stable_path.1);
             check_path_args_equal(ref_path, stable_path.1);
 
@@ -262,7 +261,7 @@ impl VersionHistory {
             }
 
             prev_seen_version = Some(current_version);
-        }};
+        });
 
         if let Some(deprecated) = deprecated {
             if let Some(prev_seen_version) = prev_seen_version {
