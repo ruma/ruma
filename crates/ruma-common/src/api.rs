@@ -480,7 +480,8 @@ macro_rules! metadata {
     };
 
     // Simple literal case: used for description, name, rate_limited
-    ( @field $_field:ident: $rhs:literal ) => { $rhs };
+    // Also used by ruma_api! while it still exists, for the history field
+    ( @field $_field:ident: $rhs:expr ) => { $rhs };
 
     ( @history_impl
         [ $($unstable_path:literal),* ]

@@ -59,7 +59,6 @@ impl Api {
         let maybe_path_error = self.check_paths().err().map(syn::Error::into_compile_error);
 
         let ruma_common = import_ruma_common();
-        let http = quote! { #ruma_common::exports::http };
 
         let metadata = &self.metadata;
         let description = &metadata.description;
@@ -83,14 +82,17 @@ impl Api {
             #maybe_feature_error
             #maybe_path_error
 
+            // For some reason inlining the expression causes issues with macro parsing
+            const _RUMA_API_VERSION_HISTORY: #ruma_common::api::VersionHistory = #history;
+
             #[doc = #metadata_doc]
-            pub const METADATA: #ruma_common::api::Metadata = #ruma_common::api::Metadata {
+            pub const METADATA: #ruma_common::api::Metadata = #ruma_common::metadata! {
                 description: #description,
-                method: #http::Method::#method,
+                method: #method,
                 name: #name,
                 rate_limited: #rate_limited,
-                authentication: #ruma_common::api::AuthScheme::#authentication,
-                history: #history,
+                authentication: #authentication,
+                history: _RUMA_API_VERSION_HISTORY,
             };
 
             #request
