@@ -6,7 +6,7 @@ use syn::{
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
     visit::Visit,
-    DeriveInput, Field, Generics, Ident, Lifetime, Token, Type,
+    DeriveInput, Field, Generics, Ident, ItemStruct, Lifetime, Token, Type,
 };
 
 use super::attribute::{DeriveResponseMeta, ResponseMeta};
@@ -14,6 +14,42 @@ use crate::util::import_ruma_common;
 
 mod incoming;
 mod outgoing;
+
+pub fn expand_response(attr: ResponseAttr, item: ItemStruct) -> TokenStream {
+    let ruma_common = import_ruma_common();
+    let ruma_macros = quote! { #ruma_common::exports::ruma_macros };
+
+    let error_ty = attr
+        .0
+        .iter()
+        .find_map(|a| match a {
+            DeriveResponseMeta::Error(ty) => Some(quote! { #ty }),
+            _ => None,
+        })
+        .unwrap_or_else(|| quote! { #ruma_common::api::error::MatrixError });
+
+    quote! {
+        #[derive(
+            Clone,
+            Debug,
+            #ruma_macros::Response,
+            #ruma_common::serde::Incoming,
+            #ruma_common::serde::_FakeDeriveSerde,
+        )]
+        #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+        #[incoming_derive(!Deserialize, #ruma_macros::_FakeDeriveRumaApi)]
+        #[ruma_api(error = #error_ty)]
+        #item
+    }
+}
+
+pub struct ResponseAttr(Punctuated<DeriveResponseMeta, Token![,]>);
+
+impl Parse for ResponseAttr {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        Punctuated::<DeriveResponseMeta, Token![,]>::parse_terminated(input).map(Self)
+    }
+}
 
 pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
     let fields = match input.data {

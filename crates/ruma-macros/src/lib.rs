@@ -27,7 +27,7 @@ mod util;
 use self::{
     api::{
         request::{expand_derive_request, expand_request},
-        response::expand_derive_response,
+        response::{expand_derive_response, expand_response},
         Api,
     },
     events::{
@@ -395,6 +395,15 @@ pub fn request(attr: TokenStream, item: TokenStream) -> TokenStream {
     let attr = parse_macro_input!(attr);
     let item = parse_macro_input!(item);
     expand_request(attr, item).into()
+}
+
+/// > ⚠ If this is the only documentation you see, please navigate to the docs for
+/// > `ruma_common::api::response`, where actual documentation can be found.
+#[proc_macro_attribute]
+pub fn response(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let attr = parse_macro_input!(attr);
+    let item = parse_macro_input!(item);
+    expand_response(attr, item).into()
 }
 
 /// Internal helper taking care of the request-specific parts of `ruma_api!`.

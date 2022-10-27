@@ -232,6 +232,9 @@ pub use ruma_macros::ruma_api;
 ///   not just JSON. The field type must be `Vec<u8>`.
 pub use ruma_macros::request;
 
+// TODO: Write docs
+pub use ruma_macros::response;
+
 pub mod error;
 mod metadata;
 
