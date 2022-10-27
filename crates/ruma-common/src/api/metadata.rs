@@ -593,7 +593,7 @@ impl MatrixVersion {
     /// Accepts string literals and parses them.
     #[doc(hidden)]
     pub const fn from_lit(lit: &'static str) -> Self {
-        use konst::{primitive::parse_u8, string};
+        use konst::{option, primitive::parse_u8, result, string};
 
         let major: u8;
         let minor: u8;
@@ -601,22 +601,20 @@ impl MatrixVersion {
         let mut lit_iter = string::split(lit, ".").next();
 
         {
-            let (checked_first, checked_split) = lit_iter.expect("first iteration always succeeds");
+            let (checked_first, checked_split) = option::unwrap!(lit_iter); // First iteration always succeeds
 
-            major = match parse_u8(checked_first) {
-                Ok(int) => int,
-                Err(_) => panic!("major version is not a valid number"),
-            };
+            major = result::unwrap_or_else!(parse_u8(checked_first), |_| panic!(
+                "major version is not a valid number"
+            ));
 
             lit_iter = checked_split.next();
         }
 
         match lit_iter {
             Some((checked_second, checked_split)) => {
-                minor = match parse_u8(checked_second) {
-                    Ok(int) => int,
-                    Err(_) => panic!("minor version is not a valid number"),
-                };
+                minor = result::unwrap_or_else!(parse_u8(checked_second), |_| panic!(
+                    "minor version is not a valid number"
+                ));
 
                 lit_iter = checked_split.next();
             }
@@ -627,10 +625,9 @@ impl MatrixVersion {
             panic!("version literal contains more than one dot")
         }
 
-        match Self::from_parts(major, minor) {
-            Ok(ver) => ver,
-            Err(_) => panic!("not a valid version literal"),
-        }
+        result::unwrap_or_else!(Self::from_parts(major, minor), |_| panic!(
+            "not a valid version literal"
+        ))
     }
 
     // Internal function to do ordering in const-fn contexts
