@@ -297,24 +297,6 @@ impl VersionHistory {
         VersionHistory { unstable_paths, stable_paths, deprecated, removed }
     }
 
-    /// Constructor for use by the `metadata!` macro.
-    ///
-    /// Same as `new`, but accepts string literals for matrix versions and parses them.
-    #[doc(hidden)]
-    pub const fn new_lit(
-        unstable_paths: &'static [&'static str],
-        stable_paths: &'static [(&'static str, &'static str)],
-        deprecated: Option<&'static str>,
-        removed: Option<&'static str>,
-    ) -> Self {
-        // TODO
-        let stable_paths = &[];
-        let deprecated = None;
-        let removed = None;
-
-        Self::new(unstable_paths, stable_paths, deprecated, removed)
-    }
-
     // This function helps picks the right path (or an error) from a set of Matrix versions.
     fn select_path(
         &self,
@@ -577,7 +559,7 @@ impl MatrixVersion {
     }
 
     /// Try to turn a pair of (major, minor) version components back into a `MatrixVersion`.
-    pub fn from_parts(major: u8, minor: u8) -> Result<Self, UnknownVersionError> {
+    pub const fn from_parts(major: u8, minor: u8) -> Result<Self, UnknownVersionError> {
         match (major, minor) {
             (1, 0) => Ok(MatrixVersion::V1_0),
             (1, 1) => Ok(MatrixVersion::V1_1),
@@ -586,6 +568,44 @@ impl MatrixVersion {
             (1, 4) => Ok(MatrixVersion::V1_4),
             _ => Err(UnknownVersionError),
         }
+    }
+
+    /// Constructor for use by the `metadata!` macro.
+    ///
+    /// Accepts string literals and parses them.
+    #[doc(hidden)]
+    pub const fn from_lit(lit: &'static str) -> Self {
+        use konst::{primitive::parse_u8, string};
+
+        let major: u8;
+        let minor: u8;
+
+        let mut lit_iter = string::split(lit, ".").next();
+
+        {
+            let (checked_first, checked_split) = lit_iter.expect("first iteration always succeeds");
+
+            major = parse_u8(checked_first)
+                .unwrap_or_else(|_| panic!("major version is not a valid number"));
+
+            lit_iter = checked_split.next();
+        }
+
+        match lit_iter {
+            Some((checked_second, checked_split)) => {
+                minor = parse_u8(checked_second)
+                    .unwrap_or_else(|_| panic!("minor version is not a valid number"));
+
+                lit_iter = checked_split.next();
+            }
+            None => panic!("could not find dot to denote second number"),
+        }
+
+        if lit_iter.is_some() {
+            panic!("version literal contains more than one dot")
+        }
+
+        Self::from_parts(major, minor).unwrap_or_else(|_| panic!("not a valid version literal"))
     }
 
     // Internal function to do ordering in const-fn contexts
@@ -739,5 +759,12 @@ mod tests {
             hist.select_path(&[V1_0], "test_endpoint"),
             Err(IntoHttpError::NoUnstablePath)
         );
+    }
+
+    #[test]
+    fn version_literal() {
+        const LIT: MatrixVersion = MatrixVersion::from_lit("1.0");
+
+        assert_eq!(LIT, V1_0)
     }
 }
