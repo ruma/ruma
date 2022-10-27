@@ -15,5 +15,5 @@ all-features = true
 compat = []
 
 [dependencies]
-js_int = "0.2.0"
-thiserror = "1.0.26"
+js_int = { workspace = true }
+thiserror = { workspace = true }

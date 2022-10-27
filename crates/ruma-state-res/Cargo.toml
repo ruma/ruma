@@ -19,18 +19,18 @@ unstable-exhaustive-types = []
 
 [dependencies]
 itertools = "0.10.0"
-js_int = "0.2.0"
+js_int = { workspace = true }
 ruma-common = { version = "0.10.5", path = "../ruma-common", features = ["events"] }
-serde = { version = "1.0.118", features = ["derive"] }
-serde_json = "1.0.60"
-thiserror = "1.0.26"
-tracing = "0.1.26"
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
 
 # dev-dependencies can't be optional, so this is a regular dependency
-criterion = { version = "0.4.0", optional = true }
+criterion = { workspace = true, optional = true }
 
 [dev-dependencies]
-maplit = "1.0.2"
+maplit = { workspace = true }
 rand = "0.8.3"
 ruma-common = { version = "0.10.5", path = "../ruma-common", features = ["unstable-pdu"] }
 tracing-subscriber = "0.3.3"

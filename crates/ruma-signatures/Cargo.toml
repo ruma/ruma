@@ -18,16 +18,16 @@ ring-compat = ["dep:subslice"]
 unstable-exhaustive-types = []
 
 [dependencies]
-base64 = "0.13.0"
+base64 = { workspace = true }
 ed25519-dalek = "1.0.1"
 pkcs8 = { version = "0.9.0", features = ["alloc"] }
 # because dalek uses an older version of rand_core
 rand = { version = "0.7", features = ["getrandom"] }
 ruma-common = { version = "0.10.5", path = "../ruma-common", features = ["canonical-json"] }
-serde_json = "1.0.60"
+serde_json = { workspace = true }
 sha2 = "0.9.5"
 subslice = { version = "0.2.3", optional = true }
-thiserror = "1.0.26"
+thiserror = { workspace = true }
 
 [dev-dependencies]
-assert_matches = "1.5.0"
+assert_matches = { workspace = true }
