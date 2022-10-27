@@ -297,6 +297,24 @@ impl VersionHistory {
         VersionHistory { unstable_paths, stable_paths, deprecated, removed }
     }
 
+    /// Constructor for use by the `metadata!` macro.
+    ///
+    /// Same as `new`, but accepts string literals for matrix versions and parses them.
+    #[doc(hidden)]
+    pub const fn new_lit(
+        unstable_paths: &'static [&'static str],
+        stable_paths: &'static [(&'static str, &'static str)],
+        deprecated: Option<&'static str>,
+        removed: Option<&'static str>,
+    ) -> Self {
+        // TODO
+        let stable_paths = &[];
+        let deprecated = None;
+        let removed = None;
+
+        Self::new(unstable_paths, stable_paths, deprecated, removed)
+    }
+
     // This function helps picks the right path (or an error) from a set of Matrix versions.
     fn select_path(
         &self,
