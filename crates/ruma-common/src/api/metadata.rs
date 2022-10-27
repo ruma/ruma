@@ -585,16 +585,20 @@ impl MatrixVersion {
         {
             let (checked_first, checked_split) = lit_iter.expect("first iteration always succeeds");
 
-            major = parse_u8(checked_first)
-                .unwrap_or_else(|_| panic!("major version is not a valid number"));
+            major = match parse_u8(checked_first) {
+                Ok(int) => int,
+                Err(_) => panic!("major version is not a valid number"),
+            };
 
             lit_iter = checked_split.next();
         }
 
         match lit_iter {
             Some((checked_second, checked_split)) => {
-                minor = parse_u8(checked_second)
-                    .unwrap_or_else(|_| panic!("minor version is not a valid number"));
+                minor = match parse_u8(checked_second) {
+                    Ok(int) => int,
+                    Err(_) => panic!("minor version is not a valid number"),
+                };
 
                 lit_iter = checked_split.next();
             }
@@ -605,7 +609,10 @@ impl MatrixVersion {
             panic!("version literal contains more than one dot")
         }
 
-        Self::from_parts(major, minor).unwrap_or_else(|_| panic!("not a valid version literal"))
+        match Self::from_parts(major, minor) {
+            Ok(ver) => ver,
+            Err(_) => panic!("not a valid version literal"),
+        }
     }
 
     // Internal function to do ordering in const-fn contexts
