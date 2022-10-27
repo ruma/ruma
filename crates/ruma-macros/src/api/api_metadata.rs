@@ -369,12 +369,12 @@ impl ToTokens for History {
         let removed = util::map_option_literal(&removed);
 
         tokens.extend(quote! {
-            ::ruma_common::api::VersionHistory {
-                unstable_paths: &[ #(#unstable),* ],
-                stable_paths: &[ #(#versioned),* ],
-                deprecated: #deprecated,
-                removed: #removed,
-            }
+            ::ruma_common::api::VersionHistory::new(
+                &[ #(#unstable),* ],
+                &[ #(#versioned),* ],
+                #deprecated,
+                #removed,
+            )
         });
     }
 }

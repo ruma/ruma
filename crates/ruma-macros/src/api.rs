@@ -109,16 +109,6 @@ impl Api {
         })?;
         let path_args = path.args();
 
-        for extra_path in path_iter {
-            let extra_path_args = extra_path.args();
-            if extra_path_args != path_args {
-                return Err(syn::Error::new(
-                    Span::call_site(),
-                    "paths have different path parameters",
-                ));
-            }
-        }
-
         if let Some(req) = &self.request {
             let path_field_names: Vec<_> = req
                 .fields

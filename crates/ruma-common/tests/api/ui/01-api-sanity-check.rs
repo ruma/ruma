@@ -16,8 +16,8 @@ ruma_api! {
         rate_limited: false,
         authentication: None,
         added: 1.0,
-        deprecated: 1.1,
-        removed: 1.2,
+        deprecated: 1.2,
+        removed: 1.3,
     }
 
     request: {
@@ -71,6 +71,6 @@ fn main() {
     );
 
     assert_eq!(METADATA.history.added_version(), Some(MatrixVersion::V1_0));
-    assert_eq!(METADATA.history.deprecated, Some(MatrixVersion::V1_1));
-    assert_eq!(METADATA.history.removed, Some(MatrixVersion::V1_2));
+    assert_eq!(METADATA.history.deprecated, Some(MatrixVersion::V1_2));
+    assert_eq!(METADATA.history.removed, Some(MatrixVersion::V1_3));
 }
