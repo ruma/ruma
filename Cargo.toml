@@ -2,8 +2,20 @@
 members = ["crates/*", "examples/*", "xtask"]
 # Only compile / check / document the public crates by default
 default-members = ["crates/*"]
-
 resolver = "2"
+
+[workspace.dependencies]
+assert_matches = "1.5.0"
+assign = "1.1.1"
+base64 = "0.13.1"
+criterion = "0.4.0"
+http = "0.2.8"
+js_int = "0.2.2"
+maplit = "1.0.2"
+serde = { version = "1.0.147", features = ["derive"] }
+serde_json = "1.0.87"
+thiserror = "1.0.37"
+tracing = { version = "0.1.37", default-features = false, features = ["std"] }
 
 [profile.dev]
 # Speeds up test times by more than 10% in a simple test

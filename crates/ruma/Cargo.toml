@@ -188,8 +188,8 @@ __ci = [
 ]
 
 [dependencies]
-assign = "1.1.1"
-js_int = "0.2.0"
+assign = { workspace = true }
+js_int = { workspace = true }
 js_option = "0.1.1"
 
 ruma-common = { version = "0.10.5", path = "../ruma-common" }
@@ -205,4 +205,4 @@ ruma-identity-service-api = { version = "0.6.0", path = "../ruma-identity-servic
 ruma-push-gateway-api = { version = "0.6.0", path = "../ruma-push-gateway-api", optional = true }
 
 [dev-dependencies]
-serde = { version = "1.0.118", features = ["derive"] }
+serde = { workspace = true }

@@ -19,9 +19,9 @@ client = []
 server = []
 
 [dependencies]
-js_int = { version = "0.2.0", features = ["serde"] }
+js_int = { workspace = true, features = ["serde"] }
 ruma-common = { version = "0.10.5", path = "../ruma-common", features = ["api"] }
-serde = { version = "1.0.118", features = ["derive"] }
+serde = { workspace = true }
 
 [dev-dependencies]
-serde_json = "1.0.61"
+serde_json = { workspace = true }
