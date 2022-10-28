@@ -251,7 +251,7 @@ pub mod v1 {
             #[serde(
                 default,
                 skip_serializing_if = "BTreeMap::is_empty",
-                rename = "org.matrix.msc3202.device_one_time_keys_count"Doesesf2015
+                rename = "org.matrix.msc3202.device_one_time_keys_count"
             )]
             pub device_one_time_keys_count: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, BTreeMap<DeviceKeyAlgorithm, UInt>>>,
 
