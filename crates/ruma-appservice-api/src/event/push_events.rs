@@ -17,9 +17,9 @@ use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 use std::collections::BTreeMap;
 
 /// Type for passing ephemeral data to homeservers.
-#[derive(Clone, Debug, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[cfg(feature = "unstable-msc2409")]
+#[derive(Clone, Debug, Serialize)]
+#[non_exhaustive]
 pub enum Edu {
     /// An EDU representing presence updates for users of the sending homeserver.
     Presence(PresenceContent),
@@ -62,9 +62,9 @@ impl<'de> Deserialize<'de> for Edu {
 }
 
 /// The content for "m.presence" Edu.
+#[cfg(feature = "unstable-msc2409")]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[cfg(feature = "unstable-msc2409")]
 pub struct PresenceContent {
     /// A list of presence updates that the receiving server is likely to be interested in.
     pub push: Vec<PresenceUpdate>,
@@ -79,9 +79,9 @@ impl PresenceContent {
 }
 
 /// An update to the presence of a user.
+#[cfg(feature = "unstable-msc2409")]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[cfg(feature = "unstable-msc2409")]
 pub struct PresenceUpdate {
     /// The user ID this presence EDU is for.
     pub user_id: OwnedUserId,
@@ -118,9 +118,9 @@ impl PresenceUpdate {
 }
 
 /// The content for "m.receipt" Edu.
+#[cfg(feature = "unstable-msc2409")]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[cfg(feature = "unstable-msc2409")]
 #[serde(transparent)]
 pub struct ReceiptContent(pub BTreeMap<OwnedRoomId, ReceiptMap>);
 
@@ -133,9 +133,9 @@ impl ReceiptContent {
 }
 
 /// Mapping between user and `ReceiptData`.
+#[cfg(feature = "unstable-msc2409")]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[cfg(feature = "unstable-msc2409")]
 pub struct ReceiptMap {
     /// Read receipts for users in the room.
     #[serde(rename = "m.read")]
@@ -151,9 +151,9 @@ impl ReceiptMap {
 }
 
 /// Metadata about the event that was last read and when.
+#[cfg(feature = "unstable-msc2409")]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[cfg(feature = "unstable-msc2409")]
 pub struct ReceiptData {
     /// Metadata for the read receipt.
     pub data: Receipt,
@@ -171,9 +171,9 @@ impl ReceiptData {
 }
 
 /// The content for "m.typing" Edu.
+#[cfg(feature = "unstable-msc2409")]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[cfg(feature = "unstable-msc2409")]
 pub struct TypingContent {
     /// The room where the user's typing status has been updated.
     pub room_id: OwnedRoomId,
@@ -273,7 +273,7 @@ pub mod v1 {
             )]
             pub ephemeral: &'a [Edu],
 
-            /// A list of to-device messages
+            /// A list of to-device messages.
             #[cfg(feature = "unstable-msc2409")]
             #[serde(
                 default,
