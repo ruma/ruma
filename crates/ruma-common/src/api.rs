@@ -196,43 +196,218 @@ pub use ruma_macros::ruma_api;
 
 /// Generates [`OutgoingRequest`] and [`IncomingRequest`] implementations.
 ///
-/// The `OutgoingRequest` impl is be on the `Request` type this attribute is used on. It is
+/// The `OutgoingRequest` impl is on the `Request` type this attribute is used on. It is
 /// feature-gated behind `cfg(feature = "client")`.
 ///
-/// The `IncomingRequest` impl is be on `IncomingRequest`, which is either a type alias to
+/// The `IncomingRequest` impl is on `IncomingRequest`, which is either a type alias to
 /// `Request` or a fully-owned version of the same, depending of whether `Request` has any
-/// lifetime parameters.
+/// lifetime parameters. It is feature-gated behind `cfg(feature = "server")`.
 ///
 /// The generated code expects a `METADATA` constant of type [`Metadata`] to be in scope,
-/// alongside a `Response` type that implements both [`OutgoingResponse`] and
-/// [`IncomingResponse`].
+/// alongside a `Response` type that implements [`OutgoingResponse`] (for
+/// `cfg(feature = "server")`) and / or [`IncomingResponse`] (for `cfg(feature = "client")`).
 ///
 /// ## Attributes
 ///
 /// To declare which part of the request a field belongs to:
 ///
 /// * `#[ruma_api(header = HEADER_NAME)]`: Fields with this attribute will be treated as HTTP
-///   headers on the request. The value must implement `AsRef<str>`. Generally this is a
-///   `String`. The attribute value shown above as `HEADER_NAME` must be a `const` expression
-///   of the type `http::header::HeaderName`, like one of the constants from `http::header`,
-///   e.g. `CONTENT_TYPE`.
+///   headers on the request. The value must implement `Display`. Generally this is a `String`.
+///   The attribute value shown above as `HEADER_NAME` must be a `const` expression of the type
+///   `http::header::HeaderName`, like one of the constants from `http::header`, e.g.
+///   `CONTENT_TYPE`.
 /// * `#[ruma_api(path)]`: Fields with this attribute will be inserted into the matching path
-///   component of the request URL.
+///   component of the request URL. If there are multiple of these fields, the order in which
+///   they are declared must match the order in which they occur in the request path.
 /// * `#[ruma_api(query)]`: Fields with this attribute will be inserting into the URL's query
 ///   string.
 /// * `#[ruma_api(query_map)]`: Instead of individual query fields, one query_map field, of any
 ///   type that implements `IntoIterator<Item = (String, String)>` (e.g. `HashMap<String,
 ///   String>`, can be used for cases where an endpoint supports arbitrary query parameters.
+/// * No attribute: Fields without an attribute are part of the body. They can use `#[serde]`
+///   attributes to customize (de)serialization.
 /// * `#[ruma_api(body)]`: Use this if multiple endpoints should share a request body type, or
 ///   the request body is better expressed as an `enum` rather than a `struct`. The value of
 ///   the field will be used as the JSON body (rather than being a field in the request body
 ///   object).
 /// * `#[ruma_api(raw_body)]`: Like `body` in that the field annotated with it represents the
 ///   entire request body, but this attribute is for endpoints where the body can be anything,
-///   not just JSON. The field type must be `Vec<u8>`.
+///   not just JSON. The field type must be `&[u8]`.
+///
+/// ## Examples
+///
+/// ```
+/// pub mod do_a_thing {
+///     use ruma_common::{api::request, RoomId};
+///     # use ruma_common::{
+///     #     api::{response, Metadata},
+///     #     metadata,
+///     # };
+///
+///     // const METADATA: Metadata = metadata! { ... };
+///     # const METADATA: Metadata = metadata! {
+///     #     description: "Does something.",
+///     #     method: POST,
+///     #     name: "some_endpoint",
+///     #     rate_limited: false,
+///     #     authentication: None,
+///     #     history: {
+///     #         unstable => "/_matrix/some/endpoint/:room_id",
+///     #     },
+///     # };
+///
+///     #[request]
+///     pub struct Request<'a> {
+///         #[ruma_api(path)]
+///         pub room_id: &'a RoomId,
+///
+///         #[ruma_api(query)]
+///         pub bar: &'a str,
+///
+///         #[serde(default)]
+///         pub foo: String,
+///     }
+///
+///     // #[response]
+///     // pub struct Response { ... }
+///     # #[response]
+///     # pub struct Response {}
+/// }
+///
+/// pub mod upload_file {
+///     use http::header::CONTENT_TYPE;
+///     use ruma_common::api::request;
+///     # use ruma_common::{
+///     #     api::{response, Metadata},
+///     #     metadata,
+///     # };
+///
+///     // const METADATA: Metadata = metadata! { ... };
+///     # const METADATA: Metadata = metadata! {
+///     #     description: "Does something.",
+///     #     method: POST,
+///     #     name: "some_endpoint",
+///     #     rate_limited: false,
+///     #     authentication: None,
+///     #     history: {
+///     #         unstable => "/_matrix/some/endpoint/:file_name",
+///     #     },
+///     # };
+///
+///     #[request]
+///     pub struct Request<'a> {
+///         #[ruma_api(path)]
+///         pub file_name: &'a str,
+///
+///         #[ruma_api(header = CONTENT_TYPE)]
+///         pub content_type: String,
+///
+///         #[ruma_api(raw_body)]
+///         pub file: &'a [u8],
+///     }
+///
+///     // #[response]
+///     // pub struct Response { ... }
+///     # #[response]
+///     # pub struct Response {}
+/// }
+/// ```
 pub use ruma_macros::request;
 
-// TODO: Write docs
+/// Generates [`OutgoingResponse`] and [`IncomingResponse`] implementations.
+///
+/// The `OutgoingRequest` impl is feature-gated behind `cfg(feature = "client")`.
+/// The `IncomingRequest` impl is feature-gated behind `cfg(feature = "server")`.
+///
+/// The generated code expects a `METADATA` constant of type [`Metadata`] to be in scope.
+///
+/// ## Attributes
+///
+/// To declare which part of the request a field belongs to:
+///
+/// * `#[ruma_api(header = HEADER_NAME)]`: Fields with this attribute will be treated as HTTP
+///   headers on the response. The value must implement `Display`. Generally this is a
+///   `String`. The attribute value shown above as `HEADER_NAME` must be a header name constant
+///   from `http::header`, e.g. `CONTENT_TYPE`.
+/// * No attribute: Fields without an attribute are part of the body. They can use `#[serde]`
+///   attributes to customize (de)serialization.
+/// * `#[ruma_api(body)]`: Use this if multiple endpoints should share a response body type, or
+///   the response body is better expressed as an `enum` rather than a `struct`. The value of
+///   the field will be used as the JSON body (rather than being a field in the response body
+///   object).
+/// * `#[ruma_api(raw_body)]`: Like `body` in that the field annotated with it represents the
+///   entire response body, but this attribute is for endpoints where the body can be anything,
+///   not just JSON. The field type must be `Vec<u8>`.
+///
+/// ## Examples
+///
+/// ```
+/// pub mod do_a_thing {
+///     use ruma_common::{api::response, OwnedRoomId};
+///     # use ruma_common::{
+///     #     api::{request, Metadata},
+///     #     metadata,
+///     # };
+///
+///     // const METADATA: Metadata = metadata! { ... };
+///     # const METADATA: Metadata = metadata! {
+///     #     description: "Does something.",
+///     #     method: POST,
+///     #     name: "some_endpoint",
+///     #     rate_limited: false,
+///     #     authentication: None,
+///     #     history: {
+///     #         unstable => "/_matrix/some/endpoint",
+///     #     },
+///     # };
+///
+///     // #[request]
+///     // pub struct Request { ... }
+///     # #[request]
+///     # pub struct Request { }
+///
+///     #[response]
+///     pub struct Response {
+///         #[serde(skip_serializing_if = "Option::is_none")]
+///         pub foo: Option<String>,
+///     }
+/// }
+///
+/// pub mod download_file {
+///     use http::header::CONTENT_TYPE;
+///     use ruma_common::api::response;
+///     # use ruma_common::{
+///     #     api::{request, Metadata},
+///     #     metadata,
+///     # };
+///
+///     // const METADATA: Metadata = metadata! { ... };
+///     # const METADATA: Metadata = metadata! {
+///     #     description: "Does something.",
+///     #     method: POST,
+///     #     name: "some_endpoint",
+///     #     rate_limited: false,
+///     #     authentication: None,
+///     #     history: {
+///     #         unstable => "/_matrix/some/endpoint",
+///     #     },
+///     # };
+///
+///     // #[request]
+///     // pub struct Request { ... }
+///     # #[request]
+///     # pub struct Request { }
+///
+///     #[response]
+///     pub struct Response {
+///         #[ruma_api(header = CONTENT_TYPE)]
+///         pub content_type: String,
+///
+///         #[ruma_api(raw_body)]
+///         pub file: Vec<u8>,
+///     }
+/// }
+/// ```
 pub use ruma_macros::response;
 
 pub mod error;
