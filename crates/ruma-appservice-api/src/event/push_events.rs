@@ -264,7 +264,7 @@ pub mod v1 {
             )]
             pub device_unused_fallback_key_types: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Vec<DeviceKeyAlgorithm>>>,
 
-            /// A list of EDUs
+            /// A list of EDUs.
             #[cfg(feature = "unstable-msc2409")]
             #[serde(
                 default,
