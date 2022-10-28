@@ -19,6 +19,7 @@ unstable-exhaustive-types = []
 client = []
 server = []
 unstable-msc3202 = []
+unstable-msc2409 = []
 
 [dependencies]
 js_int = { version = "0.2.2", features = ["serde"] }
