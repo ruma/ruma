@@ -260,7 +260,7 @@ pub mod v1 {
             #[serde(
                 default,
                 skip_serializing_if = "BTreeMap::is_empty",
-                rename = "org.matrix.msc3202.device_unused_fallback_key_types",
+                rename = "org.matrix.msc3202.device_unused_fallback_key_types"
             )]
             pub device_unused_fallback_key_types: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Vec<DeviceKeyAlgorithm>>>,
 
