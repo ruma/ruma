@@ -1,3 +1,5 @@
+use ruma_macros::StringEnum;
+
 ///! Constructors for [predefined push rules].
 ///!
 ///! [predefined push rules]: https://spec.matrix.org/v1.4/client-server-api/#predefined-rules
@@ -5,7 +7,7 @@ use super::{
     Action::*, ConditionalPushRule, PatternedPushRule, PushCondition::*, RoomMemberCountIs,
     Ruleset, Tweak,
 };
-use crate::UserId;
+use crate::{PrivOwnedStr, UserId};
 
 impl Ruleset {
     /// The list of all [predefined push rules].
@@ -62,7 +64,7 @@ impl ConditionalPushRule {
             actions: vec![DontNotify],
             default: true,
             enabled: false,
-            rule_id: ".m.rule.master".into(),
+            rule_id: PredefinedOverrideRuleId::Master.to_string(),
             conditions: vec![],
         }
     }
@@ -73,7 +75,7 @@ impl ConditionalPushRule {
             actions: vec![DontNotify],
             default: true,
             enabled: true,
-            rule_id: ".m.rule.suppress_notices".into(),
+            rule_id: PredefinedOverrideRuleId::SuppressNotices.to_string(),
             conditions: vec![EventMatch {
                 key: "content.msgtype".into(),
                 pattern: "m.notice".into(),
@@ -91,7 +93,7 @@ impl ConditionalPushRule {
             ],
             default: true,
             enabled: true,
-            rule_id: ".m.rule.invite_for_me".into(),
+            rule_id: PredefinedOverrideRuleId::InviteForMe.to_string(),
             conditions: vec![
                 EventMatch { key: "type".into(), pattern: "m.room.member".into() },
                 EventMatch { key: "content.membership".into(), pattern: "invite".into() },
@@ -106,7 +108,7 @@ impl ConditionalPushRule {
             actions: vec![DontNotify],
             default: true,
             enabled: true,
-            rule_id: ".m.rule.member_event".into(),
+            rule_id: PredefinedOverrideRuleId::MemberEvent.to_string(),
             conditions: vec![EventMatch { key: "type".into(), pattern: "m.room.member".into() }],
         }
     }
@@ -122,7 +124,7 @@ impl ConditionalPushRule {
             ],
             default: true,
             enabled: true,
-            rule_id: ".m.rule.contains_display_name".into(),
+            rule_id: PredefinedOverrideRuleId::ContainsDisplayName.to_string(),
             conditions: vec![ContainsDisplayName],
         }
     }
@@ -135,7 +137,7 @@ impl ConditionalPushRule {
             actions: vec![Notify, SetTweak(Tweak::Highlight(true))],
             default: true,
             enabled: false,
-            rule_id: ".m.rule.tombstone".into(),
+            rule_id: PredefinedOverrideRuleId::Tombstone.to_string(),
             conditions: vec![
                 EventMatch { key: "type".into(), pattern: "m.room.tombstone".into() },
                 EventMatch { key: "state_key".into(), pattern: "".into() },
@@ -150,7 +152,7 @@ impl ConditionalPushRule {
             actions: vec![Notify, SetTweak(Tweak::Highlight(true))],
             default: true,
             enabled: true,
-            rule_id: ".m.rule.roomnotif".into(),
+            rule_id: PredefinedOverrideRuleId::RoomNotif.to_string(),
             conditions: vec![
                 EventMatch { key: "content.body".into(), pattern: "@room".into() },
                 SenderNotificationPermission { key: "room".into() },
@@ -166,7 +168,7 @@ impl ConditionalPushRule {
             actions: vec![DontNotify],
             default: true,
             enabled: true,
-            rule_id: ".m.rule.reaction".into(),
+            rule_id: PredefinedOverrideRuleId::Reaction.to_string(),
             conditions: vec![EventMatch { key: "type".into(), pattern: "m.reaction".into() }],
         }
     }
@@ -179,7 +181,7 @@ impl ConditionalPushRule {
             actions: vec![],
             default: true,
             enabled: true,
-            rule_id: ".m.rule.room.server_acl".into(),
+            rule_id: PredefinedOverrideRuleId::RoomServerAcl.to_string(),
             conditions: vec![
                 EventMatch { key: "type".into(), pattern: "m.room.server_acl".into() },
                 EventMatch { key: "state_key".into(), pattern: "".into() },
@@ -194,7 +196,7 @@ impl PatternedPushRule {
     /// Matrix ID, separated by word boundaries.
     pub fn contains_user_name(user_id: &UserId) -> Self {
         Self {
-            rule_id: ".m.rule.contains_user_name".into(),
+            rule_id: PredefinedContentRuleId::ContainsUserName.to_string(),
             enabled: true,
             default: true,
             pattern: user_id.localpart().into(),
@@ -212,7 +214,7 @@ impl ConditionalPushRule {
     /// Matches any incoming VOIP call.
     pub fn call() -> Self {
         Self {
-            rule_id: ".m.rule.call".into(),
+            rule_id: PredefinedUnderrideRuleId::Call.to_string(),
             default: true,
             enabled: true,
             conditions: vec![EventMatch { key: "type".into(), pattern: "m.call.invite".into() }],
@@ -231,7 +233,7 @@ impl ConditionalPushRule {
     /// either matches all events that are encrypted (in 1:1 rooms) or none.
     pub fn encrypted_room_one_to_one() -> Self {
         Self {
-            rule_id: ".m.rule.encrypted_room_one_to_one".into(),
+            rule_id: PredefinedUnderrideRuleId::EncryptedRoomOneToOne.to_string(),
             default: true,
             enabled: true,
             conditions: vec![
@@ -249,7 +251,7 @@ impl ConditionalPushRule {
     /// Matches any message sent in a room with exactly two members.
     pub fn room_one_to_one() -> Self {
         Self {
-            rule_id: ".m.rule.room_one_to_one".into(),
+            rule_id: PredefinedUnderrideRuleId::RoomOneToOne.to_string(),
             default: true,
             enabled: true,
             conditions: vec![
@@ -267,7 +269,7 @@ impl ConditionalPushRule {
     /// Matches all chat messages.
     pub fn message() -> Self {
         Self {
-            rule_id: ".m.rule.message".into(),
+            rule_id: PredefinedUnderrideRuleId::Message.to_string(),
             default: true,
             enabled: true,
             conditions: vec![EventMatch { key: "type".into(), pattern: "m.room.message".into() }],
@@ -282,7 +284,7 @@ impl ConditionalPushRule {
     /// either matches all events that are encrypted (in group rooms) or none.
     pub fn encrypted() -> Self {
         Self {
-            rule_id: ".m.rule.encrypted".into(),
+            rule_id: PredefinedUnderrideRuleId::Encrypted.to_string(),
             default: true,
             enabled: true,
             conditions: vec![EventMatch { key: "type".into(), pattern: "m.room.encrypted".into() }],
@@ -296,7 +298,7 @@ impl ConditionalPushRule {
     #[cfg(feature = "unstable-msc3381")]
     pub fn poll_start_one_to_one() -> Self {
         Self {
-            rule_id: ".m.rule.poll_start_one_to_one".into(),
+            rule_id: PredefinedUnderrideRuleId::PollStartOneToOne.to_string(),
             default: true,
             enabled: true,
             conditions: vec![
@@ -313,7 +315,7 @@ impl ConditionalPushRule {
     #[cfg(feature = "unstable-msc3381")]
     pub fn poll_start() -> Self {
         Self {
-            rule_id: ".m.rule.poll_start".into(),
+            rule_id: PredefinedUnderrideRuleId::PollStart.to_string(),
             default: true,
             enabled: true,
             conditions: vec![EventMatch { key: "type".into(), pattern: "m.poll.start".into() }],
@@ -327,7 +329,7 @@ impl ConditionalPushRule {
     #[cfg(feature = "unstable-msc3381")]
     pub fn poll_end_one_to_one() -> Self {
         Self {
-            rule_id: ".m.rule.poll_end_one_to_one".into(),
+            rule_id: PredefinedUnderrideRuleId::PollEndOneToOne.to_string(),
             default: true,
             enabled: true,
             conditions: vec![
@@ -344,11 +346,133 @@ impl ConditionalPushRule {
     #[cfg(feature = "unstable-msc3381")]
     pub fn poll_end() -> Self {
         Self {
-            rule_id: ".m.rule.poll_end".into(),
+            rule_id: PredefinedUnderrideRuleId::PollEnd.to_string(),
             default: true,
             enabled: true,
             conditions: vec![EventMatch { key: "type".into(), pattern: "m.poll.end".into() }],
             actions: vec![Notify],
         }
     }
+}
+
+/// The rule IDs of the predefined server push rules.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[non_exhaustive]
+pub enum PredefinedRuleId {
+    /// User-configured rules that override all other kinds.
+    Override(PredefinedOverrideRuleId),
+
+    /// Lowest priority user-defined rules.
+    Underride(PredefinedUnderrideRuleId),
+
+    /// Content-specific rules.
+    Content(PredefinedContentRuleId),
+}
+
+/// The rule IDs of the predefined override server push rules.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[non_exhaustive]
+pub enum PredefinedOverrideRuleId {
+    /// `.m.rule.master`
+    #[ruma_enum(rename = ".m.rule.master")]
+    Master,
+
+    /// `.m.rule.suppress_notices`
+    #[ruma_enum(rename = ".m.rule.suppress_notices")]
+    SuppressNotices,
+
+    /// `.m.rule.invite_for_me`
+    #[ruma_enum(rename = ".m.rule.invite_for_me")]
+    InviteForMe,
+
+    /// `.m.rule.member_event`
+    #[ruma_enum(rename = ".m.rule.member_event")]
+    MemberEvent,
+
+    /// `.m.rule.contains_display_name`
+    #[ruma_enum(rename = ".m.rule.contains_display_name")]
+    ContainsDisplayName,
+
+    /// `.m.rule.tombstone`
+    #[ruma_enum(rename = ".m.rule.tombstone")]
+    Tombstone,
+
+    /// `.m.rule.room.server_acl`
+    #[ruma_enum(rename = ".m.rule.room.server_acl")]
+    RoomServerAcl,
+
+    /// `.m.rule.roomnotif`
+    #[ruma_enum(rename = ".m.rule.roomnotif")]
+    RoomNotif,
+
+    /// `.m.rule.reaction`
+    #[cfg(feature = "unstable-msc2677")]
+    #[ruma_enum(rename = ".m.rule.reaction")]
+    Reaction,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}
+
+/// The rule IDs of the predefined underride server push rules.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[non_exhaustive]
+pub enum PredefinedUnderrideRuleId {
+    /// `.m.rule.call`
+    #[ruma_enum(rename = ".m.rule.call")]
+    Call,
+
+    /// `.m.rule.encrypted_room_one_to_one`
+    #[ruma_enum(rename = ".m.rule.encrypted_room_one_to_one")]
+    EncryptedRoomOneToOne,
+
+    /// `.m.rule.room_one_to_one`
+    #[ruma_enum(rename = ".m.rule.room_one_to_one")]
+    RoomOneToOne,
+
+    /// `.m.rule.message`
+    #[ruma_enum(rename = ".m.rule.message")]
+    Message,
+
+    /// `.m.rule.encrypted`
+    #[ruma_enum(rename = ".m.rule.encrypted")]
+    Encrypted,
+
+    /// `.m.rule.poll_start_one_to_one`
+    #[cfg(feature = "unstable-msc3381")]
+    #[ruma_enum(rename = ".m.rule.poll_start_one_to_one")]
+    PollStartOneToOne,
+
+    /// `.m.rule.poll_start`
+    #[cfg(feature = "unstable-msc3381")]
+    #[ruma_enum(rename = ".m.rule.poll_start")]
+    PollStart,
+
+    /// `.m.rule.poll_end_one_to_one`
+    #[cfg(feature = "unstable-msc3381")]
+    #[ruma_enum(rename = ".m.rule.poll_end_one_to_one")]
+    PollEndOneToOne,
+
+    /// `.m.rule.poll_end`
+    #[cfg(feature = "unstable-msc3381")]
+    #[ruma_enum(rename = ".m.rule.poll_end")]
+    PollEnd,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}
+
+/// The rule IDs of the predefined content server push rules.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[non_exhaustive]
+pub enum PredefinedContentRuleId {
+    /// `.m.rule.contains_user_name`
+    #[ruma_enum(rename = ".m.rule.contains_user_name")]
+    ContainsUserName,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
 }

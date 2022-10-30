@@ -38,6 +38,10 @@ pub use self::{
         ComparisonOperator, FlattenedJson, PushCondition, PushConditionRoomCtx, RoomMemberCountIs,
     },
     iter::{AnyPushRule, AnyPushRuleRef, RulesetIntoIter, RulesetIter},
+    predefined::{
+        PredefinedContentRuleId, PredefinedOverrideRuleId, PredefinedRuleId,
+        PredefinedUnderrideRuleId,
+    },
 };
 
 /// A push ruleset scopes a set of rules according to some criteria.

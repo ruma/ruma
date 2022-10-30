@@ -33,6 +33,7 @@ Improvements:
   * Add `RoomMessageEventContent::make_for_reply`
 * Stabilize support for event replacements (edits)
 * Add support for read receipts for threads (MSC3771 / Matrix 1.4)
+* Add `push::PredefinedRuleId` and associated types as a list of predefined push rule IDs
 
 # 0.10.5
 
