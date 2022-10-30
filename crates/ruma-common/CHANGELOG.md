@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+* HTML-relevant characters (`<`, `>`, etc) in plaintext replies are now escaped
+  during creation of the rich reply
+
 Breaking changes:
 
 * Remove deprecated `EventType` enum
