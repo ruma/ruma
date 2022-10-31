@@ -390,7 +390,7 @@ pub mod v1 {
             .unwrap();
             let events = vec![dummy_event];
 
-            let req = Request { events: &events, txn_id: "any_txn_id".into() }
+            let req = Request::new("any_txn_id".into(), &events)
                 .try_into_http_request::<Vec<u8>>(
                     "https://homeserver.tld",
                     SendAccessToken::IfRequired("auth_tok"),
