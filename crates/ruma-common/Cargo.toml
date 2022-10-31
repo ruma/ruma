@@ -89,4 +89,4 @@ trybuild = "1.0.71"
 [[bench]]
 name = "event_deserialize"
 harness = false
-required-features = ["criterion"]
+required-features = ["criterion", "events"]
