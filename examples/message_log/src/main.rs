@@ -1,8 +1,8 @@
 use std::{env, process::exit, time::Duration};
 
-use assign::assign;
 use ruma::{
     api::client::{filter::FilterDefinition, sync::sync_events},
+    assign,
     events::{
         room::message::{MessageType, RoomMessageEventContent, TextMessageEventContent},
         AnySyncMessageLikeEvent, AnySyncTimelineEvent, OriginalSyncMessageLikeEvent,
