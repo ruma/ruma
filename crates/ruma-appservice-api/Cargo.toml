@@ -30,4 +30,4 @@ serde_json = "1.0.61"
 
 [dev-dependencies]
 assert_matches = "1.5.0"
-serde_yaml = "0.8.17"
+serde_yaml = "0.9.14"
