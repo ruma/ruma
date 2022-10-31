@@ -21,7 +21,7 @@ jobs:
         id: xtask-cache
         with:
           path: target/debug/xtask
-          key: xtask-${{ hashFiles('xtask/src/**', 'xtask/Cargo.toml') }}
+          key: xtask-${{ hashFiles('Cargo.toml', 'xtask/src/**', 'xtask/Cargo.toml') }}
 
       - name: Install rust stable toolchain
         if: steps.xtask-cache.outputs.cache-hit != 'true'
@@ -67,7 +67,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: target/debug/xtask
-          key: xtask-${{ hashFiles('xtask/src/**', 'xtask/Cargo.toml') }}
+          key: xtask-${{ hashFiles('Cargo.toml', 'xtask/src/**', 'xtask/Cargo.toml') }}
 
       - name: Run lints
         run: target/debug/xtask ci lint
@@ -123,7 +123,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: target/debug/xtask
-          key: xtask-${{ hashFiles('xtask/src/**', 'xtask/Cargo.toml') }}
+          key: xtask-${{ hashFiles('Cargo.toml', 'xtask/src/**', 'xtask/Cargo.toml') }}
 
       - name: Run checks
         run: target/debug/xtask ci ${{ matrix.cmd }}
@@ -170,7 +170,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: target/debug/xtask
-          key: xtask-${{ hashFiles('xtask/src/**', 'xtask/Cargo.toml') }}
+          key: xtask-${{ hashFiles('Cargo.toml', 'xtask/src/**', 'xtask/Cargo.toml') }}
 
       - name: Run checks
         run: target/debug/xtask ci ${{ matrix.cmd }}
@@ -218,7 +218,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: target/debug/xtask
-          key: xtask-${{ hashFiles('xtask/src/**', 'xtask/Cargo.toml') }}
+          key: xtask-${{ hashFiles('Cargo.toml', 'xtask/src/**', 'xtask/Cargo.toml') }}
 
       - name: Run checks
         run: target/debug/xtask ci ${{ matrix.cmd }}
@@ -245,7 +245,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: target/debug/xtask
-          key: xtask-${{ hashFiles('xtask/src/**', 'xtask/Cargo.toml') }}
+          key: xtask-${{ hashFiles('Cargo.toml', 'xtask/src/**', 'xtask/Cargo.toml') }}
 
       - name: Build docs
         run: target/debug/xtask doc --deny-warnings
