@@ -1,6 +1,7 @@
 //! Endpoints for push notifications.
 use std::{error::Error, fmt};
 
+pub use ruma_common::push::RuleKind;
 use ruma_common::{
     push::{
         Action, ConditionalPushRule, ConditionalPushRuleInit, HttpPusherData, PatternedPushRule,
@@ -163,31 +164,6 @@ impl TryFrom<PushRule> for ConditionalPushRule {
             Err(MissingConditionsError)
         }
     }
-}
-
-/// The kinds of push rules that are available.
-#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
-#[ruma_enum(rename_all = "snake_case")]
-#[non_exhaustive]
-pub enum RuleKind {
-    /// User-configured rules that override all other kinds.
-    Override,
-
-    /// Lowest priority user-defined rules.
-    Underride,
-
-    /// Sender-specific rules.
-    Sender,
-
-    /// Room-specific rules.
-    Room,
-
-    /// Content-specific rules.
-    Content,
-
-    #[doc(hidden)]
-    _Custom(PrivOwnedStr),
 }
 
 /// Which kind a pusher is, and the information for that kind.
