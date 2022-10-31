@@ -119,6 +119,7 @@ unstable-extensible-events = [
 ]
 unstable-msc1767 = ["ruma-common/unstable-msc1767"]
 unstable-msc2246 = ["ruma-client-api?/unstable-msc2246"]
+unstable-msc2409 = ["ruma-appservice-api?/unstable-msc2409"]
 unstable-msc2448 = [
     "ruma-client-api?/unstable-msc2448",
     "ruma-common/unstable-msc2448",
@@ -134,6 +135,7 @@ unstable-msc2746 = ["ruma-common/unstable-msc2746"]
 unstable-msc2870 = ["ruma-common/unstable-msc2870"]
 unstable-msc2965 = ["ruma-client-api?/unstable-msc2965"]
 unstable-msc2967 = ["ruma-client-api?/unstable-msc2967"]
+unstable-msc3202 = ["ruma-appservice-api?/unstable-msc3202"]
 unstable-msc3245 = ["ruma-common/unstable-msc3245"]
 unstable-msc3246 = ["ruma-common/unstable-msc3246"]
 unstable-msc3381 = ["ruma-common/unstable-msc3381"]
@@ -162,6 +164,7 @@ __ci = [
     "unstable-unspecified",
     "unstable-sanitize",
     "unstable-msc1767",
+    "unstable-msc2409",
     "unstable-msc2448",
     "unstable-msc2666",
     "unstable-msc2654",
@@ -170,6 +173,7 @@ __ci = [
     "unstable-msc2870",
     "unstable-msc2965",
     "unstable-msc2967",
+    "unstable-msc3202",
     "unstable-msc3245",
     "unstable-msc3246",
     "unstable-msc3381",
