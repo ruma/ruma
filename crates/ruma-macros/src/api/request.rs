@@ -154,13 +154,6 @@ impl Request {
         self.fields.iter().any(|f| matches!(&f.kind, RequestFieldKind::Query))
     }
 
-    fn has_lifetimes(&self) -> bool {
-        !(self.lifetimes.body.is_empty()
-            && self.lifetimes.path.is_empty()
-            && self.lifetimes.query.is_empty()
-            && self.lifetimes.header.is_empty())
-    }
-
     fn header_fields(&self) -> impl Iterator<Item = (&Field, &Ident)> {
         self.fields.iter().filter_map(RequestField::as_header_field)
     }

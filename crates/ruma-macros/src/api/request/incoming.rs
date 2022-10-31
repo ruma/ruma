@@ -12,12 +12,6 @@ impl Request {
 
         let error_ty = &self.error_ty;
 
-        let incoming_request_type = if self.has_lifetimes() {
-            quote! { IncomingRequest }
-        } else {
-            quote! { Request }
-        };
-
         // FIXME: the rest of the field initializer expansions are gated `cfg(...)`
         // except this one. If we get errors about missing fields in IncomingRequest for
         // a path field look here.
@@ -179,7 +173,7 @@ impl Request {
         quote! {
             #[automatically_derived]
             #[cfg(feature = "server")]
-            impl #ruma_common::api::IncomingRequest for #incoming_request_type {
+            impl #ruma_common::api::IncomingRequest for IncomingRequest {
                 type EndpointError = #error_ty;
                 type OutgoingResponse = Response;
 
