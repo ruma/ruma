@@ -55,16 +55,11 @@ impl Request {
                 quote! { request_query },
             );
 
-            let request_query_ty = if self.lifetimes.query.is_empty() {
-                quote! { RequestQuery }
-            } else {
-                quote! { IncomingRequestQuery }
-            };
-
             let parse = quote! {
-                let request_query: #request_query_ty = #ruma_common::serde::urlencoded::from_str(
-                    &request.uri().query().unwrap_or("")
-                )?;
+                let request_query: IncomingRequestQuery =
+                    #ruma_common::serde::urlencoded::from_str(
+                        &request.uri().query().unwrap_or("")
+                    )?;
 
                 #decls
             };
@@ -135,14 +130,8 @@ impl Request {
         };
 
         let extract_body = self.has_body_fields().then(|| {
-            let request_body_ty = if self.lifetimes.body.is_empty() {
-                quote! { RequestBody }
-            } else {
-                quote! { IncomingRequestBody }
-            };
-
             quote! {
-                let request_body: #request_body_ty = {
+                let request_body: IncomingRequestBody = {
                     let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
                         request.body(),
                     );
