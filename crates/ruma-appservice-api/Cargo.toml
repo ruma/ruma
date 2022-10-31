@@ -15,11 +15,12 @@ rust-version = "1.64"
 all-features = true
 
 [features]
-unstable-exhaustive-types = []
 client = []
 server = []
-unstable-msc3202 = []
+
+unstable-exhaustive-types = []
 unstable-msc2409 = []
+unstable-msc3202 = []
 
 [dependencies]
 js_int = { version = "0.2.2", features = ["serde"] }
