@@ -34,9 +34,9 @@ mod user_serde;
 ///
 /// To construct the custom `AuthData` variant you first have to construct [`IncomingAuthData::new`]
 /// and then call [`IncomingAuthData::to_outgoing`] on it.
-#[derive(Clone, Debug, Incoming, Serialize)]
+#[derive(Clone, Incoming, Serialize)]
 #[non_exhaustive]
-#[incoming_derive(!Deserialize)]
+#[incoming_derive(!Debug, !Deserialize)]
 #[serde(untagged)]
 pub enum AuthData<'a> {
     /// Password-based authentication (`m.login.password`).
@@ -136,6 +136,22 @@ impl<'a> AuthData<'a> {
             // Dummy and fallback acknowledgement have no associated data
             Self::Dummy(_) | Self::FallbackAcknowledgement(_) => Cow::Owned(JsonObject::default()),
             Self::_Custom(c) => Cow::Borrowed(c.extra),
+        }
+    }
+}
+
+impl fmt::Debug for AuthData<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // Print `Password { .. }` instead of `Password(Password { .. })`
+        match self {
+            Self::Password(inner) => inner.fmt(f),
+            Self::ReCaptcha(inner) => inner.fmt(f),
+            Self::EmailIdentity(inner) => inner.fmt(f),
+            Self::Msisdn(inner) => inner.fmt(f),
+            Self::Dummy(inner) => inner.fmt(f),
+            Self::RegistrationToken(inner) => inner.fmt(f),
+            Self::FallbackAcknowledgement(inner) => inner.fmt(f),
+            Self::_Custom(inner) => inner.fmt(f),
         }
     }
 }
@@ -265,6 +281,22 @@ impl IncomingAuthData {
                 session: a.session.as_deref(),
                 extra: &a.extra,
             }),
+        }
+    }
+}
+
+impl fmt::Debug for IncomingAuthData {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // Print `Password { .. }` instead of `Password(Password { .. })`
+        match self {
+            Self::Password(inner) => inner.fmt(f),
+            Self::ReCaptcha(inner) => inner.fmt(f),
+            Self::EmailIdentity(inner) => inner.fmt(f),
+            Self::Msisdn(inner) => inner.fmt(f),
+            Self::Dummy(inner) => inner.fmt(f),
+            Self::RegistrationToken(inner) => inner.fmt(f),
+            Self::FallbackAcknowledgement(inner) => inner.fmt(f),
+            Self::_Custom(inner) => inner.fmt(f),
         }
     }
 }
