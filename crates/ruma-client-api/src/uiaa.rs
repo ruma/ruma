@@ -343,8 +343,9 @@ pub enum AuthType {
 /// See [the spec] for how to use this.
 ///
 /// [the spec]: https://spec.matrix.org/v1.4/client-server-api/#password-based
-#[derive(Clone, Debug, Incoming, Serialize)]
+#[derive(Clone, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[incoming_derive(!Debug)]
 #[serde(tag = "type", rename = "m.login.password")]
 pub struct Password<'a> {
     /// One of the user's identifiers.
@@ -364,6 +365,16 @@ impl<'a> Password<'a> {
     }
 }
 
+impl fmt::Debug for Password<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let Self { identifier, password: _, session } = self;
+        f.debug_struct("Password")
+            .field("identifier", identifier)
+            .field("session", session)
+            .finish_non_exhaustive()
+    }
+}
+
 impl IncomingPassword {
     /// Convert `IncomingPassword` to `Password`.
     fn to_outgoing(&self) -> Password<'_> {
@@ -375,13 +386,24 @@ impl IncomingPassword {
     }
 }
 
+impl fmt::Debug for IncomingPassword {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let Self { identifier, password: _, session } = self;
+        f.debug_struct("IncomingPassword")
+            .field("identifier", identifier)
+            .field("session", session)
+            .finish_non_exhaustive()
+    }
+}
+
 /// Data for ReCaptcha UIAA flow.
 ///
 /// See [the spec] for how to use this.
 ///
 /// [the spec]: https://spec.matrix.org/v1.4/client-server-api/#google-recaptcha
-#[derive(Clone, Debug, Incoming, Serialize)]
+#[derive(Clone, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[incoming_derive(!Debug)]
 #[serde(tag = "type", rename = "m.login.recaptcha")]
 pub struct ReCaptcha<'a> {
     /// The captcha response.
@@ -398,10 +420,24 @@ impl<'a> ReCaptcha<'a> {
     }
 }
 
+impl fmt::Debug for ReCaptcha<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let Self { response: _, session } = self;
+        f.debug_struct("ReCaptcha").field("session", session).finish_non_exhaustive()
+    }
+}
+
 impl IncomingReCaptcha {
     /// Convert `IncomingReCaptcha` to `ReCaptcha`.
     fn to_outgoing(&self) -> ReCaptcha<'_> {
         ReCaptcha { response: &self.response, session: self.session.as_deref() }
+    }
+}
+
+impl fmt::Debug for IncomingReCaptcha {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let Self { response: _, session } = self;
+        f.debug_struct("IncomingReCaptcha").field("session", session).finish_non_exhaustive()
     }
 }
 
@@ -488,8 +524,9 @@ impl IncomingDummy {
 /// See [the spec] for how to use this.
 ///
 /// [the spec]: https://spec.matrix.org/v1.4/client-server-api/#token-authenticated-registration
-#[derive(Clone, Debug, Incoming, Serialize)]
+#[derive(Clone, Incoming, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[incoming_derive(!Debug)]
 #[serde(tag = "type", rename = "m.login.registration_token")]
 pub struct RegistrationToken<'a> {
     /// The registration token.
@@ -506,10 +543,26 @@ impl<'a> RegistrationToken<'a> {
     }
 }
 
+impl fmt::Debug for RegistrationToken<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let Self { token: _, session } = self;
+        f.debug_struct("RegistrationToken").field("session", session).finish_non_exhaustive()
+    }
+}
+
 impl IncomingRegistrationToken {
     /// Convert from `IncomingRegistrationToken` to `RegistrationToken`.
     fn to_outgoing(&self) -> RegistrationToken<'_> {
         RegistrationToken { token: &self.token, session: self.session.as_deref() }
+    }
+}
+
+impl fmt::Debug for IncomingRegistrationToken {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let Self { token: _, session } = self;
+        f.debug_struct("IncomingRegistrationToken")
+            .field("session", session)
+            .finish_non_exhaustive()
     }
 }
 
@@ -540,7 +593,7 @@ impl IncomingFallbackAcknowledgement {
 }
 
 #[doc(hidden)]
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Serialize)]
 #[non_exhaustive]
 pub struct CustomAuthData<'a> {
     #[serde(rename = "type")]
@@ -550,8 +603,18 @@ pub struct CustomAuthData<'a> {
     extra: &'a JsonObject,
 }
 
+impl fmt::Debug for CustomAuthData<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let Self { auth_type, session, extra: _ } = self;
+        f.debug_struct("CustomAuthData")
+            .field("auth_type", auth_type)
+            .field("session", session)
+            .finish_non_exhaustive()
+    }
+}
+
 #[doc(hidden)]
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Deserialize)]
 #[non_exhaustive]
 pub struct IncomingCustomAuthData {
     #[serde(rename = "type")]
@@ -559,6 +622,16 @@ pub struct IncomingCustomAuthData {
     session: Option<String>,
     #[serde(flatten)]
     extra: JsonObject,
+}
+
+impl fmt::Debug for IncomingCustomAuthData {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let Self { auth_type, session, extra: _ } = self;
+        f.debug_struct("CustomAuthData")
+            .field("auth_type", auth_type)
+            .field("session", session)
+            .finish_non_exhaustive()
+    }
 }
 
 /// Identification information for the user.
@@ -670,7 +743,7 @@ pub struct IncomingCustomThirdPartyId {
 }
 
 /// Credentials for third-party authentication (e.g. email / phone number).
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ThirdpartyIdCredentials {
     /// Identity server session ID.
@@ -696,6 +769,17 @@ impl ThirdpartyIdCredentials {
         id_access_token: String,
     ) -> Self {
         Self { sid, client_secret, id_server, id_access_token }
+    }
+}
+
+impl fmt::Debug for ThirdpartyIdCredentials {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let Self { sid, client_secret: _, id_server, id_access_token } = self;
+        f.debug_struct("ThirdpartyIdCredentials")
+            .field("sid", sid)
+            .field("id_server", id_server)
+            .field("id_access_token", id_access_token)
+            .finish_non_exhaustive()
     }
 }
 
