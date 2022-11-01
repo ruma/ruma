@@ -140,9 +140,9 @@ pub mod v3 {
     ///
     /// To construct the custom `LoginInfo` variant you first have to construct
     /// [`IncomingLoginInfo::new`] and then call [`IncomingLoginInfo::to_outgoing`] on it.
-    #[derive(Clone, Debug, Incoming, Serialize)]
+    #[derive(Clone, Incoming, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-    #[incoming_derive(!Deserialize)]
+    #[incoming_derive(!Debug, !Deserialize)]
     #[serde(untagged)]
     pub enum LoginInfo<'a> {
         /// An identifier and password are supplied to authenticate.
@@ -156,6 +156,18 @@ pub mod v3 {
 
         #[doc(hidden)]
         _Custom(CustomLoginInfo<'a>),
+    }
+
+    impl fmt::Debug for LoginInfo<'_> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            // Print `Password { .. }` instead of `Password(Password { .. })`
+            match self {
+                Self::Password(inner) => inner.fmt(f),
+                Self::Token(inner) => inner.fmt(f),
+                Self::ApplicationService(inner) => inner.fmt(f),
+                Self::_Custom(inner) => inner.fmt(f),
+            }
+        }
     }
 
     impl IncomingLoginInfo {
@@ -195,6 +207,18 @@ pub mod v3 {
                     login_type: &a.login_type,
                     extra: &a.extra,
                 }),
+            }
+        }
+    }
+
+    impl fmt::Debug for IncomingLoginInfo {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            // Print `Password { .. }` instead of `Password(Password { .. })`
+            match self {
+                Self::Password(inner) => inner.fmt(f),
+                Self::Token(inner) => inner.fmt(f),
+                Self::ApplicationService(inner) => inner.fmt(f),
+                Self::_Custom(inner) => inner.fmt(f),
             }
         }
     }
