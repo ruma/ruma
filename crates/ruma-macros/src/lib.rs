@@ -28,7 +28,6 @@ use self::{
     api::{
         request::{expand_derive_request, expand_request},
         response::{expand_derive_response, expand_response},
-        Api,
     },
     events::{
         event::expand_event,
@@ -381,14 +380,6 @@ pub fn fake_derive_serde(_input: TokenStream) -> TokenStream {
 }
 
 /// > ⚠ If this is the only documentation you see, please navigate to the docs for
-/// > `ruma_common::api::ruma_api`, where actual documentation can be found.
-#[proc_macro]
-pub fn ruma_api(input: TokenStream) -> TokenStream {
-    let api = parse_macro_input!(input as Api);
-    api.expand_all().into()
-}
-
-/// > ⚠ If this is the only documentation you see, please navigate to the docs for
 /// > `ruma_common::api::request`, where actual documentation can be found.
 #[proc_macro_attribute]
 pub fn request(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -406,14 +397,14 @@ pub fn response(attr: TokenStream, item: TokenStream) -> TokenStream {
     expand_response(attr, item).into()
 }
 
-/// Internal helper taking care of the request-specific parts of `ruma_api!`.
+/// Internal helper that the request macro delegates most of its work to.
 #[proc_macro_derive(Request, attributes(ruma_api))]
 pub fn derive_request(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     expand_derive_request(input).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
-/// Internal helper taking care of the response-specific parts of `ruma_api!`.
+/// Internal helper that the response macro delegates most of its work to.
 #[proc_macro_derive(Response, attributes(ruma_api))]
 pub fn derive_response(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
