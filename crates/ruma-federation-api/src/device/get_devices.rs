@@ -9,53 +9,56 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::ruma_api,
+        api::{request, response, Metadata},
         encryption::{CrossSigningKey, DeviceKeys},
+        metadata,
         serde::Raw,
         OwnedDeviceId, OwnedUserId, UserId,
     };
     use serde::{Deserialize, Serialize};
 
-    ruma_api! {
-        metadata: {
-            description: "Gets information on all of the user's devices.",
-            name: "get_devices",
-            method: GET,
-            stable_path: "/_matrix/federation/v1/user/devices/:user_id",
-            rate_limited: false,
-            authentication: ServerSignatures,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Gets information on all of the user's devices.",
+        method: GET,
+        name: "get_devices",
+        rate_limited: false,
+        authentication: ServerSignatures,
+        history: {
+            1.0 => "/_matrix/federation/v1/user/devices/:user_id",
         }
+    };
 
-        request: {
-            /// The user ID to retrieve devices for.
-            ///
-            /// Must be a user local to the receiving homeserver.
-            #[ruma_api(path)]
-            pub user_id: &'a UserId,
-        }
+    #[request]
+    pub struct Request<'a> {
+        /// The user ID to retrieve devices for.
+        ///
+        /// Must be a user local to the receiving homeserver.
+        #[ruma_api(path)]
+        pub user_id: &'a UserId,
+    }
 
-        response: {
-            /// The user ID devices were requested for.
-            pub user_id: OwnedUserId,
+    #[response]
+    pub struct Response {
+        /// The user ID devices were requested for.
+        pub user_id: OwnedUserId,
 
-            /// A unique ID for a given user_id which describes the version of the returned device list.
-            ///
-            /// This is matched with the `stream_id` field in `m.device_list_update` EDUs in order to
-            /// incrementally update the returned device_list.
-            pub stream_id: UInt,
+        /// A unique ID for a given user_id which describes the version of the returned device
+        /// list.
+        ///
+        /// This is matched with the `stream_id` field in `m.device_list_update` EDUs in order to
+        /// incrementally update the returned device_list.
+        pub stream_id: UInt,
 
-            /// The user's devices.
-            pub devices: Vec<UserDevice>,
+        /// The user's devices.
+        pub devices: Vec<UserDevice>,
 
-            /// The user's master key.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub master_key: Option<Raw<CrossSigningKey>>,
+        /// The user's master key.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub master_key: Option<Raw<CrossSigningKey>>,
 
-            /// The users's self-signing key.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub self_signing_key: Option<Raw<CrossSigningKey>>,
-        }
+        /// The users's self-signing key.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub self_signing_key: Option<Raw<CrossSigningKey>>,
     }
 
     impl<'a> Request<'a> {

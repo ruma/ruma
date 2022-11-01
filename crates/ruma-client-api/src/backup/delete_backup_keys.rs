@@ -8,39 +8,41 @@ pub mod v3 {
     //! This deletes keys from a backup version, but not the version itself.
 
     use js_int::UInt;
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Delete all keys from a backup.",
-            method: DELETE,
-            name: "delete_backup_keys",
-            unstable_path: "/_matrix/client/unstable/room_keys/keys",
-            r0_path: "/_matrix/client/r0/room_keys/keys",
-            stable_path: "/_matrix/client/v3/room_keys/keys",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Delete all keys from a backup.",
+        method: DELETE,
+        name: "delete_backup_keys",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            unstable => "/_matrix/client/unstable/room_keys/keys",
+            1.0 => "/_matrix/client/r0/room_keys/keys",
+            1.1 => "/_matrix/client/v3/room_keys/keys",
         }
+    };
 
-        request: {
-            /// The backup version from which to delete keys.
-            #[ruma_api(query)]
-            pub version: &'a str,
-        }
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The backup version from which to delete keys.
+        #[ruma_api(query)]
+        pub version: &'a str,
+    }
 
-        response: {
-            /// An opaque string representing stored keys in the backup.
-            ///
-            /// Clients can compare it with the etag value they received in the request of their last
-            /// key storage request.
-            pub etag: String,
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// An opaque string representing stored keys in the backup.
+        ///
+        /// Clients can compare it with the etag value they received in the request of their last
+        /// key storage request.
+        pub etag: String,
 
-            /// The number of keys stored in the backup.
-            pub count: UInt,
-        }
-
-        error: crate::Error
+        /// The number of keys stored in the backup.
+        pub count: UInt,
     }
 
     impl<'a> Request<'a> {

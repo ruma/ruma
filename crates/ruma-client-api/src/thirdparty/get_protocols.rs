@@ -7,30 +7,33 @@ pub mod v3 {
 
     use std::collections::BTreeMap;
 
-    use ruma_common::{api::ruma_api, thirdparty::Protocol};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+        thirdparty::Protocol,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Fetches the overall metadata about protocols supported by the homeserver.",
-            method: GET,
-            name: "get_protocols",
-            r0_path: "/_matrix/client/r0/thirdparty/protocols",
-            stable_path: "/_matrix/client/v3/thirdparty/protocols",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Fetches the overall metadata about protocols supported by the homeserver.",
+        method: GET,
+        name: "get_protocols",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/thirdparty/protocols",
+            1.1 => "/_matrix/client/v3/thirdparty/protocols",
         }
+    };
 
-        #[derive(Default)]
-        request: {}
+    #[request(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Request {}
 
-        response: {
-            /// Metadata about protocols supported by the homeserver.
-            #[ruma_api(body)]
-            pub protocols: BTreeMap<String, Protocol>,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// Metadata about protocols supported by the homeserver.
+        #[ruma_api(body)]
+        pub protocols: BTreeMap<String, Protocol>,
     }
 
     impl Request {

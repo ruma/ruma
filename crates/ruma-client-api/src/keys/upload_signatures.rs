@@ -8,8 +8,9 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::ruma_api,
+        api::{request, response, Metadata},
         encryption::{CrossSigningKey, DeviceKeys},
+        metadata,
         serde::{Raw, StringEnum},
         OwnedDeviceId, OwnedUserId,
     };
@@ -20,31 +21,30 @@ pub mod v3 {
 
     pub use super::iter::SignedKeysIter;
 
-    ruma_api! {
-        metadata: {
-            description: "Publishes cross-signing signatures for the user.",
-            method: POST,
-            name: "upload_signatures",
-            unstable_path: "/_matrix/client/unstable/keys/signatures/upload",
-            stable_path: "/_matrix/client/v3/keys/signatures/upload",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.1,
+    const METADATA: Metadata = metadata! {
+        description: "Publishes cross-signing signatures for the user.",
+        method: POST,
+        name: "upload_signatures",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            unstable => "/_matrix/client/unstable/keys/signatures/upload",
+            1.1 => "/_matrix/client/v3/keys/signatures/upload",
         }
+    };
 
-        request: {
-            /// Signed keys.
-            #[ruma_api(body)]
-            pub signed_keys: BTreeMap<OwnedUserId, SignedKeys>,
-        }
+    #[request(error = crate::Error)]
+    pub struct Request {
+        /// Signed keys.
+        #[ruma_api(body)]
+        pub signed_keys: BTreeMap<OwnedUserId, SignedKeys>,
+    }
 
-        #[derive(Default)]
-        response: {
-            /// Signature processing failures.
-            pub failures: BTreeMap<OwnedUserId, BTreeMap<String, Failure>>,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {
+        /// Signature processing failures.
+        pub failures: BTreeMap<OwnedUserId, BTreeMap<String, Failure>>,
     }
 
     impl Request {

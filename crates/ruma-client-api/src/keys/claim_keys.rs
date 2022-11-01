@@ -8,47 +8,49 @@ pub mod v3 {
     use std::{collections::BTreeMap, time::Duration};
 
     use ruma_common::{
-        api::ruma_api, encryption::OneTimeKey, serde::Raw, DeviceKeyAlgorithm, OwnedDeviceId,
-        OwnedDeviceKeyId, OwnedUserId,
+        api::{request, response, Metadata},
+        encryption::OneTimeKey,
+        metadata,
+        serde::Raw,
+        DeviceKeyAlgorithm, OwnedDeviceId, OwnedDeviceKeyId, OwnedUserId,
     };
     use serde_json::Value as JsonValue;
 
-    ruma_api! {
-        metadata: {
-            description: "Claims one-time keys for use in pre-key messages.",
-            method: POST,
-            name: "claim_keys",
-            r0_path: "/_matrix/client/r0/keys/claim",
-            stable_path: "/_matrix/client/v3/keys/claim",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Claims one-time keys for use in pre-key messages.",
+        method: POST,
+        name: "claim_keys",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/keys/claim",
+            1.1 => "/_matrix/client/v3/keys/claim",
         }
+    };
 
-        request: {
-            /// The time (in milliseconds) to wait when downloading keys from remote servers.
-            /// 10 seconds is the recommended default.
-            #[serde(
-                with = "ruma_common::serde::duration::opt_ms",
-                default,
-                skip_serializing_if = "Option::is_none",
-            )]
-            pub timeout: Option<Duration>,
+    #[request(error = crate::Error)]
+    pub struct Request {
+        /// The time (in milliseconds) to wait when downloading keys from remote servers.
+        /// 10 seconds is the recommended default.
+        #[serde(
+            with = "ruma_common::serde::duration::opt_ms",
+            default,
+            skip_serializing_if = "Option::is_none"
+        )]
+        pub timeout: Option<Duration>,
 
-            /// The keys to be claimed.
-            pub one_time_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, DeviceKeyAlgorithm>>,
-        }
+        /// The keys to be claimed.
+        pub one_time_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, DeviceKeyAlgorithm>>,
+    }
 
-        response: {
-            /// If any remote homeservers could not be reached, they are recorded here.
-            /// The names of the properties are the names of the unreachable servers.
-            pub failures: BTreeMap<String, JsonValue>,
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// If any remote homeservers could not be reached, they are recorded here.
+        /// The names of the properties are the names of the unreachable servers.
+        pub failures: BTreeMap<String, JsonValue>,
 
-            /// One-time keys for the queried devices.
-            pub one_time_keys: BTreeMap<OwnedUserId, OneTimeKeys>,
-        }
-
-        error: crate::Error
+        /// One-time keys for the queried devices.
+        pub one_time_keys: BTreeMap<OwnedUserId, OneTimeKeys>,
     }
 
     impl Request {

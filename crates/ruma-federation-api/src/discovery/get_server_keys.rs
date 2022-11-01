@@ -10,29 +10,34 @@ pub mod v2 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#get_matrixkeyv2serverkeyid
 
-    use ruma_common::{api::ruma_api, serde::Raw};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+        serde::Raw,
+    };
 
     use crate::discovery::ServerSigningKeys;
 
-    ruma_api! {
-        metadata: {
-            description: "Gets the homeserver's published signing keys.",
-            method: GET,
-            name: "get_server_keys",
-            stable_path: "/_matrix/key/v2/server",
-            rate_limited: false,
-            authentication: None,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Gets the homeserver's published signing keys.",
+        method: GET,
+        name: "get_server_keys",
+        rate_limited: false,
+        authentication: None,
+        history: {
+            1.0 => "/_matrix/key/v2/server",
         }
+    };
 
-        #[derive(Default)]
-        request: {}
+    #[request]
+    #[derive(Default)]
+    pub struct Request {}
 
-        response: {
-            /// Queried server key, signed by the notary server.
-            #[ruma_api(body)]
-            pub server_key: Raw<ServerSigningKeys>,
-        }
+    #[response]
+    pub struct Response {
+        /// Queried server key, signed by the notary server.
+        #[ruma_api(body)]
+        pub server_key: Raw<ServerSigningKeys>,
     }
 
     impl Request {

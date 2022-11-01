@@ -2,27 +2,31 @@
 //!
 //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#getwell-knownmatrixserver
 
-use ruma_common::{api::ruma_api, OwnedServerName};
+use ruma_common::{
+    api::{request, response, Metadata},
+    metadata, OwnedServerName,
+};
 
-ruma_api! {
-    metadata: {
-        description: "Get discovery information about the domain.",
-        method: GET,
-        name: "discover_homeserver",
-        stable_path: "/.well-known/matrix/server",
-        rate_limited: false,
-        authentication: None,
-        added: 1.0,
+const METADATA: Metadata = metadata! {
+    description: "Get discovery information about the domain.",
+    method: GET,
+    name: "discover_homeserver",
+    rate_limited: false,
+    authentication: None,
+    history: {
+        1.0 => "/.well-known/matrix/server",
     }
+};
 
-    #[derive(Default)]
-    request: {}
+#[request]
+#[derive(Default)]
+pub struct Request {}
 
-    response: {
-        /// The server name to delegate server-server communications to, with optional port.
-        #[serde(rename = "m.server")]
-        pub server: OwnedServerName,
-    }
+#[response]
+pub struct Response {
+    /// The server name to delegate server-server communications to, with optional port.
+    #[serde(rename = "m.server")]
+    pub server: OwnedServerName,
 }
 
 impl Request {

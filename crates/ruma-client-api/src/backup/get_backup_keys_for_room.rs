@@ -7,39 +7,43 @@ pub mod v3 {
 
     use std::collections::BTreeMap;
 
-    use ruma_common::{api::ruma_api, serde::Raw, RoomId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+        serde::Raw,
+        RoomId,
+    };
 
     use crate::backup::KeyBackupData;
 
-    ruma_api! {
-        metadata: {
-            description: "Retrieve sessions from the backup for a given room.",
-            method: GET,
-            name: "get_backup_keys_for_room",
-            unstable_path: "/_matrix/client/unstable/room_keys/keys/:room_id",
-            r0_path: "/_matrix/client/r0/room_keys/keys/:room_id",
-            stable_path: "/_matrix/client/v3/room_keys/keys/:room_id",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Retrieve sessions from the backup for a given room.",
+        method: GET,
+        name: "get_backup_keys_for_room",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            unstable => "/_matrix/client/unstable/room_keys/keys/:room_id",
+            1.0 => "/_matrix/client/r0/room_keys/keys/:room_id",
+            1.1 => "/_matrix/client/v3/room_keys/keys/:room_id",
         }
+    };
 
-        request: {
-            /// The backup version to retrieve keys from.
-            #[ruma_api(query)]
-            pub version: &'a str,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The backup version to retrieve keys from.
+        #[ruma_api(query)]
+        pub version: &'a str,
 
-            /// The ID of the room that the requested key is for.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
-        }
+        /// The ID of the room that the requested key is for.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
+    }
 
-        response: {
-            /// A map of session IDs to key data.
-            pub sessions: BTreeMap<String, Raw<KeyBackupData>>,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// A map of session IDs to key data.
+        pub sessions: BTreeMap<String, Raw<KeyBackupData>>,
     }
 
     impl<'a> Request<'a> {

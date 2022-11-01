@@ -8,7 +8,8 @@ pub mod v3 {
     use std::borrow::Cow;
 
     use ruma_common::{
-        api::ruma_api,
+        api::{request, response, Metadata},
+        metadata,
         serde::{JsonObject, StringEnum},
         OwnedMxcUri,
     };
@@ -17,27 +18,26 @@ pub mod v3 {
 
     use crate::PrivOwnedStr;
 
-    ruma_api! {
-        metadata: {
-            description: "Gets the homeserver's supported login types to authenticate users. Clients should pick one of these and supply it as the type when logging in.",
-            method: GET,
-            name: "get_login_types",
-            r0_path: "/_matrix/client/r0/login",
-            stable_path: "/_matrix/client/v3/login",
-            rate_limited: true,
-            authentication: None,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Gets the homeserver's supported login types to authenticate users. Clients should pick one of these and supply it as the type when logging in.",
+        method: GET,
+        name: "get_login_types",
+        rate_limited: true,
+        authentication: None,
+        history: {
+            1.0 => "/_matrix/client/r0/login",
+            1.1 => "/_matrix/client/v3/login",
         }
+    };
 
-        #[derive(Default)]
-        request: {}
+    #[request(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Request {}
 
-        response: {
-            /// The homeserver's supported login types.
-            pub flows: Vec<LoginType>,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The homeserver's supported login types.
+        pub flows: Vec<LoginType>,
     }
 
     impl Request {

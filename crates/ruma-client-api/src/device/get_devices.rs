@@ -5,31 +5,33 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3devices
 
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
     use crate::device::Device;
 
-    ruma_api! {
-        metadata: {
-            description: "Get registered devices for authenticated user.",
-            method: GET,
-            name: "get_devices",
-            r0_path: "/_matrix/client/r0/devices",
-            stable_path: "/_matrix/client/v3/devices",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get registered devices for authenticated user.",
+        method: GET,
+        name: "get_devices",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/devices",
+            1.1 => "/_matrix/client/v3/devices",
         }
+    };
 
-        #[derive(Default)]
-        request: {}
+    #[request(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Request {}
 
-        response: {
-            /// A list of all registered devices for this user
-            pub devices: Vec<Device>,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// A list of all registered devices for this user
+        pub devices: Vec<Device>,
     }
 
     impl Request {

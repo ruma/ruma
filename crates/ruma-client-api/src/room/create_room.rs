@@ -7,7 +7,7 @@ pub mod v3 {
 
     use assign::assign;
     use ruma_common::{
-        api::ruma_api,
+        api::{request, response, Metadata},
         events::{
             room::{
                 create::{PreviousRoom, RoomCreateEventContent},
@@ -15,6 +15,7 @@ pub mod v3 {
             },
             AnyInitialStateEvent,
         },
+        metadata,
         room::RoomType,
         serde::{Raw, StringEnum},
         OwnedRoomId, OwnedUserId, RoomVersionId,
@@ -27,86 +28,85 @@ pub mod v3 {
         PrivOwnedStr,
     };
 
-    ruma_api! {
-        metadata: {
-            description: "Create a new room.",
-            method: POST,
-            name: "create_room",
-            r0_path: "/_matrix/client/r0/createRoom",
-            stable_path: "/_matrix/client/v3/createRoom",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Create a new room.",
+        method: POST,
+        name: "create_room",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/createRoom",
+            1.1 => "/_matrix/client/v3/createRoom",
         }
+    };
 
-        #[derive(Default)]
-        request: {
-            /// Extra keys to be added to the content of the `m.room.create`.
-            #[serde(default, skip_serializing_if = "Option::is_none")]
-            pub creation_content: Option<Raw<CreationContent>>,
+    #[request(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Request<'a> {
+        /// Extra keys to be added to the content of the `m.room.create`.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub creation_content: Option<Raw<CreationContent>>,
 
-            /// List of state events to send to the new room.
-            ///
-            /// Takes precedence over events set by preset, but gets overridden by name and topic keys.
-            #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-            pub initial_state: &'a [Raw<AnyInitialStateEvent>],
+        /// List of state events to send to the new room.
+        ///
+        /// Takes precedence over events set by preset, but gets overridden by name and topic keys.
+        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        pub initial_state: &'a [Raw<AnyInitialStateEvent>],
 
-            /// A list of user IDs to invite to the room.
-            ///
-            /// This will tell the server to invite everyone in the list to the newly created room.
-            #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-            pub invite: &'a [OwnedUserId],
+        /// A list of user IDs to invite to the room.
+        ///
+        /// This will tell the server to invite everyone in the list to the newly created room.
+        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        pub invite: &'a [OwnedUserId],
 
-            /// List of third party IDs of users to invite.
-            #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-            pub invite_3pid: &'a [Invite3pid<'a>],
+        /// List of third party IDs of users to invite.
+        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        pub invite_3pid: &'a [Invite3pid<'a>],
 
-            /// If set, this sets the `is_direct` flag on room invites.
-            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
-            pub is_direct: bool,
+        /// If set, this sets the `is_direct` flag on room invites.
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        pub is_direct: bool,
 
-            /// If this is included, an `m.room.name` event will be sent into the room to indicate the
-            /// name of the room.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub name: Option<&'a str>,
+        /// If this is included, an `m.room.name` event will be sent into the room to indicate the
+        /// name of the room.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub name: Option<&'a str>,
 
-            /// Power level content to override in the default power level event.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub power_level_content_override: Option<Raw<RoomPowerLevelsEventContent>>,
+        /// Power level content to override in the default power level event.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub power_level_content_override: Option<Raw<RoomPowerLevelsEventContent>>,
 
-            /// Convenience parameter for setting various default state events based on a preset.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub preset: Option<RoomPreset>,
+        /// Convenience parameter for setting various default state events based on a preset.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub preset: Option<RoomPreset>,
 
-            /// The desired room alias local part.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub room_alias_name: Option<&'a str>,
+        /// The desired room alias local part.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub room_alias_name: Option<&'a str>,
 
-            /// Room version to set for the room.
-            ///
-            /// Defaults to homeserver's default if not specified.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub room_version: Option<&'a RoomVersionId>,
+        /// Room version to set for the room.
+        ///
+        /// Defaults to homeserver's default if not specified.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub room_version: Option<&'a RoomVersionId>,
 
-            /// If this is included, an `m.room.topic` event will be sent into the room to indicate
-            /// the topic for the room.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub topic: Option<&'a str>,
+        /// If this is included, an `m.room.topic` event will be sent into the room to indicate
+        /// the topic for the room.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub topic: Option<&'a str>,
 
-            /// A public visibility indicates that the room will be shown in the published room list.
-            ///
-            /// A private visibility will hide the room from the published room list. Defaults to
-            /// `Private`.
-            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
-            pub visibility: Visibility,
-        }
+        /// A public visibility indicates that the room will be shown in the published room list.
+        ///
+        /// A private visibility will hide the room from the published room list. Defaults to
+        /// `Private`.
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        pub visibility: Visibility,
+    }
 
-        response: {
-            /// The created room's ID.
-            pub room_id: OwnedRoomId,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The created room's ID.
+        pub room_id: OwnedRoomId,
     }
 
     impl Request<'_> {

@@ -7,37 +7,41 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#get_matrixfederationv1eventeventid
 
-    use ruma_common::{api::ruma_api, EventId, MilliSecondsSinceUnixEpoch, OwnedServerName};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, EventId, MilliSecondsSinceUnixEpoch, OwnedServerName,
+    };
     use serde_json::value::RawValue as RawJsonValue;
 
-    ruma_api! {
-        metadata: {
-            description: "Retrieves a single event.",
-            method: GET,
-            name: "get_event",
-            stable_path: "/_matrix/federation/v1/event/:event_id",
-            rate_limited: false,
-            authentication: ServerSignatures,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Retrieves a single event.",
+        method: GET,
+        name: "get_event",
+        rate_limited: false,
+        authentication: ServerSignatures,
+        history: {
+            1.0 => "/_matrix/federation/v1/event/:event_id",
         }
+    };
 
-        request: {
-            /// The event ID to get.
-            #[ruma_api(path)]
-            pub event_id: &'a EventId,
-        }
+    #[request]
+    pub struct Request<'a> {
+        /// The event ID to get.
+        #[ruma_api(path)]
+        pub event_id: &'a EventId,
+    }
 
-        response: {
-            /// The `server_name` of the homeserver sending this transaction.
-            pub origin: OwnedServerName,
+    #[response]
+    pub struct Response {
+        /// The `server_name` of the homeserver sending this transaction.
+        pub origin: OwnedServerName,
 
-            /// Time on originating homeserver when this transaction started.
-            pub origin_server_ts: MilliSecondsSinceUnixEpoch,
+        /// Time on originating homeserver when this transaction started.
+        pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
-            /// The event.
-            #[serde(rename = "pdus", with = "ruma_common::serde::single_element_seq")]
-            pub pdu: Box<RawJsonValue>,
-        }
+        /// The event.
+        #[serde(rename = "pdus", with = "ruma_common::serde::single_element_seq")]
+        pub pdu: Box<RawJsonValue>,
     }
 
     impl<'a> Request<'a> {

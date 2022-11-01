@@ -7,58 +7,60 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::ruma_api, events::AnySyncTimelineEvent, push::Action, serde::Raw,
+        api::{request, response, Metadata},
+        events::AnySyncTimelineEvent,
+        metadata,
+        push::Action,
+        serde::Raw,
         MilliSecondsSinceUnixEpoch, OwnedRoomId,
     };
     use serde::{Deserialize, Serialize};
 
-    ruma_api! {
-        metadata: {
-            description: "Paginate through the list of events that the user has been, or would have been notified about.",
-            method: GET,
-            name: "get_notifications",
-            r0_path: "/_matrix/client/r0/notifications",
-            stable_path: "/_matrix/client/v3/notifications",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Paginate through the list of events that the user has been, or would have been notified about.",
+        method: GET,
+        name: "get_notifications",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/notifications",
+            1.1 => "/_matrix/client/v3/notifications",
         }
+    };
 
-        #[derive(Default)]
-        request: {
-            /// Pagination token given to retrieve the next set of events.
-            #[ruma_api(query)]
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub from: Option<&'a str>,
+    #[request(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Request<'a> {
+        /// Pagination token given to retrieve the next set of events.
+        #[ruma_api(query)]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub from: Option<&'a str>,
 
-            /// Limit on the number of events to return in this request.
-            #[ruma_api(query)]
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub limit: Option<UInt>,
+        /// Limit on the number of events to return in this request.
+        #[ruma_api(query)]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub limit: Option<UInt>,
 
-            /// Allows basic filtering of events returned.
-            ///
-            /// Supply "highlight" to return only events where the notification had the 'highlight'
-            /// tweak set.
-            #[ruma_api(query)]
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub only: Option<&'a str>,
-        }
+        /// Allows basic filtering of events returned.
+        ///
+        /// Supply "highlight" to return only events where the notification had the 'highlight'
+        /// tweak set.
+        #[ruma_api(query)]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub only: Option<&'a str>,
+    }
 
-        response: {
-            /// The token to supply in the from param of the next /notifications request in order to
-            /// request more events.
-            ///
-            /// If this is absent, there are no more results.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub next_token: Option<String>,
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The token to supply in the from param of the next /notifications request in order to
+        /// request more events.
+        ///
+        /// If this is absent, there are no more results.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub next_token: Option<String>,
 
-
-            /// The list of events that triggered notifications.
-            pub notifications: Vec<Notification>,
-        }
-
-        error: crate::Error
+        /// The list of events that triggered notifications.
+        pub notifications: Vec<Notification>,
     }
 
     impl<'a> Request<'a> {

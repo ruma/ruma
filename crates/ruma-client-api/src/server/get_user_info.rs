@@ -7,39 +7,41 @@ pub mod v3 {
 
     use std::collections::BTreeMap;
 
-    use ruma_common::{api::ruma_api, MilliSecondsSinceUnixEpoch, OwnedUserId, UserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, MilliSecondsSinceUnixEpoch, OwnedUserId, UserId,
+    };
     use serde::{Deserialize, Serialize};
 
-    ruma_api! {
-        metadata: {
-            description: "Get information about a particular user.",
-            method: GET,
-            name: "get_user_info",
-            r0_path: "/_matrix/client/r0/admin/whois/:user_id",
-            stable_path: "/_matrix/client/v3/admin/whois/:user_id",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get information about a particular user.",
+        method: GET,
+        name: "get_user_info",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/admin/whois/:user_id",
+            1.1 => "/_matrix/client/v3/admin/whois/:user_id",
         }
+    };
 
-        request: {
-            /// The user to look up.
-            #[ruma_api(path)]
-            pub user_id: &'a UserId,
-        }
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The user to look up.
+        #[ruma_api(path)]
+        pub user_id: &'a UserId,
+    }
 
-        #[derive(Default)]
-        response: {
-            /// The Matrix user ID of the user.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub user_id: Option<OwnedUserId>,
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {
+        /// The Matrix user ID of the user.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub user_id: Option<OwnedUserId>,
 
-            /// A map of the user's device identifiers to information about that device.
-            #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-            pub devices: BTreeMap<String, DeviceInfo>,
-        }
-
-        error: crate::Error
+        /// A map of the user's device identifiers to information about that device.
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        pub devices: BTreeMap<String, DeviceInfo>,
     }
 
     impl<'a> Request<'a> {

@@ -8,30 +8,35 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/application-service-api/#get_matrixappv1thirdpartyprotocolprotocol
 
-    use ruma_common::{api::ruma_api, thirdparty::Protocol};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+        thirdparty::Protocol,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Fetches the metadata from the homeserver about a particular third party protocol.",
-            method: GET,
-            name: "get_protocol",
-            stable_path: "/_matrix/app/v1/thirdparty/protocol/:protocol",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Fetches the metadata from the homeserver about a particular third party protocol.",
+        method: GET,
+        name: "get_protocol",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/app/v1/thirdparty/protocol/:protocol",
         }
+    };
 
-        request: {
-            /// The name of the protocol.
-            #[ruma_api(path)]
-            pub protocol: &'a str,
-        }
+    #[request]
+    pub struct Request<'a> {
+        /// The name of the protocol.
+        #[ruma_api(path)]
+        pub protocol: &'a str,
+    }
 
-        response: {
-            /// Metadata about the protocol.
-            #[ruma_api(body)]
-            pub protocol: Protocol,
-        }
+    #[response]
+    pub struct Response {
+        /// Metadata about the protocol.
+        #[ruma_api(body)]
+        pub protocol: Protocol,
     }
 
     impl<'a> Request<'a> {

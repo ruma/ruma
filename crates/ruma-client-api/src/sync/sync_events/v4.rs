@@ -5,91 +5,87 @@ use std::{collections::BTreeMap, time::Duration};
 use super::{DeviceLists, UnreadNotificationsCount};
 use js_int::UInt;
 use ruma_common::{
-    api::ruma_api,
+    api::{request, response, Metadata},
     events::{
         AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent, AnyStrippedStateEvent,
         AnySyncStateEvent, AnySyncTimelineEvent, AnyToDeviceEvent, RoomEventType,
     },
+    metadata,
     serde::{duration::opt_ms, Raw},
     DeviceKeyAlgorithm, OwnedRoomId,
 };
 use serde::{Deserialize, Serialize};
 
-ruma_api! {
-    metadata: {
-        description: "Get all new events in a sliding window of rooms since the last sync or a given point of time.",
-        method: POST,
-        name: "sync",
-        // added: 1.4,
-        // stable_path: "/_matrix/client/v4/sync",
-        unstable_path: "/_matrix/client/unstable/org.matrix.msc3575/sync",
-        rate_limited: false,
-        authentication: AccessToken,
+const METADATA: Metadata = metadata! {
+    description: "Get all new events in a sliding window of rooms since the last sync or a given point of time.",
+    method: POST,
+    name: "sync",
+    rate_limited: false,
+    authentication: AccessToken,
+    history: {
+        unstable => "/_matrix/client/unstable/org.matrix.msc3575/sync",
+        // 1.4 => "/_matrix/client/v4/sync",
     }
+};
 
-    #[derive(Default)]
-    request: {
-        /// A point in time to continue a sync from.
-        ///
-        /// Should be a token from the `pos` field of a previous `/sync`
-        /// response.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[ruma_api(query)]
-        pub pos: Option<&'a str>,
+#[request(error = crate::Error)]
+#[derive(Default)]
+pub struct Request<'a> {
+    /// A point in time to continue a sync from.
+    ///
+    /// Should be a token from the `pos` field of a previous `/sync`
+    /// response.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ruma_api(query)]
+    pub pos: Option<&'a str>,
 
-        /// Allows clients to know what request params reached the server,
-        /// functionally similar to txn IDs on /send for events.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub txn_id: Option<&'a str>,
+    /// Allows clients to know what request params reached the server,
+    /// functionally similar to txn IDs on /send for events.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub txn_id: Option<&'a str>,
 
-        /// The maximum time to poll before responding to this request.
-        #[serde(
-            with = "opt_ms",
-            default,
-            skip_serializing_if = "Option::is_none",
-        )]
-        #[ruma_api(query)]
-        pub timeout: Option<Duration>,
+    /// The maximum time to poll before responding to this request.
+    #[serde(with = "opt_ms", default, skip_serializing_if = "Option::is_none")]
+    #[ruma_api(query)]
+    pub timeout: Option<Duration>,
 
-        /// The lists of rooms we're interested in.
-        pub lists: &'a [SyncRequestList],
+    /// The lists of rooms we're interested in.
+    pub lists: &'a [SyncRequestList],
 
-        /// Specific rooms and event types that we want to receive events from.
-        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub room_subscriptions: BTreeMap<OwnedRoomId, RoomSubscription>,
+    /// Specific rooms and event types that we want to receive events from.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub room_subscriptions: BTreeMap<OwnedRoomId, RoomSubscription>,
 
-        /// Specific rooms we no longer want to receive events from.
-        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub unsubscribe_rooms: &'a [OwnedRoomId],
+    /// Specific rooms we no longer want to receive events from.
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    pub unsubscribe_rooms: &'a [OwnedRoomId],
 
-        /// Extensions API.
-        #[serde(default, skip_serializing_if = "ExtensionsConfig::is_empty")]
-        pub extensions: ExtensionsConfig,
-    }
+    /// Extensions API.
+    #[serde(default, skip_serializing_if = "ExtensionsConfig::is_empty")]
+    pub extensions: ExtensionsConfig,
+}
 
-    response: {
-        /// Whether this response describes an initial sync (i.e. after the `pos` token has been
-        /// discard by the server?).
-        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
-        pub initial: bool,
+#[response(error = crate::Error)]
+pub struct Response {
+    /// Whether this response describes an initial sync (i.e. after the `pos` token has been
+    /// discard by the server?).
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+    pub initial: bool,
 
-        /// The token to supply in the `pos` param of the next `/sync` request.
-        pub pos: String,
+    /// The token to supply in the `pos` param of the next `/sync` request.
+    pub pos: String,
 
-        /// Updates to the sliding room list.
-        #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub lists: Vec<SyncList>,
+    /// Updates to the sliding room list.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub lists: Vec<SyncList>,
 
-        /// The updates on rooms.
-        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub rooms: BTreeMap<OwnedRoomId, SlidingSyncRoom>,
+    /// The updates on rooms.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub rooms: BTreeMap<OwnedRoomId, SlidingSyncRoom>,
 
-        /// Extensions API.
-        #[serde(default, skip_serializing_if = "Extensions::is_empty")]
-        pub extensions: Extensions,
-    }
-
-    error: crate::Error
+    /// Extensions API.
+    #[serde(default, skip_serializing_if = "Extensions::is_empty")]
+    pub extensions: Extensions,
 }
 
 impl Request<'_> {

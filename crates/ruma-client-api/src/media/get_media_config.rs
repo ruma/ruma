@@ -6,30 +6,32 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixmediav3config
 
     use js_int::UInt;
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Gets the config for the media repository.",
-            method: GET,
-            r0_path: "/_matrix/media/r0/config",
-            stable_path: "/_matrix/media/v3/config",
-            name: "get_media_config",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Gets the config for the media repository.",
+        method: GET,
+        name: "get_media_config",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/media/r0/config",
+            1.1 => "/_matrix/media/v3/config",
         }
+    };
 
-        #[derive(Default)]
-        request: {}
+    #[request(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Request {}
 
-        response: {
-            /// Maximum size of upload in bytes.
-            #[serde(rename = "m.upload.size")]
-            pub upload_size: UInt,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// Maximum size of upload in bytes.
+        #[serde(rename = "m.upload.size")]
+        pub upload_size: UInt,
     }
 
     impl Request {

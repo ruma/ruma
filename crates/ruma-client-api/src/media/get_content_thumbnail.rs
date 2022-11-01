@@ -7,88 +7,95 @@ pub mod v3 {
 
     use http::header::CONTENT_TYPE;
     use js_int::UInt;
-    use ruma_common::{api::ruma_api, serde::StringEnum, IdParseError, MxcUri, ServerName};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+        serde::StringEnum,
+        IdParseError, MxcUri, ServerName,
+    };
 
     use crate::{http_headers::CROSS_ORIGIN_RESOURCE_POLICY, PrivOwnedStr};
 
-    ruma_api! {
-        metadata: {
-            description: "Get a thumbnail of content from the media store.",
-            method: GET,
-            name: "get_content_thumbnail",
-            r0_path: "/_matrix/media/r0/thumbnail/:server_name/:media_id",
-            stable_path: "/_matrix/media/v3/thumbnail/:server_name/:media_id",
-            rate_limited: true,
-            authentication: None,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get a thumbnail of content from the media store.",
+        method: GET,
+        name: "get_content_thumbnail",
+        rate_limited: true,
+        authentication: None,
+        history: {
+            1.0 => "/_matrix/media/r0/thumbnail/:server_name/:media_id",
+            1.1 => "/_matrix/media/v3/thumbnail/:server_name/:media_id",
         }
+    };
 
-        request: {
-            /// The server name from the mxc:// URI (the authoritory component).
-            #[ruma_api(path)]
-            pub server_name: &'a ServerName,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The server name from the mxc:// URI (the authoritory component).
+        #[ruma_api(path)]
+        pub server_name: &'a ServerName,
 
-            /// The media ID from the mxc:// URI (the path component).
-            #[ruma_api(path)]
-            pub media_id: &'a str,
+        /// The media ID from the mxc:// URI (the path component).
+        #[ruma_api(path)]
+        pub media_id: &'a str,
 
-            /// The desired resizing method.
-            #[ruma_api(query)]
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub method: Option<Method>,
+        /// The desired resizing method.
+        #[ruma_api(query)]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub method: Option<Method>,
 
-            /// The *desired* width of the thumbnail.
-            ///
-            /// The actual thumbnail may not match the size specified.
-            #[ruma_api(query)]
-            pub width: UInt,
+        /// The *desired* width of the thumbnail.
+        ///
+        /// The actual thumbnail may not match the size specified.
+        #[ruma_api(query)]
+        pub width: UInt,
 
-            /// The *desired* height of the thumbnail.
-            ///
-            /// The actual thumbnail may not match the size specified.
-            #[ruma_api(query)]
-            pub height: UInt,
+        /// The *desired* height of the thumbnail.
+        ///
+        /// The actual thumbnail may not match the size specified.
+        #[ruma_api(query)]
+        pub height: UInt,
 
-            /// Whether to fetch media deemed remote.
-            ///
-            /// Used to prevent routing loops. Defaults to `true`.
-            #[ruma_api(query)]
-            #[serde(default = "ruma_common::serde::default_true", skip_serializing_if = "ruma_common::serde::is_true")]
-            pub allow_remote: bool,
+        /// Whether to fetch media deemed remote.
+        ///
+        /// Used to prevent routing loops. Defaults to `true`.
+        #[ruma_api(query)]
+        #[serde(
+            default = "ruma_common::serde::default_true",
+            skip_serializing_if = "ruma_common::serde::is_true"
+        )]
+        pub allow_remote: bool,
 
-            /// How long to wait for the media to be uploaded
-            ///
-            /// This uses the unstable prefix in
-            /// [MSC2246](https://github.com/matrix-org/matrix-spec-proposals/pull/2246)
-            #[ruma_api(query)]
-            #[cfg(feature = "unstable-msc2246")]
-            #[serde(
-                default,
-                skip_serializing_if = "ruma_common::serde::is_default",
-                rename = "fi.mau.msc2246.max_stall_ms",
-            )]
-            pub max_stall_ms: Option<UInt>,
-        }
+        /// How long to wait for the media to be uploaded
+        ///
+        /// This uses the unstable prefix in
+        /// [MSC2246](https://github.com/matrix-org/matrix-spec-proposals/pull/2246)
+        #[ruma_api(query)]
+        #[cfg(feature = "unstable-msc2246")]
+        #[serde(
+            default,
+            skip_serializing_if = "ruma_common::serde::is_default",
+            rename = "fi.mau.msc2246.max_stall_ms"
+        )]
+        pub max_stall_ms: Option<UInt>,
+    }
 
-        response: {
-            /// A thumbnail of the requested content.
-            #[ruma_api(raw_body)]
-            pub file: Vec<u8>,
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// A thumbnail of the requested content.
+        #[ruma_api(raw_body)]
+        pub file: Vec<u8>,
 
-            /// The content type of the thumbnail.
-            #[ruma_api(header = CONTENT_TYPE)]
-            pub content_type: Option<String>,
+        /// The content type of the thumbnail.
+        #[ruma_api(header = CONTENT_TYPE)]
+        pub content_type: Option<String>,
 
-            /// The value of the `Cross-Origin-Resource-Policy` HTTP header.
-            ///
-            /// See [MDN] for the syntax.
-            ///
-            /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy#syntax
-            #[ruma_api(header = CROSS_ORIGIN_RESOURCE_POLICY)]
-            pub cross_origin_resource_policy: Option<String>,
-        }
-
-        error: crate::Error
+        /// The value of the `Cross-Origin-Resource-Policy` HTTP header.
+        ///
+        /// See [MDN] for the syntax.
+        ///
+        /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy#syntax
+        #[ruma_api(header = CROSS_ORIGIN_RESOURCE_POLICY)]
+        pub cross_origin_resource_policy: Option<String>,
     }
 
     impl<'a> Request<'a> {

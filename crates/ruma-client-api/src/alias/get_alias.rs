@@ -5,35 +5,37 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3directoryroomroomalias
 
-    use ruma_common::{api::ruma_api, OwnedRoomId, OwnedServerName, RoomAliasId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, OwnedRoomId, OwnedServerName, RoomAliasId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Resolve a room alias to a room ID.",
-            method: GET,
-            name: "get_alias",
-            r0_path: "/_matrix/client/r0/directory/room/:room_alias",
-            stable_path: "/_matrix/client/v3/directory/room/:room_alias",
-            rate_limited: false,
-            authentication: None,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Resolve a room alias to a room ID.",
+        method: GET,
+        name: "get_alias",
+        rate_limited: false,
+        authentication: None,
+        history: {
+            1.0 => "/_matrix/client/r0/directory/room/:room_alias",
+            1.1 => "/_matrix/client/v3/directory/room/:room_alias",
         }
+    };
 
-        request: {
-            /// The room alias.
-            #[ruma_api(path)]
-            pub room_alias: &'a RoomAliasId,
-        }
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The room alias.
+        #[ruma_api(path)]
+        pub room_alias: &'a RoomAliasId,
+    }
 
-        response: {
-            /// The room ID for this room alias.
-            pub room_id: OwnedRoomId,
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The room ID for this room alias.
+        pub room_id: OwnedRoomId,
 
-            /// A list of servers that are aware of this room ID.
-            pub servers: Vec<OwnedServerName>,
-        }
-
-        error: crate::Error
+        /// A list of servers that are aware of this room ID.
+        pub servers: Vec<OwnedServerName>,
     }
 
     impl<'a> Request<'a> {

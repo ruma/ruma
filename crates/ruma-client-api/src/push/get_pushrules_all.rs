@@ -5,29 +5,32 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3pushrules
 
-    use ruma_common::{api::ruma_api, push::Ruleset};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+        push::Ruleset,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Retrieve all push rulesets for this user.",
-            method: GET,
-            name: "get_pushrules_all",
-            r0_path: "/_matrix/client/r0/pushrules/",
-            stable_path: "/_matrix/client/v3/pushrules/",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Retrieve all push rulesets for this user.",
+        method: GET,
+        name: "get_pushrules_all",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/pushrules/",
+            1.1 => "/_matrix/client/v3/pushrules/",
         }
+    };
 
-        #[derive(Default)]
-        request: {}
+    #[request(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Request {}
 
-        response: {
-            /// The global ruleset.
-            pub global: Ruleset,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The global ruleset.
+        pub global: Ruleset,
     }
 
     impl Request {

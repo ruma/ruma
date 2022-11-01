@@ -643,9 +643,8 @@ macro_rules! metadata {
     ( @field authentication: $scheme:ident ) => { $crate::api::AuthScheme::$scheme };
 
     ( @field history: {
-        $( unstable => $unstable_path:literal ),*
-        $(, $( $version:literal => $rhs:tt ),+ )?
-        $(,)?
+        $( unstable => $unstable_path:literal, )*
+        $( $( $version:literal => $rhs:tt, )+ )?
     } ) => {
         $crate::metadata! {
             @history_impl
@@ -670,7 +669,7 @@ macro_rules! metadata {
         )?
     ) => {
         $crate::api::VersionHistory::new(
-            &[ $( $unstable_path ),+ ],
+            &[ $( $unstable_path ),* ],
             &[ $($(
                 ($crate::api::MatrixVersion::from_lit(stringify!($version)), $stable_path)
             ),+)? ],

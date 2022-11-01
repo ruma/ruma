@@ -7,12 +7,13 @@ use std::{collections::BTreeMap, time::Duration};
 use super::{DeviceLists, UnreadNotificationsCount};
 use js_int::UInt;
 use ruma_common::{
-    api::ruma_api,
+    api::{request, response, Metadata},
     events::{
         presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
         AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncStateEvent, AnySyncTimelineEvent,
         AnyToDeviceEvent,
     },
+    metadata,
     presence::PresenceState,
     serde::{Incoming, Raw},
     DeviceKeyAlgorithm, OwnedEventId, OwnedRoomId,
@@ -21,95 +22,94 @@ use serde::{Deserialize, Serialize};
 
 use crate::filter::{FilterDefinition, IncomingFilterDefinition};
 
-ruma_api! {
-    metadata: {
-        description: "Get all new events from all rooms since the last sync or a given point of time.",
-        method: GET,
-        name: "sync",
-        r0_path: "/_matrix/client/r0/sync",
-        stable_path: "/_matrix/client/v3/sync",
-        rate_limited: false,
-        authentication: AccessToken,
-        added: 1.0,
+const METADATA: Metadata = metadata! {
+    description: "Get all new events from all rooms since the last sync or a given point of time.",
+    method: GET,
+    name: "sync",
+    rate_limited: false,
+    authentication: AccessToken,
+    history: {
+        1.0 => "/_matrix/client/r0/sync",
+        1.1 => "/_matrix/client/v3/sync",
     }
+};
 
-    #[derive(Default)]
-    request: {
-        /// A filter represented either as its full JSON definition or the ID of a saved filter.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[ruma_api(query)]
-        pub filter: Option<&'a Filter<'a>>,
+#[request(error = crate::Error)]
+#[derive(Default)]
+pub struct Request<'a> {
+    /// A filter represented either as its full JSON definition or the ID of a saved filter.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ruma_api(query)]
+    pub filter: Option<&'a Filter<'a>>,
 
-        /// A point in time to continue a sync from.
-        ///
-        /// Should be a token from the `next_batch` field of a previous `/sync`
-        /// request.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[ruma_api(query)]
-        pub since: Option<&'a str>,
+    /// A point in time to continue a sync from.
+    ///
+    /// Should be a token from the `next_batch` field of a previous `/sync`
+    /// request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ruma_api(query)]
+    pub since: Option<&'a str>,
 
-        /// Controls whether to include the full state for all rooms the user is a member of.
-        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
-        #[ruma_api(query)]
-        pub full_state: bool,
+    /// Controls whether to include the full state for all rooms the user is a member of.
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+    #[ruma_api(query)]
+    pub full_state: bool,
 
-        /// Controls whether the client is automatically marked as online by polling this API.
-        ///
-        /// Defaults to `PresenceState::Online`.
-        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
-        #[ruma_api(query)]
-        pub set_presence: &'a PresenceState,
+    /// Controls whether the client is automatically marked as online by polling this API.
+    ///
+    /// Defaults to `PresenceState::Online`.
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+    #[ruma_api(query)]
+    pub set_presence: &'a PresenceState,
 
-        /// The maximum time to poll in milliseconds before returning this request.
-        #[serde(
-            with = "ruma_common::serde::duration::opt_ms",
-            default,
-            skip_serializing_if = "Option::is_none",
-        )]
-        #[ruma_api(query)]
-        pub timeout: Option<Duration>,
-    }
+    /// The maximum time to poll in milliseconds before returning this request.
+    #[serde(
+        with = "ruma_common::serde::duration::opt_ms",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    #[ruma_api(query)]
+    pub timeout: Option<Duration>,
+}
 
-    response: {
-        /// The batch token to supply in the `since` param of the next `/sync` request.
-        pub next_batch: String,
+#[response(error = crate::Error)]
+pub struct Response {
+    /// The batch token to supply in the `since` param of the next `/sync` request.
+    pub next_batch: String,
 
-        /// Updates to rooms.
-        #[serde(default, skip_serializing_if = "Rooms::is_empty")]
-        pub rooms: Rooms,
+    /// Updates to rooms.
+    #[serde(default, skip_serializing_if = "Rooms::is_empty")]
+    pub rooms: Rooms,
 
-        /// Updates to the presence status of other users.
-        #[serde(default, skip_serializing_if = "Presence::is_empty")]
-        pub presence: Presence,
+    /// Updates to the presence status of other users.
+    #[serde(default, skip_serializing_if = "Presence::is_empty")]
+    pub presence: Presence,
 
-        /// The global private data created by this user.
-        #[serde(default, skip_serializing_if = "GlobalAccountData::is_empty")]
-        pub account_data: GlobalAccountData,
+    /// The global private data created by this user.
+    #[serde(default, skip_serializing_if = "GlobalAccountData::is_empty")]
+    pub account_data: GlobalAccountData,
 
-        /// Messages sent directly between devices.
-        #[serde(default, skip_serializing_if = "ToDevice::is_empty")]
-        pub to_device: ToDevice,
+    /// Messages sent directly between devices.
+    #[serde(default, skip_serializing_if = "ToDevice::is_empty")]
+    pub to_device: ToDevice,
 
-        /// Information on E2E device updates.
-        ///
-        /// Only present on an incremental sync.
-        #[serde(default, skip_serializing_if = "DeviceLists::is_empty")]
-        pub device_lists: DeviceLists,
+    /// Information on E2E device updates.
+    ///
+    /// Only present on an incremental sync.
+    #[serde(default, skip_serializing_if = "DeviceLists::is_empty")]
+    pub device_lists: DeviceLists,
 
-        /// For each key algorithm, the number of unclaimed one-time keys
-        /// currently held on the server for a device.
-        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub device_one_time_keys_count: BTreeMap<DeviceKeyAlgorithm, UInt>,
+    /// For each key algorithm, the number of unclaimed one-time keys
+    /// currently held on the server for a device.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub device_one_time_keys_count: BTreeMap<DeviceKeyAlgorithm, UInt>,
 
-        /// For each key algorithm, the number of unclaimed one-time keys
-        /// currently held on the server for a device.
-        ///
-        /// The presence of this field indicates that the server supports
-        /// fallback keys.
-        pub device_unused_fallback_key_types: Option<Vec<DeviceKeyAlgorithm>>,
-    }
-
-    error: crate::Error
+    /// For each key algorithm, the number of unclaimed one-time keys
+    /// currently held on the server for a device.
+    ///
+    /// The presence of this field indicates that the server supports
+    /// fallback keys.
+    pub device_unused_fallback_key_types: Option<Vec<DeviceKeyAlgorithm>>,
 }
 
 impl Request<'_> {

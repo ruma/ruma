@@ -10,42 +10,46 @@ pub mod v3 {
     //! [spec-mxid]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3roomsroomidinvite
     //! [spec-3pid]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3roomsroomidinvite-1
 
-    use ruma_common::{api::ruma_api, serde::Incoming, RoomId, UserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+        serde::Incoming,
+        RoomId, UserId,
+    };
     use serde::Serialize;
 
     use crate::membership::{IncomingInvite3pid, Invite3pid};
 
-    ruma_api! {
-        metadata: {
-            description: "Invite a user to a room.",
-            method: POST,
-            name: "invite_user",
-            r0_path: "/_matrix/client/r0/rooms/:room_id/invite",
-            stable_path: "/_matrix/client/v3/rooms/:room_id/invite",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Invite a user to a room.",
+        method: POST,
+        name: "invite_user",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/rooms/:room_id/invite",
+            1.1 => "/_matrix/client/v3/rooms/:room_id/invite",
         }
+    };
 
-        request: {
-            /// The room where the user should be invited.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The room where the user should be invited.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
 
-            /// The user to invite.
-            #[serde(flatten)]
-            pub recipient: InvitationRecipient<'a>,
+        /// The user to invite.
+        #[serde(flatten)]
+        pub recipient: InvitationRecipient<'a>,
 
-            /// Optional reason for inviting the user.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub reason: Option<&'a str>,
-        }
-
-        #[derive(Default)]
-        response: {}
-
-        error: crate::Error
+        /// Optional reason for inviting the user.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub reason: Option<&'a str>,
     }
+
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given room ID and invitation recipient.

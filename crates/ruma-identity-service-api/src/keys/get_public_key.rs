@@ -7,29 +7,35 @@ pub mod v2 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#get_matrixidentityv2pubkeykeyid
 
-    use ruma_common::{api::ruma_api, serde::Base64, ServerSigningKeyId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+        serde::Base64,
+        ServerSigningKeyId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Get the public key for the given key ID.",
-            method: GET,
-            name: "get_public_key",
-            stable_path: "/_matrix/identity/v2/pubkey/:key_id",
-            rate_limited: false,
-            authentication: None,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get the public key for the given key ID.",
+        method: GET,
+        name: "get_public_key",
+        rate_limited: false,
+        authentication: None,
+        history: {
+            1.0 => "/_matrix/identity/v2/pubkey/:key_id",
         }
+    };
 
-        request: {
-            /// The ID of the key.
-            #[ruma_api(path)]
-            pub key_id: &'a ServerSigningKeyId,
-        }
+    #[request]
+    pub struct Request<'a> {
+        /// The ID of the key.
+        #[ruma_api(path)]
+        pub key_id: &'a ServerSigningKeyId,
+    }
 
-        response: {
-            /// Unpadded base64-encoded public key.
-            pub public_key: Base64,
-        }
+    #[response]
+    pub struct Response {
+        /// Unpadded base64-encoded public key.
+        pub public_key: Base64,
     }
 
     impl<'a> Request<'a> {

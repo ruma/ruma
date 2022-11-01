@@ -7,29 +7,34 @@ pub mod v2 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#get_matrixidentityv2pubkeyisvalid
 
-    use ruma_common::{api::ruma_api, serde::Base64};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+        serde::Base64,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Check whether a long-term public key is valid. The response should always be the same, provided the key exists.",
-            method: GET,
-            name: "check_public_key_validity",
-            stable_path: "/_matrix/identity/v2/pubkey/isvalid",
-            authentication: None,
-            rate_limited: false,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Check whether a long-term public key is valid. The response should always be the same, provided the key exists.",
+        method: GET,
+        name: "check_public_key_validity",
+        rate_limited: false,
+        authentication: None,
+        history: {
+            1.0 => "/_matrix/identity/v2/pubkey/isvalid",
         }
+    };
 
-        request: {
-            /// Base64-encoded (no padding) public key to check for validity.
-            #[ruma_api(query)]
-            pub public_key: &'a Base64,
-        }
+    #[request]
+    pub struct Request<'a> {
+        /// Base64-encoded (no padding) public key to check for validity.
+        #[ruma_api(query)]
+        pub public_key: &'a Base64,
+    }
 
-        response: {
-            /// Whether the public key is recognised and is currently valid.
-            pub valid: bool,
-        }
+    #[response]
+    pub struct Response {
+        /// Whether the public key is recognised and is currently valid.
+        pub valid: bool,
     }
 
     impl<'a> Request<'a> {

@@ -8,31 +8,30 @@ pub mod v3 {
     use std::borrow::Borrow;
 
     use ruma_common::{
-        api::ruma_api,
+        api::{response, Metadata},
         events::{AnyStateEventContent, StateEventContent, StateEventType},
+        metadata,
         serde::{Incoming, Raw},
         MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId,
     };
     use serde_json::value::to_raw_value as to_raw_json_value;
 
-    ruma_api! {
-        metadata: {
-            description: "Send a state event to a room associated with a given state key.",
-            method: PUT,
-            name: "send_state_event",
-            r0_path: "/_matrix/client/r0/rooms/:room_id/state/:event_type/:state_key",
-            stable_path: "/_matrix/client/v3/rooms/:room_id/state/:event_type/:state_key",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Send a state event to a room associated with a given state key.",
+        method: PUT,
+        name: "send_state_event",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/rooms/:room_id/state/:event_type/:state_key",
+            1.1 => "/_matrix/client/v3/rooms/:room_id/state/:event_type/:state_key",
         }
+    };
 
-        response: {
-            /// A unique identifier for the event.
-            pub event_id: OwnedEventId,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// A unique identifier for the event.
+        pub event_id: OwnedEventId,
     }
 
     /// Data for a request to the `send_state_event` API endpoint.
@@ -114,7 +113,7 @@ pub mod v3 {
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
 
-        const METADATA: ruma_common::api::Metadata = METADATA;
+        const METADATA: Metadata = METADATA;
 
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
@@ -157,7 +156,7 @@ pub mod v3 {
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
 
-        const METADATA: ruma_common::api::Metadata = METADATA;
+        const METADATA: Metadata = METADATA;
 
         fn try_from_http_request<B, S>(
             request: http::Request<B>,

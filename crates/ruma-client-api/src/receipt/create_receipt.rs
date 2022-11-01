@@ -6,54 +6,58 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3roomsroomidreceiptreceipttypeeventid
 
     use ruma_common::{
-        api::ruma_api,
+        api::{request, response, Metadata},
         events::receipt::ReceiptThread,
+        metadata,
         serde::{OrdAsRefStr, PartialEqAsRefStr, PartialOrdAsRefStr, StringEnum},
         EventId, RoomId,
     };
 
     use crate::PrivOwnedStr;
 
-    ruma_api! {
-        metadata: {
-            description: "Send a receipt event to a room.",
-            method: POST,
-            name: "create_receipt",
-            r0_path: "/_matrix/client/r0/rooms/:room_id/receipt/:receipt_type/:event_id",
-            stable_path: "/_matrix/client/v3/rooms/:room_id/receipt/:receipt_type/:event_id",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Send a receipt event to a room.",
+        method: POST,
+        name: "create_receipt",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/rooms/:room_id/receipt/:receipt_type/:event_id",
+            1.1 => "/_matrix/client/v3/rooms/:room_id/receipt/:receipt_type/:event_id",
         }
+    };
 
-        request: {
-            /// The room in which to send the event.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The room in which to send the event.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
 
-            /// The type of receipt to send.
-            #[ruma_api(path)]
-            pub receipt_type: ReceiptType,
+        /// The type of receipt to send.
+        #[ruma_api(path)]
+        pub receipt_type: ReceiptType,
 
-            /// The event ID to acknowledge up to.
-            #[ruma_api(path)]
-            pub event_id: &'a EventId,
+        /// The event ID to acknowledge up to.
+        #[ruma_api(path)]
+        pub event_id: &'a EventId,
 
-            /// The thread this receipt applies to.
-            ///
-            /// *Note* that this must be the default value if used with
-            /// [`ReceiptType::FullyRead`].
-            ///
-            /// Defaults to [`ReceiptThread::Unthreaded`].
-            #[serde(rename = "thread_id", default, skip_serializing_if = "ruma_common::serde::is_default")]
-            pub thread: ReceiptThread,
-        }
-
-        #[derive(Default)]
-        response: {}
-
-        error: crate::Error
+        /// The thread this receipt applies to.
+        ///
+        /// *Note* that this must be the default value if used with
+        /// [`ReceiptType::FullyRead`].
+        ///
+        /// Defaults to [`ReceiptThread::Unthreaded`].
+        #[serde(
+            rename = "thread_id",
+            default,
+            skip_serializing_if = "ruma_common::serde::is_default"
+        )]
+        pub thread: ReceiptThread,
     }
+
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given room ID, receipt type and event ID.

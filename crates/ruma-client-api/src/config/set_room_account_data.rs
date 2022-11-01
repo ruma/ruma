@@ -6,56 +6,56 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#put_matrixclientv3useruseridroomsroomidaccount_datatype
 
     use ruma_common::{
-        api::ruma_api,
+        api::{request, response, Metadata},
         events::{
             AnyRoomAccountDataEventContent, RoomAccountDataEventContent, RoomAccountDataEventType,
         },
+        metadata,
         serde::Raw,
         RoomId, UserId,
     };
     use serde_json::value::to_raw_value as to_raw_json_value;
 
-    ruma_api! {
-        metadata: {
-            description: "Associate account data with a room.",
-            method: PUT,
-            name: "set_room_account_data",
-            r0_path: "/_matrix/client/r0/user/:user_id/rooms/:room_id/account_data/:event_type",
-            stable_path: "/_matrix/client/v3/user/:user_id/rooms/:room_id/account_data/:event_type",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Associate account data with a room.",
+        method: PUT,
+        name: "set_room_account_data",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/user/:user_id/rooms/:room_id/account_data/:event_type",
+            1.1 => "/_matrix/client/v3/user/:user_id/rooms/:room_id/account_data/:event_type",
         }
+    };
 
-        request: {
-            /// The ID of the user to set account_data for.
-            ///
-            /// The access token must be authorized to make requests for this user ID.
-            #[ruma_api(path)]
-            pub user_id: &'a UserId,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The ID of the user to set account_data for.
+        ///
+        /// The access token must be authorized to make requests for this user ID.
+        #[ruma_api(path)]
+        pub user_id: &'a UserId,
 
-            /// The ID of the room to set account_data on.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
+        /// The ID of the room to set account_data on.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
 
-            /// The event type of the account_data to set.
-            ///
-            /// Custom types should be namespaced to avoid clashes.
-            #[ruma_api(path)]
-            pub event_type: RoomAccountDataEventType,
+        /// The event type of the account_data to set.
+        ///
+        /// Custom types should be namespaced to avoid clashes.
+        #[ruma_api(path)]
+        pub event_type: RoomAccountDataEventType,
 
-            /// Arbitrary JSON to store as config data.
-            ///
-            /// To create a `RawJsonValue`, use `serde_json::value::to_raw_value`.
-            #[ruma_api(body)]
-            pub data: Raw<AnyRoomAccountDataEventContent>,
-        }
-
-        #[derive(Default)]
-        response: {}
-
-        error: crate::Error
+        /// Arbitrary JSON to store as config data.
+        ///
+        /// To create a `RawJsonValue`, use `serde_json::value::to_raw_value`.
+        #[ruma_api(body)]
+        pub data: Raw<AnyRoomAccountDataEventContent>,
     }
+
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given data, event type, room ID and user ID.

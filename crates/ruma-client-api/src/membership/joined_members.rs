@@ -7,34 +7,36 @@ pub mod v3 {
 
     use std::collections::BTreeMap;
 
-    use ruma_common::{api::ruma_api, OwnedMxcUri, OwnedUserId, RoomId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, OwnedMxcUri, OwnedUserId, RoomId,
+    };
     use serde::{Deserialize, Serialize};
 
-    ruma_api! {
-        metadata: {
-            description: "Get a map of user ids to member info objects for members of the room. Primarily for use in Application Services.",
-            method: GET,
-            name: "joined_members",
-            r0_path: "/_matrix/client/r0/rooms/:room_id/joined_members",
-            stable_path: "/_matrix/client/v3/rooms/:room_id/joined_members",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get a map of user ids to member info objects for members of the room. Primarily for use in Application Services.",
+        method: GET,
+        name: "joined_members",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/rooms/:room_id/joined_members",
+            1.1 => "/_matrix/client/v3/rooms/:room_id/joined_members",
         }
+    };
 
-        request: {
-            /// The room to get the members of.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
-        }
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The room to get the members of.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
+    }
 
-        response: {
-            /// A list of the rooms the user is in, i.e.
-            /// the ID of each room in which the user has joined membership.
-            pub joined: BTreeMap<OwnedUserId, RoomMember>,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// A list of the rooms the user is in, i.e.
+        /// the ID of each room in which the user has joined membership.
+        pub joined: BTreeMap<OwnedUserId, RoomMember>,
     }
 
     impl<'a> Request<'a> {

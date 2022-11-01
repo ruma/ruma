@@ -7,37 +7,41 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#get_matrixfederationv1state_idsroomid
 
-    use ruma_common::{api::ruma_api, EventId, OwnedEventId, RoomId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, EventId, OwnedEventId, RoomId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Retrieves a snapshot of a room's state at a given event, in the form of event IDs",
-            method: GET,
-            name: "get_room_state_ids",
-            stable_path: "/_matrix/federation/v1/state_ids/:room_id",
-            rate_limited: false,
-            authentication: ServerSignatures,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Retrieves a snapshot of a room's state at a given event, in the form of event IDs",
+        method: GET,
+        name: "get_room_state_ids",
+        rate_limited: false,
+        authentication: ServerSignatures,
+        history: {
+            1.0 => "/_matrix/federation/v1/state_ids/:room_id",
         }
+    };
 
-        request: {
-            /// The room ID to get state for.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
+    #[request]
+    pub struct Request<'a> {
+        /// The room ID to get state for.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
 
-            /// An event ID in the room to retrieve the state at.
-            #[ruma_api(query)]
-            pub event_id: &'a EventId,
-        }
+        /// An event ID in the room to retrieve the state at.
+        #[ruma_api(query)]
+        pub event_id: &'a EventId,
+    }
 
-        response: {
-            /// The full set of authorization events that make up the state of the
-            /// room, and their authorization events, recursively.
-            pub auth_chain_ids: Vec<OwnedEventId>,
+    #[response]
+    pub struct Response {
+        /// The full set of authorization events that make up the state of the
+        /// room, and their authorization events, recursively.
+        pub auth_chain_ids: Vec<OwnedEventId>,
 
-            /// The fully resolved state of the room at the given event.
-            pub pdu_ids: Vec<OwnedEventId>,
-        }
+        /// The fully resolved state of the room at the given event.
+        pub pdu_ids: Vec<OwnedEventId>,
     }
 
     impl<'a> Request<'a> {

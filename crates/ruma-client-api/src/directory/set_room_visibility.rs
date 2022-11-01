@@ -5,36 +5,38 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#put_matrixclientv3directorylistroomroomid
 
-    use ruma_common::{api::ruma_api, RoomId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, RoomId,
+    };
 
     use crate::room::Visibility;
 
-    ruma_api! {
-        metadata: {
-            description: "Set the visibility of a public room on a directory.",
-            name: "set_room_visibility",
-            method: PUT,
-            r0_path: "/_matrix/client/r0/directory/list/room/:room_id",
-            stable_path: "/_matrix/client/v3/directory/list/room/:room_id",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Set the visibility of a public room on a directory.",
+        method: PUT,
+        name: "set_room_visibility",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/directory/list/room/:room_id",
+            1.1 => "/_matrix/client/v3/directory/list/room/:room_id",
         }
+    };
 
-        request: {
-            /// The ID of the room of which to set the visibility.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The ID of the room of which to set the visibility.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
 
-            /// New visibility setting for the room.
-            pub visibility: Visibility,
-        }
-
-        #[derive(Default)]
-        response: {}
-
-        error: crate::Error
+        /// New visibility setting for the room.
+        pub visibility: Visibility,
     }
+
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given room ID and visibility.

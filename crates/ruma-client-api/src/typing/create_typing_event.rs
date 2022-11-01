@@ -7,40 +7,42 @@ pub mod v3 {
 
     use std::time::Duration;
 
-    use ruma_common::{api::ruma_api, RoomId, UserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, RoomId, UserId,
+    };
     use serde::{de::Error, Deserialize, Deserializer, Serialize};
 
-    ruma_api! {
-        metadata: {
-            method: PUT,
-            r0_path: "/_matrix/client/r0/rooms/:room_id/typing/:user_id",
-            stable_path: "/_matrix/client/v3/rooms/:room_id/typing/:user_id",
-            name: "create_typing_event",
-            description: "Send a typing event to a room.",
-            authentication: AccessToken,
-            rate_limited: true,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        method: PUT,
+        name: "create_typing_event",
+        description: "Send a typing event to a room.",
+        authentication: AccessToken,
+        rate_limited: true,
+        history: {
+            1.0 => "/_matrix/client/r0/rooms/:room_id/typing/:user_id",
+            1.1 => "/_matrix/client/v3/rooms/:room_id/typing/:user_id",
         }
+    };
 
-        request: {
-            /// The room in which the user is typing.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The room in which the user is typing.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
 
-            /// The user who has started to type.
-            #[ruma_api(path)]
-            pub user_id: &'a UserId,
+        /// The user who has started to type.
+        #[ruma_api(path)]
+        pub user_id: &'a UserId,
 
-            /// Whether the user is typing within a length of time or not.
-            #[serde(flatten)]
-            pub state: Typing,
-        }
-
-        #[derive(Default)]
-        response: {}
-
-        error: crate::Error
+        /// Whether the user is typing within a length of time or not.
+        #[serde(flatten)]
+        pub state: Typing,
     }
+
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given user ID, room ID and typing state.

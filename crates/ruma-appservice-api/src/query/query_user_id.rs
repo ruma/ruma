@@ -7,28 +7,32 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/application-service-api/#get_matrixappv1usersuserid
 
-    use ruma_common::{api::ruma_api, UserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, UserId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "This endpoint is invoked by the homeserver on an application service to query the existence of a given user ID.",
-            method: GET,
-            name: "query_user_id",
-            stable_path: "/_matrix/app/v1/users/:user_id",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "This endpoint is invoked by the homeserver on an application service to query the existence of a given user ID.",
+        method: GET,
+        name: "query_user_id",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/app/v1/users/:user_id",
         }
+    };
 
-        request: {
-            /// The user ID being queried.
-            #[ruma_api(path)]
-            pub user_id: &'a UserId,
-        }
-
-        #[derive(Default)]
-        response: {}
+    #[request]
+    pub struct Request<'a> {
+        /// The user ID being queried.
+        #[ruma_api(path)]
+        pub user_id: &'a UserId,
     }
+
+    #[response]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given user id.

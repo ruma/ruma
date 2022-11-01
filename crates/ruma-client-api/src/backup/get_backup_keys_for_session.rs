@@ -5,44 +5,48 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3room_keyskeysroomidsessionid
 
-    use ruma_common::{api::ruma_api, serde::Raw, RoomId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+        serde::Raw,
+        RoomId,
+    };
 
     use crate::backup::KeyBackupData;
 
-    ruma_api! {
-        metadata: {
-            description: "Retrieve a key from the backup for a given session.",
-            method: GET,
-            name: "get_backup_keys_for_session",
-            unstable_path: "/_matrix/client/unstable/room_keys/keys/:room_id/:session_id",
-            r0_path: "/_matrix/client/r0/room_keys/keys/:room_id/:session_id",
-            stable_path: "/_matrix/client/v3/room_keys/keys/:room_id/:session_id",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Retrieve a key from the backup for a given session.",
+        method: GET,
+        name: "get_backup_keys_for_session",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            unstable => "/_matrix/client/unstable/room_keys/keys/:room_id/:session_id",
+            1.0 => "/_matrix/client/r0/room_keys/keys/:room_id/:session_id",
+            1.1 => "/_matrix/client/v3/room_keys/keys/:room_id/:session_id",
         }
+    };
 
-        request: {
-            /// The backup version to retrieve keys from.
-            #[ruma_api(query)]
-            pub version: &'a str,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The backup version to retrieve keys from.
+        #[ruma_api(query)]
+        pub version: &'a str,
 
-            /// The ID of the room that the requested key is for.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
+        /// The ID of the room that the requested key is for.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
 
-            /// The ID of the megolm session whose key is requested.
-            #[ruma_api(path)]
-            pub session_id: &'a str,
-        }
+        /// The ID of the megolm session whose key is requested.
+        #[ruma_api(path)]
+        pub session_id: &'a str,
+    }
 
-        response: {
-            /// Information about the requested backup key.
-            #[ruma_api(body)]
-            pub key_data: Raw<KeyBackupData>,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// Information about the requested backup key.
+        #[ruma_api(body)]
+        pub key_data: Raw<KeyBackupData>,
     }
 
     impl<'a> Request<'a> {

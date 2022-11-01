@@ -5,40 +5,42 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3account3pidbind
 
-    use ruma_common::{api::ruma_api, ClientSecret, SessionId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, ClientSecret, SessionId,
+    };
 
     use crate::account::{IdentityServerInfo, IncomingIdentityServerInfo};
 
-    ruma_api! {
-        metadata: {
-            description: "Bind a 3PID to a user's account on an identity server",
-            method: POST,
-            name: "bind_3pid",
-            r0_path: "/_matrix/client/r0/account/3pid/bind",
-            stable_path: "/_matrix/client/v3/account/3pid/bind",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Bind a 3PID to a user's account on an identity server",
+        method: POST,
+        name: "bind_3pid",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/account/3pid/bind",
+            1.1 => "/_matrix/client/v3/account/3pid/bind",
         }
+    };
 
-        request: {
-            /// Client-generated secret string used to protect this session.
-            pub client_secret: &'a ClientSecret,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// Client-generated secret string used to protect this session.
+        pub client_secret: &'a ClientSecret,
 
-            /// The ID server to send the onward request to as a hostname with an
-            /// appended colon and port number if the port is not the default.
-            #[serde(flatten)]
-            pub identity_server_info: IdentityServerInfo<'a>,
+        /// The ID server to send the onward request to as a hostname with an
+        /// appended colon and port number if the port is not the default.
+        #[serde(flatten)]
+        pub identity_server_info: IdentityServerInfo<'a>,
 
-            /// The session identifier given by the identity server.
-            pub sid: &'a SessionId,
-        }
-
-        #[derive(Default)]
-        response: {}
-
-        error: crate::Error
+        /// The session identifier given by the identity server.
+        pub sid: &'a SessionId,
     }
+
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given client secret, identity server information and

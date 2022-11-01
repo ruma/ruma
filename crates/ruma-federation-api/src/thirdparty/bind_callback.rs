@@ -12,42 +12,45 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::ruma_api, thirdparty::Medium, OwnedRoomId, OwnedServerName, OwnedServerSigningKeyId,
-        OwnedUserId, UserId,
+        api::{request, response, Metadata},
+        metadata,
+        thirdparty::Medium,
+        OwnedRoomId, OwnedServerName, OwnedServerSigningKeyId, OwnedUserId, UserId,
     };
     use serde::{Deserialize, Serialize};
 
-    ruma_api! {
-        metadata: {
-            description: "Used by identity servers to notify the homeserver that one of its users has bound a third party identifier successfully",
-            method: PUT,
-            name: "bind_callback",
-            stable_path: "/_matrix/federation/v1/3pid/onbind",
-            rate_limited: false,
-            authentication: None,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Used by identity servers to notify the homeserver that one of its users has bound a third party identifier successfully",
+        method: PUT,
+        name: "bind_callback",
+        rate_limited: false,
+        authentication: None,
+        history: {
+            1.0 => "/_matrix/federation/v1/3pid/onbind",
         }
+    };
 
-        request: {
-            /// The type of third party identifier.
-            ///
-            /// Currently only `Medium::Email` is supported.
-            pub medium: &'a Medium,
+    #[request]
+    pub struct Request<'a> {
+        /// The type of third party identifier.
+        ///
+        /// Currently only `Medium::Email` is supported.
+        pub medium: &'a Medium,
 
-            /// The third party identifier itself.
-            ///
-            /// For example: an email address.
-            pub address: &'a str,
+        /// The third party identifier itself.
+        ///
+        /// For example: an email address.
+        pub address: &'a str,
 
-            /// The user that is now bound to the third party identifier.
-            pub mxid: &'a UserId,
+        /// The user that is now bound to the third party identifier.
+        pub mxid: &'a UserId,
 
-            /// A list of pending invites that the third party identifier has received.
-            pub invites: &'a [ThirdPartyInvite],
-        }
-
-        response: {}
+        /// A list of pending invites that the third party identifier has received.
+        pub invites: &'a [ThirdPartyInvite],
     }
+
+    #[response]
+    pub struct Response {}
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given medium, address, user ID and third party invites.

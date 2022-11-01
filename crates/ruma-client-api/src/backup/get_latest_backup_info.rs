@@ -6,7 +6,11 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3room_keysversion
 
     use js_int::UInt;
-    use ruma_common::{api::ruma_api, serde::Raw};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+        serde::Raw,
+    };
     use serde::{ser, Deserialize, Deserializer, Serialize};
     use serde_json::value::to_raw_value as to_raw_json_value;
 
@@ -15,41 +19,40 @@ pub mod v3 {
         BackupAlgorithm,
     };
 
-    ruma_api! {
-        metadata: {
-            description: "Get information about the latest backup.",
-            method: GET,
-            name: "get_latest_backup_info",
-            unstable_path: "/_matrix/client/unstable/room_keys/version",
-            r0_path: "/_matrix/client/r0/room_keys/version",
-            stable_path: "/_matrix/client/v3/room_keys/version",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get information about the latest backup.",
+        method: GET,
+        name: "get_latest_backup_info",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            unstable => "/_matrix/client/unstable/room_keys/version",
+            1.0 => "/_matrix/client/r0/room_keys/version",
+            1.1 => "/_matrix/client/v3/room_keys/version",
         }
+    };
 
-        #[derive(Default)]
-        request: {}
+    #[request(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Request {}
 
-        #[ruma_api(manual_body_serde)]
-        response: {
-            /// The algorithm used for storing backups.
-            pub algorithm: Raw<BackupAlgorithm>,
+    #[response(error = crate::Error)]
+    #[ruma_api(manual_body_serde)]
+    pub struct Response {
+        /// The algorithm used for storing backups.
+        pub algorithm: Raw<BackupAlgorithm>,
 
-            /// The number of keys stored in the backup.
-            pub count: UInt,
+        /// The number of keys stored in the backup.
+        pub count: UInt,
 
-            /// An opaque string representing stored keys in the backup.
-            ///
-            /// Clients can compare it with the etag value they received in the request of their last
-            /// key storage request.
-            pub etag: String,
+        /// An opaque string representing stored keys in the backup.
+        ///
+        /// Clients can compare it with the etag value they received in the request of their last
+        /// key storage request.
+        pub etag: String,
 
-            /// The backup version.
-            pub version: String,
-        }
-
-        error: crate::Error
+        /// The backup version.
+        pub version: String,
     }
 
     impl Request {

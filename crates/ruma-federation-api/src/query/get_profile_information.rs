@@ -7,57 +7,63 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#get_matrixfederationv1queryprofile
 
-    use ruma_common::{api::ruma_api, serde::StringEnum, OwnedMxcUri, UserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+        serde::StringEnum,
+        OwnedMxcUri, UserId,
+    };
 
     use crate::PrivOwnedStr;
 
-    ruma_api! {
-        metadata: {
-            description: "Get profile information, such as a display name or avatar, for a given user.",
-            name: "get_profile_information",
-            method: GET,
-            stable_path: "/_matrix/federation/v1/query/profile",
-            rate_limited: false,
-            authentication: ServerSignatures,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get profile information, such as a display name or avatar, for a given user.",
+        method: GET,
+        name: "get_profile_information",
+        rate_limited: false,
+        authentication: ServerSignatures,
+        history: {
+            1.0 => "/_matrix/federation/v1/query/profile",
         }
+    };
 
-        request: {
-            /// User ID to query.
-            #[ruma_api(query)]
-            pub user_id: &'a UserId,
+    #[request]
+    pub struct Request<'a> {
+        /// User ID to query.
+        #[ruma_api(query)]
+        pub user_id: &'a UserId,
 
-            /// Profile field to query.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            #[ruma_api(query)]
-            pub field: Option<&'a ProfileField>,
-        }
+        /// Profile field to query.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[ruma_api(query)]
+        pub field: Option<&'a ProfileField>,
+    }
 
-        #[derive(Default)]
-        response: {
-            /// Display name of the user.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub displayname: Option<String>,
+    #[response]
+    #[derive(Default)]
+    pub struct Response {
+        /// Display name of the user.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub displayname: Option<String>,
 
-            /// Avatar URL for the user's avatar.
-            ///
-            /// If you activate the `compat` feature, this field being an empty string in JSON will result
-            /// in `None` here during deserialization.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(
-                feature = "compat",
-                serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
-            )]
-            pub avatar_url: Option<OwnedMxcUri>,
+        /// Avatar URL for the user's avatar.
+        ///
+        /// If you activate the `compat` feature, this field being an empty string in JSON will
+        /// result in `None` here during deserialization.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(
+            feature = "compat",
+            serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
+        )]
+        pub avatar_url: Option<OwnedMxcUri>,
 
-            /// The [BlurHash](https://blurha.sh) for the avatar pointed to by `avatar_url`.
-            ///
-            /// This uses the unstable prefix in
-            /// [MSC2448](https://github.com/matrix-org/matrix-spec-proposals/pull/2448).
-            #[cfg(feature = "unstable-msc2448")]
-            #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
-            pub blurhash: Option<String>,
-        }
+        /// The [BlurHash](https://blurha.sh) for the avatar pointed to by `avatar_url`.
+        ///
+        /// This uses the unstable prefix in
+        /// [MSC2448](https://github.com/matrix-org/matrix-spec-proposals/pull/2448).
+        #[cfg(feature = "unstable-msc2448")]
+        #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
+        pub blurhash: Option<String>,
     }
 
     impl<'a> Request<'a> {

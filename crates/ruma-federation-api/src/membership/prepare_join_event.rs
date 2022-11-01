@@ -7,45 +7,49 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#get_matrixfederationv1make_joinroomiduserid
 
-    use ruma_common::{api::ruma_api, RoomId, RoomVersionId, UserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, RoomId, RoomVersionId, UserId,
+    };
     use serde_json::value::RawValue as RawJsonValue;
 
-    ruma_api! {
-        metadata: {
-            description: "Send a request for a join event template to a resident server.",
-            name: "create_join_event_template",
-            method: GET,
-            stable_path: "/_matrix/federation/v1/make_join/:room_id/:user_id",
-            rate_limited: false,
-            authentication: ServerSignatures,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Send a request for a join event template to a resident server.",
+        method: GET,
+        name: "create_join_event_template",
+        rate_limited: false,
+        authentication: ServerSignatures,
+        history: {
+            1.0 => "/_matrix/federation/v1/make_join/:room_id/:user_id",
         }
+    };
 
-        request: {
-            /// The room ID that is about to be joined.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
+    #[request]
+    pub struct Request<'a> {
+        /// The room ID that is about to be joined.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
 
-            /// The user ID the join event will be for.
-            #[ruma_api(path)]
-            pub user_id: &'a UserId,
+        /// The user ID the join event will be for.
+        #[ruma_api(path)]
+        pub user_id: &'a UserId,
 
-            /// The room versions the sending server has support for.
-            ///
-            /// Defaults to `&[RoomVersionId::V1]`.
-            #[ruma_api(query)]
-            #[serde(default = "default_ver", skip_serializing_if = "is_default_ver")]
-            pub ver: &'a [RoomVersionId],
-        }
+        /// The room versions the sending server has support for.
+        ///
+        /// Defaults to `&[RoomVersionId::V1]`.
+        #[ruma_api(query)]
+        #[serde(default = "default_ver", skip_serializing_if = "is_default_ver")]
+        pub ver: &'a [RoomVersionId],
+    }
 
-        response: {
-            /// The version of the room where the server is trying to join.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub room_version: Option<RoomVersionId>,
+    #[response]
+    pub struct Response {
+        /// The version of the room where the server is trying to join.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub room_version: Option<RoomVersionId>,
 
-            /// An unsigned template event.
-            pub event: Box<RawJsonValue>,
-        }
+        /// An unsigned template event.
+        pub event: Box<RawJsonValue>,
     }
 
     fn default_ver() -> Vec<RoomVersionId> {

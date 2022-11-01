@@ -7,39 +7,46 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#put_matrixfederationv1send_knockroomideventid
 
-    use ruma_common::{api::ruma_api, events::AnyStrippedStateEvent, serde::Raw, EventId, RoomId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        events::AnyStrippedStateEvent,
+        metadata,
+        serde::Raw,
+        EventId, RoomId,
+    };
     use serde_json::value::RawValue as RawJsonValue;
 
-    ruma_api! {
-        metadata: {
-            description: "Submits a signed knock event to the resident homeserver for it to accept into the room's graph.",
-            name: "send_knock",
-            method: PUT,
-            unstable_path: "/_matrix/federation/unstable/xyz.amorgan.knock/send_knock/:room_id/:event_id",
-            stable_path: "/_matrix/federation/v1/send_knock/:room_id/:event_id",
-            rate_limited: false,
-            authentication: ServerSignatures,
-            added: 1.1,
+    const METADATA: Metadata = metadata! {
+        description: "Submits a signed knock event to the resident homeserver for it to accept into the room's graph.",
+        name: "send_knock",
+        method: PUT,
+        rate_limited: false,
+        authentication: ServerSignatures,
+        history: {
+            unstable => "/_matrix/federation/unstable/xyz.amorgan.knock/send_knock/:room_id/:event_id",
+            1.1 => "/_matrix/federation/v1/send_knock/:room_id/:event_id",
         }
+    };
 
-        request: {
-            /// The room ID that should receive the knock.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
+    #[request]
+    pub struct Request<'a> {
+        /// The room ID that should receive the knock.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
 
-            /// The event ID for the knock event.
-            #[ruma_api(path)]
-            pub event_id: &'a EventId,
+        /// The event ID for the knock event.
+        #[ruma_api(path)]
+        pub event_id: &'a EventId,
 
-            /// The PDU.
-            #[ruma_api(body)]
-            pub pdu: &'a RawJsonValue,
-        }
+        /// The PDU.
+        #[ruma_api(body)]
+        pub pdu: &'a RawJsonValue,
+    }
 
-        response: {
-            /// State events providing public room metadata.
-            pub knock_room_state: Vec<Raw<AnyStrippedStateEvent>>,
-        }
+    #[response]
+    pub struct Response {
+        /// State events providing public room metadata.
+        pub knock_room_state: Vec<Raw<AnyStrippedStateEvent>>,
     }
 
     impl<'a> Request<'a> {

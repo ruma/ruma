@@ -5,34 +5,37 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3room_keysversion
 
-    use ruma_common::{api::ruma_api, serde::Raw};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+        serde::Raw,
+    };
 
     use crate::backup::BackupAlgorithm;
 
-    ruma_api! {
-        metadata: {
-            description: "Create a new backup version.",
-            method: POST,
-            name: "create_backup_version",
-            unstable_path: "/_matrix/client/unstable/room_keys/version",
-            stable_path: "/_matrix/client/v3/room_keys/version",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.1,
+    const METADATA: Metadata = metadata! {
+        description: "Create a new backup version.",
+        method: POST,
+        name: "create_backup_version",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            unstable => "/_matrix/client/unstable/room_keys/version",
+            1.1 => "/_matrix/client/v3/room_keys/version",
         }
+    };
 
-        request: {
-            /// The algorithm used for storing backups.
-            #[ruma_api(body)]
-            pub algorithm: Raw<BackupAlgorithm>,
-        }
+    #[request(error = crate::Error)]
+    pub struct Request {
+        /// The algorithm used for storing backups.
+        #[ruma_api(body)]
+        pub algorithm: Raw<BackupAlgorithm>,
+    }
 
-        response: {
-            /// The backup version.
-            pub version: String,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The backup version.
+        pub version: String,
     }
 
     impl Request {

@@ -7,42 +7,45 @@ pub mod v3 {
 
     use std::time::Duration;
 
-    use ruma_common::{api::ruma_api, authentication::TokenType, OwnedServerName, UserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        authentication::TokenType,
+        metadata, OwnedServerName, UserId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Request an OpenID 1.0 token to verify identity with a third party.",
-            name: "request_openid_token",
-            method: POST,
-            r0_path: "/_matrix/client/r0/user/:user_id/openid/request_token",
-            stable_path: "/_matrix/client/v3/user/:user_id/openid/request_token",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Request an OpenID 1.0 token to verify identity with a third party.",
+        method: POST,
+        name: "request_openid_token",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/user/:user_id/openid/request_token",
+            1.1 => "/_matrix/client/v3/user/:user_id/openid/request_token",
         }
+    };
 
-        request: {
-            /// User ID of authenticated user.
-            #[ruma_api(path)]
-            pub user_id: &'a UserId,
-        }
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// User ID of authenticated user.
+        #[ruma_api(path)]
+        pub user_id: &'a UserId,
+    }
 
-        response: {
-            /// Access token for verifying user's identity.
-            pub access_token: String,
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// Access token for verifying user's identity.
+        pub access_token: String,
 
-            /// Access token type.
-            pub token_type: TokenType,
+        /// Access token type.
+        pub token_type: TokenType,
 
-            /// Homeserver domain for verification of user's identity.
-            pub matrix_server_name: OwnedServerName,
+        /// Homeserver domain for verification of user's identity.
+        pub matrix_server_name: OwnedServerName,
 
-            /// Seconds until token expiration.
-            #[serde(with = "ruma_common::serde::duration::secs")]
-            pub expires_in: Duration,
-        }
-
-        error: crate::Error
+        /// Seconds until token expiration.
+        #[serde(with = "ruma_common::serde::duration::secs")]
+        pub expires_in: Duration,
     }
 
     impl<'a> Request<'a> {

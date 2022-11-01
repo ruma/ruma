@@ -10,43 +10,45 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::ruma_api,
+        api::{request, response, Metadata},
         encryption::{CrossSigningKey, DeviceKeys},
+        metadata,
         serde::Raw,
         OwnedDeviceId, OwnedUserId,
     };
 
-    ruma_api! {
-        metadata: {
-            description: "Returns the current devices and identity keys for the given users.",
-            method: POST,
-            name: "get_keys",
-            stable_path: "/_matrix/federation/v1/user/keys/query",
-            rate_limited: false,
-            authentication: ServerSignatures,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Returns the current devices and identity keys for the given users.",
+        method: POST,
+        name: "get_keys",
+        rate_limited: false,
+        authentication: ServerSignatures,
+        history: {
+            1.0 => "/_matrix/federation/v1/user/keys/query",
         }
+    };
 
-        request: {
-            /// The keys to be downloaded.
-            ///
-            /// Gives all keys for a given user if the list of device ids is empty.
-            pub device_keys: BTreeMap<OwnedUserId, Vec<OwnedDeviceId>>,
-        }
+    #[request]
+    pub struct Request {
+        /// The keys to be downloaded.
+        ///
+        /// Gives all keys for a given user if the list of device ids is empty.
+        pub device_keys: BTreeMap<OwnedUserId, Vec<OwnedDeviceId>>,
+    }
 
-        #[derive(Default)]
-        response: {
-            /// Keys from the queried devices.
-            pub device_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Raw<DeviceKeys>>>,
+    #[response]
+    #[derive(Default)]
+    pub struct Response {
+        /// Keys from the queried devices.
+        pub device_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Raw<DeviceKeys>>>,
 
-            /// Information on the master cross-signing keys of the queried users.
-            #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-            pub master_keys: BTreeMap<OwnedUserId, Raw<CrossSigningKey>>,
+        /// Information on the master cross-signing keys of the queried users.
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        pub master_keys: BTreeMap<OwnedUserId, Raw<CrossSigningKey>>,
 
-            /// Information on the self-signing keys of the queried users.
-            #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-            pub self_signing_keys: BTreeMap<OwnedUserId, Raw<CrossSigningKey>>,
-        }
+        /// Information on the self-signing keys of the queried users.
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        pub self_signing_keys: BTreeMap<OwnedUserId, Raw<CrossSigningKey>>,
     }
 
     impl Request {

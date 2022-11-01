@@ -6,29 +6,33 @@ pub mod unstable {
     //! [spec]: https://github.com/tulir/matrix-doc/blob/asynchronous_uploads/proposals/2246-asynchronous-uploads.md
 
     use js_int::UInt;
-    use ruma_common::{api::ruma_api, OwnedMxcUri};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, OwnedMxcUri,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Create an MXC URI without content.",
-            method: POST,
-            name: "create_mxc_uri",
-            unstable_path: "/_matrix/media/unstable/fi.mau.msc2246/create",
-            rate_limited: true,
-            authentication: AccessToken,
+    const METADATA: Metadata = metadata! {
+        description: "Create an MXC URI without content.",
+        method: POST,
+        name: "create_mxc_uri",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            unstable => "/_matrix/media/unstable/fi.mau.msc2246/create",
         }
+    };
 
-        request: {}
+    #[request(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Request {}
 
-        response: {
-            /// The MXC URI for the about to be uploaded content.
-            pub content_uri: OwnedMxcUri,
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The MXC URI for the about to be uploaded content.
+        pub content_uri: OwnedMxcUri,
 
-            /// The time at which the URI will expire if an upload has not been started.
-            pub unused_expires_at: UInt,
-        }
-
-        error: crate::Error
+        /// The time at which the URI will expire if an upload has not been started.
+        pub unused_expires_at: UInt,
     }
 
     impl Response {

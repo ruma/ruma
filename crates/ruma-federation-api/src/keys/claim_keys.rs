@@ -10,33 +10,35 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::ruma_api,
+        api::{request, response, Metadata},
         encryption::OneTimeKey,
+        metadata,
         serde::{Base64, Raw},
         DeviceKeyAlgorithm, OwnedDeviceId, OwnedDeviceKeyId, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};
 
-    ruma_api! {
-        metadata: {
-            description: "Claims one-time keys for use in pre-key messages.",
-            method: POST,
-            name: "claim_keys",
-            stable_path: "/_matrix/federation/v1/user/keys/claim",
-            rate_limited: false,
-            authentication: ServerSignatures,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Claims one-time keys for use in pre-key messages.",
+        method: POST,
+        name: "claim_keys",
+        rate_limited: false,
+        authentication: ServerSignatures,
+        history: {
+            1.0 => "/_matrix/federation/v1/user/keys/claim",
         }
+    };
 
-        request: {
-            /// The keys to be claimed.
-            pub one_time_keys: OneTimeKeyClaims,
-        }
+    #[request]
+    pub struct Request {
+        /// The keys to be claimed.
+        pub one_time_keys: OneTimeKeyClaims,
+    }
 
-        response: {
-            /// One-time keys for the queried devices
-            pub one_time_keys: OneTimeKeys,
-        }
+    #[response]
+    pub struct Response {
+        /// One-time keys for the queried devices
+        pub one_time_keys: OneTimeKeys,
     }
 
     impl Request {

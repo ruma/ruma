@@ -5,43 +5,45 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixmediav3preview_url
 
-    use ruma_common::{api::ruma_api, MilliSecondsSinceUnixEpoch};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, MilliSecondsSinceUnixEpoch,
+    };
     use serde::Serialize;
     use serde_json::value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue};
 
-    ruma_api! {
-        metadata: {
-            description: "Get a preview for a URL.",
-            name: "get_media_preview",
-            method: GET,
-            r0_path: "/_matrix/media/r0/preview_url",
-            stable_path: "/_matrix/media/v3/preview_url",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get a preview for a URL.",
+        method: GET,
+        name: "get_media_preview",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/media/r0/preview_url",
+            1.1 => "/_matrix/media/v3/preview_url",
         }
+    };
 
-        request: {
-            /// URL to get a preview of.
-            #[ruma_api(query)]
-            pub url: &'a str,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// URL to get a preview of.
+        #[ruma_api(query)]
+        pub url: &'a str,
 
-            /// Preferred point in time (in milliseconds) to return a preview for.
-            #[ruma_api(query)]
-            pub ts: MilliSecondsSinceUnixEpoch,
-        }
+        /// Preferred point in time (in milliseconds) to return a preview for.
+        #[ruma_api(query)]
+        pub ts: MilliSecondsSinceUnixEpoch,
+    }
 
-        #[derive(Default)]
-        response: {
-            /// OpenGraph-like data for the URL.
-            ///
-            /// Differences from OpenGraph: the image size in bytes is added to the `matrix:image:size`
-            /// field, and `og:image` returns the MXC URI to the image, if any.
-            #[ruma_api(body)]
-            pub data: Option<Box<RawJsonValue>>,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {
+        /// OpenGraph-like data for the URL.
+        ///
+        /// Differences from OpenGraph: the image size in bytes is added to the `matrix:image:size`
+        /// field, and `og:image` returns the MXC URI to the image, if any.
+        #[ruma_api(body)]
+        pub data: Option<Box<RawJsonValue>>,
     }
 
     impl<'a> Request<'a> {

@@ -7,49 +7,51 @@ pub mod v3 {
 
     use http::header::ACCEPT_LANGUAGE;
     use js_int::{uint, UInt};
-    use ruma_common::{api::ruma_api, OwnedMxcUri, OwnedUserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, OwnedMxcUri, OwnedUserId,
+    };
     use serde::{Deserialize, Serialize};
 
-    ruma_api! {
-        metadata: {
-            description: "Performs a search for users.",
-            method: POST,
-            name: "search_users",
-            r0_path: "/_matrix/client/r0/user_directory/search",
-            stable_path: "/_matrix/client/v3/user_directory/search",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Performs a search for users.",
+        method: POST,
+        name: "search_users",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/user_directory/search",
+            1.1 => "/_matrix/client/v3/user_directory/search",
         }
+    };
 
-        request: {
-            /// The term to search for.
-            pub search_term: &'a str,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The term to search for.
+        pub search_term: &'a str,
 
-            /// The maximum number of results to return.
-            ///
-            /// Defaults to 10.
-            #[serde(default = "default_limit", skip_serializing_if = "is_default_limit")]
-            pub limit: UInt,
+        /// The maximum number of results to return.
+        ///
+        /// Defaults to 10.
+        #[serde(default = "default_limit", skip_serializing_if = "is_default_limit")]
+        pub limit: UInt,
 
-            /// Language tag to determine the collation to use for the (case-insensitive) search.
-            ///
-            /// See [MDN] for the syntax.
-            ///
-            /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#Syntax
-            #[ruma_api(header = ACCEPT_LANGUAGE)]
-            pub language: Option<String>,
-        }
+        /// Language tag to determine the collation to use for the (case-insensitive) search.
+        ///
+        /// See [MDN] for the syntax.
+        ///
+        /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#Syntax
+        #[ruma_api(header = ACCEPT_LANGUAGE)]
+        pub language: Option<String>,
+    }
 
-        response: {
-            /// Ordered by rank and then whether or not profile info is available.
-            pub results: Vec<User>,
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// Ordered by rank and then whether or not profile info is available.
+        pub results: Vec<User>,
 
-            /// Indicates if the result list has been truncated by the limit.
-            pub limited: bool,
-        }
-
-        error: crate::Error
+        /// Indicates if the result list has been truncated by the limit.
+        pub limited: bool,
     }
 
     impl<'a> Request<'a> {

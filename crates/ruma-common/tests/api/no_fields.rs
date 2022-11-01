@@ -3,35 +3,51 @@ use ruma_common::api::{
 };
 
 mod get {
-    ruma_common::api::ruma_api! {
-        metadata: {
-            description: "Does something.",
-            method: GET,
-            name: "no_fields",
-            unstable_path: "/_matrix/my/endpoint",
-            rate_limited: false,
-            authentication: None,
-        }
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
-        request: {}
-        response: {}
-    }
+    const METADATA: Metadata = metadata! {
+        description: "Does something.",
+        method: GET,
+        name: "no_fields",
+        rate_limited: false,
+        authentication: None,
+        history: {
+            unstable => "/_matrix/my/endpoint",
+        }
+    };
+
+    #[request]
+    pub struct Request {}
+
+    #[response]
+    pub struct Response {}
 }
 
 mod post {
-    ruma_common::api::ruma_api! {
-        metadata: {
-            description: "Does something.",
-            method: POST,
-            name: "no_fields",
-            unstable_path: "/_matrix/my/endpoint",
-            rate_limited: false,
-            authentication: None,
-        }
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
-        request: {}
-        response: {}
-    }
+    const METADATA: Metadata = metadata! {
+        description: "Does something.",
+        method: POST,
+        name: "no_fields",
+        rate_limited: false,
+        authentication: None,
+        history: {
+            unstable => "/_matrix/my/endpoint",
+        }
+    };
+
+    #[request]
+    pub struct Request {}
+
+    #[response]
+    pub struct Response {}
 }
 
 #[test]

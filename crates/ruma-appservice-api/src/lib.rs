@@ -5,7 +5,7 @@
 //!
 //! [appservice-api]: https://spec.matrix.org/v1.4/application-service-api/
 
-#![warn(missing_docs)]
+// #![warn(missing_docs)] FIXME
 
 use serde::{Deserialize, Serialize};
 

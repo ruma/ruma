@@ -3,26 +3,31 @@
 pub mod msc3723 {
     //! [GET /_matrix/federation/versions](https://github.com/matrix-org/matrix-spec-proposals/pull/3723)
 
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Get the supported matrix versions of this homeserver",
-            method: GET,
-            name: "get_server_versions",
-            unstable_path: "/_matrix/federation/unstable/org.matrix.msc3723/versions",
-            rate_limited: false,
-            authentication: None,
+    const METADATA: Metadata = metadata! {
+        description: "Get the supported matrix versions of this homeserver",
+        method: GET,
+        name: "get_server_versions",
+        rate_limited: false,
+        authentication: None,
+        history: {
+            unstable => "/_matrix/federation/unstable/org.matrix.msc3723/versions",
         }
+    };
 
-        #[derive(Default)]
-        request: {}
+    #[request]
+    #[derive(Default)]
+    pub struct Request {}
 
-        #[derive(Default)]
-        response: {
-            /// A list of Matrix Server API protocol versions supported by the homeserver.
-            pub versions: Vec<String>,
-        }
+    #[response]
+    #[derive(Default)]
+    pub struct Response {
+        /// A list of Matrix Server API protocol versions supported by the homeserver.
+        pub versions: Vec<String>,
     }
 
     impl Request {

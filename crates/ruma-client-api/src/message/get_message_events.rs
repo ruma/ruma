@@ -7,8 +7,9 @@ pub mod v3 {
 
     use js_int::{uint, UInt};
     use ruma_common::{
-        api::ruma_api,
+        api::{request, response, Metadata},
         events::{AnyStateEvent, AnyTimelineEvent},
+        metadata,
         serde::Raw,
         RoomId,
     };
@@ -18,83 +19,82 @@ pub mod v3 {
         Direction,
     };
 
-    ruma_api! {
-        metadata: {
-            description: "Get message events for a room.",
-            method: GET,
-            name: "get_message_events",
-            r0_path: "/_matrix/client/r0/rooms/:room_id/messages",
-            stable_path: "/_matrix/client/v3/rooms/:room_id/messages",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get message events for a room.",
+        method: GET,
+        name: "get_message_events",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/rooms/:room_id/messages",
+            1.1 => "/_matrix/client/v3/rooms/:room_id/messages",
         }
+    };
 
-        request: {
-            /// The room to get events from.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The room to get events from.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
 
-            /// The token to start returning events from.
-            ///
-            /// This token can be obtained from a `prev_batch` token returned for each room by the
-            /// sync endpoint, or from a `start` or `end` token returned by a previous request to
-            /// this endpoint.
-            ///
-            /// If this is `None`, the server will return messages from the start or end of the
-            /// history visible to the user, depending on the value of [`dir`][Self::dir].
-            #[ruma_api(query)]
-            pub from: Option<&'a str>,
+        /// The token to start returning events from.
+        ///
+        /// This token can be obtained from a `prev_batch` token returned for each room by the
+        /// sync endpoint, or from a `start` or `end` token returned by a previous request to
+        /// this endpoint.
+        ///
+        /// If this is `None`, the server will return messages from the start or end of the
+        /// history visible to the user, depending on the value of [`dir`][Self::dir].
+        #[ruma_api(query)]
+        pub from: Option<&'a str>,
 
-            /// The token to stop returning events at.
-            ///
-            /// This token can be obtained from a `prev_batch` token returned for each room by the
-            /// sync endpoint, or from a `start` or `end` token returned by a previous request to
-            /// this endpoint.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            #[ruma_api(query)]
-            pub to: Option<&'a str>,
+        /// The token to stop returning events at.
+        ///
+        /// This token can be obtained from a `prev_batch` token returned for each room by the
+        /// sync endpoint, or from a `start` or `end` token returned by a previous request to
+        /// this endpoint.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[ruma_api(query)]
+        pub to: Option<&'a str>,
 
-            /// The direction to return events from.
-            #[ruma_api(query)]
-            pub dir: Direction,
+        /// The direction to return events from.
+        #[ruma_api(query)]
+        pub dir: Direction,
 
-            /// The maximum number of events to return.
-            ///
-            /// Default: `10`.
-            #[ruma_api(query)]
-            #[serde(default = "default_limit", skip_serializing_if = "is_default_limit")]
-            pub limit: UInt,
+        /// The maximum number of events to return.
+        ///
+        /// Default: `10`.
+        #[ruma_api(query)]
+        #[serde(default = "default_limit", skip_serializing_if = "is_default_limit")]
+        pub limit: UInt,
 
-            /// A [`RoomEventFilter`] to filter returned events with.
-            #[ruma_api(query)]
-            #[serde(
-                with = "ruma_common::serde::json_string",
-                default,
-                skip_serializing_if = "RoomEventFilter::is_empty"
-            )]
-            pub filter: RoomEventFilter<'a>,
-        }
+        /// A [`RoomEventFilter`] to filter returned events with.
+        #[ruma_api(query)]
+        #[serde(
+            with = "ruma_common::serde::json_string",
+            default,
+            skip_serializing_if = "RoomEventFilter::is_empty"
+        )]
+        pub filter: RoomEventFilter<'a>,
+    }
 
-        #[derive(Default)]
-        response: {
-            /// The token the pagination starts from.
-            pub start: String,
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {
+        /// The token the pagination starts from.
+        pub start: String,
 
-            /// The token the pagination ends at.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub end: Option<String>,
+        /// The token the pagination ends at.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub end: Option<String>,
 
-            /// A list of room events.
-            #[serde(default)]
-            pub chunk: Vec<Raw<AnyTimelineEvent>>,
+        /// A list of room events.
+        #[serde(default)]
+        pub chunk: Vec<Raw<AnyTimelineEvent>>,
 
-            /// A list of state events relevant to showing the `chunk`.
-            #[serde(default, skip_serializing_if = "Vec::is_empty")]
-            pub state: Vec<Raw<AnyStateEvent>>,
-        }
-
-        error: crate::Error
+        /// A list of state events relevant to showing the `chunk`.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub state: Vec<Raw<AnyStateEvent>>,
     }
 
     impl<'a> Request<'a> {

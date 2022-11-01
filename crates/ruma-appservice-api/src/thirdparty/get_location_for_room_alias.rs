@@ -7,30 +7,36 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/application-service-api/#get_matrixappv1thirdpartylocation
 
-    use ruma_common::{api::ruma_api, thirdparty::Location, RoomAliasId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+        thirdparty::Location,
+        RoomAliasId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Retrieve an array of third party network locations from a Matrix room alias.",
-            method: GET,
-            name: "get_location_for_room_alias",
-            stable_path: "/_matrix/app/v1/thirdparty/location",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Retrieve an array of third party network locations from a Matrix room alias.",
+        method: GET,
+        name: "get_location_for_room_alias",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/app/v1/thirdparty/location",
         }
+    };
 
-        request: {
-            /// The Matrix room alias to look up.
-            #[ruma_api(query)]
-            pub alias: &'a RoomAliasId,
-        }
+    #[request]
+    pub struct Request<'a> {
+        /// The Matrix room alias to look up.
+        #[ruma_api(query)]
+        pub alias: &'a RoomAliasId,
+    }
 
-        response: {
-            /// List of matched third party locations.
-            #[ruma_api(body)]
-            pub locations: Vec<Location>,
-        }
+    #[response]
+    pub struct Response {
+        /// List of matched third party locations.
+        #[ruma_api(body)]
+        pub locations: Vec<Location>,
     }
 
     impl<'a> Request<'a> {

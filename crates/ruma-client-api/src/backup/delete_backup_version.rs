@@ -7,32 +7,34 @@ pub mod v3 {
     //!
     //! This deletes a backup version and its room keys.
 
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Delete a backup version.",
-            method: DELETE,
-            name: "delete_backup_version",
-            unstable_path: "/_matrix/client/unstable/room_keys/version/:version",
-            r0_path: "/_matrix/client/r0/room_keys/version/:version",
-            stable_path: "/_matrix/client/v3/room_keys/version/:version",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Delete a backup version.",
+        method: DELETE,
+        name: "delete_backup_version",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            unstable => "/_matrix/client/unstable/room_keys/version/:version",
+            1.0 => "/_matrix/client/r0/room_keys/version/:version",
+            1.1 => "/_matrix/client/v3/room_keys/version/:version",
         }
+    };
 
-        request: {
-            /// The backup version to delete.
-            #[ruma_api(path)]
-            pub version: &'a str,
-        }
-
-        #[derive(Default)]
-        response: {}
-
-        error: crate::Error
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The backup version to delete.
+        #[ruma_api(path)]
+        pub version: &'a str,
     }
+
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given version, room_id and sessions.

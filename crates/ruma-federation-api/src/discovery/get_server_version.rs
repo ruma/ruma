@@ -7,29 +7,33 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#get_matrixfederationv1version
 
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
     use serde::{Deserialize, Serialize};
 
-    ruma_api! {
-        metadata: {
-            description: "Get the implementation name and version of this homeserver.",
-            method: GET,
-            name: "get_server_version",
-            stable_path: "/_matrix/federation/v1/version",
-            rate_limited: false,
-            authentication: None,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get the implementation name and version of this homeserver.",
+        method: GET,
+        name: "get_server_version",
+        rate_limited: false,
+        authentication: None,
+        history: {
+            1.0 => "/_matrix/federation/v1/version",
         }
+    };
 
-        #[derive(Default)]
-        request: {}
+    #[request]
+    #[derive(Default)]
+    pub struct Request {}
 
-        #[derive(Default)]
-        response: {
-            /// Information about the homeserver implementation
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub server: Option<Server>,
-        }
+    #[response]
+    #[derive(Default)]
+    pub struct Response {
+        /// Information about the homeserver implementation
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub server: Option<Server>,
     }
 
     impl Request {

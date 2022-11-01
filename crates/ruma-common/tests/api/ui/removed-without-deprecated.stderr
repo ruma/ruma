@@ -1,0 +1,5 @@
+error: no rules expected the token `=>`
+ --> tests/api/ui/removed-without-deprecated.rs:7:14
+  |
+7 |     unstable => "/a/path",
+  |              ^^ no rules expected this token in macro call

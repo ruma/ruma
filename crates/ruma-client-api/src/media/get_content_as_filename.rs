@@ -6,71 +6,76 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixmediav3downloadservernamemediaidfilename
 
     use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
-    use ruma_common::{api::ruma_api, IdParseError, MxcUri, ServerName};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, IdParseError, MxcUri, ServerName,
+    };
 
     use crate::http_headers::CROSS_ORIGIN_RESOURCE_POLICY;
 
-    ruma_api! {
-        metadata: {
-            description: "Retrieve content from the media store, specifying a filename to return.",
-            method: GET,
-            name: "get_media_content_as_filename",
-            r0_path: "/_matrix/media/r0/download/:server_name/:media_id/:filename",
-            stable_path: "/_matrix/media/v3/download/:server_name/:media_id/:filename",
-            rate_limited: false,
-            authentication: None,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Retrieve content from the media store, specifying a filename to return.",
+        method: GET,
+        name: "get_media_content_as_filename",
+        rate_limited: false,
+        authentication: None,
+        history: {
+            1.0 => "/_matrix/media/r0/download/:server_name/:media_id/:filename",
+            1.1 => "/_matrix/media/v3/download/:server_name/:media_id/:filename",
         }
+    };
 
-        request: {
-            /// The server name from the mxc:// URI (the authoritory component).
-            #[ruma_api(path)]
-            pub server_name: &'a ServerName,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The server name from the mxc:// URI (the authoritory component).
+        #[ruma_api(path)]
+        pub server_name: &'a ServerName,
 
-            /// The media ID from the mxc:// URI (the path component).
-            #[ruma_api(path)]
-            pub media_id: &'a str,
+        /// The media ID from the mxc:// URI (the path component).
+        #[ruma_api(path)]
+        pub media_id: &'a str,
 
-            /// The filename to return in the `Content-Disposition` header.
-            #[ruma_api(path)]
-            pub filename: &'a str,
+        /// The filename to return in the `Content-Disposition` header.
+        #[ruma_api(path)]
+        pub filename: &'a str,
 
-            /// Whether to fetch media deemed remote.
-            ///
-            /// Used to prevent routing loops. Defaults to `true`.
-            #[ruma_api(query)]
-            #[serde(default = "ruma_common::serde::default_true", skip_serializing_if = "ruma_common::serde::is_true")]
-            pub allow_remote: bool,
-        }
+        /// Whether to fetch media deemed remote.
+        ///
+        /// Used to prevent routing loops. Defaults to `true`.
+        #[ruma_api(query)]
+        #[serde(
+            default = "ruma_common::serde::default_true",
+            skip_serializing_if = "ruma_common::serde::is_true"
+        )]
+        pub allow_remote: bool,
+    }
 
-        response: {
-            /// The content that was previously uploaded.
-            #[ruma_api(raw_body)]
-            pub file: Vec<u8>,
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The content that was previously uploaded.
+        #[ruma_api(raw_body)]
+        pub file: Vec<u8>,
 
-            /// The content type of the file that was previously uploaded.
-            #[ruma_api(header = CONTENT_TYPE)]
-            pub content_type: Option<String>,
+        /// The content type of the file that was previously uploaded.
+        #[ruma_api(header = CONTENT_TYPE)]
+        pub content_type: Option<String>,
 
-            /// The value of the `Content-Disposition` HTTP header, possibly containing the name of the
-            /// file that was previously uploaded.
-            ///
-            /// See [MDN] for the syntax.
-            ///
-            /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition#Syntax
-            #[ruma_api(header = CONTENT_DISPOSITION)]
-            pub content_disposition: Option<String>,
+        /// The value of the `Content-Disposition` HTTP header, possibly containing the name of the
+        /// file that was previously uploaded.
+        ///
+        /// See [MDN] for the syntax.
+        ///
+        /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition#Syntax
+        #[ruma_api(header = CONTENT_DISPOSITION)]
+        pub content_disposition: Option<String>,
 
-            /// The value of the `Cross-Origin-Resource-Policy` HTTP header.
-            ///
-            /// See [MDN] for the syntax.
-            ///
-            /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy#syntax
-            #[ruma_api(header = CROSS_ORIGIN_RESOURCE_POLICY)]
-            pub cross_origin_resource_policy: Option<String>,
-        }
-
-        error: crate::Error
+        /// The value of the `Cross-Origin-Resource-Policy` HTTP header.
+        ///
+        /// See [MDN] for the syntax.
+        ///
+        /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy#syntax
+        #[ruma_api(header = CROSS_ORIGIN_RESOURCE_POLICY)]
+        pub cross_origin_resource_policy: Option<String>,
     }
 
     impl<'a> Request<'a> {

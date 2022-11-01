@@ -9,35 +9,39 @@ pub mod v1 {
 
     use std::collections::BTreeMap;
 
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
     use serde_json::Value as JsonValue;
 
-    ruma_api! {
-        metadata: {
-            description: "Performs a single query request on the receiving homeserver. The query string arguments are dependent on which type of query is being made.",
-            method: GET,
-            name: "get_custom_information",
-            stable_path: "/_matrix/federation/v1/query/:query_type",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Performs a single query request on the receiving homeserver. The query string arguments are dependent on which type of query is being made.",
+        method: GET,
+        name: "get_custom_information",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/federation/v1/query/:query_type",
         }
+    };
 
-        request: {
-            /// The type of query to make.
-            #[ruma_api(path)]
-            pub query_type: &'a str,
+    #[request]
+    pub struct Request<'a> {
+        /// The type of query to make.
+        #[ruma_api(path)]
+        pub query_type: &'a str,
 
-            /// The query parameters.
-            #[ruma_api(query_map)]
-            pub params: BTreeMap<String, String>,
-        }
+        /// The query parameters.
+        #[ruma_api(query_map)]
+        pub params: BTreeMap<String, String>,
+    }
 
-        response: {
-            /// The body of the response.
-            #[ruma_api(body)]
-            pub body: JsonValue,
-        }
+    #[response]
+    pub struct Response {
+        /// The body of the response.
+        #[ruma_api(body)]
+        pub body: JsonValue,
     }
 
     impl<'a> Request<'a> {

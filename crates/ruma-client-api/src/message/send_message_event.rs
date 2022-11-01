@@ -6,68 +6,68 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#put_matrixclientv3roomsroomidsendeventtypetxnid
 
     use ruma_common::{
-        api::ruma_api,
+        api::{request, response, Metadata},
         events::{AnyMessageLikeEventContent, MessageLikeEventContent, MessageLikeEventType},
+        metadata,
         serde::Raw,
         MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, TransactionId,
     };
     use serde_json::value::to_raw_value as to_raw_json_value;
 
-    ruma_api! {
-        metadata: {
-            description: "Send a message event to a room.",
-            method: PUT,
-            name: "create_message_event",
-            r0_path: "/_matrix/client/r0/rooms/:room_id/send/:event_type/:txn_id",
-            stable_path: "/_matrix/client/v3/rooms/:room_id/send/:event_type/:txn_id",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Send a message event to a room.",
+        method: PUT,
+        name: "create_message_event",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/rooms/:room_id/send/:event_type/:txn_id",
+            1.1 => "/_matrix/client/v3/rooms/:room_id/send/:event_type/:txn_id",
         }
+    };
 
-        request: {
-            /// The room to send the event to.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The room to send the event to.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
 
-            /// The type of event to send.
-            #[ruma_api(path)]
-            pub event_type: MessageLikeEventType,
+        /// The type of event to send.
+        #[ruma_api(path)]
+        pub event_type: MessageLikeEventType,
 
-            /// The transaction ID for this event.
-            ///
-            /// Clients should generate a unique ID across requests within the
-            /// same session. A session is identified by an access token, and
-            /// persists when the [access token is refreshed].
-            ///
-            /// It will be used by the server to ensure idempotency of requests.
-            ///
-            /// [access token is refreshed]: https://spec.matrix.org/v1.4/client-server-api/#refreshing-access-tokens
-            #[ruma_api(path)]
-            pub txn_id: &'a TransactionId,
+        /// The transaction ID for this event.
+        ///
+        /// Clients should generate a unique ID across requests within the
+        /// same session. A session is identified by an access token, and
+        /// persists when the [access token is refreshed].
+        ///
+        /// It will be used by the server to ensure idempotency of requests.
+        ///
+        /// [access token is refreshed]: https://spec.matrix.org/v1.4/client-server-api/#refreshing-access-tokens
+        #[ruma_api(path)]
+        pub txn_id: &'a TransactionId,
 
-            /// The event content to send.
-            #[ruma_api(body)]
-            pub body: Raw<AnyMessageLikeEventContent>,
+        /// The event content to send.
+        #[ruma_api(body)]
+        pub body: Raw<AnyMessageLikeEventContent>,
 
-            /// Timestamp to use for the `origin_server_ts` of the event.
-            ///
-            /// This is called [timestamp massaging] and can only be used by Appservices.
-            ///
-            /// Note that this does not change the position of the event in the timeline.
-            ///
-            /// [timestamp massaging]: https://spec.matrix.org/v1.4/application-service-api/#timestamp-massaging
-            #[ruma_api(query)]
-            #[serde(skip_serializing_if = "Option::is_none", rename = "ts")]
-            pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
-        }
+        /// Timestamp to use for the `origin_server_ts` of the event.
+        ///
+        /// This is called [timestamp massaging] and can only be used by Appservices.
+        ///
+        /// Note that this does not change the position of the event in the timeline.
+        ///
+        /// [timestamp massaging]: https://spec.matrix.org/v1.4/application-service-api/#timestamp-massaging
+        #[ruma_api(query)]
+        #[serde(skip_serializing_if = "Option::is_none", rename = "ts")]
+        pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
+    }
 
-        response: {
-            /// A unique identifier for the event.
-            pub event_id: OwnedEventId,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// A unique identifier for the event.
+        pub event_id: OwnedEventId,
     }
 
     impl<'a> Request<'a> {
