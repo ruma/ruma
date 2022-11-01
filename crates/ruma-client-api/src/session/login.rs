@@ -275,14 +275,16 @@ pub mod v3 {
 
     impl<'a> fmt::Debug for Password<'a> {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            f.debug_struct("Password").field("identifier", &self.identifier).finish_non_exhaustive()
+            let Self { identifier, password: _ } = self;
+            f.debug_struct("Password").field("identifier", identifier).finish_non_exhaustive()
         }
     }
 
     impl fmt::Debug for IncomingPassword {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            let Self { identifier, password: _ } = self;
             f.debug_struct("IncomingPassword")
-                .field("identifier", &self.identifier)
+                .field("identifier", identifier)
                 .finish_non_exhaustive()
         }
     }
@@ -313,12 +315,14 @@ pub mod v3 {
 
     impl<'a> fmt::Debug for Token<'a> {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            let Self { token: _ } = self;
             f.debug_struct("Token").finish_non_exhaustive()
         }
     }
 
     impl fmt::Debug for IncomingToken {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            let Self { token: _ } = self;
             f.debug_struct("IncomingToken").finish_non_exhaustive()
         }
     }
@@ -358,8 +362,9 @@ pub mod v3 {
 
     impl<'a> fmt::Debug for CustomLoginInfo<'a> {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            let Self { login_type, extra: _ } = self;
             f.debug_struct("CustomLoginInfo")
-                .field("login_type", &self.login_type)
+                .field("login_type", login_type)
                 .finish_non_exhaustive()
         }
     }
@@ -376,8 +381,9 @@ pub mod v3 {
 
     impl fmt::Debug for IncomingCustomLoginInfo {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            let Self { login_type, extra: _ } = self;
             f.debug_struct("IncomingCustomLoginInfo")
-                .field("login_type", &self.login_type)
+                .field("login_type", login_type)
                 .finish_non_exhaustive()
         }
     }
