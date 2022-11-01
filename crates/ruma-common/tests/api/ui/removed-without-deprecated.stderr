@@ -1,5 +1,14 @@
-error: no rules expected the token `=>`
- --> tests/api/ui/removed-without-deprecated.rs:7:14
-  |
-7 |     unstable => "/a/path",
-  |              ^^ no rules expected this token in macro call
+error: no rules expected the token `history_impl`
+  --> tests/api/ui/removed-without-deprecated.rs:3:28
+   |
+3  |   const METADATA: Metadata = metadata! {
+   |  ____________________________^
+4  | |     description: "This will fail.",
+5  | |     method: GET,
+6  | |     name: "invalid_versions",
+...  |
+12 | |     }
+13 | | };
+   | |_^ no rules expected this token in macro call
+   |
+   = note: this error originates in the macro `$crate::metadata` which comes from the expansion of the macro `metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
