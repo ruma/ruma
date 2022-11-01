@@ -8,51 +8,54 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::ruma_api, events::AnyToDeviceEventContent, serde::Raw,
-        to_device::DeviceIdOrAllDevices, OwnedUserId, TransactionId,
+        api::{request, response, Metadata},
+        events::AnyToDeviceEventContent,
+        metadata,
+        serde::Raw,
+        to_device::DeviceIdOrAllDevices,
+        OwnedUserId, TransactionId,
     };
 
-    ruma_api! {
-        metadata: {
-            description: "Send an event to a device or devices.",
-            method: PUT,
-            name: "send_event_to_device",
-            r0_path: "/_matrix/client/r0/sendToDevice/:event_type/:txn_id",
-            stable_path: "/_matrix/client/v3/sendToDevice/:event_type/:txn_id",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Send an event to a device or devices.",
+        method: PUT,
+        name: "send_event_to_device",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/sendToDevice/:event_type/:txn_id",
+            1.1 => "/_matrix/client/v3/sendToDevice/:event_type/:txn_id",
         }
+    };
 
-        request: {
-            /// Type of event being sent to each device.
-            #[ruma_api(path)]
-            pub event_type: &'a str,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// Type of event being sent to each device.
+        #[ruma_api(path)]
+        pub event_type: &'a str,
 
-            /// The transaction ID for this event.
-            ///
-            /// Clients should generate a unique ID across requests within the
-            /// same session. A session is identified by an access token, and
-            /// persists when the [access token is refreshed].
-            ///
-            /// It will be used by the server to ensure idempotency of requests.
-            ///
-            /// [access token is refreshed]: https://spec.matrix.org/v1.4/client-server-api/#refreshing-access-tokens
-            #[ruma_api(path)]
-            pub txn_id: &'a TransactionId,
+        /// The transaction ID for this event.
+        ///
+        /// Clients should generate a unique ID across requests within the
+        /// same session. A session is identified by an access token, and
+        /// persists when the [access token is refreshed].
+        ///
+        /// It will be used by the server to ensure idempotency of requests.
+        ///
+        /// [access token is refreshed]: https://spec.matrix.org/v1.4/client-server-api/#refreshing-access-tokens
+        #[ruma_api(path)]
+        pub txn_id: &'a TransactionId,
 
-            /// Messages to send.
-            ///
-            /// Different message events can be sent to different devices in the same request, but all
-            /// events within one request must be of the same type.
-            pub messages: Messages,
-        }
-
-        #[derive(Default)]
-        response: {}
-
-        error: crate::Error
+        /// Messages to send.
+        ///
+        /// Different message events can be sent to different devices in the same request, but all
+        /// events within one request must be of the same type.
+        pub messages: Messages,
     }
+
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given event type, transaction ID and raw messages.

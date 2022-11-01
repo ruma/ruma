@@ -4,72 +4,74 @@
 
 use js_int::UInt;
 use ruma_common::{
-    api::ruma_api,
+    api::{request, response, Metadata},
     events::{room::member::RoomMemberEventContent, StateEventType},
+    metadata,
     serde::Raw,
     EventId, MilliSecondsSinceUnixEpoch, RoomId, ServerName, UserId,
 };
 use serde::{Deserialize, Serialize};
 
-ruma_api! {
-    metadata: {
-        description: "Submits a signed leave event to the receiving server for it to accept it into the room's graph.",
-        name: "create_leave_event",
-        method: PUT,
-        stable_path: "/_matrix/federation/v1/send_leave/:room_id/:event_id",
-        rate_limited: false,
-        authentication: ServerSignatures,
-        added: 1.0,
+const METADATA: Metadata = metadata! {
+    description: "Submits a signed leave event to the receiving server for it to accept it into the room's graph.",
+    name: "create_leave_event",
+    method: PUT,
+    rate_limited: false,
+    authentication: ServerSignatures,
+    history: {
+        1.0 => "/_matrix/federation/v1/send_leave/:room_id/:event_id",
     }
+};
 
-    request: {
-        /// The room ID that is about to be left.
-        #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+#[request]
+pub struct Request<'a> {
+    /// The room ID that is about to be left.
+    #[ruma_api(path)]
+    pub room_id: &'a RoomId,
 
-        /// The event ID for the leave event.
-        #[ruma_api(path)]
-        pub event_id: &'a EventId,
+    /// The event ID for the leave event.
+    #[ruma_api(path)]
+    pub event_id: &'a EventId,
 
-        /// The user ID of the leaving member.
-        #[ruma_api(query)]
-        pub sender: &'a UserId,
+    /// The user ID of the leaving member.
+    #[ruma_api(query)]
+    pub sender: &'a UserId,
 
-        /// The name of the leaving homeserver.
-        #[ruma_api(query)]
-        pub origin: &'a ServerName,
+    /// The name of the leaving homeserver.
+    #[ruma_api(query)]
+    pub origin: &'a ServerName,
 
-        /// A timestamp added by the leaving homeserver.
-        #[ruma_api(query)]
-        pub origin_server_ts: MilliSecondsSinceUnixEpoch,
+    /// A timestamp added by the leaving homeserver.
+    #[ruma_api(query)]
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
-        /// The value `m.room.member`.
-        #[ruma_api(query)]
-        #[serde(rename = "type")]
-        pub event_type: StateEventType,
+    /// The value `m.room.member`.
+    #[ruma_api(query)]
+    #[serde(rename = "type")]
+    pub event_type: StateEventType,
 
-        /// The user ID of the leaving member.
-        #[ruma_api(query)]
-        pub state_key: &'a str,
+    /// The user ID of the leaving member.
+    #[ruma_api(query)]
+    pub state_key: &'a str,
 
-        /// The content of the event.
-        #[ruma_api(query)]
-        pub content: Raw<RoomMemberEventContent>,
+    /// The content of the event.
+    #[ruma_api(query)]
+    pub content: Raw<RoomMemberEventContent>,
 
-        /// This field must be present but is ignored; it may be 0.
-        #[ruma_api(query)]
-        pub depth: UInt,
-    }
+    /// This field must be present but is ignored; it may be 0.
+    #[ruma_api(query)]
+    pub depth: UInt,
+}
 
-    #[derive(Default)]
-    response: {
-        /// An empty object.
-        ///
-        /// Indicates that the event was accepted into the event graph.
-        #[ruma_api(body)]
-        #[serde(with = "crate::serde::v1_pdu")]
-        pub empty: Empty,
-    }
+#[response]
+#[derive(Default)]
+pub struct Response {
+    /// An empty object.
+    ///
+    /// Indicates that the event was accepted into the event graph.
+    #[ruma_api(body)]
+    #[serde(with = "crate::serde::v1_pdu")]
+    pub empty: Empty,
 }
 
 /// Initial set of fields of `Request`.

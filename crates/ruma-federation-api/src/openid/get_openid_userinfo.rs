@@ -7,29 +7,33 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#get_matrixfederationv1openiduserinfo
 
-    use ruma_common::{api::ruma_api, OwnedUserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, OwnedUserId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Exchanges an OpenID access token for information about the user who generated the token.",
-            method: GET,
-            name: "get_openid_userinfo",
-            stable_path: "/_matrix/federation/v1/openid/userinfo",
-            rate_limited: false,
-            authentication: None,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Exchanges an OpenID access token for information about the user who generated the token.",
+        method: GET,
+        name: "get_openid_userinfo",
+        rate_limited: false,
+        authentication: None,
+        history: {
+            1.0 => "/_matrix/federation/v1/openid/userinfo",
         }
+    };
 
-        request: {
-            /// The OpenID access token to get information about the owner for.
-            #[ruma_api(query)]
-            pub access_token: &'a str,
-        }
+    #[request]
+    pub struct Request<'a> {
+        /// The OpenID access token to get information about the owner for.
+        #[ruma_api(query)]
+        pub access_token: &'a str,
+    }
 
-        response: {
-            /// The Matrix User ID who generated the token.
-            pub sub: OwnedUserId,
-        }
+    #[response]
+    pub struct Response {
+        /// The Matrix User ID who generated the token.
+        pub sub: OwnedUserId,
     }
 
     impl<'a> Request<'a> {

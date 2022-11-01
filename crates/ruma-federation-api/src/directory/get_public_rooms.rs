@@ -9,55 +9,57 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::ruma_api,
+        api::{request, response, Metadata},
         directory::{IncomingRoomNetwork, PublicRoomsChunk, RoomNetwork},
+        metadata,
     };
 
-    ruma_api! {
-        metadata: {
-            description: "Gets all the public rooms for the homeserver.",
-            method: GET,
-            name: "get_public_rooms",
-            stable_path: "/_matrix/federation/v1/publicRooms",
-            rate_limited: false,
-            authentication: ServerSignatures,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Gets all the public rooms for the homeserver.",
+        method: GET,
+        name: "get_public_rooms",
+        rate_limited: false,
+        authentication: ServerSignatures,
+        history: {
+            1.0 => "/_matrix/federation/v1/publicRooms",
         }
+    };
 
-        #[derive(Default)]
-        request: {
-            /// Limit for the number of results to return.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            #[ruma_api(query)]
-            pub limit: Option<UInt>,
+    #[request]
+    #[derive(Default)]
+    pub struct Request<'a> {
+        /// Limit for the number of results to return.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[ruma_api(query)]
+        pub limit: Option<UInt>,
 
-            /// Pagination token from a previous request.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            #[ruma_api(query)]
-            pub since: Option<&'a str>,
+        /// Pagination token from a previous request.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[ruma_api(query)]
+        pub since: Option<&'a str>,
 
-            /// Network to fetch the public room lists from.
-            #[serde(flatten, skip_serializing_if = "ruma_common::serde::is_default")]
-            #[ruma_api(query)]
-            pub room_network: RoomNetwork<'a>,
-        }
+        /// Network to fetch the public room lists from.
+        #[serde(flatten, skip_serializing_if = "ruma_common::serde::is_default")]
+        #[ruma_api(query)]
+        pub room_network: RoomNetwork<'a>,
+    }
 
-        #[derive(Default)]
-        response: {
-            /// A paginated chunk of public rooms.
-            pub chunk: Vec<PublicRoomsChunk>,
+    #[response]
+    #[derive(Default)]
+    pub struct Response {
+        /// A paginated chunk of public rooms.
+        pub chunk: Vec<PublicRoomsChunk>,
 
-            /// A pagination token for the response.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub next_batch: Option<String>,
+        /// A pagination token for the response.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub next_batch: Option<String>,
 
-            /// A pagination token that allows fetching previous results.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub prev_batch: Option<String>,
+        /// A pagination token that allows fetching previous results.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub prev_batch: Option<String>,
 
-            /// An estimate on the total number of public rooms, if the server has an estimate.
-            pub total_room_count_estimate: Option<UInt>,
-        }
+        /// An estimate on the total number of public rooms, if the server has an estimate.
+        pub total_room_count_estimate: Option<UInt>,
     }
 
     impl Request<'_> {

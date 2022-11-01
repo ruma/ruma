@@ -17,7 +17,11 @@ pub mod v1 {
     #[cfg(any(feature = "unstable-msc2409", feature = "unstable-msc3202"))]
     use ruma_common::OwnedUserId;
     use ruma_common::{
-        api::ruma_api, events::AnyTimelineEvent, serde::Raw, OwnedTransactionId, TransactionId,
+        api::{request, response, Metadata},
+        events::AnyTimelineEvent,
+        metadata,
+        serde::Raw,
+        OwnedTransactionId, TransactionId,
     };
     #[cfg(feature = "unstable-msc2409")]
     use ruma_common::{
@@ -33,76 +37,81 @@ pub mod v1 {
     #[cfg(feature = "unstable-msc2409")]
     use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
-    ruma_api! {
-        metadata: {
-            description: "This API is called by the homeserver when it wants to push an event (or batch of events) to the application service.",
-            method: PUT,
-            name: "push_events",
-            stable_path: "/_matrix/app/v1/transactions/:txn_id",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "This API is called by the homeserver when it wants to push an event (or batch of events) to the application service.",
+        method: PUT,
+        name: "push_events",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/app/v1/transactions/:txn_id",
         }
+    };
 
-        request: {
-            /// The transaction ID for this set of events.
-            ///
-            /// Homeservers generate these IDs and they are used to ensure idempotency of results.
-            #[ruma_api(path)]
-            pub txn_id: &'a TransactionId,
+    #[request]
+    pub struct Request<'a> {
+        /// The transaction ID for this set of events.
+        ///
+        /// Homeservers generate these IDs and they are used to ensure idempotency of results.
+        #[ruma_api(path)]
+        pub txn_id: &'a TransactionId,
 
-            /// A list of events.
-            pub events: &'a [Raw<AnyTimelineEvent>],
+        /// A list of events.
+        pub events: &'a [Raw<AnyTimelineEvent>],
 
-            /// Information on E2E device updates.
-            #[cfg(feature = "unstable-msc3202")]
-            #[serde(
-                default,
-                skip_serializing_if = "DeviceLists::is_empty",
-                rename = "org.matrix.msc3202.device_lists"
-            )]
-            pub device_lists: DeviceLists,
+        /// Information on E2E device updates.
+        #[cfg(feature = "unstable-msc3202")]
+        #[serde(
+            default,
+            skip_serializing_if = "DeviceLists::is_empty",
+            rename = "org.matrix.msc3202.device_lists"
+        )]
+        pub device_lists: DeviceLists,
 
-            /// The number of unclaimed one-time keys currently held on the server for this device, for each algorithm.
-            #[cfg(feature = "unstable-msc3202")]
-            #[serde(
-                default,
-                skip_serializing_if = "BTreeMap::is_empty",
-                rename = "org.matrix.msc3202.device_one_time_keys_count"
-            )]
-            pub device_one_time_keys_count: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, BTreeMap<DeviceKeyAlgorithm, UInt>>>,
+        /// The number of unclaimed one-time keys currently held on the server for this device, for
+        /// each algorithm.
+        #[cfg(feature = "unstable-msc3202")]
+        #[serde(
+            default,
+            skip_serializing_if = "BTreeMap::is_empty",
+            rename = "org.matrix.msc3202.device_one_time_keys_count"
+        )]
+        pub device_one_time_keys_count:
+            BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, BTreeMap<DeviceKeyAlgorithm, UInt>>>,
 
-            /// A list of key algorithms for which the server has an unused fallback key for the device.
-            #[cfg(feature = "unstable-msc3202")]
-            #[serde(
-                default,
-                skip_serializing_if = "BTreeMap::is_empty",
-                rename = "org.matrix.msc3202.device_unused_fallback_key_types"
-            )]
-            pub device_unused_fallback_key_types: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Vec<DeviceKeyAlgorithm>>>,
+        /// A list of key algorithms for which the server has an unused fallback key for the
+        /// device.
+        #[cfg(feature = "unstable-msc3202")]
+        #[serde(
+            default,
+            skip_serializing_if = "BTreeMap::is_empty",
+            rename = "org.matrix.msc3202.device_unused_fallback_key_types"
+        )]
+        pub device_unused_fallback_key_types:
+            BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Vec<DeviceKeyAlgorithm>>>,
 
-            /// A list of EDUs.
-            #[cfg(feature = "unstable-msc2409")]
-            #[serde(
-                default,
-                skip_serializing_if = "<[_]>::is_empty",
-                rename = "de.sorunome.msc2409.ephemeral"
-            )]
-            pub ephemeral: &'a [Edu],
+        /// A list of EDUs.
+        #[cfg(feature = "unstable-msc2409")]
+        #[serde(
+            default,
+            skip_serializing_if = "<[_]>::is_empty",
+            rename = "de.sorunome.msc2409.ephemeral"
+        )]
+        pub ephemeral: &'a [Edu],
 
-            /// A list of to-device messages.
-            #[cfg(feature = "unstable-msc2409")]
-            #[serde(
-                default,
-                skip_serializing_if = "<[_]>::is_empty",
-                rename = "de.sorunome.msc2409.to_device"
-            )]
-            pub to_device: &'a [Raw<AnyToDeviceEvent>]
-        }
-
-        #[derive(Default)]
-        response: {}
+        /// A list of to-device messages.
+        #[cfg(feature = "unstable-msc2409")]
+        #[serde(
+            default,
+            skip_serializing_if = "<[_]>::is_empty",
+            rename = "de.sorunome.msc2409.to_device"
+        )]
+        pub to_device: &'a [Raw<AnyToDeviceEvent>],
     }
+
+    #[response]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given transaction ID and list of events.

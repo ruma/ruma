@@ -6,35 +6,37 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3loginssoredirect
 
     use http::header::LOCATION;
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "",
-            method: GET,
-            name: "sso_login",
-            r0_path: "/_matrix/client/r0/login/sso/redirect",
-            stable_path: "/_matrix/client/v3/login/sso/redirect",
-            rate_limited: false,
-            authentication: None,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "",
+        method: GET,
+        name: "sso_login",
+        rate_limited: false,
+        authentication: None,
+        history: {
+            1.0 => "/_matrix/client/r0/login/sso/redirect",
+            1.1 => "/_matrix/client/v3/login/sso/redirect",
         }
+    };
 
-        request: {
-            /// URL to which the homeserver should return the user after completing
-            /// authentication with the SSO identity provider.
-            #[ruma_api(query)]
-            #[serde(rename = "redirectUrl")]
-            pub redirect_url: &'a str,
-        }
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// URL to which the homeserver should return the user after completing
+        /// authentication with the SSO identity provider.
+        #[ruma_api(query)]
+        #[serde(rename = "redirectUrl")]
+        pub redirect_url: &'a str,
+    }
 
-        response: {
-            /// Redirect URL to the SSO identity provider.
-            #[ruma_api(header = LOCATION)]
-            pub location: String,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// Redirect URL to the SSO identity provider.
+        #[ruma_api(header = LOCATION)]
+        pub location: String,
     }
 
     impl<'a> Request<'a> {

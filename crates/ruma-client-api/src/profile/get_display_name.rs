@@ -5,34 +5,36 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3profileuseriddisplayname
 
-    use ruma_common::{api::ruma_api, UserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, UserId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Get the display name of a user.",
-            method: GET,
-            name: "get_display_name",
-            r0_path: "/_matrix/client/r0/profile/:user_id/displayname",
-            stable_path: "/_matrix/client/v3/profile/:user_id/displayname",
-            rate_limited: false,
-            authentication: None,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get the display name of a user.",
+        method: GET,
+        name: "get_display_name",
+        rate_limited: false,
+        authentication: None,
+        history: {
+            1.0 => "/_matrix/client/r0/profile/:user_id/displayname",
+            1.1 => "/_matrix/client/v3/profile/:user_id/displayname",
         }
+    };
 
-        request: {
-            /// The user whose display name will be retrieved.
-            #[ruma_api(path)]
-            pub user_id: &'a UserId,
-        }
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The user whose display name will be retrieved.
+        #[ruma_api(path)]
+        pub user_id: &'a UserId,
+    }
 
-        #[derive(Default)]
-        response: {
-            /// The user's display name, if set.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub displayname: Option<String>,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {
+        /// The user's display name, if set.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub displayname: Option<String>,
     }
 
     impl<'a> Request<'a> {

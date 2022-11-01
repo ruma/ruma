@@ -7,33 +7,37 @@ pub mod v2 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#post_matrixidentityv2terms
 
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Called by a client to indicate that the user has accepted/agreed to the included set of URLs.",
-            method: POST,
-            name: "accept_terms_of_service",
-            stable_path: "/_matrix/identity/v2/terms",
-            authentication: AccessToken,
-            rate_limited: false,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Called by a client to indicate that the user has accepted/agreed to the included set of URLs.",
+        method: POST,
+        name: "accept_terms_of_service",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/identity/v2/terms",
         }
+    };
 
-        request: {
-            /// The URLs the user is accepting in this request.
-            ///
-            /// An example is `https://example.org/somewhere/terms-2.0-en.html`.
-            pub user_accepts: Vec<String>,
-        }
-
-        #[derive(Default)]
-        response: {}
+    #[request]
+    pub struct Request<'a> {
+        /// The URLs the user is accepting in this request.
+        ///
+        /// An example is `https://example.org/somewhere/terms-2.0-en.html`.
+        pub user_accepts: &'a [String],
     }
 
-    impl Request {
+    #[response]
+    #[derive(Default)]
+    pub struct Response {}
+
+    impl<'a> Request<'a> {
         /// Creates a new `Request` with the given URLs which the user accepts.
-        pub fn new(user_accepts: Vec<String>) -> Self {
+        pub fn new(user_accepts: &'a [String]) -> Self {
             Self { user_accepts }
         }
     }

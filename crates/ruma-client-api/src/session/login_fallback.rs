@@ -2,39 +2,43 @@
 //!
 //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#login-fallback
 
-use ruma_common::{api::ruma_api, DeviceId};
+use ruma_common::{
+    api::{request, response, Metadata},
+    metadata, DeviceId,
+};
 
-ruma_api! {
-    metadata: {
-        description: "Get login fallback web page.",
-        method: GET,
-        name: "login_fallback",
-        stable_path: "/_matrix/static/client/login/",
-        rate_limited: false,
-        authentication: None,
-        added: 1.0,
+const METADATA: Metadata = metadata! {
+    description: "Get login fallback web page.",
+    method: GET,
+    name: "login_fallback",
+    rate_limited: false,
+    authentication: None,
+    history: {
+        1.0 => "/_matrix/static/client/login/",
     }
+};
 
-    #[derive(Default)]
-    request: {
-        /// ID of the client device.
-        #[ruma_api(query)]
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub device_id: Option<&'a DeviceId>,
+#[request(error = crate::Error)]
+#[derive(Default)]
+pub struct Request<'a> {
+    /// ID of the client device.
+    #[ruma_api(query)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub device_id: Option<&'a DeviceId>,
 
-        /// A display name to assign to the newly-created device.
-        ///
-        /// Ignored if `device_id` corresponds to a known device.
-        #[ruma_api(query)]
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub initial_device_display_name: Option<&'a str>,
-    }
+    /// A display name to assign to the newly-created device.
+    ///
+    /// Ignored if `device_id` corresponds to a known device.
+    #[ruma_api(query)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub initial_device_display_name: Option<&'a str>,
+}
 
-    response: {
-        /// HTML to return to client.
-        #[ruma_api(raw_body)]
-        pub body: Vec<u8>,
-    }
+#[response(error = crate::Error)]
+pub struct Response {
+    /// HTML to return to client.
+    #[ruma_api(raw_body)]
+    pub body: Vec<u8>,
 }
 
 impl<'a> Request<'a> {

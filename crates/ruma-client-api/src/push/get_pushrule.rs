@@ -5,43 +5,45 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3pushrulesscopekindruleid
 
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
     use crate::push::{PushRule, RuleKind, RuleScope};
 
-    ruma_api! {
-        metadata: {
-            description: "Retrieve a single specified push rule.",
-            method: GET,
-            name: "get_pushrule",
-            r0_path: "/_matrix/client/r0/pushrules/:scope/:kind/:rule_id",
-            stable_path: "/_matrix/client/v3/pushrules/:scope/:kind/:rule_id",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Retrieve a single specified push rule.",
+        method: GET,
+        name: "get_pushrule",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/pushrules/:scope/:kind/:rule_id",
+            1.1 => "/_matrix/client/v3/pushrules/:scope/:kind/:rule_id",
         }
+    };
 
-        request: {
-            /// The scope to fetch rules from.
-            #[ruma_api(path)]
-            pub scope: RuleScope,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The scope to fetch rules from.
+        #[ruma_api(path)]
+        pub scope: RuleScope,
 
-            /// The kind of rule.
-            #[ruma_api(path)]
-            pub kind: RuleKind,
+        /// The kind of rule.
+        #[ruma_api(path)]
+        pub kind: RuleKind,
 
-            /// The identifier for the rule.
-            #[ruma_api(path)]
-            pub rule_id: &'a str,
-        }
+        /// The identifier for the rule.
+        #[ruma_api(path)]
+        pub rule_id: &'a str,
+    }
 
-        response: {
-            /// The specific push rule.
-            #[ruma_api(body)]
-            pub rule: PushRule,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The specific push rule.
+        #[ruma_api(body)]
+        pub rule: PushRule,
     }
 
     impl<'a> Request<'a> {

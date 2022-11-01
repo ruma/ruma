@@ -8,42 +8,47 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#post_matrixidentityv23pidunbind
 
     use ruma_common::{
-        api::ruma_api, thirdparty::Medium, user_id::UserId, ClientSecret, OwnedSessionId,
+        api::{request, response, Metadata},
+        metadata,
+        thirdparty::Medium,
+        user_id::UserId,
+        ClientSecret, OwnedSessionId,
     };
     use serde::{Deserialize, Serialize};
 
-    ruma_api! {
-        metadata: {
-            description: "Remove an association between a session and a Matrix user ID.",
-            method: POST,
-            name: "unbind_3pid",
-            stable_path: "/_matrix/identity/v2/3pid/unbind",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Remove an association between a session and a Matrix user ID.",
+        method: POST,
+        name: "unbind_3pid",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/identity/v2/3pid/unbind",
         }
+    };
 
-        request: {
-            /// The proof that the client owns the 3PID.
-            ///
-            /// If this is not provided, the request must be signed by the homeserver which controls
-            /// the `mxid`.
-            #[serde(flatten, skip_serializing_if = "Option::is_none")]
-            pub threepid_ownership_proof: Option<&'a ThreePidOwnershipProof>,
+    #[request]
+    pub struct Request<'a> {
+        /// The proof that the client owns the 3PID.
+        ///
+        /// If this is not provided, the request must be signed by the homeserver which controls
+        /// the `mxid`.
+        #[serde(flatten, skip_serializing_if = "Option::is_none")]
+        pub threepid_ownership_proof: Option<&'a ThreePidOwnershipProof>,
 
-            /// The Matrix user ID to remove from the 3PIDs.
-            pub mxid: &'a UserId,
+        /// The Matrix user ID to remove from the 3PIDs.
+        pub mxid: &'a UserId,
 
-            /// The 3PID to remove.
-            ///
-            /// Must match the 3PID used to generate the session if using `sid` and `client_secret` to
-            /// authenticate this request.
-            pub threepid:  &'a ThirdPartyId,
-        }
-
-        #[derive(Default)]
-        response: {}
+        /// The 3PID to remove.
+        ///
+        /// Must match the 3PID used to generate the session if using `sid` and `client_secret` to
+        /// authenticate this request.
+        pub threepid: &'a ThirdPartyId,
     }
+
+    #[response]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl<'a> Request<'a> {
         /// Creates a `Request` with the given Session ID, client secret, Matrix user ID and 3PID.

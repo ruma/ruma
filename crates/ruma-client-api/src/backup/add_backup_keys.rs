@@ -8,45 +8,47 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use js_int::UInt;
-    use ruma_common::{api::ruma_api, OwnedRoomId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, OwnedRoomId,
+    };
 
     use crate::backup::RoomKeyBackup;
 
-    ruma_api! {
-        metadata: {
-            description: "Store keys in the backup.",
-            method: PUT,
-            name: "add_backup_keys",
-            unstable_path: "/_matrix/client/unstable/room_keys/keys",
-            stable_path: "/_matrix/client/v3/room_keys/keys",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.1,
+    const METADATA: Metadata = metadata! {
+        description: "Store keys in the backup.",
+        method: PUT,
+        name: "add_backup_keys",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            unstable => "/_matrix/client/unstable/room_keys/keys",
+            1.1 => "/_matrix/client/v3/room_keys/keys",
         }
+    };
 
-        request: {
-            /// The backup version to add keys to.
-            ///
-            /// Must be the current backup.
-            #[ruma_api(query)]
-            pub version: &'a str,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The backup version to add keys to.
+        ///
+        /// Must be the current backup.
+        #[ruma_api(query)]
+        pub version: &'a str,
 
-            /// A map of room IDs to session IDs to key data to store.
-            pub rooms: BTreeMap<OwnedRoomId, RoomKeyBackup>,
-        }
+        /// A map of room IDs to session IDs to key data to store.
+        pub rooms: BTreeMap<OwnedRoomId, RoomKeyBackup>,
+    }
 
-        response: {
-            /// An opaque string representing stored keys in the backup.
-            ///
-            /// Clients can compare it with  the etag value they received in the request of their last
-            /// key storage request.
-            pub etag: String,
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// An opaque string representing stored keys in the backup.
+        ///
+        /// Clients can compare it with  the etag value they received in the request of their last
+        /// key storage request.
+        pub etag: String,
 
-            /// The number of keys stored in the backup.
-            pub count: UInt,
-        }
-
-        error: crate::Error
+        /// The number of keys stored in the backup.
+        pub count: UInt,
     }
 
     impl<'a> Request<'a> {

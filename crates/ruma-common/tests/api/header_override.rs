@@ -1,32 +1,38 @@
 #![allow(clippy::exhaustive_structs)]
 
 use http::header::{Entry, CONTENT_TYPE, LOCATION};
-use ruma_common::api::{
-    ruma_api, MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken,
+use ruma_common::{
+    api::{
+        request, response, MatrixVersion, Metadata, OutgoingRequest as _, OutgoingResponse as _,
+        SendAccessToken,
+    },
+    metadata,
 };
 
-ruma_api! {
-    metadata: {
-        description: "Does something.",
-        method: GET,
-        name: "no_fields",
-        unstable_path: "/_matrix/my/endpoint",
-        rate_limited: false,
-        authentication: None,
+const METADATA: Metadata = metadata! {
+    description: "Does something.",
+    method: GET,
+    name: "no_fields",
+    rate_limited: false,
+    authentication: None,
+    history: {
+        unstable => "/_matrix/my/endpoint",
     }
+};
 
-    request: {
-        #[ruma_api(header = LOCATION)]
-        pub location: Option<String>,
+#[request]
+pub struct Request {
+    #[ruma_api(header = LOCATION)]
+    pub location: Option<String>,
 
-        #[ruma_api(header = CONTENT_TYPE)]
-        pub stuff: String,
-    }
+    #[ruma_api(header = CONTENT_TYPE)]
+    pub stuff: String,
+}
 
-    response: {
-        #[ruma_api(header = CONTENT_TYPE)]
-        pub stuff: String,
-    }
+#[response]
+pub struct Response {
+    #[ruma_api(header = CONTENT_TYPE)]
+    pub stuff: String,
 }
 
 #[test]

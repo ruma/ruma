@@ -8,7 +8,8 @@ pub mod v3 {
     use std::{fmt, time::Duration};
 
     use ruma_common::{
-        api::ruma_api,
+        api::{request, response, Metadata},
+        metadata,
         serde::{Incoming, JsonObject},
         DeviceId, OwnedDeviceId, OwnedServerName, OwnedUserId,
     };
@@ -20,95 +21,93 @@ pub mod v3 {
 
     use crate::uiaa::{IncomingUserIdentifier, UserIdentifier};
 
-    ruma_api! {
-        metadata: {
-            description: "Login to the homeserver.",
-            method: POST,
-            name: "login",
-            r0_path: "/_matrix/client/r0/login",
-            stable_path: "/_matrix/client/v3/login",
-            rate_limited: true,
-            authentication: None,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Login to the homeserver.",
+        method: POST,
+        name: "login",
+        rate_limited: true,
+        authentication: None,
+        history: {
+            1.0 => "/_matrix/client/r0/login",
+            1.1 => "/_matrix/client/v3/login",
         }
+    };
 
-        request: {
-            /// The authentication mechanism.
-            #[serde(flatten)]
-            pub login_info: LoginInfo<'a>,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The authentication mechanism.
+        #[serde(flatten)]
+        pub login_info: LoginInfo<'a>,
 
-            /// ID of the client device
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub device_id: Option<&'a DeviceId>,
+        /// ID of the client device
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub device_id: Option<&'a DeviceId>,
 
-            /// A display name to assign to the newly-created device.
-            ///
-            /// Ignored if `device_id` corresponds to a known device.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub initial_device_display_name: Option<&'a str>,
+        /// A display name to assign to the newly-created device.
+        ///
+        /// Ignored if `device_id` corresponds to a known device.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub initial_device_display_name: Option<&'a str>,
 
-            /// If set to `true`, the client supports [refresh tokens].
-            ///
-            /// [refresh tokens]: https://spec.matrix.org/v1.4/client-server-api/#refreshing-access-tokens
-            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
-            pub refresh_token: bool,
-        }
-
-        response: {
-            /// The fully-qualified Matrix ID that has been registered.
-            pub user_id: OwnedUserId,
-
-            /// An access token for the account.
-            pub access_token: String,
-
-            /// The hostname of the homeserver on which the account has been registered.
-            ///
-            /// Deprecated: Clients should instead use the `user_id.server_name()`
-            /// method if they require it.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub home_server: Option<OwnedServerName>,
-
-            /// ID of the logged-in device.
-            ///
-            /// Will be the same as the corresponding parameter in the request, if one was
-            /// specified.
-            pub device_id: OwnedDeviceId,
-
-            /// Client configuration provided by the server.
-            ///
-            /// If present, clients SHOULD use the provided object to reconfigure themselves.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub well_known: Option<DiscoveryInfo>,
-
-            /// A [refresh token] for the account.
-            ///
-            /// This token can be used to obtain a new access token when it expires by calling the
-            /// [`refresh_token`] endpoint.
-            ///
-            /// [refresh token]: https://spec.matrix.org/v1.4/client-server-api/#refreshing-access-tokens
-            /// [`refresh_token`]: crate::session::refresh_token
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub refresh_token: Option<String>,
-
-            /// The lifetime of the access token, in milliseconds.
-            ///
-            /// Once the access token has expired, a new access token can be obtained by using the
-            /// provided refresh token. If no refresh token is provided, the client will need to
-            /// re-login to obtain a new access token.
-            ///
-            /// If this is `None`, the client can assume that the access token will not expire.
-            #[serde(
-                with = "ruma_common::serde::duration::opt_ms",
-                default,
-                skip_serializing_if = "Option::is_none",
-                rename = "expires_in_ms",
-            )]
-            pub expires_in: Option<Duration>,
-        }
-
-        error: crate::Error
+        /// If set to `true`, the client supports [refresh tokens].
+        ///
+        /// [refresh tokens]: https://spec.matrix.org/v1.4/client-server-api/#refreshing-access-tokens
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        pub refresh_token: bool,
     }
 
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The fully-qualified Matrix ID that has been registered.
+        pub user_id: OwnedUserId,
+
+        /// An access token for the account.
+        pub access_token: String,
+
+        /// The hostname of the homeserver on which the account has been registered.
+        ///
+        /// Deprecated: Clients should instead use the `user_id.server_name()`
+        /// method if they require it.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub home_server: Option<OwnedServerName>,
+
+        /// ID of the logged-in device.
+        ///
+        /// Will be the same as the corresponding parameter in the request, if one was
+        /// specified.
+        pub device_id: OwnedDeviceId,
+
+        /// Client configuration provided by the server.
+        ///
+        /// If present, clients SHOULD use the provided object to reconfigure themselves.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub well_known: Option<DiscoveryInfo>,
+
+        /// A [refresh token] for the account.
+        ///
+        /// This token can be used to obtain a new access token when it expires by calling the
+        /// [`refresh_token`] endpoint.
+        ///
+        /// [refresh token]: https://spec.matrix.org/v1.4/client-server-api/#refreshing-access-tokens
+        /// [`refresh_token`]: crate::session::refresh_token
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub refresh_token: Option<String>,
+
+        /// The lifetime of the access token, in milliseconds.
+        ///
+        /// Once the access token has expired, a new access token can be obtained by using the
+        /// provided refresh token. If no refresh token is provided, the client will need to
+        /// re-login to obtain a new access token.
+        ///
+        /// If this is `None`, the client can assume that the access token will not expire.
+        #[serde(
+            with = "ruma_common::serde::duration::opt_ms",
+            default,
+            skip_serializing_if = "Option::is_none",
+            rename = "expires_in_ms"
+        )]
+        pub expires_in: Option<Duration>,
+    }
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given login info.
         pub fn new(login_info: LoginInfo<'a>) -> Self {

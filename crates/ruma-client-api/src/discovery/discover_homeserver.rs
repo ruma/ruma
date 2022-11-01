@@ -2,52 +2,54 @@
 //!
 //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#getwell-knownmatrixclient
 
-use ruma_common::api::ruma_api;
+use ruma_common::{
+    api::{request, response, Metadata},
+    metadata,
+};
 use serde::{Deserialize, Serialize};
 
-ruma_api! {
-    metadata: {
-        description: "Get discovery information about the domain.",
-        method: GET,
-        name: "client_well_known",
-        stable_path: "/.well-known/matrix/client",
-        rate_limited: false,
-        authentication: None,
-        added: 1.0,
+const METADATA: Metadata = metadata! {
+    description: "Get discovery information about the domain.",
+    method: GET,
+    name: "client_well_known",
+    rate_limited: false,
+    authentication: None,
+    history: {
+        1.0 => "/.well-known/matrix/client",
     }
+};
 
-    #[derive(Default)]
-    request: {}
+#[request(error = crate::Error)]
+#[derive(Default)]
+pub struct Request {}
 
-    response: {
-        /// Information about the homeserver to connect to.
-        #[serde(rename = "m.homeserver")]
-        pub homeserver: HomeserverInfo,
+#[response(error = crate::Error)]
+pub struct Response {
+    /// Information about the homeserver to connect to.
+    #[serde(rename = "m.homeserver")]
+    pub homeserver: HomeserverInfo,
 
-        /// Information about the identity server to connect to.
-        #[serde(rename = "m.identity_server", skip_serializing_if = "Option::is_none")]
-        pub identity_server: Option<IdentityServerInfo>,
+    /// Information about the identity server to connect to.
+    #[serde(rename = "m.identity_server", skip_serializing_if = "Option::is_none")]
+    pub identity_server: Option<IdentityServerInfo>,
 
-        /// Information about the tile server to use to display location data.
-        #[cfg(feature = "unstable-msc3488")]
-        #[serde(
-            rename = "org.matrix.msc3488.tile_server",
-            alias = "m.tile_server",
-            skip_serializing_if = "Option::is_none",
-        )]
-        pub tile_server: Option<TileServerInfo>,
+    /// Information about the tile server to use to display location data.
+    #[cfg(feature = "unstable-msc3488")]
+    #[serde(
+        rename = "org.matrix.msc3488.tile_server",
+        alias = "m.tile_server",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub tile_server: Option<TileServerInfo>,
 
-        /// Information about the authentication server to connect to when using OpenID Connect.
-        #[cfg(feature = "unstable-msc2965")]
-        #[serde(
-            rename = "org.matrix.msc2965.authentication",
-            alias = "m.authentication",
-            skip_serializing_if = "Option::is_none"
-        )]
-        pub authentication: Option<AuthenticationServerInfo>,
-    }
-
-    error: crate::Error
+    /// Information about the authentication server to connect to when using OpenID Connect.
+    #[cfg(feature = "unstable-msc2965")]
+    #[serde(
+        rename = "org.matrix.msc2965.authentication",
+        alias = "m.authentication",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub authentication: Option<AuthenticationServerInfo>,
 }
 
 impl Request {

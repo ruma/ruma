@@ -5,36 +5,39 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3useruseridroomsroomidtags
 
-    use ruma_common::{api::ruma_api, events::tag::Tags, RoomId, UserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        events::tag::Tags,
+        metadata, RoomId, UserId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Get the tags associated with a room.",
-            method: GET,
-            name: "get_tags",
-            r0_path: "/_matrix/client/r0/user/:user_id/rooms/:room_id/tags",
-            stable_path: "/_matrix/client/v3/user/:user_id/rooms/:room_id/tags",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get the tags associated with a room.",
+        method: GET,
+        name: "get_tags",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/user/:user_id/rooms/:room_id/tags",
+            1.1 => "/_matrix/client/v3/user/:user_id/rooms/:room_id/tags",
         }
+    };
 
-        request: {
-            /// The user whose tags will be retrieved.
-            #[ruma_api(path)]
-            pub user_id: &'a UserId,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The user whose tags will be retrieved.
+        #[ruma_api(path)]
+        pub user_id: &'a UserId,
 
-            /// The room from which tags will be retrieved.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
-        }
+        /// The room from which tags will be retrieved.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
+    }
 
-        response: {
-            /// The user's tags for the room.
-            pub tags: Tags,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The user's tags for the room.
+        pub tags: Tags,
     }
 
     impl<'a> Request<'a> {

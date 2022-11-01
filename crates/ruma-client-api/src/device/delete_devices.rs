@@ -5,36 +5,38 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3delete_devices
 
-    use ruma_common::{api::ruma_api, OwnedDeviceId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, OwnedDeviceId,
+    };
 
     use crate::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
 
-    ruma_api! {
-        metadata: {
-            description: "Delete specified devices.",
-            method: POST,
-            r0_path: "/_matrix/client/r0/delete_devices",
-            stable_path: "/_matrix/client/v3/delete_devices",
-            name: "delete_devices",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Delete specified devices.",
+        method: POST,
+        name: "delete_devices",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/delete_devices",
+            1.1 => "/_matrix/client/v3/delete_devices",
         }
+    };
 
-        request: {
-            /// List of devices to delete.
-            pub devices: &'a [OwnedDeviceId],
+    #[request(error = UiaaResponse)]
+    pub struct Request<'a> {
+        /// List of devices to delete.
+        pub devices: &'a [OwnedDeviceId],
 
-            /// Additional authentication information for the user-interactive authentication API.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub auth: Option<AuthData<'a>>,
-        }
-
-        #[derive(Default)]
-        response: {}
-
-        error: UiaaResponse
+        /// Additional authentication information for the user-interactive authentication API.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub auth: Option<AuthData<'a>>,
     }
+
+    #[response(error = UiaaResponse)]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given device list.

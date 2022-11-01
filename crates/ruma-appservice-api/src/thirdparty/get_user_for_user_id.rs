@@ -7,30 +7,36 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/application-service-api/#get_matrixappv1thirdpartyuser
 
-    use ruma_common::{api::ruma_api, thirdparty::User, UserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+        thirdparty::User,
+        UserId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Retrieve an array of third party users from a Matrix User ID.",
-            method: GET,
-            name: "get_user_for_user_id",
-            stable_path: "/_matrix/app/v1/thirdparty/user",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Retrieve an array of third party users from a Matrix User ID.",
+        method: GET,
+        name: "get_user_for_user_id",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/app/v1/thirdparty/user",
         }
+    };
 
-        request: {
-            /// The Matrix User ID to look up.
-            #[ruma_api(query)]
-            pub userid: &'a UserId,
-        }
+    #[request]
+    pub struct Request<'a> {
+        /// The Matrix User ID to look up.
+        #[ruma_api(query)]
+        pub userid: &'a UserId,
+    }
 
-        response: {
-            /// List of matched third party users.
-            #[ruma_api(body)]
-            pub users: Vec<User>,
-        }
+    #[response]
+    pub struct Response {
+        /// List of matched third party users.
+        #[ruma_api(body)]
+        pub users: Vec<User>,
     }
 
     impl<'a> Request<'a> {

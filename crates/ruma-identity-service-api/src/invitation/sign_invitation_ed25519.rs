@@ -7,43 +7,49 @@ pub mod v2 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#post_matrixidentityv2sign-ed25519
 
-    use ruma_common::{api::ruma_api, serde::Base64, OwnedUserId, ServerSignatures, UserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+        serde::Base64,
+        OwnedUserId, ServerSignatures, UserId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Sign invitation details.",
-            method: POST,
-            name: "sign_invitation_ed25519",
-            stable_path: "/_matrix/identity/v2/sign-ed25519",
-            authentication: AccessToken,
-            rate_limited: false,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Sign invitation details.",
+        method: POST,
+        name: "sign_invitation_ed25519",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/identity/v2/sign-ed25519",
         }
+    };
 
-        request: {
-            /// The Matrix user ID of the user accepting the invitation.
-            pub mxid: &'a UserId,
+    #[request]
+    pub struct Request<'a> {
+        /// The Matrix user ID of the user accepting the invitation.
+        pub mxid: &'a UserId,
 
-            /// The token from the call to store-invite.
-            pub token: &'a str,
+        /// The token from the call to store-invite.
+        pub token: &'a str,
 
-            /// The private key, encoded as unpadded base64.
-            pub private_key: &'a Base64,
-        }
+        /// The private key, encoded as unpadded base64.
+        pub private_key: &'a Base64,
+    }
 
-        response: {
-            /// The Matrix user ID of the user accepting the invitation.
-            pub mxid: OwnedUserId,
+    #[response]
+    pub struct Response {
+        /// The Matrix user ID of the user accepting the invitation.
+        pub mxid: OwnedUserId,
 
-            /// The Matrix user ID of the user who sent the invitation.
-            pub sender: OwnedUserId,
+        /// The Matrix user ID of the user who sent the invitation.
+        pub sender: OwnedUserId,
 
-            /// The signature of the mxid, sender and token.
-            pub signatures: ServerSignatures,
+        /// The signature of the mxid, sender and token.
+        pub signatures: ServerSignatures,
 
-            /// The token for the invitation.
-            pub token: String,
-        }
+        /// The token for the invitation.
+        pub token: String,
     }
 
     impl<'a> Request<'a> {

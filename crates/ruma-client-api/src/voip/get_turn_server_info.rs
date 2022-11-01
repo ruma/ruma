@@ -7,39 +7,41 @@ pub mod v3 {
 
     use std::time::Duration;
 
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Get credentials for the client to use when initiating VoIP calls.",
-            method: GET,
-            name: "turn_server_info",
-            r0_path: "/_matrix/client/r0/voip/turnServer",
-            stable_path: "/_matrix/client/v3/voip/turnServer",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get credentials for the client to use when initiating VoIP calls.",
+        method: GET,
+        name: "turn_server_info",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/voip/turnServer",
+            1.1 => "/_matrix/client/v3/voip/turnServer",
         }
+    };
 
-        #[derive(Default)]
-        request: {}
+    #[request(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Request {}
 
-        response: {
-            /// The username to use.
-            pub username: String,
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The username to use.
+        pub username: String,
 
-            /// The password to use.
-            pub password: String,
+        /// The password to use.
+        pub password: String,
 
-            /// A list of TURN URIs.
-            pub uris: Vec<String>,
+        /// A list of TURN URIs.
+        pub uris: Vec<String>,
 
-            /// The time-to-live in seconds.
-            #[serde(with = "ruma_common::serde::duration::secs")]
-            pub ttl: Duration,
-        }
-
-        error: crate::Error
+        /// The time-to-live in seconds.
+        #[serde(with = "ruma_common::serde::duration::secs")]
+        pub ttl: Duration,
     }
 
     impl Request {

@@ -7,35 +7,40 @@ pub mod v2 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#get_matrixidentityv2hash_details
 
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
     use crate::lookup::IdentifierHashingAlgorithm;
 
-    ruma_api! {
-        metadata: {
-            description: "Gets parameters for hashing identifiers from the server. This can include any of the algorithms defined in the spec.",
-            method: GET,
-            name: "get_hash_parameters",
-            stable_path: "/_matrix/identity/v2/hash_details",
-            authentication: AccessToken,
-            rate_limited: false,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Gets parameters for hashing identifiers from the server. This can include any of the algorithms defined in the spec.",
+        method: GET,
+        name: "get_hash_parameters",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/identity/v2/hash_details",
         }
+    };
 
-        #[derive(Default)]
-        request: {}
+    #[request]
+    #[derive(Default)]
+    pub struct Request {}
 
-        response: {
-            /// The pepper the client MUST use in hashing identifiers, and MUST supply to the /lookup endpoint when performing lookups.
-            ///
-            /// Servers SHOULD rotate this string often.
-            pub lookup_pepper: String,
+    #[response]
+    pub struct Response {
+        /// The pepper the client MUST use in hashing identifiers, and MUST supply to the /lookup
+        /// endpoint when performing lookups.
+        ///
+        /// Servers SHOULD rotate this string often.
+        pub lookup_pepper: String,
 
-            /// The algorithms the server supports.
-            ///
-            /// Must contain at least `sha256`.
-            pub algorithms: Vec<IdentifierHashingAlgorithm>,
-        }
+        /// The algorithms the server supports.
+        ///
+        /// Must contain at least `sha256`.
+        pub algorithms: Vec<IdentifierHashingAlgorithm>,
     }
 
     impl Request {

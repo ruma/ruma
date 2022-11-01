@@ -6,53 +6,53 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#put_matrixclientv3useruseridaccount_datatype
 
     use ruma_common::{
-        api::ruma_api,
+        api::{request, response, Metadata},
         events::{
             AnyGlobalAccountDataEventContent, GlobalAccountDataEventContent,
             GlobalAccountDataEventType,
         },
+        metadata,
         serde::Raw,
         UserId,
     };
     use serde_json::value::to_raw_value as to_raw_json_value;
 
-    ruma_api! {
-        metadata: {
-            description: "Sets global account data.",
-            method: PUT,
-            name: "set_global_account_data",
-            r0_path: "/_matrix/client/r0/user/:user_id/account_data/:event_type",
-            stable_path: "/_matrix/client/v3/user/:user_id/account_data/:event_type",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Sets global account data.",
+        method: PUT,
+        name: "set_global_account_data",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/user/:user_id/account_data/:event_type",
+            1.1 => "/_matrix/client/v3/user/:user_id/account_data/:event_type",
         }
+    };
 
-        request: {
-            /// The ID of the user to set account_data for.
-            ///
-            /// The access token must be authorized to make requests for this user ID.
-            #[ruma_api(path)]
-            pub user_id: &'a UserId,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The ID of the user to set account_data for.
+        ///
+        /// The access token must be authorized to make requests for this user ID.
+        #[ruma_api(path)]
+        pub user_id: &'a UserId,
 
-            /// The event type of the account_data to set.
-            ///
-            /// Custom types should be namespaced to avoid clashes.
-            #[ruma_api(path)]
-            pub event_type: GlobalAccountDataEventType,
+        /// The event type of the account_data to set.
+        ///
+        /// Custom types should be namespaced to avoid clashes.
+        #[ruma_api(path)]
+        pub event_type: GlobalAccountDataEventType,
 
-            /// Arbitrary JSON to store as config data.
-            ///
-            /// To create a `RawJsonValue`, use `serde_json::value::to_raw_value`.
-            #[ruma_api(body)]
-            pub data: Raw<AnyGlobalAccountDataEventContent>,
-        }
-
-        #[derive(Default)]
-        response: {}
-
-        error: crate::Error
+        /// Arbitrary JSON to store as config data.
+        ///
+        /// To create a `RawJsonValue`, use `serde_json::value::to_raw_value`.
+        #[ruma_api(body)]
+        pub data: Raw<AnyGlobalAccountDataEventContent>,
     }
+
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given data, event type and user ID.

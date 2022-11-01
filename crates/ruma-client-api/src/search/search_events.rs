@@ -9,8 +9,9 @@ pub mod v3 {
 
     use js_int::{uint, UInt};
     use ruma_common::{
-        api::ruma_api,
+        api::{request, response, Metadata},
         events::{AnyStateEvent, AnyTimelineEvent},
+        metadata,
         serde::{Incoming, Raw, StringEnum},
         OwnedEventId, OwnedMxcUri, OwnedRoomId, OwnedUserId,
     };
@@ -21,35 +22,34 @@ pub mod v3 {
         PrivOwnedStr,
     };
 
-    ruma_api! {
-        metadata: {
-            description: "Search events.",
-            method: POST,
-            name: "search",
-            r0_path: "/_matrix/client/r0/search",
-            stable_path: "/_matrix/client/v3/search",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Search events.",
+        method: POST,
+        name: "search",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/search",
+            1.1 => "/_matrix/client/v3/search",
         }
+    };
 
-        request: {
-            /// The point to return events from.
-            ///
-            /// If given, this should be a `next_batch` result from a previous call to this endpoint.
-            #[ruma_api(query)]
-            pub next_batch: Option<&'a str>,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The point to return events from.
+        ///
+        /// If given, this should be a `next_batch` result from a previous call to this endpoint.
+        #[ruma_api(query)]
+        pub next_batch: Option<&'a str>,
 
-            /// Describes which categories to search in and their criteria.
-            pub search_categories: Categories<'a>,
-        }
+        /// Describes which categories to search in and their criteria.
+        pub search_categories: Categories<'a>,
+    }
 
-        response: {
-            /// A grouping of search results by category.
-            pub search_categories: ResultCategories,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// A grouping of search results by category.
+        pub search_categories: ResultCategories,
     }
 
     impl<'a> Request<'a> {

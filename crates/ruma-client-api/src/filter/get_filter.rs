@@ -5,39 +5,41 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3useruseridfilterfilterid
 
-    use ruma_common::{api::ruma_api, UserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, UserId,
+    };
 
     use crate::filter::IncomingFilterDefinition;
 
-    ruma_api! {
-        metadata: {
-            description: "Retrieve a previously created filter.",
-            method: GET,
-            name: "get_filter",
-            r0_path: "/_matrix/client/r0/user/:user_id/filter/:filter_id",
-            stable_path: "/_matrix/client/v3/user/:user_id/filter/:filter_id",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Retrieve a previously created filter.",
+        method: GET,
+        name: "get_filter",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/user/:user_id/filter/:filter_id",
+            1.1 => "/_matrix/client/v3/user/:user_id/filter/:filter_id",
         }
+    };
 
-        request: {
-            /// The user ID to download a filter for.
-            #[ruma_api(path)]
-            pub user_id: &'a UserId,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The user ID to download a filter for.
+        #[ruma_api(path)]
+        pub user_id: &'a UserId,
 
-            /// The ID of the filter to download.
-            #[ruma_api(path)]
-            pub filter_id: &'a str,
-        }
+        /// The ID of the filter to download.
+        #[ruma_api(path)]
+        pub filter_id: &'a str,
+    }
 
-        response: {
-            /// The filter definition.
-            #[ruma_api(body)]
-            pub filter: IncomingFilterDefinition,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The filter definition.
+        #[ruma_api(body)]
+        pub filter: IncomingFilterDefinition,
     }
 
     impl<'a> Request<'a> {

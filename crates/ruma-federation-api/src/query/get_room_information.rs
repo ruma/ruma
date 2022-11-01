@@ -7,32 +7,36 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#get_matrixfederationv1querydirectory
 
-    use ruma_common::{api::ruma_api, OwnedRoomId, OwnedServerName, RoomAliasId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, OwnedRoomId, OwnedServerName, RoomAliasId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Get mapped room ID and resident homeservers for a given room alias.",
-            name: "get_room_information",
-            method: GET,
-            stable_path: "/_matrix/federation/v1/query/directory",
-            rate_limited: false,
-            authentication: ServerSignatures,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get mapped room ID and resident homeservers for a given room alias.",
+        method: GET,
+        name: "get_room_information",
+        rate_limited: false,
+        authentication: ServerSignatures,
+        history: {
+            1.0 => "/_matrix/federation/v1/query/directory",
         }
+    };
 
-        request: {
-            /// Room alias to query.
-            #[ruma_api(query)]
-            pub room_alias: &'a RoomAliasId,
-        }
+    #[request]
+    pub struct Request<'a> {
+        /// Room alias to query.
+        #[ruma_api(query)]
+        pub room_alias: &'a RoomAliasId,
+    }
 
-        response: {
-            /// Room ID mapped to queried alias.
-            pub room_id: OwnedRoomId,
+    #[response]
+    pub struct Response {
+        /// Room ID mapped to queried alias.
+        pub room_id: OwnedRoomId,
 
-            /// An array of server names that are likely to hold the given room.
-            pub servers: Vec<OwnedServerName>,
-        }
+        /// An array of server names that are likely to hold the given room.
+        pub servers: Vec<OwnedServerName>,
     }
 
     impl<'a> Request<'a> {

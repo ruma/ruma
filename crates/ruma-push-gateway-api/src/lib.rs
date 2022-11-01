@@ -5,7 +5,7 @@
 //!
 //! [push-api]: https://spec.matrix.org/v1.4/push-gateway-api/
 
-#![warn(missing_docs)]
+// #![warn(missing_docs)] // FIXME
 
 use std::fmt;
 

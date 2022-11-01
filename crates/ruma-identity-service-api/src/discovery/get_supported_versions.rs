@@ -10,26 +10,30 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::api::{ruma_api, MatrixVersion};
+use ruma_common::{
+    api::{request, response, MatrixVersion, Metadata},
+    metadata,
+};
 
-ruma_api! {
-    metadata: {
-        description: "Get the versions of the identity service API supported by this endpoint.",
-        method: GET,
-        name: "versions",
-        stable_path: "/_matrix/identity/versions",
-        rate_limited: false,
-        authentication: None,
-        added: 1.1,
+const METADATA: Metadata = metadata! {
+    description: "Get the versions of the identity service API supported by this endpoint.",
+    method: GET,
+    name: "versions",
+    rate_limited: false,
+    authentication: None,
+    history: {
+        1.1 => "/_matrix/identity/versions",
     }
+};
 
-    #[derive(Default)]
-    request: {}
+#[request]
+#[derive(Default)]
+pub struct Request {}
 
-    response: {
-        /// A list of Matrix client API protocol versions supported by the endpoint.
-        pub versions: Vec<String>,
-    }
+#[response]
+pub struct Response {
+    /// A list of Matrix client API protocol versions supported by the endpoint.
+    pub versions: Vec<String>,
 }
 
 impl Request {

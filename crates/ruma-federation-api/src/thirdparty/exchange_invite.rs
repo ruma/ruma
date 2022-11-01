@@ -12,46 +12,47 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#put_matrixfederationv1exchange_third_party_inviteroomid
 
     use ruma_common::{
-        api::ruma_api,
+        api::{request, response, Metadata},
         events::{room::member::ThirdPartyInvite, StateEventType},
-        RoomId, UserId,
+        metadata, RoomId, UserId,
     };
 
-    ruma_api! {
-        metadata: {
-            description: "The receiving server will verify the partial m.room.member event given in the request body.",
-            method: PUT,
-            name: "exchange_invite",
-            stable_path: "/_matrix/federation/v1/exchange_third_party_invite/:room_id",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "The receiving server will verify the partial m.room.member event given in the request body.",
+        method: PUT,
+        name: "exchange_invite",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/federation/v1/exchange_third_party_invite/:room_id",
         }
+    };
 
-        request: {
-            /// The room ID to exchange a third party invite in.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
+    #[request]
+    pub struct Request<'a> {
+        /// The room ID to exchange a third party invite in.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
 
-            /// The event type.
-            ///
-            /// Must be `StateEventType::RoomMember`.
-            #[serde(rename = "type")]
-            pub kind: StateEventType,
+        /// The event type.
+        ///
+        /// Must be `StateEventType::RoomMember`.
+        #[serde(rename = "type")]
+        pub kind: StateEventType,
 
-            /// The user ID of the user who sent the original invite event.
-            pub sender: &'a UserId,
+        /// The user ID of the user who sent the original invite event.
+        pub sender: &'a UserId,
 
-            /// The user ID of the invited user.
-            pub state_key: &'a UserId,
+        /// The user ID of the invited user.
+        pub state_key: &'a UserId,
 
-            /// The content of the invite event.
-            pub content: &'a ThirdPartyInvite,
-        }
-
-        #[derive(Default)]
-        response: {}
+        /// The content of the invite event.
+        pub content: &'a ThirdPartyInvite,
     }
+
+    #[response]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` for a third party invite exchange

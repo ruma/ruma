@@ -5,37 +5,42 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3roomsroomideventeventid
 
-    use ruma_common::{api::ruma_api, events::AnyTimelineEvent, serde::Raw, EventId, RoomId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        events::AnyTimelineEvent,
+        metadata,
+        serde::Raw,
+        EventId, RoomId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Get a single event based on roomId/eventId",
-            method: GET,
-            name: "get_room_event",
-            r0_path: "/_matrix/client/r0/rooms/:room_id/event/:event_id",
-            stable_path: "/_matrix/client/v3/rooms/:room_id/event/:event_id",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get a single event based on roomId/eventId",
+        method: GET,
+        name: "get_room_event",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/rooms/:room_id/event/:event_id",
+            1.1 => "/_matrix/client/v3/rooms/:room_id/event/:event_id",
         }
+    };
 
-        request: {
-            /// The ID of the room the event is in.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The ID of the room the event is in.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
 
-            /// The ID of the event.
-            #[ruma_api(path)]
-            pub event_id: &'a EventId,
-        }
+        /// The ID of the event.
+        #[ruma_api(path)]
+        pub event_id: &'a EventId,
+    }
 
-        response: {
-            /// Arbitrary JSON of the event body.
-            #[ruma_api(body)]
-            pub event: Raw<AnyTimelineEvent>,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// Arbitrary JSON of the event body.
+        #[ruma_api(body)]
+        pub event: Raw<AnyTimelineEvent>,
     }
 
     impl<'a> Request<'a> {

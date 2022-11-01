@@ -7,46 +7,50 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#get_matrixfederationv1make_knockroomiduserid
 
-    use ruma_common::{api::ruma_api, RoomId, RoomVersionId, UserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, RoomId, RoomVersionId, UserId,
+    };
     use serde_json::value::RawValue as RawJsonValue;
 
-    ruma_api! {
-        metadata: {
-            description: "Send a request for a knock event template to a resident server.",
-            name: "create_knock_event_template",
-            method: GET,
-            unstable_path: "/_matrix/federation/unstable/xyz.amorgan.knock/make_knock/:room_id/:user_id",
-            stable_path: "/_matrix/federation/v1/make_knock/:room_id/:user_id",
-            rate_limited: false,
-            authentication: ServerSignatures,
-            added: 1.1,
+    const METADATA: Metadata = metadata! {
+        description: "Send a request for a knock event template to a resident server.",
+        name: "create_knock_event_template",
+        method: GET,
+        rate_limited: false,
+        authentication: ServerSignatures,
+        history: {
+            unstable => "/_matrix/federation/unstable/xyz.amorgan.knock/make_knock/:room_id/:user_id",
+            1.1 => "/_matrix/federation/v1/make_knock/:room_id/:user_id",
         }
+    };
 
-        request: {
-            /// The room ID that should receive the knock.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
+    #[request]
+    pub struct Request<'a> {
+        /// The room ID that should receive the knock.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
 
-            /// The user ID the knock event will be for.
-            #[ruma_api(path)]
-            pub user_id: &'a UserId,
+        /// The user ID the knock event will be for.
+        #[ruma_api(path)]
+        pub user_id: &'a UserId,
 
-            /// The room versions the sending has support for.
-            ///
-            /// Defaults to `&[RoomVersionId::V1]`.
-            #[ruma_api(query)]
-            pub ver: &'a [RoomVersionId],
-        }
+        /// The room versions the sending has support for.
+        ///
+        /// Defaults to `&[RoomVersionId::V1]`.
+        #[ruma_api(query)]
+        pub ver: &'a [RoomVersionId],
+    }
 
-        response: {
-            /// The version of the room where the server is trying to knock.
-            pub room_version: RoomVersionId,
+    #[response]
+    pub struct Response {
+        /// The version of the room where the server is trying to knock.
+        pub room_version: RoomVersionId,
 
-            /// An unsigned template event.
-            ///
-            /// May differ between room versions.
-            pub event: Box<RawJsonValue>,
-        }
+        /// An unsigned template event.
+        ///
+        /// May differ between room versions.
+        pub event: Box<RawJsonValue>,
     }
 
     impl<'a> Request<'a> {

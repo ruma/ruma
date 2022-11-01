@@ -7,26 +7,30 @@ pub mod v2 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#get_matrixidentityv2account
 
-    use ruma_common::{api::ruma_api, OwnedUserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, OwnedUserId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Gets information about what user owns the access token used in the request.",
-            method: POST,
-            name: "get_account_information",
-            stable_path: "/_matrix/identity/v2/account",
-            authentication: AccessToken,
-            rate_limited: false,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Gets information about what user owns the access token used in the request.",
+        method: POST,
+        name: "get_account_information",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/identity/v2/account",
         }
+    };
 
-        #[derive(Default)]
-        request: {}
+    #[request]
+    #[derive(Default)]
+    pub struct Request {}
 
-        response: {
-            /// The user ID which registered the token.
-            pub user_id: OwnedUserId,
-        }
+    #[response]
+    pub struct Response {
+        /// The user ID which registered the token.
+        pub user_id: OwnedUserId,
     }
 
     impl Request {

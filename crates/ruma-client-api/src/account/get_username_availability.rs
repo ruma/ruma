@@ -5,33 +5,35 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3registeravailable
 
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Checks to see if a username is available, and valid, for the server.",
-            method: GET,
-            name: "get_username_availability",
-            r0_path: "/_matrix/client/r0/register/available",
-            stable_path: "/_matrix/client/v3/register/available",
-            rate_limited: true,
-            authentication: None,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Checks to see if a username is available, and valid, for the server.",
+        method: GET,
+        name: "get_username_availability",
+        rate_limited: true,
+        authentication: None,
+        history: {
+            1.0 => "/_matrix/client/r0/register/available",
+            1.1 => "/_matrix/client/v3/register/available",
         }
+    };
 
-        request: {
-            /// The username to check the availability of.
-            #[ruma_api(query)]
-            pub username: &'a str,
-        }
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The username to check the availability of.
+        #[ruma_api(query)]
+        pub username: &'a str,
+    }
 
-        response: {
-            /// A flag to indicate that the username is available.
-            /// This should always be true when the server replies with 200 OK.
-            pub available: bool,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// A flag to indicate that the username is available.
+        /// This should always be true when the server replies with 200 OK.
+        pub available: bool,
     }
 
     impl<'a> Request<'a> {

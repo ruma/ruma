@@ -8,90 +8,95 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#post_matrixidentityv2store-invite
 
     use ruma_common::{
-        api::ruma_api, room::RoomType, thirdparty::Medium, MxcUri, RoomAliasId, RoomId, UserId,
+        api::{request, response, Metadata},
+        metadata,
+        room::RoomType,
+        thirdparty::Medium,
+        MxcUri, RoomAliasId, RoomId, UserId,
     };
     use serde::{ser::SerializeSeq, Deserialize, Serialize};
 
-    ruma_api! {
-        metadata: {
-            description: "Store pending invitations to a user's 3PID.",
-            method: POST,
-            name: "store_invitation",
-            stable_path: "/_matrix/identity/v2/store-invite",
-            authentication: AccessToken,
-            rate_limited: false,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Store pending invitations to a user's 3PID.",
+        method: POST,
+        name: "store_invitation",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/identity/v2/store-invite",
         }
+    };
 
-        request: {
-            /// The type of the third party identifier for the invited user.
-            ///
-            /// Currently, only `Medium::Email` is supported.
-            pub medium: &'a Medium,
+    #[request]
+    pub struct Request<'a> {
+        /// The type of the third party identifier for the invited user.
+        ///
+        /// Currently, only `Medium::Email` is supported.
+        pub medium: &'a Medium,
 
-            /// The email address of the invited user.
-            pub address: &'a str,
+        /// The email address of the invited user.
+        pub address: &'a str,
 
-            /// The Matrix room ID to which the user is invited.
-            pub room_id: &'a RoomId,
+        /// The Matrix room ID to which the user is invited.
+        pub room_id: &'a RoomId,
 
-            /// The Matrix user ID of the inviting user.
-            pub sender: &'a UserId,
+        /// The Matrix user ID of the inviting user.
+        pub sender: &'a UserId,
 
-            /// The Matrix room alias for the room to which the user is invited.
-            ///
-            /// This should be retrieved from the `m.room.canonical` state event.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub room_alias: Option<&'a RoomAliasId>,
+        /// The Matrix room alias for the room to which the user is invited.
+        ///
+        /// This should be retrieved from the `m.room.canonical` state event.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub room_alias: Option<&'a RoomAliasId>,
 
-            /// The Content URI for the room to which the user is invited.
-            ///
-            /// This should be retrieved from the `m.room.avatar` state event.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub room_avatar_url: Option<&'a MxcUri>,
+        /// The Content URI for the room to which the user is invited.
+        ///
+        /// This should be retrieved from the `m.room.avatar` state event.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub room_avatar_url: Option<&'a MxcUri>,
 
-            /// The `join_rule` for the room to which the user is invited.
-            ///
-            /// This should be retrieved from the `m.room.join_rules` state event.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub room_join_rules: Option<&'a str>,
+        /// The `join_rule` for the room to which the user is invited.
+        ///
+        /// This should be retrieved from the `m.room.join_rules` state event.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub room_join_rules: Option<&'a str>,
 
-            /// The name of the room to which the user is invited.
-            ///
-            /// This should be retrieved from the `m.room.name` state event.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub room_name: Option<&'a str>,
+        /// The name of the room to which the user is invited.
+        ///
+        /// This should be retrieved from the `m.room.name` state event.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub room_name: Option<&'a str>,
 
-            /// The type of the room to which the user is invited.
-            ///
-            /// This should be retrieved from the `m.room.create` state event.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub room_type: Option<&'a RoomType>,
+        /// The type of the room to which the user is invited.
+        ///
+        /// This should be retrieved from the `m.room.create` state event.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub room_type: Option<&'a RoomType>,
 
-            /// The display name of the user ID initiating the invite.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub sender_display_name: Option<&'a str>,
+        /// The display name of the user ID initiating the invite.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub sender_display_name: Option<&'a str>,
 
-            /// The Content URI for the avater of the user ID initiating the invite.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub sender_avatar_url: Option<&'a MxcUri>,
-        }
+        /// The Content URI for the avater of the user ID initiating the invite.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub sender_avatar_url: Option<&'a MxcUri>,
+    }
 
-        response: {
-            /// The generated token.
-            ///
-            /// Must be a string consisting of the characters `[0-9a-zA-Z.=_-]`. Its length must not
-            /// exceed 255 characters and it must not be empty.
-            pub token: String,
+    #[response]
+    pub struct Response {
+        /// The generated token.
+        ///
+        /// Must be a string consisting of the characters `[0-9a-zA-Z.=_-]`. Its length must not
+        /// exceed 255 characters and it must not be empty.
+        pub token: String,
 
-            /// A list of [server's long-term public key, generated ephemeral public key].
-            pub public_keys: PublicKeys,
+        /// A list of [server's long-term public key, generated ephemeral public key].
+        pub public_keys: PublicKeys,
 
-            /// The generated (redacted) display_name.
-            ///
-            /// An example is `f...@b...`.
-            pub display_name: String,
-        }
+        /// The generated (redacted) display_name.
+        ///
+        /// An example is `f...@b...`.
+        pub display_name: String,
     }
 
     impl<'a> Request<'a> {

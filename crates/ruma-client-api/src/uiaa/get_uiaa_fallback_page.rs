@@ -6,47 +6,49 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#fallback
 
     use http::header::LOCATION;
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Get UIAA fallback web page.",
-            method: GET,
-            name: "authorize_fallback",
-            r0_path: "/_matrix/client/r0/auth/:auth_type/fallback/web",
-            stable_path: "/_matrix/client/v3/auth/:auth_type/fallback/web",
-            rate_limited: false,
-            authentication: None,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get UIAA fallback web page.",
+        method: GET,
+        name: "authorize_fallback",
+        rate_limited: false,
+        authentication: None,
+        history: {
+            1.0 => "/_matrix/client/r0/auth/:auth_type/fallback/web",
+            1.1 => "/_matrix/client/v3/auth/:auth_type/fallback/web",
         }
+    };
 
-        request: {
-            /// The type name ("m.login.dummy", etc.) of the uiaa stage to get a fallback page for.
-            #[ruma_api(path)]
-            pub auth_type: String,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The type name ("m.login.dummy", etc.) of the uiaa stage to get a fallback page for.
+        #[ruma_api(path)]
+        pub auth_type: &'a str,
 
-            /// The ID of the session given by the homeserver.
-            #[ruma_api(query)]
-            pub session: String,
-        }
-
-        #[derive(Default)]
-        response: {
-            /// Optional URI to redirect to.
-            #[ruma_api(header = LOCATION)]
-            pub redirect_url: Option<String>,
-
-            /// HTML to return to client.
-            #[ruma_api(raw_body)]
-            pub body: Vec<u8>,
-        }
-
-        error: crate::Error
+        /// The ID of the session given by the homeserver.
+        #[ruma_api(query)]
+        pub session: &'a str,
     }
 
-    impl Request {
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {
+        /// Optional URI to redirect to.
+        #[ruma_api(header = LOCATION)]
+        pub redirect_url: Option<String>,
+
+        /// HTML to return to client.
+        #[ruma_api(raw_body)]
+        pub body: Vec<u8>,
+    }
+
+    impl<'a> Request<'a> {
         /// Creates a new `Request` with the given auth type and session ID.
-        pub fn new(auth_type: String, session: String) -> Self {
+        pub fn new(auth_type: &'a str, session: &'a str) -> Self {
             Self { auth_type, session }
         }
     }

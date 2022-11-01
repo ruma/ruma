@@ -7,25 +7,29 @@ pub mod v2 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#get_matrixidentityv2
 
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Checks that an identity server is available at this API endpoint.",
-            method: GET,
-            name: "status",
-            stable_path: "/_matrix/identity/v2",
-            authentication: None,
-            rate_limited: false,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Checks that an identity server is available at this API endpoint.",
+        method: GET,
+        name: "status",
+        rate_limited: false,
+        authentication: None,
+        history: {
+            1.0 => "/_matrix/identity/v2",
         }
+    };
 
-        #[derive(Default)]
-        request: {}
+    #[request]
+    #[derive(Default)]
+    pub struct Request {}
 
-        #[derive(Default)]
-        response: {}
-    }
+    #[response]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl Request {
         /// Creates an empty `Request`.

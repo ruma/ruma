@@ -5,35 +5,37 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3roomsroomidupgrade
 
-    use ruma_common::{api::ruma_api, OwnedRoomId, RoomId, RoomVersionId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, OwnedRoomId, RoomId, RoomVersionId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Upgrades a room to a particular version.",
-            method: POST,
-            name: "upgrade_room",
-            r0_path: "/_matrix/client/r0/rooms/:room_id/upgrade",
-            stable_path: "/_matrix/client/v3/rooms/:room_id/upgrade",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Upgrades a room to a particular version.",
+        method: POST,
+        name: "upgrade_room",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/rooms/:room_id/upgrade",
+            1.1 => "/_matrix/client/v3/rooms/:room_id/upgrade",
         }
+    };
 
-        request: {
-            /// ID of the room to be upgraded.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// ID of the room to be upgraded.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
 
-            /// New version for the room.
-            pub new_version: &'a RoomVersionId,
-        }
+        /// New version for the room.
+        pub new_version: &'a RoomVersionId,
+    }
 
-        response: {
-            /// ID of the new room.
-            pub replacement_room: OwnedRoomId,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// ID of the new room.
+        pub replacement_room: OwnedRoomId,
     }
 
     impl<'a> Request<'a> {

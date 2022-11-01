@@ -5,31 +5,33 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3pushers
 
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
     use crate::push::Pusher;
 
-    ruma_api! {
-        metadata: {
-            description: "Gets all currently active pushers for the authenticated user.",
-            method: GET,
-            name: "get_pushers",
-            r0_path: "/_matrix/client/r0/pushers",
-            stable_path: "/_matrix/client/v3/pushers",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Gets all currently active pushers for the authenticated user.",
+        method: GET,
+        name: "get_pushers",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/pushers",
+            1.1 => "/_matrix/client/v3/pushers",
         }
+    };
 
-        #[derive(Default)]
-        request: {}
+    #[request(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Request {}
 
-        response: {
-            /// An array containing the current pushers for the user.
-            pub pushers: Vec<Pusher>,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// An array containing the current pushers for the user.
+        pub pushers: Vec<Pusher>,
     }
 
     impl Request {

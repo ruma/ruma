@@ -5,39 +5,41 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3account3pidadd
 
-    use ruma_common::{api::ruma_api, ClientSecret, SessionId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, ClientSecret, SessionId,
+    };
 
     use crate::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
 
-    ruma_api! {
-        metadata: {
-            description: "Add contact information to a user's account",
-            method: POST,
-            name: "add_3pid",
-            r0_path: "/_matrix/client/r0/account/3pid/add",
-            stable_path: "/_matrix/client/v3/account/3pid/add",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Add contact information to a user's account",
+        method: POST,
+        name: "add_3pid",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/account/3pid/add",
+            1.1 => "/_matrix/client/v3/account/3pid/add",
         }
+    };
 
-        request: {
-            /// Additional information for the User-Interactive Authentication API.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub auth: Option<AuthData<'a>>,
+    #[request(error = UiaaResponse)]
+    pub struct Request<'a> {
+        /// Additional information for the User-Interactive Authentication API.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub auth: Option<AuthData<'a>>,
 
-            /// Client-generated secret string used to protect this session.
-            pub client_secret: &'a ClientSecret,
+        /// Client-generated secret string used to protect this session.
+        pub client_secret: &'a ClientSecret,
 
-            /// The session identifier given by the identity server.
-            pub sid: &'a SessionId,
-        }
-
-        #[derive(Default)]
-        response: {}
-
-        error: UiaaResponse
+        /// The session identifier given by the identity server.
+        pub sid: &'a SessionId,
     }
+
+    #[response(error = UiaaResponse)]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given client secret and session identifier.

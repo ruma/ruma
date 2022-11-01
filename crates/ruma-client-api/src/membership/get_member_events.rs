@@ -6,62 +6,62 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3roomsroomidmembers
 
     use ruma_common::{
-        api::ruma_api,
+        api::{request, response, Metadata},
         events::room::member::RoomMemberEvent,
+        metadata,
         serde::{Raw, StringEnum},
         RoomId,
     };
 
     use crate::PrivOwnedStr;
 
-    ruma_api! {
-        metadata: {
-            description: "Get membership events for a room.",
-            method: GET,
-            name: "get_member_events",
-            r0_path: "/_matrix/client/r0/rooms/:room_id/members",
-            stable_path: "/_matrix/client/v3/rooms/:room_id/members",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get membership events for a room.",
+        method: GET,
+        name: "get_member_events",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/rooms/:room_id/members",
+            1.1 => "/_matrix/client/v3/rooms/:room_id/members",
         }
+    };
 
-        request: {
-            /// The room to get the member events for.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The room to get the member events for.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
 
-            /// The point in time (pagination token) to return members for in the room.
-            ///
-            /// This token can be obtained from a prev_batch token returned for each room by the sync
-            /// API.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            #[ruma_api(query)]
-            pub at: Option<&'a str>,
+        /// The point in time (pagination token) to return members for in the room.
+        ///
+        /// This token can be obtained from a prev_batch token returned for each room by the sync
+        /// API.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[ruma_api(query)]
+        pub at: Option<&'a str>,
 
-            /// The kind of memberships to filter for.
-            ///
-            /// Defaults to no filtering if unspecified. When specified alongside not_membership, the
-            /// two parameters create an 'or' condition: either the membership is the same as membership
-            /// or is not the same as not_membership.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            #[ruma_api(query)]
-            pub membership: Option<MembershipEventFilter>,
+        /// The kind of memberships to filter for.
+        ///
+        /// Defaults to no filtering if unspecified. When specified alongside not_membership, the
+        /// two parameters create an 'or' condition: either the membership is the same as
+        /// membership or is not the same as not_membership.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[ruma_api(query)]
+        pub membership: Option<MembershipEventFilter>,
 
-            /// The kind of memberships to *exclude* from the results.
-            ///
-            /// Defaults to no filtering if unspecified.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            #[ruma_api(query)]
-            pub not_membership: Option<MembershipEventFilter>,
-        }
+        /// The kind of memberships to *exclude* from the results.
+        ///
+        /// Defaults to no filtering if unspecified.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[ruma_api(query)]
+        pub not_membership: Option<MembershipEventFilter>,
+    }
 
-        response: {
-            /// A list of member events.
-            pub chunk: Vec<Raw<RoomMemberEvent>>,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// A list of member events.
+        pub chunk: Vec<Raw<RoomMemberEvent>>,
     }
 
     impl<'a> Request<'a> {

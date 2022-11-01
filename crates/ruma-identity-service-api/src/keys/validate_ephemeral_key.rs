@@ -7,29 +7,34 @@ pub mod v2 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#get_matrixidentityv2pubkeyephemeralisvalid
 
-    use ruma_common::{api::ruma_api, serde::Base64};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+        serde::Base64,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Check whether a short-term public key is valid.",
-            method: GET,
-            name: "validate_ephemeral_key",
-            stable_path: "/_matrix/identity/v2/pubkey/ephemeral/isvalid",
-            authentication: None,
-            rate_limited: false,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Check whether a short-term public key is valid.",
+        method: GET,
+        name: "validate_ephemeral_key",
+        rate_limited: false,
+        authentication: None,
+        history: {
+            1.0 => "/_matrix/identity/v2/pubkey/ephemeral/isvalid",
         }
+    };
 
-        request: {
-            /// The unpadded base64-encoded short-term public key to check.
-            #[ruma_api(query)]
-            pub public_key: &'a Base64,
-        }
+    #[request]
+    pub struct Request<'a> {
+        /// The unpadded base64-encoded short-term public key to check.
+        #[ruma_api(query)]
+        pub public_key: &'a Base64,
+    }
 
-        response: {
-            /// Whether the short-term public key is recognised and is currently valid.
-            pub valid: bool,
-        }
+    #[response]
+    pub struct Response {
+        /// Whether the short-term public key is recognised and is currently valid.
+        pub valid: bool,
     }
 
     impl<'a> Request<'a> {

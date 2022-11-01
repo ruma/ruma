@@ -5,28 +5,30 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3logout
 
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Log out of the homeserver.",
-            method: POST,
-            name: "logout",
-            r0_path: "/_matrix/client/r0/logout",
-            stable_path: "/_matrix/client/v3/logout",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Log out of the homeserver.",
+        method: POST,
+        name: "logout",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/logout",
+            1.1 => "/_matrix/client/v3/logout",
         }
+    };
 
-        #[derive(Default)]
-        request: {}
+    #[request(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Request {}
 
-        #[derive(Default)]
-        response: {}
-
-        error: crate::Error
-    }
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl Request {
         /// Creates an empty `Request`.

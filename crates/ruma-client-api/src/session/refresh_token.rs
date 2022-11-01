@@ -27,47 +27,49 @@ pub mod v3 {
 
     use std::time::Duration;
 
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Refresh an access token.",
-            method: POST,
-            name: "refresh",
-            unstable_path: "/_matrix/client/unstable/org.matrix.msc2918/refresh",
-            stable_path: "/_matrix/client/v3/refresh",
-            rate_limited: true,
-            authentication: None,
-            added: 1.3,
+    const METADATA: Metadata = metadata! {
+        description: "Refresh an access token.",
+        method: POST,
+        name: "refresh",
+        rate_limited: true,
+        authentication: None,
+        history: {
+            unstable => "/_matrix/client/unstable/org.matrix.msc2918/refresh",
+            1.3 => "/_matrix/client/v3/refresh",
         }
+    };
 
-        request: {
-            /// The refresh token.
-            pub refresh_token: &'a str,
-        }
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The refresh token.
+        pub refresh_token: &'a str,
+    }
 
-        response: {
-            /// The new access token to use.
-            pub access_token: String,
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The new access token to use.
+        pub access_token: String,
 
-            /// The new refresh token to use when the access token needs to be refreshed again.
-            ///
-            /// If this is `None`, the old refresh token can be re-used.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub refresh_token: Option<String>,
+        /// The new refresh token to use when the access token needs to be refreshed again.
+        ///
+        /// If this is `None`, the old refresh token can be re-used.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub refresh_token: Option<String>,
 
-            /// The lifetime of the access token, in milliseconds.
-            ///
-            /// If this is `None`, the client can assume that the access token will not expire.
-            #[serde(
-                with = "ruma_common::serde::duration::opt_ms",
-                default,
-                skip_serializing_if = "Option::is_none"
-            )]
-            pub expires_in_ms: Option<Duration>,
-        }
-
-        error: crate::Error
+        /// The lifetime of the access token, in milliseconds.
+        ///
+        /// If this is `None`, the client can assume that the access token will not expire.
+        #[serde(
+            with = "ruma_common::serde::duration::opt_ms",
+            default,
+            skip_serializing_if = "Option::is_none"
+        )]
+        pub expires_in_ms: Option<Duration>,
     }
 
     impl<'a> Request<'a> {

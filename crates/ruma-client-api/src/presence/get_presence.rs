@@ -7,48 +7,52 @@ pub mod v3 {
 
     use std::time::Duration;
 
-    use ruma_common::{api::ruma_api, presence::PresenceState, UserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+        presence::PresenceState,
+        UserId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Get presence status for this user.",
-            method: GET,
-            name: "get_presence",
-            r0_path: "/_matrix/client/r0/presence/:user_id/status",
-            stable_path: "/_matrix/client/v3/presence/:user_id/status",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get presence status for this user.",
+        method: GET,
+        name: "get_presence",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/presence/:user_id/status",
+            1.1 => "/_matrix/client/v3/presence/:user_id/status",
         }
+    };
 
-        request: {
-            /// The user whose presence state will be retrieved.
-            #[ruma_api(path)]
-            pub user_id: &'a UserId,
-        }
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The user whose presence state will be retrieved.
+        #[ruma_api(path)]
+        pub user_id: &'a UserId,
+    }
 
-        response: {
-            /// The state message for this user if one was set.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub status_msg: Option<String>,
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The state message for this user if one was set.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub status_msg: Option<String>,
 
-            /// Whether or not the user is currently active.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub currently_active: Option<bool>,
+        /// Whether or not the user is currently active.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub currently_active: Option<bool>,
 
-            /// The length of time in milliseconds since an action was performed by the user.
-            #[serde(
-                with = "ruma_common::serde::duration::opt_ms",
-                default,
-                skip_serializing_if = "Option::is_none",
-            )]
-            pub last_active_ago: Option<Duration>,
+        /// The length of time in milliseconds since an action was performed by the user.
+        #[serde(
+            with = "ruma_common::serde::duration::opt_ms",
+            default,
+            skip_serializing_if = "Option::is_none"
+        )]
+        pub last_active_ago: Option<Duration>,
 
-            /// The user's presence state.
-            pub presence: PresenceState,
-        }
-
-        error: crate::Error
+        /// The user's presence state.
+        pub presence: PresenceState,
     }
 
     impl<'a> Request<'a> {

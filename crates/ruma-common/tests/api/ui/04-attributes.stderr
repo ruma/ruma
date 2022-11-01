@@ -1,5 +1,0 @@
-error: cannot find attribute `not_a_real_attribute_should_fail` in this scope
-  --> $DIR/04-attributes.rs:14:7
-   |
-14 |     #[not_a_real_attribute_should_fail]
-   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

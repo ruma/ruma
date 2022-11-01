@@ -5,37 +5,39 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3accountwhoami
 
-    use ruma_common::{api::ruma_api, OwnedDeviceId, OwnedUserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, OwnedDeviceId, OwnedUserId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Get information about the owner of a given access token.",
-            method: GET,
-            name: "whoami",
-            r0_path: "/_matrix/client/r0/account/whoami",
-            stable_path: "/_matrix/client/v3/account/whoami",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get information about the owner of a given access token.",
+        method: GET,
+        name: "whoami",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/account/whoami",
+            1.1 => "/_matrix/client/v3/account/whoami",
         }
+    };
 
-        #[derive(Default)]
-        request: {}
+    #[request(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Request {}
 
-        response: {
-            /// The id of the user that owns the access token.
-            pub user_id: OwnedUserId,
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The id of the user that owns the access token.
+        pub user_id: OwnedUserId,
 
-            /// The device ID associated with the access token, if any.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub device_id: Option<OwnedDeviceId>,
+        /// The device ID associated with the access token, if any.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub device_id: Option<OwnedDeviceId>,
 
-            /// If `true`, the user is a guest user.
-            #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
-            pub is_guest: bool,
-        }
-
-        error: crate::Error
+        /// If `true`, the user is a guest user.
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        pub is_guest: bool,
     }
 
     impl Request {

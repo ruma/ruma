@@ -9,35 +9,37 @@ pub mod v3 {
 
     use std::collections::BTreeMap;
 
-    use ruma_common::{api::ruma_api, OwnedRoomId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, OwnedRoomId,
+    };
 
     use crate::backup::RoomKeyBackup;
 
-    ruma_api! {
-        metadata: {
-            description: "Retrieve all keys from a backup version.",
-            method: GET,
-            name: "get_backup_keys",
-            unstable_path: "/_matrix/client/unstable/room_keys/keys",
-            r0_path: "/_matrix/client/r0/room_keys/keys",
-            stable_path: "/_matrix/client/v3/room_keys/keys",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Retrieve all keys from a backup version.",
+        method: GET,
+        name: "get_backup_keys",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            unstable => "/_matrix/client/unstable/room_keys/keys",
+            1.0 => "/_matrix/client/r0/room_keys/keys",
+            1.1 => "/_matrix/client/v3/room_keys/keys",
         }
+    };
 
-        request: {
-            /// The backup version to retrieve keys from.
-            #[ruma_api(query)]
-            pub version: &'a str,
-        }
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The backup version to retrieve keys from.
+        #[ruma_api(query)]
+        pub version: &'a str,
+    }
 
-        response: {
-            /// A map from room IDs to session IDs to key data.
-            pub rooms: BTreeMap<OwnedRoomId, RoomKeyBackup>,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// A map from room IDs to session IDs to key data.
+        pub rooms: BTreeMap<OwnedRoomId, RoomKeyBackup>,
     }
 
     impl<'a> Request<'a> {

@@ -3,43 +3,52 @@
 use http::header::CONTENT_TYPE;
 use ruma_common::{
     api::{
-        ruma_api, IncomingRequest as _, MatrixVersion, OutgoingRequest as _,
+        request, response, IncomingRequest as _, MatrixVersion, Metadata, OutgoingRequest as _,
         OutgoingRequestAppserviceExt, SendAccessToken,
     },
-    user_id, OwnedUserId,
+    metadata, user_id, OwnedUserId,
 };
 
-ruma_api! {
-    metadata: {
-        description: "Does something.",
-        method: POST,
-        name: "my_endpoint",
-        unstable_path: "/_matrix/foo/:bar/:user",
-        rate_limited: false,
-        authentication: None,
+const METADATA: Metadata = metadata! {
+    description: "Does something.",
+    method: POST,
+    name: "my_endpoint",
+    rate_limited: false,
+    authentication: None,
+    history: {
+        unstable => "/_matrix/foo/:bar/:user",
     }
+};
 
-    request: {
-        pub hello: String,
-        #[ruma_api(header = CONTENT_TYPE)]
-        pub world: String,
-        #[ruma_api(query)]
-        pub q1: String,
-        #[ruma_api(query)]
-        pub q2: u32,
-        #[ruma_api(path)]
-        pub bar: String,
-        #[ruma_api(path)]
-        pub user: OwnedUserId,
-    }
+#[request]
+pub struct Request {
+    pub hello: String,
 
-    response: {
-        pub hello: String,
-        #[ruma_api(header = CONTENT_TYPE)]
-        pub world: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub optional_flag: Option<bool>,
-    }
+    #[ruma_api(header = CONTENT_TYPE)]
+    pub world: String,
+
+    #[ruma_api(query)]
+    pub q1: String,
+
+    #[ruma_api(query)]
+    pub q2: u32,
+
+    #[ruma_api(path)]
+    pub bar: String,
+
+    #[ruma_api(path)]
+    pub user: OwnedUserId,
+}
+
+#[response]
+pub struct Response {
+    pub hello: String,
+
+    #[ruma_api(header = CONTENT_TYPE)]
+    pub world: String,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub optional_flag: Option<bool>,
 }
 
 #[test]
@@ -120,37 +129,49 @@ fn request_with_user_id_serde() {
 }
 
 mod without_query {
-    use ruma_common::{api::MatrixVersion, OwnedUserId};
+    use http::header::CONTENT_TYPE;
+    use ruma_common::{
+        api::{
+            request, response, MatrixVersion, Metadata, OutgoingRequestAppserviceExt,
+            SendAccessToken,
+        },
+        metadata, user_id, OwnedUserId,
+    };
 
-    use super::{ruma_api, user_id, OutgoingRequestAppserviceExt, SendAccessToken, CONTENT_TYPE};
-
-    ruma_api! {
-        metadata: {
-            description: "Does something without query.",
-            method: POST,
-            name: "my_endpoint",
-            unstable_path: "/_matrix/foo/:bar/:user",
-            rate_limited: false,
-            authentication: None,
+    const METADATA: Metadata = metadata! {
+        description: "Does something without query.",
+        method: POST,
+        name: "my_endpoint",
+        rate_limited: false,
+        authentication: None,
+        history: {
+            unstable => "/_matrix/foo/:bar/:user",
         }
+    };
 
-        request: {
-            pub hello: String,
-            #[ruma_api(header = CONTENT_TYPE)]
-            pub world: String,
-            #[ruma_api(path)]
-            pub bar: String,
-            #[ruma_api(path)]
-            pub user: OwnedUserId,
-        }
+    #[request]
+    pub struct Request {
+        pub hello: String,
 
-        response: {
-            pub hello: String,
-            #[ruma_api(header = CONTENT_TYPE)]
-            pub world: String,
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub optional_flag: Option<bool>,
-        }
+        #[ruma_api(header = CONTENT_TYPE)]
+        pub world: String,
+
+        #[ruma_api(path)]
+        pub bar: String,
+
+        #[ruma_api(path)]
+        pub user: OwnedUserId,
+    }
+
+    #[response]
+    pub struct Response {
+        pub hello: String,
+
+        #[ruma_api(header = CONTENT_TYPE)]
+        pub world: String,
+
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub optional_flag: Option<bool>,
     }
 
     #[test]

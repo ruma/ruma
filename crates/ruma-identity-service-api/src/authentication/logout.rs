@@ -8,25 +8,29 @@ pub mod v2 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#post_matrixidentityv2accountlogout
 
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Logs out the access token, preventing it from being used to authenticate future requests to the server.",
-            method: POST,
-            name: "logout",
-            stable_path: "/_matrix/identity/v2/account/logout",
-            authentication: AccessToken,
-            rate_limited: false,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Logs out the access token, preventing it from being used to authenticate future requests to the server.",
+        method: POST,
+        name: "logout",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/identity/v2/account/logout",
         }
+    };
 
-        #[derive(Default)]
-        request: {}
+    #[request]
+    #[derive(Default)]
+    pub struct Request {}
 
-        #[derive(Default)]
-        response: {}
-    }
+    #[response]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl Request {
         /// Creates an empty `Request`.

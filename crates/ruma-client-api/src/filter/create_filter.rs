@@ -5,40 +5,42 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3useruseridfilter
 
-    use ruma_common::{api::ruma_api, UserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, UserId,
+    };
 
     use crate::filter::{FilterDefinition, IncomingFilterDefinition};
 
-    ruma_api! {
-        metadata: {
-            description: "Create a new filter for event retrieval.",
-            method: POST,
-            name: "create_filter",
-            r0_path: "/_matrix/client/r0/user/:user_id/filter",
-            stable_path: "/_matrix/client/v3/user/:user_id/filter",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Create a new filter for event retrieval.",
+        method: POST,
+        name: "create_filter",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/user/:user_id/filter",
+            1.1 => "/_matrix/client/v3/user/:user_id/filter",
         }
+    };
 
-        request: {
-            /// The ID of the user uploading the filter.
-            ///
-            /// The access token must be authorized to make requests for this user ID.
-            #[ruma_api(path)]
-            pub user_id: &'a UserId,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The ID of the user uploading the filter.
+        ///
+        /// The access token must be authorized to make requests for this user ID.
+        #[ruma_api(path)]
+        pub user_id: &'a UserId,
 
-            /// The filter definition.
-            #[ruma_api(body)]
-            pub filter: FilterDefinition<'a>,
-        }
+        /// The filter definition.
+        #[ruma_api(body)]
+        pub filter: FilterDefinition<'a>,
+    }
 
-        response: {
-            /// The ID of the filter that was created.
-            pub filter_id: String,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The ID of the filter that was created.
+        pub filter_id: String,
     }
 
     impl<'a> Request<'a> {

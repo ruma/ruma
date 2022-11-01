@@ -7,38 +7,42 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#get_matrixfederationv1stateroomid
 
-    use ruma_common::{api::ruma_api, EventId, RoomId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, EventId, RoomId,
+    };
     use serde_json::value::RawValue as RawJsonValue;
 
-    ruma_api! {
-        metadata: {
-            description: "Retrieves a snapshot of a room's state at a given event.",
-            method: GET,
-            name: "get_room_state",
-            stable_path: "/_matrix/federation/v1/state/:room_id",
-            rate_limited: false,
-            authentication: ServerSignatures,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Retrieves a snapshot of a room's state at a given event.",
+        method: GET,
+        name: "get_room_state",
+        rate_limited: false,
+        authentication: ServerSignatures,
+        history: {
+            1.0 => "/_matrix/federation/v1/state/:room_id",
         }
+    };
 
-        request: {
-            /// The room ID to get state for.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
+    #[request]
+    pub struct Request<'a> {
+        /// The room ID to get state for.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
 
-            /// An event ID in the room to retrieve the state at.
-            #[ruma_api(query)]
-            pub event_id: &'a EventId,
-        }
+        /// An event ID in the room to retrieve the state at.
+        #[ruma_api(query)]
+        pub event_id: &'a EventId,
+    }
 
-        response: {
-            /// The full set of authorization events that make up the state of the
-            /// room, and their authorization events, recursively.
-            pub auth_chain: Vec<Box<RawJsonValue>>,
+    #[response]
+    pub struct Response {
+        /// The full set of authorization events that make up the state of the
+        /// room, and their authorization events, recursively.
+        pub auth_chain: Vec<Box<RawJsonValue>>,
 
-            /// The fully resolved state of the room at the given event.
-            pub pdus: Vec<Box<RawJsonValue>>,
-        }
+        /// The fully resolved state of the room at the given event.
+        pub pdus: Vec<Box<RawJsonValue>>,
     }
 
     impl<'a> Request<'a> {

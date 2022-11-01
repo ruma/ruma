@@ -6,55 +6,59 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#put_matrixclientv3room_keyskeysroomidsessionid
 
     use js_int::UInt;
-    use ruma_common::{api::ruma_api, serde::Raw, RoomId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+        serde::Raw,
+        RoomId,
+    };
 
     use crate::backup::KeyBackupData;
 
-    ruma_api! {
-        metadata: {
-            description: "Store keys in the backup for a session.",
-            method: PUT,
-            name: "add_backup_keys_for_session",
-            unstable_path: "/_matrix/client/unstable/room_keys/keys/:room_id/:session_id",
-            r0_path: "/_matrix/client/r0/room_keys/keys/:room_id/:session_id",
-            stable_path: "/_matrix/client/v3/room_keys/keys/:room_id/:session_id",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Store keys in the backup for a session.",
+        method: PUT,
+        name: "add_backup_keys_for_session",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            unstable => "/_matrix/client/unstable/room_keys/keys/:room_id/:session_id",
+            1.0 => "/_matrix/client/r0/room_keys/keys/:room_id/:session_id",
+            1.1 => "/_matrix/client/v3/room_keys/keys/:room_id/:session_id",
         }
+    };
 
-        request: {
-            /// The backup version to add keys to.
-            ///
-            /// Must be the current backup.
-            #[ruma_api(query)]
-            pub version: &'a str,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The backup version to add keys to.
+        ///
+        /// Must be the current backup.
+        #[ruma_api(query)]
+        pub version: &'a str,
 
-            /// The ID of the room to add keys to.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
+        /// The ID of the room to add keys to.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
 
-            /// The ID of the megolm session to add keys to.
-            #[ruma_api(path)]
-            pub session_id: &'a str,
+        /// The ID of the megolm session to add keys to.
+        #[ruma_api(path)]
+        pub session_id: &'a str,
 
-            /// The key information to store.
-            #[ruma_api(body)]
-            pub session_data: Raw<KeyBackupData>,
-        }
+        /// The key information to store.
+        #[ruma_api(body)]
+        pub session_data: Raw<KeyBackupData>,
+    }
 
-        response: {
-            /// An opaque string representing stored keys in the backup.
-            ///
-            /// Clients can compare it with the etag value they received in the request of their last
-            /// key storage request.
-            pub etag: String,
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// An opaque string representing stored keys in the backup.
+        ///
+        /// Clients can compare it with the etag value they received in the request of their last
+        /// key storage request.
+        pub etag: String,
 
-            /// The number of keys stored in the backup.
-            pub count: UInt,
-        }
-
-        error: crate::Error
+        /// The number of keys stored in the backup.
+        pub count: UInt,
     }
 
     impl<'a> Request<'a> {

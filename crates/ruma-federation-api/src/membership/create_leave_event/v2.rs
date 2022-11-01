@@ -2,39 +2,43 @@
 //!
 //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#put_matrixfederationv2send_leaveroomideventid
 
-use ruma_common::{api::ruma_api, EventId, RoomId};
+use ruma_common::{
+    api::{request, response, Metadata},
+    metadata, EventId, RoomId,
+};
 use serde_json::value::RawValue as RawJsonValue;
 
-ruma_api! {
-    metadata: {
-        description: "Submits a signed leave event to the receiving server for it to accept it into the room's graph.",
-        name: "create_leave_event",
-        method: PUT,
-        stable_path: "/_matrix/federation/v2/send_leave/:room_id/:event_id",
-        rate_limited: false,
-        authentication: ServerSignatures,
-        added: 1.0,
+const METADATA: Metadata = metadata! {
+    description: "Submits a signed leave event to the receiving server for it to accept it into the room's graph.",
+    name: "create_leave_event",
+    method: PUT,
+    rate_limited: false,
+    authentication: ServerSignatures,
+    history: {
+        1.0 => "/_matrix/federation/v2/send_leave/:room_id/:event_id",
     }
+};
 
-    request: {
-        /// The room ID that is about to be left.
-        ///
-        /// Do not use this. Instead, use the `room_id` field inside the PDU.
-        #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+#[request]
+pub struct Request<'a> {
+    /// The room ID that is about to be left.
+    ///
+    /// Do not use this. Instead, use the `room_id` field inside the PDU.
+    #[ruma_api(path)]
+    pub room_id: &'a RoomId,
 
-        /// The event ID for the leave event.
-        #[ruma_api(path)]
-        pub event_id: &'a EventId,
+    /// The event ID for the leave event.
+    #[ruma_api(path)]
+    pub event_id: &'a EventId,
 
-        /// The PDU.
-        #[ruma_api(body)]
-        pub pdu: &'a RawJsonValue,
-    }
-
-    #[derive(Default)]
-    response: {}
+    /// The PDU.
+    #[ruma_api(body)]
+    pub pdu: &'a RawJsonValue,
 }
+
+#[response]
+#[derive(Default)]
+pub struct Response {}
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` from the given room ID, event ID and PDU.

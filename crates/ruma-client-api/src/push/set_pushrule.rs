@@ -6,7 +6,8 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#put_matrixclientv3pushrulesscopekindruleid
 
     use ruma_common::{
-        api::ruma_api,
+        api::{response, Metadata},
+        metadata,
         push::{Action, NewPushRule, PushCondition},
         serde::Incoming,
     };
@@ -14,23 +15,17 @@ pub mod v3 {
 
     use crate::push::RuleScope;
 
-    ruma_api! {
-        metadata: {
-            description: "This endpoint allows the creation and modification of push rules for this user ID.",
-            method: PUT,
-            name: "set_pushrule",
-            r0_path: "/_matrix/client/r0/pushrules/:scope/:kind/:rule_id",
-            stable_path: "/_matrix/client/v3/pushrules/:scope/:kind/:rule_id",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "This endpoint allows the creation and modification of push rules for this user ID.",
+        method: PUT,
+        name: "set_pushrule",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/pushrules/:scope/:kind/:rule_id",
+            1.1 => "/_matrix/client/v3/pushrules/:scope/:kind/:rule_id",
         }
-
-        #[derive(Default)]
-        response: {}
-
-        error: crate::Error
-    }
+    };
 
     /// Data for a request to the `set_pushrule` API endpoint.
     ///
@@ -54,6 +49,10 @@ pub mod v3 {
         pub after: Option<&'a str>,
     }
 
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {}
+
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given scope and rule.
         pub fn new(scope: RuleScope, rule: NewPushRule) -> Self {
@@ -73,7 +72,7 @@ pub mod v3 {
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
 
-        const METADATA: ruma_common::api::Metadata = METADATA;
+        const METADATA: Metadata = METADATA;
 
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
@@ -119,7 +118,7 @@ pub mod v3 {
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
 
-        const METADATA: ruma_common::api::Metadata = METADATA;
+        const METADATA: Metadata = METADATA;
 
         fn try_from_http_request<B, S>(
             request: http::Request<B>,

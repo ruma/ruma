@@ -6,47 +6,49 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#delete_matrixclientv3room_keyskeysroomidsessionid
 
     use js_int::UInt;
-    use ruma_common::{api::ruma_api, RoomId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, RoomId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Delete keys from a backup for a given session.",
-            method: DELETE,
-            name: "delete_backup_keys_for_session",
-            unstable_path: "/_matrix/client/unstable/room_keys/keys/:room_id/:session_id",
-            r0_path: "/_matrix/client/r0/room_keys/keys/:room_id/:session_id",
-            stable_path: "/_matrix/client/v3/room_keys/keys/:room_id/:session_id",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Delete keys from a backup for a given session.",
+        method: DELETE,
+        name: "delete_backup_keys_for_session",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            unstable => "/_matrix/client/unstable/room_keys/keys/:room_id/:session_id",
+            1.0 => "/_matrix/client/r0/room_keys/keys/:room_id/:session_id",
+            1.1 => "/_matrix/client/v3/room_keys/keys/:room_id/:session_id",
         }
+    };
 
-        request: {
-            /// The backup version from which to delete keys.
-            #[ruma_api(query)]
-            pub version: &'a str,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The backup version from which to delete keys.
+        #[ruma_api(query)]
+        pub version: &'a str,
 
-            /// The ID of the room to delete keys from.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
+        /// The ID of the room to delete keys from.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
 
-            /// The ID of the megolm session to delete keys from.
-            #[ruma_api(path)]
-            pub session_id: &'a str,
-        }
+        /// The ID of the megolm session to delete keys from.
+        #[ruma_api(path)]
+        pub session_id: &'a str,
+    }
 
-        response: {
-            /// An opaque string representing stored keys in the backup.
-            ///
-            /// Clients can compare it with  the etag value they received in the request of their last
-            /// key storage request.
-            pub etag: String,
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// An opaque string representing stored keys in the backup.
+        ///
+        /// Clients can compare it with  the etag value they received in the request of their last
+        /// key storage request.
+        pub etag: String,
 
-            /// The number of keys stored in the backup.
-            pub count: UInt,
-        }
-
-        error: crate::Error
+        /// The number of keys stored in the backup.
+        pub count: UInt,
     }
 
     impl<'a> Request<'a> {

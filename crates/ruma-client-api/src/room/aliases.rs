@@ -5,33 +5,35 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3roomsroomidaliases
 
-    use ruma_common::{api::ruma_api, OwnedRoomAliasId, RoomId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, OwnedRoomAliasId, RoomId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Get a list of aliases maintained by the local server for the given room.",
-            method: GET,
-            name: "aliases",
-            r0_path: "/_matrix/client/r0/rooms/:room_id/aliases",
-            stable_path: "/_matrix/client/v3/rooms/:room_id/aliases",
-            unstable_path: "/_matrix/client/unstable/org.matrix.msc2432/rooms/:room_id/aliases",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get a list of aliases maintained by the local server for the given room.",
+        method: GET,
+        name: "aliases",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            unstable => "/_matrix/client/unstable/org.matrix.msc2432/rooms/:room_id/aliases",
+            1.0 => "/_matrix/client/r0/rooms/:room_id/aliases",
+            1.1 => "/_matrix/client/v3/rooms/:room_id/aliases",
         }
+    };
 
-        request: {
-            /// The room ID to get aliases of.
-            #[ruma_api(path)]
-            pub room_id: &'a RoomId,
-        }
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The room ID to get aliases of.
+        #[ruma_api(path)]
+        pub room_id: &'a RoomId,
+    }
 
-        response: {
-            /// The server's local aliases on the room.
-            pub aliases: Vec<OwnedRoomAliasId>,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The server's local aliases on the room.
+        pub aliases: Vec<OwnedRoomAliasId>,
     }
 
     impl<'a> Request<'a> {

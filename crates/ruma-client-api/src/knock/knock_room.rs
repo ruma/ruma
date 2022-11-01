@@ -5,41 +5,45 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3knockroomidoralias
 
-    use ruma_common::{api::ruma_api, OwnedRoomId, OwnedServerName, RoomOrAliasId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, OwnedRoomId, OwnedServerName, RoomOrAliasId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Knock on a room.",
-            method: POST,
-            name: "knock_room",
-            unstable_path: "/_matrix/client/unstable/xyz.amorgan.knock/knock/:room_id_or_alias",
-            stable_path: "/_matrix/client/v3/knock/:room_id_or_alias",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.1,
+    const METADATA: Metadata = metadata! {
+        description: "Knock on a room.",
+        method: POST,
+        name: "knock_room",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            unstable => "/_matrix/client/unstable/xyz.amorgan.knock/knock/:room_id_or_alias",
+            1.1 => "/_matrix/client/v3/knock/:room_id_or_alias",
         }
+    };
 
-        request: {
-            /// The room the user should knock on.
-            #[ruma_api(path)]
-            pub room_id_or_alias: &'a RoomOrAliasId,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The room the user should knock on.
+        #[ruma_api(path)]
+        pub room_id_or_alias: &'a RoomOrAliasId,
 
-            /// The reason for joining a room.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub reason: Option<&'a str>,
+        /// The reason for joining a room.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub reason: Option<&'a str>,
 
-            /// The servers to attempt to knock on the room through.
-            ///
-            /// One of the servers must be participating in the room.
-            #[ruma_api(query)]
-            #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-            pub server_name: &'a [OwnedServerName],
-        }
+        /// The servers to attempt to knock on the room through.
+        ///
+        /// One of the servers must be participating in the room.
+        #[ruma_api(query)]
+        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        pub server_name: &'a [OwnedServerName],
+    }
 
-        response: {
-            /// The room that the user knocked on.
-            pub room_id: OwnedRoomId,
-        }
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The room that the user knocked on.
+        pub room_id: OwnedRoomId,
     }
 
     impl<'a> Request<'a> {

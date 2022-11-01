@@ -10,8 +10,9 @@ pub mod v1 {
 
     use js_int::{uint, UInt};
     use ruma_common::{
-        api::ruma_api,
+        api::{request, response, Metadata},
         events::RoomEventType,
+        metadata,
         push::{PushFormat, Tweak},
         serde::{Incoming, StringEnum},
         EventId, RoomAliasId, RoomId, SecondsSinceUnixEpoch, UserId,
@@ -23,33 +24,34 @@ pub mod v1 {
 
     use crate::PrivOwnedStr;
 
-    ruma_api! {
-        metadata: {
-            description: "Notify a push gateway about an event or update the number of unread notifications a user has",
-            name: "send_event_notification",
-            method: POST,
-            stable_path: "/_matrix/push/v1/notify",
-            rate_limited: false,
-            authentication: None,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Notify a push gateway about an event or update the number of unread notifications a user has",
+        method: POST,
+        name: "send_event_notification",
+        rate_limited: false,
+        authentication: None,
+        history: {
+            1.0 => "/_matrix/push/v1/notify",
         }
+    };
 
-        request: {
-            /// Information about the push notification
-            pub notification: Notification<'a>,
-        }
+    #[request]
+    pub struct Request<'a> {
+        /// Information about the push notification
+        pub notification: Notification<'a>,
+    }
 
-        #[derive(Default)]
-        response: {
-            /// A list of all pushkeys given in the notification request that are not valid.
-            ///
-            /// These could have been rejected by an upstream gateway because they have expired or have
-            /// never been valid. Homeservers must cease sending notification requests for these
-            /// pushkeys and remove the associated pushers. It may not necessarily be the notification
-            /// in the request that failed: it could be that a previous notification to the same pushkey
-            /// failed. May be empty.
-            pub rejected: Vec<String>,
-        }
+    #[response]
+    #[derive(Default)]
+    pub struct Response {
+        /// A list of all pushkeys given in the notification request that are not valid.
+        ///
+        /// These could have been rejected by an upstream gateway because they have expired or have
+        /// never been valid. Homeservers must cease sending notification requests for these
+        /// pushkeys and remove the associated pushers. It may not necessarily be the notification
+        /// in the request that failed: it could be that a previous notification to the same
+        /// pushkey failed. May be empty.
+        pub rejected: Vec<String>,
     }
 
     impl<'a> Request<'a> {

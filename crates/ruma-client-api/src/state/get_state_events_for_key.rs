@@ -6,34 +6,33 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3roomsroomidstateeventtypestatekey
 
     use ruma_common::{
-        api::ruma_api,
+        api::{response, Metadata},
         events::{AnyStateEventContent, StateEventType},
+        metadata,
         serde::{Incoming, Raw},
         RoomId,
     };
 
-    ruma_api! {
-        metadata: {
-            description: "Get state events associated with a given key.",
-            method: GET,
-            name: "get_state_events_for_key",
-            r0_path: "/_matrix/client/r0/rooms/:room_id/state/:event_type/:state_key",
-            stable_path: "/_matrix/client/v3/rooms/:room_id/state/:event_type/:state_key",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Get state events associated with a given key.",
+        method: GET,
+        name: "get_state_events_for_key",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/rooms/:room_id/state/:event_type/:state_key",
+            1.1 => "/_matrix/client/v3/rooms/:room_id/state/:event_type/:state_key",
         }
+    };
 
-        response: {
-            /// The content of the state event.
-            ///
-            /// Since the inner type of the `Raw` does not implement `Deserialize`, you need to use
-            /// [`Raw::deserialize_content`] to deserialize it.
-            #[ruma_api(body)]
-            pub content: Raw<AnyStateEventContent>,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The content of the state event.
+        ///
+        /// Since the inner type of the `Raw` does not implement `Deserialize`, you need to use
+        /// [`Raw::deserialize_content`] to deserialize it.
+        #[ruma_api(body)]
+        pub content: Raw<AnyStateEventContent>,
     }
 
     /// Data for a request to the `get_state_events_for_key` API endpoint.
@@ -72,7 +71,7 @@ pub mod v3 {
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
 
-        const METADATA: ruma_common::api::Metadata = METADATA;
+        const METADATA: Metadata = METADATA;
 
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
@@ -110,7 +109,7 @@ pub mod v3 {
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
 
-        const METADATA: ruma_common::api::Metadata = METADATA;
+        const METADATA: Metadata = METADATA;
 
         fn try_from_http_request<B, S>(
             _request: http::Request<B>,

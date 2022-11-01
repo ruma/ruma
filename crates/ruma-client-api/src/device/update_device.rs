@@ -5,37 +5,39 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#put_matrixclientv3devicesdeviceid
 
-    use ruma_common::{api::ruma_api, DeviceId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, DeviceId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Update metadata for a device.",
-            method: PUT,
-            name: "update_device",
-            r0_path: "/_matrix/client/r0/devices/:device_id",
-            stable_path: "/_matrix/client/v3/devices/:device_id",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Update metadata for a device.",
+        method: PUT,
+        name: "update_device",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/devices/:device_id",
+            1.1 => "/_matrix/client/v3/devices/:device_id",
         }
+    };
 
-        request: {
-            /// The device to update.
-            #[ruma_api(path)]
-            pub device_id: &'a DeviceId,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The device to update.
+        #[ruma_api(path)]
+        pub device_id: &'a DeviceId,
 
-            /// The new display name for this device.
-            ///
-            /// If this is `None`, the display name won't be changed.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub display_name: Option<&'a str>,
-        }
-
-        #[derive(Default)]
-        response: {}
-
-        error: crate::Error
+        /// The new display name for this device.
+        ///
+        /// If this is `None`, the display name won't be changed.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub display_name: Option<&'a str>,
     }
+
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given device ID.

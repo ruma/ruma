@@ -2,31 +2,33 @@
 //!
 //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3capabilities
 
-use ruma_common::api::ruma_api;
+use ruma_common::{
+    api::{request, response, Metadata},
+    metadata,
+};
 
 use super::Capabilities;
 
-ruma_api! {
-    metadata: {
-        description: "Gets information about the server's supported feature set and other relevant capabilities.",
-        method: GET,
-        name: "get_capabilities",
-        r0_path: "/_matrix/client/r0/capabilities",
-        stable_path: "/_matrix/client/v3/capabilities",
-        rate_limited: true,
-        authentication: AccessToken,
-        added: 1.0,
+const METADATA: Metadata = metadata! {
+    description: "Gets information about the server's supported feature set and other relevant capabilities.",
+    method: GET,
+    name: "get_capabilities",
+    rate_limited: true,
+    authentication: AccessToken,
+    history: {
+        1.0 => "/_matrix/client/r0/capabilities",
+        1.1 => "/_matrix/client/v3/capabilities",
     }
+};
 
-    #[derive(Default)]
-    request: {}
+#[request(error = crate::Error)]
+#[derive(Default)]
+pub struct Request {}
 
-    response: {
-        /// The capabilities the server supports
-        pub capabilities: Capabilities,
-    }
-
-    error: crate::Error
+#[response(error = crate::Error)]
+pub struct Response {
+    /// The capabilities the server supports
+    pub capabilities: Capabilities,
 }
 
 impl Request {

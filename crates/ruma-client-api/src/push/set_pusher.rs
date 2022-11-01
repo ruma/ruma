@@ -7,34 +7,36 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3pushersset
 
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
     use serde::Serialize;
 
     use crate::push::{Pusher, PusherIds};
 
-    ruma_api! {
-        metadata: {
-            description: "This endpoint allows the creation, modification and deletion of pushers for this user ID.",
-            method: POST,
-            name: "set_pusher",
-            r0_path: "/_matrix/client/r0/pushers/set",
-            stable_path: "/_matrix/client/v3/pushers/set",
-            rate_limited: true,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "This endpoint allows the creation, modification and deletion of pushers for this user ID.",
+        method: POST,
+        name: "set_pusher",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/pushers/set",
+            1.1 => "/_matrix/client/v3/pushers/set",
         }
+    };
 
-        request: {
-            /// The action to take.
-            #[ruma_api(body)]
-            pub action: PusherAction,
-        }
-
-        #[derive(Default)]
-        response: {}
-
-        error: crate::Error
+    #[request(error = crate::Error)]
+    pub struct Request {
+        /// The action to take.
+        #[ruma_api(body)]
+        pub action: PusherAction,
     }
+
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl Request {
         /// Creates a new `Request` for the given action.

@@ -11,41 +11,44 @@ pub mod v2 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::ruma_api, serde::Raw, MilliSecondsSinceUnixEpoch, OwnedServerName,
-        OwnedServerSigningKeyId,
+        api::{request, response, Metadata},
+        metadata,
+        serde::Raw,
+        MilliSecondsSinceUnixEpoch, OwnedServerName, OwnedServerSigningKeyId,
     };
     use serde::{Deserialize, Serialize};
 
     use crate::discovery::ServerSigningKeys;
 
-    ruma_api! {
-        metadata: {
-            description: "Query for keys from multiple servers in a batch format.",
-            method: POST,
-            name: "get_remote_server_keys_batch",
-            stable_path: "/_matrix/key/v2/query",
-            rate_limited: false,
-            authentication: None,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Query for keys from multiple servers in a batch format.",
+        method: POST,
+        name: "get_remote_server_keys_batch",
+        rate_limited: false,
+        authentication: None,
+        history: {
+            1.0 => "/_matrix/key/v2/query",
         }
+    };
 
-        request: {
-            /// The query criteria.
-            ///
-            /// The outer string key on the object is the server name (eg: matrix.org). The inner
-            /// string key is the Key ID to query for the particular server. If no key IDs are given to
-            /// be queried, the notary server should query for all keys. If no servers are given, the
-            /// notary server must return an empty server_keys array in the response.
-            ///
-            /// The notary server may return multiple keys regardless of the Key IDs given.
-            pub server_keys: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, QueryCriteria>>,
+    #[request]
+    pub struct Request {
+        /// The query criteria.
+        ///
+        /// The outer string key on the object is the server name (eg: matrix.org). The inner
+        /// string key is the Key ID to query for the particular server. If no key IDs are given to
+        /// be queried, the notary server should query for all keys. If no servers are given, the
+        /// notary server must return an empty server_keys array in the response.
+        ///
+        /// The notary server may return multiple keys regardless of the Key IDs given.
+        pub server_keys:
+            BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, QueryCriteria>>,
+    }
 
-        }
-
-        response: {
-            /// The queried server's keys, signed by the notary server.
-            pub server_keys: Vec<Raw<ServerSigningKeys>>,
-        }
+    #[response]
+    pub struct Response {
+        /// The queried server's keys, signed by the notary server.
+        pub server_keys: Vec<Raw<ServerSigningKeys>>,
     }
 
     impl Request {

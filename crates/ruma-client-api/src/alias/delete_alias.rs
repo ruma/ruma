@@ -5,31 +5,33 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#delete_matrixclientv3directoryroomroomalias
 
-    use ruma_common::{api::ruma_api, RoomAliasId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, RoomAliasId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Remove an alias from a room.",
-            method: DELETE,
-            name: "delete_alias",
-            r0_path: "/_matrix/client/r0/directory/room/:room_alias",
-            stable_path: "/_matrix/client/v3/directory/room/:room_alias",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "Remove an alias from a room.",
+        method: DELETE,
+        name: "delete_alias",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/directory/room/:room_alias",
+            1.1 => "/_matrix/client/v3/directory/room/:room_alias",
         }
+    };
 
-        request: {
-            /// The room alias to remove.
-            #[ruma_api(path)]
-            pub room_alias: &'a RoomAliasId,
-        }
-
-        #[derive(Default)]
-        response: {}
-
-        error: crate::Error
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The room alias to remove.
+        #[ruma_api(path)]
+        pub room_alias: &'a RoomAliasId,
     }
+
+    #[response(error = crate::Error)]
+    #[derive(Default)]
+    pub struct Response {}
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given room alias.

@@ -4,32 +4,34 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::api::{ruma_api, MatrixVersion};
+use ruma_common::{
+    api::{request, response, MatrixVersion, Metadata},
+    metadata,
+};
 
-ruma_api! {
-    metadata: {
-        description: "Get the versions of the client-server API supported by this homeserver.",
-        method: GET,
-        name: "api_versions",
-        stable_path: "/_matrix/client/versions",
-        rate_limited: false,
-        authentication: None,
-        added: 1.0,
+const METADATA: Metadata = metadata! {
+    description: "Get the versions of the client-server API supported by this homeserver.",
+    method: GET,
+    name: "api_versions",
+    rate_limited: false,
+    authentication: None,
+    history: {
+        1.0 => "/_matrix/client/versions",
     }
+};
 
-    #[derive(Default)]
-    request: {}
+#[request(error = crate::Error)]
+#[derive(Default)]
+pub struct Request {}
 
-    response: {
-        /// A list of Matrix client API protocol versions supported by the homeserver.
-        pub versions: Vec<String>,
+#[response(error = crate::Error)]
+pub struct Response {
+    /// A list of Matrix client API protocol versions supported by the homeserver.
+    pub versions: Vec<String>,
 
-        /// Experimental features supported by the server.
-        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub unstable_features: BTreeMap<String, bool>,
-    }
-
-    error: crate::Error
+    /// Experimental features supported by the server.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub unstable_features: BTreeMap<String, bool>,
 }
 
 impl Request {

@@ -5,42 +5,44 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3pushrulesscopekindruleidenabled
 
-    use ruma_common::api::ruma_api;
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
 
     use crate::push::{RuleKind, RuleScope};
 
-    ruma_api! {
-        metadata: {
-            description: "This endpoint gets whether the specified push rule is enabled.",
-            method: GET,
-            name: "get_pushrule_enabled",
-            r0_path: "/_matrix/client/r0/pushrules/:scope/:kind/:rule_id/enabled",
-            stable_path: "/_matrix/client/v3/pushrules/:scope/:kind/:rule_id/enabled",
-            rate_limited: false,
-            authentication: AccessToken,
-            added: 1.0,
+    const METADATA: Metadata = metadata! {
+        description: "This endpoint gets whether the specified push rule is enabled.",
+        method: GET,
+        name: "get_pushrule_enabled",
+        rate_limited: false,
+        authentication: AccessToken,
+        history: {
+            1.0 => "/_matrix/client/r0/pushrules/:scope/:kind/:rule_id/enabled",
+            1.1 => "/_matrix/client/v3/pushrules/:scope/:kind/:rule_id/enabled",
         }
+    };
 
-        request: {
-            /// The scope to fetch a rule from.
-            #[ruma_api(path)]
-            pub scope: RuleScope,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The scope to fetch a rule from.
+        #[ruma_api(path)]
+        pub scope: RuleScope,
 
-            /// The kind of rule
-            #[ruma_api(path)]
-            pub kind: RuleKind,
+        /// The kind of rule
+        #[ruma_api(path)]
+        pub kind: RuleKind,
 
-            /// The identifier for the rule.
-            #[ruma_api(path)]
-            pub rule_id: &'a str,
-        }
+        /// The identifier for the rule.
+        #[ruma_api(path)]
+        pub rule_id: &'a str,
+    }
 
-        response: {
-            /// Whether the push rule is enabled or not.
-            pub enabled: bool,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// Whether the push rule is enabled or not.
+        pub enabled: bool,
     }
 
     impl<'a> Request<'a> {

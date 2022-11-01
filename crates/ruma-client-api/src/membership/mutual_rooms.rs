@@ -5,30 +5,33 @@ pub mod unstable {
     //!
     //! [spec]: https://github.com/matrix-org/matrix-spec-proposals/blob/hs/shared-rooms/proposals/2666-get-rooms-in-common.md
 
-    use ruma_common::{api::ruma_api, OwnedRoomId, UserId};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, OwnedRoomId, UserId,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Get mutual rooms with another user.",
-            method: GET,
-            name: "mutual_rooms",
-            unstable_path: "/_matrix/client/unstable/uk.half-shot.msc2666/user/mutual_rooms/:user_id",
-            rate_limited: true,
-            authentication: AccessToken,
+    const METADATA: Metadata = metadata! {
+        description: "Get mutual rooms with another user.",
+        method: GET,
+        name: "mutual_rooms",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            unstable => "/_matrix/client/unstable/uk.half-shot.msc2666/user/mutual_rooms/:user_id",
         }
+    };
 
-        request: {
-            /// The user to search mutual rooms for.
-            #[ruma_api(path)]
-            pub user_id: &'a UserId,
-        }
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The user to search mutual rooms for.
+        #[ruma_api(path)]
+        pub user_id: &'a UserId,
+    }
 
-        response: {
-            /// A list of rooms the user is in together with the authenticated user.
-            pub joined: Vec<OwnedRoomId>,
-        }
-
-        error: crate::Error
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// A list of rooms the user is in together with the authenticated user.
+        pub joined: Vec<OwnedRoomId>,
     }
 
     impl<'a> Request<'a> {

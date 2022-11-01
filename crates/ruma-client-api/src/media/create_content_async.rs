@@ -6,42 +6,44 @@ pub mod unstable {
     //! [spec]: https://github.com/tulir/matrix-doc/blob/asynchronous_uploads/proposals/2246-asynchronous-uploads.md
 
     use http::header::CONTENT_TYPE;
-    use ruma_common::{api::ruma_api, IdParseError, MxcUri, ServerName};
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata, IdParseError, MxcUri, ServerName,
+    };
 
-    ruma_api! {
-        metadata: {
-            description: "Upload media to an MXC URI that was created with create_mxc_uri.",
-            method: PUT,
-            name: "create_content_async",
-            unstable_path: "/_matrix/media/unstable/fi.mau.msc2246/upload/:server_name/:media_id",
-            rate_limited: true,
-            authentication: AccessToken,
+    const METADATA: Metadata = metadata! {
+        description: "Upload media to an MXC URI that was created with create_mxc_uri.",
+        method: PUT,
+        name: "create_content_async",
+        rate_limited: true,
+        authentication: AccessToken,
+        history: {
+            unstable => "/_matrix/media/unstable/fi.mau.msc2246/upload/:server_name/:media_id",
         }
+    };
 
-        request: {
-            /// The server name from the mxc:// URI (the authoritory component).
-            #[ruma_api(path)]
-            pub server_name: &'a ServerName,
+    #[request(error = crate::Error)]
+    pub struct Request<'a> {
+        /// The server name from the mxc:// URI (the authoritory component).
+        #[ruma_api(path)]
+        pub server_name: &'a ServerName,
 
-            /// The media ID from the mxc:// URI (the path component).
-            #[ruma_api(path)]
-            pub media_id: &'a str,
+        /// The media ID from the mxc:// URI (the path component).
+        #[ruma_api(path)]
+        pub media_id: &'a str,
 
-            /// The file contents to upload.
-            #[ruma_api(raw_body)]
-            pub file: &'a [u8],
+        /// The file contents to upload.
+        #[ruma_api(raw_body)]
+        pub file: &'a [u8],
 
-            /// The content type of the file being uploaded.
-            #[ruma_api(header = CONTENT_TYPE)]
-            pub content_type: Option<&'a str>,
-
-            // TODO: How does this and msc2448 (blurhash) interact?
-        }
-
-        response: {}
-
-        error: crate::Error
+        /// The content type of the file being uploaded.
+        #[ruma_api(header = CONTENT_TYPE)]
+        pub content_type: Option<&'a str>,
+        // TODO: How does this and msc2448 (blurhash) interact?
     }
+
+    #[response(error = crate::Error)]
+    pub struct Response {}
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given file contents.
