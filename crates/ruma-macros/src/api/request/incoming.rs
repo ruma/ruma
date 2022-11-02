@@ -176,7 +176,10 @@ impl Request {
                     B: ::std::convert::AsRef<[::std::primitive::u8]>,
                     S: ::std::convert::AsRef<::std::primitive::str>,
                 {
-                    if request.method() != METADATA.method {
+                    if !(request.method() == METADATA.method
+                        || request.method() == #http::Method::HEAD
+                            && METADATA.method == #http::Method::GET)
+                    {
                         return Err(#ruma_common::api::error::FromHttpRequestError::MethodMismatch {
                             expected: METADATA.method,
                             received: request.method().clone(),
