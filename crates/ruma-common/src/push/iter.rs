@@ -63,17 +63,6 @@ impl AnyPushRule {
     }
 }
 
-impl Extend<AnyPushRule> for Ruleset {
-    fn extend<T>(&mut self, iter: T)
-    where
-        T: IntoIterator<Item = AnyPushRule>,
-    {
-        for rule in iter {
-            self.add(rule);
-        }
-    }
-}
-
 /// Iterator type for `Ruleset`
 #[derive(Debug)]
 pub struct RulesetIntoIter {

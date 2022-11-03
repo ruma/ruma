@@ -20,6 +20,7 @@ Breaking changes:
 * Make `name` optional on `SecretStorageKeyEventContent`. Default constructor has been
   adjusted as well to not require this field.
 * Rename `push::PusherData` to `HttpPusherData` and make the `url` field required
+* Remove `Ruleset::add` and the implementation of `Extend<AnyPushRule>` for `Ruleset`
 
 Improvements:
 

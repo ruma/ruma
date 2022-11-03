@@ -85,21 +85,6 @@ impl Ruleset {
         self.into_iter()
     }
 
-    /// Adds a rule to the rule set.
-    ///
-    /// Returns `true` if the new rule was correctly added, and `false`
-    /// if a rule with the same `rule_id` is already present for this kind
-    /// of rule.
-    pub fn add(&mut self, rule: AnyPushRule) -> bool {
-        match rule {
-            AnyPushRule::Override(r) => self.override_.insert(r),
-            AnyPushRule::Underride(r) => self.underride.insert(r),
-            AnyPushRule::Content(r) => self.content.insert(r),
-            AnyPushRule::Room(r) => self.room.insert(r),
-            AnyPushRule::Sender(r) => self.sender.insert(r),
-        }
-    }
-
     /// Get the first push rule that applies to this event, if any.
     ///
     /// # Arguments
@@ -504,7 +489,7 @@ mod tests {
     fn example_ruleset() -> Ruleset {
         let mut set = Ruleset::new();
 
-        set.add(AnyPushRule::Override(ConditionalPushRule {
+        set.override_.insert(ConditionalPushRule {
             conditions: vec![PushCondition::EventMatch {
                 key: "type".into(),
                 pattern: "m.call.invite".into(),
@@ -513,58 +498,16 @@ mod tests {
             rule_id: ".m.rule.call".into(),
             enabled: true,
             default: true,
-        }));
+        });
 
         set
-    }
-
-    #[test]
-    fn cannot_add_same_rule_id() {
-        let mut set = example_ruleset();
-
-        let added = set.add(AnyPushRule::Override(ConditionalPushRule {
-            conditions: vec![],
-            actions: vec![],
-            rule_id: ".m.rule.call".into(),
-            enabled: true,
-            default: true,
-        }));
-
-        assert!(!added);
-    }
-
-    #[test]
-    fn can_add_same_rule_id_different_kind() {
-        let mut set = example_ruleset();
-
-        let added = set.add(AnyPushRule::Underride(ConditionalPushRule {
-            conditions: vec![],
-            actions: vec![],
-            rule_id: ".m.rule.call".into(),
-            enabled: true,
-            default: true,
-        }));
-
-        assert!(added);
-    }
-
-    #[test]
-    fn get_by_rule_id() {
-        let set = example_ruleset();
-
-        let rule = set.override_.get(".m.rule.call");
-        assert!(rule.is_some());
-        assert_eq!(rule.unwrap().rule_id, ".m.rule.call");
-
-        let rule = set.override_.get(".m.rule.doesntexist");
-        assert_matches!(rule, None);
     }
 
     #[test]
     fn iter() {
         let mut set = example_ruleset();
 
-        let added = set.add(AnyPushRule::Override(ConditionalPushRule {
+        let added = set.override_.insert(ConditionalPushRule {
             conditions: vec![PushCondition::EventMatch {
                 key: "room_id".into(),
                 pattern: "!roomid:matrix.org".into(),
@@ -573,16 +516,16 @@ mod tests {
             rule_id: "!roomid:matrix.org".into(),
             enabled: true,
             default: false,
-        }));
+        });
         assert!(added);
 
-        let added = set.add(AnyPushRule::Override(ConditionalPushRule {
+        let added = set.override_.insert(ConditionalPushRule {
             conditions: vec![],
             actions: vec![],
             rule_id: ".m.rule.suppress_notices".into(),
             enabled: false,
             default: true,
-        }));
+        });
         assert!(added);
 
         let mut iter = set.into_iter();
@@ -731,7 +674,7 @@ mod tests {
     fn serialize_ruleset() {
         let mut set = example_ruleset();
 
-        set.add(AnyPushRule::Override(ConditionalPushRule {
+        set.override_.insert(ConditionalPushRule {
             conditions: vec![
                 PushCondition::RoomMemberCount { is: RoomMemberCountIs::from(uint!(2)) },
                 PushCondition::EventMatch { key: "type".into(), pattern: "m.room.message".into() },
@@ -744,8 +687,8 @@ mod tests {
             rule_id: ".m.rule.room_one_to_one".into(),
             enabled: true,
             default: true,
-        }));
-        set.add(AnyPushRule::Content(PatternedPushRule {
+        });
+        set.content.insert(PatternedPushRule {
             actions: vec![
                 Action::Notify,
                 Action::SetTweak(Tweak::Sound("default".into())),
@@ -755,7 +698,7 @@ mod tests {
             pattern: "user_id".into(),
             enabled: true,
             default: true,
-        }));
+        });
 
         let set_value: JsonValue = to_json_value(set).unwrap();
         assert_eq!(
@@ -1106,7 +1049,7 @@ mod tests {
         .unwrap();
 
         let mut set = Ruleset::new();
-        let disabled = AnyPushRule::Underride(ConditionalPushRule {
+        let disabled = ConditionalPushRule {
             actions: vec![Action::Notify],
             default: false,
             enabled: false,
@@ -1114,20 +1057,20 @@ mod tests {
             conditions: vec![PushCondition::RoomMemberCount {
                 is: RoomMemberCountIs::from(uint!(2)),
             }],
-        });
-        set.add(disabled);
+        };
+        set.underride.insert(disabled);
 
         let test_set = set.clone();
         assert_matches!(test_set.get_actions(&message, context_one_to_one), []);
 
-        let no_conditions = AnyPushRule::Underride(ConditionalPushRule {
+        let no_conditions = ConditionalPushRule {
             actions: vec![Action::SetTweak(Tweak::Highlight(true))],
             default: false,
             enabled: true,
             rule_id: "no.conditions".into(),
             conditions: vec![],
-        });
-        set.add(no_conditions);
+        };
+        set.underride.insert(no_conditions);
 
         let test_set = set.clone();
         assert_matches!(
@@ -1135,36 +1078,36 @@ mod tests {
             [Action::SetTweak(Tweak::Highlight(true))]
         );
 
-        let sender = AnyPushRule::Sender(SimplePushRule {
+        let sender = SimplePushRule {
             actions: vec![Action::Notify],
             default: false,
             enabled: true,
             rule_id: "@rantanplan:server.name".into(),
-        });
-        set.add(sender);
+        };
+        set.sender.insert(sender);
 
         let test_set = set.clone();
         assert_matches!(test_set.get_actions(&message, context_one_to_one), [Action::Notify]);
 
-        let room = AnyPushRule::Room(SimplePushRule {
+        let room = SimplePushRule {
             actions: vec![Action::DontNotify],
             default: false,
             enabled: true,
             rule_id: "!dm:server.name".into(),
-        });
-        set.add(room);
+        };
+        set.room.insert(room);
 
         let test_set = set.clone();
         assert_matches!(test_set.get_actions(&message, context_one_to_one), [Action::DontNotify]);
 
-        let content = AnyPushRule::Content(PatternedPushRule {
+        let content = PatternedPushRule {
             actions: vec![Action::SetTweak(Tweak::Sound("content".into()))],
             default: false,
             enabled: true,
             rule_id: "content".into(),
             pattern: "joke".into(),
-        });
-        set.add(content);
+        };
+        set.content.insert(content);
 
         let test_set = set.clone();
         assert_matches!(
@@ -1173,7 +1116,7 @@ mod tests {
             if sound == "content"
         );
 
-        let three_conditions = AnyPushRule::Override(ConditionalPushRule {
+        let three_conditions = ConditionalPushRule {
             actions: vec![Action::SetTweak(Tweak::Sound("three".into()))],
             default: false,
             enabled: true,
@@ -1186,8 +1129,8 @@ mod tests {
                     pattern: "!dm:server.name".into(),
                 },
             ],
-        });
-        set.add(three_conditions);
+        };
+        set.override_.insert(three_conditions);
 
         let sound = assert_matches!(
             set.get_actions(&message, context_one_to_one),
