@@ -6,7 +6,7 @@ mod html_fragment;
 mod html_sanitizer;
 
 #[cfg(feature = "unstable-sanitize")]
-use html_sanitizer::HtmlSanitizer;
+pub(super) use html_sanitizer::HtmlSanitizer;
 
 /// Sanitize the given HTML string.
 ///

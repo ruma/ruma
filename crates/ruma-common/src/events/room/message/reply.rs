@@ -1,11 +1,11 @@
-use std::fmt;
+use std::fmt::{self, Write};
 
 use super::{
     sanitize::remove_plain_reply_fallback, FormattedBody, MessageType, OriginalRoomMessageEvent,
     Relation,
 };
 #[cfg(feature = "unstable-sanitize")]
-use super::{sanitize_html, HtmlSanitizerMode, RemoveReplyFallback};
+use super::{sanitize::HtmlSanitizer, HtmlSanitizerMode, RemoveReplyFallback};
 
 fn get_message_quote_fallbacks(original_message: &OriginalRoomMessageEvent) -> (String, String) {
     let get_quotes = |body: &str, formatted: Option<&FormattedBody>, is_emote: bool| {
@@ -14,9 +14,9 @@ fn get_message_quote_fallbacks(original_message: &OriginalRoomMessageEvent) -> (
         let emote_sign = is_emote.then_some("* ").unwrap_or_default();
         let body = is_reply.then(|| remove_plain_reply_fallback(body)).unwrap_or(body);
         #[cfg(feature = "unstable-sanitize")]
-        let html_body = formatted_or_plain_body(formatted, body, is_reply);
+        let html_body = FormattedOrPlainBody { formatted, body, is_reply };
         #[cfg(not(feature = "unstable-sanitize"))]
-        let html_body = formatted_or_plain_body(formatted, body);
+        let html_body = FormattedOrPlainBody { formatted, body };
 
         (
             format!("> {emote_sign}<{sender}> {body}").replace('\n', "\n> "),
@@ -48,46 +48,51 @@ fn get_message_quote_fallbacks(original_message: &OriginalRoomMessageEvent) -> (
     }
 }
 
-/// Converts a plaintext body to HTML, escaping any characters that would cause problems.
-fn escape_html_entities(body: &str) -> String {
-    let mut escaped_body = String::with_capacity(body.len());
-    for c in body.chars() {
-        // Escape reserved HTML entities and new lines.
-        // <https://developer.mozilla.org/en-US/docs/Glossary/Entity#reserved_characters>
-        let s = match c {
-            '&' => Some("&amp;"),
-            '<' => Some("&lt;"),
-            '>' => Some("&gt;"),
-            '"' => Some("&quot;"),
-            '\n' => Some("<br>"),
-            _ => None,
-        };
-        if let Some(s) = s {
-            escaped_body.push_str(s);
-        } else {
-            escaped_body.push(c);
+struct EscapeHtmlEntities<'a>(&'a str);
+
+impl fmt::Display for EscapeHtmlEntities<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for c in self.0.chars() {
+            // Escape reserved HTML entities and new lines.
+            // <https://developer.mozilla.org/en-US/docs/Glossary/Entity#reserved_characters>
+            match c {
+                '&' => f.write_str("&amp;")?,
+                '<' => f.write_str("&lt;")?,
+                '>' => f.write_str("&gt;")?,
+                '"' => f.write_str("&quot;")?,
+                '\n' => f.write_str("<br>")?,
+                _ => f.write_char(c)?,
+            }
         }
+
+        Ok(())
     }
-    escaped_body
 }
 
-fn formatted_or_plain_body(
-    formatted: Option<&FormattedBody>,
-    body: &str,
-    #[cfg(feature = "unstable-sanitize")] is_reply: bool,
-) -> String {
-    if let Some(formatted_body) = formatted {
-        #[cfg(feature = "unstable-sanitize")]
-        if is_reply {
-            sanitize_html(&formatted_body.body, HtmlSanitizerMode::Strict, RemoveReplyFallback::Yes)
-        } else {
-            formatted_body.body.clone()
-        }
+struct FormattedOrPlainBody<'a> {
+    formatted: Option<&'a FormattedBody>,
+    body: &'a str,
+    #[cfg(feature = "unstable-sanitize")]
+    is_reply: bool,
+}
 
-        #[cfg(not(feature = "unstable-sanitize"))]
-        formatted_body.body.clone()
-    } else {
-        escape_html_entities(body)
+impl fmt::Display for FormattedOrPlainBody<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(formatted_body) = self.formatted {
+            #[cfg(feature = "unstable-sanitize")]
+            if self.is_reply {
+                let sanitizer =
+                    HtmlSanitizer::new(HtmlSanitizerMode::Strict, RemoveReplyFallback::Yes);
+                write!(f, "{}", sanitizer.clean(&formatted_body.body))
+            } else {
+                f.write_str(&formatted_body.body)
+            }
+
+            #[cfg(not(feature = "unstable-sanitize"))]
+            f.write_str(&formatted_body.body)
+        } else {
+            write!(f, "{}", EscapeHtmlEntities(self.body))
+        }
     }
 }
 
@@ -111,7 +116,7 @@ pub fn plain_and_formatted_reply_body(
     let plain = format!("{quoted}\n{body}");
     let html = match formatted {
         Some(formatted) => format!("{quoted_html}{formatted}"),
-        None => format!("{quoted_html}{}", escape_html_entities(body)),
+        None => format!("{quoted_html}{}", EscapeHtmlEntities(body)),
     };
 
     (plain, html)
