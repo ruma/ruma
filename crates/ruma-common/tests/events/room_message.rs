@@ -8,8 +8,9 @@ use ruma_common::{
         key::verification::VerificationMethod,
         room::{
             message::{
-                AudioMessageEventContent, KeyVerificationRequestEventContent, MessageType,
-                OriginalRoomMessageEvent, RoomMessageEventContent, TextMessageEventContent,
+                AudioMessageEventContent, ForwardThread, KeyVerificationRequestEventContent,
+                MessageType, OriginalRoomMessageEvent, RoomMessageEventContent,
+                TextMessageEventContent,
             },
             MediaSource,
         },
@@ -432,6 +433,53 @@ fn content_deserialization_failure() {
         "url": "http://example.com/audio.mp3"
     });
     assert_matches!(from_json_value::<RoomMessageEventContent>(json_data), Err(_));
+}
+
+#[test]
+fn escape_tags_in_plain_reply_body() {
+    let first_message = OriginalRoomMessageEvent {
+        content: RoomMessageEventContent::text_plain("Usage: cp <source> <destination>"),
+        event_id: event_id!("$143273582443PhrSn:example.org").to_owned(),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
+        room_id: room_id!("!testroomid:example.org").to_owned(),
+        sender: user_id!("@user:example.org").to_owned(),
+        unsigned: MessageLikeUnsigned::default(),
+    };
+    let second_message = RoomMessageEventContent::text_plain("Usage: rm <path>")
+        .make_reply_to(&first_message, ForwardThread::Yes);
+
+    let body = assert_matches!(
+        first_message.content.msgtype,
+        MessageType::Text(TextMessageEventContent { body, formatted: None, .. }) => body
+    );
+    assert_eq!(body, "Usage: cp <source> <destination>");
+
+    let (body, formatted) = assert_matches!(
+        second_message.msgtype,
+        MessageType::Text(TextMessageEventContent { body, formatted, .. }) => (body, formatted)
+    );
+    assert_eq!(
+        body,
+        "\
+        > <@user:example.org> Usage: cp <source> <destination>\n\
+        Usage: rm <path>\
+        "
+    );
+    let formatted = formatted.unwrap();
+    assert_eq!(
+        formatted.body,
+        "\
+        <mx-reply>\
+            <blockquote>\
+                <a href=\"https://matrix.to/#/!testroomid:example.org/$143273582443PhrSn:example.org\">In reply to</a> \
+                <a href=\"https://matrix.to/#/@user:example.org\">@user:example.org</a>\
+                <br>\
+                Usage: cp &lt;source&gt; &lt;destination&gt;\
+            </blockquote>\
+        </mx-reply>\
+        Usage: rm &lt;path&gt;\
+        "
+    );
 }
 
 #[test]

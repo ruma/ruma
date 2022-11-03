@@ -48,6 +48,29 @@ fn get_message_quote_fallbacks(original_message: &OriginalRoomMessageEvent) -> (
     }
 }
 
+/// Converts a plaintext body to HTML, escaping any characters that would cause problems.
+fn escape_html_entities(body: &str) -> String {
+    let mut escaped_body = String::with_capacity(body.len());
+    for c in body.chars() {
+        // Escape reserved HTML entities and new lines.
+        // <https://developer.mozilla.org/en-US/docs/Glossary/Entity#reserved_characters>
+        let s = match c {
+            '&' => Some("&amp;"),
+            '<' => Some("&lt;"),
+            '>' => Some("&gt;"),
+            '"' => Some("&quot;"),
+            '\n' => Some("<br>"),
+            _ => None,
+        };
+        if let Some(s) = s {
+            escaped_body.push_str(s);
+        } else {
+            escaped_body.push(c);
+        }
+    }
+    escaped_body
+}
+
 fn formatted_or_plain_body(
     formatted: Option<&FormattedBody>,
     body: &str,
@@ -64,25 +87,7 @@ fn formatted_or_plain_body(
         #[cfg(not(feature = "unstable-sanitize"))]
         formatted_body.body.clone()
     } else {
-        let mut escaped_body = String::with_capacity(body.len());
-        for c in body.chars() {
-            // Escape reserved HTML entities and new lines.
-            // <https://developer.mozilla.org/en-US/docs/Glossary/Entity#reserved_characters>
-            let s = match c {
-                '&' => Some("&amp;"),
-                '<' => Some("&lt;"),
-                '>' => Some("&gt;"),
-                '"' => Some("&quot;"),
-                '\n' => Some("<br>"),
-                _ => None,
-            };
-            if let Some(s) = s {
-                escaped_body.push_str(s);
-            } else {
-                escaped_body.push(c);
-            }
-        }
-        escaped_body
+        escape_html_entities(body)
     }
 }
 
@@ -97,7 +102,7 @@ fn formatted_or_plain_body(
 /// [HTML tags and attributes]: https://spec.matrix.org/v1.4/client-server-api/#mroommessage-msgtypes
 /// [rich reply fallbacks]: https://spec.matrix.org/v1.4/client-server-api/#fallbacks-for-rich-replies
 pub fn plain_and_formatted_reply_body(
-    body: impl fmt::Display,
+    body: &str,
     formatted: Option<impl fmt::Display>,
     original_message: &OriginalRoomMessageEvent,
 ) -> (String, String) {
@@ -106,7 +111,7 @@ pub fn plain_and_formatted_reply_body(
     let plain = format!("{quoted}\n{body}");
     let html = match formatted {
         Some(formatted) => format!("{quoted_html}{formatted}"),
-        None => format!("{quoted_html}{body}"),
+        None => format!("{quoted_html}{}", escape_html_entities(body)),
     };
 
     (plain, html)
