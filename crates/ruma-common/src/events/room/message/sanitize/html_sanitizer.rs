@@ -58,7 +58,7 @@ impl HtmlSanitizer {
     }
 
     /// Clean the given HTML string with this sanitizer.
-    pub fn clean(&self, html: &str) -> String {
+    pub fn clean(&self, html: &str) -> Fragment {
         let mut fragment = Fragment::parse_html(html);
 
         let root = fragment.nodes[0].first_child.unwrap();
@@ -68,7 +68,7 @@ impl HtmlSanitizer {
             self.clean_node(&mut fragment, child, 0);
         }
 
-        fragment.to_string()
+        fragment
     }
 
     fn clean_node(&self, fragment: &mut Fragment, node_id: usize, depth: u32) {
@@ -313,7 +313,7 @@ mod tests {
         );
 
         assert_eq!(
-            sanitized,
+            sanitized.to_string(),
             "\
             <ul><li>This</li><li>has</li><li>no</li><li>tag</li></ul>\
             <p>This is a paragraph <span data-mx-color=\"green\">with some color</span></p>\
@@ -342,7 +342,7 @@ mod tests {
         );
 
         assert_eq!(
-            sanitized,
+            sanitized.to_string(),
             "\
             <mx-reply>\
                 <blockquote>\
@@ -377,7 +377,7 @@ mod tests {
         );
 
         assert_eq!(
-            sanitized,
+            sanitized.to_string(),
             "\
             This has no tag\
             <p>But this is inside a tag</p>\
@@ -404,7 +404,7 @@ mod tests {
         );
 
         assert_eq!(
-            sanitized,
+            sanitized.to_string(),
             "\
             <keep-me>This keeps its tag</keep-me>\
             <p>But this is inside a tag</p>\
@@ -423,7 +423,7 @@ mod tests {
         );
 
         assert_eq!(
-            sanitized,
+            sanitized.to_string(),
             "\
             <h1>Title for important stuff</h1>\
             <p>Look at <font color=\"blue\">me!</font></p>\
@@ -442,7 +442,7 @@ mod tests {
         );
 
         assert_eq!(
-            sanitized,
+            sanitized.to_string(),
             "\
             <p>Look at that picture:</p>\
             "
@@ -459,7 +459,7 @@ mod tests {
         );
 
         assert_eq!(
-            sanitized,
+            sanitized.to_string(),
             "\
             <p>Go see my local website</p>\
             "
@@ -476,7 +476,7 @@ mod tests {
             ",
         );
         assert_eq!(
-            sanitized,
+            sanitized.to_string(),
             "\
             <p>Join my room</p>\
             <p>To talk about <a href=\"https://mycat.org\">my cat</a></p>\
@@ -491,7 +491,7 @@ mod tests {
             ",
         );
         assert_eq!(
-            sanitized,
+            sanitized.to_string(),
             "\
             <p>Join <a href=\"matrix:r/myroom:notareal.hs\">my room</a></p>\
             <p>To talk about <a href=\"https://mycat.org\">my cat</a></p>\
@@ -512,7 +512,7 @@ mod tests {
         );
 
         assert_eq!(
-            sanitized,
+            sanitized.to_string(),
             "\
             <pre><code class=\"language-rust\">
                 type StringList = Vec&lt;String&gt;;
@@ -534,7 +534,7 @@ mod tests {
             .chain(std::iter::repeat("</div>").take(100))
             .collect();
 
-        let sanitized = sanitizer.clean(&deeply_nested_html);
+        let sanitized = sanitizer.clean(&deeply_nested_html).to_string();
 
         assert!(sanitized.contains("I should be fine."));
         assert!(!sanitized.contains("I am in too deep!"));

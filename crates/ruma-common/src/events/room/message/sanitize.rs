@@ -23,7 +23,7 @@ pub fn sanitize_html(
     remove_reply_fallback: RemoveReplyFallback,
 ) -> String {
     let sanitizer = HtmlSanitizer::new(mode, remove_reply_fallback);
-    sanitizer.clean(s)
+    sanitizer.clean(s).to_string()
 }
 
 /// What HTML [tags and attributes] should be kept by the sanitizer.
@@ -64,7 +64,7 @@ pub enum RemoveReplyFallback {
 #[cfg(feature = "unstable-sanitize")]
 pub fn remove_html_reply_fallback(s: &str) -> String {
     let sanitizer = HtmlSanitizer::reply_fallback_remover();
-    sanitizer.clean(s)
+    sanitizer.clean(s).to_string()
 }
 
 /// Remove the [rich reply fallback] of the given plain text string.
