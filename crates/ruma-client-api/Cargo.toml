@@ -35,6 +35,7 @@ assign = { workspace = true }
 bytes = "1.0.1"
 http = { workspace = true }
 js_int = { workspace = true, features = ["serde"] }
+js_option = "0.1.1"
 maplit = { workspace = true }
 percent-encoding = "2.1.0"
 ruma-common = { version = "0.10.5", path = "../ruma-common", features = ["api", "events"] }

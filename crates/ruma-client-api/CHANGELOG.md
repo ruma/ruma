@@ -7,6 +7,9 @@ Breaking changes:
 * `fully_read` field in `read_marker::set_read_marker` is no longer required
   * Remove the `fully_read` argument from `read_marker::set_read_marker::Request::new`
 * Move `message::get_message_events::v3::Direction` to the root of the crate
+* Make `push::set_pusher::v3::Request` use an enum to differentiate when deleting a pusher
+  * Move `push::get_pushers::v3::Pusher` to `push` and make it use the new `PusherIds` type
+  * Remove `push::set_pusher::v3::Pusher` and use the common type instead
 
 Improvements:
 
