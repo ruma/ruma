@@ -56,7 +56,7 @@ jobs:
       - uses: Swatinem/rust-cache@v1
 
       - name: Check spelling
-        uses: crate-ci/typos@master
+        uses: crate-ci/typos@v1.12.12
 
       - name: Install cargo-sort
         uses: actions-rs/install@v0.1
