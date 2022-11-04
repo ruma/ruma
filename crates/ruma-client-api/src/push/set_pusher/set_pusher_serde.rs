@@ -3,9 +3,27 @@ use ruma_common::serde::from_raw_json_value;
 use serde::{de, ser::SerializeStruct, Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use crate::push::PusherKind;
+use super::v3::{PusherAction, PusherPostData};
 
-use super::v3::PusherAction;
+#[derive(Debug, Deserialize)]
+struct PusherPostDataDeHelper {
+    #[serde(default)]
+    append: bool,
+}
+
+impl<'de> Deserialize<'de> for PusherPostData {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+
+        let PusherPostDataDeHelper { append } = from_raw_json_value(&json)?;
+        let pusher = from_raw_json_value(&json)?;
+
+        Ok(Self { pusher, append })
+    }
+}
 
 impl Serialize for PusherAction {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -27,7 +45,7 @@ impl Serialize for PusherAction {
 
 #[derive(Debug, Deserialize)]
 struct PusherActionDeHelper {
-    kind: JsOption<PusherKind>,
+    kind: JsOption<String>,
 }
 
 impl<'de> Deserialize<'de> for PusherAction {
@@ -50,23 +68,23 @@ impl<'de> Deserialize<'de> for PusherAction {
 #[cfg(test)]
 mod tests {
     use assert_matches::assert_matches;
-    use ruma_common::push::PusherData;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::PusherAction;
-    use crate::push::{set_pusher::v3::PusherPostData, Pusher, PusherIds, PusherKind};
+    use crate::push::{
+        set_pusher::v3::PusherPostData, EmailPusherData, Pusher, PusherIds, PusherKind,
+    };
 
     #[test]
     fn serialize_post() {
         let action = PusherAction::Post(PusherPostData {
             pusher: Pusher {
                 ids: PusherIds::new("abcdef".to_owned(), "my.matrix.app".to_owned()),
-                kind: PusherKind::Email,
+                kind: PusherKind::Email(EmailPusherData::new()),
                 app_display_name: "My Matrix App".to_owned(),
                 device_display_name: "My Phone".to_owned(),
                 profile_tag: None,
                 lang: "en".to_owned(),
-                data: PusherData::new(),
             },
             append: false,
         });
@@ -122,12 +140,11 @@ mod tests {
         let pusher = post_data.pusher;
         assert_eq!(pusher.ids.pushkey, "abcdef");
         assert_eq!(pusher.ids.app_id, "my.matrix.app");
-        assert_eq!(pusher.kind, PusherKind::Email);
+        assert_matches!(pusher.kind, PusherKind::Email(_));
         assert_eq!(pusher.app_display_name, "My Matrix App");
         assert_eq!(pusher.device_display_name, "My Phone");
         assert_eq!(pusher.profile_tag, None);
         assert_eq!(pusher.lang, "en");
-        assert!(pusher.data.is_empty());
     }
 
     #[test]
