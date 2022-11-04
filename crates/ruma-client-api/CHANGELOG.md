@@ -12,6 +12,7 @@ Breaking changes:
   * Remove `push::set_pusher::v3::Pusher` and use the common type instead
 * Make `push::PusherKind` contain the pusher's `data`
 * Use an enum for the `scope` of the `push` endpoints
+* Use `NewPushRule` to construct a `push::set_pushrule::v3::Request`
 
 Improvements:
 

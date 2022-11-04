@@ -17,7 +17,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 compat = []
-unstable-exhaustive-types = []
+unstable-exhaustive-types = ["ruma-common/unstable-exhaustive-types"]
 unstable-msc2246 = []
 unstable-msc2666 = []
 unstable-msc2448 = []

@@ -468,6 +468,116 @@ pub enum RuleKind {
     _Custom(PrivOwnedStr),
 }
 
+/// A push rule to update or create.
+#[derive(Clone, Debug)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub enum NewPushRule {
+    /// Rules that override all other kinds.
+    Override(NewConditionalPushRule),
+
+    /// Content-specific rules.
+    Content(NewPatternedPushRule),
+
+    /// Room-specific rules.
+    Room(NewSimplePushRule),
+
+    /// Sender-specific rules.
+    Sender(NewSimplePushRule),
+
+    /// Lowest priority rules.
+    Underride(NewConditionalPushRule),
+}
+
+impl NewPushRule {
+    /// The kind of this `NewPushRule`.
+    pub fn kind(&self) -> RuleKind {
+        match self {
+            NewPushRule::Override(_) => RuleKind::Override,
+            NewPushRule::Content(_) => RuleKind::Content,
+            NewPushRule::Room(_) => RuleKind::Room,
+            NewPushRule::Sender(_) => RuleKind::Sender,
+            NewPushRule::Underride(_) => RuleKind::Underride,
+        }
+    }
+
+    /// The ID of this `NewPushRule`.
+    pub fn rule_id(&self) -> &str {
+        match self {
+            NewPushRule::Override(r) => &r.rule_id,
+            NewPushRule::Content(r) => &r.rule_id,
+            NewPushRule::Room(r) => &r.rule_id,
+            NewPushRule::Sender(r) => &r.rule_id,
+            NewPushRule::Underride(r) => &r.rule_id,
+        }
+    }
+}
+
+/// A simple push rule to update or create.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct NewSimplePushRule {
+    /// The ID of this rule.
+    pub rule_id: String,
+
+    /// Actions to determine if and how a notification is delivered for events matching this
+    /// rule.
+    pub actions: Vec<Action>,
+}
+
+impl NewSimplePushRule {
+    /// Creates a `NewSimplePushRule` with the given ID and actions.
+    pub fn new(rule_id: String, actions: Vec<Action>) -> Self {
+        Self { rule_id, actions }
+    }
+}
+
+/// A patterned push rule to update or create.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct NewPatternedPushRule {
+    /// The ID of this rule.
+    pub rule_id: String,
+
+    /// The glob-style pattern to match against.
+    pub pattern: String,
+
+    /// Actions to determine if and how a notification is delivered for events matching this
+    /// rule.
+    pub actions: Vec<Action>,
+}
+
+impl NewPatternedPushRule {
+    /// Creates a `NewPatternedPushRule` with the given ID, pattern and actions.
+    pub fn new(rule_id: String, pattern: String, actions: Vec<Action>) -> Self {
+        Self { rule_id, pattern, actions }
+    }
+}
+
+/// A conditional push rule to update or create.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct NewConditionalPushRule {
+    /// The ID of this rule.
+    pub rule_id: String,
+
+    /// The conditions that must hold true for an event in order for a rule to be applied to an
+    /// event.
+    ///
+    /// A rule with no conditions always matches.
+    pub conditions: Vec<PushCondition>,
+
+    /// Actions to determine if and how a notification is delivered for events matching this
+    /// rule.
+    pub actions: Vec<Action>,
+}
+
+impl NewConditionalPushRule {
+    /// Creates a `NewConditionalPushRule` with the given ID, conditions and actions.
+    pub fn new(rule_id: String, conditions: Vec<PushCondition>, actions: Vec<Action>) -> Self {
+        Self { rule_id, conditions, actions }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;
