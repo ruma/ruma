@@ -230,6 +230,50 @@ impl Ruleset {
         Ok(())
     }
 
+    /// Set the actions of the rule from the given kind and with the given `rule_id` in the rule
+    /// set.
+    ///
+    /// Returns an error if the rule can't be found.
+    pub fn set_actions(
+        &mut self,
+        kind: RuleKind,
+        rule_id: impl AsRef<str>,
+        actions: Vec<Action>,
+    ) -> Result<(), RuleNotFoundError> {
+        let rule_id = rule_id.as_ref();
+
+        match kind {
+            RuleKind::Override => {
+                let mut rule = self.override_.get(rule_id).ok_or(RuleNotFoundError)?.clone();
+                rule.actions = actions;
+                self.override_.replace(rule);
+            }
+            RuleKind::Underride => {
+                let mut rule = self.underride.get(rule_id).ok_or(RuleNotFoundError)?.clone();
+                rule.actions = actions;
+                self.underride.replace(rule);
+            }
+            RuleKind::Sender => {
+                let mut rule = self.sender.get(rule_id).ok_or(RuleNotFoundError)?.clone();
+                rule.actions = actions;
+                self.sender.replace(rule);
+            }
+            RuleKind::Room => {
+                let mut rule = self.room.get(rule_id).ok_or(RuleNotFoundError)?.clone();
+                rule.actions = actions;
+                self.room.replace(rule);
+            }
+            RuleKind::Content => {
+                let mut rule = self.content.get(rule_id).ok_or(RuleNotFoundError)?.clone();
+                rule.actions = actions;
+                self.content.replace(rule);
+            }
+            RuleKind::_Custom(_) => return Err(RuleNotFoundError),
+        }
+
+        Ok(())
+    }
+
     /// Get the first push rule that applies to this event, if any.
     ///
     /// # Arguments
