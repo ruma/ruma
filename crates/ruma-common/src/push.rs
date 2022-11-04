@@ -20,6 +20,7 @@ use indexmap::{Equivalent, IndexSet};
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "unstable-unspecified")]
 use serde_json::Value as JsonValue;
+use thiserror::Error;
 use tracing::instrument;
 
 use crate::{
@@ -83,6 +84,92 @@ impl Ruleset {
     /// For an owning iterator, use `.into_iter()`.
     pub fn iter(&self) -> RulesetIter<'_> {
         self.into_iter()
+    }
+
+    /// Inserts a user-defined rule in the rule set.
+    ///
+    /// If a rule with the same kind and `rule_id` exists, it will be replaced.
+    ///
+    /// If `after` or `before` is set, the rule will be moved relative to the rule with the given
+    /// ID. If both are set, the rule will become the next-most important rule with respect to
+    /// `before`. If neither are set, and the rule is newly inserted, it will become the rule with
+    /// the highest priority of its kind.
+    ///
+    /// Returns an error if the parameters are invalid.
+    pub fn insert(
+        &mut self,
+        rule: NewPushRule,
+        after: Option<&str>,
+        before: Option<&str>,
+    ) -> Result<(), InsertPushRuleError> {
+        let rule_id = rule.rule_id();
+        if rule_id.starts_with('.') {
+            return Err(InsertPushRuleError::ServerDefaultRuleId);
+        }
+        if rule_id.contains('/') {
+            return Err(InsertPushRuleError::InvalidRuleId);
+        }
+        if rule_id.contains('\\') {
+            return Err(InsertPushRuleError::InvalidRuleId);
+        }
+        if after.map_or(false, |s| s.starts_with('.')) {
+            return Err(InsertPushRuleError::RelativeToServerDefaultRule);
+        }
+        if before.map_or(false, |s| s.starts_with('.')) {
+            return Err(InsertPushRuleError::RelativeToServerDefaultRule);
+        }
+
+        match rule {
+            NewPushRule::Override(r) => {
+                let mut rule = ConditionalPushRule::from(r);
+
+                if let Some(prev_rule) = self.override_.get(rule.rule_id.as_str()) {
+                    rule.enabled = prev_rule.enabled;
+                }
+
+                // `m.rule.master` should always be the rule with the highest priority, so we insert
+                // this one at most at the second place.
+                let default_position = 1;
+
+                insert_and_move_rule(&mut self.override_, rule, default_position, after, before)
+            }
+            NewPushRule::Underride(r) => {
+                let mut rule = ConditionalPushRule::from(r);
+
+                if let Some(prev_rule) = self.underride.get(rule.rule_id.as_str()) {
+                    rule.enabled = prev_rule.enabled;
+                }
+
+                insert_and_move_rule(&mut self.underride, rule, 0, after, before)
+            }
+            NewPushRule::Content(r) => {
+                let mut rule = PatternedPushRule::from(r);
+
+                if let Some(prev_rule) = self.content.get(rule.rule_id.as_str()) {
+                    rule.enabled = prev_rule.enabled;
+                }
+
+                insert_and_move_rule(&mut self.content, rule, 0, after, before)
+            }
+            NewPushRule::Room(r) => {
+                let mut rule = SimplePushRule::from(r);
+
+                if let Some(prev_rule) = self.room.get(rule.rule_id.as_str()) {
+                    rule.enabled = prev_rule.enabled;
+                }
+
+                insert_and_move_rule(&mut self.room, rule, 0, after, before)
+            }
+            NewPushRule::Sender(r) => {
+                let mut rule = SimplePushRule::from(r);
+
+                if let Some(prev_rule) = self.sender.get(rule.rule_id.as_str()) {
+                    rule.enabled = prev_rule.enabled;
+                }
+
+                insert_and_move_rule(&mut self.sender, rule, 0, after, before)
+            }
+        }
     }
 
     /// Get the rule from the given kind and with the given `rule_id` in the rule set.
@@ -545,6 +632,13 @@ impl NewSimplePushRule {
     }
 }
 
+impl From<NewSimplePushRule> for SimplePushRule {
+    fn from(new_rule: NewSimplePushRule) -> Self {
+        let NewSimplePushRule { rule_id, actions } = new_rule;
+        Self { actions, default: false, enabled: true, rule_id }
+    }
+}
+
 /// A patterned push rule to update or create.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -564,6 +658,13 @@ impl NewPatternedPushRule {
     /// Creates a `NewPatternedPushRule` with the given ID, pattern and actions.
     pub fn new(rule_id: String, pattern: String, actions: Vec<Action>) -> Self {
         Self { rule_id, pattern, actions }
+    }
+}
+
+impl From<NewPatternedPushRule> for PatternedPushRule {
+    fn from(new_rule: NewPatternedPushRule) -> Self {
+        let NewPatternedPushRule { rule_id, pattern, actions } = new_rule;
+        Self { actions, default: false, enabled: true, rule_id, pattern }
     }
 }
 
@@ -590,6 +691,76 @@ impl NewConditionalPushRule {
     pub fn new(rule_id: String, conditions: Vec<PushCondition>, actions: Vec<Action>) -> Self {
         Self { rule_id, conditions, actions }
     }
+}
+
+impl From<NewConditionalPushRule> for ConditionalPushRule {
+    fn from(new_rule: NewConditionalPushRule) -> Self {
+        let NewConditionalPushRule { rule_id, conditions, actions } = new_rule;
+        Self { actions, default: false, enabled: true, rule_id, conditions }
+    }
+}
+
+/// The error type returned when trying to insert a user-defined push rule into a `Ruleset`.
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum InsertPushRuleError {
+    /// The rule ID starts with a dot (`.`), which is reserved for server-default rules.
+    #[error("rule IDs starting with a dot are reserved for server-default rules")]
+    ServerDefaultRuleId,
+
+    /// The rule ID contains an invalid character.
+    #[error("invalid rule ID")]
+    InvalidRuleId,
+
+    /// The rule is being placed relative to a server-default rule, which is forbidden.
+    #[error("can't place rule relative to server-default rule")]
+    RelativeToServerDefaultRule,
+
+    /// The `before` or `after` rule could not be found.
+    #[error("The before or after rule could not be found")]
+    UnknownRuleId,
+
+    /// `before` has a higher priority than `after`.
+    #[error("before has a higher priority than after")]
+    BeforeHigherThanAfter,
+}
+
+/// Insert the rule in the given indexset and move it to the given position.
+pub fn insert_and_move_rule<T>(
+    set: &mut IndexSet<T>,
+    rule: T,
+    default_position: usize,
+    after: Option<&str>,
+    before: Option<&str>,
+) -> Result<(), InsertPushRuleError>
+where
+    T: Hash + Eq,
+    str: Equivalent<T>,
+{
+    let (from, replaced) = set.replace_full(rule);
+
+    let mut to = default_position;
+
+    if let Some(rule_id) = after {
+        let idx = set.get_index_of(rule_id).ok_or(InsertPushRuleError::UnknownRuleId)?;
+        to = idx + 1;
+    }
+    if let Some(rule_id) = before {
+        let idx = set.get_index_of(rule_id).ok_or(InsertPushRuleError::UnknownRuleId)?;
+
+        if idx < to {
+            return Err(InsertPushRuleError::BeforeHigherThanAfter);
+        }
+
+        to = idx;
+    }
+
+    // Only move the item if it's new or if it was positioned.
+    if replaced.is_none() || after.is_some() || before.is_some() {
+        set.move_index(from, to);
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]
