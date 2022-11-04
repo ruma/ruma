@@ -7,7 +7,7 @@ pub mod v3 {
 
     use ruma_common::api::ruma_api;
 
-    use crate::push::RuleKind;
+    use crate::push::{RuleKind, RuleScope};
 
     ruma_api! {
         metadata: {
@@ -22,9 +22,9 @@ pub mod v3 {
         }
 
         request: {
-            /// The scope to fetch a rule from. 'global' to specify global rules.
+            /// The scope to fetch a rule from.
             #[ruma_api(path)]
-            pub scope: &'a str,
+            pub scope: RuleScope,
 
             /// The kind of rule
             #[ruma_api(path)]
@@ -46,17 +46,17 @@ pub mod v3 {
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given scope, rule kind, rule ID and enabled flag.
-        pub fn new(scope: &'a str, kind: RuleKind, rule_id: &'a str, enabled: bool) -> Self {
+        pub fn new(scope: RuleScope, kind: RuleKind, rule_id: &'a str, enabled: bool) -> Self {
             Self { scope, kind, rule_id, enabled }
         }
 
         /// Creates a new `Request` to enable the given rule.
-        pub fn enable(scope: &'a str, kind: RuleKind, rule_id: &'a str) -> Self {
+        pub fn enable(scope: RuleScope, kind: RuleKind, rule_id: &'a str) -> Self {
             Self::new(scope, kind, rule_id, true)
         }
 
         /// Creates a new `Request` to disable the given rule.
-        pub fn disable(scope: &'a str, kind: RuleKind, rule_id: &'a str) -> Self {
+        pub fn disable(scope: RuleScope, kind: RuleKind, rule_id: &'a str) -> Self {
             Self::new(scope, kind, rule_id, false)
         }
     }

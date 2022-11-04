@@ -284,3 +284,16 @@ pub struct CustomPusherData {
     kind: String,
     data: JsonObject,
 }
+
+/// The scope of a push rule.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[ruma_enum(rename_all = "lowercase")]
+#[non_exhaustive]
+pub enum RuleScope {
+    /// The global rules.
+    Global,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}

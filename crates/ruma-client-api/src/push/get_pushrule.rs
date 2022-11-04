@@ -7,7 +7,7 @@ pub mod v3 {
 
     use ruma_common::api::ruma_api;
 
-    use crate::push::{PushRule, RuleKind};
+    use crate::push::{PushRule, RuleKind, RuleScope};
 
     ruma_api! {
         metadata: {
@@ -22,9 +22,9 @@ pub mod v3 {
         }
 
         request: {
-            /// The scope to fetch rules from. 'global' to specify global rules.
+            /// The scope to fetch rules from.
             #[ruma_api(path)]
-            pub scope: &'a str,
+            pub scope: RuleScope,
 
             /// The kind of rule.
             #[ruma_api(path)]
@@ -46,7 +46,7 @@ pub mod v3 {
 
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given scope, rule kind and rule ID.
-        pub fn new(scope: &'a str, kind: RuleKind, rule_id: &'a str) -> Self {
+        pub fn new(scope: RuleScope, kind: RuleKind, rule_id: &'a str) -> Self {
             Self { scope, kind, rule_id }
         }
     }
