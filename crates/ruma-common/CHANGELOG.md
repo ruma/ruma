@@ -39,6 +39,7 @@ Improvements:
   * `Ruleset::get` to access a push rule
   * `Ruleset::insert` to add or update user push rules
   * `Ruleset::set_enabled` to change the enabled state of push rules
+  * `Ruleset::set_actions` to change the actions of push rules
 
 # 0.10.5
 
