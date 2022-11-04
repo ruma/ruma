@@ -35,7 +35,9 @@ Improvements:
 * Stabilize support for event replacements (edits)
 * Add support for read receipts for threads (MSC3771 / Matrix 1.4)
 * Add `push::PredefinedRuleId` and associated types as a list of predefined push rule IDs
-* Add `Ruleset::get` to access push rules.
+* Add convenience methods to `Ruleset`
+  * `Ruleset::get` to access a push rule
+  * `Ruleset::insert` to add or update user push rules
 
 # 0.10.5
 
