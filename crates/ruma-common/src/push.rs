@@ -85,6 +85,20 @@ impl Ruleset {
         self.into_iter()
     }
 
+    /// Get the rule from the given kind and with the given `rule_id` in the rule set.
+    pub fn get(&self, kind: RuleKind, rule_id: impl AsRef<str>) -> Option<AnyPushRuleRef<'_>> {
+        let rule_id = rule_id.as_ref();
+
+        match kind {
+            RuleKind::Override => self.override_.get(rule_id).map(AnyPushRuleRef::Override),
+            RuleKind::Underride => self.underride.get(rule_id).map(AnyPushRuleRef::Underride),
+            RuleKind::Sender => self.sender.get(rule_id).map(AnyPushRuleRef::Sender),
+            RuleKind::Room => self.room.get(rule_id).map(AnyPushRuleRef::Room),
+            RuleKind::Content => self.content.get(rule_id).map(AnyPushRuleRef::Content),
+            RuleKind::_Custom(_) => None,
+        }
+    }
+
     /// Get the first push rule that applies to this event, if any.
     ///
     /// # Arguments
