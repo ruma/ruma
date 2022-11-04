@@ -17,6 +17,7 @@ Breaking changes:
     the module calling the macro.
 * Make `name` optional on `SecretStorageKeyEventContent`. Default constructor has been
   adjusted as well to not require this field.
+* Rename `push::PusherData` to `HttpPusherData` and make the `url` field required
 
 Improvements:
 

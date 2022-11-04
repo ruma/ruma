@@ -3,10 +3,10 @@ use std::{error::Error, fmt};
 
 use ruma_common::{
     push::{
-        Action, ConditionalPushRule, ConditionalPushRuleInit, PatternedPushRule,
-        PatternedPushRuleInit, PushCondition, PusherData, SimplePushRule, SimplePushRuleInit,
+        Action, ConditionalPushRule, ConditionalPushRuleInit, HttpPusherData, PatternedPushRule,
+        PatternedPushRuleInit, PushCondition, SimplePushRule, SimplePushRuleInit,
     },
-    serde::StringEnum,
+    serde::{JsonObject, StringEnum},
 };
 use serde::{Deserialize, Serialize};
 
@@ -20,6 +20,7 @@ pub mod get_pushrule_actions;
 pub mod get_pushrule_enabled;
 pub mod get_pushrules_all;
 pub mod get_pushrules_global_scope;
+mod pusher_serde;
 pub mod set_pusher;
 pub mod set_pushrule;
 pub mod set_pushrule_actions;
@@ -189,34 +190,33 @@ pub enum RuleKind {
     _Custom(PrivOwnedStr),
 }
 
-/// Which kind a pusher is.
-#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
-#[ruma_enum(rename_all = "snake_case")]
+/// Which kind a pusher is, and the information for that kind.
+#[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum PusherKind {
     /// A pusher that sends HTTP pokes.
-    Http,
+    Http(HttpPusherData),
 
     /// A pusher that emails the user with unread notifications.
-    Email,
+    Email(EmailPusherData),
 
     #[doc(hidden)]
-    _Custom(PrivOwnedStr),
+    _Custom(CustomPusherData),
 }
 
 /// Defines a pusher.
 ///
 /// To create an instance of this type, first create a `PusherInit` and convert it via
 /// `Pusher::from` / `.into()`.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Pusher {
     /// Identifiers for this pusher.
     #[serde(flatten)]
     pub ids: PusherIds,
 
-    /// The kind of the pusher.
+    /// The kind of the pusher and the information for that kind.
+    #[serde(flatten)]
     pub kind: PusherKind,
 
     /// A string that will allow the user to identify what application owns this pusher.
@@ -231,9 +231,6 @@ pub struct Pusher {
 
     /// The preferred language for receiving notifications (e.g. 'en' or 'en-US')
     pub lang: String,
-
-    /// Information for the pusher implementation itself.
-    pub data: PusherData,
 }
 
 /// Initial set of fields of `Pusher`.
@@ -260,23 +257,13 @@ pub struct PusherInit {
 
     /// The preferred language for receiving notifications (e.g. 'en' or 'en-US').
     pub lang: String,
-
-    /// Information for the pusher implementation itself.
-    pub data: PusherData,
 }
 
 impl From<PusherInit> for Pusher {
     fn from(init: PusherInit) -> Self {
-        let PusherInit {
-            ids,
-            kind,
-            app_display_name,
-            device_display_name,
-            profile_tag,
-            lang,
-            data,
-        } = init;
-        Self { ids, kind, app_display_name, device_display_name, profile_tag, lang, data }
+        let PusherInit { ids, kind, app_display_name, device_display_name, profile_tag, lang } =
+            init;
+        Self { ids, kind, app_display_name, device_display_name, profile_tag, lang }
     }
 }
 
@@ -300,4 +287,24 @@ impl PusherIds {
     pub fn new(pushkey: String, app_id: String) -> Self {
         Self { pushkey, app_id }
     }
+}
+
+/// Information for an email pusher.
+#[derive(Clone, Debug, Default)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct EmailPusherData;
+
+impl EmailPusherData {
+    /// Creates a new empty `EmailPusherData`.
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+#[doc(hidden)]
+#[derive(Clone, Debug, Deserialize)]
+#[non_exhaustive]
+pub struct CustomPusherData {
+    kind: String,
+    data: JsonObject,
 }

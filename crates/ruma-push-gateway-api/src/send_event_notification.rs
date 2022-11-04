@@ -236,7 +236,8 @@ pub mod v1 {
     ///
     /// This is the data dictionary passed in at pusher creation minus the `url` key.
     ///
-    /// It can be constructed from [`ruma_common::push::PusherData`] with `::from()` / `.into()`.
+    /// It can be constructed from [`ruma_common::push::HttpPusherData`] with `::from()` /
+    /// `.into()`.
     #[derive(Clone, Debug, Default, Serialize, Deserialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct PusherData {
@@ -276,9 +277,9 @@ pub mod v1 {
         }
     }
 
-    impl From<ruma_common::push::PusherData> for PusherData {
-        fn from(data: ruma_common::push::PusherData) -> Self {
-            let ruma_common::push::PusherData {
+    impl From<ruma_common::push::HttpPusherData> for PusherData {
+        fn from(data: ruma_common::push::HttpPusherData) -> Self {
+            let ruma_common::push::HttpPusherData {
                 format,
                 #[cfg(feature = "unstable-unspecified")]
                 default_payload,

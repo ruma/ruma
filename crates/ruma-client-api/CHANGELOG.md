@@ -10,6 +10,7 @@ Breaking changes:
 * Make `push::set_pusher::v3::Request` use an enum to differentiate when deleting a pusher
   * Move `push::get_pushers::v3::Pusher` to `push` and make it use the new `PusherIds` type
   * Remove `push::set_pusher::v3::Pusher` and use the common type instead
+* Make `push::PusherKind` contain the pusher's `data`
 
 Improvements:
 

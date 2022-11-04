@@ -401,15 +401,14 @@ impl Equivalent<PatternedPushRule> for str {
     }
 }
 
-/// Information for the pusher implementation itself.
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+/// Information for a pusher using the Push Gateway API.
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct PusherData {
+pub struct HttpPusherData {
     /// The URL to use to send notifications to.
     ///
     /// Required if the pusher's kind is http.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<String>,
+    pub url: String,
 
     /// The format to use when sending notifications to the Push Gateway.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -427,28 +426,20 @@ pub struct PusherData {
     pub default_payload: JsonValue,
 }
 
-impl PusherData {
-    /// Creates an empty `PusherData`.
-    pub fn new() -> Self {
-        Default::default()
-    }
-
-    /// Returns `true` if all fields are `None`.
-    pub fn is_empty(&self) -> bool {
-        #[cfg(not(feature = "unstable-unspecified"))]
-        {
-            self.url.is_none() && self.format.is_none()
-        }
-
-        #[cfg(feature = "unstable-unspecified")]
-        {
-            self.url.is_none() && self.format.is_none() && self.default_payload.is_null()
+impl HttpPusherData {
+    /// Creates a new `HttpPusherData` with the given URL.
+    pub fn new(url: String) -> Self {
+        Self {
+            url,
+            format: None,
+            #[cfg(feature = "unstable-unspecified")]
+            default_payload: JsonValue::default(),
         }
     }
 }
 
 /// A special format that the homeserver should use when sending notifications to a Push Gateway.
-/// Currently, only "event_id_only" is supported as of [Push Gateway API r0.1.1][spec].
+/// Currently, only `event_id_only` is supported, see the [Push Gateway API][spec].
 ///
 /// [spec]: https://spec.matrix.org/v1.4/push-gateway-api/#homeserver-behaviour
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]

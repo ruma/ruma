@@ -1,6 +1,6 @@
 //! `POST /_matrix/client/*/pushers/set`
 
-mod pusher_action_serde;
+mod set_pusher_serde;
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3pushersset
 
     use ruma_common::api::ruma_api;
-    use serde::{Deserialize, Serialize};
+    use serde::Serialize;
 
     use crate::push::{Pusher, PusherIds};
 
@@ -72,7 +72,7 @@ pub mod v3 {
     }
 
     /// Data necessary to create or update a pusher.
-    #[derive(Clone, Debug, Serialize, Deserialize)]
+    #[derive(Clone, Debug, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct PusherPostData {
         /// The pusher to configure.
@@ -83,7 +83,7 @@ pub mod v3 {
         /// are already others for other users.
         ///
         /// Defaults to `false`. See the spec for more details.
-        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        #[serde(skip_serializing_if = "ruma_common::serde::is_default")]
         pub append: bool,
     }
 }
