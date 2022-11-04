@@ -10,7 +10,7 @@ pub mod v3 {
         push::{Action, PushCondition},
     };
 
-    use crate::push::RuleKind;
+    use crate::push::{RuleKind, RuleScope};
 
     ruma_api! {
         metadata: {
@@ -25,9 +25,9 @@ pub mod v3 {
         }
 
         request: {
-            /// The scope to set the rule in. 'global' to specify global rules.
+            /// The scope to set the rule in.
             #[ruma_api(path)]
-            pub scope: &'a str,
+            pub scope: RuleScope,
 
             /// The kind of rule
             #[ruma_api(path)]
@@ -74,7 +74,7 @@ pub mod v3 {
     impl<'a> Request<'a> {
         /// Creates a new `Request` with the given scope, rule kind, rule ID and actions.
         pub fn new(
-            scope: &'a str,
+            scope: RuleScope,
             kind: RuleKind,
             rule_id: &'a str,
             actions: &'a [Action],
