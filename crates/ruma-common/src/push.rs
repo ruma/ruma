@@ -186,6 +186,50 @@ impl Ruleset {
         }
     }
 
+    /// Set whether the rule from the given kind and with the given `rule_id` in the rule set is
+    /// enabled.
+    ///
+    /// Returns an error if the rule can't be found.
+    pub fn set_enabled(
+        &mut self,
+        kind: RuleKind,
+        rule_id: impl AsRef<str>,
+        enabled: bool,
+    ) -> Result<(), RuleNotFoundError> {
+        let rule_id = rule_id.as_ref();
+
+        match kind {
+            RuleKind::Override => {
+                let mut rule = self.override_.get(rule_id).ok_or(RuleNotFoundError)?.clone();
+                rule.enabled = enabled;
+                self.override_.replace(rule);
+            }
+            RuleKind::Underride => {
+                let mut rule = self.underride.get(rule_id).ok_or(RuleNotFoundError)?.clone();
+                rule.enabled = enabled;
+                self.underride.replace(rule);
+            }
+            RuleKind::Sender => {
+                let mut rule = self.sender.get(rule_id).ok_or(RuleNotFoundError)?.clone();
+                rule.enabled = enabled;
+                self.sender.replace(rule);
+            }
+            RuleKind::Room => {
+                let mut rule = self.room.get(rule_id).ok_or(RuleNotFoundError)?.clone();
+                rule.enabled = enabled;
+                self.room.replace(rule);
+            }
+            RuleKind::Content => {
+                let mut rule = self.content.get(rule_id).ok_or(RuleNotFoundError)?.clone();
+                rule.enabled = enabled;
+                self.content.replace(rule);
+            }
+            RuleKind::_Custom(_) => return Err(RuleNotFoundError),
+        }
+
+        Ok(())
+    }
+
     /// Get the first push rule that applies to this event, if any.
     ///
     /// # Arguments
@@ -724,6 +768,12 @@ pub enum InsertPushRuleError {
     #[error("before has a higher priority than after")]
     BeforeHigherThanAfter,
 }
+
+/// The error type returned when trying modify a push rule that could not be found in a `Ruleset`.
+#[derive(Debug, Error)]
+#[non_exhaustive]
+#[error("The rule could not be found")]
+pub struct RuleNotFoundError;
 
 /// Insert the rule in the given indexset and move it to the given position.
 pub fn insert_and_move_rule<T>(
