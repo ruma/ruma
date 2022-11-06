@@ -2,7 +2,7 @@
 //!
 //! [`m.key.verification.start`]: https://spec.matrix.org/v1.4/client-server-api/#mkeyverificationstart
 
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, fmt};
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -109,7 +109,7 @@ pub struct _CustomContent {
 }
 
 /// The payload of an `m.key.verification.start` event using the `m.sas.v1` method.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename = "m.reciprocate.v1", tag = "method")]
 pub struct ReciprocateV1Content {
@@ -123,6 +123,12 @@ impl ReciprocateV1Content {
     /// The shared secret needs to come from the scanned QR code, encoded using unpadded base64.
     pub fn new(secret: Base64) -> Self {
         Self { secret }
+    }
+}
+
+impl fmt::Debug for ReciprocateV1Content {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ReciprocateV1Content").finish_non_exhaustive()
     }
 }
 

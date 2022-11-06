@@ -4,6 +4,8 @@ Bug fixes:
 
 * HTML-relevant characters (`<`, `>`, etc) in plaintext replies are now escaped
   during creation of the rich reply
+* Don't include sensitive information in `Debug`-format of types from the `events::key`
+  and `events::secret` modules
 
 Breaking changes:
 
