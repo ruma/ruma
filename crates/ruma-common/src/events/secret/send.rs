@@ -2,6 +2,8 @@
 //!
 //! [`m.secret.send`]: https://spec.matrix.org/v1.4/client-server-api/#msecretsend
 
+use std::fmt;
+
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -13,7 +15,7 @@ use crate::OwnedTransactionId;
 /// `m.secret.request` event.
 ///
 /// It must be encrypted as an `m.room.encrypted` event, then sent as a to-device event.
-#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[derive(Clone, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.secret.send", kind = ToDevice)]
 pub struct ToDeviceSecretSendEventContent {
@@ -28,5 +30,13 @@ impl ToDeviceSecretSendEventContent {
     /// Creates a new `SecretSendEventContent` with the given request ID and secret.
     pub fn new(request_id: OwnedTransactionId, secret: String) -> Self {
         Self { request_id, secret }
+    }
+}
+
+impl fmt::Debug for ToDeviceSecretSendEventContent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ToDeviceSecretSendEventContent")
+            .field("request_id", &self.request_id)
+            .finish_non_exhaustive()
     }
 }
