@@ -11,9 +11,9 @@ use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 
 use crate::{
     events::{
-        AnyStrippedStateEvent, EventContent, HasDeserializeFields, RedactContent,
-        RedactedEventContent, RedactedStateEventContent, Relations, StateEventContent,
-        StateEventType, StateUnsigned, StateUnsignedFromParts, StaticEventContent,
+        AnyStrippedStateEvent, EventContent, RedactContent, RedactedEventContent,
+        RedactedStateEventContent, Relations, StateEventContent, StateEventType, StateUnsigned,
+        StateUnsignedFromParts, StaticEventContent,
     },
     serde::{CanBeEmpty, Raw, StringEnum},
     OwnedMxcUri, OwnedServerName, OwnedServerSigningKeyId, OwnedTransactionId, OwnedUserId,
@@ -170,7 +170,7 @@ pub struct RedactedRoomMemberEventContent {
     ///
     /// This is redacted in room versions 8 and below. It is used for validating
     /// joins when the join rule is restricted.
-    #[serde(rename = "join_authorised_via_users_server")]
+    #[serde(rename = "join_authorised_via_users_server", skip_serializing_if = "Option::is_none")]
     pub join_authorized_via_users_server: Option<OwnedUserId>,
 }
 
@@ -218,15 +218,7 @@ impl RedactedStateEventContent for RedactedRoomMemberEventContent {}
 
 // Since this redacted event has fields we leave the default `empty` method
 // that will error if called.
-impl RedactedEventContent for RedactedRoomMemberEventContent {
-    fn has_serialize_fields(&self) -> bool {
-        true
-    }
-
-    fn has_deserialize_fields() -> HasDeserializeFields {
-        HasDeserializeFields::Optional
-    }
-}
+impl RedactedEventContent for RedactedRoomMemberEventContent {}
 
 impl RoomMemberEvent {
     /// Obtain the membership state, regardless of whether this event is redacted.

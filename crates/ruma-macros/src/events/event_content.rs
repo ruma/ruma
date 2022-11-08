@@ -391,7 +391,6 @@ fn generate_redacted_event_content<'a>(
     );
 
     let serde = quote! { #ruma_common::exports::serde };
-    let serde_json = quote! { #ruma_common::exports::serde_json };
 
     let doc = format!("Redacted form of [`{ident}`]");
     let redacted_ident = format_ident!("Redacted{ident}");
@@ -428,34 +427,13 @@ fn generate_redacted_event_content<'a>(
 
     let redaction_struct_fields = kept_redacted_fields.iter().flat_map(|f| &f.ident);
 
-    let (redacted_fields, redacted_return) = if kept_redacted_fields.is_empty() {
-        (quote! { ; }, quote! { Ok(#redacted_ident {}) })
-    } else {
-        (
-            quote! {
-                { #( #kept_redacted_fields, )* }
-            },
-            quote! {
-                Err(#serde::de::Error::custom(
-                    format!("this redacted event has fields that cannot be constructed")
-                ))
-            },
-        )
-    };
-
-    let (has_deserialize_fields, has_serialize_fields) = if kept_redacted_fields.is_empty() {
-        (quote! { #ruma_common::events::HasDeserializeFields::False }, quote! { false })
-    } else {
-        (quote! { #ruma_common::events::HasDeserializeFields::True }, quote! { true })
-    };
-
     let constructor = kept_redacted_fields.is_empty().then(|| {
         let doc = format!("Creates an empty {redacted_ident}.");
         quote! {
             impl #redacted_ident {
                 #[doc = #doc]
                 pub fn new() -> Self {
-                    Self
+                    Self {}
                 }
             }
         }
@@ -479,12 +457,6 @@ fn generate_redacted_event_content<'a>(
         generate_static_event_content_impl(&redacted_ident, kind, true, event_type, ruma_common)
     });
 
-    let mut event_types = aliases.to_owned();
-    event_types.push(event_type);
-    let event_types = quote! {
-        [#(#event_types,)*]
-    };
-
     Ok(quote! {
         // this is the non redacted event content's impl
         #[automatically_derived]
@@ -501,32 +473,16 @@ fn generate_redacted_event_content<'a>(
         #[doc = #doc]
         #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-        pub struct #redacted_ident #redacted_fields
+        pub struct #redacted_ident {
+            #( #kept_redacted_fields, )*
+        }
 
         #constructor
 
         #redacted_event_content
 
         #[automatically_derived]
-        impl #ruma_common::events::RedactedEventContent for #redacted_ident {
-            fn empty(ev_type: &str) -> #serde_json::Result<Self> {
-                if !#event_types.contains(&ev_type) {
-                    return Err(#serde::de::Error::custom(
-                        format!("expected event type as one of `{:?}`, found `{}`", #event_types, ev_type)
-                    ));
-                }
-
-                #redacted_return
-            }
-
-            fn has_serialize_fields(&self) -> bool {
-                #has_serialize_fields
-            }
-
-            fn has_deserialize_fields() -> #ruma_common::events::HasDeserializeFields {
-                #has_deserialize_fields
-            }
-        }
+        impl #ruma_common::events::RedactedEventContent for #redacted_ident {}
 
         #[automatically_derived]
         impl #ruma_common::events::#sub_trait_name for #redacted_ident {}
