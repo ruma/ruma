@@ -49,10 +49,11 @@ fn redacted_message_event_serialize() {
     };
 
     let expected = json!({
-      "event_id": "$h29iv0s8:example.com",
-      "origin_server_ts": 1,
-      "sender": "@carl:example.com",
-      "type": "m.room.message",
+        "content": {},
+        "event_id": "$h29iv0s8:example.com",
+        "origin_server_ts": 1,
+        "sender": "@carl:example.com",
+        "type": "m.room.message",
     });
 
     let actual = to_json_value(&redacted).unwrap();
@@ -60,7 +61,7 @@ fn redacted_message_event_serialize() {
 }
 
 #[test]
-fn redacted_aliases_event_serialize_no_content() {
+fn redacted_aliases_event_serialize_empty_content() {
     let redacted = RedactedSyncStateEvent {
         content: RedactedRoomAliasesEventContent::default(),
         event_id: event_id!("$h29iv0s8:example.com").to_owned(),
@@ -71,11 +72,12 @@ fn redacted_aliases_event_serialize_no_content() {
     };
 
     let expected = json!({
-      "event_id": "$h29iv0s8:example.com",
-      "state_key": "example.com",
-      "origin_server_ts": 1,
-      "sender": "@carl:example.com",
-      "type": "m.room.aliases",
+        "content": {},
+        "event_id": "$h29iv0s8:example.com",
+        "state_key": "example.com",
+        "origin_server_ts": 1,
+        "sender": "@carl:example.com",
+        "type": "m.room.aliases",
     });
 
     let actual = to_json_value(&redacted).unwrap();
@@ -94,14 +96,14 @@ fn redacted_aliases_event_serialize_with_content() {
     };
 
     let expected = json!({
-      "content": {
-          "aliases": []
-      },
-      "event_id": "$h29iv0s8:example.com",
-      "state_key": "example.com",
-      "origin_server_ts": 1,
-      "sender": "@carl:example.com",
-      "type": "m.room.aliases",
+        "content": {
+            "aliases": []
+        },
+        "event_id": "$h29iv0s8:example.com",
+        "state_key": "example.com",
+        "origin_server_ts": 1,
+        "sender": "@carl:example.com",
+        "type": "m.room.aliases",
     });
 
     let actual = to_json_value(&redacted).unwrap();
@@ -111,12 +113,13 @@ fn redacted_aliases_event_serialize_with_content() {
 #[test]
 fn redacted_aliases_deserialize() {
     let redacted = json!({
-      "event_id": "$h29iv0s8:example.com",
-      "origin_server_ts": 1,
-      "sender": "@carl:example.com",
-      "state_key": "hello",
-      "unsigned": unsigned(),
-      "type": "m.room.aliases",
+        "content": {},
+        "event_id": "$h29iv0s8:example.com",
+        "origin_server_ts": 1,
+        "sender": "@carl:example.com",
+        "state_key": "hello",
+        "unsigned": unsigned(),
+        "type": "m.room.aliases",
     });
 
     let actual = to_json_value(&redacted).unwrap();
@@ -134,12 +137,13 @@ fn redacted_aliases_deserialize() {
 #[test]
 fn redacted_deserialize_any_room() {
     let redacted = json!({
-      "event_id": "$h29iv0s8:example.com",
-      "room_id": "!roomid:room.com",
-      "origin_server_ts": 1,
-      "sender": "@carl:example.com",
-      "unsigned": unsigned(),
-      "type": "m.room.message",
+        "content": {},
+        "event_id": "$h29iv0s8:example.com",
+        "room_id": "!roomid:room.com",
+        "origin_server_ts": 1,
+        "sender": "@carl:example.com",
+        "unsigned": unsigned(),
+        "type": "m.room.message",
     });
 
     let actual = to_json_value(&redacted).unwrap();
@@ -171,11 +175,12 @@ fn redacted_deserialize_any_room_sync() {
         })));
 
     let redacted = json!({
-      "event_id": "$h29iv0s8:example.com",
-      "origin_server_ts": 1,
-      "sender": "@carl:example.com",
-      "unsigned": unsigned,
-      "type": "m.room.message",
+        "content": {},
+        "event_id": "$h29iv0s8:example.com",
+        "origin_server_ts": 1,
+        "sender": "@carl:example.com",
+        "unsigned": unsigned,
+        "type": "m.room.message",
     });
 
     let actual = to_json_value(&redacted).unwrap();
@@ -192,15 +197,15 @@ fn redacted_deserialize_any_room_sync() {
 #[test]
 fn redacted_state_event_deserialize() {
     let redacted = json!({
-      "content": {
-        "creator": "@carl:example.com",
-      },
-      "event_id": "$h29iv0s8:example.com",
-      "origin_server_ts": 1,
-      "sender": "@carl:example.com",
-      "state_key": "",
-      "unsigned": unsigned(),
-      "type": "m.room.create",
+        "content": {
+            "creator": "@carl:example.com",
+        },
+        "event_id": "$h29iv0s8:example.com",
+        "origin_server_ts": 1,
+        "sender": "@carl:example.com",
+        "state_key": "",
+        "unsigned": unsigned(),
+        "type": "m.room.create",
     });
 
     let redacted = assert_matches!(
@@ -217,6 +222,7 @@ fn redacted_state_event_deserialize() {
 #[test]
 fn redacted_custom_event_deserialize() {
     let redacted = json!({
+        "content": {},
         "event_id": "$h29iv0s8:example.com",
         "origin_server_ts": 1,
         "sender": "@carl:example.com",

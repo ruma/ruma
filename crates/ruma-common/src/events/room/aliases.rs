@@ -6,8 +6,8 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
     events::{
-        EventContent, HasDeserializeFields, RedactContent, RedactedEventContent,
-        RedactedStateEventContent, StateEventContent, StateEventType, StateUnsigned,
+        EventContent, RedactContent, RedactedEventContent, RedactedStateEventContent,
+        StateEventContent, StateEventType, StateUnsigned,
     },
     OwnedRoomAliasId, OwnedServerName, RoomVersionId,
 };
@@ -57,6 +57,7 @@ pub struct RedactedRoomAliasesEventContent {
     ///
     /// According to the Matrix spec version 1 redaction rules allowed this field to be
     /// kept after redaction, this was changed in version 6.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub aliases: Option<Vec<OwnedRoomAliasId>>,
 }
 
@@ -105,12 +106,4 @@ impl RedactedStateEventContent for RedactedRoomAliasesEventContent {}
 
 // Since this redacted event has fields we leave the default `empty` method
 // that will error if called.
-impl RedactedEventContent for RedactedRoomAliasesEventContent {
-    fn has_serialize_fields(&self) -> bool {
-        self.aliases.is_some()
-    }
-
-    fn has_deserialize_fields() -> HasDeserializeFields {
-        HasDeserializeFields::Optional
-    }
-}
+impl RedactedEventContent for RedactedRoomAliasesEventContent {}

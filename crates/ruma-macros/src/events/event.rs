@@ -80,9 +80,7 @@ fn expand_serialize_event(
             let name = field.ident.as_ref().unwrap();
             if name == "content" && var.is_redacted() {
                 quote! {
-                    if #ruma_common::events::RedactedEventContent::has_serialize_fields(&self.content) {
-                        state.serialize_field("content", &self.content)?;
-                    }
+                    state.serialize_field("content", &self.content)?;
                 }
             } else if name == "unsigned" {
                 quote! {
@@ -188,25 +186,12 @@ fn expand_deserialize_event(
             Ok(if name == "content" {
                 if is_generic && var.is_redacted() {
                     quote! {
-                        let content = match C::has_deserialize_fields() {
-                            #ruma_common::events::HasDeserializeFields::False => {
-                                C::empty(&event_type).map_err(#serde::de::Error::custom)?
-                            },
-                            #ruma_common::events::HasDeserializeFields::True => {
-                                let json = content.ok_or_else(
-                                    || #serde::de::Error::missing_field("content"),
-                                )?;
-                                C::from_parts(&event_type, &json)
-                                    .map_err(#serde::de::Error::custom)?
-                            },
-                            #ruma_common::events::HasDeserializeFields::Optional => {
-                                let json = content.unwrap_or(
-                                    #serde_json::value::RawValue::from_string("{}".to_owned())
-                                        .unwrap()
-                                );
-                                C::from_parts(&event_type, &json)
-                                    .map_err(#serde::de::Error::custom)?
-                            },
+                        let content = {
+                            let json = content.ok_or_else(
+                                || #serde::de::Error::missing_field("content"),
+                            )?;
+                            C::from_parts(&event_type, &json)
+                                .map_err(#serde::de::Error::custom)?
                         };
                     }
                 } else if is_generic {
