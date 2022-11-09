@@ -124,16 +124,11 @@ impl Response {
                             #response_init_fields
                         })
                     } else {
-                        match <#error_ty as #ruma_common::api::EndpointError>::try_from_http_response(
-                            response
-                        ) {
-                            ::std::result::Result::Ok(err) => {
-                                Err(#ruma_common::api::error::ServerError::Known(err).into())
-                            }
-                            ::std::result::Result::Err(response_err) => {
-                                Err(#ruma_common::api::error::ServerError::Unknown(response_err).into())
-                            }
-                        }
+                        Err(#ruma_common::api::error::FromHttpResponseError::Server(
+                            <#error_ty as #ruma_common::api::EndpointError>::from_http_response(
+                                response,
+                            )
+                        ))
                     }
                 }
             }

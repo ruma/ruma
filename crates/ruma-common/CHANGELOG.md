@@ -21,6 +21,11 @@ Breaking changes:
   adjusted as well to not require this field.
 * Rename `push::PusherData` to `HttpPusherData` and make the `url` field required
 * Remove `Ruleset::add` and the implementation of `Extend<AnyPushRule>` for `Ruleset`
+* Make `EndpointError` construction infallible
+  * `EndpointError::try_from_http_request` has been replaced by `EndpointError::from_http_request`
+  * `FromHttpResponseError<E>::Server` now contains `E` instead of `ServerError<E>`
+  * `ServerError<E>` has been removed
+  * `MatrixError` is now an enum with the `Json` variant containing the previous fields
 
 Improvements:
 

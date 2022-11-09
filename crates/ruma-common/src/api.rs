@@ -584,9 +584,7 @@ pub trait EndpointError: OutgoingResponse + StdError + Sized + Send + 'static {
     ///
     /// This will always return `Err` variant when no `error` field is defined in
     /// the `ruma_api` macro.
-    fn try_from_http_response<T: AsRef<[u8]>>(
-        response: http::Response<T>,
-    ) -> Result<Self, error::DeserializationError>;
+    fn from_http_response<T: AsRef<[u8]>>(response: http::Response<T>) -> Self;
 }
 
 /// Authentication scheme used by the endpoint.

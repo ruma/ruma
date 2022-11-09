@@ -205,8 +205,8 @@ fn try_uiaa_response_from_http_response() {
         .unwrap();
 
     let info = assert_matches!(
-        UiaaResponse::try_from_http_response(http_response),
-        Ok(UiaaResponse::AuthResponse(info)) => info
+        UiaaResponse::from_http_response(http_response),
+        UiaaResponse::AuthResponse(info) => info
     );
     assert_eq!(info.completed, vec![AuthType::ReCaptcha]);
     assert_eq!(info.flows.len(), 2);
