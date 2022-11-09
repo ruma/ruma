@@ -2,9 +2,9 @@
 //! converting between http requests / responses and ruma's representation of
 //! matrix API requests / responses.
 
-use std::{error::Error as StdError, fmt};
+use std::{error::Error as StdError, fmt, sync::Arc};
 
-use bytes::BufMut;
+use bytes::{BufMut, Bytes};
 use serde_json::{from_slice as from_json_slice, Value as JsonValue};
 use thiserror::Error;
 
@@ -20,13 +20,16 @@ pub struct MatrixError {
     pub status_code: http::StatusCode,
 
     /// The http response's body.
-    pub body: JsonValue,
+    pub body: MatrixErrorBody,
 }
 
 impl fmt::Display for MatrixError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[{}] ", self.status_code.as_u16())?;
-        fmt::Display::fmt(&self.body, f)
+        let status_code = self.status_code.as_u16();
+        match &self.body {
+            MatrixErrorBody::Json(json) => write!(f, "[{status_code}] {json}"),
+            MatrixErrorBody::NotJson { .. } => write!(f, "[{status_code}] <non-json bytes>"),
+        }
     }
 }
 
@@ -39,19 +42,54 @@ impl OutgoingResponse for MatrixError {
         http::Response::builder()
             .header(http::header::CONTENT_TYPE, "application/json")
             .status(self.status_code)
-            .body(crate::serde::json_to_buf(&self.body)?)
+            .body(match self.body {
+                MatrixErrorBody::Json(json) => crate::serde::json_to_buf(&json)?,
+                MatrixErrorBody::NotJson { .. } => {
+                    return Err(IntoHttpError::Json(serde::ser::Error::custom(
+                        "attempted to serialize MatrixErrorBody::NotJson",
+                    )));
+                }
+            })
             .map_err(Into::into)
     }
 }
 
 impl EndpointError for MatrixError {
-    fn try_from_http_response<T: AsRef<[u8]>>(
-        response: http::Response<T>,
-    ) -> Result<Self, DeserializationError> {
-        Ok(Self {
-            status_code: response.status(),
-            body: from_json_slice(response.body().as_ref())?,
-        })
+    fn from_http_response<T: AsRef<[u8]>>(response: http::Response<T>) -> Self {
+        let status_code = response.status();
+        let body = MatrixErrorBody::from_bytes(response.body().as_ref());
+        Self { status_code, body }
+    }
+}
+
+/// The body of an error response.
+#[derive(Clone, Debug)]
+#[allow(clippy::exhaustive_enums)]
+pub enum MatrixErrorBody {
+    /// A JSON body, as intended.
+    Json(JsonValue),
+
+    /// A response body that is not valid JSON.
+    #[non_exhaustive]
+    NotJson {
+        /// The raw bytes of the response body.
+        bytes: Bytes,
+
+        /// The error from trying to deserialize the bytes as JSON.
+        deserialization_error: Arc<serde_json::Error>,
+    },
+}
+
+impl MatrixErrorBody {
+    /// Create a `MatrixErrorBody` from the given HTTP body bytes.
+    pub fn from_bytes(body_bytes: &[u8]) -> Self {
+        match from_json_slice(body_bytes) {
+            Ok(json) => MatrixErrorBody::Json(json),
+            Err(e) => MatrixErrorBody::NotJson {
+                bytes: Bytes::copy_from_slice(body_bytes),
+                deserialization_error: Arc::new(e),
+            },
+        }
     }
 }
 
@@ -131,16 +169,13 @@ pub enum FromHttpResponseError<E> {
     Deserialization(DeserializationError),
 
     /// The server returned a non-success status
-    Server(ServerError<E>),
+    Server(E),
 }
 
 impl<E> FromHttpResponseError<E> {
     /// Map `FromHttpResponseError<E>` to `FromHttpResponseError<F>` by applying a function to a
     /// contained `Server` value, leaving a `Deserialization` value untouched.
-    pub fn map<F>(
-        self,
-        f: impl FnOnce(ServerError<E>) -> ServerError<F>,
-    ) -> FromHttpResponseError<F> {
+    pub fn map<F>(self, f: impl FnOnce(E) -> F) -> FromHttpResponseError<F> {
         match self {
             Self::Deserialization(d) => FromHttpResponseError::Deserialization(d),
             Self::Server(s) => FromHttpResponseError::Server(f(s)),
@@ -153,7 +188,7 @@ impl<E, F> FromHttpResponseError<Result<E, F>> {
     pub fn transpose(self) -> Result<FromHttpResponseError<E>, F> {
         match self {
             Self::Deserialization(d) => Ok(FromHttpResponseError::Deserialization(d)),
-            Self::Server(s) => s.transpose().map(FromHttpResponseError::Server),
+            Self::Server(s) => s.map(FromHttpResponseError::Server),
         }
     }
 }
@@ -167,12 +202,6 @@ impl<E: fmt::Display> fmt::Display for FromHttpResponseError<E> {
     }
 }
 
-impl<E> From<ServerError<E>> for FromHttpResponseError<E> {
-    fn from(err: ServerError<E>) -> Self {
-        Self::Server(err)
-    }
-}
-
 impl<E, T> From<T> for FromHttpResponseError<E>
 where
     T: Into<DeserializationError>,
@@ -183,51 +212,6 @@ where
 }
 
 impl<E: StdError> StdError for FromHttpResponseError<E> {}
-
-/// An error was reported by the server (HTTP status code 4xx or 5xx)
-#[derive(Debug)]
-#[allow(clippy::exhaustive_enums)]
-pub enum ServerError<E> {
-    /// An error that is expected to happen under certain circumstances and
-    /// that has a well-defined structure
-    Known(E),
-
-    /// An error of unexpected type of structure
-    Unknown(DeserializationError),
-}
-
-impl<E> ServerError<E> {
-    /// Map `ServerError<E>` to `ServerError<F>` by applying a function to a contained `Known`
-    /// value, leaving an `Unknown` value untouched.
-    pub fn map<F>(self, f: impl FnOnce(E) -> F) -> ServerError<F> {
-        match self {
-            Self::Known(k) => ServerError::Known(f(k)),
-            Self::Unknown(u) => ServerError::Unknown(u),
-        }
-    }
-}
-
-impl<E, F> ServerError<Result<E, F>> {
-    /// Transpose `ServerError<Result<E, F>>` to `Result<ServerError<E>, F>`.
-    pub fn transpose(self) -> Result<ServerError<E>, F> {
-        match self {
-            Self::Known(Ok(k)) => Ok(ServerError::Known(k)),
-            Self::Known(Err(e)) => Err(e),
-            Self::Unknown(u) => Ok(ServerError::Unknown(u)),
-        }
-    }
-}
-
-impl<E: fmt::Display> fmt::Display for ServerError<E> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ServerError::Known(e) => fmt::Display::fmt(e, f),
-            ServerError::Unknown(res_err) => fmt::Display::fmt(res_err, f),
-        }
-    }
-}
-
-impl<E: StdError> StdError for ServerError<E> {}
 
 /// An error when converting a http request / response to one of ruma's endpoint-specific request /
 /// response types.

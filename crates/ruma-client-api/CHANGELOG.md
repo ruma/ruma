@@ -13,6 +13,8 @@ Breaking changes:
 * Make `push::PusherKind` contain the pusher's `data`
 * Use an enum for the `scope` of the `push` endpoints
 * Use `NewPushRule` to construct a `push::set_pushrule::v3::Request`
+* `Error` is now an enum because endpoint error construction is infallible (see changelog for
+  `ruma-common`); the previous fields are in the `Standard` variant
 
 Improvements:
 

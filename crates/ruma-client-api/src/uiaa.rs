@@ -6,10 +6,7 @@ use std::{borrow::Cow, fmt};
 
 use bytes::BufMut;
 use ruma_common::{
-    api::{
-        error::{DeserializationError, IntoHttpError},
-        EndpointError, OutgoingResponse,
-    },
+    api::{error::IntoHttpError, EndpointError, OutgoingResponse},
     serde::{from_raw_json_value, Incoming, JsonObject, StringEnum},
     thirdparty::Medium,
     ClientSecret, OwnedSessionId, OwnedUserId, UserId,
@@ -23,7 +20,7 @@ use serde_json::{
 };
 
 use crate::{
-    error::{Error as MatrixError, ErrorBody},
+    error::{Error as MatrixError, StandardErrorBody},
     PrivOwnedStr,
 };
 
@@ -838,7 +835,7 @@ pub struct UiaaInfo {
 
     /// Authentication-related errors for previous request returned by homeserver.
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    pub auth_error: Option<ErrorBody>,
+    pub auth_error: Option<StandardErrorBody>,
 }
 
 impl UiaaInfo {
@@ -893,14 +890,14 @@ impl From<MatrixError> for UiaaResponse {
 }
 
 impl EndpointError for UiaaResponse {
-    fn try_from_http_response<T: AsRef<[u8]>>(
-        response: http::Response<T>,
-    ) -> Result<Self, DeserializationError> {
+    fn from_http_response<T: AsRef<[u8]>>(response: http::Response<T>) -> Self {
         if response.status() == http::StatusCode::UNAUTHORIZED {
-            Ok(UiaaResponse::AuthResponse(from_json_slice(response.body().as_ref())?))
-        } else {
-            MatrixError::try_from_http_response(response).map(From::from)
+            if let Ok(uiaa_info) = from_json_slice(response.body().as_ref()) {
+                return Self::AuthResponse(uiaa_info);
+            }
         }
+
+        Self::MatrixError(MatrixError::from_http_response(response))
     }
 }
 

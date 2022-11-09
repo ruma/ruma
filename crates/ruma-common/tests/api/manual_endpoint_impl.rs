@@ -6,9 +6,7 @@ use bytes::BufMut;
 use http::{header::CONTENT_TYPE, method::Method};
 use ruma_common::{
     api::{
-        error::{
-            FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError, ServerError,
-        },
+        error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError},
         AuthScheme, EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata,
         OutgoingRequest, OutgoingResponse, SendAccessToken, VersionHistory,
     },
@@ -119,9 +117,7 @@ impl IncomingResponse for Response {
         if http_response.status().as_u16() < 400 {
             Ok(Response)
         } else {
-            Err(FromHttpResponseError::Server(ServerError::Known(
-                <MatrixError as EndpointError>::try_from_http_response(http_response)?,
-            )))
+            Err(FromHttpResponseError::Server(MatrixError::from_http_response(http_response)))
         }
     }
 }
