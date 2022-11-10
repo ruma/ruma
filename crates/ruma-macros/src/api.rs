@@ -50,8 +50,6 @@ pub struct Api {
 
 impl Api {
     pub fn expand_all(self) -> TokenStream {
-        let maybe_feature_error = ensure_feature_presence().map(syn::Error::to_compile_error);
-
         let ruma_common = import_ruma_common();
 
         let metadata = &self.metadata;
@@ -73,8 +71,6 @@ impl Api {
         let metadata_doc = format!("Metadata for the `{}` API endpoint.", name.value());
 
         quote! {
-            #maybe_feature_error
-
             // For some reason inlining the expression causes issues with macro parsing
             const _RUMA_API_VERSION_HISTORY: #ruma_common::api::VersionHistory = #history;
 

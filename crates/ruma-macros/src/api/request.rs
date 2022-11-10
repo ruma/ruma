@@ -10,6 +10,7 @@ use syn::{
 
 use super::{
     attribute::{DeriveRequestMeta, RequestMeta},
+    ensure_feature_presence,
     util::collect_lifetime_idents,
 };
 use crate::util::import_ruma_common;
@@ -21,12 +22,16 @@ pub fn expand_request(attr: RequestAttr, item: ItemStruct) -> TokenStream {
     let ruma_common = import_ruma_common();
     let ruma_macros = quote! { #ruma_common::exports::ruma_macros };
 
+    let maybe_feature_error = ensure_feature_presence().map(syn::Error::to_compile_error);
+
     let error_ty = attr.0.first().map_or_else(
         || quote! { #ruma_common::api::error::MatrixError },
         |DeriveRequestMeta::Error(ty)| quote! { #ty },
     );
 
     quote! {
+        #maybe_feature_error
+
         #[derive(
             Clone,
             Debug,

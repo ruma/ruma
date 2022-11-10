@@ -9,7 +9,10 @@ use syn::{
     DeriveInput, Field, Generics, Ident, ItemStruct, Lifetime, Token, Type,
 };
 
-use super::attribute::{DeriveResponseMeta, ResponseMeta};
+use super::{
+    attribute::{DeriveResponseMeta, ResponseMeta},
+    ensure_feature_presence,
+};
 use crate::util::import_ruma_common;
 
 mod incoming;
@@ -18,6 +21,8 @@ mod outgoing;
 pub fn expand_response(attr: ResponseAttr, item: ItemStruct) -> TokenStream {
     let ruma_common = import_ruma_common();
     let ruma_macros = quote! { #ruma_common::exports::ruma_macros };
+
+    let maybe_feature_error = ensure_feature_presence().map(syn::Error::to_compile_error);
 
     let error_ty = attr
         .0
@@ -29,6 +34,8 @@ pub fn expand_response(attr: ResponseAttr, item: ItemStruct) -> TokenStream {
         .unwrap_or_else(|| quote! { #ruma_common::api::error::MatrixError });
 
     quote! {
+        #maybe_feature_error
+
         #[derive(
             Clone,
             Debug,
