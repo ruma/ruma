@@ -1,4 +1,7 @@
 //! `POST /_matrix/client/*/rooms/{roomId}/read_markers`
+//!
+//! Sets the position of the read marker for a given room, and optionally the read receipt's
+//! location.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -15,9 +18,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Sets the position of the read marker for a given room, and optionally the read receipt's location.",
         method: POST,
-        name: "set_read_marker",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -26,6 +27,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `set_read_marker` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room ID to set the read marker in for the user.
@@ -65,6 +67,7 @@ pub mod v3 {
         pub private_read_receipt: Option<&'a EventId>,
     }
 
+    /// Response type for the `set_read_marker` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

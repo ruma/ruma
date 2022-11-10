@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/keys/query`
+//!
+//! Returns the current devices and identity keys for the given users.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -17,9 +19,7 @@ pub mod v3 {
     use serde_json::Value as JsonValue;
 
     const METADATA: Metadata = metadata! {
-        description: "Returns the current devices and identity keys for the given users.",
         method: POST,
-        name: "get_keys",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -28,6 +28,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_keys` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request<'a> {
@@ -56,6 +57,7 @@ pub mod v3 {
         pub token: Option<&'a str>,
     }
 
+    /// Response type for the `get_keys` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {

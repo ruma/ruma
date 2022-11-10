@@ -13,9 +13,7 @@ pub mod v1 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Retrieves a snapshot of a room's state at a given event, in the form of event IDs",
         method: GET,
-        name: "get_room_state_ids",
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
@@ -23,6 +21,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_room_state_ids` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The room ID to get state for.
@@ -34,6 +33,7 @@ pub mod v1 {
         pub event_id: &'a EventId,
     }
 
+    /// Response type for the `get_room_state_ids` endpoint.
     #[response]
     pub struct Response {
         /// The full set of authorization events that make up the state of the

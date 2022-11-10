@@ -14,9 +14,7 @@ pub mod v2 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Logs out the access token, preventing it from being used to authenticate future requests to the server.",
         method: POST,
-        name: "logout",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -24,10 +22,12 @@ pub mod v2 {
         }
     };
 
+    /// Request type for the `logout` endpoint.
     #[request]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `logout` endpoint.
     #[response]
     #[derive(Default)]
     pub struct Response {}

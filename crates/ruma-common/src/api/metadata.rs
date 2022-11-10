@@ -22,14 +22,8 @@ use crate::{serde::slice_to_buf, RoomVersionId};
 #[derive(Clone, Debug)]
 #[allow(clippy::exhaustive_structs)]
 pub struct Metadata {
-    /// A human-readable description of the endpoint.
-    pub description: &'static str,
-
     /// The HTTP method used by this endpoint.
     pub method: Method,
-
-    /// A unique identifier for this endpoint.
-    pub name: &'static str,
 
     /// Whether or not this endpoint is rate limited by the server.
     pub rate_limited: bool,
@@ -92,7 +86,7 @@ impl Metadata {
         path_args: &[&dyn Display],
         query_string: &str,
     ) -> Result<String, IntoHttpError> {
-        let path_with_placeholders = self.history.select_path(versions, self.name)?;
+        let path_with_placeholders = self.history.select_path(versions)?;
 
         let mut res = base_url.strip_suffix('/').unwrap_or(base_url).to_owned();
         let mut segments = path_with_placeholders.split('/');
@@ -305,11 +299,7 @@ impl VersionHistory {
     }
 
     // This function helps picks the right path (or an error) from a set of Matrix versions.
-    fn select_path(
-        &self,
-        versions: &[MatrixVersion],
-        name: &str,
-    ) -> Result<&'static str, IntoHttpError> {
+    fn select_path(&self, versions: &[MatrixVersion]) -> Result<&'static str, IntoHttpError> {
         match self.versioning_decision_for(versions) {
             VersioningDecision::Removed => Err(IntoHttpError::EndpointRemoved(
                 self.removed.expect("VersioningDecision::Removed implies metadata.removed"),
@@ -318,12 +308,12 @@ impl VersionHistory {
                 if any_removed {
                     if all_deprecated {
                         warn!(
-                            "endpoint {name} is removed in some (and deprecated in ALL) \
+                            "endpoint is removed in some (and deprecated in ALL) \
                              of the following versions: {versions:?}",
                         );
                     } else if any_deprecated {
                         warn!(
-                            "endpoint {name} is removed (and deprecated) in some of the \
+                            "endpoint is removed (and deprecated) in some of the \
                              following versions: {versions:?}",
                         );
                     } else {
@@ -331,12 +321,12 @@ impl VersionHistory {
                     }
                 } else if all_deprecated {
                     warn!(
-                        "endpoint {name} is deprecated in ALL of the following versions: \
+                        "endpoint is deprecated in ALL of the following versions: \
                          {versions:?}",
                     );
                 } else if any_deprecated {
                     warn!(
-                        "endpoint {name} is deprecated in some of the following versions: \
+                        "endpoint is deprecated in some of the following versions: \
                          {versions:?}",
                     );
                 }
@@ -680,9 +670,7 @@ mod tests {
 
     fn stable_only_metadata(stable_paths: &'static [(MatrixVersion, &'static str)]) -> Metadata {
         Metadata {
-            description: "",
             method: Method::GET,
-            name: "test_endpoint",
             rate_limited: false,
             authentication: AuthScheme::None,
             history: VersionHistory {
@@ -730,19 +718,19 @@ mod tests {
     #[test]
     fn select_latest_stable() {
         let hist = VersionHistory { stable_paths: &[(V1_1, "/s")], ..EMPTY };
-        assert_matches!(hist.select_path(&[V1_0, V1_1], "test_endpoint"), Ok("/s"));
+        assert_matches!(hist.select_path(&[V1_0, V1_1]), Ok("/s"));
     }
 
     #[test]
     fn select_unstable() {
         let hist = VersionHistory { unstable_paths: &["/u"], ..EMPTY };
-        assert_matches!(hist.select_path(&[V1_0], "test_endpoint"), Ok("/u"));
+        assert_matches!(hist.select_path(&[V1_0]), Ok("/u"));
     }
 
     #[test]
     fn select_r0() {
         let hist = VersionHistory { stable_paths: &[(V1_0, "/r")], ..EMPTY };
-        assert_matches!(hist.select_path(&[V1_0], "test_endpoint"), Ok("/r"));
+        assert_matches!(hist.select_path(&[V1_0]), Ok("/r"));
     }
 
     #[test]
@@ -753,10 +741,7 @@ mod tests {
             deprecated: Some(V1_2),
             removed: Some(V1_3),
         };
-        assert_matches!(
-            hist.select_path(&[V1_3], "test_endpoint"),
-            Err(IntoHttpError::EndpointRemoved(V1_3))
-        );
+        assert_matches!(hist.select_path(&[V1_3]), Err(IntoHttpError::EndpointRemoved(V1_3)));
     }
 
     #[test]
@@ -767,16 +752,13 @@ mod tests {
             deprecated: Some(V1_2),
             removed: Some(V1_3),
         };
-        assert_matches!(hist.select_path(&[V1_2], "test_endpoint"), Ok("/s"));
+        assert_matches!(hist.select_path(&[V1_2]), Ok("/s"));
     }
 
     #[test]
     fn no_unstable() {
         let hist = VersionHistory { stable_paths: &[(V1_1, "/s")], ..EMPTY };
-        assert_matches!(
-            hist.select_path(&[V1_0], "test_endpoint"),
-            Err(IntoHttpError::NoUnstablePath)
-        );
+        assert_matches!(hist.select_path(&[V1_0]), Err(IntoHttpError::NoUnstablePath));
     }
 
     #[test]

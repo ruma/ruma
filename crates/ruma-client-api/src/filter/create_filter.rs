@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/user/{userId}/filter`
+//!
+//! Create a new filter for event retrieval.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     use crate::filter::{FilterDefinition, IncomingFilterDefinition};
 
     const METADATA: Metadata = metadata! {
-        description: "Create a new filter for event retrieval.",
         method: POST,
-        name: "create_filter",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -24,6 +24,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `create_filter` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The ID of the user uploading the filter.
@@ -37,6 +38,7 @@ pub mod v3 {
         pub filter: FilterDefinition<'a>,
     }
 
+    /// Response type for the `create_filter` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The ID of the filter that was created.

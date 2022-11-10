@@ -1,7 +1,6 @@
 //! `GET /_matrix/app/*/thirdparty/protocol/{protocol}`
 //!
-//! Endpoint to present clients with specific information about the various third party networks
-//! that an application service supports.
+//! Fetches metadata about the various third party networks that an application service supports.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -15,9 +14,7 @@ pub mod v1 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Fetches the metadata from the homeserver about a particular third party protocol.",
         method: GET,
-        name: "get_protocol",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -25,6 +22,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_protocol` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The name of the protocol.
@@ -32,6 +30,7 @@ pub mod v1 {
         pub protocol: &'a str,
     }
 
+    /// Response type for the `get_protocol` endpoint.
     #[response]
     pub struct Response {
         /// Metadata about the protocol.

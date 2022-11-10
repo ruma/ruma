@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/publicRooms`
+//!
+//! Get the list of rooms in this homeserver's public directory.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get the list of rooms in this homeserver's public directory.",
         method: GET,
-        name: "get_public_rooms",
         rate_limited: false,
         authentication: None,
         history: {
@@ -24,6 +24,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_public_rooms` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request<'a> {
@@ -45,6 +46,7 @@ pub mod v3 {
         pub server: Option<&'a ServerName>,
     }
 
+    /// Response type for the `get_public_rooms` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// A paginated chunk of public rooms.

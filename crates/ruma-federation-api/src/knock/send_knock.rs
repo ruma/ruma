@@ -1,6 +1,6 @@
 //! `PUT /_matrix/federation/*/send_knock/{roomId}/{eventId}`
 //!
-//! Endpoint to submit a signed knock event to the resident homeserver.
+//! Submits a signed knock event to the resident homeserver for it to accept into the room's graph.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -17,8 +17,6 @@ pub mod v1 {
     use serde_json::value::RawValue as RawJsonValue;
 
     const METADATA: Metadata = metadata! {
-        description: "Submits a signed knock event to the resident homeserver for it to accept into the room's graph.",
-        name: "send_knock",
         method: PUT,
         rate_limited: false,
         authentication: ServerSignatures,
@@ -28,6 +26,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `send_knock` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The room ID that should receive the knock.
@@ -43,6 +42,7 @@ pub mod v1 {
         pub pdu: &'a RawJsonValue,
     }
 
+    /// Response type for the `send_knock` endpoint.
     #[response]
     pub struct Response {
         /// State events providing public room metadata.

@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/account/3pid`
+//!
+//! Get a list of 3rd party contacts associated with the user's account.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -12,9 +14,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get a list of 3rd party contacts associated with the user's account.",
         method: GET,
-        name: "get_3pids",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -23,10 +23,12 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_3pids` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `get_3pids` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// A list of third party identifiers the homeserver has associated with the user's

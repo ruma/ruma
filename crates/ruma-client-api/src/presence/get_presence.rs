@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/presence/{userId}/status`
+//!
+//! Get presence status for this user.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -15,9 +17,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get presence status for this user.",
         method: GET,
-        name: "get_presence",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -26,6 +26,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_presence` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The user whose presence state will be retrieved.
@@ -33,6 +34,7 @@ pub mod v3 {
         pub user_id: &'a UserId,
     }
 
+    /// Response type for the `get_presence` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The state message for this user if one was set.

@@ -1,4 +1,6 @@
 //! `POST /_matrix/media/*/upload/{serverName}/{mediaId}`
+//!
+//! Upload media to an MXC URI that was created with create_mxc_uri.
 
 pub mod unstable {
     //! `/unstable/` ([spec])
@@ -12,9 +14,7 @@ pub mod unstable {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Upload media to an MXC URI that was created with create_mxc_uri.",
         method: PUT,
-        name: "create_content_async",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -22,6 +22,7 @@ pub mod unstable {
         }
     };
 
+    /// Request type for the `create_content_async` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The server name from the mxc:// URI (the authoritory component).
@@ -42,6 +43,7 @@ pub mod unstable {
         // TODO: How does this and msc2448 (blurhash) interact?
     }
 
+    /// Response type for the `create_content_async` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {}
 

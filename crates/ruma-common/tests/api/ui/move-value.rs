@@ -12,9 +12,7 @@ mod newtype_body {
     pub struct Foo;
 
     const METADATA: Metadata = metadata! {
-        description: "Does something.",
         method: POST,
-        name: "my_endpoint",
         rate_limited: false,
         authentication: None,
         history: {
@@ -22,6 +20,7 @@ mod newtype_body {
         }
     };
 
+    /// Request type for the `my_endpoint` endpoint.
     #[request]
     pub struct Request {
         #[ruma_api(body)]
@@ -37,6 +36,7 @@ mod newtype_body {
         pub world: String,
     }
 
+    /// Response type for the `my_endpoint` endpoint.
     #[response]
     pub struct Response {
         #[ruma_api(body)]
@@ -55,9 +55,7 @@ mod raw_body {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Does something.",
         method: POST,
-        name: "my_endpoint",
         rate_limited: false,
         authentication: None,
         history: {
@@ -65,6 +63,7 @@ mod raw_body {
         }
     };
 
+    /// Request type for the `my_endpoint` endpoint.
     #[request]
     pub struct Request {
         #[ruma_api(raw_body)]
@@ -80,6 +79,7 @@ mod raw_body {
         pub world: String,
     }
 
+    /// Response type for the `my_endpoint` endpoint.
     #[response]
     pub struct Response {
         #[ruma_api(raw_body)]
@@ -101,9 +101,7 @@ mod plain {
     pub struct Foo;
 
     const METADATA: Metadata = metadata! {
-        description: "Does something.",
         method: POST,
-        name: "my_endpoint",
         rate_limited: false,
         authentication: None,
         history: {
@@ -111,6 +109,7 @@ mod plain {
         }
     };
 
+    /// Request type for the `my_endpoint` endpoint.
     #[request]
     pub struct Request {
         pub q2: Foo,
@@ -125,6 +124,7 @@ mod plain {
         pub world: String,
     }
 
+    /// Response type for the `my_endpoint` endpoint.
     #[response]
     pub struct Response {
         pub q2: Vec<u8>,

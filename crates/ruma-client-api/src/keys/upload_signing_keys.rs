@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/keys/device_signing/upload`
+//!
+//! Publishes cross signing keys for the user.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -15,9 +17,7 @@ pub mod v3 {
     use crate::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
 
     const METADATA: Metadata = metadata! {
-        description: "Publishes cross signing keys for the user.",
         method: POST,
-        name: "upload_signing_keys",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -26,6 +26,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `upload_signing_keys` endpoint.
     #[request(error = UiaaResponse)]
     #[derive(Default)]
     pub struct Request<'a> {
@@ -52,6 +53,7 @@ pub mod v3 {
         pub user_signing_key: Option<Raw<CrossSigningKey>>,
     }
 
+    /// Response type for the `upload_signing_keys` endpoint.
     #[response(error = UiaaResponse)]
     #[derive(Default)]
     pub struct Response {}

@@ -1,6 +1,6 @@
 //! `GET /_matrix/key/*/server`
 //!
-//! Endpoint for retrieving a server's published signing keys.
+//! Get the homeserver's published signing keys.
 
 pub mod v2 {
     //! `/v2/` ([spec])
@@ -19,9 +19,7 @@ pub mod v2 {
     use crate::discovery::ServerSigningKeys;
 
     const METADATA: Metadata = metadata! {
-        description: "Gets the homeserver's published signing keys.",
         method: GET,
-        name: "get_server_keys",
         rate_limited: false,
         authentication: None,
         history: {
@@ -29,10 +27,12 @@ pub mod v2 {
         }
     };
 
+    /// Request type for the `get_server_keys` endpoint.
     #[request]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `get_server_keys` endpoint.
     #[response]
     pub struct Response {
         /// Queried server key, signed by the notary server.

@@ -1,6 +1,6 @@
 //! `GET /_matrix/federation/*/event_auth/{roomId}/{eventId}`
 //!
-//! Endpoint to retrieve the complete auth chain for a given event.
+//! Get the complete auth chain for a given event.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -14,9 +14,7 @@ pub mod v1 {
     use serde_json::value::RawValue as RawJsonValue;
 
     const METADATA: Metadata = metadata! {
-        description: "Retrieves the complete auth chain for a given event.",
         method: GET,
-        name: "get_event_authorization",
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
@@ -24,6 +22,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_event_authorization` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The room ID to get the auth chain for.
@@ -35,6 +34,7 @@ pub mod v1 {
         pub event_id: &'a EventId,
     }
 
+    /// Response type for the `get_event_authorization` endpoint.
     #[response]
     pub struct Response {
         /// The full set of authorization events that make up the state of the room,

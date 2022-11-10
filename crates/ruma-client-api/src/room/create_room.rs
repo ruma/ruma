@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/createRoom`
+//!
+//! Create a new room.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -29,9 +31,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Create a new room.",
         method: POST,
-        name: "create_room",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -40,6 +40,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `create_room` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request<'a> {
@@ -103,6 +104,7 @@ pub mod v3 {
         pub visibility: Visibility,
     }
 
+    /// Response type for the `create_room` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The created room's ID.

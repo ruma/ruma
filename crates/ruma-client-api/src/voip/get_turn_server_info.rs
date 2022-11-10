@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/voip/turnServer`
+//!
+//! Get credentials for the client to use when initiating VoIP calls.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get credentials for the client to use when initiating VoIP calls.",
         method: GET,
-        name: "turn_server_info",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -24,10 +24,12 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `turn_server_info` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `turn_server_info` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The username to use.

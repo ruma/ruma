@@ -1,6 +1,6 @@
 //! `GET /_matrix/identity/*/pubkey/ephemeral/isvalid`
 //!
-//! Endpoint to check for validity of short-term public key.
+//! Check whether a short-term public key is valid.
 
 pub mod v2 {
     //! `/v2/` ([spec])
@@ -14,9 +14,7 @@ pub mod v2 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Check whether a short-term public key is valid.",
         method: GET,
-        name: "validate_ephemeral_key",
         rate_limited: false,
         authentication: None,
         history: {
@@ -24,6 +22,7 @@ pub mod v2 {
         }
     };
 
+    /// Request type for the `validate_ephemeral_key` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The unpadded base64-encoded short-term public key to check.
@@ -31,6 +30,7 @@ pub mod v2 {
         pub public_key: &'a Base64,
     }
 
+    /// Response type for the `validate_ephemeral_key` endpoint.
     #[response]
     pub struct Response {
         /// Whether the short-term public key is recognised and is currently valid.

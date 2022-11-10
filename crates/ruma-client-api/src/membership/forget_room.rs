@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/rooms/{roomId}/forget`
+//!
+//! Forget a room.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Forget a room.",
         method: POST,
-        name: "forget_room",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -22,6 +22,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `forget_room` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room to forget.
@@ -29,6 +30,7 @@ pub mod v3 {
         pub room_id: &'a RoomId,
     }
 
+    /// Response type for the `forget_room` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

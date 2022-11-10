@@ -1,12 +1,14 @@
 //! `GET /_matrix/identity/versions` ([spec])
 //!
-//! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#get_matrixidentityversions
+//! Get the versions of the identity service API supported by this endpoint.
 //!
 //! Note: This endpoint was only implemented in/after 1.1, so a 404 could indicate the server only
 //! supports 1.0 endpoints. Please use [`server_status`](super::get_server_status) to
 //! double-check.
 //!
 //! Note: This endpoint does not contain an unstable variant for 1.0.
+//!
+//! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#get_matrixidentityversions
 
 use std::collections::BTreeMap;
 
@@ -16,9 +18,7 @@ use ruma_common::{
 };
 
 const METADATA: Metadata = metadata! {
-    description: "Get the versions of the identity service API supported by this endpoint.",
     method: GET,
-    name: "versions",
     rate_limited: false,
     authentication: None,
     history: {
@@ -26,10 +26,12 @@ const METADATA: Metadata = metadata! {
     }
 };
 
+/// Request type for the `versions` endpoint.
 #[request]
 #[derive(Default)]
 pub struct Request {}
 
+/// Response type for the `versions` endpoint.
 #[response]
 pub struct Response {
     /// A list of Matrix client API protocol versions supported by the endpoint.

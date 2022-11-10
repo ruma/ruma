@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/rooms/{roomId}/state`
+//!
+//! Get state events for a room.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -14,9 +16,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get state events for a room.",
         method: GET,
-        name: "get_state_events",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -25,6 +25,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_state_events` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room to look up the state for.
@@ -32,6 +33,7 @@ pub mod v3 {
         pub room_id: &'a RoomId,
     }
 
+    /// Response type for the `get_state_events` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// If the user is a member of the room this will be the current state of the room as a

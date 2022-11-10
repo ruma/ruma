@@ -1,4 +1,6 @@
 //! `PUT /_matrix/client/*/rooms/{roomId}/send/{eventType}/{txnId}`
+//!
+//! Send a message event to a room.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -15,9 +17,7 @@ pub mod v3 {
     use serde_json::value::to_raw_value as to_raw_json_value;
 
     const METADATA: Metadata = metadata! {
-        description: "Send a message event to a room.",
         method: PUT,
-        name: "create_message_event",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -26,6 +26,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `create_message_event` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room to send the event to.
@@ -64,6 +65,7 @@ pub mod v3 {
         pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
     }
 
+    /// Response type for the `create_message_event` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// A unique identifier for the event.

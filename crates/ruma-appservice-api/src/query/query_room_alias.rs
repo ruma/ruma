@@ -13,9 +13,7 @@ pub mod v1 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "This endpoint is invoked by the homeserver on an application service to query the existence of a given room alias.",
         method: GET,
-        name: "query_room_alias",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -23,6 +21,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `query_room_alias` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The room alias being queried.
@@ -30,6 +29,7 @@ pub mod v1 {
         pub room_alias: &'a RoomAliasId,
     }
 
+    /// Response type for the `query_room_alias` endpoint.
     #[response]
     #[derive(Default)]
     pub struct Response {}

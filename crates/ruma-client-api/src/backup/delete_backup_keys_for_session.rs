@@ -1,4 +1,6 @@
 //! `DELETE /_matrix/client/*/room_keys/keys/{roomId}/{sessionId}`
+//!
+//! Delete keys from a backup for a given session.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -12,9 +14,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Delete keys from a backup for a given session.",
         method: DELETE,
-        name: "delete_backup_keys_for_session",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -24,6 +24,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `delete_backup_keys_for_session` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The backup version from which to delete keys.
@@ -39,6 +40,7 @@ pub mod v3 {
         pub session_id: &'a str,
     }
 
+    /// Response type for the `delete_backup_keys_for_session` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// An opaque string representing stored keys in the backup.

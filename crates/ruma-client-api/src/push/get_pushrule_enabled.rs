@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/pushrules/{scope}/{kind}/{ruleId}/enabled`
+//!
+//! This endpoint gets whether the specified push rule is enabled.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     use crate::push::{RuleKind, RuleScope};
 
     const METADATA: Metadata = metadata! {
-        description: "This endpoint gets whether the specified push rule is enabled.",
         method: GET,
-        name: "get_pushrule_enabled",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -24,6 +24,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_pushrule_enabled` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The scope to fetch a rule from.
@@ -39,6 +40,7 @@ pub mod v3 {
         pub rule_id: &'a str,
     }
 
+    /// Response type for the `get_pushrule_enabled` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// Whether the push rule is enabled or not.

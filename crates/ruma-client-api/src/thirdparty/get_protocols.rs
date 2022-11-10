@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/thirdparty/protocols`
+//!
+//! Fetches the overall metadata about protocols supported by the homeserver.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -14,9 +16,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Fetches the overall metadata about protocols supported by the homeserver.",
         method: GET,
-        name: "get_protocols",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -25,10 +25,12 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_protocols` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `get_protocols` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// Metadata about protocols supported by the homeserver.

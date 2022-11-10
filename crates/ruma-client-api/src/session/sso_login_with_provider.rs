@@ -14,9 +14,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get the SSO login identity provider url.",
         method: GET,
-        name: "sso_login_with_provider",
         rate_limited: false,
         authentication: None,
         history: {
@@ -25,6 +23,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `sso_login_with_provider` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The ID of the provider to use for SSO login.
@@ -38,6 +37,7 @@ pub mod v3 {
         pub redirect_url: &'a str,
     }
 
+    /// Response type for the `sso_login_with_provider` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// Redirect URL to the SSO identity provider.

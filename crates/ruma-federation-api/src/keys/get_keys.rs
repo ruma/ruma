@@ -1,6 +1,6 @@
 //! `POST /_matrix/federation/*/user/keys/query`
 //!
-//! Module for getting information about the current devices and identity keys for the given users
+//! Get the current devices and identity keys for the given users.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -18,9 +18,7 @@ pub mod v1 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Returns the current devices and identity keys for the given users.",
         method: POST,
-        name: "get_keys",
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
@@ -28,6 +26,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_keys` endpoint.
     #[request]
     pub struct Request {
         /// The keys to be downloaded.
@@ -36,6 +35,7 @@ pub mod v1 {
         pub device_keys: BTreeMap<OwnedUserId, Vec<OwnedDeviceId>>,
     }
 
+    /// Response type for the `get_keys` endpoint.
     #[response]
     #[derive(Default)]
     pub struct Response {

@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/devices`
+//!
+//! Get registered devices for authenticated user.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     use crate::device::Device;
 
     const METADATA: Metadata = metadata! {
-        description: "Get registered devices for authenticated user.",
         method: GET,
-        name: "get_devices",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -24,10 +24,12 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_devices` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `get_devices` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// A list of all registered devices for this user

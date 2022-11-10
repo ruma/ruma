@@ -1,4 +1,6 @@
 //! `PUT /_matrix/client/*/room_keys/keys/{roomId}`
+//!
+//! Store keys in the backup for a room.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -18,9 +20,7 @@ pub mod v3 {
     use crate::backup::KeyBackupData;
 
     const METADATA: Metadata = metadata! {
-        description: "Store keys in the backup for a room.",
         method: PUT,
-        name: "add_backup_keys_for_room",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -30,6 +30,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `add_backup_keys_for_room` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The backup version to add keys to.
@@ -46,6 +47,7 @@ pub mod v3 {
         pub sessions: BTreeMap<String, Raw<KeyBackupData>>,
     }
 
+    /// Response type for the `add_backup_keys_for_room` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// An opaque string representing stored keys in the backup.

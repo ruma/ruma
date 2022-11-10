@@ -1,6 +1,6 @@
 //! `GET /_matrix/federation/*/user/devices/{userId}`
 //!
-//! Endpoint to get information about a user's devices
+//! Get information about a user's devices.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -18,9 +18,7 @@ pub mod v1 {
     use serde::{Deserialize, Serialize};
 
     const METADATA: Metadata = metadata! {
-        description: "Gets information on all of the user's devices.",
         method: GET,
-        name: "get_devices",
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
@@ -28,6 +26,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_devices` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The user ID to retrieve devices for.
@@ -37,6 +36,7 @@ pub mod v1 {
         pub user_id: &'a UserId,
     }
 
+    /// Response type for the `get_devices` endpoint.
     #[response]
     pub struct Response {
         /// The user ID devices were requested for.

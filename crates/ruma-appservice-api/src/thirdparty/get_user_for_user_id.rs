@@ -1,6 +1,6 @@
 //! `GET /_matrix/app/*/thirdparty/user`
 //!
-//! Endpoint to retrieve an array of third party users from a Matrix User ID.
+//! Retrieve an array of third party users from a Matrix User ID.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -15,9 +15,7 @@ pub mod v1 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Retrieve an array of third party users from a Matrix User ID.",
         method: GET,
-        name: "get_user_for_user_id",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -25,6 +23,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_user_for_user_id` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The Matrix User ID to look up.
@@ -32,6 +31,7 @@ pub mod v1 {
         pub userid: &'a UserId,
     }
 
+    /// Response type for the `get_user_for_user_id` endpoint.
     #[response]
     pub struct Response {
         /// List of matched third party users.

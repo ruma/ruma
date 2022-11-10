@@ -9,9 +9,7 @@ mod get {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Does something.",
         method: GET,
-        name: "no_fields",
         rate_limited: false,
         authentication: None,
         history: {
@@ -19,9 +17,11 @@ mod get {
         }
     };
 
+    /// Request type for the `no_fields` endpoint.
     #[request]
     pub struct Request {}
 
+    /// Response type for the `no_fields` endpoint.
     #[response]
     pub struct Response {}
 }
@@ -33,9 +33,7 @@ mod post {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Does something.",
         method: POST,
-        name: "no_fields",
         rate_limited: false,
         authentication: None,
         history: {
@@ -43,9 +41,11 @@ mod post {
         }
     };
 
+    /// Request type for the `no_fields` endpoint.
     #[request]
     pub struct Request {}
 
+    /// Response type for the `no_fields` endpoint.
     #[response]
     pub struct Response {}
 }

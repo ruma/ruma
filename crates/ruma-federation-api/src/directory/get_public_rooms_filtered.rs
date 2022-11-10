@@ -1,6 +1,6 @@
 //! `POST /_matrix/federation/*/publicRooms`
 //!
-//! Endpoint to query a homeserver's public rooms with an optional filter.
+//! Get a homeserver's public rooms with an optional filter.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -15,9 +15,7 @@ pub mod v1 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get the list of rooms in this homeserver's public directory.",
         method: POST,
-        name: "get_public_rooms_filtered",
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
@@ -25,6 +23,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_public_rooms_filtered` endpoint.
     #[request]
     #[derive(Default)]
     pub struct Request<'a> {
@@ -45,6 +44,7 @@ pub mod v1 {
         pub room_network: RoomNetwork<'a>,
     }
 
+    /// Response type for the `get_public_rooms_filtered` endpoint.
     #[response]
     #[derive(Default)]
     pub struct Response {

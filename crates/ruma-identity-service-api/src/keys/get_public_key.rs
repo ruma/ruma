@@ -1,6 +1,6 @@
 //! `GET /_matrix/identity/*/pubkey/{keyId}`
 //!
-//! Endpoint to retrieve the public key for a key ID.
+//! Get the public key for the given key ID.
 
 pub mod v2 {
     //! `/v2/` ([spec])
@@ -15,9 +15,7 @@ pub mod v2 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get the public key for the given key ID.",
         method: GET,
-        name: "get_public_key",
         rate_limited: false,
         authentication: None,
         history: {
@@ -25,6 +23,7 @@ pub mod v2 {
         }
     };
 
+    /// Request type for the `get_public_key` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The ID of the key.
@@ -32,6 +31,7 @@ pub mod v2 {
         pub key_id: &'a ServerSigningKeyId,
     }
 
+    /// Response type for the `get_public_key` endpoint.
     #[response]
     pub struct Response {
         /// Unpadded base64-encoded public key.

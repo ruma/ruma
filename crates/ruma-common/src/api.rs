@@ -70,9 +70,7 @@ use crate::UserId;
 ///
 ///     // const METADATA: Metadata = metadata! { ... };
 ///     # const METADATA: Metadata = metadata! {
-///     #     description: "Does something.",
 ///     #     method: POST,
-///     #     name: "some_endpoint",
 ///     #     rate_limited: false,
 ///     #     authentication: None,
 ///     #     history: {
@@ -108,9 +106,7 @@ use crate::UserId;
 ///
 ///     // const METADATA: Metadata = metadata! { ... };
 ///     # const METADATA: Metadata = metadata! {
-///     #     description: "Does something.",
 ///     #     method: POST,
-///     #     name: "some_endpoint",
 ///     #     rate_limited: false,
 ///     #     authentication: None,
 ///     #     history: {
@@ -175,9 +171,7 @@ pub use ruma_macros::request;
 ///
 ///     // const METADATA: Metadata = metadata! { ... };
 ///     # const METADATA: Metadata = metadata! {
-///     #     description: "Does something.",
 ///     #     method: POST,
-///     #     name: "some_endpoint",
 ///     #     rate_limited: false,
 ///     #     authentication: None,
 ///     #     history: {
@@ -207,9 +201,7 @@ pub use ruma_macros::request;
 ///
 ///     // const METADATA: Metadata = metadata! { ... };
 ///     # const METADATA: Metadata = metadata! {
-///     #     description: "Does something.",
 ///     #     method: POST,
-///     #     name: "some_endpoint",
 ///     #     rate_limited: false,
 ///     #     authentication: None,
 ///     #     history: {
@@ -436,9 +428,7 @@ pub enum AuthScheme {
 /// ```
 /// # use ruma_common::{metadata, api::Metadata};
 /// const _: Metadata = metadata! {
-///     description: "Endpoint description.",
 ///     method: GET, // one of the associated constants of http::Method
-///     name: "enpdoint_name",
 ///     rate_limited: true,
 ///     authentication: AccessToken, // one of the variants of api::AuthScheme
 ///

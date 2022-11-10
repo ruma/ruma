@@ -5,7 +5,7 @@
 //!
 //! [identity-api]: https://spec.matrix.org/v1.4/identity-service-api/
 
-// #![warn(missing_docs)] FIXME
+#![warn(missing_docs)]
 
 use std::fmt;
 

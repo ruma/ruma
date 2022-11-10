@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/knock/{roomIdOrAlias}`
+//!
+//! Knock on a room.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Knock on a room.",
         method: POST,
-        name: "knock_room",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -22,6 +22,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `knock_room` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room the user should knock on.
@@ -40,6 +41,7 @@ pub mod v3 {
         pub server_name: &'a [OwnedServerName],
     }
 
+    /// Response type for the `knock_room` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The room that the user knocked on.

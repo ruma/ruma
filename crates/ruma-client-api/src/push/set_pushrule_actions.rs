@@ -1,4 +1,7 @@
 //! `PUT /_matrix/client/*/pushrules/{scope}/{kind}/{ruleId}/actions`
+//!
+//! This endpoint allows clients to change the actions of a push rule. This can be used to change
+//! the actions of builtin rules.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -14,9 +17,7 @@ pub mod v3 {
     use crate::push::{RuleKind, RuleScope};
 
     const METADATA: Metadata = metadata! {
-        description: "This endpoint allows clients to change the actions of a push rule. This can be used to change the actions of builtin rules.",
         method: PUT,
-        name: "set_pushrule_actions",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -25,6 +26,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `set_pushrule_actions` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The scope to fetch a rule from.
@@ -43,6 +45,7 @@ pub mod v3 {
         pub actions: Vec<Action>,
     }
 
+    /// Response type for the `set_pushrule_actions` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

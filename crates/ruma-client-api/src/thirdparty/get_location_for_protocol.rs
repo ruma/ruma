@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/thirdparty/location/{protocol}`
+//!
+//! Fetches third party locations for a protocol.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -14,9 +16,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Fetches third party locations for a protocol.",
         method: GET,
-        name: "get_location_for_protocol",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -25,6 +25,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_location_for_protocol` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The protocol used to communicate to the third party network.
@@ -37,6 +38,7 @@ pub mod v3 {
         pub fields: BTreeMap<String, String>,
     }
 
+    /// Response type for the `get_location_for_protocol` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// List of matched third party locations.

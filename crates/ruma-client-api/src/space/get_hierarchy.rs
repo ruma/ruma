@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/rooms/{roomId}/hierarchy`
+//!
+//! Paginates over the space tree in a depth-first manner to locate child rooms of a given space.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -14,9 +16,7 @@ pub mod v1 {
     use crate::space::SpaceHierarchyRoomsChunk;
 
     const METADATA: Metadata = metadata! {
-        description: "Paginates over the space tree in a depth-first manner to locate child rooms of a given space.",
         method: GET,
-        name: "hierarchy",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -25,6 +25,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `hierarchy` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room ID of the space to get a hierarchy for.
@@ -58,6 +59,7 @@ pub mod v1 {
         pub suggested_only: bool,
     }
 
+    /// Response type for the `hierarchy` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {

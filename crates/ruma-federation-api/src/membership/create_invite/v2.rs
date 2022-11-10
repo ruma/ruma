@@ -12,9 +12,7 @@ use ruma_common::{
 use serde_json::value::RawValue as RawJsonValue;
 
 const METADATA: Metadata = metadata! {
-    description: "Invites a remote user to a room.",
     method: PUT,
-    name: "create_invite",
     rate_limited: false,
     authentication: ServerSignatures,
     history: {
@@ -22,6 +20,7 @@ const METADATA: Metadata = metadata! {
     }
 };
 
+/// Request type for the `create_invite` endpoint.
 #[request]
 pub struct Request<'a> {
     /// The room ID that the user is being invited to.
@@ -42,6 +41,7 @@ pub struct Request<'a> {
     pub invite_room_state: &'a [Raw<AnyStrippedStateEvent>],
 }
 
+/// Response type for the `create_invite` endpoint.
 #[response]
 pub struct Response {
     /// The signed invite event.

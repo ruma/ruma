@@ -1,4 +1,6 @@
 //! `PUT /_matrix/client/*/profile/{userId}/avatar_url`
+//!
+//! Set the avatar URL of the user.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Set the avatar URL of the user.",
         method: PUT,
-        name: "set_avatar_url",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -22,6 +22,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `set_avatar_url` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The user whose avatar URL will be set.
@@ -54,6 +55,7 @@ pub mod v3 {
         pub blurhash: Option<&'a str>,
     }
 
+    /// Response type for the `set_avatar_url` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

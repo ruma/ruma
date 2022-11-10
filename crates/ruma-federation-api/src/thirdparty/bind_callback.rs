@@ -20,9 +20,7 @@ pub mod v1 {
     use serde::{Deserialize, Serialize};
 
     const METADATA: Metadata = metadata! {
-        description: "Used by identity servers to notify the homeserver that one of its users has bound a third party identifier successfully",
         method: PUT,
-        name: "bind_callback",
         rate_limited: false,
         authentication: None,
         history: {
@@ -30,6 +28,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `bind_callback` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The type of third party identifier.
@@ -49,6 +48,7 @@ pub mod v1 {
         pub invites: &'a [ThirdPartyInvite],
     }
 
+    /// Response type for the `bind_callback` endpoint.
     #[response]
     pub struct Response {}
 

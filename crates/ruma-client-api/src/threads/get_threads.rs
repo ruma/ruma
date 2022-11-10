@@ -19,9 +19,7 @@ pub mod v1 {
     use crate::PrivOwnedStr;
 
     const METADATA: Metadata = metadata! {
-        description: "Retrieve a list of threads in a room, with optional filters.",
         method: GET,
-        name: "get_thread_roots",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -30,6 +28,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_thread_roots` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room ID where the thread roots are located.
@@ -57,6 +56,7 @@ pub mod v1 {
         pub limit: Option<UInt>,
     }
 
+    /// Response type for the `get_thread_roots` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The thread roots, ordered by the `latest_event` in each event's aggregation bundle.

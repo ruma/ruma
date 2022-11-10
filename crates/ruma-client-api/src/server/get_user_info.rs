@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/admin/whois/{userId}`
+//!
+//! Get information about a particular user.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -14,9 +16,7 @@ pub mod v3 {
     use serde::{Deserialize, Serialize};
 
     const METADATA: Metadata = metadata! {
-        description: "Get information about a particular user.",
         method: GET,
-        name: "get_user_info",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -25,6 +25,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_user_info` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The user to look up.
@@ -32,6 +33,7 @@ pub mod v3 {
         pub user_id: &'a UserId,
     }
 
+    /// Response type for the `get_user_info` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {

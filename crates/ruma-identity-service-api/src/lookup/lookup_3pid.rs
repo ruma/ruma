@@ -1,6 +1,6 @@
 //! `POST /_matrix/identity/*/lookup`
 //!
-//! Endpoint to look up set of Matrix IDs which are bound to 3PIDs.
+//! Looks up the set of Matrix User IDs which have bound the 3PIDs given, if bindings are available.
 
 pub mod v2 {
     //! `/v2/` ([spec])
@@ -17,9 +17,7 @@ pub mod v2 {
     use crate::lookup::IdentifierHashingAlgorithm;
 
     const METADATA: Metadata = metadata! {
-        description: "Looks up the set of Matrix User IDs which have bound the 3PIDs given, if bindings are available.",
         method: POST,
-        name: "lookup_3pid",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -27,6 +25,7 @@ pub mod v2 {
         }
     };
 
+    /// Request type for the `lookup_3pid` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The algorithm the client is using to encode the `addresses`. This should be one of the
@@ -44,6 +43,7 @@ pub mod v2 {
         pub addresses: &'a [String],
     }
 
+    /// Response type for the `lookup_3pid` endpoint.
     #[response]
     pub struct Response {
         /// Any applicable mappings of `addresses` to Matrix User IDs.

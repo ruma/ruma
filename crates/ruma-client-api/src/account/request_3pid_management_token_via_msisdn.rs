@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/account/3pid/msisdn/requestToken`
+//!
+//! Request a 3PID management token with a phone number.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -14,9 +16,7 @@ pub mod v3 {
     use crate::account::{IdentityServerInfo, IncomingIdentityServerInfo};
 
     const METADATA: Metadata = metadata! {
-        description: "Request a 3PID management token with a phone number.",
         method: POST,
-        name: "request_3pid_management_token_via_msisdn",
         rate_limited: false,
         authentication: None,
         history: {
@@ -25,6 +25,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `request_3pid_management_token_via_msisdn` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// Client-generated secret string used to protect this session.
@@ -50,6 +51,7 @@ pub mod v3 {
         pub identity_server_info: Option<IdentityServerInfo<'a>>,
     }
 
+    /// Response type for the `request_3pid_management_token_via_msisdn` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The session identifier given by the identity server.

@@ -1,6 +1,6 @@
 //! `GET /_matrix/identity/*/account`
 //!
-//! Gets information about what user owns the access token used in the request.
+//! Get information about what user owns the access token used in the request.
 
 pub mod v2 {
     //! `/v2/` ([spec])
@@ -13,9 +13,7 @@ pub mod v2 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Gets information about what user owns the access token used in the request.",
         method: POST,
-        name: "get_account_information",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -23,10 +21,12 @@ pub mod v2 {
         }
     };
 
+    /// Request type for the `get_account_information` endpoint.
     #[request]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `get_account_information` endpoint.
     #[response]
     pub struct Response {
         /// The user ID which registered the token.

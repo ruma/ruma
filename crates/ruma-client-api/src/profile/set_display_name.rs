@@ -1,4 +1,6 @@
 //! `PUT /_matrix/client/*/profile/{userId}/displayname`
+//!
+//! Set the display name of the user.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Set the display name of the user.",
         method: PUT,
-        name: "set_display_name",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -22,6 +22,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `set_display_name` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The user whose display name will be set.
@@ -33,6 +34,7 @@ pub mod v3 {
         pub displayname: Option<&'a str>,
     }
 
+    /// Response type for the `set_display_name` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

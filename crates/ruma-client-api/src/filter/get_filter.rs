@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/user/{userId}/filter/{filterId}`
+//!
+//! Retrieve a previously created filter.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     use crate::filter::IncomingFilterDefinition;
 
     const METADATA: Metadata = metadata! {
-        description: "Retrieve a previously created filter.",
         method: GET,
-        name: "get_filter",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -24,6 +24,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_filter` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The user ID to download a filter for.
@@ -35,6 +36,7 @@ pub mod v3 {
         pub filter_id: &'a str,
     }
 
+    /// Response type for the `get_filter` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The filter definition.

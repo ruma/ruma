@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/profile/{userId}/displayname`
+//!
+//! Get the display name of a user.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get the display name of a user.",
         method: GET,
-        name: "get_display_name",
         rate_limited: false,
         authentication: None,
         history: {
@@ -22,6 +22,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_display_name` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The user whose display name will be retrieved.
@@ -29,6 +30,7 @@ pub mod v3 {
         pub user_id: &'a UserId,
     }
 
+    /// Response type for the `get_display_name` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {

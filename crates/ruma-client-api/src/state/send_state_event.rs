@@ -1,4 +1,6 @@
 //! `PUT /_matrix/client/*/rooms/{roomId}/state/{eventType}/{stateKey}`
+//!
+//! Send a state event to a room associated with a given state key.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -17,9 +19,7 @@ pub mod v3 {
     use serde_json::value::to_raw_value as to_raw_json_value;
 
     const METADATA: Metadata = metadata! {
-        description: "Send a state event to a room associated with a given state key.",
         method: PUT,
-        name: "send_state_event",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -28,15 +28,7 @@ pub mod v3 {
         }
     };
 
-    #[response(error = crate::Error)]
-    pub struct Response {
-        /// A unique identifier for the event.
-        pub event_id: OwnedEventId,
-    }
-
-    /// Data for a request to the `send_state_event` API endpoint.
-    ///
-    /// Send a state event to a room associated with a given state key.
+    /// Request type for the `send_state_event` endpoint.
     #[derive(Clone, Debug, Incoming)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[incoming_derive(!Deserialize)]
@@ -99,6 +91,13 @@ pub mod v3 {
         ) -> Self {
             Self { room_id, event_type, state_key, body, timestamp: None }
         }
+    }
+
+    /// Response type for the `send_state_event` endpoint.
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// A unique identifier for the event.
+        pub event_id: OwnedEventId,
     }
 
     impl Response {

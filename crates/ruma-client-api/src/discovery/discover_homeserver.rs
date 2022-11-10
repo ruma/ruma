@@ -1,6 +1,8 @@
 //! `GET /.well-known/matrix/client` ([spec])
 //!
 //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#getwell-knownmatrixclient
+//!
+//! Get discovery information about the domain.
 
 use ruma_common::{
     api::{request, response, Metadata},
@@ -9,9 +11,7 @@ use ruma_common::{
 use serde::{Deserialize, Serialize};
 
 const METADATA: Metadata = metadata! {
-    description: "Get discovery information about the domain.",
     method: GET,
-    name: "client_well_known",
     rate_limited: false,
     authentication: None,
     history: {
@@ -19,10 +19,12 @@ const METADATA: Metadata = metadata! {
     }
 };
 
+/// Request type for the `client_well_known` endpoint.
 #[request(error = crate::Error)]
 #[derive(Default)]
 pub struct Request {}
 
+/// Response type for the `client_well_known` endpoint.
 #[response(error = crate::Error)]
 pub struct Response {
     /// Information about the homeserver to connect to.

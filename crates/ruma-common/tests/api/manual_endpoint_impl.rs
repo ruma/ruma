@@ -22,12 +22,9 @@ pub struct Request {
 }
 
 const METADATA: Metadata = Metadata {
-    description: "Add an alias to a room.",
     method: Method::PUT,
-    name: "create_alias",
     rate_limited: false,
     authentication: AuthScheme::None,
-
     history: VersionHistory::new(
         &["/_matrix/client/unstable/directory/room/:room_alias"],
         &[

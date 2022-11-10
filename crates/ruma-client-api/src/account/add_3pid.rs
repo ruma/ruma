@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/account/3pid/add`
+//!
+//! Add contact information to a user's account
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     use crate::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
 
     const METADATA: Metadata = metadata! {
-        description: "Add contact information to a user's account",
         method: POST,
-        name: "add_3pid",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -24,6 +24,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `add_3pid` endpoint.
     #[request(error = UiaaResponse)]
     pub struct Request<'a> {
         /// Additional information for the User-Interactive Authentication API.
@@ -37,6 +38,7 @@ pub mod v3 {
         pub sid: &'a SessionId,
     }
 
+    /// Response type for the `add_3pid` endpoint.
     #[response(error = UiaaResponse)]
     #[derive(Default)]
     pub struct Response {}

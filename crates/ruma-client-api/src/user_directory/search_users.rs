@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/user_directory/search`
+//!
+//! Performs a search for users.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -14,9 +16,7 @@ pub mod v3 {
     use serde::{Deserialize, Serialize};
 
     const METADATA: Metadata = metadata! {
-        description: "Performs a search for users.",
         method: POST,
-        name: "search_users",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -25,6 +25,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `search_users` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The term to search for.
@@ -45,6 +46,7 @@ pub mod v3 {
         pub language: Option<String>,
     }
 
+    /// Response type for the `search_users` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// Ordered by rank and then whether or not profile info is available.

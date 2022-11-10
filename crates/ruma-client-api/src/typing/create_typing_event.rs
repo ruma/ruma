@@ -1,4 +1,6 @@
 //! `PUT /_matrix/client/*/rooms/{roomId}/typing/{userId}`
+//!
+//! Send a typing event to a room.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -15,8 +17,6 @@ pub mod v3 {
 
     const METADATA: Metadata = metadata! {
         method: PUT,
-        name: "create_typing_event",
-        description: "Send a typing event to a room.",
         authentication: AccessToken,
         rate_limited: true,
         history: {
@@ -25,6 +25,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `create_typing_event` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room in which the user is typing.
@@ -40,6 +41,7 @@ pub mod v3 {
         pub state: Typing,
     }
 
+    /// Response type for the `create_typing_event` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

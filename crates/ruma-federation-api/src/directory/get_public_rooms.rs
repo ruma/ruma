@@ -1,6 +1,6 @@
 //! `GET /_matrix/federation/*/publicRooms`
 //!
-//! Endpoint to query a homeserver's public rooms.
+//! Get all the public rooms for the homeserver.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -15,9 +15,7 @@ pub mod v1 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Gets all the public rooms for the homeserver.",
         method: GET,
-        name: "get_public_rooms",
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
@@ -25,6 +23,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_public_rooms` endpoint.
     #[request]
     #[derive(Default)]
     pub struct Request<'a> {
@@ -44,6 +43,7 @@ pub mod v1 {
         pub room_network: RoomNetwork<'a>,
     }
 
+    /// Response type for the `get_public_rooms` endpoint.
     #[response]
     #[derive(Default)]
     pub struct Response {

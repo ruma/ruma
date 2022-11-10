@@ -1,4 +1,6 @@
 //! `DELETE /_matrix/client/*/pushrules/{scope}/{kind}/{ruleId}`
+//!
+//! This endpoint removes the push rule defined in the path.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     use crate::push::{RuleKind, RuleScope};
 
     const METADATA: Metadata = metadata! {
-        description: "This endpoint removes the push rule defined in the path.",
         method: DELETE,
-        name: "delete_pushrule",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -24,6 +24,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `delete_pushrule` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The scope to delete from.
@@ -39,6 +40,7 @@ pub mod v3 {
         pub rule_id: &'a str,
     }
 
+    /// Response type for the `delete_pushrule` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/user/{userId}/openid/request_token`
+//!
+//! Request an OpenID 1.0 token to verify identity with a third party.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -14,9 +16,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Request an OpenID 1.0 token to verify identity with a third party.",
         method: POST,
-        name: "request_openid_token",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -25,6 +25,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `request_openid_token` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// User ID of authenticated user.
@@ -32,6 +33,7 @@ pub mod v3 {
         pub user_id: &'a UserId,
     }
 
+    /// Response type for the `request_openid_token` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// Access token for verifying user's identity.

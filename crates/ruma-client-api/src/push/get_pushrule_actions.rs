@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/pushrules/{scope}/{kind}/{ruleId}/actions`
+//!
+//! This endpoint get the actions for the specified push rule.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -14,9 +16,7 @@ pub mod v3 {
     use crate::push::{RuleKind, RuleScope};
 
     const METADATA: Metadata = metadata! {
-        description: "This endpoint get the actions for the specified push rule.",
         method: GET,
-        name: "get_pushrule_actions",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -25,6 +25,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_pushrule_actions` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The scope to fetch a rule from.
@@ -40,6 +41,7 @@ pub mod v3 {
         pub rule_id: &'a str,
     }
 
+    /// Response type for the `get_pushrule_actions` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The actions to perform for this rule.

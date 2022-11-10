@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/directory/room/{roomAlias}`
+//!
+//! Resolve a room alias to a room ID.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Resolve a room alias to a room ID.",
         method: GET,
-        name: "get_alias",
         rate_limited: false,
         authentication: None,
         history: {
@@ -22,6 +22,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_alias` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room alias.
@@ -29,6 +30,7 @@ pub mod v3 {
         pub room_alias: &'a RoomAliasId,
     }
 
+    /// Response type for the `get_alias` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The room ID for this room alias.

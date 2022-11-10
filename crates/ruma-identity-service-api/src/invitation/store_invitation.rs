@@ -1,6 +1,6 @@
 //! `POST /_matrix/identity/*/store-invite`
 //!
-//! Endpoint to store pending invitations to a user's 3PID.
+//! Store pending invitations to a user's third-party ID.
 
 pub mod v2 {
     //! `/v2/` ([spec])
@@ -17,9 +17,7 @@ pub mod v2 {
     use serde::{ser::SerializeSeq, Deserialize, Serialize};
 
     const METADATA: Metadata = metadata! {
-        description: "Store pending invitations to a user's 3PID.",
         method: POST,
-        name: "store_invitation",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -27,6 +25,7 @@ pub mod v2 {
         }
     };
 
+    /// Request type for the `store_invitation` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The type of the third party identifier for the invited user.
@@ -82,6 +81,7 @@ pub mod v2 {
         pub sender_avatar_url: Option<&'a MxcUri>,
     }
 
+    /// Response type for the `store_invitation` endpoint.
     #[response]
     pub struct Response {
         /// The generated token.

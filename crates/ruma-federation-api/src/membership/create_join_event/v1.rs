@@ -11,8 +11,6 @@ use serde_json::value::RawValue as RawJsonValue;
 use super::RoomState;
 
 const METADATA: Metadata = metadata! {
-    description: "Send a join event to a resident server.",
-    name: "create_join_event",
     method: PUT,
     rate_limited: false,
     authentication: ServerSignatures,
@@ -21,6 +19,7 @@ const METADATA: Metadata = metadata! {
     }
 };
 
+/// Request type for the `create_join_event` endpoint.
 #[request]
 pub struct Request<'a> {
     /// The room ID that is about to be joined.
@@ -38,6 +37,7 @@ pub struct Request<'a> {
     pub pdu: &'a RawJsonValue,
 }
 
+/// Response type for the `create_join_event` endpoint.
 #[response]
 pub struct Response {
     /// Full state and auth chain of the room prior to the join event.

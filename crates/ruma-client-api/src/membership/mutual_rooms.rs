@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/user/mutual_rooms/{user_id}`
+//!
+//! Get mutual rooms with another user.
 
 pub mod unstable {
     //! `/unstable/` ([spec])
@@ -11,9 +13,7 @@ pub mod unstable {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get mutual rooms with another user.",
         method: GET,
-        name: "mutual_rooms",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -21,6 +21,7 @@ pub mod unstable {
         }
     };
 
+    /// Request type for the `mutual_rooms` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The user to search mutual rooms for.
@@ -28,6 +29,7 @@ pub mod unstable {
         pub user_id: &'a UserId,
     }
 
+    /// Response type for the `mutual_rooms` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// A list of rooms the user is in together with the authenticated user.

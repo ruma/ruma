@@ -1,6 +1,6 @@
 //! `GET /_matrix/identity/*/terms`
 //!
-//! Endpoint to retrieve the terms of service of an identity server.
+//! Get the terms of service of an identity server.
 
 pub mod v2 {
     //! `/v2/` ([spec])
@@ -16,9 +16,7 @@ pub mod v2 {
     use serde::{Deserialize, Serialize};
 
     const METADATA: Metadata = metadata! {
-        description: "Gets all the terms of service offered by the server.",
         method: GET,
-        name: "get_terms_of_service",
         rate_limited: false,
         authentication: None,
         history: {
@@ -26,10 +24,12 @@ pub mod v2 {
         }
     };
 
+    /// Request type for the `get_terms_of_service` endpoint.
     #[request]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `get_terms_of_service` endpoint.
     #[response]
     pub struct Response {
         /// The policies the server offers.

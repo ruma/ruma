@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/pushrules/global/`
+//!
+//! Retrieve all push rulesets in the global scope for this user.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -12,9 +14,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Retrieve all push rulesets in the global scope for this user.",
         method: GET,
-        name: "get_pushrules_global_scope",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -23,10 +23,12 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_pushrules_global_scope` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `get_pushrules_global_scope` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The global ruleset.

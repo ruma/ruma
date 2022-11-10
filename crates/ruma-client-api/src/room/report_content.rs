@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/rooms/{roomId}/report/{eventId}`
+//!
+//! Report content as inappropriate.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -12,9 +14,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Report content as inappropriate.",
         method: POST,
-        name: "report_content",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -23,6 +23,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `report_content` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// Room in which the event to be reported is located.
@@ -42,6 +43,7 @@ pub mod v3 {
         pub reason: Option<&'a str>,
     }
 
+    /// Response type for the `report_content` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

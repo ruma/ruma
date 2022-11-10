@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/rooms/{roomId}/members`
+//!
+//! Get membership events for a room.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -16,9 +18,7 @@ pub mod v3 {
     use crate::PrivOwnedStr;
 
     const METADATA: Metadata = metadata! {
-        description: "Get membership events for a room.",
         method: GET,
-        name: "get_member_events",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -27,6 +27,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_member_events` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room to get the member events for.
@@ -58,6 +59,7 @@ pub mod v3 {
         pub not_membership: Option<MembershipEventFilter>,
     }
 
+    /// Response type for the `get_member_events` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// A list of member events.

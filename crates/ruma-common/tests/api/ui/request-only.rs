@@ -8,9 +8,7 @@ use ruma_common::{
 };
 
 const METADATA: Metadata = metadata! {
-    description: "Does something.",
     method: POST, // An `http::Method` constant. No imports required.
-    name: "some_endpoint",
     rate_limited: false,
     authentication: None,
     history: {

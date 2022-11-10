@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/register/available`
+//!
+//! Checks to see if a username is available, and valid, for the server.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Checks to see if a username is available, and valid, for the server.",
         method: GET,
-        name: "get_username_availability",
         rate_limited: true,
         authentication: None,
         history: {
@@ -22,6 +22,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_username_availability` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The username to check the availability of.
@@ -29,6 +30,7 @@ pub mod v3 {
         pub username: &'a str,
     }
 
+    /// Response type for the `get_username_availability` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// A flag to indicate that the username is available.

@@ -1,6 +1,7 @@
 //! `GET /_matrix/identity/*/pubkey/isvalid`
 //!
-//! Endpoint to check for valid public key with an identity server.
+//! Check whether a long-term public key is valid. The response should always be the same, provided
+//! the key exists.
 
 pub mod v2 {
     //! `/v2/` ([spec])
@@ -14,9 +15,7 @@ pub mod v2 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Check whether a long-term public key is valid. The response should always be the same, provided the key exists.",
         method: GET,
-        name: "check_public_key_validity",
         rate_limited: false,
         authentication: None,
         history: {
@@ -24,6 +23,7 @@ pub mod v2 {
         }
     };
 
+    /// Request type for the `check_public_key_validity` endpoint.
     #[request]
     pub struct Request<'a> {
         /// Base64-encoded (no padding) public key to check for validity.
@@ -31,6 +31,7 @@ pub mod v2 {
         pub public_key: &'a Base64,
     }
 
+    /// Response type for the `check_public_key_validity` endpoint.
     #[response]
     pub struct Response {
         /// Whether the public key is recognised and is currently valid.

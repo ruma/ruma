@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/rooms/{roomId}/leave`
+//!
+//! Leave a room.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Leave a room.",
         method: POST,
-        name: "leave_room",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -22,6 +22,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `leave_room` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room to leave.
@@ -33,6 +34,7 @@ pub mod v3 {
         pub reason: Option<&'a str>,
     }
 
+    /// Response type for the `leave_room` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

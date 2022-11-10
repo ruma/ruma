@@ -5,9 +5,7 @@ use ruma_common::{
 };
 
 const METADATA: Metadata = metadata! {
-    description: "Does something.",
     method: GET,
-    name: "no_fields",
     rate_limited: false,
     authentication: None,
     history: {
@@ -15,12 +13,14 @@ const METADATA: Metadata = metadata! {
     }
 };
 
+/// Request type for the `no_fields` endpoint.
 #[request]
 pub struct Request {
     #[ruma_api(header = LOCATION)]
     pub location: Option<String>,
 }
 
+/// Response type for the `no_fields` endpoint.
 #[response]
 pub struct Response {
     #[ruma_api(header = LOCATION)]

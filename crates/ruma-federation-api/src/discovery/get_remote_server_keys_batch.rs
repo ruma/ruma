@@ -21,9 +21,7 @@ pub mod v2 {
     use crate::discovery::ServerSigningKeys;
 
     const METADATA: Metadata = metadata! {
-        description: "Query for keys from multiple servers in a batch format.",
         method: POST,
-        name: "get_remote_server_keys_batch",
         rate_limited: false,
         authentication: None,
         history: {
@@ -31,6 +29,7 @@ pub mod v2 {
         }
     };
 
+    /// Request type for the `get_remote_server_keys_batch` endpoint.
     #[request]
     pub struct Request {
         /// The query criteria.
@@ -45,6 +44,7 @@ pub mod v2 {
             BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, QueryCriteria>>,
     }
 
+    /// Response type for the `get_remote_server_keys_batch` endpoint.
     #[response]
     pub struct Response {
         /// The queried server's keys, signed by the notary server.

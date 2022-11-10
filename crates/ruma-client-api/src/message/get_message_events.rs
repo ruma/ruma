@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/rooms/{roomId}/messages`
+//!
+//! Get message events for a room.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -20,9 +22,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get message events for a room.",
         method: GET,
-        name: "get_message_events",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -31,6 +31,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_message_events` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room to get events from.
@@ -78,6 +79,7 @@ pub mod v3 {
         pub filter: RoomEventFilter<'a>,
     }
 
+    /// Response type for the `get_message_events` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {

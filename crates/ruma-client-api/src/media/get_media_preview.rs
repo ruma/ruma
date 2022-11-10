@@ -1,4 +1,6 @@
 //! `GET /_matrix/media/*/preview_url`
+//!
+//! Get a preview for a URL.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     use serde_json::value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue};
 
     const METADATA: Metadata = metadata! {
-        description: "Get a preview for a URL.",
         method: GET,
-        name: "get_media_preview",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -24,6 +24,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_media_preview` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// URL to get a preview of.
@@ -35,6 +36,7 @@ pub mod v3 {
         pub ts: MilliSecondsSinceUnixEpoch,
     }
 
+    /// Response type for the `get_media_preview` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {

@@ -1,4 +1,6 @@
 //! `POST /_matrix/media/*/upload`
+//!
+//! Upload content to the media store.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -12,9 +14,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Upload content to the media store.",
         method: POST,
-        name: "create_media_content",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -23,6 +23,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `create_media_content` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The file contents to upload.
@@ -52,6 +53,7 @@ pub mod v3 {
         pub generate_blurhash: bool,
     }
 
+    /// Response type for the `create_media_content` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The MXC URI for the uploaded content.

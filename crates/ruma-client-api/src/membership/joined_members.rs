@@ -1,4 +1,7 @@
 //! `GET /_matrix/client/*/rooms/{roomId}/joined_members`
+//!
+//! Get a map of user IDs to member info objects for members of the room. Primarily for use in
+//! Application Services.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -14,9 +17,7 @@ pub mod v3 {
     use serde::{Deserialize, Serialize};
 
     const METADATA: Metadata = metadata! {
-        description: "Get a map of user ids to member info objects for members of the room. Primarily for use in Application Services.",
         method: GET,
-        name: "joined_members",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -25,6 +26,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `joined_members` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room to get the members of.
@@ -32,6 +34,7 @@ pub mod v3 {
         pub room_id: &'a RoomId,
     }
 
+    /// Response type for the `joined_members` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// A list of the rooms the user is in, i.e.

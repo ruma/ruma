@@ -1,6 +1,6 @@
 //! `GET /_matrix/federation/*/query/directory`
 //!
-//! Endpoint to query room information with a room alias.
+//! Get mapped room ID and resident homeservers for a given room alias.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -13,9 +13,7 @@ pub mod v1 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get mapped room ID and resident homeservers for a given room alias.",
         method: GET,
-        name: "get_room_information",
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
@@ -23,6 +21,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_room_information` endpoint.
     #[request]
     pub struct Request<'a> {
         /// Room alias to query.
@@ -30,6 +29,7 @@ pub mod v1 {
         pub room_alias: &'a RoomAliasId,
     }
 
+    /// Response type for the `get_room_information` endpoint.
     #[response]
     pub struct Response {
         /// Room ID mapped to queried alias.

@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/pushers`
+//!
+//! Gets all currently active pushers for the authenticated user.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     use crate::push::Pusher;
 
     const METADATA: Metadata = metadata! {
-        description: "Gets all currently active pushers for the authenticated user.",
         method: GET,
-        name: "get_pushers",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -24,10 +24,12 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_pushers` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `get_pushers` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// An array containing the current pushers for the user.

@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/sync`
+//!
+//! Get all new events from all rooms since the last sync or a given point in time.
 
 use js_int::UInt;
 use ruma_common::OwnedUserId;

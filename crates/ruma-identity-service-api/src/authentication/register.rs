@@ -16,9 +16,7 @@ pub mod v2 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Exchanges an OpenID token from the homeserver for an access token to access the identity server.",
         method: POST,
-        name: "register_account",
         rate_limited: false,
         authentication: None,
         history: {
@@ -26,6 +24,7 @@ pub mod v2 {
         }
     };
 
+    /// Request type for the `register_account` endpoint.
     #[request]
     pub struct Request<'a> {
         /// An access token the consumer may use to verify the identity of the person who generated
@@ -47,6 +46,7 @@ pub mod v2 {
         pub expires_in: Duration,
     }
 
+    /// Response type for the `register_account` endpoint.
     #[response]
     pub struct Response {
         /// An opaque string representing the token to authenticate future requests to the identity

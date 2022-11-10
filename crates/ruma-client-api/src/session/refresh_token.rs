@@ -33,9 +33,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Refresh an access token.",
         method: POST,
-        name: "refresh",
         rate_limited: true,
         authentication: None,
         history: {
@@ -44,12 +42,14 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `refresh` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The refresh token.
         pub refresh_token: &'a str,
     }
 
+    /// Response type for the `refresh` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The new access token to use.

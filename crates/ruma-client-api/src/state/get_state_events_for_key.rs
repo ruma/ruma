@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/rooms/{roomId}/state/{eventType}/{stateKey}`
+//!
+//! Get state events associated with a given key.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -14,9 +16,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get state events associated with a given key.",
         method: GET,
-        name: "get_state_events_for_key",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -25,19 +25,7 @@ pub mod v3 {
         }
     };
 
-    #[response(error = crate::Error)]
-    pub struct Response {
-        /// The content of the state event.
-        ///
-        /// Since the inner type of the `Raw` does not implement `Deserialize`, you need to use
-        /// [`Raw::deserialize_content`] to deserialize it.
-        #[ruma_api(body)]
-        pub content: Raw<AnyStateEventContent>,
-    }
-
-    /// Data for a request to the `get_state_events_for_key` API endpoint.
-    ///
-    /// Get state events associated with a given key.
+    /// Request type for the `get_state_events_for_key` endpoint.
     #[derive(Clone, Debug, Incoming)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[incoming_derive(!Deserialize)]
@@ -57,6 +45,17 @@ pub mod v3 {
         pub fn new(room_id: &'a RoomId, event_type: StateEventType, state_key: &'a str) -> Self {
             Self { room_id, event_type, state_key }
         }
+    }
+
+    /// Response type for the `get_state_events_for_key` endpoint.
+    #[response(error = crate::Error)]
+    pub struct Response {
+        /// The content of the state event.
+        ///
+        /// Since the inner type of the `Raw` does not implement `Deserialize`, you need to use
+        /// [`Raw::deserialize_content`] to deserialize it.
+        #[ruma_api(body)]
+        pub content: Raw<AnyStateEventContent>,
     }
 
     impl Response {

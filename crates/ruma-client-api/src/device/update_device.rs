@@ -1,4 +1,6 @@
 //! `PUT /_matrix/client/*/devices/{deviceId}`
+//!
+//! Update metadata for a device.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Update metadata for a device.",
         method: PUT,
-        name: "update_device",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -22,6 +22,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `update_device` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The device to update.
@@ -35,6 +36,7 @@ pub mod v3 {
         pub display_name: Option<&'a str>,
     }
 
+    /// Response type for the `update_device` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

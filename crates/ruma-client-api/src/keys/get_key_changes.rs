@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/keys/changes`
+//!
+//! Gets a list of users who have updated their device identity keys since a previous sync token.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Gets a list of users who have updated their device identity keys since a previous sync token.",
         method: GET,
-        name: "get_key_changes",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -22,6 +22,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_key_changes` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The desired start point of the list.
@@ -38,6 +39,7 @@ pub mod v3 {
         pub to: &'a str,
     }
 
+    /// Response type for the `get_key_changes` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The Matrix User IDs of all users who updated their device identity keys.

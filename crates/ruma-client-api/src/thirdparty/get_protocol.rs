@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/thirdparty/protocol/{protocol}`
+//!
+//! Fetches the metadata from the homeserver about a particular third party protocol.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -12,9 +14,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Fetches the metadata from the homeserver about a particular third party protocol.",
         method: GET,
-        name: "get_protocol",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -23,6 +23,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_protocol` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The name of the protocol.
@@ -30,6 +31,7 @@ pub mod v3 {
         pub protocol: &'a str,
     }
 
+    /// Response type for the `get_protocol` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// Metadata about the protocol.

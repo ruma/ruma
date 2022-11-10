@@ -1,4 +1,6 @@
 //! `PUT /_matrix/client/*/sendToDevice/{eventType}/{txnId}`
+//!
+//! Send an event to a device or devices.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -17,9 +19,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Send an event to a device or devices.",
         method: PUT,
-        name: "send_event_to_device",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -28,6 +28,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `send_event_to_device` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// Type of event being sent to each device.
@@ -53,6 +54,7 @@ pub mod v3 {
         pub messages: Messages,
     }
 
+    /// Response type for the `send_event_to_device` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/account/whoami`
+//!
+//! Get information about the owner of a given access token.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get information about the owner of a given access token.",
         method: GET,
-        name: "whoami",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -22,10 +22,12 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `whoami` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `whoami` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The id of the user that owns the access token.

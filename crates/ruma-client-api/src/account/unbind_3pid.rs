@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/account/3pid/unbind`
+//!
+//! Unbind a 3PID from a user's account on an identity server.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -14,9 +16,7 @@ pub mod v3 {
     use crate::account::ThirdPartyIdRemovalStatus;
 
     const METADATA: Metadata = metadata! {
-        description: "Unbind a 3PID from a user's account on an identity server.",
         method: POST,
-        name: "unbind_3pid",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -25,6 +25,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `unbind_3pid` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// Identity server to unbind from.
@@ -38,6 +39,7 @@ pub mod v3 {
         pub address: &'a str,
     }
 
+    /// Response type for the `unbind_3pid` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// Result of unbind operation.

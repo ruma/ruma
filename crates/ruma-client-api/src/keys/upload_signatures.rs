@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/keys/signatures/upload`
+//!
+//! Publishes cross-signing signatures for the user.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -22,9 +24,7 @@ pub mod v3 {
     pub use super::iter::SignedKeysIter;
 
     const METADATA: Metadata = metadata! {
-        description: "Publishes cross-signing signatures for the user.",
         method: POST,
-        name: "upload_signatures",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -33,6 +33,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `upload_signatures` endpoint.
     #[request(error = crate::Error)]
     pub struct Request {
         /// Signed keys.
@@ -40,6 +41,7 @@ pub mod v3 {
         pub signed_keys: BTreeMap<OwnedUserId, SignedKeys>,
     }
 
+    /// Response type for the `upload_signatures` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {

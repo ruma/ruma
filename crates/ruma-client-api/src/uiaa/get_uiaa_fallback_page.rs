@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/auth/{auth_type}/fallback/web?session={session_id}`
+//!
+//! Get UIAA fallback web page.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -12,9 +14,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get UIAA fallback web page.",
         method: GET,
-        name: "authorize_fallback",
         rate_limited: false,
         authentication: None,
         history: {
@@ -23,6 +23,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `authorize_fallback` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The type name ("m.login.dummy", etc.) of the uiaa stage to get a fallback page for.
@@ -34,6 +35,7 @@ pub mod v3 {
         pub session: &'a str,
     }
 
+    /// Response type for the `authorize_fallback` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {

@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/keys/upload`
+//!
+//! Publishes end-to-end encryption keys for the device.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -17,9 +19,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Publishes end-to-end encryption keys for the device.",
         method: POST,
-        name: "upload_keys",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -28,6 +28,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `upload_keys` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request {
@@ -46,6 +47,7 @@ pub mod v3 {
         pub fallback_keys: BTreeMap<OwnedDeviceKeyId, Raw<OneTimeKey>>,
     }
 
+    /// Response type for the `upload_keys` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// For each key algorithm, the number of unclaimed one-time keys of that

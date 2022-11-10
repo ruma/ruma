@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/account/3pid/email/requestToken`
+//!
+//! Request a 3PID management token with a 3rd party email.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -14,9 +16,7 @@ pub mod v3 {
     use crate::account::{IdentityServerInfo, IncomingIdentityServerInfo};
 
     const METADATA: Metadata = metadata! {
-        description: "Request a 3PID management token with a 3rd party email.",
         method: POST,
-        name: "request_3pid_management_token_via_email",
         rate_limited: false,
         authentication: None,
         history: {
@@ -25,6 +25,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `request_3pid_management_token_via_email` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// Client-generated secret string used to protect this session.
@@ -47,6 +48,7 @@ pub mod v3 {
         pub identity_server_info: Option<IdentityServerInfo<'a>>,
     }
 
+    /// Response type for the `request_3pid_management_token_via_email` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The session identifier given by the identity server.

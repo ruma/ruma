@@ -1,6 +1,6 @@
 //! `GET /_matrix/federation/*/query/profile`
 //!
-//! Endpoint to query profile information with a user id and optional field.
+//! Get profile information, such as a display name or avatar, for a given user.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -17,9 +17,7 @@ pub mod v1 {
     use crate::PrivOwnedStr;
 
     const METADATA: Metadata = metadata! {
-        description: "Get profile information, such as a display name or avatar, for a given user.",
         method: GET,
-        name: "get_profile_information",
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
@@ -27,6 +25,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_profile_information` endpoint.
     #[request]
     pub struct Request<'a> {
         /// User ID to query.
@@ -39,6 +38,7 @@ pub mod v1 {
         pub field: Option<&'a ProfileField>,
     }
 
+    /// Response type for the `get_profile_information` endpoint.
     #[response]
     #[derive(Default)]
     pub struct Response {
