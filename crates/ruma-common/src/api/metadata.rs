@@ -385,6 +385,16 @@ impl VersionHistory {
         self.stable_paths.first().map(|(v, _)| *v)
     }
 
+    /// Returns the Matrix version that deprecated this endpoint, if any.
+    pub fn deprecated_in(&self) -> Option<MatrixVersion> {
+        self.deprecated
+    }
+
+    /// Returns the Matrix version that removed this endpoint, if any.
+    pub fn removed_in(&self) -> Option<MatrixVersion> {
+        self.removed
+    }
+
     /// Picks the last unstable path, if it exists.
     pub fn unstable(&self) -> Option<&'static str> {
         self.unstable_paths.last().copied()
