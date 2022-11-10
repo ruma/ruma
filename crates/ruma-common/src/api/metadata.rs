@@ -391,20 +391,18 @@ impl VersionHistory {
     }
 
     /// Returns all path variants in canon form, for use in server routers.
-    pub fn all_paths(&self) -> Vec<&'static str> {
-        let unstable = self.unstable_paths.iter().copied();
-        let stable = self.stable_paths.iter().map(|(_, y)| *y);
-        unstable.chain(stable).collect()
+    pub fn all_paths(&self) -> impl Iterator<Item = &'static str> {
+        self.unstable_paths().chain(self.stable_paths().map(|(_, path)| path))
     }
 
     /// Returns all unstable path variants in canon form.
-    pub fn all_unstable_paths(&self) -> Vec<&'static str> {
-        self.unstable_paths.to_owned()
+    pub fn unstable_paths(&self) -> impl Iterator<Item = &'static str> {
+        self.unstable_paths.iter().copied()
     }
 
     /// Returns all stable path variants in canon form, with corresponding Matrix version.
-    pub fn all_versioned_stable_paths(&self) -> Vec<(MatrixVersion, &'static str)> {
-        self.stable_paths.iter().map(|(version, data)| (*version, *data)).collect()
+    pub fn stable_paths(&self) -> impl Iterator<Item = (MatrixVersion, &'static str)> {
+        self.stable_paths.iter().map(|(version, data)| (*version, *data))
     }
 
     /// The path that should be used to query the endpoint, given a series of versions.

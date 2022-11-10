@@ -61,9 +61,12 @@ ruma_api! {
 fn main() {
     use ruma_common::api::MatrixVersion;
 
-    assert_eq!(METADATA.history.all_unstable_paths(), &["/_matrix/some/msc1234/endpoint/:baz"],);
     assert_eq!(
-        METADATA.history.all_versioned_stable_paths(),
+        METADATA.history.unstable_paths().collect::<Vec<_>>(),
+        &["/_matrix/some/msc1234/endpoint/:baz"],
+    );
+    assert_eq!(
+        METADATA.history.stable_paths().collect::<Vec<_>>(),
         &[
             (MatrixVersion::V1_0, "/_matrix/some/r0/endpoint/:baz"),
             (MatrixVersion::V1_1, "/_matrix/some/v3/endpoint/:baz")
