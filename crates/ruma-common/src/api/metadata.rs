@@ -136,12 +136,12 @@ pub struct VersionHistory {
     /// A list of unstable paths over this endpoint's history.
     ///
     /// For endpoint querying purposes, the last item will be used.
-    pub unstable_paths: &'static [&'static str],
+    unstable_paths: &'static [&'static str],
 
     /// A list of path versions, mapped to Matrix versions.
     ///
     /// Sorted (ascending) by Matrix version, will not mix major versions.
-    pub stable_paths: &'static [(MatrixVersion, &'static str)],
+    stable_paths: &'static [(MatrixVersion, &'static str)],
 
     /// The Matrix version that deprecated this endpoint.
     ///
@@ -149,13 +149,13 @@ pub struct VersionHistory {
     ///
     /// This will make [`try_into_http_request`](super::OutgoingRequest::try_into_http_request)
     /// emit a warning, see the corresponding documentation for more information.
-    pub deprecated: Option<MatrixVersion>,
+    deprecated: Option<MatrixVersion>,
 
     /// The Matrix version that removed this endpoint.
     ///
     /// This will make [`try_into_http_request`](super::OutgoingRequest::try_into_http_request)
     /// emit an error, see the corresponding documentation for more information.
-    pub removed: Option<MatrixVersion>,
+    removed: Option<MatrixVersion>,
 }
 
 impl VersionHistory {
