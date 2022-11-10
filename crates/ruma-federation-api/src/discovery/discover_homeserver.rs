@@ -1,5 +1,7 @@
 //! `GET /.well-known/matrix/server` ([spec])
 //!
+//! Get discovery information about the domain.
+//!
 //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#getwell-knownmatrixserver
 
 use ruma_common::{
@@ -8,9 +10,7 @@ use ruma_common::{
 };
 
 const METADATA: Metadata = metadata! {
-    description: "Get discovery information about the domain.",
     method: GET,
-    name: "discover_homeserver",
     rate_limited: false,
     authentication: None,
     history: {
@@ -18,10 +18,12 @@ const METADATA: Metadata = metadata! {
     }
 };
 
+/// Request type for the `discover_homeserver` endpoint.
 #[request]
 #[derive(Default)]
 pub struct Request {}
 
+/// Response type for the `discover_homeserver` endpoint.
 #[response]
 pub struct Response {
     /// The server name to delegate server-server communications to, with optional port.

@@ -1,6 +1,6 @@
 //! `GET /_matrix/federation/*/backfill/{roomId}`
 //!
-//! Endpoint to request more history from another homeserver.
+//! Get more history from another homeserver.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -15,9 +15,7 @@ pub mod v1 {
     use serde_json::value::RawValue as RawJsonValue;
 
     const METADATA: Metadata = metadata! {
-        description: "Request more history from another homeserver",
         method: GET,
-        name: "get_backfill",
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
@@ -25,6 +23,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_backfill` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The room ID to backfill.
@@ -40,6 +39,7 @@ pub mod v1 {
         pub limit: UInt,
     }
 
+    /// Response type for the `get_backfill` endpoint.
     #[response]
     pub struct Response {
         /// The `server_name` of the homeserver sending this transaction.

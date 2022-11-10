@@ -13,9 +13,7 @@ pub mod v1 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "This endpoint is invoked by the homeserver on an application service to query the existence of a given user ID.",
         method: GET,
-        name: "query_user_id",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -23,6 +21,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `query_user_id` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The user ID being queried.
@@ -30,6 +29,7 @@ pub mod v1 {
         pub user_id: &'a UserId,
     }
 
+    /// Response type for the `query_user_id` endpoint.
     #[response]
     #[derive(Default)]
     pub struct Response {}

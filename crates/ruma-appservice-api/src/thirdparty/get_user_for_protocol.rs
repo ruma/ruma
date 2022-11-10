@@ -1,7 +1,7 @@
 //! `GET /_matrix/app/*/thirdparty/user/{protocol}`
 //!
-//! Endpoint to retrieve a Matrix User ID linked to a user on the third party network, given a set
-//! of user parameters.
+//! Retrieve a Matrix User ID linked to a user on the third party network, given a set of user
+//! parameters.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -17,9 +17,7 @@ pub mod v1 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Fetches third party users for a protocol.",
         method: GET,
-        name: "get_user_for_protocol",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -27,6 +25,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_user_for_protocol` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The protocol used to communicate to the third party network.
@@ -39,6 +38,7 @@ pub mod v1 {
         pub fields: BTreeMap<String, String>,
     }
 
+    /// Response type for the `get_user_for_protocol` endpoint.
     #[response]
     pub struct Response {
         /// List of matched third party users.

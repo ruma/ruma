@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/account/3pid/bind`
+//!
+//! Bind a 3PID to a user's account on an identity server
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     use crate::account::{IdentityServerInfo, IncomingIdentityServerInfo};
 
     const METADATA: Metadata = metadata! {
-        description: "Bind a 3PID to a user's account on an identity server",
         method: POST,
-        name: "bind_3pid",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -24,6 +24,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `bind_3pid` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// Client-generated secret string used to protect this session.
@@ -38,6 +39,7 @@ pub mod v3 {
         pub sid: &'a SessionId,
     }
 
+    /// Response type for the `bind_3pid` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

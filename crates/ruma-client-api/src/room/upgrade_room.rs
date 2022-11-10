@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/rooms/{roomId}/upgrade`
+//!
+//! Upgrades a room to a particular version.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Upgrades a room to a particular version.",
         method: POST,
-        name: "upgrade_room",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -22,6 +22,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `upgrade_room` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// ID of the room to be upgraded.
@@ -32,6 +33,7 @@ pub mod v3 {
         pub new_version: &'a RoomVersionId,
     }
 
+    /// Response type for the `upgrade_room` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// ID of the new room.

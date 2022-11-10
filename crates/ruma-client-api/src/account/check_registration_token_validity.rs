@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/register/m.login.registration_token/validity`
+//!
+//! Checks to see if the given registration token is valid.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -11,9 +13,7 @@ pub mod v1 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Checks to see if the given registration token is valid.",
         method: GET,
-        name: "check_registration_token_validity",
         rate_limited: true,
         authentication: None,
         history: {
@@ -22,6 +22,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `check_registration_token_validity` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The registration token to check the validity of.
@@ -29,6 +30,7 @@ pub mod v1 {
         pub registration_token: &'a str,
     }
 
+    /// Response type for the `check_registration_token_validity` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// A flag to indicate that the registration token is valid.

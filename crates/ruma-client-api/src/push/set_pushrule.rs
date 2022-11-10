@@ -1,4 +1,6 @@
 //! `PUT /_matrix/client/*/pushrules/{scope}/{kind}/{ruleId}`
+//!
+//! This endpoint allows the creation and modification of push rules for this user ID.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -16,9 +18,7 @@ pub mod v3 {
     use crate::push::RuleScope;
 
     const METADATA: Metadata = metadata! {
-        description: "This endpoint allows the creation and modification of push rules for this user ID.",
         method: PUT,
-        name: "set_pushrule",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -27,9 +27,7 @@ pub mod v3 {
         }
     };
 
-    /// Data for a request to the `set_pushrule` API endpoint.
-    ///
-    /// Create or update a push rule.
+    /// Request type for the `set_pushrule` endpoint.
     #[derive(Clone, Debug, Incoming)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[incoming_derive(!Deserialize)]
@@ -49,6 +47,7 @@ pub mod v3 {
         pub after: Option<&'a str>,
     }
 
+    /// Response type for the `set_pushrule` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

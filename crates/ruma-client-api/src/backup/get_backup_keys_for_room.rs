@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/room_keys/keys/{roomId}`
+//!
+//! Retrieve sessions from the backup for a given room.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -17,9 +19,7 @@ pub mod v3 {
     use crate::backup::KeyBackupData;
 
     const METADATA: Metadata = metadata! {
-        description: "Retrieve sessions from the backup for a given room.",
         method: GET,
-        name: "get_backup_keys_for_room",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -29,6 +29,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_backup_keys_for_room` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The backup version to retrieve keys from.
@@ -40,6 +41,7 @@ pub mod v3 {
         pub room_id: &'a RoomId,
     }
 
+    /// Response type for the `get_backup_keys_for_room` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// A map of session IDs to key data.

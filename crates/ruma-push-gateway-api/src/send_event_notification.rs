@@ -1,7 +1,6 @@
 //! `POST /_matrix/push/*/notify`
 //!
-//! Endpoint to notify a push gateway about an event or update the number of unread notifications a
-//! user has.
+//! Notify a push gateway about an event or update the number of unread notifications a user has.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -25,9 +24,7 @@ pub mod v1 {
     use crate::PrivOwnedStr;
 
     const METADATA: Metadata = metadata! {
-        description: "Notify a push gateway about an event or update the number of unread notifications a user has",
         method: POST,
-        name: "send_event_notification",
         rate_limited: false,
         authentication: None,
         history: {
@@ -35,12 +32,14 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `send_event_notification` endpoint.
     #[request]
     pub struct Request<'a> {
         /// Information about the push notification
         pub notification: Notification<'a>,
     }
 
+    /// Response type for the `send_event_notification` endpoint.
     #[response]
     #[derive(Default)]
     pub struct Response {

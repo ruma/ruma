@@ -1,6 +1,6 @@
 //! `GET /_matrix/federation/*/hierarchy/{roomId}`
 //!
-//! Endpoint to get the children of a given space.
+//! Get the space tree in a depth-first manner to locate child rooms of a given space.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -15,8 +15,6 @@ pub mod v1 {
     use crate::space::{SpaceHierarchyChildSummary, SpaceHierarchyParentSummary};
 
     const METADATA: Metadata = metadata! {
-        description: "Get the space tree in a depth-first manner to locate child rooms of a given space.",
-        name: "hierarchy",
         method: GET,
         rate_limited: false,
         authentication: ServerSignatures,
@@ -26,6 +24,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `hierarchy` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The room ID of the space to get a hierarchy for.
@@ -40,6 +39,7 @@ pub mod v1 {
         pub suggested_only: bool,
     }
 
+    /// Response type for the `hierarchy` endpoint.
     #[response]
     pub struct Response {
         /// A summary of the space’s children.

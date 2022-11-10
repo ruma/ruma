@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/register`
+//!
+//! Register an account on this homeserver.
 
 use serde::{Deserialize, Serialize};
 
@@ -18,9 +20,7 @@ pub mod v3 {
     use crate::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
 
     const METADATA: Metadata = metadata! {
-        description: "Register an account on this homeserver.",
         method: POST,
-        name: "register",
         rate_limited: true,
         authentication: None,
         history: {
@@ -29,6 +29,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `register` endpoint.
     #[request(error = UiaaResponse)]
     #[derive(Default)]
     pub struct Request<'a> {
@@ -95,6 +96,7 @@ pub mod v3 {
         pub refresh_token: bool,
     }
 
+    /// Response type for the `register` endpoint.
     #[response(error = UiaaResponse)]
     pub struct Response {
         /// An access token for the account.

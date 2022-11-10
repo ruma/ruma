@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/rooms/{roomId}/unban`
+//!
+//! Unban a user from a room.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Unban a user from a room.",
         method: POST,
-        name: "unban_user",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -22,6 +22,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `unban_user` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room to unban the user from.
@@ -36,6 +37,7 @@ pub mod v3 {
         pub reason: Option<&'a str>,
     }
 
+    /// Response type for the `unban_user` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

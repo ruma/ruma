@@ -1,4 +1,6 @@
-//! `GET /_matrix/static/client/login/` (fallback, [spec])
+//! `GET /_matrix/static/client/login/` ([spec])
+//!
+//! Get login fallback web page.
 //!
 //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#login-fallback
 
@@ -8,9 +10,7 @@ use ruma_common::{
 };
 
 const METADATA: Metadata = metadata! {
-    description: "Get login fallback web page.",
     method: GET,
-    name: "login_fallback",
     rate_limited: false,
     authentication: None,
     history: {
@@ -18,6 +18,7 @@ const METADATA: Metadata = metadata! {
     }
 };
 
+/// Request type for the `login_fallback` endpoint.
 #[request(error = crate::Error)]
 #[derive(Default)]
 pub struct Request<'a> {
@@ -34,6 +35,7 @@ pub struct Request<'a> {
     pub initial_device_display_name: Option<&'a str>,
 }
 
+/// Response type for the `login_fallback` endpoint.
 #[response(error = crate::Error)]
 pub struct Response {
     /// HTML to return to client.

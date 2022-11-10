@@ -1,4 +1,7 @@
 //! `GET /_matrix/client/*/login`
+//!
+//! Gets the homeserver's supported login types to authenticate users. Clients should pick one of
+//! these and supply it as the type when logging in.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -19,9 +22,7 @@ pub mod v3 {
     use crate::PrivOwnedStr;
 
     const METADATA: Metadata = metadata! {
-        description: "Gets the homeserver's supported login types to authenticate users. Clients should pick one of these and supply it as the type when logging in.",
         method: GET,
-        name: "get_login_types",
         rate_limited: true,
         authentication: None,
         history: {
@@ -30,10 +31,12 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_login_types` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `get_login_types` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The homeserver's supported login types.

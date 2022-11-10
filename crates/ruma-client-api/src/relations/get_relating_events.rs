@@ -1,6 +1,6 @@
 //! `GET /_matrix/client/*/rooms/{roomId}/relations/{eventId}`
 //!
-//! Retrieve all of the child events for a given parent event.
+//! Get the child events for a given parent event.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -19,9 +19,7 @@ pub mod v1 {
     use crate::Direction;
 
     const METADATA: Metadata = metadata! {
-        description: "Get the child events for a given parent event.",
         method: GET,
-        name: "get_relating_events",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -30,6 +28,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_relating_events` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The ID of the room containing the parent event.
@@ -82,6 +81,7 @@ pub mod v1 {
         pub limit: Option<UInt>,
     }
 
+    /// Response type for the `get_relating_events` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The paginated child events which point to the parent.

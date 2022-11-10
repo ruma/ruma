@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/login`
+//!
+//! Login to the homeserver.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -22,9 +24,7 @@ pub mod v3 {
     use crate::uiaa::{IncomingUserIdentifier, UserIdentifier};
 
     const METADATA: Metadata = metadata! {
-        description: "Login to the homeserver.",
         method: POST,
-        name: "login",
         rate_limited: true,
         authentication: None,
         history: {
@@ -33,6 +33,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `login` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The authentication mechanism.
@@ -56,6 +57,7 @@ pub mod v3 {
         pub refresh_token: bool,
     }
 
+    /// Response type for the `login` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The fully-qualified Matrix ID that has been registered.

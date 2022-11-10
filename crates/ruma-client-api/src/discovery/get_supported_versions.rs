@@ -1,5 +1,7 @@
 //! `GET /_matrix/client/versions` ([spec])
 //!
+//! Get the versions of the client-server API supported by this homeserver.
+//!
 //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientversions
 
 use std::collections::BTreeMap;
@@ -10,9 +12,7 @@ use ruma_common::{
 };
 
 const METADATA: Metadata = metadata! {
-    description: "Get the versions of the client-server API supported by this homeserver.",
     method: GET,
-    name: "api_versions",
     rate_limited: false,
     authentication: None,
     history: {
@@ -20,10 +20,12 @@ const METADATA: Metadata = metadata! {
     }
 };
 
+/// Request type for the `api_versions` endpoint.
 #[request(error = crate::Error)]
 #[derive(Default)]
 pub struct Request {}
 
+/// Response type for the `api_versions` endpoint.
 #[response(error = crate::Error)]
 pub struct Response {
     /// A list of Matrix client API protocol versions supported by the homeserver.

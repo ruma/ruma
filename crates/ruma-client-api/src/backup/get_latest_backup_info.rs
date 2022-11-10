@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/room_keys/version`
+//!
+//! Get information about the latest backup.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -20,9 +22,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get information about the latest backup.",
         method: GET,
-        name: "get_latest_backup_info",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -32,10 +32,12 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_latest_backup_info` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `get_latest_backup_info` endpoint.
     #[response(error = crate::Error)]
     #[ruma_api(manual_body_serde)]
     pub struct Response {

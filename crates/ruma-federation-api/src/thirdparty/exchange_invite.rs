@@ -18,9 +18,7 @@ pub mod v1 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "The receiving server will verify the partial m.room.member event given in the request body.",
         method: PUT,
-        name: "exchange_invite",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -28,6 +26,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `exchange_invite` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The room ID to exchange a third party invite in.
@@ -50,6 +49,7 @@ pub mod v1 {
         pub content: &'a ThirdPartyInvite,
     }
 
+    /// Response type for the `exchange_invite` endpoint.
     #[response]
     #[derive(Default)]
     pub struct Response {}

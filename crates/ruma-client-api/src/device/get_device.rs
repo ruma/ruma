@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/devices/{deviceId}`
+//!
+//! Get a device for authenticated user.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     use crate::device::Device;
 
     const METADATA: Metadata = metadata! {
-        description: "Get a device for authenticated user.",
         method: GET,
-        name: "get_device",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -24,6 +24,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_device` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The device to retrieve.
@@ -31,6 +32,7 @@ pub mod v3 {
         pub device_id: &'a DeviceId,
     }
 
+    /// Response type for the `get_device` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// Information about the device.

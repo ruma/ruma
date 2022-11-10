@@ -1,6 +1,6 @@
 //! `GET /_matrix/identity/*`
 //!
-//! Endpoint to check the status of an identity server.
+//! Check the status of an identity server.
 
 pub mod v2 {
     //! `/v2/` ([spec])
@@ -13,9 +13,7 @@ pub mod v2 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Checks that an identity server is available at this API endpoint.",
         method: GET,
-        name: "status",
         rate_limited: false,
         authentication: None,
         history: {
@@ -23,10 +21,12 @@ pub mod v2 {
         }
     };
 
+    /// Request type for the `status` endpoint.
     #[request]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `status` endpoint.
     #[response]
     #[derive(Default)]
     pub struct Response {}

@@ -10,9 +10,7 @@ use ruma_common::{
 use super::Capabilities;
 
 const METADATA: Metadata = metadata! {
-    description: "Gets information about the server's supported feature set and other relevant capabilities.",
     method: GET,
-    name: "get_capabilities",
     rate_limited: true,
     authentication: AccessToken,
     history: {
@@ -21,10 +19,12 @@ const METADATA: Metadata = metadata! {
     }
 };
 
+/// Request type for the `get_capabilities` endpoint.
 #[request(error = crate::Error)]
 #[derive(Default)]
 pub struct Request {}
 
+/// Response type for the `get_capabilities` endpoint.
 #[response(error = crate::Error)]
 pub struct Response {
     /// The capabilities the server supports

@@ -1,7 +1,6 @@
 //! `GET /_matrix/app/*/thirdparty/location/{protocol}`
 //!
-//! Endpoint to retrieve a list of Matrix portal rooms that lead to the matched third party
-//! location.
+//! Retrieve a list of Matrix portal rooms that lead to the matched third party location.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -17,9 +16,7 @@ pub mod v1 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Fetches third party locations for a protocol.",
         method: GET,
-        name: "get_location_for_protocol",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -27,6 +24,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_location_for_protocol` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The protocol used to communicate to the third party network.
@@ -39,6 +37,7 @@ pub mod v1 {
         pub fields: BTreeMap<String, String>,
     }
 
+    /// Response type for the `get_location_for_protocol` endpoint.
     #[response]
     pub struct Response {
         /// List of matched third party locations.

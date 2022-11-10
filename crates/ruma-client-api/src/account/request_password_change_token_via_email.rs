@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/account/password/email/requestToken`
+//!
+//! Request that a password change token is sent to the given email address.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -14,9 +16,7 @@ pub mod v3 {
     use crate::account::{IdentityServerInfo, IncomingIdentityServerInfo};
 
     const METADATA: Metadata = metadata! {
-        description: "Request that a password change token is sent to the given email address.",
         method: POST,
-        name: "request_password_change_token_via_email",
         rate_limited: false,
         authentication: None,
         history: {
@@ -25,6 +25,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `request_password_change_token_via_email` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// Client-generated secret string used to protect this session.
@@ -47,6 +48,7 @@ pub mod v3 {
         pub identity_server_info: Option<IdentityServerInfo<'a>>,
     }
 
+    /// Response type for the `request_password_change_token_via_email` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The session identifier given by the identity server.

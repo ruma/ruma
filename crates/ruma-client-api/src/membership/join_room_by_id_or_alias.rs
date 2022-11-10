@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/join/{roomIdOrAlias}`
+//!
+//! Join a room using its ID or one of its aliases.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     use crate::membership::{IncomingThirdPartySigned, ThirdPartySigned};
 
     const METADATA: Metadata = metadata! {
-        description: "Join a room using its ID or one of its aliases.",
         method: POST,
-        name: "join_room_by_id_or_alias",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -24,6 +24,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `join_room_by_id_or_alias` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room where the user should be invited.
@@ -47,6 +48,7 @@ pub mod v3 {
         pub reason: Option<&'a str>,
     }
 
+    /// Response type for the `join_room_by_id_or_alias` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The room that the user joined.

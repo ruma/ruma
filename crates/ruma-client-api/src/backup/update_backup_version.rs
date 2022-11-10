@@ -1,4 +1,6 @@
 //! `PUT /_matrix/client/*/room_keys/version/{version}`
+//!
+//! Update information about an existing backup.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -14,9 +16,7 @@ pub mod v3 {
     use crate::backup::BackupAlgorithm;
 
     const METADATA: Metadata = metadata! {
-        description: "Update information about an existing backup.",
         method: PUT,
-        name: "update_backup_version",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -25,6 +25,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `update_backup_version` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The backup version.
@@ -36,6 +37,7 @@ pub mod v3 {
         pub algorithm: Raw<BackupAlgorithm>,
     }
 
+    /// Response type for the `update_backup_version` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

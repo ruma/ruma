@@ -1,4 +1,6 @@
 //! `GET /_matrix/media/*/download/{serverName}/{mediaId}`
+//!
+//! Retrieve content from the media store.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -16,9 +18,7 @@ pub mod v3 {
     use crate::http_headers::CROSS_ORIGIN_RESOURCE_POLICY;
 
     const METADATA: Metadata = metadata! {
-        description: "Retrieve content from the media store.",
         method: GET,
-        name: "get_media_content",
         rate_limited: false,
         authentication: None,
         history: {
@@ -27,6 +27,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_media_content` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The server name from the mxc:// URI (the authoritory component).
@@ -61,6 +62,7 @@ pub mod v3 {
         pub max_stall_ms: Option<UInt>,
     }
 
+    /// Response type for the `get_media_content` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The content that was previously uploaded.

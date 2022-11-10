@@ -1,6 +1,6 @@
 //! `POST /_matrix/federation/*/user/keys/claim`
 //!
-//! Endpoint to claim one-time keys for use in pre-key messages
+//! Claim one-time keys for use in pre-key messages.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -19,9 +19,7 @@ pub mod v1 {
     use serde::{Deserialize, Serialize};
 
     const METADATA: Metadata = metadata! {
-        description: "Claims one-time keys for use in pre-key messages.",
         method: POST,
-        name: "claim_keys",
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
@@ -29,12 +27,14 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `claim_keys` endpoint.
     #[request]
     pub struct Request {
         /// The keys to be claimed.
         pub one_time_keys: OneTimeKeyClaims,
     }
 
+    /// Response type for the `claim_keys` endpoint.
     #[response]
     pub struct Response {
         /// One-time keys for the queried devices

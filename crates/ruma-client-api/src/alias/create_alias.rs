@@ -1,4 +1,6 @@
 //! `PUT /_matrix/client/*/directory/room/{roomAlias}`
+//!
+//! Add an alias to a room.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Add an alias to a room.",
         method: PUT,
-        name: "create_alias",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -22,6 +22,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `create_alias` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room alias to set.
@@ -32,6 +33,7 @@ pub mod v3 {
         pub room_id: &'a RoomId,
     }
 
+    /// Response type for the `create_alias` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

@@ -1,6 +1,6 @@
 //! `POST /_matrix/identity/*/sign-ed25519`
 //!
-//! Endpoint to sign invitation details.
+//! Sign invitation details.
 
 pub mod v2 {
     //! `/v2/` ([spec])
@@ -15,9 +15,7 @@ pub mod v2 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Sign invitation details.",
         method: POST,
-        name: "sign_invitation_ed25519",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -25,6 +23,7 @@ pub mod v2 {
         }
     };
 
+    /// Request type for the `sign_invitation_ed25519` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The Matrix user ID of the user accepting the invitation.
@@ -37,6 +36,7 @@ pub mod v2 {
         pub private_key: &'a Base64,
     }
 
+    /// Response type for the `sign_invitation_ed25519` endpoint.
     #[response]
     pub struct Response {
         /// The Matrix user ID of the user accepting the invitation.

@@ -1,6 +1,6 @@
 //! `GET /_matrix/federation/*/make_join/{roomId}/{userId}`
 //!
-//! Endpoint to request a template for join events.
+//! Send a request for a join event template to a resident server.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -14,9 +14,7 @@ pub mod v1 {
     use serde_json::value::RawValue as RawJsonValue;
 
     const METADATA: Metadata = metadata! {
-        description: "Send a request for a join event template to a resident server.",
         method: GET,
-        name: "create_join_event_template",
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
@@ -24,6 +22,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `create_join_event_template` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The room ID that is about to be joined.
@@ -42,6 +41,7 @@ pub mod v1 {
         pub ver: &'a [RoomVersionId],
     }
 
+    /// Response type for the `create_join_event_template` endpoint.
     #[response]
     pub struct Response {
         /// The version of the room where the server is trying to join.

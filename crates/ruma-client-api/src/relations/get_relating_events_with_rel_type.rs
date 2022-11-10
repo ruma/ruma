@@ -1,7 +1,7 @@
 //! `GET /_matrix/client/*/rooms/{roomId}/relations/{eventId}/{relType}`
 //!
-//! Retrieve all of the child events for a given parent event which relate to the parent
-//! using the given `rel_type`.
+//! Get the child events for a given parent event which relate to the parent using the given
+//! `rel_type`.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -18,9 +18,7 @@ pub mod v1 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get the child events for a given parent event, with a given `relType`.",
         method: GET,
-        name: "get_relating_events_with_rel_type",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -29,6 +27,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_relating_events_with_rel_type` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The ID of the room containing the parent event.
@@ -78,6 +77,7 @@ pub mod v1 {
         pub limit: Option<UInt>,
     }
 
+    /// Response type for the `get_relating_events_with_rel_type` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The paginated child events which point to the parent.

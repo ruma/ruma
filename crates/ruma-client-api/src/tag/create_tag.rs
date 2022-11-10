@@ -1,4 +1,6 @@
 //! `PUT /_matrix/client/*/user/{userId}/rooms/{roomId}/tags/{tag}`
+//!
+//! Add a new tag to a room.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -12,9 +14,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Add a new tag to a room.",
         method: PUT,
-        name: "create_tag",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -23,6 +23,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `create_tag` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The ID of the user creating the tag.
@@ -42,6 +43,7 @@ pub mod v3 {
         pub tag_info: TagInfo,
     }
 
+    /// Response type for the `create_tag` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

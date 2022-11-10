@@ -1,4 +1,8 @@
-//! [POST /_matrix/client/unstable/org.matrix.msc3575/sync](https://github.com/matrix-org/matrix-doc/blob/kegan/sync-v3/proposals/3575-sync.md)
+//! `POST /_matrix/client/unstable/org.matrix.msc3575/sync` ([MSC])
+//!
+//! Get all new events in a sliding window of rooms since the last sync or a given point in time.
+//!
+//! [MSC]: https://github.com/matrix-org/matrix-doc/blob/kegan/sync-v3/proposals/3575-sync.md
 
 use std::{collections::BTreeMap, time::Duration};
 
@@ -17,9 +21,7 @@ use ruma_common::{
 use serde::{Deserialize, Serialize};
 
 const METADATA: Metadata = metadata! {
-    description: "Get all new events in a sliding window of rooms since the last sync or a given point of time.",
     method: POST,
-    name: "sync",
     rate_limited: false,
     authentication: AccessToken,
     history: {
@@ -28,6 +30,7 @@ const METADATA: Metadata = metadata! {
     }
 };
 
+/// Request type for the `sync` endpoint.
 #[request(error = crate::Error)]
 #[derive(Default)]
 pub struct Request<'a> {
@@ -65,6 +68,7 @@ pub struct Request<'a> {
     pub extensions: ExtensionsConfig,
 }
 
+/// Response type for the `sync` endpoint.
 #[response(error = crate::Error)]
 pub struct Response {
     /// Whether this response describes an initial sync (i.e. after the `pos` token has been

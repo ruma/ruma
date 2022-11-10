@@ -1,4 +1,6 @@
 //! POST /_matrix/client/*/account/3pid/delete
+//!
+//! Delete a 3PID from a user's account on an identity server.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -14,9 +16,7 @@ pub mod v3 {
     use crate::account::ThirdPartyIdRemovalStatus;
 
     const METADATA: Metadata = metadata! {
-        description: "Delete a 3PID from a user's account on an identity server.",
         method: POST,
-        name: "delete_3pid",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -25,6 +25,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `delete_3pid` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// Identity server to delete from.
@@ -38,6 +39,7 @@ pub mod v3 {
         pub address: &'a str,
     }
 
+    /// Response type for the `delete_3pid` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// Result of unbind operation.

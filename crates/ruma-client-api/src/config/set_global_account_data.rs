@@ -1,4 +1,6 @@
 //! `PUT /_matrix/client/*/user/{userId}/account_data/{type}`
+//!
+//! Sets global account data.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -18,9 +20,7 @@ pub mod v3 {
     use serde_json::value::to_raw_value as to_raw_json_value;
 
     const METADATA: Metadata = metadata! {
-        description: "Sets global account data.",
         method: PUT,
-        name: "set_global_account_data",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -29,6 +29,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `set_global_account_data` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The ID of the user to set account_data for.
@@ -50,6 +51,7 @@ pub mod v3 {
         pub data: Raw<AnyGlobalAccountDataEventContent>,
     }
 
+    /// Response type for the `set_global_account_data` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

@@ -14,9 +14,7 @@ pub mod v1 {
     use serde_json::value::RawValue as RawJsonValue;
 
     const METADATA: Metadata = metadata! {
-        description: "Retrieves a single event.",
         method: GET,
-        name: "get_event",
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
@@ -24,6 +22,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_event` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The event ID to get.
@@ -31,6 +30,7 @@ pub mod v1 {
         pub event_id: &'a EventId,
     }
 
+    /// Response type for the `get_event` endpoint.
     #[response]
     pub struct Response {
         /// The `server_name` of the homeserver sending this transaction.

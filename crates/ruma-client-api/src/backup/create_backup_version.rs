@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/room_keys/version`
+//!
+//! Create a new backup version.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -14,9 +16,7 @@ pub mod v3 {
     use crate::backup::BackupAlgorithm;
 
     const METADATA: Metadata = metadata! {
-        description: "Create a new backup version.",
         method: POST,
-        name: "create_backup_version",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -25,6 +25,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `create_backup_version` endpoint.
     #[request(error = crate::Error)]
     pub struct Request {
         /// The algorithm used for storing backups.
@@ -32,6 +33,7 @@ pub mod v3 {
         pub algorithm: Raw<BackupAlgorithm>,
     }
 
+    /// Response type for the `create_backup_version` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The backup version.

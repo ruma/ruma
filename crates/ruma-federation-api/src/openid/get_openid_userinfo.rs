@@ -1,6 +1,6 @@
 //! `GET /_matrix/federation/*/openid/userinfo`
 //!
-//! Endpdoint for retrieving OpenID userinfo.
+//! Exchange an OpenID access token for information about the user who generated the token.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -13,9 +13,7 @@ pub mod v1 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Exchanges an OpenID access token for information about the user who generated the token.",
         method: GET,
-        name: "get_openid_userinfo",
         rate_limited: false,
         authentication: None,
         history: {
@@ -23,6 +21,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_openid_userinfo` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The OpenID access token to get information about the owner for.
@@ -30,6 +29,7 @@ pub mod v1 {
         pub access_token: &'a str,
     }
 
+    /// Response type for the `get_openid_userinfo` endpoint.
     #[response]
     pub struct Response {
         /// The Matrix User ID who generated the token.

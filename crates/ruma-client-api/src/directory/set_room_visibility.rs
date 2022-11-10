@@ -1,4 +1,6 @@
 //! `PUT /_matrix/client/*/directory/list/room/{roomId}`
+//!
+//! Set the visibility of a public room on a directory.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     use crate::room::Visibility;
 
     const METADATA: Metadata = metadata! {
-        description: "Set the visibility of a public room on a directory.",
         method: PUT,
-        name: "set_room_visibility",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -24,6 +24,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `set_room_visibility` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The ID of the room of which to set the visibility.
@@ -34,6 +35,7 @@ pub mod v3 {
         pub visibility: Visibility,
     }
 
+    /// Response type for the `set_room_visibility` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

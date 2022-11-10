@@ -1,6 +1,6 @@
 //! `GET /_matrix/federation/*/version`
 //!
-//! Endpoint to retrieve metadata about a server implementation.
+//! Get the implementation name and version of this homeserver.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -14,9 +14,7 @@ pub mod v1 {
     use serde::{Deserialize, Serialize};
 
     const METADATA: Metadata = metadata! {
-        description: "Get the implementation name and version of this homeserver.",
         method: GET,
-        name: "get_server_version",
         rate_limited: false,
         authentication: None,
         history: {
@@ -24,10 +22,12 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_server_version` endpoint.
     #[request]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `get_server_version` endpoint.
     #[response]
     #[derive(Default)]
     pub struct Response {

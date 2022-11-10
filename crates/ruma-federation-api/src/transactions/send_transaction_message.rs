@@ -1,6 +1,6 @@
 //! `PUT /_matrix/federation/*/send/{txnId}`
 //!
-//! Endpoint to send live activity messages to another server.
+//! Send live activity messages to another server.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -20,9 +20,7 @@ pub mod v1 {
     use crate::transactions::edu::Edu;
 
     const METADATA: Metadata = metadata! {
-        description: "Send transaction messages to another server",
         method: PUT,
-        name: "send_transaction_message",
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
@@ -30,6 +28,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `send_transaction_message` endpoint.
     #[request]
     pub struct Request<'a> {
         /// A transaction ID unique between sending and receiving homeservers.
@@ -62,6 +61,7 @@ pub mod v1 {
         pub edus: &'a [Raw<Edu>],
     }
 
+    /// Response type for the `send_transaction_message` endpoint.
     #[response]
     #[derive(Default)]
     pub struct Response {

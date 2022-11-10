@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/search`
+//!
+//! Search events.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -23,9 +25,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Search events.",
         method: POST,
-        name: "search",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -34,6 +34,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `search` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The point to return events from.
@@ -46,6 +47,7 @@ pub mod v3 {
         pub search_categories: Categories<'a>,
     }
 
+    /// Response type for the `search` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// A grouping of search results by category.

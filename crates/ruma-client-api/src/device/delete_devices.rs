@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/delete_devices`
+//!
+//! Delete specified devices.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     use crate::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
 
     const METADATA: Metadata = metadata! {
-        description: "Delete specified devices.",
         method: POST,
-        name: "delete_devices",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -24,6 +24,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `delete_devices` endpoint.
     #[request(error = UiaaResponse)]
     pub struct Request<'a> {
         /// List of devices to delete.
@@ -34,6 +35,7 @@ pub mod v3 {
         pub auth: Option<AuthData<'a>>,
     }
 
+    /// Response type for the `delete_devices` endpoint.
     #[response(error = UiaaResponse)]
     #[derive(Default)]
     pub struct Response {}

@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/account/password/msisdn/requestToken`
+//!
+//! Request that a password change token is sent to the given phone number.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -12,9 +14,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Request that a password change token is sent to the given phone number.",
         method: POST,
-        name: "request_password_change_token_via_msisdn",
         rate_limited: false,
         authentication: None,
         history: {
@@ -23,6 +23,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `request_password_change_token_via_msisdn` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// Client-generated secret string used to protect this session.
@@ -42,6 +43,7 @@ pub mod v3 {
         pub next_link: Option<&'a str>,
     }
 
+    /// Response type for the `request_password_change_token_via_msisdn` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The session identifier given by the identity server.

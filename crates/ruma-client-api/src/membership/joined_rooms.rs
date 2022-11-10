@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/joined_rooms`
+//!
+//! Get a list of the user's current rooms.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get a list of the user's current rooms.",
         method: GET,
-        name: "joined_rooms",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -22,10 +22,12 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `joined_rooms` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `joined_rooms` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// A list of the rooms the user is in, i.e. the ID of each room in

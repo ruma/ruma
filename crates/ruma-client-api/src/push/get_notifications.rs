@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/notifications`
+//!
+//! Paginate through the list of events that the user has been, or would have been notified about.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -17,9 +19,7 @@ pub mod v3 {
     use serde::{Deserialize, Serialize};
 
     const METADATA: Metadata = metadata! {
-        description: "Paginate through the list of events that the user has been, or would have been notified about.",
         method: GET,
-        name: "get_notifications",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -28,6 +28,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_notifications` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request<'a> {
@@ -50,6 +51,7 @@ pub mod v3 {
         pub only: Option<&'a str>,
     }
 
+    /// Response type for the `get_notifications` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The token to supply in the from param of the next /notifications request in order to

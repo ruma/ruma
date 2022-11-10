@@ -1,7 +1,7 @@
 //! `GET /_matrix/federation/*/make_leave/{roomId}/{userId}`
 //!
-//! Endpoint to asks the receiving server to return information that the sending server will need
-//! to prepare a leave event to get out of the room.
+//! Asks the receiving server to return information that the sending server will need to prepare a
+//! leave event to get out of the room.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -15,9 +15,7 @@ pub mod v1 {
     use serde_json::value::RawValue as RawJsonValue;
 
     const METADATA: Metadata = metadata! {
-        description: "Asks the receiving server to return information that the sending server will need to prepare a leave event to get out of the room.",
         method: GET,
-        name: "get_leave_event",
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
@@ -25,6 +23,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_leave_event` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The room ID that is about to be left.
@@ -36,6 +35,7 @@ pub mod v1 {
         pub user_id: &'a UserId,
     }
 
+    /// Response type for the `get_leave_event` endpoint.
     #[response]
     pub struct Response {
         /// The version of the room where the server is trying to leave.

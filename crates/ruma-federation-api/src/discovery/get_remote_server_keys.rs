@@ -18,9 +18,7 @@ pub mod v2 {
     use crate::discovery::ServerSigningKeys;
 
     const METADATA: Metadata = metadata! {
-        description: "Query for another server's keys.",
         method: GET,
-        name: "get_remote_server_keys",
         rate_limited: false,
         authentication: None,
         history: {
@@ -30,6 +28,7 @@ pub mod v2 {
         }
     };
 
+    /// Request type for the `get_remote_server_keys` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The server's DNS name to query
@@ -45,6 +44,7 @@ pub mod v2 {
         pub minimum_valid_until_ts: MilliSecondsSinceUnixEpoch,
     }
 
+    /// Response type for the `get_remote_server_keys` endpoint.
     #[response]
     pub struct Response {
         /// The queried server's keys, signed by the notary server.

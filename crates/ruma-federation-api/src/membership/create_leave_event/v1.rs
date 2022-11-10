@@ -13,8 +13,6 @@ use ruma_common::{
 use serde::{Deserialize, Serialize};
 
 const METADATA: Metadata = metadata! {
-    description: "Submits a signed leave event to the receiving server for it to accept it into the room's graph.",
-    name: "create_leave_event",
     method: PUT,
     rate_limited: false,
     authentication: ServerSignatures,
@@ -23,6 +21,7 @@ const METADATA: Metadata = metadata! {
     }
 };
 
+/// Request type for the `create_leave_event` endpoint.
 #[request]
 pub struct Request<'a> {
     /// The room ID that is about to be left.
@@ -63,6 +62,7 @@ pub struct Request<'a> {
     pub depth: UInt,
 }
 
+/// Response type for the `create_leave_event` endpoint.
 #[response]
 #[derive(Default)]
 pub struct Response {

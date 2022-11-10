@@ -7,9 +7,7 @@ use ruma_common::{
 };
 
 const METADATA: Metadata = metadata! {
-    description: "Does something.",
     method: POST, // An `http::Method` constant. No imports required.
-    name: "some_endpoint",
     rate_limited: false,
     authentication: None,
     history: {
@@ -21,6 +19,7 @@ const METADATA: Metadata = metadata! {
     }
 };
 
+/// Request type for the `some_endpoint` endpoint.
 #[request]
 pub struct Request {
     // With no attribute on the field, it will be put into the body of the request.
@@ -40,6 +39,7 @@ pub struct Request {
     pub baz: String,
 }
 
+/// Response type for the `some_endpoint` endpoint.
 #[response]
 pub struct Response {
     // This value will be extracted from the "Content-Type" HTTP header.

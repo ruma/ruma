@@ -10,9 +10,7 @@ use ruma_common::{
 };
 
 const METADATA: Metadata = metadata! {
-    description: "Does something.",
     method: POST,
-    name: "my_endpoint",
     rate_limited: false,
     authentication: None,
     history: {
@@ -20,6 +18,7 @@ const METADATA: Metadata = metadata! {
     }
 };
 
+/// Request type for the `my_endpoint` endpoint.
 #[request]
 pub struct Request {
     pub hello: String,
@@ -40,6 +39,7 @@ pub struct Request {
     pub user: OwnedUserId,
 }
 
+/// Response type for the `my_endpoint` endpoint.
 #[response]
 pub struct Response {
     pub hello: String,
@@ -139,9 +139,7 @@ mod without_query {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Does something without query.",
         method: POST,
-        name: "my_endpoint",
         rate_limited: false,
         authentication: None,
         history: {
@@ -149,6 +147,7 @@ mod without_query {
         }
     };
 
+    /// Request type for the `my_endpoint` endpoint.
     #[request]
     pub struct Request {
         pub hello: String,
@@ -163,6 +162,7 @@ mod without_query {
         pub user: OwnedUserId,
     }
 
+    /// Response type for the `my_endpoint` endpoint.
     #[response]
     pub struct Response {
         pub hello: String,

@@ -1,4 +1,6 @@
 //! `PUT /_matrix/client/*/pushrules/{scope}/{kind}/{ruleId}/enabled`
+//!
+//! This endpoint allows clients to enable or disable the specified push rule.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     use crate::push::{RuleKind, RuleScope};
 
     const METADATA: Metadata = metadata! {
-        description: "This endpoint allows clients to enable or disable the specified push rule.",
         method: PUT,
-        name: "set_pushrule_enabled",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -24,6 +24,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `set_pushrule_enabled` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The scope to fetch a rule from.
@@ -42,6 +43,7 @@ pub mod v3 {
         pub enabled: bool,
     }
 
+    /// Response type for the `set_pushrule_enabled` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

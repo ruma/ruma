@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/profile/{userId}`
+//!
+//! Get all profile information of an user.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get all profile information of an user.",
         method: GET,
-        name: "get_profile",
         rate_limited: false,
         authentication: None,
         history: {
@@ -22,6 +22,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_profile` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The user whose profile will be retrieved.
@@ -29,6 +30,7 @@ pub mod v3 {
         pub user_id: &'a UserId,
     }
 
+    /// Response type for the `get_profile` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {

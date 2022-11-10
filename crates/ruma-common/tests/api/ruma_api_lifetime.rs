@@ -13,9 +13,7 @@ mod empty_response {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Add an alias to a room.",
         method: PUT,
-        name: "create_alias",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -23,6 +21,7 @@ mod empty_response {
         }
     };
 
+    /// Request type for the `create_alias` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The room alias to set.
@@ -33,6 +32,7 @@ mod empty_response {
         pub room_id: &'a RoomId,
     }
 
+    /// Response type for the `create_alias` endpoint.
     #[response]
     pub struct Response {}
 }
@@ -44,9 +44,7 @@ mod nested_types {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Add an alias to a room.",
         method: PUT,
-        name: "create_alias",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -54,6 +52,7 @@ mod nested_types {
         }
     };
 
+    /// Request type for the `create_alias` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The room alias to set.
@@ -63,6 +62,7 @@ mod nested_types {
         pub room_id: &'a [Option<Option<&'a ruma_common::DeviceId>>],
     }
 
+    /// Response type for the `create_alias` endpoint.
     #[response]
     pub struct Response {}
 }
@@ -77,9 +77,7 @@ mod full_request_response {
     use super::{IncomingOtherThing, OtherThing};
 
     const METADATA: Metadata = metadata! {
-        description: "Does something.",
         method: POST,
-        name: "no_fields",
         rate_limited: false,
         authentication: None,
         history: {
@@ -87,6 +85,7 @@ mod full_request_response {
         }
     };
 
+    /// Request type for the `no_fields` endpoint.
     #[request]
     pub struct Request<'a> {
         #[ruma_api(query)]
@@ -98,6 +97,7 @@ mod full_request_response {
         pub more: OtherThing<'a>,
     }
 
+    /// Response type for the `no_fields` endpoint.
     #[response]
     pub struct Response {
         #[ruma_api(body)]
@@ -115,9 +115,7 @@ mod full_request_response_with_query_map {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Does something.",
         method: GET,
-        name: "no_fields",
         rate_limited: false,
         authentication: None,
         history: {
@@ -125,6 +123,7 @@ mod full_request_response_with_query_map {
         }
     };
 
+    /// Request type for the `no_fields` endpoint.
     #[request]
     pub struct Request<'a> {
         #[ruma_api(query_map)]
@@ -136,6 +135,7 @@ mod full_request_response_with_query_map {
         pub stuff: &'a str,
     }
 
+    /// Response type for the `no_fields` endpoint.
     #[response]
     pub struct Response {
         #[ruma_api(body)]
@@ -152,9 +152,7 @@ mod query_fields {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get the list of rooms in this homeserver's public directory.",
         method: GET,
-        name: "get_public_rooms",
         rate_limited: false,
         authentication: None,
         history: {
@@ -162,6 +160,7 @@ mod query_fields {
         }
     };
 
+    /// Request type for the `get_public_rooms` endpoint.
     #[request]
     pub struct Request<'a> {
         /// Limit for the number of results to return.
@@ -182,6 +181,7 @@ mod query_fields {
         pub server: Option<&'a str>,
     }
 
+    /// Response type for the `get_public_rooms` endpoint.
     #[response]
     pub struct Response {}
 }

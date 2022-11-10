@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/rooms/{roomId}/invite`
+//!
+//! Invite a user to a room.
 
 pub mod v3 {
     //! `/v3/` ([spec (MXID)][spec-mxid], [spec (3PID)][spec-3pid])
@@ -21,9 +23,7 @@ pub mod v3 {
     use crate::membership::{IncomingInvite3pid, Invite3pid};
 
     const METADATA: Metadata = metadata! {
-        description: "Invite a user to a room.",
         method: POST,
-        name: "invite_user",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -32,6 +32,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `invite_user` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room where the user should be invited.
@@ -47,6 +48,7 @@ pub mod v3 {
         pub reason: Option<&'a str>,
     }
 
+    /// Response type for the `invite_user` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

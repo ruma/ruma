@@ -12,9 +12,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "",
         method: GET,
-        name: "sso_login",
         rate_limited: false,
         authentication: None,
         history: {
@@ -23,6 +21,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `sso_login` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// URL to which the homeserver should return the user after completing
@@ -32,6 +31,7 @@ pub mod v3 {
         pub redirect_url: &'a str,
     }
 
+    /// Response type for the `sso_login` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// Redirect URL to the SSO identity provider.

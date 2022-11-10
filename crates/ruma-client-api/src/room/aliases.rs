@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/rooms/{roomId}/aliases`
+//!
+//! Get a list of aliases maintained by the local server for the given room.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get a list of aliases maintained by the local server for the given room.",
         method: GET,
-        name: "aliases",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -23,6 +23,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `aliases` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room ID to get aliases of.
@@ -30,6 +31,7 @@ pub mod v3 {
         pub room_id: &'a RoomId,
     }
 
+    /// Response type for the `aliases` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The server's local aliases on the room.

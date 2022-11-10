@@ -17,9 +17,7 @@ pub mod v3 {
     use crate::backup::RoomKeyBackup;
 
     const METADATA: Metadata = metadata! {
-        description: "Retrieve all keys from a backup version.",
         method: GET,
-        name: "get_backup_keys",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -29,6 +27,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_backup_keys` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The backup version to retrieve keys from.
@@ -36,6 +35,7 @@ pub mod v3 {
         pub version: &'a str,
     }
 
+    /// Response type for the `get_backup_keys` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// A map from room IDs to session IDs to key data.

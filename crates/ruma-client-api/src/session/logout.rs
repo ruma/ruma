@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/logout`
+//!
+//! Log out of the homeserver.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Log out of the homeserver.",
         method: POST,
-        name: "logout",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -22,10 +22,12 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `logout` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `logout` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

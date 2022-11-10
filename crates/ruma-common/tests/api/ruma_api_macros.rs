@@ -12,9 +12,7 @@ pub mod some_endpoint {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Does something.",
         method: POST, // An `http::Method` constant. No imports required.
-        name: "some_endpoint",
         rate_limited: false,
         authentication: None,
         history: {
@@ -22,6 +20,7 @@ pub mod some_endpoint {
         }
     };
 
+    /// Request type for the `some_endpoint` endpoint.
     #[request]
     pub struct Request {
         // With no attribute on the field, it will be put into the body of the request.
@@ -41,6 +40,7 @@ pub mod some_endpoint {
         pub user: OwnedUserId,
     }
 
+    /// Response type for the `some_endpoint` endpoint.
     #[response]
     pub struct Response {
         // This value will be extracted from the "Content-Type" HTTP header.
@@ -74,9 +74,7 @@ pub mod newtype_body_endpoint {
     }
 
     const METADATA: Metadata = metadata! {
-        description: "Does something.",
         method: PUT,
-        name: "newtype_body_endpoint",
         rate_limited: false,
         authentication: None,
         history: {
@@ -84,12 +82,14 @@ pub mod newtype_body_endpoint {
         }
     };
 
+    /// Request type for the `newtype_body_endpoint` endpoint.
     #[request]
     pub struct Request {
         #[ruma_api(body)]
         pub list_of_custom_things: Vec<MyCustomType>,
     }
 
+    /// Response type for the `newtype_body_endpoint` endpoint.
     #[response]
     pub struct Response {
         #[ruma_api(body)]
@@ -109,9 +109,7 @@ pub mod raw_body_endpoint {
     }
 
     const METADATA: Metadata = metadata! {
-        description: "Does something.",
         method: PUT,
-        name: "newtype_body_endpoint",
         rate_limited: false,
         authentication: None,
         history: {
@@ -119,12 +117,14 @@ pub mod raw_body_endpoint {
         }
     };
 
+    /// Request type for the `newtype_body_endpoint` endpoint.
     #[request]
     pub struct Request<'a> {
         #[ruma_api(raw_body)]
         pub file: &'a [u8],
     }
 
+    /// Response type for the `newtype_body_endpoint` endpoint.
     #[response]
     pub struct Response {
         #[ruma_api(raw_body)]
@@ -139,9 +139,7 @@ pub mod query_map_endpoint {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Does something.",
         method: GET,
-        name: "newtype_body_endpoint",
         rate_limited: false,
         authentication: None,
         history: {
@@ -149,12 +147,14 @@ pub mod query_map_endpoint {
         }
     };
 
+    /// Request type for the `newtype_body_endpoint` endpoint.
     #[request]
     pub struct Request {
         #[ruma_api(query_map)]
         pub fields: Vec<(String, String)>,
     }
 
+    /// Response type for the `newtype_body_endpoint` endpoint.
     #[response]
     pub struct Response {}
 }

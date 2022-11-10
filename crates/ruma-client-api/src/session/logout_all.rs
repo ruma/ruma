@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/logout/all`
+//!
+//! Invalidates all access tokens for a user, so that they can no longer be used for authorization.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Invalidates all access tokens for a user, so that they can no longer be used for authorization.",
         method: POST,
-        name: "logout_all",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -22,10 +22,12 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `logout_all` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `logout_all` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

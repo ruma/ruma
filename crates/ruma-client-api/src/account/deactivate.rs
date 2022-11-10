@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/account/deactivate`
+//!
+//! Deactivate the current user's account.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -16,9 +18,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Deactivate the current user's account.",
         method: POST,
-        name: "deactivate",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -27,6 +27,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `deactivate` endpoint.
     #[request(error = UiaaResponse)]
     #[derive(Default)]
     pub struct Request<'a> {
@@ -40,6 +41,7 @@ pub mod v3 {
         pub id_server: Option<&'a str>,
     }
 
+    /// Response type for the `deactivate` endpoint.
     #[response(error = UiaaResponse)]
     pub struct Response {
         /// Result of unbind operation.

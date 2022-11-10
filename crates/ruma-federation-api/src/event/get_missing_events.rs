@@ -15,9 +15,7 @@ pub mod v1 {
     use serde_json::value::RawValue as RawJsonValue;
 
     const METADATA: Metadata = metadata! {
-        description: "Retrieves previous events that the sender is missing.",
         method: POST,
-        name: "get_missing_events",
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
@@ -25,6 +23,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_missing_events` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The room ID to search in.
@@ -52,6 +51,7 @@ pub mod v1 {
         pub latest_events: &'a [OwnedEventId],
     }
 
+    /// Response type for the `get_missing_events` endpoint.
     #[response]
     #[derive(Default)]
     pub struct Response {

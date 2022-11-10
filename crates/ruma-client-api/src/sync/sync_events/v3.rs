@@ -23,9 +23,7 @@ use serde::{Deserialize, Serialize};
 use crate::filter::{FilterDefinition, IncomingFilterDefinition};
 
 const METADATA: Metadata = metadata! {
-    description: "Get all new events from all rooms since the last sync or a given point of time.",
     method: GET,
-    name: "sync",
     rate_limited: false,
     authentication: AccessToken,
     history: {
@@ -34,6 +32,7 @@ const METADATA: Metadata = metadata! {
     }
 };
 
+/// Request type for the `sync` endpoint.
 #[request(error = crate::Error)]
 #[derive(Default)]
 pub struct Request<'a> {
@@ -72,6 +71,7 @@ pub struct Request<'a> {
     pub timeout: Option<Duration>,
 }
 
+/// Response type for the `sync` endpoint.
 #[response(error = crate::Error)]
 pub struct Response {
     /// The batch token to supply in the `since` param of the next `/sync` request.

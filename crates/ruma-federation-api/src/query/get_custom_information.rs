@@ -1,6 +1,7 @@
 //! `GET /_matrix/federation/*/query/{queryType}`
 //!
-//! Generic query endpoint for performing custom queries.
+//! Performs a single query request on the receiving homeserver. The query arguments are dependent
+//! on which type of query is being made.
 
 pub mod v1 {
     //! `/v1/` ([spec])
@@ -16,9 +17,7 @@ pub mod v1 {
     use serde_json::Value as JsonValue;
 
     const METADATA: Metadata = metadata! {
-        description: "Performs a single query request on the receiving homeserver. The query string arguments are dependent on which type of query is being made.",
         method: GET,
-        name: "get_custom_information",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -26,6 +25,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `get_custom_information` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The type of query to make.
@@ -37,6 +37,7 @@ pub mod v1 {
         pub params: BTreeMap<String, String>,
     }
 
+    /// Response type for the `get_custom_information` endpoint.
     #[response]
     pub struct Response {
         /// The body of the response.

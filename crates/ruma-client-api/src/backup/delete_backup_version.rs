@@ -1,4 +1,6 @@
 //! `DELETE /_matrix/client/*/room_keys/version/{version}`
+//!
+//! Delete a backup version.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Delete a backup version.",
         method: DELETE,
-        name: "delete_backup_version",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -25,6 +25,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `delete_backup_version` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The backup version to delete.
@@ -32,6 +33,7 @@ pub mod v3 {
         pub version: &'a str,
     }
 
+    /// Response type for the `delete_backup_version` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

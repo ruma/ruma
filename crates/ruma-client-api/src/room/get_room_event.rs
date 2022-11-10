@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/rooms/{roomId}/event/{eventId}`
+//!
+//! Get a single event based on roomId/eventId
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -14,9 +16,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get a single event based on roomId/eventId",
         method: GET,
-        name: "get_room_event",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -25,6 +25,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_room_event` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The ID of the room the event is in.
@@ -36,6 +37,7 @@ pub mod v3 {
         pub event_id: &'a EventId,
     }
 
+    /// Response type for the `get_room_event` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// Arbitrary JSON of the event body.

@@ -1,4 +1,6 @@
 //! `PUT /_matrix/client/*/presence/{userId}/status`
+//!
+//! Set presence status for this user.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Set presence status for this user.",
         method: PUT,
-        name: "set_presence",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -24,6 +24,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `set_presence` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The user whose presence state will be updated.
@@ -38,6 +39,7 @@ pub mod v3 {
         pub status_msg: Option<&'a str>,
     }
 
+    /// Response type for the `set_presence` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

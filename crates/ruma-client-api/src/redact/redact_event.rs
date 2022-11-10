@@ -1,4 +1,6 @@
 //! `PUT /_matrix/client/*/rooms/{roomId}/redact/{eventId}/{txnId}`
+//!
+//! Redact an event, stripping all information not critical to the event graph integrity.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Redact an event, stripping all information not critical to the event graph integrity.",
         method: PUT,
-        name: "redact_event",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -22,6 +22,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `redact_event` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The ID of the room of the event to redact.
@@ -49,6 +50,7 @@ pub mod v3 {
         pub reason: Option<&'a str>,
     }
 
+    /// Response type for the `redact_event` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The ID of the redacted event.

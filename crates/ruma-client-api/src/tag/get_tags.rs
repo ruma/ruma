@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/user/{userId}/rooms/{roomId}/tags`
+//!
+//! Get the tags associated with a room.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -12,9 +14,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Get the tags associated with a room.",
         method: GET,
-        name: "get_tags",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -23,6 +23,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_tags` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The user whose tags will be retrieved.
@@ -34,6 +35,7 @@ pub mod v3 {
         pub room_id: &'a RoomId,
     }
 
+    /// Response type for the `get_tags` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The user's tags for the room.

@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/keys/claim`
+//!
+//! Claims one-time keys for use in pre-key messages.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -17,9 +19,7 @@ pub mod v3 {
     use serde_json::Value as JsonValue;
 
     const METADATA: Metadata = metadata! {
-        description: "Claims one-time keys for use in pre-key messages.",
         method: POST,
-        name: "claim_keys",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -28,6 +28,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `claim_keys` endpoint.
     #[request(error = crate::Error)]
     pub struct Request {
         /// The time (in milliseconds) to wait when downloading keys from remote servers.
@@ -43,6 +44,7 @@ pub mod v3 {
         pub one_time_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, DeviceKeyAlgorithm>>,
     }
 
+    /// Response type for the `claim_keys` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// If any remote homeservers could not be reached, they are recorded here.

@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/rooms/{roomId}/context/{eventId}`
+//!
+//! Get the events immediately preceding and following a given event.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -17,9 +19,7 @@ pub mod v3 {
     use crate::filter::{IncomingRoomEventFilter, RoomEventFilter};
 
     const METADATA: Metadata = metadata! {
-        description: "Get the events immediately preceding and following a given event.",
         method: GET,
-        name: "get_context",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -28,6 +28,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_context` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room to get events from.
@@ -55,6 +56,7 @@ pub mod v3 {
         pub filter: RoomEventFilter<'a>,
     }
 
+    /// Response type for the `get_context` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {

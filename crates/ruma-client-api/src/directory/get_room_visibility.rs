@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/directory/list/room/{roomId}`
+//!
+//! Get the visibility of a public room on a directory.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     use crate::room::Visibility;
 
     const METADATA: Metadata = metadata! {
-        description: "Get the visibility of a public room on a directory.",
         method: GET,
-        name: "get_room_visibility",
         rate_limited: false,
         authentication: None,
         history: {
@@ -24,6 +24,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_room_visibility` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The ID of the room of which to request the visibility.
@@ -31,6 +32,7 @@ pub mod v3 {
         pub room_id: &'a RoomId,
     }
 
+    /// Response type for the `get_room_visibility` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// Visibility of the room.

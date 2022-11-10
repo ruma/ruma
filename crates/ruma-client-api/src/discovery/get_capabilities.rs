@@ -1,6 +1,7 @@
 //! `GET /_matrix/client/*/capabilities`
 //!
-//! Query the capabilities of a server ([spec])
+//! Get information about the server's supported feature set and other relevant capabilities
+//! ([spec]).
 //!
 //! [spec]: https://spec.matrix.org/unstable/client-server-api/#capabilities-negotiation
 

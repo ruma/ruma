@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/account/password`
+//!
+//! Change the password of the current user's account.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     use crate::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
 
     const METADATA: Metadata = metadata! {
-        description: "Change the password of the current user's account.",
         method: POST,
-        name: "change_password",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -24,6 +24,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `change_password` endpoint.
     #[request(error = UiaaResponse)]
     pub struct Request<'a> {
         /// The new password for the account.
@@ -47,6 +48,7 @@ pub mod v3 {
         pub auth: Option<AuthData<'a>>,
     }
 
+    /// Response type for the `change_password` endpoint.
     #[response(error = UiaaResponse)]
     #[derive(Default)]
     pub struct Response {}

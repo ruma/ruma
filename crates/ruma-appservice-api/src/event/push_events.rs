@@ -38,9 +38,7 @@ pub mod v1 {
     use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
     const METADATA: Metadata = metadata! {
-        description: "This API is called by the homeserver when it wants to push an event (or batch of events) to the application service.",
         method: PUT,
-        name: "push_events",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -48,6 +46,7 @@ pub mod v1 {
         }
     };
 
+    /// Request type for the `push_events` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The transaction ID for this set of events.
@@ -109,6 +108,7 @@ pub mod v1 {
         pub to_device: &'a [Raw<AnyToDeviceEvent>],
     }
 
+    /// Response type for the `push_events` endpoint.
     #[response]
     #[derive(Default)]
     pub struct Response {}

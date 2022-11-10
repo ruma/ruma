@@ -19,9 +19,7 @@ pub mod v3 {
     use crate::backup::BackupAlgorithm;
 
     const METADATA: Metadata = metadata! {
-        description: "Get information about a specific backup.",
         method: GET,
-        name: "get_backup_info",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -30,6 +28,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_backup_info` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The backup version to retrieve info from.
@@ -37,6 +36,7 @@ pub mod v3 {
         pub version: &'a str,
     }
 
+    /// Response type for the `get_backup_info` endpoint.
     #[response(error = crate::Error)]
     #[ruma_api(manual_body_serde)]
     pub struct Response {

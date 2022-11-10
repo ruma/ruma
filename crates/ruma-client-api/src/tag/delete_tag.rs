@@ -1,4 +1,6 @@
 //! `DELETE /_matrix/client/*/user/{userId}/rooms/{roomId}/tags/{tag}`
+//!
+//! Remove a tag from a room.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -11,9 +13,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Remove a tag from a room.",
         method: DELETE,
-        name: "delete_tag",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -22,6 +22,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `delete_tag` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The user whose tag will be deleted.
@@ -37,6 +38,7 @@ pub mod v3 {
         pub tag: &'a str,
     }
 
+    /// Response type for the `delete_tag` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

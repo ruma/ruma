@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/user/{userId}/rooms/{roomId}/account_data/{type}`
+//!
+//! Gets account data room for a user for a given room
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -14,9 +16,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Gets account data room for a user for a given room",
         method: GET,
-        name: "get_room_account_data",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -25,6 +25,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_room_account_data` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// User ID of user for whom to retrieve data.
@@ -40,6 +41,7 @@ pub mod v3 {
         pub event_type: &'a str,
     }
 
+    /// Response type for the `get_room_account_data` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// Account data content for the given type.

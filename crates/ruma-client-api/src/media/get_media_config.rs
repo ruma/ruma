@@ -1,4 +1,6 @@
 //! `GET /_matrix/media/*/config`
+//!
+//! Gets the config for the media repository.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -12,9 +14,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Gets the config for the media repository.",
         method: GET,
-        name: "get_media_config",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -23,10 +23,12 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_media_config` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `get_media_config` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// Maximum size of upload in bytes.

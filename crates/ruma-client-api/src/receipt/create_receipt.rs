@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/rooms/{roomId}/receipt/{receiptType}/{eventId}`
+//!
+//! Send a receipt event to a room.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -16,9 +18,7 @@ pub mod v3 {
     use crate::PrivOwnedStr;
 
     const METADATA: Metadata = metadata! {
-        description: "Send a receipt event to a room.",
         method: POST,
-        name: "create_receipt",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -27,6 +27,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `create_receipt` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The room in which to send the event.
@@ -55,6 +56,7 @@ pub mod v3 {
         pub thread: ReceiptThread,
     }
 
+    /// Response type for the `create_receipt` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

@@ -3,12 +3,12 @@ error: no rules expected the token `history_impl`
    |
 3  |   const METADATA: Metadata = metadata! {
    |  ____________________________^
-4  | |     description: "This will fail.",
-5  | |     method: GET,
-6  | |     name: "invalid_versions",
+4  | |     method: GET,
+5  | |     rate_limited: false,
+6  | |     authentication: None,
 ...  |
-12 | |     }
-13 | | };
+10 | |     }
+11 | | };
    | |_^ no rules expected this token in macro call
    |
    = note: this error originates in the macro `$crate::metadata` which comes from the expansion of the macro `metadata` (in Nightly builds, run with -Z macro-backtrace for more info)

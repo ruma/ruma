@@ -1,6 +1,7 @@
 //! `GET /_matrix/identity/*/hash_details`
 //!
-//! Endpoint to get details about Hashing identifiers.
+//! Gets parameters for hashing identifiers from the server. This can include any of the algorithms
+//! defined in the spec.
 
 pub mod v2 {
     //! `/v2/` ([spec])
@@ -15,9 +16,7 @@ pub mod v2 {
     use crate::lookup::IdentifierHashingAlgorithm;
 
     const METADATA: Metadata = metadata! {
-        description: "Gets parameters for hashing identifiers from the server. This can include any of the algorithms defined in the spec.",
         method: GET,
-        name: "get_hash_parameters",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -25,10 +24,12 @@ pub mod v2 {
         }
     };
 
+    /// Request type for the `get_hash_parameters` endpoint.
     #[request]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `get_hash_parameters` endpoint.
     #[response]
     pub struct Response {
         /// The pepper the client MUST use in hashing identifiers, and MUST supply to the /lookup

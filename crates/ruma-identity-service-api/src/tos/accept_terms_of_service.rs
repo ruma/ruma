@@ -1,6 +1,6 @@
 //! `POST /_matrix/identity/*/terms`
 //!
-//! Endpoint to send acceptance of the terms of service of an identity server.
+//! Send acceptance of the terms of service of an identity server.
 
 pub mod v2 {
     //! `/v2/` ([spec])
@@ -13,9 +13,7 @@ pub mod v2 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Called by a client to indicate that the user has accepted/agreed to the included set of URLs.",
         method: POST,
-        name: "accept_terms_of_service",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -23,6 +21,7 @@ pub mod v2 {
         }
     };
 
+    /// Request type for the `accept_terms_of_service` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The URLs the user is accepting in this request.
@@ -31,6 +30,7 @@ pub mod v2 {
         pub user_accepts: &'a [String],
     }
 
+    /// Response type for the `accept_terms_of_service` endpoint.
     #[response]
     #[derive(Default)]
     pub struct Response {}

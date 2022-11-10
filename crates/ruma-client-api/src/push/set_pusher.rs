@@ -1,4 +1,6 @@
 //! `POST /_matrix/client/*/pushers/set`
+//!
+//! This endpoint allows the creation, modification and deletion of pushers for this user ID.
 
 mod set_pusher_serde;
 
@@ -16,9 +18,7 @@ pub mod v3 {
     use crate::push::{Pusher, PusherIds};
 
     const METADATA: Metadata = metadata! {
-        description: "This endpoint allows the creation, modification and deletion of pushers for this user ID.",
         method: POST,
-        name: "set_pusher",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -27,6 +27,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `set_pusher` endpoint.
     #[request(error = crate::Error)]
     pub struct Request {
         /// The action to take.
@@ -34,6 +35,7 @@ pub mod v3 {
         pub action: PusherAction,
     }
 
+    /// Response type for the `set_pusher` endpoint.
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {}

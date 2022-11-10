@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/thirdparty/location`
+//!
+//! Retrieve an array of third party network locations from a Matrix room alias.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -13,9 +15,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Retrieve an array of third party network locations from a Matrix room alias.",
         method: GET,
-        name: "get_location_for_room_alias",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -24,6 +24,7 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_location_for_room_alias` endpoint.
     #[request(error = crate::Error)]
     pub struct Request<'a> {
         /// The Matrix room alias to look up.
@@ -31,6 +32,7 @@ pub mod v3 {
         pub alias: &'a RoomAliasId,
     }
 
+    /// Response type for the `get_location_for_room_alias` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// List of matched third party locations.

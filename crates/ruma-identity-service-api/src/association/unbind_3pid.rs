@@ -1,6 +1,6 @@
 //! `POST /_matrix/identity/*/3pid/unbind`
 //!
-//! Endpoint to remove an association between a session and a Matrix user ID.
+//! Remove an association between a session and a Matrix user ID.
 
 pub mod v2 {
     //! `/v2/` ([spec])
@@ -17,9 +17,7 @@ pub mod v2 {
     use serde::{Deserialize, Serialize};
 
     const METADATA: Metadata = metadata! {
-        description: "Remove an association between a session and a Matrix user ID.",
         method: POST,
-        name: "unbind_3pid",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -27,6 +25,7 @@ pub mod v2 {
         }
     };
 
+    /// Request type for the `unbind_3pid` endpoint.
     #[request]
     pub struct Request<'a> {
         /// The proof that the client owns the 3PID.
@@ -46,6 +45,7 @@ pub mod v2 {
         pub threepid: &'a ThirdPartyId,
     }
 
+    /// Response type for the `unbind_3pid` endpoint.
     #[response]
     #[derive(Default)]
     pub struct Response {}

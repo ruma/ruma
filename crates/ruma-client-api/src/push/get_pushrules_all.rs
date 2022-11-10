@@ -1,4 +1,6 @@
 //! `GET /_matrix/client/*/pushrules/`
+//!
+//! Retrieve all push rulesets for this user.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -12,9 +14,7 @@ pub mod v3 {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Retrieve all push rulesets for this user.",
         method: GET,
-        name: "get_pushrules_all",
         rate_limited: false,
         authentication: AccessToken,
         history: {
@@ -23,10 +23,12 @@ pub mod v3 {
         }
     };
 
+    /// Request type for the `get_pushrules_all` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `get_pushrules_all` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The global ruleset.

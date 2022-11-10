@@ -1,4 +1,6 @@
 //! `POST /_matrix/media/*/create`
+//!
+//! Create an MXC URI without content.
 
 pub mod unstable {
     //! `/unstable/` ([spec])
@@ -12,9 +14,7 @@ pub mod unstable {
     };
 
     const METADATA: Metadata = metadata! {
-        description: "Create an MXC URI without content.",
         method: POST,
-        name: "create_mxc_uri",
         rate_limited: true,
         authentication: AccessToken,
         history: {
@@ -22,10 +22,12 @@ pub mod unstable {
         }
     };
 
+    /// Request type for the `create_mxc_uri` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request {}
 
+    /// Response type for the `create_mxc_uri` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The MXC URI for the about to be uploaded content.
