@@ -238,7 +238,7 @@ impl Request {
         }
     }
 
-    pub(super) fn check(&self, ruma_common: &TokenStream) -> syn::Result<Option<TokenStream>> {
+    pub(super) fn check(&self, ruma_common: &TokenStream) -> syn::Result<TokenStream> {
         let http = quote! { #ruma_common::exports::http };
 
         // TODO: highlight problematic fields
@@ -297,8 +297,21 @@ impl Request {
             ));
         }
 
-        Ok((has_body_fields || has_newtype_body_field).then(|| {
-            quote! {
+        let path_fields = self.path_fields().map(|f| f.ident.as_ref().unwrap().to_string());
+        let mut tests = quote! {
+            #[::std::prelude::v1::test]
+            fn path_parameters() {
+                let path_params = METADATA._path_parameters();
+                let request_path_fields: &[&::std::primitive::str] = &[#(#path_fields),*];
+                ::std::assert_eq!(
+                    path_params, request_path_fields,
+                    "Path parameters must match the `Request`'s `#[ruma_api(path)]` fields"
+                );
+            }
+        };
+
+        if has_body_fields || has_newtype_body_field {
+            tests.extend(quote! {
                 #[::std::prelude::v1::test]
                 fn request_is_not_get() {
                     ::std::assert_ne!(
@@ -306,8 +319,10 @@ impl Request {
                         "GET endpoints can't have body fields",
                     );
                 }
-            }
-        }))
+            });
+        }
+
+        Ok(tests)
     }
 }
 

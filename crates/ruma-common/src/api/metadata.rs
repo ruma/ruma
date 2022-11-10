@@ -124,6 +124,13 @@ impl Metadata {
 
         Ok(res)
     }
+
+    // Used for generated `#[test]`s
+    #[doc(hidden)]
+    pub fn _path_parameters(&self) -> Vec<&'static str> {
+        let path = self.history.all_paths().next().unwrap();
+        path.split('/').filter_map(|segment| segment.strip_prefix(':')).collect()
+    }
 }
 
 /// The complete history of this endpoint as far as Ruma knows, together with all variants on

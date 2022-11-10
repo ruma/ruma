@@ -389,27 +389,12 @@ pub enum HistoryEntry {
     Removed { version: MatrixVersionLiteral },
 }
 
-impl HistoryEntry {
-    pub(super) fn path(&self) -> Option<&EndpointPath> {
-        Some(match self {
-            HistoryEntry::Stable { version: _, path } => path,
-            HistoryEntry::Unstable { path } => path,
-
-            _ => return None,
-        })
-    }
-}
-
 #[derive(Clone, Debug, PartialEq)]
 pub struct EndpointPath(LitStr);
 
 impl EndpointPath {
     pub fn value(&self) -> String {
         self.0.value()
-    }
-
-    pub fn args(&self) -> Vec<String> {
-        self.value().split('/').filter_map(|s| s.strip_prefix(':')).map(String::from).collect()
     }
 }
 

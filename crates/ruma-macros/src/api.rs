@@ -12,12 +12,7 @@ use syn::{
     Attribute, Field, Token, Type,
 };
 
-use self::{
-    api_metadata::Metadata,
-    api_request::Request,
-    api_response::Response,
-    request::{RequestField, RequestFieldKind},
-};
+use self::{api_metadata::Metadata, api_request::Request, api_response::Response};
 use crate::util::import_ruma_common;
 
 mod api_metadata;
@@ -56,7 +51,6 @@ pub struct Api {
 impl Api {
     pub fn expand_all(self) -> TokenStream {
         let maybe_feature_error = ensure_feature_presence().map(syn::Error::to_compile_error);
-        let maybe_path_error = self.check_paths().err().map(syn::Error::into_compile_error);
 
         let ruma_common = import_ruma_common();
 
@@ -80,7 +74,6 @@ impl Api {
 
         quote! {
             #maybe_feature_error
-            #maybe_path_error
 
             // For some reason inlining the expression causes issues with macro parsing
             const _RUMA_API_VERSION_HISTORY: #ruma_common::api::VersionHistory = #history;
@@ -101,39 +94,6 @@ impl Api {
             #[cfg(not(any(feature = "client", feature = "server")))]
             type _SilenceUnusedError = #error_ty;
         }
-    }
-
-    fn check_paths(&self) -> syn::Result<()> {
-        let mut path_iter = self.metadata.history.entries.iter().filter_map(|entry| entry.path());
-
-        let path = path_iter.next().ok_or_else(|| {
-            syn::Error::new(Span::call_site(), "at least one path metadata field must be set")
-        })?;
-        let path_args = path.args();
-
-        if let Some(req) = &self.request {
-            let path_field_names: Vec<_> = req
-                .fields
-                .iter()
-                .cloned()
-                .filter_map(|f| match RequestField::try_from(f) {
-                    Ok(RequestField { kind: RequestFieldKind::Path, inner }) => {
-                        Some(Ok(inner.ident.unwrap().to_string()))
-                    }
-                    Ok(_) => None,
-                    Err(e) => Some(Err(e)),
-                })
-                .collect::<syn::Result<_>>()?;
-
-            if path_args != path_field_names {
-                return Err(syn::Error::new_spanned(
-                    req.request_kw,
-                    "path fields must be in the same order as they appear in the path segments",
-                ));
-            }
-        }
-
-        Ok(())
     }
 }
 
