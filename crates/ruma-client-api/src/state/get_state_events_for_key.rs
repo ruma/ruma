@@ -80,26 +80,16 @@ pub mod v3 {
             access_token: ruma_common::api::SendAccessToken<'_>,
             considering_versions: &'_ [ruma_common::api::MatrixVersion],
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
-            use std::borrow::Cow;
-
             use http::header;
-            use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
-
-            let mut url = METADATA.make_endpoint_url(
-                considering_versions,
-                base_url,
-                &[&self.room_id, &self.event_type],
-                None,
-            )?;
-
-            if !self.state_key.is_empty() {
-                url.push('/');
-                url.push_str(&Cow::from(utf8_percent_encode(self.state_key, NON_ALPHANUMERIC)));
-            }
 
             http::Request::builder()
                 .method(http::Method::GET)
-                .uri(url)
+                .uri(METADATA.make_endpoint_url(
+                    considering_versions,
+                    base_url,
+                    &[&self.room_id, &self.event_type, &self.state_key],
+                    None,
+                )?)
                 .header(header::CONTENT_TYPE, "application/json")
                 .header(
                     header::AUTHORIZATION,

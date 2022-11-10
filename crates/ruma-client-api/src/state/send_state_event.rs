@@ -122,31 +122,20 @@ pub mod v3 {
             access_token: ruma_common::api::SendAccessToken<'_>,
             considering_versions: &'_ [ruma_common::api::MatrixVersion],
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
-            use std::borrow::Cow;
-
             use http::header::{self, HeaderValue};
-            use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 
-            let mut url = METADATA.make_endpoint_url(
-                considering_versions,
-                base_url,
-                &[&self.room_id, &self.event_type],
-                None,
-            )?;
-
-            // Last URL segment is optional, that is why this trait impl is not generated.
-            if !self.state_key.is_empty() {
-                url.push('/');
-                url.push_str(&Cow::from(utf8_percent_encode(self.state_key, NON_ALPHANUMERIC)));
-            }
-
-            let request_query = RequestQuery { timestamp: self.timestamp };
-            url.push('?');
-            url.push_str(&ruma_common::serde::urlencoded::to_string(request_query)?);
+            let query_string = ruma_common::serde::urlencoded::to_string(RequestQuery {
+                timestamp: self.timestamp,
+            })?;
 
             let http_request = http::Request::builder()
                 .method(http::Method::PUT)
-                .uri(url)
+                .uri(METADATA.make_endpoint_url(
+                    considering_versions,
+                    base_url,
+                    &[&self.room_id, &self.event_type, &self.state_key],
+                    Some(&query_string),
+                )?)
                 .header(header::CONTENT_TYPE, "application/json")
                 .header(
                     header::AUTHORIZATION,
@@ -219,5 +208,29 @@ pub mod v3 {
         /// Timestamp to use for the `origin_server_ts` of the event.
         #[serde(rename = "ts", skip_serializing_if = "Option::is_none")]
         pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
+    }
+
+    #[cfg(feature = "client")]
+    #[test]
+    fn serialize() {
+        use ruma_common::{
+            api::{MatrixVersion, OutgoingRequest as _, SendAccessToken},
+            events::{room::name::RoomNameEventContent, EmptyStateKey},
+            room_id,
+        };
+
+        // This used to panic in make_endpoint_url because of a mismatch in the path parameter count
+        Request::new(
+            room_id!("!room:server.tld"),
+            &EmptyStateKey,
+            &RoomNameEventContent::new(Some("Test room".to_owned())),
+        )
+        .unwrap()
+        .try_into_http_request::<Vec<u8>>(
+            "https://server.tld",
+            SendAccessToken::IfRequired("access_token"),
+            &[MatrixVersion::V1_1],
+        )
+        .unwrap();
     }
 }
