@@ -364,7 +364,7 @@ impl VersionHistory {
         }
 
         // Check if *any* version marks this endpoint as stable.
-        if self.added_version().map_or(false, greater_or_equal_any) {
+        if self.added_in().map_or(false, greater_or_equal_any) {
             let all_deprecated = self.deprecated.map_or(false, greater_or_equal_all);
 
             return VersioningDecision::Stable {
@@ -378,11 +378,11 @@ impl VersionHistory {
         VersioningDecision::Unstable
     }
 
-    /// Will return the *first* version this path was added in.
+    /// Returns the *first* version this endpoint was added in.
     ///
-    /// Is None when this endpoint is unstable/unreleased.
-    pub fn added_version(&self) -> Option<MatrixVersion> {
-        self.stable_paths.first().map(|(x, _)| *x)
+    /// Is `None` when this endpoint is unstable/unreleased.
+    pub fn added_in(&self) -> Option<MatrixVersion> {
+        self.stable_paths.first().map(|(v, _)| *v)
     }
 
     /// Picks the last unstable path, if it exists.

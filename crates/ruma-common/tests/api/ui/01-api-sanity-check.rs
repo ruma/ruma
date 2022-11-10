@@ -73,7 +73,7 @@ fn main() {
         ]
     );
 
-    assert_eq!(METADATA.history.added_version(), Some(MatrixVersion::V1_0));
+    assert_eq!(METADATA.history.added_in(), Some(MatrixVersion::V1_0));
     assert_eq!(METADATA.history.deprecated, Some(MatrixVersion::V1_2));
     assert_eq!(METADATA.history.removed, Some(MatrixVersion::V1_3));
 }
