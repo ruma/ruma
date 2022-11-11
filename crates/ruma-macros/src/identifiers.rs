@@ -70,7 +70,7 @@ pub fn expand_id_zst(input: ItemStruct) -> syn::Result<TokenStream> {
     let id_ty = quote! { #id #ty_generics };
     let owned_ty = quote! { #owned #ty_generics };
 
-    let partial_eq_string = expand_partial_eq_string(id_ty.clone(), &impl_generics);
+    let as_str_impls = expand_as_str_impls(id_ty.clone(), &impl_generics);
     // FIXME: Remove?
     let box_partial_eq_string = expand_partial_eq_string(quote! { Box<#id_ty> }, &impl_generics);
 
@@ -193,28 +193,7 @@ pub fn expand_id_zst(input: ItemStruct) -> syn::Result<TokenStream> {
             }
         }
 
-        impl #impl_generics std::fmt::Debug for #id_ty {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                <str as std::fmt::Debug>::fmt(self.as_str(), f)
-            }
-        }
-
-        impl #impl_generics std::fmt::Display for #id_ty {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{}", self.as_str())
-            }
-        }
-
-        impl #impl_generics serde::Serialize for #id_ty {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: serde::Serializer,
-            {
-                serializer.serialize_str(self.as_str())
-            }
-        }
-
-        #partial_eq_string
+        #as_str_impls
         #box_partial_eq_string
         #extra_impls
     })
@@ -230,7 +209,7 @@ fn expand_owned_id(input: &ItemStruct) -> TokenStream {
     let id_ty = quote! { #id #ty_generics };
     let owned_ty = quote! { #owned #ty_generics };
 
-    let partial_eq_string = expand_partial_eq_string(owned_ty.clone(), &impl_generics);
+    let as_str_impls = expand_as_str_impls(owned_ty.clone(), &impl_generics);
 
     quote! {
         #[doc = #doc_header]
@@ -331,18 +310,6 @@ fn expand_owned_id(input: &ItemStruct) -> TokenStream {
             }
         }
 
-        impl #impl_generics std::fmt::Display for #owned_ty {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{}", self.as_str())
-            }
-        }
-
-        impl #impl_generics std::fmt::Debug for #owned_ty {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                <str as std::fmt::Debug>::fmt(self.as_str(), f)
-            }
-        }
-
         impl #impl_generics std::cmp::PartialEq for #owned_ty {
             fn eq(&self, other: &Self) -> bool {
                 self.as_str() == other.as_str()
@@ -372,16 +339,7 @@ fn expand_owned_id(input: &ItemStruct) -> TokenStream {
             }
         }
 
-        impl #impl_generics serde::Serialize for #owned_ty {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: serde::Serializer,
-            {
-                serializer.serialize_str(self.as_str())
-            }
-        }
-
-        #partial_eq_string
+        #as_str_impls
 
         impl #impl_generics PartialEq<#id_ty> for #owned_ty {
             fn eq(&self, other: &#id_ty) -> bool {
@@ -652,6 +610,35 @@ fn expand_unchecked_impls(input: &ItemStruct) -> TokenStream {
                 Box::<str>::deserialize(deserializer).map(#id::from_box).map(Into::into)
             }
         }
+    }
+}
+
+fn expand_as_str_impls(ty: TokenStream, impl_generics: &ImplGenerics<'_>) -> TokenStream {
+    let partial_eq_string = expand_partial_eq_string(ty.clone(), impl_generics);
+
+    quote! {
+        impl #impl_generics std::fmt::Display for #ty {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{}", self.as_str())
+            }
+        }
+
+        impl #impl_generics std::fmt::Debug for #ty {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                <str as std::fmt::Debug>::fmt(self.as_str(), f)
+            }
+        }
+
+        impl #impl_generics serde::Serialize for #ty {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                serializer.serialize_str(self.as_str())
+            }
+        }
+
+        #partial_eq_string
     }
 }
 
