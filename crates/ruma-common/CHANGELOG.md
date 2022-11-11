@@ -26,6 +26,8 @@ Breaking changes:
   * `FromHttpResponseError<E>::Server` now contains `E` instead of `ServerError<E>`
   * `ServerError<E>` has been removed
   * `MatrixError` is now an enum with the `Json` variant containing the previous fields
+* Change the `ignored_users` field of `IgnoredUserListEventContent` to a map of empty structs, to
+  allow eventual fields to be added, as intended by the spec
 
 Improvements:
 
