@@ -7,10 +7,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::ruma_api,
-        push::{
-            Action, NewConditionalPushRule, NewPatternedPushRule, NewPushRule, NewSimplePushRule,
-            PushCondition,
-        },
+        push::{Action, NewPushRule, PushCondition},
         serde::Incoming,
     };
     use serde::{Deserialize, Serialize};
@@ -132,6 +129,10 @@ pub mod v3 {
             B: AsRef<[u8]>,
             S: AsRef<str>,
         {
+            use ruma_common::push::{
+                NewConditionalPushRule, NewPatternedPushRule, NewSimplePushRule,
+            };
+
             // Exhaustive enum to fail deserialization on unknown variants.
             #[derive(Debug, Deserialize)]
             #[serde(rename_all = "lowercase")]
@@ -141,6 +142,12 @@ pub mod v3 {
                 Sender,
                 Room,
                 Content,
+            }
+
+            #[derive(Deserialize)]
+            struct IncomingRequestQuery {
+                before: Option<String>,
+                after: Option<String>,
             }
 
             let (scope, kind, rule_id): (RuleScope, RuleKind, String) =
@@ -195,13 +202,6 @@ pub mod v3 {
 
         #[serde(skip_serializing_if = "Option::is_none")]
         after: Option<&'a str>,
-    }
-
-    #[derive(Debug, Deserialize)]
-    struct IncomingRequestQuery {
-        before: Option<String>,
-
-        after: Option<String>,
     }
 
     #[derive(Debug, Serialize)]
