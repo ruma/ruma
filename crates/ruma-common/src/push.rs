@@ -25,7 +25,7 @@ use tracing::instrument;
 
 use crate::{
     serde::{Raw, StringEnum},
-    PrivOwnedStr,
+    OwnedRoomId, OwnedUserId, PrivOwnedStr,
 };
 
 mod action;
@@ -63,10 +63,10 @@ pub struct Ruleset {
     pub override_: IndexSet<ConditionalPushRule>,
 
     /// These rules change the behavior of all messages for a given room.
-    pub room: IndexSet<SimplePushRule>,
+    pub room: IndexSet<SimplePushRule<OwnedRoomId>>,
 
     /// These rules configure notification behavior for messages from a specific Matrix user ID.
-    pub sender: IndexSet<SimplePushRule>,
+    pub sender: IndexSet<SimplePushRule<OwnedUserId>>,
 
     /// These rules are identical to override rules, but have a lower priority than `content`,
     /// `room` and `sender` rules.
@@ -320,7 +320,7 @@ impl Ruleset {
 /// `SimplePushRule::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct SimplePushRule {
+pub struct SimplePushRule<T> {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
 
@@ -331,7 +331,9 @@ pub struct SimplePushRule {
     pub enabled: bool,
 
     /// The ID of this rule.
-    pub rule_id: String,
+    ///
+    /// This is generally the Matrix ID of the entity that it applies to.
+    pub rule_id: T,
 }
 
 /// Initial set of fields of `SimplePushRule`.
@@ -340,7 +342,7 @@ pub struct SimplePushRule {
 /// (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
 #[allow(clippy::exhaustive_structs)]
-pub struct SimplePushRuleInit {
+pub struct SimplePushRuleInit<T> {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
 
@@ -351,11 +353,13 @@ pub struct SimplePushRuleInit {
     pub enabled: bool,
 
     /// The ID of this rule.
-    pub rule_id: String,
+    ///
+    /// This is generally the Matrix ID of the entity that it applies to.
+    pub rule_id: T,
 }
 
-impl From<SimplePushRuleInit> for SimplePushRule {
-    fn from(init: SimplePushRuleInit) -> Self {
+impl<T> From<SimplePushRuleInit<T>> for SimplePushRule<T> {
+    fn from(init: SimplePushRuleInit<T>) -> Self {
         let SimplePushRuleInit { actions, default, enabled, rule_id } = init;
         Self { actions, default, enabled, rule_id }
     }
@@ -364,23 +368,32 @@ impl From<SimplePushRuleInit> for SimplePushRule {
 // The following trait are needed to be able to make
 // an IndexSet of the type
 
-impl Hash for SimplePushRule {
+impl<T> Hash for SimplePushRule<T>
+where
+    T: Hash,
+{
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.rule_id.hash(state);
     }
 }
 
-impl PartialEq for SimplePushRule {
+impl<T> PartialEq for SimplePushRule<T>
+where
+    T: PartialEq<T>,
+{
     fn eq(&self, other: &Self) -> bool {
         self.rule_id == other.rule_id
     }
 }
 
-impl Eq for SimplePushRule {}
+impl<T> Eq for SimplePushRule<T> where T: Eq {}
 
-impl Equivalent<SimplePushRule> for str {
-    fn equivalent(&self, key: &SimplePushRule) -> bool {
-        self == key.rule_id
+impl<T> Equivalent<SimplePushRule<T>> for str
+where
+    T: AsRef<str>,
+{
+    fn equivalent(&self, key: &SimplePushRule<T>) -> bool {
+        self == key.rule_id.as_ref()
     }
 }
 
@@ -668,10 +681,10 @@ pub enum NewPushRule {
     Content(NewPatternedPushRule),
 
     /// Room-specific rules.
-    Room(NewSimplePushRule),
+    Room(NewSimplePushRule<OwnedRoomId>),
 
     /// Sender-specific rules.
-    Sender(NewSimplePushRule),
+    Sender(NewSimplePushRule<OwnedUserId>),
 
     /// Lowest priority rules.
     Underride(NewConditionalPushRule),
@@ -694,8 +707,8 @@ impl NewPushRule {
         match self {
             NewPushRule::Override(r) => &r.rule_id,
             NewPushRule::Content(r) => &r.rule_id,
-            NewPushRule::Room(r) => &r.rule_id,
-            NewPushRule::Sender(r) => &r.rule_id,
+            NewPushRule::Room(r) => r.rule_id.as_ref(),
+            NewPushRule::Sender(r) => r.rule_id.as_ref(),
             NewPushRule::Underride(r) => &r.rule_id,
         }
     }
@@ -704,24 +717,26 @@ impl NewPushRule {
 /// A simple push rule to update or create.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct NewSimplePushRule {
+pub struct NewSimplePushRule<T> {
     /// The ID of this rule.
-    pub rule_id: String,
+    ///
+    /// This is generally the Matrix ID of the entity that it applies to.
+    pub rule_id: T,
 
     /// Actions to determine if and how a notification is delivered for events matching this
     /// rule.
     pub actions: Vec<Action>,
 }
 
-impl NewSimplePushRule {
+impl<T> NewSimplePushRule<T> {
     /// Creates a `NewSimplePushRule` with the given ID and actions.
-    pub fn new(rule_id: String, actions: Vec<Action>) -> Self {
+    pub fn new(rule_id: T, actions: Vec<Action>) -> Self {
         Self { rule_id, actions }
     }
 }
 
-impl From<NewSimplePushRule> for SimplePushRule {
-    fn from(new_rule: NewSimplePushRule) -> Self {
+impl<T> From<NewSimplePushRule<T>> for SimplePushRule<T> {
+    fn from(new_rule: NewSimplePushRule<T>) -> Self {
         let NewSimplePushRule { rule_id, actions } = new_rule;
         Self { actions, default: false, enabled: true, rule_id }
     }
@@ -1002,7 +1017,7 @@ mod tests {
             actions: vec![Action::DontNotify],
             default: false,
             enabled: false,
-            rule_id: "!roomid:server.name".into(),
+            rule_id: room_id!("!roomid:server.name").to_owned(),
         };
 
         let rule_value: JsonValue = to_json_value(rule).unwrap();
@@ -1471,7 +1486,7 @@ mod tests {
             actions: vec![Action::Notify],
             default: false,
             enabled: true,
-            rule_id: "@rantanplan:server.name".into(),
+            rule_id: user_id!("@rantanplan:server.name").to_owned(),
         };
         set.sender.insert(sender);
 
@@ -1482,7 +1497,7 @@ mod tests {
             actions: vec![Action::DontNotify],
             default: false,
             enabled: true,
-            rule_id: "!dm:server.name".into(),
+            rule_id: room_id!("!dm:server.name").to_owned(),
         };
         set.room.insert(room);
 
