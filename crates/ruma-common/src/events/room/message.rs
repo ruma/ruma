@@ -73,34 +73,34 @@ impl RoomMessageEventContent {
 
     /// A constructor to create a plain text message.
     pub fn text_plain(body: impl Into<String>) -> Self {
-        Self::new(MessageType::Text(TextMessageEventContent::plain(body)))
+        Self::new(MessageType::text_plain(body))
     }
 
     /// A constructor to create an html message.
     pub fn text_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
-        Self::new(MessageType::Text(TextMessageEventContent::html(body, html_body)))
+        Self::new(MessageType::text_html(body, html_body))
     }
 
     /// A constructor to create a markdown message.
     #[cfg(feature = "markdown")]
     pub fn text_markdown(body: impl AsRef<str> + Into<String>) -> Self {
-        Self::new(MessageType::Text(TextMessageEventContent::markdown(body)))
+        Self::new(MessageType::text_markdown(body))
     }
 
     /// A constructor to create a plain text notice.
     pub fn notice_plain(body: impl Into<String>) -> Self {
-        Self::new(MessageType::Notice(NoticeMessageEventContent::plain(body)))
+        Self::new(MessageType::notice_plain(body))
     }
 
     /// A constructor to create an html notice.
     pub fn notice_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
-        Self::new(MessageType::Notice(NoticeMessageEventContent::html(body, html_body)))
+        Self::new(MessageType::notice_html(body, html_body))
     }
 
     /// A constructor to create a markdown notice.
     #[cfg(feature = "markdown")]
     pub fn notice_markdown(body: impl AsRef<str> + Into<String>) -> Self {
-        Self::new(MessageType::Notice(NoticeMessageEventContent::markdown(body)))
+        Self::new(MessageType::notice_markdown(body))
     }
 
     /// Turns `self` into a reply to the given message.
@@ -456,6 +456,38 @@ impl MessageType {
             }
             _ => Self::_Custom(CustomEventContent { msgtype: msgtype.to_owned(), body, data }),
         })
+    }
+
+    /// A constructor to create a plain text message.
+    pub fn text_plain(body: impl Into<String>) -> Self {
+        Self::Text(TextMessageEventContent::plain(body))
+    }
+
+    /// A constructor to create an html message.
+    pub fn text_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self::Text(TextMessageEventContent::html(body, html_body))
+    }
+
+    /// A constructor to create a markdown message.
+    #[cfg(feature = "markdown")]
+    pub fn text_markdown(body: impl AsRef<str> + Into<String>) -> Self {
+        Self::Text(TextMessageEventContent::markdown(body))
+    }
+
+    /// A constructor to create a plain text notice.
+    pub fn notice_plain(body: impl Into<String>) -> Self {
+        Self::Notice(NoticeMessageEventContent::plain(body))
+    }
+
+    /// A constructor to create an html notice.
+    pub fn notice_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self::Notice(NoticeMessageEventContent::html(body, html_body))
+    }
+
+    /// A constructor to create a markdown notice.
+    #[cfg(feature = "markdown")]
+    pub fn notice_markdown(body: impl AsRef<str> + Into<String>) -> Self {
+        Self::Notice(NoticeMessageEventContent::markdown(body))
     }
 
     /// Returns a reference to the `msgtype` string.
