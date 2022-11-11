@@ -88,7 +88,7 @@ pub mod v3 {
                     considering_versions,
                     base_url,
                     &[&self.room_id, &self.event_type, &self.state_key],
-                    None,
+                    "",
                 )?)
                 .header(header::CONTENT_TYPE, "application/json")
                 .header(

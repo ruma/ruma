@@ -134,7 +134,7 @@ pub mod v3 {
                     considering_versions,
                     base_url,
                     &[&self.room_id, &self.event_type, &self.state_key],
-                    Some(&query_string),
+                    &query_string,
                 )?)
                 .header(header::CONTENT_TYPE, "application/json")
                 .header(
@@ -220,7 +220,7 @@ pub mod v3 {
         };
 
         // This used to panic in make_endpoint_url because of a mismatch in the path parameter count
-        Request::new(
+        let req = Request::new(
             room_id!("!room:server.tld"),
             &EmptyStateKey,
             &RoomNameEventContent::new(Some("Test room".to_owned())),
@@ -232,5 +232,10 @@ pub mod v3 {
             &[MatrixVersion::V1_1],
         )
         .unwrap();
+
+        assert_eq!(
+            req.uri(),
+            "https://server.tld/_matrix/client/v3/rooms/%21room%3Aserver%2Etld/state/m%2Eroom%2Ename/"
+        );
     }
 }

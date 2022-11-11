@@ -90,7 +90,7 @@ impl Metadata {
         versions: &[MatrixVersion],
         base_url: &str,
         path_args: &[&dyn Display],
-        query_string: Option<&str>,
+        query_string: &str,
     ) -> Result<String, IntoHttpError> {
         let path_with_placeholders = self.history.select_path(versions, self.name)?;
 
@@ -117,9 +117,9 @@ impl Metadata {
             }
         }
 
-        if let Some(query) = query_string {
+        if !query_string.is_empty() {
             res.push('?');
-            res.push_str(query);
+            res.push_str(query_string);
         }
 
         Ok(res)
@@ -699,22 +699,21 @@ mod tests {
     #[test]
     fn make_simple_endpoint_url() {
         let meta = stable_only_metadata(&[(V1_0, "/s")]);
-        let url = meta.make_endpoint_url(&[V1_0], "https://example.org", &[], None).unwrap();
+        let url = meta.make_endpoint_url(&[V1_0], "https://example.org", &[], "").unwrap();
         assert_eq!(url, "https://example.org/s");
     }
 
     #[test]
     fn make_endpoint_url_with_path_args() {
         let meta = stable_only_metadata(&[(V1_0, "/s/:x")]);
-        let url = meta.make_endpoint_url(&[V1_0], "https://example.org", &[&"123"], None).unwrap();
+        let url = meta.make_endpoint_url(&[V1_0], "https://example.org", &[&"123"], "").unwrap();
         assert_eq!(url, "https://example.org/s/123");
     }
 
     #[test]
     fn make_endpoint_url_with_query() {
         let meta = stable_only_metadata(&[(V1_0, "/s/")]);
-        let url =
-            meta.make_endpoint_url(&[V1_0], "https://example.org", &[], Some("foo=bar")).unwrap();
+        let url = meta.make_endpoint_url(&[V1_0], "https://example.org", &[], "foo=bar").unwrap();
         assert_eq!(url, "https://example.org/s/?foo=bar");
     }
 
@@ -722,7 +721,7 @@ mod tests {
     #[should_panic]
     fn make_endpoint_url_wrong_num_path_args() {
         let meta = stable_only_metadata(&[(V1_0, "/s/:x")]);
-        _ = meta.make_endpoint_url(&[V1_0], "https://example.org", &[], None);
+        _ = meta.make_endpoint_url(&[V1_0], "https://example.org", &[], "");
     }
 
     const EMPTY: VersionHistory =

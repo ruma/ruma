@@ -51,12 +51,8 @@ impl OutgoingRequest for Request {
         _access_token: SendAccessToken<'_>,
         considering_versions: &'_ [MatrixVersion],
     ) -> Result<http::Request<T>, IntoHttpError> {
-        let url = METADATA.make_endpoint_url(
-            considering_versions,
-            base_url,
-            &[&self.room_alias],
-            None,
-        )?;
+        let url =
+            METADATA.make_endpoint_url(considering_versions, base_url, &[&self.room_alias], "")?;
 
         let request_body = RequestBody { room_id: self.room_id };
 
