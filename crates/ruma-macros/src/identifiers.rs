@@ -249,6 +249,15 @@ fn expand_owned_id(input: &ItemStruct) -> TokenStream {
             }
         }
 
+        impl #impl_generics From<#owned_ty> for String {
+            fn from(id: #owned_ty) -> String {
+                #[cfg(not(any(ruma_identifiers_storage = "Arc")))]
+                { id.inner.into() }
+                #[cfg(ruma_identifiers_storage = "Arc")]
+                { id.inner.as_ref().into() }
+            }
+        }
+
         impl #impl_generics std::clone::Clone for #owned_ty {
             fn clone(&self) -> Self {
                 (&*self.inner).into()
