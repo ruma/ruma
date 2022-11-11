@@ -30,7 +30,7 @@ impl IgnoredUserListEventContent {
     }
 
     /// Creates a new `IgnoredUserListEventContent` from the given list of users.
-    pub fn users(ignored_users: Vec<OwnedUserId>) -> Self {
+    pub fn users(ignored_users: impl IntoIterator<Item = OwnedUserId>) -> Self {
         Self::new(ignored_users.into_iter().map(|id| (id, IgnoredUser {})).collect())
     }
 }
