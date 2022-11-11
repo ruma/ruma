@@ -38,9 +38,7 @@ impl Request {
                 let request_query = RequestQuery(self.#field_name);
                 assert_trait_impl(&request_query.0);
 
-                ::std::option::Option::Some(
-                    &#ruma_common::serde::urlencoded::to_string(request_query)?
-                )
+                &#ruma_common::serde::urlencoded::to_string(request_query)?
             }}
         } else if self.has_query_fields() {
             let request_query_init_fields = struct_init_fields(
@@ -53,12 +51,10 @@ impl Request {
                     #request_query_init_fields
                 };
 
-                ::std::option::Option::Some(
-                    &#ruma_common::serde::urlencoded::to_string(request_query)?
-                )
+                &#ruma_common::serde::urlencoded::to_string(request_query)?
             }}
         } else {
-            quote! { ::std::option::Option::None }
+            quote! { "" }
         };
 
         // If there are no body fields, the request body will be empty (not `{}`), so the

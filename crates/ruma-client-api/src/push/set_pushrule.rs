@@ -91,7 +91,7 @@ pub mod v3 {
                 considering_versions,
                 base_url,
                 &[&self.scope, &self.rule.kind(), &self.rule.rule_id()],
-                Some(&query_string),
+                &query_string,
             )?;
 
             let body: RequestBody = self.rule.into();
