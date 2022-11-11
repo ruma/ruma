@@ -2,6 +2,8 @@
 //!
 //! [`m.ignored_user_list`]: https://spec.matrix.org/v1.4/client-server-api/#mignored_user_list
 
+use std::collections::BTreeMap;
+
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -14,102 +16,31 @@ use crate::OwnedUserId;
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.ignored_user_list", kind = GlobalAccountData)]
 pub struct IgnoredUserListEventContent {
-    /// A list of users to ignore.
-    #[serde(with = "vec_as_map_of_empty")]
-    pub ignored_users: Vec<OwnedUserId>,
+    /// A map of users to ignore.
+    ///
+    /// As [`IgnoredUser`] is currently empty, only the user IDs are useful and
+    /// can be accessed with the `.keys()` and `into_keys()` iterators.
+    pub ignored_users: BTreeMap<OwnedUserId, IgnoredUser>,
 }
 
 impl IgnoredUserListEventContent {
-    /// Creates a new `IgnoredUserListEventContent` from the given user IDs.
-    pub fn new(ignored_users: Vec<OwnedUserId>) -> Self {
+    /// Creates a new `IgnoredUserListEventContent` from the given map of ignored user.
+    pub fn new(ignored_users: BTreeMap<OwnedUserId, IgnoredUser>) -> Self {
         Self { ignored_users }
     }
-}
 
-mod vec_as_map_of_empty {
-    use std::{fmt, marker::PhantomData};
-
-    use serde::{
-        de::{self, Deserialize, Deserializer},
-        ser::{SerializeMap, Serializer},
-        Serialize,
-    };
-
-    /// Serialize the given `Vec<T>` as a map of `T => Empty`.
-    #[allow(clippy::ptr_arg)]
-    pub fn serialize<S, T>(vec: &Vec<T>, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-        T: Serialize + Eq + Ord,
-    {
-        let mut map = serializer.serialize_map(Some(vec.len()))?;
-        for item in vec {
-            map.serialize_entry(item, &Empty {})?;
-        }
-        map.end()
-    }
-
-    /// Deserialize an object and return the keys as a `Vec<T>`.
-    pub fn deserialize<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>
-    where
-        D: Deserializer<'de>,
-        T: Deserialize<'de> + Eq + Ord,
-    {
-        struct MapOfEmptyVisitor<T>(PhantomData<T>);
-        impl<'de, T> de::Visitor<'de> for MapOfEmptyVisitor<T>
-        where
-            T: Deserialize<'de>,
-        {
-            type Value = Vec<T>;
-
-            fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                write!(f, "an object/map")
-            }
-
-            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-            where
-                A: de::MapAccess<'de>,
-            {
-                let mut items = Vec::with_capacity(map.size_hint().unwrap_or(0));
-                while let Some((item, _)) = map.next_entry::<T, Empty>()? {
-                    items.push(item);
-                }
-                Ok(items)
-            }
-        }
-
-        deserializer.deserialize_map(MapOfEmptyVisitor(PhantomData))
-    }
-
-    #[derive(Clone, Debug, Serialize)]
-    struct Empty {}
-
-    impl<'de> Deserialize<'de> for Empty {
-        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: Deserializer<'de>,
-        {
-            struct EmptyMapVisitor;
-
-            impl<'de> de::Visitor<'de> for EmptyMapVisitor {
-                type Value = Empty;
-
-                fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                    write!(f, "an object/map")
-                }
-
-                fn visit_map<A>(self, _map: A) -> Result<Self::Value, A::Error>
-                where
-                    A: de::MapAccess<'de>,
-                {
-                    Ok(Empty {})
-                }
-            }
-
-            deserializer.deserialize_map(EmptyMapVisitor)
-        }
+    /// Creates a new `IgnoredUserListEventContent` from the given list of users.
+    pub fn users(ignored_users: impl IntoIterator<Item = OwnedUserId>) -> Self {
+        Self::new(ignored_users.into_iter().map(|id| (id, IgnoredUser {})).collect())
     }
 }
+
+/// Details about an ignored user.
+///
+/// This is currently empty.
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct IgnoredUser {}
 
 #[cfg(test)]
 mod tests {
@@ -125,9 +56,9 @@ mod tests {
     #[test]
     fn serialization() {
         let ignored_user_list_event = GlobalAccountDataEvent {
-            content: IgnoredUserListEventContent {
-                ignored_users: vec![user_id!("@carl:example.com").to_owned()],
-            },
+            content: IgnoredUserListEventContent::users(vec![
+                user_id!("@carl:example.com").to_owned()
+            ]),
         };
 
         let json = json!({
@@ -157,6 +88,9 @@ mod tests {
             from_json_value::<AnyGlobalAccountDataEvent>(json),
             Ok(AnyGlobalAccountDataEvent::IgnoredUserList(ev)) => ev
         );
-        assert_eq!(ev.content.ignored_users, vec![user_id!("@carl:example.com")]);
+        assert_eq!(
+            ev.content.ignored_users.keys().collect::<Vec<_>>(),
+            vec![user_id!("@carl:example.com")]
+        );
     }
 }
