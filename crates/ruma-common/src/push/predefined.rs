@@ -372,30 +372,25 @@ pub enum PredefinedRuleId {
 /// The rule IDs of the predefined override server push rules.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[ruma_enum(rename_all = ".m.rule.snake_case")]
 #[non_exhaustive]
 pub enum PredefinedOverrideRuleId {
     /// `.m.rule.master`
-    #[ruma_enum(rename = ".m.rule.master")]
     Master,
 
     /// `.m.rule.suppress_notices`
-    #[ruma_enum(rename = ".m.rule.suppress_notices")]
     SuppressNotices,
 
     /// `.m.rule.invite_for_me`
-    #[ruma_enum(rename = ".m.rule.invite_for_me")]
     InviteForMe,
 
     /// `.m.rule.member_event`
-    #[ruma_enum(rename = ".m.rule.member_event")]
     MemberEvent,
 
     /// `.m.rule.contains_display_name`
-    #[ruma_enum(rename = ".m.rule.contains_display_name")]
     ContainsDisplayName,
 
     /// `.m.rule.tombstone`
-    #[ruma_enum(rename = ".m.rule.tombstone")]
     Tombstone,
 
     /// `.m.rule.room.server_acl`
@@ -408,7 +403,6 @@ pub enum PredefinedOverrideRuleId {
 
     /// `.m.rule.reaction`
     #[cfg(feature = "unstable-msc2677")]
-    #[ruma_enum(rename = ".m.rule.reaction")]
     Reaction,
 
     #[doc(hidden)]
@@ -418,46 +412,38 @@ pub enum PredefinedOverrideRuleId {
 /// The rule IDs of the predefined underride server push rules.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[ruma_enum(rename_all = ".m.rule.snake_case")]
 #[non_exhaustive]
 pub enum PredefinedUnderrideRuleId {
     /// `.m.rule.call`
-    #[ruma_enum(rename = ".m.rule.call")]
     Call,
 
     /// `.m.rule.encrypted_room_one_to_one`
-    #[ruma_enum(rename = ".m.rule.encrypted_room_one_to_one")]
     EncryptedRoomOneToOne,
 
     /// `.m.rule.room_one_to_one`
-    #[ruma_enum(rename = ".m.rule.room_one_to_one")]
     RoomOneToOne,
 
     /// `.m.rule.message`
-    #[ruma_enum(rename = ".m.rule.message")]
     Message,
 
     /// `.m.rule.encrypted`
-    #[ruma_enum(rename = ".m.rule.encrypted")]
     Encrypted,
 
     /// `.m.rule.poll_start_one_to_one`
     #[cfg(feature = "unstable-msc3381")]
-    #[ruma_enum(rename = ".m.rule.poll_start_one_to_one")]
     PollStartOneToOne,
 
     /// `.m.rule.poll_start`
     #[cfg(feature = "unstable-msc3381")]
-    #[ruma_enum(rename = ".m.rule.poll_start")]
     PollStart,
 
     /// `.m.rule.poll_end_one_to_one`
     #[cfg(feature = "unstable-msc3381")]
-    #[ruma_enum(rename = ".m.rule.poll_end_one_to_one")]
     PollEndOneToOne,
 
     /// `.m.rule.poll_end`
     #[cfg(feature = "unstable-msc3381")]
-    #[ruma_enum(rename = ".m.rule.poll_end")]
     PollEnd,
 
     #[doc(hidden)]
@@ -467,10 +453,10 @@ pub enum PredefinedUnderrideRuleId {
 /// The rule IDs of the predefined content server push rules.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[ruma_enum(rename_all = ".m.rule.snake_case")]
 #[non_exhaustive]
 pub enum PredefinedContentRuleId {
     /// `.m.rule.contains_user_name`
-    #[ruma_enum(rename = ".m.rule.contains_user_name")]
     ContainsUserName,
 
     #[doc(hidden)]
