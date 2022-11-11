@@ -60,9 +60,13 @@ pub struct PushRule {
     pub pattern: Option<String>,
 }
 
-impl From<SimplePushRule> for PushRule {
-    fn from(push_rule: SimplePushRule) -> Self {
+impl<T> From<SimplePushRule<T>> for PushRule
+where
+    T: Into<String>,
+{
+    fn from(push_rule: SimplePushRule<T>) -> Self {
         let SimplePushRule { actions, default, enabled, rule_id, .. } = push_rule;
+        let rule_id = rule_id.into();
         Self { actions, default, enabled, rule_id, conditions: None, pattern: None }
     }
 }
@@ -81,9 +85,13 @@ impl From<ConditionalPushRule> for PushRule {
     }
 }
 
-impl From<SimplePushRuleInit> for PushRule {
-    fn from(init: SimplePushRuleInit) -> Self {
+impl<T> From<SimplePushRuleInit<T>> for PushRule
+where
+    T: Into<String>,
+{
+    fn from(init: SimplePushRuleInit<T>) -> Self {
         let SimplePushRuleInit { actions, default, enabled, rule_id } = init;
+        let rule_id = rule_id.into();
         Self { actions, default, enabled, rule_id, pattern: None, conditions: None }
     }
 }
@@ -102,10 +110,16 @@ impl From<PatternedPushRuleInit> for PushRule {
     }
 }
 
-impl From<PushRule> for SimplePushRule {
-    fn from(push_rule: PushRule) -> Self {
+impl<T> TryFrom<PushRule> for SimplePushRule<T>
+where
+    T: TryFrom<String>,
+{
+    type Error = <T as TryFrom<String>>::Error;
+
+    fn try_from(push_rule: PushRule) -> Result<Self, Self::Error> {
         let PushRule { actions, default, enabled, rule_id, .. } = push_rule;
-        SimplePushRuleInit { actions, default, enabled, rule_id }.into()
+        let rule_id = T::try_from(rule_id)?;
+        Ok(SimplePushRuleInit { actions, default, enabled, rule_id }.into())
     }
 }
 

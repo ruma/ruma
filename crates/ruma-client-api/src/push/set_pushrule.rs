@@ -175,11 +175,13 @@ pub mod v3 {
                 RuleKind::Sender => {
                     let SimpleRequestBody { actions } =
                         serde_json::from_slice(request.body().as_ref())?;
+                    let rule_id = rule_id.try_into()?;
                     NewPushRule::Sender(NewSimplePushRule::new(rule_id, actions))
                 }
                 RuleKind::Room => {
                     let SimpleRequestBody { actions } =
                         serde_json::from_slice(request.body().as_ref())?;
+                    let rule_id = rule_id.try_into()?;
                     NewPushRule::Room(NewSimplePushRule::new(rule_id, actions))
                 }
                 RuleKind::Content => {

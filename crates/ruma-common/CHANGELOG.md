@@ -28,6 +28,7 @@ Breaking changes:
   * `MatrixError` is now an enum with the `Json` variant containing the previous fields
 * Change the `ignored_users` field of `IgnoredUserListEventContent` to a map of empty structs, to
   allow eventual fields to be added, as intended by the spec
+* Make `SimplePushRule` and associated types generic over the expected type of the `rule_id`
 
 Improvements:
 

@@ -4,6 +4,7 @@ use super::{
     condition, Action, ConditionalPushRule, FlattenedJson, PatternedPushRule, PushConditionRoomCtx,
     Ruleset, SimplePushRule,
 };
+use crate::{OwnedRoomId, OwnedUserId};
 
 /// The kinds of push rules that are available.
 #[derive(Clone, Debug)]
@@ -16,10 +17,10 @@ pub enum AnyPushRule {
     Content(PatternedPushRule),
 
     /// Room-specific rules.
-    Room(SimplePushRule),
+    Room(SimplePushRule<OwnedRoomId>),
 
     /// Sender-specific rules.
-    Sender(SimplePushRule),
+    Sender(SimplePushRule<OwnedUserId>),
 
     /// Lowest priority rules.
     Underride(ConditionalPushRule),
@@ -68,8 +69,8 @@ impl AnyPushRule {
 pub struct RulesetIntoIter {
     content: IndexSetIntoIter<PatternedPushRule>,
     override_: IndexSetIntoIter<ConditionalPushRule>,
-    room: IndexSetIntoIter<SimplePushRule>,
-    sender: IndexSetIntoIter<SimplePushRule>,
+    room: IndexSetIntoIter<SimplePushRule<OwnedRoomId>>,
+    sender: IndexSetIntoIter<SimplePushRule<OwnedUserId>>,
     underride: IndexSetIntoIter<ConditionalPushRule>,
 }
 
@@ -113,10 +114,10 @@ pub enum AnyPushRuleRef<'a> {
     Content(&'a PatternedPushRule),
 
     /// Room-specific rules.
-    Room(&'a SimplePushRule),
+    Room(&'a SimplePushRule<OwnedRoomId>),
 
     /// Sender-specific rules.
-    Sender(&'a SimplePushRule),
+    Sender(&'a SimplePushRule<OwnedUserId>),
 
     /// Lowest priority rules.
     Underride(&'a ConditionalPushRule),
@@ -162,8 +163,8 @@ impl<'a> AnyPushRuleRef<'a> {
             Self::Override(rule) => &rule.rule_id,
             Self::Underride(rule) => &rule.rule_id,
             Self::Content(rule) => &rule.rule_id,
-            Self::Room(rule) => &rule.rule_id,
-            Self::Sender(rule) => &rule.rule_id,
+            Self::Room(rule) => rule.rule_id.as_ref(),
+            Self::Sender(rule) => rule.rule_id.as_ref(),
         }
     }
 
@@ -184,11 +185,16 @@ impl<'a> AnyPushRuleRef<'a> {
             Self::Content(rule) => rule.applies_to("content.body", event, context),
             Self::Room(rule) => {
                 rule.enabled
-                    && condition::check_event_match(event, "room_id", &rule.rule_id, context)
+                    && condition::check_event_match(
+                        event,
+                        "room_id",
+                        rule.rule_id.as_ref(),
+                        context,
+                    )
             }
             Self::Sender(rule) => {
                 rule.enabled
-                    && condition::check_event_match(event, "sender", &rule.rule_id, context)
+                    && condition::check_event_match(event, "sender", rule.rule_id.as_ref(), context)
             }
         }
     }
@@ -199,8 +205,8 @@ impl<'a> AnyPushRuleRef<'a> {
 pub struct RulesetIter<'a> {
     content: IndexSetIter<'a, PatternedPushRule>,
     override_: IndexSetIter<'a, ConditionalPushRule>,
-    room: IndexSetIter<'a, SimplePushRule>,
-    sender: IndexSetIter<'a, SimplePushRule>,
+    room: IndexSetIter<'a, SimplePushRule<OwnedRoomId>>,
+    sender: IndexSetIter<'a, SimplePushRule<OwnedUserId>>,
     underride: IndexSetIter<'a, ConditionalPushRule>,
 }
 
