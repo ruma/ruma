@@ -4,9 +4,10 @@
 use std::borrow::Cow;
 
 use proc_macro2::{Span, TokenStream};
-use quote::{format_ident, quote};
+use quote::{format_ident, quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
+    punctuated::Punctuated,
     DeriveInput, Field, Ident, LitStr, Token, Type,
 };
 
@@ -30,102 +31,6 @@ mod kw {
     syn::custom_keyword!(alias);
     // The content has a form without relation.
     syn::custom_keyword!(without_relation);
-}
-
-/// Parses struct attributes for `*EventContent` derives.
-///
-/// `#[ruma_event(type = "m.room.alias")]`
-enum EventStructMeta {
-    /// Variant holds the "m.whatever" event type.
-    Type(LitStr),
-
-    Kind(EventKind),
-
-    /// This attribute signals that the events redacted form is manually implemented and should not
-    /// be generated.
-    CustomRedacted,
-
-    StateKeyType(Box<Type>),
-
-    UnsignedType(Box<Type>),
-
-    /// Variant that holds alternate event type accepted for deserialization.
-    Alias(LitStr),
-
-    /// This attribute signals that a form without relation should be generated.
-    WithoutRelation,
-}
-
-impl EventStructMeta {
-    fn get_event_type(&self) -> Option<&LitStr> {
-        match self {
-            Self::Type(t) => Some(t),
-            _ => None,
-        }
-    }
-
-    fn get_event_kind(&self) -> Option<EventKind> {
-        match self {
-            Self::Kind(k) => Some(*k),
-            _ => None,
-        }
-    }
-
-    fn get_state_key_type(&self) -> Option<&Type> {
-        match self {
-            Self::StateKeyType(ty) => Some(ty),
-            _ => None,
-        }
-    }
-
-    fn get_unsigned_type(&self) -> Option<&Type> {
-        match self {
-            Self::UnsignedType(ty) => Some(ty),
-            _ => None,
-        }
-    }
-
-    fn get_alias(&self) -> Option<&LitStr> {
-        match self {
-            Self::Alias(t) => Some(t),
-            _ => None,
-        }
-    }
-}
-
-impl Parse for EventStructMeta {
-    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let lookahead = input.lookahead1();
-        if lookahead.peek(Token![type]) {
-            let _: Token![type] = input.parse()?;
-            let _: Token![=] = input.parse()?;
-            input.parse().map(EventStructMeta::Type)
-        } else if lookahead.peek(kw::kind) {
-            let _: kw::kind = input.parse()?;
-            let _: Token![=] = input.parse()?;
-            input.parse().map(EventStructMeta::Kind)
-        } else if lookahead.peek(kw::custom_redacted) {
-            let _: kw::custom_redacted = input.parse()?;
-            Ok(EventStructMeta::CustomRedacted)
-        } else if lookahead.peek(kw::state_key_type) {
-            let _: kw::state_key_type = input.parse()?;
-            let _: Token![=] = input.parse()?;
-            input.parse().map(EventStructMeta::StateKeyType)
-        } else if lookahead.peek(kw::unsigned_type) {
-            let _: kw::unsigned_type = input.parse()?;
-            let _: Token![=] = input.parse()?;
-            input.parse().map(EventStructMeta::UnsignedType)
-        } else if lookahead.peek(kw::alias) {
-            let _: kw::alias = input.parse()?;
-            let _: Token![=] = input.parse()?;
-            input.parse().map(EventStructMeta::Alias)
-        } else if lookahead.peek(kw::without_relation) {
-            let _: kw::without_relation = input.parse()?;
-            Ok(EventStructMeta::WithoutRelation)
-        } else {
-            Err(lookahead.error())
-        }
-    }
 }
 
 /// Parses field attributes for `*EventContent` derives.
@@ -156,43 +61,192 @@ impl Parse for EventFieldMeta {
     }
 }
 
-struct MetaAttrs(Vec<EventStructMeta>);
+#[derive(Default)]
+struct ContentMeta {
+    event_type: Option<LitStr>,
+    event_kind: Option<EventKind>,
+    custom_redacted: Option<kw::custom_redacted>,
+    state_key_type: Option<Box<Type>>,
+    unsigned_type: Option<Box<Type>>,
+    aliases: Vec<LitStr>,
+    without_relation: Option<kw::without_relation>,
+}
 
-impl MetaAttrs {
-    fn is_custom(&self) -> bool {
-        self.0.iter().any(|a| matches!(a, &EventStructMeta::CustomRedacted))
-    }
+impl ContentMeta {
+    fn merge(self, other: ContentMeta) -> syn::Result<Self> {
+        fn either_spanned<T: ToTokens>(a: Option<T>, b: Option<T>) -> syn::Result<Option<T>> {
+            match (a, b) {
+                (None, None) => Ok(None),
+                (Some(val), None) | (None, Some(val)) => Ok(Some(val)),
+                (Some(a), Some(b)) => {
+                    let mut error = syn::Error::new_spanned(a, "redundant attribute argument");
+                    error.combine(syn::Error::new_spanned(b, "note: first one here"));
+                    Err(error)
+                }
+            }
+        }
 
-    fn get_event_type(&self) -> Option<&LitStr> {
-        self.0.iter().find_map(|a| a.get_event_type())
-    }
+        fn either_named<T>(name: &str, a: Option<T>, b: Option<T>) -> syn::Result<Option<T>> {
+            match (a, b) {
+                (None, None) => Ok(None),
+                (Some(val), None) | (None, Some(val)) => Ok(Some(val)),
+                (Some(_), Some(_)) => Err(syn::Error::new(
+                    Span::call_site(),
+                    format!("multiple {name} attributes found, there can only be one"),
+                )),
+            }
+        }
 
-    fn get_event_kind(&self) -> Option<EventKind> {
-        self.0.iter().find_map(|a| a.get_event_kind())
-    }
-
-    fn get_state_key_type(&self) -> Option<&Type> {
-        self.0.iter().find_map(|a| a.get_state_key_type())
-    }
-
-    fn get_unsigned_type(&self) -> Option<&Type> {
-        self.0.iter().find_map(|a| a.get_unsigned_type())
-    }
-
-    fn get_aliases(&self) -> impl Iterator<Item = &LitStr> {
-        self.0.iter().filter_map(|a| a.get_alias())
-    }
-
-    fn has_without_relation(&self) -> bool {
-        self.0.iter().any(|a| matches!(*a, EventStructMeta::WithoutRelation))
+        Ok(Self {
+            event_type: either_spanned(self.event_type, other.event_type)?,
+            event_kind: either_named("event_kind", self.event_kind, other.event_kind)?,
+            custom_redacted: either_spanned(self.custom_redacted, other.custom_redacted)?,
+            state_key_type: either_spanned(self.state_key_type, other.state_key_type)?,
+            unsigned_type: either_spanned(self.unsigned_type, other.unsigned_type)?,
+            aliases: [self.aliases, other.aliases].concat(),
+            without_relation: either_spanned(self.without_relation, other.without_relation)?,
+        })
     }
 }
 
-impl Parse for MetaAttrs {
+impl Parse for ContentMeta {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let attrs =
-            syn::punctuated::Punctuated::<EventStructMeta, Token![,]>::parse_terminated(input)?;
-        Ok(Self(attrs.into_iter().collect()))
+        let lookahead = input.lookahead1();
+        if lookahead.peek(Token![type]) {
+            let _: Token![type] = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            let event_type = input.parse()?;
+
+            Ok(Self { event_type: Some(event_type), ..Default::default() })
+        } else if lookahead.peek(kw::kind) {
+            let _: kw::kind = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            let event_kind = input.parse()?;
+
+            Ok(Self { event_kind: Some(event_kind), ..Default::default() })
+        } else if lookahead.peek(kw::custom_redacted) {
+            let custom_redacted: kw::custom_redacted = input.parse()?;
+
+            Ok(Self { custom_redacted: Some(custom_redacted), ..Default::default() })
+        } else if lookahead.peek(kw::state_key_type) {
+            let _: kw::state_key_type = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            let state_key_type = input.parse()?;
+
+            Ok(Self { state_key_type: Some(state_key_type), ..Default::default() })
+        } else if lookahead.peek(kw::unsigned_type) {
+            let _: kw::unsigned_type = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            let unsigned_type = input.parse()?;
+
+            Ok(Self { unsigned_type: Some(unsigned_type), ..Default::default() })
+        } else if lookahead.peek(kw::alias) {
+            let _: kw::alias = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            let alias = input.parse()?;
+
+            Ok(Self { aliases: vec![alias], ..Default::default() })
+        } else if lookahead.peek(kw::without_relation) {
+            let without_relation: kw::without_relation = input.parse()?;
+
+            Ok(Self { without_relation: Some(without_relation), ..Default::default() })
+        } else {
+            Err(lookahead.error())
+        }
+    }
+}
+
+struct ContentAttrs {
+    event_type: LitStr,
+    event_kind: Option<EventKind>,
+    state_key_type: Option<TokenStream>,
+    unsigned_type: Option<TokenStream>,
+    aliases: Vec<LitStr>,
+    is_custom: bool,
+    has_without_relation: bool,
+}
+
+impl TryFrom<ContentMeta> for ContentAttrs {
+    type Error = syn::Error;
+
+    fn try_from(value: ContentMeta) -> Result<Self, Self::Error> {
+        let ContentMeta {
+            event_type,
+            event_kind,
+            custom_redacted,
+            state_key_type,
+            unsigned_type,
+            aliases,
+            without_relation,
+        } = value;
+
+        let event_type = event_type.ok_or_else(|| {
+            syn::Error::new(
+                Span::call_site(),
+                "no event type attribute found, \
+                add `#[ruma_event(type = \"any.room.event\", kind = Kind)]` \
+                below the event content derive",
+            )
+        })?;
+
+        let state_key_type = match (event_kind, state_key_type) {
+            (Some(EventKind::State), None) => {
+                return Err(syn::Error::new(
+                    Span::call_site(),
+                    "no state_key_type attribute found, please specify one",
+                ));
+            }
+            (Some(EventKind::State), Some(ty)) => Some(quote! { #ty }),
+            (_, None) => None,
+            (_, Some(ty)) => {
+                return Err(syn::Error::new_spanned(
+                    ty,
+                    "state_key_type attribute is not valid for non-state event kinds",
+                ));
+            }
+        };
+
+        let is_custom = custom_redacted.is_some();
+
+        let unsigned_type = unsigned_type.map(|ty| quote! { #ty });
+
+        let event_type_s = event_type.value();
+        let prefix = event_type_s.strip_suffix(".*");
+
+        if prefix.unwrap_or(&event_type_s).contains('*') {
+            return Err(syn::Error::new_spanned(
+                event_type,
+                "event type may only contain `*` as part of a `.*` suffix",
+            ));
+        }
+
+        if prefix.is_some() && !event_kind.map_or(false, |k| k.is_account_data()) {
+            return Err(syn::Error::new_spanned(
+                event_type,
+                "only account data events may contain a `.*` suffix",
+            ));
+        }
+
+        for alias in &aliases {
+            if alias.value().ends_with(".*") != prefix.is_some() {
+                return Err(syn::Error::new_spanned(
+                    alias,
+                    "aliases should have the same `.*` suffix, or lack thereof, as the main event type",
+                ));
+            }
+        }
+
+        let has_without_relation = without_relation.is_some();
+
+        Ok(Self {
+            event_type,
+            event_kind,
+            state_key_type,
+            unsigned_type,
+            aliases,
+            is_custom,
+            has_without_relation,
+        })
     }
 }
 
@@ -201,83 +255,26 @@ pub fn expand_event_content(
     input: &DeriveInput,
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
-    let content_attr = input
+    let content_meta = input
         .attrs
         .iter()
         .filter(|attr| attr.path.is_ident("ruma_event"))
-        .map(|attr| attr.parse_args::<MetaAttrs>())
-        .collect::<syn::Result<Vec<_>>>()?;
+        .try_fold(ContentMeta::default(), |meta, attr| {
+            let list: Punctuated<ContentMeta, Token![,]> =
+                attr.parse_args_with(Punctuated::parse_terminated)?;
 
-    let mut event_types: Vec<_> =
-        content_attr.iter().filter_map(|attrs| attrs.get_event_type()).collect();
-    let event_type = match event_types.as_slice() {
-        [] => {
-            return Err(syn::Error::new(
-                Span::call_site(),
-                "no event type attribute found, \
-                 add `#[ruma_event(type = \"any.room.event\", kind = Kind)]` \
-                 below the event content derive",
-            ));
-        }
-        [_] => event_types.pop().unwrap(),
-        _ => {
-            return Err(syn::Error::new(
-                Span::call_site(),
-                "multiple event type attributes found, there can only be one",
-            ));
-        }
-    };
+            list.into_iter().try_fold(meta, ContentMeta::merge)
+        })?;
 
-    let mut event_kinds: Vec<_> =
-        content_attr.iter().filter_map(|attrs| attrs.get_event_kind()).collect();
-    let event_kind = match event_kinds.as_slice() {
-        [] => None,
-        [_] => Some(event_kinds.pop().unwrap()),
-        _ => {
-            return Err(syn::Error::new(
-                Span::call_site(),
-                "multiple event kind attributes found, there can only be one",
-            ));
-        }
-    };
-
-    let state_key_types: Vec<_> =
-        content_attr.iter().filter_map(|attrs| attrs.get_state_key_type()).collect();
-    let state_key_type = match (event_kind, state_key_types.as_slice()) {
-        (Some(EventKind::State), []) => {
-            return Err(syn::Error::new(
-                Span::call_site(),
-                "no state_key_type attribute found, please specify one",
-            ));
-        }
-        (Some(EventKind::State), [ty]) => Some(quote! { #ty }),
-        (Some(EventKind::State), _) => {
-            return Err(syn::Error::new(
-                Span::call_site(),
-                "multiple state_key_type attribute found, there can only be one",
-            ));
-        }
-        (_, []) => None,
-        (_, [ty, ..]) => {
-            return Err(syn::Error::new_spanned(
-                ty,
-                "state_key_type attribute is not valid for non-state event kinds",
-            ));
-        }
-    };
-
-    let unsigned_types: Vec<_> =
-        content_attr.iter().filter_map(|attrs| attrs.get_unsigned_type()).collect();
-    let unsigned_type = match unsigned_types.as_slice() {
-        [] => None,
-        [ty] => Some(quote! { #ty }),
-        _ => {
-            return Err(syn::Error::new(
-                Span::call_site(),
-                "multiple unsigned attributes found, there can only be one",
-            ));
-        }
-    };
+    let ContentAttrs {
+        event_type,
+        event_kind,
+        state_key_type,
+        unsigned_type,
+        aliases,
+        is_custom,
+        has_without_relation,
+    } = content_meta.try_into()?;
 
     let ident = &input.ident;
     let fields = match &input.data {
@@ -290,39 +287,12 @@ pub fn expand_event_content(
         }
     };
 
-    let event_type_s = event_type.value();
-    let prefix = event_type_s.strip_suffix(".*");
-
-    if prefix.unwrap_or(&event_type_s).contains('*') {
-        return Err(syn::Error::new_spanned(
-            event_type,
-            "event type may only contain `*` as part of a `.*` suffix",
-        ));
-    }
-
-    if prefix.is_some() && !event_kind.map_or(false, |k| k.is_account_data()) {
-        return Err(syn::Error::new_spanned(
-            event_type,
-            "only account data events may contain a `.*` suffix",
-        ));
-    }
-
-    let aliases: Vec<_> = content_attr.iter().flat_map(|attrs| attrs.get_aliases()).collect();
-    for alias in &aliases {
-        if alias.value().ends_with(".*") != prefix.is_some() {
-            return Err(syn::Error::new_spanned(
-                event_type,
-                "aliases should have the same `.*` suffix, or lack thereof, as the main event type",
-            ));
-        }
-    }
-
     // We only generate redacted content structs for state and message-like events
-    let redacted_event_content = needs_redacted(&content_attr, event_kind).then(|| {
+    let redacted_event_content = needs_redacted(is_custom, event_kind).then(|| {
         generate_redacted_event_content(
             ident,
             fields.clone(),
-            event_type,
+            &event_type,
             event_kind,
             state_key_type.as_ref(),
             unsigned_type.clone(),
@@ -332,26 +302,15 @@ pub fn expand_event_content(
         .unwrap_or_else(syn::Error::into_compile_error)
     });
 
-    let without_relations: Vec<_> =
-        content_attr.iter().filter(|attrs| attrs.has_without_relation()).collect();
-    let event_content_without_relation = match without_relations.as_slice() {
-        [] => None,
-        [_] => Some(
-            generate_event_content_without_relation(ident, fields.clone(), ruma_common)
-                .unwrap_or_else(syn::Error::into_compile_error),
-        ),
-        _ => {
-            return Err(syn::Error::new(
-                Span::call_site(),
-                "multiple without_relation attributes found, there can only be one",
-            ))
-        }
-    };
+    let event_content_without_relation = has_without_relation.then(|| {
+        generate_event_content_without_relation(ident, fields.clone(), ruma_common)
+            .unwrap_or_else(syn::Error::into_compile_error)
+    });
 
     let event_content_impl = generate_event_content_impl(
         ident,
         fields,
-        event_type,
+        &event_type,
         event_kind,
         state_key_type.as_ref(),
         unsigned_type,
@@ -360,7 +319,7 @@ pub fn expand_event_content(
     )
     .unwrap_or_else(syn::Error::into_compile_error);
     let static_event_content_impl = event_kind
-        .map(|k| generate_static_event_content_impl(ident, k, false, event_type, ruma_common));
+        .map(|k| generate_static_event_content_impl(ident, k, false, &event_type, ruma_common));
     let type_aliases = event_kind.map(|k| {
         generate_event_type_aliases(k, ident, &event_type.value(), ruma_common)
             .unwrap_or_else(syn::Error::into_compile_error)
@@ -382,7 +341,7 @@ fn generate_redacted_event_content<'a>(
     event_kind: Option<EventKind>,
     state_key_type: Option<&TokenStream>,
     unsigned_type: Option<TokenStream>,
-    aliases: &[&LitStr],
+    aliases: &[LitStr],
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
     assert!(
@@ -623,7 +582,7 @@ fn generate_event_content_impl<'a>(
     event_kind: Option<EventKind>,
     state_key_type: Option<&TokenStream>,
     unsigned_type: Option<TokenStream>,
-    aliases: &[&'a LitStr],
+    aliases: &[LitStr],
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let serde = quote! { #ruma_common::exports::serde };
@@ -725,7 +684,7 @@ fn generate_event_content_impl<'a>(
         }
     });
 
-    let event_types = aliases.iter().chain([&event_type]);
+    let event_types = aliases.iter().chain([event_type]);
 
     let from_parts_fn_impl = if let Some((_, type_fragment_field)) = &type_suffix_data {
         let type_prefixes = event_types.map(|ev_type| {
@@ -821,10 +780,9 @@ fn generate_static_event_content_impl(
     }
 }
 
-fn needs_redacted(input: &[MetaAttrs], event_kind: Option<EventKind>) -> bool {
+fn needs_redacted(is_custom: bool, event_kind: Option<EventKind>) -> bool {
     // `is_custom` means that the content struct does not need a generated
     // redacted struct also. If no `custom_redacted` attrs are found the content
     // needs a redacted struct generated.
-    !input.iter().any(|a| a.is_custom())
-        && matches!(event_kind, Some(EventKind::MessageLike) | Some(EventKind::State))
+    !is_custom && matches!(event_kind, Some(EventKind::MessageLike) | Some(EventKind::State))
 }
