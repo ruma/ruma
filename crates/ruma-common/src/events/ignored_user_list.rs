@@ -42,6 +42,13 @@ impl IgnoredUserListEventContent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct IgnoredUser {}
 
+impl IgnoredUser {
+    /// Creates an empty `IgnoredUser`.
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use assert_matches::assert_matches;
