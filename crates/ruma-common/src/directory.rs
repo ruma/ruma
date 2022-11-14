@@ -141,11 +141,12 @@ impl Filter<'_> {
 
 /// Information about which networks/protocols from application services on the
 /// homeserver from which to request rooms.
-#[derive(Clone, Debug, PartialEq, Eq, Incoming)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Incoming)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[incoming_derive(Clone, PartialEq, Eq, !Deserialize)]
+#[incoming_derive(Clone, Default, PartialEq, Eq, !Deserialize)]
 pub enum RoomNetwork<'a> {
     /// Return rooms from the Matrix network.
+    #[default]
     Matrix,
 
     /// Return rooms from all the networks/protocols the homeserver knows about.
@@ -153,12 +154,6 @@ pub enum RoomNetwork<'a> {
 
     /// Return rooms from a specific third party network/protocol.
     ThirdParty(&'a str),
-}
-
-impl<'a> Default for RoomNetwork<'a> {
-    fn default() -> Self {
-        RoomNetwork::Matrix
-    }
 }
 
 /// The rule used for users wishing to join a public room.
