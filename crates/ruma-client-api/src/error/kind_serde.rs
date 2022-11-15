@@ -210,6 +210,8 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrCode::NotYetUploaded => ErrorKind::NotYetUploaded,
             #[cfg(feature = "unstable-msc2246")]
             ErrCode::CannotOverwriteMedia => ErrorKind::CannotOverwriteMedia,
+            #[cfg(feature = "unstable-msc3575")]
+            ErrCode::UnknownPos => ErrorKind::UnknownPos,
             ErrCode::_Custom(errcode) => ErrorKind::_Custom { errcode, extra },
         })
     }
@@ -260,6 +262,8 @@ enum ErrCode {
         alias = "M_CANNOT_OVERWRITE_MEDIA"
     )]
     CannotOverwriteMedia,
+    #[cfg(feature = "unstable-msc3575")]
+    UnknownPos,
     _Custom(PrivOwnedStr),
 }
 
