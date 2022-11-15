@@ -158,6 +158,10 @@ pub enum ErrorKind {
     #[cfg(feature = "unstable-msc2246")]
     CannotOverwriteMedia,
 
+    /// M_UNKNOWN_POS for sliding sync
+    #[cfg(feature = "unstable-msc3575")]
+    UnknownPos,
+
     #[doc(hidden)]
     _Custom { errcode: PrivOwnedStr, extra: Extra },
 }
@@ -209,6 +213,8 @@ impl AsRef<str> for ErrorKind {
             Self::NotYetUploaded => "FI.MAU.MSC2246_NOT_YET_UPLOADED",
             #[cfg(feature = "unstable-msc2246")]
             Self::CannotOverwriteMedia => "FI.MAU.MSC2246_CANNOT_OVERWRITE_MEDIA",
+            #[cfg(feature = "unstable-msc3575")]
+            Self::UnknownPos => "M_UNKNOWN_POS",
             Self::_Custom { errcode, .. } => &errcode.0,
         }
     }
