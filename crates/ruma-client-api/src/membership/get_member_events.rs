@@ -12,7 +12,7 @@ pub mod v3 {
         events::room::member::RoomMemberEvent,
         metadata,
         serde::{Raw, StringEnum},
-        RoomId,
+        OwnedRoomId,
     };
 
     use crate::PrivOwnedStr;
@@ -29,10 +29,10 @@ pub mod v3 {
 
     /// Request type for the `get_member_events` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room to get the member events for.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The point in time (pagination token) to return members for in the room.
         ///
@@ -40,7 +40,7 @@ pub mod v3 {
         /// API.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub at: Option<&'a str>,
+        pub at: Option<String>,
 
         /// The kind of memberships to filter for.
         ///
@@ -66,9 +66,9 @@ pub mod v3 {
         pub chunk: Vec<Raw<RoomMemberEvent>>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room ID.
-        pub fn new(room_id: &'a RoomId) -> Self {
+        pub fn new(room_id: OwnedRoomId) -> Self {
             Self { room_id, at: None, membership: None, not_membership: None }
         }
     }
@@ -106,7 +106,7 @@ pub mod v3 {
     mod tests {
         use ruma_common::api::IncomingRequest as _;
 
-        use super::{IncomingRequest, MembershipEventFilter};
+        use super::{MembershipEventFilter, Request};
 
         #[test]
         fn deserialization() {
@@ -121,7 +121,7 @@ pub mod v3 {
                 .build()
                 .unwrap();
 
-            let req = IncomingRequest::try_from_http_request(
+            let req = Request::try_from_http_request(
                 http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
                 &["!dummy:example.org"],
             )

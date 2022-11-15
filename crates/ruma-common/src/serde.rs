@@ -65,6 +65,6 @@ where
 }
 
 pub use ruma_macros::{
-    AsRefStr, DeserializeFromCowStr, DisplayAsRefStr, FromString, Incoming, OrdAsRefStr,
-    PartialEqAsRefStr, PartialOrdAsRefStr, SerializeAsRefStr, StringEnum, _FakeDeriveSerde,
+    AsRefStr, DeserializeFromCowStr, DisplayAsRefStr, FromString, OrdAsRefStr, PartialEqAsRefStr,
+    PartialOrdAsRefStr, SerializeAsRefStr, StringEnum, _FakeDeriveSerde,
 };

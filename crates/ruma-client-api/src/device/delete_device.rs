@@ -9,10 +9,10 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, DeviceId,
+        metadata, OwnedDeviceId,
     };
 
-    use crate::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
+    use crate::uiaa::{AuthData, UiaaResponse};
 
     const METADATA: Metadata = metadata! {
         method: DELETE,
@@ -26,14 +26,14 @@ pub mod v3 {
 
     /// Request type for the `delete_device` endpoint.
     #[request(error = UiaaResponse)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The device to delete.
         #[ruma_api(path)]
-        pub device_id: &'a DeviceId,
+        pub device_id: OwnedDeviceId,
 
         /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub auth: Option<AuthData<'a>>,
+        pub auth: Option<AuthData>,
     }
 
     /// Response type for the `delete_device` endpoint.
@@ -41,9 +41,9 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given device ID.
-        pub fn new(device_id: &'a DeviceId) -> Self {
+        pub fn new(device_id: OwnedDeviceId) -> Self {
             Self { device_id, auth: None }
         }
     }

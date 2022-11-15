@@ -44,7 +44,6 @@ use self::{
         enum_as_ref_str::expand_enum_as_ref_str,
         enum_from_string::expand_enum_from_string,
         eq_as_ref_str::expand_partial_eq_as_ref_str,
-        incoming::expand_derive_incoming,
         ord_as_ref_str::{expand_ord_as_ref_str, expand_partial_ord_as_ref_str},
         serialize_as_ref_str::expand_serialize_as_ref_str,
     },
@@ -259,19 +258,6 @@ pub fn user_id(input: TokenStream) -> TokenStream {
     };
 
     output.into()
-}
-
-/// Generating an 'Incoming' version of the type this derive macro is used on.
-///
-/// This type will be a fully-owned version of the input type, using no lifetime generics.
-///
-/// By default, the generated type will derive `Debug` and `serde::Deserialize`. To derive
-/// additional traits, use `#[incoming_derive(ExtraDeriveMacro)]`. To disable the default derives,
-/// use `#[incoming_derive(!Debug, !Deserialize)]`.
-#[proc_macro_derive(Incoming, attributes(incoming_derive))]
-pub fn derive_incoming(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
-    expand_derive_incoming(input).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
 /// Derive the `AsRef<str>` trait for an enum.

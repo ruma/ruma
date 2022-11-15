@@ -9,7 +9,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, RoomId,
+        metadata, OwnedRoomId,
     };
 
     use crate::room::Visibility;
@@ -26,10 +26,10 @@ pub mod v3 {
 
     /// Request type for the `set_room_visibility` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The ID of the room of which to set the visibility.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// New visibility setting for the room.
         pub visibility: Visibility,
@@ -40,9 +40,9 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room ID and visibility.
-        pub fn new(room_id: &'a RoomId, visibility: Visibility) -> Self {
+        pub fn new(room_id: OwnedRoomId, visibility: Visibility) -> Self {
             Self { room_id, visibility }
         }
     }

@@ -15,7 +15,7 @@ pub mod v3 {
         metadata,
         serde::Raw,
         to_device::DeviceIdOrAllDevices,
-        OwnedUserId, TransactionId,
+        OwnedTransactionId, OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -30,10 +30,10 @@ pub mod v3 {
 
     /// Request type for the `send_event_to_device` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// Type of event being sent to each device.
         #[ruma_api(path)]
-        pub event_type: &'a str,
+        pub event_type: String,
 
         /// The transaction ID for this event.
         ///
@@ -45,7 +45,7 @@ pub mod v3 {
         ///
         /// [access token is refreshed]: https://spec.matrix.org/v1.4/client-server-api/#refreshing-access-tokens
         #[ruma_api(path)]
-        pub txn_id: &'a TransactionId,
+        pub txn_id: OwnedTransactionId,
 
         /// Messages to send.
         ///
@@ -59,9 +59,9 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given event type, transaction ID and raw messages.
-        pub fn new_raw(event_type: &'a str, txn_id: &'a TransactionId, messages: Messages) -> Self {
+        pub fn new_raw(event_type: String, txn_id: OwnedTransactionId, messages: Messages) -> Self {
             Self { event_type, txn_id, messages }
         }
     }

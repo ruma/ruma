@@ -4,10 +4,7 @@ use assert_matches::assert_matches;
 use assign::assign;
 use ruma_client_api::{
     error::ErrorKind,
-    uiaa::{
-        self, AuthData, AuthFlow, AuthType, IncomingAuthData, IncomingUserIdentifier, UiaaInfo,
-        UiaaResponse,
-    },
+    uiaa::{self, AuthData, AuthFlow, AuthType, UiaaInfo, UiaaResponse, UserIdentifier},
 };
 use ruma_common::api::{EndpointError, OutgoingResponse};
 use serde_json::{
@@ -23,16 +20,17 @@ fn deserialize_user_identifier() {
             "user": "cheeky_monkey"
         }))
         .unwrap(),
-        IncomingUserIdentifier::UserIdOrLocalpart(id) => id
+        UserIdentifier::UserIdOrLocalpart(id) => id
     );
     assert_eq!(id, "cheeky_monkey");
 }
 
 #[test]
 fn serialize_auth_data_registration_token() {
-    let auth_data = AuthData::RegistrationToken(
-        assign!(uiaa::RegistrationToken::new("mytoken"), { session: Some("session") }),
-    );
+    let auth_data =
+        AuthData::RegistrationToken(assign!(uiaa::RegistrationToken::new("mytoken".to_owned()), {
+            session: Some("session".to_owned()),
+        }));
 
     assert_eq!(
         to_json_value(auth_data).unwrap(),
@@ -54,7 +52,7 @@ fn deserialize_auth_data_registration_token() {
 
     let data = assert_matches!(
         from_json_value(json),
-        Ok(IncomingAuthData::RegistrationToken(data)) => data
+        Ok(AuthData::RegistrationToken(data)) => data
     );
     assert_eq!(data.token, "mytoken");
     assert_eq!(data.session.as_deref(), Some("session"));
@@ -62,7 +60,8 @@ fn deserialize_auth_data_registration_token() {
 
 #[test]
 fn serialize_auth_data_fallback() {
-    let auth_data = AuthData::FallbackAcknowledgement(uiaa::FallbackAcknowledgement::new("ZXY000"));
+    let auth_data =
+        AuthData::FallbackAcknowledgement(uiaa::FallbackAcknowledgement::new("ZXY000".to_owned()));
 
     assert_eq!(json!({ "session": "ZXY000" }), to_json_value(auth_data).unwrap());
 }
@@ -73,7 +72,7 @@ fn deserialize_auth_data_fallback() {
 
     let data = assert_matches!(
         from_json_value(json).unwrap(),
-        IncomingAuthData::FallbackAcknowledgement(data) => data
+        AuthData::FallbackAcknowledgement(data) => data
     );
     assert_eq!(data.session, "opaque_session_id");
 }

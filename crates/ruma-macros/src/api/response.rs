@@ -36,15 +36,8 @@ pub fn expand_response(attr: ResponseAttr, item: ItemStruct) -> TokenStream {
     quote! {
         #maybe_feature_error
 
-        #[derive(
-            Clone,
-            Debug,
-            #ruma_macros::Response,
-            #ruma_common::serde::Incoming,
-            #ruma_common::serde::_FakeDeriveSerde,
-        )]
+        #[derive(Clone, Debug, #ruma_macros::Response, #ruma_common::serde::_FakeDeriveSerde)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-        #[incoming_derive(!Deserialize, #ruma_macros::_FakeDeriveRumaApi)]
         #[ruma_api(error = #error_ty)]
         #item
     }

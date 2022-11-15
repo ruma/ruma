@@ -30,10 +30,10 @@ pub mod v3 {
 
     /// Request type for the `get_backup_info` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The backup version to retrieve info from.
         #[ruma_api(path)]
-        pub version: &'a str,
+        pub version: String,
     }
 
     /// Response type for the `get_backup_info` endpoint.
@@ -56,9 +56,9 @@ pub mod v3 {
         pub version: String,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given version.
-        pub fn new(version: &'a str) -> Self {
+        pub fn new(version: String) -> Self {
             Self { version }
         }
     }

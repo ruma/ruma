@@ -13,7 +13,7 @@ pub mod v1 {
         events::AnyMessageLikeEvent,
         metadata,
         serde::Raw,
-        EventId, RoomId,
+        OwnedEventId, OwnedRoomId,
     };
 
     use crate::Direction;
@@ -30,14 +30,14 @@ pub mod v1 {
 
     /// Request type for the `get_relating_events` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The ID of the room containing the parent event.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The ID of the parent event whose child events are to be returned.
         #[ruma_api(path)]
-        pub event_id: &'a EventId,
+        pub event_id: OwnedEventId,
 
         /// The pagination token to start returning results from.
         ///
@@ -51,7 +51,7 @@ pub mod v1 {
         /// through events, starting at `from`.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub from: Option<&'a str>,
+        pub from: Option<String>,
 
         /// The direction to return events from.
         ///
@@ -68,7 +68,7 @@ pub mod v1 {
         /// or from `/messages` or `/sync`.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub to: Option<&'a str>,
+        pub to: Option<String>,
 
         /// The maximum number of results to return in a single `chunk`.
         ///
@@ -107,9 +107,9 @@ pub mod v1 {
         pub prev_batch: Option<String>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room ID and parent event ID.
-        pub fn new(room_id: &'a RoomId, event_id: &'a EventId) -> Self {
+        pub fn new(room_id: OwnedRoomId, event_id: OwnedEventId) -> Self {
             Self { room_id, event_id, dir: Direction::default(), from: None, to: None, limit: None }
         }
     }

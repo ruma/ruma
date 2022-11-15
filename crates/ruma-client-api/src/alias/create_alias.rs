@@ -9,7 +9,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, RoomAliasId, RoomId,
+        metadata, OwnedRoomAliasId, OwnedRoomId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -24,13 +24,13 @@ pub mod v3 {
 
     /// Request type for the `create_alias` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room alias to set.
         #[ruma_api(path)]
-        pub room_alias: &'a RoomAliasId,
+        pub room_alias: OwnedRoomAliasId,
 
         /// The room ID to set.
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
     }
 
     /// Response type for the `create_alias` endpoint.
@@ -38,9 +38,9 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room alias and room id.
-        pub fn new(room_alias: &'a RoomAliasId, room_id: &'a RoomId) -> Self {
+        pub fn new(room_alias: OwnedRoomAliasId, room_id: OwnedRoomId) -> Self {
             Self { room_alias, room_id }
         }
     }

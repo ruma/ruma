@@ -26,10 +26,10 @@ pub mod v1 {
 
     /// Request type for the `get_location_for_protocol` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The protocol used to communicate to the third party network.
         #[ruma_api(path)]
-        pub protocol: &'a str,
+        pub protocol: String,
 
         /// One or more custom fields to help identify the third party location.
         // The specification is incorrect for this parameter. See [matrix-spec#560](https://github.com/matrix-org/matrix-spec/issues/560).
@@ -45,9 +45,9 @@ pub mod v1 {
         pub locations: Vec<Location>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given protocol.
-        pub fn new(protocol: &'a str) -> Self {
+        pub fn new(protocol: String) -> Self {
             Self { protocol, fields: BTreeMap::new() }
         }
     }

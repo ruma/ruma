@@ -12,7 +12,7 @@ pub mod v3 {
         metadata, OwnedDeviceId,
     };
 
-    use crate::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
+    use crate::uiaa::{AuthData, UiaaResponse};
 
     const METADATA: Metadata = metadata! {
         method: POST,
@@ -26,13 +26,13 @@ pub mod v3 {
 
     /// Request type for the `delete_devices` endpoint.
     #[request(error = UiaaResponse)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// List of devices to delete.
-        pub devices: &'a [OwnedDeviceId],
+        pub devices: Vec<OwnedDeviceId>,
 
         /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub auth: Option<AuthData<'a>>,
+        pub auth: Option<AuthData>,
     }
 
     /// Response type for the `delete_devices` endpoint.
@@ -40,9 +40,9 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given device list.
-        pub fn new(devices: &'a [OwnedDeviceId]) -> Self {
+        pub fn new(devices: Vec<OwnedDeviceId>) -> Self {
             Self { devices, auth: None }
         }
     }

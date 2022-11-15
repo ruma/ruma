@@ -13,13 +13,10 @@ pub mod v3 {
         events::{AnyStateEvent, AnyTimelineEvent},
         metadata,
         serde::Raw,
-        RoomId,
+        OwnedRoomId,
     };
 
-    use crate::{
-        filter::{IncomingRoomEventFilter, RoomEventFilter},
-        Direction,
-    };
+    use crate::{filter::RoomEventFilter, Direction};
 
     const METADATA: Metadata = metadata! {
         method: GET,
@@ -33,10 +30,10 @@ pub mod v3 {
 
     /// Request type for the `get_message_events` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room to get events from.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The token to start returning events from.
         ///
@@ -47,7 +44,7 @@ pub mod v3 {
         /// If this is `None`, the server will return messages from the start or end of the
         /// history visible to the user, depending on the value of [`dir`][Self::dir].
         #[ruma_api(query)]
-        pub from: Option<&'a str>,
+        pub from: Option<String>,
 
         /// The token to stop returning events at.
         ///
@@ -56,7 +53,7 @@ pub mod v3 {
         /// this endpoint.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub to: Option<&'a str>,
+        pub to: Option<String>,
 
         /// The direction to return events from.
         #[ruma_api(query)]
@@ -76,7 +73,7 @@ pub mod v3 {
             default,
             skip_serializing_if = "RoomEventFilter::is_empty"
         )]
-        pub filter: RoomEventFilter<'a>,
+        pub filter: RoomEventFilter,
     }
 
     /// Response type for the `get_message_events` endpoint.
@@ -99,11 +96,11 @@ pub mod v3 {
         pub state: Vec<Raw<AnyStateEvent>>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room ID and direction.
         ///
         /// All other parameters will be defaulted.
-        pub fn new(room_id: &'a RoomId, dir: Direction) -> Self {
+        pub fn new(room_id: OwnedRoomId, dir: Direction) -> Self {
             Self {
                 room_id,
                 from: None,
@@ -123,11 +120,11 @@ pub mod v3 {
         ///
         /// ```rust
         /// # use ruma_client_api::message::get_message_events;
-        /// # let room_id = ruma_common::room_id!("!a:example.org");
-        /// # let token = "prev_batch token";
+        /// # let room_id = ruma_common::room_id!("!a:example.org").to_owned();
+        /// # let token = "prev_batch token".to_owned();
         /// let request = get_message_events::v3::Request::backward(room_id).from(token);
         /// ```
-        pub fn backward(room_id: &'a RoomId) -> Self {
+        pub fn backward(room_id: OwnedRoomId) -> Self {
             Self::new(room_id, Direction::Backward)
         }
 
@@ -140,11 +137,11 @@ pub mod v3 {
         ///
         /// ```rust
         /// # use ruma_client_api::message::get_message_events;
-        /// # let room_id = ruma_common::room_id!("!a:example.org");
-        /// # let token = "end token";
+        /// # let room_id = ruma_common::room_id!("!a:example.org").to_owned();
+        /// # let token = "end token".to_owned();
         /// let request = get_message_events::v3::Request::forward(room_id).from(token);
         /// ```
-        pub fn forward(room_id: &'a RoomId) -> Self {
+        pub fn forward(room_id: OwnedRoomId) -> Self {
             Self::new(room_id, Direction::Forward)
         }
 
@@ -152,7 +149,7 @@ pub mod v3 {
         ///
         /// Since the field is public, you can also assign to it directly. This method merely acts
         /// as a shorthand for that, because it is very common to set this field.
-        pub fn from(self, from: impl Into<Option<&'a str>>) -> Self {
+        pub fn from(self, from: impl Into<Option<String>>) -> Self {
             Self { from: from.into(), ..self }
         }
     }
@@ -189,23 +186,23 @@ pub mod v3 {
 
         #[test]
         fn serialize_some_room_event_filter() {
-            let room_id = room_id!("!roomid:example.org");
-            let rooms = &[room_id.to_owned()];
+            let room_id = room_id!("!roomid:example.org").to_owned();
+            let rooms = vec![room_id.to_owned()];
             let filter = RoomEventFilter {
                 lazy_load_options: LazyLoadOptions::Enabled { include_redundant_members: true },
                 rooms: Some(rooms),
-                not_rooms: &[
+                not_rooms: vec![
                     room_id!("!room:example.org").to_owned(),
                     room_id!("!room2:example.org").to_owned(),
                     room_id!("!room3:example.org").to_owned(),
                 ],
-                not_types: &["type".into()],
+                not_types: vec!["type".into()],
                 ..Default::default()
             };
             let req = Request {
                 room_id,
-                from: Some("token"),
-                to: Some("token2"),
+                from: Some("token".to_owned()),
+                to: Some("token2".to_owned()),
                 dir: Direction::Backward,
                 limit: uint!(0),
                 filter,
@@ -230,11 +227,11 @@ pub mod v3 {
 
         #[test]
         fn serialize_default_room_event_filter() {
-            let room_id = room_id!("!roomid:example.org");
+            let room_id = room_id!("!roomid:example.org").to_owned();
             let req = Request {
                 room_id,
-                from: Some("token"),
-                to: Some("token2"),
+                from: Some("token".to_owned()),
+                to: Some("token2".to_owned()),
                 dir: Direction::Backward,
                 limit: uint!(0),
                 filter: RoomEventFilter::default(),

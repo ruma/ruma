@@ -9,7 +9,7 @@ pub mod unstable {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, OwnedRoomId, UserId,
+        metadata, OwnedRoomId, OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -23,10 +23,10 @@ pub mod unstable {
 
     /// Request type for the `mutual_rooms` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The user to search mutual rooms for.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
     }
 
     /// Response type for the `mutual_rooms` endpoint.
@@ -36,9 +36,9 @@ pub mod unstable {
         pub joined: Vec<OwnedRoomId>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given user id.
-        pub fn new(user_id: &'a UserId) -> Self {
+        pub fn new(user_id: OwnedUserId) -> Self {
             Self { user_id }
         }
     }

@@ -10,7 +10,7 @@ pub mod v1 {
     use js_int::{uint, UInt};
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, OwnedEventId, RoomId,
+        metadata, OwnedEventId, OwnedRoomId,
     };
     use serde_json::value::RawValue as RawJsonValue;
 
@@ -25,10 +25,10 @@ pub mod v1 {
 
     /// Request type for the `get_missing_events` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room ID to search in.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The maximum number of events to retrieve.
         ///
@@ -45,10 +45,10 @@ pub mod v1 {
         /// The latest event IDs that the sender already has.
         ///
         /// These are skipped when retrieving the previous events of `latest_events`.
-        pub earliest_events: &'a [OwnedEventId],
+        pub earliest_events: Vec<OwnedEventId>,
 
         /// The event IDs to retrieve the previous events for.
-        pub latest_events: &'a [OwnedEventId],
+        pub latest_events: Vec<OwnedEventId>,
     }
 
     /// Response type for the `get_missing_events` endpoint.
@@ -59,12 +59,12 @@ pub mod v1 {
         pub events: Vec<Box<RawJsonValue>>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` for events in the given room with the given constraints.
         pub fn new(
-            room_id: &'a RoomId,
-            earliest_events: &'a [OwnedEventId],
-            latest_events: &'a [OwnedEventId],
+            room_id: OwnedRoomId,
+            earliest_events: Vec<OwnedEventId>,
+            latest_events: Vec<OwnedEventId>,
         ) -> Self {
             Self {
                 room_id,

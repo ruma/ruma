@@ -12,7 +12,7 @@ pub mod v3 {
         events::AnyRoomAccountDataEventContent,
         metadata,
         serde::Raw,
-        RoomId, UserId,
+        OwnedRoomId, OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -27,18 +27,18 @@ pub mod v3 {
 
     /// Request type for the `get_room_account_data` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// User ID of user for whom to retrieve data.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
 
         /// Room ID for which to retrieve data.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// Type of data to retrieve.
         #[ruma_api(path)]
-        pub event_type: &'a str,
+        pub event_type: String,
     }
 
     /// Response type for the `get_room_account_data` endpoint.
@@ -51,9 +51,9 @@ pub mod v3 {
         pub account_data: Raw<AnyRoomAccountDataEventContent>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given user ID, room ID and event type.
-        pub fn new(user_id: &'a UserId, room_id: &'a RoomId, event_type: &'a str) -> Self {
+        pub fn new(user_id: OwnedUserId, room_id: OwnedRoomId, event_type: String) -> Self {
             Self { user_id, room_id, event_type }
         }
     }

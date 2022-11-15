@@ -9,7 +9,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, UserId,
+        metadata, OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -24,14 +24,14 @@ pub mod v3 {
 
     /// Request type for the `set_display_name` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The user whose display name will be set.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
 
         /// The new display name for the user.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub displayname: Option<&'a str>,
+        pub displayname: Option<String>,
     }
 
     /// Response type for the `set_display_name` endpoint.
@@ -39,9 +39,9 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given user ID and display name.
-        pub fn new(user_id: &'a UserId, displayname: Option<&'a str>) -> Self {
+        pub fn new(user_id: OwnedUserId, displayname: Option<String>) -> Self {
             Self { user_id, displayname }
         }
     }

@@ -29,12 +29,12 @@ pub mod v3 {
 
     /// Request type for the `add_backup_keys` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The backup version to add keys to.
         ///
         /// Must be the current backup.
         #[ruma_api(query)]
-        pub version: &'a str,
+        pub version: String,
 
         /// A map of room IDs to session IDs to key data to store.
         pub rooms: BTreeMap<OwnedRoomId, RoomKeyBackup>,
@@ -53,9 +53,9 @@ pub mod v3 {
         pub count: UInt,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given version and room key backups.
-        pub fn new(version: &'a str, rooms: BTreeMap<OwnedRoomId, RoomKeyBackup>) -> Self {
+        pub fn new(version: String, rooms: BTreeMap<OwnedRoomId, RoomKeyBackup>) -> Self {
             Self { version, rooms }
         }
     }

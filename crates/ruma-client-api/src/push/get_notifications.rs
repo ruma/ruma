@@ -31,11 +31,11 @@ pub mod v3 {
     /// Request type for the `get_notifications` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// Pagination token given to retrieve the next set of events.
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub from: Option<&'a str>,
+        pub from: Option<String>,
 
         /// Limit on the number of events to return in this request.
         #[ruma_api(query)]
@@ -48,7 +48,7 @@ pub mod v3 {
         /// tweak set.
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub only: Option<&'a str>,
+        pub only: Option<String>,
     }
 
     /// Response type for the `get_notifications` endpoint.
@@ -65,7 +65,7 @@ pub mod v3 {
         pub notifications: Vec<Notification>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates an empty `Request`.
         pub fn new() -> Self {
             Default::default()

@@ -11,7 +11,7 @@ pub mod v1 {
         api::{request, response, Metadata},
         metadata,
         serde::StringEnum,
-        OwnedMxcUri, UserId,
+        OwnedMxcUri, OwnedUserId,
     };
 
     use crate::PrivOwnedStr;
@@ -27,15 +27,15 @@ pub mod v1 {
 
     /// Request type for the `get_profile_information` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// User ID to query.
         #[ruma_api(query)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
 
         /// Profile field to query.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub field: Option<&'a ProfileField>,
+        pub field: Option<ProfileField>,
     }
 
     /// Response type for the `get_profile_information` endpoint.
@@ -66,9 +66,9 @@ pub mod v1 {
         pub blurhash: Option<String>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given user id.
-        pub fn new(user_id: &'a UserId) -> Self {
+        pub fn new(user_id: OwnedUserId) -> Self {
             Self { user_id, field: None }
         }
     }

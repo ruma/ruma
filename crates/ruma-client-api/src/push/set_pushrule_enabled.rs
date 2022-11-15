@@ -26,7 +26,7 @@ pub mod v3 {
 
     /// Request type for the `set_pushrule_enabled` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The scope to fetch a rule from.
         #[ruma_api(path)]
         pub scope: RuleScope,
@@ -37,7 +37,7 @@ pub mod v3 {
 
         /// The identifier for the rule.
         #[ruma_api(path)]
-        pub rule_id: &'a str,
+        pub rule_id: String,
 
         /// Whether the push rule is enabled or not.
         pub enabled: bool,
@@ -48,19 +48,19 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given scope, rule kind, rule ID and enabled flag.
-        pub fn new(scope: RuleScope, kind: RuleKind, rule_id: &'a str, enabled: bool) -> Self {
+        pub fn new(scope: RuleScope, kind: RuleKind, rule_id: String, enabled: bool) -> Self {
             Self { scope, kind, rule_id, enabled }
         }
 
         /// Creates a new `Request` to enable the given rule.
-        pub fn enable(scope: RuleScope, kind: RuleKind, rule_id: &'a str) -> Self {
+        pub fn enable(scope: RuleScope, kind: RuleKind, rule_id: String) -> Self {
             Self::new(scope, kind, rule_id, true)
         }
 
         /// Creates a new `Request` to disable the given rule.
-        pub fn disable(scope: RuleScope, kind: RuleKind, rule_id: &'a str) -> Self {
+        pub fn disable(scope: RuleScope, kind: RuleKind, rule_id: String) -> Self {
             Self::new(scope, kind, rule_id, false)
         }
     }

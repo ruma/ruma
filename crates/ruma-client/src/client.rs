@@ -118,13 +118,15 @@ impl<C: HttpClient> Client<C> {
         device_id: Option<&DeviceId>,
         initial_device_display_name: Option<&str>,
     ) -> Result<login::v3::Response, Error<C::Error, ruma_client_api::Error>> {
+        let login_info = LoginInfo::Password(login::v3::Password::new(
+            UserIdentifier::UserIdOrLocalpart(user.to_owned()),
+            password.to_owned(),
+        ));
         let response = self
-            .send_request(assign!(login::v3::Request::new(
-                LoginInfo::Password(login::v3::Password::new(UserIdentifier::UserIdOrLocalpart(user), password))), {
-                device_id,
-                initial_device_display_name,
-                }
-            ))
+            .send_request(assign!(login::v3::Request::new(login_info), {
+                device_id: device_id.map(ToOwned::to_owned),
+                initial_device_display_name: initial_device_display_name.map(ToOwned::to_owned),
+            }))
             .await?;
 
         *self.0.access_token.lock().unwrap() = Some(response.access_token.clone());
@@ -162,7 +164,8 @@ impl<C: HttpClient> Client<C> {
     ) -> Result<register::v3::Response, Error<C::Error, ruma_client_api::uiaa::UiaaResponse>> {
         let response = self
             .send_request(assign!(register::v3::Request::new(), {
-                username, password: Some(password)
+                username: username.map(ToOwned::to_owned),
+                password: Some(password.to_owned())
             }))
             .await?;
 
@@ -190,7 +193,7 @@ impl<C: HttpClient> Client<C> {
     /// let mut sync_stream = Box::pin(client.sync(
     ///     None,
     ///     next_batch_token,
-    ///     &PresenceState::Online,
+    ///     PresenceState::Online,
     ///     Some(Duration::from_secs(30)),
     /// ));
     /// while let Some(response) = sync_stream.try_next().await? {
@@ -199,21 +202,21 @@ impl<C: HttpClient> Client<C> {
     /// # Result::<(), ruma_client::Error<_, _>>::Ok(())
     /// # };
     /// ```
-    pub fn sync<'a>(
-        &'a self,
-        filter: Option<&'a sync_events::v3::Filter<'a>>,
+    pub fn sync(
+        &self,
+        filter: Option<sync_events::v3::Filter>,
         mut since: String,
-        set_presence: &'a PresenceState,
+        set_presence: PresenceState,
         timeout: Option<Duration>,
     ) -> impl Stream<Item = Result<sync_events::v3::Response, Error<C::Error, ruma_client_api::Error>>>
-           + 'a {
+           + '_ {
         try_stream! {
             loop {
                 let response = self
                     .send_request(assign!(sync_events::v3::Request::new(), {
-                        filter,
-                        since: Some(&since),
-                        set_presence,
+                        filter: filter.clone(),
+                        since: Some(since.clone()),
+                        set_presence: set_presence.clone(),
                         timeout,
                     }))
                     .await?;

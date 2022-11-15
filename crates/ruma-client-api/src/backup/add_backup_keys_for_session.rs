@@ -12,7 +12,7 @@ pub mod v3 {
         api::{request, response, Metadata},
         metadata,
         serde::Raw,
-        RoomId,
+        OwnedRoomId,
     };
 
     use crate::backup::KeyBackupData;
@@ -30,20 +30,20 @@ pub mod v3 {
 
     /// Request type for the `add_backup_keys_for_session` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The backup version to add keys to.
         ///
         /// Must be the current backup.
         #[ruma_api(query)]
-        pub version: &'a str,
+        pub version: String,
 
         /// The ID of the room to add keys to.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The ID of the megolm session to add keys to.
         #[ruma_api(path)]
-        pub session_id: &'a str,
+        pub session_id: String,
 
         /// The key information to store.
         #[ruma_api(body)]
@@ -63,12 +63,12 @@ pub mod v3 {
         pub count: UInt,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given version, room_id, session_id and session_data.
         pub fn new(
-            version: &'a str,
-            room_id: &'a RoomId,
-            session_id: &'a str,
+            version: String,
+            room_id: OwnedRoomId,
+            session_id: String,
             session_data: Raw<KeyBackupData>,
         ) -> Self {
             Self { version, room_id, session_id, session_data }

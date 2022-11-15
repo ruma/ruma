@@ -29,10 +29,10 @@ pub mod v3 {
 
     /// Request type for the `get_backup_keys` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The backup version to retrieve keys from.
         #[ruma_api(query)]
-        pub version: &'a str,
+        pub version: String,
     }
 
     /// Response type for the `get_backup_keys` endpoint.
@@ -42,9 +42,9 @@ pub mod v3 {
         pub rooms: BTreeMap<OwnedRoomId, RoomKeyBackup>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given version.
-        pub fn new(version: &'a str) -> Self {
+        pub fn new(version: String) -> Self {
             Self { version }
         }
     }

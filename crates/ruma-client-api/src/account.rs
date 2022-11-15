@@ -19,26 +19,26 @@ pub mod request_registration_token_via_msisdn;
 pub mod unbind_3pid;
 pub mod whoami;
 
-use ruma_common::serde::{Incoming, StringEnum};
-use serde::Serialize;
+use ruma_common::serde::StringEnum;
+use serde::{Deserialize, Serialize};
 
 use crate::PrivOwnedStr;
 
 /// Additional authentication information for requestToken endpoints.
-#[derive(Clone, Debug, Incoming, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct IdentityServerInfo<'a> {
+pub struct IdentityServerInfo {
     /// The ID server to send the onward request to as a hostname with an
     /// appended colon and port number if the port is not the default.
-    pub id_server: &'a str,
+    pub id_server: String,
 
     /// Access token previously registered with identity server.
-    pub id_access_token: &'a str,
+    pub id_access_token: String,
 }
 
-impl<'a> IdentityServerInfo<'a> {
+impl IdentityServerInfo {
     /// Creates a new `IdentityServerInfo` with the given server name and access token.
-    pub fn new(id_server: &'a str, id_access_token: &'a str) -> Self {
+    pub fn new(id_server: String, id_access_token: String) -> Self {
         Self { id_server, id_access_token }
     }
 }

@@ -27,20 +27,20 @@ pub mod v2 {
 
     /// Request type for the `lookup_3pid` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The algorithm the client is using to encode the `addresses`. This should be one of the
         /// available options from `/hash_details`.
-        pub algorithm: &'a IdentifierHashingAlgorithm,
+        pub algorithm: IdentifierHashingAlgorithm,
 
         /// The pepper from `/hash_details`. This is required even when the `algorithm` does not
         /// make use of it.
-        pub pepper: &'a str,
+        pub pepper: String,
 
         /// The addresses to look up.
         ///
         /// The format of the entries here depend on the `algorithm` used. Note that queries which
         /// have been incorrectly hashed or formatted will lead to no matches.
-        pub addresses: &'a [String],
+        pub addresses: Vec<String>,
     }
 
     /// Response type for the `lookup_3pid` endpoint.
@@ -53,12 +53,12 @@ pub mod v2 {
         pub mappings: BTreeMap<String, OwnedUserId>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Create a `Request` with algorithm, pepper and addresses to loop up.
         pub fn new(
-            algorithm: &'a IdentifierHashingAlgorithm,
-            pepper: &'a str,
-            addresses: &'a [String],
+            algorithm: IdentifierHashingAlgorithm,
+            pepper: String,
+            addresses: Vec<String>,
         ) -> Self {
             Self { algorithm, pepper, addresses }
         }

@@ -11,7 +11,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, MilliSecondsSinceUnixEpoch, OwnedUserId, UserId,
+        metadata, MilliSecondsSinceUnixEpoch, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};
 
@@ -27,10 +27,10 @@ pub mod v3 {
 
     /// Request type for the `get_user_info` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The user to look up.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
     }
 
     /// Response type for the `get_user_info` endpoint.
@@ -46,9 +46,9 @@ pub mod v3 {
         pub devices: BTreeMap<String, DeviceInfo>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given user id.
-        pub fn new(user_id: &'a UserId) -> Self {
+        pub fn new(user_id: OwnedUserId) -> Self {
             Self { user_id }
         }
     }

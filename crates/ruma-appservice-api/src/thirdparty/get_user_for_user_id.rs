@@ -11,7 +11,7 @@ pub mod v1 {
         api::{request, response, Metadata},
         metadata,
         thirdparty::User,
-        UserId,
+        OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -25,10 +25,10 @@ pub mod v1 {
 
     /// Request type for the `get_user_for_user_id` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The Matrix User ID to look up.
         #[ruma_api(query)]
-        pub userid: &'a UserId,
+        pub userid: OwnedUserId,
     }
 
     /// Response type for the `get_user_for_user_id` endpoint.
@@ -39,9 +39,9 @@ pub mod v1 {
         pub users: Vec<User>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given user id.
-        pub fn new(userid: &'a UserId) -> Self {
+        pub fn new(userid: OwnedUserId) -> Self {
             Self { userid }
         }
     }

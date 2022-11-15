@@ -9,7 +9,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, DeviceId,
+        metadata, OwnedDeviceId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -24,16 +24,16 @@ pub mod v3 {
 
     /// Request type for the `update_device` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The device to update.
         #[ruma_api(path)]
-        pub device_id: &'a DeviceId,
+        pub device_id: OwnedDeviceId,
 
         /// The new display name for this device.
         ///
         /// If this is `None`, the display name won't be changed.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub display_name: Option<&'a str>,
+        pub display_name: Option<String>,
     }
 
     /// Response type for the `update_device` endpoint.
@@ -41,9 +41,9 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given device ID.
-        pub fn new(device_id: &'a DeviceId) -> Self {
+        pub fn new(device_id: OwnedDeviceId) -> Self {
             Self { device_id, display_name: None }
         }
     }

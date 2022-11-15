@@ -9,10 +9,10 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, UserId,
+        metadata, OwnedUserId,
     };
 
-    use crate::filter::{FilterDefinition, IncomingFilterDefinition};
+    use crate::filter::FilterDefinition;
 
     const METADATA: Metadata = metadata! {
         method: POST,
@@ -26,16 +26,16 @@ pub mod v3 {
 
     /// Request type for the `create_filter` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The ID of the user uploading the filter.
         ///
         /// The access token must be authorized to make requests for this user ID.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
 
         /// The filter definition.
         #[ruma_api(body)]
-        pub filter: FilterDefinition<'a>,
+        pub filter: FilterDefinition,
     }
 
     /// Response type for the `create_filter` endpoint.
@@ -45,9 +45,9 @@ pub mod v3 {
         pub filter_id: String,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given user ID and filter definition.
-        pub fn new(user_id: &'a UserId, filter: FilterDefinition<'a>) -> Self {
+        pub fn new(user_id: OwnedUserId, filter: FilterDefinition) -> Self {
             Self { user_id, filter }
         }
     }
@@ -66,9 +66,9 @@ pub mod v3 {
         fn deserialize_request() {
             use ruma_common::api::IncomingRequest as _;
 
-            use super::IncomingRequest;
+            use super::Request;
 
-            let req = IncomingRequest::try_from_http_request(
+            let req = Request::try_from_http_request(
                 http::Request::builder()
                     .method(http::Method::POST)
                     .uri("https://matrix.org/_matrix/client/r0/user/@foo:bar.com/filter")
@@ -92,13 +92,16 @@ pub mod v3 {
 
             use crate::filter::FilterDefinition;
 
-            let req = super::Request::new(user_id!("@foo:bar.com"), FilterDefinition::default())
-                .try_into_http_request::<Vec<u8>>(
-                    "https://matrix.org",
-                    SendAccessToken::IfRequired("tok"),
-                    &[MatrixVersion::V1_1],
-                )
-                .unwrap();
+            let req = super::Request::new(
+                user_id!("@foo:bar.com").to_owned(),
+                FilterDefinition::default(),
+            )
+            .try_into_http_request::<Vec<u8>>(
+                "https://matrix.org",
+                SendAccessToken::IfRequired("tok"),
+                &[MatrixVersion::V1_1],
+            )
+            .unwrap();
             assert_eq!(req.body(), b"{}");
         }
     }

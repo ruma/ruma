@@ -24,10 +24,10 @@ pub mod v3 {
 
     /// Request type for the `get_username_availability` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The username to check the availability of.
         #[ruma_api(query)]
-        pub username: &'a str,
+        pub username: String,
     }
 
     /// Response type for the `get_username_availability` endpoint.
@@ -38,9 +38,9 @@ pub mod v3 {
         pub available: bool,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given username.
-        pub fn new(username: &'a str) -> Self {
+        pub fn new(username: String) -> Self {
             Self { username }
         }
     }

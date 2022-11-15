@@ -10,10 +10,10 @@ pub mod v3 {
     use js_int::UInt;
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, ClientSecret, OwnedSessionId,
+        metadata, OwnedClientSecret, OwnedSessionId,
     };
 
-    use crate::account::{IdentityServerInfo, IncomingIdentityServerInfo};
+    use crate::account::IdentityServerInfo;
 
     const METADATA: Metadata = metadata! {
         method: POST,
@@ -27,28 +27,28 @@ pub mod v3 {
 
     /// Request type for the `request_registration_token_via_msisdn` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// Client-generated secret string used to protect this session.
-        pub client_secret: &'a ClientSecret,
+        pub client_secret: OwnedClientSecret,
 
         /// Two-letter ISO 3166 country code for the phone number.
-        pub country: &'a str,
+        pub country: String,
 
         /// Phone number to validate.
-        pub phone_number: &'a str,
+        pub phone_number: String,
 
         /// Used to distinguish protocol level retries from requests to re-send the SMS.
         pub send_attempt: UInt,
 
         /// Return URL for identity server to redirect the client back to.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub next_link: Option<&'a str>,
+        pub next_link: Option<String>,
 
         /// Optional identity server hostname and access token.
         ///
         /// Deprecated since r0.6.0.
         #[serde(flatten, skip_serializing_if = "Option::is_none")]
-        pub identity_server_info: Option<IdentityServerInfo<'a>>,
+        pub identity_server_info: Option<IdentityServerInfo>,
     }
 
     /// Response type for the `request_registration_token_via_msisdn` endpoint.
@@ -71,13 +71,13 @@ pub mod v3 {
         pub submit_url: Option<String>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given client secret, country code, phone number and
         /// send-attempt counter.
         pub fn new(
-            client_secret: &'a ClientSecret,
-            country: &'a str,
-            phone_number: &'a str,
+            client_secret: OwnedClientSecret,
+            country: String,
+            phone_number: String,
             send_attempt: UInt,
         ) -> Self {
             Self {

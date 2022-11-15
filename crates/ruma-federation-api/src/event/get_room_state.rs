@@ -9,7 +9,7 @@ pub mod v1 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, EventId, RoomId,
+        metadata, OwnedEventId, OwnedRoomId,
     };
     use serde_json::value::RawValue as RawJsonValue;
 
@@ -24,14 +24,14 @@ pub mod v1 {
 
     /// Request type for the `get_room_state` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room ID to get state for.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// An event ID in the room to retrieve the state at.
         #[ruma_api(query)]
-        pub event_id: &'a EventId,
+        pub event_id: OwnedEventId,
     }
 
     /// Response type for the `get_room_state` endpoint.
@@ -45,9 +45,9 @@ pub mod v1 {
         pub pdus: Vec<Box<RawJsonValue>>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given event ID and room ID.
-        pub fn new(event_id: &'a EventId, room_id: &'a RoomId) -> Self {
+        pub fn new(event_id: OwnedEventId, room_id: OwnedRoomId) -> Self {
             Self { room_id, event_id }
         }
     }

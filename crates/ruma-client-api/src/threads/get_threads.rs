@@ -13,7 +13,7 @@ pub mod v1 {
         events::AnyTimelineEvent,
         metadata,
         serde::{Raw, StringEnum},
-        RoomId,
+        OwnedRoomId,
     };
 
     use crate::PrivOwnedStr;
@@ -30,17 +30,17 @@ pub mod v1 {
 
     /// Request type for the `get_thread_roots` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room ID where the thread roots are located.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The pagination token to start returning results from.
         ///
         /// If `None`, results start at the most recent topological event visible to the user.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub from: Option<&'a str>,
+        pub from: Option<String>,
 
         /// Which thread roots are of interest to the caller.
         #[serde(skip_serializing_if = "ruma_common::serde::is_default")]
@@ -72,9 +72,9 @@ pub mod v1 {
         pub next_batch: Option<String>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room ID.
-        pub fn new(room_id: &'a RoomId) -> Self {
+        pub fn new(room_id: OwnedRoomId) -> Self {
             Self { room_id, from: None, include: IncludeThreads::default(), limit: None }
         }
     }

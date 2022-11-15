@@ -15,7 +15,7 @@ pub mod v3 {
         },
         metadata,
         serde::Raw,
-        UserId,
+        OwnedUserId,
     };
     use serde_json::value::to_raw_value as to_raw_json_value;
 
@@ -31,12 +31,12 @@ pub mod v3 {
 
     /// Request type for the `set_global_account_data` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The ID of the user to set account_data for.
         ///
         /// The access token must be authorized to make requests for this user ID.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
 
         /// The event type of the account_data to set.
         ///
@@ -56,14 +56,14 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given data, event type and user ID.
         ///
         /// # Errors
         ///
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
-        pub fn new<T>(user_id: &'a UserId, data: &'a T) -> serde_json::Result<Self>
+        pub fn new<T>(user_id: OwnedUserId, data: &T) -> serde_json::Result<Self>
         where
             T: GlobalAccountDataEventContent,
         {
@@ -76,7 +76,7 @@ pub mod v3 {
 
         /// Creates a new `Request` with the given raw data, event type and user ID.
         pub fn new_raw(
-            user_id: &'a UserId,
+            user_id: OwnedUserId,
             event_type: GlobalAccountDataEventType,
             data: Raw<AnyGlobalAccountDataEventContent>,
         ) -> Self {

@@ -27,9 +27,9 @@ pub mod v3 {
 
     /// Request type for the `search_users` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The term to search for.
-        pub search_term: &'a str,
+        pub search_term: String,
 
         /// The maximum number of results to return.
         ///
@@ -56,9 +56,9 @@ pub mod v3 {
         pub limited: bool,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given search term.
-        pub fn new(search_term: &'a str) -> Self {
+        pub fn new(search_term: String) -> Self {
             Self { search_term, limit: default_limit(), language: None }
         }
     }

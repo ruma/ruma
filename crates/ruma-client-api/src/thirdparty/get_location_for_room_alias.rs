@@ -11,7 +11,7 @@ pub mod v3 {
         api::{request, response, Metadata},
         metadata,
         thirdparty::Location,
-        RoomAliasId,
+        OwnedRoomAliasId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -26,10 +26,10 @@ pub mod v3 {
 
     /// Request type for the `get_location_for_room_alias` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The Matrix room alias to look up.
         #[ruma_api(query)]
-        pub alias: &'a RoomAliasId,
+        pub alias: OwnedRoomAliasId,
     }
 
     /// Response type for the `get_location_for_room_alias` endpoint.
@@ -40,9 +40,9 @@ pub mod v3 {
         pub locations: Vec<Location>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room alias ID.
-        pub fn new(alias: &'a RoomAliasId) -> Self {
+        pub fn new(alias: OwnedRoomAliasId) -> Self {
             Self { alias }
         }
     }

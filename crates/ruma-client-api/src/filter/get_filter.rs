@@ -9,10 +9,10 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, UserId,
+        metadata, OwnedUserId,
     };
 
-    use crate::filter::IncomingFilterDefinition;
+    use crate::filter::FilterDefinition;
 
     const METADATA: Metadata = metadata! {
         method: GET,
@@ -26,14 +26,14 @@ pub mod v3 {
 
     /// Request type for the `get_filter` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The user ID to download a filter for.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
 
         /// The ID of the filter to download.
         #[ruma_api(path)]
-        pub filter_id: &'a str,
+        pub filter_id: String,
     }
 
     /// Response type for the `get_filter` endpoint.
@@ -41,19 +41,19 @@ pub mod v3 {
     pub struct Response {
         /// The filter definition.
         #[ruma_api(body)]
-        pub filter: IncomingFilterDefinition,
+        pub filter: FilterDefinition,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given user ID and filter ID.
-        pub fn new(user_id: &'a UserId, filter_id: &'a str) -> Self {
+        pub fn new(user_id: OwnedUserId, filter_id: String) -> Self {
             Self { user_id, filter_id }
         }
     }
 
     impl Response {
         /// Creates a new `Response` with the given filter definition.
-        pub fn new(filter: IncomingFilterDefinition) -> Self {
+        pub fn new(filter: FilterDefinition) -> Self {
             Self { filter }
         }
     }
@@ -77,9 +77,9 @@ pub mod v3 {
         fn serialize_response() {
             use ruma_common::api::OutgoingResponse;
 
-            use crate::filter::IncomingFilterDefinition;
+            use crate::filter::FilterDefinition;
 
-            let res = super::Response::new(IncomingFilterDefinition::default())
+            let res = super::Response::new(FilterDefinition::default())
                 .try_into_http_response::<Vec<u8>>()
                 .unwrap();
             assert_eq!(res.body(), b"{}");

@@ -12,7 +12,7 @@ pub mod v3 {
         metadata,
     };
 
-    use crate::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
+    use crate::uiaa::{AuthData, UiaaResponse};
 
     const METADATA: Metadata = metadata! {
         method: POST,
@@ -26,9 +26,9 @@ pub mod v3 {
 
     /// Request type for the `change_password` endpoint.
     #[request(error = UiaaResponse)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The new password for the account.
-        pub new_password: &'a str,
+        pub new_password: String,
 
         /// True to revoke the user's other access tokens, and their associated devices if the
         /// request succeeds.
@@ -45,7 +45,7 @@ pub mod v3 {
 
         /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub auth: Option<AuthData<'a>>,
+        pub auth: Option<AuthData>,
     }
 
     /// Response type for the `change_password` endpoint.
@@ -53,9 +53,9 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given password.
-        pub fn new(new_password: &'a str) -> Self {
+        pub fn new(new_password: String) -> Self {
             Self { new_password, logout_devices: true, auth: None }
         }
     }

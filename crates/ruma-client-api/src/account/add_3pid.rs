@@ -9,10 +9,10 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, ClientSecret, SessionId,
+        metadata, OwnedClientSecret, OwnedSessionId,
     };
 
-    use crate::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
+    use crate::uiaa::{AuthData, UiaaResponse};
 
     const METADATA: Metadata = metadata! {
         method: POST,
@@ -26,16 +26,16 @@ pub mod v3 {
 
     /// Request type for the `add_3pid` endpoint.
     #[request(error = UiaaResponse)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// Additional information for the User-Interactive Authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub auth: Option<AuthData<'a>>,
+        pub auth: Option<AuthData>,
 
         /// Client-generated secret string used to protect this session.
-        pub client_secret: &'a ClientSecret,
+        pub client_secret: OwnedClientSecret,
 
         /// The session identifier given by the identity server.
-        pub sid: &'a SessionId,
+        pub sid: OwnedSessionId,
     }
 
     /// Response type for the `add_3pid` endpoint.
@@ -43,9 +43,9 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given client secret and session identifier.
-        pub fn new(client_secret: &'a ClientSecret, sid: &'a SessionId) -> Self {
+        pub fn new(client_secret: OwnedClientSecret, sid: OwnedSessionId) -> Self {
             Self { auth: None, client_secret, sid }
         }
     }

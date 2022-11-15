@@ -13,11 +13,11 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, DeviceId, OwnedDeviceId, OwnedUserId,
+        metadata, OwnedDeviceId, OwnedUserId,
     };
 
     use super::{LoginType, RegistrationKind};
-    use crate::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
+    use crate::uiaa::{AuthData, UiaaResponse};
 
     const METADATA: Metadata = metadata! {
         method: POST,
@@ -32,32 +32,32 @@ pub mod v3 {
     /// Request type for the `register` endpoint.
     #[request(error = UiaaResponse)]
     #[derive(Default)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The desired password for the account.
         ///
         /// May be empty for accounts that should not be able to log in again
         /// with a password, e.g., for guest or application service accounts.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub password: Option<&'a str>,
+        pub password: Option<String>,
 
         /// Localpart of the desired Matrix ID.
         ///
         /// If omitted, the homeserver MUST generate a Matrix ID local part.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub username: Option<&'a str>,
+        pub username: Option<String>,
 
         /// ID of the client device.
         ///
         /// If this does not correspond to a known client device, a new device will be created.
         /// The server will auto-generate a device_id if this is not specified.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub device_id: Option<&'a DeviceId>,
+        pub device_id: Option<OwnedDeviceId>,
 
         /// A display name to assign to the newly-created device.
         ///
         /// Ignored if `device_id` corresponds to a known device.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub initial_device_display_name: Option<&'a str>,
+        pub initial_device_display_name: Option<String>,
 
         /// Additional authentication information for the user-interactive authentication API.
         ///
@@ -66,7 +66,7 @@ pub mod v3 {
         /// It should be left empty, or omitted, unless an earlier call returned an response
         /// with status code 401.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub auth: Option<AuthData<'a>>,
+        pub auth: Option<AuthData>,
 
         /// Kind of account to register
         ///
@@ -87,7 +87,7 @@ pub mod v3 {
         ///
         /// [admin]: https://spec.matrix.org/v1.4/application-service-api/#server-admin-style-permissions
         #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-        pub login_type: Option<&'a LoginType>,
+        pub login_type: Option<LoginType>,
 
         /// If set to `true`, the client supports [refresh tokens].
         ///
@@ -147,7 +147,7 @@ pub mod v3 {
         pub expires_in: Option<Duration>,
     }
 
-    impl Request<'_> {
+    impl Request {
         /// Creates a new `Request` with all parameters defaulted.
         pub fn new() -> Self {
             Default::default()

@@ -12,9 +12,8 @@ impl Request {
 
         let error_ty = &self.error_ty;
 
-        // FIXME: the rest of the field initializer expansions are gated `cfg(...)`
-        // except this one. If we get errors about missing fields in IncomingRequest for
-        // a path field look here.
+        // FIXME: the rest of the field initializer expansions are gated `cfg(...)` except this one.
+        // If we get errors about missing fields in Request for a path field look here.
         let (parse_request_path, path_vars) = if self.has_path_fields() {
             let path_vars: Vec<_> = self.path_fields().filter_map(|f| f.ident.as_ref()).collect();
 
@@ -56,10 +55,9 @@ impl Request {
             );
 
             let parse = quote! {
-                let request_query: IncomingRequestQuery =
-                    #ruma_common::serde::urlencoded::from_str(
-                        &request.uri().query().unwrap_or("")
-                    )?;
+                let request_query: RequestQuery = #ruma_common::serde::urlencoded::from_str(
+                    &request.uri().query().unwrap_or("")
+                )?;
 
                 #decls
             };
@@ -131,7 +129,7 @@ impl Request {
 
         let extract_body = self.has_body_fields().then(|| {
             quote! {
-                let request_body: IncomingRequestBody = {
+                let request_body: RequestBody = {
                     let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
                         request.body(),
                     );
@@ -162,7 +160,7 @@ impl Request {
         quote! {
             #[automatically_derived]
             #[cfg(feature = "server")]
-            impl #ruma_common::api::IncomingRequest for IncomingRequest {
+            impl #ruma_common::api::IncomingRequest for Request {
                 type EndpointError = #error_ty;
                 type OutgoingResponse = Response;
 

@@ -12,7 +12,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, OwnedMxcUri, OwnedUserId, RoomId,
+        metadata, OwnedMxcUri, OwnedRoomId, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};
 
@@ -28,10 +28,10 @@ pub mod v3 {
 
     /// Request type for the `joined_members` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room to get the members of.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
     }
 
     /// Response type for the `joined_members` endpoint.
@@ -42,9 +42,9 @@ pub mod v3 {
         pub joined: BTreeMap<OwnedUserId, RoomMember>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room ID.
-        pub fn new(room_id: &'a RoomId) -> Self {
+        pub fn new(room_id: OwnedRoomId) -> Self {
             Self { room_id }
         }
     }

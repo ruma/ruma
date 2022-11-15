@@ -9,7 +9,7 @@ pub mod v1 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, OwnedRoomId, OwnedServerName, RoomAliasId,
+        metadata, OwnedRoomAliasId, OwnedRoomId, OwnedServerName,
     };
 
     const METADATA: Metadata = metadata! {
@@ -23,10 +23,10 @@ pub mod v1 {
 
     /// Request type for the `get_room_information` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// Room alias to query.
         #[ruma_api(query)]
-        pub room_alias: &'a RoomAliasId,
+        pub room_alias: OwnedRoomAliasId,
     }
 
     /// Response type for the `get_room_information` endpoint.
@@ -39,9 +39,9 @@ pub mod v1 {
         pub servers: Vec<OwnedServerName>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room alias ID.
-        pub fn new(room_alias: &'a RoomAliasId) -> Self {
+        pub fn new(room_alias: OwnedRoomAliasId) -> Self {
             Self { room_alias }
         }
     }

@@ -5,11 +5,9 @@ use ruma_common::{serde::from_raw_json_value, thirdparty::Medium};
 use serde::{de, ser::SerializeStruct, Deserialize, Deserializer, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use super::{
-    CustomThirdPartyId, IncomingCustomThirdPartyId, IncomingUserIdentifier, UserIdentifier,
-};
+use super::{CustomThirdPartyId, UserIdentifier};
 
-impl<'a> Serialize for UserIdentifier<'a> {
+impl Serialize for UserIdentifier {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -50,7 +48,7 @@ impl<'a> Serialize for UserIdentifier<'a> {
     }
 }
 
-impl<'de> Deserialize<'de> for IncomingUserIdentifier {
+impl<'de> Deserialize<'de> for UserIdentifier {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -97,9 +95,7 @@ impl<'de> Deserialize<'de> for IncomingUserIdentifier {
                 match medium {
                     Medium::Email => Ok(Self::Email { address }),
                     Medium::Msisdn => Ok(Self::Msisdn { number: address }),
-                    _ => {
-                        Ok(Self::_CustomThirdParty(IncomingCustomThirdPartyId { medium, address }))
-                    }
+                    _ => Ok(Self::_CustomThirdParty(CustomThirdPartyId { medium, address })),
                 }
             }
         }
@@ -108,14 +104,15 @@ impl<'de> Deserialize<'de> for IncomingUserIdentifier {
 
 #[cfg(test)]
 mod tests {
-    use crate::uiaa::{IncomingUserIdentifier, UserIdentifier};
+    use crate::uiaa::UserIdentifier;
     use assert_matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     #[test]
     fn serialize() {
         assert_eq!(
-            to_json_value(UserIdentifier::UserIdOrLocalpart("@user:notareal.hs")).unwrap(),
+            to_json_value(UserIdentifier::UserIdOrLocalpart("@user:notareal.hs".to_owned()))
+                .unwrap(),
             json!({
                 "type": "m.id.user",
                 "user": "@user:notareal.hs",
@@ -123,8 +120,11 @@ mod tests {
         );
 
         assert_eq!(
-            to_json_value(UserIdentifier::PhoneNumber { country: "33", phone: "0102030405" })
-                .unwrap(),
+            to_json_value(UserIdentifier::PhoneNumber {
+                country: "33".to_owned(),
+                phone: "0102030405".to_owned()
+            })
+            .unwrap(),
             json!({
                 "type": "m.id.phone",
                 "country": "33",
@@ -133,7 +133,8 @@ mod tests {
         );
 
         assert_eq!(
-            to_json_value(UserIdentifier::Email { address: "me@myprovider.net" }).unwrap(),
+            to_json_value(UserIdentifier::Email { address: "me@myprovider.net".to_owned() })
+                .unwrap(),
             json!({
                 "type": "m.id.thirdparty",
                 "medium": "email",
@@ -142,7 +143,7 @@ mod tests {
         );
 
         assert_eq!(
-            to_json_value(UserIdentifier::Msisdn { number: "330102030405" }).unwrap(),
+            to_json_value(UserIdentifier::Msisdn { number: "330102030405".to_owned() }).unwrap(),
             json!({
                 "type": "m.id.thirdparty",
                 "medium": "msisdn",
@@ -151,7 +152,8 @@ mod tests {
         );
 
         assert_eq!(
-            to_json_value(UserIdentifier::third_party_id(&"robot".into(), "01001110")).unwrap(),
+            to_json_value(UserIdentifier::third_party_id("robot".into(), "01001110".to_owned()))
+                .unwrap(),
             json!({
                 "type": "m.id.thirdparty",
                 "medium": "robot",
@@ -168,7 +170,7 @@ mod tests {
         });
         let user = assert_matches!(
             from_json_value(json),
-            Ok(IncomingUserIdentifier::UserIdOrLocalpart(user)) => user
+            Ok(UserIdentifier::UserIdOrLocalpart(user)) => user
         );
         assert_eq!(user, "@user:notareal.hs");
 
@@ -179,7 +181,7 @@ mod tests {
         });
         let (country, phone) = assert_matches!(
             from_json_value(json),
-            Ok(IncomingUserIdentifier::PhoneNumber { country, phone }) => (country, phone)
+            Ok(UserIdentifier::PhoneNumber { country, phone }) => (country, phone)
         );
         assert_eq!(country, "33");
         assert_eq!(phone, "0102030405");
@@ -191,7 +193,7 @@ mod tests {
         });
         let address = assert_matches!(
             from_json_value(json),
-            Ok(IncomingUserIdentifier::Email { address }) => address
+            Ok(UserIdentifier::Email { address }) => address
         );
         assert_eq!(address, "me@myprovider.net");
 
@@ -202,7 +204,7 @@ mod tests {
         });
         let number = assert_matches!(
             from_json_value(json),
-            Ok(IncomingUserIdentifier::Msisdn { number }) => number
+            Ok(UserIdentifier::Msisdn { number }) => number
         );
         assert_eq!(number, "330102030405");
 
@@ -211,8 +213,8 @@ mod tests {
             "medium": "robot",
             "address": "01110010",
         });
-        let id = from_json_value::<IncomingUserIdentifier>(json).unwrap();
-        let (medium, address) = id.to_outgoing().as_third_party_id().unwrap();
+        let id = from_json_value::<UserIdentifier>(json).unwrap();
+        let (medium, address) = id.as_third_party_id().unwrap();
         assert_eq!(medium.as_str(), "robot");
         assert_eq!(address, "01110010");
     }

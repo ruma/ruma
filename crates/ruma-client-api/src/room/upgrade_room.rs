@@ -9,7 +9,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, OwnedRoomId, RoomId, RoomVersionId,
+        metadata, OwnedRoomId, RoomVersionId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -24,13 +24,13 @@ pub mod v3 {
 
     /// Request type for the `upgrade_room` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// ID of the room to be upgraded.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// New version for the room.
-        pub new_version: &'a RoomVersionId,
+        pub new_version: RoomVersionId,
     }
 
     /// Response type for the `upgrade_room` endpoint.
@@ -40,9 +40,9 @@ pub mod v3 {
         pub replacement_room: OwnedRoomId,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room ID and new room version.
-        pub fn new(room_id: &'a RoomId, new_version: &'a RoomVersionId) -> Self {
+        pub fn new(room_id: OwnedRoomId, new_version: RoomVersionId) -> Self {
             Self { room_id, new_version }
         }
     }

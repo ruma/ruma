@@ -12,7 +12,7 @@ pub mod v2 {
         metadata,
         room::RoomType,
         thirdparty::Medium,
-        MxcUri, RoomAliasId, RoomId, UserId,
+        OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, OwnedUserId,
     };
     use serde::{ser::SerializeSeq, Deserialize, Serialize};
 
@@ -27,58 +27,58 @@ pub mod v2 {
 
     /// Request type for the `store_invitation` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The type of the third party identifier for the invited user.
         ///
         /// Currently, only `Medium::Email` is supported.
-        pub medium: &'a Medium,
+        pub medium: Medium,
 
         /// The email address of the invited user.
-        pub address: &'a str,
+        pub address: String,
 
         /// The Matrix room ID to which the user is invited.
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The Matrix user ID of the inviting user.
-        pub sender: &'a UserId,
+        pub sender: OwnedUserId,
 
         /// The Matrix room alias for the room to which the user is invited.
         ///
         /// This should be retrieved from the `m.room.canonical` state event.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_alias: Option<&'a RoomAliasId>,
+        pub room_alias: Option<OwnedRoomAliasId>,
 
         /// The Content URI for the room to which the user is invited.
         ///
         /// This should be retrieved from the `m.room.avatar` state event.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_avatar_url: Option<&'a MxcUri>,
+        pub room_avatar_url: Option<OwnedMxcUri>,
 
         /// The `join_rule` for the room to which the user is invited.
         ///
         /// This should be retrieved from the `m.room.join_rules` state event.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_join_rules: Option<&'a str>,
+        pub room_join_rules: Option<String>,
 
         /// The name of the room to which the user is invited.
         ///
         /// This should be retrieved from the `m.room.name` state event.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_name: Option<&'a str>,
+        pub room_name: Option<String>,
 
         /// The type of the room to which the user is invited.
         ///
         /// This should be retrieved from the `m.room.create` state event.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_type: Option<&'a RoomType>,
+        pub room_type: Option<RoomType>,
 
         /// The display name of the user ID initiating the invite.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub sender_display_name: Option<&'a str>,
+        pub sender_display_name: Option<String>,
 
         /// The Content URI for the avater of the user ID initiating the invite.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub sender_avatar_url: Option<&'a MxcUri>,
+        pub sender_avatar_url: Option<OwnedMxcUri>,
     }
 
     /// Response type for the `store_invitation` endpoint.
@@ -99,13 +99,13 @@ pub mod v2 {
         pub display_name: String,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request with the given medium, email address, room ID and sender.
         pub fn new(
-            medium: &'a Medium,
-            address: &'a str,
-            room_id: &'a RoomId,
-            sender: &'a UserId,
+            medium: Medium,
+            address: String,
+            room_id: OwnedRoomId,
+            sender: OwnedUserId,
         ) -> Self {
             Self {
                 medium,
@@ -123,8 +123,8 @@ pub mod v2 {
         }
 
         /// Creates a new `Request` with the given email address, room ID and sender.
-        pub fn email(address: &'a str, room_id: &'a RoomId, sender: &'a UserId) -> Self {
-            Self::new(&Medium::Email, address, room_id, sender)
+        pub fn email(address: String, room_id: OwnedRoomId, sender: OwnedUserId) -> Self {
+            Self::new(Medium::Email, address, room_id, sender)
         }
     }
 

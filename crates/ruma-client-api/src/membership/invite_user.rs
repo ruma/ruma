@@ -14,13 +14,11 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata,
-        serde::Incoming,
-        RoomId, UserId,
+        metadata, OwnedRoomId, OwnedUserId,
     };
-    use serde::Serialize;
+    use serde::{Deserialize, Serialize};
 
-    use crate::membership::{IncomingInvite3pid, Invite3pid};
+    use crate::membership::Invite3pid;
 
     const METADATA: Metadata = metadata! {
         method: POST,
@@ -34,18 +32,18 @@ pub mod v3 {
 
     /// Request type for the `invite_user` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room where the user should be invited.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The user to invite.
         #[serde(flatten)]
-        pub recipient: InvitationRecipient<'a>,
+        pub recipient: InvitationRecipient,
 
         /// Optional reason for inviting the user.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub reason: Option<&'a str>,
+        pub reason: Option<String>,
     }
 
     /// Response type for the `invite_user` endpoint.
@@ -53,9 +51,9 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room ID and invitation recipient.
-        pub fn new(room_id: &'a RoomId, recipient: InvitationRecipient<'a>) -> Self {
+        pub fn new(room_id: OwnedRoomId, recipient: InvitationRecipient) -> Self {
             Self { room_id, recipient, reason: None }
         }
     }
@@ -68,18 +66,18 @@ pub mod v3 {
     }
 
     /// Distinguishes between invititations by Matrix or third party identifiers.
-    #[derive(Clone, Debug, Incoming, Serialize)]
+    #[derive(Clone, Debug, Deserialize, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[serde(untagged)]
-    pub enum InvitationRecipient<'a> {
+    pub enum InvitationRecipient {
         /// Used to invite user by their Matrix identifier.
         UserId {
             /// Matrix identifier of user.
-            user_id: &'a UserId,
+            user_id: OwnedUserId,
         },
 
         /// Used to invite user by a third party identifier.
-        ThirdPartyId(Invite3pid<'a>),
+        ThirdPartyId(Invite3pid),
     }
 
     #[cfg(test)]
@@ -88,25 +86,24 @@ pub mod v3 {
         use ruma_common::thirdparty::Medium;
         use serde_json::{from_value as from_json_value, json};
 
-        use super::IncomingInvitationRecipient;
+        use super::InvitationRecipient;
 
         #[test]
         fn deserialize_invite_by_user_id() {
-            let incoming = from_json_value::<IncomingInvitationRecipient>(
-                json!({ "user_id": "@carl:example.org" }),
-            )
-            .unwrap();
+            let incoming =
+                from_json_value::<InvitationRecipient>(json!({ "user_id": "@carl:example.org" }))
+                    .unwrap();
 
             let user_id = assert_matches!(
                 incoming,
-                IncomingInvitationRecipient::UserId { user_id } => user_id
+                InvitationRecipient::UserId { user_id } => user_id
             );
             assert_eq!(user_id, "@carl:example.org");
         }
 
         #[test]
         fn deserialize_invite_by_3pid() {
-            let incoming = from_json_value::<IncomingInvitationRecipient>(json!({
+            let incoming = from_json_value::<InvitationRecipient>(json!({
                 "id_server": "example.org",
                 "id_access_token": "abcdefghijklmnop",
                 "medium": "email",
@@ -116,7 +113,7 @@ pub mod v3 {
 
             let third_party_id = assert_matches!(
                 incoming,
-                IncomingInvitationRecipient::ThirdPartyId(id) => id
+                InvitationRecipient::ThirdPartyId(id) => id
             );
 
             assert_eq!(third_party_id.id_server, "example.org");

@@ -25,16 +25,16 @@ pub mod v3 {
 
     /// Request type for the `sso_login_with_provider` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The ID of the provider to use for SSO login.
         #[ruma_api(path)]
-        pub idp_id: &'a str,
+        pub idp_id: String,
 
         /// URL to which the homeserver should return the user after completing
         /// authentication with the SSO identity provider.
         #[ruma_api(query)]
         #[serde(rename = "redirectUrl")]
-        pub redirect_url: &'a str,
+        pub redirect_url: String,
     }
 
     /// Response type for the `sso_login_with_provider` endpoint.
@@ -45,9 +45,9 @@ pub mod v3 {
         pub location: String,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given identity provider ID and redirect URL.
-        pub fn new(idp_id: &'a str, redirect_url: &'a str) -> Self {
+        pub fn new(idp_id: String, redirect_url: String) -> Self {
             Self { idp_id, redirect_url }
         }
     }
@@ -67,13 +67,16 @@ pub mod v3 {
 
         #[test]
         fn serialize_sso_login_with_provider_request_uri() {
-            let req = Request { idp_id: "provider", redirect_url: "https://example.com/sso" }
-                .try_into_http_request::<Vec<u8>>(
-                    "https://homeserver.tld",
-                    SendAccessToken::None,
-                    &[MatrixVersion::V1_1],
-                )
-                .unwrap();
+            let req = Request {
+                idp_id: "provider".to_owned(),
+                redirect_url: "https://example.com/sso".to_owned(),
+            }
+            .try_into_http_request::<Vec<u8>>(
+                "https://homeserver.tld",
+                SendAccessToken::None,
+                &[MatrixVersion::V1_1],
+            )
+            .unwrap();
 
             assert_eq!(
             req.uri().to_string(),

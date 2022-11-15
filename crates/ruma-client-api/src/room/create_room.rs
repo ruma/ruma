@@ -24,11 +24,7 @@ pub mod v3 {
     };
     use serde::{Deserialize, Serialize};
 
-    use crate::{
-        membership::{IncomingInvite3pid, Invite3pid},
-        room::Visibility,
-        PrivOwnedStr,
-    };
+    use crate::{membership::Invite3pid, room::Visibility, PrivOwnedStr};
 
     const METADATA: Metadata = metadata! {
         method: POST,
@@ -43,7 +39,7 @@ pub mod v3 {
     /// Request type for the `create_room` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// Extra keys to be added to the content of the `m.room.create`.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub creation_content: Option<Raw<CreationContent>>,
@@ -52,17 +48,17 @@ pub mod v3 {
         ///
         /// Takes precedence over events set by preset, but gets overridden by name and topic keys.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub initial_state: &'a [Raw<AnyInitialStateEvent>],
+        pub initial_state: Vec<Raw<AnyInitialStateEvent>>,
 
         /// A list of user IDs to invite to the room.
         ///
         /// This will tell the server to invite everyone in the list to the newly created room.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub invite: &'a [OwnedUserId],
+        pub invite: Vec<OwnedUserId>,
 
         /// List of third party IDs of users to invite.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub invite_3pid: &'a [Invite3pid<'a>],
+        pub invite_3pid: Vec<Invite3pid>,
 
         /// If set, this sets the `is_direct` flag on room invites.
         #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
@@ -71,7 +67,7 @@ pub mod v3 {
         /// If this is included, an `m.room.name` event will be sent into the room to indicate the
         /// name of the room.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub name: Option<&'a str>,
+        pub name: Option<String>,
 
         /// Power level content to override in the default power level event.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -83,18 +79,18 @@ pub mod v3 {
 
         /// The desired room alias local part.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_alias_name: Option<&'a str>,
+        pub room_alias_name: Option<String>,
 
         /// Room version to set for the room.
         ///
         /// Defaults to homeserver's default if not specified.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_version: Option<&'a RoomVersionId>,
+        pub room_version: Option<RoomVersionId>,
 
         /// If this is included, an `m.room.topic` event will be sent into the room to indicate
         /// the topic for the room.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub topic: Option<&'a str>,
+        pub topic: Option<String>,
 
         /// A public visibility indicates that the room will be shown in the published room list.
         ///
@@ -111,7 +107,7 @@ pub mod v3 {
         pub room_id: OwnedRoomId,
     }
 
-    impl Request<'_> {
+    impl Request {
         /// Creates a new `Request` will all-default parameters.
         pub fn new() -> Self {
             Default::default()

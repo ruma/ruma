@@ -10,7 +10,7 @@ pub mod v1 {
     use js_int::UInt;
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, RoomId,
+        metadata, OwnedRoomId,
     };
 
     use crate::space::SpaceHierarchyRoomsChunk;
@@ -27,17 +27,17 @@ pub mod v1 {
 
     /// Request type for the `hierarchy` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room ID of the space to get a hierarchy for.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// A pagination token from a previous result.
         ///
         /// If specified, `max_depth` and `suggested_only` cannot be changed from the first
         /// request.
         #[ruma_api(query)]
-        pub from: Option<&'a str>,
+        pub from: Option<String>,
 
         /// The maximum number of rooms to include per response.
         #[ruma_api(query)]
@@ -73,9 +73,9 @@ pub mod v1 {
         pub rooms: Vec<SpaceHierarchyRoomsChunk>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room ID.
-        pub fn new(room_id: &'a RoomId) -> Self {
+        pub fn new(room_id: OwnedRoomId) -> Self {
             Self { room_id, from: None, limit: None, max_depth: None, suggested_only: false }
         }
     }

@@ -15,12 +15,12 @@ use ruma_common::{
     },
     metadata,
     presence::PresenceState,
-    serde::{Incoming, Raw},
+    serde::Raw,
     DeviceKeyAlgorithm, OwnedEventId, OwnedRoomId,
 };
 use serde::{Deserialize, Serialize};
 
-use crate::filter::{FilterDefinition, IncomingFilterDefinition};
+use crate::filter::FilterDefinition;
 
 const METADATA: Metadata = metadata! {
     method: GET,
@@ -35,11 +35,11 @@ const METADATA: Metadata = metadata! {
 /// Request type for the `sync` endpoint.
 #[request(error = crate::Error)]
 #[derive(Default)]
-pub struct Request<'a> {
+pub struct Request {
     /// A filter represented either as its full JSON definition or the ID of a saved filter.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ruma_api(query)]
-    pub filter: Option<&'a Filter<'a>>,
+    pub filter: Option<Filter>,
 
     /// A point in time to continue a sync from.
     ///
@@ -47,7 +47,7 @@ pub struct Request<'a> {
     /// request.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ruma_api(query)]
-    pub since: Option<&'a str>,
+    pub since: Option<String>,
 
     /// Controls whether to include the full state for all rooms the user is a member of.
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
@@ -59,7 +59,7 @@ pub struct Request<'a> {
     /// Defaults to `PresenceState::Online`.
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     #[ruma_api(query)]
-    pub set_presence: &'a PresenceState,
+    pub set_presence: PresenceState,
 
     /// The maximum time to poll in milliseconds before returning this request.
     #[serde(
@@ -112,7 +112,7 @@ pub struct Response {
     pub device_unused_fallback_key_types: Option<Vec<DeviceKeyAlgorithm>>,
 }
 
-impl Request<'_> {
+impl Request {
     /// Creates an empty `Request`.
     pub fn new() -> Self {
         Default::default()
@@ -136,11 +136,11 @@ impl Response {
 }
 
 /// A filter represented either as its full JSON definition or the ID of a saved filter.
-#[derive(Clone, Debug, Incoming, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[allow(clippy::large_enum_variant)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(untagged)]
-pub enum Filter<'a> {
+pub enum Filter {
     // The filter definition needs to be (de)serialized twice because it is a URL-encoded JSON
     // string. Since #[ruma_api(query)] only does the latter and this is a very uncommon
     // setup, we implement it through custom serde logic for this specific enum variant rather
@@ -153,20 +153,20 @@ pub enum Filter<'a> {
     // says. (there are probably some corner cases like leading whitespace)
     /// A complete filter definition serialized to JSON.
     #[serde(with = "ruma_common::serde::json_string")]
-    FilterDefinition(FilterDefinition<'a>),
+    FilterDefinition(FilterDefinition),
 
     /// The ID of a filter saved on the server.
-    FilterId(&'a str),
+    FilterId(String),
 }
 
-impl<'a> From<FilterDefinition<'a>> for Filter<'a> {
-    fn from(def: FilterDefinition<'a>) -> Self {
+impl From<FilterDefinition> for Filter {
+    fn from(def: FilterDefinition) -> Self {
         Self::FilterDefinition(def)
     }
 }
 
-impl<'a> From<&'a str> for Filter<'a> {
-    fn from(id: &'a str) -> Self {
+impl From<String> for Filter {
+    fn from(id: String) -> Self {
         Self::FilterId(id)
     }
 }
@@ -628,10 +628,10 @@ mod client_tests {
     #[test]
     fn serialize_all_params() {
         let req: http::Request<Vec<u8>> = Request {
-            filter: Some(&Filter::FilterId("66696p746572")),
-            since: Some("s72594_4483_1934"),
+            filter: Some(Filter::FilterId("66696p746572".to_owned())),
+            since: Some("s72594_4483_1934".to_owned()),
             full_state: true,
-            set_presence: &PresenceState::Offline,
+            set_presence: PresenceState::Offline,
             timeout: Some(Duration::from_millis(30000)),
         }
         .try_into_http_request(
@@ -660,7 +660,7 @@ mod server_tests {
     use assert_matches::assert_matches;
     use ruma_common::{api::IncomingRequest as _, presence::PresenceState};
 
-    use super::{IncomingFilter, IncomingRequest};
+    use super::{Filter, Request};
 
     #[test]
     fn deserialize_all_query_params() {
@@ -678,13 +678,13 @@ mod server_tests {
             .build()
             .unwrap();
 
-        let req = IncomingRequest::try_from_http_request(
+        let req = Request::try_from_http_request(
             http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
             &[] as &[String],
         )
         .unwrap();
 
-        let id = assert_matches!(req.filter, Some(IncomingFilter::FilterId(id)) => id);
+        let id = assert_matches!(req.filter, Some(Filter::FilterId(id)) => id);
         assert_eq!(id, "myfilter");
         assert_eq!(req.since.as_deref(), Some("myts"));
         assert!(!req.full_state);
@@ -701,7 +701,7 @@ mod server_tests {
             .build()
             .unwrap();
 
-        let req = IncomingRequest::try_from_http_request(
+        let req = Request::try_from_http_request(
             http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
             &[] as &[String],
         )
@@ -727,13 +727,13 @@ mod server_tests {
             .build()
             .unwrap();
 
-        let req = IncomingRequest::try_from_http_request(
+        let req = Request::try_from_http_request(
             http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
             &[] as &[String],
         )
         .unwrap();
 
-        let id = assert_matches!(req.filter, Some(IncomingFilter::FilterId(id)) => id);
+        let id = assert_matches!(req.filter, Some(Filter::FilterId(id)) => id);
         assert_eq!(id, "EOKFFmdZYF");
         assert_eq!(req.since, None);
         assert!(!req.full_state);

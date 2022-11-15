@@ -11,8 +11,7 @@ pub mod v2 {
         api::{request, response, Metadata},
         metadata,
         thirdparty::Medium,
-        user_id::UserId,
-        ClientSecret, OwnedSessionId,
+        ClientSecret, OwnedSessionId, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};
 
@@ -27,22 +26,22 @@ pub mod v2 {
 
     /// Request type for the `unbind_3pid` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The proof that the client owns the 3PID.
         ///
         /// If this is not provided, the request must be signed by the homeserver which controls
         /// the `mxid`.
         #[serde(flatten, skip_serializing_if = "Option::is_none")]
-        pub threepid_ownership_proof: Option<&'a ThreePidOwnershipProof>,
+        pub threepid_ownership_proof: Option<ThreePidOwnershipProof>,
 
         /// The Matrix user ID to remove from the 3PIDs.
-        pub mxid: &'a UserId,
+        pub mxid: OwnedUserId,
 
         /// The 3PID to remove.
         ///
         /// Must match the 3PID used to generate the session if using `sid` and `client_secret` to
         /// authenticate this request.
-        pub threepid: &'a ThirdPartyId,
+        pub threepid: ThirdPartyId,
     }
 
     /// Response type for the `unbind_3pid` endpoint.
@@ -50,12 +49,12 @@ pub mod v2 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a `Request` with the given Session ID, client secret, Matrix user ID and 3PID.
         pub fn new(
-            threepid_ownership_proof: Option<&'a ThreePidOwnershipProof>,
-            mxid: &'a UserId,
-            threepid: &'a ThirdPartyId,
+            threepid_ownership_proof: Option<ThreePidOwnershipProof>,
+            mxid: OwnedUserId,
+            threepid: ThirdPartyId,
         ) -> Self {
             Self { threepid_ownership_proof, mxid, threepid }
         }

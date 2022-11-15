@@ -14,7 +14,7 @@ pub mod v1 {
     use ruma_common::{
         api::{request, response, Metadata},
         events::{room::member::ThirdPartyInvite, StateEventType},
-        metadata, RoomId, UserId,
+        metadata, OwnedRoomId, OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -28,10 +28,10 @@ pub mod v1 {
 
     /// Request type for the `exchange_invite` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room ID to exchange a third party invite in.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The event type.
         ///
@@ -40,13 +40,13 @@ pub mod v1 {
         pub kind: StateEventType,
 
         /// The user ID of the user who sent the original invite event.
-        pub sender: &'a UserId,
+        pub sender: OwnedUserId,
 
         /// The user ID of the invited user.
-        pub state_key: &'a UserId,
+        pub state_key: OwnedUserId,
 
         /// The content of the invite event.
-        pub content: &'a ThirdPartyInvite,
+        pub content: ThirdPartyInvite,
     }
 
     /// Response type for the `exchange_invite` endpoint.
@@ -54,13 +54,13 @@ pub mod v1 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` for a third party invite exchange
         pub fn new(
-            room_id: &'a RoomId,
-            sender: &'a UserId,
-            state_key: &'a UserId,
-            content: &'a ThirdPartyInvite,
+            room_id: OwnedRoomId,
+            sender: OwnedUserId,
+            state_key: OwnedUserId,
+            content: ThirdPartyInvite,
         ) -> Self {
             Self { room_id, kind: StateEventType::RoomMember, sender, state_key, content }
         }

@@ -9,7 +9,7 @@ pub mod v1 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, UserId,
+        metadata, OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -23,10 +23,10 @@ pub mod v1 {
 
     /// Request type for the `query_user_id` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The user ID being queried.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
     }
 
     /// Response type for the `query_user_id` endpoint.
@@ -34,9 +34,9 @@ pub mod v1 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given user id.
-        pub fn new(user_id: &'a UserId) -> Self {
+        pub fn new(user_id: OwnedUserId) -> Self {
             Self { user_id }
         }
     }

@@ -9,7 +9,7 @@ pub mod v1 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, RoomId, RoomVersionId, UserId,
+        metadata, OwnedRoomId, OwnedUserId, RoomVersionId,
     };
     use serde_json::value::RawValue as RawJsonValue;
 
@@ -24,21 +24,21 @@ pub mod v1 {
 
     /// Request type for the `create_join_event_template` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room ID that is about to be joined.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The user ID the join event will be for.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
 
         /// The room versions the sending server has support for.
         ///
         /// Defaults to `&[RoomVersionId::V1]`.
         #[ruma_api(query)]
         #[serde(default = "default_ver", skip_serializing_if = "is_default_ver")]
-        pub ver: &'a [RoomVersionId],
+        pub ver: Vec<RoomVersionId>,
     }
 
     /// Response type for the `create_join_event_template` endpoint.
@@ -56,14 +56,14 @@ pub mod v1 {
         vec![RoomVersionId::V1]
     }
 
-    fn is_default_ver(ver: &&[RoomVersionId]) -> bool {
-        **ver == [RoomVersionId::V1]
+    fn is_default_ver(ver: &[RoomVersionId]) -> bool {
+        *ver == [RoomVersionId::V1]
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room id and user id.
-        pub fn new(room_id: &'a RoomId, user_id: &'a UserId) -> Self {
-            Self { room_id, user_id, ver: &[RoomVersionId::V1] }
+        pub fn new(room_id: OwnedRoomId, user_id: OwnedUserId) -> Self {
+            Self { room_id, user_id, ver: vec![RoomVersionId::V1] }
         }
     }
 

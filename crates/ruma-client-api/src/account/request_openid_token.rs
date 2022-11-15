@@ -12,7 +12,7 @@ pub mod v3 {
     use ruma_common::{
         api::{request, response, Metadata},
         authentication::TokenType,
-        metadata, OwnedServerName, UserId,
+        metadata, OwnedServerName, OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -27,10 +27,10 @@ pub mod v3 {
 
     /// Request type for the `request_openid_token` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// User ID of authenticated user.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
     }
 
     /// Response type for the `request_openid_token` endpoint.
@@ -50,9 +50,9 @@ pub mod v3 {
         pub expires_in: Duration,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given user ID.
-        pub fn new(user_id: &'a UserId) -> Self {
+        pub fn new(user_id: OwnedUserId) -> Self {
             Self { user_id }
         }
     }

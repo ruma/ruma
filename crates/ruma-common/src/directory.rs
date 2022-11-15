@@ -7,9 +7,7 @@ mod filter_room_type_serde;
 mod room_network_serde;
 
 use crate::{
-    room::RoomType,
-    serde::{Incoming, StringEnum},
-    OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, PrivOwnedStr,
+    room::RoomType, serde::StringEnum, OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, PrivOwnedStr,
 };
 
 /// A chunk of a room list response, describing one room.
@@ -112,13 +110,12 @@ impl From<PublicRoomsChunkInit> for PublicRoomsChunk {
 }
 
 /// A filter for public rooms lists
-#[derive(Clone, Debug, Default, Incoming, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[incoming_derive(Default)]
-pub struct Filter<'a> {
+pub struct Filter {
     /// A string to search for in the room metadata, e.g. name, topic, canonical alias etc.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub generic_search_term: Option<&'a str>,
+    pub generic_search_term: Option<String>,
 
     /// The room types to include in the results.
     ///
@@ -127,7 +124,7 @@ pub struct Filter<'a> {
     pub room_types: Vec<RoomTypeFilter>,
 }
 
-impl Filter<'_> {
+impl Filter {
     /// Creates an empty `Filter`.
     pub fn new() -> Self {
         Default::default()
@@ -141,10 +138,9 @@ impl Filter<'_> {
 
 /// Information about which networks/protocols from application services on the
 /// homeserver from which to request rooms.
-#[derive(Clone, Debug, Default, PartialEq, Eq, Incoming)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[incoming_derive(Clone, Default, PartialEq, Eq, !Deserialize)]
-pub enum RoomNetwork<'a> {
+pub enum RoomNetwork {
     /// Return rooms from the Matrix network.
     #[default]
     Matrix,
@@ -153,7 +149,7 @@ pub enum RoomNetwork<'a> {
     All,
 
     /// Return rooms from a specific third party network/protocol.
-    ThirdParty(&'a str),
+    ThirdParty(String),
 }
 
 /// The rule used for users wishing to join a public room.
@@ -228,7 +224,7 @@ mod tests {
     use assert_matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{Filter, IncomingFilter, IncomingRoomNetwork, RoomNetwork, RoomTypeFilter};
+    use super::{Filter, RoomNetwork, RoomTypeFilter};
 
     #[test]
     fn serialize_matrix_network_only() {
@@ -239,10 +235,7 @@ mod tests {
     #[test]
     fn deserialize_matrix_network_only() {
         let json = json!({ "include_all_networks": false });
-        assert_eq!(
-            from_json_value::<IncomingRoomNetwork>(json).unwrap(),
-            IncomingRoomNetwork::Matrix
-        );
+        assert_eq!(from_json_value::<RoomNetwork>(json).unwrap(), RoomNetwork::Matrix);
     }
 
     #[test]
@@ -254,10 +247,7 @@ mod tests {
     #[test]
     fn deserialize_empty_network_is_default() {
         let json = json!({});
-        assert_eq!(
-            from_json_value::<IncomingRoomNetwork>(json).unwrap(),
-            IncomingRoomNetwork::Matrix
-        );
+        assert_eq!(from_json_value::<RoomNetwork>(json).unwrap(), RoomNetwork::Matrix);
     }
 
     #[test]
@@ -269,21 +259,21 @@ mod tests {
     #[test]
     fn deserialize_include_all_networks() {
         let json = json!({ "include_all_networks": true });
-        assert_eq!(from_json_value::<IncomingRoomNetwork>(json).unwrap(), IncomingRoomNetwork::All);
+        assert_eq!(from_json_value::<RoomNetwork>(json).unwrap(), RoomNetwork::All);
     }
 
     #[test]
     fn serialize_third_party_network() {
         let json = json!({ "third_party_instance_id": "freenode" });
-        assert_eq!(to_json_value(RoomNetwork::ThirdParty("freenode")).unwrap(), json);
+        assert_eq!(to_json_value(RoomNetwork::ThirdParty("freenode".to_owned())).unwrap(), json);
     }
 
     #[test]
     fn deserialize_third_party_network() {
         let json = json!({ "third_party_instance_id": "freenode" });
         assert_eq!(
-            from_json_value::<IncomingRoomNetwork>(json).unwrap(),
-            IncomingRoomNetwork::ThirdParty("freenode".into())
+            from_json_value::<RoomNetwork>(json).unwrap(),
+            RoomNetwork::ThirdParty("freenode".into())
         );
     }
 
@@ -291,7 +281,7 @@ mod tests {
     fn deserialize_include_all_networks_and_third_party_exclusivity() {
         let json = json!({ "include_all_networks": true, "third_party_instance_id": "freenode" });
         assert_eq!(
-            from_json_value::<IncomingRoomNetwork>(json).unwrap_err().to_string().as_str(),
+            from_json_value::<RoomNetwork>(json).unwrap_err().to_string().as_str(),
             "`include_all_networks = true` and `third_party_instance_id` are mutually exclusive."
         );
     }
@@ -306,7 +296,7 @@ mod tests {
     #[test]
     fn deserialize_filter_empty() {
         let json = json!({});
-        let filter = from_json_value::<IncomingFilter>(json).unwrap();
+        let filter = from_json_value::<Filter>(json).unwrap();
         assert_eq!(filter.generic_search_term, None);
         assert_eq!(filter.room_types.len(), 0);
     }
@@ -328,7 +318,7 @@ mod tests {
     #[test]
     fn deserialize_filter_room_types() {
         let json = json!({ "room_types": [null, "m.space", "custom_type"] });
-        let filter = from_json_value::<IncomingFilter>(json).unwrap();
+        let filter = from_json_value::<Filter>(json).unwrap();
         assert_eq!(filter.room_types.len(), 3);
         assert_eq!(filter.room_types[0], RoomTypeFilter::Default);
         assert_eq!(filter.room_types[1], RoomTypeFilter::Space);

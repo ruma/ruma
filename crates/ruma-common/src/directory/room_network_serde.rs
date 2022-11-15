@@ -7,9 +7,9 @@ use serde::{
 };
 use serde_json::Value as JsonValue;
 
-use super::{IncomingRoomNetwork, RoomNetwork};
+use super::RoomNetwork;
 
-impl<'a> Serialize for RoomNetwork<'a> {
+impl Serialize for RoomNetwork {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -32,7 +32,7 @@ impl<'a> Serialize for RoomNetwork<'a> {
     }
 }
 
-impl<'de> Deserialize<'de> for IncomingRoomNetwork {
+impl<'de> Deserialize<'de> for RoomNetwork {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -43,7 +43,7 @@ impl<'de> Deserialize<'de> for IncomingRoomNetwork {
 
 struct RoomNetworkVisitor;
 impl<'de> Visitor<'de> for RoomNetworkVisitor {
-    type Value = IncomingRoomNetwork;
+    type Value = RoomNetwork;
 
     fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("Network selection")
@@ -72,7 +72,7 @@ impl<'de> Visitor<'de> for RoomNetworkVisitor {
 
         if include_all_networks {
             if third_party_instance_id.is_none() {
-                Ok(IncomingRoomNetwork::All)
+                Ok(RoomNetwork::All)
             } else {
                 Err(M::Error::custom(
                     "`include_all_networks = true` and `third_party_instance_id` are mutually exclusive.",
@@ -80,8 +80,8 @@ impl<'de> Visitor<'de> for RoomNetworkVisitor {
             }
         } else {
             Ok(match third_party_instance_id {
-                Some(network) => IncomingRoomNetwork::ThirdParty(network),
-                None => IncomingRoomNetwork::Matrix,
+                Some(network) => RoomNetwork::ThirdParty(network),
+                None => RoomNetwork::Matrix,
             })
         }
     }

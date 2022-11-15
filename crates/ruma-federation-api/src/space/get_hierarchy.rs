@@ -9,7 +9,7 @@ pub mod v1 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, OwnedRoomId, RoomId,
+        metadata, OwnedRoomId,
     };
 
     use crate::space::{SpaceHierarchyChildSummary, SpaceHierarchyParentSummary};
@@ -26,10 +26,10 @@ pub mod v1 {
 
     /// Request type for the `hierarchy` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room ID of the space to get a hierarchy for.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// Whether or not the server should only consider suggested rooms.
         ///
@@ -57,9 +57,9 @@ pub mod v1 {
         pub room: SpaceHierarchyParentSummary,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a `Request` with the given room ID.
-        pub fn new(room_id: &'a RoomId) -> Self {
+        pub fn new(room_id: OwnedRoomId) -> Self {
             Self { room_id, suggested_only: false }
         }
     }

@@ -44,9 +44,9 @@ pub mod v3 {
 
     /// Request type for the `refresh` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The refresh token.
-        pub refresh_token: &'a str,
+        pub refresh_token: String,
     }
 
     /// Response type for the `refresh` endpoint.
@@ -72,9 +72,9 @@ pub mod v3 {
         pub expires_in_ms: Option<Duration>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given refresh token.
-        pub fn new(refresh_token: &'a str) -> Self {
+        pub fn new(refresh_token: String) -> Self {
             Self { refresh_token }
         }
     }

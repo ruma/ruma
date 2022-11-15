@@ -12,8 +12,8 @@ pub mod v3 {
     use ruma_common::{
         api::{request, response, Metadata},
         metadata,
-        serde::{Incoming, JsonObject},
-        DeviceId, OwnedDeviceId, OwnedServerName, OwnedUserId,
+        serde::JsonObject,
+        OwnedDeviceId, OwnedServerName, OwnedUserId,
     };
     use serde::{
         de::{self, DeserializeOwned},
@@ -21,7 +21,7 @@ pub mod v3 {
     };
     use serde_json::Value as JsonValue;
 
-    use crate::uiaa::{IncomingUserIdentifier, UserIdentifier};
+    use crate::uiaa::UserIdentifier;
 
     const METADATA: Metadata = metadata! {
         method: POST,
@@ -35,20 +35,20 @@ pub mod v3 {
 
     /// Request type for the `login` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The authentication mechanism.
         #[serde(flatten)]
-        pub login_info: LoginInfo<'a>,
+        pub login_info: LoginInfo,
 
         /// ID of the client device
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub device_id: Option<&'a DeviceId>,
+        pub device_id: Option<OwnedDeviceId>,
 
         /// A display name to assign to the newly-created device.
         ///
         /// Ignored if `device_id` corresponds to a known device.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub initial_device_display_name: Option<&'a str>,
+        pub initial_device_display_name: Option<String>,
 
         /// If set to `true`, the client supports [refresh tokens].
         ///
@@ -110,9 +110,9 @@ pub mod v3 {
         )]
         pub expires_in: Option<Duration>,
     }
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given login info.
-        pub fn new(login_info: LoginInfo<'a>) -> Self {
+        pub fn new(login_info: LoginInfo) -> Self {
             Self {
                 login_info,
                 device_id: None,
@@ -138,40 +138,24 @@ pub mod v3 {
     }
 
     /// The authentication mechanism.
-    ///
-    /// To construct the custom `LoginInfo` variant you first have to construct
-    /// [`IncomingLoginInfo::new`] and then call [`IncomingLoginInfo::to_outgoing`] on it.
-    #[derive(Clone, Incoming, Serialize)]
+    #[derive(Clone, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-    #[incoming_derive(!Debug, !Deserialize)]
     #[serde(untagged)]
-    pub enum LoginInfo<'a> {
+    pub enum LoginInfo {
         /// An identifier and password are supplied to authenticate.
-        Password(Password<'a>),
+        Password(Password),
 
         /// Token-based login.
-        Token(Token<'a>),
+        Token(Token),
 
         /// Application Service-specific login.
-        ApplicationService(ApplicationService<'a>),
+        ApplicationService(ApplicationService),
 
         #[doc(hidden)]
-        _Custom(CustomLoginInfo<'a>),
+        _Custom(CustomLoginInfo),
     }
 
-    impl fmt::Debug for LoginInfo<'_> {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            // Print `Password { .. }` instead of `Password(Password { .. })`
-            match self {
-                Self::Password(inner) => inner.fmt(f),
-                Self::Token(inner) => inner.fmt(f),
-                Self::ApplicationService(inner) => inner.fmt(f),
-                Self::_Custom(inner) => inner.fmt(f),
-            }
-        }
-    }
-
-    impl IncomingLoginInfo {
+    impl LoginInfo {
         /// Creates a new `IncomingLoginInfo` with the given `login_type` string, session and data.
         ///
         /// Prefer to use the public variants of `IncomingLoginInfo` where possible; this
@@ -191,28 +175,12 @@ pub mod v3 {
                 "m.login.application_service" => {
                     Self::ApplicationService(serde_json::from_value(JsonValue::Object(data))?)
                 }
-                _ => Self::_Custom(IncomingCustomLoginInfo {
-                    login_type: login_type.into(),
-                    extra: data,
-                }),
+                _ => Self::_Custom(CustomLoginInfo { login_type: login_type.into(), extra: data }),
             })
-        }
-
-        /// Convert `IncomingLoginInfo` to `LoginInfo`.
-        pub fn to_outgoing(&self) -> LoginInfo<'_> {
-            match self {
-                Self::Password(a) => LoginInfo::Password(a.to_outgoing()),
-                Self::Token(a) => LoginInfo::Token(a.to_outgoing()),
-                Self::ApplicationService(a) => LoginInfo::ApplicationService(a.to_outgoing()),
-                Self::_Custom(a) => LoginInfo::_Custom(CustomLoginInfo {
-                    login_type: &a.login_type,
-                    extra: &a.extra,
-                }),
-            }
         }
     }
 
-    impl fmt::Debug for IncomingLoginInfo {
+    impl fmt::Debug for LoginInfo {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             // Print `Password { .. }` instead of `Password(Password { .. })`
             match self {
@@ -224,7 +192,7 @@ pub mod v3 {
         }
     }
 
-    impl<'de> Deserialize<'de> for IncomingLoginInfo {
+    impl<'de> Deserialize<'de> for LoginInfo {
         fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where
             D: Deserializer<'de>,
@@ -248,142 +216,84 @@ pub mod v3 {
     }
 
     /// An identifier and password to supply as authentication.
-    #[derive(Clone, Incoming, Serialize)]
+    #[derive(Clone, Deserialize, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-    #[incoming_derive(!Debug)]
     #[serde(tag = "type", rename = "m.login.password")]
-    pub struct Password<'a> {
+    pub struct Password {
         /// Identification information for the user.
-        pub identifier: UserIdentifier<'a>,
+        pub identifier: UserIdentifier,
 
         /// The password.
-        pub password: &'a str,
+        pub password: String,
     }
 
-    impl<'a> Password<'a> {
+    impl Password {
         /// Creates a new `Password` with the given identifier and password.
-        pub fn new(identifier: UserIdentifier<'a>, password: &'a str) -> Self {
+        pub fn new(identifier: UserIdentifier, password: String) -> Self {
             Self { identifier, password }
         }
     }
 
-    impl IncomingPassword {
-        /// Convert `IncomingPassword` to `Password`.
-        fn to_outgoing(&self) -> Password<'_> {
-            Password { identifier: self.identifier.to_outgoing(), password: &self.password }
-        }
-    }
-
-    impl<'a> fmt::Debug for Password<'a> {
+    impl fmt::Debug for Password {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             let Self { identifier, password: _ } = self;
             f.debug_struct("Password").field("identifier", identifier).finish_non_exhaustive()
         }
     }
 
-    impl fmt::Debug for IncomingPassword {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            let Self { identifier, password: _ } = self;
-            f.debug_struct("IncomingPassword")
-                .field("identifier", identifier)
-                .finish_non_exhaustive()
-        }
-    }
-
     /// A token to supply as authentication.
-    #[derive(Clone, Incoming, Serialize)]
+    #[derive(Clone, Deserialize, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-    #[incoming_derive(!Debug)]
     #[serde(tag = "type", rename = "m.login.token")]
-    pub struct Token<'a> {
+    pub struct Token {
         /// The token.
-        pub token: &'a str,
+        pub token: String,
     }
 
-    impl<'a> Token<'a> {
+    impl Token {
         /// Creates a new `Token` with the given token.
-        pub fn new(token: &'a str) -> Self {
+        pub fn new(token: String) -> Self {
             Self { token }
         }
     }
 
-    impl IncomingToken {
-        /// Convert `IncomingToken` to `Token`.
-        fn to_outgoing(&self) -> Token<'_> {
-            Token { token: &self.token }
-        }
-    }
-
-    impl<'a> fmt::Debug for Token<'a> {
+    impl fmt::Debug for Token {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             let Self { token: _ } = self;
             f.debug_struct("Token").finish_non_exhaustive()
         }
     }
 
-    impl fmt::Debug for IncomingToken {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            let Self { token: _ } = self;
-            f.debug_struct("IncomingToken").finish_non_exhaustive()
-        }
-    }
-
     /// An identifier to supply for Application Service authentication.
-    #[derive(Clone, Debug, Incoming, Serialize)]
+    #[derive(Clone, Debug, Deserialize, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[serde(tag = "type", rename = "m.login.application_service")]
-    pub struct ApplicationService<'a> {
+    pub struct ApplicationService {
         /// Identification information for the user.
-        pub identifier: UserIdentifier<'a>,
+        pub identifier: UserIdentifier,
     }
 
-    impl<'a> ApplicationService<'a> {
+    impl ApplicationService {
         /// Creates a new `ApplicationService` with the given identifier.
-        pub fn new(identifier: UserIdentifier<'a>) -> Self {
+        pub fn new(identifier: UserIdentifier) -> Self {
             Self { identifier }
         }
     }
 
-    impl IncomingApplicationService {
-        /// Convert `IncomingApplicationService` to `ApplicationService`.
-        fn to_outgoing(&self) -> ApplicationService<'_> {
-            ApplicationService { identifier: self.identifier.to_outgoing() }
-        }
-    }
-
     #[doc(hidden)]
-    #[derive(Clone, Serialize)]
+    #[derive(Clone, Deserialize, Serialize)]
     #[non_exhaustive]
-    pub struct CustomLoginInfo<'a> {
-        #[serde(rename = "type")]
-        login_type: &'a str,
-        #[serde(flatten)]
-        extra: &'a JsonObject,
-    }
-
-    impl<'a> fmt::Debug for CustomLoginInfo<'a> {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            let Self { login_type, extra: _ } = self;
-            f.debug_struct("CustomLoginInfo")
-                .field("login_type", login_type)
-                .finish_non_exhaustive()
-        }
-    }
-
-    #[doc(hidden)]
-    #[derive(Clone, Deserialize)]
-    #[non_exhaustive]
-    pub struct IncomingCustomLoginInfo {
+    pub struct CustomLoginInfo {
         #[serde(rename = "type")]
         login_type: String,
         #[serde(flatten)]
         extra: JsonObject,
     }
 
-    impl fmt::Debug for IncomingCustomLoginInfo {
+    impl fmt::Debug for CustomLoginInfo {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             let Self { login_type, extra: _ } = self;
-            f.debug_struct("IncomingCustomLoginInfo")
+            f.debug_struct("CustomLoginInfo")
                 .field("login_type", login_type)
                 .finish_non_exhaustive()
         }
@@ -444,8 +354,8 @@ pub mod v3 {
         use assert_matches::assert_matches;
         use serde_json::{from_value as from_json_value, json};
 
-        use super::{IncomingLoginInfo, IncomingToken};
-        use crate::uiaa::IncomingUserIdentifier;
+        use super::{LoginInfo, Token};
+        use crate::uiaa::UserIdentifier;
 
         #[test]
         fn deserialize_login_type() {
@@ -459,11 +369,11 @@ pub mod v3 {
                     "password": "ilovebananas"
                 }))
                 .unwrap(),
-                IncomingLoginInfo::Password(login) => login
+                LoginInfo::Password(login) => login
             );
             let user = assert_matches!(
                 login.identifier,
-                IncomingUserIdentifier::UserIdOrLocalpart(user) => user
+                UserIdentifier::UserIdOrLocalpart(user) => user
             );
             assert_eq!(user, "cheeky_monkey");
             assert_eq!(login.password, "ilovebananas");
@@ -474,7 +384,7 @@ pub mod v3 {
                     "token": "1234567890abcdef"
                 }))
                 .unwrap(),
-                IncomingLoginInfo::Token(IncomingToken { token }) => token
+                LoginInfo::Token(Token { token }) => token
             );
             assert_eq!(token, "1234567890abcdef");
         }
@@ -489,9 +399,9 @@ pub mod v3 {
             use crate::uiaa::UserIdentifier;
 
             let req: http::Request<Vec<u8>> = Request {
-                login_info: LoginInfo::Token(Token { token: "0xdeadbeef" }),
+                login_info: LoginInfo::Token(Token { token: "0xdeadbeef".to_owned() }),
                 device_id: None,
-                initial_device_display_name: Some("test"),
+                initial_device_display_name: Some("test".to_owned()),
                 refresh_token: false,
             }
             .try_into_http_request(
@@ -513,11 +423,11 @@ pub mod v3 {
 
             let req: http::Request<Vec<u8>> = Request {
                 login_info: LoginInfo::Password(Password {
-                    identifier: UserIdentifier::Email { address: "hello@example.com" },
-                    password: "deadbeef",
+                    identifier: UserIdentifier::Email { address: "hello@example.com".to_owned() },
+                    password: "deadbeef".to_owned(),
                 }),
                 device_id: None,
-                initial_device_display_name: Some("test"),
+                initial_device_display_name: Some("test".to_owned()),
                 refresh_token: false,
             }
             .try_into_http_request(

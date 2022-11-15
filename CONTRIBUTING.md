@@ -213,57 +213,6 @@ guidelines:
 - If you're not sure what to name it, pick any name and we can help you
   with it.
 
-### Borrowing Request Types
-
-In order to reduce the number of `.clone()`s necessary to send requests
-to a server, we support borrowed types for request types. (We hope to support
-borrowing in response types sometime, but that is dependent on GATs.)
-
-#### Types to borrow
-
-| Field type  | Borrowed type        | Notes                                  |
-| ----------  | -------------        | -----                                  |
-| strings     | `&'a str`            |                                        |
-| identifiers | `&'a IdentifierType` |                                        |
-| `Vec<_>`    | `&'a [_]`            | The inner type should not be borrowed. |
-
-#### Types not to borrow
-
-Inner types of `Vec`s _should not_ be borrowed, nor should `BTreeMap`s and such.
-
-Structs also should not be borrowed, with the exception that if a struct:
-
-- has fields that should be borrowed according to the table
-above (strings, identifiers, `Vec`s), and
-- is only used inside request blocks (i.e. not in response blocks or in events),
-
-then the struct should be lifetime-parameterized and apply the same rules to
-their fields. So instead of
-
-```rust
-#[request]
-pub struct Request {
-    my_field: MyStruct,
-}
-
-pub struct MyStruct {
-    inner_string_field: String,
-}
-```
-
-use
-
-```rust
-#[request]
-pub struct Request<'a> {
-    my_field: MyStruct<'a>,
-}
-
-pub struct MyStruct<'a> {
-    inner_string_field: &'a str,
-}
-```
-
 ### Tracking Changes
 
 If your changes affect the API of a user-facing crate (all except the `-macros` crates and

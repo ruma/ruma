@@ -14,15 +14,12 @@ pub mod v3 {
         api::{request, response, Metadata},
         events::{AnyStateEvent, AnyTimelineEvent},
         metadata,
-        serde::{Incoming, Raw, StringEnum},
+        serde::{Raw, StringEnum},
         OwnedEventId, OwnedMxcUri, OwnedRoomId, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};
 
-    use crate::{
-        filter::{IncomingRoomEventFilter, RoomEventFilter},
-        PrivOwnedStr,
-    };
+    use crate::{filter::RoomEventFilter, PrivOwnedStr};
 
     const METADATA: Metadata = metadata! {
         method: POST,
@@ -36,15 +33,15 @@ pub mod v3 {
 
     /// Request type for the `search` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The point to return events from.
         ///
         /// If given, this should be a `next_batch` result from a previous call to this endpoint.
         #[ruma_api(query)]
-        pub next_batch: Option<&'a str>,
+        pub next_batch: Option<String>,
 
         /// Describes which categories to search in and their criteria.
-        pub search_categories: Categories<'a>,
+        pub search_categories: Categories,
     }
 
     /// Response type for the `search` endpoint.
@@ -54,9 +51,9 @@ pub mod v3 {
         pub search_categories: ResultCategories,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given categories.
-        pub fn new(search_categories: Categories<'a>) -> Self {
+        pub fn new(search_categories: Categories) -> Self {
             Self { next_batch: None, search_categories }
         }
     }
@@ -69,15 +66,15 @@ pub mod v3 {
     }
 
     /// Categories of events that can be searched for.
-    #[derive(Clone, Debug, Default, Incoming, Serialize)]
+    #[derive(Clone, Debug, Default, Deserialize, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-    pub struct Categories<'a> {
+    pub struct Categories {
         /// Criteria for searching room events.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_events: Option<Criteria<'a>>,
+        pub room_events: Option<Criteria>,
     }
 
-    impl Categories<'_> {
+    impl Categories {
         /// Creates an empty `Categories`.
         pub fn new() -> Self {
             Default::default()
@@ -85,21 +82,21 @@ pub mod v3 {
     }
 
     /// Criteria for searching a category of events.
-    #[derive(Clone, Debug, Incoming, Serialize)]
+    #[derive(Clone, Debug, Deserialize, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-    pub struct Criteria<'a> {
+    pub struct Criteria {
         /// The string to search events for.
-        pub search_term: &'a str,
+        pub search_term: String,
 
         /// The keys to search for.
         ///
         /// Defaults to all keys.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub keys: Option<&'a [SearchKeys]>,
+        pub keys: Option<Vec<SearchKeys>>,
 
         /// A `Filter` to apply to the search.
         #[serde(skip_serializing_if = "RoomEventFilter::is_empty")]
-        pub filter: RoomEventFilter<'a>,
+        pub filter: RoomEventFilter,
 
         /// The order in which to search for results.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -115,12 +112,12 @@ pub mod v3 {
 
         /// Requests that the server partitions the result set based on the provided list of keys.
         #[serde(default, skip_serializing_if = "Groupings::is_empty")]
-        pub groupings: Groupings<'a>,
+        pub groupings: Groupings,
     }
 
-    impl<'a> Criteria<'a> {
+    impl Criteria {
         /// Creates a new `Criteria` with the given search term.
-        pub fn new(search_term: &'a str) -> Self {
+        pub fn new(search_term: String) -> Self {
             Self {
                 search_term,
                 keys: None,
@@ -268,16 +265,15 @@ pub mod v3 {
     }
 
     /// Requests that the server partitions the result set based on the provided list of keys.
-    #[derive(Clone, Default, Debug, Incoming, Serialize)]
-    #[incoming_derive(Default)]
+    #[derive(Clone, Default, Debug, Deserialize, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-    pub struct Groupings<'a> {
+    pub struct Groupings {
         /// List of groups to request.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub group_by: &'a [Grouping],
+        pub group_by: Vec<Grouping>,
     }
 
-    impl Groupings<'_> {
+    impl Groupings {
         /// Creates an empty `Groupings`.
         pub fn new() -> Self {
             Default::default()

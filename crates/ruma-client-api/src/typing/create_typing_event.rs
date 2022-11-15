@@ -11,7 +11,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, RoomId, UserId,
+        metadata, OwnedRoomId, OwnedUserId,
     };
     use serde::{de::Error, Deserialize, Deserializer, Serialize};
 
@@ -27,14 +27,14 @@ pub mod v3 {
 
     /// Request type for the `create_typing_event` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room in which the user is typing.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The user who has started to type.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
 
         /// Whether the user is typing within a length of time or not.
         #[serde(flatten)]
@@ -46,9 +46,9 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given user ID, room ID and typing state.
-        pub fn new(user_id: &'a UserId, room_id: &'a RoomId, state: Typing) -> Self {
+        pub fn new(user_id: OwnedUserId, room_id: OwnedRoomId, state: Typing) -> Self {
             Self { user_id, room_id, state }
         }
     }

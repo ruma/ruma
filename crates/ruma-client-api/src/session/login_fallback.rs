@@ -6,7 +6,7 @@
 
 use ruma_common::{
     api::{request, response, Metadata},
-    metadata, DeviceId,
+    metadata, OwnedDeviceId,
 };
 
 const METADATA: Metadata = metadata! {
@@ -21,18 +21,18 @@ const METADATA: Metadata = metadata! {
 /// Request type for the `login_fallback` endpoint.
 #[request(error = crate::Error)]
 #[derive(Default)]
-pub struct Request<'a> {
+pub struct Request {
     /// ID of the client device.
     #[ruma_api(query)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub device_id: Option<&'a DeviceId>,
+    pub device_id: Option<OwnedDeviceId>,
 
     /// A display name to assign to the newly-created device.
     ///
     /// Ignored if `device_id` corresponds to a known device.
     #[ruma_api(query)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub initial_device_display_name: Option<&'a str>,
+    pub initial_device_display_name: Option<String>,
 }
 
 /// Response type for the `login_fallback` endpoint.
@@ -43,11 +43,11 @@ pub struct Response {
     pub body: Vec<u8>,
 }
 
-impl<'a> Request<'a> {
+impl Request {
     /// Creates a new `Request` with the given auth type and session ID.
     pub fn new(
-        device_id: Option<&'a DeviceId>,
-        initial_device_display_name: Option<&'a str>,
+        device_id: Option<OwnedDeviceId>,
+        initial_device_display_name: Option<String>,
     ) -> Self {
         Self { device_id, initial_device_display_name }
     }

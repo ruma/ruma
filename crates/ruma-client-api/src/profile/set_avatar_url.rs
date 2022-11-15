@@ -9,7 +9,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, MxcUri, UserId,
+        metadata, OwnedMxcUri, OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -24,10 +24,10 @@ pub mod v3 {
 
     /// Request type for the `set_avatar_url` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The user whose avatar URL will be set.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
 
         /// The new avatar URL for the user.
         ///
@@ -44,7 +44,7 @@ pub mod v3 {
             )
         )]
         #[cfg_attr(not(feature = "compat"), serde(skip_serializing_if = "Option::is_none"))]
-        pub avatar_url: Option<&'a MxcUri>,
+        pub avatar_url: Option<OwnedMxcUri>,
 
         /// The [BlurHash](https://blurha.sh) for the avatar pointed to by `avatar_url`.
         ///
@@ -52,7 +52,7 @@ pub mod v3 {
         /// [MSC2448](https://github.com/matrix-org/matrix-spec-proposals/pull/2448).
         #[cfg(feature = "unstable-msc2448")]
         #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
-        pub blurhash: Option<&'a str>,
+        pub blurhash: Option<String>,
     }
 
     /// Response type for the `set_avatar_url` endpoint.
@@ -60,9 +60,9 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given user ID and avatar URL.
-        pub fn new(user_id: &'a UserId, avatar_url: Option<&'a MxcUri>) -> Self {
+        pub fn new(user_id: OwnedUserId, avatar_url: Option<OwnedMxcUri>) -> Self {
             Self {
                 user_id,
                 avatar_url,
@@ -83,11 +83,11 @@ pub mod v3 {
     mod tests {
         use ruma_common::api::IncomingRequest as _;
 
-        use super::IncomingRequest;
+        use super::Request;
 
         #[test]
         fn deserialize_unset_request() {
-            let req = IncomingRequest::try_from_http_request(
+            let req = Request::try_from_http_request(
                 http::Request::builder()
                     .method("PUT")
                     .uri("https://bar.org/_matrix/client/r0/profile/@foo:bar.org/avatar_url")
@@ -101,7 +101,7 @@ pub mod v3 {
 
             #[cfg(feature = "compat")]
             {
-                let req = IncomingRequest::try_from_http_request(
+                let req = Request::try_from_http_request(
                     http::Request::builder()
                         .method("PUT")
                         .uri("https://bar.org/_matrix/client/r0/profile/@foo:bar.org/avatar_url")

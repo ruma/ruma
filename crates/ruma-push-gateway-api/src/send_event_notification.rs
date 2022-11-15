@@ -13,8 +13,8 @@ pub mod v1 {
         events::RoomEventType,
         metadata,
         push::{PushFormat, Tweak},
-        serde::{Incoming, StringEnum},
-        EventId, RoomAliasId, RoomId, SecondsSinceUnixEpoch, UserId,
+        serde::StringEnum,
+        OwnedEventId, OwnedRoomAliasId, OwnedRoomId, OwnedUserId, SecondsSinceUnixEpoch,
     };
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
@@ -34,9 +34,9 @@ pub mod v1 {
 
     /// Request type for the `send_event_notification` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// Information about the push notification
-        pub notification: Notification<'a>,
+        pub notification: Notification,
     }
 
     /// Response type for the `send_event_notification` endpoint.
@@ -53,9 +53,9 @@ pub mod v1 {
         pub rejected: Vec<String>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given notification.
-        pub fn new(notification: Notification<'a>) -> Self {
+        pub fn new(notification: Notification) -> Self {
             Self { notification }
         }
     }
@@ -68,42 +68,42 @@ pub mod v1 {
     }
 
     /// Type for passing information about a push notification
-    #[derive(Clone, Debug, Default, Incoming, Serialize)]
+    #[derive(Clone, Debug, Default, Deserialize, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-    pub struct Notification<'a> {
+    pub struct Notification {
         /// The Matrix event ID of the event being notified about.
         ///
         /// Required if the notification is about a particular Matrix event. May be omitted for
         /// notifications that only contain updated badge counts. This ID can and should be used to
         /// detect duplicate notification requests.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub event_id: Option<&'a EventId>,
+        pub event_id: Option<OwnedEventId>,
 
         /// The ID of the room in which this event occurred.
         ///
         /// Required if the notification relates to a specific Matrix event.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_id: Option<&'a RoomId>,
+        pub room_id: Option<OwnedRoomId>,
 
         /// The type of the event as in the event's `type` field.
         #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-        pub event_type: Option<&'a RoomEventType>,
+        pub event_type: Option<RoomEventType>,
 
         /// The sender of the event as in the corresponding event field.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub sender: Option<&'a UserId>,
+        pub sender: Option<OwnedUserId>,
 
         /// The current display name of the sender in the room in which the event occurred.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub sender_display_name: Option<&'a str>,
+        pub sender_display_name: Option<String>,
 
         /// The name of the room in which the event occurred.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_name: Option<&'a str>,
+        pub room_name: Option<String>,
 
         /// An alias to display for the room in which the event occurred.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_alias: Option<&'a RoomAliasId>,
+        pub room_alias: Option<OwnedRoomAliasId>,
 
         /// Whether the user receiving the notification is the subject of a member event (i.e. the
         /// `state_key` of the member event is equal to the user's Matrix ID).
@@ -122,7 +122,7 @@ pub mod v1 {
         ///
         /// The pusher may omit this if the event had no content or for any other reason.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub content: Option<&'a RawJsonValue>,
+        pub content: Option<Box<RawJsonValue>>,
 
         /// Current number of unacknowledged communications for the recipient user.
         ///
@@ -131,12 +131,12 @@ pub mod v1 {
         pub counts: NotificationCounts,
 
         /// An array of devices that the notification should be sent to.
-        pub devices: &'a [Device],
+        pub devices: Vec<Device>,
     }
 
-    impl<'a> Notification<'a> {
+    impl Notification {
         /// Create a new notification for the given devices.
-        pub fn new(devices: &'a [Device]) -> Self {
+        pub fn new(devices: Vec<Device>) -> Self {
             Notification { devices, ..Default::default() }
         }
     }
@@ -192,7 +192,7 @@ pub mod v1 {
     }
 
     /// Type for passing information about devices.
-    #[derive(Clone, Debug, Deserialize, Incoming, Serialize)]
+    #[derive(Clone, Debug, Deserialize, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct Device {
         /// The `app_id` given when the pusher was created.
@@ -412,10 +412,10 @@ pub mod v1 {
                 ]
             });
 
-            let eid = event_id!("$3957tyerfgewrf384");
-            let rid = room_id!("!slw48wfj34rtnrf:example.com");
-            let uid = user_id!("@exampleuser:matrix.org");
-            let alias = room_alias_id!("#exampleroom:matrix.org");
+            let eid = event_id!("$3957tyerfgewrf384").to_owned();
+            let rid = room_id!("!slw48wfj34rtnrf:example.com").to_owned();
+            let uid = user_id!("@exampleuser:matrix.org").to_owned();
+            let alias = room_alias_id!("#exampleroom:matrix.org").to_owned();
 
             let count = NotificationCounts { unread: uint!(2), ..NotificationCounts::default() };
 
@@ -434,14 +434,14 @@ pub mod v1 {
                     "V2h5IG9uIGVhcnRoIGRpZCB5b3UgZGVjb2RlIHRoaXM/".into(),
                 )
             };
-            let devices = &[device];
+            let devices = vec![device];
 
             let notice = Notification {
                 event_id: Some(eid),
                 room_id: Some(rid),
-                event_type: Some(&RoomEventType::RoomMessage),
+                event_type: Some(RoomEventType::RoomMessage),
                 sender: Some(uid),
-                sender_display_name: Some("Major Tom"),
+                sender_display_name: Some("Major Tom".to_owned()),
                 room_alias: Some(alias),
                 content: Some(serde_json::from_str("{}").unwrap()),
                 counts: count,

@@ -12,7 +12,7 @@ pub mod v3 {
         events::receipt::ReceiptThread,
         metadata,
         serde::{OrdAsRefStr, PartialEqAsRefStr, PartialOrdAsRefStr, StringEnum},
-        EventId, RoomId,
+        OwnedEventId, OwnedRoomId,
     };
 
     use crate::PrivOwnedStr;
@@ -29,10 +29,10 @@ pub mod v3 {
 
     /// Request type for the `create_receipt` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room in which to send the event.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The type of receipt to send.
         #[ruma_api(path)]
@@ -40,7 +40,7 @@ pub mod v3 {
 
         /// The event ID to acknowledge up to.
         #[ruma_api(path)]
-        pub event_id: &'a EventId,
+        pub event_id: OwnedEventId,
 
         /// The thread this receipt applies to.
         ///
@@ -61,9 +61,13 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room ID, receipt type and event ID.
-        pub fn new(room_id: &'a RoomId, receipt_type: ReceiptType, event_id: &'a EventId) -> Self {
+        pub fn new(
+            room_id: OwnedRoomId,
+            receipt_type: ReceiptType,
+            event_id: OwnedEventId,
+        ) -> Self {
             Self { room_id, receipt_type, event_id, thread: ReceiptThread::default() }
         }
     }

@@ -10,7 +10,7 @@ pub mod v1 {
     use js_int::UInt;
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedServerName, RoomId,
+        metadata, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedServerName,
     };
     use serde_json::value::RawValue as RawJsonValue;
 
@@ -25,14 +25,14 @@ pub mod v1 {
 
     /// Request type for the `get_backfill` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room ID to backfill.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The event IDs to backfill from.
         #[ruma_api(query)]
-        pub v: &'a [OwnedEventId],
+        pub v: Vec<OwnedEventId>,
 
         /// The maximum number of PDUs to retrieve, including the given events.
         #[ruma_api(query)]
@@ -53,12 +53,12 @@ pub mod v1 {
         pub pdus: Vec<Box<RawJsonValue>>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with:
         /// * the given room id.
         /// * the event IDs to backfill from.
         /// * the maximum number of PDUs to retrieve, including the given events.
-        pub fn new(room_id: &'a RoomId, v: &'a [OwnedEventId], limit: UInt) -> Self {
+        pub fn new(room_id: OwnedRoomId, v: Vec<OwnedEventId>, limit: UInt) -> Self {
             Self { room_id, v, limit }
         }
     }

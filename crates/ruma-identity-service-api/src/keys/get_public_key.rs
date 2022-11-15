@@ -11,7 +11,7 @@ pub mod v2 {
         api::{request, response, Metadata},
         metadata,
         serde::Base64,
-        ServerSigningKeyId,
+        OwnedServerSigningKeyId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -25,10 +25,10 @@ pub mod v2 {
 
     /// Request type for the `get_public_key` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The ID of the key.
         #[ruma_api(path)]
-        pub key_id: &'a ServerSigningKeyId,
+        pub key_id: OwnedServerSigningKeyId,
     }
 
     /// Response type for the `get_public_key` endpoint.
@@ -38,9 +38,9 @@ pub mod v2 {
         pub public_key: Base64,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Create a `Request` with the given key_id.
-        pub fn new(key_id: &'a ServerSigningKeyId) -> Self {
+        pub fn new(key_id: OwnedServerSigningKeyId) -> Self {
             Self { key_id }
         }
     }

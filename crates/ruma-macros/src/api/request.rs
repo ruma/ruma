@@ -1,17 +1,14 @@
-use std::collections::BTreeSet;
-
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
-    DeriveInput, Field, Generics, Ident, ItemStruct, Lifetime, Token, Type,
+    DeriveInput, Field, Generics, Ident, ItemStruct, Token, Type,
 };
 
 use super::{
     attribute::{DeriveRequestMeta, RequestMeta},
     ensure_feature_presence,
-    util::collect_lifetime_idents,
 };
 use crate::util::import_ruma_common;
 
@@ -32,15 +29,8 @@ pub fn expand_request(attr: RequestAttr, item: ItemStruct) -> TokenStream {
     quote! {
         #maybe_feature_error
 
-        #[derive(
-            Clone,
-            Debug,
-            #ruma_macros::Request,
-            #ruma_common::serde::Incoming,
-            #ruma_common::serde::_FakeDeriveSerde,
-        )]
+        #[derive(Clone, Debug, #ruma_macros::Request, #ruma_common::serde::_FakeDeriveSerde)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-        #[incoming_derive(!Deserialize, #ruma_macros::_FakeDeriveRumaApi)]
         #[ruma_api(error = #error_ty)]
         #item
     }
@@ -60,26 +50,7 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
         _ => panic!("This derive macro only works on structs"),
     };
 
-    let mut lifetimes = RequestLifetimes::default();
-    let fields = fields
-        .into_iter()
-        .map(|f| {
-            let f = RequestField::try_from(f)?;
-            let ty = &f.inner.ty;
-
-            match &f.kind {
-                RequestFieldKind::Header(_) => collect_lifetime_idents(&mut lifetimes.header, ty),
-                RequestFieldKind::Body => collect_lifetime_idents(&mut lifetimes.body, ty),
-                RequestFieldKind::NewtypeBody => collect_lifetime_idents(&mut lifetimes.body, ty),
-                RequestFieldKind::RawBody => collect_lifetime_idents(&mut lifetimes.body, ty),
-                RequestFieldKind::Path => collect_lifetime_idents(&mut lifetimes.path, ty),
-                RequestFieldKind::Query => collect_lifetime_idents(&mut lifetimes.query, ty),
-                RequestFieldKind::QueryMap => collect_lifetime_idents(&mut lifetimes.query, ty),
-            }
-
-            Ok(f)
-        })
-        .collect::<syn::Result<_>>()?;
+    let fields = fields.into_iter().map(RequestField::try_from).collect::<syn::Result<_>>()?;
 
     let mut error_ty = None;
 
@@ -101,7 +72,6 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
         ident: input.ident,
         generics: input.generics,
         fields,
-        lifetimes,
         error_ty: error_ty.expect("missing error_ty attribute"),
     };
 
@@ -115,18 +85,9 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
     })
 }
 
-#[derive(Default)]
-struct RequestLifetimes {
-    pub body: BTreeSet<Lifetime>,
-    pub path: BTreeSet<Lifetime>,
-    pub query: BTreeSet<Lifetime>,
-    pub header: BTreeSet<Lifetime>,
-}
-
 struct Request {
     ident: Ident,
     generics: Generics,
-    lifetimes: RequestLifetimes,
     fields: Vec<RequestField>,
 
     error_ty: Type,
@@ -183,24 +144,14 @@ impl Request {
             let serde_attr = self.has_newtype_body().then(|| quote! { #[serde(transparent)] });
             let fields = self.fields.iter().filter_map(RequestField::as_body_field);
 
-            // Though we don't track the difference between newtype body and body
-            // for lifetimes, the outer check and the macro failing if it encounters
-            // an illegal combination of field attributes, is enough to guarantee
-            // `body_lifetimes` correctness.
-            let lifetimes = &self.lifetimes.body;
-            let derive_deserialize = lifetimes.is_empty().then(|| quote! { #serde::Deserialize });
-
             quote! {
                 /// Data in the request body.
                 #[cfg(any(feature = "client", feature = "server"))]
                 #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
                 #[cfg_attr(feature = "client", derive(#serde::Serialize))]
-                #[cfg_attr(
-                    feature = "server",
-                    derive(#ruma_common::serde::Incoming, #derive_deserialize)
-                )]
+                #[cfg_attr(feature = "server", derive(#serde::Deserialize))]
                 #serde_attr
-                struct RequestBody< #(#lifetimes),* > { #(#fields),* }
+                struct RequestBody { #(#fields),* }
             }
         });
 
@@ -215,19 +166,13 @@ impl Request {
         };
 
         let request_query_struct = request_query_def.map(|def| {
-            let lifetimes = &self.lifetimes.query;
-            let derive_deserialize = lifetimes.is_empty().then(|| quote! { #serde::Deserialize });
-
             quote! {
                 /// Data in the request's query string.
                 #[cfg(any(feature = "client", feature = "server"))]
                 #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
                 #[cfg_attr(feature = "client", derive(#serde::Serialize))]
-                #[cfg_attr(
-                    feature = "server",
-                    derive(#ruma_common::serde::Incoming, #derive_deserialize)
-                )]
-                struct RequestQuery< #(#lifetimes),* > #def
+                #[cfg_attr(feature = "server", derive(#serde::Deserialize))]
+                struct RequestQuery #def
             }
         });
 
@@ -291,14 +236,6 @@ impl Request {
             return Err(syn::Error::new_spanned(
                 &self.ident,
                 "Can't have both a query map field and regular query fields",
-            ));
-        }
-
-        // TODO when/if `&[(&str, &str)]` is supported remove this
-        if has_query_map_field && !self.lifetimes.query.is_empty() {
-            return Err(syn::Error::new_spanned(
-                &self.ident,
-                "Lifetimes are not allowed for query_map fields",
             ));
         }
 

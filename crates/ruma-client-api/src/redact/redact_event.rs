@@ -9,7 +9,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, EventId, OwnedEventId, RoomId, TransactionId,
+        metadata, OwnedEventId, OwnedRoomId, OwnedTransactionId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -24,14 +24,14 @@ pub mod v3 {
 
     /// Request type for the `redact_event` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The ID of the room of the event to redact.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The ID of the event to redact.
         #[ruma_api(path)]
-        pub event_id: &'a EventId,
+        pub event_id: OwnedEventId,
 
         /// The transaction ID for this event.
         ///
@@ -43,11 +43,11 @@ pub mod v3 {
         ///
         /// [access token is refreshed]: https://spec.matrix.org/v1.4/client-server-api/#refreshing-access-tokens
         #[ruma_api(path)]
-        pub txn_id: &'a TransactionId,
+        pub txn_id: OwnedTransactionId,
 
         /// The reason for the redaction.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub reason: Option<&'a str>,
+        pub reason: Option<String>,
     }
 
     /// Response type for the `redact_event` endpoint.
@@ -57,9 +57,13 @@ pub mod v3 {
         pub event_id: OwnedEventId,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room ID, event ID and transaction ID.
-        pub fn new(room_id: &'a RoomId, event_id: &'a EventId, txn_id: &'a TransactionId) -> Self {
+        pub fn new(
+            room_id: OwnedRoomId,
+            event_id: OwnedEventId,
+            txn_id: OwnedTransactionId,
+        ) -> Self {
             Self { room_id, event_id, txn_id, reason: None }
         }
     }

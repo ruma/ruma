@@ -25,19 +25,15 @@ pub mod v3 {
 
     /// Request type for the `create_media_content` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
-        /// The file contents to upload.
-        #[ruma_api(raw_body)]
-        pub file: &'a [u8],
-
+    pub struct Request {
         /// The name of the file being uploaded.
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub filename: Option<&'a str>,
+        pub filename: Option<String>,
 
         /// The content type of the file being uploaded.
         #[ruma_api(header = CONTENT_TYPE)]
-        pub content_type: Option<&'a str>,
+        pub content_type: Option<String>,
 
         /// Should the server return a blurhash or not.
         ///
@@ -51,6 +47,10 @@ pub mod v3 {
             rename = "xyz.amorgan.generate_blurhash"
         )]
         pub generate_blurhash: bool,
+
+        /// The file contents to upload.
+        #[ruma_api(raw_body)]
+        pub file: Vec<u8>,
     }
 
     /// Response type for the `create_media_content` endpoint.
@@ -72,9 +72,9 @@ pub mod v3 {
         pub blurhash: Option<String>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given file contents.
-        pub fn new(file: &'a [u8]) -> Self {
+        pub fn new(file: Vec<u8>) -> Self {
             Self {
                 file,
                 filename: None,

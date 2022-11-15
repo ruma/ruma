@@ -24,10 +24,10 @@ pub mod v1 {
 
     /// Request type for the `check_registration_token_validity` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The registration token to check the validity of.
         #[ruma_api(query)]
-        pub registration_token: &'a str,
+        pub registration_token: String,
     }
 
     /// Response type for the `check_registration_token_validity` endpoint.
@@ -37,9 +37,9 @@ pub mod v1 {
         pub valid: bool,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given registration token.
-        pub fn new(registration_token: &'a str) -> Self {
+        pub fn new(registration_token: String) -> Self {
             Self { registration_token }
         }
     }

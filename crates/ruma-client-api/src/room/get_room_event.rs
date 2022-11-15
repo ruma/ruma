@@ -12,7 +12,7 @@ pub mod v3 {
         events::AnyTimelineEvent,
         metadata,
         serde::Raw,
-        EventId, RoomId,
+        OwnedEventId, OwnedRoomId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -27,14 +27,14 @@ pub mod v3 {
 
     /// Request type for the `get_room_event` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The ID of the room the event is in.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The ID of the event.
         #[ruma_api(path)]
-        pub event_id: &'a EventId,
+        pub event_id: OwnedEventId,
     }
 
     /// Response type for the `get_room_event` endpoint.
@@ -45,9 +45,9 @@ pub mod v3 {
         pub event: Raw<AnyTimelineEvent>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room ID and event ID.
-        pub fn new(room_id: &'a RoomId, event_id: &'a EventId) -> Self {
+        pub fn new(room_id: OwnedRoomId, event_id: OwnedEventId) -> Self {
             Self { room_id, event_id }
         }
     }

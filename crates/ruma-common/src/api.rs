@@ -56,13 +56,13 @@ use crate::UserId;
 ///   object).
 /// * `#[ruma_api(raw_body)]`: Like `body` in that the field annotated with it represents the
 ///   entire request body, but this attribute is for endpoints where the body can be anything,
-///   not just JSON. The field type must be `&[u8]`.
+///   not just JSON. The field type must be `Vec<u8>`.
 ///
 /// ## Examples
 ///
 /// ```
 /// pub mod do_a_thing {
-///     use ruma_common::{api::request, RoomId};
+///     use ruma_common::{api::request, OwnedRoomId};
 ///     # use ruma_common::{
 ///     #     api::{response, Metadata},
 ///     #     metadata,
@@ -79,12 +79,12 @@ use crate::UserId;
 ///     # };
 ///
 ///     #[request]
-///     pub struct Request<'a> {
+///     pub struct Request {
 ///         #[ruma_api(path)]
-///         pub room_id: &'a RoomId,
+///         pub room_id: OwnedRoomId,
 ///
 ///         #[ruma_api(query)]
-///         pub bar: &'a str,
+///         pub bar: String,
 ///
 ///         #[serde(default)]
 ///         pub foo: String,
@@ -115,15 +115,15 @@ use crate::UserId;
 ///     # };
 ///
 ///     #[request]
-///     pub struct Request<'a> {
+///     pub struct Request {
 ///         #[ruma_api(path)]
-///         pub file_name: &'a str,
+///         pub file_name: String,
 ///
 ///         #[ruma_api(header = CONTENT_TYPE)]
 ///         pub content_type: String,
 ///
 ///         #[ruma_api(raw_body)]
-///         pub file: &'a [u8],
+///         pub file: Vec<u8>,
 ///     }
 ///
 ///     // #[response]

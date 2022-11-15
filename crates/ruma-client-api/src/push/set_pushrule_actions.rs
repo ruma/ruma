@@ -28,7 +28,7 @@ pub mod v3 {
 
     /// Request type for the `set_pushrule_actions` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The scope to fetch a rule from.
         #[ruma_api(path)]
         pub scope: RuleScope,
@@ -39,7 +39,7 @@ pub mod v3 {
 
         /// The identifier for the rule.
         #[ruma_api(path)]
-        pub rule_id: &'a str,
+        pub rule_id: String,
 
         /// The actions to perform for this rule
         pub actions: Vec<Action>,
@@ -50,12 +50,12 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given scope, rule kind, rule ID and actions.
         pub fn new(
             scope: RuleScope,
             kind: RuleKind,
-            rule_id: &'a str,
+            rule_id: String,
             actions: Vec<Action>,
         ) -> Self {
             Self { scope, kind, rule_id, actions }

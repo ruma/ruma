@@ -13,7 +13,7 @@ pub mod v3 {
         api::{request, response, Metadata},
         metadata,
         serde::Raw,
-        RoomId,
+        OwnedRoomId,
     };
 
     use crate::backup::KeyBackupData;
@@ -31,14 +31,14 @@ pub mod v3 {
 
     /// Request type for the `get_backup_keys_for_room` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The backup version to retrieve keys from.
         #[ruma_api(query)]
-        pub version: &'a str,
+        pub version: String,
 
         /// The ID of the room that the requested key is for.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
     }
 
     /// Response type for the `get_backup_keys_for_room` endpoint.
@@ -48,9 +48,9 @@ pub mod v3 {
         pub sessions: BTreeMap<String, Raw<KeyBackupData>>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given version and room_id.
-        pub fn new(version: &'a str, room_id: &'a RoomId) -> Self {
+        pub fn new(version: String, room_id: OwnedRoomId) -> Self {
             Self { version, room_id }
         }
     }

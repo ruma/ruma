@@ -11,7 +11,7 @@ pub mod v3 {
         api::{request, response, Metadata},
         metadata,
         presence::PresenceState,
-        UserId,
+        OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -26,17 +26,17 @@ pub mod v3 {
 
     /// Request type for the `set_presence` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The user whose presence state will be updated.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
 
         /// The new presence state.
         pub presence: PresenceState,
 
         /// The status message to attach to this state.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub status_msg: Option<&'a str>,
+        pub status_msg: Option<String>,
     }
 
     /// Response type for the `set_presence` endpoint.
@@ -44,9 +44,9 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given user ID and presence state.
-        pub fn new(user_id: &'a UserId, presence: PresenceState) -> Self {
+        pub fn new(user_id: OwnedUserId, presence: PresenceState) -> Self {
             Self { user_id, presence, status_msg: None }
         }
     }

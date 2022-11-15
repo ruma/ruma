@@ -12,7 +12,7 @@ pub mod v2 {
         api::{request, response, Metadata},
         metadata,
         serde::Raw,
-        MilliSecondsSinceUnixEpoch, ServerName,
+        MilliSecondsSinceUnixEpoch, OwnedServerName,
     };
 
     use crate::discovery::ServerSigningKeys;
@@ -30,10 +30,10 @@ pub mod v2 {
 
     /// Request type for the `get_remote_server_keys` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The server's DNS name to query
         #[ruma_api(path)]
-        pub server_name: &'a ServerName,
+        pub server_name: OwnedServerName,
 
         /// A millisecond POSIX timestamp in milliseconds indicating when the returned certificates
         /// will need to be valid until to be useful to the requesting server.
@@ -51,10 +51,10 @@ pub mod v2 {
         pub server_keys: Vec<Raw<ServerSigningKeys>>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given server name and `minimum_valid_until` timestamp.
         pub fn new(
-            server_name: &'a ServerName,
+            server_name: OwnedServerName,
             minimum_valid_until_ts: MilliSecondsSinceUnixEpoch,
         ) -> Self {
             Self { server_name, minimum_valid_until_ts }

@@ -9,7 +9,7 @@ pub mod v1 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, RoomId, RoomVersionId, UserId,
+        metadata, OwnedRoomId, OwnedUserId, RoomVersionId,
     };
     use serde_json::value::RawValue as RawJsonValue;
 
@@ -25,20 +25,20 @@ pub mod v1 {
 
     /// Request type for the `create_knock_event_template` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room ID that should receive the knock.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The user ID the knock event will be for.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
 
         /// The room versions the sending has support for.
         ///
-        /// Defaults to `&[RoomVersionId::V1]`.
+        /// Defaults to `vec![RoomVersionId::V1]`.
         #[ruma_api(query)]
-        pub ver: &'a [RoomVersionId],
+        pub ver: Vec<RoomVersionId>,
     }
 
     /// Response type for the `create_knock_event_template` endpoint.
@@ -53,10 +53,10 @@ pub mod v1 {
         pub event: Box<RawJsonValue>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a `Request` with the given room ID and user ID.
-        pub fn new(room_id: &'a RoomId, user_id: &'a UserId) -> Self {
-            Self { room_id, user_id, ver: &[RoomVersionId::V1] }
+        pub fn new(room_id: OwnedRoomId, user_id: OwnedUserId) -> Self {
+            Self { room_id, user_id, ver: vec![RoomVersionId::V1] }
         }
     }
 

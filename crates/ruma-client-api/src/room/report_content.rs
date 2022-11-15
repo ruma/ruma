@@ -10,7 +10,7 @@ pub mod v3 {
     use js_int::Int;
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, EventId, RoomId,
+        metadata, OwnedEventId, OwnedRoomId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -25,14 +25,14 @@ pub mod v3 {
 
     /// Request type for the `report_content` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// Room in which the event to be reported is located.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// Event to report.
         #[ruma_api(path)]
-        pub event_id: &'a EventId,
+        pub event_id: OwnedEventId,
 
         /// Integer between -100 and 0 rating offensivness.
         pub score: Option<Int>,
@@ -40,7 +40,7 @@ pub mod v3 {
         /// Reason to report content.
         ///
         /// May be blank.
-        pub reason: Option<&'a str>,
+        pub reason: Option<String>,
     }
 
     /// Response type for the `report_content` endpoint.
@@ -48,13 +48,13 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room ID, event ID, score and reason.
         pub fn new(
-            room_id: &'a RoomId,
-            event_id: &'a EventId,
+            room_id: OwnedRoomId,
+            event_id: OwnedEventId,
             score: Option<Int>,
-            reason: Option<&'a str>,
+            reason: Option<String>,
         ) -> Self {
             Self { room_id, event_id, score, reason }
         }

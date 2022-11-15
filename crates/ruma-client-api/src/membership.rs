@@ -16,36 +16,34 @@ pub mod unban_user;
 
 use std::collections::BTreeMap;
 
-use ruma_common::{
-    serde::Incoming, thirdparty::Medium, OwnedServerName, OwnedServerSigningKeyId, UserId,
-};
-use serde::Serialize;
+use ruma_common::{thirdparty::Medium, OwnedServerName, OwnedServerSigningKeyId, OwnedUserId};
+use serde::{Deserialize, Serialize};
 
 /// A signature of an `m.third_party_invite` token to prove that this user owns a third party
 /// identity which has been invited to the room.
-#[derive(Clone, Debug, Incoming, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct ThirdPartySigned<'a> {
+pub struct ThirdPartySigned {
     /// The Matrix ID of the user who issued the invite.
-    pub sender: &'a UserId,
+    pub sender: OwnedUserId,
 
     /// The Matrix ID of the invitee.
-    pub mxid: &'a UserId,
+    pub mxid: OwnedUserId,
 
     /// The state key of the `m.third_party_invite` event.
-    pub token: &'a str,
+    pub token: String,
 
     /// A signatures object containing a signature of the entire signed object.
     pub signatures: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
 }
 
-impl<'a> ThirdPartySigned<'a> {
+impl ThirdPartySigned {
     /// Creates a new `ThirdPartySigned` from the given sender and invitee user IDs, state key token
     /// and signatures.
     pub fn new(
-        sender: &'a UserId,
-        mxid: &'a UserId,
-        token: &'a str,
+        sender: OwnedUserId,
+        mxid: OwnedUserId,
+        token: String,
         signatures: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
     ) -> Self {
         Self { sender, mxid, token, signatures }
@@ -56,20 +54,20 @@ impl<'a> ThirdPartySigned<'a> {
 ///
 /// To create an instance of this type, first create a `Invite3pidInit` and convert it via
 /// `Invite3pid::from` / `.into()`.
-#[derive(Clone, Debug, Incoming, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct Invite3pid<'a> {
+pub struct Invite3pid {
     /// Hostname and port of identity server to be used for account lookups.
-    pub id_server: &'a str,
+    pub id_server: String,
 
     /// An access token registered with the identity server.
-    pub id_access_token: &'a str,
+    pub id_access_token: String,
 
     /// Type of third party ID.
     pub medium: Medium,
 
     /// Third party identifier.
-    pub address: &'a str,
+    pub address: String,
 }
 
 /// Initial set of fields of `Invite3pid`.
@@ -78,22 +76,22 @@ pub struct Invite3pid<'a> {
 /// (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
 #[allow(clippy::exhaustive_structs)]
-pub struct Invite3pidInit<'a> {
+pub struct Invite3pidInit {
     /// Hostname and port of identity server to be used for account lookups.
-    pub id_server: &'a str,
+    pub id_server: String,
 
     /// An access token registered with the identity server.
-    pub id_access_token: &'a str,
+    pub id_access_token: String,
 
     /// Type of third party ID.
     pub medium: Medium,
 
     /// Third party identifier.
-    pub address: &'a str,
+    pub address: String,
 }
 
-impl<'a> From<Invite3pidInit<'a>> for Invite3pid<'a> {
-    fn from(init: Invite3pidInit<'a>) -> Self {
+impl From<Invite3pidInit> for Invite3pid {
+    fn from(init: Invite3pidInit) -> Self {
         let Invite3pidInit { id_server, id_access_token, medium, address } = init;
         Self { id_server, id_access_token, medium, address }
     }

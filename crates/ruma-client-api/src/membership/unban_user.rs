@@ -9,7 +9,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, RoomId, UserId,
+        metadata, OwnedRoomId, OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -24,17 +24,17 @@ pub mod v3 {
 
     /// Request type for the `unban_user` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room to unban the user from.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The user to unban.
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
 
         /// Optional reason for unbanning the user.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub reason: Option<&'a str>,
+        pub reason: Option<String>,
     }
 
     /// Response type for the `unban_user` endpoint.
@@ -42,9 +42,9 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room id and room id.
-        pub fn new(room_id: &'a RoomId, user_id: &'a UserId) -> Self {
+        pub fn new(room_id: OwnedRoomId, user_id: OwnedUserId) -> Self {
             Self { room_id, user_id, reason: None }
         }
     }

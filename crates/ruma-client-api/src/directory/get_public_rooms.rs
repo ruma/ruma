@@ -11,7 +11,7 @@ pub mod v3 {
     use ruma_common::{
         api::{request, response, Metadata},
         directory::PublicRoomsChunk,
-        metadata, ServerName,
+        metadata, OwnedServerName,
     };
 
     const METADATA: Metadata = metadata! {
@@ -27,7 +27,7 @@ pub mod v3 {
     /// Request type for the `get_public_rooms` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// Limit for the number of results to return.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
@@ -36,14 +36,14 @@ pub mod v3 {
         /// Pagination token from a previous request.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub since: Option<&'a str>,
+        pub since: Option<String>,
 
         /// The server to fetch the public room lists from.
         ///
         /// `None` means the server this request is sent to.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub server: Option<&'a ServerName>,
+        pub server: Option<OwnedServerName>,
     }
 
     /// Response type for the `get_public_rooms` endpoint.
@@ -65,7 +65,7 @@ pub mod v3 {
         pub total_room_count_estimate: Option<UInt>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates an empty `Request`.
         pub fn new() -> Self {
             Default::default()
@@ -93,8 +93,8 @@ pub mod v3 {
 
             let req = super::Request {
                 limit: Some(uint!(10)),
-                since: Some("hello"),
-                server: Some(server_name!("test.tld")),
+                since: Some("hello".to_owned()),
+                server: Some(server_name!("test.tld").to_owned()),
             }
             .try_into_http_request::<Vec<u8>>(
                 "https://homeserver.tld",

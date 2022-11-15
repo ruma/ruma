@@ -9,7 +9,7 @@ pub mod v1 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, EventId, MilliSecondsSinceUnixEpoch, OwnedServerName,
+        metadata, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedServerName,
     };
     use serde_json::value::RawValue as RawJsonValue;
 
@@ -24,10 +24,10 @@ pub mod v1 {
 
     /// Request type for the `get_event` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The event ID to get.
         #[ruma_api(path)]
-        pub event_id: &'a EventId,
+        pub event_id: OwnedEventId,
     }
 
     /// Response type for the `get_event` endpoint.
@@ -44,9 +44,9 @@ pub mod v1 {
         pub pdu: Box<RawJsonValue>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given event id.
-        pub fn new(event_id: &'a EventId) -> Self {
+        pub fn new(event_id: OwnedEventId) -> Self {
             Self { event_id }
         }
     }

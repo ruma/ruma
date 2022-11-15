@@ -12,7 +12,7 @@ pub mod v3 {
         events::AnyGlobalAccountDataEventContent,
         metadata,
         serde::Raw,
-        UserId,
+        OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -27,14 +27,14 @@ pub mod v3 {
 
     /// Request type for the `get_global_account_data` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// User ID of user for whom to retrieve data.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
 
         /// Type of data to retrieve.
         #[ruma_api(path)]
-        pub event_type: &'a str,
+        pub event_type: String,
     }
 
     /// Response type for the `get_global_account_data` endpoint.
@@ -47,9 +47,9 @@ pub mod v3 {
         pub account_data: Raw<AnyGlobalAccountDataEventContent>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given user ID and event type.
-        pub fn new(user_id: &'a UserId, event_type: &'a str) -> Self {
+        pub fn new(user_id: OwnedUserId, event_type: String) -> Self {
             Self { user_id, event_type }
         }
     }

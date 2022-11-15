@@ -23,10 +23,10 @@ pub mod v1 {
 
     /// Request type for the `get_openid_userinfo` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The OpenID access token to get information about the owner for.
         #[ruma_api(query)]
-        pub access_token: &'a str,
+        pub access_token: String,
     }
 
     /// Response type for the `get_openid_userinfo` endpoint.
@@ -36,9 +36,9 @@ pub mod v1 {
         pub sub: OwnedUserId,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given access token.
-        pub fn new(access_token: &'a str) -> Self {
+        pub fn new(access_token: String) -> Self {
             Self { access_token }
         }
     }

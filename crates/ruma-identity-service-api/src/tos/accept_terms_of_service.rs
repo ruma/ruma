@@ -23,11 +23,11 @@ pub mod v2 {
 
     /// Request type for the `accept_terms_of_service` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The URLs the user is accepting in this request.
         ///
         /// An example is `https://example.org/somewhere/terms-2.0-en.html`.
-        pub user_accepts: &'a [String],
+        pub user_accepts: Vec<String>,
     }
 
     /// Response type for the `accept_terms_of_service` endpoint.
@@ -35,9 +35,9 @@ pub mod v2 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given URLs which the user accepts.
-        pub fn new(user_accepts: &'a [String]) -> Self {
+        pub fn new(user_accepts: Vec<String>) -> Self {
             Self { user_accepts }
         }
     }

@@ -9,10 +9,10 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, OwnedRoomId, OwnedServerName, RoomOrAliasId,
+        metadata, OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName,
     };
 
-    use crate::membership::{IncomingThirdPartySigned, ThirdPartySigned};
+    use crate::membership::ThirdPartySigned;
 
     const METADATA: Metadata = metadata! {
         method: POST,
@@ -26,26 +26,26 @@ pub mod v3 {
 
     /// Request type for the `join_room_by_id_or_alias` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room where the user should be invited.
         #[ruma_api(path)]
-        pub room_id_or_alias: &'a RoomOrAliasId,
+        pub room_id_or_alias: OwnedRoomOrAliasId,
 
         /// The servers to attempt to join the room through.
         ///
         /// One of the servers  must be participating in the room.
         #[ruma_api(query)]
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub server_name: &'a [OwnedServerName],
+        pub server_name: Vec<OwnedServerName>,
 
         /// The signature of a `m.third_party_invite` token to prove that this user owns a third
         /// party identity which has been invited to the room.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub third_party_signed: Option<ThirdPartySigned<'a>>,
+        pub third_party_signed: Option<ThirdPartySigned>,
 
         /// Optional reason for joining the room.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub reason: Option<&'a str>,
+        pub reason: Option<String>,
     }
 
     /// Response type for the `join_room_by_id_or_alias` endpoint.
@@ -55,10 +55,10 @@ pub mod v3 {
         pub room_id: OwnedRoomId,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room ID or alias ID.
-        pub fn new(room_id_or_alias: &'a RoomOrAliasId) -> Self {
-            Self { room_id_or_alias, server_name: &[], third_party_signed: None, reason: None }
+        pub fn new(room_id_or_alias: OwnedRoomOrAliasId) -> Self {
+            Self { room_id_or_alias, server_name: vec![], third_party_signed: None, reason: None }
         }
     }
 

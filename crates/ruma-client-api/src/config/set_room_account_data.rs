@@ -14,7 +14,7 @@ pub mod v3 {
         },
         metadata,
         serde::Raw,
-        RoomId, UserId,
+        OwnedRoomId, OwnedUserId,
     };
     use serde_json::value::to_raw_value as to_raw_json_value;
 
@@ -30,16 +30,16 @@ pub mod v3 {
 
     /// Request type for the `set_room_account_data` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The ID of the user to set account_data for.
         ///
         /// The access token must be authorized to make requests for this user ID.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
 
         /// The ID of the room to set account_data on.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The event type of the account_data to set.
         ///
@@ -59,7 +59,7 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given data, event type, room ID and user ID.
         ///
         /// # Errors
@@ -67,9 +67,9 @@ pub mod v3 {
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
         pub fn new<T>(
-            user_id: &'a UserId,
-            room_id: &'a RoomId,
-            data: &'a T,
+            user_id: OwnedUserId,
+            room_id: OwnedRoomId,
+            data: &T,
         ) -> serde_json::Result<Self>
         where
             T: RoomAccountDataEventContent,
@@ -84,8 +84,8 @@ pub mod v3 {
 
         /// Creates a new `Request` with the given raw data, event type, room ID and user ID.
         pub fn new_raw(
-            user_id: &'a UserId,
-            room_id: &'a RoomId,
+            user_id: OwnedUserId,
+            room_id: OwnedRoomId,
             event_type: RoomAccountDataEventType,
             data: Raw<AnyRoomAccountDataEventContent>,
         ) -> Self {

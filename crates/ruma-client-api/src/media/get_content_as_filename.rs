@@ -10,7 +10,7 @@ pub mod v3 {
     use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, IdParseError, MxcUri, ServerName,
+        metadata, IdParseError, MxcUri, OwnedServerName,
     };
 
     use crate::http_headers::CROSS_ORIGIN_RESOURCE_POLICY;
@@ -27,18 +27,18 @@ pub mod v3 {
 
     /// Request type for the `get_media_content_as_filename` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The server name from the mxc:// URI (the authoritory component).
         #[ruma_api(path)]
-        pub server_name: &'a ServerName,
+        pub server_name: OwnedServerName,
 
         /// The media ID from the mxc:// URI (the path component).
         #[ruma_api(path)]
-        pub media_id: &'a str,
+        pub media_id: String,
 
         /// The filename to return in the `Content-Disposition` header.
         #[ruma_api(path)]
-        pub filename: &'a str,
+        pub filename: String,
 
         /// Whether to fetch media deemed remote.
         ///
@@ -80,17 +80,22 @@ pub mod v3 {
         pub cross_origin_resource_policy: Option<String>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given media ID, server name and filename.
-        pub fn new(media_id: &'a str, server_name: &'a ServerName, filename: &'a str) -> Self {
+        pub fn new(media_id: String, server_name: OwnedServerName, filename: String) -> Self {
             Self { media_id, server_name, filename, allow_remote: true }
         }
 
         /// Creates a new `Request` with the given url and filename.
-        pub fn from_url(url: &'a MxcUri, filename: &'a str) -> Result<Self, IdParseError> {
+        pub fn from_url(url: &MxcUri, filename: String) -> Result<Self, IdParseError> {
             let (server_name, media_id) = url.parts()?;
 
-            Ok(Self { media_id, server_name, filename, allow_remote: true })
+            Ok(Self {
+                media_id: media_id.to_owned(),
+                server_name: server_name.to_owned(),
+                filename,
+                allow_remote: true,
+            })
         }
     }
 

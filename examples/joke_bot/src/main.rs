@@ -13,7 +13,7 @@ use ruma::{
     },
     presence::PresenceState,
     serde::Raw,
-    OwnedUserId, RoomId, TransactionId, UserId,
+    OwnedRoomId, OwnedUserId, TransactionId, UserId,
 };
 use serde_json::Value as JsonValue;
 use tokio::fs;
@@ -63,11 +63,11 @@ async fn run() -> Result<(), Box<dyn Error>> {
     let filter = FilterDefinition::ignore_all().into();
     let initial_sync_response = matrix_client
         .send_request(assign!(sync_events::v3::Request::new(), {
-            filter: Some(&filter),
+            filter: Some(filter),
         }))
         .await?;
     let user_id = &config.username;
-    let not_senders = &[user_id.clone()];
+    let not_senders = vec![user_id.clone()];
     let filter = {
         let mut filter = FilterDefinition::empty();
         filter.room.timeline.not_senders = not_senders;
@@ -76,9 +76,9 @@ async fn run() -> Result<(), Box<dyn Error>> {
     .into();
 
     let mut sync_stream = Box::pin(matrix_client.sync(
-        Some(&filter),
+        Some(filter),
         initial_sync_response.next_batch,
-        &PresenceState::Online,
+        PresenceState::Online,
         Some(Duration::from_secs(30)),
     ));
 
@@ -92,15 +92,16 @@ async fn run() -> Result<(), Box<dyn Error>> {
             // Use a regular for loop for the messages within one room to handle them sequentially
             for e in &room_info.timeline.events {
                 if let Err(err) =
-                    handle_message(http_client, matrix_client, e, room_id, user_id).await
+                    handle_message(http_client, matrix_client, e, room_id.to_owned(), user_id).await
                 {
                     eprintln!("failed to respond to message: {err}");
                 }
             }
         });
 
-        let invite_futures = response.rooms.invite.keys().map(|room_id| async move {
-            if let Err(err) = handle_invitations(http_client, matrix_client, room_id).await {
+        let invite_futures = response.rooms.invite.into_keys().map(|room_id| async move {
+            if let Err(err) = handle_invitations(http_client, matrix_client, room_id.clone()).await
+            {
                 eprintln!("failed to accept invitation for room {room_id}: {err}");
             }
         });
@@ -146,7 +147,7 @@ async fn handle_message(
     http_client: &HttpClient,
     matrix_client: &MatrixClient,
     e: &Raw<AnySyncTimelineEvent>,
-    room_id: &RoomId,
+    room_id: OwnedRoomId,
     bot_user_id: &UserId,
 ) -> Result<(), Box<dyn Error>> {
     if let Ok(AnySyncTimelineEvent::MessageLike(AnySyncMessageLikeEvent::RoomMessage(
@@ -168,7 +169,11 @@ async fn handle_message(
                 let joke_content = RoomMessageEventContent::text_plain(joke);
 
                 let txn_id = TransactionId::new();
-                let req = send_message_event::v3::Request::new(room_id, &txn_id, &joke_content)?;
+                let req = send_message_event::v3::Request::new(
+                    room_id.to_owned(),
+                    txn_id,
+                    &joke_content,
+                )?;
                 // Do nothing if we can't send the message.
                 let _ = matrix_client.send_request(req).await;
             }
@@ -181,16 +186,16 @@ async fn handle_message(
 async fn handle_invitations(
     http_client: &HttpClient,
     matrix_client: &MatrixClient,
-    room_id: &RoomId,
+    room_id: OwnedRoomId,
 ) -> Result<(), Box<dyn Error>> {
     println!("invited to {room_id}");
-    matrix_client.send_request(join_room_by_id::v3::Request::new(room_id)).await?;
+    matrix_client.send_request(join_room_by_id::v3::Request::new(room_id.clone())).await?;
 
     let greeting = "Hello! My name is Mr. Bot! I like to tell jokes. Like this one: ";
     let joke = get_joke(http_client).await.unwrap_or_else(|_| "err... never mind.".to_owned());
     let content = RoomMessageEventContent::text_plain(format!("{greeting}\n{joke}"));
     let txn_id = TransactionId::new();
-    let message = send_message_event::v3::Request::new(room_id, &txn_id, &content)?;
+    let message = send_message_event::v3::Request::new(room_id, txn_id, &content)?;
     matrix_client.send_request(message).await?;
     Ok(())
 }

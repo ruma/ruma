@@ -13,8 +13,8 @@ pub mod v3 {
         api::{response, Metadata},
         events::{AnyStateEventContent, StateEventContent, StateEventType},
         metadata,
-        serde::{Incoming, Raw},
-        MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId,
+        serde::Raw,
+        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
     };
     use serde_json::value::to_raw_value as to_raw_json_value;
 
@@ -29,18 +29,17 @@ pub mod v3 {
     };
 
     /// Request type for the `send_state_event` endpoint.
-    #[derive(Clone, Debug, Incoming)]
+    #[derive(Clone, Debug)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-    #[incoming_derive(!Deserialize)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room to set the state in.
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The type of event to send.
         pub event_type: StateEventType,
 
         /// The state_key for the state to send.
-        pub state_key: &'a str,
+        pub state_key: String,
 
         /// The event content to send.
         pub body: Raw<AnyStateEventContent>,
@@ -55,7 +54,7 @@ pub mod v3 {
         pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room id, state key and event content.
         ///
         /// # Errors
@@ -63,9 +62,9 @@ pub mod v3 {
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
         pub fn new<T, K>(
-            room_id: &'a RoomId,
-            state_key: &'a K,
-            content: &'a T,
+            room_id: OwnedRoomId,
+            state_key: &K,
+            content: &T,
         ) -> serde_json::Result<Self>
         where
             T: StateEventContent,
@@ -74,7 +73,7 @@ pub mod v3 {
         {
             Ok(Self {
                 room_id,
-                state_key: state_key.as_ref(),
+                state_key: state_key.as_ref().to_owned(),
                 event_type: content.event_type(),
                 body: Raw::from_json(to_raw_json_value(content)?),
                 timestamp: None,
@@ -84,9 +83,9 @@ pub mod v3 {
         /// Creates a new `Request` with the given room id, event type, state key and raw event
         /// content.
         pub fn new_raw(
-            room_id: &'a RoomId,
+            room_id: OwnedRoomId,
             event_type: StateEventType,
-            state_key: &'a str,
+            state_key: String,
             body: Raw<AnyStateEventContent>,
         ) -> Self {
             Self { room_id, event_type, state_key, body, timestamp: None }
@@ -108,7 +107,7 @@ pub mod v3 {
     }
 
     #[cfg(feature = "client")]
-    impl<'a> ruma_common::api::OutgoingRequest for Request<'a> {
+    impl ruma_common::api::OutgoingRequest for Request {
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
 
@@ -151,7 +150,7 @@ pub mod v3 {
     }
 
     #[cfg(feature = "server")]
-    impl ruma_common::api::IncomingRequest for IncomingRequest {
+    impl ruma_common::api::IncomingRequest for Request {
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
 
@@ -165,8 +164,6 @@ pub mod v3 {
             B: AsRef<[u8]>,
             S: AsRef<str>,
         {
-            use ruma_common::OwnedRoomId;
-
             // FIXME: find a way to make this if-else collapse with serde recognizing trailing
             // Option
             let (room_id, event_type, state_key): (OwnedRoomId, StateEventType, String) =
@@ -219,7 +216,7 @@ pub mod v3 {
 
         // This used to panic in make_endpoint_url because of a mismatch in the path parameter count
         let req = Request::new(
-            room_id!("!room:server.tld"),
+            room_id!("!room:server.tld").to_owned(),
             &EmptyStateKey,
             &RoomNameEventContent::new(Some("Test room".to_owned())),
         )

@@ -10,7 +10,7 @@ pub mod v1 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, RoomId, RoomVersionId, UserId,
+        metadata, OwnedRoomId, OwnedUserId, RoomVersionId,
     };
     use serde_json::value::RawValue as RawJsonValue;
 
@@ -25,14 +25,14 @@ pub mod v1 {
 
     /// Request type for the `get_leave_event` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room ID that is about to be left.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The user ID the leave event will be for.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
     }
 
     /// Response type for the `get_leave_event` endpoint.
@@ -50,11 +50,11 @@ pub mod v1 {
         pub event: Box<RawJsonValue>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with:
         /// * the room ID that is about to be left.
         /// * the user ID the leave event will be for.
-        pub fn new(room_id: &'a RoomId, user_id: &'a UserId) -> Self {
+        pub fn new(room_id: OwnedRoomId, user_id: OwnedUserId) -> Self {
             Self { room_id, user_id }
         }
     }

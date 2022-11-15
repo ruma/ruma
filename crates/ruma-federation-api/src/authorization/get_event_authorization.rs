@@ -9,7 +9,7 @@ pub mod v1 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, EventId, RoomId,
+        metadata, OwnedEventId, OwnedRoomId,
     };
     use serde_json::value::RawValue as RawJsonValue;
 
@@ -24,14 +24,14 @@ pub mod v1 {
 
     /// Request type for the `get_event_authorization` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room ID to get the auth chain for.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The event ID to get the auth chain for.
         #[ruma_api(path)]
-        pub event_id: &'a EventId,
+        pub event_id: OwnedEventId,
     }
 
     /// Response type for the `get_event_authorization` endpoint.
@@ -42,9 +42,9 @@ pub mod v1 {
         pub auth_chain: Vec<Box<RawJsonValue>>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room id and event id.
-        pub fn new(room_id: &'a RoomId, event_id: &'a EventId) -> Self {
+        pub fn new(room_id: OwnedRoomId, event_id: OwnedEventId) -> Self {
             Self { room_id, event_id }
         }
     }

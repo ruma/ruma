@@ -8,7 +8,7 @@ use ruma_common::{
     events::{room::member::RoomMemberEventContent, StateEventType},
     metadata,
     serde::Raw,
-    EventId, MilliSecondsSinceUnixEpoch, RoomId, ServerName, UserId,
+    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedServerName, OwnedUserId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -23,22 +23,22 @@ const METADATA: Metadata = metadata! {
 
 /// Request type for the `create_leave_event` endpoint.
 #[request]
-pub struct Request<'a> {
+pub struct Request {
     /// The room ID that is about to be left.
     #[ruma_api(path)]
-    pub room_id: &'a RoomId,
+    pub room_id: OwnedRoomId,
 
     /// The event ID for the leave event.
     #[ruma_api(path)]
-    pub event_id: &'a EventId,
+    pub event_id: OwnedEventId,
 
     /// The user ID of the leaving member.
     #[ruma_api(query)]
-    pub sender: &'a UserId,
+    pub sender: OwnedUserId,
 
     /// The name of the leaving homeserver.
     #[ruma_api(query)]
-    pub origin: &'a ServerName,
+    pub origin: OwnedServerName,
 
     /// A timestamp added by the leaving homeserver.
     #[ruma_api(query)]
@@ -51,7 +51,7 @@ pub struct Request<'a> {
 
     /// The user ID of the leaving member.
     #[ruma_api(query)]
-    pub state_key: &'a str,
+    pub state_key: String,
 
     /// The content of the event.
     #[ruma_api(query)]
@@ -80,18 +80,18 @@ pub struct Response {
 /// new (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
 #[allow(clippy::exhaustive_structs)]
-pub struct RequestInit<'a> {
+pub struct RequestInit {
     /// The room ID that is about to be left.
-    pub room_id: &'a RoomId,
+    pub room_id: OwnedRoomId,
 
     /// The event ID for the leave event.
-    pub event_id: &'a EventId,
+    pub event_id: OwnedEventId,
 
     /// The user ID of the leaving member.
-    pub sender: &'a UserId,
+    pub sender: OwnedUserId,
 
     /// The name of the leaving homeserver.
-    pub origin: &'a ServerName,
+    pub origin: OwnedServerName,
 
     /// A timestamp added by the leaving homeserver.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -100,7 +100,7 @@ pub struct RequestInit<'a> {
     pub event_type: StateEventType,
 
     /// The user ID of the leaving member.
-    pub state_key: &'a str,
+    pub state_key: String,
 
     /// The content of the event.
     pub content: Raw<RoomMemberEventContent>,
@@ -109,9 +109,9 @@ pub struct RequestInit<'a> {
     pub depth: UInt,
 }
 
-impl<'a> From<RequestInit<'a>> for Request<'a> {
+impl From<RequestInit> for Request {
     /// Creates a new `Request` from `RequestInit`.
-    fn from(init: RequestInit<'a>) -> Self {
+    fn from(init: RequestInit) -> Self {
         let RequestInit {
             room_id,
             event_id,

@@ -13,10 +13,10 @@ pub mod v3 {
         events::{AnyStateEvent, AnyTimelineEvent},
         metadata,
         serde::Raw,
-        EventId, RoomId,
+        OwnedEventId, OwnedRoomId,
     };
 
-    use crate::filter::{IncomingRoomEventFilter, RoomEventFilter};
+    use crate::filter::RoomEventFilter;
 
     const METADATA: Metadata = metadata! {
         method: GET,
@@ -30,14 +30,14 @@ pub mod v3 {
 
     /// Request type for the `get_context` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room to get events from.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The event to get context around.
         #[ruma_api(path)]
-        pub event_id: &'a EventId,
+        pub event_id: OwnedEventId,
 
         /// The maximum number of events to return.
         ///
@@ -53,7 +53,7 @@ pub mod v3 {
             default,
             skip_serializing_if = "RoomEventFilter::is_empty"
         )]
-        pub filter: RoomEventFilter<'a>,
+        pub filter: RoomEventFilter,
     }
 
     /// Response type for the `get_context` endpoint.
@@ -87,9 +87,9 @@ pub mod v3 {
         pub state: Vec<Raw<AnyStateEvent>>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room id and event id.
-        pub fn new(room_id: &'a RoomId, event_id: &'a EventId) -> Self {
+        pub fn new(room_id: OwnedRoomId, event_id: OwnedEventId) -> Self {
             Self { room_id, event_id, limit: default_limit(), filter: RoomEventFilter::default() }
         }
     }

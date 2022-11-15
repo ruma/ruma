@@ -33,19 +33,19 @@ const METADATA: Metadata = metadata! {
 /// Request type for the `sync` endpoint.
 #[request(error = crate::Error)]
 #[derive(Default)]
-pub struct Request<'a> {
+pub struct Request {
     /// A point in time to continue a sync from.
     ///
     /// Should be a token from the `pos` field of a previous `/sync`
     /// response.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ruma_api(query)]
-    pub pos: Option<&'a str>,
+    pub pos: Option<String>,
 
     /// Allows clients to know what request params reached the server,
     /// functionally similar to txn IDs on /send for events.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub txn_id: Option<&'a str>,
+    pub txn_id: Option<String>,
 
     /// The maximum time to poll before responding to this request.
     #[serde(with = "opt_ms", default, skip_serializing_if = "Option::is_none")]
@@ -53,7 +53,7 @@ pub struct Request<'a> {
     pub timeout: Option<Duration>,
 
     /// The lists of rooms we're interested in.
-    pub lists: &'a [SyncRequestList],
+    pub lists: Vec<SyncRequestList>,
 
     /// Specific rooms and event types that we want to receive events from.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
@@ -61,7 +61,7 @@ pub struct Request<'a> {
 
     /// Specific rooms we no longer want to receive events from.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub unsubscribe_rooms: &'a [OwnedRoomId],
+    pub unsubscribe_rooms: Vec<OwnedRoomId>,
 
     /// Extensions API.
     #[serde(default, skip_serializing_if = "ExtensionsConfig::is_empty")]
@@ -92,7 +92,7 @@ pub struct Response {
     pub extensions: Extensions,
 }
 
-impl Request<'_> {
+impl Request {
     /// Creates an empty `Request`.
     pub fn new() -> Self {
         Default::default()

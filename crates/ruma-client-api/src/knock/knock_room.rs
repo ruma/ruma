@@ -9,7 +9,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, OwnedRoomId, OwnedServerName, RoomOrAliasId,
+        metadata, OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName,
     };
 
     const METADATA: Metadata = metadata! {
@@ -24,21 +24,21 @@ pub mod v3 {
 
     /// Request type for the `knock_room` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room the user should knock on.
         #[ruma_api(path)]
-        pub room_id_or_alias: &'a RoomOrAliasId,
+        pub room_id_or_alias: OwnedRoomOrAliasId,
 
         /// The reason for joining a room.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub reason: Option<&'a str>,
+        pub reason: Option<String>,
 
         /// The servers to attempt to knock on the room through.
         ///
         /// One of the servers must be participating in the room.
         #[ruma_api(query)]
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub server_name: &'a [OwnedServerName],
+        pub server_name: Vec<OwnedServerName>,
     }
 
     /// Response type for the `knock_room` endpoint.
@@ -48,10 +48,10 @@ pub mod v3 {
         pub room_id: OwnedRoomId,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room ID or alias.
-        pub fn new(room_id_or_alias: &'a RoomOrAliasId) -> Self {
-            Self { room_id_or_alias, reason: None, server_name: &[] }
+        pub fn new(room_id_or_alias: OwnedRoomOrAliasId) -> Self {
+            Self { room_id_or_alias, reason: None, server_name: vec![] }
         }
     }
 

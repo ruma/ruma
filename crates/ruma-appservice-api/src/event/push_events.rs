@@ -21,7 +21,7 @@ pub mod v1 {
         events::AnyTimelineEvent,
         metadata,
         serde::Raw,
-        OwnedTransactionId, TransactionId,
+        OwnedTransactionId,
     };
     #[cfg(feature = "unstable-msc2409")]
     use ruma_common::{
@@ -48,15 +48,15 @@ pub mod v1 {
 
     /// Request type for the `push_events` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The transaction ID for this set of events.
         ///
         /// Homeservers generate these IDs and they are used to ensure idempotency of results.
         #[ruma_api(path)]
-        pub txn_id: &'a TransactionId,
+        pub txn_id: OwnedTransactionId,
 
         /// A list of events.
-        pub events: &'a [Raw<AnyTimelineEvent>],
+        pub events: Vec<Raw<AnyTimelineEvent>>,
 
         /// Information on E2E device updates.
         #[cfg(feature = "unstable-msc3202")]
@@ -96,7 +96,7 @@ pub mod v1 {
             skip_serializing_if = "<[_]>::is_empty",
             rename = "de.sorunome.msc2409.ephemeral"
         )]
-        pub ephemeral: &'a [Edu],
+        pub ephemeral: Vec<Edu>,
 
         /// A list of to-device messages.
         #[cfg(feature = "unstable-msc2409")]
@@ -105,7 +105,7 @@ pub mod v1 {
             skip_serializing_if = "<[_]>::is_empty",
             rename = "de.sorunome.msc2409.to_device"
         )]
-        pub to_device: &'a [Raw<AnyToDeviceEvent>],
+        pub to_device: Vec<Raw<AnyToDeviceEvent>>,
     }
 
     /// Response type for the `push_events` endpoint.
@@ -113,33 +113,10 @@ pub mod v1 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
-        /// Creates a new `Request` with the given transaction ID and list of events.
-        pub fn new(txn_id: &'a TransactionId, events: &'a [Raw<AnyTimelineEvent>]) -> Self {
-            Self {
-                txn_id,
-                events,
-                #[cfg(feature = "unstable-msc3202")]
-                device_lists: DeviceLists::new(),
-                #[cfg(feature = "unstable-msc3202")]
-                device_one_time_keys_count: BTreeMap::new(),
-                #[cfg(feature = "unstable-msc3202")]
-                device_unused_fallback_key_types: BTreeMap::new(),
-                #[cfg(feature = "unstable-msc2409")]
-                ephemeral: &[],
-                #[cfg(feature = "unstable-msc2409")]
-                to_device: &[],
-            }
-        }
-    }
-
-    impl IncomingRequest {
-        /// Creates an `IncomingRequest` with the given transaction ID and list of events.
-        pub fn new(
-            txn_id: OwnedTransactionId,
-            events: Vec<Raw<AnyTimelineEvent>>,
-        ) -> IncomingRequest {
-            IncomingRequest {
+    impl Request {
+        /// Creates an `Request` with the given transaction ID and list of events.
+        pub fn new(txn_id: OwnedTransactionId, events: Vec<Raw<AnyTimelineEvent>>) -> Request {
+            Request {
                 txn_id,
                 events,
                 #[cfg(feature = "unstable-msc3202")]
@@ -393,7 +370,7 @@ pub mod v1 {
             .unwrap();
             let events = vec![dummy_event];
 
-            let req = Request::new("any_txn_id".into(), &events)
+            let req = Request::new("any_txn_id".into(), events)
                 .try_into_http_request::<Vec<u8>>(
                     "https://homeserver.tld",
                     SendAccessToken::IfRequired("auth_tok"),

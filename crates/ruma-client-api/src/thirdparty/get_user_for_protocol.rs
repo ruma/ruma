@@ -27,10 +27,10 @@ pub mod v3 {
 
     /// Request type for the `get_user_for_protocol` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The protocol used to communicate to the third party network.
         #[ruma_api(path)]
-        pub protocol: &'a str,
+        pub protocol: String,
 
         /// One or more custom fields that are passed to the AS to help identify the user.
         // The specification is incorrect for this parameter. See [matrix-spec#560](https://github.com/matrix-org/matrix-spec/issues/560).
@@ -46,9 +46,9 @@ pub mod v3 {
         pub users: Vec<User>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given protocol.
-        pub fn new(protocol: &'a str) -> Self {
+        pub fn new(protocol: String) -> Self {
             Self { protocol, fields: BTreeMap::new() }
         }
     }

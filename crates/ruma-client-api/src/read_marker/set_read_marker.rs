@@ -14,7 +14,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, EventId, RoomId,
+        metadata, OwnedEventId, OwnedRoomId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -29,10 +29,10 @@ pub mod v3 {
 
     /// Request type for the `set_read_marker` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room ID to set the read marker in for the user.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The event ID the fully-read marker should be located at.
         ///
@@ -44,7 +44,7 @@ pub mod v3 {
         /// [`create_receipt`]: crate::receipt::create_receipt
         /// [`ReceiptType::FullyRead`]: crate::receipt::create_receipt::v3::ReceiptType::FullyRead
         #[serde(rename = "m.fully_read", skip_serializing_if = "Option::is_none")]
-        pub fully_read: Option<&'a EventId>,
+        pub fully_read: Option<OwnedEventId>,
 
         /// The event ID to set the public read receipt location at.
         ///
@@ -54,7 +54,7 @@ pub mod v3 {
         /// [`create_receipt`]: crate::receipt::create_receipt
         /// [`ReceiptType::Read`]: crate::receipt::create_receipt::v3::ReceiptType::Read
         #[serde(rename = "m.read", skip_serializing_if = "Option::is_none")]
-        pub read_receipt: Option<&'a EventId>,
+        pub read_receipt: Option<OwnedEventId>,
 
         /// The event ID to set the private read receipt location at.
         ///
@@ -64,7 +64,7 @@ pub mod v3 {
         /// [`create_receipt`]: crate::receipt::create_receipt
         /// [`ReceiptType::ReadPrivate`]: crate::receipt::create_receipt::v3::ReceiptType::ReadPrivate
         #[serde(rename = "m.read.private", skip_serializing_if = "Option::is_none")]
-        pub private_read_receipt: Option<&'a EventId>,
+        pub private_read_receipt: Option<OwnedEventId>,
     }
 
     /// Response type for the `set_read_marker` endpoint.
@@ -72,9 +72,9 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room ID.
-        pub fn new(room_id: &'a RoomId) -> Self {
+        pub fn new(room_id: OwnedRoomId) -> Self {
             Self { room_id, fully_read: None, read_receipt: None, private_read_receipt: None }
         }
     }

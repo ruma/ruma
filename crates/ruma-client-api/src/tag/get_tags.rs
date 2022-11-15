@@ -10,7 +10,7 @@ pub mod v3 {
     use ruma_common::{
         api::{request, response, Metadata},
         events::tag::Tags,
-        metadata, RoomId, UserId,
+        metadata, OwnedRoomId, OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -25,14 +25,14 @@ pub mod v3 {
 
     /// Request type for the `get_tags` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The user whose tags will be retrieved.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
 
         /// The room from which tags will be retrieved.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
     }
 
     /// Response type for the `get_tags` endpoint.
@@ -42,9 +42,9 @@ pub mod v3 {
         pub tags: Tags,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given user ID and room ID.
-        pub fn new(user_id: &'a UserId, room_id: &'a RoomId) -> Self {
+        pub fn new(user_id: OwnedUserId, room_id: OwnedRoomId) -> Self {
             Self { user_id, room_id }
         }
     }

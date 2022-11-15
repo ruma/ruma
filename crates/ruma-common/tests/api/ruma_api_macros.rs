@@ -119,9 +119,9 @@ pub mod raw_body_endpoint {
 
     /// Request type for the `newtype_body_endpoint` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         #[ruma_api(raw_body)]
-        pub file: &'a [u8],
+        pub file: Vec<u8>,
     }
 
     /// Response type for the `newtype_body_endpoint` endpoint.

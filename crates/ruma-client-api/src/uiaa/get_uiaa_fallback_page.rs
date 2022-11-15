@@ -25,14 +25,14 @@ pub mod v3 {
 
     /// Request type for the `authorize_fallback` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The type name ("m.login.dummy", etc.) of the uiaa stage to get a fallback page for.
         #[ruma_api(path)]
-        pub auth_type: &'a str,
+        pub auth_type: String,
 
         /// The ID of the session given by the homeserver.
         #[ruma_api(query)]
-        pub session: &'a str,
+        pub session: String,
     }
 
     /// Response type for the `authorize_fallback` endpoint.
@@ -48,9 +48,9 @@ pub mod v3 {
         pub body: Vec<u8>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given auth type and session ID.
-        pub fn new(auth_type: &'a str, session: &'a str) -> Self {
+        pub fn new(auth_type: String, session: String) -> Self {
             Self { auth_type, session }
         }
     }

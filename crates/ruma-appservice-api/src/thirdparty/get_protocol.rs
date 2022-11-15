@@ -24,10 +24,10 @@ pub mod v1 {
 
     /// Request type for the `get_protocol` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The name of the protocol.
         #[ruma_api(path)]
-        pub protocol: &'a str,
+        pub protocol: String,
     }
 
     /// Response type for the `get_protocol` endpoint.
@@ -38,9 +38,9 @@ pub mod v1 {
         pub protocol: Protocol,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given protocol name.
-        pub fn new(protocol: &'a str) -> Self {
+        pub fn new(protocol: String) -> Self {
             Self { protocol }
         }
     }

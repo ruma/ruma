@@ -15,7 +15,7 @@ pub mod v1 {
         api::{request, response, Metadata},
         metadata,
         thirdparty::Medium,
-        OwnedRoomId, OwnedServerName, OwnedServerSigningKeyId, OwnedUserId, UserId,
+        OwnedRoomId, OwnedServerName, OwnedServerSigningKeyId, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};
 
@@ -30,42 +30,42 @@ pub mod v1 {
 
     /// Request type for the `bind_callback` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The type of third party identifier.
         ///
         /// Currently only `Medium::Email` is supported.
-        pub medium: &'a Medium,
+        pub medium: Medium,
 
         /// The third party identifier itself.
         ///
         /// For example: an email address.
-        pub address: &'a str,
+        pub address: String,
 
         /// The user that is now bound to the third party identifier.
-        pub mxid: &'a UserId,
+        pub mxid: OwnedUserId,
 
         /// A list of pending invites that the third party identifier has received.
-        pub invites: &'a [ThirdPartyInvite],
+        pub invites: Vec<ThirdPartyInvite>,
     }
 
     /// Response type for the `bind_callback` endpoint.
     #[response]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given medium, address, user ID and third party invites.
         pub fn new(
-            medium: &'a Medium,
-            address: &'a str,
-            mxid: &'a UserId,
-            invites: &'a [ThirdPartyInvite],
+            medium: Medium,
+            address: String,
+            mxid: OwnedUserId,
+            invites: Vec<ThirdPartyInvite>,
         ) -> Self {
             Self { medium, address, mxid, invites }
         }
 
         /// Creates a new `Request` with the given email address, user ID and third party invites.
-        pub fn email(address: &'a str, mxid: &'a UserId, invites: &'a [ThirdPartyInvite]) -> Self {
-            Self::new(&Medium::Email, address, mxid, invites)
+        pub fn email(address: String, mxid: OwnedUserId, invites: Vec<ThirdPartyInvite>) -> Self {
+            Self::new(Medium::Email, address, mxid, invites)
         }
     }
 

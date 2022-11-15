@@ -24,19 +24,19 @@ pub mod v3 {
 
     /// Request type for the `get_key_changes` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The desired start point of the list.
         ///
         /// Should be the next_batch field from a response to an earlier call to /sync.
         #[ruma_api(query)]
-        pub from: &'a str,
+        pub from: String,
 
         /// The desired end point of the list.
         ///
         /// Should be the next_batch field from a recent call to /sync - typically the most recent
         /// such call.
         #[ruma_api(query)]
-        pub to: &'a str,
+        pub to: String,
     }
 
     /// Response type for the `get_key_changes` endpoint.
@@ -50,9 +50,9 @@ pub mod v3 {
         pub left: Vec<OwnedUserId>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given start and end points.
-        pub fn new(from: &'a str, to: &'a str) -> Self {
+        pub fn new(from: String, to: String) -> Self {
             Self { from, to }
         }
     }

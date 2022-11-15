@@ -14,7 +14,7 @@ pub mod v3 {
 
     use crate::{
         account::ThirdPartyIdRemovalStatus,
-        uiaa::{AuthData, IncomingAuthData, UiaaResponse},
+        uiaa::{AuthData, UiaaResponse},
     };
 
     const METADATA: Metadata = metadata! {
@@ -30,15 +30,15 @@ pub mod v3 {
     /// Request type for the `deactivate` endpoint.
     #[request(error = UiaaResponse)]
     #[derive(Default)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub auth: Option<AuthData<'a>>,
+        pub auth: Option<AuthData>,
 
         /// Identity server from which to unbind the user's third party
         /// identifier.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub id_server: Option<&'a str>,
+        pub id_server: Option<String>,
     }
 
     /// Response type for the `deactivate` endpoint.
@@ -48,7 +48,7 @@ pub mod v3 {
         pub id_server_unbind_result: ThirdPartyIdRemovalStatus,
     }
 
-    impl Request<'_> {
+    impl Request {
         /// Creates an empty `Request`.
         pub fn new() -> Self {
             Default::default()

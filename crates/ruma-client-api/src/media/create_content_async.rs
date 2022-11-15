@@ -10,7 +10,7 @@ pub mod unstable {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, IdParseError, MxcUri, ServerName,
+        metadata, IdParseError, MxcUri, OwnedServerName,
     };
 
     const METADATA: Metadata = metadata! {
@@ -24,22 +24,22 @@ pub mod unstable {
 
     /// Request type for the `create_content_async` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The server name from the mxc:// URI (the authoritory component).
         #[ruma_api(path)]
-        pub server_name: &'a ServerName,
+        pub server_name: OwnedServerName,
 
         /// The media ID from the mxc:// URI (the path component).
         #[ruma_api(path)]
-        pub media_id: &'a str,
+        pub media_id: String,
 
         /// The file contents to upload.
         #[ruma_api(raw_body)]
-        pub file: &'a [u8],
+        pub file: Vec<u8>,
 
         /// The content type of the file being uploaded.
         #[ruma_api(header = CONTENT_TYPE)]
-        pub content_type: Option<&'a str>,
+        pub content_type: Option<String>,
         // TODO: How does this and msc2448 (blurhash) interact?
     }
 
@@ -47,16 +47,16 @@ pub mod unstable {
     #[response(error = crate::Error)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given file contents.
-        pub fn new(media_id: &'a str, server_name: &'a ServerName, file: &'a [u8]) -> Self {
+        pub fn new(media_id: String, server_name: OwnedServerName, file: Vec<u8>) -> Self {
             Self { media_id, server_name, file, content_type: None }
         }
 
         /// Creates a new `Request` with the given url and file contents.
-        pub fn from_url(url: &'a MxcUri, file: &'a [u8]) -> Result<Self, IdParseError> {
+        pub fn from_url(url: &MxcUri, file: Vec<u8>) -> Result<Self, IdParseError> {
             let (server_name, media_id) = url.parts()?;
-            Ok(Self::new(media_id, server_name, file))
+            Ok(Self::new(media_id.to_owned(), server_name.to_owned(), file))
         }
     }
 }

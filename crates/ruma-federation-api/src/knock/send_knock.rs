@@ -12,7 +12,7 @@ pub mod v1 {
         events::AnyStrippedStateEvent,
         metadata,
         serde::Raw,
-        EventId, RoomId,
+        OwnedEventId, OwnedRoomId,
     };
     use serde_json::value::RawValue as RawJsonValue;
 
@@ -28,18 +28,18 @@ pub mod v1 {
 
     /// Request type for the `send_knock` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room ID that should receive the knock.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The event ID for the knock event.
         #[ruma_api(path)]
-        pub event_id: &'a EventId,
+        pub event_id: OwnedEventId,
 
         /// The PDU.
         #[ruma_api(body)]
-        pub pdu: &'a RawJsonValue,
+        pub pdu: Box<RawJsonValue>,
     }
 
     /// Response type for the `send_knock` endpoint.
@@ -49,9 +49,9 @@ pub mod v1 {
         pub knock_room_state: Vec<Raw<AnyStrippedStateEvent>>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room ID, event ID and knock event.
-        pub fn new(room_id: &'a RoomId, event_id: &'a EventId, pdu: &'a RawJsonValue) -> Self {
+        pub fn new(room_id: OwnedRoomId, event_id: OwnedEventId, pdu: Box<RawJsonValue>) -> Self {
             Self { room_id, event_id, pdu }
         }
     }

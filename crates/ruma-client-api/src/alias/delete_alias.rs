@@ -9,7 +9,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, RoomAliasId,
+        metadata, OwnedRoomAliasId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -24,10 +24,10 @@ pub mod v3 {
 
     /// Request type for the `delete_alias` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room alias to remove.
         #[ruma_api(path)]
-        pub room_alias: &'a RoomAliasId,
+        pub room_alias: OwnedRoomAliasId,
     }
 
     /// Response type for the `delete_alias` endpoint.
@@ -35,9 +35,9 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room alias.
-        pub fn new(room_alias: &'a RoomAliasId) -> Self {
+        pub fn new(room_alias: OwnedRoomAliasId) -> Self {
             Self { room_alias }
         }
     }

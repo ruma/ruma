@@ -12,7 +12,7 @@ pub mod v3 {
         events::{AnyMessageLikeEventContent, MessageLikeEventContent, MessageLikeEventType},
         metadata,
         serde::Raw,
-        MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, TransactionId,
+        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedTransactionId,
     };
     use serde_json::value::to_raw_value as to_raw_json_value;
 
@@ -28,10 +28,10 @@ pub mod v3 {
 
     /// Request type for the `create_message_event` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room to send the event to.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The type of event to send.
         #[ruma_api(path)]
@@ -47,7 +47,7 @@ pub mod v3 {
         ///
         /// [access token is refreshed]: https://spec.matrix.org/v1.4/client-server-api/#refreshing-access-tokens
         #[ruma_api(path)]
-        pub txn_id: &'a TransactionId,
+        pub txn_id: OwnedTransactionId,
 
         /// The event content to send.
         #[ruma_api(body)]
@@ -72,7 +72,7 @@ pub mod v3 {
         pub event_id: OwnedEventId,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room id, transaction id and event content.
         ///
         /// # Errors
@@ -80,9 +80,9 @@ pub mod v3 {
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
         pub fn new<T>(
-            room_id: &'a RoomId,
-            txn_id: &'a TransactionId,
-            content: &'a T,
+            room_id: OwnedRoomId,
+            txn_id: OwnedTransactionId,
+            content: &T,
         ) -> serde_json::Result<Self>
         where
             T: MessageLikeEventContent,
@@ -99,8 +99,8 @@ pub mod v3 {
         /// Creates a new `Request` with the given room id, transaction id, event type and raw event
         /// content.
         pub fn new_raw(
-            room_id: &'a RoomId,
-            txn_id: &'a TransactionId,
+            room_id: OwnedRoomId,
+            txn_id: OwnedTransactionId,
             event_type: MessageLikeEventType,
             body: Raw<AnyMessageLikeEventContent>,
         ) -> Self {

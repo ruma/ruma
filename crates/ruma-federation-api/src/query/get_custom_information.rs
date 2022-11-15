@@ -27,10 +27,10 @@ pub mod v1 {
 
     /// Request type for the `get_custom_information` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The type of query to make.
         #[ruma_api(path)]
-        pub query_type: &'a str,
+        pub query_type: String,
 
         /// The query parameters.
         #[ruma_api(query_map)]
@@ -45,9 +45,9 @@ pub mod v1 {
         pub body: JsonValue,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new request with the given type and query parameters.
-        pub fn new(query_type: &'a str, params: BTreeMap<String, String>) -> Self {
+        pub fn new(query_type: String, params: BTreeMap<String, String>) -> Self {
             Self { query_type, params }
         }
     }

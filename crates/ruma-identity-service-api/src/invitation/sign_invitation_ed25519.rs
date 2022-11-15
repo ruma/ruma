@@ -11,7 +11,7 @@ pub mod v2 {
         api::{request, response, Metadata},
         metadata,
         serde::Base64,
-        OwnedUserId, ServerSignatures, UserId,
+        OwnedUserId, ServerSignatures,
     };
 
     const METADATA: Metadata = metadata! {
@@ -25,15 +25,15 @@ pub mod v2 {
 
     /// Request type for the `sign_invitation_ed25519` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The Matrix user ID of the user accepting the invitation.
-        pub mxid: &'a UserId,
+        pub mxid: OwnedUserId,
 
         /// The token from the call to store-invite.
-        pub token: &'a str,
+        pub token: String,
 
         /// The private key, encoded as unpadded base64.
-        pub private_key: &'a Base64,
+        pub private_key: Base64,
     }
 
     /// Response type for the `sign_invitation_ed25519` endpoint.
@@ -52,9 +52,9 @@ pub mod v2 {
         pub token: String,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a `Request` with the given Matrix user ID, token and private_key.
-        pub fn new(mxid: &'a UserId, token: &'a str, private_key: &'a Base64) -> Self {
+        pub fn new(mxid: OwnedUserId, token: String, private_key: Base64) -> Self {
             Self { mxid, token, private_key }
         }
     }

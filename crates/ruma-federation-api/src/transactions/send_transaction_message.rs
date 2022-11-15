@@ -13,7 +13,7 @@ pub mod v1 {
         api::{request, response, Metadata},
         metadata,
         serde::Raw,
-        MilliSecondsSinceUnixEpoch, OwnedEventId, ServerName, TransactionId,
+        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedServerName, OwnedTransactionId,
     };
     use serde_json::value::RawValue as RawJsonValue;
 
@@ -30,13 +30,13 @@ pub mod v1 {
 
     /// Request type for the `send_transaction_message` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// A transaction ID unique between sending and receiving homeservers.
         #[ruma_api(path)]
-        pub transaction_id: &'a TransactionId,
+        pub transaction_id: OwnedTransactionId,
 
         /// The server_name of the homeserver sending this transaction.
-        pub origin: &'a ServerName,
+        pub origin: OwnedServerName,
 
         /// POSIX timestamp in milliseconds on the originating homeserver when this transaction
         /// started.
@@ -52,13 +52,13 @@ pub mod v1 {
             feature = "unstable-unspecified",
             serde(default, skip_serializing_if = "<[_]>::is_empty")
         )]
-        pub pdus: &'a [Box<RawJsonValue>],
+        pub pdus: Vec<Box<RawJsonValue>>,
 
         /// List of ephemeral messages.
         ///
         /// Must not be more than 100 items.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub edus: &'a [Raw<Edu>],
+        pub edus: Vec<Raw<Edu>>,
     }
 
     /// Response type for the `send_transaction_message` endpoint.
@@ -74,16 +74,16 @@ pub mod v1 {
         pub pdus: BTreeMap<OwnedEventId, Result<(), String>>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given transaction ID, origin, timestamp.
         ///
         /// The PDU and EDU lists will start off empty.
         pub fn new(
-            transaction_id: &'a TransactionId,
-            origin: &'a ServerName,
+            transaction_id: OwnedTransactionId,
+            origin: OwnedServerName,
             origin_server_ts: MilliSecondsSinceUnixEpoch,
         ) -> Self {
-            Self { transaction_id, origin, origin_server_ts, pdus: &[], edus: &[] }
+            Self { transaction_id, origin, origin_server_ts, pdus: vec![], edus: vec![] }
         }
     }
 

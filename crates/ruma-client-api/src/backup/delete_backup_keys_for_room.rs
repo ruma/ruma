@@ -10,7 +10,7 @@ pub mod v3 {
     use js_int::UInt;
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, RoomId,
+        metadata, OwnedRoomId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -26,14 +26,14 @@ pub mod v3 {
 
     /// Request type for the `delete_backup_keys_for_room` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The backup version from which to delete keys.
         #[ruma_api(query)]
-        pub version: &'a str,
+        pub version: String,
 
         /// The ID of the room to delete keys from.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
     }
 
     /// Response type for the `delete_backup_keys_for_room` endpoint.
@@ -49,10 +49,10 @@ pub mod v3 {
         pub count: UInt,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given version and room_id.
 
-        pub fn new(version: &'a str, room_id: &'a RoomId) -> Self {
+        pub fn new(version: String, room_id: OwnedRoomId) -> Self {
             Self { version, room_id }
         }
     }

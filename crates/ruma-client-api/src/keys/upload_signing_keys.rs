@@ -14,7 +14,7 @@ pub mod v3 {
         serde::Raw,
     };
 
-    use crate::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
+    use crate::uiaa::{AuthData, UiaaResponse};
 
     const METADATA: Metadata = metadata! {
         method: POST,
@@ -29,10 +29,10 @@ pub mod v3 {
     /// Request type for the `upload_signing_keys` endpoint.
     #[request(error = UiaaResponse)]
     #[derive(Default)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub auth: Option<AuthData<'a>>,
+        pub auth: Option<AuthData>,
 
         /// The user's master key.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -58,7 +58,7 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl Request<'_> {
+    impl Request {
         /// Creates an empty `Request`.
         pub fn new() -> Self {
             Default::default()

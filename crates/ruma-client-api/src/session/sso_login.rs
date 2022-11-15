@@ -23,12 +23,12 @@ pub mod v3 {
 
     /// Request type for the `sso_login` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// URL to which the homeserver should return the user after completing
         /// authentication with the SSO identity provider.
         #[ruma_api(query)]
         #[serde(rename = "redirectUrl")]
-        pub redirect_url: &'a str,
+        pub redirect_url: String,
     }
 
     /// Response type for the `sso_login` endpoint.
@@ -39,9 +39,9 @@ pub mod v3 {
         pub location: String,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given redirect URL.
-        pub fn new(redirect_url: &'a str) -> Self {
+        pub fn new(redirect_url: String) -> Self {
             Self { redirect_url }
         }
     }
@@ -61,13 +61,14 @@ pub mod v3 {
 
         #[test]
         fn serialize_sso_login_request_uri() {
-            let req: http::Request<Vec<u8>> = Request { redirect_url: "https://example.com/sso" }
-                .try_into_http_request(
-                    "https://homeserver.tld",
-                    SendAccessToken::None,
-                    &[MatrixVersion::V1_1],
-                )
-                .unwrap();
+            let req: http::Request<Vec<u8>> =
+                Request { redirect_url: "https://example.com/sso".to_owned() }
+                    .try_into_http_request(
+                        "https://homeserver.tld",
+                        SendAccessToken::None,
+                        &[MatrixVersion::V1_1],
+                    )
+                    .unwrap();
 
             assert_eq!(
             req.uri().to_string(),

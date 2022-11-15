@@ -13,7 +13,7 @@ pub mod v1 {
         encryption::{CrossSigningKey, DeviceKeys},
         metadata,
         serde::Raw,
-        OwnedDeviceId, OwnedUserId, UserId,
+        OwnedDeviceId, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};
 
@@ -28,12 +28,12 @@ pub mod v1 {
 
     /// Request type for the `get_devices` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The user ID to retrieve devices for.
         ///
         /// Must be a user local to the receiving homeserver.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
     }
 
     /// Response type for the `get_devices` endpoint.
@@ -61,9 +61,9 @@ pub mod v1 {
         pub self_signing_key: Option<Raw<CrossSigningKey>>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given user id.
-        pub fn new(user_id: &'a UserId) -> Self {
+        pub fn new(user_id: OwnedUserId) -> Self {
             Self { user_id }
         }
     }

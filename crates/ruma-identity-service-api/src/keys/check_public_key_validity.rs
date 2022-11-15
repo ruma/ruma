@@ -25,10 +25,10 @@ pub mod v2 {
 
     /// Request type for the `check_public_key_validity` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// Base64-encoded (no padding) public key to check for validity.
         #[ruma_api(query)]
-        pub public_key: &'a Base64,
+        pub public_key: Base64,
     }
 
     /// Response type for the `check_public_key_validity` endpoint.
@@ -38,9 +38,9 @@ pub mod v2 {
         pub valid: bool,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Create a `Request` with the given base64-encoded (unpadded) public key.
-        pub fn new(public_key: &'a Base64) -> Self {
+        pub fn new(public_key: Base64) -> Self {
             Self { public_key }
         }
     }

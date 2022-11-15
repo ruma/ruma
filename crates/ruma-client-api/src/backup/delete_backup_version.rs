@@ -27,10 +27,10 @@ pub mod v3 {
 
     /// Request type for the `delete_backup_version` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The backup version to delete.
         #[ruma_api(path)]
-        pub version: &'a str,
+        pub version: String,
     }
 
     /// Response type for the `delete_backup_version` endpoint.
@@ -38,9 +38,9 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given version, room_id and sessions.
-        pub fn new(version: &'a str) -> Self {
+        pub fn new(version: String) -> Self {
             Self { version }
         }
     }

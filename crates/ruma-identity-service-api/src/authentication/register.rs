@@ -12,7 +12,7 @@ pub mod v2 {
     use ruma_common::{
         api::{request, response, Metadata},
         authentication::TokenType,
-        metadata, ServerName,
+        metadata, OwnedServerName,
     };
 
     const METADATA: Metadata = metadata! {
@@ -26,20 +26,20 @@ pub mod v2 {
 
     /// Request type for the `register_account` endpoint.
     #[request]
-    pub struct Request<'a> {
+    pub struct Request {
         /// An access token the consumer may use to verify the identity of the person who generated
         /// the token.
         ///
         /// This is given to the federation API `GET /openid/userinfo` to verify the user's
         /// identity.
-        pub access_token: &'a str,
+        pub access_token: String,
 
         /// The string `Bearer`.
         pub token_type: TokenType,
 
         /// The homeserver domain the consumer should use when attempting to verify the user's
         /// identity.
-        pub matrix_server_name: &'a ServerName,
+        pub matrix_server_name: OwnedServerName,
 
         /// The number of seconds before this token expires and a new one must be generated.
         #[serde(with = "ruma_common::serde::duration::secs")]
@@ -54,12 +54,12 @@ pub mod v2 {
         pub token: String,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given parameters.
         pub fn new(
-            access_token: &'a str,
+            access_token: String,
             token_type: TokenType,
-            matrix_server_name: &'a ServerName,
+            matrix_server_name: OwnedServerName,
             expires_in: Duration,
         ) -> Self {
             Self { access_token, token_type, matrix_server_name, expires_in }

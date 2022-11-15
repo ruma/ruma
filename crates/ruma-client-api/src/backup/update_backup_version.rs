@@ -27,10 +27,10 @@ pub mod v3 {
 
     /// Request type for the `update_backup_version` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The backup version.
         #[ruma_api(path)]
-        pub version: &'a str,
+        pub version: String,
 
         /// The algorithm used for storing backups.
         #[ruma_api(body)]
@@ -42,9 +42,9 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given backup version and algorithm.
-        pub fn new(version: &'a str, algorithm: Raw<BackupAlgorithm>) -> Self {
+        pub fn new(version: String, algorithm: Raw<BackupAlgorithm>) -> Self {
             Self { version, algorithm }
         }
     }

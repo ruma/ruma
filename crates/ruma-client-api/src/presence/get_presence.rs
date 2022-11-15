@@ -13,7 +13,7 @@ pub mod v3 {
         api::{request, response, Metadata},
         metadata,
         presence::PresenceState,
-        UserId,
+        OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -28,10 +28,10 @@ pub mod v3 {
 
     /// Request type for the `get_presence` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The user whose presence state will be retrieved.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
     }
 
     /// Response type for the `get_presence` endpoint.
@@ -57,9 +57,9 @@ pub mod v3 {
         pub presence: PresenceState,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given user ID.
-        pub fn new(user_id: &'a UserId) -> Self {
+        pub fn new(user_id: OwnedUserId) -> Self {
             Self { user_id }
         }
     }

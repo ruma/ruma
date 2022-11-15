@@ -26,10 +26,10 @@ pub mod v3 {
 
     /// Request type for the `get_media_preview` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// URL to get a preview of.
         #[ruma_api(query)]
-        pub url: &'a str,
+        pub url: String,
 
         /// Preferred point in time (in milliseconds) to return a preview for.
         #[ruma_api(query)]
@@ -48,9 +48,9 @@ pub mod v3 {
         pub data: Option<Box<RawJsonValue>>,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given url and timestamp.
-        pub fn new(url: &'a str, ts: MilliSecondsSinceUnixEpoch) -> Self {
+        pub fn new(url: String, ts: MilliSecondsSinceUnixEpoch) -> Self {
             Self { url, ts }
         }
     }

@@ -31,7 +31,7 @@ pub mod v3 {
     /// Request type for the `get_keys` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The time (in milliseconds) to wait when downloading keys from remote servers.
         ///
         /// 10 seconds is the recommended default.
@@ -54,7 +54,7 @@ pub mod v3 {
         /// This allows the server to ensure its response contains the keys advertised by the
         /// notification in that sync.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub token: Option<&'a str>,
+        pub token: Option<String>,
     }
 
     /// Response type for the `get_keys` endpoint.
@@ -84,7 +84,7 @@ pub mod v3 {
         pub user_signing_keys: BTreeMap<OwnedUserId, Raw<CrossSigningKey>>,
     }
 
-    impl Request<'_> {
+    impl Request {
         /// Creates an empty `Request`.
         pub fn new() -> Self {
             Default::default()

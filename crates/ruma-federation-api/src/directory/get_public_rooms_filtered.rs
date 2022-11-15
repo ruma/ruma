@@ -10,7 +10,7 @@ pub mod v1 {
     use js_int::UInt;
     use ruma_common::{
         api::{request, response, Metadata},
-        directory::{Filter, IncomingFilter, IncomingRoomNetwork, PublicRoomsChunk, RoomNetwork},
+        directory::{Filter, PublicRoomsChunk, RoomNetwork},
         metadata,
     };
 
@@ -26,22 +26,22 @@ pub mod v1 {
     /// Request type for the `get_public_rooms_filtered` endpoint.
     #[request]
     #[derive(Default)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// Limit for the number of results to return.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub limit: Option<UInt>,
 
         /// Pagination token from a previous request.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub since: Option<&'a str>,
+        pub since: Option<String>,
 
         /// Filter to apply to the results.
         #[serde(default, skip_serializing_if = "Filter::is_empty")]
-        pub filter: Filter<'a>,
+        pub filter: Filter,
 
         /// Network to fetch the public room lists from.
         #[serde(flatten, skip_serializing_if = "ruma_common::serde::is_default")]
-        pub room_network: RoomNetwork<'a>,
+        pub room_network: RoomNetwork,
     }
 
     /// Response type for the `get_public_rooms_filtered` endpoint.
@@ -61,7 +61,7 @@ pub mod v1 {
         pub total_room_count_estimate: Option<UInt>,
     }
 
-    impl Request<'_> {
+    impl Request {
         /// Creates an empty `Request`.
         pub fn new() -> Self {
             Default::default()

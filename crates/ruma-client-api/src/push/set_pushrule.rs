@@ -11,7 +11,6 @@ pub mod v3 {
         api::{response, Metadata},
         metadata,
         push::{Action, NewPushRule, PushCondition},
-        serde::Incoming,
     };
     use serde::{Deserialize, Serialize};
 
@@ -28,10 +27,9 @@ pub mod v3 {
     };
 
     /// Request type for the `set_pushrule` endpoint.
-    #[derive(Clone, Debug, Incoming)]
+    #[derive(Clone, Debug)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-    #[incoming_derive(!Deserialize)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The scope to set the rule in.
         pub scope: RuleScope,
 
@@ -40,11 +38,11 @@ pub mod v3 {
 
         /// Use 'before' with a rule_id as its value to make the new rule the next-most important
         /// rule with respect to the given user defined rule.
-        pub before: Option<&'a str>,
+        pub before: Option<String>,
 
         /// This makes the new rule the next-less important rule relative to the given user defined
         /// rule.
-        pub after: Option<&'a str>,
+        pub after: Option<String>,
     }
 
     /// Response type for the `set_pushrule` endpoint.
@@ -52,7 +50,7 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given scope and rule.
         pub fn new(scope: RuleScope, rule: NewPushRule) -> Self {
             Self { scope, rule, before: None, after: None }
@@ -67,7 +65,7 @@ pub mod v3 {
     }
 
     #[cfg(feature = "client")]
-    impl<'a> ruma_common::api::OutgoingRequest for Request<'a> {
+    impl ruma_common::api::OutgoingRequest for Request {
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
 
@@ -113,7 +111,7 @@ pub mod v3 {
     }
 
     #[cfg(feature = "server")]
-    impl ruma_common::api::IncomingRequest for IncomingRequest {
+    impl ruma_common::api::IncomingRequest for Request {
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
 
@@ -196,12 +194,12 @@ pub mod v3 {
     }
 
     #[derive(Debug, Serialize)]
-    struct RequestQuery<'a> {
+    struct RequestQuery {
         #[serde(skip_serializing_if = "Option::is_none")]
-        before: Option<&'a str>,
+        before: Option<String>,
 
         #[serde(skip_serializing_if = "Option::is_none")]
-        after: Option<&'a str>,
+        after: Option<String>,
     }
 
     #[derive(Debug, Serialize)]

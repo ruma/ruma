@@ -10,7 +10,7 @@ pub mod v3 {
     use ruma_common::{
         api::{request, response, Metadata},
         events::tag::TagInfo,
-        metadata, RoomId, UserId,
+        metadata, OwnedRoomId, OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -25,18 +25,18 @@ pub mod v3 {
 
     /// Request type for the `create_tag` endpoint.
     #[request(error = crate::Error)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The ID of the user creating the tag.
         #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        pub user_id: OwnedUserId,
 
         /// The room to tag.
         #[ruma_api(path)]
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The name of the tag to create.
         #[ruma_api(path)]
-        pub tag: &'a str,
+        pub tag: String,
 
         /// Info about the tag.
         #[ruma_api(body)]
@@ -48,12 +48,12 @@ pub mod v3 {
     #[derive(Default)]
     pub struct Response {}
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given user ID, room ID, tag and tag info.
         pub fn new(
-            user_id: &'a UserId,
-            room_id: &'a RoomId,
-            tag: &'a str,
+            user_id: OwnedUserId,
+            room_id: OwnedRoomId,
+            tag: String,
             tag_info: TagInfo,
         ) -> Self {
             Self { user_id, room_id, tag, tag_info }

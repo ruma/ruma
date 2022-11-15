@@ -11,8 +11,8 @@ pub mod v3 {
         api::{response, Metadata},
         events::{AnyStateEventContent, StateEventType},
         metadata,
-        serde::{Incoming, Raw},
-        RoomId,
+        serde::Raw,
+        OwnedRoomId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -26,23 +26,22 @@ pub mod v3 {
     };
 
     /// Request type for the `get_state_events_for_key` endpoint.
-    #[derive(Clone, Debug, Incoming)]
+    #[derive(Clone, Debug)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-    #[incoming_derive(!Deserialize)]
-    pub struct Request<'a> {
+    pub struct Request {
         /// The room to look up the state for.
-        pub room_id: &'a RoomId,
+        pub room_id: OwnedRoomId,
 
         /// The type of state to look up.
         pub event_type: StateEventType,
 
         /// The key of the state to look up.
-        pub state_key: &'a str,
+        pub state_key: String,
     }
 
-    impl<'a> Request<'a> {
+    impl Request {
         /// Creates a new `Request` with the given room ID, event type and state key.
-        pub fn new(room_id: &'a RoomId, event_type: StateEventType, state_key: &'a str) -> Self {
+        pub fn new(room_id: OwnedRoomId, event_type: StateEventType, state_key: String) -> Self {
             Self { room_id, event_type, state_key }
         }
     }
@@ -66,7 +65,7 @@ pub mod v3 {
     }
 
     #[cfg(feature = "client")]
-    impl<'a> ruma_common::api::OutgoingRequest for Request<'a> {
+    impl ruma_common::api::OutgoingRequest for Request {
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
 
@@ -104,7 +103,7 @@ pub mod v3 {
     }
 
     #[cfg(feature = "server")]
-    impl ruma_common::api::IncomingRequest for IncomingRequest {
+    impl ruma_common::api::IncomingRequest for Request {
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
 
@@ -118,8 +117,6 @@ pub mod v3 {
             B: AsRef<[u8]>,
             S: AsRef<str>,
         {
-            use ruma_common::OwnedRoomId;
-
             // FIXME: find a way to make this if-else collapse with serde recognizing trailing
             // Option
             let (room_id, event_type, state_key): (OwnedRoomId, StateEventType, String) =
