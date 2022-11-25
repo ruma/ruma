@@ -1,7 +1,10 @@
 use assert_matches::assert_matches;
 use ruma_common::{
     event_id,
-    events::room::message::{InReplyTo, MessageType, Relation, RoomMessageEventContent},
+    events::{
+        relation::InReplyTo,
+        room::message::{MessageType, Relation, RoomMessageEventContent},
+    },
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

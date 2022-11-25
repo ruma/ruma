@@ -31,6 +31,8 @@ Breaking changes:
 * Change the `ignored_users` field of `IgnoredUserListEventContent` to a map of empty structs, to
   allow eventual fields to be added, as intended by the spec
 * Make `SimplePushRule` and associated types generic over the expected type of the `rule_id`
+* Deduplicate and group relation structs in `events::relation`:
+  * Move relation structs under `events::room::message` to `events::relation`
 
 Improvements:
 

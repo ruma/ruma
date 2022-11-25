@@ -11,10 +11,9 @@ use ruma_common::{
         file::{EncryptedContentInit, FileContent, FileContentInfo},
         image::{ThumbnailContent, ThumbnailFileContent, ThumbnailFileContentInfo},
         message::MessageContent,
+        relation::InReplyTo,
         room::{
-            message::{
-                InReplyTo, MessageType, Relation, RoomMessageEventContent, VideoMessageEventContent,
-            },
+            message::{MessageType, Relation, RoomMessageEventContent, VideoMessageEventContent},
             JsonWebKeyInit, MediaSource,
         },
         video::{VideoContent, VideoEventContent},

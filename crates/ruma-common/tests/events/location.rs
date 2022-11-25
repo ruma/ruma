@@ -8,8 +8,9 @@ use ruma_common::{
     events::{
         location::{AssetType, LocationContent, LocationEventContent, ZoomLevel, ZoomLevelError},
         message::MessageContent,
+        relation::InReplyTo,
         room::message::{
-            InReplyTo, LocationMessageEventContent, MessageType, Relation, RoomMessageEventContent,
+            LocationMessageEventContent, MessageType, Relation, RoomMessageEventContent,
         },
         AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
     },

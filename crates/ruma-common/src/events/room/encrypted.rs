@@ -8,8 +8,8 @@ use js_int::UInt;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::message::{self, InReplyTo};
-use crate::{OwnedDeviceId, OwnedEventId};
+use super::message;
+use crate::{events::relation::InReplyTo, OwnedDeviceId, OwnedEventId};
 
 mod relation_serde;
 
@@ -130,9 +130,9 @@ impl<C> From<message::Relation<C>> for Relation {
 
 /// The event this relation belongs to [replaces another event].
 ///
-/// In contrast to [`message::Replacement`](super::message::Replacement), this struct doesn't
-/// store the new content, since that is part of the encrypted content of an `m.room.encrypted`
-/// events.
+/// In contrast to [`relation::Replacement`](crate::events::relation::Replacement), this struct
+/// doesn't store the new content, since that is part of the encrypted content of an
+/// `m.room.encrypted` events.
 ///
 /// [replaces another event]: https://spec.matrix.org/v1.4/client-server-api/#event-replacements
 #[derive(Clone, Debug, Deserialize, Serialize)]

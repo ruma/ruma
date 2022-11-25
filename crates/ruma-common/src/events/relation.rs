@@ -13,6 +13,23 @@ use crate::{
     MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedUserId, PrivOwnedStr,
 };
 
+/// Information about the event a [rich reply] is replying to.
+///
+/// [rich reply]: https://spec.matrix.org/v1.5/client-server-api/#rich-replies
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct InReplyTo {
+    /// The event being replied to.
+    pub event_id: OwnedEventId,
+}
+
+impl InReplyTo {
+    /// Creates a new `InReplyTo` with the given event ID.
+    pub fn new(event_id: OwnedEventId) -> Self {
+        Self { event_id }
+    }
+}
+
 /// Summary of all annotations to an event with the given key and type.
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq, Serialize)]
 #[cfg(feature = "unstable-msc2677")]
@@ -103,6 +120,64 @@ impl BundledReplacement {
         origin_server_ts: MilliSecondsSinceUnixEpoch,
     ) -> Self {
         Self { event_id, sender, origin_server_ts }
+    }
+}
+
+/// The content of a [replacement] relation.
+///
+/// [replacement]: https://spec.matrix.org/v1.5/client-server-api/#event-replacements
+#[derive(Clone, Debug)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct Replacement<C> {
+    /// The ID of the event being replaced.
+    pub event_id: OwnedEventId,
+
+    /// New content.
+    pub new_content: C,
+}
+
+impl<C> Replacement<C> {
+    /// Creates a new `Replacement` with the given event ID and new content.
+    pub fn new(event_id: OwnedEventId, new_content: C) -> Self {
+        Self { event_id, new_content }
+    }
+}
+
+/// The content of a [thread] relation.
+///
+/// [thread]: https://spec.matrix.org/v1.5/client-server-api/#threading
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct Thread {
+    /// The ID of the root message in the thread.
+    pub event_id: OwnedEventId,
+
+    /// A reply relation.
+    ///
+    /// If this event is a reply and belongs to a thread, this points to the message that is being
+    /// replied to, and `is_falling_back` must be set to `false`.
+    ///
+    /// If this event is not a reply, this is used as a fallback mechanism for clients that do not
+    /// support threads. This should point to the latest message-like event in the thread and
+    /// `is_falling_back` must be set to `true`.
+    pub in_reply_to: InReplyTo,
+
+    /// Whether the `m.in_reply_to` field is a fallback for older clients or a genuine reply in a
+    /// thread.
+    pub is_falling_back: bool,
+}
+
+impl Thread {
+    /// Convenience method to create a regular `Thread` with the given event ID and latest
+    /// message-like event ID.
+    pub fn plain(event_id: OwnedEventId, latest_event_id: OwnedEventId) -> Self {
+        Self { event_id, in_reply_to: InReplyTo::new(latest_event_id), is_falling_back: true }
+    }
+
+    /// Convenience method to create a reply `Thread` with the given event ID and replied-to event
+    /// ID.
+    pub fn reply(event_id: OwnedEventId, reply_to_event_id: OwnedEventId) -> Self {
+        Self { event_id, in_reply_to: InReplyTo::new(reply_to_event_id), is_falling_back: false }
     }
 }
 

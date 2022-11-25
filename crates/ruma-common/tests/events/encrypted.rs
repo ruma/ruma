@@ -1,12 +1,12 @@
 use assert_matches::assert_matches;
 use ruma_common::{
     device_id, event_id,
-    events::room::{
-        encrypted::{
+    events::{
+        relation::InReplyTo,
+        room::encrypted::{
             EncryptedEventScheme, MegolmV1AesSha2ContentInit, Reference, Relation, Replacement,
             RoomEncryptedEventContent, Thread,
         },
-        message::InReplyTo,
     },
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
