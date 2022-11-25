@@ -7,9 +7,7 @@
 //!
 //! [MSC2241]: https://github.com/matrix-org/matrix-spec-proposals/pull/2241
 
-use serde::{Deserialize, Serialize};
-
-use crate::{serde::StringEnum, OwnedEventId, PrivOwnedStr};
+use crate::{serde::StringEnum, PrivOwnedStr};
 
 pub mod accept;
 pub mod cancel;
@@ -84,22 +82,6 @@ pub enum ShortAuthenticationString {
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
-}
-
-/// A relation which associates an `m.key.verification.request` with another key verification event.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(tag = "rel_type", rename = "m.reference")]
-pub struct Relation {
-    /// The event ID of a related `m.key.verification.request`.
-    pub event_id: OwnedEventId,
-}
-
-impl Relation {
-    /// Creates a new `Relation` with the given event ID.
-    pub fn new(event_id: OwnedEventId) -> Self {
-        Self { event_id }
-    }
 }
 
 /// A Short Authentication String (SAS) verification method.

@@ -5,8 +5,8 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::{Relation, VerificationMethod};
-use crate::{OwnedDeviceId, OwnedTransactionId};
+use super::VerificationMethod;
+use crate::{events::relation::Reference, OwnedDeviceId, OwnedTransactionId};
 
 /// The content of a to-device `m.m.key.verification.ready` event.
 ///
@@ -57,16 +57,16 @@ pub struct KeyVerificationReadyEventContent {
     /// Relation signaling which verification request this event is responding
     /// to.
     #[serde(rename = "m.relates_to")]
-    pub relates_to: Relation,
+    pub relates_to: Reference,
 }
 
 impl KeyVerificationReadyEventContent {
     /// Creates a new `KeyVerificationReadyEventContent` with the given device ID, methods and
-    /// relation.
+    /// reference.
     pub fn new(
         from_device: OwnedDeviceId,
         methods: Vec<VerificationMethod>,
-        relates_to: Relation,
+        relates_to: Reference,
     ) -> Self {
         Self { from_device, methods, relates_to }
     }
@@ -79,7 +79,7 @@ mod tests {
     use super::{KeyVerificationReadyEventContent, ToDeviceKeyVerificationReadyEventContent};
     use crate::{
         event_id,
-        events::key::verification::{Relation, VerificationMethod},
+        events::{key::verification::VerificationMethod, relation::Reference},
         OwnedDeviceId,
     };
 
@@ -99,7 +99,7 @@ mod tests {
 
         let content = KeyVerificationReadyEventContent {
             from_device: device.clone(),
-            relates_to: Relation { event_id },
+            relates_to: Reference { event_id },
             methods: vec![VerificationMethod::SasV1],
         };
 

@@ -3,7 +3,6 @@ use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
-    key,
     room::{encrypted, redaction::SyncRoomRedactionEvent},
     Redact, Relations,
 };
@@ -325,11 +324,8 @@ impl AnyMessageLikeEventContent {
             | Self::KeyVerificationKey(KeyVerificationKeyEventContent { relates_to, .. })
             | Self::KeyVerificationMac(KeyVerificationMacEventContent { relates_to, .. })
             | Self::KeyVerificationDone(KeyVerificationDoneEventContent { relates_to, .. }) => {
-                let key::verification::Relation { event_id } = relates_to;
-                Some(encrypted::Relation::Reference(Reference {
-                    event_id: event_id.clone(),
-                }))
-            }
+                Some(encrypted::Relation::Reference(relates_to.clone()))
+            },
             #[cfg(feature = "unstable-msc2677")]
             Self::Reaction(ev) => Some(encrypted::Relation::Annotation(ev.relates_to.clone())),
             Self::RoomEncrypted(ev) => ev.relates_to.clone(),
