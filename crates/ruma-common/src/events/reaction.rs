@@ -35,9 +35,10 @@ impl From<Annotation> for ReactionEventContent {
 #[cfg(test)]
 mod tests {
     use assert_matches::assert_matches;
-    use serde_json::{from_value as from_json_value, json};
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::ReactionEventContent;
+    use crate::{event_id, events::relation::Annotation};
 
     #[test]
     fn deserialize() {
@@ -55,5 +56,24 @@ mod tests {
         );
         assert_eq!(relates_to.event_id, "$1598361704261elfgc:localhost");
         assert_eq!(relates_to.key, "🦛");
+    }
+
+    #[test]
+    fn serialize() {
+        let content = ReactionEventContent::new(Annotation::new(
+            event_id!("$my_reaction").to_owned(),
+            "🏠".to_owned(),
+        ));
+
+        assert_eq!(
+            to_json_value(&content).unwrap(),
+            json!({
+                "m.relates_to": {
+                    "rel_type": "m.annotation",
+                    "event_id": "$my_reaction",
+                    "key": "🏠"
+                }
+            })
+        );
     }
 }
