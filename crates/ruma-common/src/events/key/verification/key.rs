@@ -5,8 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::Relation;
-use crate::{serde::Base64, OwnedTransactionId};
+use crate::{events::relation::Reference, serde::Base64, OwnedTransactionId};
 
 /// The content of a to-device `m.key.verification.key` event.
 ///
@@ -44,12 +43,12 @@ pub struct KeyVerificationKeyEventContent {
 
     /// Information about the related event.
     #[serde(rename = "m.relates_to")]
-    pub relates_to: Relation,
+    pub relates_to: Reference,
 }
 
 impl KeyVerificationKeyEventContent {
-    /// Creates a new `KeyVerificationKeyEventContent` with the given key and relation.
-    pub fn new(key: Base64, relates_to: Relation) -> Self {
+    /// Creates a new `KeyVerificationKeyEventContent` with the given key and reference.
+    pub fn new(key: Base64, relates_to: Reference) -> Self {
         Self { key, relates_to }
     }
 }

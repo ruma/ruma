@@ -9,10 +9,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 use super::{
-    HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, Relation,
-    ShortAuthenticationString,
+    HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
 };
-use crate::{serde::Base64, OwnedDeviceId, OwnedTransactionId};
+use crate::{events::relation::Reference, serde::Base64, OwnedDeviceId, OwnedTransactionId};
 
 /// The content of a to-device `m.key.verification.start` event.
 ///
@@ -64,13 +63,13 @@ pub struct KeyVerificationStartEventContent {
 
     /// Information about the related event.
     #[serde(rename = "m.relates_to")]
-    pub relates_to: Relation,
+    pub relates_to: Reference,
 }
 
 impl KeyVerificationStartEventContent {
     /// Creates a new `KeyVerificationStartEventContent` with the given device ID, method and
-    /// relation.
-    pub fn new(from_device: OwnedDeviceId, method: StartMethod, relates_to: Relation) -> Self {
+    /// reference.
+    pub fn new(from_device: OwnedDeviceId, method: StartMethod, relates_to: Reference) -> Self {
         Self { from_device, method, relates_to }
     }
 }
@@ -218,7 +217,7 @@ mod tests {
     };
     use crate::{
         event_id,
-        events::{key::verification::Relation, ToDeviceEvent},
+        events::{relation::Reference, ToDeviceEvent},
         serde::Base64,
         user_id,
     };
@@ -315,7 +314,7 @@ mod tests {
 
         let key_verification_start_content = KeyVerificationStartEventContent {
             from_device: "123".into(),
-            relates_to: Relation { event_id: event_id.to_owned() },
+            relates_to: Reference { event_id: event_id.to_owned() },
             method: StartMethod::SasV1(
                 SasV1ContentInit {
                     hashes: vec![HashAlgorithm::Sha256],
@@ -346,7 +345,7 @@ mod tests {
 
         let key_verification_start_content = KeyVerificationStartEventContent {
             from_device: "123".into(),
-            relates_to: Relation { event_id: event_id.to_owned() },
+            relates_to: Reference { event_id: event_id.to_owned() },
             method: StartMethod::ReciprocateV1(ReciprocateV1Content::new(secret.clone())),
         };
 

@@ -5,8 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::Relation;
-use crate::OwnedTransactionId;
+use crate::{events::relation::Reference, OwnedTransactionId};
 
 /// The content of a to-device `m.m.key.verification.done` event.
 ///
@@ -37,12 +36,12 @@ impl ToDeviceKeyVerificationDoneEventContent {
 pub struct KeyVerificationDoneEventContent {
     /// Relation signaling which verification request this event is responding to.
     #[serde(rename = "m.relates_to")]
-    pub relates_to: Relation,
+    pub relates_to: Reference,
 }
 
 impl KeyVerificationDoneEventContent {
-    /// Creates a new `KeyVerificationDoneEventContent` with the given relation.
-    pub fn new(relates_to: Relation) -> Self {
+    /// Creates a new `KeyVerificationDoneEventContent` with the given reference.
+    pub fn new(relates_to: Reference) -> Self {
         Self { relates_to }
     }
 }
@@ -52,7 +51,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::KeyVerificationDoneEventContent;
-    use crate::{event_id, events::key::verification::Relation};
+    use crate::{event_id, events::relation::Reference};
 
     #[test]
     fn serialization() {
@@ -65,7 +64,7 @@ mod tests {
             }
         });
 
-        let content = KeyVerificationDoneEventContent { relates_to: Relation { event_id } };
+        let content = KeyVerificationDoneEventContent { relates_to: Reference { event_id } };
 
         assert_eq!(to_json_value(&content).unwrap(), json_data);
     }

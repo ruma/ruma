@@ -9,10 +9,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 use super::{
-    HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, Relation,
-    ShortAuthenticationString,
+    HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
 };
-use crate::{serde::Base64, OwnedTransactionId};
+use crate::{events::relation::Reference, serde::Base64, OwnedTransactionId};
 
 /// The content of a to-device `m.key.verification.accept` event.
 ///
@@ -52,13 +51,13 @@ pub struct KeyVerificationAcceptEventContent {
 
     /// Information about the related event.
     #[serde(rename = "m.relates_to")]
-    pub relates_to: Relation,
+    pub relates_to: Reference,
 }
 
 impl KeyVerificationAcceptEventContent {
     /// Creates a new `ToDeviceKeyVerificationAcceptEventContent` with the given method-specific
-    /// content and relation.
-    pub fn new(method: AcceptMethod, relates_to: Relation) -> Self {
+    /// content and reference.
+    pub fn new(method: AcceptMethod, relates_to: Reference) -> Self {
         Self { method, relates_to }
     }
 }
@@ -176,7 +175,7 @@ mod tests {
     };
     use crate::{
         event_id,
-        events::{key::verification::Relation, ToDeviceEvent},
+        events::{relation::Reference, ToDeviceEvent},
         serde::Base64,
         user_id,
     };
@@ -248,7 +247,7 @@ mod tests {
         let event_id = event_id!("$1598361704261elfgc:localhost");
 
         let key_verification_accept_content = KeyVerificationAcceptEventContent {
-            relates_to: Relation { event_id: event_id.to_owned() },
+            relates_to: Reference { event_id: event_id.to_owned() },
             method: AcceptMethod::SasV1(SasV1Content {
                 hash: HashAlgorithm::Sha256,
                 key_agreement_protocol: KeyAgreementProtocol::Curve25519,

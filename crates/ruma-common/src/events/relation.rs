@@ -239,6 +239,7 @@ impl BundledThread {
 /// [reference]: https://spec.matrix.org/v1.5/client-server-api/#reference-relations
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(tag = "rel_type", rename = "m.reference")]
 pub struct Reference {
     /// The ID of the event being referenced.
     pub event_id: OwnedEventId,

@@ -5,8 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::Relation;
-use crate::{serde::StringEnum, OwnedTransactionId, PrivOwnedStr};
+use crate::{events::relation::Reference, serde::StringEnum, OwnedTransactionId, PrivOwnedStr};
 
 /// The content of a to-device `m.key.verification.cancel` event.
 ///
@@ -52,12 +51,12 @@ pub struct KeyVerificationCancelEventContent {
 
     /// Information about the related event.
     #[serde(rename = "m.relates_to")]
-    pub relates_to: Relation,
+    pub relates_to: Reference,
 }
 
 impl KeyVerificationCancelEventContent {
-    /// Creates a new `KeyVerificationCancelEventContent` with the given reason, code and relation.
-    pub fn new(reason: String, code: CancelCode, relates_to: Relation) -> Self {
+    /// Creates a new `KeyVerificationCancelEventContent` with the given reason, code and reference.
+    pub fn new(reason: String, code: CancelCode, relates_to: Reference) -> Self {
         Self { reason, code, relates_to }
     }
 }

@@ -7,8 +7,7 @@ use std::collections::BTreeMap;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::Relation;
-use crate::{serde::Base64, OwnedTransactionId};
+use crate::{events::relation::Reference, serde::Base64, OwnedTransactionId};
 
 /// The content of a to-device `m.key.verification.` event.
 ///
@@ -62,13 +61,13 @@ pub struct KeyVerificationMacEventContent {
 
     /// Information about the related event.
     #[serde(rename = "m.relates_to")]
-    pub relates_to: Relation,
+    pub relates_to: Reference,
 }
 
 impl KeyVerificationMacEventContent {
     /// Creates a new `KeyVerificationMacEventContent` with the given key ID to MAC map, key MAC and
-    /// relation.
-    pub fn new(mac: BTreeMap<String, Base64>, keys: Base64, relates_to: Relation) -> Self {
+    /// reference.
+    pub fn new(mac: BTreeMap<String, Base64>, keys: Base64, relates_to: Reference) -> Self {
         Self { mac, keys, relates_to }
     }
 }
