@@ -32,7 +32,7 @@ Breaking changes:
 
 Improvements:
 
-* Add `MatrixVersion::V1_4`
+* Add `MatrixVersion::V1_4` and `MatrixVersion::V1_5`
 * Stabilize default room server ACL push rule
 * Stabilize `room_types` in `directory::Filter` and `room_type` in `directory::PublicRoomsChunk`
 * Stabilize support for private read receipts
