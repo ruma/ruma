@@ -51,6 +51,7 @@ Improvements:
   * `Ruleset::set_enabled` to change the enabled state of push rules
   * `Ruleset::set_actions` to change the actions of push rules
 * Add support for bundled reference relations (MSC3267 / Matrix 1.5)
+* Add the `formatted` field on `KeyVerificationRequestEventContent` (Matrix 1.5)
 
 # 0.10.5
 

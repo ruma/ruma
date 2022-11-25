@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use super::FormattedBody;
 use crate::{events::key::verification::VerificationMethod, OwnedDeviceId, OwnedUserId};
 
 /// The payload for a key verification request message.
@@ -9,7 +10,18 @@ use crate::{events::key::verification::VerificationMethod, OwnedDeviceId, OwnedU
 pub struct KeyVerificationRequestEventContent {
     /// A fallback message to alert users that their client does not support the key verification
     /// framework.
+    ///
+    /// Clients that do support the key verification framework should hide the body and instead
+    /// present the user with an interface to accept or reject the key verification.
     pub body: String,
+
+    /// Formatted form of the `body`.
+    ///
+    /// As with the `body`, clients that do support the key verification framework should hide the
+    /// formatted body and instead present the user with an interface to accept or reject the key
+    /// verification.
+    #[serde(flatten)]
+    pub formatted: Option<FormattedBody>,
 
     /// The verification methods supported by the sender.
     pub methods: Vec<VerificationMethod>,
@@ -34,6 +46,6 @@ impl KeyVerificationRequestEventContent {
         from_device: OwnedDeviceId,
         to: OwnedUserId,
     ) -> Self {
-        Self { body, methods, from_device, to }
+        Self { body, formatted: None, methods, from_device, to }
     }
 }
