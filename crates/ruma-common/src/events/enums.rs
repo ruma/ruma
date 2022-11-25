@@ -8,8 +8,9 @@ use super::{
     Redact, Relations,
 };
 use crate::{
-    serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, RoomId,
-    RoomVersionId, TransactionId, UserId,
+    events::relation::{Annotation, Reference},
+    serde::from_raw_json_value,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, RoomId, RoomVersionId, TransactionId, UserId,
 };
 
 event_enum! {
@@ -326,7 +327,7 @@ impl AnyMessageLikeEventContent {
             | Self::KeyVerificationMac(KeyVerificationMacEventContent { relates_to, .. })
             | Self::KeyVerificationDone(KeyVerificationDoneEventContent { relates_to, .. }) => {
                 let key::verification::Relation { event_id } = relates_to;
-                Some(encrypted::Relation::Reference(encrypted::Reference {
+                Some(encrypted::Relation::Reference(Reference {
                     event_id: event_id.clone(),
                 }))
             }
@@ -335,7 +336,7 @@ impl AnyMessageLikeEventContent {
                 use super::reaction;
 
                 let reaction::Relation { event_id, key } = &ev.relates_to;
-                Some(encrypted::Relation::Annotation(encrypted::Annotation {
+                Some(encrypted::Relation::Annotation(Annotation {
                     event_id: event_id.clone(),
                     key: key.clone(),
                 }))
@@ -364,9 +365,7 @@ impl AnyMessageLikeEventContent {
             Self::PollResponse(PollResponseEventContent { relates_to, .. })
             | Self::PollEnd(PollEndEventContent { relates_to, .. }) => {
                 let super::poll::ReferenceRelation { event_id } = relates_to;
-                Some(encrypted::Relation::Reference(encrypted::Reference {
-                    event_id: event_id.clone(),
-                }))
+                Some(encrypted::Relation::Reference(Reference { event_id: event_id.clone() }))
             }
             #[cfg(feature = "unstable-msc3381")]
             Self::PollStart(_) => None,

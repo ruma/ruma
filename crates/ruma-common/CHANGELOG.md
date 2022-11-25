@@ -33,6 +33,8 @@ Breaking changes:
 * Make `SimplePushRule` and associated types generic over the expected type of the `rule_id`
 * Deduplicate and group relation structs in `events::relation`:
   * Move relation structs under `events::room::message` to `events::relation`
+  * Move common relation structs under `events::room::encrypted` to `events::relation` and remove
+    duplicate types
 
 Improvements:
 

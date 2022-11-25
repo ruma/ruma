@@ -2,10 +2,10 @@ use assert_matches::assert_matches;
 use ruma_common::{
     device_id, event_id,
     events::{
-        relation::InReplyTo,
+        relation::{InReplyTo, Reference, Thread},
         room::encrypted::{
-            EncryptedEventScheme, MegolmV1AesSha2ContentInit, Reference, Relation, Replacement,
-            RoomEncryptedEventContent, Thread,
+            EncryptedEventScheme, MegolmV1AesSha2ContentInit, Relation, Replacement,
+            RoomEncryptedEventContent,
         },
     },
 };
@@ -328,6 +328,7 @@ fn content_thread_serialization() {
             "m.relates_to": {
                 "rel_type": "m.thread",
                 "event_id": "$thread_root",
+                "is_falling_back": true,
                 "m.in_reply_to": {
                     "event_id": "$prev_event",
                 },
@@ -387,7 +388,7 @@ fn content_thread_deserialization() {
 #[test]
 #[cfg(feature = "unstable-msc2677")]
 fn content_annotation_serialization() {
-    use ruma_common::events::room::encrypted::Annotation;
+    use ruma_common::events::relation::Annotation;
 
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),

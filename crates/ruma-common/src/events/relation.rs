@@ -30,6 +30,28 @@ impl InReplyTo {
     }
 }
 
+/// An [annotation] for an event.
+///
+/// [annotation]: https://github.com/matrix-org/matrix-spec-proposals/pull/2677
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg(feature = "unstable-msc2677")]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct Annotation {
+    /// The event that is being annotated.
+    pub event_id: OwnedEventId,
+
+    /// The annotation.
+    pub key: String,
+}
+
+#[cfg(feature = "unstable-msc2677")]
+impl Annotation {
+    /// Creates a new `Annotation` with the given event ID and key.
+    pub fn new(event_id: OwnedEventId, key: String) -> Self {
+        Self { event_id, key }
+    }
+}
+
 /// Summary of all annotations to an event with the given key and type.
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq, Serialize)]
 #[cfg(feature = "unstable-msc2677")]
@@ -203,6 +225,23 @@ impl BundledThread {
         current_user_participated: bool,
     ) -> Self {
         Self { latest_event, count, current_user_participated }
+    }
+}
+
+/// A [reference] to another event.
+///
+/// [reference]: https://spec.matrix.org/v1.5/client-server-api/#reference-relations
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct Reference {
+    /// The ID of the event being referenced.
+    pub event_id: OwnedEventId,
+}
+
+impl Reference {
+    /// Creates a new `Reference` with the given event ID.
+    pub fn new(event_id: OwnedEventId) -> Self {
+        Self { event_id }
     }
 }
 
