@@ -8,10 +8,9 @@ use ruma_common::{
     events::{
         file::{EncryptedContentInit, FileContentInfo, FileEventContent},
         message::MessageContent,
+        relation::InReplyTo,
         room::{
-            message::{
-                FileMessageEventContent, InReplyTo, MessageType, Relation, RoomMessageEventContent,
-            },
+            message::{FileMessageEventContent, MessageType, Relation, RoomMessageEventContent},
             EncryptedFileInit, JsonWebKeyInit, MediaSource,
         },
         AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,

@@ -11,10 +11,9 @@ use ruma_common::{
         audio::{Amplitude, AudioContent, AudioEventContent, Waveform, WaveformError},
         file::{EncryptedContentInit, FileContent, FileContentInfo},
         message::MessageContent,
+        relation::InReplyTo,
         room::{
-            message::{
-                AudioMessageEventContent, InReplyTo, MessageType, Relation, RoomMessageEventContent,
-            },
+            message::{AudioMessageEventContent, MessageType, Relation, RoomMessageEventContent},
             JsonWebKeyInit, MediaSource,
         },
         AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,

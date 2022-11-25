@@ -10,10 +10,9 @@ use ruma_common::{
     events::{
         audio::AudioContent,
         file::{FileContent, FileContentInfo},
+        relation::InReplyTo,
         room::{
-            message::{
-                AudioMessageEventContent, InReplyTo, MessageType, Relation, RoomMessageEventContent,
-            },
+            message::{AudioMessageEventContent, MessageType, Relation, RoomMessageEventContent},
             MediaSource,
         },
         voice::{VoiceContent, VoiceEventContent},

@@ -2,7 +2,10 @@ use assert_matches::assert_matches;
 use assign::assign;
 use ruma_common::{
     event_id,
-    events::room::message::{InReplyTo, MessageType, Relation, RoomMessageEventContent},
+    events::{
+        relation::{InReplyTo, Replacement, Thread},
+        room::message::{MessageType, Relation, RoomMessageEventContent},
+    },
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -67,8 +70,6 @@ fn reply_serialize() {
 
 #[test]
 fn replacement_serialize() {
-    use ruma_common::events::room::message::Replacement;
-
     let content = assign!(
         RoomMessageEventContent::text_plain("<text msg>"),
         {
@@ -148,8 +149,6 @@ fn replacement_deserialize() {
 
 #[test]
 fn thread_plain_serialize() {
-    use ruma_common::events::room::message::Thread;
-
     let content = assign!(
         RoomMessageEventContent::text_plain("<text msg>"),
         {
@@ -200,8 +199,6 @@ fn thread_plain_serialize() {
 
 #[test]
 fn thread_reply_serialize() {
-    use ruma_common::events::room::message::Thread;
-
     let content = assign!(
         RoomMessageEventContent::text_plain("<text msg>"),
         {

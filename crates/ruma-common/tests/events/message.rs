@@ -9,9 +9,8 @@ use ruma_common::{
         emote::EmoteEventContent,
         message::{MessageContent, MessageEventContent, Text},
         notice::NoticeEventContent,
-        room::message::{
-            EmoteMessageEventContent, InReplyTo, MessageType, Relation, RoomMessageEventContent,
-        },
+        relation::InReplyTo,
+        room::message::{EmoteMessageEventContent, MessageType, Relation, RoomMessageEventContent},
         AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
     },
     room_id,

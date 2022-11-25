@@ -12,10 +12,9 @@ use ruma_common::{
             ThumbnailFileContentInfo,
         },
         message::MessageContent,
+        relation::InReplyTo,
         room::{
-            message::{
-                ImageMessageEventContent, InReplyTo, MessageType, Relation, RoomMessageEventContent,
-            },
+            message::{ImageMessageEventContent, MessageType, Relation, RoomMessageEventContent},
             JsonWebKeyInit, MediaSource,
         },
         AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
