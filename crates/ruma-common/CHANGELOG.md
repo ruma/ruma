@@ -37,6 +37,7 @@ Breaking changes:
     duplicate types
   * Remove `events::reaction::Relation` and use `events::relation::Annotation` instead
   * Remove `events::key::verification::Relation` and use `events::relation::Reference` instead
+* Rename `events::relation::Relations` to `BundledRelations`
 
 Improvements:
 

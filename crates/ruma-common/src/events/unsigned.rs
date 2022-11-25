@@ -2,7 +2,9 @@ use js_int::Int;
 use serde::{Deserialize, Serialize};
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 
-use super::{relation::Relations, room::redaction::SyncRoomRedactionEvent, StateEventContent};
+use super::{
+    relation::BundledRelations, room::redaction::SyncRoomRedactionEvent, StateEventContent,
+};
 use crate::{
     serde::{CanBeEmpty, Raw},
     OwnedTransactionId,
@@ -29,7 +31,7 @@ pub struct MessageLikeUnsigned {
     ///
     /// [Bundled aggregations]: https://spec.matrix.org/v1.4/client-server-api/#aggregations
     #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]
-    pub relations: Option<Relations>,
+    pub relations: Option<BundledRelations>,
 }
 
 impl MessageLikeUnsigned {
@@ -75,7 +77,7 @@ pub struct StateUnsigned<C: StateEventContent> {
     ///
     /// [Bundled aggregations]: https://spec.matrix.org/v1.4/client-server-api/#aggregations
     #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]
-    pub relations: Option<Relations>,
+    pub relations: Option<BundledRelations>,
 }
 
 impl<C: StateEventContent> StateUnsigned<C> {
@@ -118,7 +120,7 @@ impl<C: StateEventContent> StateUnsignedFromParts for StateUnsigned<C> {
             transaction_id: Option<OwnedTransactionId>,
             prev_content: Option<Raw<C>>,
             #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]
-            relations: Option<Relations>,
+            relations: Option<BundledRelations>,
         }
 
         let raw: WithRawPrevContent<C> = from_json_str(object.get())?;
