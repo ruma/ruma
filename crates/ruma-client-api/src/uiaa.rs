@@ -865,7 +865,7 @@ impl AuthFlow {
 
 /// Contains either a User-Interactive Authentication API response body or a Matrix error.
 #[derive(Clone, Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[allow(clippy::exhaustive_enums)]
 pub enum UiaaResponse {
     /// User-Interactive Authentication API response
     AuthResponse(UiaaInfo),
