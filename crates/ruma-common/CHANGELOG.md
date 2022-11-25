@@ -35,6 +35,7 @@ Breaking changes:
   * Move relation structs under `events::room::message` to `events::relation`
   * Move common relation structs under `events::room::encrypted` to `events::relation` and remove
     duplicate types
+  * Remove `events::reaction::Relation` and use `events::relation::Annotation` instead
 
 Improvements:
 

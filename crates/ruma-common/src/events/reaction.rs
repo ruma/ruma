@@ -3,7 +3,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::OwnedEventId;
+use super::relation::Annotation;
 
 /// The payload for a `m.reaction` event.
 ///
@@ -14,45 +14,21 @@ use crate::OwnedEventId;
 pub struct ReactionEventContent {
     /// Information about the related event.
     #[serde(rename = "m.relates_to")]
-    pub relates_to: Relation,
+    pub relates_to: Annotation,
 }
 
 impl ReactionEventContent {
-    /// Creates a new `ReactionEventContent` from the given relation.
+    /// Creates a new `ReactionEventContent` from the given annotation.
     ///
-    /// You can also construct a `ReactionEventContent` from a relation using `From` / `Into`.
-    pub fn new(relates_to: Relation) -> Self {
+    /// You can also construct a `ReactionEventContent` from an annotation using `From` / `Into`.
+    pub fn new(relates_to: Annotation) -> Self {
         Self { relates_to }
     }
 }
 
-impl From<Relation> for ReactionEventContent {
-    fn from(relates_to: Relation) -> Self {
+impl From<Annotation> for ReactionEventContent {
+    fn from(relates_to: Annotation) -> Self {
         Self::new(relates_to)
-    }
-}
-
-/// Information about an annotation relation.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(tag = "rel_type", rename = "m.annotation")]
-pub struct Relation {
-    /// The event that is being annotated.
-    pub event_id: OwnedEventId,
-
-    /// A string that indicates the annotation being applied.
-    ///
-    /// When sending emoji reactions, this field should include the colourful variation-16 when
-    /// applicable.
-    ///
-    /// Clients should render reactions that have a long `key` field in a sensible manner.
-    pub key: String,
-}
-
-impl Relation {
-    /// Creates a new `Relation` with the given event ID and key.
-    pub fn new(event_id: OwnedEventId, key: String) -> Self {
-        Self { event_id, key }
     }
 }
 
