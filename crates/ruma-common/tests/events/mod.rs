@@ -2,6 +2,7 @@
 
 mod audio;
 mod call;
+mod encrypted;
 mod enums;
 mod ephemeral_event;
 mod event;
