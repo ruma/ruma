@@ -131,6 +131,36 @@ impl BundledThread {
     }
 }
 
+/// A bundled reference.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct BundledReference {
+    /// The ID of the event referencing this event.
+    pub event_id: OwnedEventId,
+}
+
+impl BundledReference {
+    /// Creates a new `BundledThread` with the given event ID.
+    pub fn new(event_id: OwnedEventId) -> Self {
+        Self { event_id }
+    }
+}
+
+/// A chunk of references.
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct ReferenceChunk {
+    /// A batch of bundled references.
+    pub chunk: Vec<BundledReference>,
+}
+
+impl ReferenceChunk {
+    /// Creates a new `ReferenceChunk` with the given chunk.
+    pub fn new(chunk: Vec<BundledReference>) -> Self {
+        Self { chunk }
+    }
+}
+
 /// [Bundled aggregations] of related child events.
 ///
 /// [Bundled aggregations]: https://spec.matrix.org/v1.4/client-server-api/#aggregations
@@ -149,6 +179,10 @@ pub struct Relations {
     /// Thread relation.
     #[serde(rename = "m.thread")]
     pub thread: Option<BundledThread>,
+
+    /// Reference relations.
+    #[serde(rename = "m.reference")]
+    pub reference: Option<ReferenceChunk>,
 }
 
 impl Relations {
@@ -161,20 +195,21 @@ impl Relations {
 /// Relation types as defined in `rel_type` of an `m.relates_to` field.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[ruma_enum(rename_all = "m.snake_case")]
 #[non_exhaustive]
 pub enum RelationType {
     /// `m.annotation`, an annotation, principally used by reactions.
     #[cfg(feature = "unstable-msc2677")]
-    #[ruma_enum(rename = "m.annotation")]
     Annotation,
 
     /// `m.replace`, a replacement.
-    #[ruma_enum(rename = "m.replace")]
     Replacement,
 
     /// `m.thread`, a participant to a thread.
-    #[ruma_enum(rename = "m.thread")]
     Thread,
+
+    /// `m.reference`, a reference to another event.
+    Reference,
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
