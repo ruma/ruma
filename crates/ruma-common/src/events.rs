@@ -172,7 +172,7 @@ pub use self::{
     content::*,
     enums::*,
     kinds::*,
-    relation::Relations,
+    relation::BundledRelations,
     state_key::EmptyStateKey,
     unsigned::{MessageLikeUnsigned, RedactedUnsigned, StateUnsigned, StateUnsignedFromParts},
 };

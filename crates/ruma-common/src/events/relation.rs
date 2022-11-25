@@ -287,7 +287,7 @@ impl ReferenceChunk {
 /// [Bundled aggregations]: https://spec.matrix.org/v1.4/client-server-api/#aggregations
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct Relations {
+pub struct BundledRelations {
     /// Annotation relations.
     #[cfg(feature = "unstable-msc2677")]
     #[serde(rename = "m.annotation")]
@@ -306,8 +306,8 @@ pub struct Relations {
     pub reference: Option<ReferenceChunk>,
 }
 
-impl Relations {
-    /// Creates a new empty `Relations`.
+impl BundledRelations {
+    /// Creates a new empty `BundledRelations`.
     pub fn new() -> Self {
         Self::default()
     }

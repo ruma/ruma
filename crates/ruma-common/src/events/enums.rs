@@ -4,7 +4,7 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
     room::{encrypted, redaction::SyncRoomRedactionEvent},
-    Redact, Relations,
+    BundledRelations, Redact,
 };
 use crate::{
     serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, RoomId,
@@ -181,7 +181,7 @@ impl AnyTimelineEvent {
         pub fn transaction_id(&self) -> Option<&TransactionId>;
 
         /// Returns this event's `relations` from inside `unsigned`, if that field exists.
-        pub fn relations(&self) -> Option<&Relations>;
+        pub fn relations(&self) -> Option<&BundledRelations>;
     }
 }
 
@@ -213,7 +213,7 @@ impl AnySyncTimelineEvent {
         pub fn transaction_id(&self) -> Option<&TransactionId>;
 
         /// Returns this event's `relations` from inside `unsigned`, if that field exists.
-        pub fn relations(&self) -> Option<&Relations>;
+        pub fn relations(&self) -> Option<&BundledRelations>;
     }
 
     /// Converts `self` to an `AnyTimelineEvent` by adding the given a room ID.

@@ -595,7 +595,7 @@ fn expand_accessor_methods(
             }
 
             /// Returns this event's `relations` from inside `unsigned`, if that field exists.
-            pub fn relations(&self) -> Option<&#ruma_common::events::Relations> {
+            pub fn relations(&self) -> Option<&#ruma_common::events::BundledRelations> {
                 match self {
                     #(
                         #variants2(event) => {

@@ -11,8 +11,8 @@ use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 
 use crate::{
     events::{
-        AnyStrippedStateEvent, EventContent, RedactContent, RedactedEventContent,
-        RedactedStateEventContent, Relations, StateEventContent, StateEventType, StateUnsigned,
+        AnyStrippedStateEvent, BundledRelations, EventContent, RedactContent, RedactedEventContent,
+        RedactedStateEventContent, StateEventContent, StateEventType, StateUnsigned,
         StateUnsignedFromParts, StaticEventContent,
     },
     serde::{CanBeEmpty, Raw, StringEnum},
@@ -482,7 +482,7 @@ pub struct RoomMemberUnsigned {
     ///
     /// [Bundled aggregations]: https://spec.matrix.org/v1.4/client-server-api/#aggregations
     #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]
-    pub relations: Option<Relations>,
+    pub relations: Option<BundledRelations>,
 }
 
 impl RoomMemberUnsigned {
