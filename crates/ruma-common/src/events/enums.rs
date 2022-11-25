@@ -7,8 +7,8 @@ use super::{
     Redact, Relations,
 };
 use crate::{
-    events::relation::Reference, serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch,
-    OwnedRoomId, RoomId, RoomVersionId, TransactionId, UserId,
+    serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, RoomId,
+    RoomVersionId, TransactionId, UserId,
 };
 
 event_enum! {
@@ -351,8 +351,7 @@ impl AnyMessageLikeEventContent {
             #[cfg(feature = "unstable-msc3381")]
             Self::PollResponse(PollResponseEventContent { relates_to, .. })
             | Self::PollEnd(PollEndEventContent { relates_to, .. }) => {
-                let super::poll::ReferenceRelation { event_id } = relates_to;
-                Some(encrypted::Relation::Reference(Reference { event_id: event_id.clone() }))
+                Some(encrypted::Relation::Reference(relates_to.clone()))
             }
             #[cfg(feature = "unstable-msc3381")]
             Self::PollStart(_) => None,
