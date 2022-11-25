@@ -21,7 +21,7 @@ mod image;
 mod key_verification_request;
 mod location;
 mod notice;
-mod relation_serde;
+pub(crate) mod relation_serde;
 mod reply;
 pub mod sanitize;
 mod server_notice;

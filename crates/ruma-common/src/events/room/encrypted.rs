@@ -23,7 +23,11 @@ pub struct RoomEncryptedEventContent {
     pub scheme: EncryptedEventScheme,
 
     /// Information about related events.
-    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        flatten,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "relation_serde::deserialize_relation"
+    )]
     pub relates_to: Option<Relation>,
 }
 
@@ -400,6 +404,8 @@ mod tests {
         assert_eq!(c.ciphertext.len(), 1);
         assert_eq!(c.ciphertext["test_curve_key"].body, "encrypted_body");
         assert_eq!(c.ciphertext["test_curve_key"].message_type, uint!(1));
+
+        assert_matches!(content.relates_to, None);
     }
 
     #[test]

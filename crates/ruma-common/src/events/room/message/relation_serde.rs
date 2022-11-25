@@ -3,51 +3,49 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use super::{InReplyTo, Relation, Replacement, Thread};
 use crate::OwnedEventId;
 
-impl<'de, C> Deserialize<'de> for Relation<C>
+pub(crate) fn deserialize_relation<'de, D, C>(
+    deserializer: D,
+) -> Result<Option<Relation<C>>, D::Error>
 where
+    D: Deserializer<'de>,
     C: Deserialize<'de>,
 {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
+    let ev = EventWithRelatesToJsonRepr::deserialize(deserializer)?;
+
+    if let Some(
+        RelationJsonRepr::ThreadStable(ThreadStableJsonRepr { event_id, is_falling_back })
+        | RelationJsonRepr::ThreadUnstable(ThreadUnstableJsonRepr { event_id, is_falling_back }),
+    ) = ev.relates_to.relation
     {
-        let ev = EventWithRelatesToJsonRepr::deserialize(deserializer)?;
-
-        if let Some(
-            RelationJsonRepr::ThreadStable(ThreadStableJsonRepr { event_id, is_falling_back })
-            | RelationJsonRepr::ThreadUnstable(ThreadUnstableJsonRepr { event_id, is_falling_back }),
-        ) = ev.relates_to.relation
-        {
-            let in_reply_to = ev
-                .relates_to
-                .in_reply_to
-                .ok_or_else(|| serde::de::Error::missing_field("m.in_reply_to"))?;
-            return Ok(Relation::Thread(Thread { event_id, in_reply_to, is_falling_back }));
-        }
-
-        let rel = if let Some(in_reply_to) = ev.relates_to.in_reply_to {
-            Relation::Reply { in_reply_to }
-        } else if let Some(relation) = ev.relates_to.relation {
-            match relation {
-                RelationJsonRepr::Replacement(ReplacementJsonRepr { event_id }) => {
-                    let new_content = ev
-                        .new_content
-                        .ok_or_else(|| serde::de::Error::missing_field("m.new_content"))?;
-                    Relation::Replacement(Replacement { event_id, new_content })
-                }
-                // FIXME: Maybe we should log this, though at this point we don't even have
-                // access to the rel_type of the unknown relation.
-                RelationJsonRepr::Unknown => Relation::_Custom,
-                RelationJsonRepr::ThreadStable(_) | RelationJsonRepr::ThreadUnstable(_) => {
-                    unreachable!()
-                }
-            }
-        } else {
-            Relation::_Custom
-        };
-
-        Ok(rel)
+        let in_reply_to = ev
+            .relates_to
+            .in_reply_to
+            .ok_or_else(|| serde::de::Error::missing_field("m.in_reply_to"))?;
+        return Ok(Some(Relation::Thread(Thread { event_id, in_reply_to, is_falling_back })));
     }
+
+    let rel = if let Some(in_reply_to) = ev.relates_to.in_reply_to {
+        Some(Relation::Reply { in_reply_to })
+    } else if let Some(relation) = ev.relates_to.relation {
+        match relation {
+            RelationJsonRepr::Replacement(ReplacementJsonRepr { event_id }) => {
+                let new_content = ev
+                    .new_content
+                    .ok_or_else(|| serde::de::Error::missing_field("m.new_content"))?;
+                Some(Relation::Replacement(Replacement { event_id, new_content }))
+            }
+            // FIXME: Maybe we should log this, though at this point we don't even have
+            // access to the rel_type of the unknown relation.
+            RelationJsonRepr::Unknown => Some(Relation::_Custom),
+            RelationJsonRepr::ThreadStable(_) | RelationJsonRepr::ThreadUnstable(_) => {
+                unreachable!()
+            }
+        }
+    } else {
+        None
+    };
+
+    Ok(rel)
 }
 
 impl<C> Serialize for Relation<C>

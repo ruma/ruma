@@ -367,18 +367,19 @@ fn verification_request_deserialization() {
         ]
     });
 
+    let content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+
     let verification = assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent {
-            msgtype: MessageType::VerificationRequest(verification),
-            ..
-        }) => verification
+        content.msgtype,
+        MessageType::VerificationRequest(verification) => verification
     );
     assert_eq!(verification.body, "@example:localhost is requesting to verify your key, ...");
     assert_eq!(verification.to, user_id);
     assert_eq!(verification.from_device, device_id);
     assert_eq!(verification.methods.len(), 3);
     assert!(verification.methods.contains(&VerificationMethod::SasV1));
+
+    assert_matches!(content.relates_to, None);
 }
 
 #[test]
@@ -413,17 +414,17 @@ fn content_deserialization() {
         "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd"
     });
 
+    let content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
     let audio = assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent {
-            msgtype: MessageType::Audio(audio),
-            ..
-        }) => audio
+        content.msgtype,
+        MessageType::Audio(audio) => audio
     );
     assert_eq!(audio.body, "test");
     assert_matches!(audio.info, None);
     let url = assert_matches!(audio.source, MediaSource::Plain(url) => url);
     assert_eq!(url, "mxc://example.org/ffed755USFFxlgbQYZGtryd");
+
+    assert_matches!(content.relates_to, None);
 }
 
 #[test]

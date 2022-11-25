@@ -5,13 +5,13 @@ use serde_json::value::RawValue as RawJsonValue;
 
 #[cfg(feature = "unstable-msc3552")]
 use super::ImageMessageEventContent;
+use super::{relation_serde::deserialize_relation, MessageType, RoomMessageEventContent};
 #[cfg(feature = "unstable-msc3246")]
 use super::{AudioInfo, AudioMessageEventContent};
 #[cfg(feature = "unstable-msc3551")]
 use super::{FileInfo, FileMessageEventContent};
 #[cfg(feature = "unstable-msc3488")]
 use super::{LocationInfo, LocationMessageEventContent};
-use super::{MessageType, Relation, RoomMessageEventContent};
 #[cfg(feature = "unstable-msc3553")]
 use super::{VideoInfo, VideoMessageEventContent};
 #[cfg(feature = "unstable-msc3246")]
@@ -47,8 +47,7 @@ impl<'de> Deserialize<'de> for RoomMessageEventContent {
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
         let mut deserializer = serde_json::Deserializer::from_str(json.get());
-        let relates_to = Option::<Relation<MessageType>>::deserialize(&mut deserializer)
-            .map_err(de::Error::custom)?;
+        let relates_to = deserialize_relation(&mut deserializer).map_err(de::Error::custom)?;
 
         Ok(Self { msgtype: from_raw_json_value(&json)?, relates_to })
     }

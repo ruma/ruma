@@ -6,6 +6,8 @@ Bug fixes:
   during creation of the rich reply
 * Don't include sensitive information in `Debug`-format of types from the `events::key`
   and `events::secret` modules
+* Fix deserialization of `RoomMessageEventContent` and `RoomEncryptedEventContent` when there
+  is no relation
 
 Breaking changes:
 

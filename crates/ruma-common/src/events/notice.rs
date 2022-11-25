@@ -23,7 +23,11 @@ pub struct NoticeEventContent {
     pub message: MessageContent,
 
     /// Information about related messages.
-    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        flatten,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "crate::events::room::message::relation_serde::deserialize_relation"
+    )]
     pub relates_to: Option<Relation<NoticeEventContentWithoutRelation>>,
 }
 
