@@ -138,8 +138,15 @@ impl<C> From<message::Relation<C>> for Relation {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Replacement {
-    /// The ID of the event being replacing.
+    /// The ID of the event being replaced.
     pub event_id: OwnedEventId,
+}
+
+impl Replacement {
+    /// Creates a new `Replacement` with the given event ID.
+    pub fn new(event_id: OwnedEventId) -> Self {
+        Self { event_id }
+    }
 }
 
 /// A reference to another event.
