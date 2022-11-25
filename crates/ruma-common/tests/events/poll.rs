@@ -14,8 +14,8 @@ use ruma_common::{
                 PollAnswer, PollAnswers, PollAnswersError, PollKind, PollStartContent,
                 PollStartEventContent,
             },
-            ReferenceRelation,
         },
+        relation::Reference,
         AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
     },
     room_id, user_id, MilliSecondsSinceUnixEpoch,
@@ -318,7 +318,7 @@ fn response_event_unstable_deserialization() {
     assert_eq!(answers[0], "my-answer");
     let event_id = assert_matches!(
         message_event.content.relates_to,
-        ReferenceRelation { event_id, .. } => event_id
+        Reference { event_id, .. } => event_id
     );
     assert_eq!(event_id, "$related_event:notareal.hs");
 }
@@ -354,7 +354,7 @@ fn response_event_stable_deserialization() {
     assert_eq!(answers[1], "second-answer");
     let event_id = assert_matches!(
         message_event.content.relates_to,
-        ReferenceRelation { event_id, .. } => event_id
+        Reference { event_id, .. } => event_id
     );
     assert_eq!(event_id, "$related_event:notareal.hs");
 }
@@ -435,7 +435,7 @@ fn end_event_unstable_deserialization() {
     );
     let event_id = assert_matches!(
         message_event.content.relates_to,
-        ReferenceRelation { event_id, .. } => event_id
+        Reference { event_id, .. } => event_id
     );
     assert_eq!(event_id, "$related_event:notareal.hs");
 }
@@ -464,7 +464,7 @@ fn end_event_stable_deserialization() {
     );
     let event_id = assert_matches!(
         message_event.content.relates_to,
-        ReferenceRelation { event_id, .. } => event_id
+        Reference { event_id, .. } => event_id
     );
     assert_eq!(event_id, "$related_event:notareal.hs");
 }
