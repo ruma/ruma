@@ -36,11 +36,17 @@ impl InReplyTo {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg(feature = "unstable-msc2677")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(tag = "rel_type", rename = "m.annotation")]
 pub struct Annotation {
     /// The event that is being annotated.
     pub event_id: OwnedEventId,
 
-    /// The annotation.
+    /// A string that indicates the annotation being applied.
+    ///
+    /// When sending emoji reactions, this field should include the colourful variation-16 when
+    /// applicable.
+    ///
+    /// Clients should render reactions that have a long `key` field in a sensible manner.
     pub key: String,
 }
 

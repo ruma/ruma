@@ -8,9 +8,8 @@ use super::{
     Redact, Relations,
 };
 use crate::{
-    events::relation::{Annotation, Reference},
-    serde::from_raw_json_value,
-    EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, RoomId, RoomVersionId, TransactionId, UserId,
+    events::relation::Reference, serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch,
+    OwnedRoomId, RoomId, RoomVersionId, TransactionId, UserId,
 };
 
 event_enum! {
@@ -332,15 +331,7 @@ impl AnyMessageLikeEventContent {
                 }))
             }
             #[cfg(feature = "unstable-msc2677")]
-            Self::Reaction(ev) => {
-                use super::reaction;
-
-                let reaction::Relation { event_id, key } = &ev.relates_to;
-                Some(encrypted::Relation::Annotation(Annotation {
-                    event_id: event_id.clone(),
-                    key: key.clone(),
-                }))
-            }
+            Self::Reaction(ev) => Some(encrypted::Relation::Annotation(ev.relates_to.clone())),
             Self::RoomEncrypted(ev) => ev.relates_to.clone(),
             Self::RoomMessage(ev) => ev.relates_to.clone().map(Into::into),
             #[cfg(feature = "unstable-msc1767")]
