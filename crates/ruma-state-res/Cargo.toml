@@ -33,7 +33,7 @@ criterion = { workspace = true, optional = true }
 maplit = { workspace = true }
 rand = "0.8.3"
 ruma-common = { version = "0.10.5", path = "../ruma-common", features = ["unstable-pdu"] }
-tracing-subscriber = "0.3.3"
+tracing-subscriber = "0.3.16"
 
 [[bench]]
 name = "state_res_bench"
