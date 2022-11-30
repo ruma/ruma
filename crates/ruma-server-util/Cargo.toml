@@ -22,4 +22,4 @@ tracing = { workspace = true }
 yap = "0.8.0"
 
 [dev-dependencies]
-tracing-subscriber = "0.3.3"
+tracing-subscriber = "0.3.16"
