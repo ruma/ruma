@@ -138,10 +138,7 @@ impl EventKind {
             | (Self::State, V::Stripped | V::Initial) => Ok(format_ident!("{var}{self}")),
             _ => Err(syn::Error::new(
                 Span::call_site(),
-                format!(
-                    "({:?}, {:?}) is not a valid event kind / variation combination",
-                    self, var
-                ),
+                format!("({self:?}, {var:?}) is not a valid event kind / variation combination"),
             )),
         }
     }
@@ -175,8 +172,7 @@ impl Parse for EventKind {
                     ident,
                     format!(
                         "valid event kinds are GlobalAccountData, RoomAccountData, EphemeralRoom, \
-                        MessageLike, State, ToDevice found `{}`",
-                        id
+                         MessageLike, State, ToDevice; found `{id}`",
                     ),
                 ));
             }

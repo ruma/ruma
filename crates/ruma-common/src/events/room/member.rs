@@ -199,8 +199,7 @@ impl EventContent for RedactedRoomMemberEventContent {
     fn from_parts(event_type: &str, content: &RawJsonValue) -> serde_json::Result<Self> {
         if event_type != "m.room.member" {
             return Err(::serde::de::Error::custom(format!(
-                "expected event type `m.room.member`, found `{}`",
-                event_type
+                "expected event type `m.room.member`, found `{event_type}`",
             )));
         }
 
