@@ -1,5 +1,5 @@
 ---
-name: Documentation improvement
+name: 📖 Documentation improvement
 about: You have a suggestion for the documentation?
 title: ''
 labels: type/docs, untriaged

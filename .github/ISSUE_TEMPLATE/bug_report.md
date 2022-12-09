@@ -1,5 +1,5 @@
 ---
-name: Bug Report
+name: 🐛 Bug Report
 about: Oh no, it's a bug. Let's squash it!
 title: ''
 labels: type/bug, untriaged
