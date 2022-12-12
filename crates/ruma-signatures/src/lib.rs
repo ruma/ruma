@@ -103,29 +103,29 @@ fn split_id(id: &str) -> Result<(Algorithm, String), Error> {
 mod tests {
     use std::collections::BTreeMap;
 
-    use base64::{decode_config, STANDARD_NO_PAD};
     use pkcs8::{der::Decode, PrivateKeyInfo};
-    use ruma_common::{serde::Base64, RoomVersionId};
+    use ruma_common::{
+        serde::{base64::Standard, Base64},
+        RoomVersionId,
+    };
     use serde_json::{from_str as from_json_str, to_string as to_json_string};
 
     use super::{
         canonical_json, hash_and_sign_event, sign_json, verify_event, verify_json, Ed25519KeyPair,
     };
 
-    const PKCS8: &str = "\
-        MFECAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
-        tA0T+6tgSEA3TPraTczVkDPTRaX4K+AfUuyx7Mzq1UafTXypnl0t2k=\
-    ";
+    fn pkcs8() -> Vec<u8> {
+        const ENCODED: &str = "\
+            MFECAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
+            tA0T+6tgSEA3TPraTczVkDPTRaX4K+AfUuyx7Mzq1UafTXypnl0t2k\
+        ";
+
+        Base64::<Standard>::parse(ENCODED).unwrap().into_inner()
+    }
 
     /// Convenience method for getting the public key as a string
     fn public_key_string() -> Base64 {
-        Base64::new(
-            PrivateKeyInfo::from_der(&decode_config(PKCS8, STANDARD_NO_PAD).unwrap())
-                .unwrap()
-                .public_key
-                .unwrap()
-                .to_owned(),
-        )
+        Base64::new(PrivateKeyInfo::from_der(&pkcs8()).unwrap().public_key.unwrap().to_owned())
     }
 
     /// Convenience for converting a string of JSON into its canonical form.
@@ -225,11 +225,7 @@ mod tests {
 
     #[test]
     fn sign_empty_json() {
-        let key_pair = Ed25519KeyPair::from_der(
-            decode_config(PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
-            "1".into(),
-        )
-        .unwrap();
+        let key_pair = Ed25519KeyPair::from_der(&pkcs8(), "1".into()).unwrap();
 
         let mut value = from_json_str("{}").unwrap();
 
@@ -256,11 +252,7 @@ mod tests {
 
     #[test]
     fn sign_minimal_json() {
-        let key_pair = Ed25519KeyPair::from_der(
-            decode_config(PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
-            "1".into(),
-        )
-        .unwrap();
+        let key_pair = Ed25519KeyPair::from_der(&pkcs8(), "1".into()).unwrap();
 
         let mut alpha_object = from_json_str(r#"{ "one": 1, "two": "Two" }"#).unwrap();
         sign_json("domain", &key_pair, &mut alpha_object).unwrap();
@@ -316,11 +308,7 @@ mod tests {
 
     #[test]
     fn sign_minimal_event() {
-        let key_pair = Ed25519KeyPair::from_der(
-            decode_config(PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
-            "1".into(),
-        )
-        .unwrap();
+        let key_pair = Ed25519KeyPair::from_der(&pkcs8(), "1".into()).unwrap();
 
         let json = r#"{
             "room_id": "!x:domain",
@@ -350,11 +338,7 @@ mod tests {
 
     #[test]
     fn sign_redacted_event() {
-        let key_pair = Ed25519KeyPair::from_der(
-            decode_config(PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
-            "1".into(),
-        )
-        .unwrap();
+        let key_pair = Ed25519KeyPair::from_der(&pkcs8(), "1".into()).unwrap();
 
         let json = r#"{
             "content": {
