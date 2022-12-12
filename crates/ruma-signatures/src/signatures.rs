@@ -1,6 +1,6 @@
 //! Digital signatures and collections of signatures.
 
-use base64::{encode_config, STANDARD_NO_PAD};
+use ruma_common::serde::{base64::Standard, Base64};
 
 use crate::{split_id, Algorithm, Error};
 
@@ -61,7 +61,7 @@ impl Signature {
     ///
     /// Uses the standard character set with no padding.
     pub fn base64(&self) -> String {
-        encode_config(self.signature.as_slice(), STANDARD_NO_PAD)
+        Base64::<Standard, _>::new(self.signature.as_slice()).encode()
     }
 
     /// The key identifier, a string containing the signature algorithm and the key "version"

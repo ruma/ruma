@@ -7,7 +7,7 @@ resolver = "2"
 [workspace.dependencies]
 assert_matches = "1.5.0"
 assign = "1.1.1"
-base64 = "0.13.1"
+base64 = "0.20.0"
 criterion = "0.4.0"
 http = "0.2.8"
 js_int = "0.2.2"

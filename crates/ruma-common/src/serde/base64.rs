@@ -2,6 +2,7 @@
 
 use std::{fmt, marker::PhantomData};
 
+use base64::engine::fast_portable::{self, FastPortable, FastPortableConfig};
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
 /// A wrapper around `B` (usually `Vec<u8>`) that (de)serializes from / to a base64 string.
@@ -25,7 +26,7 @@ pub trait Base64Config {
 }
 
 #[doc(hidden)]
-pub struct Conf(base64::Config);
+pub struct Conf(base64::alphabet::Alphabet);
 
 /// Standard base64 character set without padding.
 ///
@@ -36,8 +37,7 @@ pub struct Conf(base64::Config);
 pub struct Standard;
 
 impl Base64Config for Standard {
-    // See https://github.com/matrix-org/matrix-spec/issues/838
-    const CONF: Conf = Conf(base64::STANDARD_NO_PAD.decode_allow_trailing_bits(true));
+    const CONF: Conf = Conf(base64::alphabet::STANDARD);
 }
 
 /// Url-safe base64 character set without padding.
@@ -49,7 +49,13 @@ impl Base64Config for Standard {
 pub struct UrlSafe;
 
 impl Base64Config for UrlSafe {
-    const CONF: Conf = Conf(base64::URL_SAFE_NO_PAD.decode_allow_trailing_bits(true));
+    const CONF: Conf = Conf(base64::alphabet::URL_SAFE);
+}
+
+impl<C: Base64Config, B> Base64<C, B> {
+    // See https://github.com/matrix-org/matrix-spec/issues/838
+    const CONFIG: FastPortableConfig = fast_portable::NO_PAD.with_decode_allow_trailing_bits(true);
+    const ENGINE: FastPortable = FastPortable::from(&C::CONF.0, Self::CONFIG);
 }
 
 impl<C: Base64Config, B: AsRef<[u8]>> Base64<C, B> {
@@ -65,7 +71,7 @@ impl<C: Base64Config, B: AsRef<[u8]>> Base64<C, B> {
 
     /// Encode the bytes contained in this `Base64` instance to unpadded base64.
     pub fn encode(&self) -> String {
-        base64::encode_config(&self.bytes, C::CONF.0)
+        base64::encode_engine(self.as_bytes(), &Self::ENGINE)
     }
 }
 
@@ -84,7 +90,7 @@ impl<C: Base64Config> Base64<C> {
 
     /// Parse some base64-encoded data to create a `Base64` instance.
     pub fn parse(encoded: impl AsRef<[u8]>) -> Result<Self, Base64DecodeError> {
-        base64::decode_config(encoded, C::CONF.0).map(Self::new).map_err(Base64DecodeError)
+        base64::decode_engine(encoded, &Self::ENGINE).map(Self::new).map_err(Base64DecodeError)
     }
 }
 

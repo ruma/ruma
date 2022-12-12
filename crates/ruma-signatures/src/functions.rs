@@ -6,7 +6,7 @@ use std::{
     mem,
 };
 
-use base64::{encode_config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
+use base64::{alphabet, encode_engine};
 use ruma_common::{
     canonical_json::{redact, JsonType},
     serde::{base64::Standard, Base64},
@@ -55,16 +55,18 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "uns
 /// A homeserver signs JSON with a key pair:
 ///
 /// ```rust
+/// # use ruma_common::serde::base64::Base64;
+/// #
 /// const PKCS8: &str = "\
 ///     MFECAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
-///     tA0T+6tgSEA3TPraTczVkDPTRaX4K+AfUuyx7Mzq1UafTXypnl0t2k=\
+///     tA0T+6tgSEA3TPraTczVkDPTRaX4K+AfUuyx7Mzq1UafTXypnl0t2k\
 /// ";
 ///
-/// let document = base64::decode_config(&PKCS8, base64::STANDARD_NO_PAD).unwrap();
+/// let document: Base64 = Base64::parse(PKCS8).unwrap();
 ///
 /// // Create an Ed25519 key pair.
 /// let key_pair = ruma_signatures::Ed25519KeyPair::from_der(
-///     &document,
+///     document.as_bytes(),
 ///     "1".into(), // The "version" of the key.
 /// )
 /// .unwrap();
@@ -331,14 +333,17 @@ pub fn reference_hash(
 
     let hash = Sha256::digest(json.as_bytes());
 
-    Ok(encode_config(
-        hash,
-        match version {
-            RoomVersionId::V1 | RoomVersionId::V2 | RoomVersionId::V3 => STANDARD_NO_PAD,
-            // Room versions higher than version 3 are url safe base64 encoded
-            _ => URL_SAFE_NO_PAD,
-        },
-    ))
+    let base64_alphabet = match version {
+        RoomVersionId::V1 | RoomVersionId::V2 | RoomVersionId::V3 => alphabet::STANDARD,
+        // Room versions higher than version 3 are url safe base64 encoded
+        _ => alphabet::URL_SAFE,
+    };
+    let base64_engine = base64::engine::fast_portable::FastPortable::from(
+        &base64_alphabet,
+        base64::engine::fast_portable::NO_PAD,
+    );
+
+    Ok(encode_engine(hash, &base64_engine))
 }
 
 /// Hashes and signs an event and adds the hash and signature to objects under the keys `hashes` and
@@ -366,19 +371,19 @@ pub fn reference_hash(
 /// # Examples
 ///
 /// ```rust
-/// # use ruma_common::RoomVersionId;
+/// # use ruma_common::{RoomVersionId, serde::base64::Base64};
 /// # use ruma_signatures::{hash_and_sign_event, Ed25519KeyPair};
 /// #
 /// const PKCS8: &str = "\
 ///     MFECAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
-///     tA0T+6tgSEA3TPraTczVkDPTRaX4K+AfUuyx7Mzq1UafTXypnl0t2k=\
+///     tA0T+6tgSEA3TPraTczVkDPTRaX4K+AfUuyx7Mzq1UafTXypnl0t2k\
 /// ";
 ///
-/// let document = base64::decode_config(&PKCS8, base64::STANDARD_NO_PAD).unwrap();
+/// let document: Base64 = Base64::parse(PKCS8).unwrap();
 ///
 /// // Create an Ed25519 key pair.
 /// let key_pair = Ed25519KeyPair::from_der(
-///     &document,
+///     document.as_bytes(),
 ///     "1".into(), // The "version" of the key.
 /// )
 /// .unwrap();
