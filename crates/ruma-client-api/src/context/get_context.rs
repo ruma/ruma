@@ -39,7 +39,10 @@ pub mod v3 {
         #[ruma_api(path)]
         pub event_id: OwnedEventId,
 
-        /// The maximum number of events to return.
+        /// The maximum number of context events to return.
+        ///
+        /// This limit applies to the sum of the `events_before` and `events_after` arrays. The
+        /// requested event ID is always returned in `event` even if the limit is `0`.
         ///
         /// Defaults to 10.
         #[ruma_api(query)]
