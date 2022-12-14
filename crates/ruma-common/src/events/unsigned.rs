@@ -143,33 +143,16 @@ impl<C: StateEventContent> Default for StateUnsigned<C> {
 }
 
 /// Extra information about a redacted event that is not incorporated into the event's hash.
-#[derive(Clone, Debug, Default, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RedactedUnsigned {
     /// The event that redacted this event, if any.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub redacted_because: Option<Box<SyncRoomRedactionEvent>>,
+    pub redacted_because: Box<SyncRoomRedactionEvent>,
 }
 
 impl RedactedUnsigned {
-    /// Create a new `RedactedUnsigned` with field set to `None`.
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Create a new `RedactedUnsigned` with the given redacted because.
-    pub fn new_because(redacted_because: Box<SyncRoomRedactionEvent>) -> Self {
-        Self { redacted_because: Some(redacted_because) }
-    }
-}
-
-impl CanBeEmpty for RedactedUnsigned {
-    /// Whether this unsigned data is empty (`redacted_because` is `None`).
-    ///
-    /// This method is used to determine whether to skip serializing the `unsigned` field in
-    /// redacted room events. Do not use it to determine whether an incoming `unsigned` field
-    /// was present - it could still have been present but contained none of the known fields.
-    fn is_empty(&self) -> bool {
-        self.redacted_because.is_none()
+    /// Create a new `RedactedUnsigned` with the given redaction event.
+    pub fn new(redacted_because: Box<SyncRoomRedactionEvent>) -> Self {
+        Self { redacted_because }
     }
 }

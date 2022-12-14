@@ -139,7 +139,6 @@ fn deserialize_redacted_state_event() {
         ))) => redacted
     );
     assert_eq!(redacted.event_id, "$h29iv0s8:example.com");
-    assert!(redacted.unsigned.redacted_because.is_some());
     assert_eq!(redacted.content.creator, "@carl:example.com");
 }
 

@@ -136,7 +136,7 @@ fn expand_deserialize_event(
                         )?;
                     }
                 }
-            } else if name == "unsigned" {
+            } else if name == "unsigned" && !var.is_redacted() {
                 if has_prev_content(kind, var) {
                     quote! {
                         let unsigned = unsigned.map(|json| {

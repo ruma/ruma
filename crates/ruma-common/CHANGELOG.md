@@ -38,6 +38,9 @@ Breaking changes:
   * Remove `events::reaction::Relation` and use `events::relation::Annotation` instead
   * Remove `events::key::verification::Relation` and use `events::relation::Reference` instead
 * Rename `events::relation::Relations` to `BundledRelations`
+* Make the `redacted_because` field in `UnsignedRedacted` non-optional and replace parameterless
+  `new` constructor by one that takes a redaction event (like `new_because` previously, which is
+  now removed)
 
 Improvements:
 
