@@ -2,16 +2,59 @@ use std::{collections::BTreeMap, ops::RangeBounds, str::FromStr};
 
 use js_int::{Int, UInt};
 use regex::Regex;
+#[cfg(feature = "unstable-msc3931")]
+use ruma_macros::StringEnum;
 use serde::{Deserialize, Serialize};
 use serde_json::{to_value as to_json_value, value::Value as JsonValue};
 use tracing::{instrument, warn};
 use wildmatch::WildMatch;
 
 use crate::{power_levels::NotificationPowerLevels, serde::Raw, OwnedRoomId, OwnedUserId, UserId};
+#[cfg(feature = "unstable-msc3931")]
+use crate::{PrivOwnedStr, RoomVersionId};
 
 mod room_member_count_is;
 
 pub use room_member_count_is::{ComparisonOperator, RoomMemberCountIs};
+
+/// Features supported by room versions.
+#[cfg(feature = "unstable-msc3931")]
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub enum RoomVersionFeature {
+    /// m.extensible_events
+    ///
+    /// The room supports [extensible events].
+    ///
+    /// [extensible events]: https://github.com/matrix-org/matrix-spec-proposals/pull/1767
+    #[cfg(feature = "unstable-msc3932")]
+    #[ruma_enum(rename = "org.matrix.msc3932.extensible_events")]
+    ExtensibleEvents,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}
+
+#[cfg(feature = "unstable-msc3931")]
+impl RoomVersionFeature {
+    /// Get the default features for the given room version.
+    pub fn list_for_room_version(version: &RoomVersionId) -> Vec<Self> {
+        match version {
+            RoomVersionId::V1
+            | RoomVersionId::V2
+            | RoomVersionId::V3
+            | RoomVersionId::V4
+            | RoomVersionId::V5
+            | RoomVersionId::V6
+            | RoomVersionId::V7
+            | RoomVersionId::V8
+            | RoomVersionId::V9
+            | RoomVersionId::V10
+            | RoomVersionId::_Custom(_) => vec![],
+        }
+    }
+}
 
 /// A condition that must apply for an associated push rule's action to be taken.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -48,6 +91,14 @@ pub enum PushCondition {
         /// Fields must be specified under the `notifications` property in the power level event's
         /// `content`.
         key: String,
+    },
+
+    /// Apply the rule only to rooms that support a given feature.
+    #[cfg(feature = "unstable-msc3931")]
+    #[serde(rename = "org.matrix.msc3931.room_version_supports")]
+    RoomVersionSupports {
+        /// The feature the room must support for the push rule to apply.
+        feature: RoomVersionFeature,
     },
 }
 
@@ -110,6 +161,13 @@ impl PushCondition {
                     None => false,
                 }
             }
+            #[cfg(feature = "unstable-msc3931")]
+            Self::RoomVersionSupports { feature } => match feature {
+                RoomVersionFeature::ExtensibleEvents => {
+                    context.supported_features.contains(&RoomVersionFeature::ExtensibleEvents)
+                }
+                RoomVersionFeature::_Custom(_) => false,
+            },
         }
     }
 }
@@ -138,6 +196,10 @@ pub struct PushConditionRoomCtx {
 
     /// The notification power levels of the room.
     pub notification_power_levels: NotificationPowerLevels,
+
+    #[cfg(feature = "unstable-msc3931")]
+    /// The list of features this room's version or the room itself supports.
+    pub supported_features: Vec<RoomVersionFeature>,
 }
 
 /// Additional functions for character matching.
@@ -585,6 +647,8 @@ mod tests {
             users_power_levels,
             default_power_level: int!(50),
             notification_power_levels: NotificationPowerLevels { room: int!(50) },
+            #[cfg(feature = "unstable-msc3931")]
+            supported_features: Default::default(),
         };
 
         let first_event_raw = serde_json::from_str::<Raw<JsonValue>>(
@@ -656,6 +720,56 @@ mod tests {
 
         assert!(!sender_notification_permission.applies(&first_event, &context));
         assert!(sender_notification_permission.applies(&second_event, &context));
+    }
+
+    #[cfg(feature = "unstable-msc3932")]
+    #[test]
+    fn conditions_apply_to_events_in_room_with_feature() {
+        let first_sender = user_id!("@worthy_whale:server.name").to_owned();
+
+        let mut users_power_levels = BTreeMap::new();
+        users_power_levels.insert(first_sender, int!(25));
+
+        let context_matching = PushConditionRoomCtx {
+            room_id: room_id!("!room:server.name").to_owned(),
+            member_count: uint!(3),
+            user_id: user_id!("@gorilla:server.name").to_owned(),
+            user_display_name: "Groovy Gorilla".into(),
+            users_power_levels: users_power_levels.clone(),
+            default_power_level: int!(50),
+            notification_power_levels: NotificationPowerLevels { room: int!(50) },
+            supported_features: vec![super::RoomVersionFeature::ExtensibleEvents],
+        };
+
+        let context_not_matching = PushConditionRoomCtx {
+            room_id: room_id!("!room:server.name").to_owned(),
+            member_count: uint!(3),
+            user_id: user_id!("@gorilla:server.name").to_owned(),
+            user_display_name: "Groovy Gorilla".into(),
+            users_power_levels,
+            default_power_level: int!(50),
+            notification_power_levels: NotificationPowerLevels { room: int!(50) },
+            supported_features: vec![],
+        };
+
+        let simple_event_raw = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "sender": "@worthy_whale:server.name",
+                "content": {
+                    "msgtype": "org.matrix.msc3932.extensible_events",
+                    "body": "@room Give a warm welcome to Groovy Gorilla"
+                }
+            }"#,
+        )
+        .unwrap();
+        let simple_event = FlattenedJson::from_raw(&simple_event_raw);
+
+        let room_version_condition = PushCondition::RoomVersionSupports {
+            feature: super::RoomVersionFeature::ExtensibleEvents,
+        };
+
+        assert!(room_version_condition.applies(&simple_event, &context_matching));
+        assert!(!room_version_condition.applies(&simple_event, &context_not_matching));
     }
 
     #[test]
