@@ -122,8 +122,8 @@ pub(super) fn membership_change<'a>(
         | (St::Knock, St::Knock) => Ch::None,
         (St::Leave, St::Join) => Ch::Joined,
         (St::Invite, St::Join) => Ch::InvitationAccepted,
-        (St::Invite, St::Leave) if sender == state_key => Ch::InvitationRevoked,
-        (St::Invite, St::Leave) => Ch::InvitationRejected,
+        (St::Invite, St::Leave) if sender == state_key => Ch::InvitationRejected,
+        (St::Invite, St::Leave) => Ch::InvitationRevoked,
         (St::Invite, St::Ban) | (St::Leave, St::Ban) | (St::Knock, St::Ban) => Ch::Banned,
         (St::Join, St::Invite)
         | (St::Ban, St::Invite)
