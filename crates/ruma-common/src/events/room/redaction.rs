@@ -17,8 +17,7 @@ use crate::{
 
 /// A possibly-redacted redaction event.
 #[allow(clippy::exhaustive_enums)]
-#[derive(Clone, Debug, Serialize)]
-#[serde(untagged)]
+#[derive(Clone, Debug)]
 pub enum RoomRedactionEvent {
     /// Original, unredacted form of the event.
     Original(OriginalRoomRedactionEvent),
@@ -29,8 +28,7 @@ pub enum RoomRedactionEvent {
 
 /// A possibly-redacted redaction event without a `room_id`.
 #[allow(clippy::exhaustive_enums)]
-#[derive(Clone, Debug, Serialize)]
-#[serde(untagged)]
+#[derive(Clone, Debug)]
 pub enum SyncRoomRedactionEvent {
     /// Original, unredacted form of the event.
     Original(OriginalSyncRoomRedactionEvent),

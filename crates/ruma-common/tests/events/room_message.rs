@@ -34,55 +34,35 @@ macro_rules! json_object {
 
 #[test]
 fn serialization() {
-    let ev = OriginalRoomMessageEvent {
-        content: RoomMessageEventContent::new(MessageType::Audio(AudioMessageEventContent::plain(
+    let content =
+        RoomMessageEventContent::new(MessageType::Audio(AudioMessageEventContent::plain(
             "test".into(),
             mxc_uri!("mxc://example.org/ffed755USFFxlgbQYZGtryd").to_owned(),
             None,
-        ))),
-        event_id: event_id!("$143273582443PhrSn:example.org").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
-        room_id: room_id!("!testroomid:example.org").to_owned(),
-        sender: user_id!("@user:example.org").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+        )));
 
     #[cfg(not(feature = "unstable-msc3246"))]
     assert_eq!(
-        to_json_value(ev).unwrap(),
+        to_json_value(content).unwrap(),
         json!({
-            "type": "m.room.message",
-            "event_id": "$143273582443PhrSn:example.org",
-            "origin_server_ts": 10_000,
-            "room_id": "!testroomid:example.org",
-            "sender": "@user:example.org",
-            "content": {
-                "body": "test",
-                "msgtype": "m.audio",
-                "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd",
-            }
+            "body": "test",
+            "msgtype": "m.audio",
+            "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd",
         })
     );
 
     #[cfg(feature = "unstable-msc3246")]
     assert_eq!(
-        to_json_value(ev).unwrap(),
+        to_json_value(content).unwrap(),
         json!({
-            "type": "m.room.message",
-            "event_id": "$143273582443PhrSn:example.org",
-            "origin_server_ts": 10_000,
-            "room_id": "!testroomid:example.org",
-            "sender": "@user:example.org",
-            "content": {
-                "body": "test",
-                "msgtype": "m.audio",
+            "body": "test",
+            "msgtype": "m.audio",
+            "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd",
+            "org.matrix.msc1767.text": "test",
+            "org.matrix.msc1767.file": {
                 "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd",
-                "org.matrix.msc1767.text": "test",
-                "org.matrix.msc1767.file": {
-                    "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd",
-                },
-                "org.matrix.msc1767.audio": {},
-            }
+            },
+            "org.matrix.msc1767.audio": {},
         })
     );
 }

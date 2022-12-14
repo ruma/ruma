@@ -13,11 +13,11 @@ use ruma_common::{
             message::{FileMessageEventContent, MessageType, Relation, RoomMessageEventContent},
             EncryptedFileInit, JsonWebKeyInit, MediaSource,
         },
-        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
+        AnyMessageLikeEvent, MessageLikeEvent,
     },
-    mxc_uri, room_id,
+    mxc_uri,
     serde::{Base64, CanBeEmpty},
-    user_id, MilliSecondsSinceUnixEpoch,
+    MilliSecondsSinceUnixEpoch,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -91,8 +91,7 @@ fn encrypted_content_serialization() {
 
 #[test]
 fn file_event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: assign!(
+    let content = assign!(
             FileEventContent::plain_message(
                 MessageContent::html(
                     "Upload: my_file.txt",
@@ -113,37 +112,24 @@ fn file_event_serialization() {
                     in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
                 }),
             }
-        ),
-        event_id: event_id!("$event:notareal.hs").to_owned(),
-        sender: user_id!("@user:notareal.hs").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
-        room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+        );
 
     assert_eq!(
-        to_json_value(&event).unwrap(),
+        to_json_value(&content).unwrap(),
         json!({
-            "content": {
-                "org.matrix.msc1767.html": "Upload: <strong>my_file.txt</strong>",
-                "org.matrix.msc1767.text": "Upload: my_file.txt",
-                "m.file": {
-                    "url": "mxc://notareal.hs/abcdef",
-                    "name": "my_file.txt",
-                    "mimetype": "text/plain",
-                    "size": 774,
-                },
-                "m.relates_to": {
-                    "m.in_reply_to": {
-                        "event_id": "$replyevent:example.com"
-                    }
+            "org.matrix.msc1767.html": "Upload: <strong>my_file.txt</strong>",
+            "org.matrix.msc1767.text": "Upload: my_file.txt",
+            "m.file": {
+                "url": "mxc://notareal.hs/abcdef",
+                "name": "my_file.txt",
+                "mimetype": "text/plain",
+                "size": 774,
+            },
+            "m.relates_to": {
+                "m.in_reply_to": {
+                    "event_id": "$replyevent:example.com"
                 }
             },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "m.file",
         })
     );
 }

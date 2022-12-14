@@ -51,19 +51,15 @@ mod tests {
         let mut content = DirectEventContent(BTreeMap::new());
         let server_name = server_name!("ruma.io");
         let alice = UserId::new(server_name);
-        let room = vec![RoomId::new(server_name)];
+        let rooms = vec![RoomId::new(server_name)];
 
-        content.insert(alice.clone(), room.clone());
+        content.insert(alice.clone(), rooms.clone());
 
-        let event = DirectEvent { content };
         let json_data = json!({
-            "content": {
-                alice.to_string(): vec![room[0].to_string()],
-            },
-            "type": "m.direct"
+            alice.to_string(): rooms,
         });
 
-        assert_eq!(to_json_value(&event).unwrap(), json_data);
+        assert_eq!(to_json_value(&content).unwrap(), json_data);
     }
 
     #[test]

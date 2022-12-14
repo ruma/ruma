@@ -75,7 +75,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{HierarchySpaceChildEvent, SpaceChildEventContent};
-    use crate::{server_name, user_id, MilliSecondsSinceUnixEpoch};
+    use crate::{server_name, MilliSecondsSinceUnixEpoch};
 
     #[test]
     fn space_child_serialization() {
@@ -105,29 +105,18 @@ mod tests {
 
     #[test]
     fn hierarchy_space_child_serialization() {
-        let event = HierarchySpaceChildEvent {
-            content: SpaceChildEventContent {
-                via: Some(vec![server_name!("example.com").to_owned()]),
-                order: Some("uwu".to_owned()),
-                suggested: None,
-            },
-            sender: user_id!("@example:localhost").to_owned(),
-            state_key: "!child:localhost".to_owned(),
-            origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1_629_413_349)),
+        let content = SpaceChildEventContent {
+            via: Some(vec![server_name!("example.com").to_owned()]),
+            order: Some("uwu".to_owned()),
+            suggested: None,
         };
 
         let json = json!({
-            "content": {
-                "via": ["example.com"],
-                "order": "uwu",
-            },
-            "sender": "@example:localhost",
-            "state_key": "!child:localhost",
-            "origin_server_ts": 1_629_413_349,
-            "type": "m.space.child",
+            "via": ["example.com"],
+            "order": "uwu",
         });
 
-        assert_eq!(to_json_value(&event).unwrap(), json);
+        assert_eq!(to_json_value(&content).unwrap(), json);
     }
 
     #[test]

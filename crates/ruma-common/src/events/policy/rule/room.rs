@@ -17,55 +17,29 @@ pub struct PolicyRuleRoomEventContent(pub PolicyRuleEventContent);
 
 #[cfg(test)]
 mod tests {
-    use js_int::int;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{OriginalPolicyRuleRoomEvent, PolicyRuleRoomEventContent};
     use crate::{
-        event_id,
-        events::{
-            policy::rule::{PolicyRuleEventContent, Recommendation},
-            StateUnsigned,
-        },
-        room_id,
+        events::policy::rule::{PolicyRuleEventContent, Recommendation},
         serde::Raw,
-        user_id, MilliSecondsSinceUnixEpoch,
     };
 
     #[test]
     fn serialization() {
-        let room_event = OriginalPolicyRuleRoomEvent {
-            event_id: event_id!("$143273582443PhrSn:example.org").to_owned(),
-            sender: user_id!("@example:example.org").to_owned(),
-            origin_server_ts: MilliSecondsSinceUnixEpoch(1_432_735_824_653_u64.try_into().unwrap()),
-            room_id: room_id!("!jEsUZKDJdhlrceRyVU:example.org").to_owned(),
-            state_key: "rule:#*:example.org".into(),
-            unsigned: StateUnsigned { age: Some(int!(1234)), ..StateUnsigned::default() },
-            content: PolicyRuleRoomEventContent(PolicyRuleEventContent {
-                entity: "#*:example.org".into(),
-                reason: "undesirable content".into(),
-                recommendation: Recommendation::Ban,
-            }),
-        };
-
-        let json = json!({
-            "content": {
-                "entity": "#*:example.org",
-                "reason": "undesirable content",
-                "recommendation": "m.ban"
-            },
-            "event_id": "$143273582443PhrSn:example.org",
-            "origin_server_ts": 1_432_735_824_653_u64,
-            "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
-            "sender": "@example:example.org",
-            "state_key": "rule:#*:example.org",
-            "type": "m.policy.rule.room",
-            "unsigned": {
-                "age": 1234
-            }
+        let content = PolicyRuleRoomEventContent(PolicyRuleEventContent {
+            entity: "#*:example.org".into(),
+            reason: "undesirable content".into(),
+            recommendation: Recommendation::Ban,
         });
 
-        assert_eq!(to_json_value(room_event).unwrap(), json);
+        let json = json!({
+            "entity": "#*:example.org",
+            "reason": "undesirable content",
+            "recommendation": "m.ban"
+        });
+
+        assert_eq!(to_json_value(content).unwrap(), json);
     }
 
     #[test]

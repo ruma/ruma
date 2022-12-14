@@ -30,41 +30,18 @@ impl RoomNameEventContent {
 #[cfg(test)]
 mod tests {
     use assert_matches::assert_matches;
-    use js_int::{int, uint};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::RoomNameEventContent;
-    use crate::{
-        event_id,
-        events::{EmptyStateKey, OriginalStateEvent, StateUnsigned},
-        room_id,
-        serde::Raw,
-        user_id, MilliSecondsSinceUnixEpoch,
-    };
+    use crate::{events::OriginalStateEvent, serde::Raw};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
-        let name_event = OriginalStateEvent {
-            content: RoomNameEventContent { name: Some("The room name".to_owned()) },
-            event_id: event_id!("$h29iv0s8:example.com").to_owned(),
-            origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-            room_id: room_id!("!n8f893n9:example.com").to_owned(),
-            sender: user_id!("@carl:example.com").to_owned(),
-            state_key: EmptyStateKey,
-            unsigned: StateUnsigned::default(),
-        };
+        let content = RoomNameEventContent { name: Some("The room name".to_owned()) };
 
-        let actual = to_json_value(&name_event).unwrap();
+        let actual = to_json_value(&content).unwrap();
         let expected = json!({
-            "content": {
-                "name": "The room name"
-            },
-            "event_id": "$h29iv0s8:example.com",
-            "origin_server_ts": 1,
-            "room_id": "!n8f893n9:example.com",
-            "sender": "@carl:example.com",
-            "state_key": "",
-            "type": "m.room.name"
+            "name": "The room name",
         });
 
         assert_eq!(actual, expected);
@@ -72,35 +49,11 @@ mod tests {
 
     #[test]
     fn serialization_with_all_fields() {
-        let name_event = OriginalStateEvent {
-            content: RoomNameEventContent { name: Some("The room name".to_owned()) },
-            event_id: event_id!("$h29iv0s8:example.com").to_owned(),
-            origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-            room_id: room_id!("!n8f893n9:example.com").to_owned(),
-            sender: user_id!("@carl:example.com").to_owned(),
-            state_key: EmptyStateKey,
-            unsigned: StateUnsigned {
-                age: Some(int!(100)),
-                prev_content: Some(RoomNameEventContent { name: Some("The old name".to_owned()) }),
-                ..StateUnsigned::default()
-            },
-        };
+        let content = RoomNameEventContent { name: Some("The room name".to_owned()) };
 
-        let actual = to_json_value(&name_event).unwrap();
+        let actual = to_json_value(&content).unwrap();
         let expected = json!({
-            "content": {
-                "name": "The room name"
-            },
-            "event_id": "$h29iv0s8:example.com",
-            "origin_server_ts": 1,
-            "room_id": "!n8f893n9:example.com",
-            "sender": "@carl:example.com",
-            "state_key": "",
-            "type": "m.room.name",
-            "unsigned": {
-                "age": 100,
-                "prev_content": { "name": "The old name" },
-            }
+            "name": "The room name",
         });
 
         assert_eq!(actual, expected);

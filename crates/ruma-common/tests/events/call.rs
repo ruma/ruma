@@ -4,7 +4,6 @@ use assert_matches::assert_matches;
 use assign::assign;
 use js_int::uint;
 use ruma_common::{
-    event_id,
     events::{
         call::{
             answer::CallAnswerEventContent,
@@ -17,9 +16,9 @@ use ruma_common::{
             AnswerSessionDescription, CallCapabilities, OfferSessionDescription,
             SessionDescription, SessionDescriptionType,
         },
-        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
+        AnyMessageLikeEvent, MessageLikeEvent,
     },
-    room_id, user_id, MilliSecondsSinceUnixEpoch, VoipVersionId,
+    VoipVersionId,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -47,39 +46,25 @@ fn invite_content_serialization() {
 
 #[test]
 fn invite_event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: CallInviteEventContent::version_1(
-            "abcdef".into(),
-            "9876".into(),
-            uint!(60000),
-            OfferSessionDescription::new("not a real sdp".to_owned()),
-            CallCapabilities::new(),
-        ),
-        event_id: event_id!("$event:notareal.hs").to_owned(),
-        sender: user_id!("@user:notareal.hs").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
-        room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+    let content = CallInviteEventContent::version_1(
+        "abcdef".into(),
+        "9876".into(),
+        uint!(60000),
+        OfferSessionDescription::new("not a real sdp".to_owned()),
+        CallCapabilities::new(),
+    );
 
     assert_eq!(
-        to_json_value(&event).unwrap(),
+        to_json_value(&content).unwrap(),
         json!({
-            "content": {
-                "call_id": "abcdef",
-                "party_id": "9876",
-                "lifetime": 60000,
-                "version": "1",
-                "offer": {
-                    "type": "offer",
-                    "sdp": "not a real sdp",
-                },
+            "call_id": "abcdef",
+            "party_id": "9876",
+            "lifetime": 60000,
+            "version": "1",
+            "offer": {
+                "type": "offer",
+                "sdp": "not a real sdp",
             },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "m.call.invite",
         })
     );
 }
@@ -140,40 +125,26 @@ fn answer_content_serialization() {
 
 #[test]
 fn answer_event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: CallAnswerEventContent::version_1(
-            AnswerSessionDescription::new("not a real sdp".to_owned()),
-            "abcdef".into(),
-            "9876".into(),
-            assign!(CallCapabilities::new(), { dtmf: true }),
-        ),
-        event_id: event_id!("$event:notareal.hs").to_owned(),
-        sender: user_id!("@user:notareal.hs").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
-        room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+    let content = CallAnswerEventContent::version_1(
+        AnswerSessionDescription::new("not a real sdp".to_owned()),
+        "abcdef".into(),
+        "9876".into(),
+        assign!(CallCapabilities::new(), { dtmf: true }),
+    );
 
     assert_eq!(
-        to_json_value(&event).unwrap(),
+        to_json_value(&content).unwrap(),
         json!({
-            "content": {
-                "call_id": "abcdef",
-                "party_id": "9876",
-                "version": "1",
-                "answer": {
-                    "type": "answer",
-                    "sdp": "not a real sdp",
-                },
-                "capabilities": {
-                    "m.call.dtmf": true,
-                },
+            "call_id": "abcdef",
+            "party_id": "9876",
+            "version": "1",
+            "answer": {
+                "type": "answer",
+                "sdp": "not a real sdp",
             },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "m.call.answer",
+            "capabilities": {
+                "m.call.dtmf": true,
+            },
         })
     );
 }
@@ -238,47 +209,33 @@ fn candidates_content_serialization() {
 
 #[test]
 fn candidates_event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: CallCandidatesEventContent::version_1(
-            "abcdef".into(),
-            "9876".into(),
-            vec![
-                Candidate::new("not a real candidate".to_owned(), "0".to_owned(), uint!(0)),
-                Candidate::new("another fake candidate".to_owned(), "0".to_owned(), uint!(1)),
-            ],
-        ),
-        event_id: event_id!("$event:notareal.hs").to_owned(),
-        sender: user_id!("@user:notareal.hs").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
-        room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+    let content = CallCandidatesEventContent::version_1(
+        "abcdef".into(),
+        "9876".into(),
+        vec![
+            Candidate::new("not a real candidate".to_owned(), "0".to_owned(), uint!(0)),
+            Candidate::new("another fake candidate".to_owned(), "0".to_owned(), uint!(1)),
+        ],
+    );
 
     assert_eq!(
-        to_json_value(&event).unwrap(),
+        to_json_value(&content).unwrap(),
         json!({
-            "content": {
-                "call_id": "abcdef",
-                "party_id": "9876",
-                "version": "1",
-                "candidates": [
-                    {
-                        "candidate": "not a real candidate",
-                        "sdpMid": "0",
-                        "sdpMLineIndex": 0,
-                    },
-                    {
-                        "candidate": "another fake candidate",
-                        "sdpMid": "0",
-                        "sdpMLineIndex": 1,
-                    },
-                ],
-            },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "m.call.candidates",
+            "call_id": "abcdef",
+            "party_id": "9876",
+            "version": "1",
+            "candidates": [
+                {
+                    "candidate": "not a real candidate",
+                    "sdpMid": "0",
+                    "sdpMLineIndex": 0,
+                },
+                {
+                    "candidate": "another fake candidate",
+                    "sdpMid": "0",
+                    "sdpMLineIndex": 1,
+                },
+            ],
         })
     );
 }
@@ -344,33 +301,16 @@ fn hangup_content_serialization() {
 
 #[test]
 fn hangup_event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: CallHangupEventContent::version_1(
-            "abcdef".into(),
-            "9876".into(),
-            Reason::IceFailed,
-        ),
-        event_id: event_id!("$event:notareal.hs").to_owned(),
-        sender: user_id!("@user:notareal.hs").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
-        room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+    let content =
+        CallHangupEventContent::version_1("abcdef".into(), "9876".into(), Reason::IceFailed);
 
     assert_eq!(
-        to_json_value(&event).unwrap(),
+        to_json_value(&content).unwrap(),
         json!({
-            "content": {
-                "call_id": "abcdef",
-                "party_id": "9876",
-                "version": "1",
-                "reason": "ice_failed",
-            },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "m.call.hangup",
+            "call_id": "abcdef",
+            "party_id": "9876",
+            "version": "1",
+            "reason": "ice_failed",
         })
     );
 }
@@ -404,37 +344,23 @@ fn hangup_event_deserialization() {
 
 #[test]
 fn negotiate_event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: CallNegotiateEventContent::new(
-            "abcdef".into(),
-            "9876".into(),
-            uint!(30000),
-            SessionDescription::new(SessionDescriptionType::Offer, "not a real sdp".to_owned()),
-        ),
-        event_id: event_id!("$event:notareal.hs").to_owned(),
-        sender: user_id!("@user:notareal.hs").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
-        room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+    let content = CallNegotiateEventContent::new(
+        "abcdef".into(),
+        "9876".into(),
+        uint!(30000),
+        SessionDescription::new(SessionDescriptionType::Offer, "not a real sdp".to_owned()),
+    );
 
     assert_eq!(
-        to_json_value(&event).unwrap(),
+        to_json_value(&content).unwrap(),
         json!({
-            "content": {
-                "call_id": "abcdef",
-                "party_id": "9876",
-                "lifetime": 30000,
-                "description": {
-                    "type": "offer",
-                    "sdp": "not a real sdp",
-                }
+            "call_id": "abcdef",
+            "party_id": "9876",
+            "lifetime": 30000,
+            "description": {
+                "type": "offer",
+                "sdp": "not a real sdp",
             },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "m.call.negotiate",
         })
     );
 }
@@ -473,28 +399,14 @@ fn negotiate_event_deserialization() {
 
 #[test]
 fn reject_event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: CallRejectEventContent::version_1("abcdef".into(), "9876".into()),
-        event_id: event_id!("$event:notareal.hs").to_owned(),
-        sender: user_id!("@user:notareal.hs").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
-        room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+    let content = CallRejectEventContent::version_1("abcdef".into(), "9876".into());
 
     assert_eq!(
-        to_json_value(&event).unwrap(),
+        to_json_value(&content).unwrap(),
         json!({
-            "content": {
-                "call_id": "abcdef",
-                "party_id": "9876",
-                "version": "1",
-            },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "m.call.reject",
+            "call_id": "abcdef",
+            "party_id": "9876",
+            "version": "1",
         })
     );
 }
@@ -527,33 +439,16 @@ fn reject_event_deserialization() {
 
 #[test]
 fn select_answer_event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: CallSelectAnswerEventContent::version_1(
-            "abcdef".into(),
-            "9876".into(),
-            "6336".into(),
-        ),
-        event_id: event_id!("$event:notareal.hs").to_owned(),
-        sender: user_id!("@user:notareal.hs").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
-        room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+    let content =
+        CallSelectAnswerEventContent::version_1("abcdef".into(), "9876".into(), "6336".into());
 
     assert_eq!(
-        to_json_value(&event).unwrap(),
+        to_json_value(&content).unwrap(),
         json!({
-            "content": {
-                "call_id": "abcdef",
-                "party_id": "9876",
-                "selected_party_id": "6336",
-                "version": "1",
-            },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "m.call.select_answer",
+            "call_id": "abcdef",
+            "party_id": "9876",
+            "selected_party_id": "6336",
+            "version": "1",
         })
     );
 }

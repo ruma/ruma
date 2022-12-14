@@ -1,20 +1,15 @@
 use assert_matches::assert_matches;
-use assign::assign;
 use js_int::uint;
 use ruma_common::{
-    event_id,
     events::{
-        room::aliases::RoomAliasesEventContent, AnyStateEvent, AnyStateEventContent,
-        AnySyncStateEvent, AnyTimelineEvent, OriginalStateEvent, StateEvent, StateEventType,
-        StateUnsigned, SyncStateEvent,
+        AnyStateEvent, AnyStateEventContent, AnySyncStateEvent, AnyTimelineEvent, StateEvent,
+        StateEventType, SyncStateEvent,
     },
-    mxc_uri, room_alias_id, room_id,
+    mxc_uri, room_alias_id,
     serde::{CanBeEmpty, Raw},
-    server_name, user_id, MilliSecondsSinceUnixEpoch,
+    MilliSecondsSinceUnixEpoch,
 };
-use serde_json::{
-    from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
-};
+use serde_json::{from_value as from_json_value, json, Value as JsonValue};
 
 fn aliases_event_with_prev_content() -> JsonValue {
     json!({
@@ -36,64 +31,9 @@ fn aliases_event_with_prev_content() -> JsonValue {
 }
 
 #[test]
-fn serialize_aliases_with_prev_content() {
-    let aliases_event = OriginalStateEvent {
-        content: RoomAliasesEventContent::new(vec![
-            room_alias_id!("#somewhere:localhost").to_owned()
-        ]),
-        event_id: event_id!("$h29iv0s8:example.com").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-        room_id: room_id!("!roomid:room.com").to_owned(),
-        sender: user_id!("@carl:example.com").to_owned(),
-        state_key: server_name!("room.com").to_owned(),
-        unsigned: assign!(StateUnsigned::default(), {
-            prev_content: Some(RoomAliasesEventContent::new(vec![room_alias_id!(
-                "#inner:localhost"
-            )
-            .to_owned()])),
-        }),
-    };
-
-    let actual = to_json_value(&aliases_event).unwrap();
-    let expected = aliases_event_with_prev_content();
-
-    assert_eq!(actual, expected);
-}
-
-#[test]
-fn serialize_aliases_without_prev_content() {
-    let aliases_event = OriginalStateEvent {
-        content: RoomAliasesEventContent::new(vec![
-            room_alias_id!("#somewhere:localhost").to_owned()
-        ]),
-        event_id: event_id!("$h29iv0s8:example.com").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-        room_id: room_id!("!roomid:room.com").to_owned(),
-        sender: user_id!("@carl:example.com").to_owned(),
-        state_key: server_name!("example.com").to_owned(),
-        unsigned: StateUnsigned::default(),
-    };
-
-    let actual = to_json_value(&aliases_event).unwrap();
-    let expected = json!({
-        "content": {
-            "aliases": [ "#somewhere:localhost" ]
-        },
-        "event_id": "$h29iv0s8:example.com",
-        "origin_server_ts": 1,
-        "room_id": "!roomid:room.com",
-        "sender": "@carl:example.com",
-        "state_key": "example.com",
-        "type": "m.room.aliases",
-    });
-
-    assert_eq!(actual, expected);
-}
-
-#[test]
 fn deserialize_aliases_content() {
     let json_data = json!({
-        "aliases": [ "#somewhere:localhost" ]
+        "aliases": ["#somewhere:localhost"],
     });
 
     let content = assert_matches!(

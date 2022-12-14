@@ -245,19 +245,15 @@ mod tests {
             },
         );
         content.name = Some("my_key".to_owned());
-        let event = GlobalAccountDataEvent { content };
 
         let json = json!({
-            "type": "m.secret_storage.key.my_key_id",
-            "content": {
-                "name": "my_key",
-                "algorithm": "m.secret_storage.v1.aes-hmac-sha2",
-                "iv": "YWJjZGVmZ2hpamtsbW5vcA",
-                "mac": "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U"
-            }
+            "name": "my_key",
+            "algorithm": "m.secret_storage.v1.aes-hmac-sha2",
+            "iv": "YWJjZGVmZ2hpamtsbW5vcA",
+            "mac": "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U"
         });
 
-        assert_eq!(to_json_value(&event).unwrap(), json);
+        assert_eq!(to_json_value(&content).unwrap(), json);
     }
 
     #[test]

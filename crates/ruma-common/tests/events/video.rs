@@ -17,11 +17,11 @@ use ruma_common::{
             JsonWebKeyInit, MediaSource,
         },
         video::{VideoContent, VideoEventContent},
-        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
+        AnyMessageLikeEvent, MessageLikeEvent,
     },
-    mxc_uri, room_id,
+    mxc_uri,
     serde::{Base64, CanBeEmpty},
-    user_id, MilliSecondsSinceUnixEpoch,
+    MilliSecondsSinceUnixEpoch,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -98,98 +98,84 @@ fn encrypted_content_serialization() {
 
 #[test]
 fn event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: assign!(
-            VideoEventContent::with_message(
-                MessageContent::html(
-                    "Upload: my_lava_lamp.webm",
-                    "Upload: <strong>my_lava_lamp.webm</strong>",
-                ),
-                FileContent::plain(
-                    mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
-                    Some(Box::new(assign!(
-                        FileContentInfo::new(),
-                        {
-                            name: Some("my_lava_lamp.webm".to_owned()),
-                            mimetype: Some("video/webm".to_owned()),
-                            size: Some(uint!(1_897_774)),
-                        }
-                    ))),
-                )
+    let content = assign!(
+        VideoEventContent::with_message(
+            MessageContent::html(
+                "Upload: my_lava_lamp.webm",
+                "Upload: <strong>my_lava_lamp.webm</strong>",
             ),
-            {
-                video: Box::new(assign!(
-                    VideoContent::new(),
+            FileContent::plain(
+                mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+                Some(Box::new(assign!(
+                    FileContentInfo::new(),
                     {
-                        width: Some(uint!(1920)),
-                        height: Some(uint!(1080)),
-                        duration: Some(Duration::from_secs(15)),
+                        name: Some("my_lava_lamp.webm".to_owned()),
+                        mimetype: Some("video/webm".to_owned()),
+                        size: Some(uint!(1_897_774)),
                     }
-                )),
-                thumbnail: vec![ThumbnailContent::new(
-                    ThumbnailFileContent::plain(
-                        mxc_uri!("mxc://notareal.hs/thumbnail").to_owned(),
-                        Some(Box::new(assign!(ThumbnailFileContentInfo::new(), {
-                            mimetype: Some("image/jpeg".to_owned()),
-                            size: Some(uint!(334_593)),
-                        })))
-                    ),
-                    None
-                )],
-                caption: Some(MessageContent::plain("This is my awesome vintage lava lamp")),
-                relates_to: Some(Relation::Reply {
-                    in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
-                }),
-            }
+                ))),
+            )
         ),
-        event_id: event_id!("$event:notareal.hs").to_owned(),
-        sender: user_id!("@user:notareal.hs").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
-        room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+        {
+            video: Box::new(assign!(
+                VideoContent::new(),
+                {
+                    width: Some(uint!(1920)),
+                    height: Some(uint!(1080)),
+                    duration: Some(Duration::from_secs(15)),
+                }
+            )),
+            thumbnail: vec![ThumbnailContent::new(
+                ThumbnailFileContent::plain(
+                    mxc_uri!("mxc://notareal.hs/thumbnail").to_owned(),
+                    Some(Box::new(assign!(ThumbnailFileContentInfo::new(), {
+                        mimetype: Some("image/jpeg".to_owned()),
+                        size: Some(uint!(334_593)),
+                    })))
+                ),
+                None
+            )],
+            caption: Some(MessageContent::plain("This is my awesome vintage lava lamp")),
+            relates_to: Some(Relation::Reply {
+                in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
+            }),
+        }
+    );
 
     assert_eq!(
-        to_json_value(&event).unwrap(),
+        to_json_value(&content).unwrap(),
         json!({
-            "content": {
-                "org.matrix.msc1767.html": "Upload: <strong>my_lava_lamp.webm</strong>",
-                "org.matrix.msc1767.text": "Upload: my_lava_lamp.webm",
-                "m.file": {
-                    "url": "mxc://notareal.hs/abcdef",
-                    "name": "my_lava_lamp.webm",
-                    "mimetype": "video/webm",
-                    "size": 1_897_774,
-                },
-                "m.video": {
-                    "width": 1920,
-                    "height": 1080,
-                    "duration": 15_000,
-                },
-                "m.thumbnail": [
-                    {
-                        "url": "mxc://notareal.hs/thumbnail",
-                        "mimetype": "image/jpeg",
-                        "size": 334_593,
-                    }
-                ],
-                "m.caption": [
-                    {
-                        "body": "This is my awesome vintage lava lamp",
-                        "mimetype": "text/plain",
-                    }
-                ],
-                "m.relates_to": {
-                    "m.in_reply_to": {
-                        "event_id": "$replyevent:example.com"
-                    }
-                }
+            "org.matrix.msc1767.html": "Upload: <strong>my_lava_lamp.webm</strong>",
+            "org.matrix.msc1767.text": "Upload: my_lava_lamp.webm",
+            "m.file": {
+                "url": "mxc://notareal.hs/abcdef",
+                "name": "my_lava_lamp.webm",
+                "mimetype": "video/webm",
+                "size": 1_897_774,
             },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "m.video",
+            "m.video": {
+                "width": 1920,
+                "height": 1080,
+                "duration": 15_000,
+            },
+            "m.thumbnail": [
+                {
+                    "url": "mxc://notareal.hs/thumbnail",
+                    "mimetype": "image/jpeg",
+                    "size": 334_593,
+                }
+            ],
+            "m.caption": [
+                {
+                    "body": "This is my awesome vintage lava lamp",
+                    "mimetype": "text/plain",
+                }
+            ],
+            "m.relates_to": {
+                "m.in_reply_to": {
+                    "event_id": "$replyevent:example.com"
+                }
+            }
         })
     );
 }

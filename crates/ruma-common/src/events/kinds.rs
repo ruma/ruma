@@ -1,7 +1,7 @@
 #![allow(clippy::exhaustive_structs)]
 
 use ruma_macros::Event;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
@@ -146,8 +146,7 @@ pub struct RedactedSyncMessageLikeEvent<C: RedactedMessageLikeEventContent> {
 /// `MessageLikeEvent` implements the comparison traits using only the `event_id` field, a sorted
 /// list would be sorted lexicographically based on the event's `EventId`.
 #[allow(clippy::exhaustive_enums)]
-#[derive(Clone, Debug, Serialize)]
-#[serde(untagged)]
+#[derive(Clone, Debug)]
 pub enum MessageLikeEvent<C: MessageLikeEventContent + RedactContent>
 where
     C::Redacted: RedactedMessageLikeEventContent,
@@ -164,8 +163,7 @@ where
 /// `SyncMessageLikeEvent` implements the comparison traits using only the `event_id` field, a
 /// sorted list would be sorted lexicographically based on the event's `EventId`.
 #[allow(clippy::exhaustive_enums)]
-#[derive(Clone, Debug, Serialize)]
-#[serde(untagged)]
+#[derive(Clone, Debug)]
 pub enum SyncMessageLikeEvent<C: MessageLikeEventContent + RedactContent>
 where
     C::Redacted: RedactedMessageLikeEventContent,
@@ -331,8 +329,7 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
 /// `StateEvent` implements the comparison traits using only the `event_id` field, a sorted list
 /// would be sorted lexicographically based on the event's `EventId`.
 #[allow(clippy::exhaustive_enums)]
-#[derive(Clone, Debug, Serialize)]
-#[serde(untagged)]
+#[derive(Clone, Debug)]
 pub enum StateEvent<C: StateEventContent + RedactContent>
 where
     C::Redacted: RedactedStateEventContent,
@@ -349,8 +346,7 @@ where
 /// `SyncStateEvent` implements the comparison traits using only the `event_id` field, a sorted list
 /// would be sorted lexicographically based on the event's `EventId`.
 #[allow(clippy::exhaustive_enums)]
-#[derive(Clone, Debug, Serialize)]
-#[serde(untagged)]
+#[derive(Clone, Debug)]
 pub enum SyncStateEvent<C: StateEventContent + RedactContent>
 where
     C::Redacted: RedactedStateEventContent,
@@ -370,6 +366,19 @@ pub struct ToDeviceEvent<C: ToDeviceEventContent> {
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
+}
+
+impl<C: ToDeviceEventContent> Serialize for ToDeviceEvent<C> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("ToDeviceEvent", 3)?;
+        state.serialize_field("type", &self.content.event_type())?;
+        state.serialize_field("content", &self.content)?;
+        state.serialize_field("sender", &self.sender)?;
+        state.end()
+    }
 }
 
 /// The decrypted payload of an `m.olm.v1.curve25519-aes-sha2` event.

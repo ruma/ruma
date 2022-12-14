@@ -16,77 +16,63 @@ use ruma_common::{
             MediaSource,
         },
         voice::{VoiceContent, VoiceEventContent},
-        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
+        AnyMessageLikeEvent, MessageLikeEvent,
     },
-    mxc_uri, room_id,
+    mxc_uri,
     serde::CanBeEmpty,
-    user_id, MilliSecondsSinceUnixEpoch,
+    MilliSecondsSinceUnixEpoch,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 #[test]
 fn event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: assign!(
-            VoiceEventContent::plain(
-                "Voice message",
-                FileContent::plain(
-                    mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
-                    Some(Box::new(assign!(
-                        FileContentInfo::new(),
-                        {
-                            name: Some("voice_message.ogg".to_owned()),
-                            mimetype: Some("audio/opus".to_owned()),
-                            size: Some(uint!(897_774)),
-                        }
-                    ))),
-                )
-            ),
-            {
-                audio: assign!(
-                    AudioContent::new(),
+    let content = assign!(
+        VoiceEventContent::plain(
+            "Voice message",
+            FileContent::plain(
+                mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+                Some(Box::new(assign!(
+                    FileContentInfo::new(),
                     {
-                        duration: Some(Duration::from_secs(23))
+                        name: Some("voice_message.ogg".to_owned()),
+                        mimetype: Some("audio/opus".to_owned()),
+                        size: Some(uint!(897_774)),
                     }
-                ),
-                relates_to: Some(Relation::Reply {
-                    in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
-                }),
-            }
+                ))),
+            )
         ),
-        event_id: event_id!("$event:notareal.hs").to_owned(),
-        sender: user_id!("@user:notareal.hs").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
-        room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+        {
+            audio: assign!(
+                AudioContent::new(),
+                {
+                    duration: Some(Duration::from_secs(23))
+                }
+            ),
+            relates_to: Some(Relation::Reply {
+                in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
+            }),
+        }
+    );
 
     assert_eq!(
-        to_json_value(&event).unwrap(),
+        to_json_value(&content).unwrap(),
         json!({
-            "content": {
-                "org.matrix.msc1767.text": "Voice message",
-                "m.file": {
-                    "url": "mxc://notareal.hs/abcdef",
-                    "name": "voice_message.ogg",
-                    "mimetype": "audio/opus",
-                    "size": 897_774,
-                },
-                "m.audio": {
-                    "duration": 23_000,
-                },
-                "m.voice": {},
-                "m.relates_to": {
-                    "m.in_reply_to": {
-                        "event_id": "$replyevent:example.com"
-                    }
+            "org.matrix.msc1767.text": "Voice message",
+            "m.file": {
+                "url": "mxc://notareal.hs/abcdef",
+                "name": "voice_message.ogg",
+                "mimetype": "audio/opus",
+                "size": 897_774,
+            },
+            "m.audio": {
+                "duration": 23_000,
+            },
+            "m.voice": {},
+            "m.relates_to": {
+                "m.in_reply_to": {
+                    "event_id": "$replyevent:example.com"
                 }
             },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "m.voice",
         })
     );
 }

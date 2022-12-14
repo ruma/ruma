@@ -17,11 +17,11 @@ use ruma_common::{
             message::{ImageMessageEventContent, MessageType, Relation, RoomMessageEventContent},
             JsonWebKeyInit, MediaSource,
         },
-        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
+        AnyMessageLikeEvent, MessageLikeEvent,
     },
-    mxc_uri, room_id,
+    mxc_uri,
     serde::{Base64, CanBeEmpty},
-    user_id, MilliSecondsSinceUnixEpoch,
+    MilliSecondsSinceUnixEpoch,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -98,90 +98,76 @@ fn encrypted_content_serialization() {
 
 #[test]
 fn image_event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: assign!(
-            ImageEventContent::with_message(
-                MessageContent::html(
-                    "Upload: my_house.jpg",
-                    "Upload: <strong>my_house.jpg</strong>",
-                ),
-                FileContent::plain(
-                    mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
-                    Some(Box::new(assign!(
-                        FileContentInfo::new(),
-                        {
-                            name: Some("my_house.jpg".to_owned()),
-                            mimetype: Some("image/jpeg".to_owned()),
-                            size: Some(uint!(897_774)),
-                        }
-                    ))),
-                )
+    let content = assign!(
+        ImageEventContent::with_message(
+            MessageContent::html(
+                "Upload: my_house.jpg",
+                "Upload: <strong>my_house.jpg</strong>",
             ),
-            {
-                image: Box::new(ImageContent::with_size(uint!(1920), uint!(1080))),
-                thumbnail: vec![ThumbnailContent::new(
-                    ThumbnailFileContent::plain(
-                        mxc_uri!("mxc://notareal.hs/thumbnail").to_owned(),
-                        Some(Box::new(assign!(ThumbnailFileContentInfo::new(), {
-                            mimetype: Some("image/jpeg".to_owned()),
-                            size: Some(uint!(334_593)),
-                        })))
-                    ),
-                    None
-                )],
-                caption: Some(MessageContent::plain("This is my house")),
-                relates_to: Some(Relation::Reply {
-                    in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
-                }),
-            }
+            FileContent::plain(
+                mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+                Some(Box::new(assign!(
+                    FileContentInfo::new(),
+                    {
+                        name: Some("my_house.jpg".to_owned()),
+                        mimetype: Some("image/jpeg".to_owned()),
+                        size: Some(uint!(897_774)),
+                    }
+                ))),
+            )
         ),
-        event_id: event_id!("$event:notareal.hs").to_owned(),
-        sender: user_id!("@user:notareal.hs").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
-        room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+        {
+            image: Box::new(ImageContent::with_size(uint!(1920), uint!(1080))),
+            thumbnail: vec![ThumbnailContent::new(
+                ThumbnailFileContent::plain(
+                    mxc_uri!("mxc://notareal.hs/thumbnail").to_owned(),
+                    Some(Box::new(assign!(ThumbnailFileContentInfo::new(), {
+                        mimetype: Some("image/jpeg".to_owned()),
+                        size: Some(uint!(334_593)),
+                    })))
+                ),
+                None
+            )],
+            caption: Some(MessageContent::plain("This is my house")),
+            relates_to: Some(Relation::Reply {
+                in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
+            }),
+        }
+    );
 
     assert_eq!(
-        to_json_value(&event).unwrap(),
+        to_json_value(&content).unwrap(),
         json!({
-            "content": {
-                "org.matrix.msc1767.html": "Upload: <strong>my_house.jpg</strong>",
-                "org.matrix.msc1767.text": "Upload: my_house.jpg",
-                "m.file": {
-                    "url": "mxc://notareal.hs/abcdef",
-                    "name": "my_house.jpg",
+            "org.matrix.msc1767.html": "Upload: <strong>my_house.jpg</strong>",
+            "org.matrix.msc1767.text": "Upload: my_house.jpg",
+            "m.file": {
+                "url": "mxc://notareal.hs/abcdef",
+                "name": "my_house.jpg",
+                "mimetype": "image/jpeg",
+                "size": 897_774,
+            },
+            "m.image": {
+                "width": 1920,
+                "height": 1080,
+            },
+            "m.thumbnail": [
+                {
+                    "url": "mxc://notareal.hs/thumbnail",
                     "mimetype": "image/jpeg",
-                    "size": 897_774,
-                },
-                "m.image": {
-                    "width": 1920,
-                    "height": 1080,
-                },
-                "m.thumbnail": [
-                    {
-                        "url": "mxc://notareal.hs/thumbnail",
-                        "mimetype": "image/jpeg",
-                        "size": 334_593,
-                    }
-                ],
-                "m.caption": [
-                    {
-                        "body": "This is my house",
-                        "mimetype": "text/plain",
-                    }
-                ],
-                "m.relates_to": {
-                    "m.in_reply_to": {
-                        "event_id": "$replyevent:example.com"
-                    }
+                    "size": 334_593,
+                }
+            ],
+            "m.caption": [
+                {
+                    "body": "This is my house",
+                    "mimetype": "text/plain",
+                }
+            ],
+            "m.relates_to": {
+                "m.in_reply_to": {
+                    "event_id": "$replyevent:example.com"
                 }
             },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "m.image",
         })
     );
 }

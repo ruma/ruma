@@ -351,52 +351,32 @@ mod tests {
     use std::collections::BTreeMap;
 
     use assign::assign;
-    use js_int::{int, uint};
+    use js_int::int;
     use maplit::btreemap;
     use serde_json::{json, to_value as to_json_value};
 
     use super::{default_power_level, NotificationPowerLevels, RoomPowerLevelsEventContent};
-    use crate::{
-        event_id,
-        events::{EmptyStateKey, OriginalStateEvent, StateUnsigned},
-        room_id, user_id, MilliSecondsSinceUnixEpoch,
-    };
+    use crate::user_id;
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
         let default = default_power_level();
 
-        let power_levels_event = OriginalStateEvent {
-            content: RoomPowerLevelsEventContent {
-                ban: default,
-                events: BTreeMap::new(),
-                events_default: int!(0),
-                invite: int!(0),
-                kick: default,
-                redact: default,
-                state_default: default,
-                users: BTreeMap::new(),
-                users_default: int!(0),
-                notifications: NotificationPowerLevels::default(),
-            },
-            event_id: event_id!("$h29iv0s8:example.com").to_owned(),
-            origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-            room_id: room_id!("!n8f893n9:example.com").to_owned(),
-            unsigned: StateUnsigned::default(),
-            sender: user_id!("@carl:example.com").to_owned(),
-            state_key: EmptyStateKey,
+        let power_levels = RoomPowerLevelsEventContent {
+            ban: default,
+            events: BTreeMap::new(),
+            events_default: int!(0),
+            invite: int!(0),
+            kick: default,
+            redact: default,
+            state_default: default,
+            users: BTreeMap::new(),
+            users_default: int!(0),
+            notifications: NotificationPowerLevels::default(),
         };
 
-        let actual = to_json_value(&power_levels_event).unwrap();
-        let expected = json!({
-            "content": {},
-            "event_id": "$h29iv0s8:example.com",
-            "origin_server_ts": 1,
-            "room_id": "!n8f893n9:example.com",
-            "sender": "@carl:example.com",
-            "state_key": "",
-            "type": "m.room.power_levels"
-        });
+        let actual = to_json_value(&power_levels).unwrap();
+        let expected = json!({});
 
         assert_eq!(actual, expected);
     }
@@ -404,99 +384,41 @@ mod tests {
     #[test]
     fn serialization_with_all_fields() {
         let user = user_id!("@carl:example.com");
-        let power_levels_event = OriginalStateEvent {
-            content: RoomPowerLevelsEventContent {
-                ban: int!(23),
-                events: btreemap! {
-                    "m.dummy".into() => int!(23)
-                },
-                events_default: int!(23),
-                invite: int!(23),
-                kick: int!(23),
-                redact: int!(23),
-                state_default: int!(23),
-                users: btreemap! {
-                    user.to_owned() => int!(23)
-                },
-                users_default: int!(23),
-                notifications: assign!(NotificationPowerLevels::new(), { room: int!(23) }),
+        let power_levels_event = RoomPowerLevelsEventContent {
+            ban: int!(23),
+            events: btreemap! {
+                "m.dummy".into() => int!(23)
             },
-            event_id: event_id!("$h29iv0s8:example.com").to_owned(),
-            origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-            room_id: room_id!("!n8f893n9:example.com").to_owned(),
-            unsigned: StateUnsigned {
-                age: Some(int!(100)),
-                prev_content: Some(RoomPowerLevelsEventContent {
-                    // Make just one field different so we at least know they're two different
-                    // objects.
-                    ban: int!(42),
-                    events: btreemap! {
-                        "m.dummy".into() => int!(42)
-                    },
-                    events_default: int!(42),
-                    invite: int!(42),
-                    kick: int!(42),
-                    redact: int!(42),
-                    state_default: int!(42),
-                    users: btreemap! {
-                        user.to_owned() => int!(42)
-                    },
-                    users_default: int!(42),
-                    notifications: assign!(NotificationPowerLevels::new(), { room: int!(42) }),
-                }),
-                ..StateUnsigned::default()
+            events_default: int!(23),
+            invite: int!(23),
+            kick: int!(23),
+            redact: int!(23),
+            state_default: int!(23),
+            users: btreemap! {
+                user.to_owned() => int!(23)
             },
-            sender: user.to_owned(),
-            state_key: EmptyStateKey,
+            users_default: int!(23),
+            notifications: assign!(NotificationPowerLevels::new(), { room: int!(23) }),
         };
 
         let actual = to_json_value(&power_levels_event).unwrap();
         let expected = json!({
-            "content": {
-                "ban": 23,
-                "events": {
-                    "m.dummy": 23
-                },
-                "events_default": 23,
-                "invite": 23,
-                "kick": 23,
-                "redact": 23,
-                "state_default": 23,
-                "users": {
-                    "@carl:example.com": 23
-                },
-                "users_default": 23,
-                "notifications": {
-                    "room": 23
-                }
+            "ban": 23,
+            "events": {
+                "m.dummy": 23
             },
-            "event_id": "$h29iv0s8:example.com",
-            "origin_server_ts": 1,
-            "room_id": "!n8f893n9:example.com",
-            "sender": "@carl:example.com",
-            "state_key": "",
-            "type": "m.room.power_levels",
-            "unsigned": {
-                "age": 100,
-                "prev_content": {
-                    "ban": 42,
-                    "events": {
-                        "m.dummy": 42
-                    },
-                    "events_default": 42,
-                    "invite": 42,
-                    "kick": 42,
-                    "redact": 42,
-                    "state_default": 42,
-                    "users": {
-                        "@carl:example.com": 42
-                    },
-                    "users_default": 42,
-                    "notifications": {
-                        "room": 42
-                    },
-                },
-            }
+            "events_default": 23,
+            "invite": 23,
+            "kick": 23,
+            "redact": 23,
+            "state_default": 23,
+            "users": {
+                "@carl:example.com": 23
+            },
+            "users_default": 23,
+            "notifications": {
+                "room": 23
+            },
         });
 
         assert_eq!(actual, expected);

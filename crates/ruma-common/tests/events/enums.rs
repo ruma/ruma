@@ -1,28 +1,23 @@
 use assert_matches::assert_matches;
-use js_int::{int, uint};
+use js_int::int;
 use ruma_common::{
-    event_id,
     events::{MessageLikeEvent, StateEvent, SyncMessageLikeEvent, SyncStateEvent},
-    room_alias_id, room_id,
+    room_alias_id,
     serde::test::serde_json_eq,
-    user_id,
 };
 use serde_json::{from_value as from_json_value, json, Value as JsonValue};
 
-use ruma_common::{
-    events::{
-        room::{
-            aliases::RoomAliasesEventContent,
-            message::{MessageType, RoomMessageEventContent},
-            power_levels::RoomPowerLevelsEventContent,
-        },
-        AnyEphemeralRoomEvent, AnyMessageLikeEvent, AnyStateEvent, AnySyncMessageLikeEvent,
-        AnySyncStateEvent, AnySyncTimelineEvent, AnyTimelineEvent, EphemeralRoomEventType,
-        GlobalAccountDataEventType, MessageLikeEventType, MessageLikeUnsigned,
-        OriginalMessageLikeEvent, OriginalStateEvent, OriginalSyncMessageLikeEvent,
-        OriginalSyncStateEvent, RoomAccountDataEventType, StateEventType, ToDeviceEventType,
+use ruma_common::events::{
+    room::{
+        aliases::RoomAliasesEventContent,
+        message::{MessageType, RoomMessageEventContent},
+        power_levels::RoomPowerLevelsEventContent,
     },
-    MilliSecondsSinceUnixEpoch,
+    AnyEphemeralRoomEvent, AnyMessageLikeEvent, AnyStateEvent, AnySyncMessageLikeEvent,
+    AnySyncStateEvent, AnySyncTimelineEvent, AnyTimelineEvent, EphemeralRoomEventType,
+    GlobalAccountDataEventType, MessageLikeEventType, OriginalMessageLikeEvent, OriginalStateEvent,
+    OriginalSyncMessageLikeEvent, OriginalSyncStateEvent, RoomAccountDataEventType, StateEventType,
+    ToDeviceEventType,
 };
 
 fn message_event() -> JsonValue {
@@ -205,25 +200,18 @@ fn message_room_event_deserialization() {
 
 #[test]
 fn message_event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: RoomMessageEventContent::text_plain("test"),
-        event_id: event_id!("$1234:example.com").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(0)),
-        room_id: room_id!("!roomid:example.com").to_owned(),
-        sender: user_id!("@test:example.com").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+    let content = RoomMessageEventContent::text_plain("test");
 
     #[cfg(not(feature = "unstable-msc1767"))]
     assert_eq!(
-        serde_json::to_string(&event).expect("Failed to serialize message event"),
-        r#"{"type":"m.room.message","content":{"msgtype":"m.text","body":"test"},"event_id":"$1234:example.com","sender":"@test:example.com","origin_server_ts":0,"room_id":"!roomid:example.com"}"#
+        serde_json::to_string(&content).expect("Failed to serialize message event content"),
+        r#"{"msgtype":"m.text","body":"test"}"#
     );
 
     #[cfg(feature = "unstable-msc1767")]
     assert_eq!(
-        serde_json::to_string(&event).expect("Failed to serialize message event"),
-        r#"{"type":"m.room.message","content":{"msgtype":"m.text","body":"test","org.matrix.msc1767.text":"test"},"event_id":"$1234:example.com","sender":"@test:example.com","origin_server_ts":0,"room_id":"!roomid:example.com"}"#
+        serde_json::to_string(&content).expect("Failed to serialize message event content"),
+        r#"{"msgtype":"m.text","body":"test","org.matrix.msc1767.text":"test"}"#
     );
 }
 

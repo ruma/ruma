@@ -2,117 +2,95 @@ use assert_matches::assert_matches;
 use assign::assign;
 use js_int::{uint, UInt};
 use ruma_common::{
-    event_id,
     events::{
         room::{ImageInfo, MediaSource, ThumbnailInfo},
         sticker::StickerEventContent,
         AnyMessageLikeEvent, AnyMessageLikeEventContent, AnySyncMessageLikeEvent, MessageLikeEvent,
-        MessageLikeEventType, MessageLikeUnsigned, OriginalMessageLikeEvent,
+        MessageLikeEventType,
     },
     mxc_uri, room_id,
     serde::{CanBeEmpty, Raw},
-    user_id, MilliSecondsSinceUnixEpoch, VoipVersionId,
+    MilliSecondsSinceUnixEpoch, VoipVersionId,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 #[test]
 fn message_serialize_sticker() {
-    let aliases_event = OriginalMessageLikeEvent {
-        content: StickerEventContent::new(
-            "Hello".into(),
-            assign!(ImageInfo::new(), {
-                height: UInt::new(423),
-                width: UInt::new(1011),
+    let content = StickerEventContent::new(
+        "Hello".into(),
+        assign!(ImageInfo::new(), {
+            height: UInt::new(423),
+            width: UInt::new(1011),
+            mimetype: Some("image/png".into()),
+            size: UInt::new(84242),
+            thumbnail_info: Some(Box::new(assign!(ThumbnailInfo::new(), {
+                width: UInt::new(800),
+                height: UInt::new(334),
                 mimetype: Some("image/png".into()),
-                size: UInt::new(84242),
-                thumbnail_info: Some(Box::new(assign!(ThumbnailInfo::new(), {
-                    width: UInt::new(800),
-                    height: UInt::new(334),
-                    mimetype: Some("image/png".into()),
-                    size: UInt::new(82595),
-                }))),
-                thumbnail_source: Some(MediaSource::Plain(mxc_uri!("mxc://matrix.org/irsns989Rrsn").to_owned())),
-            }),
-            mxc_uri!("mxc://matrix.org/rnsldl8srs98IRrs").to_owned(),
-        ),
-        event_id: event_id!("$h29iv0s8:example.com").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-        room_id: room_id!("!roomid:room.com").to_owned(),
-        sender: user_id!("@carl:example.com").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+                size: UInt::new(82595),
+            }))),
+            thumbnail_source: Some(MediaSource::Plain(mxc_uri!("mxc://matrix.org/irsns989Rrsn").to_owned())),
+        }),
+        mxc_uri!("mxc://matrix.org/rnsldl8srs98IRrs").to_owned(),
+    );
 
-    let actual = to_json_value(&aliases_event).unwrap();
+    let actual = to_json_value(&content).unwrap();
 
     #[cfg(not(feature = "unstable-msc3552"))]
     let expected = json!({
-        "content": {
-            "body": "Hello",
-            "info": {
-                "h": 423,
+        "body": "Hello",
+        "info": {
+            "h": 423,
+            "mimetype": "image/png",
+            "size": 84242,
+            "thumbnail_info": {
+                "h": 334,
                 "mimetype": "image/png",
-                "size": 84242,
-                "thumbnail_info": {
-                  "h": 334,
-                  "mimetype": "image/png",
-                  "size": 82595,
-                  "w": 800
-                },
-                "thumbnail_url": "mxc://matrix.org/irsns989Rrsn",
-                "w": 1011
-              },
-            "url": "mxc://matrix.org/rnsldl8srs98IRrs"
-        },
-        "event_id": "$h29iv0s8:example.com",
-        "origin_server_ts": 1,
-        "room_id": "!roomid:room.com",
-        "sender": "@carl:example.com",
-        "type": "m.sticker",
+                "size": 82595,
+                "w": 800
+            },
+            "thumbnail_url": "mxc://matrix.org/irsns989Rrsn",
+            "w": 1011
+            },
+        "url": "mxc://matrix.org/rnsldl8srs98IRrs",
     });
 
     #[cfg(feature = "unstable-msc3552")]
     let expected = json!({
-        "content": {
-            "body": "Hello",
-            "info": {
-                "h": 423,
+        "body": "Hello",
+        "info": {
+            "h": 423,
+            "mimetype": "image/png",
+            "size": 84242,
+            "thumbnail_info": {
+                "h": 334,
                 "mimetype": "image/png",
-                "size": 84242,
-                "thumbnail_info": {
-                  "h": 334,
-                  "mimetype": "image/png",
-                  "size": 82595,
-                  "w": 800
-                },
-                "thumbnail_url": "mxc://matrix.org/irsns989Rrsn",
-                "w": 1011
-              },
+                "size": 82595,
+                "w": 800
+            },
+            "thumbnail_url": "mxc://matrix.org/irsns989Rrsn",
+            "w": 1011
+            },
+        "url": "mxc://matrix.org/rnsldl8srs98IRrs",
+        "org.matrix.msc1767.text": "Hello",
+        "org.matrix.msc1767.file": {
             "url": "mxc://matrix.org/rnsldl8srs98IRrs",
-            "org.matrix.msc1767.text": "Hello",
-            "org.matrix.msc1767.file": {
-                "url": "mxc://matrix.org/rnsldl8srs98IRrs",
-                "mimetype": "image/png",
-                "size": 84242,
-            },
-            "org.matrix.msc1767.image": {
-                "height": 423,
-                "width": 1011,
-            },
-            "org.matrix.msc1767.thumbnail": [
-                {
-                    "url": "mxc://matrix.org/irsns989Rrsn",
-                    "mimetype": "image/png",
-                    "size": 82595,
-                    "height": 334,
-                    "width": 800,
-                }
-            ],
+            "mimetype": "image/png",
+            "size": 84242,
         },
-        "event_id": "$h29iv0s8:example.com",
-        "origin_server_ts": 1,
-        "room_id": "!roomid:room.com",
-        "sender": "@carl:example.com",
-        "type": "m.sticker",
+        "org.matrix.msc1767.image": {
+            "height": 423,
+            "width": 1011,
+        },
+        "org.matrix.msc1767.thumbnail": [
+            {
+                "url": "mxc://matrix.org/irsns989Rrsn",
+                "mimetype": "image/png",
+                "size": 82595,
+                "height": 334,
+                "width": 800,
+            }
+        ],
     });
 
     assert_eq!(actual, expected);

@@ -3,30 +3,18 @@ use js_int::uint;
 use ruma_common::{
     events::{
         room::{join_rules::JoinRule, topic::RoomTopicEventContent},
-        AnyStrippedStateEvent, EmptyStateKey, StrippedStateEvent,
+        AnyStrippedStateEvent,
     },
-    mxc_uri, user_id,
+    mxc_uri,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 #[test]
 fn serialize_stripped_state_event_any_content() {
-    let event = StrippedStateEvent {
-        content: RoomTopicEventContent::new("Testing room".into()),
-        state_key: EmptyStateKey,
-        sender: user_id!("@example:localhost").to_owned(),
-    };
-
-    let json_data = json!({
-        "content": {
-            "topic": "Testing room"
-        },
-        "type": "m.room.topic",
-        "state_key": "",
-        "sender": "@example:localhost"
-    });
-
-    assert_eq!(to_json_value(&event).unwrap(), json_data);
+    assert_eq!(
+        to_json_value(RoomTopicEventContent::new("Testing room".into())).unwrap(),
+        json!({ "topic": "Testing room" })
+    );
 }
 
 #[test]
