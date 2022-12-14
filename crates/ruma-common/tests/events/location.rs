@@ -12,7 +12,7 @@ use ruma_common::{
         room::message::{
             LocationMessageEventContent, MessageType, Relation, RoomMessageEventContent,
         },
-        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
+        AnyMessageLikeEvent, MessageLikeEvent,
     },
     room_id,
     serde::CanBeEmpty,
@@ -40,58 +40,44 @@ fn plain_content_serialization() {
 
 #[test]
 fn event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: assign!(
-            LocationEventContent::with_message(
-                MessageContent::html(
-                    "Alice was at geo:51.5008,0.1247;u=35 as of Sat Nov 13 18:50:58 2021",
-                    "Alice was at <strong>geo:51.5008,0.1247;u=35</strong> as of <em>Sat Nov 13 18:50:58 2021</em>",
-                ),
-                assign!(
-                    LocationContent::new("geo:51.5008,0.1247;u=35".to_owned()),
-                    {
-                        description: Some("Alice's whereabouts".into()),
-                        zoom_level: Some(ZoomLevel::new(4).unwrap())
-                    }
-                )
+    let content = assign!(
+        LocationEventContent::with_message(
+            MessageContent::html(
+                "Alice was at geo:51.5008,0.1247;u=35 as of Sat Nov 13 18:50:58 2021",
+                "Alice was at <strong>geo:51.5008,0.1247;u=35</strong> as of <em>Sat Nov 13 18:50:58 2021</em>",
             ),
-            {
-                ts: Some(MilliSecondsSinceUnixEpoch(uint!(1_636_829_458))),
-                relates_to: Some(Relation::Reply {
-                    in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
-                }),
-            }
+            assign!(
+                LocationContent::new("geo:51.5008,0.1247;u=35".to_owned()),
+                {
+                    description: Some("Alice's whereabouts".into()),
+                    zoom_level: Some(ZoomLevel::new(4).unwrap())
+                }
+            )
         ),
-        event_id: event_id!("$event:notareal.hs").to_owned(),
-        sender: user_id!("@user:notareal.hs").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
-        room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+        {
+            ts: Some(MilliSecondsSinceUnixEpoch(uint!(1_636_829_458))),
+            relates_to: Some(Relation::Reply {
+                in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
+            }),
+        }
+    );
 
     assert_eq!(
-        to_json_value(&event).unwrap(),
+        to_json_value(&content).unwrap(),
         json!({
-            "content": {
-                "org.matrix.msc1767.html": "Alice was at <strong>geo:51.5008,0.1247;u=35</strong> as of <em>Sat Nov 13 18:50:58 2021</em>",
-                "org.matrix.msc1767.text": "Alice was at geo:51.5008,0.1247;u=35 as of Sat Nov 13 18:50:58 2021",
-                "m.location": {
-                    "uri": "geo:51.5008,0.1247;u=35",
-                    "description": "Alice's whereabouts",
-                    "zoom_level": 4,
-                },
-                "m.ts": 1_636_829_458,
-                "m.relates_to": {
-                    "m.in_reply_to": {
-                        "event_id": "$replyevent:example.com",
-                    },
+            "org.matrix.msc1767.html": "Alice was at <strong>geo:51.5008,0.1247;u=35</strong> as of <em>Sat Nov 13 18:50:58 2021</em>",
+            "org.matrix.msc1767.text": "Alice was at geo:51.5008,0.1247;u=35 as of Sat Nov 13 18:50:58 2021",
+            "m.location": {
+                "uri": "geo:51.5008,0.1247;u=35",
+                "description": "Alice's whereabouts",
+                "zoom_level": 4,
+            },
+            "m.ts": 1_636_829_458,
+            "m.relates_to": {
+                "m.in_reply_to": {
+                    "event_id": "$replyevent:example.com",
                 },
             },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "m.location",
         })
     );
 }

@@ -44,35 +44,27 @@ impl ToDeviceRoomKeyEventContent {
 
 #[cfg(test)]
 mod tests {
-    use crate::{room_id, user_id, EventEncryptionAlgorithm};
+    use crate::{room_id, EventEncryptionAlgorithm};
     use serde_json::{json, to_value as to_json_value};
 
     use super::ToDeviceRoomKeyEventContent;
-    use crate::events::ToDeviceEvent;
 
     #[test]
     fn serialization() {
-        let ev = ToDeviceEvent {
-            content: ToDeviceRoomKeyEventContent {
-                algorithm: EventEncryptionAlgorithm::MegolmV1AesSha2,
-                room_id: room_id!("!testroomid:example.org").to_owned(),
-                session_id: "SessId".into(),
-                session_key: "SessKey".into(),
-            },
-            sender: user_id!("@user:example.org").to_owned(),
+        let content = ToDeviceRoomKeyEventContent {
+            algorithm: EventEncryptionAlgorithm::MegolmV1AesSha2,
+            room_id: room_id!("!testroomid:example.org").to_owned(),
+            session_id: "SessId".into(),
+            session_key: "SessKey".into(),
         };
 
         assert_eq!(
-            to_json_value(ev).unwrap(),
+            to_json_value(content).unwrap(),
             json!({
-                "type": "m.room_key",
-                "content": {
-                    "algorithm": "m.megolm.v1.aes-sha2",
-                    "room_id": "!testroomid:example.org",
-                    "session_id": "SessId",
-                    "session_key": "SessKey",
-                },
-                "sender": "@user:example.org",
+                "algorithm": "m.megolm.v1.aes-sha2",
+                "room_id": "!testroomid:example.org",
+                "session_id": "SessId",
+                "session_key": "SessKey",
             })
         );
     }

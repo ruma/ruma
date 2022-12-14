@@ -143,7 +143,7 @@ impl<C: StateEventContent> Default for StateUnsigned<C> {
 }
 
 /// Extra information about a redacted event that is not incorporated into the event's hash.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RedactedUnsigned {
     /// The event that redacted this event, if any.

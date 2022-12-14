@@ -16,11 +16,11 @@ use ruma_common::{
             message::{AudioMessageEventContent, MessageType, Relation, RoomMessageEventContent},
             JsonWebKeyInit, MediaSource,
         },
-        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
+        AnyMessageLikeEvent, MessageLikeEvent,
     },
-    mxc_uri, room_id,
+    mxc_uri,
     serde::{Base64, CanBeEmpty},
-    user_id, MilliSecondsSinceUnixEpoch,
+    MilliSecondsSinceUnixEpoch,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -129,70 +129,56 @@ fn encrypted_content_serialization() {
 
 #[test]
 fn event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: assign!(
-            AudioEventContent::with_message(
-                MessageContent::html(
-                    "Upload: my_mix.mp3",
-                    "Upload: <strong>my_mix.mp3</strong>",
-                ),
-                FileContent::plain(
-                    mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
-                    Some(Box::new(assign!(
-                        FileContentInfo::new(),
-                        {
-                            name: Some("my_mix.mp3".to_owned()),
-                            mimetype: Some("audio/mp3".to_owned()),
-                            size: Some(uint!(897_774)),
-                        }
-                    ))),
-                )
+    let content = assign!(
+        AudioEventContent::with_message(
+            MessageContent::html(
+                "Upload: my_mix.mp3",
+                "Upload: <strong>my_mix.mp3</strong>",
             ),
-            {
-                audio: assign!(
-                    AudioContent::new(),
+            FileContent::plain(
+                mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+                Some(Box::new(assign!(
+                    FileContentInfo::new(),
                     {
-                        duration: Some(Duration::from_secs(123))
+                        name: Some("my_mix.mp3".to_owned()),
+                        mimetype: Some("audio/mp3".to_owned()),
+                        size: Some(uint!(897_774)),
                     }
-                ),
-                relates_to: Some(Relation::Reply {
-                    in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
-                }),
-            }
+                ))),
+            )
         ),
-        event_id: event_id!("$event:notareal.hs").to_owned(),
-        sender: user_id!("@user:notareal.hs").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
-        room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+        {
+            audio: assign!(
+                AudioContent::new(),
+                {
+                    duration: Some(Duration::from_secs(123))
+                }
+            ),
+            relates_to: Some(Relation::Reply {
+                in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
+            }),
+        }
+    );
 
     assert_eq!(
-        to_json_value(&event).unwrap(),
+        to_json_value(&content).unwrap(),
         json!({
-            "content": {
-                "org.matrix.msc1767.html": "Upload: <strong>my_mix.mp3</strong>",
-                "org.matrix.msc1767.text": "Upload: my_mix.mp3",
-                "m.file": {
-                    "url": "mxc://notareal.hs/abcdef",
-                    "name": "my_mix.mp3",
-                    "mimetype": "audio/mp3",
-                    "size": 897_774,
-                },
-                "m.audio": {
-                    "duration": 123_000,
-                },
-                "m.relates_to": {
-                    "m.in_reply_to": {
-                        "event_id": "$replyevent:example.com"
-                    }
+            "org.matrix.msc1767.html": "Upload: <strong>my_mix.mp3</strong>",
+            "org.matrix.msc1767.text": "Upload: my_mix.mp3",
+            "m.file": {
+                "url": "mxc://notareal.hs/abcdef",
+                "name": "my_mix.mp3",
+                "mimetype": "audio/mp3",
+                "size": 897_774,
+            },
+            "m.audio": {
+                "duration": 123_000,
+            },
+            "m.relates_to": {
+                "m.in_reply_to": {
+                    "event_id": "$replyevent:example.com"
                 }
             },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "m.audio",
         })
     );
 }

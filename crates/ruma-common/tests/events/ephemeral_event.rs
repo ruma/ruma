@@ -1,31 +1,22 @@
 use assert_matches::assert_matches;
 use js_int::uint;
 use maplit::btreemap;
-use ruma_common::{
-    event_id, events::receipt::ReceiptType, room_id, user_id, MilliSecondsSinceUnixEpoch,
-};
+use ruma_common::{event_id, events::receipt::ReceiptType, user_id, MilliSecondsSinceUnixEpoch};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 use ruma_common::events::{
     receipt::{Receipt, ReceiptEventContent},
     typing::TypingEventContent,
-    AnyEphemeralRoomEvent, EphemeralRoomEvent,
+    AnyEphemeralRoomEvent,
 };
 
 #[test]
 fn ephemeral_serialize_typing() {
-    let aliases_event = EphemeralRoomEvent {
-        content: TypingEventContent::new(vec![user_id!("@carl:example.com").to_owned()]),
-        room_id: room_id!("!roomid:room.com").to_owned(),
-    };
+    let content = TypingEventContent::new(vec![user_id!("@carl:example.com").to_owned()]);
 
-    let actual = to_json_value(&aliases_event).unwrap();
+    let actual = to_json_value(&content).unwrap();
     let expected = json!({
-        "content": {
-            "user_ids": [ "@carl:example.com" ]
-        },
-        "room_id": "!roomid:room.com",
-        "type": "m.typing",
+        "user_ids": ["@carl:example.com"],
     });
 
     assert_eq!(actual, expected);
@@ -55,28 +46,21 @@ fn ephemeral_serialize_receipt() {
     let event_id = event_id!("$h29iv0s8:example.com").to_owned();
     let user_id = user_id!("@carl:example.com").to_owned();
 
-    let aliases_event = EphemeralRoomEvent {
-        content: ReceiptEventContent(btreemap! {
-            event_id => btreemap! {
-                ReceiptType::Read => btreemap! {
-                    user_id => Receipt::new(MilliSecondsSinceUnixEpoch(uint!(1))),
-                },
+    let content = ReceiptEventContent(btreemap! {
+        event_id => btreemap! {
+            ReceiptType::Read => btreemap! {
+                user_id => Receipt::new(MilliSecondsSinceUnixEpoch(uint!(1))),
             },
-        }),
-        room_id: room_id!("!roomid:room.com").to_owned(),
-    };
-
-    let actual = to_json_value(&aliases_event).unwrap();
-    let expected = json!({
-        "content": {
-            "$h29iv0s8:example.com": {
-                "m.read": {
-                    "@carl:example.com": { "ts": 1 }
-                }
-            }
         },
-        "room_id": "!roomid:room.com",
-        "type": "m.receipt"
+    });
+
+    let actual = to_json_value(&content).unwrap();
+    let expected = json!({
+        "$h29iv0s8:example.com": {
+            "m.read": {
+                "@carl:example.com": { "ts": 1 }
+            }
+        }
     });
 
     assert_eq!(actual, expected);

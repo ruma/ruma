@@ -41,7 +41,6 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
 
     let mut res = TokenStream::new();
 
-    res.extend(expand_serialize_event(&input, var, &fields, &ruma_common));
     res.extend(
         expand_deserialize_event(&input, kind, var, &fields, &ruma_common)
             .unwrap_or_else(syn::Error::into_compile_error),
@@ -56,72 +55,6 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
     }
 
     Ok(res)
-}
-
-fn expand_serialize_event(
-    input: &DeriveInput,
-    var: EventKindVariation,
-    fields: &[Field],
-    ruma_common: &TokenStream,
-) -> TokenStream {
-    let serde = quote! { #ruma_common::exports::serde };
-
-    let ident = &input.ident;
-    let (impl_gen, ty_gen, where_clause) = input.generics.split_for_impl();
-    let serialize_fields: Vec<_> = fields
-        .iter()
-        .map(|field| {
-            let name = field.ident.as_ref().unwrap();
-            if name == "content" && var.is_redacted() {
-                quote! {
-                    state.serialize_field("content", &self.content)?;
-                }
-            } else if name == "unsigned" {
-                quote! {
-                    if !#ruma_common::serde::is_empty(&self.unsigned) {
-                        state.serialize_field("unsigned", &self.unsigned)?;
-                    }
-                }
-            } else {
-                let name_s = name.to_string();
-                match &field.ty {
-                    syn::Type::Path(syn::TypePath { path: syn::Path { segments, .. }, .. })
-                        if segments.last().unwrap().ident == "Option" =>
-                    {
-                        quote! {
-                            if let Some(content) = self.#name.as_ref() {
-                                state.serialize_field(#name_s, content)?;
-                            }
-                        }
-                    }
-                    _ => quote! {
-                        state.serialize_field(#name_s, &self.#name)?;
-                    },
-                }
-            }
-        })
-        .collect();
-
-    quote! {
-        #[automatically_derived]
-        impl #impl_gen #serde::ser::Serialize for #ident #ty_gen #where_clause {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: #serde::ser::Serializer,
-            {
-                use #serde::ser::{SerializeStruct as _, Error as _};
-
-                let mut state = serializer.serialize_struct(stringify!(#ident), 7)?;
-
-                let event_type = #ruma_common::events::EventContent::event_type(&self.content);
-                state.serialize_field("type", &event_type)?;
-
-                #( #serialize_fields )*
-
-                state.end()
-            }
-        }
-    }
 }
 
 fn expand_deserialize_event(

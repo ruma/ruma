@@ -28,10 +28,7 @@ impl RoomPinnedEventsEventContent {
 #[cfg(all(test, feature = "rand"))]
 mod tests {
     use super::RoomPinnedEventsEventContent;
-    use crate::{
-        events::{EmptyStateKey, OriginalStateEvent, StateUnsigned},
-        server_name, EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId,
-    };
+    use crate::{server_name, EventId};
 
     #[test]
     fn serialization_deserialization() {
@@ -42,28 +39,10 @@ mod tests {
         content.pinned.push(EventId::new(server_name));
         content.pinned.push(EventId::new(server_name));
 
-        let event = OriginalStateEvent {
-            content: content.clone(),
-            event_id: EventId::new(server_name),
-            origin_server_ts: MilliSecondsSinceUnixEpoch(1_432_804_485_886_u64.try_into().unwrap()),
-            room_id: RoomId::new(server_name),
-            sender: UserId::new(server_name),
-            state_key: EmptyStateKey,
-            unsigned: StateUnsigned::default(),
-        };
+        let serialized = serde_json::to_string(&content).unwrap();
+        let parsed_content: RoomPinnedEventsEventContent =
+            serde_json::from_str(&serialized).unwrap();
 
-        let serialized_event = serde_json::to_string(&event).unwrap();
-        let parsed_event: OriginalStateEvent<RoomPinnedEventsEventContent> =
-            serde_json::from_str(&serialized_event).unwrap();
-
-        assert_eq!(parsed_event.event_id, event.event_id);
-        assert_eq!(parsed_event.room_id, event.room_id);
-        assert_eq!(parsed_event.sender, event.sender);
-        assert_eq!(parsed_event.state_key, event.state_key);
-        assert_eq!(parsed_event.origin_server_ts, event.origin_server_ts);
-
-        assert_eq!(parsed_event.content.pinned, event.content.pinned);
-        assert_eq!(parsed_event.content.pinned[0], content.pinned[0]);
-        assert_eq!(parsed_event.content.pinned[1], content.pinned[1]);
+        assert_eq!(parsed_content.pinned, content.pinned);
     }
 }

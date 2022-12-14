@@ -177,7 +177,6 @@ mod tests {
         event_id,
         events::{relation::Reference, ToDeviceEvent},
         serde::Base64,
-        user_id,
     };
 
     #[test]
@@ -193,37 +192,22 @@ mod tests {
             }),
         };
 
-        let sender = user_id!("@example:localhost").to_owned();
-
         let json_data = json!({
-            "content": {
-                "transaction_id": "456",
-                "method": "m.sas.v1",
-                "commitment": "aGVsbG8",
-                "key_agreement_protocol": "curve25519",
-                "hash": "sha256",
-                "message_authentication_code": "hkdf-hmac-sha256",
-                "short_authentication_string": ["decimal"]
-            },
-            "sender": sender,
-            "type": "m.key.verification.accept"
+            "transaction_id": "456",
+            "method": "m.sas.v1",
+            "commitment": "aGVsbG8",
+            "key_agreement_protocol": "curve25519",
+            "hash": "sha256",
+            "message_authentication_code": "hkdf-hmac-sha256",
+            "short_authentication_string": ["decimal"]
         });
 
-        let key_verification_accept =
-            ToDeviceEvent { sender, content: key_verification_accept_content };
-
-        assert_eq!(to_json_value(&key_verification_accept).unwrap(), json_data);
-
-        let sender = user_id!("@example:localhost").to_owned();
+        assert_eq!(to_json_value(&key_verification_accept_content).unwrap(), json_data);
 
         let json_data = json!({
-            "content": {
-                "transaction_id": "456",
-                "method": "m.sas.custom",
-                "test": "field",
-            },
-            "sender": sender,
-            "type": "m.key.verification.accept"
+            "transaction_id": "456",
+            "method": "m.sas.custom",
+            "test": "field",
         });
 
         let key_verification_accept_content = ToDeviceKeyVerificationAcceptEventContent {
@@ -236,10 +220,7 @@ mod tests {
             }),
         };
 
-        let key_verification_accept =
-            ToDeviceEvent { sender, content: key_verification_accept_content };
-
-        assert_eq!(to_json_value(&key_verification_accept).unwrap(), json_data);
+        assert_eq!(to_json_value(&key_verification_accept_content).unwrap(), json_data);
     }
 
     #[test]

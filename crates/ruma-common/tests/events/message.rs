@@ -11,11 +11,10 @@ use ruma_common::{
         notice::NoticeEventContent,
         relation::InReplyTo,
         room::message::{EmoteMessageEventContent, MessageType, Relation, RoomMessageEventContent},
-        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
+        AnyMessageLikeEvent, MessageLikeEvent,
     },
-    room_id,
     serde::CanBeEmpty,
-    user_id, MilliSecondsSinceUnixEpoch,
+    MilliSecondsSinceUnixEpoch,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -146,27 +145,10 @@ fn relates_to_content_serialization() {
 
 #[test]
 fn message_event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: MessageEventContent::plain("Hello, World!"),
-        event_id: event_id!("$event:notareal.hs").to_owned(),
-        sender: user_id!("@user:notareal.hs").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
-        room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
-
+    let content = MessageEventContent::plain("Hello, World!");
     assert_eq!(
-        to_json_value(&event).unwrap(),
-        json!({
-            "content": {
-                "org.matrix.msc1767.text": "Hello, World!",
-            },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "m.message",
-        })
+        to_json_value(&content).unwrap(),
+        json!({ "org.matrix.msc1767.text": "Hello, World!" })
     );
 }
 
@@ -469,27 +451,10 @@ fn room_message_message_unstable_deserialization() {
 
 #[test]
 fn notice_event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: NoticeEventContent::plain("Hello, I'm a robot!"),
-        event_id: event_id!("$event:notareal.hs").to_owned(),
-        sender: user_id!("@user:notareal.hs").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
-        room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
-
+    let content = NoticeEventContent::plain("Hello, I'm a robot!");
     assert_eq!(
-        to_json_value(&event).unwrap(),
-        json!({
-            "content": {
-                "org.matrix.msc1767.text": "Hello, I'm a robot!",
-            },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "m.notice",
-        })
+        to_json_value(&content).unwrap(),
+        json!({ "org.matrix.msc1767.text": "Hello, I'm a robot!" })
     );
 }
 
@@ -616,30 +581,14 @@ fn room_message_notice_unstable_deserialization() {
 
 #[test]
 fn emote_event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: EmoteEventContent::html(
-            "is testing some code…",
-            "is testing some <code>code</code>…",
-        ),
-        event_id: event_id!("$event:notareal.hs").to_owned(),
-        sender: user_id!("@user:notareal.hs").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
-        room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+    let content =
+        EmoteEventContent::html("is testing some code…", "is testing some <code>code</code>…");
 
     assert_eq!(
-        to_json_value(&event).unwrap(),
+        to_json_value(&content).unwrap(),
         json!({
-            "content": {
-                "org.matrix.msc1767.html": "is testing some <code>code</code>…",
-                "org.matrix.msc1767.text": "is testing some code…",
-            },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "m.emote",
+            "org.matrix.msc1767.html": "is testing some <code>code</code>…",
+            "org.matrix.msc1767.text": "is testing some code…",
         })
     );
 }

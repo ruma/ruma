@@ -83,35 +83,28 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{PresenceEvent, PresenceEventContent};
-    use crate::{mxc_uri, presence::PresenceState, user_id};
+    use crate::{mxc_uri, presence::PresenceState};
 
     #[test]
     fn serialization() {
-        let event = PresenceEvent {
-            content: PresenceEventContent {
-                avatar_url: Some(mxc_uri!("mxc://localhost/wefuiwegh8742w").to_owned()),
-                currently_active: Some(false),
-                displayname: None,
-                last_active_ago: Some(uint!(2_478_593)),
-                presence: PresenceState::Online,
-                status_msg: Some("Making cupcakes".into()),
-            },
-            sender: user_id!("@example:localhost").to_owned(),
+        let content = PresenceEventContent {
+            avatar_url: Some(mxc_uri!("mxc://localhost/wefuiwegh8742w").to_owned()),
+            currently_active: Some(false),
+            displayname: None,
+            last_active_ago: Some(uint!(2_478_593)),
+            presence: PresenceState::Online,
+            status_msg: Some("Making cupcakes".into()),
         };
 
         let json = json!({
-            "content": {
-                "avatar_url": "mxc://localhost/wefuiwegh8742w",
-                "currently_active": false,
-                "last_active_ago": 2_478_593,
-                "presence": "online",
-                "status_msg": "Making cupcakes"
-            },
-            "sender": "@example:localhost",
-            "type": "m.presence"
+            "avatar_url": "mxc://localhost/wefuiwegh8742w",
+            "currently_active": false,
+            "last_active_ago": 2_478_593,
+            "presence": "online",
+            "status_msg": "Making cupcakes"
         });
 
-        assert_eq!(to_json_value(&event).unwrap(), json);
+        assert_eq!(to_json_value(&content).unwrap(), json);
     }
 
     #[test]

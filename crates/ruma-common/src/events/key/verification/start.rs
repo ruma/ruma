@@ -219,7 +219,6 @@ mod tests {
         event_id,
         events::{relation::Reference, ToDeviceEvent},
         serde::Base64,
-        user_id,
     };
 
     #[test]
@@ -238,38 +237,23 @@ mod tests {
             ),
         };
 
-        let sender = user_id!("@example:localhost").to_owned();
-
         let json_data = json!({
-            "content": {
-                "from_device": "123",
-                "transaction_id": "456",
-                "method": "m.sas.v1",
-                "key_agreement_protocols": ["curve25519"],
-                "hashes": ["sha256"],
-                "message_authentication_codes": ["hkdf-hmac-sha256"],
-                "short_authentication_string": ["decimal"]
-            },
-            "type": "m.key.verification.start",
-            "sender": sender
+            "from_device": "123",
+            "transaction_id": "456",
+            "method": "m.sas.v1",
+            "key_agreement_protocols": ["curve25519"],
+            "hashes": ["sha256"],
+            "message_authentication_codes": ["hkdf-hmac-sha256"],
+            "short_authentication_string": ["decimal"]
         });
 
-        let key_verification_start =
-            ToDeviceEvent { sender, content: key_verification_start_content };
-
-        assert_eq!(to_json_value(&key_verification_start).unwrap(), json_data);
-
-        let sender = user_id!("@example:localhost").to_owned();
+        assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
 
         let json_data = json!({
-            "content": {
-                "from_device": "123",
-                "transaction_id": "456",
-                "method": "m.sas.custom",
-                "test": "field",
-            },
-            "type": "m.key.verification.start",
-            "sender": sender
+            "from_device": "123",
+            "transaction_id": "456",
+            "method": "m.sas.custom",
+            "test": "field",
         });
 
         let key_verification_start_content = ToDeviceKeyVerificationStartEventContent {
@@ -283,10 +267,7 @@ mod tests {
             }),
         };
 
-        let key_verification_start =
-            ToDeviceEvent { sender, content: key_verification_start_content };
-
-        assert_eq!(to_json_value(&key_verification_start).unwrap(), json_data);
+        assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
 
         {
             let secret = Base64::new(b"This is a secret to everybody".to_vec());

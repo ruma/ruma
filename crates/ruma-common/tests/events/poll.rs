@@ -16,9 +16,8 @@ use ruma_common::{
             },
         },
         relation::Reference,
-        AnyMessageLikeEvent, MessageLikeEvent, MessageLikeUnsigned, OriginalMessageLikeEvent,
+        AnyMessageLikeEvent, MessageLikeEvent,
     },
-    room_id, user_id, MilliSecondsSinceUnixEpoch,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -105,48 +104,34 @@ fn start_content_serialization() {
 
 #[test]
 fn start_event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: PollStartEventContent::new(assign!(
-            PollStartContent::new(
-                MessageContent::plain("How's the weather?"),
-                PollKind::Disclosed,
-                vec![
-                    PollAnswer::new("not-bad".to_owned(), MessageContent::plain("Not bad…")),
-                    PollAnswer::new("fine".to_owned(), MessageContent::plain("Fine.")),
-                    PollAnswer::new("amazing".to_owned(), MessageContent::plain("Amazing!")),
-                ]
-                .try_into()
-                .unwrap(),
-            ),
-            { max_selections: uint!(2) }
-        )),
-        event_id: event_id!("$event:notareal.hs").to_owned(),
-        sender: user_id!("@user:notareal.hs").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
-        room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+    let content = PollStartEventContent::new(assign!(
+        PollStartContent::new(
+            MessageContent::plain("How's the weather?"),
+            PollKind::Disclosed,
+            vec![
+                PollAnswer::new("not-bad".to_owned(), MessageContent::plain("Not bad…")),
+                PollAnswer::new("fine".to_owned(), MessageContent::plain("Fine.")),
+                PollAnswer::new("amazing".to_owned(), MessageContent::plain("Amazing!")),
+            ]
+            .try_into()
+            .unwrap(),
+        ),
+        { max_selections: uint!(2) }
+    ));
 
     assert_eq!(
-        to_json_value(&event).unwrap(),
+        to_json_value(&content).unwrap(),
         json!({
-            "content": {
-                "org.matrix.msc3381.poll.start": {
-                    "question": { "org.matrix.msc1767.text": "How's the weather?" },
-                    "kind": "org.matrix.msc3381.poll.disclosed",
-                    "max_selections": 2,
-                    "answers": [
-                        { "id": "not-bad", "org.matrix.msc1767.text": "Not bad…"},
-                        { "id": "fine", "org.matrix.msc1767.text": "Fine."},
-                        { "id": "amazing", "org.matrix.msc1767.text": "Amazing!"},
-                    ]
-                },
+            "org.matrix.msc3381.poll.start": {
+                "question": { "org.matrix.msc1767.text": "How's the weather?" },
+                "kind": "org.matrix.msc3381.poll.disclosed",
+                "max_selections": 2,
+                "answers": [
+                    { "id": "not-bad", "org.matrix.msc1767.text": "Not bad…"},
+                    { "id": "fine", "org.matrix.msc1767.text": "Fine."},
+                    { "id": "amazing", "org.matrix.msc1767.text": "Amazing!"},
+                ]
             },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "org.matrix.msc3381.poll.start",
         })
     );
 }
@@ -255,35 +240,21 @@ fn response_content_serialization() {
 
 #[test]
 fn response_event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: PollResponseEventContent::new(
-            PollResponseContent::new(vec!["first-answer".to_owned(), "second-answer".to_owned()]),
-            event_id!("$related_event:notareal.hs").to_owned(),
-        ),
-        event_id: event_id!("$event:notareal.hs").to_owned(),
-        sender: user_id!("@user:notareal.hs").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
-        room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+    let content = PollResponseEventContent::new(
+        PollResponseContent::new(vec!["first-answer".to_owned(), "second-answer".to_owned()]),
+        event_id!("$related_event:notareal.hs").to_owned(),
+    );
 
     assert_eq!(
-        to_json_value(&event).unwrap(),
+        to_json_value(&content).unwrap(),
         json!({
-            "content": {
-                "org.matrix.msc3381.poll.response": {
-                    "answers": ["first-answer", "second-answer"],
-                },
-                "m.relates_to": {
-                    "rel_type": "m.reference",
-                    "event_id": "$related_event:notareal.hs",
-                }
+            "org.matrix.msc3381.poll.response": {
+                "answers": ["first-answer", "second-answer"],
             },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "org.matrix.msc3381.poll.response",
+            "m.relates_to": {
+                "rel_type": "m.reference",
+                "event_id": "$related_event:notareal.hs",
+            },
         })
     );
 }
@@ -380,33 +351,19 @@ fn end_content_serialization() {
 
 #[test]
 fn end_event_serialization() {
-    let event = OriginalMessageLikeEvent {
-        content: PollEndEventContent::new(
-            PollEndContent::new(),
-            event_id!("$related_event:notareal.hs").to_owned(),
-        ),
-        event_id: event_id!("$event:notareal.hs").to_owned(),
-        sender: user_id!("@user:notareal.hs").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(134_829_848)),
-        room_id: room_id!("!roomid:notareal.hs").to_owned(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+    let content = PollEndEventContent::new(
+        PollEndContent::new(),
+        event_id!("$related_event:notareal.hs").to_owned(),
+    );
 
     assert_eq!(
-        to_json_value(&event).unwrap(),
+        to_json_value(&content).unwrap(),
         json!({
-            "content": {
-                "org.matrix.msc3381.poll.end": {},
-                "m.relates_to": {
-                    "rel_type": "m.reference",
-                    "event_id": "$related_event:notareal.hs",
-                }
+            "org.matrix.msc3381.poll.end": {},
+            "m.relates_to": {
+                "rel_type": "m.reference",
+                "event_id": "$related_event:notareal.hs",
             },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "org.matrix.msc3381.poll.end",
         })
     );
 }

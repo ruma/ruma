@@ -1,117 +1,55 @@
 use assert_matches::assert_matches;
-use js_int::uint;
 use ruma_common::{
-    event_id,
     events::{
         room::{
             aliases::RedactedRoomAliasesEventContent,
             create::{RedactedRoomCreateEventContent, RoomCreateEventContent},
             message::{RedactedRoomMessageEventContent, RoomMessageEventContent},
-            redaction::{
-                OriginalSyncRoomRedactionEvent, RoomRedactionEventContent, SyncRoomRedactionEvent,
-            },
+            redaction::RoomRedactionEventContent,
         },
         AnyMessageLikeEvent, AnySyncMessageLikeEvent, AnySyncStateEvent, AnySyncTimelineEvent,
-        AnyTimelineEvent, EventContent, MessageLikeEvent, MessageLikeUnsigned, RedactContent,
-        RedactedSyncMessageLikeEvent, RedactedSyncStateEvent, RedactedUnsigned,
-        SyncMessageLikeEvent, SyncStateEvent,
+        AnyTimelineEvent, EventContent, MessageLikeEvent, RedactContent, SyncMessageLikeEvent,
+        SyncStateEvent,
     },
-    server_name, user_id, MilliSecondsSinceUnixEpoch, RoomVersionId,
+    RoomVersionId,
 };
 use serde_json::{
     from_value as from_json_value, json, to_value as to_json_value,
-    value::to_raw_value as to_raw_json_value,
+    value::to_raw_value as to_raw_json_value, Value as JsonValue,
 };
 
-fn unsigned() -> RedactedUnsigned {
-    let mut unsigned = RedactedUnsigned::default();
-    unsigned.redacted_because =
-        Some(Box::new(SyncRoomRedactionEvent::Original(OriginalSyncRoomRedactionEvent {
-            content: RoomRedactionEventContent::with_reason("redacted because".into()),
-            redacts: event_id!("$h29iv0s8:example.com").to_owned(),
-            event_id: event_id!("$h29iv0s8:example.com").to_owned(),
-            origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-            sender: user_id!("@carl:example.com").to_owned(),
-            unsigned: MessageLikeUnsigned::default(),
-        })));
-
-    unsigned
+fn unsigned() -> JsonValue {
+    json!({
+        "redacted_because": {
+            "type": "m.room.redaction",
+            "content": RoomRedactionEventContent::with_reason("redacted because".into()),
+            "redacts": "$h29iv0s8:example.com",
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "sender": "@carl:example.com",
+        }
+    })
 }
 
 #[test]
-fn redacted_message_event_serialize() {
-    let redacted = RedactedSyncMessageLikeEvent {
-        content: RedactedRoomMessageEventContent::new(),
-        event_id: event_id!("$h29iv0s8:example.com").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-        sender: user_id!("@carl:example.com").to_owned(),
-        unsigned: RedactedUnsigned::default(),
-    };
-
-    let expected = json!({
-        "content": {},
-        "event_id": "$h29iv0s8:example.com",
-        "origin_server_ts": 1,
-        "sender": "@carl:example.com",
-        "type": "m.room.message",
-    });
-
-    let actual = to_json_value(&redacted).unwrap();
-    assert_eq!(actual, expected);
+fn serialize_redacted_message_event_content() {
+    assert_eq!(to_json_value(RedactedRoomMessageEventContent::new()).unwrap(), json!({}));
 }
 
 #[test]
-fn redacted_aliases_event_serialize_empty_content() {
-    let redacted = RedactedSyncStateEvent {
-        content: RedactedRoomAliasesEventContent::default(),
-        event_id: event_id!("$h29iv0s8:example.com").to_owned(),
-        state_key: server_name!("example.com").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-        sender: user_id!("@carl:example.com").to_owned(),
-        unsigned: RedactedUnsigned::default(),
-    };
-
-    let expected = json!({
-        "content": {},
-        "event_id": "$h29iv0s8:example.com",
-        "state_key": "example.com",
-        "origin_server_ts": 1,
-        "sender": "@carl:example.com",
-        "type": "m.room.aliases",
-    });
-
-    let actual = to_json_value(&redacted).unwrap();
-    assert_eq!(actual, expected);
+fn serialize_empty_redacted_aliases_event_content() {
+    assert_eq!(to_json_value(&RedactedRoomAliasesEventContent::default()).unwrap(), json!({}));
 }
 
 #[test]
 fn redacted_aliases_event_serialize_with_content() {
-    let redacted = RedactedSyncStateEvent {
-        content: RedactedRoomAliasesEventContent::new_v1(vec![]),
-        event_id: event_id!("$h29iv0s8:example.com").to_owned(),
-        state_key: server_name!("example.com").to_owned(),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-        sender: user_id!("@carl:example.com").to_owned(),
-        unsigned: RedactedUnsigned::default(),
-    };
-
-    let expected = json!({
-        "content": {
-            "aliases": []
-        },
-        "event_id": "$h29iv0s8:example.com",
-        "state_key": "example.com",
-        "origin_server_ts": 1,
-        "sender": "@carl:example.com",
-        "type": "m.room.aliases",
-    });
-
-    let actual = to_json_value(&redacted).unwrap();
+    let expected = json!({ "aliases": [] });
+    let actual = to_json_value(&RedactedRoomAliasesEventContent::new_v1(vec![])).unwrap();
     assert_eq!(actual, expected);
 }
 
 #[test]
-fn redacted_aliases_deserialize() {
+fn deserialize_redacted_aliases() {
     let redacted = json!({
         "content": {},
         "event_id": "$h29iv0s8:example.com",
@@ -135,7 +73,7 @@ fn redacted_aliases_deserialize() {
 }
 
 #[test]
-fn redacted_deserialize_any_room() {
+fn deserialize_redacted_any_room() {
     let redacted = json!({
         "content": {},
         "event_id": "$h29iv0s8:example.com",
@@ -159,27 +97,13 @@ fn redacted_deserialize_any_room() {
 }
 
 #[test]
-fn redacted_deserialize_any_room_sync() {
-    let mut unsigned = RedactedUnsigned::default();
-    // The presence of `redacted_because` triggers the event enum (AnySyncTimelineEvent in this
-    // case) to return early with `RedactedContent` instead of failing to deserialize according
-    // to the event type string.
-    unsigned.redacted_because =
-        Some(Box::new(SyncRoomRedactionEvent::Original(OriginalSyncRoomRedactionEvent {
-            content: RoomRedactionEventContent::with_reason("redacted because".into()),
-            redacts: event_id!("$h29iv0s8:example.com").to_owned(),
-            event_id: event_id!("$h29iv0s8:example.com").to_owned(),
-            origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-            sender: user_id!("@carl:example.com").to_owned(),
-            unsigned: MessageLikeUnsigned::default(),
-        })));
-
+fn deserialize_redacted_any_room_sync() {
     let redacted = json!({
         "content": {},
         "event_id": "$h29iv0s8:example.com",
         "origin_server_ts": 1,
         "sender": "@carl:example.com",
-        "unsigned": unsigned,
+        "unsigned": unsigned(),
         "type": "m.room.message",
     });
 
@@ -195,7 +119,7 @@ fn redacted_deserialize_any_room_sync() {
 }
 
 #[test]
-fn redacted_state_event_deserialize() {
+fn deserialize_redacted_state_event() {
     let redacted = json!({
         "content": {
             "creator": "@carl:example.com",
@@ -220,7 +144,7 @@ fn redacted_state_event_deserialize() {
 }
 
 #[test]
-fn redacted_custom_event_deserialize() {
+fn deserialize_redacted_custom_event() {
     let redacted = json!({
         "content": {},
         "event_id": "$h29iv0s8:example.com",
