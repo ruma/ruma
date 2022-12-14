@@ -40,6 +40,9 @@ pub enum MembershipChange<'a> {
     /// User was kicked and banned.
     KickedAndBanned,
 
+    /// User accepted the invite.
+    InvitationAccepted,
+
     /// User rejected the invite.
     InvitationRejected,
 
@@ -117,7 +120,8 @@ pub(super) fn membership_change<'a>(
         | (St::Leave, St::Leave)
         | (St::Ban, St::Ban)
         | (St::Knock, St::Knock) => Ch::None,
-        (St::Invite, St::Join) | (St::Leave, St::Join) => Ch::Joined,
+        (St::Leave, St::Join) => Ch::Joined,
+        (St::Invite, St::Join) => Ch::InvitationAccepted,
         (St::Invite, St::Leave) if sender == state_key => Ch::InvitationRevoked,
         (St::Invite, St::Leave) => Ch::InvitationRejected,
         (St::Invite, St::Ban) | (St::Leave, St::Ban) | (St::Knock, St::Ban) => Ch::Banned,
