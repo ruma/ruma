@@ -2,13 +2,10 @@ use ruma_macros::{event_enum, EventEnumFromEvent};
 use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use super::{
-    room::{encrypted, redaction::SyncRoomRedactionEvent},
-    BundledRelations, Redact,
-};
+use super::{room::encrypted, BundledRelations};
 use crate::{
     serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, RoomId,
-    RoomVersionId, TransactionId, UserId,
+    TransactionId, UserId,
 };
 
 event_enum! {
@@ -268,34 +265,6 @@ impl<'de> Deserialize<'de> for AnySyncTimelineEvent {
             Ok(AnySyncTimelineEvent::State(from_raw_json_value(&json)?))
         } else {
             Ok(AnySyncTimelineEvent::MessageLike(from_raw_json_value(&json)?))
-        }
-    }
-}
-
-impl Redact for AnyTimelineEvent {
-    type Redacted = Self;
-
-    /// Redacts `self`, referencing the given event in `unsigned.redacted_because`.
-    ///
-    /// Does nothing for events that are already redacted.
-    fn redact(self, redaction: SyncRoomRedactionEvent, version: &RoomVersionId) -> Self {
-        match self {
-            Self::MessageLike(ev) => Self::MessageLike(ev.redact(redaction, version)),
-            Self::State(ev) => Self::State(ev.redact(redaction, version)),
-        }
-    }
-}
-
-impl Redact for AnySyncTimelineEvent {
-    type Redacted = Self;
-
-    /// Redacts `self`, referencing the given event in `unsigned.redacted_because`.
-    ///
-    /// Does nothing for events that are already redacted.
-    fn redact(self, redaction: SyncRoomRedactionEvent, version: &RoomVersionId) -> Self {
-        match self {
-            Self::MessageLike(ev) => Self::MessageLike(ev.redact(redaction, version)),
-            Self::State(ev) => Self::State(ev.redact(redaction, version)),
         }
     }
 }

@@ -55,14 +55,6 @@ impl EventKindVariation {
         matches!(self, Self::OriginalSync | Self::RedactedSync)
     }
 
-    pub fn to_redacted(self) -> Self {
-        match self {
-            EventKindVariation::Original => EventKindVariation::Redacted,
-            EventKindVariation::OriginalSync => EventKindVariation::RedactedSync,
-            _ => panic!("No redacted form of {self:?}"),
-        }
-    }
-
     pub fn to_full(self) -> Self {
         match self {
             EventKindVariation::OriginalSync => EventKindVariation::Original,

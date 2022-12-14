@@ -104,7 +104,6 @@
 
 use serde::{de::IgnoredAny, Deserialize, Serializer};
 
-use self::room::redaction::SyncRoomRedactionEvent;
 use crate::{EventEncryptionAlgorithm, RoomVersionId};
 
 // Needs to be public for trybuild tests
@@ -177,18 +176,6 @@ pub use self::{
     unsigned::{MessageLikeUnsigned, RedactedUnsigned, StateUnsigned, StateUnsignedFromParts},
 };
 
-/// Trait to define the behavior of redacting an event.
-pub trait Redact {
-    /// The redacted form of the event.
-    type Redacted;
-
-    /// Transforms `self` into a redacted form (removing most fields) according to the spec.
-    ///
-    /// A small number of events have room-version specific redaction behavior, so a version has to
-    /// be specified.
-    fn redact(self, redaction: SyncRoomRedactionEvent, version: &RoomVersionId) -> Self::Redacted;
-}
-
 /// Trait to define the behavior of redact an event's content object.
 pub trait RedactContent {
     /// The redacted form of the event's content.
@@ -198,8 +185,6 @@ pub trait RedactContent {
     ///
     /// A small number of events have room-version specific redaction behavior, so a version has to
     /// be specified.
-    ///
-    /// Where applicable, it is preferred to use [`Redact::redact`] on the outer event.
     fn redact(self, version: &RoomVersionId) -> Self::Redacted;
 }
 

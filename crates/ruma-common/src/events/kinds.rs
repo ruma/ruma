@@ -5,15 +5,15 @@ use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
-    room::redaction::SyncRoomRedactionEvent, EphemeralRoomEventContent, EventContent,
-    GlobalAccountDataEventContent, MessageLikeEventContent, MessageLikeEventType,
-    MessageLikeUnsigned, Redact, RedactContent, RedactedMessageLikeEventContent,
-    RedactedStateEventContent, RedactedUnsigned, RedactionDeHelper, RoomAccountDataEventContent,
-    StateEventContent, StateEventType, ToDeviceEventContent,
+    EphemeralRoomEventContent, EventContent, GlobalAccountDataEventContent,
+    MessageLikeEventContent, MessageLikeEventType, MessageLikeUnsigned, RedactContent,
+    RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
+    RedactionDeHelper, RoomAccountDataEventContent, StateEventContent, StateEventType,
+    ToDeviceEventContent,
 };
 use crate::{
     serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
-    OwnedUserId, RoomId, RoomVersionId, UserId,
+    OwnedUserId, RoomId, UserId,
 };
 
 /// A global account data event.
@@ -454,22 +454,6 @@ macro_rules! impl_possibly_redacted_event {
 
             // So the room_id method can be in the same impl block, in rustdoc
             $($extra)*
-        }
-
-        impl<C> Redact for $ty<C>
-        where
-            C: $content_trait + RedactContent,
-            C::Redacted: $redacted_content_trait,
-            $( C::Redacted: $trait<StateKey = C::StateKey>, )?
-        {
-            type Redacted = Self;
-
-            fn redact(self, redaction: SyncRoomRedactionEvent, version: &RoomVersionId) -> Self {
-                match self {
-                    Self::Original(ev) => Self::Redacted(ev.redact(redaction, version)),
-                    Self::Redacted(ev) => Self::Redacted(ev),
-                }
-            }
         }
 
         impl<'de, C> Deserialize<'de> for $ty<C>

@@ -70,14 +70,6 @@ pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
                 .unwrap_or_else(syn::Error::into_compile_error),
         );
         res.extend(
-            expand_redact(kind, V::None, variants, ruma_common)
-                .unwrap_or_else(syn::Error::into_compile_error),
-        );
-        res.extend(
-            expand_redact(kind, V::Sync, variants, ruma_common)
-                .unwrap_or_else(syn::Error::into_compile_error),
-        );
-        res.extend(
             expand_from_full_event(kind, V::None, variants)
                 .unwrap_or_else(syn::Error::into_compile_error),
         );
@@ -424,42 +416,6 @@ fn expand_content_enum(
         }
 
         #from_impl
-    })
-}
-
-fn expand_redact(
-    kind: EventKind,
-    var: EventEnumVariation,
-    variants: &[EventEnumVariant],
-    ruma_common: &TokenStream,
-) -> syn::Result<TokenStream> {
-    let ident = kind.to_event_enum_ident(var.into())?;
-
-    let self_variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
-    let redacted_variants = variants.iter().map(|v| v.ctor(&ident));
-
-    Ok(quote! {
-        #[automatically_derived]
-        impl #ruma_common::events::Redact for #ident {
-            type Redacted = Self;
-
-            fn redact(
-                self,
-                redaction: #ruma_common::events::room::redaction::SyncRoomRedactionEvent,
-                version: &#ruma_common::RoomVersionId,
-            ) -> Self {
-                match self {
-                    #(
-                        #self_variants(event) => #redacted_variants(
-                            #ruma_common::events::Redact::redact(event, redaction, version),
-                        ),
-                    )*
-                    Self::_Custom(event) => Self::_Custom(
-                        #ruma_common::events::Redact::redact(event, redaction, version),
-                    )
-                }
-            }
-        }
     })
 }
 

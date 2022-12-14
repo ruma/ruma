@@ -8,8 +8,8 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
     events::{
-        EventContent, MessageLikeEventType, MessageLikeUnsigned, Redact, RedactContent,
-        RedactedUnsigned, RedactionDeHelper,
+        EventContent, MessageLikeEventType, MessageLikeUnsigned, RedactedUnsigned,
+        RedactionDeHelper,
     },
     serde::from_raw_json_value,
     EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId, UserId,
@@ -65,25 +65,6 @@ pub struct OriginalRoomRedactionEvent {
     pub unsigned: MessageLikeUnsigned,
 }
 
-impl Redact for OriginalRoomRedactionEvent {
-    type Redacted = RedactedRoomRedactionEvent;
-
-    fn redact(
-        self,
-        redaction: SyncRoomRedactionEvent,
-        version: &crate::RoomVersionId,
-    ) -> Self::Redacted {
-        RedactedRoomRedactionEvent {
-            content: self.content.redact(version),
-            event_id: self.event_id,
-            sender: self.sender,
-            origin_server_ts: self.origin_server_ts,
-            room_id: self.room_id,
-            unsigned: RedactedUnsigned::new_because(Box::new(redaction)),
-        }
-    }
-}
-
 /// Redacted redaction event.
 #[derive(Clone, Debug, Event)]
 #[allow(clippy::exhaustive_structs)]
@@ -128,24 +109,6 @@ pub struct OriginalSyncRoomRedactionEvent {
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: MessageLikeUnsigned,
-}
-
-impl Redact for OriginalSyncRoomRedactionEvent {
-    type Redacted = RedactedSyncRoomRedactionEvent;
-
-    fn redact(
-        self,
-        redaction: SyncRoomRedactionEvent,
-        version: &crate::RoomVersionId,
-    ) -> Self::Redacted {
-        RedactedSyncRoomRedactionEvent {
-            content: self.content.redact(version),
-            event_id: self.event_id,
-            sender: self.sender,
-            origin_server_ts: self.origin_server_ts,
-            unsigned: RedactedUnsigned::new_because(Box::new(redaction)),
-        }
-    }
 }
 
 /// Redacted redaction event without a `room_id`.
@@ -240,17 +203,6 @@ impl RoomRedactionEvent {
     }
 }
 
-impl Redact for RoomRedactionEvent {
-    type Redacted = Self;
-
-    fn redact(self, redaction: SyncRoomRedactionEvent, version: &crate::RoomVersionId) -> Self {
-        match self {
-            Self::Original(ev) => Self::Redacted(ev.redact(redaction, version)),
-            Self::Redacted(ev) => Self::Redacted(ev),
-        }
-    }
-}
-
 impl<'de> Deserialize<'de> for RoomRedactionEvent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -322,17 +274,6 @@ impl From<RoomRedactionEvent> for SyncRoomRedactionEvent {
         match full {
             RoomRedactionEvent::Original(ev) => Self::Original(ev.into()),
             RoomRedactionEvent::Redacted(ev) => Self::Redacted(ev.into()),
-        }
-    }
-}
-
-impl Redact for SyncRoomRedactionEvent {
-    type Redacted = Self;
-
-    fn redact(self, redaction: SyncRoomRedactionEvent, version: &crate::RoomVersionId) -> Self {
-        match self {
-            Self::Original(ev) => Self::Redacted(ev.redact(redaction, version)),
-            Self::Redacted(ev) => Self::Redacted(ev),
         }
     }
 }
