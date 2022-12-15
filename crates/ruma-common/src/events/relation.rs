@@ -308,8 +308,26 @@ pub struct BundledRelations {
 
 impl BundledRelations {
     /// Creates a new empty `BundledRelations`.
-    pub fn new() -> Self {
-        Self::default()
+    pub const fn new() -> Self {
+        Self {
+            #[cfg(feature = "unstable-msc2677")]
+            annotation: None,
+            replace: None,
+            thread: None,
+            reference: None,
+        }
+    }
+
+    /// Returns `true` if all fields are empty.
+    pub fn is_empty(&self) -> bool {
+        #[cfg(not(feature = "unstable-msc2677"))]
+        return self.replace.is_none() && self.thread.is_none() && self.reference.is_none();
+
+        #[cfg(feature = "unstable-msc2677")]
+        return self.annotation.is_none()
+            && self.replace.is_none()
+            && self.thread.is_none()
+            && self.reference.is_none();
     }
 }
 

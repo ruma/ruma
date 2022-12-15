@@ -177,8 +177,8 @@ impl AnyTimelineEvent {
         /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
         pub fn transaction_id(&self) -> Option<&TransactionId>;
 
-        /// Returns this event's `relations` from inside `unsigned`, if that field exists.
-        pub fn relations(&self) -> Option<&BundledRelations>;
+        /// Returns this event's `relations` from inside `unsigned`.
+        pub fn relations(&self) -> &BundledRelations;
     }
 }
 
@@ -210,7 +210,7 @@ impl AnySyncTimelineEvent {
         pub fn transaction_id(&self) -> Option<&TransactionId>;
 
         /// Returns this event's `relations` from inside `unsigned`, if that field exists.
-        pub fn relations(&self) -> Option<&BundledRelations>;
+        pub fn relations(&self) -> &BundledRelations;
     }
 
     /// Converts `self` to an `AnyTimelineEvent` by adding the given a room ID.
