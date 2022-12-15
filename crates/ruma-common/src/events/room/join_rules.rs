@@ -174,10 +174,9 @@ impl Restricted {
 /// An allow rule which defines a condition that allows joining a room.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(tag = "type")]
+#[serde(untagged)]
 pub enum AllowRule {
     /// Joining is allowed if a user is already a member of the room with the id `room_id`.
-    #[serde(rename = "m.room_membership")]
     RoomMembership(RoomMembership),
 
     #[doc(hidden)]
@@ -194,6 +193,7 @@ impl AllowRule {
 /// Allow rule which grants permission to join based on the membership of another room.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(tag = "type", rename = "m.room_membership")]
 pub struct RoomMembership {
     /// The id of the room which being a member of grants permission to join another room.
     pub room_id: OwnedRoomId,
@@ -292,7 +292,7 @@ mod tests {
             "sender": "@admin:community.rs",
             "content": {
                 "join_rule": "restricted",
-                "allow":[
+                "allow": [
                     { "type": "m.room_membership","room_id": "!KqeUnzmXPIhHRaWMTs:mccarty.io" }
                 ]
             },
@@ -305,5 +305,13 @@ mod tests {
         }"#;
 
         assert_matches!(serde_json::from_str::<OriginalSyncRoomJoinRulesEvent>(json), Ok(_));
+    }
+
+    #[test]
+    fn roundtrip_custom_allow_rule() {
+        let json = r#"{"type":"org.msc9000.something","foo":"bar"}"#;
+        let allow_rule: AllowRule = serde_json::from_str(json).unwrap();
+        assert_matches!(&allow_rule, AllowRule::_Custom(_));
+        assert_eq!(serde_json::to_string(&allow_rule).unwrap(), json);
     }
 }
