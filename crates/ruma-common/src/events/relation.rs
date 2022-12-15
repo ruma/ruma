@@ -291,19 +291,19 @@ pub struct BundledRelations {
     /// Annotation relations.
     #[cfg(feature = "unstable-msc2677")]
     #[serde(rename = "m.annotation", skip_serializing_if = "Option::is_none")]
-    pub annotation: Option<AnnotationChunk>,
+    pub annotation: Option<Box<AnnotationChunk>>,
 
     /// Replacement relation.
     #[serde(rename = "m.replace", skip_serializing_if = "Option::is_none")]
-    pub replace: Option<BundledReplacement>,
+    pub replace: Option<Box<BundledReplacement>>,
 
     /// Thread relation.
     #[serde(rename = "m.thread", skip_serializing_if = "Option::is_none")]
-    pub thread: Option<BundledThread>,
+    pub thread: Option<Box<BundledThread>>,
 
     /// Reference relations.
     #[serde(rename = "m.reference", skip_serializing_if = "Option::is_none")]
-    pub reference: Option<ReferenceChunk>,
+    pub reference: Option<Box<ReferenceChunk>>,
 }
 
 impl BundledRelations {
