@@ -290,19 +290,19 @@ impl ReferenceChunk {
 pub struct BundledRelations {
     /// Annotation relations.
     #[cfg(feature = "unstable-msc2677")]
-    #[serde(rename = "m.annotation")]
+    #[serde(rename = "m.annotation", skip_serializing_if = "Option::is_none")]
     pub annotation: Option<AnnotationChunk>,
 
     /// Replacement relation.
-    #[serde(rename = "m.replace")]
+    #[serde(rename = "m.replace", skip_serializing_if = "Option::is_none")]
     pub replace: Option<BundledReplacement>,
 
     /// Thread relation.
-    #[serde(rename = "m.thread")]
+    #[serde(rename = "m.thread", skip_serializing_if = "Option::is_none")]
     pub thread: Option<BundledThread>,
 
     /// Reference relations.
-    #[serde(rename = "m.reference")]
+    #[serde(rename = "m.reference", skip_serializing_if = "Option::is_none")]
     pub reference: Option<ReferenceChunk>,
 }
 
