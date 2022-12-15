@@ -73,7 +73,7 @@ pub mod v3 {
 
         /// Custom login type.
         #[doc(hidden)]
-        _Custom(CustomLoginType),
+        _Custom(Box<CustomLoginType>),
     }
 
     impl LoginType {
@@ -91,7 +91,9 @@ pub mod v3 {
                 "m.login.password" => Self::Password(from_json_object(data)?),
                 "m.login.token" => Self::Token(from_json_object(data)?),
                 "m.login.sso" => Self::Sso(from_json_object(data)?),
-                _ => Self::_Custom(CustomLoginType { type_: login_type.to_owned(), data }),
+                _ => {
+                    Self::_Custom(Box::new(CustomLoginType { type_: login_type.to_owned(), data }))
+                }
             })
         }
 

@@ -180,7 +180,7 @@ pub enum AllowRule {
     RoomMembership(RoomMembership),
 
     #[doc(hidden)]
-    _Custom(CustomAllowRule),
+    _Custom(Box<CustomAllowRule>),
 }
 
 impl AllowRule {
