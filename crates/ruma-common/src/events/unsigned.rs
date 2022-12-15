@@ -30,8 +30,8 @@ pub struct MessageLikeUnsigned {
     /// [Bundled aggregations] of related child events.
     ///
     /// [Bundled aggregations]: https://spec.matrix.org/v1.4/client-server-api/#aggregations
-    #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]
-    pub relations: Option<BundledRelations>,
+    #[serde(rename = "m.relations", default, skip_serializing_if = "BundledRelations::is_empty")]
+    pub relations: BundledRelations,
 }
 
 impl MessageLikeUnsigned {
@@ -48,7 +48,7 @@ impl CanBeEmpty for MessageLikeUnsigned {
     /// events. Do not use it to determine whether an incoming `unsigned` field was present - it
     /// could still have been present but contained none of the known fields.
     fn is_empty(&self) -> bool {
-        self.age.is_none() && self.transaction_id.is_none() && self.relations.is_none()
+        self.age.is_none() && self.transaction_id.is_none() && self.relations.is_empty()
     }
 }
 
@@ -76,14 +76,14 @@ pub struct StateUnsigned<C: StateEventContent> {
     /// [Bundled aggregations] of related child events.
     ///
     /// [Bundled aggregations]: https://spec.matrix.org/v1.4/client-server-api/#aggregations
-    #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]
-    pub relations: Option<BundledRelations>,
+    #[serde(rename = "m.relations", default, skip_serializing_if = "BundledRelations::is_empty")]
+    pub relations: BundledRelations,
 }
 
 impl<C: StateEventContent> StateUnsigned<C> {
     /// Create a new `Unsigned` with fields set to `None`.
     pub fn new() -> Self {
-        Self { age: None, transaction_id: None, prev_content: None, relations: None }
+        Self { age: None, transaction_id: None, prev_content: None, relations: Default::default() }
     }
 }
 
@@ -97,7 +97,7 @@ impl<C: StateEventContent> CanBeEmpty for StateUnsigned<C> {
         self.age.is_none()
             && self.transaction_id.is_none()
             && self.prev_content.is_none()
-            && self.relations.is_none()
+            && self.relations.is_empty()
     }
 }
 
@@ -119,8 +119,12 @@ impl<C: StateEventContent> StateUnsignedFromParts for StateUnsigned<C> {
             #[serde(skip_serializing_if = "Option::is_none")]
             transaction_id: Option<OwnedTransactionId>,
             prev_content: Option<Raw<C>>,
-            #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]
-            relations: Option<BundledRelations>,
+            #[serde(
+                rename = "m.relations",
+                default,
+                skip_serializing_if = "BundledRelations::is_empty"
+            )]
+            relations: BundledRelations,
         }
 
         let raw: WithRawPrevContent<C> = from_json_str(object.get())?;

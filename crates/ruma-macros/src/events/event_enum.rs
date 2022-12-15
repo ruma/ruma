@@ -550,16 +550,24 @@ fn expand_accessor_methods(
                 }
             }
 
-            /// Returns this event's `relations` from inside `unsigned`, if that field exists.
-            pub fn relations(&self) -> Option<&#ruma_common::events::BundledRelations> {
+            /// Returns this event's `relations` from inside `unsigned`.
+            pub fn relations(&self) -> &#ruma_common::events::BundledRelations {
+                static DEFAULT_BUNDLED_RELATIONS: #ruma_common::events::BundledRelations =
+                    #ruma_common::events::BundledRelations::new();
                 match self {
                     #(
                         #variants2(event) => {
-                            event.as_original().and_then(|ev| ev.unsigned.relations.as_ref())
+                            event.as_original().map_or_else(
+                                || &DEFAULT_BUNDLED_RELATIONS,
+                                |ev| &ev.unsigned.relations,
+                            )
                         }
                     )*
                     Self::_Custom(event) => {
-                        event.as_original().and_then(|ev| ev.unsigned.relations.as_ref())
+                        event.as_original().map_or_else(
+                            || &DEFAULT_BUNDLED_RELATIONS,
+                            |ev| &ev.unsigned.relations,
+                        )
                     }
                 }
             }

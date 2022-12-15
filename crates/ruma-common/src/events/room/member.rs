@@ -480,8 +480,8 @@ pub struct RoomMemberUnsigned {
     /// [Bundled aggregations] of related child events.
     ///
     /// [Bundled aggregations]: https://spec.matrix.org/v1.4/client-server-api/#aggregations
-    #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]
-    pub relations: Option<BundledRelations>,
+    #[serde(rename = "m.relations", default, skip_serializing_if = "BundledRelations::is_empty")]
+    pub relations: BundledRelations,
 }
 
 impl RoomMemberUnsigned {
@@ -502,7 +502,7 @@ impl CanBeEmpty for RoomMemberUnsigned {
             && self.transaction_id.is_none()
             && self.prev_content.is_none()
             && self.invite_room_state.is_empty()
-            && self.relations.is_none()
+            && self.relations.is_empty()
     }
 }
 
