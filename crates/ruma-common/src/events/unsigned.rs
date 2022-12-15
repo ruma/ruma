@@ -3,11 +3,11 @@ use serde::{Deserialize, Serialize};
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 
 use super::{
-    relation::BundledRelations, room::redaction::SyncRoomRedactionEvent, StateEventContent,
+    relation::BundledRelations, room::redaction::RoomRedactionEventContent, StateEventContent,
 };
 use crate::{
     serde::{CanBeEmpty, Raw},
-    OwnedTransactionId,
+    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedTransactionId, OwnedUserId,
 };
 
 /// Extra information about a message event that is not incorporated into the event's hash.
@@ -147,12 +147,40 @@ impl<C: StateEventContent> Default for StateUnsigned<C> {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RedactedUnsigned {
     /// The event that redacted this event, if any.
-    pub redacted_because: Box<SyncRoomRedactionEvent>,
+    pub redacted_because: UnsignedRoomRedactionEvent,
 }
 
 impl RedactedUnsigned {
     /// Create a new `RedactedUnsigned` with the given redaction event.
-    pub fn new(redacted_because: Box<SyncRoomRedactionEvent>) -> Self {
+    pub fn new(redacted_because: UnsignedRoomRedactionEvent) -> Self {
         Self { redacted_because }
     }
+}
+
+/// A redaction event as found in `unsigned.redacted_because`.
+///
+/// While servers usually send this with the `redacts` field (unless nested), the ID of the event
+/// being redacted is known from context wherever this type is used, so it's not reflected as a
+/// field here.
+///
+/// It is intentionally not possible to create an instance of this type other than through `Clone`
+/// or `Deserialize`.
+#[derive(Clone, Debug, Deserialize)]
+#[non_exhaustive]
+pub struct UnsignedRoomRedactionEvent {
+    /// Data specific to the event type.
+    pub content: RoomRedactionEventContent,
+
+    /// The globally unique event identifier for the user who sent the event.
+    pub event_id: OwnedEventId,
+
+    /// The fully-qualified ID of the user who sent this event.
+    pub sender: OwnedUserId,
+
+    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
+
+    /// Additional key-value pairs not signed by the homeserver.
+    #[serde(default)]
+    pub unsigned: MessageLikeUnsigned,
 }
