@@ -214,7 +214,7 @@ impl Thread {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct BundledThread {
     /// The latest event in the thread.
-    pub latest_event: Box<Raw<AnyMessageLikeEvent>>,
+    pub latest_event: Raw<AnyMessageLikeEvent>,
 
     /// The number of events in the thread.
     pub count: UInt,
@@ -226,7 +226,7 @@ pub struct BundledThread {
 impl BundledThread {
     /// Creates a new `BundledThread` with the given event, count and user participated flag.
     pub fn new(
-        latest_event: Box<Raw<AnyMessageLikeEvent>>,
+        latest_event: Raw<AnyMessageLikeEvent>,
         count: UInt,
         current_user_participated: bool,
     ) -> Self {
