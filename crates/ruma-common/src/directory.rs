@@ -109,7 +109,7 @@ impl From<PublicRoomsChunkInit> for PublicRoomsChunk {
     }
 }
 
-/// A filter for public rooms lists
+/// A filter for public rooms lists.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Filter {
@@ -121,6 +121,7 @@ pub struct Filter {
     ///
     /// Includes all room types if it is empty.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[cfg_attr(feature = "compat", serde(deserialize_with = "crate::serde::none_as_default"))]
     pub room_types: Vec<RoomTypeFilter>,
 }
 

@@ -5,7 +5,7 @@
 //!
 //! [serde_urlencoded]: https://github.com/nox/serde_urlencoded
 
-use serde::{de, Deserialize};
+use serde::{de, Deserialize, Deserializer};
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
 pub mod base64;
@@ -38,6 +38,15 @@ pub type JsonObject = serde_json::Map<String, JsonValue>;
 /// Check whether a value is equal to its default value.
 pub fn is_default<T: Default + PartialEq>(val: &T) -> bool {
     *val == T::default()
+}
+
+/// Deserialize a `T` via `Option<T>`, falling back to `T::default()`.
+pub fn none_as_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    D: Deserializer<'de>,
+    T: Default + Deserialize<'de>,
+{
+    Ok(Option::deserialize(deserializer)?.unwrap_or_default())
 }
 
 /// Simply returns `true`.
