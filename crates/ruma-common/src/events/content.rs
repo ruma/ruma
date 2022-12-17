@@ -114,13 +114,13 @@ pub trait RoomAccountDataEventContent: EventContent<EventType = RoomAccountDataE
 /// Content of an ephemeral room event.
 pub trait EphemeralRoomEventContent: EventContent<EventType = EphemeralRoomEventType> {}
 
-/// Content of a non-redacted message-like event.
+/// Content of a message-like event.
 pub trait MessageLikeEventContent: EventContent<EventType = MessageLikeEventType> {}
 
 /// Content of a redacted message-like event.
 pub trait RedactedMessageLikeEventContent: MessageLikeEventContent + RedactedEventContent {}
 
-/// Content of a non-redacted state event.
+/// Content of a state event.
 pub trait StateEventContent: EventContent<EventType = StateEventType> {
     /// The type of the event's `state_key` field.
     type StateKey: AsRef<str> + Clone + fmt::Debug + DeserializeOwned + Serialize;
