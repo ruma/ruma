@@ -120,7 +120,7 @@ pub trait MessageLikeEventContent: EventContent<EventType = MessageLikeEventType
 /// Content of a redacted message-like event.
 pub trait RedactedMessageLikeEventContent: MessageLikeEventContent + RedactedEventContent {}
 
-/// Content of a redacted state event.
+/// Content of a non-redacted state event.
 pub trait StateEventContent: EventContent<EventType = StateEventType> {
     /// The type of the event's `state_key` field.
     type StateKey: AsRef<str> + Clone + fmt::Debug + DeserializeOwned + Serialize;
@@ -129,7 +129,7 @@ pub trait StateEventContent: EventContent<EventType = StateEventType> {
     type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty + StateUnsignedFromParts + Serialize;
 }
 
-/// Content of a non-redacted state event.
+/// Content of a redacted state event.
 pub trait RedactedStateEventContent: StateEventContent + RedactedEventContent {}
 
 /// Content of a to-device event.
