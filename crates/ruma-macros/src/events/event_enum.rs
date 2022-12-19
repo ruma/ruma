@@ -87,6 +87,7 @@ pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
     }
 
     if matches!(kind, EventKind::State) {
+        res.extend(expand_full_content_enum(kind, events, docs, attrs, variants, ruma_common));
         res.extend(
             expand_event_enum(kind, V::Stripped, events, docs, attrs, variants, ruma_common)
                 .unwrap_or_else(syn::Error::into_compile_error),
@@ -125,7 +126,8 @@ fn expand_event_enum(
     let custom_ty = format_ident!("Custom{}Content", kind);
 
     let deserialize_impl = expand_deserialize_impl(kind, var, events, ruma_common)?;
-    let field_accessor_impl = expand_accessor_methods(kind, var, variants, ruma_common)?;
+    let field_accessor_impl =
+        expand_accessor_methods(kind, var, variants, &event_struct, ruma_common)?;
     let from_impl = expand_from_impl(&ident, &content, variants);
 
     Ok(quote! {
@@ -419,10 +421,51 @@ fn expand_content_enum(
     })
 }
 
+/// Create a full content enum from `EventEnumInput`.
+fn expand_full_content_enum(
+    kind: EventKind,
+    events: &[EventEnumEntry],
+    docs: &[TokenStream],
+    attrs: &[Attribute],
+    variants: &[EventEnumVariant],
+    ruma_common: &TokenStream,
+) -> syn::Result<TokenStream> {
+    let ident = kind.to_full_content_enum();
+
+    let content: Vec<_> = events
+        .iter()
+        .map(|event| {
+            let stable_name = event.stable_name()?;
+            Ok(to_event_content_path(kind, stable_name, &event.ev_path, None))
+        })
+        .collect::<syn::Result<_>>()?;
+
+    let variant_decls = variants.iter().map(|v| v.decl()).collect::<Vec<_>>();
+
+    Ok(quote! {
+        #( #attrs )*
+        #[derive(Clone, Debug)]
+        #[allow(clippy::large_enum_variant)]
+        #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+        pub enum #ident {
+            #(
+                #docs
+                #variant_decls(#ruma_common::events::FullStateEventContent<#content>),
+            )*
+            #[doc(hidden)]
+            _Custom {
+                event_type: crate::PrivOwnedStr,
+                redacted: bool,
+            },
+        }
+    })
+}
+
 fn expand_accessor_methods(
     kind: EventKind,
     var: EventEnumVariation,
     variants: &[EventEnumVariant],
+    event_struct: &Ident,
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let ident = kind.to_event_enum_ident(var.into())?;
@@ -450,7 +493,7 @@ fn expand_accessor_methods(
     let content_enum = kind.to_content_enum();
     let content_variants: Vec<_> = variants.iter().map(|v| v.ctor(&content_enum)).collect();
     let content_accessor = if maybe_redacted {
-        quote! {
+        let mut accessors = quote! {
             /// Returns the content for this event if it is not redacted, or `None` if it is.
             pub fn original_content(&self) -> Option<#content_enum> {
                 match self {
@@ -474,7 +517,66 @@ fn expand_accessor_methods(
                     }),
                 }
             }
+        };
+
+        if kind == EventKind::State {
+            let full_content_enum = kind.to_full_content_enum();
+            let full_content_variants: Vec<_> =
+                variants.iter().map(|v| v.ctor(&full_content_enum)).collect();
+
+            accessors = quote! {
+                #accessors
+
+                /// Returns the content of this state event.
+                pub fn content(&self) -> #full_content_enum {
+                    match self {
+                        #(
+                            #self_variants(event) => match event {
+                                #ruma_common::events::#event_struct::Original(ev) => #full_content_variants(
+                                    #ruma_common::events::FullStateEventContent::Original {
+                                        content: ev.content.clone(),
+                                        prev_content: ev.unsigned.prev_content.clone()
+                                    }
+                                ),
+                                #ruma_common::events::#event_struct::Redacted(ev) => #full_content_variants(
+                                    #ruma_common::events::FullStateEventContent::Redacted(
+                                        ev.content.clone()
+                                    )
+                                ),
+                            }
+                        )*
+                        Self::_Custom(event) => match event {
+                            #ruma_common::events::#event_struct::Original(ev) => {
+                                #full_content_enum::_Custom {
+                                    event_type: crate::PrivOwnedStr(
+                                        ::std::string::ToString::to_string(
+                                            &#ruma_common::events::EventContent::event_type(
+                                                &ev.content,
+                                            ),
+                                        ).into_boxed_str(),
+                                    ),
+                                    redacted: false,
+                                }
+                            }
+                            #ruma_common::events::#event_struct::Redacted(ev) => {
+                                #full_content_enum::_Custom {
+                                    event_type: crate::PrivOwnedStr(
+                                        ::std::string::ToString::to_string(
+                                            &#ruma_common::events::EventContent::event_type(
+                                                &ev.content,
+                                            ),
+                                        ).into_boxed_str(),
+                                    ),
+                                    redacted: true,
+                                }
+                            }
+                        },
+                    }
+                }
+            };
         }
+
+        accessors
     } else {
         quote! {
             /// Returns the content for this event.
