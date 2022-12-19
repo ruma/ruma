@@ -173,7 +173,10 @@ pub use self::{
     kinds::*,
     relation::BundledRelations,
     state_key::EmptyStateKey,
-    unsigned::{MessageLikeUnsigned, RedactedUnsigned, StateUnsigned, StateUnsignedFromParts},
+    unsigned::{
+        MessageLikeUnsigned, RedactedUnsigned, StateUnsigned, StateUnsignedFromParts,
+        UnsignedRoomRedactionEvent,
+    },
 };
 
 /// Trait to define the behavior of redact an event's content object.
