@@ -432,6 +432,8 @@ fn expand_full_content_enum(
 ) -> syn::Result<TokenStream> {
     let ident = kind.to_full_content_enum();
 
+    let event_type_enum = kind.to_event_type_enum();
+
     let content: Vec<_> = events
         .iter()
         .map(|event| {
@@ -441,6 +443,7 @@ fn expand_full_content_enum(
         .collect::<syn::Result<_>>()?;
 
     let variant_decls = variants.iter().map(|v| v.decl()).collect::<Vec<_>>();
+    let variant_arms = variants.iter().map(|v| v.match_arm(quote! { Self })).collect::<Vec<_>>();
 
     Ok(quote! {
         #( #attrs )*
@@ -457,6 +460,16 @@ fn expand_full_content_enum(
                 event_type: crate::PrivOwnedStr,
                 redacted: bool,
             },
+        }
+
+        impl #ident {
+            /// Get the event’s type, like `m.room.create`.
+            pub fn event_type(&self) -> #ruma_common::events::#event_type_enum {
+                match self {
+                    #( #variant_arms(content) => content.event_type(), )*
+                    Self::_Custom { event_type, .. } => ::std::convert::From::from(&event_type.0[..]),
+                }
+            }
         }
     })
 }
