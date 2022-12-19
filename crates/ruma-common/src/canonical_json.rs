@@ -8,6 +8,11 @@ use serde_json::Value as JsonValue;
 mod value;
 
 use crate::RoomVersionId;
+#[cfg(feature = "events")]
+use crate::{
+    events::room::redaction::{OriginalRoomRedactionEvent, OriginalSyncRoomRedactionEvent},
+    serde::Raw,
+};
 
 pub use self::value::{CanonicalJsonObject, CanonicalJsonValue};
 
@@ -116,6 +121,36 @@ pub fn to_canonical_value<T: Serialize>(
     serde_json::to_value(value).map_err(CanonicalJsonError::SerDe)?.try_into()
 }
 
+/// The value to put in `unsigned.redacted_because`.
+///
+/// See `From` implementations for ways to create an instance of this type.
+#[derive(Clone, Debug)]
+pub struct RedactedBecause(CanonicalJsonObject);
+
+impl From<CanonicalJsonObject> for RedactedBecause {
+    fn from(obj: CanonicalJsonObject) -> Self {
+        Self(obj)
+    }
+}
+
+#[cfg(feature = "events")]
+impl TryFrom<&Raw<OriginalRoomRedactionEvent>> for RedactedBecause {
+    type Error = serde_json::Error;
+
+    fn try_from(value: &Raw<OriginalRoomRedactionEvent>) -> Result<Self, Self::Error> {
+        value.deserialize_as().map(Self)
+    }
+}
+
+#[cfg(feature = "events")]
+impl TryFrom<&Raw<OriginalSyncRoomRedactionEvent>> for RedactedBecause {
+    type Error = serde_json::Error;
+
+    fn try_from(value: &Raw<OriginalSyncRoomRedactionEvent>) -> Result<Self, Self::Error> {
+        value.deserialize_as().map(Self)
+    }
+}
+
 /// Redacts an event using the rules specified in the Matrix client-server specification.
 ///
 /// This is part of the process of signing an event.
@@ -127,7 +162,10 @@ pub fn to_canonical_value<T: Serialize>(
 ///
 /// # Parameters
 ///
-/// * object: A JSON object to redact.
+/// * `object`: A JSON object to redact.
+/// * `version`: The room version, determines which keys to keep for a few event types.
+/// * `redacted_because`: If this is set, an `unsigned` object with a `redacted_because` field set
+///   to the given value is added to the event after redaction.
 ///
 /// # Errors
 ///
@@ -140,8 +178,9 @@ pub fn to_canonical_value<T: Serialize>(
 pub fn redact(
     mut object: CanonicalJsonObject,
     version: &RoomVersionId,
+    redacted_because: Option<RedactedBecause>,
 ) -> Result<CanonicalJsonObject, RedactionError> {
-    redact_in_place(&mut object, version)?;
+    redact_in_place(&mut object, version, redacted_because)?;
     Ok(object)
 }
 
@@ -153,6 +192,7 @@ pub fn redact(
 pub fn redact_in_place(
     event: &mut CanonicalJsonObject,
     version: &RoomVersionId,
+    redacted_because: Option<RedactedBecause>,
 ) -> Result<(), RedactionError> {
     // Get the content keys here even if they're only needed inside the branch below, because we
     // can't teach rust that this is a disjoint borrow with `get_mut("content")`.
@@ -179,6 +219,14 @@ pub fn redact_in_place(
         if let Some(value) = old_event.remove(key) {
             event.insert(key.to_owned(), value);
         }
+    }
+
+    if let Some(redacted_because) = redacted_because {
+        let unsigned = CanonicalJsonObject::from_iter([(
+            "redacted_because".to_owned(),
+            redacted_because.0.into(),
+        )]);
+        event.insert("unsigned".to_owned(), unsigned.into());
     }
 
     Ok(())

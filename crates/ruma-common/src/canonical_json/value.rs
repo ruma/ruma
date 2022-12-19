@@ -1,6 +1,6 @@
 use std::{collections::BTreeMap, fmt};
 
-use js_int::Int;
+use js_int::{Int, UInt};
 use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
 use serde_json::{to_string as to_json_string, Value as JsonValue};
 
@@ -236,7 +236,7 @@ macro_rules! variant_impls {
     ($variant:ident($ty:ty)) => {
         impl From<$ty> for CanonicalJsonValue {
             fn from(val: $ty) -> Self {
-                Self::$variant(val)
+                Self::$variant(val.into())
             }
         }
 
@@ -263,8 +263,15 @@ macro_rules! variant_impls {
 variant_impls!(Bool(bool));
 variant_impls!(Integer(Int));
 variant_impls!(String(String));
+variant_impls!(String(&str));
 variant_impls!(Array(Vec<CanonicalJsonValue>));
 variant_impls!(Object(CanonicalJsonObject));
+
+impl From<UInt> for CanonicalJsonValue {
+    fn from(value: UInt) -> Self {
+        Self::Integer(value.into())
+    }
+}
 
 impl Serialize for CanonicalJsonValue {
     #[inline]
