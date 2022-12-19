@@ -439,6 +439,19 @@ where
     Redacted(C::Redacted),
 }
 
+impl<C: StateEventContent + RedactContent> FullStateEventContent<C>
+where
+    C::Redacted: RedactedStateEventContent,
+{
+    /// Get the event’s type, like `m.room.create`.
+    pub fn event_type(&self) -> StateEventType {
+        match self {
+            Self::Original { content, .. } => content.event_type(),
+            Self::Redacted(content) => content.event_type(),
+        }
+    }
+}
+
 macro_rules! impl_possibly_redacted_event {
     (
         $ty:ident ( $content_trait:ident, $redacted_content_trait:ident, $event_type:ident )
