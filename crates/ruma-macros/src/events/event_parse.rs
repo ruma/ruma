@@ -147,6 +147,11 @@ impl EventKind {
     pub fn to_content_enum(self) -> Ident {
         format_ident!("Any{}Content", self)
     }
+
+    /// `AnyFull[kind]EventContent`
+    pub fn to_full_content_enum(self) -> Ident {
+        format_ident!("AnyFull{}Content", self)
+    }
 }
 
 impl Parse for EventKind {
