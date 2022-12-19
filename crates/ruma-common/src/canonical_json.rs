@@ -138,12 +138,11 @@ pub fn to_canonical_value<T: Serialize>(
 /// * `object` contains a field called `signatures` that is not a JSON object.
 /// * `object` is missing the `type` field or the field is not a JSON string.
 pub fn redact(
-    object: &CanonicalJsonObject,
+    mut object: CanonicalJsonObject,
     version: &RoomVersionId,
 ) -> Result<CanonicalJsonObject, RedactionError> {
-    let mut val = object.clone();
-    redact_in_place(&mut val, version)?;
-    Ok(val)
+    redact_in_place(&mut object, version)?;
+    Ok(object)
 }
 
 /// Redacts an event using the rules specified in the Matrix client-server specification.

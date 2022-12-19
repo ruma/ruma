@@ -321,7 +321,7 @@ pub fn reference_hash(
     value: &CanonicalJsonObject,
     version: &RoomVersionId,
 ) -> Result<String, Error> {
-    let redacted_value = redact(value, version)?;
+    let redacted_value = redact(value.clone(), version)?;
 
     let json =
         canonical_json_with_fields_to_remove(&redacted_value, REFERENCE_HASH_FIELDS_TO_REMOVE)?;
@@ -458,7 +458,7 @@ where
         _ => return Err(JsonError::not_of_type("hashes", JsonType::Object)),
     };
 
-    let mut redacted = redact(object, version)?;
+    let mut redacted = redact(object.clone(), version)?;
 
     sign_json(entity_id, key_pair, &mut redacted)?;
 
@@ -539,7 +539,7 @@ pub fn verify_event(
     object: &CanonicalJsonObject,
     version: &RoomVersionId,
 ) -> Result<Verified, Error> {
-    let redacted = redact(object, version)?;
+    let redacted = redact(object.clone(), version)?;
 
     let hash = match object.get("hashes") {
         Some(hashes_value) => match hashes_value {
