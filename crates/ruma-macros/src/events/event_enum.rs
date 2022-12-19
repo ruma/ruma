@@ -549,13 +549,11 @@ fn expand_accessor_methods(
                             #ruma_common::events::#event_struct::Original(ev) => {
                                 #full_content_enum::_Custom {
                                     event_type: crate::PrivOwnedStr(
-                                        ::std::convert::From::from(
-                                            ::std::string::ToString::to_string(
-                                                &#ruma_common::events::EventContent::event_type(
-                                                    &ev.content,
-                                                ),
+                                        ::std::string::ToString::to_string(
+                                            &#ruma_common::events::EventContent::event_type(
+                                                &ev.content,
                                             ),
-                                        ),
+                                        ).into_boxed_str(),
                                     ),
                                     redacted: false,
                                 }
@@ -563,13 +561,11 @@ fn expand_accessor_methods(
                             #ruma_common::events::#event_struct::Redacted(ev) => {
                                 #full_content_enum::_Custom {
                                     event_type: crate::PrivOwnedStr(
-                                        ::std::convert::From::from(
-                                            ::std::string::ToString::to_string(
-                                                &#ruma_common::events::EventContent::event_type(
-                                                    &ev.content,
-                                                ),
+                                        ::std::string::ToString::to_string(
+                                            &#ruma_common::events::EventContent::event_type(
+                                                &ev.content,
                                             ),
-                                        ),
+                                        ).into_boxed_str(),
                                     ),
                                     redacted: true,
                                 }
