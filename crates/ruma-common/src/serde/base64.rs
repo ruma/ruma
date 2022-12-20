@@ -142,3 +142,15 @@ impl fmt::Display for Base64DecodeError {
 }
 
 impl std::error::Error for Base64DecodeError {}
+
+#[cfg(test)]
+mod tests {
+    use super::{Base64, Standard};
+
+    #[test]
+    fn slightly_malformed_base64() {
+        const INPUT: &str = "3UmJnEIzUr2xWyaUnJg5fXwRybwG5FVC6Gq\
+            MHverEUn0ztuIsvVxX89JXX2pvdTsOBbLQx+4TVL02l4Cp5wPCm";
+        Base64::<Standard>::parse(INPUT).unwrap();
+    }
+}
