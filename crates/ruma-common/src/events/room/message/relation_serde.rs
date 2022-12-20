@@ -8,7 +8,7 @@ use crate::OwnedEventId;
 /// Use it like this:
 /// ```
 /// # use serde::{Deserialize, Serialize};
-/// use ruma_common::events::room::message::{MessageType, Relation};
+/// use ruma_common::events::room::message::{deserialize_relation, MessageType, Relation};
 ///
 /// #[derive(Deserialize, Serialize)]
 /// struct MyEventContent {
