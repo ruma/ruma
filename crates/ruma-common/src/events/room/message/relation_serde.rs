@@ -5,8 +5,12 @@ use crate::OwnedEventId;
 
 /// Deserialize an event's `relates_to` field.
 ///
-/// The full use looks like this:
+/// Use it like this:
 /// ```
+/// # use serde::{Deserialize, Serialize};
+/// use ruma_common::events::room::message::{MessageType, Relation};
+///
+/// #[derive(Deserialize, Serialize)]
 /// struct MyEventContent {
 ///     #[serde(
 ///         flatten,
