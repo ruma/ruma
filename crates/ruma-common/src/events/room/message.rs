@@ -36,6 +36,7 @@ pub use image::ImageMessageEventContent;
 pub use key_verification_request::KeyVerificationRequestEventContent;
 pub use location::{LocationInfo, LocationMessageEventContent};
 pub use notice::NoticeMessageEventContent;
+pub use relation_serde::deserialize_relation;
 #[cfg(feature = "unstable-sanitize")]
 use sanitize::{
     remove_plain_reply_fallback, sanitize_html, HtmlSanitizerMode, RemoveReplyFallback,
