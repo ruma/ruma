@@ -3,9 +3,20 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use super::{InReplyTo, Relation, Replacement, Thread};
 use crate::OwnedEventId;
 
-pub(crate) fn deserialize_relation<'de, D, C>(
-    deserializer: D,
-) -> Result<Option<Relation<C>>, D::Error>
+/// Deserialize an event's `relates_to` field.
+///
+/// The full use looks like this:
+/// ```
+/// struct MyEventContent {
+///     #[serde(
+///         flatten,
+///         skip_serializing_if = "Option::is_none",
+///         deserialize_with = "deserialize_relation"
+///     )]
+///     relates_to: Option<Relation<MessageType>>,
+/// }
+/// ```
+pub fn deserialize_relation<'de, D, C>(deserializer: D) -> Result<Option<Relation<C>>, D::Error>
 where
     D: Deserializer<'de>,
     C: Deserialize<'de>,
