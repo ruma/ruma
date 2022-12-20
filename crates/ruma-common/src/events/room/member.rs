@@ -17,7 +17,7 @@ use crate::{
     },
     serde::{CanBeEmpty, Raw, StringEnum},
     OwnedMxcUri, OwnedServerName, OwnedServerSigningKeyId, OwnedTransactionId, OwnedUserId,
-    PrivOwnedStr, RoomVersionId,
+    PrivOwnedStr, RoomVersionId, UserId,
 };
 
 mod change;
@@ -143,6 +143,26 @@ impl RoomMemberEventContent {
             membership: &self.membership,
         }
     }
+
+    /// Helper function for membership change.
+    ///
+    /// This requires data from the full event:
+    ///
+    /// * The previous details computed from `event.unsigned.prev_content`,
+    /// * The sender of the event,
+    /// * The state key of the event.
+    ///
+    /// Check [the specification][spec] for details.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.4/client-server-api/#mroommember
+    pub fn membership_change<'a>(
+        &'a self,
+        prev_details: Option<MembershipDetails<'a>>,
+        sender: &UserId,
+        state_key: &UserId,
+    ) -> MembershipChange<'a> {
+        membership_change(self.details(), prev_details, sender, state_key)
+    }
 }
 
 impl RedactContent for RoomMemberEventContent {
@@ -186,6 +206,29 @@ impl RedactedRoomMemberEventContent {
     /// made.
     pub fn details(&self) -> MembershipDetails<'_> {
         MembershipDetails { avatar_url: None, displayname: None, membership: &self.membership }
+    }
+
+    /// Helper function for membership change.
+    ///
+    /// Since redacted events don't have `unsigned.prev_content`, you have to pass the `.details()`
+    /// of the previous `m.room.member` event manually (if there is a previous `m.room.member`
+    /// event).
+    ///
+    /// This also requires data from the full event:
+    ///
+    /// * The sender of the event,
+    /// * The state key of the event.
+    ///
+    /// Check [the specification][spec] for details.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.4/client-server-api/#mroommember
+    pub fn membership_change<'a>(
+        &'a self,
+        prev_details: Option<MembershipDetails<'a>>,
+        sender: &UserId,
+        state_key: &UserId,
+    ) -> MembershipChange<'a> {
+        membership_change(self.details(), prev_details, sender, state_key)
     }
 }
 
