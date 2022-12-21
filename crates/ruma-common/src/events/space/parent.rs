@@ -29,6 +29,7 @@ pub struct SpaceParentEventContent {
     /// together. In practice, well behaved rooms should only have one `canonical` parent, but
     /// given this is not enforced: if multiple are present the client should select the one with
     /// the lowest room ID, as determined via a lexicographic ordering of the Unicode code-points.
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub canonical: bool,
 }
 
@@ -63,11 +64,9 @@ mod tests {
 
     #[test]
     fn space_parent_empty_serialization() {
-        let content = SpaceParentEventContent { via: None, canonical: true };
+        let content = SpaceParentEventContent { via: None, canonical: false };
 
-        let json = json!({
-            "canonical": true,
-        });
+        let json = json!({});
 
         assert_eq!(to_json_value(&content).unwrap(), json);
     }
