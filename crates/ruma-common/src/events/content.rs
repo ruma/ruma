@@ -126,7 +126,7 @@ pub trait StateEventContent: EventContent<EventType = StateEventType> {
     type StateKey: AsRef<str> + Clone + fmt::Debug + DeserializeOwned + Serialize;
 
     /// The type of the event's `unsigned` field.
-    type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty + StateUnsignedFromParts + Serialize;
+    type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty + StateUnsignedFromParts;
 }
 
 /// Content of a redacted state event.
