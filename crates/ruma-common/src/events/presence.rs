@@ -4,9 +4,9 @@
 
 use js_int::UInt;
 use ruma_macros::{Event, EventContent};
-use serde::{Deserialize, Serialize};
+use serde::{ser::SerializeStruct, Deserialize, Serialize};
 
-use super::{EventKind, StaticEventContent};
+use super::{EventContent, EventKind, StaticEventContent};
 use crate::{presence::PresenceState, OwnedMxcUri, OwnedUserId};
 
 /// Presence event.
@@ -18,6 +18,19 @@ pub struct PresenceEvent {
 
     /// Contains the fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
+}
+
+impl Serialize for PresenceEvent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("PresenceEvent", 3)?;
+        state.serialize_field("type", &self.content.event_type())?;
+        state.serialize_field("content", &self.content)?;
+        state.serialize_field("sender", &self.sender)?;
+        state.end()
+    }
 }
 
 /// Informs the room of members presence.

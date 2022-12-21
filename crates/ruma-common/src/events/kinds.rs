@@ -23,11 +23,35 @@ pub struct GlobalAccountDataEvent<C: GlobalAccountDataEventContent> {
     pub content: C,
 }
 
+impl<C: GlobalAccountDataEventContent> Serialize for GlobalAccountDataEvent<C> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("GlobalAccountDataEvent", 2)?;
+        state.serialize_field("type", &self.content.event_type())?;
+        state.serialize_field("content", &self.content)?;
+        state.end()
+    }
+}
+
 /// A room account data event.
 #[derive(Clone, Debug, Event)]
 pub struct RoomAccountDataEvent<C: RoomAccountDataEventContent> {
     /// Data specific to the event type.
     pub content: C,
+}
+
+impl<C: RoomAccountDataEventContent> Serialize for RoomAccountDataEvent<C> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("RoomAccountDataEvent", 2)?;
+        state.serialize_field("type", &self.content.event_type())?;
+        state.serialize_field("content", &self.content)?;
+        state.end()
+    }
 }
 
 /// An ephemeral room event.
@@ -40,11 +64,36 @@ pub struct EphemeralRoomEvent<C: EphemeralRoomEventContent> {
     pub room_id: OwnedRoomId,
 }
 
+impl<C: EphemeralRoomEventContent> Serialize for EphemeralRoomEvent<C> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("EphemeralRoomEvent", 2)?;
+        state.serialize_field("type", &self.content.event_type())?;
+        state.serialize_field("content", &self.content)?;
+        state.serialize_field("room_id", &self.room_id)?;
+        state.end()
+    }
+}
+
 /// An ephemeral room event without a `room_id`.
 #[derive(Clone, Debug, Event)]
 pub struct SyncEphemeralRoomEvent<C: EphemeralRoomEventContent> {
     /// Data specific to the event type.
     pub content: C,
+}
+
+impl<C: EphemeralRoomEventContent> Serialize for SyncEphemeralRoomEvent<C> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("SyncEphemeralRoomEvent", 2)?;
+        state.serialize_field("type", &self.content.event_type())?;
+        state.serialize_field("content", &self.content)?;
+        state.end()
+    }
 }
 
 /// An unredacted message-like event.
