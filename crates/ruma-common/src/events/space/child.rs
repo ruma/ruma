@@ -40,8 +40,8 @@ pub struct SpaceChildEventContent {
     /// example by showing them eagerly in the room list. A child which is missing the `suggested`
     /// property is treated identically to a child with `"suggested": false`. A suggested child may
     /// be a room or a subspace.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub suggested: Option<bool>,
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+    pub suggested: bool,
 }
 
 impl SpaceChildEventContent {
@@ -82,13 +82,12 @@ mod tests {
         let content = SpaceChildEventContent {
             via: Some(vec![server_name!("example.com").to_owned()]),
             order: Some("uwu".to_owned()),
-            suggested: Some(false),
+            suggested: false,
         };
 
         let json = json!({
             "via": ["example.com"],
             "order": "uwu",
-            "suggested": false,
         });
 
         assert_eq!(to_json_value(&content).unwrap(), json);
@@ -96,25 +95,9 @@ mod tests {
 
     #[test]
     fn space_child_empty_serialization() {
-        let content = SpaceChildEventContent { via: None, order: None, suggested: None };
+        let content = SpaceChildEventContent { via: None, order: None, suggested: false };
 
         let json = json!({});
-
-        assert_eq!(to_json_value(&content).unwrap(), json);
-    }
-
-    #[test]
-    fn hierarchy_space_child_serialization() {
-        let content = SpaceChildEventContent {
-            via: Some(vec![server_name!("example.com").to_owned()]),
-            order: Some("uwu".to_owned()),
-            suggested: None,
-        };
-
-        let json = json!({
-            "via": ["example.com"],
-            "order": "uwu",
-        });
 
         assert_eq!(to_json_value(&content).unwrap(), json);
     }
@@ -141,6 +124,6 @@ mod tests {
         assert_eq!(via.len(), 1);
         assert_eq!(via[0], "example.org");
         assert_eq!(ev.content.order, None);
-        assert_eq!(ev.content.suggested, None);
+        assert!(!ev.content.suggested);
     }
 }
