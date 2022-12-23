@@ -12,8 +12,8 @@ use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 use crate::{
     events::{
         AnyStrippedStateEvent, BundledRelations, EventContent, RedactContent, RedactedEventContent,
-        RedactedStateEventContent, StateEventContent, StateEventType, StateUnsigned,
-        StateUnsignedFromParts, StaticEventContent,
+        RedactedStateEventContent, StateEventContent, StateEventType, StateUnsignedFromParts,
+        StaticEventContent,
     },
     serde::{CanBeEmpty, Raw, StringEnum},
     OwnedMxcUri, OwnedServerName, OwnedServerSigningKeyId, OwnedTransactionId, OwnedUserId,
@@ -252,8 +252,6 @@ impl EventContent for RedactedRoomMemberEventContent {
 
 impl StateEventContent for RedactedRoomMemberEventContent {
     type StateKey = OwnedUserId;
-    // FIXME: Not actually used
-    type Unsigned = StateUnsigned<Self>;
 }
 
 impl RedactedStateEventContent for RedactedRoomMemberEventContent {}

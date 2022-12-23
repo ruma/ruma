@@ -6,8 +6,8 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
     EphemeralRoomEventContent, EventContent, GlobalAccountDataEventContent,
-    MessageLikeEventContent, MessageLikeEventType, MessageLikeUnsigned, RedactContent,
-    RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
+    MessageLikeEventContent, MessageLikeEventType, MessageLikeUnsigned, OriginalStateEventContent,
+    RedactContent, RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
     RedactionDeHelper, RoomAccountDataEventContent, StateEventContent, StateEventType,
     ToDeviceEventContent,
 };
@@ -229,7 +229,7 @@ where
 /// `OriginalStateEvent` implements the comparison traits using only the `event_id` field, a sorted
 /// list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct OriginalStateEvent<C: StateEventContent> {
+pub struct OriginalStateEvent<C: OriginalStateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -260,7 +260,7 @@ pub struct OriginalStateEvent<C: StateEventContent> {
 /// `OriginalSyncStateEvent` implements the comparison traits using only the `event_id` field, a
 /// sorted list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct OriginalSyncStateEvent<C: StateEventContent> {
+pub struct OriginalSyncStateEvent<C: OriginalStateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -379,7 +379,7 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
 /// would be sorted lexicographically based on the event's `EventId`.
 #[allow(clippy::exhaustive_enums)]
 #[derive(Clone, Debug)]
-pub enum StateEvent<C: StateEventContent + RedactContent>
+pub enum StateEvent<C: OriginalStateEventContent>
 where
     C::Redacted: RedactedStateEventContent,
 {
@@ -396,7 +396,7 @@ where
 /// would be sorted lexicographically based on the event's `EventId`.
 #[allow(clippy::exhaustive_enums)]
 #[derive(Clone, Debug)]
-pub enum SyncStateEvent<C: StateEventContent + RedactContent>
+pub enum SyncStateEvent<C: OriginalStateEventContent>
 where
     C::Redacted: RedactedStateEventContent,
 {
@@ -617,7 +617,7 @@ impl_possibly_redacted_event!(
 );
 
 impl_possibly_redacted_event!(
-    StateEvent(StateEventContent, RedactedStateEventContent, StateEventType)
+    StateEvent(OriginalStateEventContent, RedactedStateEventContent, StateEventType)
     where
         C::Redacted: StateEventContent<StateKey = C::StateKey>,
     {
@@ -648,7 +648,7 @@ impl_possibly_redacted_event!(
 );
 
 impl_possibly_redacted_event!(
-    SyncStateEvent(StateEventContent, RedactedStateEventContent, StateEventType)
+    SyncStateEvent(OriginalStateEventContent, RedactedStateEventContent, StateEventType)
     where
         C::Redacted: StateEventContent<StateKey = C::StateKey>,
     {
@@ -701,4 +701,9 @@ impl_sync_from_full!(
     MessageLikeEventContent,
     RedactedMessageLikeEventContent
 );
-impl_sync_from_full!(SyncStateEvent, StateEvent, StateEventContent, RedactedStateEventContent);
+impl_sync_from_full!(
+    SyncStateEvent,
+    StateEvent,
+    OriginalStateEventContent,
+    RedactedStateEventContent
+);

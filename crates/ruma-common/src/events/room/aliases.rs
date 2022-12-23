@@ -7,7 +7,7 @@ use serde_json::value::RawValue as RawJsonValue;
 use crate::{
     events::{
         EventContent, RedactContent, RedactedEventContent, RedactedStateEventContent,
-        StateEventContent, StateEventType, StateUnsigned,
+        StateEventContent, StateEventType,
     },
     OwnedRoomAliasId, OwnedServerName, RoomVersionId,
 };
@@ -97,8 +97,6 @@ impl EventContent for RedactedRoomAliasesEventContent {
 
 impl StateEventContent for RedactedRoomAliasesEventContent {
     type StateKey = OwnedServerName;
-    // FIXME: Not actually used
-    type Unsigned = StateUnsigned<Self>;
 }
 
 impl RedactedStateEventContent for RedactedRoomAliasesEventContent {}

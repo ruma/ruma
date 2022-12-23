@@ -41,6 +41,8 @@ Breaking changes:
 * Make the `redacted_because` field in `UnsignedRedacted` non-optional and replace parameterless
   `new` constructor by one that takes a redaction event (like `new_because` previously, which is
   now removed)
+* Move the `Unsigned` associated type from `StateEventContent` to `OriginalStateEventContent`
+  * `Redacted*EventContent`s don't have an `unsigned` type anymore
 
 Improvements:
 

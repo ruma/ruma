@@ -6,7 +6,7 @@ use serde_json::value::RawValue as RawJsonValue;
 use crate::serde::{CanBeEmpty, Raw};
 
 use super::{
-    EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEventType,
+    EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEventType, RedactContent,
     RoomAccountDataEventType, StateEventType, StateUnsignedFromParts, ToDeviceEventType,
 };
 
@@ -124,7 +124,10 @@ pub trait RedactedMessageLikeEventContent: MessageLikeEventContent + RedactedEve
 pub trait StateEventContent: EventContent<EventType = StateEventType> {
     /// The type of the event's `state_key` field.
     type StateKey: AsRef<str> + Clone + fmt::Debug + DeserializeOwned + Serialize;
+}
 
+/// Content of a non-redacted state event.
+pub trait OriginalStateEventContent: StateEventContent + RedactContent {
     /// The type of the event's `unsigned` field.
     type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty + StateUnsignedFromParts;
 }
