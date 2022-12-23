@@ -4,6 +4,10 @@ Bug fixes:
 
 * Add the `event` field to `RoomState` according to MSC3083 / Matrix v1.2
 
+Improvements:
+
+* Add unstable support to get an event by timestamp (MSC3030)
+
 # 0.6.0
 
 Breaking changes:
