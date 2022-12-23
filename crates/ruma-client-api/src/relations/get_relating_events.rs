@@ -9,14 +9,12 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response, Direction, Metadata},
         events::AnyMessageLikeEvent,
         metadata,
         serde::Raw,
         OwnedEventId, OwnedRoomId,
     };
-
-    use crate::Direction;
 
     const METADATA: Metadata = metadata! {
         method: GET,

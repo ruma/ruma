@@ -15,6 +15,7 @@
 use std::{convert::TryInto as _, error::Error as StdError};
 
 use bytes::BufMut;
+use serde::{Deserialize, Serialize};
 
 use crate::UserId;
 
@@ -419,6 +420,20 @@ pub enum AuthScheme {
     /// Authentication is performed by including X-Matrix signatures in the request headers,
     /// as defined in the federation API.
     ServerSignatures,
+}
+
+/// The direction to return events from.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
+#[allow(clippy::exhaustive_enums)]
+pub enum Direction {
+    /// Return events backwards in time from the requested `from` token.
+    #[default]
+    #[serde(rename = "b")]
+    Backward,
+
+    /// Return events forwards in time from the requested `from` token.
+    #[serde(rename = "f")]
+    Forward,
 }
 
 /// Convenient constructor for [`Metadata`] constants.
