@@ -358,8 +358,6 @@ fn expand_content_enum(
     let state_event_content_impl = (kind == EventKind::State).then(|| {
         quote! {
             type StateKey = String;
-            // FIXME: Not actually used
-            type Unsigned = #ruma_common::events::StateUnsigned<Self>;
         }
     });
 

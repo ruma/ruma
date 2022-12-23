@@ -3,10 +3,11 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
     EphemeralRoomEventContent, EphemeralRoomEventType, EventContent, GlobalAccountDataEventContent,
-    GlobalAccountDataEventType, MessageLikeEventContent, MessageLikeEventType, RedactContent,
-    RedactedEventContent, RedactedMessageLikeEventContent, RedactedStateEventContent,
-    RoomAccountDataEventContent, RoomAccountDataEventType, StateEventContent, StateEventType,
-    StateUnsigned, ToDeviceEventContent, ToDeviceEventType,
+    GlobalAccountDataEventType, MessageLikeEventContent, MessageLikeEventType,
+    OriginalStateEventContent, RedactContent, RedactedEventContent,
+    RedactedMessageLikeEventContent, RedactedStateEventContent, RoomAccountDataEventContent,
+    RoomAccountDataEventType, StateEventContent, StateEventType, StateUnsigned,
+    ToDeviceEventContent, ToDeviceEventType,
 };
 use crate::RoomVersionId;
 
@@ -68,6 +69,8 @@ impl RedactedMessageLikeEventContent for CustomMessageLikeEventContent {}
 custom_room_event_content!(CustomStateEventContent, StateEventType);
 impl StateEventContent for CustomStateEventContent {
     type StateKey = String;
+}
+impl OriginalStateEventContent for CustomStateEventContent {
     type Unsigned = StateUnsigned<Self>;
 }
 impl RedactedStateEventContent for CustomStateEventContent {}

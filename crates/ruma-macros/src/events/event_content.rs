@@ -316,6 +316,7 @@ pub fn expand_event_content(
         unsigned_type,
         &aliases,
         ruma_common,
+        true,
     )
     .unwrap_or_else(syn::Error::into_compile_error);
     let static_event_content_impl = event_kind
@@ -407,6 +408,7 @@ fn generate_redacted_event_content<'a>(
         unsigned_type,
         aliases,
         ruma_common,
+        false,
     )
     .unwrap_or_else(syn::Error::into_compile_error);
 
@@ -584,6 +586,7 @@ fn generate_event_content_impl<'a>(
     unsigned_type: Option<TokenStream>,
     aliases: &[LitStr],
     ruma_common: &TokenStream,
+    is_original: bool,
 ) -> syn::Result<TokenStream> {
     let serde = quote! { #ruma_common::exports::serde };
     let serde_json = quote! { #ruma_common::exports::serde_json };
@@ -667,20 +670,34 @@ fn generate_event_content_impl<'a>(
 
         let state_event_content_impl = (event_kind == Some(EventKind::State)).then(|| {
             assert!(state_key_type.is_some());
-            let unsigned_type = unsigned_type
-                .unwrap_or_else(|| quote! { #ruma_common::events::StateUnsigned<Self> });
 
             quote! {
                 type StateKey = #state_key_type;
-                type Unsigned = #unsigned_type;
             }
         });
+
+        let original_state_event_content_impl =
+            (event_kind == Some(EventKind::State) && is_original).then(|| {
+                let trait_name = format_ident!("Original{kind}Content");
+
+                let unsigned_type = unsigned_type
+                    .unwrap_or_else(|| quote! { #ruma_common::events::StateUnsigned<Self> });
+
+                quote! {
+                    #[automatically_derived]
+                    impl #ruma_common::events::#trait_name for #ident {
+                        type Unsigned = #unsigned_type;
+                    }
+                }
+            });
 
         quote! {
             #[automatically_derived]
             impl #ruma_common::events::#trait_name for #ident {
                 #state_event_content_impl
             }
+
+            #original_state_event_content_impl
         }
     });
 
