@@ -9,14 +9,14 @@ pub mod v3 {
 
     use js_int::{uint, UInt};
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response, Direction, Metadata},
         events::{AnyStateEvent, AnyTimelineEvent},
         metadata,
         serde::Raw,
         OwnedRoomId,
     };
 
-    use crate::{filter::RoomEventFilter, Direction};
+    use crate::filter::RoomEventFilter;
 
     const METADATA: Metadata = metadata! {
         method: GET,
@@ -174,15 +174,12 @@ pub mod v3 {
     mod tests {
         use js_int::uint;
         use ruma_common::{
-            api::{MatrixVersion, OutgoingRequest, SendAccessToken},
+            api::{Direction, MatrixVersion, OutgoingRequest, SendAccessToken},
             room_id,
         };
 
         use super::Request;
-        use crate::{
-            filter::{LazyLoadOptions, RoomEventFilter},
-            Direction,
-        };
+        use crate::filter::{LazyLoadOptions, RoomEventFilter};
 
         #[test]
         fn serialize_some_room_event_filter() {

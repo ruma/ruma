@@ -8,11 +8,9 @@ pub mod unstable {
     //! [MSC3030]: https://github.com/matrix-org/matrix-spec-proposals/pull/3030
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response, Direction, Metadata},
         metadata, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
     };
-
-    use crate::Direction;
 
     const METADATA: Metadata = metadata! {
         method: GET,
@@ -23,7 +21,7 @@ pub mod unstable {
         }
     };
 
-    /// Request type for the `get_event_for_timestamp` endpoint.
+    /// Request type for the `get_event_by_timestamp` endpoint.
     #[request(error = crate::Error)]
     pub struct Request {
         /// The ID of the room the event is in.
@@ -39,7 +37,7 @@ pub mod unstable {
         pub dir: Direction,
     }
 
-    /// Response type for the `get_room_event` endpoint.
+    /// Response type for the `get_event_by_timestamp` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The ID of the event found.

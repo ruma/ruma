@@ -52,7 +52,6 @@ pub mod voip;
 use std::fmt;
 
 pub use error::Error;
-use serde::{Deserialize, Serialize};
 
 // Wrapper around `Box<str>` that cannot be used in a meaningful way outside of
 // this crate. Used for string enums because their `_Custom` variant can't be
@@ -65,18 +64,4 @@ impl fmt::Debug for PrivOwnedStr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.0.fmt(f)
     }
-}
-
-/// The direction to return events from.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
-#[allow(clippy::exhaustive_enums)]
-pub enum Direction {
-    /// Return events backwards in time from the requested `from` token.
-    #[default]
-    #[serde(rename = "b")]
-    Backward,
-
-    /// Return events forwards in time from the requested `from` token.
-    #[serde(rename = "f")]
-    Forward,
 }
