@@ -10,7 +10,7 @@ pub mod v1 {
     use js_int::{uint, UInt};
     use ruma_common::{
         api::{request, response, Metadata},
-        events::RoomEventType,
+        events::TimelineEventType,
         metadata,
         push::{PushFormat, Tweak},
         serde::StringEnum,
@@ -87,7 +87,7 @@ pub mod v1 {
 
         /// The type of the event as in the event's `type` field.
         #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-        pub event_type: Option<RoomEventType>,
+        pub event_type: Option<TimelineEventType>,
 
         /// The sender of the event as in the corresponding event field.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -376,7 +376,8 @@ pub mod v1 {
     mod tests {
         use js_int::uint;
         use ruma_common::{
-            event_id, events::RoomEventType, room_alias_id, room_id, user_id, SecondsSinceUnixEpoch,
+            event_id, events::TimelineEventType, room_alias_id, room_id, user_id,
+            SecondsSinceUnixEpoch,
         };
         use serde_json::{
             from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
@@ -439,7 +440,7 @@ pub mod v1 {
             let notice = Notification {
                 event_id: Some(eid),
                 room_id: Some(rid),
-                event_type: Some(RoomEventType::RoomMessage),
+                event_type: Some(TimelineEventType::RoomMessage),
                 sender: Some(uid),
                 sender_display_name: Some("Major Tom".to_owned()),
                 room_alias: Some(alias),

@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use js_int::Int;
 use ruma_common::{
-    events::{room::power_levels::RoomPowerLevelsEventContent, RoomEventType},
+    events::{room::power_levels::RoomPowerLevelsEventContent, TimelineEventType},
     power_levels::{default_power_level, NotificationPowerLevels},
     serde::{btreemap_deserialize_v1_powerlevel_values, deserialize_v1_powerlevel},
     OwnedUserId,
@@ -19,7 +19,7 @@ struct IntRoomPowerLevelsEventContent {
     pub ban: Int,
 
     #[serde(default)]
-    pub events: BTreeMap<RoomEventType, Int>,
+    pub events: BTreeMap<TimelineEventType, Int>,
 
     #[serde(default)]
     pub events_default: Int,

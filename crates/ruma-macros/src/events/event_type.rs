@@ -8,7 +8,7 @@ pub fn expand_event_type_enum(
     input: EventEnumInput,
     ruma_common: TokenStream,
 ) -> syn::Result<TokenStream> {
-    let mut room: Vec<&Vec<EventEnumEntry>> = vec![];
+    let mut timeline: Vec<&Vec<EventEnumEntry>> = vec![];
     let mut state: Vec<&Vec<EventEnumEntry>> = vec![];
     let mut message: Vec<&Vec<EventEnumEntry>> = vec![];
     let mut ephemeral: Vec<&Vec<EventEnumEntry>> = vec![];
@@ -22,11 +22,11 @@ pub fn expand_event_type_enum(
             EventKind::Ephemeral => ephemeral.push(&event.events),
             EventKind::MessageLike => {
                 message.push(&event.events);
-                room.push(&event.events);
+                timeline.push(&event.events);
             }
             EventKind::State => {
                 state.push(&event.events);
-                room.push(&event.events);
+                timeline.push(&event.events);
             }
             EventKind::ToDevice => to_device.push(&event.events),
             EventKind::RoomRedaction
@@ -47,7 +47,7 @@ pub fn expand_event_type_enum(
     let mut res = TokenStream::new();
 
     res.extend(
-        generate_enum("RoomEventType", &room, &ruma_common)
+        generate_enum("TimelineEventType", &timeline, &ruma_common)
             .unwrap_or_else(syn::Error::into_compile_error),
     );
     res.extend(
@@ -157,25 +157,25 @@ fn generate_enum(
         }
     }
 
-    let from_ident_for_room = if ident == "StateEventType" || ident == "MessageLikeEventType" {
+    let from_ident_for_timeline = if ident == "StateEventType" || ident == "MessageLikeEventType" {
         let match_arms: Vec<_> = deduped
             .iter()
             .map(|e| {
                 let v = e.to_variant()?;
                 let ident_var = v.match_arm(quote! { #ident });
-                let room_var = v.ctor(quote! { Self });
+                let timeline_var = v.ctor(quote! { Self });
 
                 Ok(if e.has_type_fragment() {
-                    quote! { #ident_var (_s) => #room_var (_s) }
+                    quote! { #ident_var (_s) => #timeline_var (_s) }
                 } else {
-                    quote! { #ident_var => #room_var }
+                    quote! { #ident_var => #timeline_var }
                 })
             })
             .collect::<syn::Result<_>>()?;
 
         Some(quote! {
             #[allow(deprecated)]
-            impl ::std::convert::From<#ident> for RoomEventType {
+            impl ::std::convert::From<#ident> for TimelineEventType {
                 fn from(s: #ident) -> Self {
                     match s {
                         #(#match_arms,)*
@@ -260,6 +260,6 @@ fn generate_enum(
             }
         }
 
-        #from_ident_for_room
+        #from_ident_for_timeline
     })
 }

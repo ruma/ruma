@@ -14,7 +14,7 @@ use serde::{
 };
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 
-use super::RoomEventType;
+use super::TimelineEventType;
 use crate::{
     MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedServerName,
     OwnedServerSigningKeyId, OwnedUserId,
@@ -52,7 +52,7 @@ pub struct RoomV1Pdu {
     // TODO: Encode event type as content enum variant, like event enums do
     /// The event's type.
     #[serde(rename = "type")]
-    pub kind: RoomEventType,
+    pub kind: TimelineEventType,
 
     /// The event's content.
     pub content: Box<RawJsonValue>,
@@ -107,7 +107,7 @@ pub struct RoomV3Pdu {
     // TODO: Encode event type as content enum variant, like event enums do
     /// The event's type.
     #[serde(rename = "type")]
-    pub kind: RoomEventType,
+    pub kind: TimelineEventType,
 
     /// The event's content.
     pub content: Box<RawJsonValue>,

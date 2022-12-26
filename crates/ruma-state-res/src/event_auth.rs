@@ -10,7 +10,7 @@ use ruma_common::{
             power_levels::RoomPowerLevelsEventContent,
             third_party_invite::RoomThirdPartyInviteEventContent,
         },
-        RoomEventType, StateEventType,
+        StateEventType, TimelineEventType,
     },
     serde::{Base64, Raw},
     OwnedUserId, RoomVersionId, UserId,
@@ -47,12 +47,12 @@ struct RoomMemberContentFields {
 ///
 /// This function will return an error if the supplied `content` is not a JSON object.
 pub fn auth_types_for_event(
-    kind: &RoomEventType,
+    kind: &TimelineEventType,
     sender: &UserId,
     state_key: Option<&str>,
     content: &RawJsonValue,
 ) -> serde_json::Result<Vec<(StateEventType, String)>> {
-    if kind == &RoomEventType::RoomCreate {
+    if kind == &TimelineEventType::RoomCreate {
         return Ok(vec![]);
     }
 
@@ -62,7 +62,7 @@ pub fn auth_types_for_event(
         (StateEventType::RoomCreate, "".to_owned()),
     ];
 
-    if kind == &RoomEventType::RoomMember {
+    if kind == &TimelineEventType::RoomMember {
         #[derive(Deserialize)]
         struct RoomMemberContentFields {
             membership: Option<Raw<MembershipState>>,
@@ -146,7 +146,7 @@ pub fn auth_check<E: Event>(
     // Implementation of https://spec.matrix.org/v1.4/rooms/v1/#authorization-rules
     //
     // 1. If type is m.room.create:
-    if *incoming_event.event_type() == RoomEventType::RoomCreate {
+    if *incoming_event.event_type() == TimelineEventType::RoomCreate {
         #[derive(Deserialize)]
         struct RoomCreateContentFields {
             room_version: Option<Raw<RoomVersionId>>,
@@ -244,7 +244,7 @@ pub fn auth_check<E: Event>(
     // Only in some room versions 6 and below
     if room_version.special_case_aliases_auth {
         // 4. If type is m.room.aliases
-        if *incoming_event.event_type() == RoomEventType::RoomAliases {
+        if *incoming_event.event_type() == TimelineEventType::RoomAliases {
             info!("starting m.room.aliases check");
 
             // If sender's domain doesn't matches state_key, reject
@@ -262,7 +262,7 @@ pub fn auth_check<E: Event>(
     let power_levels_event = fetch_state(&StateEventType::RoomPowerLevels, "");
     let sender_member_event = fetch_state(&StateEventType::RoomMember, sender.as_str());
 
-    if *incoming_event.event_type() == RoomEventType::RoomMember {
+    if *incoming_event.event_type() == TimelineEventType::RoomMember {
         info!("starting m.room.member check");
         let state_key = match incoming_event.state_key() {
             None => {
@@ -351,7 +351,7 @@ pub fn auth_check<E: Event>(
 
     // Allow if and only if sender's current power level is greater than
     // or equal to the invite level
-    if *incoming_event.event_type() == RoomEventType::RoomThirdPartyInvite {
+    if *incoming_event.event_type() == TimelineEventType::RoomThirdPartyInvite {
         let invite_level = match &power_levels_event {
             Some(power_levels) => {
                 deserialize_power_levels_content_invite(power_levels.content().get(), room_version)?
@@ -377,7 +377,7 @@ pub fn auth_check<E: Event>(
     }
 
     // If type is m.room.power_levels
-    if *incoming_event.event_type() == RoomEventType::RoomPowerLevels {
+    if *incoming_event.event_type() == TimelineEventType::RoomPowerLevels {
         info!("starting m.room.power_levels check");
 
         if let Some(required_pwr_lvl) = check_power_levels(
@@ -405,7 +405,7 @@ pub fn auth_check<E: Event>(
     // power levels.
 
     if room_version.extra_redaction_checks
-        && *incoming_event.event_type() == RoomEventType::RoomRedaction
+        && *incoming_event.event_type() == TimelineEventType::RoomRedaction
     {
         let redact_level = match power_levels_event {
             Some(pl) => {
@@ -905,7 +905,7 @@ fn check_redaction(
 /// Helper function to fetch the power level needed to send an event of type
 /// `e_type` based on the rooms "m.room.power_level" event.
 fn get_send_level(
-    e_type: &RoomEventType,
+    e_type: &TimelineEventType,
     state_key: Option<&str>,
     power_lvl: Option<impl Event>,
 ) -> Int {
@@ -991,7 +991,7 @@ mod tests {
             },
             member::{MembershipState, RoomMemberEventContent},
         },
-        RoomEventType, StateEventType,
+        StateEventType, TimelineEventType,
     };
     use serde_json::value::to_raw_value as to_raw_json_value;
 
@@ -1018,7 +1018,7 @@ mod tests {
         let requester = to_pdu_event(
             "HELLO",
             alice(),
-            RoomEventType::RoomMember,
+            TimelineEventType::RoomMember,
             Some(charlie().as_str()),
             member_content_ban(),
             &[],
@@ -1060,7 +1060,7 @@ mod tests {
         let requester = to_pdu_event(
             "HELLO",
             charlie(),
-            RoomEventType::RoomMember,
+            TimelineEventType::RoomMember,
             Some(charlie().as_str()),
             member_content_join(),
             &["CREATE"],
@@ -1102,7 +1102,7 @@ mod tests {
         let requester = to_pdu_event(
             "HELLO",
             alice(),
-            RoomEventType::RoomMember,
+            TimelineEventType::RoomMember,
             Some(alice().as_str()),
             member_content_join(),
             &["CREATE"],
@@ -1144,7 +1144,7 @@ mod tests {
         let requester = to_pdu_event(
             "HELLO",
             charlie(),
-            RoomEventType::RoomMember,
+            TimelineEventType::RoomMember,
             Some(alice().as_str()),
             member_content_ban(),
             &[],
@@ -1180,7 +1180,7 @@ mod tests {
         *events.get_mut(&event_id("IJR")).unwrap() = to_pdu_event(
             "IJR",
             alice(),
-            RoomEventType::RoomJoinRules,
+            TimelineEventType::RoomJoinRules,
             Some(""),
             to_raw_json_value(&RoomJoinRulesEventContent::new(JoinRule::Restricted(
                 Restricted::new(vec![AllowRule::RoomMembership(RoomMembership::new(
@@ -1203,7 +1203,7 @@ mod tests {
         let requester = to_pdu_event(
             "HELLO",
             ella(),
-            RoomEventType::RoomMember,
+            TimelineEventType::RoomMember,
             Some(ella().as_str()),
             to_raw_json_value(&RoomMemberEventContent::new(MembershipState::Join)).unwrap(),
             &["CREATE", "IJR", "IPOWER", "new"],
@@ -1255,7 +1255,7 @@ mod tests {
         *events.get_mut(&event_id("IJR")).unwrap() = to_pdu_event(
             "IJR",
             alice(),
-            RoomEventType::RoomJoinRules,
+            TimelineEventType::RoomJoinRules,
             Some(""),
             to_raw_json_value(&RoomJoinRulesEventContent::new(JoinRule::Knock)).unwrap(),
             &["CREATE", "IMA", "IPOWER"],
@@ -1270,7 +1270,7 @@ mod tests {
         let requester = to_pdu_event(
             "HELLO",
             ella(),
-            RoomEventType::RoomMember,
+            TimelineEventType::RoomMember,
             Some(ella().as_str()),
             to_raw_json_value(&RoomMemberEventContent::new(MembershipState::Knock)).unwrap(),
             &[],

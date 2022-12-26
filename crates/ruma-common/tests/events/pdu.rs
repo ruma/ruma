@@ -7,7 +7,7 @@ use ruma_common::{
     event_id,
     events::{
         pdu::{EventHash, Pdu, RoomV1Pdu, RoomV3Pdu},
-        RoomEventType,
+        TimelineEventType,
     },
     room_id, server_name, server_signing_key_id, user_id, MilliSecondsSinceUnixEpoch,
 };
@@ -34,7 +34,7 @@ fn serialize_pdu_as_v1() {
         event_id: event_id!("$somejoinevent:matrix.org").to_owned(),
         sender: user_id!("@sender:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(1_592_050_773_658_u64.try_into().unwrap()),
-        kind: RoomEventType::RoomPowerLevels,
+        kind: TimelineEventType::RoomPowerLevels,
         content: to_raw_json_value(&json!({ "testing": 123 })).unwrap(),
         state_key: Some("state".into()),
         prev_events: vec![(
@@ -98,7 +98,7 @@ fn serialize_pdu_as_v3() {
         room_id: room_id!("!n8f893n9:example.com").to_owned(),
         sender: user_id!("@sender:example.com").to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(1_592_050_773_658_u64.try_into().unwrap()),
-        kind: RoomEventType::RoomPowerLevels,
+        kind: TimelineEventType::RoomPowerLevels,
         content: to_raw_json_value(&json!({ "testing": 123 })).unwrap(),
         state_key: Some("state".into()),
         prev_events: vec![event_id!("$previousevent:matrix.org").to_owned()],
