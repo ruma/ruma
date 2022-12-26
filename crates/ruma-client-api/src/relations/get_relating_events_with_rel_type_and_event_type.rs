@@ -11,7 +11,7 @@ pub mod v1 {
     use js_int::UInt;
     use ruma_common::{
         api::{request, response, Metadata},
-        events::{relation::RelationType, AnyMessageLikeEvent, RoomEventType},
+        events::{relation::RelationType, AnyMessageLikeEvent, TimelineEventType},
         metadata,
         serde::Raw,
         OwnedEventId, OwnedRoomId,
@@ -47,7 +47,7 @@ pub mod v1 {
         /// Note that in encrypted rooms this will typically always be `m.room.encrypted`
         /// regardless of the event type contained within the encrypted payload.
         #[ruma_api(path)]
-        pub event_type: RoomEventType,
+        pub event_type: TimelineEventType,
 
         /// The pagination token to start returning results from.
         ///
@@ -118,7 +118,7 @@ pub mod v1 {
             room_id: OwnedRoomId,
             event_id: OwnedEventId,
             rel_type: RelationType,
-            event_type: RoomEventType,
+            event_type: TimelineEventType,
         ) -> Self {
             Self { room_id, event_id, rel_type, event_type, from: None, to: None, limit: None }
         }

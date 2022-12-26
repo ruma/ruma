@@ -12,7 +12,7 @@ use ruma_common::{
     api::{request, response, Metadata},
     events::{
         AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent, AnyStrippedStateEvent,
-        AnySyncStateEvent, AnySyncTimelineEvent, AnyToDeviceEvent, RoomEventType,
+        AnySyncStateEvent, AnySyncTimelineEvent, AnyToDeviceEvent, TimelineEventType,
     },
     metadata,
     serde::{duration::opt_ms, Raw},
@@ -236,7 +236,7 @@ pub struct SyncRequestList {
     /// Note that elements of this array are NOT sticky so they must be specified in full when they
     /// are changed. Sticky.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub required_state: Vec<(RoomEventType, String)>,
+    pub required_state: Vec<(TimelineEventType, String)>,
 
     /// The maximum number of timeline events to return per room. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -257,7 +257,7 @@ pub struct RoomSubscription {
     /// are changed. Sticky.
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub required_state: Vec<(RoomEventType, String)>,
+    pub required_state: Vec<(TimelineEventType, String)>,
 
     /// The maximum number of timeline events to return per room. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]

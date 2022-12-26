@@ -9,7 +9,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    events::{EmptyStateKey, MessageLikeEventType, RoomEventType, StateEventType},
+    events::{EmptyStateKey, MessageLikeEventType, StateEventType, TimelineEventType},
     power_levels::{default_power_level, NotificationPowerLevels},
     OwnedUserId, UserId,
 };
@@ -39,7 +39,7 @@ pub struct RoomPowerLevelsEventContent {
         deserialize_with = "crate::serde::btreemap_deserialize_v1_powerlevel_values"
     )]
     #[ruma_event(skip_redaction)]
-    pub events: BTreeMap<RoomEventType, Int>,
+    pub events: BTreeMap<TimelineEventType, Int>,
 
     /// The default level required to send message events.
     #[serde(
@@ -187,7 +187,7 @@ pub struct RoomPowerLevels {
     /// The level required to send specific event types.
     ///
     /// This is a mapping from event type to power level required.
-    pub events: BTreeMap<RoomEventType, Int>,
+    pub events: BTreeMap<TimelineEventType, Int>,
 
     /// The default level required to send message events.
     pub events_default: Int,

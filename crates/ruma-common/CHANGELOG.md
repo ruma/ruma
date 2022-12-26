@@ -46,6 +46,7 @@ Breaking changes:
   * `Redacted*EventContent`s don't have an `unsigned` type anymore
 * Remove the `serde::urlencoded` module
   * Query string (de)serialization is now done by the `serde_html_form` crate
+* Rename `RoomEventType` to `TimelineEventType`
 
 Improvements:
 

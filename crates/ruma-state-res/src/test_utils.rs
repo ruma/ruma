@@ -16,7 +16,7 @@ use ruma_common::{
             join_rules::{JoinRule, RoomJoinRulesEventContent},
             member::{MembershipState, RoomMemberEventContent},
         },
-        RoomEventType,
+        TimelineEventType,
     },
     room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, RoomVersionId,
     UserId,
@@ -251,7 +251,7 @@ impl TestStore<PduEvent> {
         let create_event = to_pdu_event::<&EventId>(
             "CREATE",
             alice(),
-            RoomEventType::RoomCreate,
+            TimelineEventType::RoomCreate,
             Some(""),
             to_raw_json_value(&json!({ "creator": alice() })).unwrap(),
             &[],
@@ -263,7 +263,7 @@ impl TestStore<PduEvent> {
         let alice_mem = to_pdu_event(
             "IMA",
             alice(),
-            RoomEventType::RoomMember,
+            TimelineEventType::RoomMember,
             Some(alice().as_str()),
             member_content_join(),
             &[cre.clone()],
@@ -274,7 +274,7 @@ impl TestStore<PduEvent> {
         let join_rules = to_pdu_event(
             "IJR",
             alice(),
-            RoomEventType::RoomJoinRules,
+            TimelineEventType::RoomJoinRules,
             Some(""),
             to_raw_json_value(&RoomJoinRulesEventContent::new(JoinRule::Public)).unwrap(),
             &[cre.clone(), alice_mem.event_id().to_owned()],
@@ -287,7 +287,7 @@ impl TestStore<PduEvent> {
         let bob_mem = to_pdu_event(
             "IMB",
             bob(),
-            RoomEventType::RoomMember,
+            TimelineEventType::RoomMember,
             Some(bob().as_str()),
             member_content_join(),
             &[cre.clone(), join_rules.event_id().to_owned()],
@@ -298,7 +298,7 @@ impl TestStore<PduEvent> {
         let charlie_mem = to_pdu_event(
             "IMC",
             charlie(),
-            RoomEventType::RoomMember,
+            TimelineEventType::RoomMember,
             Some(charlie().as_str()),
             member_content_join(),
             &[cre, join_rules.event_id().to_owned()],
@@ -374,7 +374,7 @@ pub fn member_content_join() -> Box<RawJsonValue> {
 pub fn to_init_pdu_event(
     id: &str,
     sender: &UserId,
-    ev_type: RoomEventType,
+    ev_type: TimelineEventType,
     state_key: Option<&str>,
     content: Box<RawJsonValue>,
 ) -> Arc<PduEvent> {
@@ -405,7 +405,7 @@ pub fn to_init_pdu_event(
 pub fn to_pdu_event<S>(
     id: &str,
     sender: &UserId,
-    ev_type: RoomEventType,
+    ev_type: TimelineEventType,
     state_key: Option<&str>,
     content: Box<RawJsonValue>,
     auth_events: &[S],
@@ -447,7 +447,7 @@ pub fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
         to_pdu_event::<&EventId>(
             "CREATE",
             alice(),
-            RoomEventType::RoomCreate,
+            TimelineEventType::RoomCreate,
             Some(""),
             to_raw_json_value(&json!({ "creator": alice() })).unwrap(),
             &[],
@@ -456,7 +456,7 @@ pub fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
         to_pdu_event(
             "IMA",
             alice(),
-            RoomEventType::RoomMember,
+            TimelineEventType::RoomMember,
             Some(alice().as_str()),
             member_content_join(),
             &["CREATE"],
@@ -465,7 +465,7 @@ pub fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
         to_pdu_event(
             "IPOWER",
             alice(),
-            RoomEventType::RoomPowerLevels,
+            TimelineEventType::RoomPowerLevels,
             Some(""),
             to_raw_json_value(&json!({ "users": { alice(): 100 } })).unwrap(),
             &["CREATE", "IMA"],
@@ -474,7 +474,7 @@ pub fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
         to_pdu_event(
             "IJR",
             alice(),
-            RoomEventType::RoomJoinRules,
+            TimelineEventType::RoomJoinRules,
             Some(""),
             to_raw_json_value(&RoomJoinRulesEventContent::new(JoinRule::Public)).unwrap(),
             &["CREATE", "IMA", "IPOWER"],
@@ -483,7 +483,7 @@ pub fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
         to_pdu_event(
             "IMB",
             bob(),
-            RoomEventType::RoomMember,
+            TimelineEventType::RoomMember,
             Some(bob().as_str()),
             member_content_join(),
             &["CREATE", "IJR", "IPOWER"],
@@ -492,7 +492,7 @@ pub fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
         to_pdu_event(
             "IMC",
             charlie(),
-            RoomEventType::RoomMember,
+            TimelineEventType::RoomMember,
             Some(charlie().as_str()),
             member_content_join(),
             &["CREATE", "IJR", "IPOWER"],
@@ -501,7 +501,7 @@ pub fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
         to_pdu_event::<&EventId>(
             "START",
             charlie(),
-            RoomEventType::RoomMessage,
+            TimelineEventType::RoomMessage,
             Some("dummy"),
             to_raw_json_value(&json!({})).unwrap(),
             &[],
@@ -510,7 +510,7 @@ pub fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
         to_pdu_event::<&EventId>(
             "END",
             charlie(),
-            RoomEventType::RoomMessage,
+            TimelineEventType::RoomMessage,
             Some("dummy"),
             to_raw_json_value(&json!({})).unwrap(),
             &[],
@@ -528,7 +528,7 @@ pub fn INITIAL_EVENTS_CREATE_ROOM() -> HashMap<OwnedEventId, Arc<PduEvent>> {
     vec![to_pdu_event::<&EventId>(
         "CREATE",
         alice(),
-        RoomEventType::RoomCreate,
+        TimelineEventType::RoomCreate,
         Some(""),
         to_raw_json_value(&json!({ "creator": alice() })).unwrap(),
         &[],
@@ -549,7 +549,7 @@ pub fn INITIAL_EDGES() -> Vec<OwnedEventId> {
 
 pub mod event {
     use ruma_common::{
-        events::{pdu::Pdu, RoomEventType},
+        events::{pdu::Pdu, TimelineEventType},
         MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, UserId,
     };
     use serde::{Deserialize, Serialize};
@@ -582,7 +582,7 @@ pub mod event {
             }
         }
 
-        fn event_type(&self) -> &RoomEventType {
+        fn event_type(&self) -> &TimelineEventType {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => &ev.kind,
                 Pdu::RoomV3Pdu(ev) => &ev.kind,

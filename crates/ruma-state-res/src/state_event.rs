@@ -5,7 +5,7 @@ use std::{
     sync::Arc,
 };
 
-use ruma_common::{events::RoomEventType, EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId};
+use ruma_common::{events::TimelineEventType, EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId};
 use serde_json::value::RawValue as RawJsonValue;
 
 /// Abstraction of a PDU so users can have their own PDU types.
@@ -25,7 +25,7 @@ pub trait Event {
     fn origin_server_ts(&self) -> MilliSecondsSinceUnixEpoch;
 
     /// The event type.
-    fn event_type(&self) -> &RoomEventType;
+    fn event_type(&self) -> &TimelineEventType;
 
     /// The event's content.
     fn content(&self) -> &RawJsonValue;
@@ -64,7 +64,7 @@ impl<T: Event> Event for &T {
         (*self).origin_server_ts()
     }
 
-    fn event_type(&self) -> &RoomEventType {
+    fn event_type(&self) -> &TimelineEventType {
         (*self).event_type()
     }
 
@@ -108,7 +108,7 @@ impl<T: Event> Event for Arc<T> {
         (**self).origin_server_ts()
     }
 
-    fn event_type(&self) -> &RoomEventType {
+    fn event_type(&self) -> &TimelineEventType {
         (**self).event_type()
     }
 
