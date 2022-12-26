@@ -180,6 +180,14 @@ impl AnyTimelineEvent {
         /// Returns this event's `relations` from inside `unsigned`.
         pub fn relations(&self) -> &BundledRelations;
     }
+
+    /// Returns this event's `type`.
+    pub fn event_type(&self) -> TimelineEventType {
+        match self {
+            Self::MessageLike(e) => e.event_type().into(),
+            Self::State(e) => e.event_type().into(),
+        }
+    }
 }
 
 /// Any sync room event.
@@ -211,6 +219,14 @@ impl AnySyncTimelineEvent {
 
         /// Returns this event's `relations` from inside `unsigned`, if that field exists.
         pub fn relations(&self) -> &BundledRelations;
+    }
+
+    /// Returns this event's `type`.
+    pub fn event_type(&self) -> TimelineEventType {
+        match self {
+            Self::MessageLike(e) => e.event_type().into(),
+            Self::State(e) => e.event_type().into(),
+        }
     }
 
     /// Converts `self` to an `AnyTimelineEvent` by adding the given a room ID.
