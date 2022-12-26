@@ -60,7 +60,7 @@ fn deserialize_aliases_with_prev_content() {
     assert_eq!(ev.sender, "@carl:example.com");
 
     let prev_content = ev.unsigned.prev_content.unwrap();
-    assert_eq!(prev_content.aliases, vec![room_alias_id!("#inner:localhost")]);
+    assert_eq!(prev_content.aliases.unwrap(), vec![room_alias_id!("#inner:localhost")]);
 }
 
 #[test]
@@ -78,7 +78,7 @@ fn deserialize_aliases_sync_with_room_id() {
     assert_eq!(ev.sender, "@carl:example.com");
 
     let prev_content = ev.unsigned.prev_content.unwrap();
-    assert_eq!(prev_content.aliases, vec![room_alias_id!("#inner:localhost")]);
+    assert_eq!(prev_content.aliases.unwrap(), vec![room_alias_id!("#inner:localhost")]);
 }
 
 #[test]
@@ -177,7 +177,7 @@ fn deserialize_full_event_convert_to_sync() {
     assert_eq!(sync_ev.event_id, "$h29iv0s8:example.com");
     assert_eq!(sync_ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
     assert_eq!(
-        sync_ev.unsigned.prev_content.unwrap().aliases,
+        sync_ev.unsigned.prev_content.unwrap().aliases.unwrap(),
         vec![room_alias_id!("#inner:localhost")]
     );
     assert_eq!(sync_ev.sender, "@carl:example.com");

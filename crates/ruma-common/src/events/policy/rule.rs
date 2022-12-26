@@ -32,6 +32,28 @@ impl PolicyRuleEventContent {
     }
 }
 
+/// The possibly redacted form of [`PolicyRuleEventContent`].
+///
+/// This type is used when it's not obvious whether the content is redacted or not.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct PossiblyRedactedPolicyRuleEventContent {
+    /// The entity affected by this rule.
+    ///
+    /// Glob characters `*` and `?` can be used to match zero or more characters or exactly one
+    /// character respectively.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub entity: Option<String>,
+
+    /// The suggested action to take.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub recommendation: Option<Recommendation>,
+
+    /// The human-readable description for the recommendation.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+}
+
 /// The possible actions that can be taken.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]

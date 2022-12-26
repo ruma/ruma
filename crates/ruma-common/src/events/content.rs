@@ -130,6 +130,9 @@ pub trait StateEventContent: EventContent<EventType = StateEventType> {
 pub trait OriginalStateEventContent: StateEventContent + RedactContent {
     /// The type of the event's `unsigned` field.
     type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty + StateUnsignedFromParts;
+
+    /// The possibly redacted form of the event's content.
+    type PossiblyRedacted: StateEventContent;
 }
 
 /// Content of a redacted state event.
