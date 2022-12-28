@@ -373,7 +373,7 @@ impl SlidingSyncRoom {
 }
 
 /// Sliding-Sync extension configuration.
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ExtensionsConfig {
     /// Request to devices messages with the given config.
@@ -431,7 +431,7 @@ impl Extensions {
 /// To-device messages extension configuration.
 ///
 /// According to [MSC3885](https://github.com/matrix-org/matrix-spec-proposals/pull/3885).
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ToDeviceConfig {
     /// Activate or deactivate this extension. Sticky.
@@ -464,7 +464,7 @@ pub struct ToDevice {
 /// E2EE extension configuration.
 ///
 /// According to [MSC3884](https://github.com/matrix-org/matrix-spec-proposals/pull/3884).
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct E2EEConfig {
     /// Activate or deactivate this extension. Sticky.
@@ -502,7 +502,7 @@ pub struct E2EE {
 ///
 /// Not yet part of the spec proposal. Taken from the reference implementation
 /// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/account_data.go>
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct AccountDataConfig {
     /// Activate or deactivate this extension. Sticky.
