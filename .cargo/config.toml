@@ -25,7 +25,6 @@ rustflags = [
     # easily. Locally allowing it also doesn't seem to work.
     #"-Wclippy::mod_module_files",
     "-Wclippy::mut_mut",
-    "-Wclippy::needless_borrow",
     "-Aclippy::new_without_default",
     "-Wclippy::nonstandard_macro_braces",
     "-Wclippy::semicolon_if_nothing_returned",
