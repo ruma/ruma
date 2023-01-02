@@ -9,6 +9,7 @@ Bug fixes:
 * Fix deserialization of `RoomMessageEventContent` and `RoomEncryptedEventContent` when there
   is no relation
 * Fix deserialization of `StateUnsigned` when the `prev_content` is redacted
+* Allow to deserialize `PushCondition` with unknown kind
 
 Breaking changes:
 
