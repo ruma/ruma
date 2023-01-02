@@ -13,6 +13,7 @@ use crate::{power_levels::NotificationPowerLevels, serde::Raw, OwnedRoomId, Owne
 #[cfg(feature = "unstable-msc3931")]
 use crate::{PrivOwnedStr, RoomVersionId};
 
+mod push_condition_serde;
 mod room_member_count_is;
 
 pub use room_member_count_is::{ComparisonOperator, RoomMemberCountIs};
@@ -57,9 +58,8 @@ impl RoomVersionFeature {
 }
 
 /// A condition that must apply for an associated push rule's action to be taken.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(tag = "kind", rename_all = "snake_case")]
 pub enum PushCondition {
     /// A glob pattern match on a field of the event.
     EventMatch {
@@ -95,11 +95,13 @@ pub enum PushCondition {
 
     /// Apply the rule only to rooms that support a given feature.
     #[cfg(feature = "unstable-msc3931")]
-    #[serde(rename = "org.matrix.msc3931.room_version_supports")]
     RoomVersionSupports {
         /// The feature the room must support for the push rule to apply.
         feature: RoomVersionFeature,
     },
+
+    #[doc(hidden)]
+    _Custom(_CustomPushCondition),
 }
 
 pub(super) fn check_event_match(
@@ -168,8 +170,22 @@ impl PushCondition {
                 }
                 RoomVersionFeature::_Custom(_) => false,
             },
+            Self::_Custom(_) => false,
         }
     }
+}
+
+/// An unknown push condition.
+#[doc(hidden)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[allow(clippy::exhaustive_structs)]
+pub struct _CustomPushCondition {
+    /// The kind of the condition.
+    kind: String,
+
+    /// The additional fields that the condition contains.
+    #[serde(flatten)]
+    data: BTreeMap<String, JsonValue>,
 }
 
 /// The context of the room associated to an event to be able to test all push conditions.
