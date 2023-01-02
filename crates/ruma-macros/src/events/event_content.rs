@@ -9,7 +9,7 @@ use syn::{
     parse::{Parse, ParseStream},
     parse_quote,
     punctuated::Punctuated,
-    DeriveInput, Field, Ident, LitStr, Meta, NestedMeta, Token, Type, TypePath,
+    DeriveInput, Field, Ident, LitStr, Meta, NestedMeta, Token, Type,
 };
 
 use crate::util::m_prefix_name_to_type_name;
