@@ -589,10 +589,10 @@ fn generate_possibly_redacted_event_content<'a>(
                 field_changed = true;
 
                 let old_type = &f.ty;
-                let path: TypePath = parse_quote!{ Option<#old_type> };
+                let ty = parse_quote!{ Option<#old_type> };
                 attrs.push(parse_quote! { #[serde(skip_serializing_if = "Option::is_none")] });
 
-                Ok(Field { attrs, ty: path.into(), ..f.clone() })
+                Ok(Field { attrs, ty, ..f.clone() })
             }
         })
         .collect::<syn::Result<_>>()?;
