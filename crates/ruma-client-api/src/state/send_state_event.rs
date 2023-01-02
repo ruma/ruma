@@ -121,9 +121,8 @@ pub mod v3 {
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use http::header::{self, HeaderValue};
 
-            let query_string = ruma_common::serde::urlencoded::to_string(RequestQuery {
-                timestamp: self.timestamp,
-            })?;
+            let query_string =
+                serde_html_form::to_string(RequestQuery { timestamp: self.timestamp })?;
 
             let http_request = http::Request::builder()
                 .method(http::Method::PUT)
@@ -187,7 +186,7 @@ pub mod v3 {
                 };
 
             let request_query: RequestQuery =
-                ruma_common::serde::urlencoded::from_str(request.uri().query().unwrap_or(""))?;
+                serde_html_form::from_str(request.uri().query().unwrap_or(""))?;
 
             let body = serde_json::from_slice(request.body().as_ref())?;
 

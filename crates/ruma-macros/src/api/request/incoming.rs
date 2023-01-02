@@ -8,6 +8,7 @@ impl Request {
     pub fn expand_incoming(&self, ruma_common: &TokenStream) -> TokenStream {
         let http = quote! { #ruma_common::exports::http };
         let serde = quote! { #ruma_common::exports::serde };
+        let serde_html_form = quote! { #ruma_common::exports::serde_html_form };
         let serde_json = quote! { #ruma_common::exports::serde_json };
 
         let error_ty = &self.error_ty;
@@ -36,9 +37,8 @@ impl Request {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let parse = quote! {
                 #( #cfg_attrs )*
-                let #field_name = #ruma_common::serde::urlencoded::from_str(
-                    &request.uri().query().unwrap_or(""),
-                )?;
+                let #field_name =
+                    #serde_html_form::from_str(&request.uri().query().unwrap_or(""))?;
             };
 
             (
@@ -55,9 +55,8 @@ impl Request {
             );
 
             let parse = quote! {
-                let request_query: RequestQuery = #ruma_common::serde::urlencoded::from_str(
-                    &request.uri().query().unwrap_or("")
-                )?;
+                let request_query: RequestQuery =
+                    #serde_html_form::from_str(&request.uri().query().unwrap_or(""))?;
 
                 #decls
             };

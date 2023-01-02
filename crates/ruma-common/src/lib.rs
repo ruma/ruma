@@ -69,5 +69,6 @@ pub mod exports {
     pub use http;
     pub use ruma_macros;
     pub use serde;
+    pub use serde_html_form;
     pub use serde_json;
 }

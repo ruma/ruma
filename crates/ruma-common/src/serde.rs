@@ -18,7 +18,6 @@ mod raw;
 pub mod single_element_seq;
 mod strings;
 pub mod test;
-pub mod urlencoded;
 
 pub use self::{
     base64::{Base64, Base64DecodeError},

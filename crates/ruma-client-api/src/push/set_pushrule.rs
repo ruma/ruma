@@ -78,10 +78,11 @@ pub mod v3 {
             considering_versions: &[ruma_common::api::MatrixVersion],
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use http::header;
-            use ruma_common::serde::urlencoded;
 
-            let query_string =
-                urlencoded::to_string(RequestQuery { before: self.before, after: self.after })?;
+            let query_string = serde_html_form::to_string(RequestQuery {
+                before: self.before,
+                after: self.after,
+            })?;
 
             let url = METADATA.make_endpoint_url(
                 considering_versions,
@@ -155,7 +156,7 @@ pub mod v3 {
                 ))?;
 
             let IncomingRequestQuery { before, after } =
-                ruma_common::serde::urlencoded::from_str(request.uri().query().unwrap_or(""))?;
+                serde_html_form::from_str(request.uri().query().unwrap_or(""))?;
 
             let rule = match kind {
                 RuleKind::Override => {

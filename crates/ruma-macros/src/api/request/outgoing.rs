@@ -8,6 +8,7 @@ impl Request {
     pub fn expand_outgoing(&self, ruma_common: &TokenStream) -> TokenStream {
         let bytes = quote! { #ruma_common::exports::bytes };
         let http = quote! { #ruma_common::exports::http };
+        let serde_html_form = quote! { #ruma_common::exports::serde_html_form };
 
         let error_ty = &self.error_ty;
 
@@ -22,9 +23,9 @@ impl Request {
                 // the field with the query_map attribute doesn't implement
                 // `IntoIterator<Item = (String, String)>`.
                 //
-                // This is necessary because the `ruma_common::serde::urlencoded::to_string` call will
-                // result in a runtime error when the type cannot be encoded as a list key-value
-                // pairs (?key1=value1&key2=value2).
+                // This is necessary because the `serde_html_form::to_string` call will result in a
+                // runtime error when the type cannot be encoded as a list key-value pairs
+                // (?key1=value1&key2=value2).
                 //
                 // By asserting that it implements the iterator trait, we can ensure that it won't
                 // fail.
@@ -38,7 +39,7 @@ impl Request {
                 let request_query = RequestQuery(self.#field_name);
                 assert_trait_impl(&request_query.0);
 
-                &#ruma_common::serde::urlencoded::to_string(request_query)?
+                &#serde_html_form::to_string(request_query)?
             }}
         } else if self.has_query_fields() {
             let request_query_init_fields = struct_init_fields(
@@ -51,7 +52,7 @@ impl Request {
                     #request_query_init_fields
                 };
 
-                &#ruma_common::serde::urlencoded::to_string(request_query)?
+                &#serde_html_form::to_string(request_query)?
             }}
         } else {
             quote! { "" }

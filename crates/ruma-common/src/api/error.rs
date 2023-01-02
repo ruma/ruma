@@ -123,7 +123,7 @@ pub enum IntoHttpError {
 
     /// Query parameter serialization failed.
     #[error("query parameter serialization failed: {0}")]
-    Query(#[from] crate::serde::urlencoded::ser::Error),
+    Query(#[from] serde_html_form::ser::Error),
 
     /// Header serialization failed.
     #[error("header serialization failed: {0}")]
@@ -228,7 +228,7 @@ pub enum DeserializationError {
 
     /// Query parameter deserialization failed.
     #[error(transparent)]
-    Query(#[from] crate::serde::urlencoded::de::Error),
+    Query(#[from] serde_html_form::de::Error),
 
     /// Got an invalid identifier.
     #[error(transparent)]
