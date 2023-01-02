@@ -53,6 +53,7 @@ pub use self::change::{Change, MembershipChange, MembershipDetails};
     state_key_type = OwnedUserId,
     unsigned_type = RoomMemberUnsigned,
     custom_redacted,
+    custom_possibly_redacted,
 )]
 pub struct RoomMemberEventContent {
     /// The avatar URL for this user, if any.

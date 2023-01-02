@@ -324,21 +324,19 @@ pub fn expand_event_content(
 
     // We only generate possibly redacted content structs for state events.
     let possibly_redacted_event_content =
-        needs_possibly_redacted(is_custom_redacted, is_custom_possibly_redacted, event_kind).then(
-            || {
-                generate_possibly_redacted_event_content(
-                    ident,
-                    fields.clone(),
-                    &event_type,
-                    event_kind,
-                    state_key_type.as_ref(),
-                    unsigned_type.clone(),
-                    &aliases,
-                    ruma_common,
-                )
-                .unwrap_or_else(syn::Error::into_compile_error)
-            },
-        );
+        needs_possibly_redacted(is_custom_possibly_redacted, event_kind).then(|| {
+            generate_possibly_redacted_event_content(
+                ident,
+                fields.clone(),
+                &event_type,
+                event_kind,
+                state_key_type.as_ref(),
+                unsigned_type.clone(),
+                &aliases,
+                ruma_common,
+            )
+            .unwrap_or_else(syn::Error::into_compile_error)
+        });
 
     let event_content_without_relation = has_without_relation.then(|| {
         generate_event_content_without_relation(ident, fields.clone(), ruma_common)
@@ -999,13 +997,11 @@ fn needs_redacted(is_custom_redacted: bool, event_kind: Option<EventKind>) -> bo
 }
 
 fn needs_possibly_redacted(
-    is_custom_redacted: bool,
     is_custom_possibly_redacted: bool,
     event_kind: Option<EventKind>,
 ) -> bool {
     // `is_custom_possibly_redacted` means that the content struct does not need
-    // a generated possibly redacted struct also. If no `custom_redacted` or
-    // `custom_possibly_redacted` attrs are found the content needs a redacted
-    // struct generated.
-    !is_custom_redacted && !is_custom_possibly_redacted && event_kind == Some(EventKind::State)
+    // a generated possibly redacted struct also. If no `custom_possibly_redacted`
+    // attrs are found the content needs a possibly redacted struct generated.
+    !is_custom_possibly_redacted && event_kind == Some(EventKind::State)
 }

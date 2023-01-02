@@ -49,11 +49,6 @@ impl RedactContent for RoomAliasesEventContent {
     }
 }
 
-/// The possibly redacted form of [`RoomAliasesEventContent`].
-///
-/// This type is used when it's not obvious whether the content is redacted or not.
-pub type PossiblyRedactedRoomAliasesEventContent = RedactedRoomAliasesEventContent;
-
 /// An aliases event that has been redacted.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
