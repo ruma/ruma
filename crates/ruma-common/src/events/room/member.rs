@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     events::{
-        AnyStrippedStateEvent, BundledRelations, EventContent, RedactContent, RedactedEventContent,
+        AnyStrippedStateEvent, BundledRelations, EventContent, RedactContent,
         RedactedStateEventContent, StateEventContent, StateEventType,
     },
     serde::{CanBeEmpty, Raw, StringEnum},
@@ -249,10 +249,6 @@ impl StateEventContent for RedactedRoomMemberEventContent {
 }
 
 impl RedactedStateEventContent for RedactedRoomMemberEventContent {}
-
-// Since this redacted event has fields we leave the default `empty` method
-// that will error if called.
-impl RedactedEventContent for RedactedRoomMemberEventContent {}
 
 impl RoomMemberEvent {
     /// Obtain the membership state, regardless of whether this event is redacted.

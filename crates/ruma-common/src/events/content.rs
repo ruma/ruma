@@ -34,15 +34,6 @@ where
     }
 }
 
-/// The base trait that all redacted event content types implement.
-///
-/// This trait's associated functions and methods should not be used to build
-/// redacted events, prefer the `redact` method on `AnyStateEvent` and
-/// `AnyMessageLikeEvent` and their "sync" and "stripped" counterparts.
-/// The `RedactedEventContent` trait is an implementation detail, ruma makes no
-/// API guarantees.
-pub trait RedactedEventContent: EventContent {}
-
 /// Trait for abstracting over event content structs.
 ///
 /// … but *not* enums which don't always have an event type and kind (e.g. message vs state) that's
@@ -114,7 +105,7 @@ pub trait EphemeralRoomEventContent: EventContent<EventType = EphemeralRoomEvent
 pub trait MessageLikeEventContent: EventContent<EventType = MessageLikeEventType> {}
 
 /// Content of a redacted message-like event.
-pub trait RedactedMessageLikeEventContent: MessageLikeEventContent + RedactedEventContent {}
+pub trait RedactedMessageLikeEventContent: MessageLikeEventContent {}
 
 /// Content of a state event.
 pub trait StateEventContent: EventContent<EventType = StateEventType> {
@@ -132,7 +123,7 @@ pub trait OriginalStateEventContent: StateEventContent + RedactContent {
 }
 
 /// Content of a redacted state event.
-pub trait RedactedStateEventContent: StateEventContent + RedactedEventContent {}
+pub trait RedactedStateEventContent: StateEventContent {}
 
 /// Content of a to-device event.
 pub trait ToDeviceEventContent: EventContent<EventType = ToDeviceEventType> {}

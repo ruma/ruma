@@ -5,9 +5,9 @@ use super::{
     EphemeralRoomEventContent, EphemeralRoomEventType, EventContent, EventContentFromType,
     GlobalAccountDataEventContent, GlobalAccountDataEventType, MessageLikeEventContent,
     MessageLikeEventType, MessageLikeUnsigned, OriginalStateEventContent, RedactContent,
-    RedactedEventContent, RedactedMessageLikeEventContent, RedactedStateEventContent,
-    RoomAccountDataEventContent, RoomAccountDataEventType, StateEventContent, StateEventType,
-    ToDeviceEventContent, ToDeviceEventType,
+    RedactedMessageLikeEventContent, RedactedStateEventContent, RoomAccountDataEventContent,
+    RoomAccountDataEventType, StateEventContent, StateEventType, ToDeviceEventContent,
+    ToDeviceEventType,
 };
 use crate::RoomVersionId;
 
@@ -50,8 +50,6 @@ macro_rules! custom_room_event_content {
                 self
             }
         }
-
-        impl RedactedEventContent for $i {}
     };
 }
 

@@ -5,8 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     events::{
-        EventContent, RedactContent, RedactedEventContent, RedactedStateEventContent,
-        StateEventContent, StateEventType,
+        EventContent, RedactContent, RedactedStateEventContent, StateEventContent, StateEventType,
     },
     OwnedRoomAliasId, OwnedServerName, RoomVersionId,
 };
@@ -89,7 +88,3 @@ impl StateEventContent for RedactedRoomAliasesEventContent {
 }
 
 impl RedactedStateEventContent for RedactedRoomAliasesEventContent {}
-
-// Since this redacted event has fields we leave the default `empty` method
-// that will error if called.
-impl RedactedEventContent for RedactedRoomAliasesEventContent {}

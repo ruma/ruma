@@ -480,9 +480,6 @@ fn generate_redacted_event_content<'a>(
         #redacted_event_content
 
         #[automatically_derived]
-        impl #ruma_common::events::RedactedEventContent for #redacted_ident {}
-
-        #[automatically_derived]
         impl #ruma_common::events::#sub_trait_name for #redacted_ident {}
 
         #static_event_content_impl
