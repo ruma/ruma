@@ -308,28 +308,30 @@ pub fn expand_event_content(
     };
 
     // We only generate redacted content structs for state and message-like events
-    let redacted_event_content = needs_redacted(is_custom_redacted, event_kind).then(|| {
-        generate_redacted_event_content(
-            ident,
-            fields.clone(),
-            &event_type,
-            event_kind,
-            state_key_type.as_ref(),
-            unsigned_type.clone(),
-            &aliases,
-            ruma_common,
-        )
-        .unwrap_or_else(syn::Error::into_compile_error)
-    });
+    let redacted_event_content =
+        event_kind.filter(|kind| needs_redacted(is_custom_redacted, *kind)).map(|kind| {
+            generate_redacted_event_content(
+                ident,
+                fields.clone(),
+                &event_type,
+                kind,
+                state_key_type.as_ref(),
+                unsigned_type.clone(),
+                &aliases,
+                ruma_common,
+            )
+            .unwrap_or_else(syn::Error::into_compile_error)
+        });
 
     // We only generate possibly redacted content structs for state events.
-    let possibly_redacted_event_content =
-        needs_possibly_redacted(is_custom_possibly_redacted, event_kind).then(|| {
+    let possibly_redacted_event_content = event_kind
+        .filter(|kind| needs_possibly_redacted(is_custom_possibly_redacted, *kind))
+        .map(|kind| {
             generate_possibly_redacted_event_content(
                 ident,
                 fields.clone(),
                 &event_type,
-                event_kind,
+                kind,
                 state_key_type.as_ref(),
                 unsigned_type.clone(),
                 &aliases,
@@ -376,7 +378,7 @@ fn generate_redacted_event_content<'a>(
     ident: &Ident,
     fields: impl Iterator<Item = &'a Field>,
     event_type: &LitStr,
-    event_kind: Option<EventKind>,
+    event_kind: EventKind,
     state_key_type: Option<&TokenStream>,
     unsigned_type: Option<TokenStream>,
     aliases: &[LitStr],
@@ -440,7 +442,7 @@ fn generate_redacted_event_content<'a>(
         &redacted_ident,
         kept_redacted_fields.iter(),
         event_type,
-        event_kind,
+        Some(event_kind),
         state_key_type,
         unsigned_type,
         aliases,
@@ -449,11 +451,15 @@ fn generate_redacted_event_content<'a>(
     )
     .unwrap_or_else(syn::Error::into_compile_error);
 
-    let sub_trait_name = event_kind.map(|kind| format_ident!("Redacted{kind}Content"));
+    let sub_trait_name = format_ident!("Redacted{event_kind}Content");
 
-    let static_event_content_impl = event_kind.map(|kind| {
-        generate_static_event_content_impl(&redacted_ident, kind, true, event_type, ruma_common)
-    });
+    let static_event_content_impl = generate_static_event_content_impl(
+        &redacted_ident,
+        event_kind,
+        true,
+        event_type,
+        ruma_common,
+    );
 
     Ok(quote! {
         // this is the non redacted event content's impl
@@ -490,7 +496,7 @@ fn generate_possibly_redacted_event_content<'a>(
     ident: &Ident,
     fields: impl Iterator<Item = &'a Field>,
     event_type: &LitStr,
-    event_kind: Option<EventKind>,
+    event_kind: EventKind,
     state_key_type: Option<&TokenStream>,
     unsigned_type: Option<TokenStream>,
     aliases: &[LitStr],
@@ -598,7 +604,7 @@ fn generate_possibly_redacted_event_content<'a>(
             &possibly_redacted_ident,
             possibly_redacted_fields.iter(),
             event_type,
-            event_kind,
+            Some(event_kind),
             state_key_type,
             unsigned_type,
             aliases,
@@ -607,15 +613,13 @@ fn generate_possibly_redacted_event_content<'a>(
         )
         .unwrap_or_else(syn::Error::into_compile_error);
 
-        let static_event_content_impl = event_kind.map(|kind| {
-            generate_static_event_content_impl(
-                &possibly_redacted_ident,
-                kind,
-                true,
-                event_type,
-                ruma_common,
-            )
-        });
+        let static_event_content_impl = generate_static_event_content_impl(
+            &possibly_redacted_ident,
+            event_kind,
+            true,
+            event_type,
+            ruma_common,
+        );
 
         Ok(quote! {
             #[doc = #doc]
@@ -986,20 +990,16 @@ fn generate_static_event_content_impl(
     }
 }
 
-fn needs_redacted(is_custom_redacted: bool, event_kind: Option<EventKind>) -> bool {
+fn needs_redacted(is_custom_redacted: bool, event_kind: EventKind) -> bool {
     // `is_custom` means that the content struct does not need a generated
     // redacted struct also. If no `custom_redacted` attrs are found the content
     // needs a redacted struct generated.
-    !is_custom_redacted
-        && matches!(event_kind, Some(EventKind::MessageLike) | Some(EventKind::State))
+    !is_custom_redacted && matches!(event_kind, EventKind::MessageLike | EventKind::State)
 }
 
-fn needs_possibly_redacted(
-    is_custom_possibly_redacted: bool,
-    event_kind: Option<EventKind>,
-) -> bool {
+fn needs_possibly_redacted(is_custom_possibly_redacted: bool, event_kind: EventKind) -> bool {
     // `is_custom_possibly_redacted` means that the content struct does not need
     // a generated possibly redacted struct also. If no `custom_possibly_redacted`
     // attrs are found the content needs a possibly redacted struct generated.
-    !is_custom_possibly_redacted && event_kind == Some(EventKind::State)
+    !is_custom_possibly_redacted && event_kind == EventKind::State
 }
