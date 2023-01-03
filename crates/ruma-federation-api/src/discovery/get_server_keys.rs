@@ -5,9 +5,6 @@
 pub mod v2 {
     //! `/v2/` ([spec])
     //!
-    //! Note: The specification includes `/{keyID}`, but this is deprecated, and the trailing slash
-    //! then made optional.
-    //!
     //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#get_matrixkeyv2serverkeyid
 
     use ruma_common::{

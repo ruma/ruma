@@ -1,4 +1,4 @@
-//! `GET /_matrix/key/*/query/{serverName}/{keyId}`
+//! `GET /_matrix/key/*/query/{serverName}`
 //!
 //! Query for another server's keys. The receiving (notary) server must sign the keys returned by
 //! the queried server.
@@ -22,8 +22,6 @@ pub mod v2 {
         rate_limited: false,
         authentication: None,
         history: {
-            // Note: The spec has an additional, deprecated path parameter on this. We may want to
-            // support an additional parameter at the end, even if it is ignored.
             1.0 => "/_matrix/key/v2/query/:server_name",
         }
     };
