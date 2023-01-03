@@ -87,11 +87,6 @@ impl AudioContent {
         Self::default()
     }
 
-    /// Creates a new `AudioContent` with the given duration.
-    pub(crate) fn from_room_message_content(duration: Duration) -> Self {
-        Self { duration: Some(duration), ..Default::default() }
-    }
-
     /// Whether this `AudioContent` is empty.
     pub fn is_empty(&self) -> bool {
         self.duration.is_none() && self.waveform.is_none()

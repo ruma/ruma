@@ -110,15 +110,6 @@ impl VideoContent {
         Self::default()
     }
 
-    /// Creates a new `VideoContent` with the given optional height, width and duration.
-    pub(crate) fn from_room_message_content(
-        height: Option<UInt>,
-        width: Option<UInt>,
-        duration: Option<Duration>,
-    ) -> Self {
-        Self { height, width, duration }
-    }
-
     /// Whether this `VideoContent` is empty.
     pub fn is_empty(&self) -> bool {
         self.height.is_none() && self.width.is_none() && self.duration.is_none()

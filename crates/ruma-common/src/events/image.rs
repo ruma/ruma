@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use super::{
     file::{EncryptedContent, FileContent},
     message::MessageContent,
-    room::{message::Relation, MediaSource, ThumbnailInfo},
+    room::message::Relation,
 };
 use crate::OwnedMxcUri;
 
@@ -108,20 +108,6 @@ impl ImageContent {
         Self { height: Some(height), width: Some(width) }
     }
 
-    /// Creates a new `ImageContent` with the given optional width and height.
-    ///
-    /// Returns `None` if the `ImageContent` would be empty.
-    pub(crate) fn from_room_message_content(
-        width: Option<UInt>,
-        height: Option<UInt>,
-    ) -> Option<Self> {
-        if width.is_none() && height.is_none() {
-            None
-        } else {
-            Some(Self { width, height })
-        }
-    }
-
     /// Whether this `ImageContent` is empty.
     pub fn is_empty(&self) -> bool {
         self.height.is_none() && self.width.is_none()
@@ -145,23 +131,6 @@ impl ThumbnailContent {
     /// Creates a `ThumbnailContent` with the given file and image info.
     pub fn new(file: ThumbnailFileContent, image: Option<Box<ImageContent>>) -> Self {
         Self { file, image }
-    }
-
-    /// Create a `ThumbnailContent` with the given thumbnail source and info.
-    ///
-    /// Returns `None` if no thumbnail was found.
-    pub(crate) fn from_room_message_content(
-        source: Option<MediaSource>,
-        info: Option<Box<ThumbnailInfo>>,
-    ) -> Option<Self> {
-        source.map(|source| {
-            let ThumbnailInfo { height, width, mimetype, size } = *info.unwrap_or_default();
-
-            let file = ThumbnailFileContent::from_room_message_content(source, mimetype, size);
-            let image = ImageContent::from_room_message_content(width, height).map(Box::new);
-
-            Self { file, image }
-        })
     }
 }
 
@@ -199,20 +168,6 @@ impl ThumbnailFileContent {
         Self { url, info, encryption_info: Some(Box::new(encryption_info)) }
     }
 
-    /// Create a `ThumbnailFileContent` with the given thumbnail source and info.
-    fn from_room_message_content(
-        source: MediaSource,
-        mimetype: Option<String>,
-        size: Option<UInt>,
-    ) -> Self {
-        let info =
-            ThumbnailFileContentInfo::from_room_message_content(mimetype, size).map(Box::new);
-        match source.into_extensible_content() {
-            (url, None) => Self::plain(url, info),
-            (url, Some(encryption_info)) => Self::encrypted(url, encryption_info, info),
-        }
-    }
-
     /// Whether the thumbnail file is encrypted.
     pub fn is_encrypted(&self) -> bool {
         self.encryption_info.is_some()
@@ -236,16 +191,5 @@ impl ThumbnailFileContentInfo {
     /// Creates an empty `ThumbnailFileContentInfo`.
     pub fn new() -> Self {
         Self::default()
-    }
-
-    /// Creates a new `ThumbnailFileContentInfo` with the given optional MIME type and size.
-    ///
-    /// Returns `None` if the `ThumbnailFileContentInfo` would be empty.
-    fn from_room_message_content(mimetype: Option<String>, size: Option<UInt>) -> Option<Self> {
-        if mimetype.is_none() && size.is_none() {
-            None
-        } else {
-            Some(Self { mimetype, size })
-        }
     }
 }

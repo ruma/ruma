@@ -36,7 +36,6 @@ fn message_serialize_sticker() {
 
     let actual = to_json_value(&content).unwrap();
 
-    #[cfg(not(feature = "unstable-msc3552"))]
     let expected = json!({
         "body": "Hello",
         "info": {
@@ -54,45 +53,6 @@ fn message_serialize_sticker() {
             },
         "url": "mxc://matrix.org/rnsldl8srs98IRrs",
     });
-
-    #[cfg(feature = "unstable-msc3552")]
-    let expected = json!({
-        "body": "Hello",
-        "info": {
-            "h": 423,
-            "mimetype": "image/png",
-            "size": 84242,
-            "thumbnail_info": {
-                "h": 334,
-                "mimetype": "image/png",
-                "size": 82595,
-                "w": 800
-            },
-            "thumbnail_url": "mxc://matrix.org/irsns989Rrsn",
-            "w": 1011
-            },
-        "url": "mxc://matrix.org/rnsldl8srs98IRrs",
-        "org.matrix.msc1767.text": "Hello",
-        "org.matrix.msc1767.file": {
-            "url": "mxc://matrix.org/rnsldl8srs98IRrs",
-            "mimetype": "image/png",
-            "size": 84242,
-        },
-        "org.matrix.msc1767.image": {
-            "height": 423,
-            "width": 1011,
-        },
-        "org.matrix.msc1767.thumbnail": [
-            {
-                "url": "mxc://matrix.org/irsns989Rrsn",
-                "mimetype": "image/png",
-                "size": 82595,
-                "height": 334,
-                "width": 800,
-            }
-        ],
-    });
-
     assert_eq!(actual, expected);
 }
 

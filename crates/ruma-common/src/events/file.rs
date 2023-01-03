@@ -155,21 +155,6 @@ impl FileContentInfo {
     pub fn new() -> Self {
         Self::default()
     }
-
-    /// Create a new `FileContentInfo` with the given filename, mimetype and size.
-    ///
-    /// Returns `None` if the `FileContentInfo` would be empty.
-    pub(crate) fn from_room_message_content(
-        filename: Option<String>,
-        mimetype: Option<String>,
-        size: Option<UInt>,
-    ) -> Option<Self> {
-        if filename.is_none() && mimetype.is_none() && size.is_none() {
-            None
-        } else {
-            Some(Self { name: filename, mimetype, size })
-        }
-    }
 }
 
 /// The encryption info of a file sent to a room with end-to-end encryption enabled.

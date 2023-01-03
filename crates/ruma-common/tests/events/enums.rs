@@ -202,16 +202,9 @@ fn message_room_event_deserialization() {
 fn message_event_serialization() {
     let content = RoomMessageEventContent::text_plain("test");
 
-    #[cfg(not(feature = "unstable-msc1767"))]
     assert_eq!(
         serde_json::to_string(&content).expect("Failed to serialize message event content"),
         r#"{"msgtype":"m.text","body":"test"}"#
-    );
-
-    #[cfg(feature = "unstable-msc1767")]
-    assert_eq!(
-        serde_json::to_string(&content).expect("Failed to serialize message event content"),
-        r#"{"msgtype":"m.text","body":"test","org.matrix.msc1767.text":"test"}"#
     );
 }
 

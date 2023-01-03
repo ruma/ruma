@@ -193,24 +193,16 @@ fn room_message_serialization() {
             "body": "Alice was at geo:51.5008,0.1247;u=35",
             "geo_uri": "geo:51.5008,0.1247;u=35",
             "msgtype": "m.location",
-            "org.matrix.msc1767.text": "Alice was at geo:51.5008,0.1247;u=35",
-            "org.matrix.msc3488.location": {
-                "uri": "geo:51.5008,0.1247;u=35",
-            },
         })
     );
 }
 
 #[test]
-fn room_message_stable_deserialization() {
+fn room_message_deserialization() {
     let json_data = json!({
         "body": "Alice was at geo:51.5008,0.1247;u=35",
         "geo_uri": "geo:51.5008,0.1247;u=35",
         "msgtype": "m.location",
-        "m.text": "Alice was at geo:51.5008,0.1247;u=35",
-        "m.location": {
-            "uri": "geo:51.5008,0.1247;u=35",
-        },
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
@@ -218,31 +210,4 @@ fn room_message_stable_deserialization() {
 
     assert_eq!(content.body, "Alice was at geo:51.5008,0.1247;u=35");
     assert_eq!(content.geo_uri, "geo:51.5008,0.1247;u=35");
-    let message = content.message.unwrap();
-    assert_eq!(message.len(), 1);
-    assert_eq!(message[0].body, "Alice was at geo:51.5008,0.1247;u=35");
-    assert_eq!(content.location.unwrap().uri, "geo:51.5008,0.1247;u=35");
-}
-
-#[test]
-fn room_message_unstable_deserialization() {
-    let json_data = json!({
-        "body": "Alice was at geo:51.5008,0.1247;u=35",
-        "geo_uri": "geo:51.5008,0.1247;u=35",
-        "msgtype": "m.location",
-        "org.matrix.msc1767.text": "Alice was at geo:51.5008,0.1247;u=35",
-        "org.matrix.msc3488.location": {
-            "uri": "geo:51.5008,0.1247;u=35",
-        },
-    });
-
-    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    let content = assert_matches!(event_content.msgtype, MessageType::Location(c) => c);
-
-    assert_eq!(content.body, "Alice was at geo:51.5008,0.1247;u=35");
-    assert_eq!(content.geo_uri, "geo:51.5008,0.1247;u=35");
-    let message = content.message.unwrap();
-    assert_eq!(message.len(), 1);
-    assert_eq!(message[0].body, "Alice was at geo:51.5008,0.1247;u=35");
-    assert_eq!(content.location.unwrap().uri, "geo:51.5008,0.1247;u=35");
 }

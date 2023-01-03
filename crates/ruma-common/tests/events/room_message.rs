@@ -41,28 +41,12 @@ fn serialization() {
             None,
         )));
 
-    #[cfg(not(feature = "unstable-msc3246"))]
     assert_eq!(
         to_json_value(content).unwrap(),
         json!({
             "body": "test",
             "msgtype": "m.audio",
             "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd",
-        })
-    );
-
-    #[cfg(feature = "unstable-msc3246")]
-    assert_eq!(
-        to_json_value(content).unwrap(),
-        json!({
-            "body": "test",
-            "msgtype": "m.audio",
-            "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd",
-            "org.matrix.msc1767.text": "test",
-            "org.matrix.msc1767.file": {
-                "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd",
-            },
-            "org.matrix.msc1767.audio": {},
         })
     );
 }
@@ -76,28 +60,12 @@ fn content_serialization() {
             None,
         )));
 
-    #[cfg(not(feature = "unstable-msc3246"))]
     assert_eq!(
         to_json_value(&message_event_content).unwrap(),
         json!({
             "body": "test",
             "msgtype": "m.audio",
             "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd"
-        })
-    );
-
-    #[cfg(feature = "unstable-msc3246")]
-    assert_eq!(
-        to_json_value(&message_event_content).unwrap(),
-        json!({
-            "body": "test",
-            "msgtype": "m.audio",
-            "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd",
-            "org.matrix.msc1767.text": "test",
-            "org.matrix.msc1767.file": {
-                "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd",
-            },
-            "org.matrix.msc1767.audio": {},
         })
     );
 }
@@ -148,7 +116,6 @@ fn formatted_body_serialization() {
     let message_event_content =
         RoomMessageEventContent::text_html("Hello, World!", "Hello, <em>World</em>!");
 
-    #[cfg(not(feature = "unstable-msc1767"))]
     assert_eq!(
         to_json_value(&message_event_content).unwrap(),
         json!({
@@ -156,19 +123,6 @@ fn formatted_body_serialization() {
             "msgtype": "m.text",
             "format": "org.matrix.custom.html",
             "formatted_body": "Hello, <em>World</em>!",
-        })
-    );
-
-    #[cfg(feature = "unstable-msc1767")]
-    assert_eq!(
-        to_json_value(&message_event_content).unwrap(),
-        json!({
-            "body": "Hello, World!",
-            "msgtype": "m.text",
-            "format": "org.matrix.custom.html",
-            "formatted_body": "Hello, <em>World</em>!",
-            "org.matrix.msc1767.html": "Hello, <em>World</em>!",
-            "org.matrix.msc1767.text": "Hello, World!",
         })
     );
 }
@@ -178,22 +132,11 @@ fn plain_text_content_serialization() {
     let message_event_content =
         RoomMessageEventContent::text_plain("> <@test:example.com> test\n\ntest reply");
 
-    #[cfg(not(feature = "unstable-msc1767"))]
     assert_eq!(
         to_json_value(&message_event_content).unwrap(),
         json!({
             "body": "> <@test:example.com> test\n\ntest reply",
             "msgtype": "m.text"
-        })
-    );
-
-    #[cfg(feature = "unstable-msc1767")]
-    assert_eq!(
-        to_json_value(&message_event_content).unwrap(),
-        json!({
-            "body": "> <@test:example.com> test\n\ntest reply",
-            "msgtype": "m.text",
-            "org.matrix.msc1767.text": "> <@test:example.com> test\n\ntest reply",
         })
     );
 }
@@ -206,8 +149,6 @@ fn markdown_content_serialization() {
     let formatted_message = RoomMessageEventContent::new(MessageType::Text(
         TextMessageEventContent::markdown("Testing **bold** and _italic_!"),
     ));
-
-    #[cfg(not(feature = "unstable-msc1767"))]
     assert_eq!(
         to_json_value(&formatted_message).unwrap(),
         json!({
@@ -215,50 +156,23 @@ fn markdown_content_serialization() {
             "formatted_body": "<p>Testing <strong>bold</strong> and <em>italic</em>!</p>\n",
             "format": "org.matrix.custom.html",
             "msgtype": "m.text"
-        })
-    );
-
-    #[cfg(feature = "unstable-msc1767")]
-    assert_eq!(
-        to_json_value(&formatted_message).unwrap(),
-        json!({
-            "body": "Testing **bold** and _italic_!",
-            "formatted_body": "<p>Testing <strong>bold</strong> and <em>italic</em>!</p>\n",
-            "format": "org.matrix.custom.html",
-            "msgtype": "m.text",
-            "org.matrix.msc1767.html": "<p>Testing <strong>bold</strong> and <em>italic</em>!</p>\n",
-            "org.matrix.msc1767.text": "Testing **bold** and _italic_!",
         })
     );
 
     let plain_message_simple = RoomMessageEventContent::new(MessageType::Text(
         TextMessageEventContent::markdown("Testing a simple phrase…"),
     ));
-
-    #[cfg(not(feature = "unstable-msc1767"))]
     assert_eq!(
         to_json_value(&plain_message_simple).unwrap(),
         json!({
             "body": "Testing a simple phrase…",
             "msgtype": "m.text"
-        })
-    );
-
-    #[cfg(feature = "unstable-msc1767")]
-    assert_eq!(
-        to_json_value(&plain_message_simple).unwrap(),
-        json!({
-            "body": "Testing a simple phrase…",
-            "msgtype": "m.text",
-            "org.matrix.msc1767.text": "Testing a simple phrase…",
         })
     );
 
     let plain_message_paragraphs = RoomMessageEventContent::new(MessageType::Text(
         TextMessageEventContent::markdown("Testing\n\nSeveral\n\nParagraphs."),
     ));
-
-    #[cfg(not(feature = "unstable-msc1767"))]
     assert_eq!(
         to_json_value(&plain_message_paragraphs).unwrap(),
         json!({
@@ -266,19 +180,6 @@ fn markdown_content_serialization() {
             "formatted_body": "<p>Testing</p>\n<p>Several</p>\n<p>Paragraphs.</p>\n",
             "format": "org.matrix.custom.html",
             "msgtype": "m.text"
-        })
-    );
-
-    #[cfg(feature = "unstable-msc1767")]
-    assert_eq!(
-        to_json_value(&plain_message_paragraphs).unwrap(),
-        json!({
-            "body": "Testing\n\nSeveral\n\nParagraphs.",
-            "formatted_body": "<p>Testing</p>\n<p>Several</p>\n<p>Paragraphs.</p>\n",
-            "format": "org.matrix.custom.html",
-            "msgtype": "m.text",
-            "org.matrix.msc1767.html": "<p>Testing</p>\n<p>Several</p>\n<p>Paragraphs.</p>\n",
-            "org.matrix.msc1767.text": "Testing\n\nSeveral\n\nParagraphs.",
         })
     );
 }

@@ -11,11 +11,8 @@ use ruma_common::{
         audio::AudioContent,
         file::{FileContent, FileContentInfo},
         relation::InReplyTo,
-        room::{
-            message::{AudioMessageEventContent, MessageType, Relation, RoomMessageEventContent},
-            MediaSource,
-        },
-        voice::{VoiceContent, VoiceEventContent},
+        room::message::Relation,
+        voice::VoiceEventContent,
         AnyMessageLikeEvent, MessageLikeEvent,
     },
     mxc_uri,
@@ -121,88 +118,4 @@ fn message_event_deserialization() {
     assert_eq!(info.name.as_deref(), Some("voice_message.ogg"));
     assert_eq!(info.mimetype.as_deref(), Some("audio/opus"));
     assert_eq!(info.size, Some(uint!(123_774)));
-}
-
-#[test]
-fn room_message_serialization() {
-    let message_event_content = RoomMessageEventContent::new(MessageType::Audio(assign!(
-        AudioMessageEventContent::plain(
-            "Upload: voice_message.ogg".to_owned(),
-            mxc_uri!("mxc://notareal.hs/file").to_owned(),
-            None,
-        ), {
-            voice: Some(VoiceContent::new()),
-        }
-    )));
-
-    assert_eq!(
-        to_json_value(&message_event_content).unwrap(),
-        json!({
-            "body": "Upload: voice_message.ogg",
-            "url": "mxc://notareal.hs/file",
-            "msgtype": "m.audio",
-            "org.matrix.msc1767.text": "Upload: voice_message.ogg",
-            "org.matrix.msc1767.file": {
-                "url": "mxc://notareal.hs/file",
-            },
-            "org.matrix.msc1767.audio": {},
-            "org.matrix.msc3245.voice": {},
-        })
-    );
-}
-
-#[test]
-fn room_message_stable_deserialization() {
-    let json_data = json!({
-        "body": "Upload: voice_message.ogg",
-        "url": "mxc://notareal.hs/file",
-        "msgtype": "m.audio",
-        "m.text": "Upload: voice_message.ogg",
-        "m.file": {
-            "url": "mxc://notareal.hs/file",
-        },
-        "m.audio": {},
-        "m.voice": {},
-    });
-
-    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    let content = assert_matches!(event_content.msgtype, MessageType::Audio(content) => content);
-    assert_eq!(content.body, "Upload: voice_message.ogg");
-    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
-    assert_eq!(url, "mxc://notareal.hs/file");
-    let message = content.message.unwrap();
-    assert_eq!(message.len(), 1);
-    assert_eq!(message[0].body, "Upload: voice_message.ogg");
-    let file = content.file.unwrap();
-    assert_eq!(file.url, "mxc://notareal.hs/file");
-    assert!(!file.is_encrypted());
-    assert!(content.voice.is_some());
-}
-
-#[test]
-fn room_message_unstable_deserialization() {
-    let json_data = json!({
-        "body": "Upload: voice_message.ogg",
-        "url": "mxc://notareal.hs/file",
-        "msgtype": "m.audio",
-        "org.matrix.msc1767.text": "Upload: voice_message.ogg",
-        "org.matrix.msc1767.file": {
-            "url": "mxc://notareal.hs/file",
-        },
-        "org.matrix.msc1767.audio": {},
-        "org.matrix.msc3245.voice": {},
-    });
-
-    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    let content = assert_matches!(event_content.msgtype, MessageType::Audio(content) => content);
-    assert_eq!(content.body, "Upload: voice_message.ogg");
-    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
-    assert_eq!(url, "mxc://notareal.hs/file");
-    let message = content.message.unwrap();
-    assert_eq!(message.len(), 1);
-    assert_eq!(message[0].body, "Upload: voice_message.ogg");
-    let file = content.file.unwrap();
-    assert_eq!(file.url, "mxc://notareal.hs/file");
-    assert!(!file.is_encrypted());
-    assert!(content.voice.is_some());
 }

@@ -1,30 +1,15 @@
 use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "unstable-msc3551")]
-use crate::events::{
-    file::{FileContent, FileContentInfo},
-    message::MessageContent,
-};
 use crate::{
     events::room::{EncryptedFile, MediaSource, ThumbnailInfo},
     OwnedMxcUri,
 };
 
 /// The payload for a file message.
-///
-/// With the `unstable-msc3551` feature, this type contains the transitional format of
-/// [`FileEventContent`]. See the documentation of the [`message`] module for more information.
-///
-/// [`FileEventContent`]: crate::events::file::FileEventContent
-/// [`message`]: crate::events::message
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.file")]
-#[cfg_attr(
-    feature = "unstable-msc3551",
-    serde(from = "super::content_serde::FileMessageEventContentDeHelper")
-)]
 pub struct FileMessageEventContent {
     /// A human-readable description of the file.
     ///
@@ -42,61 +27,19 @@ pub struct FileMessageEventContent {
     /// Metadata about the file referred to in `source`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<Box<FileInfo>>,
-
-    /// Extensible-event text representation of the message.
-    ///
-    /// If present, this should be preferred over the `body` field.
-    #[cfg(feature = "unstable-msc3551")]
-    #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    pub message: Option<MessageContent>,
-
-    /// Extensible-event file content of the message.
-    ///
-    /// If present, this should be preferred over the `source` and `info` fields.
-    #[cfg(feature = "unstable-msc3551")]
-    #[serde(rename = "org.matrix.msc1767.file", skip_serializing_if = "Option::is_none")]
-    pub file: Option<FileContent>,
 }
 
 impl FileMessageEventContent {
     /// Creates a new non-encrypted `FileMessageEventContent` with the given body, url and
     /// optional extra info.
     pub fn plain(body: String, url: OwnedMxcUri, info: Option<Box<FileInfo>>) -> Self {
-        Self {
-            #[cfg(feature = "unstable-msc3551")]
-            message: Some(MessageContent::plain(body.clone())),
-            #[cfg(feature = "unstable-msc3551")]
-            file: Some(FileContent::plain(
-                url.clone(),
-                info.as_deref().and_then(|info| {
-                    FileContentInfo::from_room_message_content(
-                        None,
-                        info.mimetype.to_owned(),
-                        info.size.to_owned(),
-                    )
-                    .map(Box::new)
-                }),
-            )),
-            body,
-            filename: None,
-            source: MediaSource::Plain(url),
-            info,
-        }
+        Self { body, filename: None, source: MediaSource::Plain(url), info }
     }
 
     /// Creates a new encrypted `FileMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
-        Self {
-            #[cfg(feature = "unstable-msc3551")]
-            message: Some(MessageContent::plain(body.clone())),
-            #[cfg(feature = "unstable-msc3551")]
-            file: Some(FileContent::encrypted(file.url.clone(), (&file).into(), None)),
-            body,
-            filename: None,
-            source: MediaSource::Encrypted(Box::new(file)),
-            info: None,
-        }
+        Self { body, filename: None, source: MediaSource::Encrypted(Box::new(file)), info: None }
     }
 }
 

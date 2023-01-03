@@ -301,26 +301,16 @@ fn room_message_serialization() {
             "body": "Upload: my_image.jpg",
             "url": "mxc://notareal.hs/file",
             "msgtype": "m.image",
-            "org.matrix.msc1767.text": "Upload: my_image.jpg",
-            "org.matrix.msc1767.file": {
-                "url": "mxc://notareal.hs/file",
-            },
-            "org.matrix.msc1767.image": {},
         })
     );
 }
 
 #[test]
-fn room_message_stable_deserialization() {
+fn room_message_deserialization() {
     let json_data = json!({
         "body": "Upload: my_image.jpg",
         "url": "mxc://notareal.hs/file",
         "msgtype": "m.image",
-        "m.text": "Upload: my_image.jpg",
-        "m.file": {
-            "url": "mxc://notareal.hs/file",
-        },
-        "m.image": {},
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
@@ -328,36 +318,4 @@ fn room_message_stable_deserialization() {
     assert_eq!(content.body, "Upload: my_image.jpg");
     let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
     assert_eq!(url, "mxc://notareal.hs/file");
-    let message = content.message.unwrap();
-    assert_eq!(message.len(), 1);
-    assert_eq!(message[0].body, "Upload: my_image.jpg");
-    let file = content.file.unwrap();
-    assert_eq!(file.url, "mxc://notareal.hs/file");
-    assert!(!file.is_encrypted());
-}
-
-#[test]
-fn room_message_unstable_deserialization() {
-    let json_data = json!({
-        "body": "Upload: my_image.jpg",
-        "url": "mxc://notareal.hs/file",
-        "msgtype": "m.image",
-        "org.matrix.msc1767.text": "Upload: my_image.jpg",
-        "org.matrix.msc1767.file": {
-            "url": "mxc://notareal.hs/file",
-        },
-        "org.matrix.msc1767.image": {},
-    });
-
-    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    let content = assert_matches!(event_content.msgtype, MessageType::Image(content) => content);
-    assert_eq!(content.body, "Upload: my_image.jpg");
-    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
-    assert_eq!(url, "mxc://notareal.hs/file");
-    let message = content.message.unwrap();
-    assert_eq!(message.len(), 1);
-    assert_eq!(message[0].body, "Upload: my_image.jpg");
-    let file = content.file.unwrap();
-    assert_eq!(file.url, "mxc://notareal.hs/file");
-    assert!(!file.is_encrypted());
 }

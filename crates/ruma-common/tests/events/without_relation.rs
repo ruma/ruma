@@ -15,22 +15,11 @@ fn serialize_room_message_content_without_relation() {
         Some(Relation::Reply { in_reply_to: InReplyTo::new(event_id!("$eventId").to_owned()) });
     let without_relation = MessageType::from(content);
 
-    #[cfg(not(feature = "unstable-msc3246"))]
     assert_eq!(
         to_json_value(&without_relation).unwrap(),
         json!({
             "body": "Hello, world!",
             "msgtype": "m.text",
-        })
-    );
-
-    #[cfg(feature = "unstable-msc3246")]
-    assert_eq!(
-        to_json_value(&without_relation).unwrap(),
-        json!({
-            "body": "Hello, world!",
-            "msgtype": "m.text",
-            "org.matrix.msc1767.text": "Hello, world!",
         })
     );
 }

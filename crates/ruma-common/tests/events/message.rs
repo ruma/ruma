@@ -296,11 +296,10 @@ fn message_event_deserialization() {
 }
 
 #[test]
-fn room_message_plain_text_stable_deserialization() {
+fn room_message_plain_text_deserialization() {
     let json_data = json!({
         "body": "test",
         "msgtype": "m.text",
-        "m.text": "test",
     });
 
     let content = assert_matches!(
@@ -311,41 +310,15 @@ fn room_message_plain_text_stable_deserialization() {
         }) => content
     );
     assert_eq!(content.body, "test");
-    let message = content.message.unwrap();
-    assert_eq!(message.len(), 1);
-    assert_eq!(message[0].body, "test");
 }
 
 #[test]
-fn room_message_plain_text_unstable_deserialization() {
-    let json_data = json!({
-        "body": "test",
-        "msgtype": "m.text",
-        "org.matrix.msc1767.text": "test",
-    });
-
-    let content = assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent {
-            msgtype: MessageType::Text(content),
-            ..
-        }) => content
-    );
-    assert_eq!(content.body, "test");
-    let message = content.message.unwrap();
-    assert_eq!(message.len(), 1);
-    assert_eq!(message[0].body, "test");
-}
-
-#[test]
-fn room_message_html_and_text_stable_deserialization() {
+fn room_message_html_and_text_deserialization() {
     let json_data = json!({
         "body": "test",
         "formatted_body": "<h1>test</h1>",
         "format": "org.matrix.custom.html",
         "msgtype": "m.text",
-        "m.html": "<h1>test</h1>",
-        "m.text": "test",
     });
 
     let content = assert_matches!(
@@ -358,95 +331,6 @@ fn room_message_html_and_text_stable_deserialization() {
     assert_eq!(content.body, "test");
     let formatted = content.formatted.unwrap();
     assert_eq!(formatted.body, "<h1>test</h1>");
-    let message = content.message.unwrap();
-    assert_eq!(message.len(), 2);
-    assert_eq!(message[0].body, "<h1>test</h1>");
-    assert_eq!(message[1].body, "test");
-}
-
-#[test]
-fn room_message_html_and_text_unstable_deserialization() {
-    let json_data = json!({
-        "body": "test",
-        "formatted_body": "<h1>test</h1>",
-        "format": "org.matrix.custom.html",
-        "msgtype": "m.text",
-        "org.matrix.msc1767.html": "<h1>test</h1>",
-        "org.matrix.msc1767.text": "test",
-    });
-
-    let content = assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent {
-            msgtype: MessageType::Text(content),
-            ..
-        }) => content
-    );
-    assert_eq!(content.body, "test");
-    let formatted = content.formatted.unwrap();
-    assert_eq!(formatted.body, "<h1>test</h1>");
-    let message = content.message.unwrap();
-    assert_eq!(message.len(), 2);
-    assert_eq!(message[0].body, "<h1>test</h1>");
-    assert_eq!(message[1].body, "test");
-}
-
-#[test]
-fn room_message_message_stable_deserialization() {
-    let json_data = json!({
-        "body": "test",
-        "formatted_body": "<h1>test</h1>",
-        "format": "org.matrix.custom.html",
-        "msgtype": "m.text",
-        "m.message": [
-            { "body": "<h1>test</h1>", "mimetype": "text/html" },
-            { "body": "test", "mimetype": "text/plain" },
-        ],
-    });
-
-    let content = assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent {
-            msgtype: MessageType::Text(content),
-            ..
-        }) => content
-    );
-    assert_eq!(content.body, "test");
-    let formatted = content.formatted.unwrap();
-    assert_eq!(formatted.body, "<h1>test</h1>");
-    let message = content.message.unwrap();
-    assert_eq!(message.len(), 2);
-    assert_eq!(message[0].body, "<h1>test</h1>");
-    assert_eq!(message[1].body, "test");
-}
-
-#[test]
-fn room_message_message_unstable_deserialization() {
-    let json_data = json!({
-        "body": "test",
-        "formatted_body": "<h1>test</h1>",
-        "format": "org.matrix.custom.html",
-        "msgtype": "m.text",
-        "org.matrix.msc1767.message": [
-            { "body": "<h1>test</h1>", "mimetype": "text/html" },
-            { "body": "test", "mimetype": "text/plain" },
-        ],
-    });
-
-    let content = assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent {
-            msgtype: MessageType::Text(content),
-            ..
-        }) => content
-    );
-    assert_eq!(content.body, "test");
-    let formatted = content.formatted.unwrap();
-    assert_eq!(formatted.body, "<h1>test</h1>");
-    let message = content.message.unwrap();
-    assert_eq!(message.len(), 2);
-    assert_eq!(message[0].body, "<h1>test</h1>");
-    assert_eq!(message[1].body, "test");
 }
 
 #[test]
@@ -468,7 +352,6 @@ fn room_message_notice_serialization() {
         json!({
             "body": "> <@test:example.com> test\n\ntest reply",
             "msgtype": "m.notice",
-            "org.matrix.msc1767.text": "> <@test:example.com> test\n\ntest reply",
         })
     );
 }
@@ -538,11 +421,10 @@ fn notice_event_unstable_deserialization() {
 }
 
 #[test]
-fn room_message_notice_stable_deserialization() {
+fn room_message_notice_deserialization() {
     let json_data = json!({
         "body": "test",
         "msgtype": "m.notice",
-        "m.text": "test",
     });
 
     let content = assert_matches!(
@@ -553,30 +435,6 @@ fn room_message_notice_stable_deserialization() {
         }) => content
     );
     assert_eq!(content.body, "test");
-    let message = content.message.unwrap();
-    assert_eq!(message.len(), 1);
-    assert_eq!(message[0].body, "test");
-}
-
-#[test]
-fn room_message_notice_unstable_deserialization() {
-    let json_data = json!({
-        "body": "test",
-        "msgtype": "m.notice",
-        "org.matrix.msc1767.text": "test",
-    });
-
-    let content = assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent {
-            msgtype: MessageType::Notice(content),
-            ..
-        }) => content
-    );
-    assert_eq!(content.body, "test");
-    let message = content.message.unwrap();
-    assert_eq!(message.len(), 1);
-    assert_eq!(message[0].body, "test");
 }
 
 #[test]
@@ -604,7 +462,6 @@ fn room_message_emote_serialization() {
         json!({
             "body": "> <@test:example.com> test\n\ntest reply",
             "msgtype": "m.emote",
-            "org.matrix.msc1767.text": "> <@test:example.com> test\n\ntest reply",
         })
     );
 }
@@ -668,11 +525,10 @@ fn emote_event_unstable_deserialization() {
 }
 
 #[test]
-fn room_message_emote_stable_deserialization() {
+fn room_message_emote_deserialization() {
     let json_data = json!({
         "body": "test",
         "msgtype": "m.emote",
-        "m.text": "test",
     });
 
     let content = assert_matches!(
@@ -683,30 +539,6 @@ fn room_message_emote_stable_deserialization() {
         }) => content
     );
     assert_eq!(content.body, "test");
-    let message = content.message.unwrap();
-    assert_eq!(message.len(), 1);
-    assert_eq!(message[0].body, "test");
-}
-
-#[test]
-fn room_message_emote_unstable_deserialization() {
-    let json_data = json!({
-        "body": "test",
-        "msgtype": "m.emote",
-        "org.matrix.msc1767.text": "test",
-    });
-
-    let content = assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent {
-            msgtype: MessageType::Emote(content),
-            ..
-        }) => content
-    );
-    assert_eq!(content.body, "test");
-    let message = content.message.unwrap();
-    assert_eq!(message.len(), 1);
-    assert_eq!(message[0].body, "test");
 }
 
 #[test]
