@@ -54,7 +54,9 @@ fn event_serialization() {
     assert_eq!(
         to_json_value(&content).unwrap(),
         json!({
-            "org.matrix.msc1767.text": "Voice message",
+            "org.matrix.msc1767.text": [
+                { "body": "Voice message" },
+            ],
             "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "voice_message.ogg",
@@ -78,7 +80,9 @@ fn event_serialization() {
 fn message_event_deserialization() {
     let json_data = json!({
         "content": {
-            "m.text": "Voice message",
+            "org.matrix.msc1767.text": [
+                { "body": "Voice message" },
+            ],
             "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "voice_message.ogg",
@@ -108,8 +112,8 @@ fn message_event_deserialization() {
     assert!(ev.unsigned.is_empty());
 
     let content = ev.content;
-    assert_eq!(content.message.find_plain(), Some("Voice message"));
-    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.text.find_plain(), Some("Voice message"));
+    assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     assert_eq!(content.audio.duration, Some(Duration::from_millis(5_300)));
     assert_matches!(content.audio.waveform, None);

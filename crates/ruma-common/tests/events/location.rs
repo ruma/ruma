@@ -7,7 +7,7 @@ use ruma_common::{
     event_id,
     events::{
         location::{AssetType, LocationContent, LocationEventContent, ZoomLevel, ZoomLevelError},
-        message::MessageContent,
+        message::TextContentBlock,
         relation::InReplyTo,
         room::message::Relation,
         AnyMessageLikeEvent, MessageLikeEvent,
@@ -28,7 +28,9 @@ fn plain_content_serialization() {
     assert_eq!(
         to_json_value(&event_content).unwrap(),
         json!({
-            "org.matrix.msc1767.text": "Alice was at geo:51.5008,0.1247;u=35",
+            "org.matrix.msc1767.text": [
+                { "body": "Alice was at geo:51.5008,0.1247;u=35" },
+            ],
             "m.location": {
                 "uri": "geo:51.5008,0.1247;u=35",
             },
@@ -39,8 +41,8 @@ fn plain_content_serialization() {
 #[test]
 fn event_serialization() {
     let content = assign!(
-        LocationEventContent::with_message(
-            MessageContent::html(
+        LocationEventContent::new(
+            TextContentBlock::html(
                 "Alice was at geo:51.5008,0.1247;u=35 as of Sat Nov 13 18:50:58 2021",
                 "Alice was at <strong>geo:51.5008,0.1247;u=35</strong> as of <em>Sat Nov 13 18:50:58 2021</em>",
             ),
@@ -63,8 +65,15 @@ fn event_serialization() {
     assert_eq!(
         to_json_value(&content).unwrap(),
         json!({
-            "org.matrix.msc1767.html": "Alice was at <strong>geo:51.5008,0.1247;u=35</strong> as of <em>Sat Nov 13 18:50:58 2021</em>",
-            "org.matrix.msc1767.text": "Alice was at geo:51.5008,0.1247;u=35 as of Sat Nov 13 18:50:58 2021",
+            "org.matrix.msc1767.text": [
+                {
+                    "mimetype": "text/html",
+                    "body": "Alice was at <strong>geo:51.5008,0.1247;u=35</strong> as of <em>Sat Nov 13 18:50:58 2021</em>"
+                },
+                {
+                    "body": "Alice was at geo:51.5008,0.1247;u=35 as of Sat Nov 13 18:50:58 2021"
+                },
+            ],
             "m.location": {
                 "uri": "geo:51.5008,0.1247;u=35",
                 "description": "Alice's whereabouts",
@@ -83,7 +92,9 @@ fn event_serialization() {
 #[test]
 fn plain_content_deserialization() {
     let json_data = json!({
-        "m.text": "Alice was at geo:51.5008,0.1247;u=35",
+        "org.matrix.msc1767.text": [
+            { "body": "Alice was at geo:51.5008,0.1247;u=35" },
+        ],
         "m.location": {
             "uri": "geo:51.5008,0.1247;u=35",
         },
@@ -91,8 +102,8 @@ fn plain_content_deserialization() {
 
     let ev = from_json_value::<LocationEventContent>(json_data).unwrap();
 
-    assert_eq!(ev.message.find_plain(), Some("Alice was at geo:51.5008,0.1247;u=35"));
-    assert_eq!(ev.message.find_html(), None);
+    assert_eq!(ev.text.find_plain(), Some("Alice was at geo:51.5008,0.1247;u=35"));
+    assert_eq!(ev.text.find_html(), None);
     assert_eq!(ev.location.uri, "geo:51.5008,0.1247;u=35");
     assert_eq!(ev.location.description, None);
     assert_matches!(ev.location.zoom_level, None);
@@ -132,7 +143,7 @@ fn zoomlevel_deserialization_too_high() {
 fn message_event_deserialization() {
     let json_data = json!({
         "content": {
-            "org.matrix.msc1767.message": [
+            "org.matrix.msc1767.text": [
                 { "body": "Alice was at geo:51.5008,0.1247;u=35 as of Sat Nov 13 18:50:58 2021" },
             ],
             "m.location": {
@@ -160,10 +171,10 @@ fn message_event_deserialization() {
         assert_matches!(ev, AnyMessageLikeEvent::Location(MessageLikeEvent::Original(ev)) => ev);
 
     assert_eq!(
-        ev.content.message.find_plain(),
+        ev.content.text.find_plain(),
         Some("Alice was at geo:51.5008,0.1247;u=35 as of Sat Nov 13 18:50:58 2021")
     );
-    assert_eq!(ev.content.message.find_html(), None);
+    assert_eq!(ev.content.text.find_html(), None);
     assert_eq!(ev.content.location.uri, "geo:51.5008,0.1247;u=35");
     assert_eq!(ev.content.location.description.as_deref(), Some("Alice's whereabouts"));
     assert_eq!(ev.content.location.zoom_level.unwrap().get(), uint!(4));

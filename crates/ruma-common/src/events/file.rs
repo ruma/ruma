@@ -9,15 +9,15 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    message::MessageContent,
+    message::TextContentBlock,
     room::{message::Relation, EncryptedFile, JsonWebKey},
 };
 use crate::{serde::Base64, OwnedMxcUri};
 
 /// The payload for an extensible file message.
 ///
-/// This is the new primary type introduced in [MSC3551] and should not be sent before the end of
-/// the transition period. See the documentation of the [`message`] module for more information.
+/// This is the new primary type introduced in [MSC3551] and should only be sent in rooms with a
+/// version that supports it. See the documentation of the [`message`] module for more information.
 ///
 /// [MSC3551]: https://github.com/matrix-org/matrix-spec-proposals/pull/3551
 /// [`message`]: super::message
@@ -26,8 +26,8 @@ use crate::{serde::Base64, OwnedMxcUri};
 #[ruma_event(type = "m.file", kind = MessageLike, without_relation)]
 pub struct FileEventContent {
     /// The text representation of the message.
-    #[serde(flatten)]
-    pub message: MessageContent,
+    #[serde(rename = "org.matrix.msc1767.text")]
+    pub text: TextContentBlock,
 
     /// The file content of the message.
     #[serde(rename = "m.file")]
@@ -43,54 +43,54 @@ pub struct FileEventContent {
 }
 
 impl FileEventContent {
-    /// Creates a new non-encrypted `FileEventContent` with the given plain text message, url and
-    /// file info.
+    /// Creates a new non-encrypted `FileEventContent` with the given fallback representation, url
+    /// and file info.
     pub fn plain(
-        message: impl Into<String>,
+        text: TextContentBlock,
+        url: OwnedMxcUri,
+        info: Option<Box<FileContentInfo>>,
+    ) -> Self {
+        Self { text, file: FileContent::plain(url, info), relates_to: None }
+    }
+
+    /// Creates a new non-encrypted `FileEventContent` with the given plain text fallback
+    /// representation, url and file info.
+    pub fn plain_with_text(
+        text: impl Into<String>,
         url: OwnedMxcUri,
         info: Option<Box<FileContentInfo>>,
     ) -> Self {
         Self {
-            message: MessageContent::plain(message),
+            text: TextContentBlock::plain(text),
             file: FileContent::plain(url, info),
             relates_to: None,
         }
     }
 
-    /// Creates a new non-encrypted `FileEventContent` with the given message, url and
-    /// file info.
-    pub fn plain_message(
-        message: MessageContent,
-        url: OwnedMxcUri,
-        info: Option<Box<FileContentInfo>>,
-    ) -> Self {
-        Self { message, file: FileContent::plain(url, info), relates_to: None }
-    }
-
-    /// Creates a new encrypted `FileEventContent` with the given plain text message, url,
+    /// Creates a new encrypted `FileEventContent` with the given fallback representation, url,
     /// encryption info and file info.
     pub fn encrypted(
-        message: impl Into<String>,
+        text: TextContentBlock,
+        url: OwnedMxcUri,
+        encryption_info: EncryptedContent,
+        info: Option<Box<FileContentInfo>>,
+    ) -> Self {
+        Self { text, file: FileContent::encrypted(url, encryption_info, info), relates_to: None }
+    }
+
+    /// Creates a new encrypted `FileEventContent` with the given plain text fallback
+    /// representation, url, encryption info and file info.
+    pub fn encrypted_with_text(
+        text: impl Into<String>,
         url: OwnedMxcUri,
         encryption_info: EncryptedContent,
         info: Option<Box<FileContentInfo>>,
     ) -> Self {
         Self {
-            message: MessageContent::plain(message),
+            text: TextContentBlock::plain(text),
             file: FileContent::encrypted(url, encryption_info, info),
             relates_to: None,
         }
-    }
-
-    /// Creates a new encrypted `FileEventContent` with the given message, url,
-    /// encryption info and file info.
-    pub fn encrypted_message(
-        message: MessageContent,
-        url: OwnedMxcUri,
-        encryption_info: EncryptedContent,
-        info: Option<Box<FileContentInfo>>,
-    ) -> Self {
-        Self { message, file: FileContent::encrypted(url, encryption_info, info), relates_to: None }
     }
 }
 

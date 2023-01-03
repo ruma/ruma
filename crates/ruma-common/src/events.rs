@@ -125,8 +125,10 @@ pub mod audio;
 pub mod call;
 pub mod direct;
 pub mod dummy;
-#[cfg(feature = "unstable-msc1767")]
+#[cfg(feature = "unstable-msc3954")]
 pub mod emote;
+#[cfg(feature = "unstable-msc3956")]
+pub mod encrypted;
 #[cfg(feature = "unstable-msc3551")]
 pub mod file;
 pub mod forwarded_room_key;
@@ -140,8 +142,6 @@ pub mod key;
 pub mod location;
 #[cfg(feature = "unstable-msc1767")]
 pub mod message;
-#[cfg(feature = "unstable-msc1767")]
-pub mod notice;
 #[cfg(feature = "unstable-pdu")]
 pub mod pdu;
 pub mod policy;

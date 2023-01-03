@@ -11,7 +11,7 @@ use ruma_common::{
             ImageContent, ImageEventContent, ThumbnailContent, ThumbnailFileContent,
             ThumbnailFileContentInfo,
         },
-        message::MessageContent,
+        message::TextContentBlock,
         relation::InReplyTo,
         room::{message::Relation, JsonWebKeyInit},
         AnyMessageLikeEvent, MessageLikeEvent,
@@ -32,7 +32,9 @@ fn plain_content_serialization() {
     assert_eq!(
         to_json_value(&event_content).unwrap(),
         json!({
-            "org.matrix.msc1767.text": "Upload: my_image.jpg",
+            "org.matrix.msc1767.text": [
+                { "body": "Upload: my_image.jpg" },
+            ],
             "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
             },
@@ -72,7 +74,9 @@ fn encrypted_content_serialization() {
     assert_eq!(
         to_json_value(&event_content).unwrap(),
         json!({
-            "org.matrix.msc1767.text": "Upload: my_image.jpg",
+            "org.matrix.msc1767.text": [
+                { "body": "Upload: my_image.jpg" },
+            ],
             "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "key": {
@@ -96,8 +100,8 @@ fn encrypted_content_serialization() {
 #[test]
 fn image_event_serialization() {
     let content = assign!(
-        ImageEventContent::with_message(
-            MessageContent::html(
+        ImageEventContent::new(
+            TextContentBlock::html(
                 "Upload: my_house.jpg",
                 "Upload: <strong>my_house.jpg</strong>",
             ),
@@ -125,7 +129,7 @@ fn image_event_serialization() {
                 ),
                 None
             )],
-            caption: Some(MessageContent::plain("This is my house")),
+            caption: TextContentBlock::plain("This is my house"),
             relates_to: Some(Relation::Reply {
                 in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
             }),
@@ -135,8 +139,10 @@ fn image_event_serialization() {
     assert_eq!(
         to_json_value(&content).unwrap(),
         json!({
-            "org.matrix.msc1767.html": "Upload: <strong>my_house.jpg</strong>",
-            "org.matrix.msc1767.text": "Upload: my_house.jpg",
+            "org.matrix.msc1767.text": [
+                { "mimetype": "text/html", "body": "Upload: <strong>my_house.jpg</strong>" },
+                { "body": "Upload: my_house.jpg" },
+            ],
             "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "my_house.jpg",
@@ -157,7 +163,6 @@ fn image_event_serialization() {
             "m.caption": [
                 {
                     "body": "This is my house",
-                    "mimetype": "text/plain",
                 }
             ],
             "m.relates_to": {
@@ -172,7 +177,9 @@ fn image_event_serialization() {
 #[test]
 fn plain_content_deserialization() {
     let json_data = json!({
-        "m.text": "Upload: my_cat.png",
+        "org.matrix.msc1767.text": [
+            { "body": "Upload: my_cat.png" },
+        ],
         "m.file": {
             "url": "mxc://notareal.hs/abcdef",
         },
@@ -187,21 +194,23 @@ fn plain_content_deserialization() {
     });
 
     let content = from_json_value::<ImageEventContent>(json_data).unwrap();
-    assert_eq!(content.message.find_plain(), Some("Upload: my_cat.png"));
-    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.text.find_plain(), Some("Upload: my_cat.png"));
+    assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     assert_matches!(content.file.encryption_info, None);
     assert_eq!(content.image.width, Some(uint!(668)));
     assert_eq!(content.image.height, None);
     assert_eq!(content.thumbnail.len(), 0);
-    let caption = content.caption.unwrap();
-    assert_eq!(caption.find_plain(), Some("Look at my cat!"));
+    assert_eq!(content.caption.len(), 1);
+    assert_eq!(content.caption.find_plain(), Some("Look at my cat!"));
 }
 
 #[test]
 fn encrypted_content_deserialization() {
     let json_data = json!({
-        "org.matrix.msc1767.text": "Upload: my_cat.png",
+        "org.matrix.msc1767.text": [
+            { "body": "Upload: my_cat.png" },
+        ],
         "m.file": {
             "url": "mxc://notareal.hs/abcdef",
             "key": {
@@ -226,22 +235,24 @@ fn encrypted_content_deserialization() {
     });
 
     let content = from_json_value::<ImageEventContent>(json_data).unwrap();
-    assert_eq!(content.message.find_plain(), Some("Upload: my_cat.png"));
-    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.text.find_plain(), Some("Upload: my_cat.png"));
+    assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     assert!(content.file.encryption_info.is_some());
     assert_eq!(content.image.width, None);
     assert_eq!(content.image.height, None);
     assert_eq!(content.thumbnail.len(), 1);
     assert_eq!(content.thumbnail[0].file.url, "mxc://notareal.hs/thumbnail");
-    assert_matches!(content.caption, None);
+    assert!(content.caption.is_empty());
 }
 
 #[test]
 fn message_event_deserialization() {
     let json_data = json!({
         "content": {
-            "org.matrix.msc1767.text": "Upload: my_gnome.webp",
+            "org.matrix.msc1767.text": [
+                { "body": "Upload: my_gnome.webp" },
+            ],
             "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "my_gnome.webp",
@@ -271,8 +282,8 @@ fn message_event_deserialization() {
     assert_eq!(message_event.sender, "@user:notareal.hs");
     assert!(message_event.unsigned.is_empty());
     let content = message_event.content;
-    assert_eq!(content.message.find_plain(), Some("Upload: my_gnome.webp"));
-    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.text.find_plain(), Some("Upload: my_gnome.webp"));
+    assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     let info = content.file.info.unwrap();
     assert_eq!(info.name.as_deref(), Some("my_gnome.webp"));

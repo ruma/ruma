@@ -13,12 +13,12 @@ mod waveform_serde;
 
 use waveform_serde::WaveformSerDeHelper;
 
-use super::{file::FileContent, message::MessageContent, room::message::Relation};
+use super::{file::FileContent, message::TextContentBlock, room::message::Relation};
 
 /// The payload for an extensible audio message.
 ///
-/// This is the new primary type introduced in [MSC3246] and should not be sent before the end of
-/// the transition period. See the documentation of the [`message`] module for more information.
+/// This is the new primary type introduced in [MSC3246] and should only be sent in rooms with a
+/// version that supports it. See the documentation of the [`message`] module for more information.
 ///
 /// [MSC3246]: https://github.com/matrix-org/matrix-spec-proposals/pull/3246
 /// [`message`]: super::message
@@ -26,9 +26,9 @@ use super::{file::FileContent, message::MessageContent, room::message::Relation}
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.audio", kind = MessageLike, without_relation)]
 pub struct AudioEventContent {
-    /// The text representation of the message.
-    #[serde(flatten)]
-    pub message: MessageContent,
+    /// The text representations of the message.
+    #[serde(rename = "org.matrix.msc1767.text")]
+    pub text: TextContentBlock,
 
     /// The file content of the message.
     #[serde(rename = "m.file")]
@@ -48,19 +48,20 @@ pub struct AudioEventContent {
 }
 
 impl AudioEventContent {
-    /// Creates a new `AudioEventContent` with the given plain text message and file.
-    pub fn plain(message: impl Into<String>, file: FileContent) -> Self {
+    /// Creates a new `AudioEventContent` with the given text fallback and file.
+    pub fn new(text: TextContentBlock, file: FileContent) -> Self {
+        Self { text, file, audio: Default::default(), relates_to: None }
+    }
+
+    /// Creates a new `AudioEventContent` with the given plain text fallback representation and
+    /// file.
+    pub fn plain(text_fallback: impl Into<String>, file: FileContent) -> Self {
         Self {
-            message: MessageContent::plain(message),
+            text: TextContentBlock::plain(text_fallback),
             file,
             audio: Default::default(),
             relates_to: None,
         }
-    }
-
-    /// Creates a new `AudioEventContent` with the given message and file.
-    pub fn with_message(message: MessageContent, file: FileContent) -> Self {
-        Self { message, file, audio: Default::default(), relates_to: None }
     }
 }
 
