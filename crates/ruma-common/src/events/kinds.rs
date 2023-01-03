@@ -471,7 +471,7 @@ pub struct DecryptedMegolmV1Event<C: MessageLikeEventContent> {
 /// A non-redacted content also contains the `prev_content` from the unsigned event data.
 #[allow(clippy::exhaustive_enums)]
 #[derive(Clone, Debug)]
-pub enum FullStateEventContent<C: StateEventContent + RedactContent>
+pub enum FullStateEventContent<C: OriginalStateEventContent>
 where
     C::Redacted: RedactedStateEventContent,
 {
@@ -481,14 +481,14 @@ where
         content: C,
 
         /// Previous content of the room state.
-        prev_content: Option<C>,
+        prev_content: Option<C::PossiblyRedacted>,
     },
 
     /// Redacted content of the event.
     Redacted(C::Redacted),
 }
 
-impl<C: StateEventContent + RedactContent> FullStateEventContent<C>
+impl<C: OriginalStateEventContent> FullStateEventContent<C>
 where
     C::Redacted: RedactedStateEventContent,
 {

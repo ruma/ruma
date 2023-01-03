@@ -72,6 +72,7 @@ impl StateEventContent for CustomStateEventContent {
 }
 impl OriginalStateEventContent for CustomStateEventContent {
     type Unsigned = StateUnsigned<Self>;
+    type PossiblyRedacted = Self;
 }
 impl RedactedStateEventContent for CustomStateEventContent {}
 

@@ -53,6 +53,7 @@ pub use self::change::{Change, MembershipChange, MembershipDetails};
     state_key_type = OwnedUserId,
     unsigned_type = RoomMemberUnsigned,
     custom_redacted,
+    custom_possibly_redacted,
 )]
 pub struct RoomMemberEventContent {
     /// The avatar URL for this user, if any.
@@ -178,6 +179,11 @@ impl RedactContent for RoomMemberEventContent {
         }
     }
 }
+
+/// The possibly redacted form of [`RoomMemberEventContent`].
+///
+/// This type is used when it's not obvious whether the content is redacted or not.
+pub type PossiblyRedactedRoomMemberEventContent = RoomMemberEventContent;
 
 /// A member event that has been redacted.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -509,7 +515,7 @@ pub struct RoomMemberUnsigned {
     pub transaction_id: Option<OwnedTransactionId>,
 
     /// Optional previous content of the event.
-    pub prev_content: Option<RoomMemberEventContent>,
+    pub prev_content: Option<PossiblyRedactedRoomMemberEventContent>,
 
     /// State events to assist the receiver in identifying the room.
     #[serde(default)]

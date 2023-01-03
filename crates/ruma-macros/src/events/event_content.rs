@@ -7,8 +7,9 @@ use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
+    parse_quote,
     punctuated::Punctuated,
-    DeriveInput, Field, Ident, LitStr, Token, Type,
+    DeriveInput, Field, Ident, LitStr, Meta, NestedMeta, Token, Type,
 };
 
 use crate::util::m_prefix_name_to_type_name;
@@ -20,6 +21,8 @@ mod kw {
     syn::custom_keyword!(skip_redaction);
     // Do not emit any redacted event code.
     syn::custom_keyword!(custom_redacted);
+    // Do not emit any possibly redacted event code.
+    syn::custom_keyword!(custom_possibly_redacted);
     // The kind of event content this is.
     syn::custom_keyword!(kind);
     syn::custom_keyword!(type_fragment);
@@ -66,6 +69,7 @@ struct ContentMeta {
     event_type: Option<LitStr>,
     event_kind: Option<EventKind>,
     custom_redacted: Option<kw::custom_redacted>,
+    custom_possibly_redacted: Option<kw::custom_possibly_redacted>,
     state_key_type: Option<Box<Type>>,
     unsigned_type: Option<Box<Type>>,
     aliases: Vec<LitStr>,
@@ -101,6 +105,10 @@ impl ContentMeta {
             event_type: either_spanned(self.event_type, other.event_type)?,
             event_kind: either_named("event_kind", self.event_kind, other.event_kind)?,
             custom_redacted: either_spanned(self.custom_redacted, other.custom_redacted)?,
+            custom_possibly_redacted: either_spanned(
+                self.custom_possibly_redacted,
+                other.custom_possibly_redacted,
+            )?,
             state_key_type: either_spanned(self.state_key_type, other.state_key_type)?,
             unsigned_type: either_spanned(self.unsigned_type, other.unsigned_type)?,
             aliases: [self.aliases, other.aliases].concat(),
@@ -128,6 +136,13 @@ impl Parse for ContentMeta {
             let custom_redacted: kw::custom_redacted = input.parse()?;
 
             Ok(Self { custom_redacted: Some(custom_redacted), ..Default::default() })
+        } else if lookahead.peek(kw::custom_possibly_redacted) {
+            let custom_possibly_redacted: kw::custom_possibly_redacted = input.parse()?;
+
+            Ok(Self {
+                custom_possibly_redacted: Some(custom_possibly_redacted),
+                ..Default::default()
+            })
         } else if lookahead.peek(kw::state_key_type) {
             let _: kw::state_key_type = input.parse()?;
             let _: Token![=] = input.parse()?;
@@ -162,7 +177,8 @@ struct ContentAttrs {
     state_key_type: Option<TokenStream>,
     unsigned_type: Option<TokenStream>,
     aliases: Vec<LitStr>,
-    is_custom: bool,
+    is_custom_redacted: bool,
+    is_custom_possibly_redacted: bool,
     has_without_relation: bool,
 }
 
@@ -174,6 +190,7 @@ impl TryFrom<ContentMeta> for ContentAttrs {
             event_type,
             event_kind,
             custom_redacted,
+            custom_possibly_redacted,
             state_key_type,
             unsigned_type,
             aliases,
@@ -206,7 +223,8 @@ impl TryFrom<ContentMeta> for ContentAttrs {
             }
         };
 
-        let is_custom = custom_redacted.is_some();
+        let is_custom_redacted = custom_redacted.is_some();
+        let is_custom_possibly_redacted = custom_possibly_redacted.is_some();
 
         let unsigned_type = unsigned_type.map(|ty| quote! { #ty });
 
@@ -244,7 +262,8 @@ impl TryFrom<ContentMeta> for ContentAttrs {
             state_key_type,
             unsigned_type,
             aliases,
-            is_custom,
+            is_custom_redacted,
+            is_custom_possibly_redacted,
             has_without_relation,
         })
     }
@@ -272,7 +291,8 @@ pub fn expand_event_content(
         state_key_type,
         unsigned_type,
         aliases,
-        is_custom,
+        is_custom_redacted,
+        is_custom_possibly_redacted,
         has_without_relation,
     } = content_meta.try_into()?;
 
@@ -288,7 +308,7 @@ pub fn expand_event_content(
     };
 
     // We only generate redacted content structs for state and message-like events
-    let redacted_event_content = needs_redacted(is_custom, event_kind).then(|| {
+    let redacted_event_content = needs_redacted(is_custom_redacted, event_kind).then(|| {
         generate_redacted_event_content(
             ident,
             fields.clone(),
@@ -301,6 +321,22 @@ pub fn expand_event_content(
         )
         .unwrap_or_else(syn::Error::into_compile_error)
     });
+
+    // We only generate possibly redacted content structs for state events.
+    let possibly_redacted_event_content =
+        needs_possibly_redacted(is_custom_possibly_redacted, event_kind).then(|| {
+            generate_possibly_redacted_event_content(
+                ident,
+                fields.clone(),
+                &event_type,
+                event_kind,
+                state_key_type.as_ref(),
+                unsigned_type.clone(),
+                &aliases,
+                ruma_common,
+            )
+            .unwrap_or_else(syn::Error::into_compile_error)
+        });
 
     let event_content_without_relation = has_without_relation.then(|| {
         generate_event_content_without_relation(ident, fields.clone(), ruma_common)
@@ -328,6 +364,7 @@ pub fn expand_event_content(
 
     Ok(quote! {
         #redacted_event_content
+        #possibly_redacted_event_content
         #event_content_without_relation
         #event_content_impl
         #static_event_content_impl
@@ -450,6 +487,157 @@ fn generate_redacted_event_content<'a>(
 
         #static_event_content_impl
     })
+}
+
+fn generate_possibly_redacted_event_content<'a>(
+    ident: &Ident,
+    fields: impl Iterator<Item = &'a Field>,
+    event_type: &LitStr,
+    event_kind: Option<EventKind>,
+    state_key_type: Option<&TokenStream>,
+    unsigned_type: Option<TokenStream>,
+    aliases: &[LitStr],
+    ruma_common: &TokenStream,
+) -> syn::Result<TokenStream> {
+    assert!(
+        !event_type.value().contains('*'),
+        "Event type shouldn't contain a `*`, this should have been checked previously"
+    );
+
+    let serde = quote! { #ruma_common::exports::serde };
+
+    let doc = format!(
+        "The possibly redacted form of [`{ident}`].\n\n\
+        This type is used when it's not obvious whether the content is redacted or not."
+    );
+    let possibly_redacted_ident = format_ident!("PossiblyRedacted{ident}");
+
+    let mut field_changed = false;
+    let possibly_redacted_fields: Vec<_> = fields
+        .map(|f| {
+            let mut keep_field = false;
+            let mut unsupported_serde_attribute = None;
+
+            if let Type::Path(type_path) = &f.ty {
+                if type_path.path.segments.first().filter(|s| s.ident == "Option").is_some() {
+                    // Keep the field if it's an `Option`.
+                    keep_field = true;
+                }
+            }
+
+            let mut attrs = f
+                .attrs
+                .iter()
+                .map(|a| -> syn::Result<_> {
+                    if a.path.is_ident("ruma_event") {
+                        // Keep the field if it is not redacted.
+                        if let EventFieldMeta::SkipRedaction = a.parse_args()? {
+                            keep_field = true;
+                        }
+
+                        // Don't re-emit our `ruma_event` attributes.
+                        Ok(None)
+                    } else {
+                        if a.path.is_ident("serde") {
+                            let serde_meta = a.parse_meta()?;
+
+                            if let Meta::List(list) = serde_meta {
+                                for meta in list.nested.iter().filter_map(|nested_meta| match nested_meta {
+                                    NestedMeta::Meta(meta) => Some(meta),
+                                    NestedMeta::Lit(_) => None,
+                                }) {
+                                    if meta.path().is_ident("default") {
+                                        // Keep the field if it deserializes to its default value.
+                                        keep_field = true;
+                                    } else if !meta.path().is_ident("rename") && !meta.path().is_ident("alias") && unsupported_serde_attribute.is_none() {
+                                        // Error if the field is not kept and uses an unsupported serde attribute.
+                                        unsupported_serde_attribute = Some(
+                                            syn::Error::new_spanned(
+                                                meta,
+                                                 "Can't generate PossiblyRedacted struct with unsupported serde attribute\n\
+                                                 Expected one of `default`, `rename` or `alias`\n\
+                                                 Use the `custom_possibly_redacted` attribute and create the struct manually"
+                                            )
+                                        );
+                                    }
+                                }
+                            }
+                        }
+
+                        Ok(Some(a.clone()))
+                    }
+                })
+                .filter_map(Result::transpose)
+                .collect::<syn::Result<_>>()?;
+
+            if keep_field {
+                Ok(Field { attrs, ..f.clone() })
+            } else if let Some(err) = unsupported_serde_attribute {
+                Err(err)
+            } else if f.ident.is_none() {
+                // If the field has no `ident`, it's a tuple struct. Since `content` is an object,
+                // it will need a custom struct to deserialize from an empty object.
+                Err(syn::Error::new(
+                    Span::call_site(),
+                    "Can't generate PossiblyRedacted struct for tuple structs\n\
+                    Use the `custom_possibly_redacted` attribute and create the struct manually",
+                ))
+            } else {
+                // Change the field to an `Option`.
+                field_changed = true;
+
+                let old_type = &f.ty;
+                let ty = parse_quote!{ Option<#old_type> };
+                attrs.push(parse_quote! { #[serde(skip_serializing_if = "Option::is_none")] });
+
+                Ok(Field { attrs, ty, ..f.clone() })
+            }
+        })
+        .collect::<syn::Result<_>>()?;
+
+    // If at least one field needs to change, generate a new struct, else use a type alias.
+    if field_changed {
+        let possibly_redacted_event_content = generate_event_content_impl(
+            &possibly_redacted_ident,
+            possibly_redacted_fields.iter(),
+            event_type,
+            event_kind,
+            state_key_type,
+            unsigned_type,
+            aliases,
+            ruma_common,
+            false,
+        )
+        .unwrap_or_else(syn::Error::into_compile_error);
+
+        let static_event_content_impl = event_kind.map(|kind| {
+            generate_static_event_content_impl(
+                &possibly_redacted_ident,
+                kind,
+                true,
+                event_type,
+                ruma_common,
+            )
+        });
+
+        Ok(quote! {
+            #[doc = #doc]
+            #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
+            #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+            pub struct #possibly_redacted_ident {
+                #( #possibly_redacted_fields, )*
+            }
+
+            #possibly_redacted_event_content
+
+            #static_event_content_impl
+        })
+    } else {
+        Ok(quote! {
+            #[doc = #doc]
+            pub type #possibly_redacted_ident = #ident;
+        })
+    }
 }
 
 fn generate_event_content_without_relation<'a>(
@@ -679,14 +867,17 @@ fn generate_event_content_impl<'a>(
         let original_state_event_content_impl =
             (event_kind == Some(EventKind::State) && is_original).then(|| {
                 let trait_name = format_ident!("Original{kind}Content");
+                let possibly_redacted_ident = format_ident!("PossiblyRedacted{ident}");
 
-                let unsigned_type = unsigned_type
-                    .unwrap_or_else(|| quote! { #ruma_common::events::StateUnsigned<Self> });
+                let unsigned_type = unsigned_type.unwrap_or_else(
+                    || quote! { #ruma_common::events::StateUnsigned<Self::PossiblyRedacted> },
+                );
 
                 quote! {
                     #[automatically_derived]
                     impl #ruma_common::events::#trait_name for #ident {
                         type Unsigned = #unsigned_type;
+                        type PossiblyRedacted = #possibly_redacted_ident;
                     }
                 }
             });
@@ -797,9 +988,20 @@ fn generate_static_event_content_impl(
     }
 }
 
-fn needs_redacted(is_custom: bool, event_kind: Option<EventKind>) -> bool {
+fn needs_redacted(is_custom_redacted: bool, event_kind: Option<EventKind>) -> bool {
     // `is_custom` means that the content struct does not need a generated
     // redacted struct also. If no `custom_redacted` attrs are found the content
     // needs a redacted struct generated.
-    !is_custom && matches!(event_kind, Some(EventKind::MessageLike) | Some(EventKind::State))
+    !is_custom_redacted
+        && matches!(event_kind, Some(EventKind::MessageLike) | Some(EventKind::State))
+}
+
+fn needs_possibly_redacted(
+    is_custom_possibly_redacted: bool,
+    event_kind: Option<EventKind>,
+) -> bool {
+    // `is_custom_possibly_redacted` means that the content struct does not need
+    // a generated possibly redacted struct also. If no `custom_possibly_redacted`
+    // attrs are found the content needs a possibly redacted struct generated.
+    !is_custom_possibly_redacted && event_kind == Some(EventKind::State)
 }
