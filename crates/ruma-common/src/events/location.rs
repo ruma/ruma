@@ -8,13 +8,14 @@ use serde::{Deserialize, Serialize};
 
 mod zoomlevel_serde;
 
-use super::{message::MessageContent, room::message::Relation};
+use super::{message::TextContentBlock, room::message::Relation};
 use crate::{MilliSecondsSinceUnixEpoch, PrivOwnedStr};
 
 /// The payload for an extensible location message.
 ///
-/// This is the new primary type introduced in [MSC3488] and should not be sent before the end of
-/// the transition period. See the documentation of the [`message`] module for more information.
+/// This is the new primary type introduced in [MSC3488] and can be sent in rooms with a version
+/// that doesn't support extensible events. See the documentation of the [`message`] module for more
+/// information.
 ///
 /// [MSC3488]: https://github.com/matrix-org/matrix-spec-proposals/pull/3488
 /// [`message`]: super::message
@@ -23,8 +24,8 @@ use crate::{MilliSecondsSinceUnixEpoch, PrivOwnedStr};
 #[ruma_event(type = "m.location", kind = MessageLike, without_relation)]
 pub struct LocationEventContent {
     /// The text representation of the message.
-    #[serde(flatten)]
-    pub message: MessageContent,
+    #[serde(rename = "org.matrix.msc1767.text")]
+    pub text: TextContentBlock,
 
     /// The location info of the message.
     #[serde(rename = "m.location")]
@@ -48,20 +49,21 @@ pub struct LocationEventContent {
 }
 
 impl LocationEventContent {
-    /// Creates a new `LocationEventContent` with the given plain text representation and location.
-    pub fn plain(message: impl Into<String>, location: LocationContent) -> Self {
+    /// Creates a new `LocationEventContent` with the given fallback representation and location.
+    pub fn new(text: TextContentBlock, location: LocationContent) -> Self {
+        Self { text, location, asset: Default::default(), ts: None, relates_to: None }
+    }
+
+    /// Creates a new `LocationEventContent` with the given plain text fallback representation and
+    /// location.
+    pub fn plain(text: impl Into<String>, location: LocationContent) -> Self {
         Self {
-            message: MessageContent::plain(message),
+            text: TextContentBlock::plain(text),
             location,
             asset: Default::default(),
             ts: None,
             relates_to: None,
         }
-    }
-
-    /// Creates a new `LocationEventContent` with the given text representation and location.
-    pub fn with_message(message: MessageContent, location: LocationContent) -> Self {
-        Self { message, location, asset: Default::default(), ts: None, relates_to: None }
     }
 }
 

@@ -6,7 +6,7 @@ use js_int::uint;
 use ruma_common::{
     event_id,
     events::{
-        message::MessageContent,
+        message::TextContentBlock,
         poll::{
             end::{PollEndContent, PollEndEventContent},
             response::{PollResponseContent, PollResponseEventContent},
@@ -24,8 +24,8 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 #[test]
 fn poll_answers_deserialization_valid() {
     let json_data = json!([
-        { "id": "aaa", "m.text": "First answer" },
-        { "id": "bbb", "m.text": "Second answer" },
+        { "id": "aaa", "org.matrix.msc1767.text": [{ "body": "First answer" }] },
+        { "id": "bbb", "org.matrix.msc1767.text": [{ "body": "Second answer" }] },
     ]);
 
     let answers = from_json_value::<PollAnswers>(json_data).unwrap();
@@ -35,28 +35,28 @@ fn poll_answers_deserialization_valid() {
 #[test]
 fn poll_answers_deserialization_truncate() {
     let json_data = json!([
-        { "id": "aaa", "m.text": "1st answer" },
-        { "id": "bbb", "m.text": "2nd answer" },
-        { "id": "ccc", "m.text": "3rd answer" },
-        { "id": "ddd", "m.text": "4th answer" },
-        { "id": "eee", "m.text": "5th answer" },
-        { "id": "fff", "m.text": "6th answer" },
-        { "id": "ggg", "m.text": "7th answer" },
-        { "id": "hhh", "m.text": "8th answer" },
-        { "id": "iii", "m.text": "9th answer" },
-        { "id": "jjj", "m.text": "10th answer" },
-        { "id": "kkk", "m.text": "11th answer" },
-        { "id": "lll", "m.text": "12th answer" },
-        { "id": "mmm", "m.text": "13th answer" },
-        { "id": "nnn", "m.text": "14th answer" },
-        { "id": "ooo", "m.text": "15th answer" },
-        { "id": "ppp", "m.text": "16th answer" },
-        { "id": "qqq", "m.text": "17th answer" },
-        { "id": "rrr", "m.text": "18th answer" },
-        { "id": "sss", "m.text": "19th answer" },
-        { "id": "ttt", "m.text": "20th answer" },
-        { "id": "uuu", "m.text": "21th answer" },
-        { "id": "vvv", "m.text": "22th answer" },
+        { "id": "aaa", "org.matrix.msc1767.text": [{ "body": "1st answer" }] },
+        { "id": "bbb", "org.matrix.msc1767.text": [{ "body": "2nd answer" }] },
+        { "id": "ccc", "org.matrix.msc1767.text": [{ "body": "3rd answer" }] },
+        { "id": "ddd", "org.matrix.msc1767.text": [{ "body": "4th answer" }] },
+        { "id": "eee", "org.matrix.msc1767.text": [{ "body": "5th answer" }] },
+        { "id": "fff", "org.matrix.msc1767.text": [{ "body": "6th answer" }] },
+        { "id": "ggg", "org.matrix.msc1767.text": [{ "body": "7th answer" }] },
+        { "id": "hhh", "org.matrix.msc1767.text": [{ "body": "8th answer" }] },
+        { "id": "iii", "org.matrix.msc1767.text": [{ "body": "9th answer" }] },
+        { "id": "jjj", "org.matrix.msc1767.text": [{ "body": "10th answer" }] },
+        { "id": "kkk", "org.matrix.msc1767.text": [{ "body": "11th answer" }] },
+        { "id": "lll", "org.matrix.msc1767.text": [{ "body": "12th answer" }] },
+        { "id": "mmm", "org.matrix.msc1767.text": [{ "body": "13th answer" }] },
+        { "id": "nnn", "org.matrix.msc1767.text": [{ "body": "14th answer" }] },
+        { "id": "ooo", "org.matrix.msc1767.text": [{ "body": "15th answer" }] },
+        { "id": "ppp", "org.matrix.msc1767.text": [{ "body": "16th answer" }] },
+        { "id": "qqq", "org.matrix.msc1767.text": [{ "body": "17th answer" }] },
+        { "id": "rrr", "org.matrix.msc1767.text": [{ "body": "18th answer" }] },
+        { "id": "sss", "org.matrix.msc1767.text": [{ "body": "19th answer" }] },
+        { "id": "ttt", "org.matrix.msc1767.text": [{ "body": "20th answer" }] },
+        { "id": "uuu", "org.matrix.msc1767.text": [{ "body": "21th answer" }] },
+        { "id": "vvv", "org.matrix.msc1767.text": [{ "body": "22th answer" }] },
     ]);
 
     let answers = from_json_value::<PollAnswers>(json_data).unwrap();
@@ -75,12 +75,12 @@ fn poll_answers_deserialization_not_enough() {
 #[test]
 fn start_content_serialization() {
     let event_content = PollStartEventContent::new(PollStartContent::new(
-        MessageContent::plain("How's the weather?"),
+        TextContentBlock::plain("How's the weather?"),
         PollKind::Undisclosed,
         vec![
-            PollAnswer::new("not-bad".to_owned(), MessageContent::plain("Not bad…")),
-            PollAnswer::new("fine".to_owned(), MessageContent::plain("Fine.")),
-            PollAnswer::new("amazing".to_owned(), MessageContent::plain("Amazing!")),
+            PollAnswer::new("not-bad".to_owned(), TextContentBlock::plain("Not bad…")),
+            PollAnswer::new("fine".to_owned(), TextContentBlock::plain("Fine.")),
+            PollAnswer::new("amazing".to_owned(), TextContentBlock::plain("Amazing!")),
         ]
         .try_into()
         .unwrap(),
@@ -90,12 +90,12 @@ fn start_content_serialization() {
         to_json_value(&event_content).unwrap(),
         json!({
             "org.matrix.msc3381.poll.start": {
-                "question": { "org.matrix.msc1767.text": "How's the weather?" },
+                "question": { "org.matrix.msc1767.text": [{ "body": "How's the weather?" }] },
                 "kind": "org.matrix.msc3381.poll.undisclosed",
                 "answers": [
-                    { "id": "not-bad", "org.matrix.msc1767.text": "Not bad…"},
-                    { "id": "fine", "org.matrix.msc1767.text": "Fine."},
-                    { "id": "amazing", "org.matrix.msc1767.text": "Amazing!"},
+                    { "id": "not-bad", "org.matrix.msc1767.text": [{ "body": "Not bad…" }] },
+                    { "id": "fine", "org.matrix.msc1767.text": [{ "body": "Fine." }] },
+                    { "id": "amazing", "org.matrix.msc1767.text": [{ "body": "Amazing!" }] },
                 ],
             },
         })
@@ -106,12 +106,12 @@ fn start_content_serialization() {
 fn start_event_serialization() {
     let content = PollStartEventContent::new(assign!(
         PollStartContent::new(
-            MessageContent::plain("How's the weather?"),
+            TextContentBlock::plain("How's the weather?"),
             PollKind::Disclosed,
             vec![
-                PollAnswer::new("not-bad".to_owned(), MessageContent::plain("Not bad…")),
-                PollAnswer::new("fine".to_owned(), MessageContent::plain("Fine.")),
-                PollAnswer::new("amazing".to_owned(), MessageContent::plain("Amazing!")),
+                PollAnswer::new("not-bad".to_owned(), TextContentBlock::plain("Not bad…")),
+                PollAnswer::new("fine".to_owned(), TextContentBlock::plain("Fine.")),
+                PollAnswer::new("amazing".to_owned(), TextContentBlock::plain("Amazing!")),
             ]
             .try_into()
             .unwrap(),
@@ -123,13 +123,13 @@ fn start_event_serialization() {
         to_json_value(&content).unwrap(),
         json!({
             "org.matrix.msc3381.poll.start": {
-                "question": { "org.matrix.msc1767.text": "How's the weather?" },
+                "question": { "org.matrix.msc1767.text": [{ "body": "How's the weather?" }] },
                 "kind": "org.matrix.msc3381.poll.disclosed",
                 "max_selections": 2,
                 "answers": [
-                    { "id": "not-bad", "org.matrix.msc1767.text": "Not bad…"},
-                    { "id": "fine", "org.matrix.msc1767.text": "Fine."},
-                    { "id": "amazing", "org.matrix.msc1767.text": "Amazing!"},
+                    { "id": "not-bad", "org.matrix.msc1767.text": [{ "body": "Not bad…" }] },
+                    { "id": "fine", "org.matrix.msc1767.text": [{ "body": "Fine." }] },
+                    { "id": "amazing", "org.matrix.msc1767.text": [{ "body": "Amazing!" }] },
                 ]
             },
         })
@@ -137,17 +137,17 @@ fn start_event_serialization() {
 }
 
 #[test]
-fn start_event_unstable_deserialization() {
+fn start_event_deserialization() {
     let json_data = json!({
         "content": {
             "org.matrix.msc3381.poll.start": {
-                "question": { "org.matrix.msc1767.text": "How's the weather?" },
+                "question": { "org.matrix.msc1767.text": [{ "body": "How's the weather?" }] },
                 "kind": "org.matrix.msc3381.poll.undisclosed",
                 "max_selections": 2,
                 "answers": [
-                    { "id": "not-bad", "org.matrix.msc1767.text": "Not bad…"},
-                    { "id": "fine", "org.matrix.msc1767.text": "Fine."},
-                    { "id": "amazing", "org.matrix.msc1767.text": "Amazing!"},
+                    { "id": "not-bad", "org.matrix.msc1767.text": [{ "body": "Not bad…" }] },
+                    { "id": "fine", "org.matrix.msc1767.text": [{ "body": "Fine." }] },
+                    { "id": "amazing", "org.matrix.msc1767.text": [{ "body": "Amazing!" }] },
                 ]
             },
         },
@@ -164,57 +164,17 @@ fn start_event_unstable_deserialization() {
         AnyMessageLikeEvent::PollStart(MessageLikeEvent::Original(message_event)) => message_event
     );
     let poll_start = message_event.content.poll_start;
-    assert_eq!(poll_start.question[0].body, "How's the weather?");
+    assert_eq!(poll_start.question.text[0].body, "How's the weather?");
     assert_eq!(poll_start.kind, PollKind::Undisclosed);
     assert_eq!(poll_start.max_selections, uint!(2));
     let answers = poll_start.answers.answers();
     assert_eq!(answers.len(), 3);
     assert_eq!(answers[0].id, "not-bad");
-    assert_eq!(answers[0].answer[0].body, "Not bad…");
+    assert_eq!(answers[0].text[0].body, "Not bad…");
     assert_eq!(answers[1].id, "fine");
-    assert_eq!(answers[1].answer[0].body, "Fine.");
+    assert_eq!(answers[1].text[0].body, "Fine.");
     assert_eq!(answers[2].id, "amazing");
-    assert_eq!(answers[2].answer[0].body, "Amazing!");
-}
-
-#[test]
-fn start_event_stable_deserialization() {
-    let json_data = json!({
-        "content": {
-            "m.poll.start": {
-                "question": { "m.text": "How's the weather?" },
-                "kind": "m.poll.disclosed",
-                "answers": [
-                    { "id": "not-bad", "m.text": "Not bad…"},
-                    { "id": "fine", "m.text": "Fine."},
-                    { "id": "amazing", "m.text": "Amazing!"},
-                ]
-            },
-        },
-        "event_id": "$event:notareal.hs",
-        "origin_server_ts": 134_829_848,
-        "room_id": "!roomid:notareal.hs",
-        "sender": "@user:notareal.hs",
-        "type": "m.poll.start",
-    });
-
-    let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    let message_event = assert_matches!(
-        event,
-        AnyMessageLikeEvent::PollStart(MessageLikeEvent::Original(message_event)) => message_event
-    );
-    let poll_start = message_event.content.poll_start;
-    assert_eq!(poll_start.question[0].body, "How's the weather?");
-    assert_eq!(poll_start.kind, PollKind::Disclosed);
-    assert_eq!(poll_start.max_selections, uint!(1));
-    let answers = poll_start.answers.answers();
-    assert_eq!(answers.len(), 3);
-    assert_eq!(answers[0].id, "not-bad");
-    assert_eq!(answers[0].answer[0].body, "Not bad…");
-    assert_eq!(answers[1].id, "fine");
-    assert_eq!(answers[1].answer[0].body, "Fine.");
-    assert_eq!(answers[2].id, "amazing");
-    assert_eq!(answers[2].answer[0].body, "Amazing!");
+    assert_eq!(answers[2].text[0].body, "Amazing!");
 }
 
 #[test]

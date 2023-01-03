@@ -117,6 +117,8 @@ unstable-extensible-events = [
     "unstable-msc3246",
     "unstable-msc3488",
     "unstable-msc3553",
+    "unstable-msc3954",
+    "unstable-msc3955",
 ]
 unstable-msc1767 = ["ruma-common/unstable-msc1767"]
 unstable-msc2246 = ["ruma-client-api?/unstable-msc2246"]
@@ -153,6 +155,9 @@ unstable-msc3618 = ["ruma-federation-api?/unstable-msc3618"]
 unstable-msc3723 = ["ruma-federation-api?/unstable-msc3723"]
 unstable-msc3931 = ["ruma-common/unstable-msc3931"]
 unstable-msc3932 = ["ruma-common/unstable-msc3932"]
+unstable-msc3954 = ["ruma-common/unstable-msc3954"]
+unstable-msc3955 = ["ruma-common/unstable-msc3955"]
+unstable-msc3956 = ["ruma-common/unstable-msc3956"]
 unstable-pdu = ["ruma-common/unstable-pdu"]
 unstable-sanitize = ["ruma-common/unstable-sanitize"]
 unstable-unspecified = [
@@ -190,6 +195,9 @@ __ci = [
     "unstable-msc3618",
     "unstable-msc3723",
     "unstable-msc3932",
+    "unstable-msc3954",
+    "unstable-msc3955",
+    "unstable-msc3956",
 ]
 
 [dependencies]

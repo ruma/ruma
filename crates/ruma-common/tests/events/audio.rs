@@ -10,7 +10,7 @@ use ruma_common::{
     events::{
         audio::{Amplitude, AudioContent, AudioEventContent, Waveform, WaveformError},
         file::{EncryptedContentInit, FileContent, FileContentInfo},
-        message::MessageContent,
+        message::TextContentBlock,
         relation::InReplyTo,
         room::{message::Relation, JsonWebKeyInit},
         AnyMessageLikeEvent, MessageLikeEvent,
@@ -63,7 +63,9 @@ fn plain_content_serialization() {
     assert_eq!(
         to_json_value(&event_content).unwrap(),
         json!({
-            "org.matrix.msc1767.text": "Upload: my_sound.ogg",
+            "org.matrix.msc1767.text": [
+                { "body": "Upload: my_sound.ogg" },
+            ],
             "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
             },
@@ -103,7 +105,9 @@ fn encrypted_content_serialization() {
     assert_eq!(
         to_json_value(&event_content).unwrap(),
         json!({
-            "org.matrix.msc1767.text": "Upload: my_sound.ogg",
+            "org.matrix.msc1767.text": [
+                { "body": "Upload: my_sound.ogg" },
+            ],
             "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "key": {
@@ -127,8 +131,8 @@ fn encrypted_content_serialization() {
 #[test]
 fn event_serialization() {
     let content = assign!(
-        AudioEventContent::with_message(
-            MessageContent::html(
+        AudioEventContent::new(
+            TextContentBlock::html(
                 "Upload: my_mix.mp3",
                 "Upload: <strong>my_mix.mp3</strong>",
             ),
@@ -160,8 +164,10 @@ fn event_serialization() {
     assert_eq!(
         to_json_value(&content).unwrap(),
         json!({
-            "org.matrix.msc1767.html": "Upload: <strong>my_mix.mp3</strong>",
-            "org.matrix.msc1767.text": "Upload: my_mix.mp3",
+            "org.matrix.msc1767.text": [
+                { "mimetype": "text/html", "body": "Upload: <strong>my_mix.mp3</strong>" },
+                { "body": "Upload: my_mix.mp3"},
+            ],
             "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "my_mix.mp3",
@@ -183,7 +189,9 @@ fn event_serialization() {
 #[test]
 fn plain_content_deserialization() {
     let json_data = json!({
-        "m.text": "Upload: my_new_song.webm",
+        "org.matrix.msc1767.text": [
+            { "body": "Upload: my_new_song.webm" },
+        ],
         "m.file": {
             "url": "mxc://notareal.hs/abcdef",
         },
@@ -246,8 +254,8 @@ fn plain_content_deserialization() {
     });
 
     let content = from_json_value::<AudioEventContent>(json_data).unwrap();
-    assert_eq!(content.message.find_plain(), Some("Upload: my_new_song.webm"));
-    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.text.find_plain(), Some("Upload: my_new_song.webm"));
+    assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     let waveform = content.audio.waveform.unwrap();
     assert_eq!(waveform.amplitudes().len(), 52);
@@ -256,7 +264,9 @@ fn plain_content_deserialization() {
 #[test]
 fn encrypted_content_deserialization() {
     let json_data = json!({
-        "m.text": "Upload: my_file.txt",
+        "org.matrix.msc1767.text": [
+            { "body": "Upload: my_file.txt" },
+        ],
         "m.file": {
             "url": "mxc://notareal.hs/abcdef",
             "key": {
@@ -276,8 +286,8 @@ fn encrypted_content_deserialization() {
     });
 
     let content = from_json_value::<AudioEventContent>(json_data).unwrap();
-    assert_eq!(content.message.find_plain(), Some("Upload: my_file.txt"));
-    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.text.find_plain(), Some("Upload: my_file.txt"));
+    assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     assert!(content.file.encryption_info.is_some());
 }
@@ -286,7 +296,9 @@ fn encrypted_content_deserialization() {
 fn message_event_deserialization() {
     let json_data = json!({
         "content": {
-            "m.text": "Upload: airplane_sound.opus",
+            "org.matrix.msc1767.text": [
+                { "body": "Upload: airplane_sound.opus" },
+            ],
             "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "airplane_sound.opus",
@@ -316,8 +328,8 @@ fn message_event_deserialization() {
     assert!(message_event.unsigned.is_empty());
 
     let content = message_event.content;
-    assert_eq!(content.message.find_plain(), Some("Upload: airplane_sound.opus"));
-    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.text.find_plain(), Some("Upload: airplane_sound.opus"));
+    assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     let info = content.file.info.unwrap();
     assert_eq!(info.name.as_deref(), Some("airplane_sound.opus"));

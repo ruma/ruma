@@ -10,7 +10,7 @@ use ruma_common::{
     events::{
         file::{EncryptedContentInit, FileContent, FileContentInfo},
         image::{ThumbnailContent, ThumbnailFileContent, ThumbnailFileContentInfo},
-        message::MessageContent,
+        message::TextContentBlock,
         relation::InReplyTo,
         room::{message::Relation, JsonWebKeyInit},
         video::{VideoContent, VideoEventContent},
@@ -32,7 +32,9 @@ fn plain_content_serialization() {
     assert_eq!(
         to_json_value(&event_content).unwrap(),
         json!({
-            "org.matrix.msc1767.text": "Upload: my_video.webm",
+            "org.matrix.msc1767.text": [
+                {"body": "Upload: my_video.webm" },
+            ],
             "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
             },
@@ -72,7 +74,9 @@ fn encrypted_content_serialization() {
     assert_eq!(
         to_json_value(&event_content).unwrap(),
         json!({
-            "org.matrix.msc1767.text": "Upload: my_video.webm",
+            "org.matrix.msc1767.text": [
+                { "body": "Upload: my_video.webm" },
+            ],
             "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "key": {
@@ -96,8 +100,8 @@ fn encrypted_content_serialization() {
 #[test]
 fn event_serialization() {
     let content = assign!(
-        VideoEventContent::with_message(
-            MessageContent::html(
+        VideoEventContent::new(
+            TextContentBlock::html(
                 "Upload: my_lava_lamp.webm",
                 "Upload: <strong>my_lava_lamp.webm</strong>",
             ),
@@ -132,7 +136,7 @@ fn event_serialization() {
                 ),
                 None
             )],
-            caption: Some(MessageContent::plain("This is my awesome vintage lava lamp")),
+            caption: TextContentBlock::plain("This is my awesome vintage lava lamp"),
             relates_to: Some(Relation::Reply {
                 in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
             }),
@@ -142,8 +146,10 @@ fn event_serialization() {
     assert_eq!(
         to_json_value(&content).unwrap(),
         json!({
-            "org.matrix.msc1767.html": "Upload: <strong>my_lava_lamp.webm</strong>",
-            "org.matrix.msc1767.text": "Upload: my_lava_lamp.webm",
+            "org.matrix.msc1767.text": [
+                { "mimetype": "text/html", "body": "Upload: <strong>my_lava_lamp.webm</strong>" },
+                { "body": "Upload: my_lava_lamp.webm" },
+            ],
             "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "my_lava_lamp.webm",
@@ -165,7 +171,6 @@ fn event_serialization() {
             "m.caption": [
                 {
                     "body": "This is my awesome vintage lava lamp",
-                    "mimetype": "text/plain",
                 }
             ],
             "m.relates_to": {
@@ -180,7 +185,9 @@ fn event_serialization() {
 #[test]
 fn plain_content_deserialization() {
     let json_data = json!({
-        "m.text": "Video: my_cat.mp4",
+        "org.matrix.msc1767.text": [
+            { "body": "Video: my_cat.mp4" },
+        ],
         "m.file": {
             "url": "mxc://notareal.hs/abcdef",
         },
@@ -195,23 +202,24 @@ fn plain_content_deserialization() {
     });
 
     let content = from_json_value::<VideoEventContent>(json_data).unwrap();
-    assert_eq!(content.message.find_plain(), Some("Video: my_cat.mp4"));
-    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.text.find_plain(), Some("Video: my_cat.mp4"));
+    assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     assert_matches!(content.file.encryption_info, None);
     assert_eq!(content.video.width, None);
     assert_eq!(content.video.height, None);
     assert_eq!(content.video.duration, Some(Duration::from_millis(5_668)));
     assert_eq!(content.thumbnail.len(), 0);
-    let caption = content.caption.unwrap();
-    assert_eq!(caption.find_plain(), Some("Look at my cat!"));
-    assert_eq!(caption.find_html(), None);
+    assert_eq!(content.caption.find_plain(), Some("Look at my cat!"));
+    assert_eq!(content.caption.find_html(), None);
 }
 
 #[test]
 fn encrypted_content_deserialization() {
     let json_data = json!({
-        "m.text": "Video: my_cat.mp4",
+        "org.matrix.msc1767.text": [
+            { "body": "Video: my_cat.mp4" },
+        ],
         "m.file": {
             "url": "mxc://notareal.hs/abcdef",
             "key": {
@@ -236,8 +244,8 @@ fn encrypted_content_deserialization() {
     });
 
     let content = from_json_value::<VideoEventContent>(json_data).unwrap();
-    assert_eq!(content.message.find_plain(), Some("Video: my_cat.mp4"));
-    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.text.find_plain(), Some("Video: my_cat.mp4"));
+    assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     assert!(content.file.encryption_info.is_some());
     assert_eq!(content.video.width, None);
@@ -245,14 +253,16 @@ fn encrypted_content_deserialization() {
     assert_eq!(content.video.duration, None);
     assert_eq!(content.thumbnail.len(), 1);
     assert_eq!(content.thumbnail[0].file.url, "mxc://notareal.hs/thumbnail");
-    assert_matches!(content.caption, None);
+    assert!(content.caption.is_empty());
 }
 
 #[test]
 fn message_event_deserialization() {
     let json_data = json!({
         "content": {
-            "m.text": "Upload: my_gnome.webm",
+            "org.matrix.msc1767.text": [
+                { "body": "Upload: my_gnome.webm" },
+            ],
             "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "my_gnome.webm",
@@ -282,8 +292,8 @@ fn message_event_deserialization() {
     assert!(ev.unsigned.is_empty());
 
     let content = ev.content;
-    assert_eq!(content.message.find_plain(), Some("Upload: my_gnome.webm"));
-    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.text.find_plain(), Some("Upload: my_gnome.webm"));
+    assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     assert_eq!(content.video.width, Some(uint!(1300)));
     assert_eq!(content.video.height, Some(uint!(837)));

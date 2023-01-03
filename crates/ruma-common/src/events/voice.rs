@@ -6,13 +6,14 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    audio::AudioContent, file::FileContent, message::MessageContent, room::message::Relation,
+    audio::AudioContent, file::FileContent, message::TextContentBlock, room::message::Relation,
 };
 
 /// The payload for an extensible voice message.
 ///
-/// This is the new primary type introduced in [MSC3245] and should not be sent before the end of
-/// the transition period. See the documentation of the [`message`] module for more information.
+/// This is the new primary type introduced in [MSC3245] and can be sent in rooms with a version
+/// that doesn't support extensible events. See the documentation of the [`message`] module for more
+/// information.
 ///
 /// [MSC3245]: https://github.com/matrix-org/matrix-spec-proposals/pull/3245
 /// [`message`]: super::message
@@ -21,8 +22,8 @@ use super::{
 #[ruma_event(type = "m.voice", kind = MessageLike, without_relation)]
 pub struct VoiceEventContent {
     /// The text representation of the message.
-    #[serde(flatten)]
-    pub message: MessageContent,
+    #[serde(rename = "org.matrix.msc1767.text")]
+    pub text: TextContentBlock,
 
     /// The file content of the message.
     #[serde(rename = "m.file")]
@@ -46,21 +47,16 @@ pub struct VoiceEventContent {
 }
 
 impl VoiceEventContent {
-    /// Creates a new `VoiceEventContent` with the given plain text representation and file.
-    pub fn plain(message: impl Into<String>, file: FileContent) -> Self {
-        Self {
-            message: MessageContent::plain(message),
-            file,
-            audio: Default::default(),
-            voice: Default::default(),
-            relates_to: None,
-        }
+    /// Creates a new `VoiceEventContent` with the given fallback representation and file.
+    pub fn new(text: TextContentBlock, file: FileContent) -> Self {
+        Self { text, file, audio: Default::default(), voice: Default::default(), relates_to: None }
     }
 
-    /// Creates a new `VoiceEventContent` with the given message and file.
-    pub fn with_message(message: MessageContent, file: FileContent) -> Self {
+    /// Creates a new `VoiceEventContent` with the given plain text fallback representation and
+    /// file.
+    pub fn plain(text: impl Into<String>, file: FileContent) -> Self {
         Self {
-            message,
+            text: TextContentBlock::plain(text),
             file,
             audio: Default::default(),
             voice: Default::default(),

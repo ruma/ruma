@@ -7,8 +7,7 @@ use ruma_common::{
     event_id,
     events::{
         emote::EmoteEventContent,
-        message::{MessageContent, MessageEventContent, Text},
-        notice::NoticeEventContent,
+        message::{MessageEventContent, TextContentBlock, TextRepresentation},
         relation::InReplyTo,
         room::message::Relation,
         AnyMessageLikeEvent, MessageLikeEvent,
@@ -19,17 +18,6 @@ use ruma_common::{
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 #[test]
-fn try_from_valid() {
-    let message = MessageContent::try_from(vec![Text::plain("A message")]).unwrap();
-    assert_eq!(message.len(), 1);
-}
-
-#[test]
-fn try_from_invalid() {
-    assert_matches!(MessageContent::try_from(vec![]), Err(_));
-}
-
-#[test]
 fn html_content_serialization() {
     let message_event_content =
         MessageEventContent::html("Hello, World!", "Hello, <em>World</em>!");
@@ -37,8 +25,10 @@ fn html_content_serialization() {
     assert_eq!(
         to_json_value(&message_event_content).unwrap(),
         json!({
-            "org.matrix.msc1767.html": "Hello, <em>World</em>!",
-            "org.matrix.msc1767.text": "Hello, World!",
+            "org.matrix.msc1767.text": [
+                { "mimetype": "text/html", "body": "Hello, <em>World</em>!" },
+                { "body": "Hello, World!" },
+            ],
         })
     );
 }
@@ -51,7 +41,9 @@ fn plain_text_content_serialization() {
     assert_eq!(
         to_json_value(&message_event_content).unwrap(),
         json!({
-            "org.matrix.msc1767.text": "> <@test:example.com> test\n\ntest reply",
+            "org.matrix.msc1767.text": [
+                { "body": "> <@test:example.com> test\n\ntest reply" },
+            ],
         })
     );
 }
@@ -59,9 +51,9 @@ fn plain_text_content_serialization() {
 #[test]
 fn unknown_mimetype_content_serialization() {
     let message_event_content = MessageEventContent::from(
-        MessageContent::try_from(vec![
-            Text::plain("> <@test:example.com> test\n\ntest reply"),
-            Text::new(
+        TextContentBlock::try_from(vec![
+            TextRepresentation::plain("> <@test:example.com> test\n\ntest reply"),
+            TextRepresentation::new(
                 "application/json",
                 r#"{ "quote": "<@test:example.com> test", "reply": "test reply" }"#,
             ),
@@ -72,16 +64,15 @@ fn unknown_mimetype_content_serialization() {
     assert_eq!(
         to_json_value(&message_event_content).unwrap(),
         json!({
-            "org.matrix.msc1767.message": [
+            "org.matrix.msc1767.text": [
                 {
                     "body": "> <@test:example.com> test\n\ntest reply",
-                    "mimetype": "text/plain",
                 },
                 {
                     "body": r#"{ "quote": "<@test:example.com> test", "reply": "test reply" }"#,
                     "mimetype": "application/json",
                 },
-            ]
+            ],
         })
     );
 }
@@ -94,8 +85,15 @@ fn markdown_content_serialization() {
     assert_eq!(
         to_json_value(&formatted_message).unwrap(),
         json!({
-            "org.matrix.msc1767.html": "<p>Testing <strong>bold</strong> and <em>italic</em>!</p>\n",
-            "org.matrix.msc1767.text": "Testing **bold** and _italic_!",
+            "org.matrix.msc1767.text": [
+                {
+                    "mimetype": "text/html",
+                    "body": "<p>Testing <strong>bold</strong> and <em>italic</em>!</p>\n",
+                },
+                {
+                    "body": "Testing **bold** and _italic_!",
+                },
+            ],
         })
     );
 
@@ -104,7 +102,9 @@ fn markdown_content_serialization() {
     assert_eq!(
         to_json_value(&plain_message_simple).unwrap(),
         json!({
-            "org.matrix.msc1767.text": "Testing a simple phrase…",
+            "org.matrix.msc1767.text": [
+                { "body": "Testing a simple phrase…" },
+            ],
         })
     );
 
@@ -114,8 +114,15 @@ fn markdown_content_serialization() {
     assert_eq!(
         to_json_value(&plain_message_paragraphs).unwrap(),
         json!({
-            "org.matrix.msc1767.html": "<p>Testing</p>\n<p>Several</p>\n<p>Paragraphs.</p>\n",
-            "org.matrix.msc1767.text": "Testing\n\nSeveral\n\nParagraphs.",
+            "org.matrix.msc1767.text": [
+                {
+                    "mimetype": "text/html",
+                    "body": "<p>Testing</p>\n<p>Several</p>\n<p>Paragraphs.</p>\n",
+                },
+                {
+                    "body": "Testing\n\nSeveral\n\nParagraphs.",
+                },
+            ],
         })
     );
 }
@@ -132,7 +139,9 @@ fn relates_to_content_serialization() {
         });
 
     let json_data = json!({
-        "org.matrix.msc1767.text": "> <@test:example.com> test\n\ntest reply",
+        "org.matrix.msc1767.text": [
+            { "body": "> <@test:example.com> test\n\ntest reply" },
+        ],
         "m.relates_to": {
             "m.in_reply_to": {
                 "event_id": "$15827405538098VGFWH:example.com"
@@ -148,110 +157,66 @@ fn message_event_serialization() {
     let content = MessageEventContent::plain("Hello, World!");
     assert_eq!(
         to_json_value(&content).unwrap(),
-        json!({ "org.matrix.msc1767.text": "Hello, World!" })
+        json!({
+            "org.matrix.msc1767.text": [
+                { "body": "Hello, World!" },
+            ],
+        })
     );
 }
 
 #[test]
-fn plain_text_content_unstable_deserialization() {
+fn plain_text_content_deserialization() {
     let json_data = json!({
-        "org.matrix.msc1767.text": "This is my body",
+        "org.matrix.msc1767.text": [
+            { "body": "This is my body" },
+        ],
     });
 
     let content = from_json_value::<MessageEventContent>(json_data).unwrap();
-    assert_eq!(content.message.find_plain(), Some("This is my body"));
-    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.text.find_plain(), Some("This is my body"));
+    assert_eq!(content.text.find_html(), None);
+    #[cfg(feature = "unstable-msc3955")]
+    assert!(!content.automated);
 }
 
 #[test]
-fn plain_text_content_stable_deserialization() {
+fn html_content_deserialization() {
     let json_data = json!({
-        "m.text": "This is my body",
-    });
-
-    let content = from_json_value::<MessageEventContent>(json_data).unwrap();
-    assert_eq!(content.message.find_plain(), Some("This is my body"));
-    assert_eq!(content.message.find_html(), None);
-}
-
-#[test]
-fn html_content_unstable_deserialization() {
-    let json_data = json!({
-        "org.matrix.msc1767.html": "Hello, <em>New World</em>!",
-    });
-
-    let content = from_json_value::<MessageEventContent>(json_data).unwrap();
-    assert_eq!(content.message.find_plain(), None);
-    assert_eq!(content.message.find_html(), Some("Hello, <em>New World</em>!"));
-}
-
-#[test]
-fn html_content_stable_deserialization() {
-    let json_data = json!({
-        "m.html": "Hello, <em>New World</em>!",
-    });
-
-    let content = from_json_value::<MessageEventContent>(json_data).unwrap();
-    assert_eq!(content.message.find_plain(), None);
-    assert_eq!(content.message.find_html(), Some("Hello, <em>New World</em>!"));
-}
-
-#[test]
-fn html_and_text_content_unstable_deserialization() {
-    let json_data = json!({
-        "org.matrix.msc1767.html": "Hello, <em>New World</em>!",
-        "org.matrix.msc1767.text": "Hello, New World!",
-    });
-
-    let content = from_json_value::<MessageEventContent>(json_data).unwrap();
-    assert_eq!(content.message.find_plain(), Some("Hello, New World!"));
-    assert_eq!(content.message.find_html(), Some("Hello, <em>New World</em>!"));
-}
-
-#[test]
-fn html_and_text_content_stable_deserialization() {
-    let json_data = json!({
-        "m.html": "Hello, <em>New World</em>!",
-        "m.text": "Hello, New World!",
-    });
-
-    let content = from_json_value::<MessageEventContent>(json_data).unwrap();
-    assert_eq!(content.message.find_plain(), Some("Hello, New World!"));
-    assert_eq!(content.message.find_html(), Some("Hello, <em>New World</em>!"));
-}
-
-#[test]
-fn message_content_unstable_deserialization() {
-    let json_data = json!({
-        "org.matrix.msc1767.message": [
-            { "body": "Hello, <em>New World</em>!", "mimetype": "text/html"},
-            { "body": "Hello, New World!" },
+        "org.matrix.msc1767.text": [
+            { "mimetype": "text/html", "body": "Hello, <em>New World</em>!" },
         ]
     });
 
     let content = from_json_value::<MessageEventContent>(json_data).unwrap();
-    assert_eq!(content.message.find_plain(), Some("Hello, New World!"));
-    assert_eq!(content.message.find_html(), Some("Hello, <em>New World</em>!"));
+    assert_eq!(content.text.find_plain(), None);
+    assert_eq!(content.text.find_html(), Some("Hello, <em>New World</em>!"));
+    #[cfg(feature = "unstable-msc3955")]
+    assert!(!content.automated);
 }
 
 #[test]
-fn message_content_stable_deserialization() {
+fn html_and_text_content_deserialization() {
     let json_data = json!({
-        "m.message": [
-            { "body": "Hello, <em>New World</em>!", "mimetype": "text/html"},
+        "org.matrix.msc1767.text": [
+            { "mimetype": "text/html", "body": "Hello, <em>New World</em>!" },
             { "body": "Hello, New World!" },
-        ]
+        ],
     });
 
     let content = from_json_value::<MessageEventContent>(json_data).unwrap();
-    assert_eq!(content.message.find_plain(), Some("Hello, New World!"));
-    assert_eq!(content.message.find_html(), Some("Hello, <em>New World</em>!"));
+    assert_eq!(content.text.find_plain(), Some("Hello, New World!"));
+    assert_eq!(content.text.find_html(), Some("Hello, <em>New World</em>!"));
+    #[cfg(feature = "unstable-msc3955")]
+    assert!(!content.automated);
 }
 
 #[test]
 fn relates_to_content_deserialization() {
     let json_data = json!({
-        "org.matrix.msc1767.text": "> <@test:example.com> test\n\ntest reply",
+        "org.matrix.msc1767.text": [
+            { "body": "> <@test:example.com> test\n\ntest reply" },
+        ],
         "m.relates_to": {
             "m.in_reply_to": {
                 "event_id": "$15827405538098VGFWH:example.com"
@@ -260,8 +225,8 @@ fn relates_to_content_deserialization() {
     });
 
     let content = from_json_value::<MessageEventContent>(json_data).unwrap();
-    assert_eq!(content.message.find_plain(), Some("> <@test:example.com> test\n\ntest reply"));
-    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.text.find_plain(), Some("> <@test:example.com> test\n\ntest reply"));
+    assert_eq!(content.text.find_html(), None);
 
     let event_id = assert_matches!(
         content.relates_to,
@@ -274,13 +239,15 @@ fn relates_to_content_deserialization() {
 fn message_event_deserialization() {
     let json_data = json!({
         "content": {
-            "org.matrix.msc1767.text": "Hello, World!",
+            "org.matrix.msc1767.text": [
+                { "body": "Hello, World!" },
+            ],
         },
         "event_id": "$event:notareal.hs",
         "origin_server_ts": 134_829_848,
         "room_id": "!roomid:notareal.hs",
         "sender": "@user:notareal.hs",
-        "type": "m.message",
+        "type": "org.matrix.msc1767.message",
     });
 
     let message_event = assert_matches!(
@@ -288,7 +255,7 @@ fn message_event_deserialization() {
         Ok(AnyMessageLikeEvent::Message(MessageLikeEvent::Original(message_event))) => message_event
     );
     assert_eq!(message_event.event_id, "$event:notareal.hs");
-    assert_eq!(message_event.content.message.find_plain(), Some("Hello, World!"));
+    assert_eq!(message_event.content.text.find_plain(), Some("Hello, World!"));
     assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
     assert_eq!(message_event.room_id, "!roomid:notareal.hs");
     assert_eq!(message_event.sender, "@user:notareal.hs");
@@ -296,79 +263,7 @@ fn message_event_deserialization() {
 }
 
 #[test]
-fn notice_event_serialization() {
-    let content = NoticeEventContent::plain("Hello, I'm a robot!");
-    assert_eq!(
-        to_json_value(&content).unwrap(),
-        json!({ "org.matrix.msc1767.text": "Hello, I'm a robot!" })
-    );
-}
-
-#[test]
-fn notice_event_stable_deserialization() {
-    let json_data = json!({
-        "content": {
-            "m.message": [
-                { "body": "Hello, I'm a <em>robot</em>!", "mimetype": "text/html"},
-                { "body": "Hello, I'm a robot!" },
-            ]
-        },
-        "event_id": "$event:notareal.hs",
-        "origin_server_ts": 134_829_848,
-        "room_id": "!roomid:notareal.hs",
-        "sender": "@user:notareal.hs",
-        "type": "m.notice",
-    });
-
-    let message_event = assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data),
-        Ok(AnyMessageLikeEvent::Notice(MessageLikeEvent::Original(message_event))) => message_event
-    );
-
-    assert_eq!(message_event.event_id, "$event:notareal.hs");
-    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
-    assert_eq!(message_event.room_id, "!roomid:notareal.hs");
-    assert_eq!(message_event.sender, "@user:notareal.hs");
-    assert!(message_event.unsigned.is_empty());
-
-    let message = message_event.content.message;
-    assert_eq!(message.find_plain(), Some("Hello, I'm a robot!"));
-    assert_eq!(message.find_html(), Some("Hello, I'm a <em>robot</em>!"));
-}
-
-#[test]
-fn notice_event_unstable_deserialization() {
-    let json_data = json!({
-        "content": {
-            "org.matrix.msc1767.message": [
-                { "body": "Hello, I'm a <em>robot</em>!", "mimetype": "text/html"},
-                { "body": "Hello, I'm a robot!" },
-            ]
-        },
-        "event_id": "$event:notareal.hs",
-        "origin_server_ts": 134_829_848,
-        "room_id": "!roomid:notareal.hs",
-        "sender": "@user:notareal.hs",
-        "type": "m.notice",
-    });
-
-    let message_event = assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data),
-        Ok(AnyMessageLikeEvent::Notice(MessageLikeEvent::Original(message_event))) => message_event
-    );
-
-    assert_eq!(message_event.event_id, "$event:notareal.hs");
-    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
-    assert_eq!(message_event.room_id, "!roomid:notareal.hs");
-    assert_eq!(message_event.sender, "@user:notareal.hs");
-    assert!(message_event.unsigned.is_empty());
-
-    let message = message_event.content.message;
-    assert_eq!(message.find_plain(), Some("Hello, I'm a robot!"));
-    assert_eq!(message.find_html(), Some("Hello, I'm a <em>robot</em>!"));
-}
-
-#[test]
+#[cfg(feature = "unstable-msc3954")]
 fn emote_event_serialization() {
     let content =
         EmoteEventContent::html("is testing some code…", "is testing some <code>code</code>…");
@@ -376,23 +271,28 @@ fn emote_event_serialization() {
     assert_eq!(
         to_json_value(&content).unwrap(),
         json!({
-            "org.matrix.msc1767.html": "is testing some <code>code</code>…",
-            "org.matrix.msc1767.text": "is testing some code…",
+            "org.matrix.msc1767.text": [
+                { "mimetype": "text/html", "body": "is testing some <code>code</code>…" },
+                { "body": "is testing some code…" },
+            ],
         })
     );
 }
 
 #[test]
-fn emote_event_stable_deserialization() {
+#[cfg(feature = "unstable-msc3954")]
+fn emote_event_deserialization() {
     let json_data = json!({
         "content": {
-            "m.text": "is testing some code…",
+            "org.matrix.msc1767.text": [
+                { "body": "is testing some code…" },
+            ],
         },
         "event_id": "$event:notareal.hs",
         "origin_server_ts": 134_829_848,
         "room_id": "!roomid:notareal.hs",
         "sender": "@user:notareal.hs",
-        "type": "m.emote",
+        "type": "org.matrix.msc1767.emote",
     });
 
     let message_event = assert_matches!(
@@ -406,75 +306,76 @@ fn emote_event_stable_deserialization() {
     assert_eq!(message_event.sender, "@user:notareal.hs");
     assert!(message_event.unsigned.is_empty());
 
-    let message = message_event.content.message;
-    assert_eq!(message.find_plain(), Some("is testing some code…"));
-    assert_eq!(message.find_html(), None);
-}
-
-#[test]
-fn emote_event_unstable_deserialization() {
-    let json_data = json!({
-        "content": {
-            "org.matrix.msc1767.text": "is testing some code…",
-        },
-        "event_id": "$event:notareal.hs",
-        "origin_server_ts": 134_829_848,
-        "room_id": "!roomid:notareal.hs",
-        "sender": "@user:notareal.hs",
-        "type": "m.emote",
-    });
-
-    let message_event = assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data),
-        Ok(AnyMessageLikeEvent::Emote(MessageLikeEvent::Original(message_event))) => message_event
-    );
-
-    assert_eq!(message_event.event_id, "$event:notareal.hs");
-    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
-    assert_eq!(message_event.room_id, "!roomid:notareal.hs");
-    assert_eq!(message_event.sender, "@user:notareal.hs");
-    assert!(message_event.unsigned.is_empty());
-
-    let message = message_event.content.message;
-    assert_eq!(message.find_plain(), Some("is testing some code…"));
-    assert_eq!(message.find_html(), None);
+    let text = message_event.content.text;
+    assert_eq!(text.find_plain(), Some("is testing some code…"));
+    assert_eq!(text.find_html(), None);
 }
 
 #[test]
 #[cfg(feature = "unstable-msc3554")]
 fn lang_serialization() {
-    let content = MessageContent::try_from(vec![
-        assign!(Text::plain("Bonjour le monde !"), { lang: Some("fr".into()) }),
-        assign!(Text::plain("Hallo Welt!"), { lang: Some("de".into()) }),
-        assign!(Text::plain("Hello World!"), { lang: Some("en".into()) }),
+    let content = TextContentBlock::try_from(vec![
+        assign!(TextRepresentation::plain("Bonjour le monde !"), { lang: Some("fr".into()) }),
+        assign!(TextRepresentation::plain("Hallo Welt!"), { lang: Some("de".into()) }),
+        assign!(TextRepresentation::plain("Hello World!"), { lang: Some("en".into()) }),
     ])
     .unwrap();
 
     assert_eq!(
         to_json_value(content).unwrap(),
-        json!({
-            "org.matrix.msc1767.message": [
-                { "body": "Bonjour le monde !", "mimetype": "text/plain", "lang": "fr"},
-                { "body": "Hallo Welt!", "mimetype": "text/plain", "lang": "de"},
-                { "body": "Hello World!", "mimetype": "text/plain", "lang": "en"},
-            ]
-        })
+        json!([
+            { "body": "Bonjour le monde !", "lang": "fr"},
+            { "body": "Hallo Welt!", "lang": "de"},
+            { "body": "Hello World!", "lang": "en"},
+        ])
     );
 }
 
 #[test]
 #[cfg(feature = "unstable-msc3554")]
 fn lang_deserialization() {
-    let json_data = json!({
-        "org.matrix.msc1767.message": [
-            { "body": "Bonjour le monde !", "mimetype": "text/plain", "lang": "fr"},
-            { "body": "Hallo Welt!", "mimetype": "text/plain", "lang": "de"},
-            { "body": "Hello World!", "mimetype": "text/plain", "lang": "en"},
-        ]
-    });
+    let json_data = json!([
+        { "body": "Bonjour le monde !", "lang": "fr"},
+        { "body": "Hallo Welt!", "lang": "de"},
+        { "body": "Hello World!", "lang": "en"},
+    ]);
 
-    let content = from_json_value::<MessageContent>(json_data).unwrap();
+    let content = from_json_value::<TextContentBlock>(json_data).unwrap();
     assert_eq!(content[0].lang.as_deref(), Some("fr"));
     assert_eq!(content[1].lang.as_deref(), Some("de"));
     assert_eq!(content[2].lang.as_deref(), Some("en"));
+}
+
+#[test]
+#[cfg(feature = "unstable-msc3955")]
+fn automated_content_serialization() {
+    let mut message_event_content =
+        MessageEventContent::plain("> <@test:example.com> test\n\ntest reply");
+    message_event_content.automated = true;
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "org.matrix.msc1767.text": [
+                { "body": "> <@test:example.com> test\n\ntest reply" },
+            ],
+            "org.matrix.msc1767.automated": true,
+        })
+    );
+}
+
+#[test]
+#[cfg(feature = "unstable-msc3955")]
+fn automated_content_deserialization() {
+    let json_data = json!({
+        "org.matrix.msc1767.text": [
+            { "mimetype": "text/html", "body": "Hello, <em>New World</em>!" },
+        ],
+        "org.matrix.msc1767.automated": true,
+    });
+
+    let content = from_json_value::<MessageEventContent>(json_data).unwrap();
+    assert_eq!(content.text.find_plain(), None);
+    assert_eq!(content.text.find_html(), Some("Hello, <em>New World</em>!"));
+    assert!(content.automated);
 }

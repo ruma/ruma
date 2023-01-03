@@ -16,7 +16,7 @@ use crate::{
     OwnedDeviceId, OwnedEventId,
 };
 
-mod relation_serde;
+pub(crate) mod relation_serde;
 
 /// The content of an `m.room.encrypted` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]

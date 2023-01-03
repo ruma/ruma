@@ -8,15 +8,15 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     file::{EncryptedContent, FileContent},
-    message::MessageContent,
+    message::TextContentBlock,
     room::message::Relation,
 };
 use crate::OwnedMxcUri;
 
 /// The payload for an extensible image message.
 ///
-/// This is the new primary type introduced in [MSC3552] and should not be sent before the end of
-/// the transition period. See the documentation of the [`message`] module for more information.
+/// This is the new primary type introduced in [MSC3552] and should only be sent in rooms with a
+/// version that supports it. See the documentation of the [`message`] module for more information.
 ///
 /// [MSC3552]: https://github.com/matrix-org/matrix-spec-proposals/pull/3552
 /// [`message`]: super::message
@@ -25,8 +25,8 @@ use crate::OwnedMxcUri;
 #[ruma_event(type = "m.image", kind = MessageLike, without_relation)]
 pub struct ImageEventContent {
     /// The text representation of the message.
-    #[serde(flatten)]
-    pub message: MessageContent,
+    #[serde(rename = "org.matrix.msc1767.text")]
+    pub text: TextContentBlock,
 
     /// The file content of the message.
     #[serde(rename = "m.file")]
@@ -41,13 +41,8 @@ pub struct ImageEventContent {
     pub thumbnail: Vec<ThumbnailContent>,
 
     /// The captions of the message.
-    #[serde(
-        rename = "m.caption",
-        with = "super::message::content_serde::as_vec",
-        default,
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub caption: Option<MessageContent>,
+    #[serde(rename = "m.caption", default, skip_serializing_if = "TextContentBlock::is_empty")]
+    pub caption: TextContentBlock,
 
     /// Information about related messages.
     #[serde(
@@ -59,10 +54,11 @@ pub struct ImageEventContent {
 }
 
 impl ImageEventContent {
-    /// Creates a new `ImageEventContent` with the given plain text message and file.
-    pub fn plain(message: impl Into<String>, file: FileContent) -> Self {
+    /// Creates a new `ImageEventContent` with the given fallback representation and
+    /// file.
+    pub fn new(text: TextContentBlock, file: FileContent) -> Self {
         Self {
-            message: MessageContent::plain(message),
+            text,
             file,
             image: Default::default(),
             thumbnail: Default::default(),
@@ -71,10 +67,11 @@ impl ImageEventContent {
         }
     }
 
-    /// Creates a new non-encrypted `ImageEventContent` with the given message and file.
-    pub fn with_message(message: MessageContent, file: FileContent) -> Self {
+    /// Creates a new `ImageEventContent` with the given plain text fallback representation and
+    /// file.
+    pub fn plain(text_fallback: impl Into<String>, file: FileContent) -> Self {
         Self {
-            message,
+            text: TextContentBlock::plain(text_fallback),
             file,
             image: Default::default(),
             thumbnail: Default::default(),

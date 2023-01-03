@@ -8,7 +8,7 @@ mod poll_answers_serde;
 
 use poll_answers_serde::PollAnswersDeHelper;
 
-use crate::{events::message::MessageContent, serde::StringEnum, PrivOwnedStr};
+use crate::{events::message::TextContentBlock, serde::StringEnum, PrivOwnedStr};
 
 /// The payload for a poll start event.
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
@@ -20,14 +20,18 @@ pub struct PollStartEventContent {
     pub poll_start: PollStartContent,
 
     /// Optional fallback text representation of the message, for clients that don't support polls.
-    #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    pub message: Option<MessageContent>,
+    #[serde(
+        rename = "org.matrix.msc1767.text",
+        default,
+        skip_serializing_if = "TextContentBlock::is_empty"
+    )]
+    pub text: TextContentBlock,
 }
 
 impl PollStartEventContent {
     /// Creates a new `PollStartEventContent` with the given poll start content.
     pub fn new(poll_start: PollStartContent) -> Self {
-        Self { poll_start, message: None }
+        Self { poll_start, text: Default::default() }
     }
 }
 
@@ -36,7 +40,7 @@ impl PollStartEventContent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct PollStartContent {
     /// The question of the poll.
-    pub question: MessageContent,
+    pub question: PollQuestion,
 
     /// The kind of the poll.
     #[serde(default)]
@@ -59,8 +63,13 @@ pub struct PollStartContent {
 
 impl PollStartContent {
     /// Creates a new `PollStartContent` with the given question, kind, and answers.
-    pub fn new(question: MessageContent, kind: PollKind, answers: PollAnswers) -> Self {
-        Self { question, kind, max_selections: Self::default_max_selections(), answers }
+    pub fn new(question: TextContentBlock, kind: PollKind, answers: PollAnswers) -> Self {
+        Self {
+            question: question.into(),
+            kind,
+            max_selections: Self::default_max_selections(),
+            answers,
+        }
     }
 
     fn default_max_selections() -> UInt {
@@ -69,6 +78,21 @@ impl PollStartContent {
 
     fn max_selections_is_default(max_selections: &UInt) -> bool {
         max_selections == &Self::default_max_selections()
+    }
+}
+
+/// The question of a poll.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct PollQuestion {
+    /// The text representation of the question.
+    #[serde(rename = "org.matrix.msc1767.text")]
+    pub text: TextContentBlock,
+}
+
+impl From<TextContentBlock> for PollQuestion {
+    fn from(text: TextContentBlock) -> Self {
+        Self { text }
     }
 }
 
@@ -156,13 +180,13 @@ pub struct PollAnswer {
     pub id: String,
 
     /// The text representation of the answer.
-    #[serde(flatten)]
-    pub answer: MessageContent,
+    #[serde(rename = "org.matrix.msc1767.text")]
+    pub text: TextContentBlock,
 }
 
 impl PollAnswer {
     /// Creates a new `PollAnswer` with the given id and text representation.
-    pub fn new(id: String, answer: MessageContent) -> Self {
-        Self { id, answer }
+    pub fn new(id: String, text: TextContentBlock) -> Self {
+        Self { id, text }
     }
 }

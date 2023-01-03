@@ -7,7 +7,7 @@ use ruma_common::{
     event_id,
     events::{
         file::{EncryptedContentInit, FileContentInfo, FileEventContent},
-        message::MessageContent,
+        message::TextContentBlock,
         relation::InReplyTo,
         room::{message::Relation, JsonWebKeyInit},
         AnyMessageLikeEvent, MessageLikeEvent,
@@ -20,7 +20,7 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 
 #[test]
 fn plain_content_serialization() {
-    let event_content = FileEventContent::plain(
+    let event_content = FileEventContent::plain_with_text(
         "Upload: my_file.txt",
         mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
         None,
@@ -29,7 +29,9 @@ fn plain_content_serialization() {
     assert_eq!(
         to_json_value(&event_content).unwrap(),
         json!({
-            "org.matrix.msc1767.text": "Upload: my_file.txt",
+            "org.matrix.msc1767.text": [
+                { "body": "Upload: my_file.txt" },
+            ],
             "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
             }
@@ -39,7 +41,7 @@ fn plain_content_serialization() {
 
 #[test]
 fn encrypted_content_serialization() {
-    let event_content = FileEventContent::encrypted(
+    let event_content = FileEventContent::encrypted_with_text(
         "Upload: my_file.txt",
         mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
         EncryptedContentInit {
@@ -66,7 +68,9 @@ fn encrypted_content_serialization() {
     assert_eq!(
         to_json_value(&event_content).unwrap(),
         json!({
-            "org.matrix.msc1767.text": "Upload: my_file.txt",
+            "org.matrix.msc1767.text": [
+                { "body": "Upload: my_file.txt" },
+            ],
             "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "key": {
@@ -89,8 +93,8 @@ fn encrypted_content_serialization() {
 #[test]
 fn file_event_serialization() {
     let content = assign!(
-            FileEventContent::plain_message(
-                MessageContent::html(
+            FileEventContent::plain(
+                TextContentBlock::html(
                     "Upload: my_file.txt",
                     "Upload: <strong>my_file.txt</strong>",
                 ),
@@ -114,8 +118,10 @@ fn file_event_serialization() {
     assert_eq!(
         to_json_value(&content).unwrap(),
         json!({
-            "org.matrix.msc1767.html": "Upload: <strong>my_file.txt</strong>",
-            "org.matrix.msc1767.text": "Upload: my_file.txt",
+            "org.matrix.msc1767.text": [
+                { "mimetype": "text/html", "body": "Upload: <strong>my_file.txt</strong>" },
+                { "body": "Upload: my_file.txt" },
+            ],
             "m.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "my_file.txt",
@@ -134,22 +140,26 @@ fn file_event_serialization() {
 #[test]
 fn plain_content_deserialization() {
     let json_data = json!({
-        "m.text": "Upload: my_file.txt",
+        "org.matrix.msc1767.text": [
+            { "body": "Upload: my_file.txt" },
+        ],
         "m.file": {
             "url": "mxc://notareal.hs/abcdef",
         }
     });
 
     let content = from_json_value::<FileEventContent>(json_data).unwrap();
-    assert_eq!(content.message.find_plain(), Some("Upload: my_file.txt"));
-    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.text.find_plain(), Some("Upload: my_file.txt"));
+    assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
 }
 
 #[test]
 fn encrypted_content_deserialization() {
     let json_data = json!({
-        "m.text": "Upload: my_file.txt",
+        "org.matrix.msc1767.text": [
+            { "body": "Upload: my_file.txt" },
+        ],
         "m.file": {
             "url": "mxc://notareal.hs/abcdef",
             "key": {
@@ -168,8 +178,8 @@ fn encrypted_content_deserialization() {
     });
 
     let content = from_json_value::<FileEventContent>(json_data).unwrap();
-    assert_eq!(content.message.find_plain(), Some("Upload: my_file.txt"));
-    assert_eq!(content.message.find_html(), None);
+    assert_eq!(content.text.find_plain(), Some("Upload: my_file.txt"));
+    assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     assert!(content.file.encryption_info.is_some());
 }
@@ -178,7 +188,7 @@ fn encrypted_content_deserialization() {
 fn message_event_deserialization() {
     let json_data = json!({
         "content": {
-            "m.message": [
+            "org.matrix.msc1767.text": [
                 { "body": "Upload: <strong>my_file.txt</strong>", "mimetype": "text/html"},
                 { "body": "Upload: my_file.txt", "mimetype": "text/plain"},
             ],
@@ -202,8 +212,8 @@ fn message_event_deserialization() {
     );
     assert_eq!(message_event.event_id, "$event:notareal.hs");
     let content = message_event.content;
-    assert_eq!(content.message.find_plain(), Some("Upload: my_file.txt"));
-    assert_eq!(content.message.find_html(), Some("Upload: <strong>my_file.txt</strong>"));
+    assert_eq!(content.text.find_plain(), Some("Upload: my_file.txt"));
+    assert_eq!(content.text.find_html(), Some("Upload: <strong>my_file.txt</strong>"));
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     let info = content.file.info.unwrap();
     assert_eq!(info.name.as_deref(), Some("my_file.txt"));

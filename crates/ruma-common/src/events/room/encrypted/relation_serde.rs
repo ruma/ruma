@@ -5,7 +5,7 @@ use super::Annotation;
 use super::{InReplyTo, Reference, Relation, Replacement, Thread};
 use crate::OwnedEventId;
 
-pub(super) fn deserialize_relation<'de, D>(deserializer: D) -> Result<Option<Relation>, D::Error>
+pub(crate) fn deserialize_relation<'de, D>(deserializer: D) -> Result<Option<Relation>, D::Error>
 where
     D: Deserializer<'de>,
 {
