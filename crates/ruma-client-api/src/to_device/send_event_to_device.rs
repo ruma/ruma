@@ -11,7 +11,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        events::AnyToDeviceEventContent,
+        events::{AnyToDeviceEventContent, ToDeviceEventType},
         metadata,
         serde::Raw,
         to_device::DeviceIdOrAllDevices,
@@ -33,7 +33,7 @@ pub mod v3 {
     pub struct Request {
         /// Type of event being sent to each device.
         #[ruma_api(path)]
-        pub event_type: String,
+        pub event_type: ToDeviceEventType,
 
         /// The transaction ID for this event.
         ///
@@ -61,7 +61,11 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given event type, transaction ID and raw messages.
-        pub fn new_raw(event_type: String, txn_id: OwnedTransactionId, messages: Messages) -> Self {
+        pub fn new_raw(
+            event_type: ToDeviceEventType,
+            txn_id: OwnedTransactionId,
+            messages: Messages,
+        ) -> Self {
             Self { event_type, txn_id, messages }
         }
     }
