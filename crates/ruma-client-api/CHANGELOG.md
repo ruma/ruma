@@ -16,6 +16,7 @@ Breaking changes:
 * `Error` is now an enum because endpoint error construction is infallible (see changelog for
   `ruma-common`); the previous fields are in the `Standard` variant
 * Use `GlobalAccountDataEventType` for `event_type` in `config::get_global_account_data`
+* Use `RoomAccountDataEventType` for `event_type` in `config::get_room_account_data`
 
 Improvements:
 
