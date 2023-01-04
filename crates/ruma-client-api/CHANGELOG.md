@@ -17,6 +17,7 @@ Breaking changes:
   `ruma-common`); the previous fields are in the `Standard` variant
 * Use `GlobalAccountDataEventType` for `event_type` in `config::get_global_account_data`
 * Use `RoomAccountDataEventType` for `event_type` in `config::get_room_account_data`
+* Use `ToDeviceEventType` for `event_type` in `to_device::send_event_to_device`
 
 Improvements:
 
