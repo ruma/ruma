@@ -46,7 +46,7 @@ pub mod v3 {
     pub struct Response {
         /// Account data content for the given type.
         ///
-        /// Use [`Raw::deserialize_content`] for deserialization.
+        /// Use [`Raw::deserialize_as`] for deserialization.
         #[ruma_api(body)]
         pub account_data: Raw<AnyRoomAccountDataEventContent>,
     }

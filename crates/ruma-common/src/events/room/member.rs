@@ -7,13 +7,12 @@ use std::collections::BTreeMap;
 use js_int::Int;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
-use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
+use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
     events::{
         AnyStrippedStateEvent, BundledRelations, EventContent, RedactContent, RedactedEventContent,
-        RedactedStateEventContent, StateEventContent, StateEventType, StateUnsignedFromParts,
-        StaticEventContent,
+        RedactedStateEventContent, StateEventContent, StateEventType,
     },
     serde::{CanBeEmpty, Raw, StringEnum},
     OwnedMxcUri, OwnedServerName, OwnedServerSigningKeyId, OwnedTransactionId, OwnedUserId,
@@ -547,20 +546,6 @@ impl CanBeEmpty for RoomMemberUnsigned {
             && self.prev_content.is_none()
             && self.invite_room_state.is_empty()
             && self.relations.is_empty()
-    }
-}
-
-impl StateUnsignedFromParts for RoomMemberUnsigned {
-    fn _from_parts(event_type: &str, object: &RawJsonValue) -> serde_json::Result<Self> {
-        const EVENT_TYPE: &str = <RoomMemberEventContent as StaticEventContent>::TYPE;
-
-        if event_type != EVENT_TYPE {
-            return Err(serde::de::Error::custom(format!(
-                "expected event type of `{EVENT_TYPE}`, found `{event_type}`",
-            )));
-        }
-
-        from_json_str(object.get())
     }
 }
 

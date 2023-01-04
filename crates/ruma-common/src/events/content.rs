@@ -7,7 +7,7 @@ use crate::serde::CanBeEmpty;
 
 use super::{
     EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEventType, RedactContent,
-    RoomAccountDataEventType, StateEventType, StateUnsignedFromParts, ToDeviceEventType,
+    RoomAccountDataEventType, StateEventType, ToDeviceEventType,
 };
 
 /// The base trait that all event content types implement.
@@ -118,7 +118,7 @@ pub trait StateEventContent: EventContent<EventType = StateEventType> {
 /// Content of a non-redacted state event.
 pub trait OriginalStateEventContent: StateEventContent + RedactContent {
     /// The type of the event's `unsigned` field.
-    type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty + StateUnsignedFromParts;
+    type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty + DeserializeOwned;
 
     /// The possibly redacted form of the event's content.
     type PossiblyRedacted: StateEventContent + DeserializeOwned;

@@ -49,6 +49,7 @@ Breaking changes:
 * Rename `RoomEventType` to `TimelineEventType`
 * Remove `Raw::deserialize_content`
   * `Raw::deserialize_as` can be used instead
+* Remove `StateUnsignedFromParts` and replace it in trait bounds with `DeserializeOwned`
 
 Improvements:
 

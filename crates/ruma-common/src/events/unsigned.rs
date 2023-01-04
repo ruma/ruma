@@ -1,13 +1,11 @@
 use js_int::Int;
-use serde::{de::DeserializeOwned, Deserialize};
-use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
+use serde::Deserialize;
 
 use super::{
     relation::BundledRelations, room::redaction::RoomRedactionEventContent, StateEventContent,
 };
 use crate::{
-    serde::{CanBeEmpty, Raw},
-    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedTransactionId, OwnedUserId,
+    serde::CanBeEmpty, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedTransactionId, OwnedUserId,
 };
 
 /// Extra information about a message event that is not incorporated into the event's hash.
@@ -93,43 +91,6 @@ impl<C: StateEventContent> CanBeEmpty for StateUnsigned<C> {
             && self.transaction_id.is_none()
             && self.prev_content.is_none()
             && self.relations.is_empty()
-    }
-}
-
-/// Helper functions for proc-macro code.
-///
-/// Needs to be public for state events defined outside ruma-common.
-#[doc(hidden)]
-pub trait StateUnsignedFromParts: Sized {
-    fn _from_parts(event_type: &str, object: &RawJsonValue) -> serde_json::Result<Self>;
-}
-
-impl<C: StateEventContent + DeserializeOwned> StateUnsignedFromParts for StateUnsigned<C> {
-    fn _from_parts(_event_type: &str, object: &RawJsonValue) -> serde_json::Result<Self> {
-        #[derive(Deserialize)]
-        struct WithRawPrevContent<C> {
-            #[serde(skip_serializing_if = "Option::is_none")]
-            age: Option<Int>,
-            #[serde(skip_serializing_if = "Option::is_none")]
-            transaction_id: Option<OwnedTransactionId>,
-            prev_content: Option<Raw<C>>,
-            #[serde(
-                rename = "m.relations",
-                default,
-                skip_serializing_if = "BundledRelations::is_empty"
-            )]
-            relations: BundledRelations,
-        }
-
-        let raw: WithRawPrevContent<C> = from_json_str(object.get())?;
-        let prev_content = raw.prev_content.map(|r| r.deserialize()).transpose()?;
-
-        Ok(Self {
-            age: raw.age,
-            transaction_id: raw.transaction_id,
-            relations: raw.relations,
-            prev_content,
-        })
     }
 }
 
