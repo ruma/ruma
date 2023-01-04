@@ -23,15 +23,28 @@ use crate::{serde::Base64, OwnedMxcUri};
 /// [`message`]: super::message
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.file", kind = MessageLike, without_relation)]
+#[ruma_event(type = "org.matrix.msc1767.file", kind = MessageLike, without_relation)]
 pub struct FileEventContent {
     /// The text representation of the message.
     #[serde(rename = "org.matrix.msc1767.text")]
     pub text: TextContentBlock,
 
     /// The file content of the message.
-    #[serde(rename = "m.file")]
-    pub file: FileContent,
+    #[serde(rename = "org.matrix.msc1767.file")]
+    pub file: FileContentBlock,
+
+    /// The caption of the message, if any.
+    #[serde(rename = "org.matrix.msc1767.caption", skip_serializing_if = "Option::is_none")]
+    pub caption: Option<CaptionContentBlock>,
+
+    /// Whether this message is automated.
+    #[cfg(feature = "unstable-msc3955")]
+    #[serde(
+        default,
+        skip_serializing_if = "crate::serde::is_default",
+        rename = "org.matrix.msc1767.automated"
+    )]
+    pub automated: bool,
 
     /// Information about related messages.
     #[serde(
@@ -45,24 +58,30 @@ pub struct FileEventContent {
 impl FileEventContent {
     /// Creates a new non-encrypted `FileEventContent` with the given fallback representation, url
     /// and file info.
-    pub fn plain(
-        text: TextContentBlock,
-        url: OwnedMxcUri,
-        info: Option<Box<FileContentInfo>>,
-    ) -> Self {
-        Self { text, file: FileContent::plain(url, info), relates_to: None }
+    pub fn plain(text: TextContentBlock, url: OwnedMxcUri, name: String) -> Self {
+        Self {
+            text,
+            file: FileContentBlock::plain(url, name),
+            caption: None,
+            #[cfg(feature = "unstable-msc3955")]
+            automated: false,
+            relates_to: None,
+        }
     }
 
     /// Creates a new non-encrypted `FileEventContent` with the given plain text fallback
     /// representation, url and file info.
-    pub fn plain_with_text(
-        text: impl Into<String>,
+    pub fn plain_with_plain_text(
+        plain_text: impl Into<String>,
         url: OwnedMxcUri,
-        info: Option<Box<FileContentInfo>>,
+        name: String,
     ) -> Self {
         Self {
-            text: TextContentBlock::plain(text),
-            file: FileContent::plain(url, info),
+            text: TextContentBlock::plain(plain_text),
+            file: FileContentBlock::plain(url, name),
+            caption: None,
+            #[cfg(feature = "unstable-msc3955")]
+            automated: false,
             relates_to: None,
         }
     }
@@ -72,74 +91,47 @@ impl FileEventContent {
     pub fn encrypted(
         text: TextContentBlock,
         url: OwnedMxcUri,
+        name: String,
         encryption_info: EncryptedContent,
-        info: Option<Box<FileContentInfo>>,
     ) -> Self {
-        Self { text, file: FileContent::encrypted(url, encryption_info, info), relates_to: None }
+        Self {
+            text,
+            file: FileContentBlock::encrypted(url, name, encryption_info),
+            caption: None,
+            #[cfg(feature = "unstable-msc3955")]
+            automated: false,
+            relates_to: None,
+        }
     }
 
     /// Creates a new encrypted `FileEventContent` with the given plain text fallback
     /// representation, url, encryption info and file info.
-    pub fn encrypted_with_text(
-        text: impl Into<String>,
+    pub fn encrypted_with_plain_text(
+        plain_text: impl Into<String>,
         url: OwnedMxcUri,
+        name: String,
         encryption_info: EncryptedContent,
-        info: Option<Box<FileContentInfo>>,
     ) -> Self {
         Self {
-            text: TextContentBlock::plain(text),
-            file: FileContent::encrypted(url, encryption_info, info),
+            text: TextContentBlock::plain(plain_text),
+            file: FileContentBlock::encrypted(url, name, encryption_info),
+            caption: None,
+            #[cfg(feature = "unstable-msc3955")]
+            automated: false,
             relates_to: None,
         }
     }
 }
 
-/// File content.
+/// A block for file content.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct FileContent {
+pub struct FileContentBlock {
     /// The URL to the file.
     pub url: OwnedMxcUri,
 
-    /// Information about the uploaded file.
-    #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    pub info: Option<Box<FileContentInfo>>,
-
-    /// Information on the encrypted file.
-    ///
-    /// Required if the file is encrypted.
-    #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    pub encryption_info: Option<Box<EncryptedContent>>,
-}
-
-impl FileContent {
-    /// Creates a new non-encrypted `FileContent` with the given url and file info.
-    pub fn plain(url: OwnedMxcUri, info: Option<Box<FileContentInfo>>) -> Self {
-        Self { url, info, encryption_info: None }
-    }
-
-    /// Creates a new encrypted `FileContent` with the given url, encryption info and file info.
-    pub fn encrypted(
-        url: OwnedMxcUri,
-        encryption_info: EncryptedContent,
-        info: Option<Box<FileContentInfo>>,
-    ) -> Self {
-        Self { url, info, encryption_info: Some(Box::new(encryption_info)) }
-    }
-
-    /// Whether the file is encrypted.
-    pub fn is_encrypted(&self) -> bool {
-        self.encryption_info.is_some()
-    }
-}
-
-/// Information about a file content.
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct FileContentInfo {
     /// The original filename of the uploaded file.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
+    pub name: String,
 
     /// The mimetype of the file, e.g. "application/msword".
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -148,12 +140,34 @@ pub struct FileContentInfo {
     /// The size of the file in bytes.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub size: Option<UInt>,
+
+    /// Information on the encrypted file.
+    ///
+    /// Required if the file is encrypted.
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub encryption_info: Option<Box<EncryptedContent>>,
 }
 
-impl FileContentInfo {
-    /// Creates an empty `FileContentInfo`.
-    pub fn new() -> Self {
-        Self::default()
+impl FileContentBlock {
+    /// Creates a new non-encrypted `FileContentBlock` with the given url and name.
+    pub fn plain(url: OwnedMxcUri, name: String) -> Self {
+        Self { url, name, mimetype: None, size: None, encryption_info: None }
+    }
+
+    /// Creates a new encrypted `FileContentBlock` with the given url, name and encryption info.
+    pub fn encrypted(url: OwnedMxcUri, name: String, encryption_info: EncryptedContent) -> Self {
+        Self {
+            url,
+            name,
+            mimetype: None,
+            size: None,
+            encryption_info: Some(Box::new(encryption_info)),
+        }
+    }
+
+    /// Whether the file is encrypted.
+    pub fn is_encrypted(&self) -> bool {
+        self.encryption_info.is_some()
     }
 }
 
@@ -216,5 +230,46 @@ impl From<&EncryptedFile> for EncryptedContent {
     fn from(encrypted: &EncryptedFile) -> Self {
         let EncryptedFile { key, iv, hashes, v, .. } = encrypted;
         Self { key: key.to_owned(), iv: iv.to_owned(), hashes: hashes.to_owned(), v: v.to_owned() }
+    }
+}
+
+/// A block for caption content.
+///
+/// A caption is usually a text message that should be displayed next to some media content.
+///
+/// To construct a `CaptionContentBlock` with a custom [`TextContentBlock`], convert it with
+/// `CaptionContentBlock::from()` / `.into()`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct CaptionContentBlock {
+    /// The text message of the caption.
+    #[serde(rename = "org.matrix.msc1767.text")]
+    pub text: TextContentBlock,
+}
+
+impl CaptionContentBlock {
+    /// A convenience constructor to create a plain text caption content block.
+    pub fn plain(body: impl Into<String>) -> Self {
+        Self { text: TextContentBlock::plain(body) }
+    }
+
+    /// A convenience constructor to create an HTML caption content block.
+    pub fn html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self { text: TextContentBlock::html(body, html_body) }
+    }
+
+    /// A convenience constructor to create a caption content block from Markdown.
+    ///
+    /// The content includes an HTML message if some Markdown formatting was detected, otherwise
+    /// only a plain text message is included.
+    #[cfg(feature = "markdown")]
+    pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
+        Self { text: TextContentBlock::markdown(body) }
+    }
+}
+
+impl From<TextContentBlock> for CaptionContentBlock {
+    fn from(text: TextContentBlock) -> Self {
+        Self { text }
     }
 }

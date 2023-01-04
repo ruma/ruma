@@ -1,12 +1,11 @@
 #![cfg(feature = "unstable-msc3551")]
 
 use assert_matches::assert_matches;
-use assign::assign;
 use js_int::uint;
 use ruma_common::{
     event_id,
     events::{
-        file::{EncryptedContentInit, FileContentInfo, FileEventContent},
+        file::{EncryptedContentInit, FileEventContent},
         message::TextContentBlock,
         relation::InReplyTo,
         room::{message::Relation, JsonWebKeyInit},
@@ -20,10 +19,10 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 
 #[test]
 fn plain_content_serialization() {
-    let event_content = FileEventContent::plain_with_text(
+    let event_content = FileEventContent::plain_with_plain_text(
         "Upload: my_file.txt",
         mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
-        None,
+        "my_file.txt".to_owned(),
     );
 
     assert_eq!(
@@ -32,8 +31,9 @@ fn plain_content_serialization() {
             "org.matrix.msc1767.text": [
                 { "body": "Upload: my_file.txt" },
             ],
-            "m.file": {
+            "org.matrix.msc1767.file": {
                 "url": "mxc://notareal.hs/abcdef",
+                "name": "my_file.txt",
             }
         })
     );
@@ -41,9 +41,10 @@ fn plain_content_serialization() {
 
 #[test]
 fn encrypted_content_serialization() {
-    let event_content = FileEventContent::encrypted_with_text(
+    let event_content = FileEventContent::encrypted_with_plain_text(
         "Upload: my_file.txt",
         mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+        "my_file.txt".to_owned(),
         EncryptedContentInit {
             key: JsonWebKeyInit {
                 kty: "oct".to_owned(),
@@ -62,7 +63,6 @@ fn encrypted_content_serialization() {
             v: "v2".to_owned(),
         }
         .into(),
-        None,
     );
 
     assert_eq!(
@@ -71,8 +71,9 @@ fn encrypted_content_serialization() {
             "org.matrix.msc1767.text": [
                 { "body": "Upload: my_file.txt" },
             ],
-            "m.file": {
+            "org.matrix.msc1767.file": {
                 "url": "mxc://notareal.hs/abcdef",
+                "name": "my_file.txt",
                 "key": {
                     "kty": "oct",
                     "key_ops": ["encrypt", "decrypt"],
@@ -84,7 +85,7 @@ fn encrypted_content_serialization() {
                 "hashes": {
                     "sha256": "aWOHudBnDkJ9IwaR1Nd8XKoI7DOrqDTwt6xDPfVGN6Q"
                 },
-                "v": "v2"
+                "v": "v2",
             }
         })
     );
@@ -92,28 +93,16 @@ fn encrypted_content_serialization() {
 
 #[test]
 fn file_event_serialization() {
-    let content = assign!(
-            FileEventContent::plain(
-                TextContentBlock::html(
-                    "Upload: my_file.txt",
-                    "Upload: <strong>my_file.txt</strong>",
-                ),
-                mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
-                Some(Box::new(assign!(
-                    FileContentInfo::new(),
-                    {
-                        name: Some("my_file.txt".to_owned()),
-                        mimetype: Some("text/plain".to_owned()),
-                        size: Some(uint!(774)),
-                    }
-                ))),
-            ),
-            {
-                relates_to: Some(Relation::Reply {
-                    in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
-                }),
-            }
-        );
+    let mut content = FileEventContent::plain(
+        TextContentBlock::html("Upload: my_file.txt", "Upload: <strong>my_file.txt</strong>"),
+        mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+        "my_file.txt".to_owned(),
+    );
+    content.file.mimetype = Some("text/plain".to_owned());
+    content.file.size = Some(uint!(774));
+    content.relates_to = Some(Relation::Reply {
+        in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
+    });
 
     assert_eq!(
         to_json_value(&content).unwrap(),
@@ -122,7 +111,7 @@ fn file_event_serialization() {
                 { "mimetype": "text/html", "body": "Upload: <strong>my_file.txt</strong>" },
                 { "body": "Upload: my_file.txt" },
             ],
-            "m.file": {
+            "org.matrix.msc1767.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "my_file.txt",
                 "mimetype": "text/plain",
@@ -143,8 +132,9 @@ fn plain_content_deserialization() {
         "org.matrix.msc1767.text": [
             { "body": "Upload: my_file.txt" },
         ],
-        "m.file": {
+        "org.matrix.msc1767.file": {
             "url": "mxc://notareal.hs/abcdef",
+            "name": "my_file.txt",
         }
     });
 
@@ -152,6 +142,7 @@ fn plain_content_deserialization() {
     assert_eq!(content.text.find_plain(), Some("Upload: my_file.txt"));
     assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
+    assert_eq!(content.file.name, "my_file.txt");
 }
 
 #[test]
@@ -160,8 +151,9 @@ fn encrypted_content_deserialization() {
         "org.matrix.msc1767.text": [
             { "body": "Upload: my_file.txt" },
         ],
-        "m.file": {
+        "org.matrix.msc1767.file": {
             "url": "mxc://notareal.hs/abcdef",
+            "name": "",
             "key": {
                 "kty": "oct",
                 "key_ops": ["encrypt", "decrypt"],
@@ -181,6 +173,7 @@ fn encrypted_content_deserialization() {
     assert_eq!(content.text.find_plain(), Some("Upload: my_file.txt"));
     assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
+    assert_eq!(content.file.name, "");
     assert!(content.file.encryption_info.is_some());
 }
 
@@ -192,7 +185,7 @@ fn message_event_deserialization() {
                 { "body": "Upload: <strong>my_file.txt</strong>", "mimetype": "text/html"},
                 { "body": "Upload: my_file.txt", "mimetype": "text/plain"},
             ],
-            "m.file": {
+            "org.matrix.msc1767.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "my_file.txt",
                 "mimetype": "text/plain",
@@ -203,7 +196,7 @@ fn message_event_deserialization() {
         "origin_server_ts": 134_829_848,
         "room_id": "!roomid:notareal.hs",
         "sender": "@user:notareal.hs",
-        "type": "m.file",
+        "type": "org.matrix.msc1767.file",
     });
 
     let message_event = assert_matches!(
@@ -215,10 +208,9 @@ fn message_event_deserialization() {
     assert_eq!(content.text.find_plain(), Some("Upload: my_file.txt"));
     assert_eq!(content.text.find_html(), Some("Upload: <strong>my_file.txt</strong>"));
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
-    let info = content.file.info.unwrap();
-    assert_eq!(info.name.as_deref(), Some("my_file.txt"));
-    assert_eq!(info.mimetype.as_deref(), Some("text/plain"));
-    assert_eq!(info.size, Some(uint!(774)));
+    assert_eq!(content.file.name, "my_file.txt");
+    assert_eq!(content.file.mimetype.as_deref(), Some("text/plain"));
+    assert_eq!(content.file.size, Some(uint!(774)));
     assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
     assert_eq!(message_event.room_id, "!roomid:notareal.hs");
     assert_eq!(message_event.sender, "@user:notareal.hs");

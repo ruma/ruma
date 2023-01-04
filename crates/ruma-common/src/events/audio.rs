@@ -13,7 +13,7 @@ mod waveform_serde;
 
 use waveform_serde::WaveformSerDeHelper;
 
-use super::{file::FileContent, message::TextContentBlock, room::message::Relation};
+use super::{file::FileContentBlock, message::TextContentBlock, room::message::Relation};
 
 /// The payload for an extensible audio message.
 ///
@@ -31,8 +31,8 @@ pub struct AudioEventContent {
     pub text: TextContentBlock,
 
     /// The file content of the message.
-    #[serde(rename = "m.file")]
-    pub file: FileContent,
+    #[serde(rename = "org.matrix.msc1767.file")]
+    pub file: FileContentBlock,
 
     /// The audio content of the message.
     #[serde(rename = "m.audio")]
@@ -49,13 +49,13 @@ pub struct AudioEventContent {
 
 impl AudioEventContent {
     /// Creates a new `AudioEventContent` with the given text fallback and file.
-    pub fn new(text: TextContentBlock, file: FileContent) -> Self {
+    pub fn new(text: TextContentBlock, file: FileContentBlock) -> Self {
         Self { text, file, audio: Default::default(), relates_to: None }
     }
 
     /// Creates a new `AudioEventContent` with the given plain text fallback representation and
     /// file.
-    pub fn plain(text_fallback: impl Into<String>, file: FileContent) -> Self {
+    pub fn plain(text_fallback: impl Into<String>, file: FileContentBlock) -> Self {
         Self {
             text: TextContentBlock::plain(text_fallback),
             file,
