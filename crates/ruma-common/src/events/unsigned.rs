@@ -1,5 +1,5 @@
 use js_int::Int;
-use serde::Deserialize;
+use serde::{de::DeserializeOwned, Deserialize};
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 
 use super::{
@@ -104,10 +104,9 @@ pub trait StateUnsignedFromParts: Sized {
     fn _from_parts(event_type: &str, object: &RawJsonValue) -> serde_json::Result<Self>;
 }
 
-impl<C: StateEventContent> StateUnsignedFromParts for StateUnsigned<C> {
-    fn _from_parts(event_type: &str, object: &RawJsonValue) -> serde_json::Result<Self> {
+impl<C: StateEventContent + DeserializeOwned> StateUnsignedFromParts for StateUnsigned<C> {
+    fn _from_parts(_event_type: &str, object: &RawJsonValue) -> serde_json::Result<Self> {
         #[derive(Deserialize)]
-        #[serde(bound = "")] // Disable default C: Deserialize bound
         struct WithRawPrevContent<C> {
             #[serde(skip_serializing_if = "Option::is_none")]
             age: Option<Int>,
@@ -123,8 +122,7 @@ impl<C: StateEventContent> StateUnsignedFromParts for StateUnsigned<C> {
         }
 
         let raw: WithRawPrevContent<C> = from_json_str(object.get())?;
-        let prev_content =
-            raw.prev_content.map(|r| r.deserialize_content(event_type.into())).transpose()?;
+        let prev_content = raw.prev_content.map(|r| r.deserialize()).transpose()?;
 
         Ok(Self {
             age: raw.age,

@@ -47,6 +47,8 @@ Breaking changes:
 * Remove the `serde::urlencoded` module
   * Query string (de)serialization is now done by the `serde_html_form` crate
 * Rename `RoomEventType` to `TimelineEventType`
+* Remove `Raw::deserialize_content`
+  * `Raw::deserialize_as` can be used instead
 
 Improvements:
 

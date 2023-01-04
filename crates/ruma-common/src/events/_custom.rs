@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
@@ -16,7 +16,7 @@ macro_rules! custom_event_content {
         /// A custom event's type. Used for event enum `_Custom` variants.
         // FIXME: Serialize shouldn't be required here, but it's currently a supertrait of
         // EventContent
-        #[derive(Clone, Debug, Serialize)]
+        #[derive(Clone, Debug, Serialize, Deserialize)]
         #[allow(clippy::exhaustive_structs)]
         pub struct $i {
             #[serde(skip)]

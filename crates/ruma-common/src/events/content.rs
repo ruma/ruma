@@ -3,7 +3,7 @@ use std::fmt;
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use crate::serde::{CanBeEmpty, Raw};
+use crate::serde::CanBeEmpty;
 
 use super::{
     EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEventType, RedactContent,
@@ -25,17 +25,6 @@ pub trait EventContent: Sized + Serialize {
     /// Constructs the given event content.
     #[doc(hidden)]
     fn from_parts(event_type: &str, content: &RawJsonValue) -> serde_json::Result<Self>;
-}
-
-impl<T> Raw<T>
-where
-    T: EventContent,
-    T::EventType: fmt::Display,
-{
-    /// Try to deserialize the JSON as an event's content.
-    pub fn deserialize_content(&self, event_type: T::EventType) -> serde_json::Result<T> {
-        T::from_parts(&event_type.to_string(), self.json())
-    }
 }
 
 /// The base trait that all redacted event content types implement.
@@ -132,7 +121,7 @@ pub trait OriginalStateEventContent: StateEventContent + RedactContent {
     type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty + StateUnsignedFromParts;
 
     /// The possibly redacted form of the event's content.
-    type PossiblyRedacted: StateEventContent;
+    type PossiblyRedacted: StateEventContent + DeserializeOwned;
 }
 
 /// Content of a redacted state event.
