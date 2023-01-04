@@ -9,7 +9,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        events::AnyGlobalAccountDataEventContent,
+        events::{AnyGlobalAccountDataEventContent, GlobalAccountDataEventType},
         metadata,
         serde::Raw,
         OwnedUserId,
@@ -34,7 +34,7 @@ pub mod v3 {
 
         /// Type of data to retrieve.
         #[ruma_api(path)]
-        pub event_type: String,
+        pub event_type: GlobalAccountDataEventType,
     }
 
     /// Response type for the `get_global_account_data` endpoint.
@@ -49,7 +49,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID and event type.
-        pub fn new(user_id: OwnedUserId, event_type: String) -> Self {
+        pub fn new(user_id: OwnedUserId, event_type: GlobalAccountDataEventType) -> Self {
             Self { user_id, event_type }
         }
     }
