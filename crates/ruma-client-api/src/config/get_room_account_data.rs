@@ -9,7 +9,7 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        events::AnyRoomAccountDataEventContent,
+        events::{AnyRoomAccountDataEventContent, RoomAccountDataEventType},
         metadata,
         serde::Raw,
         OwnedRoomId, OwnedUserId,
@@ -38,7 +38,7 @@ pub mod v3 {
 
         /// Type of data to retrieve.
         #[ruma_api(path)]
-        pub event_type: String,
+        pub event_type: RoomAccountDataEventType,
     }
 
     /// Response type for the `get_room_account_data` endpoint.
@@ -53,7 +53,11 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID, room ID and event type.
-        pub fn new(user_id: OwnedUserId, room_id: OwnedRoomId, event_type: String) -> Self {
+        pub fn new(
+            user_id: OwnedUserId,
+            room_id: OwnedRoomId,
+            event_type: RoomAccountDataEventType,
+        ) -> Self {
             Self { user_id, room_id, event_type }
         }
     }
