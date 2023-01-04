@@ -9,7 +9,8 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    file::FileContent, image::ThumbnailContent, message::TextContentBlock, room::message::Relation,
+    file::FileContentBlock, image::ThumbnailContent, message::TextContentBlock,
+    room::message::Relation,
 };
 
 /// The payload for an extensible video message.
@@ -28,8 +29,8 @@ pub struct VideoEventContent {
     pub text: TextContentBlock,
 
     /// The file content of the message.
-    #[serde(rename = "m.file")]
-    pub file: FileContent,
+    #[serde(rename = "org.matrix.msc1767.file")]
+    pub file: FileContentBlock,
 
     /// The video content of the message.
     #[serde(rename = "m.video")]
@@ -54,7 +55,7 @@ pub struct VideoEventContent {
 
 impl VideoEventContent {
     /// Creates a new `VideoEventContent` with the given fallback representation and file.
-    pub fn new(text: TextContentBlock, file: FileContent) -> Self {
+    pub fn new(text: TextContentBlock, file: FileContentBlock) -> Self {
         Self {
             text,
             file,
@@ -67,7 +68,7 @@ impl VideoEventContent {
 
     /// Creates a new `VideoEventContent` with the given plain text fallback representation and
     /// file.
-    pub fn plain(text: impl Into<String>, file: FileContent) -> Self {
+    pub fn plain(text: impl Into<String>, file: FileContentBlock) -> Self {
         Self {
             text: TextContentBlock::plain(text),
             file,

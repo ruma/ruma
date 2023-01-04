@@ -9,7 +9,7 @@ use ruma_common::{
     event_id,
     events::{
         audio::{Amplitude, AudioContent, AudioEventContent, Waveform, WaveformError},
-        file::{EncryptedContentInit, FileContent, FileContentInfo},
+        file::{EncryptedContentInit, FileContentBlock},
         message::TextContentBlock,
         relation::InReplyTo,
         room::{message::Relation, JsonWebKeyInit},
@@ -57,7 +57,10 @@ fn waveform_deserialization_clamp_amplitude() {
 fn plain_content_serialization() {
     let event_content = AudioEventContent::plain(
         "Upload: my_sound.ogg",
-        FileContent::plain(mxc_uri!("mxc://notareal.hs/abcdef").to_owned(), None),
+        FileContentBlock::plain(
+            mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+            "my_sound.ogg".to_owned(),
+        ),
     );
 
     assert_eq!(
@@ -66,8 +69,9 @@ fn plain_content_serialization() {
             "org.matrix.msc1767.text": [
                 { "body": "Upload: my_sound.ogg" },
             ],
-            "m.file": {
+            "org.matrix.msc1767.file": {
                 "url": "mxc://notareal.hs/abcdef",
+                "name": "my_sound.ogg",
             },
             "m.audio": {}
         })
@@ -78,8 +82,9 @@ fn plain_content_serialization() {
 fn encrypted_content_serialization() {
     let event_content = AudioEventContent::plain(
         "Upload: my_sound.ogg",
-        FileContent::encrypted(
+        FileContentBlock::encrypted(
             mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+            "my_sound.ogg".to_owned(),
             EncryptedContentInit {
                 key: JsonWebKeyInit {
                     kty: "oct".to_owned(),
@@ -98,7 +103,6 @@ fn encrypted_content_serialization() {
                 v: "v2".to_owned(),
             }
             .into(),
-            None,
         ),
     );
 
@@ -108,8 +112,9 @@ fn encrypted_content_serialization() {
             "org.matrix.msc1767.text": [
                 { "body": "Upload: my_sound.ogg" },
             ],
-            "m.file": {
+            "org.matrix.msc1767.file": {
                 "url": "mxc://notareal.hs/abcdef",
+                "name": "my_sound.ogg",
                 "key": {
                     "kty": "oct",
                     "key_ops": ["encrypt", "decrypt"],
@@ -121,7 +126,7 @@ fn encrypted_content_serialization() {
                 "hashes": {
                     "sha256": "aWOHudBnDkJ9IwaR1Nd8XKoI7DOrqDTwt6xDPfVGN6Q"
                 },
-                "v": "v2"
+                "v": "v2",
             },
             "m.audio": {}
         })
@@ -136,16 +141,15 @@ fn event_serialization() {
                 "Upload: my_mix.mp3",
                 "Upload: <strong>my_mix.mp3</strong>",
             ),
-            FileContent::plain(
-                mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
-                Some(Box::new(assign!(
-                    FileContentInfo::new(),
-                    {
-                        name: Some("my_mix.mp3".to_owned()),
-                        mimetype: Some("audio/mp3".to_owned()),
-                        size: Some(uint!(897_774)),
-                    }
-                ))),
+            assign!(
+                FileContentBlock::plain(
+                    mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+                    "my_mix.mp3".to_owned()
+                ),
+                {
+                    mimetype: Some("audio/mp3".to_owned()),
+                    size: Some(uint!(897_774)),
+                }
             )
         ),
         {
@@ -168,7 +172,7 @@ fn event_serialization() {
                 { "mimetype": "text/html", "body": "Upload: <strong>my_mix.mp3</strong>" },
                 { "body": "Upload: my_mix.mp3"},
             ],
-            "m.file": {
+            "org.matrix.msc1767.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "my_mix.mp3",
                 "mimetype": "audio/mp3",
@@ -192,8 +196,9 @@ fn plain_content_deserialization() {
         "org.matrix.msc1767.text": [
             { "body": "Upload: my_new_song.webm" },
         ],
-        "m.file": {
+        "org.matrix.msc1767.file": {
             "url": "mxc://notareal.hs/abcdef",
+            "name": "my_new_song.webm",
         },
         "m.audio": {
             "waveform": [
@@ -257,6 +262,7 @@ fn plain_content_deserialization() {
     assert_eq!(content.text.find_plain(), Some("Upload: my_new_song.webm"));
     assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
+    assert_eq!(content.file.name, "my_new_song.webm");
     let waveform = content.audio.waveform.unwrap();
     assert_eq!(waveform.amplitudes().len(), 52);
 }
@@ -267,8 +273,9 @@ fn encrypted_content_deserialization() {
         "org.matrix.msc1767.text": [
             { "body": "Upload: my_file.txt" },
         ],
-        "m.file": {
+        "org.matrix.msc1767.file": {
             "url": "mxc://notareal.hs/abcdef",
+            "name": "my_file.txt",
             "key": {
                 "kty": "oct",
                 "key_ops": ["encrypt", "decrypt"],
@@ -289,6 +296,7 @@ fn encrypted_content_deserialization() {
     assert_eq!(content.text.find_plain(), Some("Upload: my_file.txt"));
     assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
+    assert_eq!(content.file.name, "my_file.txt");
     assert!(content.file.encryption_info.is_some());
 }
 
@@ -299,7 +307,7 @@ fn message_event_deserialization() {
             "org.matrix.msc1767.text": [
                 { "body": "Upload: airplane_sound.opus" },
             ],
-            "m.file": {
+            "org.matrix.msc1767.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "airplane_sound.opus",
                 "mimetype": "audio/opus",
@@ -331,10 +339,9 @@ fn message_event_deserialization() {
     assert_eq!(content.text.find_plain(), Some("Upload: airplane_sound.opus"));
     assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
-    let info = content.file.info.unwrap();
-    assert_eq!(info.name.as_deref(), Some("airplane_sound.opus"));
-    assert_eq!(info.mimetype.as_deref(), Some("audio/opus"));
-    assert_eq!(info.size, Some(uint!(123_774)));
+    assert_eq!(content.file.name, "airplane_sound.opus");
+    assert_eq!(content.file.mimetype.as_deref(), Some("audio/opus"));
+    assert_eq!(content.file.size, Some(uint!(123_774)));
     assert_eq!(content.audio.duration, Some(Duration::from_millis(5_300)));
     assert_matches!(content.audio.waveform, None);
 }

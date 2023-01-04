@@ -6,7 +6,7 @@ use js_int::uint;
 use ruma_common::{
     event_id,
     events::{
-        file::{EncryptedContentInit, FileContent, FileContentInfo},
+        file::{EncryptedContentInit, FileContentBlock},
         image::{
             ImageContent, ImageEventContent, ThumbnailContent, ThumbnailFileContent,
             ThumbnailFileContentInfo,
@@ -26,7 +26,10 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 fn plain_content_serialization() {
     let event_content = ImageEventContent::plain(
         "Upload: my_image.jpg",
-        FileContent::plain(mxc_uri!("mxc://notareal.hs/abcdef").to_owned(), None),
+        FileContentBlock::plain(
+            mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+            "my_image.jpg".to_owned(),
+        ),
     );
 
     assert_eq!(
@@ -35,8 +38,9 @@ fn plain_content_serialization() {
             "org.matrix.msc1767.text": [
                 { "body": "Upload: my_image.jpg" },
             ],
-            "m.file": {
+            "org.matrix.msc1767.file": {
                 "url": "mxc://notareal.hs/abcdef",
+                "name": "my_image.jpg",
             },
             "m.image": {}
         })
@@ -47,8 +51,9 @@ fn plain_content_serialization() {
 fn encrypted_content_serialization() {
     let event_content = ImageEventContent::plain(
         "Upload: my_image.jpg",
-        FileContent::encrypted(
+        FileContentBlock::encrypted(
             mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+            "my_image.jpg".to_owned(),
             EncryptedContentInit {
                 key: JsonWebKeyInit {
                     kty: "oct".to_owned(),
@@ -67,7 +72,6 @@ fn encrypted_content_serialization() {
                 v: "v2".to_owned(),
             }
             .into(),
-            None,
         ),
     );
 
@@ -77,8 +81,9 @@ fn encrypted_content_serialization() {
             "org.matrix.msc1767.text": [
                 { "body": "Upload: my_image.jpg" },
             ],
-            "m.file": {
+            "org.matrix.msc1767.file": {
                 "url": "mxc://notareal.hs/abcdef",
+                "name": "my_image.jpg",
                 "key": {
                     "kty": "oct",
                     "key_ops": ["encrypt", "decrypt"],
@@ -99,42 +104,31 @@ fn encrypted_content_serialization() {
 
 #[test]
 fn image_event_serialization() {
-    let content = assign!(
-        ImageEventContent::new(
-            TextContentBlock::html(
-                "Upload: my_house.jpg",
-                "Upload: <strong>my_house.jpg</strong>",
-            ),
-            FileContent::plain(
-                mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
-                Some(Box::new(assign!(
-                    FileContentInfo::new(),
-                    {
-                        name: Some("my_house.jpg".to_owned()),
-                        mimetype: Some("image/jpeg".to_owned()),
-                        size: Some(uint!(897_774)),
-                    }
-                ))),
-            )
+    let mut content = ImageEventContent::new(
+        TextContentBlock::html("Upload: my_house.jpg", "Upload: <strong>my_house.jpg</strong>"),
+        FileContentBlock::plain(
+            mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+            "my_house.jpg".to_owned(),
         ),
-        {
-            image: Box::new(ImageContent::with_size(uint!(1920), uint!(1080))),
-            thumbnail: vec![ThumbnailContent::new(
-                ThumbnailFileContent::plain(
-                    mxc_uri!("mxc://notareal.hs/thumbnail").to_owned(),
-                    Some(Box::new(assign!(ThumbnailFileContentInfo::new(), {
-                        mimetype: Some("image/jpeg".to_owned()),
-                        size: Some(uint!(334_593)),
-                    })))
-                ),
-                None
-            )],
-            caption: TextContentBlock::plain("This is my house"),
-            relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
-            }),
-        }
     );
+
+    content.file.mimetype = Some("image/jpeg".to_owned());
+    content.file.size = Some(uint!(897_774));
+    content.image = Box::new(ImageContent::with_size(uint!(1920), uint!(1080)));
+    content.thumbnail = vec![ThumbnailContent::new(
+        ThumbnailFileContent::plain(
+            mxc_uri!("mxc://notareal.hs/thumbnail").to_owned(),
+            Some(Box::new(assign!(ThumbnailFileContentInfo::new(), {
+                mimetype: Some("image/jpeg".to_owned()),
+                size: Some(uint!(334_593)),
+            }))),
+        ),
+        None,
+    )];
+    content.caption = TextContentBlock::plain("This is my house");
+    content.relates_to = Some(Relation::Reply {
+        in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
+    });
 
     assert_eq!(
         to_json_value(&content).unwrap(),
@@ -143,7 +137,7 @@ fn image_event_serialization() {
                 { "mimetype": "text/html", "body": "Upload: <strong>my_house.jpg</strong>" },
                 { "body": "Upload: my_house.jpg" },
             ],
-            "m.file": {
+            "org.matrix.msc1767.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "my_house.jpg",
                 "mimetype": "image/jpeg",
@@ -180,8 +174,9 @@ fn plain_content_deserialization() {
         "org.matrix.msc1767.text": [
             { "body": "Upload: my_cat.png" },
         ],
-        "m.file": {
+        "org.matrix.msc1767.file": {
             "url": "mxc://notareal.hs/abcdef",
+            "name": "my_cat.png",
         },
         "m.image": {
             "width": 668,
@@ -197,6 +192,7 @@ fn plain_content_deserialization() {
     assert_eq!(content.text.find_plain(), Some("Upload: my_cat.png"));
     assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
+    assert_eq!(content.file.name, "my_cat.png");
     assert_matches!(content.file.encryption_info, None);
     assert_eq!(content.image.width, Some(uint!(668)));
     assert_eq!(content.image.height, None);
@@ -211,8 +207,9 @@ fn encrypted_content_deserialization() {
         "org.matrix.msc1767.text": [
             { "body": "Upload: my_cat.png" },
         ],
-        "m.file": {
+        "org.matrix.msc1767.file": {
             "url": "mxc://notareal.hs/abcdef",
+            "name": "my_cat.png",
             "key": {
                 "kty": "oct",
                 "key_ops": ["encrypt", "decrypt"],
@@ -238,6 +235,7 @@ fn encrypted_content_deserialization() {
     assert_eq!(content.text.find_plain(), Some("Upload: my_cat.png"));
     assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
+    assert_eq!(content.file.name, "my_cat.png");
     assert!(content.file.encryption_info.is_some());
     assert_eq!(content.image.width, None);
     assert_eq!(content.image.height, None);
@@ -253,7 +251,7 @@ fn message_event_deserialization() {
             "org.matrix.msc1767.text": [
                 { "body": "Upload: my_gnome.webp" },
             ],
-            "m.file": {
+            "org.matrix.msc1767.file": {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "my_gnome.webp",
                 "mimetype": "image/webp",
@@ -285,10 +283,9 @@ fn message_event_deserialization() {
     assert_eq!(content.text.find_plain(), Some("Upload: my_gnome.webp"));
     assert_eq!(content.text.find_html(), None);
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
-    let info = content.file.info.unwrap();
-    assert_eq!(info.name.as_deref(), Some("my_gnome.webp"));
-    assert_eq!(info.mimetype.as_deref(), Some("image/webp"));
-    assert_eq!(info.size, Some(uint!(123_774)));
+    assert_eq!(content.file.name, "my_gnome.webp");
+    assert_eq!(content.file.mimetype.as_deref(), Some("image/webp"));
+    assert_eq!(content.file.size, Some(uint!(123_774)));
     assert_eq!(content.image.width, Some(uint!(1300)));
     assert_eq!(content.image.height, Some(uint!(837)));
     assert_eq!(content.thumbnail.len(), 0);

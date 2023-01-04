@@ -7,7 +7,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    file::{EncryptedContent, FileContent},
+    file::{EncryptedContent, FileContentBlock},
     message::TextContentBlock,
     room::message::Relation,
 };
@@ -29,8 +29,8 @@ pub struct ImageEventContent {
     pub text: TextContentBlock,
 
     /// The file content of the message.
-    #[serde(rename = "m.file")]
-    pub file: FileContent,
+    #[serde(rename = "org.matrix.msc1767.file")]
+    pub file: FileContentBlock,
 
     /// The image content of the message.
     #[serde(rename = "m.image")]
@@ -56,7 +56,7 @@ pub struct ImageEventContent {
 impl ImageEventContent {
     /// Creates a new `ImageEventContent` with the given fallback representation and
     /// file.
-    pub fn new(text: TextContentBlock, file: FileContent) -> Self {
+    pub fn new(text: TextContentBlock, file: FileContentBlock) -> Self {
         Self {
             text,
             file,
@@ -69,7 +69,7 @@ impl ImageEventContent {
 
     /// Creates a new `ImageEventContent` with the given plain text fallback representation and
     /// file.
-    pub fn plain(text_fallback: impl Into<String>, file: FileContent) -> Self {
+    pub fn plain(text_fallback: impl Into<String>, file: FileContentBlock) -> Self {
         Self {
             text: TextContentBlock::plain(text_fallback),
             file,
