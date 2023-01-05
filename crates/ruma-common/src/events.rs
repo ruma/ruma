@@ -120,7 +120,7 @@ pub mod macros {
     pub use ruma_macros::{Event, EventContent};
 }
 
-#[cfg(feature = "unstable-msc3246")]
+#[cfg(feature = "unstable-msc3927")]
 pub mod audio;
 pub mod call;
 pub mod direct;
