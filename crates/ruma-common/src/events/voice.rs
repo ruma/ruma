@@ -2,12 +2,13 @@
 //!
 //! [MSC3245]: https://github.com/matrix-org/matrix-spec-proposals/pull/3245
 
+use std::time::Duration;
+
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    audio::AudioDetailsContentBlock, file::FileContentBlock, message::TextContentBlock,
-    room::message::Relation,
+    audio::Amplitude, file::FileContentBlock, message::TextContentBlock, room::message::Relation,
 };
 
 /// The payload for an extensible voice message.
@@ -20,7 +21,7 @@ use super::{
 /// [`message`]: super::message
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.voice", kind = MessageLike, without_relation)]
+#[ruma_event(type = "org.matrix.msc3245.voice.v2", kind = MessageLike, without_relation)]
 pub struct VoiceEventContent {
     /// The text representation of the message.
     #[serde(rename = "org.matrix.msc1767.text")]
@@ -31,12 +32,17 @@ pub struct VoiceEventContent {
     pub file: FileContentBlock,
 
     /// The audio content of the message.
-    #[serde(rename = "org.matrix.msc1767.audio_details", skip_serializing_if = "Option::is_none")]
-    pub audio_details: Option<AudioDetailsContentBlock>,
+    #[serde(rename = "org.matrix.msc1767.audio_details")]
+    pub audio_details: VoiceAudioDetailsContentBlock,
 
-    /// The voice content of the message.
-    #[serde(rename = "m.voice")]
-    pub voice: VoiceContent,
+    /// Whether this message is automated.
+    #[cfg(feature = "unstable-msc3955")]
+    #[serde(
+        default,
+        skip_serializing_if = "crate::serde::is_default",
+        rename = "org.matrix.msc1767.automated"
+    )]
+    pub automated: bool,
 
     /// Information about related messages.
     #[serde(
@@ -48,35 +54,58 @@ pub struct VoiceEventContent {
 }
 
 impl VoiceEventContent {
-    /// Creates a new `VoiceEventContent` with the given fallback representation and file.
-    pub fn new(text: TextContentBlock, file: FileContentBlock) -> Self {
-        Self { text, file, audio_details: None, voice: Default::default(), relates_to: None }
+    /// Creates a new `VoiceEventContent` with the given fallback representation, file and audio
+    /// details.
+    pub fn new(
+        text: TextContentBlock,
+        file: FileContentBlock,
+        audio_details: VoiceAudioDetailsContentBlock,
+    ) -> Self {
+        Self {
+            text,
+            file,
+            audio_details,
+            #[cfg(feature = "unstable-msc3955")]
+            automated: false,
+            relates_to: None,
+        }
     }
 
-    /// Creates a new `VoiceEventContent` with the given plain text fallback representation and
-    /// file.
-    pub fn plain(text: impl Into<String>, file: FileContentBlock) -> Self {
+    /// Creates a new `VoiceEventContent` with the given plain text fallback representation, file
+    /// and audio details.
+    pub fn with_plain_text(
+        plain_text: impl Into<String>,
+        file: FileContentBlock,
+        audio_details: VoiceAudioDetailsContentBlock,
+    ) -> Self {
         Self {
-            text: TextContentBlock::plain(text),
+            text: TextContentBlock::plain(plain_text),
             file,
-            audio_details: None,
-            voice: Default::default(),
+            audio_details,
+            #[cfg(feature = "unstable-msc3955")]
+            automated: false,
             relates_to: None,
         }
     }
 }
 
-/// Voice content.
-///
-/// This is currently empty and used as a flag to mark an audio event that should be displayed as a
-/// voice message.
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+/// A block for details of voice audio content.
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct VoiceContent {}
+pub struct VoiceAudioDetailsContentBlock {
+    /// The duration of the audio in seconds.
+    #[serde(with = "ruma_common::serde::duration::secs")]
+    pub duration: Duration,
 
-impl VoiceContent {
-    /// Creates a new empty `VoiceContent`.
-    pub fn new() -> Self {
-        Self::default()
+    /// The waveform representation of the content.
+    #[serde(rename = "org.matrix.msc3246.waveform")]
+    pub waveform: Vec<Amplitude>,
+}
+
+impl VoiceAudioDetailsContentBlock {
+    /// Creates a new `AudioDetailsContentBlock` with the given duration and waveform
+    /// representation.
+    pub fn new(duration: Duration, waveform: Vec<Amplitude>) -> Self {
+        Self { duration, waveform }
     }
 }
