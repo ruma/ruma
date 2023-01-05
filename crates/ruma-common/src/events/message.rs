@@ -265,10 +265,16 @@ pub struct TextRepresentation {
     ///
     /// This must be a valid language code according to [BCP 47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt).
     ///
+    /// This is optional and defaults to `en`.
+    ///
     /// [MSC3554]: https://github.com/matrix-org/matrix-spec-proposals/pull/3554
     #[cfg(feature = "unstable-msc3554")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub lang: Option<String>,
+    #[serde(
+        rename = "org.matrix.msc3554.lang",
+        default = "Text::default_lang",
+        skip_serializing_if = "Text::is_default_lang"
+    )]
+    pub lang: String,
 }
 
 impl TextRepresentation {
@@ -278,7 +284,7 @@ impl TextRepresentation {
             mimetype: mimetype.into(),
             body: body.into(),
             #[cfg(feature = "unstable-msc3554")]
-            lang: None,
+            lang: Self::default_lang(),
         }
     }
 
@@ -308,5 +314,13 @@ impl TextRepresentation {
 
     fn is_default_mimetype(mime: &str) -> bool {
         mime == "text/plain"
+    }
+
+    fn default_lang() -> String {
+        "en".to_owned()
+    }
+
+    fn is_default_lang(lang: &str) -> bool {
+        lang == "en"
     }
 }

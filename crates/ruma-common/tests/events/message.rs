@@ -315,18 +315,18 @@ fn emote_event_deserialization() {
 #[cfg(feature = "unstable-msc3554")]
 fn lang_serialization() {
     let content = TextContentBlock::try_from(vec![
-        assign!(TextRepresentation::plain("Bonjour le monde !"), { lang: Some("fr".into()) }),
-        assign!(TextRepresentation::plain("Hallo Welt!"), { lang: Some("de".into()) }),
-        assign!(TextRepresentation::plain("Hello World!"), { lang: Some("en".into()) }),
+        assign!(TextRepresentation::plain("Bonjour le monde !"), { lang: "fr".into() }),
+        assign!(TextRepresentation::plain("Hallo Welt!"), { lang: "de".into() }),
+        assign!(TextRepresentation::plain("Hello World!"), { lang: "en".into() }),
     ])
     .unwrap();
 
     assert_eq!(
         to_json_value(content).unwrap(),
         json!([
-            { "body": "Bonjour le monde !", "lang": "fr"},
-            { "body": "Hallo Welt!", "lang": "de"},
-            { "body": "Hello World!", "lang": "en"},
+            { "body": "Bonjour le monde !", "org.matrix.msc3554.lang": "fr"},
+            { "body": "Hallo Welt!", "org.matrix.msc3554.lang": "de"},
+            { "body": "Hello World!"},
         ])
     );
 }
@@ -335,15 +335,15 @@ fn lang_serialization() {
 #[cfg(feature = "unstable-msc3554")]
 fn lang_deserialization() {
     let json_data = json!([
-        { "body": "Bonjour le monde !", "lang": "fr"},
-        { "body": "Hallo Welt!", "lang": "de"},
-        { "body": "Hello World!", "lang": "en"},
+        { "body": "Bonjour le monde !", "org.matrix.msc3554.lang": "fr"},
+        { "body": "Hallo Welt!", "org.matrix.msc3554.lang": "de"},
+        { "body": "Hello World!"},
     ]);
 
     let content = from_json_value::<TextContentBlock>(json_data).unwrap();
-    assert_eq!(content[0].lang.as_deref(), Some("fr"));
-    assert_eq!(content[1].lang.as_deref(), Some("de"));
-    assert_eq!(content[2].lang.as_deref(), Some("en"));
+    assert_eq!(content[0].lang, "fr");
+    assert_eq!(content[1].lang, "de");
+    assert_eq!(content[2].lang, "en");
 }
 
 #[test]
