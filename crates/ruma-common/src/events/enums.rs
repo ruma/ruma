@@ -85,7 +85,8 @@ event_enum! {
         "m.room.redaction" => super::room::redaction,
         "m.sticker" => super::sticker,
         #[cfg(feature = "unstable-msc3553")]
-        "m.video" => super::video,
+        #[ruma_enum(alias = "m.video")]
+        "org.matrix.msc1767.video" => super::video,
         #[cfg(feature = "unstable-msc3245")]
         "m.voice" => super::voice,
     }

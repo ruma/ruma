@@ -9,7 +9,9 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    file::FileContentBlock, image::ThumbnailContentBlock, message::TextContentBlock,
+    file::{CaptionContentBlock, FileContentBlock},
+    image::ThumbnailContentBlock,
+    message::TextContentBlock,
     room::message::Relation,
 };
 
@@ -22,7 +24,7 @@ use super::{
 /// [`message`]: super::message
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.video", kind = MessageLike, without_relation)]
+#[ruma_event(type = "org.matrix.msc1767.video", kind = MessageLike, without_relation)]
 pub struct VideoEventContent {
     /// The text representation of the message.
     #[serde(rename = "org.matrix.msc1767.text")]
@@ -32,11 +34,13 @@ pub struct VideoEventContent {
     #[serde(rename = "org.matrix.msc1767.file")]
     pub file: FileContentBlock,
 
-    /// The video content of the message.
-    #[serde(rename = "m.video")]
-    pub video: Box<VideoContent>,
+    /// The video details of the message, if any.
+    #[serde(rename = "org.matrix.msc1767.video_details", skip_serializing_if = "Option::is_none")]
+    pub video_details: Option<VideoDetailsContentBlock>,
 
-    /// The thumbnails of the message.
+    /// The thumbnails of the message, if any.
+    ///
+    /// This is optional and defaults to an empty array.
     #[serde(
         rename = "org.matrix.msc1767.thumbnail",
         default,
@@ -44,9 +48,18 @@ pub struct VideoEventContent {
     )]
     pub thumbnail: ThumbnailContentBlock,
 
-    /// The captions of the message.
-    #[serde(rename = "m.caption", default, skip_serializing_if = "TextContentBlock::is_empty")]
-    pub caption: TextContentBlock,
+    /// The caption of the message, if any.
+    #[serde(rename = "org.matrix.msc1767.caption", skip_serializing_if = "Option::is_none")]
+    pub caption: Option<CaptionContentBlock>,
+
+    /// Whether this message is automated.
+    #[cfg(feature = "unstable-msc3955")]
+    #[serde(
+        default,
+        skip_serializing_if = "crate::serde::is_default",
+        rename = "org.matrix.msc1767.automated"
+    )]
+    pub automated: bool,
 
     /// Information about related messages.
     #[serde(
@@ -63,56 +76,53 @@ impl VideoEventContent {
         Self {
             text,
             file,
-            video: Default::default(),
+            video_details: None,
             thumbnail: Default::default(),
-            caption: Default::default(),
+            caption: None,
+            #[cfg(feature = "unstable-msc3955")]
+            automated: false,
             relates_to: None,
         }
     }
 
     /// Creates a new `VideoEventContent` with the given plain text fallback representation and
     /// file.
-    pub fn plain(text: impl Into<String>, file: FileContentBlock) -> Self {
+    pub fn with_plain_text(plain_text: impl Into<String>, file: FileContentBlock) -> Self {
         Self {
-            text: TextContentBlock::plain(text),
+            text: TextContentBlock::plain(plain_text),
             file,
-            video: Default::default(),
+            video_details: None,
             thumbnail: Default::default(),
-            caption: Default::default(),
+            caption: None,
+            #[cfg(feature = "unstable-msc3955")]
+            automated: false,
             relates_to: None,
         }
     }
 }
 
-/// Video content.
-#[derive(Default, Clone, Debug, Serialize, Deserialize)]
+/// A block for details of video content.
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct VideoContent {
-    /// The height of the video in pixels.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub height: Option<UInt>,
-
+pub struct VideoDetailsContentBlock {
     /// The width of the video in pixels.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub width: Option<UInt>,
+    pub width: UInt,
 
-    /// The duration of the video in milliseconds.
+    /// The height of the video in pixels.
+    pub height: UInt,
+
+    /// The duration of the video in seconds.
     #[serde(
-        with = "crate::serde::duration::opt_ms",
+        with = "crate::serde::duration::opt_secs",
         default,
         skip_serializing_if = "Option::is_none"
     )]
     pub duration: Option<Duration>,
 }
 
-impl VideoContent {
-    /// Creates a new empty `VideoContent`.
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Whether this `VideoContent` is empty.
-    pub fn is_empty(&self) -> bool {
-        self.height.is_none() && self.width.is_none() && self.duration.is_none()
+impl VideoDetailsContentBlock {
+    /// Creates a new `VideoDetailsContentBlock` with the given height and width.
+    pub fn new(width: UInt, height: UInt) -> Self {
+        Self { width, height, duration: None }
     }
 }
