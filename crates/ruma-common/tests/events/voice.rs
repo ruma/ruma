@@ -7,8 +7,12 @@ use js_int::uint;
 use ruma_common::{
     event_id,
     events::{
-        audio::AudioDetailsContentBlock, file::FileContentBlock, relation::InReplyTo,
-        room::message::Relation, voice::VoiceEventContent, AnyMessageLikeEvent, MessageLikeEvent,
+        audio::Amplitude,
+        file::FileContentBlock,
+        relation::InReplyTo,
+        room::message::Relation,
+        voice::{VoiceAudioDetailsContentBlock, VoiceEventContent},
+        AnyMessageLikeEvent, MessageLikeEvent,
     },
     mxc_uri,
     serde::CanBeEmpty,
@@ -18,17 +22,20 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 
 #[test]
 fn event_serialization() {
-    let mut content = VoiceEventContent::plain(
+    let mut content = VoiceEventContent::with_plain_text(
         "Voice message",
         FileContentBlock::plain(
             mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
             "voice_message.ogg".to_owned(),
         ),
+        VoiceAudioDetailsContentBlock::new(
+            Duration::from_secs(23),
+            vec![Amplitude::from(255), Amplitude::from(0)],
+        ),
     );
 
     content.file.mimetype = Some("audio/opus".to_owned());
     content.file.size = Some(uint!(897_774));
-    content.audio_details = Some(AudioDetailsContentBlock::new(Duration::from_secs(23)));
     content.relates_to = Some(Relation::Reply {
         in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
     });
@@ -47,8 +54,8 @@ fn event_serialization() {
             },
             "org.matrix.msc1767.audio_details": {
                 "duration": 23,
+                "org.matrix.msc3246.waveform": [255, 0],
             },
-            "m.voice": {},
             "m.relates_to": {
                 "m.in_reply_to": {
                     "event_id": "$replyevent:example.com"
@@ -73,14 +80,14 @@ fn message_event_deserialization() {
             },
             "org.matrix.msc1767.audio_details": {
                 "duration": 53,
+                "org.matrix.msc3246.waveform": [255, 0],
             },
-            "m.voice": {},
         },
         "event_id": "$event:notareal.hs",
         "origin_server_ts": 134_829_848,
         "room_id": "!roomid:notareal.hs",
         "sender": "@user:notareal.hs",
-        "type": "m.voice",
+        "type": "org.matrix.msc3245.voice.v2",
     });
 
     let ev = assert_matches!(
@@ -100,7 +107,6 @@ fn message_event_deserialization() {
     assert_eq!(content.file.name, "voice_message.ogg");
     assert_eq!(content.file.mimetype.as_deref(), Some("audio/opus"));
     assert_eq!(content.file.size, Some(uint!(123_774)));
-    let audio_details = content.audio_details.unwrap();
-    assert_eq!(audio_details.duration, Duration::from_secs(53));
-    assert!(audio_details.waveform.is_empty());
+    assert_eq!(content.audio_details.duration, Duration::from_secs(53));
+    assert_eq!(content.audio_details.waveform.len(), 2);
 }

@@ -89,7 +89,8 @@ event_enum! {
         #[ruma_enum(alias = "m.video")]
         "org.matrix.msc1767.video" => super::video,
         #[cfg(feature = "unstable-msc3245")]
-        "m.voice" => super::voice,
+        #[ruma_enum(alias = "m.voice")]
+        "org.matrix.msc3245.voice.v2" => super::voice,
     }
 
     /// Any state event.
@@ -330,7 +331,7 @@ impl AnyMessageLikeEventContent {
             Self::Encrypted(ev) => ev.relates_to.clone(),
             #[cfg(feature = "unstable-msc3245")]
             Self::Voice(ev) => ev.relates_to.clone().map(Into::into),
-            #[cfg(feature = "unstable-msc3246")]
+            #[cfg(feature = "unstable-msc3927")]
             Self::Audio(ev) => ev.relates_to.clone().map(Into::into),
             #[cfg(feature = "unstable-msc3488")]
             Self::Location(ev) => ev.relates_to.clone().map(Into::into),
