@@ -1,15 +1,14 @@
 #![cfg(feature = "unstable-msc3552")]
 
 use assert_matches::assert_matches;
-use assign::assign;
 use js_int::uint;
 use ruma_common::{
     event_id,
     events::{
-        file::{EncryptedContentInit, FileContentBlock},
+        file::{CaptionContentBlock, EncryptedContentInit, FileContentBlock},
         image::{
-            ImageContent, ImageEventContent, ThumbnailContent, ThumbnailFileContent,
-            ThumbnailFileContentInfo,
+            ImageDetailsContentBlock, ImageEventContent, Thumbnail, ThumbnailFileContentBlock,
+            ThumbnailImageDetailsContentBlock,
         },
         message::TextContentBlock,
         relation::InReplyTo,
@@ -24,7 +23,7 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 
 #[test]
 fn plain_content_serialization() {
-    let event_content = ImageEventContent::plain(
+    let event_content = ImageEventContent::with_plain_text(
         "Upload: my_image.jpg",
         FileContentBlock::plain(
             mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
@@ -42,14 +41,13 @@ fn plain_content_serialization() {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "my_image.jpg",
             },
-            "m.image": {}
         })
     );
 }
 
 #[test]
 fn encrypted_content_serialization() {
-    let event_content = ImageEventContent::plain(
+    let event_content = ImageEventContent::with_plain_text(
         "Upload: my_image.jpg",
         FileContentBlock::encrypted(
             mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
@@ -97,7 +95,6 @@ fn encrypted_content_serialization() {
                 },
                 "v": "v2"
             },
-            "m.image": {}
         })
     );
 }
@@ -114,18 +111,17 @@ fn image_event_serialization() {
 
     content.file.mimetype = Some("image/jpeg".to_owned());
     content.file.size = Some(uint!(897_774));
-    content.image = Box::new(ImageContent::with_size(uint!(1920), uint!(1080)));
-    content.thumbnail = vec![ThumbnailContent::new(
-        ThumbnailFileContent::plain(
+    content.image_details = Some(ImageDetailsContentBlock::new(uint!(1920), uint!(1080)));
+    let mut thumbnail = Thumbnail::new(
+        ThumbnailFileContentBlock::plain(
             mxc_uri!("mxc://notareal.hs/thumbnail").to_owned(),
-            Some(Box::new(assign!(ThumbnailFileContentInfo::new(), {
-                mimetype: Some("image/jpeg".to_owned()),
-                size: Some(uint!(334_593)),
-            }))),
+            "image/jpeg".to_owned(),
         ),
-        None,
-    )];
-    content.caption = TextContentBlock::plain("This is my house");
+        ThumbnailImageDetailsContentBlock::new(uint!(560), uint!(480)),
+    );
+    thumbnail.file.size = Some(uint!(334_593));
+    content.thumbnail = vec![thumbnail].into();
+    content.caption = Some(CaptionContentBlock::plain("This is my house"));
     content.relates_to = Some(Relation::Reply {
         in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
     });
@@ -143,22 +139,28 @@ fn image_event_serialization() {
                 "mimetype": "image/jpeg",
                 "size": 897_774,
             },
-            "m.image": {
+            "org.matrix.msc1767.image_details": {
                 "width": 1920,
                 "height": 1080,
             },
-            "m.thumbnail": [
+            "org.matrix.msc1767.thumbnail": [
                 {
-                    "url": "mxc://notareal.hs/thumbnail",
-                    "mimetype": "image/jpeg",
-                    "size": 334_593,
-                }
+                    "org.matrix.msc1767.file": {
+                        "url": "mxc://notareal.hs/thumbnail",
+                        "mimetype": "image/jpeg",
+                        "size": 334_593,
+                    },
+                    "org.matrix.msc1767.image_details": {
+                        "width": 560,
+                        "height": 480,
+                    },
+                },
             ],
-            "m.caption": [
-                {
-                    "body": "This is my house",
-                }
-            ],
+            "org.matrix.msc1767.caption": {
+                "org.matrix.msc1767.text": [
+                    { "body": "This is my house" },
+                ],
+            },
             "m.relates_to": {
                 "m.in_reply_to": {
                     "event_id": "$replyevent:example.com"
@@ -178,14 +180,15 @@ fn plain_content_deserialization() {
             "url": "mxc://notareal.hs/abcdef",
             "name": "my_cat.png",
         },
-        "m.image": {
+        "org.matrix.msc1767.image_details": {
             "width": 668,
+            "height": 1023,
         },
-        "m.caption": [
-            {
-                "body": "Look at my cat!",
-            }
-        ]
+        "org.matrix.msc1767.caption": {
+            "org.matrix.msc1767.text": [
+                { "body": "Look at my cat!" },
+            ],
+        },
     });
 
     let content = from_json_value::<ImageEventContent>(json_data).unwrap();
@@ -194,11 +197,13 @@ fn plain_content_deserialization() {
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     assert_eq!(content.file.name, "my_cat.png");
     assert_matches!(content.file.encryption_info, None);
-    assert_eq!(content.image.width, Some(uint!(668)));
-    assert_eq!(content.image.height, None);
+    let image_details = content.image_details.unwrap();
+    assert_eq!(image_details.width, uint!(668));
+    assert_eq!(image_details.height, uint!(1023));
     assert_eq!(content.thumbnail.len(), 0);
-    assert_eq!(content.caption.len(), 1);
-    assert_eq!(content.caption.find_plain(), Some("Look at my cat!"));
+    let caption = content.caption.unwrap();
+    assert_eq!(caption.text.len(), 1);
+    assert_eq!(caption.text.find_plain(), Some("Look at my cat!"));
 }
 
 #[test]
@@ -223,10 +228,16 @@ fn encrypted_content_deserialization() {
             },
             "v": "v2"
         },
-        "m.image": {},
-        "m.thumbnail": [
+        "org.matrix.msc1767.thumbnail": [
             {
-                "url": "mxc://notareal.hs/thumbnail",
+                "org.matrix.msc1767.file": {
+                    "url": "mxc://notareal.hs/thumbnail",
+                    "mimetype": "image/png",
+                },
+                "org.matrix.msc1767.image_details": {
+                    "width": 480,
+                    "height": 560,
+                }
             }
         ]
     });
@@ -237,11 +248,14 @@ fn encrypted_content_deserialization() {
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     assert_eq!(content.file.name, "my_cat.png");
     assert!(content.file.encryption_info.is_some());
-    assert_eq!(content.image.width, None);
-    assert_eq!(content.image.height, None);
+    assert!(content.image_details.is_none());
     assert_eq!(content.thumbnail.len(), 1);
-    assert_eq!(content.thumbnail[0].file.url, "mxc://notareal.hs/thumbnail");
-    assert!(content.caption.is_empty());
+    let thumbnail = &content.thumbnail[0];
+    assert_eq!(thumbnail.file.url, "mxc://notareal.hs/thumbnail");
+    assert_eq!(thumbnail.file.mimetype, "image/png");
+    assert_eq!(thumbnail.image_details.width, uint!(480));
+    assert_eq!(thumbnail.image_details.height, uint!(560));
+    assert!(content.caption.is_none());
 }
 
 #[test]
@@ -257,7 +271,7 @@ fn message_event_deserialization() {
                 "mimetype": "image/webp",
                 "size": 123_774,
             },
-            "m.image": {
+            "org.matrix.msc1767.image_details": {
                 "width": 1300,
                 "height": 837,
             }
@@ -266,7 +280,7 @@ fn message_event_deserialization() {
         "origin_server_ts": 134_829_848,
         "room_id": "!roomid:notareal.hs",
         "sender": "@user:notareal.hs",
-        "type": "m.image",
+        "type": "org.matrix.msc1767.image",
     });
 
     let message_event = assert_matches!(
@@ -286,7 +300,8 @@ fn message_event_deserialization() {
     assert_eq!(content.file.name, "my_gnome.webp");
     assert_eq!(content.file.mimetype.as_deref(), Some("image/webp"));
     assert_eq!(content.file.size, Some(uint!(123_774)));
-    assert_eq!(content.image.width, Some(uint!(1300)));
-    assert_eq!(content.image.height, Some(uint!(837)));
+    let image_details = content.image_details.unwrap();
+    assert_eq!(image_details.width, uint!(1300));
+    assert_eq!(image_details.height, uint!(837));
     assert_eq!(content.thumbnail.len(), 0);
 }
