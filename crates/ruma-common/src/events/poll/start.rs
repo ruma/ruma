@@ -1,5 +1,7 @@
 //! Types for the [`m.poll.start`] event.
 
+use std::ops::Deref;
+
 use js_int::{uint, UInt};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -13,37 +15,59 @@ use crate::{events::message::TextContentBlock, serde::StringEnum, PrivOwnedStr};
 /// The payload for a poll start event.
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "org.matrix.msc3381.poll.start", alias = "m.poll.start", kind = MessageLike)]
+#[ruma_event(type = "org.matrix.msc3381.v2.poll.start", alias = "m.poll.start", kind = MessageLike)]
 pub struct PollStartEventContent {
-    /// The poll start content of the message.
-    #[serde(rename = "org.matrix.msc3381.poll.start", alias = "m.poll.start")]
-    pub poll_start: PollStartContent,
+    /// The poll content of the message.
+    #[serde(rename = "org.matrix.msc3381.v2.poll")]
+    pub poll: PollContentBlock,
 
-    /// Optional fallback text representation of the message, for clients that don't support polls.
-    #[serde(
-        rename = "org.matrix.msc1767.text",
-        default,
-        skip_serializing_if = "TextContentBlock::is_empty"
-    )]
+    /// Text representation of the message, for clients that don't support polls.
+    #[serde(rename = "org.matrix.msc1767.text")]
     pub text: TextContentBlock,
+
+    /// Whether this message is automated.
+    #[cfg(feature = "unstable-msc3955")]
+    #[serde(
+        default,
+        skip_serializing_if = "crate::serde::is_default",
+        rename = "org.matrix.msc1767.automated"
+    )]
+    pub automated: bool,
 }
 
 impl PollStartEventContent {
-    /// Creates a new `PollStartEventContent` with the given poll start content.
-    pub fn new(poll_start: PollStartContent) -> Self {
-        Self { poll_start, text: Default::default() }
+    /// Creates a new `PollStartEventContent` with the given fallback representation and poll
+    /// content.
+    pub fn new(text: TextContentBlock, poll: PollContentBlock) -> Self {
+        Self {
+            poll,
+            text,
+            #[cfg(feature = "unstable-msc3955")]
+            automated: false,
+        }
+    }
+
+    /// Creates a new `PollStartEventContent` with the given plain text fallback
+    /// representation and poll content.
+    pub fn with_plain_text(plain_text: impl Into<String>, poll: PollContentBlock) -> Self {
+        Self {
+            poll,
+            text: TextContentBlock::plain(plain_text),
+            #[cfg(feature = "unstable-msc3955")]
+            automated: false,
+        }
     }
 }
 
-/// Poll start content.
+/// A block for poll content.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct PollStartContent {
+pub struct PollContentBlock {
     /// The question of the poll.
     pub question: PollQuestion,
 
     /// The kind of the poll.
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "crate::serde::is_default")]
     pub kind: PollKind,
 
     /// The maximum number of responses a user is able to select.
@@ -52,8 +76,8 @@ pub struct PollStartContent {
     ///
     /// Defaults to `1`.
     #[serde(
-        default = "PollStartContent::default_max_selections",
-        skip_serializing_if = "PollStartContent::max_selections_is_default"
+        default = "PollContentBlock::default_max_selections",
+        skip_serializing_if = "PollContentBlock::max_selections_is_default"
     )]
     pub max_selections: UInt,
 
@@ -61,12 +85,12 @@ pub struct PollStartContent {
     pub answers: PollAnswers,
 }
 
-impl PollStartContent {
-    /// Creates a new `PollStartContent` with the given question, kind, and answers.
-    pub fn new(question: TextContentBlock, kind: PollKind, answers: PollAnswers) -> Self {
+impl PollContentBlock {
+    /// Creates a new `PollStartContent` with the given question and answers.
+    pub fn new(question: TextContentBlock, answers: PollAnswers) -> Self {
         Self {
             question: question.into(),
-            kind,
+            kind: Default::default(),
             max_selections: Self::default_max_selections(),
             answers,
         }
@@ -103,11 +127,11 @@ impl From<TextContentBlock> for PollQuestion {
 pub enum PollKind {
     /// The results are revealed once the poll is closed.
     #[default]
-    #[ruma_enum(rename = "org.matrix.msc3381.poll.undisclosed", alias = "m.poll.undisclosed")]
+    #[ruma_enum(rename = "org.matrix.msc3381.v2.undisclosed")]
     Undisclosed,
 
     /// The votes are visible up until and including when the poll is closed.
-    #[ruma_enum(rename = "org.matrix.msc3381.poll.disclosed", alias = "m.poll.disclosed")]
+    #[ruma_enum(rename = "org.matrix.msc3381.v2.disclosed")]
     Disclosed,
 
     #[doc(hidden)]
@@ -129,11 +153,6 @@ impl PollAnswers {
 
     /// The largest number of values contained in a `PollAnswers`.
     pub const MAX_LENGTH: usize = 20;
-
-    /// The answers of this `PollAnswers`.
-    pub fn answers(&self) -> &[PollAnswer] {
-        &self.0
-    }
 }
 
 /// An error encountered when trying to convert to a `PollAnswers`.
@@ -170,6 +189,14 @@ impl TryFrom<&[PollAnswer]> for PollAnswers {
     }
 }
 
+impl Deref for PollAnswers {
+    type Target = [PollAnswer];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 /// Poll answer.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -177,6 +204,7 @@ pub struct PollAnswer {
     /// The ID of the answer.
     ///
     /// This must be unique among the answers of a poll.
+    #[serde(rename = "org.matrix.msc3381.v2.id")]
     pub id: String,
 
     /// The text representation of the answer.

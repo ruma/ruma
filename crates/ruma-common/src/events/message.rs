@@ -271,8 +271,8 @@ pub struct TextRepresentation {
     #[cfg(feature = "unstable-msc3554")]
     #[serde(
         rename = "org.matrix.msc3554.lang",
-        default = "Text::default_lang",
-        skip_serializing_if = "Text::is_default_lang"
+        default = "TextRepresentation::default_lang",
+        skip_serializing_if = "TextRepresentation::is_default_lang"
     )]
     pub lang: String,
 }
@@ -316,10 +316,12 @@ impl TextRepresentation {
         mime == "text/plain"
     }
 
+    #[cfg(feature = "unstable-msc3554")]
     fn default_lang() -> String {
         "en".to_owned()
     }
 
+    #[cfg(feature = "unstable-msc3554")]
     fn is_default_lang(lang: &str) -> bool {
         lang == "en"
     }
