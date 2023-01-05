@@ -6,7 +6,8 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    audio::AudioContent, file::FileContentBlock, message::TextContentBlock, room::message::Relation,
+    audio::AudioDetailsContentBlock, file::FileContentBlock, message::TextContentBlock,
+    room::message::Relation,
 };
 
 /// The payload for an extensible voice message.
@@ -30,8 +31,8 @@ pub struct VoiceEventContent {
     pub file: FileContentBlock,
 
     /// The audio content of the message.
-    #[serde(rename = "m.audio")]
-    pub audio: AudioContent,
+    #[serde(rename = "org.matrix.msc1767.audio_details", skip_serializing_if = "Option::is_none")]
+    pub audio_details: Option<AudioDetailsContentBlock>,
 
     /// The voice content of the message.
     #[serde(rename = "m.voice")]
@@ -49,7 +50,7 @@ pub struct VoiceEventContent {
 impl VoiceEventContent {
     /// Creates a new `VoiceEventContent` with the given fallback representation and file.
     pub fn new(text: TextContentBlock, file: FileContentBlock) -> Self {
-        Self { text, file, audio: Default::default(), voice: Default::default(), relates_to: None }
+        Self { text, file, audio_details: None, voice: Default::default(), relates_to: None }
     }
 
     /// Creates a new `VoiceEventContent` with the given plain text fallback representation and
@@ -58,7 +59,7 @@ impl VoiceEventContent {
         Self {
             text: TextContentBlock::plain(text),
             file,
-            audio: Default::default(),
+            audio_details: None,
             voice: Default::default(),
             relates_to: None,
         }

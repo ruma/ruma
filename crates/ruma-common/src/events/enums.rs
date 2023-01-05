@@ -33,8 +33,9 @@ event_enum! {
 
     /// Any message-like event.
     enum MessageLike {
-        #[cfg(feature = "unstable-msc3246")]
-        "m.audio" => super::audio,
+        #[cfg(feature = "unstable-msc3927")]
+        #[ruma_enum(alias = "m.audio")]
+        "org.matrix.msc1767.audio" => super::audio,
         "m.call.answer" => super::call::answer,
         "m.call.invite" => super::call::invite,
         "m.call.hangup" => super::call::hangup,

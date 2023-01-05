@@ -1,6 +1,6 @@
-//! Types for extensible audio message events ([MSC3246]).
+//! Types for extensible audio message events ([MSC3927]).
 //!
-//! [MSC3246]: https://github.com/matrix-org/matrix-spec-proposals/pull/3246
+//! [MSC3927]: https://github.com/matrix-org/matrix-spec-proposals/pull/3927
 
 use std::time::Duration;
 
@@ -8,23 +8,25 @@ use js_int::UInt;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "unstable-msc3246")]
 mod amplitude_serde;
-mod waveform_serde;
 
-use waveform_serde::WaveformSerDeHelper;
-
-use super::{file::FileContentBlock, message::TextContentBlock, room::message::Relation};
+use super::{
+    file::{CaptionContentBlock, FileContentBlock},
+    message::TextContentBlock,
+    room::message::Relation,
+};
 
 /// The payload for an extensible audio message.
 ///
-/// This is the new primary type introduced in [MSC3246] and should only be sent in rooms with a
+/// This is the new primary type introduced in [MSC3927] and should only be sent in rooms with a
 /// version that supports it. See the documentation of the [`message`] module for more information.
 ///
-/// [MSC3246]: https://github.com/matrix-org/matrix-spec-proposals/pull/3246
+/// [MSC3927]: https://github.com/matrix-org/matrix-spec-proposals/pull/3927
 /// [`message`]: super::message
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.audio", kind = MessageLike, without_relation)]
+#[ruma_event(type = "org.matrix.msc1767.audio", kind = MessageLike, without_relation)]
 pub struct AudioEventContent {
     /// The text representations of the message.
     #[serde(rename = "org.matrix.msc1767.text")]
@@ -34,9 +36,22 @@ pub struct AudioEventContent {
     #[serde(rename = "org.matrix.msc1767.file")]
     pub file: FileContentBlock,
 
-    /// The audio content of the message.
-    #[serde(rename = "m.audio")]
-    pub audio: AudioContent,
+    /// The audio details of the message, if any.
+    #[serde(rename = "org.matrix.msc1767.audio_details", skip_serializing_if = "Option::is_none")]
+    pub audio_details: Option<AudioDetailsContentBlock>,
+
+    /// The caption of the message, if any.
+    #[serde(rename = "org.matrix.msc1767.caption", skip_serializing_if = "Option::is_none")]
+    pub caption: Option<CaptionContentBlock>,
+
+    /// Whether this message is automated.
+    #[cfg(feature = "unstable-msc3955")]
+    #[serde(
+        default,
+        skip_serializing_if = "crate::serde::is_default",
+        rename = "org.matrix.msc1767.automated"
+    )]
+    pub automated: bool,
 
     /// Information about related messages.
     #[serde(
@@ -50,118 +65,77 @@ pub struct AudioEventContent {
 impl AudioEventContent {
     /// Creates a new `AudioEventContent` with the given text fallback and file.
     pub fn new(text: TextContentBlock, file: FileContentBlock) -> Self {
-        Self { text, file, audio: Default::default(), relates_to: None }
+        Self {
+            text,
+            file,
+            audio_details: None,
+            caption: None,
+            #[cfg(feature = "unstable-msc3955")]
+            automated: false,
+            relates_to: None,
+        }
     }
 
     /// Creates a new `AudioEventContent` with the given plain text fallback representation and
     /// file.
-    pub fn plain(text_fallback: impl Into<String>, file: FileContentBlock) -> Self {
+    pub fn with_plain_text(plain_text: impl Into<String>, file: FileContentBlock) -> Self {
         Self {
-            text: TextContentBlock::plain(text_fallback),
+            text: TextContentBlock::plain(plain_text),
             file,
-            audio: Default::default(),
+            audio_details: None,
+            caption: None,
+            #[cfg(feature = "unstable-msc3955")]
+            automated: false,
             relates_to: None,
         }
     }
 }
 
-/// Audio content.
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+/// A block for details of audio content.
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct AudioContent {
-    /// The duration of the video in milliseconds.
+pub struct AudioDetailsContentBlock {
+    /// The duration of the audio in seconds.
+    #[serde(with = "ruma_common::serde::duration::secs")]
+    pub duration: Duration,
+
+    /// The waveform representation of the audio content, if any.
+    ///
+    /// This is optional and defaults to an empty array.
+    #[cfg(feature = "unstable-msc3246")]
     #[serde(
-        with = "ruma_common::serde::duration::opt_ms",
+        rename = "org.matrix.msc3246.waveform",
         default,
-        skip_serializing_if = "Option::is_none"
+        skip_serializing_if = "Vec::is_empty"
     )]
-    pub duration: Option<Duration>,
-
-    /// The waveform representation of the audio content.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub waveform: Option<Waveform>,
+    pub waveform: Vec<Amplitude>,
 }
 
-impl AudioContent {
-    /// Creates a new empty `AudioContent`.
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Whether this `AudioContent` is empty.
-    pub fn is_empty(&self) -> bool {
-        self.duration.is_none() && self.waveform.is_none()
-    }
-}
-
-/// The waveform representation of audio content.
-///
-/// Must include between 30 and 120 `Amplitude`s.
-///
-/// To build this, use the `TryFrom` implementations.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(try_from = "WaveformSerDeHelper")]
-pub struct Waveform(Vec<Amplitude>);
-
-impl Waveform {
-    /// The smallest number of values contained in a `Waveform`.
-    pub const MIN_LENGTH: usize = 30;
-
-    /// The largest number of values contained in a `Waveform`.
-    pub const MAX_LENGTH: usize = 120;
-
-    /// The amplitudes of this `Waveform`.
-    pub fn amplitudes(&self) -> &[Amplitude] {
-        &self.0
-    }
-}
-
-/// An error encountered when trying to convert to a `Waveform`.
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, thiserror::Error)]
-#[non_exhaustive]
-pub enum WaveformError {
-    /// There are more than [`Waveform::MAX_LENGTH`] values.
-    #[error("too many values")]
-    TooManyValues,
-    /// There are less that [`Waveform::MIN_LENGTH`] values.
-    #[error("not enough values")]
-    NotEnoughValues,
-}
-
-impl TryFrom<Vec<Amplitude>> for Waveform {
-    type Error = WaveformError;
-
-    fn try_from(value: Vec<Amplitude>) -> Result<Self, Self::Error> {
-        if value.len() < Self::MIN_LENGTH {
-            Err(WaveformError::NotEnoughValues)
-        } else if value.len() > Self::MAX_LENGTH {
-            Err(WaveformError::TooManyValues)
-        } else {
-            Ok(Self(value))
+impl AudioDetailsContentBlock {
+    /// Creates a new `AudioDetailsContentBlock` with the given duration.
+    pub fn new(duration: Duration) -> Self {
+        Self {
+            duration,
+            #[cfg(feature = "unstable-msc3246")]
+            waveform: Default::default(),
         }
-    }
-}
-
-impl TryFrom<&[Amplitude]> for Waveform {
-    type Error = WaveformError;
-
-    fn try_from(value: &[Amplitude]) -> Result<Self, Self::Error> {
-        Self::try_from(value.to_owned())
     }
 }
 
 /// The amplitude of a waveform sample.
 ///
-/// Must be an integer between 0 and 1024.
+/// Must be an integer between 0 and 256.
+#[cfg(feature = "unstable-msc3246")]
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 pub struct Amplitude(UInt);
 
+#[cfg(feature = "unstable-msc3246")]
 impl Amplitude {
     /// The smallest value that can be represented by this type, 0.
     pub const MIN: u16 = 0;
 
-    /// The largest value that can be represented by this type, 1024.
-    pub const MAX: u16 = 1024;
+    /// The largest value that can be represented by this type, 256.
+    pub const MAX: u16 = 256;
 
     /// Creates a new `Amplitude` with the given value.
     ///
@@ -176,6 +150,7 @@ impl Amplitude {
     }
 }
 
+#[cfg(feature = "unstable-msc3246")]
 impl From<u16> for Amplitude {
     fn from(value: u16) -> Self {
         Self::new(value)

@@ -3,13 +3,12 @@
 use std::time::Duration;
 
 use assert_matches::assert_matches;
-use assign::assign;
 use js_int::uint;
 use ruma_common::{
     event_id,
     events::{
-        audio::AudioContent, file::FileContentBlock, relation::InReplyTo, room::message::Relation,
-        voice::VoiceEventContent, AnyMessageLikeEvent, MessageLikeEvent,
+        audio::AudioDetailsContentBlock, file::FileContentBlock, relation::InReplyTo,
+        room::message::Relation, voice::VoiceEventContent, AnyMessageLikeEvent, MessageLikeEvent,
     },
     mxc_uri,
     serde::CanBeEmpty,
@@ -29,12 +28,7 @@ fn event_serialization() {
 
     content.file.mimetype = Some("audio/opus".to_owned());
     content.file.size = Some(uint!(897_774));
-    content.audio = assign!(
-        AudioContent::new(),
-        {
-            duration: Some(Duration::from_secs(23))
-        }
-    );
+    content.audio_details = Some(AudioDetailsContentBlock::new(Duration::from_secs(23)));
     content.relates_to = Some(Relation::Reply {
         in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
     });
@@ -51,8 +45,8 @@ fn event_serialization() {
                 "mimetype": "audio/opus",
                 "size": 897_774,
             },
-            "m.audio": {
-                "duration": 23_000,
+            "org.matrix.msc1767.audio_details": {
+                "duration": 23,
             },
             "m.voice": {},
             "m.relates_to": {
@@ -77,8 +71,8 @@ fn message_event_deserialization() {
                 "mimetype": "audio/opus",
                 "size": 123_774,
             },
-            "m.audio": {
-                "duration": 5_300,
+            "org.matrix.msc1767.audio_details": {
+                "duration": 53,
             },
             "m.voice": {},
         },
@@ -106,6 +100,7 @@ fn message_event_deserialization() {
     assert_eq!(content.file.name, "voice_message.ogg");
     assert_eq!(content.file.mimetype.as_deref(), Some("audio/opus"));
     assert_eq!(content.file.size, Some(uint!(123_774)));
-    assert_eq!(content.audio.duration, Some(Duration::from_millis(5_300)));
-    assert_matches!(content.audio.waveform, None);
+    let audio_details = content.audio_details.unwrap();
+    assert_eq!(audio_details.duration, Duration::from_secs(53));
+    assert!(audio_details.waveform.is_empty());
 }
