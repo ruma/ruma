@@ -9,7 +9,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    file::FileContentBlock, image::ThumbnailContent, message::TextContentBlock,
+    file::FileContentBlock, image::ThumbnailContentBlock, message::TextContentBlock,
     room::message::Relation,
 };
 
@@ -37,8 +37,12 @@ pub struct VideoEventContent {
     pub video: Box<VideoContent>,
 
     /// The thumbnails of the message.
-    #[serde(rename = "m.thumbnail", default, skip_serializing_if = "Vec::is_empty")]
-    pub thumbnail: Vec<ThumbnailContent>,
+    #[serde(
+        rename = "org.matrix.msc1767.thumbnail",
+        default,
+        skip_serializing_if = "ThumbnailContentBlock::is_empty"
+    )]
+    pub thumbnail: ThumbnailContentBlock,
 
     /// The captions of the message.
     #[serde(rename = "m.caption", default, skip_serializing_if = "TextContentBlock::is_empty")]

@@ -55,7 +55,8 @@ event_enum! {
         #[ruma_enum(alias = "m.file")]
         "org.matrix.msc1767.file" => super::file,
         #[cfg(feature = "unstable-msc3552")]
-        "m.image" => super::image,
+        #[ruma_enum(alias = "m.image")]
+        "org.matrix.msc1767.image" => super::image,
         "m.key.verification.ready" => super::key::verification::ready,
         "m.key.verification.start" => super::key::verification::start,
         "m.key.verification.cancel" => super::key::verification::cancel,

@@ -9,7 +9,7 @@ use ruma_common::{
     event_id,
     events::{
         file::{EncryptedContentInit, FileContentBlock},
-        image::{ThumbnailContent, ThumbnailFileContent, ThumbnailFileContentInfo},
+        image::{Thumbnail, ThumbnailFileContentBlock, ThumbnailImageDetailsContentBlock},
         message::TextContentBlock,
         relation::InReplyTo,
         room::{message::Relation, JsonWebKeyInit},
@@ -125,16 +125,15 @@ fn event_serialization() {
             duration: Some(Duration::from_secs(15)),
         }
     ));
-    content.thumbnail = vec![ThumbnailContent::new(
-        ThumbnailFileContent::plain(
+    let mut thumbnail = Thumbnail::new(
+        ThumbnailFileContentBlock::plain(
             mxc_uri!("mxc://notareal.hs/thumbnail").to_owned(),
-            Some(Box::new(assign!(ThumbnailFileContentInfo::new(), {
-                mimetype: Some("image/jpeg".to_owned()),
-                size: Some(uint!(334_593)),
-            }))),
+            "image/jpeg".to_owned(),
         ),
-        None,
-    )];
+        ThumbnailImageDetailsContentBlock::new(uint!(560), uint!(480)),
+    );
+    thumbnail.file.size = Some(uint!(334_593));
+    content.thumbnail = vec![thumbnail].into();
     content.caption = TextContentBlock::plain("This is my awesome vintage lava lamp");
     content.relates_to = Some(Relation::Reply {
         in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
@@ -158,11 +157,17 @@ fn event_serialization() {
                 "height": 1080,
                 "duration": 15_000,
             },
-            "m.thumbnail": [
+            "org.matrix.msc1767.thumbnail": [
                 {
-                    "url": "mxc://notareal.hs/thumbnail",
-                    "mimetype": "image/jpeg",
-                    "size": 334_593,
+                    "org.matrix.msc1767.file": {
+                        "url": "mxc://notareal.hs/thumbnail",
+                        "mimetype": "image/jpeg",
+                        "size": 334_593,
+                    },
+                    "org.matrix.msc1767.image_details": {
+                        "width": 560,
+                        "height": 480,
+                    },
                 }
             ],
             "m.caption": [
@@ -236,9 +241,16 @@ fn encrypted_content_deserialization() {
             "v": "v2"
         },
         "m.video": {},
-        "m.thumbnail": [
+        "org.matrix.msc1767.thumbnail": [
             {
-                "url": "mxc://notareal.hs/thumbnail",
+                "org.matrix.msc1767.file": {
+                    "url": "mxc://notareal.hs/thumbnail",
+                    "mimetype": "image/png",
+                },
+                "org.matrix.msc1767.image_details": {
+                    "width": 560,
+                    "height": 480,
+                },
             }
         ]
     });
@@ -253,7 +265,11 @@ fn encrypted_content_deserialization() {
     assert_eq!(content.video.height, None);
     assert_eq!(content.video.duration, None);
     assert_eq!(content.thumbnail.len(), 1);
-    assert_eq!(content.thumbnail[0].file.url, "mxc://notareal.hs/thumbnail");
+    let thumbnail = &content.thumbnail[0];
+    assert_eq!(thumbnail.file.url, "mxc://notareal.hs/thumbnail");
+    assert_eq!(thumbnail.file.mimetype, "image/png");
+    assert_eq!(thumbnail.image_details.width, uint!(560));
+    assert_eq!(thumbnail.image_details.height, uint!(480));
     assert!(content.caption.is_empty());
 }
 
