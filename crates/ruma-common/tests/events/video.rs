@@ -3,17 +3,16 @@
 use std::time::Duration;
 
 use assert_matches::assert_matches;
-use assign::assign;
 use js_int::uint;
 use ruma_common::{
     event_id,
     events::{
-        file::{EncryptedContentInit, FileContentBlock},
+        file::{CaptionContentBlock, EncryptedContentInit, FileContentBlock},
         image::{Thumbnail, ThumbnailFileContentBlock, ThumbnailImageDetailsContentBlock},
         message::TextContentBlock,
         relation::InReplyTo,
         room::{message::Relation, JsonWebKeyInit},
-        video::{VideoContent, VideoEventContent},
+        video::{VideoDetailsContentBlock, VideoEventContent},
         AnyMessageLikeEvent, MessageLikeEvent,
     },
     mxc_uri,
@@ -24,7 +23,7 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 
 #[test]
 fn plain_content_serialization() {
-    let event_content = VideoEventContent::plain(
+    let event_content = VideoEventContent::with_plain_text(
         "Upload: my_video.webm",
         FileContentBlock::plain(
             mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
@@ -42,14 +41,13 @@ fn plain_content_serialization() {
                 "url": "mxc://notareal.hs/abcdef",
                 "name": "my_video.webm",
             },
-            "m.video": {}
         })
     );
 }
 
 #[test]
 fn encrypted_content_serialization() {
-    let event_content = VideoEventContent::plain(
+    let event_content = VideoEventContent::with_plain_text(
         "Upload: my_video.webm",
         FileContentBlock::encrypted(
             mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
@@ -97,7 +95,6 @@ fn encrypted_content_serialization() {
                 },
                 "v": "v2"
             },
-            "m.video": {}
         })
     );
 }
@@ -117,14 +114,9 @@ fn event_serialization() {
 
     content.file.mimetype = Some("video/webm".to_owned());
     content.file.size = Some(uint!(1_897_774));
-    content.video = Box::new(assign!(
-        VideoContent::new(),
-        {
-            width: Some(uint!(1920)),
-            height: Some(uint!(1080)),
-            duration: Some(Duration::from_secs(15)),
-        }
-    ));
+    let mut video_details = VideoDetailsContentBlock::new(uint!(1920), uint!(1080));
+    video_details.duration = Some(Duration::from_secs(15));
+    content.video_details = Some(video_details);
     let mut thumbnail = Thumbnail::new(
         ThumbnailFileContentBlock::plain(
             mxc_uri!("mxc://notareal.hs/thumbnail").to_owned(),
@@ -134,7 +126,7 @@ fn event_serialization() {
     );
     thumbnail.file.size = Some(uint!(334_593));
     content.thumbnail = vec![thumbnail].into();
-    content.caption = TextContentBlock::plain("This is my awesome vintage lava lamp");
+    content.caption = Some(CaptionContentBlock::plain("This is my awesome vintage lava lamp"));
     content.relates_to = Some(Relation::Reply {
         in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
     });
@@ -152,10 +144,10 @@ fn event_serialization() {
                 "mimetype": "video/webm",
                 "size": 1_897_774,
             },
-            "m.video": {
+            "org.matrix.msc1767.video_details": {
                 "width": 1920,
                 "height": 1080,
-                "duration": 15_000,
+                "duration": 15,
             },
             "org.matrix.msc1767.thumbnail": [
                 {
@@ -170,16 +162,16 @@ fn event_serialization() {
                     },
                 }
             ],
-            "m.caption": [
-                {
-                    "body": "This is my awesome vintage lava lamp",
-                }
-            ],
+            "org.matrix.msc1767.caption": {
+                "org.matrix.msc1767.text": [
+                    { "body": "This is my awesome vintage lava lamp" },
+                ],
+            },
             "m.relates_to": {
                 "m.in_reply_to": {
                     "event_id": "$replyevent:example.com"
                 }
-            }
+            },
         })
     );
 }
@@ -194,14 +186,16 @@ fn plain_content_deserialization() {
             "url": "mxc://notareal.hs/abcdef",
             "name": "my_cat.mp4",
         },
-        "m.video": {
+        "org.matrix.msc1767.video_details": {
+            "width": 720,
+            "height": 480,
             "duration": 5_668,
         },
-        "m.caption": [
-            {
-                "body": "Look at my cat!",
-            }
-        ]
+        "org.matrix.msc1767.caption": {
+            "org.matrix.msc1767.text": [
+                { "body": "Look at my cat!" },
+            ],
+        },
     });
 
     let content = from_json_value::<VideoEventContent>(json_data).unwrap();
@@ -210,12 +204,14 @@ fn plain_content_deserialization() {
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     assert_eq!(content.file.name, "my_cat.mp4");
     assert_matches!(content.file.encryption_info, None);
-    assert_eq!(content.video.width, None);
-    assert_eq!(content.video.height, None);
-    assert_eq!(content.video.duration, Some(Duration::from_millis(5_668)));
+    let video_details = content.video_details.unwrap();
+    assert_eq!(video_details.width, uint!(720));
+    assert_eq!(video_details.height, uint!(480));
+    assert_eq!(video_details.duration, Some(Duration::from_secs(5_668)));
     assert_eq!(content.thumbnail.len(), 0);
-    assert_eq!(content.caption.find_plain(), Some("Look at my cat!"));
-    assert_eq!(content.caption.find_html(), None);
+    let caption = content.caption.unwrap();
+    assert_eq!(caption.text.find_plain(), Some("Look at my cat!"));
+    assert_eq!(caption.text.find_html(), None);
 }
 
 #[test]
@@ -240,7 +236,6 @@ fn encrypted_content_deserialization() {
             },
             "v": "v2"
         },
-        "m.video": {},
         "org.matrix.msc1767.thumbnail": [
             {
                 "org.matrix.msc1767.file": {
@@ -261,16 +256,14 @@ fn encrypted_content_deserialization() {
     assert_eq!(content.file.url, "mxc://notareal.hs/abcdef");
     assert_eq!(content.file.name, "my_cat.mp4");
     assert!(content.file.encryption_info.is_some());
-    assert_eq!(content.video.width, None);
-    assert_eq!(content.video.height, None);
-    assert_eq!(content.video.duration, None);
+    assert!(content.video_details.is_none());
     assert_eq!(content.thumbnail.len(), 1);
     let thumbnail = &content.thumbnail[0];
     assert_eq!(thumbnail.file.url, "mxc://notareal.hs/thumbnail");
     assert_eq!(thumbnail.file.mimetype, "image/png");
     assert_eq!(thumbnail.image_details.width, uint!(560));
     assert_eq!(thumbnail.image_details.height, uint!(480));
-    assert!(content.caption.is_empty());
+    assert!(content.caption.is_none());
 }
 
 #[test]
@@ -286,7 +279,7 @@ fn message_event_deserialization() {
                 "mimetype": "video/webm",
                 "size": 123_774,
             },
-            "m.video": {
+            "org.matrix.msc1767.video_details": {
                 "width": 1300,
                 "height": 837,
             }
@@ -295,7 +288,7 @@ fn message_event_deserialization() {
         "origin_server_ts": 134_829_848,
         "room_id": "!roomid:notareal.hs",
         "sender": "@user:notareal.hs",
-        "type": "m.video",
+        "type": "org.matrix.msc1767.video",
     });
 
     let ev = assert_matches!(
@@ -315,8 +308,9 @@ fn message_event_deserialization() {
     assert_eq!(content.file.name, "my_gnome.webm");
     assert_eq!(content.file.mimetype.as_deref(), Some("video/webm"));
     assert_eq!(content.file.size, Some(uint!(123_774)));
-    assert_eq!(content.video.width, Some(uint!(1300)));
-    assert_eq!(content.video.height, Some(uint!(837)));
-    assert_eq!(content.video.duration, None);
+    let video_details = content.video_details.unwrap();
+    assert_eq!(video_details.width, uint!(1300));
+    assert_eq!(video_details.height, uint!(837));
+    assert_eq!(video_details.duration, None);
     assert_eq!(content.thumbnail.len(), 0);
 }
