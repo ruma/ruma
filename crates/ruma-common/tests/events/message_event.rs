@@ -3,13 +3,13 @@ use assign::assign;
 use js_int::{uint, UInt};
 use ruma_common::{
     events::{
+        call::answer::CallAnswerEventContent,
         room::{ImageInfo, MediaSource, ThumbnailInfo},
         sticker::StickerEventContent,
-        AnyMessageLikeEvent, AnyMessageLikeEventContent, AnySyncMessageLikeEvent, MessageLikeEvent,
-        MessageLikeEventType,
+        AnyMessageLikeEvent, AnySyncMessageLikeEvent, MessageLikeEvent,
     },
     mxc_uri, room_id,
-    serde::{CanBeEmpty, Raw},
+    serde::CanBeEmpty,
     MilliSecondsSinceUnixEpoch, VoipVersionId,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
@@ -107,13 +107,7 @@ fn deserialize_message_call_answer_content() {
         "version": 0
     });
 
-    let content = assert_matches!(
-        from_json_value::<Raw<AnyMessageLikeEventContent>>(json_data)
-            .unwrap()
-            .deserialize_content(MessageLikeEventType::CallAnswer)
-            .unwrap(),
-        AnyMessageLikeEventContent::CallAnswer(content) => content
-    );
+    let content = from_json_value::<CallAnswerEventContent>(json_data).unwrap();
 
     assert_eq!(content.answer.sdp, "Hello");
     assert_eq!(content.call_id, "foofoo");

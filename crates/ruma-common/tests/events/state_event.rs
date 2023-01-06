@@ -2,11 +2,11 @@ use assert_matches::assert_matches;
 use js_int::uint;
 use ruma_common::{
     events::{
-        AnyStateEvent, AnyStateEventContent, AnySyncStateEvent, AnyTimelineEvent, StateEvent,
-        StateEventType, SyncStateEvent,
+        room::aliases::RoomAliasesEventContent, AnyStateEvent, AnySyncStateEvent, AnyTimelineEvent,
+        StateEvent, SyncStateEvent,
     },
     mxc_uri, room_alias_id,
-    serde::{CanBeEmpty, Raw},
+    serde::CanBeEmpty,
     MilliSecondsSinceUnixEpoch,
 };
 use serde_json::{from_value as from_json_value, json, Value as JsonValue};
@@ -36,12 +36,7 @@ fn deserialize_aliases_content() {
         "aliases": ["#somewhere:localhost"],
     });
 
-    let content = assert_matches!(
-        from_json_value::<Raw<AnyStateEventContent>>(json_data)
-            .unwrap()
-            .deserialize_content(StateEventType::RoomAliases),
-        Ok(AnyStateEventContent::RoomAliases(content)) => content
-    );
+    let content = from_json_value::<RoomAliasesEventContent>(json_data).unwrap();
     assert_eq!(content.aliases, vec![room_alias_id!("#somewhere:localhost")]);
 }
 
