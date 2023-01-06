@@ -46,7 +46,7 @@ fn is_default_bits(val: &UInt) -> bool {
 
 /// A key description encrypted using a specified algorithm.
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
+#[derive(Clone, Debug, Serialize, EventContent)]
 #[ruma_event(type = "m.secret_storage.key.*", kind = GlobalAccountData)]
 pub struct SecretStorageKeyEventContent {
     /// The ID of the key.
@@ -98,10 +98,17 @@ pub enum SecretEncryptionAlgorithm {
 mod tests {
     use assert_matches::assert_matches;
     use js_int::uint;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use serde_json::{
+        from_value as from_json_value, json, to_value as to_json_value,
+        value::to_raw_value as to_raw_json_value,
+    };
 
     use super::{PassPhrase, SecretEncryptionAlgorithm, SecretStorageKeyEventContent};
-    use crate::{events::GlobalAccountDataEvent, serde::Base64, KeyDerivationAlgorithm};
+    use crate::{
+        events::{EventContentFromType, GlobalAccountDataEvent},
+        serde::Base64,
+        KeyDerivationAlgorithm,
+    };
 
     #[test]
     fn test_key_description_serialization() {
@@ -126,14 +133,19 @@ mod tests {
 
     #[test]
     fn test_key_description_deserialization() {
-        let json = json!({
+        let json = to_raw_json_value(&json!({
             "name": "my_key",
             "algorithm": "m.secret_storage.v1.aes-hmac-sha2",
             "iv": "YWJjZGVmZ2hpamtsbW5vcA",
             "mac": "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U"
-        });
+        }))
+        .unwrap();
 
-        let content = from_json_value::<SecretStorageKeyEventContent>(json).unwrap();
+        let content = <SecretStorageKeyEventContent as EventContentFromType>::from_parts(
+            "m.secret_storage.key.test",
+            &json,
+        )
+        .unwrap();
         assert_eq!(content.name.unwrap(), "my_key");
         assert_matches!(content.passphrase, None);
 
@@ -150,13 +162,18 @@ mod tests {
 
     #[test]
     fn test_key_description_deserialization_without_name() {
-        let json = json!({
+        let json = to_raw_json_value(&json!({
             "algorithm": "m.secret_storage.v1.aes-hmac-sha2",
             "iv": "YWJjZGVmZ2hpamtsbW5vcA",
             "mac": "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U"
-        });
+        }))
+        .unwrap();
 
-        let content = from_json_value::<SecretStorageKeyEventContent>(json).unwrap();
+        let content = <SecretStorageKeyEventContent as EventContentFromType>::from_parts(
+            "m.secret_storage.key.test",
+            &json,
+        )
+        .unwrap();
         assert!(content.name.is_none());
         assert_matches!(content.passphrase, None);
 
@@ -202,7 +219,7 @@ mod tests {
 
     #[test]
     fn test_key_description_with_passphrase_deserialization() {
-        let json = json!({
+        let json = to_raw_json_value(&json!({
             "name": "my_key",
             "algorithm": "m.secret_storage.v1.aes-hmac-sha2",
             "iv": "YWJjZGVmZ2hpamtsbW5vcA",
@@ -213,9 +230,14 @@ mod tests {
                 "iterations": 8,
                 "bits": 256
             }
-        });
+        }))
+        .unwrap();
 
-        let content = from_json_value::<SecretStorageKeyEventContent>(json).unwrap();
+        let content = <SecretStorageKeyEventContent as EventContentFromType>::from_parts(
+            "m.secret_storage.key.test",
+            &json,
+        )
+        .unwrap();
         assert_eq!(content.name.unwrap(), "my_key");
 
         let passphrase = content.passphrase.unwrap();
