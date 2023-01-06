@@ -1,7 +1,7 @@
 use ruma_macros::EventContent;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
-#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[derive(Clone, Debug, Serialize, EventContent)]
 #[ruma_event(type = "m.macro.test.*", kind = GlobalAccountData)]
 pub struct MacroTestContent {
     #[ruma_event(type_fragment)]

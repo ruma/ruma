@@ -894,31 +894,12 @@ fn generate_event_content_impl<'a>(
 
     let event_types = aliases.iter().chain([event_type]);
 
-    let from_parts_fn_impl = if let Some((_, type_fragment_field)) = &type_suffix_data {
-        let type_prefixes = event_types.map(|ev_type| {
-            ev_type
-                .value()
-                .strip_suffix('*')
-                .expect("aliases have already been checked to have the same suffix")
-                .to_owned()
-        });
-        let type_prefixes = quote! {
-            [#(#type_prefixes,)*]
-        };
-
+    let from_parts_fn_impl = if type_suffix_data.is_some() {
         quote! {
-            if let Some(type_fragment) = #type_prefixes.iter().find_map(|prefix| ev_type.strip_prefix(prefix)) {
-                let mut content: Self = #serde_json::from_str(content.get())?;
-                content.#type_fragment_field = type_fragment.to_owned();
-
-                ::std::result::Result::Ok(content)
-            } else {
-                ::std::result::Result::Err(#serde::de::Error::custom(
-                    ::std::format!("expected event type starting with one of `{:?}`, found `{}`", #type_prefixes, ev_type)
-                ))
-            }
+            <Self as #ruma_common::events::EventContentFromType>::from_parts(ev_type, content)
         }
     } else {
+        let event_types = event_types.clone();
         let event_types = quote! {
             [#(#event_types,)*]
         };
@@ -933,6 +914,52 @@ fn generate_event_content_impl<'a>(
             #serde_json::from_str(content.get())
         }
     };
+
+    let event_content_from_type_impl = type_suffix_data.map(|(_, type_fragment_field)| {
+        let type_prefixes = event_types.map(|ev_type| {
+            ev_type
+                .value()
+                .strip_suffix('*')
+                .expect("aliases have already been checked to have the same suffix")
+                .to_owned()
+        });
+        let type_prefixes = quote! {
+            [#(#type_prefixes,)*]
+        };
+        let fields_without_type_fragment = fields.filter(|f| {
+            !f.attrs.iter().any(|a| {
+                a.path.is_ident("ruma_event") && matches!(a.parse_args(), Ok(EventFieldMeta::TypeFragment))
+            })
+        }).collect::<Vec<_>>();
+        let fields_ident_without_type_fragment = fields_without_type_fragment.iter().filter_map(|f| f.ident.as_ref());
+
+        quote! {
+            impl #ruma_common::events::EventContentFromType for #ident {
+                fn from_parts(
+                    ev_type: &::std::primitive::str,
+                    content: &#serde_json::value::RawValue,
+                ) -> #serde_json::Result<Self> {
+                    #[derive(#serde::Deserialize)]
+                    struct WithoutTypeFragment {
+                        #( #fields_without_type_fragment, )*
+                    }
+
+                    if let ::std::option::Option::Some(type_fragment) = #type_prefixes.iter().find_map(|prefix| ev_type.strip_prefix(prefix)) {
+                        let c: WithoutTypeFragment = #serde_json::from_str(content.get())?;
+
+                        ::std::result::Result::Ok(Self {
+                            #( #fields_ident_without_type_fragment: c.#fields_ident_without_type_fragment, )*
+                            #type_fragment_field: type_fragment.to_owned(),
+                        })
+                    } else {
+                        ::std::result::Result::Err(#serde::de::Error::custom(
+                            ::std::format!("expected event type starting with one of `{:?}`, found `{}`", #type_prefixes, ev_type)
+                        ))
+                    }
+                }
+            }
+        }
+    });
 
     Ok(quote! {
         #event_type_ty_decl
@@ -952,6 +979,8 @@ fn generate_event_content_impl<'a>(
                 #from_parts_fn_impl
             }
         }
+
+        #event_content_from_type_impl
 
         #sub_trait_impl
     })

@@ -1,7 +1,7 @@
 use std::fmt;
 
 use serde::{de::DeserializeOwned, Serialize};
-use serde_json::value::RawValue as RawJsonValue;
+use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 
 use crate::serde::{CanBeEmpty, Raw};
 
@@ -140,3 +140,19 @@ pub trait RedactedStateEventContent: StateEventContent + RedactedEventContent {}
 
 /// Content of a to-device event.
 pub trait ToDeviceEventContent: EventContent<EventType = ToDeviceEventType> {}
+
+/// Event content that can be deserialized with its event type.
+pub trait EventContentFromType: EventContent {
+    /// Constructs this event content from the given event type and JSON.
+    #[doc(hidden)]
+    fn from_parts(event_type: &str, content: &RawJsonValue) -> serde_json::Result<Self>;
+}
+
+impl<T> EventContentFromType for T
+where
+    T: EventContent + DeserializeOwned,
+{
+    fn from_parts(_event_type: &str, content: &RawJsonValue) -> serde_json::Result<Self> {
+        from_json_str(content.get())
+    }
+}

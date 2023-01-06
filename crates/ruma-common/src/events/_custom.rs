@@ -2,9 +2,9 @@ use serde::Serialize;
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
-    EphemeralRoomEventContent, EphemeralRoomEventType, EventContent, GlobalAccountDataEventContent,
-    GlobalAccountDataEventType, MessageLikeEventContent, MessageLikeEventType,
-    OriginalStateEventContent, RedactContent, RedactedEventContent,
+    EphemeralRoomEventContent, EphemeralRoomEventType, EventContent, EventContentFromType,
+    GlobalAccountDataEventContent, GlobalAccountDataEventType, MessageLikeEventContent,
+    MessageLikeEventType, OriginalStateEventContent, RedactContent, RedactedEventContent,
     RedactedMessageLikeEventContent, RedactedStateEventContent, RoomAccountDataEventContent,
     RoomAccountDataEventType, StateEventContent, StateEventType, StateUnsigned,
     ToDeviceEventContent, ToDeviceEventType,
@@ -30,6 +30,12 @@ macro_rules! custom_event_content {
                 self.event_type[..].into()
             }
 
+            fn from_parts(event_type: &str, _content: &RawJsonValue) -> serde_json::Result<Self> {
+                Ok(Self { event_type: event_type.into() })
+            }
+        }
+
+        impl EventContentFromType for $i {
             fn from_parts(event_type: &str, _content: &RawJsonValue) -> serde_json::Result<Self> {
                 Ok(Self { event_type: event_type.into() })
             }
