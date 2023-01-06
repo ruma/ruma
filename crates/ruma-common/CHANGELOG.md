@@ -51,6 +51,8 @@ Breaking changes:
 * Rename `RoomEventType` to `TimelineEventType`
 * Remove `SecretStorageKeyEventContent`'s implementation of `Deserialize`
   * Use `EventContentFromType::from_parts` instead
+* Remove `StateUnsignedFromParts`
+  * Replace it with a bound on `DeserializeOwned`
 
 Improvements:
 

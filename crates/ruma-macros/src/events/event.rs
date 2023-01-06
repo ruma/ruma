@@ -6,7 +6,7 @@ use syn::{Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed};
 
 use super::{
     event_parse::{to_kind_variation, EventKind, EventKindVariation},
-    util::{has_prev_content, is_non_stripped_room_event},
+    util::is_non_stripped_room_event,
 };
 use crate::{import_ruma_common, util::to_camel_case};
 
@@ -42,7 +42,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
     let mut res = TokenStream::new();
 
     res.extend(
-        expand_deserialize_event(&input, kind, var, &fields, &ruma_common)
+        expand_deserialize_event(&input, var, &fields, &ruma_common)
             .unwrap_or_else(syn::Error::into_compile_error),
     );
 
@@ -59,7 +59,6 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
 
 fn expand_deserialize_event(
     input: &DeriveInput,
-    kind: EventKind,
     var: EventKindVariation,
     fields: &[Field],
     ruma_common: &TokenStream,
@@ -91,7 +90,7 @@ fn expand_deserialize_event(
         .iter()
         .map(|field| {
             let name = field.ident.as_ref().unwrap();
-            if name == "content" || (name == "unsigned" && has_prev_content(kind, var)) {
+            if name == "content" {
                 if is_generic {
                     quote! { ::std::boxed::Box<#serde_json::value::RawValue> }
                 } else {
@@ -137,19 +136,8 @@ fn expand_deserialize_event(
                     }
                 }
             } else if name == "unsigned" && !var.is_redacted() {
-                if has_prev_content(kind, var) {
-                    quote! {
-                        let unsigned = unsigned.map(|json| {
-                            #ruma_common::events::StateUnsignedFromParts::_from_parts(
-                                &event_type,
-                                &json,
-                            ).map_err(#serde::de::Error::custom)
-                        }).transpose()?.unwrap_or_default();
-                    }
-                } else {
-                    quote! {
-                        let unsigned = unsigned.unwrap_or_default();
-                    }
+                quote! {
+                    let unsigned = unsigned.unwrap_or_default();
                 }
             } else if name == "state_key" && var == EventKindVariation::Initial {
                 let ty = &field.ty;
