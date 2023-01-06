@@ -1,17 +1,13 @@
-// Required, probably until Rust 1.57
-// https://github.com/rust-lang/rust/issues/55779
-#[allow(unused_extern_crates)]
-extern crate serde;
-
 use ruma_common::{
     events::{StateEventContent, StateUnsigned},
     MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId,
 };
 use ruma_macros::Event;
+use serde::de::DeserializeOwned;
 
 /// State event.
 #[derive(Clone, Debug, Event)]
-pub struct OriginalStateEvent<C: StateEventContent> {
+pub struct OriginalStateEvent<C: StateEventContent + DeserializeOwned> {
     pub content: C,
     pub event_id: OwnedEventId,
     pub sender: OwnedUserId,
