@@ -29,12 +29,12 @@ pub trait EventContent: Sized + Serialize {
 
 impl<T> Raw<T>
 where
-    T: EventContent,
+    T: EventContentFromType,
     T::EventType: fmt::Display,
 {
-    /// Try to deserialize the JSON as an event's content.
-    pub fn deserialize_content(&self, event_type: T::EventType) -> serde_json::Result<T> {
-        T::from_parts(&event_type.to_string(), self.json())
+    /// Try to deserialize the JSON as an event's content with the given event type.
+    pub fn deserialize_with_type(&self, event_type: T::EventType) -> serde_json::Result<T> {
+        <T as EventContentFromType>::from_parts(&event_type.to_string(), self.json())
     }
 }
 

@@ -53,6 +53,8 @@ Breaking changes:
   * Use `EventContentFromType::from_parts` instead
 * Remove `StateUnsignedFromParts`
   * Replace it with a bound on `DeserializeOwned`
+* Remove `Raw::deserialize_content`
+  * Instead, use `.deserialize_as::<T>()` or `.cast_ref::<T>().deserialize_with_type()`
 
 Improvements:
 
