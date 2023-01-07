@@ -10,6 +10,7 @@ Bug fixes:
   is no relation
 * Fix deserialization of `StateUnsigned` when the `prev_content` is redacted
 * Allow to deserialize `PushCondition` with unknown kind
+* Allow to deserialize `push::Action` with unknown value
 
 Breaking changes:
 
