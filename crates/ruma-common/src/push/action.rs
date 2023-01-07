@@ -1,7 +1,9 @@
-use std::fmt::{self, Formatter};
+use std::collections::BTreeMap;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use serde_json::value::RawValue as RawJsonValue;
+use serde_json::value::{RawValue as RawJsonValue, Value as JsonValue};
+
+use crate::serde::from_raw_json_value;
 
 /// This represents the different actions that should be taken when a rule is matched, and
 /// controls how notifications are delivered to the client.
@@ -22,6 +24,10 @@ pub enum Action {
 
     /// Sets an entry in the 'tweaks' dictionary sent to the push gateway.
     SetTweak(Tweak),
+
+    /// An unknown action.
+    #[doc(hidden)]
+    _Custom(CustomAction),
 }
 
 /// The `set_tweak` action.
@@ -59,40 +65,24 @@ impl<'de> Deserialize<'de> for Action {
     where
         D: Deserializer<'de>,
     {
-        use serde::de::{MapAccess, Visitor};
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+        let custom: CustomAction = from_raw_json_value(&json)?;
 
-        struct ActionVisitor;
-        impl<'de> Visitor<'de> for ActionVisitor {
-            type Value = Action;
-
-            fn expecting(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
-                write!(formatter, "a valid action object")
-            }
-
-            /// Match a simple action type
-            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-            where
-                E: serde::de::Error,
-            {
-                match v {
-                    "notify" => Ok(Action::Notify),
-                    "dont_notify" => Ok(Action::DontNotify),
-                    "coalesce" => Ok(Action::Coalesce),
-                    s => Err(E::unknown_variant(s, &["notify", "dont_notify", "coalesce"])),
+        match &custom {
+            CustomAction::String(s) => match s.as_str() {
+                "notify" => Ok(Action::Notify),
+                "dont_notify" => Ok(Action::DontNotify),
+                "coalesce" => Ok(Action::Coalesce),
+                _ => Ok(Action::_Custom(custom)),
+            },
+            CustomAction::Object(o) => {
+                if o.get("set_tweak").is_some() {
+                    Ok(Action::SetTweak(from_raw_json_value(&json)?))
+                } else {
+                    Ok(Action::_Custom(custom))
                 }
             }
-
-            /// Match the more complex set_tweaks action object as a key-value map
-            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
-            where
-                A: MapAccess<'de>,
-            {
-                Tweak::deserialize(serde::de::value::MapAccessDeserializer::new(map))
-                    .map(Action::SetTweak)
-            }
         }
-
-        deserializer.deserialize_any(ActionVisitor)
     }
 }
 
@@ -106,8 +96,21 @@ impl Serialize for Action {
             Action::DontNotify => serializer.serialize_unit_variant("Action", 1, "dont_notify"),
             Action::Coalesce => serializer.serialize_unit_variant("Action", 2, "coalesce"),
             Action::SetTweak(kind) => kind.serialize(serializer),
+            Action::_Custom(custom) => custom.serialize(serializer),
         }
     }
+}
+
+/// An unknown action.
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum CustomAction {
+    /// A string.
+    String(String),
+
+    /// An object.
+    Object(BTreeMap<String, JsonValue>),
 }
 
 mod tweak_serde {
