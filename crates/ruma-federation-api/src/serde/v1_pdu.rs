@@ -74,7 +74,7 @@ mod tests {
     use serde_json::{json, to_value as to_json_value};
 
     use super::{deserialize, serialize};
-    use crate::membership::create_join_event::RoomState;
+    use crate::membership::create_join_event::v1::RoomState;
 
     #[test]
     fn deserialize_response() {

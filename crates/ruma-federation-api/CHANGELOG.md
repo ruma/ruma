@@ -4,9 +4,14 @@ Bug fixes:
 
 * Add the `event` field to `RoomState` according to MSC3083 / Matrix v1.2
 
+Breaking changes:
+
+* Split `membership::create_join_event::RoomState` into separate types in the `v1` and `v2` modules
+
 Improvements:
 
 * Add unstable support to get an event by timestamp (MSC3030)
+* Add unstable support to request partial state in `send_join` (MSC3706)
 
 # 0.6.0
 
