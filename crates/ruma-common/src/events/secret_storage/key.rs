@@ -141,11 +141,8 @@ mod tests {
         }))
         .unwrap();
 
-        let content = <SecretStorageKeyEventContent as EventContentFromType>::from_parts(
-            "m.secret_storage.key.test",
-            &json,
-        )
-        .unwrap();
+        let content =
+            SecretStorageKeyEventContent::from_parts("m.secret_storage.key.test", &json).unwrap();
         assert_eq!(content.name.unwrap(), "my_key");
         assert_matches!(content.passphrase, None);
 
@@ -169,11 +166,8 @@ mod tests {
         }))
         .unwrap();
 
-        let content = <SecretStorageKeyEventContent as EventContentFromType>::from_parts(
-            "m.secret_storage.key.test",
-            &json,
-        )
-        .unwrap();
+        let content =
+            SecretStorageKeyEventContent::from_parts("m.secret_storage.key.test", &json).unwrap();
         assert!(content.name.is_none());
         assert_matches!(content.passphrase, None);
 
@@ -233,11 +227,8 @@ mod tests {
         }))
         .unwrap();
 
-        let content = <SecretStorageKeyEventContent as EventContentFromType>::from_parts(
-            "m.secret_storage.key.test",
-            &json,
-        )
-        .unwrap();
+        let content =
+            SecretStorageKeyEventContent::from_parts("m.secret_storage.key.test", &json).unwrap();
         assert_eq!(content.name.unwrap(), "my_key");
 
         let passphrase = content.passphrase.unwrap();

@@ -2,7 +2,7 @@
 
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
-use syn::{Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed};
+use syn::{parse_quote, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed};
 
 use super::{
     event_parse::{to_kind_variation, EventKind, EventKindVariation},
@@ -109,31 +109,13 @@ fn expand_deserialize_event(
         .iter()
         .map(|field| {
             let name = field.ident.as_ref().unwrap();
-            Ok(if name == "content" {
-                if is_generic && var.is_redacted() {
-                    quote! {
-                        let content = {
-                            let json = content.ok_or_else(
-                                || #serde::de::Error::missing_field("content"),
-                            )?;
-                            C::from_parts(&event_type, &json)
-                                .map_err(#serde::de::Error::custom)?
-                        };
-                    }
-                } else if is_generic {
-                    quote! {
-                        let content = {
-                            let json = content
-                                .ok_or_else(|| #serde::de::Error::missing_field("content"))?;
-                            C::from_parts(&event_type, &json).map_err(#serde::de::Error::custom)?
-                        };
-                    }
-                } else {
-                    quote! {
-                        let content = content.ok_or_else(
-                            || #serde::de::Error::missing_field("content"),
-                        )?;
-                    }
+            Ok(if name == "content" && is_generic {
+                quote! {
+                    let content = {
+                        let json = content
+                            .ok_or_else(|| #serde::de::Error::missing_field("content"))?;
+                        C::from_parts(&event_type, &json).map_err(#serde::de::Error::custom)?
+                    };
                 }
             } else if name == "unsigned" && !var.is_redacted() {
                 quote! {
@@ -169,6 +151,17 @@ fn expand_deserialize_event(
         quote! { ::std::marker::PhantomData }
     } else {
         quote! {}
+    };
+    let where_clause = if is_generic {
+        let predicate = parse_quote! { C: #ruma_common::events::EventContentFromType };
+        if let Some(mut where_clause) = where_clause.cloned() {
+            where_clause.predicates.push(predicate);
+            Some(where_clause)
+        } else {
+            Some(parse_quote! { where #predicate })
+        }
+    } else {
+        where_clause.cloned()
     };
 
     Ok(quote! {

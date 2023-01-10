@@ -55,6 +55,8 @@ Breaking changes:
   * Replace it with a bound on `DeserializeOwned`
 * Remove `Raw::deserialize_content`
   * Instead, use `.deserialize_as::<T>()` or `.cast_ref::<T>().deserialize_with_type()`
+* Remove `EventContent::from_parts`
+  * Replace it with `EventContentFromType::from_parts`
 
 Improvements:
 

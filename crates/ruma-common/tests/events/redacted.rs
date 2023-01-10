@@ -8,8 +8,8 @@ use ruma_common::{
             redaction::RoomRedactionEventContent,
         },
         AnyMessageLikeEvent, AnySyncMessageLikeEvent, AnySyncStateEvent, AnySyncTimelineEvent,
-        AnyTimelineEvent, EventContent, MessageLikeEvent, RedactContent, SyncMessageLikeEvent,
-        SyncStateEvent,
+        AnyTimelineEvent, EventContentFromType, MessageLikeEvent, RedactContent,
+        SyncMessageLikeEvent, SyncStateEvent,
     },
     RoomVersionId,
 };
