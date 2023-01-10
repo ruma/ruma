@@ -21,10 +21,6 @@ pub trait EventContent: Sized + Serialize {
 
     /// Get the event's type, like `m.room.message`.
     fn event_type(&self) -> Self::EventType;
-
-    /// Constructs the given event content.
-    #[doc(hidden)]
-    fn from_parts(event_type: &str, content: &RawJsonValue) -> serde_json::Result<Self>;
 }
 
 impl<T> Raw<T>
@@ -34,7 +30,7 @@ where
 {
     /// Try to deserialize the JSON as an event's content with the given event type.
     pub fn deserialize_with_type(&self, event_type: T::EventType) -> serde_json::Result<T> {
-        <T as EventContentFromType>::from_parts(&event_type.to_string(), self.json())
+        T::from_parts(&event_type.to_string(), self.json())
     }
 }
 

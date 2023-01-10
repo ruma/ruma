@@ -29,10 +29,6 @@ macro_rules! custom_event_content {
             fn event_type(&self) -> Self::EventType {
                 self.event_type[..].into()
             }
-
-            fn from_parts(event_type: &str, _content: &RawJsonValue) -> serde_json::Result<Self> {
-                Ok(Self { event_type: event_type.into() })
-            }
         }
 
         impl EventContentFromType for $i {

@@ -1,6 +1,6 @@
 //! Implementation of event enum and event content enum macros.
 
-use std::{fmt, iter::zip};
+use std::fmt;
 
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, IdentFragment, ToTokens};
@@ -307,7 +307,6 @@ fn expand_content_enum(
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let serde = quote! { #ruma_common::exports::serde };
-    let serde_json = quote! { #ruma_common::exports::serde_json };
 
     let ident = kind.to_content_enum();
 
@@ -318,36 +317,6 @@ fn expand_content_enum(
         .map(|event| {
             let stable_name = event.stable_name()?;
             Ok(to_event_content_path(kind, stable_name, &event.ev_path, None))
-        })
-        .collect::<syn::Result<_>>()?;
-    let event_type_match_arms: TokenStream = zip(zip(events, variants), &content)
-        .map(|((event, variant), ev_content)| {
-            let variant_attrs = {
-                let attrs = &variant.attrs;
-                quote! { #(#attrs)* }
-            };
-            let variant_ctor = variant.ctor(quote! { Self });
-
-            let ev_types = event.aliases.iter().chain([&event.ev_type]);
-            let ev_types = if event.ev_type.value().ends_with(".*") {
-                let ev_types = ev_types.map(|ev_type| {
-                    ev_type
-                        .value()
-                        .strip_suffix(".*")
-                        .expect("aliases have already been checked to have the same suffix")
-                        .to_owned()
-                });
-                quote! { _s if #(_s.starts_with(#ev_types))||* }
-            } else {
-                quote! { #(#ev_types)|* }
-            };
-
-            Ok(quote! {
-                #variant_attrs #ev_types => {
-                    let content = #ev_content::from_parts(event_type, input)?;
-                    ::std::result::Result::Ok(#variant_ctor(content))
-                },
-            })
         })
         .collect::<syn::Result<_>>()?;
 
@@ -392,20 +361,6 @@ fn expand_content_enum(
                 match self {
                     #( #variant_arms(content) => content.event_type(), )*
                     Self::_Custom { event_type } => ::std::convert::From::from(&event_type.0[..]),
-                }
-            }
-
-            fn from_parts(
-                event_type: &::std::primitive::str,
-                input: &#serde_json::value::RawValue,
-            ) -> #serde_json::Result<Self> {
-                match event_type {
-                    #event_type_match_arms
-                    ty => {
-                        ::std::result::Result::Ok(Self::_Custom {
-                            event_type: crate::PrivOwnedStr(ty.into()),
-                        })
-                    }
                 }
             }
         }

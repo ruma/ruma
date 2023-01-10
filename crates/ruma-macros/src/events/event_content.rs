@@ -894,27 +894,6 @@ fn generate_event_content_impl<'a>(
 
     let event_types = aliases.iter().chain([event_type]);
 
-    let from_parts_fn_impl = if type_suffix_data.is_some() {
-        quote! {
-            <Self as #ruma_common::events::EventContentFromType>::from_parts(ev_type, content)
-        }
-    } else {
-        let event_types = event_types.clone();
-        let event_types = quote! {
-            [#(#event_types,)*]
-        };
-
-        quote! {
-            if !#event_types.contains(&ev_type) {
-                return ::std::result::Result::Err(#serde::de::Error::custom(
-                    ::std::format!("expected event type as one of `{:?}`, found `{}`", #event_types, ev_type)
-                ));
-            }
-
-            #serde_json::from_str(content.get())
-        }
-    };
-
     let event_content_from_type_impl = type_suffix_data.map(|(_, type_fragment_field)| {
         let type_prefixes = event_types.map(|ev_type| {
             ev_type
@@ -970,13 +949,6 @@ fn generate_event_content_impl<'a>(
 
             fn event_type(&self) -> Self::EventType {
                 #event_type_fn_impl
-            }
-
-            fn from_parts(
-                ev_type: &::std::primitive::str,
-                content: &#serde_json::value::RawValue,
-            ) -> #serde_json::Result<Self> {
-                #from_parts_fn_impl
             }
         }
 

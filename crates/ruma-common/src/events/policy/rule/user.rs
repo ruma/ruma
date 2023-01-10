@@ -4,7 +4,6 @@
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
-use serde_json::value::RawValue as RawJsonValue;
 
 use super::{PolicyRuleEventContent, PossiblyRedactedPolicyRuleEventContent};
 use crate::events::{EventContent, StateEventContent, StateEventType};
@@ -29,16 +28,6 @@ impl EventContent for PossiblyRedactedPolicyRuleUserEventContent {
 
     fn event_type(&self) -> Self::EventType {
         StateEventType::PolicyRuleUser
-    }
-
-    fn from_parts(event_type: &str, content: &RawJsonValue) -> serde_json::Result<Self> {
-        if event_type != "m.policy.rule.user" {
-            return Err(::serde::de::Error::custom(format!(
-                "expected event type `m.policy.rule.user`, found `{event_type}`",
-            )));
-        }
-
-        serde_json::from_str(content.get())
     }
 }
 

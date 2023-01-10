@@ -5,7 +5,7 @@ use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
-    EphemeralRoomEventContent, EventContent, GlobalAccountDataEventContent,
+    EphemeralRoomEventContent, EventContent, EventContentFromType, GlobalAccountDataEventContent,
     MessageLikeEventContent, MessageLikeEventType, MessageLikeUnsigned, OriginalStateEventContent,
     RedactContent, RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
     RedactionDeHelper, RoomAccountDataEventContent, StateEventContent, StateEventType,
@@ -551,8 +551,8 @@ macro_rules! impl_possibly_redacted_event {
 
         impl<'de, C> Deserialize<'de> for $ty<C>
         where
-            C: $content_trait + RedactContent,
-            C::Redacted: $redacted_content_trait,
+            C: $content_trait + EventContentFromType + RedactContent,
+            C::Redacted: $redacted_content_trait + EventContentFromType,
             $( C::Redacted: $trait<StateKey = C::StateKey>, )?
         {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

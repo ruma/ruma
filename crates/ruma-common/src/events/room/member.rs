@@ -7,7 +7,6 @@ use std::collections::BTreeMap;
 use js_int::Int;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
-use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
     events::{
@@ -242,16 +241,6 @@ impl EventContent for RedactedRoomMemberEventContent {
 
     fn event_type(&self) -> StateEventType {
         StateEventType::RoomMember
-    }
-
-    fn from_parts(event_type: &str, content: &RawJsonValue) -> serde_json::Result<Self> {
-        if event_type != "m.room.member" {
-            return Err(::serde::de::Error::custom(format!(
-                "expected event type `m.room.member`, found `{event_type}`",
-            )));
-        }
-
-        serde_json::from_str(content.get())
     }
 }
 
