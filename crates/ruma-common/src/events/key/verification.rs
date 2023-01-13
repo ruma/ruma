@@ -20,7 +20,7 @@ pub mod start;
 
 /// A hash algorithm.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[derive(Clone, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum HashAlgorithm {
@@ -33,7 +33,7 @@ pub enum HashAlgorithm {
 
 /// A key agreement protocol.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[derive(Clone, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "kebab-case")]
 #[non_exhaustive]
 pub enum KeyAgreementProtocol {
@@ -49,7 +49,7 @@ pub enum KeyAgreementProtocol {
 
 /// A message authentication code algorithm.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[derive(Clone, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "kebab-case")]
 #[non_exhaustive]
 pub enum MessageAuthenticationCode {
@@ -70,7 +70,7 @@ pub enum MessageAuthenticationCode {
 
 /// A Short Authentication String method.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[derive(Clone, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum ShortAuthenticationString {
@@ -86,7 +86,7 @@ pub enum ShortAuthenticationString {
 
 /// A Short Authentication String (SAS) verification method.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[derive(Clone, PartialEq, Eq, StringEnum)]
 #[non_exhaustive]
 pub enum VerificationMethod {
     /// The `m.sas.v1` verification method.

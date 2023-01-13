@@ -59,7 +59,7 @@ pub type Receipts = BTreeMap<ReceiptType, UserReceipts>;
 
 /// The type of receipt.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialOrdAsRefStr, OrdAsRefStr, PartialEqAsRefStr, Eq, StringEnum)]
+#[derive(Clone, PartialOrdAsRefStr, OrdAsRefStr, PartialEqAsRefStr, Eq, StringEnum)]
 #[non_exhaustive]
 pub enum ReceiptType {
     /// A [public read receipt].

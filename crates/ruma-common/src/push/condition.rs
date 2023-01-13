@@ -21,7 +21,7 @@ pub use room_member_count_is::{ComparisonOperator, RoomMemberCountIs};
 /// Features supported by room versions.
 #[cfg(feature = "unstable-msc3931")]
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[derive(Clone, PartialEq, Eq, StringEnum)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum RoomVersionFeature {
     /// m.extensible_events

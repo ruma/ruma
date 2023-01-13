@@ -663,7 +663,7 @@ impl HttpPusherData {
 ///
 /// [spec]: https://spec.matrix.org/v1.4/push-gateway-api/#homeserver-behaviour
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[derive(Clone, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum PushFormat {
@@ -676,7 +676,7 @@ pub enum PushFormat {
 
 /// The kinds of push rules that are available.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum RuleKind {

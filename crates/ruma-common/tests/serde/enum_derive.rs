@@ -4,7 +4,7 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 #[derive(Debug, PartialEq)]
 struct PrivOwnedStr(Box<str>);
 
-#[derive(Debug, PartialEq, StringEnum)]
+#[derive(PartialEq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 enum MyEnum {
     First,
@@ -35,6 +35,19 @@ fn display() {
     assert_eq!(MyEnum::HelloWorld.to_string(), "hello_world");
     assert_eq!(MyEnum::Stable.to_string(), "io.ruma.unstable");
     assert_eq!(MyEnum::_Custom(PrivOwnedStr("HelloWorld".into())).to_string(), "HelloWorld");
+}
+
+#[test]
+fn debug() {
+    assert_eq!(format!("{:?}", MyEnum::First), "\"first\"");
+    assert_eq!(format!("{:?}", MyEnum::Second), "\"second\"");
+    assert_eq!(format!("{:?}", MyEnum::Third), "\"m.third\"");
+    assert_eq!(format!("{:?}", MyEnum::HelloWorld), "\"hello_world\"");
+    assert_eq!(format!("{:?}", MyEnum::Stable), "\"io.ruma.unstable\"");
+    assert_eq!(
+        format!("{:?}", MyEnum::_Custom(PrivOwnedStr("HelloWorld".into()))),
+        "\"HelloWorld\""
+    );
 }
 
 #[test]

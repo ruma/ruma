@@ -6,7 +6,7 @@ use crate::PrivOwnedStr;
 
 /// The basic key algorithms in the specification.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[non_exhaustive]
 #[ruma_enum(rename_all = "snake_case")]
 pub enum DeviceKeyAlgorithm {
@@ -25,7 +25,7 @@ pub enum DeviceKeyAlgorithm {
 
 /// The signing key algorithms defined in the Matrix spec.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[non_exhaustive]
 #[ruma_enum(rename_all = "snake_case")]
 pub enum SigningKeyAlgorithm {
@@ -38,7 +38,7 @@ pub enum SigningKeyAlgorithm {
 
 /// An encryption algorithm to be used to encrypt messages sent to a room.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[non_exhaustive]
 pub enum EventEncryptionAlgorithm {
     /// Olm version 1 using Curve25519, AES-256, and SHA-256.
@@ -55,7 +55,7 @@ pub enum EventEncryptionAlgorithm {
 
 /// A key algorithm to be used to generate a key from a passphrase.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[non_exhaustive]
 pub enum KeyDerivationAlgorithm {
     /// PBKDF2

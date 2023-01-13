@@ -371,7 +371,7 @@ pub enum PredefinedRuleId {
 
 /// The rule IDs of the predefined override server push rules.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[ruma_enum(rename_all = ".m.rule.snake_case")]
 #[non_exhaustive]
 pub enum PredefinedOverrideRuleId {
@@ -411,7 +411,7 @@ pub enum PredefinedOverrideRuleId {
 
 /// The rule IDs of the predefined underride server push rules.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[ruma_enum(rename_all = ".m.rule.snake_case")]
 #[non_exhaustive]
 pub enum PredefinedUnderrideRuleId {
@@ -452,7 +452,7 @@ pub enum PredefinedUnderrideRuleId {
 
 /// The rule IDs of the predefined content server push rules.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[ruma_enum(rename_all = ".m.rule.snake_case")]
 #[non_exhaustive]
 pub enum PredefinedContentRuleId {

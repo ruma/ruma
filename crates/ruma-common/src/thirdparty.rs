@@ -220,7 +220,7 @@ impl User {
 
 /// The medium of a third party identifier.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[derive(Clone, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "lowercase")]
 #[non_exhaustive]
 pub enum Medium {

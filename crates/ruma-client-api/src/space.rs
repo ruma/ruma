@@ -142,7 +142,7 @@ impl From<SpaceHierarchyRoomsChunkInit> for SpaceHierarchyRoomsChunk {
 /// enum does not hold the conditions for joining restricted rooms. Instead, the server is assumed
 /// to only return rooms the user is allowed to join in a space hierarchy listing response.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, Default, PartialEq, Eq, StringEnum)]
+#[derive(Clone, Default, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum SpaceRoomJoinRule {

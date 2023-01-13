@@ -202,7 +202,7 @@ pub mod v3 {
     ///
     /// [matrix-spec-proposals]: https://github.com/matrix-org/matrix-spec-proposals/blob/v1.1/informal/idp-brands.md
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-    #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+    #[derive(Clone, PartialEq, Eq, StringEnum)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub enum IdentityProviderBrand {
         /// The [Apple] brand.

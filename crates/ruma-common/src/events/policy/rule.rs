@@ -56,7 +56,7 @@ pub struct PossiblyRedactedPolicyRuleEventContent {
 
 /// The possible actions that can be taken.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[derive(Clone, PartialEq, Eq, StringEnum)]
 #[non_exhaustive]
 pub enum Recommendation {
     /// Entities affected by the rule should be banned from participation where possible.

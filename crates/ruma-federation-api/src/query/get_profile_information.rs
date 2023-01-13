@@ -86,7 +86,7 @@ pub mod v1 {
     /// string with `::from() / .into()`. To check for values that are not available as a
     /// documented variant here, use its string representation, obtained through
     /// [`.as_str()`](Self::as_str()).
-    #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+    #[derive(Clone, PartialEq, Eq, StringEnum)]
     #[non_exhaustive]
     pub enum ProfileField {
         /// Display name of the user.

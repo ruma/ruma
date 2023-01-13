@@ -595,7 +595,7 @@ pub enum Relation<C> {
 
 /// The format for the formatted representation of a message body.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[derive(Clone, PartialEq, Eq, StringEnum)]
 #[non_exhaustive]
 pub enum MessageFormat {
     /// HTML.

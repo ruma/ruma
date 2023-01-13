@@ -74,7 +74,7 @@ impl PollStartContent {
 
 /// The kind of poll.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Debug, Default, PartialEq, Eq, StringEnum)]
+#[derive(Clone, Default, PartialEq, Eq, StringEnum)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum PollKind {
     /// The results are revealed once the poll is closed.

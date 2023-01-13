@@ -57,6 +57,7 @@ Breaking changes:
   * Instead, use `.deserialize_as::<T>()` or `.cast_ref::<T>().deserialize_with_type()`
 * Remove `EventContent::from_parts`
   * Replace it with `EventContentFromType::from_parts`
+* The `serde::StringEnum` derive now also generates a `Debug` implementation
 
 Improvements:
 
