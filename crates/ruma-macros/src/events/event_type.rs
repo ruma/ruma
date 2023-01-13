@@ -194,7 +194,7 @@ fn generate_enum(
         /// This type can hold an arbitrary string. To build events with a custom type, convert it
         /// from a string with `::from() / .into()`. To check for events that are not available as a
         /// documented variant here, use its string representation, obtained through `.to_string()`.
-        #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+        #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
         pub enum #ident {
             #(
@@ -219,6 +219,13 @@ fn generate_enum(
         impl ::std::fmt::Display for #ident {
             fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
                 self.to_cow_str().fmt(f)
+            }
+        }
+
+        #[allow(deprecated)]
+        impl ::std::fmt::Debug for #ident {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                <str as ::std::fmt::Debug>::fmt(&self.to_cow_str(), f)
             }
         }
 
