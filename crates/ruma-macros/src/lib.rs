@@ -39,6 +39,7 @@ use self::{
     identifiers::IdentifierInput,
     serde::{
         as_str_as_ref_str::expand_as_str_as_ref_str,
+        debug_as_ref_str::expand_debug_as_ref_str,
         deserialize_from_cow_str::expand_deserialize_from_cow_str,
         display_as_ref_str::expand_display_as_ref_str,
         enum_as_ref_str::expand_enum_as_ref_str,
@@ -289,6 +290,13 @@ pub fn derive_as_str_as_ref_str(input: TokenStream) -> TokenStream {
 pub fn derive_display_as_ref_str(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     expand_display_as_ref_str(&input.ident).unwrap_or_else(syn::Error::into_compile_error).into()
+}
+
+/// Derive the `fmt::Debug` trait using the `AsRef<str>` implementation of the type.
+#[proc_macro_derive(DebugAsRefStr)]
+pub fn derive_debug_as_ref_str(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_debug_as_ref_str(&input.ident).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
 /// Derive the `Serialize` trait using the `AsRef<str>` implementation of the type.

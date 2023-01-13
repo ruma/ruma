@@ -79,6 +79,7 @@ Improvements:
 * Add support for bundled reference relations (MSC3267 / Matrix 1.5)
 * Add the `formatted` field on `KeyVerificationRequestEventContent` (Matrix 1.5)
 * Add `content` accessors for `Any*StateEvent` enums
+* Add the `DebugAsRefStr` derive macro to `ruma_common::serde`
 
 # 0.10.5
 
