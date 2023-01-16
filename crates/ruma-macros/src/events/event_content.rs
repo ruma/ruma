@@ -740,6 +740,8 @@ fn generate_event_type_aliases(
 
         let content_struct = if var.is_redacted() {
             Cow::Owned(format_ident!("Redacted{ident}"))
+        } else if let EventKindVariation::Stripped = var {
+            Cow::Owned(format_ident!("PossiblyRedacted{ident}"))
         } else {
             Cow::Borrowed(ident)
         };

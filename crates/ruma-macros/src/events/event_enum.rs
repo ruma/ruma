@@ -543,6 +543,9 @@ fn expand_accessor_methods(
         }
 
         accessors
+    } else if var == EventEnumVariation::Stripped {
+        // There is no content enum for possibly-redacted content types (yet)
+        TokenStream::new()
     } else {
         quote! {
             /// Returns the content for this event.

@@ -6,10 +6,10 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
     EphemeralRoomEventContent, EventContent, EventContentFromType, GlobalAccountDataEventContent,
-    MessageLikeEventContent, MessageLikeEventType, MessageLikeUnsigned, RedactContent,
-    RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
-    RedactionDeHelper, RoomAccountDataEventContent, StateEventType, StaticStateEventContent,
-    ToDeviceEventContent,
+    MessageLikeEventContent, MessageLikeEventType, MessageLikeUnsigned,
+    PossiblyRedactedStateEventContent, RedactContent, RedactedMessageLikeEventContent,
+    RedactedStateEventContent, RedactedUnsigned, RedactionDeHelper, RoomAccountDataEventContent,
+    StateEventType, StaticStateEventContent, ToDeviceEventContent,
 };
 use crate::{
     serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
@@ -285,7 +285,7 @@ pub struct OriginalSyncStateEvent<C: StaticStateEventContent> {
 
 /// A stripped-down state event, used for previews of rooms the user has been invited to.
 #[derive(Clone, Debug, Event)]
-pub struct StrippedStateEvent<C: StaticStateEventContent> {
+pub struct StrippedStateEvent<C: PossiblyRedactedStateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
