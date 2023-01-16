@@ -21,7 +21,7 @@
 //! # Extending Ruma with custom events
 //!
 //! For our examples we will start with a simple custom state event. `ruma_event`
-//! specifies the state event's `type` and it's [`kind`](EventKind).
+//! specifies the state event's `type` and its `kind`.
 //!
 //! ```rust
 //! use ruma_common::events::macros::EventContent;

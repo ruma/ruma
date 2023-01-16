@@ -34,59 +34,10 @@ where
     }
 }
 
-/// Trait for abstracting over event content structs.
-///
-/// … but *not* enums which don't always have an event type and kind (e.g. message vs state) that's
-/// fixed / known at compile time.
+/// An event content type with a statically-known event `type` value.
 pub trait StaticEventContent: EventContent {
-    /// The event's "kind".
-    ///
-    /// See the type's documentation.
-    const KIND: EventKind;
-
     /// The event type.
     const TYPE: &'static str;
-}
-
-/// The "kind" of an event.
-///
-/// This corresponds directly to the event content marker traits.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[non_exhaustive]
-pub enum EventKind {
-    /// Global account data event kind.
-    GlobalAccountData,
-
-    /// Room account data event kind.
-    RoomAccountData,
-
-    /// Ephemeral room event kind.
-    EphemeralRoomData,
-
-    /// Message-like event kind.
-    ///
-    /// Since redacted / non-redacted message-like events are used in the same places but have
-    /// different sets of fields, these two variations are treated as two closely-related event
-    /// kinds.
-    MessageLike {
-        /// Redacted variation?
-        redacted: bool,
-    },
-
-    /// State event kind.
-    ///
-    /// Since redacted / non-redacted state events are used in the same places but have different
-    /// sets of fields, these two variations are treated as two closely-related event kinds.
-    State {
-        /// Redacted variation?
-        redacted: bool,
-    },
-
-    /// To-device event kind.
-    ToDevice,
-
-    /// Presence event kind.
-    Presence,
 }
 
 /// Content of a global account-data event.

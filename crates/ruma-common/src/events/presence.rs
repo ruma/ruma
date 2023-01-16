@@ -6,7 +6,7 @@ use js_int::UInt;
 use ruma_macros::{Event, EventContent};
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 
-use super::{EventContent, EventKind, StaticEventContent};
+use super::EventContent;
 use crate::{presence::PresenceState, OwnedMxcUri, OwnedUserId};
 
 /// Presence event.
@@ -83,11 +83,6 @@ impl PresenceEventContent {
             status_msg: None,
         }
     }
-}
-
-impl StaticEventContent for PresenceEventContent {
-    const KIND: EventKind = EventKind::Presence;
-    const TYPE: &'static str = "m.presence";
 }
 
 #[cfg(test)]

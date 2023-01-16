@@ -357,8 +357,8 @@ pub fn expand_event_content(
         true,
     )
     .unwrap_or_else(syn::Error::into_compile_error);
-    let static_event_content_impl = event_kind
-        .map(|k| generate_static_event_content_impl(ident, k, false, &event_type, ruma_common));
+    let static_event_content_impl =
+        generate_static_event_content_impl(ident, &event_type, ruma_common);
     let type_aliases = event_kind.map(|k| {
         generate_event_type_aliases(k, ident, &event_type.value(), ruma_common)
             .unwrap_or_else(syn::Error::into_compile_error)
@@ -453,13 +453,8 @@ fn generate_redacted_event_content<'a>(
 
     let sub_trait_name = format_ident!("Redacted{event_kind}Content");
 
-    let static_event_content_impl = generate_static_event_content_impl(
-        &redacted_ident,
-        event_kind,
-        true,
-        event_type,
-        ruma_common,
-    );
+    let static_event_content_impl =
+        generate_static_event_content_impl(&redacted_ident, event_type, ruma_common);
 
     Ok(quote! {
         // this is the non redacted event content's impl
@@ -613,13 +608,8 @@ fn generate_possibly_redacted_event_content<'a>(
         )
         .unwrap_or_else(syn::Error::into_compile_error);
 
-        let static_event_content_impl = generate_static_event_content_impl(
-            &possibly_redacted_ident,
-            event_kind,
-            true,
-            event_type,
-            ruma_common,
-        );
+        let static_event_content_impl =
+            generate_static_event_content_impl(&possibly_redacted_ident, event_type, ruma_common);
 
         Ok(quote! {
             #[doc = #doc]
@@ -961,30 +951,11 @@ fn generate_event_content_impl<'a>(
 
 fn generate_static_event_content_impl(
     ident: &Ident,
-    event_kind: EventKind,
-    redacted: bool,
     event_type: &LitStr,
     ruma_common: &TokenStream,
 ) -> TokenStream {
-    let event_kind = match event_kind {
-        EventKind::GlobalAccountData => quote! { GlobalAccountData },
-        EventKind::RoomAccountData => quote! { RoomAccountData },
-        EventKind::Ephemeral => quote! { EphemeralRoomData },
-        EventKind::MessageLike => quote! { MessageLike { redacted: #redacted } },
-        EventKind::State => quote! { State { redacted: #redacted } },
-        EventKind::ToDevice => quote! { ToDevice },
-        EventKind::RoomRedaction
-        | EventKind::Presence
-        | EventKind::Decrypted
-        | EventKind::HierarchySpaceChild => {
-            unreachable!("not a valid event content kind")
-        }
-    };
-
     quote! {
         impl #ruma_common::events::StaticEventContent for #ident {
-            const KIND: #ruma_common::events::EventKind =
-                #ruma_common::events::EventKind::#event_kind;
             const TYPE: &'static ::std::primitive::str = #event_type;
         }
     }
