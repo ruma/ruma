@@ -9,7 +9,7 @@ use http::{
     header::{self, HeaderName, HeaderValue},
     Method,
 };
-use percent_encoding::utf8_percent_encode;
+use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
 use tracing::warn;
 
 use super::{
@@ -17,6 +17,19 @@ use super::{
     AuthScheme, SendAccessToken,
 };
 use crate::{serde::slice_to_buf, RoomVersionId};
+
+// The path percent-encode set as defined in the WHATWG URL standard
+// <https://url.spec.whatwg.org/#path-percent-encode-set>
+const PATH_PERCENT_ENCODE_SET: &AsciiSet = &CONTROLS
+    .add(b' ')
+    .add(b'"')
+    .add(b'#')
+    .add(b'<')
+    .add(b'>')
+    .add(b'?')
+    .add(b'`')
+    .add(b'{')
+    .add(b'}');
 
 /// Metadata about an API endpoint.
 #[derive(Clone, Debug)]
@@ -101,7 +114,7 @@ impl Metadata {
                     .next()
                     .expect("number of placeholders must match number of arguments")
                     .to_string();
-                let arg = utf8_percent_encode(&arg, percent_encoding::NON_ALPHANUMERIC);
+                let arg = utf8_percent_encode(&arg, PATH_PERCENT_ENCODE_SET);
 
                 write!(res, "/{arg}").expect("writing to a String using fmt::Write can't fail");
             } else {
@@ -706,6 +719,21 @@ mod tests {
         let meta = stable_only_metadata(&[(V1_0, "/s/:x")]);
         let url = meta.make_endpoint_url(&[V1_0], "https://example.org", &[&"123"], "").unwrap();
         assert_eq!(url, "https://example.org/s/123");
+    }
+
+    #[test]
+    fn make_endpoint_url_with_path_args_with_dash() {
+        let meta = stable_only_metadata(&[(V1_0, "/s/:x")]);
+        let url =
+            meta.make_endpoint_url(&[V1_0], "https://example.org", &[&"my-path"], "").unwrap();
+        assert_eq!(url, "https://example.org/s/my-path");
+    }
+
+    #[test]
+    fn make_endpoint_url_with_path_args_with_reserved_char() {
+        let meta = stable_only_metadata(&[(V1_0, "/s/:x")]);
+        let url = meta.make_endpoint_url(&[V1_0], "https://example.org", &[&"#path"], "").unwrap();
+        assert_eq!(url, "https://example.org/s/%23path");
     }
 
     #[test]

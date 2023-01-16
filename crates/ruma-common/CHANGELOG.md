@@ -11,6 +11,7 @@ Bug fixes:
 * Fix deserialization of `StateUnsigned` when the `prev_content` is redacted
 * Allow to deserialize `PushCondition` with unknown kind
 * Allow to deserialize `push::Action` with unknown value
+* Only percent-encode reserved characters in endpoint URL path
 
 Breaking changes:
 
