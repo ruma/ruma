@@ -229,7 +229,7 @@ pub mod v3 {
 
         assert_eq!(
             req.uri(),
-            "https://server.tld/_matrix/client/v3/rooms/%21room%3Aserver%2Etld/state/m%2Eroom%2Ename/"
+            "https://server.tld/_matrix/client/v3/rooms/!room:server.tld/state/m.room.name/"
         );
     }
 }
