@@ -10,8 +10,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     events::{
-        AnyStrippedStateEvent, BundledRelations, EventContent, RedactContent,
-        RedactedStateEventContent, StateEventContent, StateEventType,
+        AnyStrippedStateEvent, BundledRelations, EventContent, PossiblyRedactedStateEventContent,
+        RedactContent, RedactedStateEventContent, StateEventType,
     },
     serde::{CanBeEmpty, Raw, StringEnum},
     OwnedMxcUri, OwnedServerName, OwnedServerSigningKeyId, OwnedTransactionId, OwnedUserId,
@@ -183,6 +183,10 @@ impl RedactContent for RoomMemberEventContent {
 /// This type is used when it's not obvious whether the content is redacted or not.
 pub type PossiblyRedactedRoomMemberEventContent = RoomMemberEventContent;
 
+impl PossiblyRedactedStateEventContent for RoomMemberEventContent {
+    type StateKey = OwnedUserId;
+}
+
 /// A member event that has been redacted.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -244,11 +248,9 @@ impl EventContent for RedactedRoomMemberEventContent {
     }
 }
 
-impl StateEventContent for RedactedRoomMemberEventContent {
+impl RedactedStateEventContent for RedactedRoomMemberEventContent {
     type StateKey = OwnedUserId;
 }
-
-impl RedactedStateEventContent for RedactedRoomMemberEventContent {}
 
 impl RoomMemberEvent {
     /// Obtain the membership state, regardless of whether this event is redacted.

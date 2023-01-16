@@ -1,7 +1,7 @@
 //! Implementations of the EventContent derive macro.
 #![allow(clippy::too_many_arguments)] // FIXME
 
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt};
 
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
@@ -326,12 +326,11 @@ pub fn expand_event_content(
     // We only generate possibly redacted content structs for state events.
     let possibly_redacted_event_content = event_kind
         .filter(|kind| needs_possibly_redacted(is_custom_possibly_redacted, *kind))
-        .map(|kind| {
+        .map(|_| {
             generate_possibly_redacted_event_content(
                 ident,
                 fields.clone(),
                 &event_type,
-                kind,
                 state_key_type.as_ref(),
                 unsigned_type.clone(),
                 &aliases,
@@ -350,11 +349,11 @@ pub fn expand_event_content(
         fields,
         &event_type,
         event_kind,
+        EventKindContentVariation::Original,
         state_key_type.as_ref(),
         unsigned_type,
         &aliases,
         ruma_common,
-        true,
     )
     .unwrap_or_else(syn::Error::into_compile_error);
     let static_event_content_impl =
@@ -443,15 +442,13 @@ fn generate_redacted_event_content<'a>(
         kept_redacted_fields.iter(),
         event_type,
         Some(event_kind),
+        EventKindContentVariation::Redacted,
         state_key_type,
         unsigned_type,
         aliases,
         ruma_common,
-        false,
     )
     .unwrap_or_else(syn::Error::into_compile_error);
-
-    let sub_trait_name = format_ident!("Redacted{event_kind}Content");
 
     let static_event_content_impl =
         generate_static_event_content_impl(&redacted_ident, event_type, ruma_common);
@@ -480,9 +477,6 @@ fn generate_redacted_event_content<'a>(
 
         #redacted_event_content
 
-        #[automatically_derived]
-        impl #ruma_common::events::#sub_trait_name for #redacted_ident {}
-
         #static_event_content_impl
     })
 }
@@ -491,7 +485,6 @@ fn generate_possibly_redacted_event_content<'a>(
     ident: &Ident,
     fields: impl Iterator<Item = &'a Field>,
     event_type: &LitStr,
-    event_kind: EventKind,
     state_key_type: Option<&TokenStream>,
     unsigned_type: Option<TokenStream>,
     aliases: &[LitStr],
@@ -599,12 +592,12 @@ fn generate_possibly_redacted_event_content<'a>(
             &possibly_redacted_ident,
             possibly_redacted_fields.iter(),
             event_type,
-            Some(event_kind),
+            Some(EventKind::State),
+            EventKindContentVariation::PossiblyRedacted,
             state_key_type,
             unsigned_type,
             aliases,
             ruma_common,
-            false,
         )
         .unwrap_or_else(syn::Error::into_compile_error);
 
@@ -627,6 +620,11 @@ fn generate_possibly_redacted_event_content<'a>(
         Ok(quote! {
             #[doc = #doc]
             pub type #possibly_redacted_ident = #ident;
+
+            #[automatically_derived]
+            impl #ruma_common::events::PossiblyRedactedStateEventContent for #ident {
+                type StateKey = #state_key_type;
+            }
         })
     }
 }
@@ -756,16 +754,33 @@ fn generate_event_type_aliases(
     Ok(type_aliases)
 }
 
+#[derive(PartialEq)]
+enum EventKindContentVariation {
+    Original,
+    Redacted,
+    PossiblyRedacted,
+}
+
+impl fmt::Display for EventKindContentVariation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            EventKindContentVariation::Original => Ok(()),
+            EventKindContentVariation::Redacted => write!(f, "Redacted"),
+            EventKindContentVariation::PossiblyRedacted => write!(f, "PossiblyRedacted"),
+        }
+    }
+}
+
 fn generate_event_content_impl<'a>(
     ident: &Ident,
     mut fields: impl Iterator<Item = &'a Field>,
     event_type: &LitStr,
     event_kind: Option<EventKind>,
+    variation: EventKindContentVariation,
     state_key_type: Option<&TokenStream>,
     unsigned_type: Option<TokenStream>,
     aliases: &[LitStr],
     ruma_common: &TokenStream,
-    is_original: bool,
 ) -> syn::Result<TokenStream> {
     let serde = quote! { #ruma_common::exports::serde };
     let serde_json = quote! { #ruma_common::exports::serde_json };
@@ -845,9 +860,9 @@ fn generate_event_content_impl<'a>(
     }
 
     let sub_trait_impl = event_kind.map(|kind| {
-        let trait_name = format_ident!("{kind}Content");
+        let trait_name = format_ident!("{variation}{kind}Content");
 
-        let state_event_content_impl = (event_kind == Some(EventKind::State)).then(|| {
+        let state_key = (kind == EventKind::State).then(|| {
             assert!(state_key_type.is_some());
 
             quote! {
@@ -855,33 +870,31 @@ fn generate_event_content_impl<'a>(
             }
         });
 
-        let original_state_event_content_impl =
-            (event_kind == Some(EventKind::State) && is_original).then(|| {
-                let trait_name = format_ident!("Original{kind}Content");
-                let possibly_redacted_ident = format_ident!("PossiblyRedacted{ident}");
-
-                let unsigned_type = unsigned_type.unwrap_or_else(
-                    || quote! { #ruma_common::events::StateUnsigned<Self::PossiblyRedacted> },
-                );
-
-                quote! {
-                    #[automatically_derived]
-                    impl #ruma_common::events::#trait_name for #ident {
-                        type Unsigned = #unsigned_type;
-                        type PossiblyRedacted = #possibly_redacted_ident;
-                    }
-                }
-            });
-
         quote! {
             #[automatically_derived]
             impl #ruma_common::events::#trait_name for #ident {
-                #state_event_content_impl
+                #state_key
             }
-
-            #original_state_event_content_impl
         }
     });
+
+    let static_state_event_content_impl = (event_kind == Some(EventKind::State)
+        && variation == EventKindContentVariation::Original)
+        .then(|| {
+            let possibly_redacted_ident = format_ident!("PossiblyRedacted{ident}");
+
+            let unsigned_type = unsigned_type.unwrap_or_else(
+                || quote! { #ruma_common::events::StateUnsigned<Self::PossiblyRedacted> },
+            );
+
+            quote! {
+                #[automatically_derived]
+                impl #ruma_common::events::StaticStateEventContent for #ident {
+                    type PossiblyRedacted = #possibly_redacted_ident;
+                    type Unsigned = #unsigned_type;
+                }
+            }
+        });
 
     let event_types = aliases.iter().chain([event_type]);
 
@@ -944,8 +957,8 @@ fn generate_event_content_impl<'a>(
         }
 
         #event_content_from_type_impl
-
         #sub_trait_impl
+        #static_state_event_content_impl
     })
 }
 

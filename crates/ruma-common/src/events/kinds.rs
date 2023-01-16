@@ -6,9 +6,9 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
     EphemeralRoomEventContent, EventContent, EventContentFromType, GlobalAccountDataEventContent,
-    MessageLikeEventContent, MessageLikeEventType, MessageLikeUnsigned, OriginalStateEventContent,
-    RedactContent, RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
-    RedactionDeHelper, RoomAccountDataEventContent, StateEventContent, StateEventType,
+    MessageLikeEventContent, MessageLikeEventType, MessageLikeUnsigned, RedactContent,
+    RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
+    RedactionDeHelper, RoomAccountDataEventContent, StateEventType, StaticStateEventContent,
     ToDeviceEventContent,
 };
 use crate::{
@@ -229,7 +229,7 @@ where
 /// `OriginalStateEvent` implements the comparison traits using only the `event_id` field, a sorted
 /// list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct OriginalStateEvent<C: OriginalStateEventContent> {
+pub struct OriginalStateEvent<C: StaticStateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -260,7 +260,7 @@ pub struct OriginalStateEvent<C: OriginalStateEventContent> {
 /// `OriginalSyncStateEvent` implements the comparison traits using only the `event_id` field, a
 /// sorted list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
-pub struct OriginalSyncStateEvent<C: OriginalStateEventContent> {
+pub struct OriginalSyncStateEvent<C: StaticStateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -285,7 +285,7 @@ pub struct OriginalSyncStateEvent<C: OriginalStateEventContent> {
 
 /// A stripped-down state event, used for previews of rooms the user has been invited to.
 #[derive(Clone, Debug, Event)]
-pub struct StrippedStateEvent<C: StateEventContent> {
+pub struct StrippedStateEvent<C: StaticStateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -301,7 +301,7 @@ pub struct StrippedStateEvent<C: StateEventContent> {
 
 /// A minimal state event, used for creating a new room.
 #[derive(Clone, Debug, Event)]
-pub struct InitialStateEvent<C: StateEventContent> {
+pub struct InitialStateEvent<C: StaticStateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -379,7 +379,7 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
 /// would be sorted lexicographically based on the event's `EventId`.
 #[allow(clippy::exhaustive_enums)]
 #[derive(Clone, Debug)]
-pub enum StateEvent<C: OriginalStateEventContent>
+pub enum StateEvent<C: StaticStateEventContent + RedactContent>
 where
     C::Redacted: RedactedStateEventContent,
 {
@@ -396,7 +396,7 @@ where
 /// would be sorted lexicographically based on the event's `EventId`.
 #[allow(clippy::exhaustive_enums)]
 #[derive(Clone, Debug)]
-pub enum SyncStateEvent<C: OriginalStateEventContent>
+pub enum SyncStateEvent<C: StaticStateEventContent + RedactContent>
 where
     C::Redacted: RedactedStateEventContent,
 {
@@ -471,10 +471,7 @@ pub struct DecryptedMegolmV1Event<C: MessageLikeEventContent> {
 /// A non-redacted content also contains the `prev_content` from the unsigned event data.
 #[allow(clippy::exhaustive_enums)]
 #[derive(Clone, Debug)]
-pub enum FullStateEventContent<C: OriginalStateEventContent>
-where
-    C::Redacted: RedactedStateEventContent,
-{
+pub enum FullStateEventContent<C: StaticStateEventContent + RedactContent> {
     /// Original, unredacted content of the event.
     Original {
         /// Current content of the room state.
@@ -488,7 +485,7 @@ where
     Redacted(C::Redacted),
 }
 
-impl<C: OriginalStateEventContent> FullStateEventContent<C>
+impl<C: StaticStateEventContent + RedactContent> FullStateEventContent<C>
 where
     C::Redacted: RedactedStateEventContent,
 {
@@ -617,9 +614,9 @@ impl_possibly_redacted_event!(
 );
 
 impl_possibly_redacted_event!(
-    StateEvent(OriginalStateEventContent, RedactedStateEventContent, StateEventType)
+    StateEvent(StaticStateEventContent, RedactedStateEventContent, StateEventType)
     where
-        C::Redacted: StateEventContent<StateKey = C::StateKey>,
+        C::Redacted: RedactedStateEventContent<StateKey = C::StateKey>,
     {
         /// Returns this event's `room_id` field.
         pub fn room_id(&self) -> &RoomId {
@@ -648,9 +645,9 @@ impl_possibly_redacted_event!(
 );
 
 impl_possibly_redacted_event!(
-    SyncStateEvent(OriginalStateEventContent, RedactedStateEventContent, StateEventType)
+    SyncStateEvent(StaticStateEventContent, RedactedStateEventContent, StateEventType)
     where
-        C::Redacted: StateEventContent<StateKey = C::StateKey>,
+        C::Redacted: RedactedStateEventContent<StateKey = C::StateKey>,
     {
         /// Returns this event's `state_key` field.
         pub fn state_key(&self) -> &C::StateKey {
@@ -704,6 +701,6 @@ impl_sync_from_full!(
 impl_sync_from_full!(
     SyncStateEvent,
     StateEvent,
-    OriginalStateEventContent,
+    StaticStateEventContent,
     RedactedStateEventContent
 );

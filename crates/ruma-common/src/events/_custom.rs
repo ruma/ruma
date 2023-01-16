@@ -4,10 +4,10 @@ use serde_json::value::RawValue as RawJsonValue;
 use super::{
     EphemeralRoomEventContent, EphemeralRoomEventType, EventContent, EventContentFromType,
     GlobalAccountDataEventContent, GlobalAccountDataEventType, MessageLikeEventContent,
-    MessageLikeEventType, MessageLikeUnsigned, OriginalStateEventContent, RedactContent,
+    MessageLikeEventType, MessageLikeUnsigned, PossiblyRedactedStateEventContent, RedactContent,
     RedactedMessageLikeEventContent, RedactedStateEventContent, RoomAccountDataEventContent,
-    RoomAccountDataEventType, StateEventContent, StateEventType, ToDeviceEventContent,
-    ToDeviceEventType,
+    RoomAccountDataEventType, StateEventContent, StateEventType, StaticStateEventContent,
+    ToDeviceEventContent, ToDeviceEventType,
 };
 use crate::RoomVersionId;
 
@@ -70,14 +70,19 @@ custom_room_event_content!(CustomStateEventContent, StateEventType);
 impl StateEventContent for CustomStateEventContent {
     type StateKey = String;
 }
-impl OriginalStateEventContent for CustomStateEventContent {
+impl StaticStateEventContent for CustomStateEventContent {
     // Like `StateUnsigned`, but without `prev_content`.
     // We don't care about `prev_content` since we'd only store the event type that is the same
     // as in the content.
     type Unsigned = MessageLikeUnsigned;
     type PossiblyRedacted = Self;
 }
-impl RedactedStateEventContent for CustomStateEventContent {}
+impl PossiblyRedactedStateEventContent for CustomStateEventContent {
+    type StateKey = String;
+}
+impl RedactedStateEventContent for CustomStateEventContent {
+    type StateKey = String;
+}
 
 custom_event_content!(CustomToDeviceEventContent, ToDeviceEventType);
 impl ToDeviceEventContent for CustomToDeviceEventContent {}

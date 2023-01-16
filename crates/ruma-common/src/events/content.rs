@@ -6,7 +6,7 @@ use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 use crate::serde::{CanBeEmpty, Raw};
 
 use super::{
-    EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEventType, RedactContent,
+    EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEventType,
     RoomAccountDataEventType, StateEventType, ToDeviceEventType,
 };
 
@@ -52,29 +52,38 @@ pub trait RoomAccountDataEventContent: EventContent<EventType = RoomAccountDataE
 /// Content of an ephemeral room event.
 pub trait EphemeralRoomEventContent: EventContent<EventType = EphemeralRoomEventType> {}
 
-/// Content of a message-like event.
+/// Content of a non-redacted message-like event.
 pub trait MessageLikeEventContent: EventContent<EventType = MessageLikeEventType> {}
 
 /// Content of a redacted message-like event.
-pub trait RedactedMessageLikeEventContent: MessageLikeEventContent {}
+pub trait RedactedMessageLikeEventContent: EventContent<EventType = MessageLikeEventType> {}
 
-/// Content of a state event.
+/// Content of a non-redacted state event.
 pub trait StateEventContent: EventContent<EventType = StateEventType> {
     /// The type of the event's `state_key` field.
     type StateKey: AsRef<str> + Clone + fmt::Debug + DeserializeOwned + Serialize;
 }
 
-/// Content of a non-redacted state event.
-pub trait OriginalStateEventContent: StateEventContent + RedactContent {
+/// Content of a non-redacted state event with a corresponding possibly-redacted type.
+pub trait StaticStateEventContent: StateEventContent {
+    /// The possibly redacted form of the event's content.
+    type PossiblyRedacted: PossiblyRedactedStateEventContent;
+
     /// The type of the event's `unsigned` field.
     type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty + DeserializeOwned;
-
-    /// The possibly redacted form of the event's content.
-    type PossiblyRedacted: StateEventContent;
 }
 
 /// Content of a redacted state event.
-pub trait RedactedStateEventContent: StateEventContent {}
+pub trait RedactedStateEventContent: EventContent<EventType = StateEventType> {
+    /// The type of the event's `state_key` field.
+    type StateKey: AsRef<str> + Clone + fmt::Debug + DeserializeOwned + Serialize;
+}
+
+/// Content of a state event.
+pub trait PossiblyRedactedStateEventContent: EventContent<EventType = StateEventType> {
+    /// The type of the event's `state_key` field.
+    type StateKey: AsRef<str> + Clone + fmt::Debug + DeserializeOwned + Serialize;
+}
 
 /// Content of a to-device event.
 pub trait ToDeviceEventContent: EventContent<EventType = ToDeviceEventType> {}
