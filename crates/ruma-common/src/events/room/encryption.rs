@@ -39,3 +39,19 @@ impl RoomEncryptionEventContent {
         Self { algorithm, rotation_period_ms: None, rotation_period_msgs: None }
     }
 }
+
+// To be macro-generated in the future
+impl From<RoomEncryptionEventContent> for PossiblyRedactedRoomEncryptionEventContent {
+    fn from(value: RoomEncryptionEventContent) -> Self {
+        let RoomEncryptionEventContent { algorithm, rotation_period_ms, rotation_period_msgs } =
+            value;
+        Self { algorithm: Some(algorithm), rotation_period_ms, rotation_period_msgs }
+    }
+}
+
+impl From<RedactedRoomEncryptionEventContent> for PossiblyRedactedRoomEncryptionEventContent {
+    fn from(value: RedactedRoomEncryptionEventContent) -> Self {
+        let RedactedRoomEncryptionEventContent {} = value; // assert no fields
+        Self { algorithm: None, rotation_period_ms: None, rotation_period_msgs: None }
+    }
+}
