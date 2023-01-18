@@ -180,6 +180,30 @@ fn thread_stable_deserialize() {
         "m.relates_to": {
             "rel_type": "m.thread",
             "event_id": "$1598361704261elfgc",
+        },
+    });
+
+    let thread = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json),
+        Ok(RoomMessageEventContent {
+            msgtype: MessageType::Text(_),
+            relates_to: Some(Relation::Thread(thread)),
+            ..
+        }) => thread
+    );
+    assert_eq!(thread.event_id, "$1598361704261elfgc");
+    assert_matches!(thread.in_reply_to, None);
+    assert!(!thread.is_falling_back);
+}
+
+#[test]
+fn thread_stable_reply_deserialize() {
+    let json = json!({
+        "msgtype": "m.text",
+        "body": "<text msg>",
+        "m.relates_to": {
+            "rel_type": "m.thread",
+            "event_id": "$1598361704261elfgc",
             "m.in_reply_to": {
                 "event_id": "$latesteventid",
             },
@@ -195,7 +219,7 @@ fn thread_stable_deserialize() {
         }) => thread
     );
     assert_eq!(thread.event_id, "$1598361704261elfgc");
-    assert_eq!(thread.in_reply_to.event_id, "$latesteventid");
+    assert_eq!(thread.in_reply_to.unwrap().event_id, "$latesteventid");
     assert!(!thread.is_falling_back);
 }
 
@@ -222,6 +246,6 @@ fn thread_unstable_deserialize() {
         }) => thread
     );
     assert_eq!(thread.event_id, "$1598361704261elfgc");
-    assert_eq!(thread.in_reply_to.event_id, "$latesteventid");
+    assert_eq!(thread.in_reply_to.unwrap().event_id, "$latesteventid");
     assert!(!thread.is_falling_back);
 }

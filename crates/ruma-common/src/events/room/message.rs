@@ -213,7 +213,7 @@ impl RoomMessageEventContent {
 
         self.relates_to = Some(Relation::Thread(Thread {
             event_id: thread_root,
-            in_reply_to: InReplyTo { event_id: previous_message.event_id.clone() },
+            in_reply_to: Some(InReplyTo { event_id: previous_message.event_id.clone() }),
             is_falling_back: is_reply == ReplyWithinThread::No,
         }));
 
