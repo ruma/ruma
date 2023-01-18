@@ -16,10 +16,7 @@ where
         | RelationJsonRepr::ThreadUnstable(ThreadUnstableJsonRepr { event_id, is_falling_back }),
     ) = ev.relates_to.relation
     {
-        let in_reply_to = ev
-            .relates_to
-            .in_reply_to
-            .ok_or_else(|| serde::de::Error::missing_field("m.in_reply_to"))?;
+        let in_reply_to = ev.relates_to.in_reply_to;
         return Ok(Some(Relation::Thread(Thread { event_id, in_reply_to, is_falling_back })));
     }
     let rel = if let Some(in_reply_to) = ev.relates_to.in_reply_to {
@@ -69,7 +66,7 @@ impl Serialize for Relation {
             }
             Relation::Thread(Thread { event_id, in_reply_to, is_falling_back }) => {
                 RelatesToJsonRepr {
-                    in_reply_to: Some(in_reply_to.clone()),
+                    in_reply_to: in_reply_to.clone(),
                     relation: Some(RelationJsonRepr::ThreadStable(ThreadStableJsonRepr {
                         event_id: event_id.clone(),
                         is_falling_back: *is_falling_back,
