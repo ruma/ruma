@@ -71,6 +71,9 @@ pub mod v3 {
         /// SSO-based login.
         Sso(SsoLoginType),
 
+        /// Application Service login.
+        ApplicationService(ApplicationServiceLoginType),
+
         /// Custom login type.
         #[doc(hidden)]
         _Custom(Box<CustomLoginType>),
@@ -91,6 +94,7 @@ pub mod v3 {
                 "m.login.password" => Self::Password(from_json_object(data)?),
                 "m.login.token" => Self::Token(from_json_object(data)?),
                 "m.login.sso" => Self::Sso(from_json_object(data)?),
+                "m.login.application_service" => Self::ApplicationService(from_json_object(data)?),
                 _ => {
                     Self::_Custom(Box::new(CustomLoginType { type_: login_type.to_owned(), data }))
                 }
@@ -103,6 +107,7 @@ pub mod v3 {
                 Self::Password(_) => "m.login.password",
                 Self::Token(_) => "m.login.token",
                 Self::Sso(_) => "m.login.sso",
+                Self::ApplicationService(_) => "m.login.application_service",
                 Self::_Custom(c) => &c.type_,
             }
         }
@@ -123,6 +128,7 @@ pub mod v3 {
                 Self::Password(d) => Cow::Owned(serialize(d)),
                 Self::Token(d) => Cow::Owned(serialize(d)),
                 Self::Sso(d) => Cow::Owned(serialize(d)),
+                Self::ApplicationService(d) => Cow::Owned(serialize(d)),
                 Self::_Custom(c) => Cow::Borrowed(&c.data),
             }
         }
@@ -238,6 +244,19 @@ pub mod v3 {
         _Custom(PrivOwnedStr),
     }
 
+    /// The payload for Application Service login.
+    #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[serde(tag = "type", rename = "m.login.application_service")]
+    pub struct ApplicationServiceLoginType {}
+
+    impl ApplicationServiceLoginType {
+        /// Creates a new `ApplicationServiceLoginType`.
+        pub fn new() -> Self {
+            Self::default()
+        }
+    }
+
     /// A custom login payload.
     #[doc(hidden)]
     #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -282,6 +301,9 @@ pub mod v3 {
                     "m.login.password" => Self::Password(from_raw_json_value(&json)?),
                     "m.login.token" => Self::Token(from_raw_json_value(&json)?),
                     "m.login.sso" => Self::Sso(from_raw_json_value(&json)?),
+                    "m.login.application_service" => {
+                        Self::ApplicationService(from_raw_json_value(&json)?)
+                    }
                     _ => Self::_Custom(from_raw_json_value(&json)?),
                 })
             }

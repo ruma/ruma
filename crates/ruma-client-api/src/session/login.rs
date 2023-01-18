@@ -210,6 +210,9 @@ pub mod v3 {
             match login_type {
                 "m.login.password" => from_json_value(json).map(Self::Password),
                 "m.login.token" => from_json_value(json).map(Self::Token),
+                "m.login.application_service" => {
+                    from_json_value(json).map(Self::ApplicationService)
+                }
                 _ => from_json_value(json).map(Self::_Custom),
             }
         }
