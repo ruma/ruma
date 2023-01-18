@@ -188,7 +188,7 @@ pub struct Thread {
     /// If this event is not a reply, this is used as a fallback mechanism for clients that do not
     /// support threads. This should point to the latest message-like event in the thread and
     /// `is_falling_back` must be set to `true`.
-    pub in_reply_to: InReplyTo,
+    pub in_reply_to: Option<InReplyTo>,
 
     /// Whether the `m.in_reply_to` field is a fallback for older clients or a genuine reply in a
     /// thread.
@@ -199,13 +199,17 @@ impl Thread {
     /// Convenience method to create a regular `Thread` with the given event ID and latest
     /// message-like event ID.
     pub fn plain(event_id: OwnedEventId, latest_event_id: OwnedEventId) -> Self {
-        Self { event_id, in_reply_to: InReplyTo::new(latest_event_id), is_falling_back: true }
+        Self { event_id, in_reply_to: Some(InReplyTo::new(latest_event_id)), is_falling_back: true }
     }
 
     /// Convenience method to create a reply `Thread` with the given event ID and replied-to event
     /// ID.
     pub fn reply(event_id: OwnedEventId, reply_to_event_id: OwnedEventId) -> Self {
-        Self { event_id, in_reply_to: InReplyTo::new(reply_to_event_id), is_falling_back: false }
+        Self {
+            event_id,
+            in_reply_to: Some(InReplyTo::new(reply_to_event_id)),
+            is_falling_back: false,
+        }
     }
 }
 

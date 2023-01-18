@@ -381,7 +381,7 @@ fn content_thread_deserialization() {
         Some(Relation::Thread(thread)) => thread
     );
     assert_eq!(thread.event_id, "$thread_root");
-    assert_eq!(thread.in_reply_to.event_id, "$prev_event");
+    assert_eq!(thread.in_reply_to.unwrap().event_id, "$prev_event");
     assert!(!thread.is_falling_back);
 }
 
