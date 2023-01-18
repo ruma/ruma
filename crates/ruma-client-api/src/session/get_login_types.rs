@@ -148,7 +148,7 @@ pub mod v3 {
     pub struct TokenLoginType {}
 
     impl TokenLoginType {
-        /// Creates a new `PasswordLoginType`.
+        /// Creates a new `TokenLoginType`.
         pub fn new() -> Self {
             Self {}
         }
@@ -165,7 +165,7 @@ pub mod v3 {
     }
 
     impl SsoLoginType {
-        /// Creates a new `PasswordLoginType`.
+        /// Creates a new `SsoLoginType`.
         pub fn new() -> Self {
             Self::default()
         }
