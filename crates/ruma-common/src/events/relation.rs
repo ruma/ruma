@@ -174,7 +174,7 @@ impl<C> Replacement<C> {
 /// The content of a [thread] relation.
 ///
 /// [thread]: https://spec.matrix.org/v1.5/client-server-api/#threading
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Thread {
     /// The ID of the root message in the thread.
