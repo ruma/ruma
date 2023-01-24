@@ -42,6 +42,24 @@ pub struct Request {
     #[ruma_api(query)]
     pub pos: Option<String>,
 
+    /// The delta token to store for session recovery.
+    ///
+    /// The delta token is a future bandwidth optimisation to resume from an
+    /// earlier session. If you received a delta token in your last response
+    /// you can persist and it when establishing a new sessions to "resume"
+    /// from the last state and not resent information you had stored. If you
+    /// sent a delta token, the server expects you to have stored the last
+    /// state, if there is no delta token present the server will resent all
+    /// information necessary to calculate the state.
+    ///
+    /// Please connsult ["Bandwidth optimisations for persistent clients" of the MSC][MSC]
+    /// for further details, expectations of the implementation and limitations
+    /// to consider before implementing this.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/blob/kegan/sync-v3/proposals/3575-sync.md#bandwidth-optimisations-for-persistent-clients
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub delta_token: Option<String>,
+
     /// Allows clients to know what request params reached the server,
     /// functionally similar to txn IDs on /send for events.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -52,8 +70,10 @@ pub struct Request {
     #[ruma_api(query)]
     pub timeout: Option<Duration>,
 
-    /// The lists of rooms we're interested in.
-    pub lists: Vec<SyncRequestList>,
+    /// The list configurations of rooms we are interested in mapped by
+    /// name.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub lists: BTreeMap<String, SyncRequestList>,
 
     /// Specific rooms and event types that we want to receive events from.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
@@ -79,9 +99,9 @@ pub struct Response {
     /// The token to supply in the `pos` param of the next `/sync` request.
     pub pos: String,
 
-    /// Updates to the sliding room list.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub lists: Vec<SyncList>,
+    /// Updates on the order of rooms, mapped by the names we asked for.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub lists: BTreeMap<String, SyncList>,
 
     /// The updates on rooms.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
@@ -90,6 +110,23 @@ pub struct Response {
     /// Extensions API.
     #[serde(default, skip_serializing_if = "Extensions::is_empty")]
     pub extensions: Extensions,
+
+    /// The delta token to store for session recovery.
+    ///
+    /// The delta token is a future bandwidth optimisation to resume from an
+    /// earlier session. If you received a delta token in your last response
+    /// you can persist and it when establishing a new sessions to "resume"
+    /// from the last state and not resent information you had stored. If you
+    /// sent a delta token, the server expects you to have stored the last
+    /// state, if there is no delta token present the server will resent all
+    /// information necessary to calculate the state.
+    ///
+    /// Please connsult ["Bandwidth optimisations for persistent clients" of the MSC][MSC]
+    /// for further details, expectations of the implementation and limitations
+    /// to consider before implementing this.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/blob/kegan/sync-v3/proposals/3575-sync.md#bandwidth-optimisations-for-persistent-clients
+    pub delta_token: Option<String>,
 }
 
 impl Request {
@@ -105,6 +142,7 @@ impl Response {
         Self {
             initial: Default::default(),
             pos,
+            delta_token: Default::default(),
             lists: Default::default(),
             rooms: Default::default(),
             extensions: Default::default(),
@@ -232,7 +270,25 @@ pub struct SyncRequestList {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub sort: Vec<String>,
 
+    /// The details to be included per room
+    #[serde(flatten)]
+    pub room_details: RoomDetailsConfig,
+
+    /// If tombstoned rooms should be returned and if so, with what information attached
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include_old_rooms: Option<IncludeOldRooms>,
+
+    /// Filters to apply to the list before sorting. Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filters: Option<SyncRequestListFilters>,
+}
+
+/// Configuration for requesting room details.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct RoomDetailsConfig {
     /// Required state for each room returned. An array of event type and state key tuples.
+    ///
     /// Note that elements of this array are NOT sticky so they must be specified in full when they
     /// are changed. Sticky.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -241,13 +297,25 @@ pub struct SyncRequestList {
     /// The maximum number of timeline events to return per room. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timeline_limit: Option<UInt>,
-
-    /// Filters to apply to the list before sorting. Sticky.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub filters: Option<SyncRequestListFilters>,
 }
 
-/// The RoomSubscriptions of the SlidingSync Request
+/// Configuration for old rooms to include
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct IncludeOldRooms {
+    /// Required state for each room returned. An array of event type and state key tuples.
+    ///
+    /// Note that elements of this array are NOT sticky so they must be specified in full when they
+    /// are changed. Sticky.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub required_state: Vec<(TimelineEventType, String)>,
+
+    /// The maximum number of timeline events to return per room. Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timeline_limit: Option<UInt>,
+}
+
+/// Configuration for room subscription
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomSubscription {
@@ -255,7 +323,6 @@ pub struct RoomSubscription {
     ///
     /// Note that elements of this array are NOT sticky so they must be specified in full when they
     /// are changed. Sticky.
-
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub required_state: Vec<(TimelineEventType, String)>,
 
@@ -363,6 +430,10 @@ pub struct SlidingSyncRoom {
     /// The number of users with membership of `invite`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invited_count: Option<UInt>,
+
+    /// The number of timeline events which have just occurred and are not historical.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub num_live: Option<UInt>,
 }
 
 impl SlidingSyncRoom {
