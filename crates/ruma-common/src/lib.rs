@@ -27,6 +27,7 @@ pub mod encryption;
 #[cfg(feature = "events")]
 pub mod events;
 mod identifiers;
+mod percent_encode;
 pub mod power_levels;
 pub mod presence;
 pub mod push;

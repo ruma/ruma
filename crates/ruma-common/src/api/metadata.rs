@@ -9,27 +9,14 @@ use http::{
     header::{self, HeaderName, HeaderValue},
     Method,
 };
-use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
+use percent_encoding::utf8_percent_encode;
 use tracing::warn;
 
 use super::{
     error::{IntoHttpError, UnknownVersionError},
     AuthScheme, SendAccessToken,
 };
-use crate::{serde::slice_to_buf, RoomVersionId};
-
-// The path percent-encode set as defined in the WHATWG URL standard
-// <https://url.spec.whatwg.org/#path-percent-encode-set>
-const PATH_PERCENT_ENCODE_SET: &AsciiSet = &CONTROLS
-    .add(b' ')
-    .add(b'"')
-    .add(b'#')
-    .add(b'<')
-    .add(b'>')
-    .add(b'?')
-    .add(b'`')
-    .add(b'{')
-    .add(b'}');
+use crate::{percent_encode::PATH_PERCENT_ENCODE_SET, serde::slice_to_buf, RoomVersionId};
 
 /// Metadata about an API endpoint.
 #[derive(Clone, Debug)]
