@@ -314,6 +314,19 @@ pub struct InitialStateEvent<C: StaticStateEventContent> {
     pub state_key: C::StateKey,
 }
 
+impl<C: StaticStateEventContent> Serialize for InitialStateEvent<C> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("InitialStateEvent", 3)?;
+        state.serialize_field("type", &self.content.event_type())?;
+        state.serialize_field("content", &self.content)?;
+        state.serialize_field("state_key", &self.state_key)?;
+        state.end()
+    }
+}
+
 /// A redacted state event.
 ///
 /// `RedactedStateEvent` implements the comparison traits using only the `event_id` field, a sorted
