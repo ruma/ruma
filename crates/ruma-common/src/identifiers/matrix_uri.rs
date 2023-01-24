@@ -2,7 +2,7 @@
 
 use std::{fmt, str::FromStr};
 
-use percent_encoding::{percent_decode_str, percent_encode, AsciiSet, CONTROLS};
+use percent_encoding::{percent_decode_str, percent_encode};
 use ruma_identifiers_validation::{
     error::{MatrixIdError, MatrixToError, MatrixUriError},
     Error,
@@ -13,36 +13,10 @@ use super::{
     EventId, OwnedEventId, OwnedRoomAliasId, OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName,
     OwnedUserId, RoomAliasId, RoomId, RoomOrAliasId, UserId,
 };
-use crate::{PrivOwnedStr, ServerName};
+use crate::{percent_encode::PATH_PERCENT_ENCODE_SET, PrivOwnedStr, ServerName};
 
 const MATRIX_TO_BASE_URL: &str = "https://matrix.to/#/";
 const MATRIX_SCHEME: &str = "matrix";
-// Controls + Space + non-path characters from RFC 3986. In practice only the
-// non-path characters will be encountered most likely, but better be safe.
-// https://datatracker.ietf.org/doc/html/rfc3986/#page-23
-const NON_PATH: &AsciiSet = &CONTROLS.add(b'/').add(b'?').add(b'#').add(b'[').add(b']');
-// Controls + Space + reserved characters from RFC 3986. In practice only the
-// reserved characters will be encountered most likely, but better be safe.
-// https://datatracker.ietf.org/doc/html/rfc3986/#page-13
-const RESERVED: &AsciiSet = &CONTROLS
-    .add(b':')
-    .add(b'/')
-    .add(b'?')
-    .add(b'#')
-    .add(b'[')
-    .add(b']')
-    .add(b'@')
-    .add(b'!')
-    .add(b'$')
-    .add(b'&')
-    .add(b'\'')
-    .add(b'(')
-    .add(b')')
-    .add(b'*')
-    .add(b'+')
-    .add(b',')
-    .add(b';')
-    .add(b'=');
 
 /// All Matrix Identifiers that can be represented as a Matrix URI.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -153,15 +127,19 @@ impl MatrixId {
     /// a slash.
     pub(crate) fn to_string_with_sigil(&self) -> String {
         match self {
-            Self::Room(room_id) => percent_encode(room_id.as_bytes(), RESERVED).to_string(),
-            Self::RoomAlias(room_alias) => {
-                percent_encode(room_alias.as_bytes(), RESERVED).to_string()
+            Self::Room(room_id) => {
+                percent_encode(room_id.as_bytes(), PATH_PERCENT_ENCODE_SET).to_string()
             }
-            Self::User(user_id) => percent_encode(user_id.as_bytes(), RESERVED).to_string(),
+            Self::RoomAlias(room_alias) => {
+                percent_encode(room_alias.as_bytes(), PATH_PERCENT_ENCODE_SET).to_string()
+            }
+            Self::User(user_id) => {
+                percent_encode(user_id.as_bytes(), PATH_PERCENT_ENCODE_SET).to_string()
+            }
             Self::Event(room_id, event_id) => format!(
                 "{}/{}",
-                percent_encode(room_id.as_bytes(), RESERVED),
-                percent_encode(event_id.as_bytes(), RESERVED),
+                percent_encode(room_id.as_bytes(), PATH_PERCENT_ENCODE_SET),
+                percent_encode(event_id.as_bytes(), PATH_PERCENT_ENCODE_SET),
             ),
         }
     }
@@ -176,21 +154,27 @@ impl MatrixId {
     pub(crate) fn to_string_with_type(&self) -> String {
         match self {
             Self::Room(room_id) => {
-                format!("roomid/{}", percent_encode(&room_id.as_bytes()[1..], NON_PATH))
+                format!(
+                    "roomid/{}",
+                    percent_encode(&room_id.as_bytes()[1..], PATH_PERCENT_ENCODE_SET)
+                )
             }
             Self::RoomAlias(room_alias) => {
-                format!("r/{}", percent_encode(&room_alias.as_bytes()[1..], NON_PATH))
+                format!(
+                    "r/{}",
+                    percent_encode(&room_alias.as_bytes()[1..], PATH_PERCENT_ENCODE_SET)
+                )
             }
             Self::User(user_id) => {
-                format!("u/{}", percent_encode(&user_id.as_bytes()[1..], NON_PATH))
+                format!("u/{}", percent_encode(&user_id.as_bytes()[1..], PATH_PERCENT_ENCODE_SET))
             }
             Self::Event(room_id, event_id) => {
                 let room_type = if room_id.is_room_id() { "roomid" } else { "r" };
                 format!(
                     "{}/{}/e/{}",
                     room_type,
-                    percent_encode(&room_id.as_bytes()[1..], NON_PATH),
-                    percent_encode(&event_id.as_bytes()[1..], NON_PATH),
+                    percent_encode(&room_id.as_bytes()[1..], PATH_PERCENT_ENCODE_SET),
+                    percent_encode(&event_id.as_bytes()[1..], PATH_PERCENT_ENCODE_SET),
                 )
             }
         }
@@ -572,33 +556,33 @@ mod tests {
     fn display_matrixtouri() {
         assert_eq!(
             user_id!("@jplatte:notareal.hs").matrix_to_uri().to_string(),
-            "https://matrix.to/#/%40jplatte%3Anotareal.hs"
+            "https://matrix.to/#/@jplatte:notareal.hs"
         );
         assert_eq!(
             room_alias_id!("#ruma:notareal.hs").matrix_to_uri().to_string(),
-            "https://matrix.to/#/%23ruma%3Anotareal.hs"
+            "https://matrix.to/#/%23ruma:notareal.hs"
         );
         assert_eq!(
             room_id!("!ruma:notareal.hs").matrix_to_uri().to_string(),
-            "https://matrix.to/#/%21ruma%3Anotareal.hs"
+            "https://matrix.to/#/!ruma:notareal.hs"
         );
         assert_eq!(
             room_id!("!ruma:notareal.hs")
                 .matrix_to_uri_via(vec![server_name!("notareal.hs")])
                 .to_string(),
-            "https://matrix.to/#/%21ruma%3Anotareal.hs?via=notareal.hs"
+            "https://matrix.to/#/!ruma:notareal.hs?via=notareal.hs"
         );
         assert_eq!(
             room_alias_id!("#ruma:notareal.hs")
                 .matrix_to_event_uri(event_id!("$event:notareal.hs"))
                 .to_string(),
-            "https://matrix.to/#/%23ruma%3Anotareal.hs/%24event%3Anotareal.hs"
+            "https://matrix.to/#/%23ruma:notareal.hs/$event:notareal.hs"
         );
         assert_eq!(
             room_id!("!ruma:notareal.hs")
                 .matrix_to_event_uri(event_id!("$event:notareal.hs"))
                 .to_string(),
-            "https://matrix.to/#/%21ruma%3Anotareal.hs/%24event%3Anotareal.hs"
+            "https://matrix.to/#/!ruma:notareal.hs/$event:notareal.hs"
         );
         assert_eq!(
             room_id!("!ruma:notareal.hs")
@@ -607,7 +591,7 @@ mod tests {
                     vec![server_name!("notareal.hs")]
                 )
                 .to_string(),
-            "https://matrix.to/#/%21ruma%3Anotareal.hs/%24event%3Anotareal.hs?via=notareal.hs"
+            "https://matrix.to/#/!ruma:notareal.hs/$event:notareal.hs?via=notareal.hs"
         );
     }
 
