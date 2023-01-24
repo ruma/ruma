@@ -11,8 +11,9 @@ use js_int::UInt;
 use ruma_common::{
     api::{request, response, Metadata},
     events::{
-        AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent, AnyStrippedStateEvent,
-        AnySyncStateEvent, AnySyncTimelineEvent, AnyToDeviceEvent, TimelineEventType,
+        AnyEphemeralRoomEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
+        AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent, AnyToDeviceEvent,
+        TimelineEventType,
     },
     metadata,
     serde::{duration::opt_ms, Raw},
@@ -459,6 +460,14 @@ pub struct ExtensionsConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub account_data: Option<AccountDataConfig>,
 
+    /// Request to receipt information with the given config.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub receipt: Option<ReceiptConfig>,
+
+    /// Request to typing information with the given config.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub typing: Option<TypingConfig>,
+
     /// Extensions may add further fields to the list.
     #[serde(flatten)]
     other: BTreeMap<String, serde_json::Value>,
@@ -469,6 +478,8 @@ impl ExtensionsConfig {
         self.to_device.is_none()
             && self.e2ee.is_none()
             && self.account_data.is_none()
+            && self.receipt.is_none()
+            && self.typing.is_none()
             && self.other.is_empty()
     }
 }
@@ -488,6 +499,14 @@ pub struct Extensions {
     /// Account data extension in response.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub account_data: Option<AccountData>,
+
+    /// Receipt data extension in response.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub receipt: Option<Receipt>,
+
+    /// Typing data extension in response.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub typing: Option<Typing>,
 }
 
 impl Extensions {
@@ -495,7 +514,11 @@ impl Extensions {
     ///
     /// True if neither to-device, e2ee nor account data are to be found.
     pub fn is_empty(&self) -> bool {
-        self.to_device.is_none() && self.e2ee.is_none() && self.account_data.is_none()
+        self.to_device.is_none()
+            && self.e2ee.is_none()
+            && self.account_data.is_none()
+            && self.receipt.is_none()
+            && self.typing.is_none()
     }
 }
 
@@ -572,7 +595,7 @@ pub struct E2EE {
 /// Account-data extension configuration.
 ///
 /// Not yet part of the spec proposal. Taken from the reference implementation
-/// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/account_data.go>
+/// <https://github.com/matrix-org/sliding-sync/blob/main/sync3/extensions/account_data.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct AccountDataConfig {
@@ -584,7 +607,7 @@ pub struct AccountDataConfig {
 /// Account-data extension response data.
 ///
 /// Not yet part of the spec proposal. Taken from the reference implementation
-/// <https://github.com/matrix-org/sliding-sync/blob/d77e21138d4886d27b3888d36cf3627f54f67590/sync3/extensions/account_data.go>
+/// <https://github.com/matrix-org/sliding-sync/blob/main/sync3/extensions/account_data.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct AccountData {
@@ -595,4 +618,52 @@ pub struct AccountData {
     /// The private data that this user has attached to each room.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub rooms: BTreeMap<OwnedRoomId, Vec<Raw<AnyRoomAccountDataEvent>>>,
+}
+
+/// Receipt extension configuration.
+///
+/// Not yet part of the spec proposal. Taken from the reference implementation
+/// <https://github.com/matrix-org/sliding-sync/blob/main/sync3/extensions/receipts.go>
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct ReceiptConfig {
+    /// Activate or deactivate this extension. Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// Receipt extension response data.
+///
+/// Not yet part of the spec proposal. Taken from the reference implementation
+/// <https://github.com/matrix-org/sliding-sync/blob/main/sync3/extensions/receipts.go>
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct Receipt {
+    /// The empheral receipt room event for each room
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub rooms: BTreeMap<OwnedRoomId, Raw<AnyEphemeralRoomEvent>>,
+}
+
+/// Typing extension configuration.
+///
+/// Not yet part of the spec proposal. Taken from the reference implementation
+/// <https://github.com/matrix-org/sliding-sync/blob/main/sync3/extensions/typing.go>
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct TypingConfig {
+    /// Activate or deactivate this extension. Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// Typing extension response data.
+///
+/// Not yet part of the spec proposal. Taken from the reference implementation
+/// <https://github.com/matrix-org/sliding-sync/blob/main/sync3/extensions/typing.go>
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct Typing {
+    /// The empheral typing event for each room
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub rooms: BTreeMap<OwnedRoomId, Raw<AnyEphemeralRoomEvent>>,
 }
