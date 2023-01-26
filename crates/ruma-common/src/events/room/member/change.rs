@@ -116,10 +116,6 @@ pub(super) fn membership_change<'a>(
     };
 
     match (&prev_details.membership, &details.membership) {
-        (St::Invite, St::Invite)
-        | (St::Leave, St::Leave)
-        | (St::Ban, St::Ban)
-        | (St::Knock, St::Knock) => Ch::None,
         (St::Leave, St::Join) => Ch::Joined,
         (St::Invite, St::Join) => Ch::InvitationAccepted,
         (St::Invite, St::Leave) if sender == state_key => Ch::InvitationRejected,
@@ -141,7 +137,6 @@ pub(super) fn membership_change<'a>(
                 avatar_url_change: Change::new(prev_details.avatar_url, details.avatar_url),
             }
         }
-        (St::Join, St::Join) => Ch::None,
         (St::Join, St::Leave) if sender == state_key => Ch::Left,
         (St::Join, St::Leave) => Ch::Kicked,
         (St::Join, St::Ban) => Ch::KickedAndBanned,
@@ -151,6 +146,7 @@ pub(super) fn membership_change<'a>(
         (St::Knock, St::Invite) => Ch::KnockAccepted,
         (St::Knock, St::Leave) if sender == state_key => Ch::KnockRetracted,
         (St::Knock, St::Leave) => Ch::KnockDenied,
+        (a, b) if a == b => Ch::None,
         _ => Ch::NotImplemented,
     }
 }
