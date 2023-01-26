@@ -131,10 +131,17 @@ pub(super) fn membership_change<'a>(
         | (St::Join, St::Knock)
         | (St::Ban, St::Knock)
         | (St::Knock, St::Join) => Ch::Error,
-        (St::Join, St::Join) => Ch::ProfileChanged {
-            displayname_change: Change::new(prev_details.displayname, details.displayname),
-            avatar_url_change: Change::new(prev_details.avatar_url, details.avatar_url),
-        },
+        (St::Join, St::Join)
+            if sender == state_key
+                && (prev_details.displayname != details.displayname
+                    || prev_details.avatar_url != details.avatar_url) =>
+        {
+            Ch::ProfileChanged {
+                displayname_change: Change::new(prev_details.displayname, details.displayname),
+                avatar_url_change: Change::new(prev_details.avatar_url, details.avatar_url),
+            }
+        }
+        (St::Join, St::Join) => Ch::None,
         (St::Join, St::Leave) if sender == state_key => Ch::Left,
         (St::Join, St::Leave) => Ch::Kicked,
         (St::Join, St::Ban) => Ch::KickedAndBanned,
