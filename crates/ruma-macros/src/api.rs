@@ -37,10 +37,10 @@ fn ensure_feature_presence() -> Option<&'static syn::Error> {
             .map_err(|_| syn::Error::new(Span::call_site(), "Failed to read CARGO_MANIFEST_DIR"))?;
 
         let manifest_file = Path::new(&manifest_dir).join("Cargo.toml");
-        let manifest_bytes = fs::read(manifest_file)
+        let manifest_bytes = fs::read_to_string(manifest_file)
             .map_err(|_| syn::Error::new(Span::call_site(), "Failed to read Cargo.toml"))?;
 
-        let manifest_parsed: CargoToml = toml::from_slice(&manifest_bytes)
+        let manifest_parsed: CargoToml = toml::from_str(&manifest_bytes)
             .map_err(|_| syn::Error::new(Span::call_site(), "Failed to parse Cargo.toml"))?;
 
         if manifest_parsed.features.client.is_none() {
