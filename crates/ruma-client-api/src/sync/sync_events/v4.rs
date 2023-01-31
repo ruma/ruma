@@ -48,12 +48,12 @@ pub struct Request {
     /// The delta token is a future bandwidth optimisation to resume from an
     /// earlier session. If you received a delta token in your last response
     /// you can persist and it when establishing a new sessions to "resume"
-    /// from the last state and not resent information you had stored. If you
-    /// sent a delta token, the server expects you to have stored the last
-    /// state, if there is no delta token present the server will resent all
+    /// from the last state and not resend information you had stored. If you
+    /// send a delta token, the server expects you to have stored the last
+    /// state, if there is no delta token present the server will resend all
     /// information necessary to calculate the state.
     ///
-    /// Please connsult ["Bandwidth optimisations for persistent clients" of the MSC][MSC]
+    /// Please consult ["Bandwidth optimisations for persistent clients" of the MSC][MSC]
     /// for further details, expectations of the implementation and limitations
     /// to consider before implementing this.
     ///
@@ -117,12 +117,12 @@ pub struct Response {
     /// The delta token is a future bandwidth optimisation to resume from an
     /// earlier session. If you received a delta token in your last response
     /// you can persist and it when establishing a new sessions to "resume"
-    /// from the last state and not resent information you had stored. If you
-    /// sent a delta token, the server expects you to have stored the last
-    /// state, if there is no delta token present the server will resent all
+    /// from the last state and not resend information you had stored. If you
+    /// send a delta token, the server expects you to have stored the last
+    /// state, if there is no delta token present the server will resend all
     /// information necessary to calculate the state.
     ///
-    /// Please connsult ["Bandwidth optimisations for persistent clients" of the MSC][MSC]
+    /// Please consult ["Bandwidth optimisations for persistent clients" of the MSC][MSC]
     /// for further details, expectations of the implementation and limitations
     /// to consider before implementing this.
     ///
