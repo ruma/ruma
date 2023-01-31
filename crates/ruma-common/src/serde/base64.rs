@@ -2,7 +2,10 @@
 
 use std::{fmt, marker::PhantomData};
 
-use base64::engine::fast_portable::{self, FastPortable, FastPortableConfig};
+use base64::{
+    engine::{general_purpose, GeneralPurpose, GeneralPurposeConfig},
+    Engine,
+};
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
 /// A wrapper around `B` (usually `Vec<u8>`) that (de)serializes from / to a base64 string.
@@ -54,8 +57,9 @@ impl Base64Config for UrlSafe {
 
 impl<C: Base64Config, B> Base64<C, B> {
     // See https://github.com/matrix-org/matrix-spec/issues/838
-    const CONFIG: FastPortableConfig = fast_portable::NO_PAD.with_decode_allow_trailing_bits(true);
-    const ENGINE: FastPortable = FastPortable::from(&C::CONF.0, Self::CONFIG);
+    const CONFIG: GeneralPurposeConfig =
+        general_purpose::NO_PAD.with_decode_allow_trailing_bits(true);
+    const ENGINE: GeneralPurpose = GeneralPurpose::new(&C::CONF.0, Self::CONFIG);
 }
 
 impl<C: Base64Config, B: AsRef<[u8]>> Base64<C, B> {
@@ -71,7 +75,7 @@ impl<C: Base64Config, B: AsRef<[u8]>> Base64<C, B> {
 
     /// Encode the bytes contained in this `Base64` instance to unpadded base64.
     pub fn encode(&self) -> String {
-        base64::encode_engine(self.as_bytes(), &Self::ENGINE)
+        Self::ENGINE.encode(self.as_bytes())
     }
 }
 
@@ -90,7 +94,7 @@ impl<C: Base64Config> Base64<C> {
 
     /// Parse some base64-encoded data to create a `Base64` instance.
     pub fn parse(encoded: impl AsRef<[u8]>) -> Result<Self, Base64DecodeError> {
-        base64::decode_engine(encoded, &Self::ENGINE).map(Self::new).map_err(Base64DecodeError)
+        Self::ENGINE.decode(encoded).map(Self::new).map_err(Base64DecodeError)
     }
 }
 

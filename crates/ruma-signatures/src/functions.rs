@@ -6,7 +6,7 @@ use std::{
     mem,
 };
 
-use base64::{alphabet, encode_engine};
+use base64::{alphabet, Engine};
 use ruma_common::{
     canonical_json::{redact, JsonType},
     serde::{base64::Standard, Base64},
@@ -338,12 +338,12 @@ pub fn reference_hash(
         // Room versions higher than version 3 are url safe base64 encoded
         _ => alphabet::URL_SAFE,
     };
-    let base64_engine = base64::engine::fast_portable::FastPortable::from(
+    let base64_engine = base64::engine::GeneralPurpose::new(
         &base64_alphabet,
-        base64::engine::fast_portable::NO_PAD,
+        base64::engine::general_purpose::NO_PAD,
     );
 
-    Ok(encode_engine(hash, &base64_engine))
+    Ok(base64_engine.encode(hash))
 }
 
 /// Hashes and signs an event and adds the hash and signature to objects under the keys `hashes` and
