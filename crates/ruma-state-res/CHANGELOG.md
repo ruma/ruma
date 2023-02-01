@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.9.0
+
 Bug fixes:
 
 * Fix third party invite event authorization. The event was not allowed even
