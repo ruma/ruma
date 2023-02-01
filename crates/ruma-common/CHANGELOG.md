@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.11.0
+
 Bug fixes:
 
 * HTML-relevant characters (`<`, `>`, etc) in plaintext replies are now escaped
