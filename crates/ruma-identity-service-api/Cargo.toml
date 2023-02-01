@@ -20,7 +20,7 @@ server = []
 
 [dependencies]
 js_int = { workspace = true, features = ["serde"] }
-ruma-common = { version = "0.10.5", path = "../ruma-common", features = ["api"] }
+ruma-common = { workspace = true, features = ["api"] }
 serde = { workspace = true }
 
 [dev-dependencies]

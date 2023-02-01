@@ -21,6 +21,6 @@ server = []
 
 [dependencies]
 js_int = { workspace = true, features = ["serde"] }
-ruma-common = { version = "0.10.5", path = "../ruma-common", features = ["api", "events"] }
+ruma-common = { workspace = true, features = ["api", "events"] }
 serde = { workspace = true }
 serde_json = { workspace = true }

@@ -205,17 +205,17 @@ assign = { workspace = true }
 js_int = { workspace = true }
 js_option = "0.1.1"
 
-ruma-common = { version = "0.10.5", path = "../ruma-common" }
+ruma-common = { workspace = true }
 
-ruma-client = { version = "0.10.0", path = "../ruma-client", optional = true }
-ruma-signatures = { version = "0.12.0", path = "../ruma-signatures", optional = true }
-ruma-state-res = { version = "0.8.0", path = "../ruma-state-res", optional = true }
+ruma-client = { workspace = true, optional = true }
+ruma-signatures = { workspace = true, optional = true }
+ruma-state-res = { workspace = true, optional = true }
 
-ruma-appservice-api = { version = "0.7.0", path = "../ruma-appservice-api", optional = true }
-ruma-client-api = { version = "0.15.3", path = "../ruma-client-api", optional = true }
-ruma-federation-api = { version = "0.6.0", path = "../ruma-federation-api", optional = true }
-ruma-identity-service-api = { version = "0.6.0", path = "../ruma-identity-service-api", optional = true }
-ruma-push-gateway-api = { version = "0.6.0", path = "../ruma-push-gateway-api", optional = true }
+ruma-appservice-api = { workspace = true, optional = true }
+ruma-client-api = { workspace = true, optional = true }
+ruma-federation-api = { workspace = true, optional = true }
+ruma-identity-service-api = { workspace = true, optional = true }
+ruma-push-gateway-api = { workspace = true, optional = true }
 
 [dev-dependencies]
 serde = { workspace = true }
