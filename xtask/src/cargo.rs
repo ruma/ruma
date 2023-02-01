@@ -48,10 +48,6 @@ impl Package {
     /// Update the version of this crate in dependant crates' manifests, with the given version
     /// prefix.
     pub(crate) fn update_dependants(&self, metadata: &Metadata, dry_run: bool) -> Result<()> {
-        let workspace_manifest_path = metadata.workspace_root.join("Cargo.toml");
-        let mut document = read_file(&workspace_manifest_path)?.parse::<Document>()?;
-        let workspace_deps = &mut document["workspace"]["dependencies"];
-
         if self.name == "ruma" {
             for package in metadata.packages.iter().filter(|p| {
                 p.manifest_path.starts_with(&metadata.workspace_root)
@@ -82,18 +78,23 @@ impl Package {
                 }
             }
         } else {
-            println!("Updating workspace dependency…");
-            assert!(workspace_deps.get(&self.name).is_some());
-            if !dry_run {
-                let version = if self.name == "ruma-macros" || !self.version.pre.is_empty() {
-                    format!("={}", self.version)
-                } else {
-                    self.version.to_string()
-                };
+            let workspace_manifest_path = metadata.workspace_root.join("Cargo.toml");
+            let mut document = read_file(&workspace_manifest_path)?.parse::<Document>()?;
+            let workspace_deps = &mut document["workspace"]["dependencies"];
 
-                workspace_deps[&self.name]["version"] = value(version.as_str());
+            if workspace_deps.get(&self.name).is_some() {
+                println!("Updating workspace dependency…");
+                if !dry_run {
+                    let version = if self.name == "ruma-macros" || !self.version.pre.is_empty() {
+                        format!("={}", self.version)
+                    } else {
+                        self.version.to_string()
+                    };
 
-                write_file(&workspace_manifest_path, document.to_string())?;
+                    workspace_deps[&self.name]["version"] = value(version.as_str());
+
+                    write_file(&workspace_manifest_path, document.to_string())?;
+                }
             }
         }
 
