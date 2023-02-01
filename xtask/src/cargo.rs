@@ -82,19 +82,19 @@ impl Package {
             let mut document = read_file(&workspace_manifest_path)?.parse::<Document>()?;
             let workspace_deps = &mut document["workspace"]["dependencies"];
 
-            if workspace_deps.get(&self.name).is_some() {
-                println!("Updating workspace dependency…");
-                if !dry_run {
-                    let version = if self.name == "ruma-macros" || !self.version.pre.is_empty() {
-                        format!("={}", self.version)
-                    } else {
-                        self.version.to_string()
-                    };
+            println!("Updating workspace dependency…");
+            assert!(workspace_deps.get(&self.name).is_some());
 
-                    workspace_deps[&self.name]["version"] = value(version.as_str());
+            if !dry_run {
+                let version = if self.name == "ruma-macros" || !self.version.pre.is_empty() {
+                    format!("={}", self.version)
+                } else {
+                    self.version.to_string()
+                };
 
-                    write_file(&workspace_manifest_path, document.to_string())?;
-                }
+                workspace_deps[&self.name]["version"] = value(version.as_str());
+
+                write_file(&workspace_manifest_path, document.to_string())?;
             }
         }
 
