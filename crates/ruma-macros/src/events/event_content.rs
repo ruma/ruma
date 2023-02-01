@@ -638,7 +638,7 @@ fn generate_event_content_without_relation<'a>(
 
     let type_doc = format!(
         "Form of [`{ident}`] without relation.\n\n\
-        To construct this type, construct a [`{ident}`] and then use one of its `::from() / .into()` methods."
+        To construct this type, construct a [`{ident}`] and then use one of its `::from()` / `.into()` methods."
     );
     let without_relation_ident = format_ident!("{ident}WithoutRelation");
 
