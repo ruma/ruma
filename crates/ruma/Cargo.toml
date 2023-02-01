@@ -7,7 +7,7 @@ homepage = "https://www.ruma.io/"
 repository = "https://github.com/ruma/ruma"
 readme = "README.md"
 license = "MIT"
-version = "0.8.0"
+version = "0.8.1"
 edition = "2021"
 rust-version = "1.64"
 
@@ -20,6 +20,7 @@ api = ["ruma-common/api"]
 canonical-json = ["ruma-common/canonical-json"]
 client = ["dep:ruma-client"]
 events = ["ruma-common/events"]
+server-util = ["dep:ruma-server-util"]
 signatures = ["dep:ruma-signatures", "canonical-json"]
 state-res = ["dep:ruma-state-res"]
 
