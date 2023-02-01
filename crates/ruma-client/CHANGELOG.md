@@ -1,5 +1,9 @@
 # [unreleased]
 
+# 0.11.0
+
+No changes for this version
+
 # 0.10.0
 
 Breaking changes:
