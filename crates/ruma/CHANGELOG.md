@@ -1,5 +1,16 @@
 # [unreleased]
 
+# 0.8.0
+
+Please refer to the changelogs of:
+
+* ruma-common 0.11.0
+* ruma-appservice-api 0.8.0
+* ruma-client-api 0.16.0
+* ruma-federation-api 0.7.0
+* ruma-server-util 0.1.0
+* ruma-state-res 0.9.0
+
 # 0.7.4
 
 Improvements:
