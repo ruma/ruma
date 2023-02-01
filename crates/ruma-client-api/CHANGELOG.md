@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.16.0
+
 Breaking changes:
 
 * Remove `sync::sync_events::v3::DeviceLists` re-export
