@@ -2,7 +2,7 @@
 
 # 0.8.1
 
-Add the `server-util` feautre, which activates a re-export of the new
+Add the `server-util` feature, which activates a re-export of the new
 `ruma_server_util` crate under `ruma::server_util`.
 
 # 0.8.0
