@@ -48,34 +48,52 @@ impl Package {
     /// Update the version of this crate in dependant crates' manifests, with the given version
     /// prefix.
     pub(crate) fn update_dependants(&self, metadata: &Metadata, dry_run: bool) -> Result<()> {
-        for package in metadata.packages.iter().filter(|p| {
-            p.manifest_path.starts_with(&metadata.workspace_root)
-                && p.dependencies.iter().any(|d| d.name == self.name)
-        }) {
-            println!("Updating dependency in {} crate…", package.name);
+        let workspace_manifest_path = metadata.workspace_root.join("Cargo.toml");
+        let mut document = read_file(&workspace_manifest_path)?.parse::<Document>()?;
+        let workspace_deps = &mut document["workspace"]["dependencies"];
 
+        if self.name == "ruma" {
+            for package in metadata.packages.iter().filter(|p| {
+                p.manifest_path.starts_with(&metadata.workspace_root)
+                    && p.dependencies.iter().any(|d| d.name == self.name)
+            }) {
+                println!("Updating dependency in {} crate…", package.name);
+
+                if !dry_run {
+                    let mut document = read_file(&package.manifest_path)?.parse::<Document>()?;
+
+                    let version = if !self.version.pre.is_empty() {
+                        format!("={}", self.version)
+                    } else {
+                        self.version.to_string()
+                    };
+
+                    for dependency in package.dependencies.iter().filter(|d| d.name == self.name) {
+                        let kind = match dependency.kind {
+                            Some(DependencyKind::Dev) => "dev-dependencies",
+                            Some(DependencyKind::Build) => "build-dependencies",
+                            None => "dependencies",
+                        };
+
+                        document[kind][&self.name]["version"] = value(version.as_str());
+                    }
+
+                    write_file(&package.manifest_path, document.to_string())?;
+                }
+            }
+        } else {
+            println!("Updating workspace dependency…");
+            assert!(workspace_deps.get(&self.name).is_some());
             if !dry_run {
-                let mut document = read_file(&package.manifest_path)?.parse::<Document>()?;
-
-                let version = if !self.version.pre.is_empty()
-                    || self.name.strip_suffix("-macros") == Some(&package.name)
-                {
+                let version = if self.name == "ruma-macros" || !self.version.pre.is_empty() {
                     format!("={}", self.version)
                 } else {
                     self.version.to_string()
                 };
 
-                for dependency in package.dependencies.iter().filter(|d| d.name == self.name) {
-                    let kind = match dependency.kind {
-                        Some(DependencyKind::Dev) => "dev-dependencies",
-                        Some(DependencyKind::Build) => "build-dependencies",
-                        None => "dependencies",
-                    };
+                workspace_deps[&self.name]["version"] = value(version.as_str());
 
-                    document[kind][&self.name]["version"] = value(version.as_str());
-                }
-
-                write_file(&package.manifest_path, document.to_string())?;
+                write_file(&workspace_manifest_path, document.to_string())?;
             }
         }
 
