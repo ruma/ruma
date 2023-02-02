@@ -1,10 +1,13 @@
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::{
+    fmt,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
 
 use js_int::{uint, UInt};
 use serde::{Deserialize, Serialize};
 
 /// A timestamp represented as the number of milliseconds since the unix epoch.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
+#[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
 #[allow(clippy::exhaustive_structs)]
 #[serde(transparent)]
 pub struct MilliSecondsSinceUnixEpoch(pub UInt);
@@ -43,8 +46,16 @@ impl MilliSecondsSinceUnixEpoch {
     }
 }
 
+impl fmt::Debug for MilliSecondsSinceUnixEpoch {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // The default Debug impl would put the inner value on its own line if the formatter's
+        // alternate mode is enabled, which bloats debug strings unnecessarily
+        write!(f, "MilliSecondsSinceUnixEpoch({})", self.0)
+    }
+}
+
 /// A timestamp represented as the number of seconds since the unix epoch.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
+#[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
 #[allow(clippy::exhaustive_structs)]
 #[serde(transparent)]
 pub struct SecondsSinceUnixEpoch(pub UInt);
@@ -75,6 +86,14 @@ impl SecondsSinceUnixEpoch {
     /// Get time since the unix epoch in seconds.
     pub fn get(&self) -> UInt {
         self.0
+    }
+}
+
+impl fmt::Debug for SecondsSinceUnixEpoch {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // The default Debug impl would put the inner value on its own line if the formatter's
+        // alternate mode is enabled, which bloats debug strings unnecessarily
+        write!(f, "SecondsSinceUnixEpoch({})", self.0)
     }
 }
 
