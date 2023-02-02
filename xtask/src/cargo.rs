@@ -161,22 +161,19 @@ impl Package {
     }
 
     /// Publish this package on crates.io.
-    pub fn publish(&self, client: &HttpClient, dry_run: bool) -> Result<bool> {
+    pub fn publish(&self, client: &HttpClient, dry_run: bool) -> Result<()> {
         println!("Publishing {} {} on crates.io…", self.name, self.version);
         let _dir = pushd(self.manifest_path.parent().unwrap())?;
 
         if self.is_published(client)? {
-            if ask_yes_no("This version is already published. Skip this step and continue?")? {
-                Ok(false)
-            } else {
-                Err("Release interrupted by user.".into())
+            if !ask_yes_no("This version is already published. Skip this step and continue?")? {
+                return Err("Release interrupted by user.".into());
             }
-        } else {
-            if !dry_run {
-                cmd!("cargo publish").run()?;
-            }
-            Ok(true)
+        } else if !dry_run {
+            cmd!("cargo publish").run()?;
         }
+
+        Ok(())
     }
 }
 

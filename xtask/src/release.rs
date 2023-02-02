@@ -1,8 +1,4 @@
-use std::{
-    io::{stdin, stdout, BufRead, Write},
-    thread::sleep,
-    time::Duration,
-};
+use std::io::{stdin, stdout, BufRead, Write};
 
 use clap::Args;
 use isahc::{
@@ -152,14 +148,7 @@ impl ReleaseTask {
         }
 
         if let Some(m) = macros {
-            let published = m.publish(&self.http_client, self.dry_run)?;
-
-            if published && !self.dry_run {
-                // Crate was published, instead of publishing skipped (because release already
-                // existed).
-                println!("Waiting 20 seconds for the release to make it into the crates.io index…");
-                sleep(Duration::from_secs(20));
-            }
+            m.publish(&self.http_client, self.dry_run)?;
         }
 
         self.package.publish(&self.http_client, self.dry_run)?;
