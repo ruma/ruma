@@ -1,5 +1,12 @@
 # [unreleased]
 
+# 0.11.1
+
+Improvements:
+
+- Make alternate Debug representation of `MilliSecondsSinceUnixEpoch` and
+  `SecondsSinceUnixEpoch` more compact (remove newlines)
+
 # 0.11.0
 
 Bug fixes:
