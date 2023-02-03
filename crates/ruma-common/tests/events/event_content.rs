@@ -7,4 +7,5 @@ fn ui() {
     t.pass("tests/events/ui/10-content-wildcard.rs");
     t.pass("tests/events/ui/11-content-without-relation-sanity-check.rs");
     t.compile_fail("tests/events/ui/12-no-relates_to.rs");
+    t.pass("tests/events/ui/13-private-event-content-type.rs");
 }

@@ -312,6 +312,7 @@ pub fn expand_event_content(
         event_kind.filter(|kind| needs_redacted(is_custom_redacted, *kind)).map(|kind| {
             generate_redacted_event_content(
                 ident,
+                &input.vis,
                 fields.clone(),
                 &event_type,
                 kind,
@@ -329,6 +330,7 @@ pub fn expand_event_content(
         .map(|_| {
             generate_possibly_redacted_event_content(
                 ident,
+                &input.vis,
                 fields.clone(),
                 &event_type,
                 state_key_type.as_ref(),
@@ -340,12 +342,13 @@ pub fn expand_event_content(
         });
 
     let event_content_without_relation = has_without_relation.then(|| {
-        generate_event_content_without_relation(ident, fields.clone(), ruma_common)
+        generate_event_content_without_relation(ident, &input.vis, fields.clone(), ruma_common)
             .unwrap_or_else(syn::Error::into_compile_error)
     });
 
     let event_content_impl = generate_event_content_impl(
         ident,
+        &input.vis,
         fields,
         &event_type,
         event_kind,
@@ -359,7 +362,7 @@ pub fn expand_event_content(
     let static_event_content_impl =
         generate_static_event_content_impl(ident, &event_type, ruma_common);
     let type_aliases = event_kind.map(|k| {
-        generate_event_type_aliases(k, ident, &event_type.value(), ruma_common)
+        generate_event_type_aliases(k, ident, &input.vis, &event_type.value(), ruma_common)
             .unwrap_or_else(syn::Error::into_compile_error)
     });
 
@@ -375,6 +378,7 @@ pub fn expand_event_content(
 
 fn generate_redacted_event_content<'a>(
     ident: &Ident,
+    vis: &syn::Visibility,
     fields: impl Iterator<Item = &'a Field>,
     event_type: &LitStr,
     event_kind: EventKind,
@@ -430,7 +434,7 @@ fn generate_redacted_event_content<'a>(
         quote! {
             impl #redacted_ident {
                 #[doc = #doc]
-                pub fn new() -> Self {
+                #vis fn new() -> Self {
                     Self {}
                 }
             }
@@ -439,6 +443,7 @@ fn generate_redacted_event_content<'a>(
 
     let redacted_event_content = generate_event_content_impl(
         &redacted_ident,
+        vis,
         kept_redacted_fields.iter(),
         event_type,
         Some(event_kind),
@@ -469,7 +474,7 @@ fn generate_redacted_event_content<'a>(
         #[doc = #doc]
         #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-        pub struct #redacted_ident {
+        #vis struct #redacted_ident {
             #( #kept_redacted_fields, )*
         }
 
@@ -483,6 +488,7 @@ fn generate_redacted_event_content<'a>(
 
 fn generate_possibly_redacted_event_content<'a>(
     ident: &Ident,
+    vis: &syn::Visibility,
     fields: impl Iterator<Item = &'a Field>,
     event_type: &LitStr,
     state_key_type: Option<&TokenStream>,
@@ -590,6 +596,7 @@ fn generate_possibly_redacted_event_content<'a>(
     if field_changed {
         let possibly_redacted_event_content = generate_event_content_impl(
             &possibly_redacted_ident,
+            vis,
             possibly_redacted_fields.iter(),
             event_type,
             Some(EventKind::State),
@@ -608,7 +615,7 @@ fn generate_possibly_redacted_event_content<'a>(
             #[doc = #doc]
             #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-            pub struct #possibly_redacted_ident {
+            #vis struct #possibly_redacted_ident {
                 #( #possibly_redacted_fields, )*
             }
 
@@ -619,7 +626,7 @@ fn generate_possibly_redacted_event_content<'a>(
     } else {
         Ok(quote! {
             #[doc = #doc]
-            pub type #possibly_redacted_ident = #ident;
+            #vis type #possibly_redacted_ident = #ident;
 
             #[automatically_derived]
             impl #ruma_common::events::PossiblyRedactedStateEventContent for #ident {
@@ -631,6 +638,7 @@ fn generate_possibly_redacted_event_content<'a>(
 
 fn generate_event_content_without_relation<'a>(
     ident: &Ident,
+    vis: &syn::Visibility,
     fields: impl Iterator<Item = &'a Field>,
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
@@ -679,11 +687,11 @@ fn generate_event_content_without_relation<'a>(
         #[doc = #type_doc]
         #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-        pub struct #without_relation_ident #without_relation_struct
+        #vis struct #without_relation_ident #without_relation_struct
 
         impl #without_relation_ident {
             #[doc = #with_relation_fn_doc]
-            pub fn with_relation(self, relates_to: #relates_to_type) -> #ident {
+            #vis fn with_relation(self, relates_to: #relates_to_type) -> #ident {
                 #ident {
                     #( #without_relation_fields: self.#without_relation_fields, )*
                     relates_to,
@@ -696,6 +704,7 @@ fn generate_event_content_without_relation<'a>(
 fn generate_event_type_aliases(
     event_kind: EventKind,
     ident: &Ident,
+    vis: &syn::Visibility,
     event_type: &str,
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
@@ -748,7 +757,7 @@ fn generate_event_type_aliases(
 
         quote! {
             #[doc = #ev_type_doc]
-            pub type #ev_type = #ruma_common::events::#ev_struct<#content_struct>;
+            #vis type #ev_type = #ruma_common::events::#ev_struct<#content_struct>;
         }
     })
     .collect();
@@ -775,6 +784,7 @@ impl fmt::Display for EventKindContentVariation {
 
 fn generate_event_content_impl<'a>(
     ident: &Ident,
+    vis: &syn::Visibility,
     mut fields: impl Iterator<Item = &'a Field>,
     event_type: &LitStr,
     event_kind: Option<EventKind>,
@@ -841,7 +851,7 @@ fn generate_event_content_impl<'a>(
             event_type_ty_decl = Some(quote! {
                 /// Implementation detail, you don't need to care about this.
                 #[doc(hidden)]
-                pub struct #i {
+                #vis struct #i {
                     // Set to None for intended type, Some for a different one
                     ty: ::std::option::Option<crate::PrivOwnedStr>,
                 }

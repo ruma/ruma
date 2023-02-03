@@ -3,6 +3,9 @@
 Improvements:
 
 - Derive `Hash` for `ReceiptType` and `ReceiptThread`
+- Update `EventContent` derive macro to emit new type definitions and type
+  aliases under the same visibility as the input type (this fixes a future-
+  compatibility warning when deriving `EventContent` on a non-`pub` type)
 
 # 0.11.1
 
