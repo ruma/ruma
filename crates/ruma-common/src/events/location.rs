@@ -13,9 +13,8 @@ use crate::{MilliSecondsSinceUnixEpoch, PrivOwnedStr};
 
 /// The payload for an extensible location message.
 ///
-/// This is the new primary type introduced in [MSC3488] and can be sent in rooms with a version
-/// that doesn't support extensible events. See the documentation of the [`message`] module for more
-/// information.
+/// This is the new primary type introduced in [MSC3488] and should only be sent in rooms with a
+/// version that supports it. See the documentation of the [`message`] module for more information.
 ///
 /// [MSC3488]: https://github.com/matrix-org/matrix-spec-proposals/pull/3488
 /// [`message`]: super::message
@@ -39,6 +38,15 @@ pub struct LocationEventContent {
     #[serde(rename = "m.ts", skip_serializing_if = "Option::is_none")]
     pub ts: Option<MilliSecondsSinceUnixEpoch>,
 
+    /// Whether this message is automated.
+    #[cfg(feature = "unstable-msc3955")]
+    #[serde(
+        default,
+        skip_serializing_if = "crate::serde::is_default",
+        rename = "org.matrix.msc1767.automated"
+    )]
+    pub automated: bool,
+
     /// Information about related messages.
     #[serde(
         flatten,
@@ -51,17 +59,27 @@ pub struct LocationEventContent {
 impl LocationEventContent {
     /// Creates a new `LocationEventContent` with the given fallback representation and location.
     pub fn new(text: TextContentBlock, location: LocationContent) -> Self {
-        Self { text, location, asset: Default::default(), ts: None, relates_to: None }
+        Self {
+            text,
+            location,
+            asset: Default::default(),
+            ts: None,
+            #[cfg(feature = "unstable-msc3955")]
+            automated: false,
+            relates_to: None,
+        }
     }
 
     /// Creates a new `LocationEventContent` with the given plain text fallback representation and
     /// location.
-    pub fn plain(text: impl Into<String>, location: LocationContent) -> Self {
+    pub fn with_plain_text(plain_text: impl Into<String>, location: LocationContent) -> Self {
         Self {
-            text: TextContentBlock::plain(text),
+            text: TextContentBlock::plain(plain_text),
             location,
             asset: Default::default(),
             ts: None,
+            #[cfg(feature = "unstable-msc3955")]
+            automated: false,
             relates_to: None,
         }
     }

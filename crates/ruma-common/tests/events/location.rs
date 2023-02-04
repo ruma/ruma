@@ -20,7 +20,7 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 
 #[test]
 fn plain_content_serialization() {
-    let event_content = LocationEventContent::plain(
+    let event_content = LocationEventContent::with_plain_text(
         "Alice was at geo:51.5008,0.1247;u=35",
         LocationContent::new("geo:51.5008,0.1247;u=35".to_owned()),
     );
