@@ -469,7 +469,7 @@ mod tests {
             "pattern": "m.notice"
         });
         assert_eq!(
-            to_json_value(&PushCondition::EventMatch {
+            to_json_value(PushCondition::EventMatch {
                 key: "content.msgtype".into(),
                 pattern: "m.notice".into(),
             })
@@ -481,7 +481,7 @@ mod tests {
     #[test]
     fn serialize_contains_display_name_condition() {
         assert_eq!(
-            to_json_value(&PushCondition::ContainsDisplayName).unwrap(),
+            to_json_value(PushCondition::ContainsDisplayName).unwrap(),
             json!({ "kind": "contains_display_name" })
         );
     }
@@ -493,10 +493,8 @@ mod tests {
             "kind": "room_member_count"
         });
         assert_eq!(
-            to_json_value(&PushCondition::RoomMemberCount {
-                is: RoomMemberCountIs::from(uint!(2))
-            })
-            .unwrap(),
+            to_json_value(PushCondition::RoomMemberCount { is: RoomMemberCountIs::from(uint!(2)) })
+                .unwrap(),
             json_data
         );
     }
@@ -509,7 +507,7 @@ mod tests {
         });
         assert_eq!(
             json_data,
-            to_json_value(&PushCondition::SenderNotificationPermission { key: "room".into() })
+            to_json_value(PushCondition::SenderNotificationPermission { key: "room".into() })
                 .unwrap()
         );
     }

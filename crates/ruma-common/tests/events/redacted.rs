@@ -60,10 +60,8 @@ fn deserialize_redacted_aliases() {
         "type": "m.room.aliases",
     });
 
-    let actual = to_json_value(&redacted).unwrap();
-
     let redacted = assert_matches!(
-        from_json_value::<AnySyncTimelineEvent>(actual),
+        from_json_value::<AnySyncTimelineEvent>(redacted),
         Ok(AnySyncTimelineEvent::State(AnySyncStateEvent::RoomAliases(
             SyncStateEvent::Redacted(redacted),
         ))) => redacted
@@ -84,10 +82,8 @@ fn deserialize_redacted_any_room() {
         "type": "m.room.message",
     });
 
-    let actual = to_json_value(&redacted).unwrap();
-
     let redacted = assert_matches!(
-        from_json_value::<AnyTimelineEvent>(actual),
+        from_json_value::<AnyTimelineEvent>(redacted),
         Ok(AnyTimelineEvent::MessageLike(AnyMessageLikeEvent::RoomMessage(
             MessageLikeEvent::Redacted(redacted),
         ))) => redacted
@@ -107,10 +103,8 @@ fn deserialize_redacted_any_room_sync() {
         "type": "m.room.message",
     });
 
-    let actual = to_json_value(&redacted).unwrap();
-
     let redacted = assert_matches!(
-        from_json_value::<AnySyncTimelineEvent>(actual),
+        from_json_value::<AnySyncTimelineEvent>(redacted),
         Ok(AnySyncTimelineEvent::MessageLike(AnySyncMessageLikeEvent::RoomMessage(
             SyncMessageLikeEvent::Redacted(redacted),
         ))) => redacted
