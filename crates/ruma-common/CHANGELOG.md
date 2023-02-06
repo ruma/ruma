@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+- Derive `Hash` for `ReceiptType` and `ReceiptThread`
+
 # 0.11.1
 
 Improvements:

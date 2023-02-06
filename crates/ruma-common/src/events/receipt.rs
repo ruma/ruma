@@ -59,7 +59,7 @@ pub type Receipts = BTreeMap<ReceiptType, UserReceipts>;
 
 /// The type of receipt.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, PartialOrdAsRefStr, OrdAsRefStr, PartialEqAsRefStr, Eq, StringEnum)]
+#[derive(Clone, PartialOrdAsRefStr, OrdAsRefStr, PartialEqAsRefStr, Eq, StringEnum, Hash)]
 #[non_exhaustive]
 pub enum ReceiptType {
     /// A [public read receipt].
@@ -132,7 +132,7 @@ impl Receipt {
 /// representation, obtained through [`.as_str()`](Self::as_str()).
 ///
 /// [thread a receipt applies to]: https://spec.matrix.org/v1.4/client-server-api/#threaded-read-receipts
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum ReceiptThread {
     /// The receipt applies to the timeline, regardless of threads.
