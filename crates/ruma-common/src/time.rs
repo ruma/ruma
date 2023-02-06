@@ -137,6 +137,6 @@ mod tests {
             secs: SecondsSinceUnixEpoch(uint!(0)),
         };
 
-        assert_eq!(serde_json::to_value(&request).unwrap(), json!({ "millis": 2000, "secs": 0 }));
+        assert_eq!(serde_json::to_value(request).unwrap(), json!({ "millis": 2000, "secs": 0 }));
     }
 }

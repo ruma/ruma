@@ -71,7 +71,7 @@ where
 #[cfg(test)]
 mod tests {
     use assert_matches::assert_matches;
-    use serde_json::{json, to_value as to_json_value};
+    use serde_json::json;
 
     use super::{deserialize, serialize};
     use crate::membership::create_join_event::v1::RoomState;
@@ -104,7 +104,7 @@ mod tests {
         };
 
         let serialized = serialize(&room_state, serde_json::value::Serializer).unwrap();
-        let expected = to_json_value(&json!(
+        let expected = json!(
             [
                 200,
                 {
@@ -113,8 +113,7 @@ mod tests {
                     "state": []
                 }
             ]
-        ))
-        .unwrap();
+        );
 
         assert_eq!(serialized, expected);
     }

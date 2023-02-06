@@ -86,12 +86,12 @@ mod tests {
     #[test]
     fn serialize_some() {
         let request = DurationTest { timeout: Some(Duration::new(2, 0)) };
-        assert_eq!(serde_json::to_value(&request).unwrap(), json!({ "timeout": 2000 }));
+        assert_eq!(serde_json::to_value(request).unwrap(), json!({ "timeout": 2000 }));
     }
 
     #[test]
     fn serialize_none() {
         let request = DurationTest { timeout: None };
-        assert_eq!(serde_json::to_value(&request).unwrap(), json!({}));
+        assert_eq!(serde_json::to_value(request).unwrap(), json!({}));
     }
 }
