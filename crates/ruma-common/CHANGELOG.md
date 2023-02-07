@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.11.2
+
 Bug fixes:
 
 - Don't accept colons in the localpart given to `UserId::parse_with_servername`
