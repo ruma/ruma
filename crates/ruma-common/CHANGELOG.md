@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+- Don't accept colons in the localpart given to `UserId::parse_with_servername`
+  even with `feature = "compat"`
+
 Improvements:
 
 - Derive `Hash` for `ReceiptType` and `ReceiptThread`

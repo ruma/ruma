@@ -207,6 +207,11 @@ mod tests {
     }
 
     #[test]
+    fn definitely_invalid_user_id() {
+        UserId::parse_with_server_name("a:b", server_name!("example.com")).unwrap_err();
+    }
+
+    #[test]
     fn valid_historical_user_id() {
         let user_id =
             <&UserId>::try_from("@a%b[irc]:example.com").expect("Failed to create UserId.");
