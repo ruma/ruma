@@ -13,7 +13,7 @@ use ruma_common::{
     events::{
         AnyEphemeralRoomEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
         AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent, AnyToDeviceEvent,
-        TimelineEventType,
+        StateEventType,
     },
     metadata,
     serde::{duration::opt_ms, Raw},
@@ -293,7 +293,7 @@ pub struct RoomDetailsConfig {
     /// Note that elements of this array are NOT sticky so they must be specified in full when they
     /// are changed. Sticky.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub required_state: Vec<(TimelineEventType, String)>,
+    pub required_state: Vec<(StateEventType, String)>,
 
     /// The maximum number of timeline events to return per room. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -309,7 +309,7 @@ pub struct IncludeOldRooms {
     /// Note that elements of this array are NOT sticky so they must be specified in full when they
     /// are changed. Sticky.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub required_state: Vec<(TimelineEventType, String)>,
+    pub required_state: Vec<(StateEventType, String)>,
 
     /// The maximum number of timeline events to return per room. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -325,7 +325,7 @@ pub struct RoomSubscription {
     /// Note that elements of this array are NOT sticky so they must be specified in full when they
     /// are changed. Sticky.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub required_state: Vec<(TimelineEventType, String)>,
+    pub required_state: Vec<(StateEventType, String)>,
 
     /// The maximum number of timeline events to return per room. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
