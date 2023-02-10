@@ -39,6 +39,15 @@ pub struct Request {
     ///
     /// If `true`, membership events are omitted from `state` and redundant events are omitted from
     /// `auth_chain` in the response.
+    ///
+    /// If the room to be joined has no `m.room.name` nor `m.room.canonical_alias` events in its
+    /// current state, the resident server should determine the room members who would be
+    /// included in the `m.heroes` property of the room summary as defined in the [Client-Server
+    /// `/sync` response]. The resident server should include these members' membership events in
+    /// the response `state` field, and include the auth chains for these membership events in
+    /// the response `auth_chain` field.
+    ///
+    /// [Client-Server `/sync` response]: https://spec.matrix.org/v1.5/client-server-api/#get_matrixclientv3sync
     #[cfg(feature = "unstable-msc3706")]
     #[ruma_api(query)]
     #[serde(
