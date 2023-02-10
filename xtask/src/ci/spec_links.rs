@@ -28,7 +28,7 @@ impl Spec {
 
     /// Authorized versions in URLs pointing to the new specs.
     const NEW_VERSION_WHITELIST: &'static [&'static str] =
-        &["v1.1", "v1.2", "v1.3", "v1.4", "v1.5", "unstable"];
+        &["v1.1", "v1.2", "v1.3", "v1.4", "v1.5", "latest", "unstable"];
 
     /// Get the start of the URLs pointing to this `Spec`.
     const fn url_prefix(&self) -> &'static str {
