@@ -1,6 +1,6 @@
 //! Types for the [`m.room.name`] event.
 //!
-//! [`m.room.name`]: https://spec.matrix.org/v1.4/client-server-api/#mroomname
+//! [`m.room.name`]: https://spec.matrix.org/latest/client-server-api/#mroomname
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

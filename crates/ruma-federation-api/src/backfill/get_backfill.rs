@@ -5,7 +5,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#get_matrixfederationv1backfillroomid
+    //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1backfillroomid
 
     use js_int::UInt;
     use ruma_common::{

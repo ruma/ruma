@@ -14,8 +14,8 @@ pub(super) use html_sanitizer::HtmlSanitizer;
 ///
 /// It can also optionally remove the [rich reply fallback].
 ///
-/// [tags and attributes]: https://spec.matrix.org/v1.4/client-server-api/#mroommessage-msgtypes
-/// [rich reply fallback]: https://spec.matrix.org/v1.4/client-server-api/#fallbacks-for-rich-replies
+/// [tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
+/// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
 #[cfg(feature = "unstable-sanitize")]
 pub fn sanitize_html(
     s: &str,
@@ -28,7 +28,7 @@ pub fn sanitize_html(
 
 /// What HTML [tags and attributes] should be kept by the sanitizer.
 ///
-/// [tags and attributes]: https://spec.matrix.org/v1.4/client-server-api/#mroommessage-msgtypes
+/// [tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
 #[cfg(feature = "unstable-sanitize")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[allow(clippy::exhaustive_enums)]
@@ -43,7 +43,7 @@ pub enum HtmlSanitizerMode {
 
 /// Whether to remove the [rich reply fallback] while sanitizing.
 ///
-/// [rich reply fallback]: https://spec.matrix.org/v1.4/client-server-api/#fallbacks-for-rich-replies
+/// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
 #[cfg(feature = "unstable-sanitize")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[allow(clippy::exhaustive_enums)]
@@ -60,7 +60,7 @@ pub enum RemoveReplyFallback {
 /// Due to the fact that the HTML is parsed, note that malformed HTML and comments will be stripped
 /// from the output.
 ///
-/// [rich reply fallback]: https://spec.matrix.org/v1.4/client-server-api/#fallbacks-for-rich-replies
+/// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
 #[cfg(feature = "unstable-sanitize")]
 pub fn remove_html_reply_fallback(s: &str) -> String {
     let sanitizer = HtmlSanitizer::reply_fallback_remover();
@@ -69,7 +69,7 @@ pub fn remove_html_reply_fallback(s: &str) -> String {
 
 /// Remove the [rich reply fallback] of the given plain text string.
 ///
-/// [rich reply fallback]: https://spec.matrix.org/v1.4/client-server-api/#fallbacks-for-rich-replies
+/// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
 pub fn remove_plain_reply_fallback(mut s: &str) -> &str {
     while s.starts_with("> ") {
         if let Some((_line, rest)) = s.split_once('\n') {

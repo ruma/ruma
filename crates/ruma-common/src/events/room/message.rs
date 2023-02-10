@@ -1,6 +1,6 @@
 //! Types for the [`m.room.message`] event.
 //!
-//! [`m.room.message`]: https://spec.matrix.org/v1.4/client-server-api/#mroommessage
+//! [`m.room.message`]: https://spec.matrix.org/latest/client-server-api/#mroommessage
 
 use std::borrow::Cow;
 
@@ -62,7 +62,7 @@ pub struct RoomMessageEventContent {
 
     /// Information about related messages for [rich replies].
     ///
-    /// [rich replies]: https://spec.matrix.org/v1.4/client-server-api/#rich-replies
+    /// [rich replies]: https://spec.matrix.org/latest/client-server-api/#rich-replies
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation<MessageType>>,
 }
@@ -235,7 +235,7 @@ impl RoomMessageEventContent {
     ///
     /// Panics if `self` has a `formatted_body` with a format other than HTML.
     ///
-    /// [replacement]: https://spec.matrix.org/v1.4/client-server-api/#event-replacements
+    /// [replacement]: https://spec.matrix.org/latest/client-server-api/#event-replacements
     #[track_caller]
     pub fn make_replacement(
         mut self,
@@ -318,8 +318,8 @@ impl RoomMessageEventContent {
     ///
     /// This method is only effective on text, notice and emote messages.
     ///
-    /// [tags and attributes]: https://spec.matrix.org/v1.4/client-server-api/#mroommessage-msgtypes
-    /// [rich reply fallback]: https://spec.matrix.org/v1.4/client-server-api/#fallbacks-for-rich-replies
+    /// [tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
+    /// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
     #[cfg(feature = "unstable-sanitize")]
     pub fn sanitize(
         &mut self,
@@ -351,7 +351,7 @@ pub enum ForwardThread {
     /// This should be set if your client doesn't render threads (see the [info
     /// box for clients which are acutely aware of threads]).
     ///
-    /// [info box for clients which are acutely aware of threads]: https://spec.matrix.org/v1.4/client-server-api/#fallback-for-unthreaded-clients
+    /// [info box for clients which are acutely aware of threads]: https://spec.matrix.org/latest/client-server-api/#fallback-for-unthreaded-clients
     Yes,
 
     /// Create a reply in the main conversation even if the original message is in a thread.
@@ -368,14 +368,14 @@ pub enum ReplyWithinThread {
     ///
     /// Create a [reply within the thread].
     ///
-    /// [reply within the thread]: https://spec.matrix.org/v1.4/client-server-api/#replies-within-threads
+    /// [reply within the thread]: https://spec.matrix.org/latest/client-server-api/#replies-within-threads
     Yes,
 
     /// This is not a reply.
     ///
     /// Create a regular message in the thread, with a [fallback for unthreaded clients].
     ///
-    /// [fallback for unthreaded clients]: https://spec.matrix.org/v1.4/client-server-api/#fallback-for-unthreaded-clients
+    /// [fallback for unthreaded clients]: https://spec.matrix.org/latest/client-server-api/#fallback-for-unthreaded-clients
     No,
 }
 
@@ -422,7 +422,7 @@ pub enum MessageType {
 impl MessageType {
     /// Creates a new `MessageType`.
     ///
-    /// The `msgtype` and `body` are required fields as defined by [the `m.room.message` spec](https://spec.matrix.org/v1.4/client-server-api/#mroommessage).
+    /// The `msgtype` and `body` are required fields as defined by [the `m.room.message` spec](https://spec.matrix.org/latest/client-server-api/#mroommessage).
     /// Additionally it's possible to add arbitrary key/value pairs to the event content for custom
     /// events through the `data` map.
     ///
@@ -641,8 +641,8 @@ impl FormattedBody {
     ///
     /// Returns the sanitized HTML if the format is `MessageFormat::Html`.
     ///
-    /// [tags and attributes]: https://spec.matrix.org/v1.4/client-server-api/#mroommessage-msgtypes
-    /// [rich reply fallback]: https://spec.matrix.org/v1.4/client-server-api/#fallbacks-for-rich-replies
+    /// [tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
+    /// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
     #[cfg(feature = "unstable-sanitize")]
     pub fn sanitize_html(
         &mut self,

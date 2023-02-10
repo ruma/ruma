@@ -4,12 +4,12 @@
 //! If valid, the receiving server will issue an invite as per the [Inviting to a room] section
 //! before returning a response to this request.
 //!
-//! [Inviting to a room]: https://spec.matrix.org/v1.4/server-server-api/#inviting-to-a-room
+//! [Inviting to a room]: https://spec.matrix.org/latest/server-server-api/#inviting-to-a-room
 
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#put_matrixfederationv1exchange_third_party_inviteroomid
+    //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1exchange_third_party_inviteroomid
 
     use ruma_common::{
         api::{request, response, Metadata},

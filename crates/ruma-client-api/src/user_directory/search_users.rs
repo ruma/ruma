@@ -5,7 +5,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3user_directorysearch
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3user_directorysearch
 
     use http::header::ACCEPT_LANGUAGE;
     use js_int::{uint, UInt};

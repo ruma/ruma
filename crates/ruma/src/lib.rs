@@ -95,7 +95,7 @@ pub use ruma_state_res as state_res;
 /// (De)serializable types for various [Matrix APIs][apis] requests and responses and abstractions
 /// for them.
 ///
-/// [apis]: https://spec.matrix.org/v1.4/#matrix-apis
+/// [apis]: https://spec.matrix.org/latest/#matrix-apis
 #[cfg(feature = "api")]
 pub mod api {
     // The metadata macro is also exported at the crate root because `#[macro_export]` always

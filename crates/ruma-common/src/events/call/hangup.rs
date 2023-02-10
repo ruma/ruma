@@ -1,6 +1,6 @@
 //! Types for the [`m.call.hangup`] event.
 //!
-//! [`m.call.hangup`]: https://spec.matrix.org/v1.4/client-server-api/#mcallhangup
+//! [`m.call.hangup`]: https://spec.matrix.org/latest/client-server-api/#mcallhangup
 
 use ruma_macros::EventContent;
 #[cfg(feature = "unstable-msc2746")]

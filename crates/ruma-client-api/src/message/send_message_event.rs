@@ -5,7 +5,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#put_matrixclientv3roomsroomidsendeventtypetxnid
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3roomsroomidsendeventtypetxnid
 
     use ruma_common::{
         api::{request, response, Metadata},
@@ -45,7 +45,7 @@ pub mod v3 {
         ///
         /// It will be used by the server to ensure idempotency of requests.
         ///
-        /// [access token is refreshed]: https://spec.matrix.org/v1.4/client-server-api/#refreshing-access-tokens
+        /// [access token is refreshed]: https://spec.matrix.org/latest/client-server-api/#refreshing-access-tokens
         #[ruma_api(path)]
         pub txn_id: OwnedTransactionId,
 
@@ -59,7 +59,7 @@ pub mod v3 {
         ///
         /// Note that this does not change the position of the event in the timeline.
         ///
-        /// [timestamp massaging]: https://spec.matrix.org/v1.4/application-service-api/#timestamp-massaging
+        /// [timestamp massaging]: https://spec.matrix.org/latest/application-service-api/#timestamp-massaging
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none", rename = "ts")]
         pub timestamp: Option<MilliSecondsSinceUnixEpoch>,

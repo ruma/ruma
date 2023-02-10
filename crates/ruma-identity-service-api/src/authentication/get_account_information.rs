@@ -5,7 +5,7 @@
 pub mod v2 {
     //! `/v2/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#get_matrixidentityv2account
+    //! [spec]: https://spec.matrix.org/latest/identity-service-api/#get_matrixidentityv2account
 
     use ruma_common::{
         api::{request, response, Metadata},

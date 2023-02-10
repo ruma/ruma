@@ -1,6 +1,6 @@
 //! Types for the [`m.call.candidates`] event.
 //!
-//! [`m.call.candidates`]: https://spec.matrix.org/v1.4/client-server-api/#mcallcandidates
+//! [`m.call.candidates`]: https://spec.matrix.org/latest/client-server-api/#mcallcandidates
 
 use js_int::UInt;
 use ruma_macros::EventContent;

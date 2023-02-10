@@ -1,6 +1,6 @@
 //! Types for the [`m.key.verification.start`] event.
 //!
-//! [`m.key.verification.start`]: https://spec.matrix.org/v1.4/client-server-api/#mkeyverificationstart
+//! [`m.key.verification.start`]: https://spec.matrix.org/latest/client-server-api/#mkeyverificationstart
 
 use std::{collections::BTreeMap, fmt};
 
@@ -86,7 +86,7 @@ pub enum StartMethod {
     ///
     /// The spec entry for this method can be found [here].
     ///
-    /// [here]: https://spec.matrix.org/v1.4/client-server-api/#mkeyverificationstartmreciprocatev1
+    /// [here]: https://spec.matrix.org/latest/client-server-api/#mkeyverificationstartmreciprocatev1
     ReciprocateV1(ReciprocateV1Content),
 
     /// Any unknown start method.

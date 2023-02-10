@@ -98,7 +98,7 @@ pub struct RoomEventFilter {
     ///
     /// Only applies to the [`sync_events`] endpoint.
     ///
-    /// [per-thread notification counts]: https://spec.matrix.org/v1.4/client-server-api/#receiving-notifications
+    /// [per-thread notification counts]: https://spec.matrix.org/latest/client-server-api/#receiving-notifications
     /// [`sync_events`]: crate::sync::sync_events
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub unread_thread_notifications: bool,

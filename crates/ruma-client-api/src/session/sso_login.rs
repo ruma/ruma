@@ -3,7 +3,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3loginssoredirect
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3loginssoredirect
 
     use http::header::LOCATION;
     use ruma_common::{

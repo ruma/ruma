@@ -2,7 +2,7 @@ use ruma_macros::StringEnum;
 
 ///! Constructors for [predefined push rules].
 ///!
-///! [predefined push rules]: https://spec.matrix.org/v1.4/client-server-api/#predefined-rules
+///! [predefined push rules]: https://spec.matrix.org/latest/client-server-api/#predefined-rules
 use super::{
     Action::*, ConditionalPushRule, PatternedPushRule, PushCondition::*, RoomMemberCountIs,
     Ruleset, Tweak,
@@ -12,7 +12,7 @@ use crate::{PrivOwnedStr, UserId};
 impl Ruleset {
     /// The list of all [predefined push rules].
     ///
-    /// [predefined push rules]: https://spec.matrix.org/v1.4/client-server-api/#predefined-rules
+    /// [predefined push rules]: https://spec.matrix.org/latest/client-server-api/#predefined-rules
     ///
     /// # Parameters
     ///
@@ -175,7 +175,7 @@ impl ConditionalPushRule {
 
     /// Matches [room server ACLs].
     ///
-    /// [room server ACLs]: https://spec.matrix.org/v1.4/client-server-api/#server-access-control-lists-acls-for-rooms
+    /// [room server ACLs]: https://spec.matrix.org/latest/client-server-api/#server-access-control-lists-acls-for-rooms
     pub fn server_acl() -> Self {
         Self {
             actions: vec![],

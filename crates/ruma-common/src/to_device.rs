@@ -1,6 +1,6 @@
 //! Common types for the Send-To-Device Messaging
 //!
-//! [send-to-device]: https://spec.matrix.org/v1.4/client-server-api/#send-to-device-messaging
+//! [send-to-device]: https://spec.matrix.org/latest/client-server-api/#send-to-device-messaging
 
 use std::fmt::{Display, Formatter, Result as FmtResult};
 

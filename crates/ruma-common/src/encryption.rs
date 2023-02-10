@@ -1,6 +1,6 @@
 //! Common types for [encryption] related tasks.
 //!
-//! [encryption]: https://spec.matrix.org/v1.4/client-server-api/#end-to-end-encryption
+//! [encryption]: https://spec.matrix.org/latest/client-server-api/#end-to-end-encryption
 
 use std::collections::BTreeMap;
 

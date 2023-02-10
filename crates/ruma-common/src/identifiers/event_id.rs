@@ -33,8 +33,8 @@ use super::ServerName;
 /// );
 /// ```
 ///
-/// [event ID]: https://spec.matrix.org/v1.4/appendices/#room-ids-and-event-ids
-/// [room versions]: https://spec.matrix.org/v1.4/rooms/#complete-list-of-room-versions
+/// [event ID]: https://spec.matrix.org/latest/appendices/#room-ids-and-event-ids
+/// [room versions]: https://spec.matrix.org/latest/rooms/#complete-list-of-room-versions
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
 #[ruma_id(validate = ruma_identifiers_validation::event_id::validate)]

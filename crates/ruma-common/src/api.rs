@@ -10,7 +10,7 @@
 //! successful response. Such types can then be used by client code to make requests, and by server
 //! code to fulfill those requests.
 //!
-//! [apis]: https://spec.matrix.org/v1.4/#matrix-apis
+//! [apis]: https://spec.matrix.org/latest/#matrix-apis
 
 use std::{convert::TryInto as _, error::Error as StdError};
 
@@ -326,7 +326,7 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
     /// Tries to convert this request into an `http::Request` and appends a virtual `user_id` to
     /// [assert Appservice identity][id_assert].
     ///
-    /// [id_assert]: https://spec.matrix.org/v1.4/application-service-api/#identity-assertion
+    /// [id_assert]: https://spec.matrix.org/latest/application-service-api/#identity-assertion
     fn try_into_http_request_with_user_id<T: Default + BufMut>(
         self,
         base_url: &str,

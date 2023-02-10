@@ -1,6 +1,6 @@
 //! `GET /.well-known/matrix/client` ([spec])
 //!
-//! [spec]: https://spec.matrix.org/v1.4/client-server-api/#getwell-knownmatrixclient
+//! [spec]: https://spec.matrix.org/latest/client-server-api/#getwell-knownmatrixclient
 //!
 //! Get discovery information about the domain.
 

@@ -1,6 +1,6 @@
 //! `/v1/` ([spec])
 //!
-//! [spec]: https://spec.matrix.org/v1.4/server-server-api/#put_matrixfederationv1send_joinroomideventid
+//! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1send_joinroomideventid
 
 use ruma_common::{
     api::{request, response, Metadata},

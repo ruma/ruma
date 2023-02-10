@@ -1,6 +1,6 @@
 //! Common types for the [third party networks module][thirdparty].
 //!
-//! [thirdparty]: https://spec.matrix.org/v1.4/client-server-api/#third-party-networks
+//! [thirdparty]: https://spec.matrix.org/latest/client-server-api/#third-party-networks
 
 use std::collections::BTreeMap;
 

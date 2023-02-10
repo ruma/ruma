@@ -1,6 +1,6 @@
 //! Types for the [`m.room.canonical_alias`] event.
 //!
-//! [`m.room.canonical_alias`]: https://spec.matrix.org/v1.4/client-server-api/#mroomcanonical_alias
+//! [`m.room.canonical_alias`]: https://spec.matrix.org/latest/client-server-api/#mroomcanonical_alias
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

@@ -1,6 +1,6 @@
 //! Types describing [relationships between events].
 //!
-//! [relationships between events]: https://spec.matrix.org/v1.4/client-server-api/#forming-relationships-between-events
+//! [relationships between events]: https://spec.matrix.org/latest/client-server-api/#forming-relationships-between-events
 
 use std::fmt::Debug;
 
@@ -15,7 +15,7 @@ use crate::{
 
 /// Information about the event a [rich reply] is replying to.
 ///
-/// [rich reply]: https://spec.matrix.org/v1.5/client-server-api/#rich-replies
+/// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct InReplyTo {
@@ -153,7 +153,7 @@ impl BundledReplacement {
 
 /// The content of a [replacement] relation.
 ///
-/// [replacement]: https://spec.matrix.org/v1.5/client-server-api/#event-replacements
+/// [replacement]: https://spec.matrix.org/latest/client-server-api/#event-replacements
 #[derive(Clone, Debug)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Replacement<C> {
@@ -173,7 +173,7 @@ impl<C> Replacement<C> {
 
 /// The content of a [thread] relation.
 ///
-/// [thread]: https://spec.matrix.org/v1.5/client-server-api/#threading
+/// [thread]: https://spec.matrix.org/latest/client-server-api/#threading
 #[derive(Clone, Debug)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Thread {
@@ -236,7 +236,7 @@ impl BundledThread {
 
 /// A [reference] to another event.
 ///
-/// [reference]: https://spec.matrix.org/v1.5/client-server-api/#reference-relations
+/// [reference]: https://spec.matrix.org/latest/client-server-api/#reference-relations
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "rel_type", rename = "m.reference")]
@@ -284,7 +284,7 @@ impl ReferenceChunk {
 
 /// [Bundled aggregations] of related child events.
 ///
-/// [Bundled aggregations]: https://spec.matrix.org/v1.4/client-server-api/#aggregations
+/// [Bundled aggregations]: https://spec.matrix.org/latest/client-server-api/#aggregations
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct BundledRelations {

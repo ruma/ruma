@@ -6,7 +6,7 @@
 pub mod v2 {
     //! `/v2/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#post_matrixkeyv2query
+    //! [spec]: https://spec.matrix.org/latest/server-server-api/#post_matrixkeyv2query
 
     use std::collections::BTreeMap;
 

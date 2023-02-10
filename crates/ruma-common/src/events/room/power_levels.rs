@@ -1,6 +1,6 @@
 //! Types for the [`m.room.power_levels`] event.
 //!
-//! [`m.room.power_levels`]: https://spec.matrix.org/v1.4/client-server-api/#mroompower_levels
+//! [`m.room.power_levels`]: https://spec.matrix.org/latest/client-server-api/#mroompower_levels
 
 use std::{cmp::max, collections::BTreeMap};
 

@@ -3,7 +3,7 @@
 //! (De)serializable types for the [Matrix Identity Service API][identity-api].
 //! These types can be shared by client and identity service code.
 //!
-//! [identity-api]: https://spec.matrix.org/v1.4/identity-service-api/
+//! [identity-api]: https://spec.matrix.org/latest/identity-service-api/
 
 #![warn(missing_docs)]
 

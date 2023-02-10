@@ -9,7 +9,7 @@ pub mod v3 {
     //! This endpoint is equivalent to calling the [`create_receipt`] endpoint,
     //! but is provided as a way to update several read markers with a single call.
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3roomsroomidread_markers
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3roomsroomidread_markers
     //! [`create_receipt`]: crate::receipt::create_receipt
 
     use ruma_common::{

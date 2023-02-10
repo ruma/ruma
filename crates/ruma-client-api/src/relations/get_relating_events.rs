@@ -5,7 +5,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv1roomsroomidrelationseventid
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv1roomsroomidrelationseventid
 
     use js_int::UInt;
     use ruma_common::{

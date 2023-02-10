@@ -11,4 +11,4 @@ It is recommended to enable the `unstable-sanitize` feature when using this meth
 clean up nested [rich reply fallbacks] in chains of replies. This uses [`sanitize_html()`]
 internally, with [`RemoveReplyFallback::Yes`].
 
-[rich reply fallbacks]: https://spec.matrix.org/v1.4/client-server-api/#fallbacks-for-rich-replies
+[rich reply fallbacks]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies

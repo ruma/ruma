@@ -5,7 +5,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/application-service-api/#put_matrixappv1transactionstxnid
+    //! [spec]: https://spec.matrix.org/latest/application-service-api/#put_matrixappv1transactionstxnid
 
     #[cfg(any(feature = "unstable-msc2409", feature = "unstable-msc3202"))]
     use std::collections::BTreeMap;

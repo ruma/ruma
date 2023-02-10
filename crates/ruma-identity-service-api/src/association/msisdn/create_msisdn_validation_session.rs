@@ -5,7 +5,7 @@
 pub mod v2 {
     //! `/v2/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#post_matrixidentityv2validatemsisdnrequesttoken
+    //! [spec]: https://spec.matrix.org/latest/identity-service-api/#post_matrixidentityv2validatemsisdnrequesttoken
 
     use js_int::UInt;
     use ruma_common::{
