@@ -14,7 +14,7 @@ use super::{matrix_uri::UriAction, server_name::ServerName, MatrixToUri, MatrixU
 /// assert_eq!(<&RoomAliasId>::try_from("#ruma:example.com").unwrap(), "#ruma:example.com");
 /// ```
 ///
-/// [room alias ID]: https://spec.matrix.org/v1.4/appendices/#room-aliases
+/// [room alias ID]: https://spec.matrix.org/latest/appendices/#room-aliases
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
 #[ruma_id(validate = ruma_identifiers_validation::room_alias_id::validate)]

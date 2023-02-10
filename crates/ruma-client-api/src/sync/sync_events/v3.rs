@@ -1,6 +1,6 @@
 //! `/v3/` ([spec])
 //!
-//! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv3sync
+//! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3sync
 
 use std::{collections::BTreeMap, time::Duration};
 
@@ -248,7 +248,7 @@ pub struct JoinedRoom {
     /// If `unread_thread_notifications` was set to `true` in the [`RoomEventFilter`], these
     /// include only the unread notifications for the main timeline.
     ///
-    /// [unread notifications]: https://spec.matrix.org/v1.4/client-server-api/#receiving-notifications
+    /// [unread notifications]: https://spec.matrix.org/latest/client-server-api/#receiving-notifications
     /// [`RoomEventFilter`]: crate::filter::RoomEventFilter
     #[serde(default, skip_serializing_if = "UnreadNotificationsCount::is_empty")]
     pub unread_notifications: UnreadNotificationsCount,
@@ -259,7 +259,7 @@ pub struct JoinedRoom {
     ///
     /// Only set if `unread_thread_notifications` was set to `true` in the [`RoomEventFilter`].
     ///
-    /// [unread notifications]: https://spec.matrix.org/v1.4/client-server-api/#receiving-notifications
+    /// [unread notifications]: https://spec.matrix.org/latest/client-server-api/#receiving-notifications
     /// [`RoomEventFilter`]: crate::filter::RoomEventFilter
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub unread_thread_notifications: BTreeMap<OwnedEventId, UnreadNotificationsCount>,

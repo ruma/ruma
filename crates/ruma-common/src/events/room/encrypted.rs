@@ -1,6 +1,6 @@
 //! Types for the [`m.room.encrypted`] event.
 //!
-//! [`m.room.encrypted`]: https://spec.matrix.org/v1.4/client-server-api/#mroomencrypted
+//! [`m.room.encrypted`]: https://spec.matrix.org/latest/client-server-api/#mroomencrypted
 
 use std::collections::BTreeMap;
 
@@ -139,7 +139,7 @@ impl<C> From<message::Relation<C>> for Relation {
 /// doesn't store the new content, since that is part of the encrypted content of an
 /// `m.room.encrypted` events.
 ///
-/// [replaces another event]: https://spec.matrix.org/v1.4/client-server-api/#event-replacements
+/// [replaces another event]: https://spec.matrix.org/latest/client-server-api/#event-replacements
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Replacement {

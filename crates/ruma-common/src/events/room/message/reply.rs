@@ -104,8 +104,8 @@ impl fmt::Display for FormattedOrPlainBody<'_> {
 /// spec and previous [rich reply fallbacks] are removed from the previous message in the new rich
 /// reply fallback.
 ///
-/// [HTML tags and attributes]: https://spec.matrix.org/v1.4/client-server-api/#mroommessage-msgtypes
-/// [rich reply fallbacks]: https://spec.matrix.org/v1.4/client-server-api/#fallbacks-for-rich-replies
+/// [HTML tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
+/// [rich reply fallbacks]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
 pub fn plain_and_formatted_reply_body(
     body: &str,
     formatted: Option<impl fmt::Display>,

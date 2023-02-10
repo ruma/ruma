@@ -1,6 +1,6 @@
 //! Types for the [`m.identity_server`] event.
 //!
-//! [`m.identity_server`]: https://spec.matrix.org/v1.4/client-server-api/#mdirect
+//! [`m.identity_server`]: https://spec.matrix.org/latest/client-server-api/#mdirect
 
 use js_option::JsOption;
 use ruma_macros::EventContent;

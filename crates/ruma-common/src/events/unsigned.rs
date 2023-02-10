@@ -26,7 +26,7 @@ pub struct MessageLikeUnsigned {
 
     /// [Bundled aggregations] of related child events.
     ///
-    /// [Bundled aggregations]: https://spec.matrix.org/v1.4/client-server-api/#aggregations
+    /// [Bundled aggregations]: https://spec.matrix.org/latest/client-server-api/#aggregations
     #[serde(rename = "m.relations", default)]
     pub relations: BundledRelations,
 }
@@ -69,7 +69,7 @@ pub struct StateUnsigned<C: PossiblyRedactedStateEventContent> {
 
     /// [Bundled aggregations] of related child events.
     ///
-    /// [Bundled aggregations]: https://spec.matrix.org/v1.4/client-server-api/#aggregations
+    /// [Bundled aggregations]: https://spec.matrix.org/latest/client-server-api/#aggregations
     #[serde(rename = "m.relations", default)]
     pub relations: BundledRelations,
 }

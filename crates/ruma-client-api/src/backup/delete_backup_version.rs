@@ -5,7 +5,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#delete_matrixclientv3room_keysversionversion
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#delete_matrixclientv3room_keysversionversion
     //!
     //! This deletes a backup version and its room keys.
 

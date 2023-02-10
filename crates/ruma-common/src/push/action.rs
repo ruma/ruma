@@ -8,7 +8,7 @@ use crate::serde::from_raw_json_value;
 /// This represents the different actions that should be taken when a rule is matched, and
 /// controls how notifications are delivered to the client.
 ///
-/// See [the spec](https://spec.matrix.org/v1.4/client-server-api/#actions) for details.
+/// See [the spec](https://spec.matrix.org/latest/client-server-api/#actions) for details.
 #[derive(Clone, Debug)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum Action {

@@ -1,6 +1,6 @@
 //! Types for the [`m.room.redaction`] event.
 //!
-//! [`m.room.redaction`]: https://spec.matrix.org/v1.4/client-server-api/#mroomredaction
+//! [`m.room.redaction`]: https://spec.matrix.org/latest/client-server-api/#mroomredaction
 
 use ruma_macros::{Event, EventContent};
 use serde::{Deserialize, Deserializer, Serialize};

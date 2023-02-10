@@ -1,6 +1,6 @@
 //! Types for the [`m.dummy`] event.
 //!
-//! [`m.dummy`]: https://spec.matrix.org/v1.4/client-server-api/#mdummy
+//! [`m.dummy`]: https://spec.matrix.org/latest/client-server-api/#mdummy
 
 use std::fmt;
 

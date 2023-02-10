@@ -1,6 +1,6 @@
 //! Types for the [`m.room.tombstone`] event.
 //!
-//! [`m.room.tombstone`]: https://spec.matrix.org/v1.4/client-server-api/#mroomtombstone
+//! [`m.room.tombstone`]: https://spec.matrix.org/latest/client-server-api/#mroomtombstone
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

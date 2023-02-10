@@ -1,6 +1,6 @@
 //! Types for the [`m.room.pinned_events`] event.
 //!
-//! [`m.room.pinned_events`]: https://spec.matrix.org/v1.4/client-server-api/#mroompinned_events
+//! [`m.room.pinned_events`]: https://spec.matrix.org/latest/client-server-api/#mroompinned_events
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

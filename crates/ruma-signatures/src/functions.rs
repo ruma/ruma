@@ -135,7 +135,7 @@ where
 
 /// Converts an event into the [canonical] string form.
 ///
-/// [canonical]: https://spec.matrix.org/v1.4/appendices/#canonical-json
+/// [canonical]: https://spec.matrix.org/latest/appendices/#canonical-json
 ///
 /// # Parameters
 ///

@@ -6,7 +6,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/application-service-api/#get_matrixappv1thirdpartyuserprotocol
+    //! [spec]: https://spec.matrix.org/latest/application-service-api/#get_matrixappv1thirdpartyuserprotocol
 
     use std::collections::BTreeMap;
 

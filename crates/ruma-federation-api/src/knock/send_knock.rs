@@ -5,7 +5,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#put_matrixfederationv1send_knockroomideventid
+    //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1send_knockroomideventid
 
     use ruma_common::{
         api::{request, response, Metadata},

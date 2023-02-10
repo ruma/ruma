@@ -5,7 +5,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixmediav3thumbnailservernamemediaid
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixmediav3thumbnailservernamemediaid
 
     use http::header::CONTENT_TYPE;
     use js_int::UInt;

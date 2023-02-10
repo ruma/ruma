@@ -5,7 +5,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3keysquery
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3keysquery
 
     use std::{collections::BTreeMap, time::Duration};
 

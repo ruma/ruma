@@ -2,7 +2,7 @@
 //!
 //! Get login fallback web page.
 //!
-//! [spec]: https://spec.matrix.org/v1.4/client-server-api/#login-fallback
+//! [spec]: https://spec.matrix.org/latest/client-server-api/#login-fallback
 
 use ruma_common::{
     api::{request, response, Metadata},

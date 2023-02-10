@@ -8,7 +8,7 @@
 //!
 //! Note: This endpoint does not contain an unstable variant for 1.0.
 //!
-//! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#get_matrixidentityversions
+//! [spec]: https://spec.matrix.org/latest/identity-service-api/#get_matrixidentityversions
 
 use std::collections::BTreeMap;
 

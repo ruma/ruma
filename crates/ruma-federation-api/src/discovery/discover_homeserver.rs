@@ -2,7 +2,7 @@
 //!
 //! Get discovery information about the domain.
 //!
-//! [spec]: https://spec.matrix.org/v1.4/server-server-api/#getwell-knownmatrixserver
+//! [spec]: https://spec.matrix.org/latest/server-server-api/#getwell-knownmatrixserver
 
 use ruma_common::{
     api::{request, response, Metadata},

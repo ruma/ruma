@@ -2,7 +2,7 @@
 //!
 //! Get the versions of the client-server API supported by this homeserver.
 //!
-//! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientversions
+//! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientversions
 
 use std::collections::BTreeMap;
 

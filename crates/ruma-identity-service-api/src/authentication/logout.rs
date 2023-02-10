@@ -6,7 +6,7 @@
 pub mod v2 {
     //! `/v2/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/identity-service-api/#post_matrixidentityv2accountlogout
+    //! [spec]: https://spec.matrix.org/latest/identity-service-api/#post_matrixidentityv2accountlogout
 
     use ruma_common::{
         api::{request, response, Metadata},

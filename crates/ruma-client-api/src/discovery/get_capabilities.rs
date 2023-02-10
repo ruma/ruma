@@ -3,7 +3,7 @@
 //! Get information about the server's supported feature set and other relevant capabilities
 //! ([spec]).
 //!
-//! [spec]: https://spec.matrix.org/unstable/client-server-api/#capabilities-negotiation
+//! [spec]: https://spec.matrix.org/latest/client-server-api/#capabilities-negotiation
 
 use std::{borrow::Cow, collections::BTreeMap};
 

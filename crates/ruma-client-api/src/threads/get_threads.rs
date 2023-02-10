@@ -5,7 +5,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv1roomsroomidthreads
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv1roomsroomidthreads
 
     use js_int::UInt;
     use ruma_common::{
@@ -104,7 +104,7 @@ pub mod v1 {
         ///
         /// Only include thread roots for threads where [`current_user_participated`] is `true`.
         ///
-        /// [`current_user_participated`]: https://spec.matrix.org/v1.4/client-server-api/#server-side-aggregation-of-mthread-relationships
+        /// [`current_user_participated`]: https://spec.matrix.org/latest/client-server-api/#server-side-aggregation-of-mthread-relationships
         Participated,
 
         #[doc(hidden)]

@@ -5,7 +5,7 @@
 pub mod v2 {
     //! `/v2/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/server-server-api/#get_matrixkeyv2serverkeyid
+    //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixkeyv2serverkeyid
 
     use ruma_common::{
         api::{request, response, Metadata},

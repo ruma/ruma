@@ -5,7 +5,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.4/client-server-api/#post_matrixclientv3roomsroomidban
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3roomsroomidban
 
     use ruma_common::{
         api::{request, response, Metadata},

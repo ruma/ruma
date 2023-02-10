@@ -1,6 +1,6 @@
 //! Common types for the [`m.room.power_levels` event][power_levels].
 //!
-//! [power_levels]: https://spec.matrix.org/v1.4/client-server-api/#mroompower_levels
+//! [power_levels]: https://spec.matrix.org/latest/client-server-api/#mroompower_levels
 
 use js_int::{int, Int};
 use serde::{Deserialize, Serialize};

@@ -1,6 +1,6 @@
 //! Types for the [`m.room.create`] event.
 //!
-//! [`m.room.create`]: https://spec.matrix.org/v1.4/client-server-api/#mroomcreate
+//! [`m.room.create`]: https://spec.matrix.org/latest/client-server-api/#mroomcreate
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

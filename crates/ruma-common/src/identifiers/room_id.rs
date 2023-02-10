@@ -16,7 +16,7 @@ use super::{
 /// assert_eq!(<&RoomId>::try_from("!n8f893n9:example.com").unwrap(), "!n8f893n9:example.com");
 /// ```
 ///
-/// [room ID]: https://spec.matrix.org/v1.4/appendices/#room-ids-and-event-ids
+/// [room ID]: https://spec.matrix.org/latest/appendices/#room-ids-and-event-ids
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
 #[ruma_id(validate = ruma_identifiers_validation::room_id::validate)]
@@ -81,7 +81,7 @@ impl RoomId {
     /// );
     /// ```
     ///
-    /// [routing algorithm]: https://spec.matrix.org/v1.4/appendices/#routing
+    /// [routing algorithm]: https://spec.matrix.org/latest/appendices/#routing
     pub fn matrix_to_uri_via<T>(&self, via: T) -> MatrixToUri
     where
         T: IntoIterator,
@@ -105,7 +105,7 @@ impl RoomId {
     ///
     /// If you don't have a list of servers, you can use [`RoomId::matrix_to_event_uri()`] instead.
     ///
-    /// [routing algorithm]: https://spec.matrix.org/v1.4/appendices/#routing
+    /// [routing algorithm]: https://spec.matrix.org/latest/appendices/#routing
     pub fn matrix_to_event_uri_via<T>(&self, ev_id: impl Into<OwnedEventId>, via: T) -> MatrixToUri
     where
         T: IntoIterator,
@@ -162,7 +162,7 @@ impl RoomId {
     /// );
     /// ```
     ///
-    /// [routing algorithm]: https://spec.matrix.org/v1.4/appendices/#routing
+    /// [routing algorithm]: https://spec.matrix.org/latest/appendices/#routing
     pub fn matrix_uri_via<T>(&self, via: T, join: bool) -> MatrixUri
     where
         T: IntoIterator,
@@ -190,7 +190,7 @@ impl RoomId {
     ///
     /// If you don't have a list of servers, you can use [`RoomId::matrix_event_uri()`] instead.
     ///
-    /// [routing algorithm]: https://spec.matrix.org/v1.4/appendices/#routing
+    /// [routing algorithm]: https://spec.matrix.org/latest/appendices/#routing
     pub fn matrix_event_uri_via<T>(&self, ev_id: impl Into<OwnedEventId>, via: T) -> MatrixUri
     where
         T: IntoIterator,

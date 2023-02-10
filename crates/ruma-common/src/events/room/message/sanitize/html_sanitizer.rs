@@ -9,7 +9,7 @@ use super::{
 
 /// A sanitizer to filter [HTML tags and attributes] according to the Matrix specification.
 ///
-/// [HTML tags and attributes]: https://spec.matrix.org/v1.4/client-server-api/#mroommessage-msgtypes
+/// [HTML tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
 #[derive(Debug, Clone)]
 pub struct HtmlSanitizer {
     /// The mode of the HTML sanitizer.
@@ -37,7 +37,7 @@ impl HtmlSanitizer {
     ///
     /// It can also optionally remove the [rich reply fallback].
     ///
-    /// [rich reply fallback]: https://spec.matrix.org/v1.4/client-server-api/#fallbacks-for-rich-replies
+    /// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
     pub fn new(mode: HtmlSanitizerMode, remove_reply_fallback: RemoveReplyFallback) -> Self {
         Self {
             mode,
@@ -48,7 +48,7 @@ impl HtmlSanitizer {
 
     /// Constructs a `HTMLSanitizer` instance that only removes the [rich reply fallback].
     ///
-    /// [rich reply fallback]: https://spec.matrix.org/v1.4/client-server-api/#fallbacks-for-rich-replies
+    /// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
     pub fn reply_fallback_remover() -> Self {
         Self {
             mode: HtmlSanitizerMode::Strict,
