@@ -368,4 +368,17 @@ mod tests {
             RoomVersionId::try_from("io.ruma.1").expect("Failed to create RoomVersionId.")
         );
     }
+
+    #[test]
+    fn custom_room_id_invalid_character() {
+        assert!(serde_json::from_str::<RoomVersionId>(r#""io_ruma_1""#).is_err());
+        assert!(serde_json::from_str::<RoomVersionId>(r#""=""#).is_err());
+        assert!(serde_json::from_str::<RoomVersionId>(r#""/""#).is_err());
+        assert!(serde_json::from_str::<RoomVersionId>(r#"".""#).is_ok());
+        assert!(serde_json::from_str::<RoomVersionId>(r#""-""#).is_ok());
+        assert_eq!(
+            RoomVersionId::try_from("io_ruma_1").unwrap_err(),
+            IdParseError::InvalidCharacters
+        );
+    }
 }

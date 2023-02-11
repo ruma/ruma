@@ -8,6 +8,8 @@ pub fn validate(s: &str) -> Result<(), Error> {
         Err(Error::Empty)
     } else if s.chars().count() > MAX_CODE_POINTS {
         Err(Error::MaximumLengthExceeded)
+    } else if !s.chars().all(|c| c.is_alphanumeric() || ".-".contains(c)) {
+        Err(Error::InvalidCharacters)
     } else {
         Ok(())
     }
